@@ -6,10 +6,14 @@ a=new AccessibilityTest();
 
 setAccessibility(false);
 
+javax.swing.JInternalFrame.DO_NOTHING_ON_CLOSE;
+
 assert( isEvalError("a.get1()") );
 assert( isEvalError("a.field1") );
 
 setAccessibility(true);
+
+javax.swing.JInternalFrame.DO_NOTHING_ON_CLOSE;
 
 assert(a.get1()==1);
 assert(a.get2()==2);
