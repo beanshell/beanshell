@@ -70,11 +70,11 @@ class BSHType extends SimpleNode
 
         if(arrayDims > 0) {
             try {
-                // construct array which has zero length in all dimensions
-                // (faster than constructing the name by hand - see below)
-                int[] dims = new int[arrayDims];
+                // Get the type by constructing a prototype array with
+				// arbitrary (zero) length in each dimension.
+                int[] dims = new int[arrayDims]; // int array default zeros
                 Object obj = Array.newInstance(baseType, dims);
-                type = obj.getClass();
+                type = obj.getClass(); 
             } catch(Exception e) {
                 throw new EvalError("Couldn't construct array type", this);
             }

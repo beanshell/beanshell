@@ -36,6 +36,10 @@ package bsh;
 
 import java.lang.reflect.Array;
 
+/**
+	The name of this class is somewhat misleading.  This covers both the case
+	where there is an array initializer and 
+*/
 class BSHArrayDimensions extends SimpleNode
 {
 	public Class baseType;
@@ -60,61 +64,73 @@ class BSHArrayDimensions extends SimpleNode
 		return eval( callstack, interpreter );
 	}
 
+	/**
+		Evaluate the structure of the array in one of two ways:
+
+			a) an initializer exists, evaluate it and return
+			the fully constructed array object, also record the dimensions
+			of that array
+			
+			b) evaluate and record the lengths in each dimension and 
+			return void.
+
+		The structure of the array dims is maintained in dimensions.
+	*/
     public Object eval( CallStack callstack, Interpreter interpreter )  
 		throws EvalError
     {
-        int n = jjtGetNumChildren();
-        if(n > 0) 
+		SimpleNode child = (SimpleNode)jjtGetChild(0);
+
+		if (child instanceof BSHArrayInitializer)
+		// evaluate the initializer and the dimensions it returns
 		{
-            SimpleNode child = (SimpleNode)jjtGetChild(0);
-            if (child instanceof BSHArrayInitializer)
-            {
-				if ( baseType == null )
-					throw new EvalError( 
-						"Internal Array Eval err:  unknown base type", this);
+			if ( baseType == null )
+				throw new EvalError( 
+					"Internal Array Eval err:  unknown base type", this);
 
-                Object initValue = ((BSHArrayInitializer)child).eval(
-					baseType, callstack, interpreter);
+			Object initValue = ((BSHArrayInitializer)child).eval(
+				baseType, arrayDims, callstack, interpreter);
 
-                Class arrayClass = initValue.getClass();
-                dimensions = new int[
-					Reflect.getArrayDimensions(arrayClass) ];
+			Class arrayClass = initValue.getClass();
+			dimensions = new int[
+				Reflect.getArrayDimensions(arrayClass) ];
 
-                // compare with number of dimensions explicitly specified
-                if (dimensions.length != arrayDims)
-                    throw new EvalError(
-					"Incompatible initializer. Allocation calls for a " + 
-					arrayDims + " dimensional array, but initializer is a " +
-                        dimensions.length + " dimensional array", this);
+			// compare with number of dimensions explicitly specified
+			if (dimensions.length != arrayDims)
+				throw new EvalError(
+				"Incompatible initializer. Allocation calls for a " + 
+				arrayDims + " dimensional array, but initializer is a " +
+					dimensions.length + " dimensional array", this);
 
-				// fill in dimensions[] lengths
-                Object arraySlice = initValue;
-				for(int i = 0; i < dimensions.length; i++) {
-					dimensions[i] = Array.getLength( arraySlice );
-					if ( dimensions[i] > 0 )
-						arraySlice = Array.get(arraySlice, 0);
+			// fill in dimensions[] lengths
+			Object arraySlice = initValue;
+			for(int i = 0; i < dimensions.length; i++) {
+				dimensions[i] = Array.getLength( arraySlice );
+				if ( dimensions[i] > 0 )
+					arraySlice = Array.get(arraySlice, 0);
+			}
+
+			return initValue;
+		}
+		else 
+		// evaluate the dimensions of the array
+		{
+			dimensions = new int[ jjtGetNumChildren() ];
+			for(int i = 0; i < dimensions.length; i++)
+			{
+				try {
+					Object length = ((SimpleNode)jjtGetChild(i)).eval(
+						callstack, interpreter);
+					dimensions[i] = ((Primitive)length).intValue();
 				}
-
-                return initValue;
-            }
-            else {
-                dimensions = new int[n];
-                for(int i = 0; i < dimensions.length; i++)
-                {
-                    try {
-                        Object length = ((SimpleNode)jjtGetChild(i)).eval(
-							callstack, interpreter);
-                        dimensions[i] = ((Primitive)length).intValue();
-                    }
-                    catch(Exception e)
-                    {
-                        throw new EvalError(
-							"Array index: " + i + 
-							" does not evaluate to an integer", this);
-                    }
-                }
-            }
-        }
+				catch(Exception e)
+				{
+					throw new EvalError(
+						"Array index: " + i + 
+						" does not evaluate to an integer", this);
+				}
+			}
+		}
 
         return Primitive.VOID;
     }

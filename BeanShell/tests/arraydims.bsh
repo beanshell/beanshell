@@ -11,6 +11,11 @@ assert( oa.length == 0 );
 int [][] ia = new int [5][4];
 ia[2][2] = 5;
 
+Object [][][] foo = new Object [2][2][2];
+assert( foo.length == 2 );
+assert( foo[0].length == 2 );
+assert( foo[0][0].length == 2 );
+
 //ia = new int [5][];
 
 assert( ia[2][2] == 5 && ia[2][3] != 5 );
@@ -42,6 +47,24 @@ assert( da[1] == 2.0 );
 la2 = new long [] { 1L, 2, (byte)3 };
 fa2 = new float [] { 1L, 2, (byte)3, (float)3.3, 3.3f };
 da2 = new double [] { 1L, 2, (byte)3, 3.3, 3.3f, 3.3d };
+
+String [][] sa = new String [2][2];
+String [] d1sa = new String [] { "foo", "bar" };
+String [][] d2sa  = new String [][] { d1sa, d1sa };
+
+// multidimensional initializers
+String [][] sa2 = new String [][] { new String [] { "foo" }, new String [] { "foo", "bar" } };
+
+String [][][] sa3 = new String [][][] { 
+		new String [][] { 
+			new String [] { "foo" }, new String [] { "f", "f", } },
+		new String [][] { 
+			new String [] { "foo", "bar", "flag" } } 
+	};
+
+assert( sa3[1][0][2].equals("flag") );
+
+//String [] sa5  = { "foo", "bar"  };
 
 complete();
 

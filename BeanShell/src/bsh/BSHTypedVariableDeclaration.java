@@ -43,21 +43,22 @@ class BSHTypedVariableDeclaration extends SimpleNode
     public Object eval( CallStack callstack, Interpreter interpreter)  
 		throws EvalError
     {
-// need to re-evaluate how we handle these types of eval errors...
 		try {
 			NameSpace namespace = callstack.top();
 			Class type = ((BSHType)jjtGetChild(0)).getType( namespace );
 
 			int n = jjtGetNumChildren();
-			for(int i = 1; i < n; i++)
+			for (int i = 1; i < n; i++)
 			{
-				BSHVariableDeclarator dec = (BSHVariableDeclarator)jjtGetChild(i);
+				BSHVariableDeclarator dec = 
+					(BSHVariableDeclarator)jjtGetChild(i);
+
 				dec.eval( callstack, interpreter);
 				Object value = dec.initValue;
 
-					if (value != null)
-						value = NameSpace.getAssignableForm( value, type);
-					namespace.setTypedVariable( dec.name, type, value, isFinal );
+				if (value != null)
+					value = NameSpace.getAssignableForm( value, type);
+				namespace.setTypedVariable( dec.name, type, value, isFinal );
 			}
 		} catch ( EvalError e ) {
 			e.reThrow( "Typed variable declaration", this );

@@ -625,7 +625,7 @@ void FormalParameter()                  :
  * Type, name and expression syntax follows.
  */
 
-void Type()       :
+SimpleNode Type()       :
 {/*@bgen(jjtree) Type */
   BSHType jjtn000 = new BSHType(JJTTYPE);
   boolean jjtc000 = true;
@@ -635,7 +635,16 @@ void Type()       :
 {/*@bgen(jjtree) Type */
   try {
 /*@egen*/
-  ( PrimitiveType() | AmbiguousName() ) ( "[" "]" { jjtn000.addArrayDimension(); } )*/*@bgen(jjtree)*/
+  ( PrimitiveType() | AmbiguousName() ) 
+	( "[" "]" { jjtn000.addArrayDimension(); } )*/*@bgen(jjtree)*/
+                                                      {
+                                                        jjtree.closeNodeScope(jjtn000, true);
+                                                        jjtc000 = false;
+                                                        jjtreeCloseNodeScope(jjtn000);
+                                                      }
+/*@egen*/ {
+		return jjtn000;
+	}/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
@@ -2344,23 +2353,33 @@ void ForInit() :
   StatementExpressionList()
 }
 
+/**
+	Declared a typed variable.  The type node is saved and passed through
+	to the RHS VariableDeclarator noes for the special case of untyped array 
+	initializers. 
+	e.g.  int [] ia = { 1, 2 };
+*/
 void TypedVariableDeclaration()                           :
 {/*@bgen(jjtree) TypedVariableDeclaration */
-  BSHTypedVariableDeclaration jjtn000 = new BSHTypedVariableDeclaration(JJTTYPEDVARIABLEDECLARATION);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-  jjtreeOpenNodeScope(jjtn000);
-/*@egen*/ Token t = null; }
+        BSHTypedVariableDeclaration jjtn000 = new BSHTypedVariableDeclaration(JJTTYPEDVARIABLEDECLARATION);
+        boolean jjtc000 = true;
+        jjtree.openNodeScope(jjtn000);
+        jjtreeOpenNodeScope(jjtn000);
+/*@egen*/ 
+	Token t = null; 
+}
 {/*@bgen(jjtree) TypedVariableDeclaration */
   try {
 /*@egen*/
-  [ t="final" ] Type() VariableDeclarator() ( "," VariableDeclarator() )*/*@bgen(jjtree)*/
-                                                                           {
-                                                                             jjtree.closeNodeScope(jjtn000, true);
-                                                                             jjtc000 = false;
-                                                                             jjtreeCloseNodeScope(jjtn000);
-                                                                           }
-/*@egen*/  {
+  [ t="final" ] Type() 
+		VariableDeclarator() ( "," VariableDeclarator() )*/*@bgen(jjtree)*/
+        {
+          jjtree.closeNodeScope(jjtn000, true);
+          jjtc000 = false;
+          jjtreeCloseNodeScope(jjtn000);
+        }
+/*@egen*/  
+	{
         jjtn000.isFinal = (t!=null);
     }/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
