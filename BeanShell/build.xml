@@ -1,0 +1,225 @@
+<!--
+	Ant build file for BeanShell
+	http://www.beanshell.org/
+
+	Uses Ant 1.3
+	http://www.apache.org/
+
+	Ant questions -
+
+		- Why can't I nest filesets?  This seems like it would be so easy and
+		useful...
+
+		- Why does a fileset cause an error if the target directory does not
+		exist...  This seems wrong, the set should be empty.  And we can't 
+		control the order of evaluation by wrapping the fileset in a target
+		because they won't accept them...
+-->
+<project name="beanshell" default="compile" basedir=".">
+
+<!-- Project Configuration -->
+
+	<property name="deprecation" value="off"/>
+
+	<!-- choose an alternate compiler -->
+	<!-- 
+		<property name="build.compiler" value="jikes"/> 
+		<property name="build.compiler" value="classic"/> 
+	-->
+
+	<property name="src-dir" value="src" />
+	<property name="test-src-dir" value="tests/classes" />
+	<property name="build-dir" value="classes" />
+	<property name="javadoc-dir" value="javadoc" />
+
+	<property name="javacc-lib" 
+		value="/pkg/javacc/bin/lib/JavaCC.zip"/>
+	<!--property name="javacc-lib" 
+		value="/home/niemeyp/pkg/javacc/bin/lib/JavaCC.zip"/-->
+
+	<!-- 
+		Optional things you can't build under older versions of Java.
+		Is there some way to automate this in Ant?  e.g. to detect a java
+		version or the existence of a class in the classpath?
+	-->
+	<property name="excludes-1.2" 
+		value="bsh/XThis.java,bsh/util/ClassBrowser.java"/>
+
+	<!-- Uncomment to build under JDK1.2 without warnings 
+	<property name="excludes" value="${excludes-1.2}"/>
+	-->
+
+	<property name="javadoc-jar" value="javadoc.jar"/>
+	<property name="corejar" value="bsh-core.jar"/>
+	<property name="alljar" value="bsh.jar"/>
+	<property name="commandsjar" value="bsh-commands.jar"/>
+	<property name="classpathjar" value="bsh-classpath.jar"/>
+	<property name="utiljar" value="bsh-util.jar"/>
+
+
+<!-- Begin Targets -->
+
+	<!-- This is annoying... why aren't the javacc targets smarter? -->
+	<target name="checkjjt">
+		<uptodate property="jjtree.notRequired" 
+				targetfile="${src-dir}/bsh/bsh.jj"
+		>
+			<srcfiles dir="${src-dir}/bsh" includes="bsh.jjt"/>
+		</uptodate>
+	</target>
+	<target name="checkjj">
+		<uptodate property="javacc.notRequired" 
+				targetfile="${src-dir}/bsh/Parser.java"
+		>
+			<srcfiles dir="${src-dir}/bsh" includes="bsh.jj"/>
+		</uptodate>
+	</target>
+
+	<!-- Create bsh.jj when bsh.jjt changes. -->
+	<target name="jjtree" unless="jjtree.notRequired" depends="checkjjt">
+		<java classname="COM.sun.labs.jjtree.Main"
+			fork="yes"
+			failonerror="yes"
+			classpath="${javacc-lib}"
+	>
+			<arg 
+				line="-OUTPUT_DIRECTORY=${src-dir}/bsh ${src-dir}/bsh/bsh.jjt"/>
+		</java>
+	</target>
+
+	<!-- Create Parser.java when bsh.jj changes. -->
+	<target name="javacc" unless="javacc.notRequired" depends="checkjj">
+		<java classname="COM.sun.labs.javacc.Main"
+			fork="yes"
+			failonerror="yes"
+			classpath="${javacc-lib}"
+		>
+			<arg line="-OUTPUT_DIRECTORY=${src-dir}/bsh ${src-dir}/bsh/bsh.jj"/>
+		</java>
+	</target>
+
+	<target name="compile" depends="jjtree,javacc">
+		<mkdir dir="${build-dir}" />
+		<javac srcdir="${src-dir}:${test-src-dir}"
+			destdir="${build-dir}"
+			deprecation="${deprecation}"
+			optimize="off"
+			includes="**/*.java"
+			excludes="${excludes}"
+		/>
+
+		<!-- install the bsh commands -->
+		<!-- install the util/lib stuff -->
+		<copy todir="${build-dir}">
+			<fileset dir="${src-dir}">
+			<patternset refid="commands-bsh-patternset"/>
+			<patternset refid="util-lib-patternset"/>
+			</fileset>
+		</copy>
+	</target>
+
+
+	<target name="javadoc" depends="compile">
+		<mkdir dir="${javadoc-dir}" />
+		<javadoc packagenames="bsh,bsh.util,bsh.classpath"
+			 sourcepath="${src-dir}"
+			 destdir="${javadoc-dir}"
+			 author="true"
+			 version="true"
+			 use="true"
+			 windowtitle="BeanShell"
+			 doctitle="&lt;h1&gt;BeanShell&lt;h1&gt;"
+			 bottom="&lt;em&gt;&#169; 2000 pat@pat.net :-)&lt;/em&gt;"
+		/>
+		<jar jarfile="${javadoc-jar}" basedir="${javadoc-dir}"/>
+	</target>
+
+	<!-- Jar target setup -->
+
+	<target name="clean">
+		<!-- 
+			I'd like to remove the classes dir itself, but ant won't let
+			me.  The filset targets above will error out if the dir doesn't
+			exists... even before they are ever referenced.
+		-->
+		<delete quiet="true" includeEmptyDirs="true">
+			<fileset dir="${build-dir}" includes="**/*"/>
+		</delete>
+
+		<delete quiet="true" dir="${javadoc-dir}"/>
+		<delete file="${javadoc-jar}"/>
+
+		<delete quiet="true" file="${corejar}"/>
+		<delete quiet="true" file="${alljar}"/>
+		<delete quiet="true" file="${utiljar}"/>
+		<delete quiet="true" file="${classpathjar}"/>
+		<delete quiet="true" file="${commandsjar}"/>
+	</target>
+
+	<fileset id="core-fileset" dir="${build-dir}">
+		<patternset>
+			<include name="bsh/*.class"/>
+		</patternset>
+	</fileset>
+
+	<fileset id="classpath-fileset" dir="${build-dir}">
+		<patternset>
+			<include name="bsh/classpath/*.class"/>
+		</patternset>
+	</fileset>
+
+	<fileset id="commands-fileset" dir="${build-dir}">
+		<patternset>
+			<include name="bsh/commands/*.class"/>
+		</patternset>
+		<patternset id="commands-bsh-patternset">
+			<include name="bsh/commands/*.bsh"/>
+			<exclude name="CVS"/>
+		</patternset>
+	</fileset>
+
+	<fileset id="util-fileset" dir="${build-dir}">
+		<patternset>
+			<include name="bsh/util/*.class"/>
+		</patternset>
+		<patternset id="util-lib-patternset">
+			<include name="bsh/util/lib/*"/>
+			<exclude name="CVS"/>
+		</patternset>
+	</fileset>
+
+	<!-- Jar targets -->
+
+	<target name="jarcore" depends="compile">
+		<delete file="${corejar}"/>
+		<jar jarfile="${corejar}" manifest="src/Manifest.interp">
+			<fileset refid="core-fileset"/>
+		</jar>
+	</target>
+
+	<target name="jarall" depends="compile">
+		<delete file="${alljar}"/>
+		<jar jarfile="${alljar}" manifest="src/Manifest.console">
+			<fileset refid="core-fileset"/>
+			<fileset refid="classpath-fileset"/>
+			<fileset refid="util-fileset"/>
+			<fileset refid="commands-fileset"/>
+		</jar>
+	</target>
+
+	<!-- Make the rest of the nitty gritty dist jars -->
+	<target name="dist" depends="compile,jarcore,jarall,javadoc">
+		<delete file="${commandsjar}:${classpathjar}:${utiljar}"/>
+
+		<jar jarfile="${commandsjar}">
+			<fileset refid="commands-fileset"/>
+		</jar>
+		<jar jarfile="${classpathjar}">
+			<fileset refid="classpath-fileset"/>
+		</jar>
+		<jar jarfile="${utiljar}">
+			<fileset refid="util-fileset"/>
+		</jar>
+	</target>
+
+</project>
