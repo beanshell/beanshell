@@ -694,14 +694,13 @@ public class NameSpace
 
 	/**
 		Re-evaluate the usefullness of this...
-		It's a lot faster than sourcing a start up script.  But that just
-		delays lazy stuff until first evaluation.
 	*/
     public void loadDefaultImports() throws IOException
     {
-
 		importPackage("java.lang");
 		importPackage("java.util");
+		importPackage("java.io");
+		importPackage("java.net");
 
 	/*
 		String res = "lib/defaultImports";

@@ -1,5 +1,6 @@
 
 bsh.help.addClassPath= "usage: addClassPath( string | URL )";
+import java.net.URL;
 
 addClassPath( path ) {
 	URL url;
