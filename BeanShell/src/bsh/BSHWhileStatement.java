@@ -37,7 +37,7 @@ package bsh;
 /**
 	This class handles both while(){} statements and do{}while() statements.
 */
-class BSHWhileStatement extends SimpleNode implements InterpreterConstants
+class BSHWhileStatement extends SimpleNode implements ParserConstants
 {
 	public boolean isDoStatement;
 

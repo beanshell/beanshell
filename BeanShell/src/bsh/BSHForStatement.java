@@ -34,7 +34,7 @@
 
 package bsh;
 
-class BSHForStatement extends SimpleNode implements InterpreterConstants
+class BSHForStatement extends SimpleNode implements ParserConstants
 {
     public boolean hasForInit;
     public boolean hasExpression;

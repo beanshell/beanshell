@@ -51,7 +51,7 @@ import java.util.Hashtable;
 	Note: moving some stuff from Reflect to a BshObject, but not going
 	as far as the above yet...
 */
-class LHS implements InterpreterConstants, java.io.Serializable
+class LHS implements ParserConstants, java.io.Serializable
 {
 	NameSpace nameSpace;
 

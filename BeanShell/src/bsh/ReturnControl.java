@@ -37,7 +37,7 @@ package bsh;
 /**
 	Represents a Return, Break, or Continue statement
 */
-class ReturnControl implements InterpreterConstants {
+class ReturnControl implements ParserConstants {
 	public int kind;
 	public Object value;
 

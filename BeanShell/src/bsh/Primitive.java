@@ -40,7 +40,7 @@ package bsh;
 
     See the note in LHS.java about wrapping objects.
 */
-public class Primitive implements InterpreterConstants, java.io.Serializable
+public class Primitive implements ParserConstants, java.io.Serializable
 {
     // stored internally in java.lang. wrappers
     private Object value;

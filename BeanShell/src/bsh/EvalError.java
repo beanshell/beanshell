@@ -35,9 +35,15 @@
 package bsh;
 
 /**
-	The script cannot be evaluated because of an error.
-	e.g. a syntax error, an evaluation error such as referring to an undefined
-	variable, an internal error.
+	EvalError indicates that we cannot continue evaluating the script
+	or the script has thrown an exception.
+
+	EvalError may be thrown for a script syntax error, an evaluation 
+	error such as referring to an undefined variable, an internal error.
+	
+	If the script has thrown an exception the exception will be wrapped
+	in a TargetError.  
+	@see TargetError
 */
 public class EvalError extends Exception {
 	SimpleNode node;

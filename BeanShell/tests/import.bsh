@@ -24,4 +24,8 @@ if ( !result.myClassVisible ) {
 source("Data/import_aux2.bsh");
 assert( myClassVisible );
 
+// test for specific bug
+import Integer;
+Integer foo;
+
 complete();
