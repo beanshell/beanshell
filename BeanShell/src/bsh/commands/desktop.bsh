@@ -3,6 +3,7 @@ import bsh.util.JConsole;
 import bsh.util.Util;
 import bsh.Interpreter;
 import java.awt.Component;
+import bsh.Capabilities;
 
 desktop() {
 	// need a way to set things to void again
@@ -112,6 +113,24 @@ desktop() {
 	}
 
 	frame.addWindowListener( this );
+
+	/*
+		If available, add a listener for classpath mapping
+		I'm planning to implement a GUI progress indicator here
+
+	if ( Capabilities.canGenerateInterfaces() ) 
+	{
+		import bsh.classpath.BshClassPath;
+		classFeedbackListener = new BshClassPath.MappingFeedback() 
+		{
+			startClassMapping() { }
+			classMapping( msg ) { }
+			errorWhileMapping( msg ) { }
+			endClassMapping() { }
+		};
+		BshClassPath.addMappingFeedback( classFeedbackListener );
+	}
+	*/
 
 	// start one terminal
 	makeWorkspace( ""+windowCount++	);

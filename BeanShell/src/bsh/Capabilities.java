@@ -53,7 +53,7 @@ public class Capabilities
 		return classExists( "javax.swing.JButton" );
 	}
 
-	public static boolean haveProxyMechanism() {
+	public static boolean canGenerateInterfaces() {
 		return classExists( "java.lang.reflect.Proxy" );
 	}
 

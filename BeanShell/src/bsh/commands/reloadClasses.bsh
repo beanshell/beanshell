@@ -12,7 +12,7 @@ reloadClasses( item ) {
 
 	try {
 	if ( item instanceof String [] )
-		bcm.reloadClasses( item, this.interpreter );
+		bcm.reloadClasses( item );
 	else {
 		name = item;
 
@@ -22,9 +22,9 @@ reloadClasses( item ) {
 			else
 				pack = name.substring( 0, name.length()-2 );
 			
-			bcm.reloadPackage( pack, this.interpreter );
+			bcm.reloadPackage( pack );
 		} else
-			bcm.reloadClasses( new String[] { name }, this.interpreter );
+			bcm.reloadClasses( new String[] { name } );
 	}
 	} catch ( bsh.ClassPathException e ) {
 		error( e.getMessage() );
