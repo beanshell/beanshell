@@ -93,7 +93,7 @@ public class Interpreter
 {
 	/* --- Begin static stuff --- */
 
-	public static final String VERSION = "1.2b3b";
+	public static final String VERSION = "1.2b4";
 	/* 
 		Debug utils are static so that they are reachable by code that doesn't
 		necessarily have an interpreter reference (e.g. tracing in utils).
@@ -1058,6 +1058,13 @@ public class Interpreter
 
 	public Interpreter getParent() {
 		return parent;
+	}
+	
+	public void setOut( PrintStream out ) {
+		this.out = out;
+	}
+	public void setErr( PrintStream out ) {
+		this.err = err;
 	}
 
 }
