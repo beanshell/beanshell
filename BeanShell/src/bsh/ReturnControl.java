@@ -34,7 +34,7 @@
 
 package bsh;
 
-/*
+/**
 	Represents a Return, Break, or Continue statement
 */
 class ReturnControl implements InterpreterConstants {

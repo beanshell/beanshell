@@ -19,6 +19,7 @@ isEvalError( String text ) {
 	flag = false;
 	try {
 		// eval(text, super.namespace ); doesn't exist yet
+		// eval in the namespace of whomever sourced this file.
 		this.interpreter.eval(text, super.namespace );
 	} catch ( bsh.EvalError e ) {
 		flag = true;

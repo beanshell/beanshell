@@ -37,9 +37,10 @@ package bsh;
 import java.io.*;
 
 /**
-	This is a quick hack to turn empty lines entered on the command line
-	into ';\n' empty lines for the interpreter.  It's just more pleasant to
-	be able to hit return on an empty line and see the prompt reappear.
+	This is a quick hack to turn empty lines entered interactively on the 
+	command line into ';\n' empty lines for the interpreter.  It's just more 
+	pleasant to be able to hit return on an empty line and see the prompt 
+	reappear.
 		
 	This is *not* used when text is sourced from a file non-interactively.
 */
@@ -87,7 +88,7 @@ class CommandLineReader extends FilterReader {
     public int read(char buff[], int off, int len) throws IOException {
 		int b = read();
 		if ( b == -1 )
-			return 0;
+			return -1;  // EOF, not zero read apparently
 		else {
 			buff[off]=(char)b;
 			return 1;

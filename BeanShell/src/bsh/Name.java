@@ -279,6 +279,8 @@ class Name implements java.io.Serializable
 					obj = thisNamespace.getVariableNames();
 				else if (varName.equals("methods"))
 					obj = thisNamespace.getMethodNames();
+				/*else if (varName.equals("caller"))
+					obj = caller; */
 
 		if ( obj == null )
 			obj = thisNamespace.getVariable(varName);
