@@ -26,7 +26,7 @@ class BSHImportDeclaration extends SimpleNode
 		throws EvalError
 	{
 		if ( superImport )
-			
+			NameSpace.doSuperImport( interpreter );
 		else {
 			String name = 
 				((BSHAmbiguousName)jjtGetChild(0)).getName(namespace).value;

@@ -315,6 +315,7 @@ class Name implements java.io.Serializable
 	/*
 	*/
 	synchronized public LHS toLHS( Interpreter interpreter )
+		throws EvalError
 	{
 		evalName = value;
 		evalBaseObject = null;

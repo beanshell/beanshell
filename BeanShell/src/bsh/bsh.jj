@@ -299,7 +299,7 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants, /
 			try { 
 				eval("printBanner();"); 
 			} catch ( EvalError e ) {
-				println("BeanShell 1.01 beta - by Pat Niemeyer (pat@pat.net)");
+				println("BeanShell 1.1 beta - by Pat Niemeyer (pat@pat.net)");
 			}
 
         boolean eof = false;
@@ -364,7 +364,7 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants, /
             catch (EvalError e)
             {
 				String err = 
-					( !interactive ? e.getLocation() : "" )+ e.toString();
+					( !interactive ? e.getLocation() : "" ) + e.getMessage();
                 error( err );
                 if(DEBUG)
                     e.printStackTrace();
@@ -1044,6 +1044,8 @@ void ImportDeclaration()                    :
 {/*@bgen(jjtree) ImportDeclaration */
   try {
 /*@egen*/
+  LOOKAHEAD( 2 )
+
   "import" AmbiguousName() [ t = "." "*" ] ";"/*@bgen(jjtree)*/
                                                {
                                                  jjtree.closeNodeScope(jjtn000, true);
@@ -1053,7 +1055,18 @@ void ImportDeclaration()                    :
 /*@egen*/ {
     if ( t != null )
         jjtn000.importPackage = true;
-    }/*@bgen(jjtree)*/
+    }
+  |
+	// bsh super import statement
+  "import" "*" ";"/*@bgen(jjtree)*/
+                   {
+                     jjtree.closeNodeScope(jjtn000, true);
+                     jjtc000 = false;
+                     jjtreeCloseNodeScope(jjtn000);
+                   }
+/*@egen*/ {
+		jjtn000.superImport = true;
+	}/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);

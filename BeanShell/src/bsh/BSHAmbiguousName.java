@@ -26,7 +26,8 @@ class BSHAmbiguousName extends SimpleNode
         return new Name(namespace, text);
     }
 
-    public Object toObject(NameSpace namespace, Interpreter interpreter) throws EvalError
+    public Object toObject(NameSpace namespace, Interpreter interpreter) 
+		throws EvalError
     {
         return getName(namespace).toObject( interpreter );
     }
@@ -37,6 +38,7 @@ class BSHAmbiguousName extends SimpleNode
     }
 
     public LHS toLHS(NameSpace namespace, Interpreter interpreter)
+		throws EvalError
     {
         return getName(namespace).toLHS( interpreter );
     }
@@ -45,9 +47,11 @@ class BSHAmbiguousName extends SimpleNode
 		The interpretation of an ambiguous name is context sensitive.
 		We disallow a generic eval( ).
 	*/
-    public Object eval(NameSpace namespace, Interpreter interpreter) throws EvalError
+    public Object eval(NameSpace namespace, Interpreter interpreter) 
+		throws EvalError
     {
-		throw new InterpreterError( "Don't know how to eval an ambiguous name!  Use toObject() if you want an object." );
+		throw new InterpreterError( 
+			"Don't know how to eval an ambiguous name!  Use toObject() if you want an object." );
     }
 }
 

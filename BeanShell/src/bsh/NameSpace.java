@@ -22,8 +22,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
 
-// import Name.ClassIdentifier;   // Doesn't work under 1.2.2 ?
-
 /**
     A namespace	in which methods and variables live.  This is package public 
 	because it is used in the implementation of some bsh commands.
@@ -37,14 +35,16 @@ import java.io.IOException;
 public class NameSpace 
 	implements java.io.Serializable, BshClassManager.Listener
 {
+	public String name; 
     private NameSpace parent;
     private Hashtable variables;
     private Hashtable methods;
     private Hashtable importedClasses;
-
-    private Vector importedPackages;
     private This thisReference;
-	public String name; 
+    private Vector importedPackages;
+
+	/** "import *;" operation has been performed */
+	transient private static boolean superImport;
 
 	// Local class cache for classes resolved through this namespace using
 	// getClass() (taking into account imports)
@@ -322,14 +322,18 @@ public class NameSpace
     }
 
     public String getImportedClass(String name)
+		throws ClassPathException
     {
 		String s = null;
 
-		if ( importedClasses != null )
+		if ( s==null && importedClasses != null )
 			s =	(String)importedClasses.get(name);
 
 		if ((s == null) && (parent != null) )
 			return (String)parent.getImportedClass(name);
+
+		if ( superImport )
+			s = BshClassManager.getClassManager().getClassNameByUnqName( name );
 
 		return s;
     }
@@ -372,6 +376,7 @@ public class NameSpace
 		The lazy instantiation of cache here parallels that in get()
 	*/
     public Class getClass(String name)
+		throws ClassPathException
     {
 		Class c	= null;
 
@@ -398,6 +403,7 @@ public class NameSpace
 		Else try to load name.
 	*/
     private Class getClassImpl( String name)
+		throws ClassPathException
     {
 		// Simple (non compound name) check if imported
 		if ( !Name.isCompound(name) )
@@ -458,8 +464,10 @@ public class NameSpace
 	/**
 		Support "import *;"
 	*/
-	public static void superImport( Interpreter feedback ) {
-		BshClassManager.getClassPath().insureInitialized( interpreter );
+	public static void doSuperImport( Interpreter feedback ) 
+	{
+		BshClassManager.getClassManager().doSuperImport( feedback );
+		superImport = true;
 	}
 
     static class TypedVariable implements java.io.Serializable {
