@@ -34,6 +34,7 @@
 package bsh.util;
 
 import bsh.ConsoleInterface;
+import java.awt.Color;
 
 /**
 	Additional capabilities of an interactive console for BeanShell.
@@ -45,6 +46,8 @@ import bsh.ConsoleInterface;
 */
 public interface GUIConsoleInterface extends ConsoleInterface 
 {
+	public void print( String s, Color color );
+
 	public void setNameCompletion( NameCompletion nc );
 
 	/** e.g. the wait cursor */
