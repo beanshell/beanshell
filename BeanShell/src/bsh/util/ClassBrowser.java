@@ -34,15 +34,16 @@ import bsh.ConsoleInterface;
 /**
 	A simple class browser for the BeanShell desktop.
 */
-public class ClassBrowser extends JSplitPane
-	implements ListSelectionListener, TreeSelectionListener {
+public class ClassBrowser extends JSplitPane implements ListSelectionListener 
+	{
 
 	BshClassPath classPath;
 
 	// GUI
 	JFrame frame;
 	JInternalFrame iframe;
-	JList plist, classlist, mlist, conslist;
+	JList classlist, mlist, conslist;
+	PackageTree ptree;
 	JTextArea methodLine;
 	JTree tree;
 	// For JList models
@@ -67,11 +68,20 @@ public class ClassBrowser extends JSplitPane
 	void setClist( String packagename ) {
 		this.selectedPackage = packagename;
 
-		Set s = classPath.getClassesForPackage( packagename );
-		if ( s == null )
+		Set set = classPath.getClassesForPackage( packagename );
+		if ( set == null )
 			return;
 
-		classesList = toSortedStrings(s);
+		// remove inner classes and shorten class names
+		List list = new ArrayList();
+		Iterator it = set.iterator();
+		while (it.hasNext()) {
+			String cname = (String)it.next();
+			if ( cname.indexOf("$") == -1 )
+				list.add( BshClassPath.splitClassname( cname )[1] );
+		}
+
+		classesList = toSortedStrings(list);
 		classlist.setListData( classesList );
 		//setMlist( (String)classlist.getModel().getElementAt(0) );
 	}
@@ -105,7 +115,8 @@ public class ClassBrowser extends JSplitPane
 
 		Class clas;
 		try {
-			selectedClass = BshClassManager.classForName( classname );
+			selectedClass = BshClassManager.classForName( 
+				selectedPackage + "." + classname );
 		} catch ( Exception e ) { 
 			System.out.println(e);
 			return;
@@ -179,11 +190,22 @@ public class ClassBrowser extends JSplitPane
 			}
 		);
 
-		List l = classPath.getPackagesList();
-		packagesList = toSortedStrings(l);
+		Set pset = classPath.getPackagesSet();
 
-		plist=new JList( packagesList );
-		plist.addListSelectionListener(this);
+		ptree = new PackageTree( pset );
+		ptree.addTreeSelectionListener( new TreeSelectionListener() {
+			public void valueChanged(TreeSelectionEvent e) {
+				TreePath tp = e.getPath();
+				Object [] oa = tp.getPath();
+				StringBuffer selectedPackage = new StringBuffer();
+				for(int i=1; i<oa.length; i++) {
+					selectedPackage.append( oa[i].toString() );
+					if ( i+1 < oa.length )
+						selectedPackage.append(".");
+				}
+				setClist( selectedPackage.toString() );
+			}
+		} );
 
 		classlist=new JList();
 		classlist.addListSelectionListener(this);
@@ -205,7 +227,7 @@ public class ClassBrowser extends JSplitPane
 			methodspane );
 		sp = new JSplitPane( 
 			JSplitPane.HORIZONTAL_SPLIT, true, 
-				labeledPane(new JScrollPane(plist), "Packages"), sp);
+				labeledPane(new JScrollPane(ptree), "Packages"), sp);
 
 		JPanel bottompanel = new JPanel( new BorderLayout() );
 		methodLine = new JTextArea(1,60);
@@ -217,8 +239,14 @@ public class ClassBrowser extends JSplitPane
 		methodLine.setBorder( BorderFactory.createRaisedBevelBorder() );
 		bottompanel.add("North", methodLine);
 		JPanel p = new JPanel( new BorderLayout() );
+
 		tree = new JTree();
-		tree.addTreeSelectionListener( this );
+		tree.addTreeSelectionListener( new TreeSelectionListener() {
+			public void valueChanged(TreeSelectionEvent e) {
+				driveToClass( e.getPath().getLastPathComponent().toString() );
+			}
+		} );
+
 		tree.setBorder( BorderFactory.createRaisedBevelBorder() );
 		setClassTree(null);
 		p.add( "Center", tree );
@@ -251,15 +279,13 @@ public class ClassBrowser extends JSplitPane
 		this.iframe = frame;
 	}
 
-	public void valueChanged(TreeSelectionEvent e) {
-		driveToClass( e.getPath().getLastPathComponent().toString() );
-	}
-
 	public void valueChanged(ListSelectionEvent e) {
-		if ( e.getSource() == plist ) {
+		/*
+		if ( e.getSource() == plist) {
 			String selectedPackage = (String)plist.getSelectedValue();
 			setClist( selectedPackage );
 		} else
+		*/
 		if ( e.getSource() == classlist ) {
 			String classname = (String)classlist.getSelectedValue();
 			setMlist( classname );
@@ -282,6 +308,7 @@ public class ClassBrowser extends JSplitPane
 
 	// fully qualified classname
 	public void driveToClass( String classname ) {
+System.out.println("drive to: "+classname);
 		String [] sa = BshClassPath.splitClassname( classname );
 		String packn = sa[0];
 		String classn = sa[1];
@@ -290,6 +317,7 @@ public class ClassBrowser extends JSplitPane
 		if ( classPath.getClassesForPackage(packn) == null )
 			return;
 
+		/*
 		boolean found = false;
 		for(int i=0; i< packagesList.length; i++) {
 			if ( packagesList[i].equals(packn) ) {
@@ -301,6 +329,8 @@ public class ClassBrowser extends JSplitPane
 		}
 		if ( !found )
 			return;
+		*/
+		ptree.setSelectedPackage( packn );
 
 		for(int i=0; i< classesList.length; i++) {
 			if ( classesList[i].equals(classn) ) {
@@ -318,4 +348,109 @@ public class ClassBrowser extends JSplitPane
 		if ( iframe != null )
 			iframe.toFront();		
 	}
+
+	class PackageTree extends JTree 
+	{
+		TreeNode root;
+		DefaultTreeModel treeModel;
+		Map nodeForPackage = new HashMap();
+
+		PackageTree( Collection packages ) {
+			treeModel = makeTreeModel(packages);
+			setModel( treeModel );
+
+			setRootVisible(false);
+			setShowsRootHandles(false);
+			setExpandsSelectedPaths(true);
+
+			// open top level paths
+			/*
+			Enumeration e1=root.children();
+			while( e1.hasMoreElements() ) {
+				TreePath tp = new TreePath( 
+					treeModel.getPathToRoot( (TreeNode)e1.nextElement() ) );
+				expandPath( tp );
+			}
+			*/
+		}
+		
+		DefaultTreeModel makeTreeModel( Collection packages ) 
+		{
+			Map packageTree = new HashMap();
+
+			Iterator it=packages.iterator();
+			while( it.hasNext() ) {
+				String pack = (String)(it.next());
+				String [] sa = StringUtil.split( pack, "." );
+				Map level=packageTree;
+				for (int i=0; i< sa.length; i++ ) {
+					String name = sa[i];
+					Map map=(Map)level.get( name );
+
+					if ( map == null ) {
+						map=new HashMap();
+						level.put( name, map );
+					} 
+					level = map;
+				}
+			}
+
+			root = makeNode( packageTree, "root" );
+			return new DefaultTreeModel( root );
+		}
+
+
+		MutableTreeNode makeNode( Map map, String nodeName ) 
+		{
+			DefaultMutableTreeNode node = 
+				new DefaultMutableTreeNode( nodeName );
+			Iterator it=map.keySet().iterator();
+			while(it.hasNext() ) {
+				String name = (String)it.next();
+				Map val = (Map)map.get(name);
+				if ( val.size() == 0 ) {
+					DefaultMutableTreeNode leaf = 
+						new DefaultMutableTreeNode( name );
+					node.add( leaf );
+					addToMap( leaf );
+				} else
+					node.add( makeNode( val, name ));
+			}
+
+			return node;
+		}
+
+		/**
+			Map out the location of the leaf nodes by package name.
+			Seems like we should be able to do this while we build above...
+		*/
+		void addToMap( DefaultMutableTreeNode node ) {
+			StringBuffer sb = new StringBuffer();
+			TreeNode tn = node;
+			while( tn != null ) {
+				sb.insert(0, tn.toString() );
+				if ( tn.getParent() != null )
+					sb.insert(0, "." );
+				tn = tn.getParent();
+			}
+			String pack = sb.toString();
+
+//System.out.println("mapping package: "+pack);
+			nodeForPackage.put( pack, node );
+		}
+
+		void setSelectedPackage( String pack ) {
+System.out.println("selecting package: "+pack);
+			DefaultMutableTreeNode node = 
+				(DefaultMutableTreeNode)nodeForPackage.get(pack);
+			if ( node == null )
+				return;
+System.out.println("here: "+pack);
+
+			TreePath tp = new TreePath(treeModel.getPathToRoot( node ));
+			setSelectionPath( tp );
+		}
+
+	}
+
 }
