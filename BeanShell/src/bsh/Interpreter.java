@@ -569,7 +569,8 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
 		name may be any value. e.g. a variable or field
 	*/
     public Object get( String name ) throws EvalError {
-                Object ret = new Name( globalNameSpace, name ).toObject( this );
+                //Object ret = new Name( globalNameSpace, name ).toObject( this );
+                Object ret = globalNameSpace.get( name, this );
                 return unwrap( ret );
         }
 
