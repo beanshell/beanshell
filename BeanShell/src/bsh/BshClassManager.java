@@ -29,8 +29,25 @@ public class BshClassManager
 		The classpath of the base loader.  Initially empty.
 		This grows as paths are added or is reset when the classpath 
 		is explicitly set.
+		This could also be called the "extension" class path, but is not
+		strictly confined to added path (could be set arbitrarily by
+		setClassPath())
 	*/
 	BshClassPath baseClassPath;
+
+	/**
+		This is the full blown classpath including baseClassPath (extensions),
+		user path, and java bootstrap path (rt.jar)
+
+		This is lazily constructed and further (and more importantly) lazily 
+		intialized in components because mapping the full path could be 
+		expensive.
+
+		The full class path is a composite of:
+			baseClassPath (user extension) : userClassPath : bootClassPath 
+		in that order.
+	*/
+	BshClassPath fullClassPath;
 
 	// ClassPath Change listeners
 	Vector listeners = new Vector();
@@ -164,33 +181,30 @@ public class BshClassManager
 	}
 
 	/**
-		Set the base classpath with a new classloader.
-		This means all types change.  This also resets the bsh classpath 
-		object which may be expensive to regenerate.
+		Set a new base classpath and create a new base classloader.
+		This means all types change. 
 	*/
 	public void setClassPath( URL [] cp ) {
-		reset();
-		baseClassPath.add( cp );
+		baseClassPath.setPath( cp );
 		initBaseLoader();
-
-		// fire after change...  semantics are "has changed"
 		classLoaderChanged();
 	}
 
 	/**
 		Overlay the entire path with a new class loader.
+		Set the base path to the user path + base path.
+
+		No point in including the boot class path (can't reload thos).
 	*/
 	public void reloadAllClasses() {
-		List list = new ArrayList();
-		list.addAll( Arrays.asList( baseClassPath.getPathComponents() ) );
-		list.addAll( Arrays.asList( 
-			BshClassPath.getUserClassPathComponents() ) );
-		URL [] urls = (URL[])list.toArray( new URL[0] );
-		setClassPath( urls );
+		BshClassPath bcp = new BshClassPath();
+		bcp.add( baseClassPath );
+		bcp.add( BshClassPath.getUserClassPath() );
+		setClassPath( bcp.getPathComponents() );
 	}
 
 	/**
-		init the base loader from the current classpath
+		init the baseLoader from the baseClassPath
 	*/
 	private void initBaseLoader() {
 		baseLoader = new BshClassLoader( baseClassPath );
@@ -218,12 +232,15 @@ public class BshClassManager
 		for (int i=0; i< classNames.length; i++) {
 			String name = classNames[i];
 
-			// look in base loader class path 
+			// look in baseLoader class path 
 			Object o = baseClassPath.getClassSource( name );
 
 			// look in user class path 
 			if ( o == null )
 				o = BshClassPath.getUserClassPath().getClassSource( name );
+
+			// No point in checking boot class path, can't reload those.
+			// else we could have used fullClassPath above.
 				
 			if ( o == null )
 				throw new ClassPathException("Nothing known about class: "
@@ -262,6 +279,8 @@ public class BshClassManager
 			classes = 
 				BshClassPath.getUserClassPath().getClassesForPackage( pack );
 
+		// no point in checking boot class path, can't reload those
+
 		if ( classes == null )
 			throw new ClassPathException("No classes found for package: "+pack);
 
@@ -280,11 +299,23 @@ public class BshClassManager
 	// end reloading
 
 	/**
-	which one?
-	public BshClassPath getClassPath() {
-		return baseClassPath;
-	}
+		Get the full blown classpath.
 	*/
+	public BshClassPath getClassPath() {
+		if ( fullClassPath != null )
+			return fullClassPath;
+	
+		fullClassPath = new BshClassPath();
+		fullClassPath.add( BshClassPath.getUserClassPath() );
+		try {
+			fullClassPath.add( BshClassPath.getBootClassPath() );
+		} catch ( ClassPathException e ) { 
+			System.err.println("Warning: can't get boot class path");
+		}
+		fullClassPath.add( baseClassPath );
+
+		return fullClassPath;
+	}
 
 	public static Class classForName( String name ) {
 		return getClassManager().getClassForName( name );

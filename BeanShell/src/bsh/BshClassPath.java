@@ -7,38 +7,71 @@ import java.net.*;
 import java.io.File;
 
 /**
-	Maps all classes in a specified set of URLs which may include:
+	A BshClassPath encapsulates knowledge about a class path of URLs.
+	It can maps all classes the path which may include:
 		jar/zip files and base dirs
 
-	Note: No classpath traversal is done unless/util a call is made to 
+	A BshClassPath may composite other BshClassPaths as components of its
+	path and will reflect changes in those components through its methods
+	and listener interface.
+
+	Classpath traversal is done lazily when a call is made to 
 		getClassesForPackage() or getClassSource()
+	or can be done explicitily through insureInitialized().
 */
 public class BshClassPath 
 {
 	/** Set of all classes in a package */
-	Map packageMap = new HashMap();
+	Map packageMap;
 
 	/** Map of source (URL or File dir) of every clas */
-	Map classSource = new HashMap();
+	Map classSource;
 
 	/**  Do lazy initialization of the maps... */
-	boolean mapsInitialized = false;
-	List path = new ArrayList();
+	boolean mapsInitialized;
+
+	/** The URL path components */
+	private List path;
+
+	/** components BshClassPaths */
+	private List compPaths;
+
+	// constructors
+
+	public BshClassPath() { 
+		reset();
+	}
 
 	public BshClassPath( URL [] urls ) {
+		this();
 		add( urls );
 	}
-	public BshClassPath() { }
 
-	public URL [] getPathComponents() {
-		return (URL[])path.toArray( new URL[0] );
+	// end constructors
+
+	// mutators
+
+	public void setPath( URL[] urls ) {
+		reset();
+		add( urls );
 	}
 
-	/*
-	public BshClassPath( BshClassPath bcp ) {
-		path = bcp.path;
-	}
+	/**
+		Add the specified BshClassPath as a component of our path.
+		Changes in the bcp will be reflected through us.
 	*/
+	public void add( BshClassPath bcp ) { 
+		if ( compPaths == null )
+			compPaths = new ArrayList();
+		compPaths.add( bcp );
+	}
+
+	/**
+		Get the path components including any component paths.
+	*/
+	public URL [] getPathComponents() {
+		return (URL[])getFullPath().toArray( new URL[0] );
+	}
 
 	public void add( URL [] urls ) { 
 		path.addAll( Arrays.asList(urls) );
@@ -57,7 +90,11 @@ public class BshClassPath
 	*/
 	public Collection getClassesForPackage( String pack ) {
 		insureInitialized();
-		return (Collection)packageMap.get( pack );
+		Collection col = (Collection)packageMap.get( pack );
+		if ( col == null && compPaths != null )
+			for (int i=0; i<compPaths.size() && col==null; i++)
+				col = ((BshClassPath)compPaths.get(i)).getClassesForPackage( pack );
+		return col;
 	}
 
 	/**
@@ -66,27 +103,35 @@ public class BshClassPath
 	*/
 	public ClassSource getClassSource( String className ) {
 		insureInitialized();
-		return (ClassSource)classSource.get( className );
+		ClassSource cs = (ClassSource)classSource.get( className );
+		if ( cs == null && compPaths != null )
+			for (int i=0; i<compPaths.size() && cs==null; i++)
+				cs = ((BshClassPath)compPaths.get(i)).getClassSource( className );
+		return cs;
 	}
 
 	/**
 		If the claspath map is not initialized, do it.
+		Note: this does not initialize any component classpaths.
 		
+		Random note:
 		Should this be "insure" or "ensure".  I know I've seen "ensure" used
 		in the JDK source.  Here's what Webster has to say:
 
-		Main Entry:ensure
-		Pronunciation:in-'shur
-		Function:transitive verb
-		Inflected Form(s):ensured; ensuring
-		: to make sure,	certain, or safe : GUARANTEE
-		synonyms ENSURE, INSURE, ASSURE, SECURE	mean to	make a thing or	person
-		sure. ENSURE, INSURE, and ASSURE are interchangeable in	many contexts
-		where they indicate the	making certain or inevitable of	an outcome, but
-		INSURE sometimes stresses the taking of	necessary measures beforehand,
-		and ASSURE distinctively implies the removal of	doubt and suspense from
-		a person's mind. SECURE	implies	action taken to	guard against attack or
-		loss.
+			Main Entry:ensure Pronunciation:in-'shur
+			Function:transitive verb Inflected
+			Form(s):ensured; ensuring : to make sure,
+			certain, or safe : GUARANTEE synonyms ENSURE,
+			INSURE, ASSURE, SECURE mean to make a thing or
+			person sure. ENSURE, INSURE, and ASSURE are
+			interchangeable in many contexts where they
+			indicate the making certain or inevitable of an
+			outcome, but INSURE sometimes stresses the
+			taking of necessary measures beforehand, and
+			ASSURE distinctively implies the removal of
+			doubt and suspense from a person's mind. SECURE
+			implies action taken to guard against attack or
+			loss.
 	*/
 	public void insureInitialized() {
 		if ( !mapsInitialized )
@@ -97,6 +142,17 @@ public class BshClassPath
 	public boolean isInitialized() {
 		return mapsInitialized;
 	}
+
+
+	protected List getFullPath() {
+		List list = new ArrayList();
+		if ( compPaths != null )
+			for (int i=0; i<compPaths.size(); i++)
+				list.addAll( ((BshClassPath)compPaths.get(i)).getFullPath() );
+		list.addAll( path );
+		return list;
+	}
+
 
 	void map( URL [] urls ) { 
 		for(int i=0; i< urls.length; i++)
@@ -152,6 +208,12 @@ public class BshClassPath
 			classSource.put( className, source );
 	}
 
+	private void reset() {
+		packageMap = new HashMap();
+		classSource = new HashMap();
+		mapsInitialized = false;
+		path = new ArrayList();
+	}
 
 	static String [] traverseDirForClasses( File dir ) 
 		throws IOException	
@@ -337,8 +399,8 @@ public class BshClassPath
 		BshClassPath bcp = new BshClassPath( urls );
 	}
 
-
 	public String toString() {
 		return "BshClassPath: "+path;
 	}
+
 }
