@@ -1,0 +1,5 @@
+
+error( item ) {
+	this.interpreter.error( String.valueOf(item) );
+}
+
