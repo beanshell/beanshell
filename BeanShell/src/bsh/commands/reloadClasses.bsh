@@ -2,6 +2,9 @@
 bsh.help.reloadClasses= 
 	"usage: reloadClasses( String class | String package | String [] classes )";
 
+/**
+	Reload specified set of classes
+*/
 reloadClasses( item ) {
 	bcm = bsh.BshClassManager.getClassManager();
 
@@ -28,3 +31,9 @@ reloadClasses( item ) {
 	}
 }
 
+/**
+	Reload all classes
+*/
+reloadClasses() {
+	bsh.BshClassManager.getClassManager().reloadAllClasses();
+}

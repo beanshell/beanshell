@@ -44,7 +44,7 @@ class BSHMethodDeclaration extends SimpleNode
 		if(block == null) {
 			// We will allow methods to be re-written.
 			/*  
-			if(namespace.getMethod(name) != null)
+			if( namespace has method )
 				throw new EvalError(
 				"Method: " + name + " already defined in scope", this);
 			*/

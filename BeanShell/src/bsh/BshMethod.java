@@ -37,6 +37,14 @@ class BshMethod implements java.io.Serializable
 	}
 
 	/**
+		Note: bshmethod needs to re-evaluate arg types here
+		BSHMethod is broken
+	*/
+	public Class [] getArgTypes() {
+		return method.params.argTypes ;
+	}
+
+	/**
 		Invoke the bsh method with the specified args and interpreter ref.
 	*/
 	public Object invokeDeclaredMethod( 

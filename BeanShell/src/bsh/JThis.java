@@ -69,8 +69,10 @@ class JThis extends This implements
 		BshMethod method;
 
 		// handleEvent gets all events
-		method = namespace.getMethod("handleEvent");
-		if(method != null)
+		method = namespace.getMethod( 
+			"handleEvent", new Class [] { null } );
+
+		if (method != null)
 			try {
 				method.invokeDeclaredMethod( 
 					new Object[] { event }, declaringInterpreter );
@@ -80,8 +82,8 @@ class JThis extends This implements
 			}
 
 		// send to specific event handler
-		method = namespace.getMethod(name);
-		if(method != null)
+		method = namespace.getMethod( name, new Class [] { null } );
+		if (method != null)
 			try {
 				method.invokeDeclaredMethod( 
 					new Object[] { event }, declaringInterpreter );
@@ -92,7 +94,6 @@ class JThis extends This implements
 	}
 
 	// Listener interfaces
-
 
     public void ancestorAdded(AncestorEvent e) { event("ancestorAdded", e); }
     public void ancestorRemoved(AncestorEvent e) { event("ancestorRemoved", e); }
@@ -185,7 +186,8 @@ class JThis extends This implements
     public boolean imageUpdate(java.awt.Image img, int infoflags,
                                int x, int y, int width, int height) {
 
-		BshMethod method = namespace.getMethod("imageUpdate");
+		BshMethod method = namespace.getMethod( "imageUpdate",
+			new Class [] { null, null, null, null, null, null } );
 		if(method != null)
 			try {
 				method.invokeDeclaredMethod( 

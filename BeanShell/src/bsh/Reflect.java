@@ -18,12 +18,13 @@ import java.lang.reflect.*;
 import java.io.*;
 import java.util.Vector;
 
-// import Name.ClassIdentifier;  // does not work with 1.2.2?
-
 /**
     All of the reflection API code lies here.  It is in the form
 	of static utilities.  See the design note about object wrappers 
 	in LHS.java for lamentations regarding this.
+
+	Note: More work to do in here to fix up the extended signature matching.
+	need to work in a search along with findMostSpecificSignature...
 */
 class Reflect {
 
@@ -326,7 +327,7 @@ class Reflect {
         return sb.toString();
     }
 
-    private static Class[] getTypes(Object[] args)
+    public static Class[] getTypes( Object[] args)
     {
         if(args == null)
             return new Class[0];
@@ -408,23 +409,17 @@ class Reflect {
 			throw new ReflectError("Can't find constructor: " 
 				+ clas );
 
-        try
-        {
+        try {
             obj = con.newInstance(args);
-        }
-        catch(InstantiationException e)
-        {
+        } catch(InstantiationException e) {
             throw new ReflectError("the class is abstract ");
-        }
-        catch(IllegalAccessException e)
-        {
-            throw new ReflectError("we don't have permission to create an instance");
-        }
-        catch(IllegalArgumentException e)
-        {
+        } catch(IllegalAccessException e) {
+            throw new ReflectError(
+				"we don't have permission to create an instance");
+        } catch(IllegalArgumentException e) {
             throw new ReflectError("the number of arguments was wrong");
-        }
-        if(obj == null)
+        } 
+		if (obj == null)
             throw new ReflectError("couldn't construct the object");
 
         return obj;
@@ -454,46 +449,6 @@ class Reflect {
 			return null;
 		else
 			return (Method)meths.elementAt( match );
-
-	/*
-        Class[] bestMatch = null;
-        Method bestMatchMethod = null;
-
-        Interpreter.debug("Find most specific method for " + 
-			methodString("args", idealMatch));
-
-        for(int i=0; i<methods.length; i++)
-        {
-            Class[] targetMatch = methods[i].getParameterTypes();
-
-            /
-                If name is right and idealMatch fits targetMatch and this
-                is the first match or targetMatch is more specific than the
-                best match, make it the new best match.
-            /
-            if (name.equals(methods[i].getName()) &&
-                isAssignable(idealMatch, targetMatch ) &&
-                ((bestMatch == null) ||
-                    isAssignable( targetMatch, bestMatch )))
-            {
-                bestMatch = targetMatch;
-                bestMatchMethod = methods[i];
-            }
-        }
-
-        if(bestMatch != null)
-        {
-            Interpreter.debug("best match: " + bestMatchMethod);
-            return bestMatchMethod;
-        }
-        else
-        {
-            Interpreter.debug("no match found");
-            return null;
-        }
-	*/
-
-
     }
 
 	/**
@@ -544,51 +499,16 @@ class Reflect {
 			return null;
 		else
 			return constructors[ match ];
-
-	
-	/*
-        Class[] bestMatch = null;
-        Constructor bestMatchConstructor = null;
-
-        Interpreter.debug("Find most specific constructor for "
-            + methodString("args", idealMatch));
-
-        for(int i=0; i<constructors.length; i++)
-        {
-            Class[] targetMatch = constructors[i].getParameterTypes();
-
-            if(isAssignable(idealMatch, targetMatch) &&
-                ((bestMatch == null) ||
-                    isAssignable(targetMatch, bestMatch)))
-            {
-                bestMatch = targetMatch;
-                bestMatchConstructor = constructors[i];
-            }
-        }
-
-        if(bestMatch != null)
-        {
-            Interpreter.debug("best match: " + bestMatchConstructor);
-            return bestMatchConstructor;
-        }
-        else
-        {
-            Interpreter.debug("no match found");
-            return null;
-        }
-
-	*/
-
-
     }
 
 
-	/*
+	/**
 		This uses the NameSpace.checkAssignableFrom() method to determine
 		compatability of args.  This allows special (non standard Java) bsh 
 		widening operations...
 	*/
-    static Constructor findExtendedConstructor(Object[] args, Constructor[] constructors)
+    static Constructor findExtendedConstructor(
+		Object[] args, Constructor[] constructors )
     {
         Constructor bestMatch = null;
         Object[] tempArgs = new Object[args.length];
@@ -655,17 +575,33 @@ class Reflect {
 		}
 	}
 
+	/**
+		Determine if the 'from' signature is assignable to the 'to' signature
+		'from' arg types, 'to' candidate types
+		null value in 'to' type parameter indicates loose type.
+
+		null value in either arg is considered empty array
+	*/
     static boolean isAssignable(Class[] from, Class[] to)
     {
+		if ( from == null )
+			from = new Class[0];
+		if ( to == null )
+			to = new Class[0];
+
         if(from.length != to.length)
             return false;
 
         for(int i=0; i<from.length; i++)
         {
-            // Let null match any object type
-            if(from[i] == null)
-            {
-                if(!(to[i].isPrimitive()))
+			// Null type indicates loose type.  Match anything.
+			if ( to[i] == null )
+				continue;
+
+            // Let null arg type match any reference type
+            if (from[i] == null) {
+
+                if (!(to[i].isPrimitive()))
                     continue;
                 else
                     return false;

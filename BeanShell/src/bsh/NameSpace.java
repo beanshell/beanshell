@@ -30,6 +30,9 @@ import java.io.IOException;
 
 	A bsh.This object is a thin layer over a NameSpace.  Together they 
 	comprise a bsh scripted object context.
+
+	Note: I'd really like to use collections here, but we have to keep this
+	compatible with JDK1.1 
 */
 public class NameSpace 
 	implements java.io.Serializable, BshClassManager.Listener
@@ -243,14 +246,59 @@ public class NameSpace
 		variables.put(name, new	TypedVariable(type, value, isFinal));
     }
 
-    public void	setMethod(String name, BshMethod method) {
+    public void	setMethod(String name, BshMethod method) 
+	{
 		if(methods == null)
 			methods = new Hashtable();
-		//System.out.println("setting method: "+method+"in namespace: "+this);
-		methods.put(name, method);
-		
+
+		Object m = methods.get(name);
+
+		if ( m == null )
+			methods.put(name, method);
+		else 
+		if ( m instanceof BshMethod ) {
+			Vector v = new Vector();
+			v.addElement( m );
+			v.addElement( method );
+			methods.put( name, v );
+		} else // Vector
+			((Vector)m).addElement( method );
     }
 
+	/**
+		Get the bsh method matching the specified signature declared in 
+		this name space or a parent.
+	*/
+    public BshMethod getMethod( String name, Class [] sig ) 
+	{
+		BshMethod method = null;
+
+		Object m = null;
+		if ( methods != null )
+			m = methods.get(name);
+
+		if ( m instanceof Vector ) {
+			Vector vm = (Vector)m;
+			BshMethod [] ma = new BshMethod[ vm.size() ];
+			vm.copyInto( ma );
+
+			Class [][] candidates = new Class[ ma.length ][];
+			for( int i=0; i< ma.length; i++ )
+				candidates[i] = ma[i].getArgTypes();
+
+			int match = Reflect.findMostSpecificSignature( sig, candidates );
+			if ( match != -1 )
+				method = ma[match];
+		} else
+			method = (BshMethod)m;
+			
+		if ((method == null) && (parent != null))
+			return parent.getMethod( name, sig );
+
+		return method;
+    }
+
+	/*
     public BshMethod getMethod(String name) {
 		BshMethod method = null;
 
@@ -262,6 +310,7 @@ public class NameSpace
 
 		return method;
     }
+	*/
 
     public void	importClass(String name)
     {
@@ -595,12 +644,12 @@ public class NameSpace
 		throws EvalError
 	{
 		// Look for method in the bsh object
-        BshMethod meth = getMethod(methodName);
+        BshMethod meth = getMethod( methodName, Reflect.getTypes( args ) );
         if ( meth != null )
            return meth.invokeDeclaredMethod( args, interpreter );
 
 		// Look for a default invoke() handler method
-		meth = getMethod( "invoke" );
+		meth = getMethod( "invoke", new Class [] { null, null } );
 
 		// Call script "invoke( String methodName, Object [] args );
 		if ( meth != null )

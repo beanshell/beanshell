@@ -30,11 +30,9 @@ class BSHFormalParameters extends SimpleNode
 	{
 		numArgs = jjtGetNumChildren();
 
-		if(numArgs > 0)
-		{
-			argNames = new String[numArgs];
-			argTypes = new Class[numArgs];
-		}
+		argNames = new String[numArgs];
+		argTypes = new Class[numArgs];
+
 		for(int i=0; i<numArgs; i++)
 		{
 			BSHFormalParameter param = (BSHFormalParameter)jjtGetChild(i);
