@@ -354,6 +354,7 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < SYNCHRONIZED: "synchronized" >
 | < TRANSIENT: "transient" >
 | < THROW: "throw" >
+| < THROWS: "throws" >
 | < TRUE: "true" >
 | < TRY: "try" >
 | < VOID: "void" >
@@ -596,6 +597,7 @@ void MethodDeclaration()                    :
 /*@egen*/ 
 	Token t = null; 
 	Modifiers mods;
+	int count;
 }
 {/*@bgen(jjtree) MethodDeclaration */
         try {
@@ -603,7 +605,9 @@ void MethodDeclaration()                    :
 	mods = Modifiers( Modifiers.METHOD, false ) { jjtn000.modifiers = mods; }
     [ LOOKAHEAD( { methodHasReturnType() } ) ReturnType() ]
 	t = <IDENTIFIER> { jjtn000.name = t.image; }
-    FormalParameters() Block()/*@bgen(jjtree)*/
+    FormalParameters() 
+	[ "throws" count=NameList() { jjtn000.numThrows=count; } ] 
+	Block()/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -641,10 +645,10 @@ void MethodDeclarationLookahead() : { }
 {
 	Modifiers( Modifiers.METHOD, true )
   (
-    LOOKAHEAD( { methodHasReturnType() }  )
-    ReturnType() <IDENTIFIER> FormalParameters() "{"
+    LOOKAHEAD( { methodHasReturnType() }  ) ReturnType() 
+	<IDENTIFIER> FormalParameters() [ "throws" NameList() ] "{"
 |
-	<IDENTIFIER> FormalParameters() "{"
+	<IDENTIFIER> FormalParameters() [ "throws" NameList() ] "{"
   )
 }
 
@@ -1055,9 +1059,9 @@ try {
 
 void AmbiguousName()                :
 /*
- * A lookahead of 2 is required below since "Name" can be followed
- * by a ".*" when used in the context of an "ImportDeclaration".
- */
+	A lookahead of 2 is required below since "Name" can be followed by a ".*"
+	when used in the context of an "ImportDeclaration".
+*/
 {/*@bgen(jjtree) AmbiguousName */
     BSHAmbiguousName jjtn000 = new BSHAmbiguousName(JJTAMBIGUOUSNAME);
     boolean jjtc000 = true;
@@ -1070,21 +1074,18 @@ void AmbiguousName()                :
 {/*@bgen(jjtree) AmbiguousName */
   try {
 /*@egen*/
-  t = <IDENTIFIER> {
-        s = new StringBuffer(t.image);
-    }
-  ( LOOKAHEAD(2) "." t = <IDENTIFIER> {
-        s.append("."+t.image);
-    }
-  )*/*@bgen(jjtree)*/
-     {
-       jjtree.closeNodeScope(jjtn000, true);
-       jjtc000 = false;
-       jjtreeCloseNodeScope(jjtn000);
-     }
-/*@egen*/ {
-        jjtn000.text = s.toString();
-    }/*@bgen(jjtree)*/
+  t = <IDENTIFIER> { 
+  	s = new StringBuffer(t.image); 
+  }
+  ( LOOKAHEAD(2) "." t = <IDENTIFIER> { s.append("."+t.image); } )*/*@bgen(jjtree)*/
+                                                                    {
+                                                                      jjtree.closeNodeScope(jjtn000, true);
+                                                                      jjtc000 = false;
+                                                                      jjtreeCloseNodeScope(jjtn000);
+                                                                    }
+/*@egen*/ { 
+  	jjtn000.text = s.toString(); 
+  }/*@bgen(jjtree)*/
   } finally {
     if (jjtc000) {
       jjtree.closeNodeScope(jjtn000, true);
@@ -1092,6 +1093,13 @@ void AmbiguousName()                :
     }
   }
 /*@egen*/
+}
+
+int NameList() :
+{ int count = 0; }
+{
+  AmbiguousName() { ++count; } ( "," AmbiguousName() { ++count; } )*
+  { return count; }
 }
 
 /*
