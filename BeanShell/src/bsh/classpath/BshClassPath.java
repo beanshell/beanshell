@@ -23,6 +23,7 @@ import bsh.ConsoleInterface;
 import bsh.StringUtil;
 import bsh.ClassPathException;
 import bsh.NameCompletion;
+import java.lang.ref.WeakReference;
 
 /**
 	A BshClassPath encapsulates knowledge about a class path of URLs.
@@ -42,7 +43,7 @@ import bsh.NameCompletion;
 	produce a composite view of some thing relating to the path.  This would
 	be an opportunity for a visitor pattern.
 */
-public class BshClassPath 
+public class BshClassPath implements ClassPathListener
 {
 	String name;
 
@@ -61,6 +62,7 @@ public class BshClassPath
 	private UnqualifiedNameTable unqNameTable;
 	private NameCompletion.Table nameCompletionTable;
 	private boolean nameCompletionIncludesUnqNames;
+	Vector listeners = new Vector();
 
 	// constructors
 
@@ -91,6 +93,7 @@ public class BshClassPath
 		if ( compPaths == null )
 			compPaths = new ArrayList();
 		compPaths.add( bcp );
+		bcp.addListener( this );
 	}
 
 	public void add( URL [] urls, ConsoleInterface feedback  ) { 
@@ -378,6 +381,11 @@ public class BshClassPath
 		nameCompletionTable = null;
 	}
 
+	public void classPathChanged() {
+		clearCachedStructures();
+		notifyListeners();	
+	}
+
 	public void setNameCompletionIncludeUnqNames( boolean b ) {
 		// if the setting is changing clear the name table and allow rebuild
 		if ( nameCompletionIncludesUnqNames != b 
@@ -553,6 +561,26 @@ public class BshClassPath
 		return set;
 	}
 
+	public void addListener( ClassPathListener l ) {
+		listeners.addElement( new WeakReference(l) );
+	}
+	public void removeListener( ClassPathListener l ) {
+		listeners.removeElement( l );
+	}
+
+	/**
+	*/
+	void notifyListeners() {
+		for (Enumeration e = listeners.elements(); e.hasMoreElements(); ) {
+			WeakReference wr = (WeakReference)e.nextElement();
+			ClassPathListener l = (ClassPathListener)wr.get();
+			if ( l == null )  // garbage collected
+				listeners.removeElement( wr );
+			else
+				l.classPathChanged();
+		}
+	}
+
 	static BshClassPath userClassPath;
 	/**
 		A BshClassPath initialized to the user path
@@ -632,7 +660,6 @@ public class BshClassPath
 				}
 		}
 	}
-
 
 	public static class AmbiguousName {
 		List list = new ArrayList();
