@@ -1,0 +1,17 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+oa = new Object [] { "foo", "bar" };
+assert( oa.length == 2 && oa[0] instanceof String );
+
+oa = new Object [] { };
+assert( oa.length == 0 );
+
+int [][] ia = new int [5][4];
+ia[2][2] = 5;
+
+assert( ia[2][2] == 5 && ia[2][3] != 5 );
+
+complete();
+

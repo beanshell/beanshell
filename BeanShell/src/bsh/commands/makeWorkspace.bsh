@@ -1,0 +1,98 @@
+
+makeWorkspace( String name ) {
+
+	if ( bsh.desktop == void ) {
+		print("No desktop...");
+		return;
+	}
+
+	console	= new bsh.util.JConsole();
+	name="Bsh Workspace: "+name;
+
+	try {
+		interpreter = new bsh.Interpreter( console );
+	} catch ( Exception e ) {
+		print(e);
+		file=new FileWriter("e.out");
+		e.printStackTrace( new PrintWriter( file ) );
+		file.close();
+		print("saved...");
+	}
+	// give the new interpreter a reference to the desktop
+	ibsh = interpreter.getVariable("bsh");
+	ibsh.desktop = bsh.desktop;
+
+	frame = bsh.desktop.makeInternalFrame( name );
+
+	actionPerformed( e ) {
+		com = e.getActionCommand();
+		if ( com.equals("Workspace Editor") )
+			workspaceEditor( interpreter, name );
+		else if ( com.equals("Capture System in/out/err") )
+			captureSysIO();
+		else if	( com.equals("Close") )	{
+			frame.dispose();
+			if ( haveSysIO )
+				returnSysIO();
+			//thread.stop();
+		}
+	}
+
+	menubar	= new JMenuBar();
+	menu=new JMenu("File");
+	mi=new JMenuItem("Workspace Editor");
+	mi.addActionListener(this);
+	menu.add(mi);
+	mi=new JMenuItem("Capture System in/out/err");
+	mi.addActionListener(this);
+	menu.add(mi);
+	mi=new JMenuItem("Close");
+	mi.addActionListener(this);
+	menu.add(mi);
+	menubar.add(menu);
+
+	menu = bsh.desktop.makeFontMenu( console );
+	menubar.add(menu);
+
+	frame.setMenuBar(menubar);
+
+	frame.getContentPane().add("Center", console);
+	//frame.pack();
+	thread = new Thread( interpreter );
+	thread.start();
+
+	frame.setBounds(5,5,600,300);
+	// cascade windows?
+	//off=bsh.desktop.windowCount*10;
+	//frame.setLocation( off, off );
+	//frame.validate();
+	bsh.desktop.addInternalFrame( frame	);
+	frame.toFront();
+	frame.setSelected(true);
+
+	haveSysIO=false;
+	sysIn = System.in;
+	sysOut = System.out;
+	sysErr = System.err;
+	captureSysIO() {
+		super.haveSysIO = true;
+		System.setIn( console.getIn() );
+		System.setOut( console.getOut() );
+		System.setErr( console.getErr() );
+	}
+
+	returnSysIO() {
+		super.haveSysIO = false;
+		System.setIn( sysIn );
+		System.setOut( sysOut );
+		System.setErr( sysErr );
+	}
+
+
+	return interpreter;
+}
+
+
+
+
+

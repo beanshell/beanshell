@@ -1,0 +1,12 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+h = new java.util.Hashtable();
+h.put("foo", "bar");
+assert( h.get("foo").equals("bar") );
+
+h{"foo"}="gee";
+assert( h{"foo"}.equals("gee") );
+
+complete();

@@ -1,0 +1,49 @@
+#!/bin/java bsh.Interpreter
+
+test_failed=false;
+test_completed=false;
+test_warning=false;
+test_flag = 0;
+
+assert( boolean condition ) {
+
+	if ( condition )
+		print( "Test Passed..." );
+	else {
+		print( "Test FAILED!");
+		super.test_failed = true;
+	}
+}
+
+isEvalError( String text ) {
+	flag = false;
+	try {
+		eval(text);
+	} catch ( bsh.EvalError e ) {
+		flag = true;
+	}
+	return flag;
+}
+
+fail() {
+	assert(false);
+}
+
+warning( s ) {
+	print("WARNING: "+s);
+	super.test_warning=true;
+}
+
+complete() {
+	super.test_completed = true;
+
+	if ( super.test_failed )
+		print( bsh.sourceFile + ": Complete: FAILED!");
+	else
+		print( bsh.sourceFile + ": Completed ok.");
+}
+
+flag() {
+	return super.test_flag++;
+}
+

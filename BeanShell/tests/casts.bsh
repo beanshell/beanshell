@@ -1,0 +1,31 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+f=(float)5;
+
+assert( ((int)0.5) == 0 );
+
+a=0.3;
+assert( ((int)a) == 0 );
+
+d=(double)+1;
+
+// cast error should be changed to throw classcastexception which could 
+// be caught
+assert( isEvalError(
+  "i=(Integer)\"foo\";"
+) );
+
+try {
+  i=(Integer)"foo";
+} catch ( ArithmeticException e0 ) {
+	assert(false); // just checking
+} catch ( ClassCastException e ) {
+	flag();
+}
+
+assert(flag()==1);
+
+complete();
+

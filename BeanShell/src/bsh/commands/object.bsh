@@ -1,0 +1,7 @@
+
+bsh.help.object = "usage: object()";
+
+object() { 
+	return this; 
+}
+

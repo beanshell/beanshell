@@ -1,0 +1,37 @@
+/*
+    Show component in a frame, centered and packed.  Handle disposal.
+*/
+bsh.help.frame = "usage: frame( Component component )";
+ 
+frame( Component comp ) {
+
+	// Ignore unhandled method invocations from listeners.
+	invoke( method, args ) { }
+
+    windowClosing( event ) {
+        frame.dispose();
+    }
+
+	// if the desktop is there make an internal frame
+	if ( bsh.desktop != void ) {
+		frame = bsh.desktop.makeInternalFrame("frame");
+		frame.getContentPane().add( comp, "Center" );
+		bsh.desktop.addInternalFrame( frame );
+		return frame;
+	}
+
+	// make an external JFrame or Frame
+	if ( bsh.NameSpace.haveSwing() ) {
+		frame = new javax.swing.JFrame();
+		frame.getContentPane().add( comp, "Center" );
+	} else {
+		frame = new Frame();
+		frame.add( comp, "Center" );
+	}
+
+    frame.addWindowListener(this);
+    frame.pack();
+    frame.show();
+    return frame;
+}
+

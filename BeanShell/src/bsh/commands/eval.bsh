@@ -1,0 +1,6 @@
+
+bsh.help.eval = "usage: eval( String expression )";
+
+eval( String expression ) {
+    return this.interpreter.eval( expression, super.namespace );
+}

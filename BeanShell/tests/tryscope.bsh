@@ -1,0 +1,18 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+a=4;
+try { 
+	throw new Exception("foo");
+} catch ( Exception e ) { 
+	a=5;
+}
+
+print(a);
+assert(a==5);
+
+rm("world.ser");
+
+complete();
+

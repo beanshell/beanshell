@@ -1,0 +1,22 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+foo() {
+	a=5;
+	super.a=4;
+}
+
+// calling foo does not affect 'a';
+bar() {
+	a=99;
+	foo();
+	assert( a==99);
+}
+
+bar();
+
+// set by foo()
+assert( a == 4 );
+
+complete();

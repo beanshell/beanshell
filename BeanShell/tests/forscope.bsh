@@ -1,0 +1,28 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+a=5;
+i=99;
+for(int i=1; i<3; i++) {
+	a=9;
+	q=2;
+	int q2=3;
+
+	i2 = i;
+}
+assert(a==9);
+assert(i==99);
+assert(q==2);
+assert(q2==3);
+assert(i2 == 2);
+
+// multiple inits
+for(x=0, a=2, y="foo"; x<3; x++) {
+	print(x+", "+y);
+}
+
+// x,a  are undefined 
+assert( isEvalError( "print(x)" ) );
+
+complete();

@@ -1,0 +1,25 @@
+
+import javax.swing.ImageIcon;
+
+/*
+	Daniel Leuck: supplied this
+*/
+printBanner() {
+
+	if ( bsh.console != void 
+		&& bsh.NameSpace.haveSwing() 
+		&& (bsh.console instanceof bsh.util.JConsole) ) {
+
+	    jconsole =	bsh.console;
+	    jconsole.println( 
+			new ImageIcon( getResource("/bsh/util/lib/small_bean_shell.gif")) );
+	    jconsole.print(
+			"1.0 beta - by Pat Niemeyer (pat@pat.net)",
+			new java.awt.Font("SansSerif", Font.BOLD, 12), 
+			new Color(20,100,20) );
+	    jconsole.println();
+
+	} else
+		print("BeanShell 1.0 beta - by Pat Niemeyer (pat@pat.net)");
+
+}

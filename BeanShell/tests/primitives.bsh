@@ -1,0 +1,26 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+
+// declarations
+byte b = (byte)2;
+char c = 'A';
+short s = (short)2;
+int i = 2;
+
+/*
+	Note: 	
+	This stuff was added by Sean.
+	I'm still considering it experimental. 
+*/
+// unification of wrapper types with primitives
+Integer iw = 2;
+Double dw = 2.0;
+print ( iw == i );
+print ( dw == b );
+// identity semantics
+print( iw == dw );
+
+complete();
+

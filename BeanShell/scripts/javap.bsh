@@ -1,0 +1,12 @@
+
+javap( Object obj  ) {
+	methods=obj.getClass().getDeclaredMethods();
+	print("------------- Methods ----------------");
+	for(int i=0; i<methods.length; i++)
+		print( methods[i] );
+	print("------------- Fields ----------------");
+	fields=obj.getClass().getDeclaredFields();
+	for(int i=0; i<fields.length; i++)
+		print( fields[i] );
+}
+

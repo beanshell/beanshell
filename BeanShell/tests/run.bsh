@@ -1,0 +1,19 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+// basic stuff
+a=1;
+r = run("Data/run_aux.bsh");
+assert( a==1 );
+assert( r.a == 5 );
+// run_aux does sets global g , it should appear here (it's root namespace)
+global.g = 7;
+assert( r.g == 6 );
+
+// Note: this could fail legitimately if we're not in the test dir...
+assert( r.cwd != void );
+assert( !r.cwd.equals( bsh.cwd) );
+
+complete();
+

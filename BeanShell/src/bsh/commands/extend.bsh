@@ -1,0 +1,11 @@
+
+bsh.help.extend= "usage: extend( This parent )";
+
+/*
+	Return a new object that is a child of the specified object.
+*/
+extend( bsh.This parent ) { 
+	this.namespace.setParent( parent.namespace );
+	return this; 
+}
+

@@ -1,0 +1,9 @@
+#!/bin/java bsh.Interpreter
+
+a=5;
+
+global.g = 6;
+
+cd("..");
+cwd=bsh.cwd;
+

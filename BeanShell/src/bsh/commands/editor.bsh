@@ -1,0 +1,40 @@
+
+bsh.help.editor = "usage: editor()";
+
+editor() {
+	if ( bsh.desktop != void ) {
+		return workspaceEditor( super.interpreter );
+	}
+
+	ta = new TextArea(15,40);
+	frame = new Frame("Editor");
+	frame.add(ta, "Center");
+
+	p = new Panel();
+	b = new Button("Eval");
+	b.addActionListener(this);
+	p.add(b);
+	b = new Button("Clear");
+	b.addActionListener(this);
+	p.add(b);
+	b = new Button("Close");
+	b.addActionListener(this);
+	p.add(b);
+
+	frame.add(p, "South");
+	frame.pack();
+	frame.show();
+
+	actionPerformed(e) {
+		if ( e.getActionCommand().equals("Close") )
+			frame.dispose();
+		else if ( e.getActionCommand().equals("Clear") )
+			ta.setText("");
+		else
+			this.interpreter.eval( ta.getText() );
+	}
+
+	print("Editor started...");
+	return frame;
+}
+

@@ -1,0 +1,16 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+foo() {
+	return 42;
+}
+
+bar() {
+	42;
+}
+
+assert( foo() == 42 );
+assert( bar() == 42 );
+
+complete();

@@ -1,0 +1,6 @@
+
+bsh.help.debug = "usage: debug()";
+
+debug() {
+	this.interpreter.DEBUG = !this.interpreter.DEBUG;
+}
