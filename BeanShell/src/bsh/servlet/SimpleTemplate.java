@@ -1,6 +1,9 @@
+package bsh.servlet;
+
 /**
 
 	This file is derived from Pat Niemeyer's free utilities package.  
+	Now part of BeanShell.
 
 	@see http://www.pat.net/javautil/
 	@version 1.0

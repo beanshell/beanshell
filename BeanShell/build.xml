@@ -77,6 +77,8 @@
 	<property name="reflect-jar" value="bsh-reflect-${version}.jar"/>
 	<property name="util-jar" value="bsh-util-${version}.jar"/>
 	<property name="bsf-jar" value="bsh-bsf-${version}.jar"/>
+	<property name="bshservlet-wbsh-war" value="bshservlet-wbsh.war"/>
+	<property name="bshservlet-war" value="bshservlet.war"/>
 
 
 <!-- Begin Targets -->
@@ -135,6 +137,7 @@
 			<fileset dir="${src-dir}">
 			<patternset refid="commands-bsh-patternset"/>
 			<patternset refid="util-lib-patternset"/>
+			<patternset refid="bshservlet-patternset"/>
 			</fileset>
 		</copy>
 	</target>
@@ -217,6 +220,14 @@
 		</patternset>
 	</fileset>
 
+	<fileset id="bshservlet-fileset" dir="${build-dir}">
+		<patternset id="bshservlet-patternset">
+			<include name="bsh/servlet/*.class"/>
+			<include name="bsh/servlet/*.bsh"/>
+			<include name="bsh/servlet/*.template"/>
+		</patternset>
+	</fileset>
+
 	<fileset id="commands-fileset" dir="${build-dir}">
 		<patternset>
 			<include name="bsh/commands/*.class"/>
@@ -256,6 +267,7 @@
 			<fileset refid="util-fileset"/>
 			<fileset refid="commands-fileset"/>
 			<fileset refid="bsf-fileset"/>
+			<fileset refid="bshservlet-fileset"/>
 		</jar>
 	</target>
 
@@ -275,7 +287,7 @@
 	</target>
 
 	<!-- Make the rest of the nitty gritty dist jars -->
-	<target name="dist" depends="compile,jarcore,jarall,javadoc,jarsrc">
+	<target name="dist" depends="compile,jarcore,jarall,javadoc,jarsrc,bshservlet-war,bshservlet-wbsh-war">
 
 		<delete file="${commands-jar}"/>
 		<jar jarfile="${commands-jar}">
@@ -301,6 +313,22 @@
 		<jar jarfile="${bsf-jar}">
 			<fileset refid="bsf-fileset"/>
 		</jar>
+	</target>
+
+	<target name="bshservlet-war" depends="compile">
+		<war warfile="${bshservlet-war}" 
+			webxml="${src-dir}/bsh/servlet/example-web.xml">
+			<classes dir="${build-dir}" includes="bsh/servlet/**/*"/>
+			<fileset dir="${src-dir}/bsh/servlet/" includes="index.html"/>
+		</war>
+	</target>
+	<target name="bshservlet-wbsh-war" depends="compile,jarall">
+		<war warfile="${bshservlet-wbsh-war}" 
+			webxml="${src-dir}/bsh/servlet/example-web.xml">
+			<classes dir="${build-dir}" includes="bsh/servlet/**/*"/>
+			<fileset dir="${src-dir}/bsh/servlet/" includes="index.html"/>
+			<lib dir="." includes="${all-jar}"/>
+		</war>
 	</target>
 
 </project>
