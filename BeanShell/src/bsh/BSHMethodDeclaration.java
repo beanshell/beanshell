@@ -60,9 +60,11 @@ class BSHMethodDeclaration extends SimpleNode
 		Evaluate the declaration of the method.  That is, determine the
 		structure of the method and install it into the caller's namespace.
 	*/
-	public Object eval( CallStack callstack, Interpreter interpreter )  
+	public Object eval( CallStack callstack, Interpreter interpreter )
 		throws EvalError
 	{
+		NameSpace namespace = callstack.top();
+
 		if ( block == null ) 
 		{
 			// We will allow methods to be re-written.
@@ -74,8 +76,8 @@ class BSHMethodDeclaration extends SimpleNode
 
 			if ( jjtGetNumChildren() == 3 )
 			{
-				returnType = 
-					((BSHReturnType)jjtGetChild(0)).getReturnType( callstack, interpreter );
+				returnType = ((BSHReturnType)jjtGetChild(0)).getReturnType( 
+					callstack, interpreter );
 				params = (BSHFormalParameters)jjtGetChild(1);
 				block = (BSHBlock)jjtGetChild(2);
 			}
@@ -87,7 +89,7 @@ class BSHMethodDeclaration extends SimpleNode
 			params.eval( callstack, interpreter );
 
 			// if strictJava mode, check for loose parameters and return type
-			if ( Interpreter.strictJava )
+			if ( interpreter.getStrictJava() )
 			{
 				for(int i=0; i<params.argTypes.length; i++)
 					if ( params.argTypes[i] == null )
@@ -114,7 +116,8 @@ class BSHMethodDeclaration extends SimpleNode
 // need a way to update eval without re-installing...
 // so that we can re-eval params, etc. when classloader changes
 // look into this
-		NameSpace namespace = callstack.top();
+
+		namespace = callstack.top(); // don't think we need this
 		namespace.setMethod( name, new BshMethod( this, namespace ) );
 
 		return Primitive.VOID;

@@ -80,19 +80,41 @@
 	- Added catch block in bshdoc.bsh script to report the file it was
 		processing when an error occurs.
 
+	- Fixed bug allowing try { } without catch or finally.
+
 </pre>
 
 <h2>Changes in 1.2b8 </h2>
 <pre>
+	- Some Strict Java mode bugs fixed. %(Incompatible API Change)
+		Strict Java mode now functions on a per-interpreter basis.  The
+		static strictJava variable is gone (it was always labeled as 
+		experimental) and is replaced by the instance method Interpreter
+		setStrictJava().  Interpreter set() methods now work (untyped 
+		assignments using Interpreter set() is allowed and existing untyped 
+		variables can be assigned in scripts in either mode).  
+		+Added a test case.
+		Most bsh commands still fail in strict Java mode for simple reasons.
+		These will be cleaned up in a future release.
+
 	- Added check for return of value from void method.  Fixed a couple of
 		places where we made this mistake.
+
 	- Added dirname() command
+
 	- Added "test" target to build file (runs tests/RunAllTests.bsh).  Modified
 		RunAllTests.bsh to cd() to the directory containing the RunAllTests.bsh
 		script before executing the tests.
+
 	- Certain return type errors now point to specific locations, rather
 		than the method declaration.
+
 	- Fixed Interpreter setErr() bug
+
+	- Exceptions thrown from proxy interfaces are now unwrapped.
+		If your script throws an exception (or causes one to be thrown) that is
+		declared in the throws clause of your interface method then it will
+		be thrown from the method as one would expect. 
 </pre>
 
 <h2>Changes in 1.2b7 </h2>

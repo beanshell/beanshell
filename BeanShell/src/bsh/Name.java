@@ -666,7 +666,7 @@ class Name implements java.io.Serializable
 			return invokeLocalMethod( 
 				interpreter, args, callstack, callerInfo );
 
-        // find target object or class identifier
+        // Find target object or class identifier
         Name targetName = namespace.getNameResolver( Name.prefix(value));
         String methodName = Name.suffix(value, 1);
 
@@ -744,6 +744,13 @@ class Name implements java.io.Serializable
         else
             if ( Interpreter.DEBUG ) 
 				Interpreter.debug("no locally declared method: " + value);
+
+	/*
+		// Check for imported object method
+		Method imeth = toImportedMethod( args );
+        if ( imeth != null )
+			return imeth.invoke( args, interpreter, callstack, callerInfo );
+	*/
 
 		// Look for scripted command as resource
         String commandName = "commands/" + value + ".bsh";

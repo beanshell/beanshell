@@ -42,14 +42,15 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 
 /**
-    A namespace	in which methods and variables live.  This is package public 
-	because it is used in the implementation of some bsh commands.  However
-	for normal use you should be using methods on bsh.Interpreter to interact
-	with your scripts.
+    A namespace	in which methods, variables, and imports (class names) live.  
+	This is package public because it is used in the implementation of some 
+	bsh commands.  However for normal use you should be using methods on 
+	bsh.Interpreter to interact with your scripts.
 	<p>
 
-	A bsh.This object is a thin layer over a NameSpace.  Together they 
-	comprise a bsh scripted object context.
+	A bsh.This object is a thin layer over a NameSpace that associates it with
+	an Interpreter instance.  Together they comprise a Bsh scripted object 
+	context.
 	<p>
 
 	Note: I'd really like to use collections here, but we have to keep this
@@ -174,6 +175,17 @@ public class NameSpace
 	}
 
 	/**
+		@deprecated  Use the form specifying strict java.  This method 
+			assumes strict java is false.
+		@see #setVariable( String, Object, boolean );
+	*/
+    public void	setVariable( String name, Object value ) 
+		throws UtilEvalError 
+	{
+		setVariable( name, value, false );
+	}
+
+	/**
 		Set a variable in this namespace.
 		<p>
 		Note: this method is primarily intended for use internally.  If you use
@@ -185,8 +197,10 @@ public class NameSpace
 		a variable causes a namespace change.
 
 		@param value a value of null will remove the variable definition.
+		@param strictJava specifies whether strict java rules are applied.
 	*/
-    public void	setVariable(String name, Object	value) throws UtilEvalError 
+    public void	setVariable( String name, Object value, boolean strictJava ) 
+		throws UtilEvalError 
 	{
 		if ( variables == null )
 			variables =	new Hashtable();
@@ -200,20 +214,22 @@ public class NameSpace
 
 		// Locate the variable definition if it exists
 		// if strictJava then recurse, else default local scope
-		boolean recurse = Interpreter.strictJava;
+		boolean recurse = strictJava;
 		Object orig = getVariableImpl( name, recurse );
 
-		// found a typed variable
+		// Found a typed variable
 		if ( (orig != null) && (orig instanceof TypedVariable) )
 		{
 			try {
-				((TypedVariable)orig).setValue(value);
+				((TypedVariable)orig).setValue( value );
 			} catch ( UtilEvalError e ) {
 				throw new UtilEvalError(
 					"Typed variable: " + name + ": " + e.getMessage());
 			} 
 		} else
-			if ( Interpreter.strictJava )
+			// Untyped or non-existent.  
+			// (Allow assignment to existing untyped var even with strictJava)
+			if ( strictJava && orig == null )
 				throw new UtilEvalError(
 					"(Strict Java mode) Assignment to undeclared variable: "
 					+name );
@@ -957,7 +973,8 @@ public class NameSpace
 		will allow since the reflection api will do widening conversions in the 
 		case of sets on fields and arrays.
 		<p>
-		The primary purpose of the abstraction "returning the assignable form"			abstraction is to allow non standard bsh assignment conversions. e.g.
+		The primary purpose of the "returning the assignable form"
+		abstraction is to allow non standard bsh assignment conversions. e.g.
 		the wrapper stuff.  I'm still not sure how much of that we should
 		be doing.
 		<p>

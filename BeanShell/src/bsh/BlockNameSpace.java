@@ -66,11 +66,13 @@ class BlockNameSpace extends NameSpace
 		i.e. only allow typed var declaration to happen in this namespace.
 		Typed vars are handled in the ordinary way... local scope.
 	*/
-    public void	setVariable(String name, Object	o) throws UtilEvalError {
+    public void	setVariable( String name, Object o, boolean strictJava ) 
+		throws UtilEvalError 
+	{
 		if ( weHaveVar( name ) || initMode ) 
-			super.setVariable( name, o );
+			super.setVariable( name, o, strictJava );
 		else
-			getParent().setVariable( name, o );
+			getParent().setVariable( name, o, strictJava );
     }
 
 	/**

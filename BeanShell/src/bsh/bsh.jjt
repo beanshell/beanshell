@@ -811,24 +811,14 @@ void PrimaryPrefix() : { }
 |
   AllocationExpression()
 |
-  // Careful about the parens here... they are important
-  // lookahead must apply to the correct choice points
-(
-	/*
-		The MethodInvocation node here simplifies the prefix/suffix parsing a 
-		bit by forcing the prefix to an object...  That was the idea anyway... 
-		should probably just move it to the suffix
-	*/
-    // SYNTACTIC_LOOKAHEAD
-    LOOKAHEAD( MethodInvocation() ) MethodInvocation()
-  |
-    (
-      LOOKAHEAD( Type() "." "class" ) 
-      Type()
-    |
-	  AmbiguousName()
-	)
-)
+  // SYNTACTIC_LOOKAHEAD
+  LOOKAHEAD( MethodInvocation() ) 
+	MethodInvocation()
+|
+  LOOKAHEAD( Type() "." "class" ) 
+	Type()
+|
+  AmbiguousName()
 
 /*
 |
@@ -882,10 +872,12 @@ void PrimarySuffix() #PrimarySuffix :
 */
 void LHSPrimaryPrefix() : { }
 {
+/*
   // SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( MethodInvocation() )
   MethodInvocation()
 |
+*/
   AmbiguousName()
 }
 
@@ -1280,12 +1272,15 @@ void ThrowStatement() #ThrowStatement :
 
 void TryStatement() #TryStatement:
 /*
- * Semantic check required here to make sure that at least one
- * finally/catch is present.
+	Semantic check required here to make sure that at least one
+	finally/catch is present.  (You can have a try with finally and no catch).
  */
-{}
+{ boolean closed = false; }
 {
-  "try" Block()
-  ( "catch" "(" FormalParameter() ")" Block() )*
-  [ "finally" Block() ]
+	"try" Block()
+	( "catch" "(" FormalParameter() ")" Block() { closed = true; } )*
+	[ "finally" Block() { closed = true; } ]
+	{ 	
+		if ( !closed ) throw generateParseException();
+	}
 }

@@ -50,6 +50,7 @@ class BSHAssignment extends SimpleNode implements ParserConstants
 		if ( lhsNode == null )
 			throw new InterpreterError( "Error, null LHSnode" );
 
+		boolean strictJava = interpreter.getStrictJava();
         LHS lhs = lhsNode.toLHS( callstack, interpreter);
         if ( lhs == null )
             throw new InterpreterError( "Error, null LHS" );
@@ -62,48 +63,61 @@ class BSHAssignment extends SimpleNode implements ParserConstants
 			switch(operator)
 			{
 				case ASSIGN:
-					return lhs.assign(rhs);
+					return lhs.assign( rhs, strictJava );
 
-				case PLUSASSIGN:
-					return lhs.assign(operation(lhs.getValue(), rhs, PLUS));
+            case PLUSASSIGN:
+                return lhs.assign( 
+					operation(lhs.getValue(), rhs, PLUS), strictJava );
 
-				case MINUSASSIGN:
-					return lhs.assign(operation(lhs.getValue(), rhs, MINUS));
+	            case MINUSASSIGN:
+					return lhs.assign( 
+						operation(lhs.getValue(), rhs, MINUS), strictJava );
 
 				case STARASSIGN:
-					return lhs.assign(operation(lhs.getValue(), rhs, STAR));
+					return lhs.assign( 
+						operation(lhs.getValue(), rhs, STAR), strictJava );
 
-				case SLASHASSIGN:
-					return lhs.assign(operation(lhs.getValue(), rhs, SLASH));
+	            case SLASHASSIGN:
+					return lhs.assign( 
+						operation(lhs.getValue(), rhs, SLASH), strictJava );
 
-				case ANDASSIGN:
+	            case ANDASSIGN:
 				case ANDASSIGNX:
-					return lhs.assign(operation(lhs.getValue(), rhs, BIT_AND));
+					return lhs.assign( 
+						operation(lhs.getValue(), rhs, BIT_AND), strictJava );
 
-				case ORASSIGN:
-				case ORASSIGNX:
-					return lhs.assign(operation(lhs.getValue(), rhs, BIT_OR));
+	            case ORASSIGN:
+	            case ORASSIGNX:
+	                return lhs.assign( 
+						operation(lhs.getValue(), rhs, BIT_OR), strictJava );
 
-				case XORASSIGN:
-					return lhs.assign(operation(lhs.getValue(), rhs, XOR));
+	            case XORASSIGN:
+	                return lhs.assign( 
+						operation(lhs.getValue(), rhs, XOR), strictJava );
 
-				case MODASSIGN:
-					return lhs.assign(operation(lhs.getValue(), rhs, MOD));
+	            case MODASSIGN:
+	                return lhs.assign( 
+						operation(lhs.getValue(), rhs, MOD), strictJava );
 
-				case LSHIFTASSIGN:
-				case LSHIFTASSIGNX:
-					return lhs.assign(operation(lhs.getValue(), rhs, LSHIFT));
+	            case LSHIFTASSIGN:
+	            case LSHIFTASSIGNX:
+	                return lhs.assign( 
+						operation(lhs.getValue(), rhs, LSHIFT), strictJava );
 
-				case RSIGNEDSHIFTASSIGN:
-				case RSIGNEDSHIFTASSIGNX:
-					return lhs.assign(operation(lhs.getValue(), rhs, RSIGNEDSHIFT));
+	            case RSIGNEDSHIFTASSIGN:
+	            case RSIGNEDSHIFTASSIGNX:
+	                return lhs.assign( 
+					operation(lhs.getValue(), rhs, RSIGNEDSHIFT ), strictJava );
 
-				case RUNSIGNEDSHIFTASSIGN:
-				case RUNSIGNEDSHIFTASSIGNX:
-					return lhs.assign(operation(lhs.getValue(), rhs, RUNSIGNEDSHIFT));
+	            case RUNSIGNEDSHIFTASSIGN:
+	            case RUNSIGNEDSHIFTASSIGNX:
+	                return lhs.assign( 
+						operation(lhs.getValue(), rhs, RUNSIGNEDSHIFT), 
+						strictJava );
 
 				default:
-					throw new InterpreterError("unimplemented operator in assignment BSH");
+					throw new InterpreterError(
+						"unimplemented operator in assignment BSH");
 			}
 		} catch ( UtilEvalError e ) {
 			throw e.toEvalError( this, callstack );

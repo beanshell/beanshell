@@ -14,12 +14,13 @@
 */
 bsh.help.print = "usage: print( value )";
 
-void print( arg ) {
+void print( arg ) 
+{
 	if ( arg == null )
 		arg = "null";
 
 	if ( arg instanceof Object [] ) {
-		len = arg.length;
+		int len = arg.length;
 		print( "Array: "+arg +" {");
 		for( int i=0; i< len; i++ ) {
 			this.interpreter.print("   ");

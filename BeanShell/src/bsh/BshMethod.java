@@ -179,7 +179,8 @@ public class BshMethod
 				else
 					try {
 						localNameSpace.setVariable(
-							method.params.argNames[i], argValues[i]);
+							method.params.argNames[i], argValues[i],
+							interpreter.getStrictJava() );
 					} catch ( UtilEvalError e3 ) {
 						throw e3.toEvalError( callerInfo, callstack );
 					}
