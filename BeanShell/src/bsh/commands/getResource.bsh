@@ -9,5 +9,5 @@ import bsh.Interpreter;
 
 URL getResource( String path ) {
 	//return this.interpreter.getClass().getResource(name);
-	return Interpreter.class.getResource(name);
+	return Interpreter.class.getResource(path);
 }

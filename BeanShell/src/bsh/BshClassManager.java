@@ -172,7 +172,7 @@ public abstract class BshClassManager
 		central point for monitoring and handling certain Java version 
 		dependent bugs, etc.
 
-		@see getPlainClassForName()
+		@see #getPlainClassForName( String )
 		@return the class
 	*/
 	public static Class plainClassForName( String name ) 
@@ -266,12 +266,12 @@ public abstract class BshClassManager
 
 	// Begin interface methods
 
-	/** @see classForName */
+	/** @see #classForName( String ) */
 	public abstract Class getClassForName( String name );
 
 	/** 
 		Delegate for plainClassForName.
-		@see plainClassForName
+		@see #plainClassForName( String )
 	 */
 	public abstract Class getPlainClassForName( String name ) 
 		throws ClassNotFoundException ;

@@ -134,8 +134,8 @@ public class Interpreter
 	String sourceFileInfo;
 
 	/** 
-		Do we override exit on EOF as normally done in iteractive mode?
-		(This is used by Sessiond)
+		Specify whether we override exit on EOF as normally done in 
+		iteractive mode.  (This is used by Sessiond)
 	*/
 	public boolean noExitOnEOF;
 
@@ -1018,7 +1018,7 @@ public class Interpreter
 		classes supplied through the external classloader.
 		<p>
 
-		@see BshClassManager.setClassLoader()
+		@see BshClassManager#setClassLoader( ClassLoader )
 	*/
 	public void setClassLoader( ClassLoader externalCL ) {
 		BshClassManager.setClassLoader( externalCL );
@@ -1052,7 +1052,7 @@ public class Interpreter
 		sourcing and from what file a method was originally parsed.  One
 		file may call a method sourced from another file.  See SimpleNode
 		for origination file info.
-		@see SimpleNode.getSourceFile 
+		@see bsh.SimpleNode#getSourceFile()
 	*/
 	public String getSourceFileInfo() { 
 		if ( sourceFileInfo != null )

@@ -420,7 +420,7 @@ class Reflect {
 		public interface or derives from a public type.
 
 		@param onlyStatic the method located must be static.
-		@returns null on not found
+		@return null on not found
 	*/
 	static Method findAccessibleMethod( 
 		Class clas, String name, Class [] types, boolean onlyStatic ) 
@@ -642,7 +642,7 @@ System.out.println("findAcc: "
     /**
         Implement JLS 15.11.2 for method resolution
 		@param onlyStatic  only static methods will be considered.
-		@returns null on no match
+		@return null on no match
     */
     static Method findMostSpecificMethod(
 		String name, Class[] idealMatch, Method[] methods )
@@ -674,7 +674,7 @@ System.out.println("findAcc: "
 		compatability of args.  This allows special (non standard Java) bsh 
 		widening operations...
 
-		@returns null on not found
+		@return null on not found
 	*/
     static Method findExtendedMethod(
 		String name, Object[] args, Method[] methods)

@@ -306,6 +306,7 @@
 					<include name="BeanShell/**/*"/>
 					<exclude name="BeanShell/classes/**/*"/>
 					<exclude name="BeanShell/*javadoc*"/>
+					<exclude name="BeanShell/javadoc/**/*"/>
 					<exclude name="**/CVS"/>
 					<exclude name="**/*.jar"/>
 					<exclude name="**/*.war"/>
@@ -314,8 +315,9 @@
 		</jar>
 	</target>
 
-	<!-- Make the rest of the nitty gritty dist jars -->
-	<target name="dist" depends="compile,jarcore,jarall,javadoc,jarsrc,bshservlet-war,bshservlet-wbsh-war">
+	<!-- Make all of the dist jars -->
+	<target name="dist" 
+	depends="compile,jarcore,jarall,javadoc,jarsrc,bshservlet-war,bshservlet-wbsh-war,bshdoc">
 
 		<delete file="${commands-jar}"/>
 		<jar jarfile="${commands-jar}">
@@ -341,6 +343,9 @@
 		<jar jarfile="${bsf-jar}">
 			<fileset refid="bsf-fileset"/>
 		</jar>
+
+		<!-- Build the documentation -->
+		<ant dir="docs/manual"/>
 	</target>
 
 	<target name="bshservlet-war" depends="compile" unless="exclude-servlet">
@@ -361,16 +366,16 @@
 	</target>
 	
 	<!-- 
-		This target produces beanshell documentation on the bsh command set.
+		This target produces XML source for beanshell documentation of the 
+		bsh command set.
 		Notes:
 			- I am concerned that the fileset argument could be too large for
-			parallel if ant is using full path names.  The bshdoc script 
+			parallel if ant is using full path names.  But the bshdoc script 
 			wants all of the files simultaneously to produce one XML file
 			amenable to indexing, etc.
 			- Needs some file timestamp checking... mapper tag might help.
-		
-			- We should move the output commands-bshdoc to the docs dir
-			for inclusion with the user manual.
+
+		The output goes in the docs area, which has its own build file.
 	-->
 	<target name="bshdoc" depends="jarall">     
 		<!-- 
@@ -385,11 +390,6 @@
 			<!--fileset refid="commands-fileset"/-->
 			<fileset dir="src/bsh/commands" includes="*.bsh"/>
 		</apply>
-
-		<!-- This has moved to the docs/manual dir 
-		<style style="scripts/bshcommands.xsl" 
-			in="${commands-bshdoc}" out="bshcommands.html"/>
-		-->
 	</target>   
 
 </project>

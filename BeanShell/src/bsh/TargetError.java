@@ -80,7 +80,7 @@ public class TargetError extends EvalError
 	/**
 		If you're going to use this please catch and re-throw the exception
 		in an AST and add the node...
-		@see reThrow()
+		@see #reThrow( SimpleNode )
 	*/
 	public TargetError( String s, Throwable t )
 	{
