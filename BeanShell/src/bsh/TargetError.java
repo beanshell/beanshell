@@ -34,10 +34,9 @@ import java.lang.reflect.InvocationTargetException;
 	Note: an important location to look at is BSHMethodInvocation.  There
 	we catch eval errors and rethrow them to compound the location information
 */
-public class TargetError extends EvalError implements TargetErrorPrinter
+public class TargetError extends EvalError 
 {
 	Throwable target;
-	TargetErrorPrinter targetPrinter;
 
 	public TargetError(String msg, Throwable t, SimpleNode node )
 	{
@@ -63,7 +62,7 @@ public class TargetError extends EvalError implements TargetErrorPrinter
 
 		return super.toString() 
 			+ "\nTarget exception: " + 
-			getTargetErrorPrinter().printTargetError( target );
+			printTargetError( target );
 	}
 
     public void printStackTrace() { 
@@ -84,30 +83,38 @@ public class TargetError extends EvalError implements TargetErrorPrinter
 		throw new TargetError( msg+":"+getMessage(),  target, node );
 	}
 
-	/**
-		This factory allows us to print InvocationTargetExceptions when
-		the proxy mechanism is available.
-	*/
-	public TargetErrorPrinter getTargetErrorPrinter() {
-		if ( targetPrinter == null )
-			try {
-				if ( Capabilities.haveProxyMechanism() )
-					targetPrinter = 
-						(TargetErrorPrinter)Reflect.constructObject( 
-						"bsh.XTargetErrorPrinter", new Object [] { } );
-				else
-					targetPrinter = this;
-
-			} catch ( Exception e ) {
-				throw new InterpreterError("internal error 1 in TargetError: "+e);
-			} 
-
-		return targetPrinter;
-	}
-
 	public String printTargetError( Throwable t ) {
-		return target.toString();
+		String s = target.toString();
+
+		if ( Capabilities.haveProxyMechanism() )
+			s += "\n" + xPrintTargetError( t );
+
+		return s;
 	}
+
+	/**
+		This indirection is used to print InvocationTargetExceptions when
+		the proxy mechanism is available.
+
+		We are sheilded from compile problems by using a bsh script.
+		This is acceptable here because we're not in a critical path.
+	*/
+	public String xPrintTargetError( Throwable t ) {
+		String getTarget =
+			"import java.lang.reflect.UndeclaredThrowableException;"+
+			"if ( target instanceof UndeclaredThrowableException )"+
+			"	return target.getUndeclaredThrowable().toString();" +
+			"else return \"\"";
+
+		Interpreter i = new Interpreter();
+		try {
+			i.set("target", t);
+			return (String)i.eval( getTarget );
+		} catch ( EvalError e ) {
+			throw new InterpreterError("xprintarget: "+e.toString() );
+		}
+	}
+
 
 }
 
