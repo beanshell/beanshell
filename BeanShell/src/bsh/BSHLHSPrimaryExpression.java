@@ -41,12 +41,37 @@ class BSHLHSPrimaryExpression extends SimpleNode
 	public LHS toLHS(CallStack callstack, Interpreter interpreter) 
 		throws EvalError
 	{
-		LHS lhs = ((BSHAmbiguousName)jjtGetChild(0)).toLHS(
-			callstack, interpreter);
+		/*
+			Get the prefix, which may be either an ambiguous name or a
+			method invocation.  
 
-		int n = jjtGetNumChildren(); 
-		for(int i=1; i<n; i++)
-			lhs = ((BSHLHSPrimarySuffix)jjtGetChild(i)).doLHSSuffix(
+			The method invocation bit here is somewhat of a hack to handle 
+			the fact that we have moved prefix method invocation into the 
+			PrimaryPrefix in order to get it to always produce an object type.
+			This is too complicated.
+		*/
+		int childNum = 0;
+		SimpleNode prefixNode = (SimpleNode)jjtGetChild(childNum++);
+		Object prefixValue = null;
+		LHS lhs = null;
+		if ( prefixNode instanceof BSHAmbiguousName ) 
+			lhs = ((BSHAmbiguousName)prefixNode).toLHS( callstack, interpreter);
+		else
+			// Currently the only case is for BSHMethodInvocation
+			prefixValue = 
+				((SimpleNode)prefixNode).eval( callstack, interpreter);
+
+		// If the prefix is an object and not an LHS it requires at least
+		// one suffix to make an LHS
+		// Currently the only case is for BSHMethodInvocation
+		if ( prefixValue != null )
+			lhs = ((BSHLHSPrimarySuffix)jjtGetChild(childNum++)).doLHSSuffix(
+				prefixValue, callstack, interpreter);
+
+		// Apply the suffixes
+		int numChildren = jjtGetNumChildren(); 
+		while( childNum<numChildren )
+			lhs = ((BSHLHSPrimarySuffix)jjtGetChild(childNum++)).doLHSSuffix(
 				lhs.getValue(), callstack, interpreter);
 
 		return lhs;

@@ -38,6 +38,10 @@ class BSHMethodInvocation extends SimpleNode
 {
 	BSHMethodInvocation (int id) { super(id); }
 
+	/**
+		Evaluate the method invocation with the specified callstack and 
+		interpreter
+	*/
 	public Object eval( CallStack callstack, Interpreter interpreter)
 		throws EvalError
 	{

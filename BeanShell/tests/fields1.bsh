@@ -20,9 +20,11 @@ assert( f.x == 5 );
 assert( foo().x == 5 );
 
 // Assignment to throw away value.
-// This doesn't work! 
 // I added some stuff to get it working but the grammar is failing to parse.
-//foo().x=6;
+foo().x=6;
+
+
+
 
 //test ambiguity of field vs. method (there was a bug)
 

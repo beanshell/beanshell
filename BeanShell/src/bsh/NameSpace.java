@@ -43,10 +43,14 @@ import java.io.IOException;
 
 /**
     A namespace	in which methods and variables live.  This is package public 
-	because it is used in the implementation of some bsh commands.
+	because it is used in the implementation of some bsh commands.  However
+	for normal use you should be using methods on bsh.Interpreter to interact
+	with your scripts.
+	<p>
 
 	A bsh.This object is a thin layer over a NameSpace.  Together they 
 	comprise a bsh scripted object context.
+	<p>
 
 	Note: I'd really like to use collections here, but we have to keep this
 	compatible with JDK1.1 
@@ -110,6 +114,15 @@ public class NameSpace
 		return new Name( this, name ).toObject( callstack, interpreter );
 	}
 
+
+	/**
+		Set a variable in this namespace.
+		<p>
+		Note: this method is primarily intended for use internally.  If you use
+		this method outside of the bsh package and wish to set variables with
+		primitive values you will have to wrap them using bsh.Primitive.
+		@see bsh.Primitive
+	*/
     public void	setVariable(String name, Object	o) throws EvalError 
 	{
 		if ( variables == null )
@@ -130,6 +143,10 @@ public class NameSpace
 		}
     }
 
+	/**
+		Get the names of variables defined in this namespace.
+		(This does not show variables in parent namespaces).
+	*/
 	public String [] getVariableNames() {
 		if ( variables == null )
 			return new String [0];
@@ -137,6 +154,10 @@ public class NameSpace
 			return enumerationToStringArray( variables.keys() );
 	}
 
+	/**
+		Get the names of methods defined in this namespace.
+		(This does not show methods in parent namespaces).
+	*/
 	public String [] getMethodNames() {
 		if ( methods == null )
 			return new String [0];
@@ -154,6 +175,7 @@ public class NameSpace
 	}
 
 	/**
+		Get the parent namespace.
 		Note: this isn't quite the same as getSuper().
 		getSuper() returns 'this' if we are at the root namespace.
 	*/
@@ -214,6 +236,12 @@ public class NameSpace
 
 	/**
 		Get the specified variable in this namespace or a parent namespace.
+		<p>
+		Note: this method is primarily intended for use internally.  If you use
+		this method outside of the bsh package you will have to use 
+		Primitive.unwrap() to get primitive values.
+		@see Primitive.unwrap()
+
 		@return The variable value or Primitive.VOID if it is not defined.
 	*/
     public Object getVariable( String name ) {
@@ -223,6 +251,12 @@ public class NameSpace
 	/**
 		Get the specified variable in this namespace.
 		If recurse is true extend search through parent namespaces.
+		<p>
+		Note: this method is primarily intended for use internally.  If you use
+		this method outside of the bsh package you will have to use 
+		Primitive.unwrap() to get primitive values.
+		@see Primitive.unwrap()
+
 		@return The variable value or Primitive.VOID if it is not defined.
 	*/
     public Object getVariable( String name, boolean recurse ) {
@@ -264,6 +298,13 @@ public class NameSpace
 		If an untyped variable exists it will be overridden with the new
 		typed var.
 		The set will perform a getAssignableForm() on the value if necessary.
+
+		<p>
+		Note: this method is primarily intended for use internally.  If you use
+		this method outside of the bsh package and wish to set variables with
+		primitive values you will have to wrap them using bsh.Primitive.
+		@see bsh.Primitive
+
 		@param value If value is null, you'll get the default value for the type
     */
     public void	setTypedVariable(
@@ -324,6 +365,11 @@ public class NameSpace
 		variables.put(name, new	TypedVariable(type, value, isFinal));
     }
 
+	/**
+		Note: this is primarily for internal use.
+		@see Interpreter.source()
+		@see Interpreter.eval()
+	*/
     public void	setMethod(String name, BshMethod method) 
 	{
 		if(methods == null)
@@ -346,6 +392,11 @@ public class NameSpace
 	/**
 		Get the bsh method matching the specified signature declared in 
 		this name space or a parent.
+		<p>
+		Note: this method is primarily intended for use internally.  If you use
+		this method outside of the bsh package you will have to be familiar
+		with BeanShell's use of the Primitive wrapper class.
+		@see bsh.Primitive
 	*/
     public BshMethod getMethod( String name, Class [] sig ) 
 	{
@@ -377,7 +428,8 @@ public class NameSpace
     }
 
 	/**
-		subsequent imports override earlier ones
+		Import a class name.
+		Subsequent imports override earlier ones
 	*/
     public void	importClass(String name)
     {
@@ -597,7 +649,8 @@ public class NameSpace
 	}
 	
 	/**
-		Support "import *;"
+		Perform "import *;" causing the entire classpath to be mapped.
+		This can take a while.  Feedback will be sent to the interpreter.
 	*/
 	public static void doSuperImport( Interpreter feedback ) 
 	{
@@ -660,6 +713,7 @@ public class NameSpace
 	}
 
 	/**
+		<p>
 		Determine if the RHS object can be assigned to the LHS type (as is,
 		through widening, promotion, etc. ) and if so, return the 
 		assignable form of the RHS.  Note that this is *not* a cast operation.
@@ -700,7 +754,7 @@ public class NameSpace
 			Primitive?
 			here?
 	*/
-    public static Object getAssignableForm(Object rhs, Class lhsType)
+    static Object getAssignableForm(Object rhs, Class lhsType)
 		throws EvalError
     {
 		Class originalType;
@@ -877,9 +931,14 @@ public class NameSpace
 	}
 
 	/**
-		invoke a method in this namespace with the specified args and
+		Invoke a method in this namespace with the specified args and
 		interpreter reference.  The caller namespace is set to this namespace.
 		This is a convenience for users outside of this package.
+		<p>
+		Note: this method is primarily intended for use internally.  If you use
+		this method outside of the bsh package and wish to use variables with
+		primitive values you will have to wrap them using bsh.Primitive.
+		@see bsh.Primitive
 	*/
 	public Object invokeMethod( 
 		String methodName, Object [] args, Interpreter interpreter ) 
@@ -894,6 +953,11 @@ public class NameSpace
 		invoke a method in this namespace with the specified args,
 		interpreter reference, and callstack
 		This is a convenience for users outside of this package.
+		<p>
+		Note: this method is primarily intended for use internally.  If you use
+		this method outside of the bsh package and wish to use variables with
+		primitive values you will have to wrap them using bsh.Primitive.
+		@see bsh.Primitive
 	*/
 	public Object invokeMethod( 
 		String methodName, Object [] args, Interpreter interpreter, 
@@ -924,12 +988,26 @@ public class NameSpace
 		nameSpaceChanged();
 	}
 
+	/**
+		Clear all cached classes and names
+	*/
 	public void nameSpaceChanged() {
 		classCache = null;
 	}
 
 	/**
-		Load universally imported packages.
+		Import standard packages.  Currently:
+		<pre>
+			importClass("bsh.EvalError");
+			importPackage("javax.swing.event");
+			importPackage("javax.swing");
+			importPackage("java.awt.event");
+			importPackage("java.awt");
+			importPackage("java.net");
+			importPackage("java.util");
+			importPackage("java.io");
+			importPackage("java.lang");
+		</pre>
 	*/
     public void loadDefaultImports()
     {

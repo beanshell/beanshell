@@ -121,22 +121,18 @@ class LHS implements ParserConstants, java.io.Serializable
 	{
 		if(type == VARIABLE)
 			return nameSpace.getVariable(varName);
-		else if(type == FIELD)
-			try
-			{
+		else if (type == FIELD)
+			try {
 				return field.get(object);
 			}
-			catch(IllegalAccessException e2)
-			{
+			catch(IllegalAccessException e2) {
 				throw new EvalError("Can't read field: " + field);
 			}
 		else if(type == PROPERTY)
-			try
-			{
+			try {
 				return Reflect.getObjectProperty(object, propName);
 			}
-			catch(ReflectError e)
-			{
+			catch(ReflectError e) {
 				Interpreter.debug(e.getMessage());
 				throw new EvalError("No such property: " + propName);
 			}
