@@ -6,7 +6,7 @@ BeanShell is a small, free, embeddable Java source interpreter with
 object scripting language features, written in Java.  BeanShell executes 
 standard Java statements and expressions but also extends Java into the 
 scripting domain with common scripting language conventions and syntax.
-BeanShell is the <em>natural</em> scripting language for Java.
+BeanShell is a <em>natural</em> scripting language for Java.
 <p/>
 
 <h2>Scripting vs. Application Languages</h2>
@@ -15,7 +15,7 @@ Traditionally, the primary difference between a scripting language and
 a compiled language has been in its type system: the way in which you define 
 and use data elements.  You might be thinking that there is a more obvious 
 difference here - that of "interpreted" code vs. compiled code.  But 
-compilation in and of itself does not fundamentally change the way you work 
+the compiler in and of itself does not fundamentally change the way you work 
 with a language.  Nor does interpreting a language necessarily make 
 it more useful for what we think of as "scripting".
 It is the type system of a language that makes it possible for a compiler 
@@ -74,7 +74,7 @@ simple lists.  This is sufficient for many kinds of scripting.
 <p/>
 
 Many scripting languages operate in a loose, unstructured land - a place 
-domanated by text and course-grained tools.  
+dominated by text and course-grained tools.  
 As such these scripting languages have evolved
 sophisticated mechanisms for working with these simple types (regular
 expressions, pipes, etc.). 

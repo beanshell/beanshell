@@ -502,7 +502,8 @@ public class BshClassPath
 
 		Note: this makes lots of strings... could be faster.
 	*/
-	public static String canonicalizeClassName( String name ) {
+	public static String canonicalizeClassName( String name ) 
+	{
 		String classname=name.replace('/', '.');
 		classname=classname.replace('\\', '.');
 		if ( classname.startsWith("class ") )

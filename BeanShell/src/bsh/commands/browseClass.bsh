@@ -20,7 +20,7 @@ browseClass( Object o )
 	if ( o instanceof String)
 		classname = o;
 	else if ( o instanceof ClassIdentifier )
-		clasname = this.namespace.identifierToClass(o).getName();
+		classname = this.namespace.identifierToClass(o).getName();
 	else if ( o instanceof Class )
 		classname = o.getName();
 	else 
