@@ -2,6 +2,7 @@
 import javax.swing.ImageIcon;
 import java.awt.*;
 import bsh.Capabilities;
+import bsh.util.JConsole;
 
 /*
 	Daniel Leuck: supplied this
@@ -13,7 +14,7 @@ printBanner() {
 
 	if ( bsh.console != void 
 		&& Capabilities.haveSwing() 
-		&& (bsh.console instanceof bsh.util.JConsole) ) {
+		&& (bsh.console instanceof JConsole) ) {
 
 	    jconsole =	bsh.console;
 	    jconsole.println( 

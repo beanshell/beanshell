@@ -598,7 +598,7 @@ compare them side by side and see what they do differently.
     public final static void debug(String s)
     {
         if(DEBUG)
-            debug.println("// Debug ("+System.currentTimeMillis()+"): " + s);
+            debug.println("// Debug: " + s);
     }
 
         /*

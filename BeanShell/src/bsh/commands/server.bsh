@@ -1,9 +1,11 @@
+import bsh.util.Httpd;
+import bsh.util.Sessiond;
 
 bsh.help.server = "usage: server(int port)";
 
 server(int port ) {
-	new Thread( new bsh.util.Httpd( port ) ).start();
+	new Thread( new Httpd( port ) ).start();
 	print("Httpd started on port: "+port);
-	new Thread( new bsh.util.Sessiond( global.namespace, port+1 ) ).start();
+	new Thread( new Sessiond( global.namespace, port+1 ) ).start();
 	print("Sessiond started on port: "+ (port+1));
 }

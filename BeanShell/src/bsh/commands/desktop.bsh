@@ -1,5 +1,6 @@
 import javax.swing.*;
 import bsh.util.JConsole;
+import bsh.util.Util;
 import bsh.Interpreter;
 import java.awt.Component;
 
@@ -118,5 +119,5 @@ desktop() {
 	frame.setSize(800,600);
 	frame.show();
 	frame.toFront();
-	bsh.util.Util.endSplashScreen();
+	Util.endSplashScreen();
 }
