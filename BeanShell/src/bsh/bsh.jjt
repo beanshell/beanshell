@@ -31,6 +31,15 @@
  *                                                                           *
  *****************************************************************************/
 
+/*
+	Notes:
+	There is probably a lot of room for improvement in here.
+	All of the syntactic lookaheads have been commented with:
+		SYNTACTIC_LOOKAHEAD
+	These are probably expensive and we may want to start weeding them out
+	where possible.
+*/
+
 options {
     JAVA_UNICODE_ESCAPE=true;
     STATIC=false;
@@ -313,6 +322,18 @@ boolean Line() :
 	}
 |
   (
+	/*
+		SYNTACTIC_LOOKAHEAD
+		I'm guessing this is expensive, but I don't know how to work around
+		it...  Is there another syntactic indication that we are working 
+		through an expression as opposed to a statement?
+		What is the difference?  Well, some statements don't require a
+		semicolon and they don't return vlues...  We could probably broaden
+		bsh to allow everything to return a value, but the semi-colon thing
+		is tougher.  You don't want to have to say if ( foo ) { } ;
+		Maybe we can invert ths and enumerate all of those types of 
+		statements in a special lookahead that's cheaper??
+	*/
    LOOKAHEAD( Expression() ";" )
    Expression() ";" 
   |
@@ -330,6 +351,8 @@ boolean Line() :
 void MethodDeclaration() #MethodDeclaration :
 { Token t = null; }
 {
+	// SYNTACTIC_LOOKAHEAD
+	// this one seems cheap enough
     LOOKAHEAD( MethodDeclarationTypeLookahead() )
     ReturnType() t = <IDENTIFIER> { jjtThis.name = t.image; }
     FormalParameters() Block()
@@ -340,6 +363,8 @@ void MethodDeclaration() #MethodDeclaration :
 
 void MethodDeclarationLookahead() : { }
 {
+	// SYNTACTIC_LOOKAHEAD
+	// this one seems cheap enough
     LOOKAHEAD( MethodDeclarationTypeLookahead() )
     ReturnType() <IDENTIFIER> FormalParameters() "{"
 |
@@ -433,7 +458,7 @@ void Type() #Type :
 { }
 {
 	/* 
-		The embedded lookahead is necessary to disambiguate for
+		The embedded lookahead is (was?) necessary to disambiguate for
 		PrimaryPrefix.  ( )* is a choice point.  It took me a while to
 		figure out where to put that.  This stuff is annoying.
 	*/
@@ -488,10 +513,13 @@ void AmbiguousName() #AmbiguousName :
 /*
  * Expression syntax follows.
  */
-
 void Expression() :
 { }
 {
+	/**
+		SYNTACTIC_LOOKAHEAD
+		This is probably expensive.  Can we simplify it somehow?
+	*/
   LOOKAHEAD( LHSPrimaryExpression() AssignmentOperator() )
   Assignment()
 |
@@ -654,6 +682,7 @@ void UnaryExpressionNotPlusMinus() :
   ( t="~" | t="!" ) UnaryExpression()
     { jjtThis.kind = t.kind; } #UnaryExpression(1)
 |
+	// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( CastLookahead() ) CastExpression()
 |
   PostfixExpression()
@@ -664,6 +693,7 @@ void CastLookahead() : { }
 {
   LOOKAHEAD(2) "(" PrimitiveType()
 |
+// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( "(" AmbiguousName() "[" ) "(" AmbiguousName() "[" "]"
 |
   "(" AmbiguousName() ")" ( "~" | "!" | "(" | <IDENTIFIER> | /* "this" | "super" | */ "new" | Literal() )
@@ -673,18 +703,20 @@ void PostfixExpression() :
 { Token t = null; }
 {
  (
+// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( LHSPrimaryExpression() ("++"|"--") )
   LHSPrimaryExpression()
+	  [ ( t="++" | t="--" ) { 
+		jjtThis.kind = t.kind; jjtThis.postfix = true; } #UnaryExpression(1) ]
 |
   PrimaryExpression()
  )
-  [ ( t="++" | t="--" ) { 
-	jjtThis.kind = t.kind; jjtThis.postfix = true; } #UnaryExpression(1) ]
 }
 
 void CastExpression() #CastExpression :
 { }
 {
+// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( "(" PrimitiveType() ) "(" Type() ")" UnaryExpression()
 |
   "(" Type() ")" UnaryExpressionNotPlusMinus()
@@ -705,6 +737,7 @@ void PrimaryPrefix() : { }
 |
   AllocationExpression()
 |
+// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( Type() "." "class" )
   Type()
 |
@@ -921,6 +954,7 @@ void AllocationExpression() #AllocationExpression :
 	( 
 		ArrayDimensions() 
 	| 
+		// SYNTACTIC_LOOKAHEAD
 		Arguments() [ LOOKAHEAD(2) Block() ]
 	)
 }
@@ -987,8 +1021,10 @@ void Block() #Block :
 void BlockStatement() :
 {}
 {
+// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( MethodDeclarationLookahead() ) MethodDeclaration()
 |
+// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD([ "final" ] Type() <IDENTIFIER>)
   TypedVariableDeclaration() ";"
 |
@@ -1018,6 +1054,7 @@ void StatementExpression() :
 |
   PreDecrementExpression()
 |
+// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
   Assignment() { }
 |
@@ -1080,6 +1117,7 @@ void ForStatement() #ForStatement :
 void ForInit() :
 { Token t = null; }
 {
+// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( [ t="final" ] Type() <IDENTIFIER> )
   TypedVariableDeclaration()
 |

@@ -37,8 +37,10 @@
 
 	<property name="javacc-lib" 
 		value="/pkg/javacc/bin/lib/JavaCC.zip"/>
-	<!--property name="javacc-lib" 
-		value="/home/niemeyp/pkg/javacc/bin/lib/JavaCC.zip"/-->
+	<!--
+	<property name="javacc-lib" 
+		value="/home/niemeyp/pkg/javacc/bin/lib/JavaCC.zip"/>
+	-->
 
 	<!-- 
 		Optional things you can't build under older versions of Java.

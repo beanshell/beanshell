@@ -111,7 +111,7 @@ public class NameSpace
 		throws EvalError 
 	{
 		CallStack callstack = new CallStack();
-		return new Name( this, name ).toObject( callstack, interpreter );
+		return getNameResolver( name ).toObject( callstack, interpreter );
 	}
 
 
@@ -548,7 +548,7 @@ public class NameSpace
 				{
 					if ( Name.isCompound( fullname ) )
 						try {
-							clas = new Name( this, fullname ).toClass();
+							clas = getNameResolver( fullname ).toClass();
 						} catch ( EvalError e ) { /* not a class */ }
 					else 
 						Interpreter.debug(
@@ -1045,6 +1045,19 @@ public class NameSpace
 	*/
 
     }
+
+	/**
+		This is the factory for Name objects which resolve names within
+		this namespace (e.g. toObject(), toClass(), toLHS()).
+		This supports name resolver caching, allowing Name objects to 
+		cache info about the resolution of names for performance reasons.
+		(This would be called getName() if it weren't already used for the
+		simple name of the NameSpace)
+	*/
+	Name getNameResolver( String name ) {
+		// no caching yet
+		return new Name(this,name);
+	}
 
 }
 

@@ -758,7 +758,8 @@ public class Interpreter
 	*/
     public void set(String name, Object value) throws EvalError {
 		CallStack callstack = new CallStack();
-		LHS lhs = new Name( globalNameSpace, name ).toLHS( callstack, this );
+		LHS lhs = globalNameSpace.getNameResolver( name ).toLHS( 
+			callstack, this );
 		lhs.assign( value );
 	}
 

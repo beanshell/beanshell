@@ -32,6 +32,15 @@
  *                                                                           *
  *****************************************************************************/
 
+/*
+	Notes:
+	There is probably a lot of room for improvement in here.
+	All of the syntactic lookaheads have been commented with:
+		SYNTACTIC_LOOKAHEAD
+	These are probably expensive and we may want to start weeding them out
+	where possible.
+*/
+
 options {
     JAVA_UNICODE_ESCAPE=true;
     STATIC=false;                                                                                       
@@ -313,6 +322,18 @@ boolean Line() :
 	}
 |
   (
+	/*
+		SYNTACTIC_LOOKAHEAD
+		I'm guessing this is expensive, but I don't know how to work around
+		it...  Is there another syntactic indication that we are working 
+		through an expression as opposed to a statement?
+		What is the difference?  Well, some statements don't require a
+		semicolon and they don't return vlues...  We could probably broaden
+		bsh to allow everything to return a value, but the semi-colon thing
+		is tougher.  You don't want to have to say if ( foo ) { } ;
+		Maybe we can invert ths and enumerate all of those types of 
+		statements in a special lookahead that's cheaper??
+	*/
    LOOKAHEAD( Expression() ";" )
    Expression() ";" 
   |
@@ -337,6 +358,8 @@ void MethodDeclaration()                    :
 {/*@bgen(jjtree) MethodDeclaration */
     try {
 /*@egen*/
+	// SYNTACTIC_LOOKAHEAD
+	// this one seems cheap enough
     LOOKAHEAD( MethodDeclarationTypeLookahead() )
     ReturnType() t = <IDENTIFIER> { jjtn000.name = t.image; }
     FormalParameters() Block()
@@ -368,6 +391,8 @@ void MethodDeclaration()                    :
 
 void MethodDeclarationLookahead() : { }
 {
+	// SYNTACTIC_LOOKAHEAD
+	// this one seems cheap enough
     LOOKAHEAD( MethodDeclarationTypeLookahead() )
     ReturnType() <IDENTIFIER> FormalParameters() "{"
 |
@@ -638,7 +663,7 @@ void Type()       :
   try {
 /*@egen*/
 	/* 
-		The embedded lookahead is necessary to disambiguate for
+		The embedded lookahead is (was?) necessary to disambiguate for
 		PrimaryPrefix.  ( )* is a choice point.  It took me a while to
 		figure out where to put that.  This stuff is annoying.
 	*/
@@ -830,10 +855,13 @@ void AmbiguousName()                :
 /*
  * Expression syntax follows.
  */
-
 void Expression() :
 { }
 {
+	/**
+		SYNTACTIC_LOOKAHEAD
+		This is probably expensive.  Can we simplify it somehow?
+	*/
   LOOKAHEAD( LHSPrimaryExpression() AssignmentOperator() )
   Assignment()
 |
@@ -1366,6 +1394,7 @@ void UnaryExpressionNotPlusMinus() :
     }
 /*@egen*/
 |
+	// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( CastLookahead() ) CastExpression()
 |
   PostfixExpression()
@@ -1376,6 +1405,7 @@ void CastLookahead() : { }
 {
   LOOKAHEAD(2) "(" PrimitiveType()
 |
+// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( "(" AmbiguousName() "[" ) "(" AmbiguousName() "[" "]"
 |
   "(" AmbiguousName() ")" ( "~" | "!" | "(" | <IDENTIFIER> | /* "this" | "super" | */ "new" | Literal() )
@@ -1385,34 +1415,35 @@ void PostfixExpression() :
 { Token t = null; }
 {
  (
+// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( LHSPrimaryExpression() ("++"|"--") )
   LHSPrimaryExpression()
+	  [ ( t="++" | t="--" )/*@bgen(jjtree) #UnaryExpression( 1) */
+                                {
+                                  BSHUnaryExpression jjtn001 = new BSHUnaryExpression(JJTUNARYEXPRESSION);
+                                  boolean jjtc001 = true;
+                                  jjtree.openNodeScope(jjtn001);
+                                  jjtreeOpenNodeScope(jjtn001);
+                                }
+                                try {
+/*@egen*//*@bgen(jjtree)*/
+                                {
+                                  jjtree.closeNodeScope(jjtn001,  1);
+                                  jjtc001 = false;
+                                  jjtreeCloseNodeScope(jjtn001);
+                                }
+/*@egen*/ { 
+		jjtn001.kind = t.kind; jjtn001.postfix = true; }/*@bgen(jjtree)*/
+                                } finally {
+                                  if (jjtc001) {
+                                    jjtree.closeNodeScope(jjtn001,  1);
+                                    jjtreeCloseNodeScope(jjtn001);
+                                  }
+                                }
+/*@egen*/ ]
 |
   PrimaryExpression()
  )
-  [ ( t="++" | t="--" )/*@bgen(jjtree) #UnaryExpression( 1) */
-                        {
-                          BSHUnaryExpression jjtn001 = new BSHUnaryExpression(JJTUNARYEXPRESSION);
-                          boolean jjtc001 = true;
-                          jjtree.openNodeScope(jjtn001);
-                          jjtreeOpenNodeScope(jjtn001);
-                        }
-                        try {
-/*@egen*//*@bgen(jjtree)*/
-                        {
-                          jjtree.closeNodeScope(jjtn001,  1);
-                          jjtc001 = false;
-                          jjtreeCloseNodeScope(jjtn001);
-                        }
-/*@egen*/ { 
-	jjtn001.kind = t.kind; jjtn001.postfix = true; }/*@bgen(jjtree)*/
-                        } finally {
-                          if (jjtc001) {
-                            jjtree.closeNodeScope(jjtn001,  1);
-                            jjtreeCloseNodeScope(jjtn001);
-                          }
-                        }
-/*@egen*/ ]
 }
 
 void CastExpression()                 :
@@ -1425,6 +1456,7 @@ void CastExpression()                 :
 {/*@bgen(jjtree) CastExpression */
   try {
 /*@egen*/
+// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( "(" PrimitiveType() ) "(" Type() ")" UnaryExpression()
 |
   "(" Type() ")" UnaryExpressionNotPlusMinus()/*@bgen(jjtree)*/
@@ -1494,6 +1526,7 @@ void PrimaryPrefix() : { }
 |
   AllocationExpression()
 |
+// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( Type() "." "class" )
   Type()
 |/*@bgen(jjtree) #MethodInvocation(> 1) */
@@ -1999,6 +2032,7 @@ void AllocationExpression()                       :
 	( 
 		ArrayDimensions() 
 	| 
+		// SYNTACTIC_LOOKAHEAD
 		Arguments() [ LOOKAHEAD(2) Block() ]
 	)/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
@@ -2142,8 +2176,10 @@ void Block()        :
 void BlockStatement() :
 {}
 {
+// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( MethodDeclarationLookahead() ) MethodDeclaration()
 |
+// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD([ "final" ] Type() <IDENTIFIER>)
   TypedVariableDeclaration() ";"
 |
@@ -2173,6 +2209,7 @@ void StatementExpression() :
 |
   PreDecrementExpression()
 |
+// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
   Assignment() { }
 |
@@ -2415,6 +2452,7 @@ void ForStatement()               :
 void ForInit() :
 { Token t = null; }
 {
+// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( [ t="final" ] Type() <IDENTIFIER> )
   TypedVariableDeclaration()
 |
