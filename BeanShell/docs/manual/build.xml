@@ -6,9 +6,9 @@
 			http://www.easysw.com/htmldoc/ 
 		I tried many xhtml->fo stylesheets, but none seemed to work well.	
 
-	<property name="htmldoc" value="/pkg/htmldoc/bin/htmldoc"/>
-	-->
 	<property name="htmldoc" value="/home/niemeyp/pkg/htmldoc/bin/htmldoc"/>
+	-->
+	<property name="htmldoc" value="/pkg/htmldoc/bin/htmldoc"/>
 
 	<target name="manual">     
 		<!-- Build it every time... later we can add an updtodate check -->

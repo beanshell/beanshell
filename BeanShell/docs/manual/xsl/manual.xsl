@@ -59,19 +59,58 @@
 </xsl:template>
 
 <xsl:template match="manual" mode="multipage">
+MULTIMAN
+	<xsl:apply-templates mode="multipage"/>
+<!--
 	<xsl:call-template name="writepage">
 		<xsl:with-param name="file">manualpage.html</xsl:with-param>
 		<xsl:with-param name="title">BeanShell User's Manual</xsl:with-param>
-		<xsl:with-param name="body">
-			<xsl:apply-templates/>
-		</xsl:with-param>
+		<xsl:with-param name="body">Foo</xsl:with-param>
+	THIS IS CONTENT 
 	</xsl:call-template>
+-->
+</xsl:template>
+
+<!-- 
+	Section
+-->
+<xsl:template match="section">
+SECTION
+	<h1>
+	<xsl:call-template name="anchor">
+		<xsl:with-param name="value" select="name"/>
+	</xsl:call-template>
+	</h1>
+	<!-- Just an experiment... alternative to declaring extra templates.
+	<xsl:apply-templates 
+		select="*[name()!='name' and name()!='foo']"/>
+	-->
+	<xsl:apply-templates/>
+	<hr/>
+	<xsl:comment>PAGE BREAK</xsl:comment>
+</xsl:template>
+<!-- remove control/meta-info tags -->
+<xsl:template match="section/name"/>
+
+<xsl:template match="section" mode="multipage">
+	MULTIPAGE SECTION
+	<xsl:variable 
+		name="file">file<xsl:number count="section"/>.txt</xsl:variable>
+	<redirect:write file="{$file}">
+		<html>
+		<head>
+			<title><xsl:value-of select="name"/></title>
+		</head><body bgcolor="ffffff">
+			<xsl:apply-templates/>
+		</body>
+		</html>
+	</redirect:write>
 </xsl:template>
 
 <!--
 	Table of contents
 -->
-<xsl:template match="/manual/contents">
+<xsl:template match="tableofcontents">
 	<h1>Table of Contents</h1>
 	<ul>
 	<xsl:for-each select="/manual/section">
@@ -98,26 +137,6 @@
 	<hr/>
 	<xsl:comment>PAGE BREAK</xsl:comment>
 </xsl:template>
-
-<!-- 
-	Section
--->
-<xsl:template match="section">
-	<h1>
-	<xsl:call-template name="anchor">
-		<xsl:with-param name="value" select="name"/>
-	</xsl:call-template>
-	</h1>
-	<!-- Just an experiment... alternative to declaring extra templates.
-	<xsl:apply-templates 
-		select="*[name()!='name' and name()!='foo']"/>
-	-->
-	<xsl:apply-templates/>
-	<hr/>
-	<xsl:comment>PAGE BREAK</xsl:comment>
-</xsl:template>
-<!-- remove control/meta-info tags -->
-<xsl:template match="section/name"/>
 
 <!-- 
 	Sub-Section
@@ -151,20 +170,19 @@
 	Write multi-page HTML output.
 	This uses the xalan extensions right now.  Later we'll switch to 
 	the xsl:document tag when it's available.
--->
 <xsl:template name="writepage">
 	<xsl:param name="file"/>
 	<xsl:param name="title"/>
-	<xsl:param name="body"/>
 
     <redirect:write file="{$file}">
 	<html><head>
 		<title><xsl:value-of select="$title"/></title>
 	</head><body bgcolor="ffffff">
-		<title><xsl:value-of select="$body"/></title>
+		<xsl:apply-templates/>
 	</body></html>
     </redirect:write>
 </xsl:template>
+-->
 
 </xsl:stylesheet>
 

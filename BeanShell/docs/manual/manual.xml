@@ -39,7 +39,7 @@
 
 <manual>
 	&title;
-	<contents/> <!-- Auto generated table of contents -->
+	<tableofcontents/> <!-- Auto generated table of contents -->
 	&intro;
 	&quickstart;
 	&syntax;
