@@ -109,7 +109,7 @@ class BlockNameSpace extends NameSpace
 		} catch ( UtilEvalError e ) { return false; }
 	}
 
-	/**
+/**
 		Get the actual BlockNameSpace 'this' reference.
 		<p/>
 		Normally a 'this' reference to a BlockNameSpace (e.g. if () { } )
@@ -119,11 +119,11 @@ class BlockNameSpace extends NameSpace
 		reference.  Name.java is smart enough to handle this using
 		getBlockThis().
 		@see #getThis( Interpreter )
-	*/
     This getBlockThis( Interpreter declaringInterpreter ) 
 	{
 		return super.getThis( declaringInterpreter );
 	}
+*/
 
 	//
 	// Begin methods which simply delegate to our parent (enclosing scope) 
@@ -174,6 +174,7 @@ class BlockNameSpace extends NameSpace
 	}
 
     public void	setMethod(String name, BshMethod method) 
+		throws UtilEvalError
 	{
 		getParent().setMethod( name, method );
 	}

@@ -41,6 +41,7 @@ class BSHClassDeclaration extends SimpleNode
 	String name;
 	Modifiers modifiers;
 	int numInterfaces;
+	Class [] interfaces;
 	boolean extend;
 
 	BSHClassDeclaration(int id) { super(id); }
@@ -51,15 +52,37 @@ class BSHClassDeclaration extends SimpleNode
 		throws EvalError
 	{
 		int child = 0;
+		NameSpace enclosingNameSpace = callstack.top();
 
-		if ( extend ) {
+		NameSpace superNameSpace = null;
+		if ( extend ) 
+		{
 			BSHAmbiguousName superNode = (BSHAmbiguousName)jjtGetChild(child++);
-			Class superClass = superNode.toClass( callstack, interpreter );
+			Object superClass = superNode.toObject( 
+				callstack, interpreter, false /*forceclass*/ );
+
+			if ( superClass instanceof ClassIdentifier )
+				throw new EvalError(
+					"BeanShell Scripted Classes cannot currently extend "
+					+"Java types.", this, callstack );
+
+			if ( superClass instanceof This 
+				&& ((This)superClass).getNameSpace().isClass 
+			)
+				superNameSpace = ((This)superClass).getNameSpace();
 		}
+		if ( superNameSpace == null )
+			superNameSpace = enclosingNameSpace;
 
 		// Get interfaces
+		interfaces = new Class[numInterfaces];
 		for( int i=0; i<numInterfaces; i++) {
-			jjtGetChild(child++);
+			BSHAmbiguousName node = (BSHAmbiguousName)jjtGetChild(child++);
+			interfaces[i] = node.toClass(callstack, interpreter);
+			if ( !interfaces[i].isInterface() )
+				throw new EvalError(
+					"Type: "+node.text+" is not an interface!", 
+					this, callstack );
 		}
 
 		BSHBlock block;
@@ -68,18 +91,15 @@ class BSHClassDeclaration extends SimpleNode
 		else
 			block = new BSHBlock( ParserTreeConstants.JJTBLOCK );
 
-		NameSpace namespace = callstack.top();
-
 		/*
-			Install this class in the namespace.
+			Install this class in the enclosingNameSpace.
 			Make a scripted object representing the class and install it under
 			the name of the class.
 		*/
 
 		NameSpace classStaticNameSpace = 
-			new NameSpace( namespace, name );
+			new NameSpace( superNameSpace, name );
 		classStaticNameSpace.isClass = true;
-		classStaticNameSpace.isStatic = true;
 
 		/*
 			Evaluate the block in the classStaticNameSpace
@@ -102,12 +122,16 @@ class BSHClassDeclaration extends SimpleNode
 				new Modifiers()
 			);
 
-		classStaticNameSpace.setMethod( name, defaultConstructor );	
+		try {
+			classStaticNameSpace.setMethod( name, defaultConstructor );	
+		} catch ( UtilEvalError e ) {
+			throw e.toEvalError(this, callstack);
+		}
 		
 		callstack.pop();
 
 		try {
-			namespace.setVariable( 
+			enclosingNameSpace.setVariable( 
 				name, classStaticNameSpace.getThis( interpreter), false );
 		} catch ( UtilEvalError e ) {
 			throw e.toEvalError( this, callstack );

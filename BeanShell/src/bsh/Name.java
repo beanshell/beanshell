@@ -465,54 +465,55 @@ class Name implements java.io.Serializable
 			if ( specialFieldsVisible )
 				throw new UtilEvalError("Redundant to call .this on This type");
 
-			/* 
-				The following test handles the special case of BlockNameSpace
-				scoped 'this' refs (see BlockNameSpace getThis()).  This might
-				be more elegant in a subclass of Name.java (e.g. BlockName.java
-				corresponding to BlockNameSpace.java)  but is only a couple of
-				lines.  Explanation: a simple non-compound name always resolves
-				to the parent ns.  Therefore any compound resolution means we
-				are resolving within the block namespace.
-			// This popping out of the block namespace predicated on evalName
-			// not being compound does not handle the case of this.namespace,
-			// this.caller magic fields.
-			This ths;
-			if ( thisNameSpace instanceof BlockNameSpace 
-				&& isCompound(evalName) 
-			)
-				ths = ((BlockNameSpace)thisNameSpace).getBlockThis( 
-					interpreter );
-			else
-			*/
-			// Allow getThis() to work for BlockNameSpace
+			// Allow getThis() to work through BlockNameSpace to the method
+			// namespace
 			This ths = thisNameSpace.getThis( interpreter );
-
-			thisNameSpace = ths.getNameSpace();
+			thisNameSpace= ths.getNameSpace();
 
 			/*
-				The following test handles the case of a scripted class
-				method namespace.  This should really be in a subclass of
-				Name or NameSpace.  A reference to 'this' from inside a class
-				instance should refer to the enclosing class instance, as in
-				Java.
+				The following test handles the case of a scripted method in a
+				scripted class namespace.  This should really be in a subclass
+				of Name or NameSpace.  A reference to 'this' from inside a
+				method in a class instance should refer to the enclosing 
+				class instance, as in Java.
 			*/
-			if ( thisNameSpace.getParent() != null 
-				&& thisNameSpace.getParent().isClass 
-				&& !thisNameSpace.getParent().isStatic 
+			if ( thisNameSpace.isMethod 
+				&& thisNameSpace.getParent() != null 
+				&& thisNameSpace.getParent().isClassInstance 
 			)
 				ths = thisNameSpace.getParent().getThis( interpreter );
 
 			return ths;
 		}
 
-		if ( obj == null ) 
+		/*
+			Some duplication for "super".  See notes for "this" above
+			If we're in an enclsing class instance and have a superclass
+			instance our super is the superclass instance.
+		*/
+		if ( varName.equals("super") ) 
 		{
-			if ( varName.equals("super") )
-				obj = thisNameSpace.getSuper().getThis( interpreter );
-			else 
-			if ( varName.equals("global") )
-				obj = thisNameSpace.getGlobal().getThis( interpreter );
+			//if ( specialFieldsVisible )
+				//throw new UtilEvalError("Redundant to call .this on This type");
+
+			// Allow getSuper() to through BlockNameSpace to the method's super
+			This ths = thisNameSpace.getSuper().getThis(interpreter);
+			thisNameSpace = ths.getNameSpace();
+			// super is now the closure's super or class instance
+
+			// If we're a class instance and the parent is also a class instance
+			// then super means our parent.
+			if ( thisNameSpace.isClassInstance
+				&& thisNameSpace.getParent() != null 
+				&& thisNameSpace.getParent().isClassInstance
+			)
+				ths = thisNameSpace.getParent().getThis( interpreter );
+
+			return ths;
 		}
+
+		if ( varName.equals("global") )
+			obj = thisNameSpace.getGlobal().getThis( interpreter );
 
 		if ( obj == null && specialFieldsVisible ) 
 		{

@@ -82,71 +82,17 @@ class BSHAllocationExpression extends SimpleNode
             throw new EvalError( "Null args in new.", this, callstack );
 
 		// Look for scripted class object
-        Object obj = nameNode.toObject( callstack, interpreter, false );
+        Object obj = nameNode.toObject( 
+			callstack, interpreter, false/* force class*/ );
 
-		if ( obj instanceof This && ((This)obj).namespace.isClass )
-		{
-			NameSpace classNameSpace = ((This)obj).getNameSpace();
-			NameSpace instanceNameSpace = 
-				new NameSpace( classNameSpace, nameNode.text );
-			instanceNameSpace.isClass = true;
-
-			BshMethod defaultConstructor = null;
-			try {
-				defaultConstructor = 
-					classNameSpace.getMethod( nameNode.text, new Class[0] );
-			} catch ( UtilEvalError e ) { // shouldn't happen
-				throw e.toEvalError(
-					"Error getting default constructor", this, callstack );
-			}
-
-			BshMethod constructor = null;
-			if ( args.length > 0 ) 
-			{
-				Class [] sig = Reflect.getTypes( args );
-				try {
-					constructor = 
-						classNameSpace.getMethod( nameNode.text, sig );
-				} catch ( UtilEvalError e ) { // shouldn't happen
-					throw e.toEvalError(
-						"Error getting constructor", this, callstack );
-				}
-			}
-
-			callstack.push( instanceNameSpace );
-
-			// Call the default constructor first
-			if ( defaultConstructor != null )
-			{
-				try {
-					defaultConstructor.invoke( 
-						new Object[0], interpreter, callstack, this, 
-						true/*overrideNameSpace*/ );
-				} catch ( EvalError e ) {
-					e.reThrow("Exception in default constructor: "+e);
-				}
-			}
-			// Call the specific constructor if any
-			if ( constructor != null )
-			{
-				try {
-					constructor.invoke( 
-						args, interpreter, callstack, this, 
-						true/*overrideNameSpace*/ );
-				} catch ( EvalError e ) {
-					e.reThrow("Exception in constructor: "+e);
-				}
-			}
-
-			callstack.pop();
-			
-			// return the initialized object
-			return instanceNameSpace.getThis( interpreter );
-		}
+		if ( obj instanceof This && ((This)obj).getNameSpace().isClass )
+			return constructClassInstance( 
+				(This)obj, args, interpreter, callstack );
 
 		// Try regular class
 
-        obj = nameNode.toObject( callstack, interpreter, true );
+        obj = nameNode.toObject( 
+			callstack, interpreter, true/*force class*/ );
 
         Class type = null;
 		if ( obj instanceof ClassIdentifier )
@@ -164,6 +110,95 @@ class BSHAllocationExpression extends SimpleNode
 		} else
 			return constructObject( type, args, callstack );
     }
+
+	private This constructClassInstance( 
+		This classObject, Object[] args, 
+		Interpreter interpreter, CallStack callstack ) 
+		throws EvalError
+	{
+		NameSpace classNameSpace = classObject.getNameSpace();
+		String className = classNameSpace.getName();
+
+		// Get the default constructor
+		BshMethod defaultConstructor = null;
+		try {
+			defaultConstructor = 
+				classNameSpace.getMethod( className, new Class[0] );
+		} catch ( UtilEvalError e ) { // shouldn't happen
+			throw e.toEvalError(
+				"Error getting default constructor", this, callstack );
+		}
+
+		// Get the non-default constructor, if args
+		BshMethod constructor = null;
+		if ( args.length > 0 ) 
+		{
+			Class [] sig = Reflect.getTypes( args );
+			try {
+				constructor = 
+					classNameSpace.getMethod( className, sig );
+			} catch ( UtilEvalError e ) { // shouldn't happen
+				throw e.toEvalError(
+					"Error getting constructor", this, callstack );
+			}
+			if ( constructor == null )
+				throw new EvalError("Constructor not found: "+
+					StringUtil.methodString( className, sig ), 
+					this, callstack );
+		}
+
+		// Invoke the constructors
+
+		// Recurse to handle superclasses
+		NameSpace superNameSpace = null; 
+		if ( classNameSpace.getParent().isClass )
+		{
+			This superInstance = constructClassInstance( 
+				classNameSpace.getParent().getThis( interpreter ),
+				new Object[0], interpreter, callstack );
+
+			superNameSpace = superInstance.getNameSpace();
+		}
+
+		// Chain the instance namespaces
+		NameSpace instanceNameSpace;
+		if ( superNameSpace != null )
+			instanceNameSpace = new NameSpace( superNameSpace, className );
+		else
+			instanceNameSpace = new NameSpace( classNameSpace, className );
+
+		instanceNameSpace.isClassInstance = true;
+
+		callstack.push( instanceNameSpace );
+
+		if ( defaultConstructor != null )
+		{
+			try {
+				defaultConstructor.invoke( 
+					new Object[0], interpreter, callstack, this, 
+					true/*overrideNameSpace*/ );
+			} catch ( EvalError e ) {
+				e.reThrow("Exception in default constructor: "+e);
+			}
+		}
+		// Call the specific constructor if any
+		if ( constructor != null )
+		{
+			try {
+				constructor.invoke( 
+					args, interpreter, callstack, this, 
+					true/*overrideNameSpace*/ );
+			} catch ( EvalError e ) {
+				e.reThrow("Exception in constructor: "+e);
+			}
+		}
+
+		callstack.pop();
+		
+		// return the initialized object
+		This instance = instanceNameSpace.getThis( interpreter );
+		return instance;
+	}
 
 	private Object constructObject( 
 		Class type, Object[] args, CallStack callstack ) 

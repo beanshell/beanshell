@@ -52,19 +52,7 @@ class BSHType extends SimpleNode
     private int arrayDims;
 
 	/** 
-		Internal cache of the fully expressed type. 
-		i.e. primtive, class, or array.  
-		Cleared on classloader change.
-
-		Technically, this is not correct.  We would need to clear it on
-		any change in the namespace in which we are embedded (e.g. to reflect
-		new imports or variable shadowing, etc.)  
-
-		To summarize:  I believe if you declare a typed var in a namespace
-		and then cause the type to change (e.g. by a subsequent import)
-		it will not change here... it's broken.  The more important case of
-		reloading classes or adding classpath *does* work because we are
-		a class manager listener.
+		Internal cache of the type.  Cleared on classloader change.
 	*/
     private Class type;
 
@@ -93,7 +81,7 @@ class BSHType extends SimpleNode
         //  first node will either be PrimitiveType or AmbiguousName
         SimpleNode node = (SimpleNode)jjtGetChild(0);
 
-        if(node instanceof BSHPrimitiveType)
+        if ( node instanceof BSHPrimitiveType )
             baseType = ((BSHPrimitiveType)node).getType();
         else 
             baseType = ((BSHAmbiguousName)node).toClass( 

@@ -69,12 +69,9 @@ assert( foo2.b == 6 );
 assert( foo2.a == 5 );
 assert( foo2.q == 5 );
 
-class Bar extends java.lang.Object implements Runnable { }
+class Bar implements Runnable { }
 bar = new Bar();
-
-class Gee extends java.lang.Object { }
-class Gee2 implements Runnable { }
-class Gee3 extends java.lang.Object implements Runnable, ActionListener { }
+class Gee3 implements Runnable, ActionListener { }
 new Gee3();
 
 class Foo {

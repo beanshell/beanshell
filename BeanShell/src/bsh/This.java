@@ -104,7 +104,10 @@ public class This implements java.io.Serializable, Runnable {
     }
 
 	/**
-		Get a version of the interface.
+		Get a version of this scripted object implementing the specified 
+		interface.
+	*/
+	/*
 		If this type of This implements it directly return this,
 		else try complain that we don't have the proxy mechanism.
 	*/
@@ -116,6 +119,22 @@ public class This implements java.io.Serializable, Runnable {
 		else
 			throw new UtilEvalError( "Dynamic proxy mechanism not available. "
 			+ "Cannot construct interface type: "+clas );
+	}
+
+	/**
+		Get a version of this scripted object implementing the specified
+		interfaces.
+	*/
+	public Object getInterface( Class [] ca ) 
+		throws UtilEvalError
+	{
+		for(int i=0; i<ca.length; i++)
+			if ( !(ca[i].isInstance( this )) )
+				throw new UtilEvalError( 
+					"Dynamic proxy mechanism not available. " 
+					+ "Cannot construct interface type: "+ca[i] );
+
+		return this;
 	}
 
 	/*

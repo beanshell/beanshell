@@ -248,13 +248,10 @@ public class BshMethod
 		else
 		{
 			localNameSpace = new NameSpace( declaringNameSpace, name );
-			if ( hasModifier("static") )
-				localNameSpace.isStatic = true;
+			localNameSpace.isMethod = true;
 		}
-
 		// should we do this for both cases above?
 		localNameSpace.setNode( callerInfo );
-		localNameSpace.isMethod = true;
 
 		// set the method parameters in the local namespace
 		for(int i=0; i<numArgs; i++)
@@ -275,7 +272,7 @@ public class BshMethod
 				}
 				try {
 					localNameSpace.setTypedVariable( argNames[i], 
-						argTypes[i], argValues[i], false);
+						argTypes[i], argValues[i], null/*modifiers*/);
 				} catch ( UtilEvalError e2 ) {
 					throw e2.toEvalError( "Typed method parameter assignment", 
 						callerInfo, callstack  );
