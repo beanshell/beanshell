@@ -851,9 +851,10 @@ class Name implements java.io.Serializable
 
 	// Static methods that operate on compound ('.' separated) names
 
-	static boolean isCompound(String value)
+	public static boolean isCompound(String value)
 	{
-		return countParts(value) > 1;
+		return value.indexOf('.') != -1 ;
+		//return countParts(value) > 1;
 	}
 
 	static int countParts(String value)
