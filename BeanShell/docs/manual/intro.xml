@@ -10,18 +10,18 @@ scripting domain with common scripting language conventions and syntax.
 
 <h2>History</h2>
 
-A long time ago, back in the summer of 1993, while working at Southwestern
-Bell Technology Resources I was infatuated with the Tcl/Tk scripting 
+A long time ago, back in the summer of 1993 while working at Southwestern
+Bell Technology Resources, I was infatuated with the Tcl/Tk scripting 
 language.  At the time I was also playing around a bit with a 
 language called Oak written by James Gosling at Sun. 
-Little did I know that within just a few years Oak would not only spark The 
+Little did I know that within just a few years Oak would not only spark the 
 Java revolution, but that I would be writing one of the first books on 
 the Java language for O'Reilly &amp; Associates and creating Java's first 
 scripting language, BeanShell, using ideas from Tcl.
 <p/>
 
 BeanShell's first public release was not until 1997, but I had been
-poking at it in one form or another for some time before that. BeanShell was 
+poking at it in one form or another for some time before that. BeanShell 
 became truly practical when Sun added reflection to the Java language in 
 version 1.1.  After that and after having seen its value in helping me create 
 examples and snippets for the second edition of my book, I decided to try to 

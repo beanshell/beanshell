@@ -307,6 +307,7 @@
 					<exclude name="BeanShell/classes/**/*"/>
 					<exclude name="BeanShell/*javadoc*"/>
 					<exclude name="BeanShell/javadoc/**/*"/>
+					<exclude name="BeanShell/docs/**/*"/>
 					<exclude name="**/CVS"/>
 					<exclude name="**/*.jar"/>
 					<exclude name="**/*.war"/>
