@@ -248,10 +248,10 @@ class Name implements java.io.Serializable
 			If we're just starting the eval of name (no base object)
 			or we're evaluating relative to a This type reference check.
 		*/
+		String varName = prefix(evalName, 1);
 		if ( ( evalBaseObject == null || evalBaseObject instanceof This  )
 			&& !forceClass ) 
 		{
-			String varName = prefix(evalName, 1);
 			if ( Interpreter.DEBUG ) 
 				Interpreter.debug("trying to resolve variable: " + varName);
 
@@ -264,18 +264,6 @@ class Name implements java.io.Serializable
 				obj = resolveThisFieldReference( 
 					callstack, ((This)evalBaseObject).namespace, 
 					interpreter, varName, true );
-			}
-
-			// No variable found in 'this' type ref.
-			// if autoAllocateThis then create one; a child 'this'.
-			if ( obj == Primitive.VOID && autoAllocateThis )
-			{
-				NameSpace targetNameSpace = 
-					( evalBaseObject == null ) ?  
-						namespace : ((This)evalBaseObject).namespace;
-				obj = new NameSpace( 
-					targetNameSpace, "auto: "+varName ).getThis( interpreter );
-				targetNameSpace.setVariable( varName, obj, false );
 			}
 
 			if ( obj != Primitive.VOID ) 
@@ -293,7 +281,8 @@ class Name implements java.io.Serializable
 			Is it a class name?
 			If we're just starting eval of name try to make it, else fail.
 		*/
-		if ( evalBaseObject == null ) {
+		if ( evalBaseObject == null ) 
+		{
 			if ( Interpreter.DEBUG ) 
 				Interpreter.debug( "trying class: " + evalName);
 			
@@ -322,6 +311,19 @@ class Name implements java.io.Serializable
 				Interpreter.debug( "not a class, trying var prefix "+evalName );
 		}
 
+		// No variable or class found in 'this' type ref.
+		// if autoAllocateThis then create one; a child 'this'.
+		if ( ( evalBaseObject == null || evalBaseObject instanceof This  )
+			&& !forceClass && autoAllocateThis )
+		{
+			NameSpace targetNameSpace = 
+				( evalBaseObject == null ) ?  
+					namespace : ((This)evalBaseObject).namespace;
+			Object obj = new NameSpace( 
+				targetNameSpace, "auto: "+varName ).getThis( interpreter );
+			targetNameSpace.setVariable( varName, obj, false );
+			return completeRound( varName, suffix(evalName), obj );
+		}
 
 		/*
 			If we didn't find a class or variable name (or prefix) above
@@ -655,7 +657,9 @@ class Name implements java.io.Serializable
 			throw new UtilEvalError("LHS evaluation: " + e);
 		}
 
-		if ( obj instanceof ClassIdentifier )
+		//if ( obj instanceof ClassIdentifier )
+		// Finished eval and its a class.
+		if ( evalName == null && obj instanceof ClassIdentifier )
 			throw new UtilEvalError("Can't assign to class: " + value );
 		if ( obj == null )
 			throw new UtilEvalError("Error in LHS: " + value );
