@@ -363,7 +363,10 @@
 		<jar jarfile="${javadoc-jar}" basedir="${javadoc-dir}"/>
 
 		<!-- Build the documentation -->
+		<!-- Don't build the documentation right now.
+			It's breaking the jakarta GUMP build for some reason.
 		<ant dir="docs/manual"/>
+		-->
 	</target>
 
 	<target name="bshservlet-war" depends="compile" unless="exclude-servlet">
