@@ -19,21 +19,22 @@ frame( Component comp ) {
 		frame = bsh.system.desktop.makeInternalFrame("frame");
 		frame.setClosable(true);
 		frame.getContentPane().add( comp, "Center" );
+    	frame.pack();  // must pack before adding to desktop?
 		bsh.system.desktop.addInternalFrame( frame );
-		return frame;
-	}
-
-	// make an external JFrame or Frame
-	if ( bsh.Capabilities.haveSwing() ) {
-		frame = new javax.swing.JFrame();
-		frame.getContentPane().add( comp, "Center" );
 	} else {
-		frame = new Frame();
-		frame.add( comp, "Center" );
+		// make an external JFrame or Frame
+		if ( bsh.Capabilities.haveSwing() ) {
+			frame = new javax.swing.JFrame();
+			frame.getContentPane().add( comp, "Center" );
+		} else {
+			frame = new Frame();
+			frame.add( comp, "Center" );
+		}
+
+		frame.addWindowListener(this);
+    	frame.pack();
 	}
 
-    frame.addWindowListener(this);
-    frame.pack();
     frame.show();
     return frame;
 }
