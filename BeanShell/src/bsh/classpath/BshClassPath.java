@@ -353,8 +353,8 @@ public class BshClassPath
 	}
 
 	public static boolean isClassFileName( String name ){
-		return ( name.toLowerCase().endsWith(".class") 
-			&& (name.indexOf('$')==-1) );
+		return ( name.toLowerCase().endsWith(".class") );
+			//&& (name.indexOf('$')==-1) );
 	}
 
 	public static boolean isArchiveFileName( String name ){
