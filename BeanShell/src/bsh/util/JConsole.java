@@ -434,7 +434,22 @@ public class JConsole extends JScrollPane
 		text.repaint();
 	}
 
-	private	void acceptLine( String	line ) {
+	String ZEROS = "000";
+
+	private	void acceptLine( String	line ) 
+	{
+		// Patch to handle Unicode characters
+		// Submitted by Daniel Leuck
+		StringBuffer buf = new StringBuffer(); 
+		int lineLength = line.length(); 
+		for(int i=0; i<lineLength; i++) {  
+				String val = Integer.toString(line.charAt(i), 16); 
+				val=ZEROS.substring(0,4-val.length()) + val;
+				buf.append("\\u" + val);
+		} 
+		line = buf.toString();
+		// End unicode patch
+
 		if (outPipe == null )
 			print("Console internal	error: cannot output ...", Color.red);
 		else

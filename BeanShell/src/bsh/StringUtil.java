@@ -79,22 +79,16 @@ public class StringUtil {
 		return one.substring(0, i-1);
 	}
 
-	// Clean this up later...
     public static String methodString(String name, Class[] types)
     {
         StringBuffer sb = new StringBuffer(name + "(");
-        if(types.length > 0)
+        if ( types.length > 0 )
 			sb.append(" ");
-        for(int i=0; i<(types.length - 1); i++)
+        for( int i=0; i<types.length; i++ )
         {
             Class c = types[i];
-            sb.append(((c == null) ? "null" : c.getName()) + ", ");
-        }
-        if(types.length > 0)
-        {
-            Class c = types[types.length - 1];
-            sb.append(((c == null) ? "null" : c.getName()));
-			sb.append(" ");
+            sb.append( ( (c == null) ? "null" : c.getName() ) 
+				+ ( i < (types.length-1) ? ", " : " " ) );
         }
         sb.append(")");
         return sb.toString();

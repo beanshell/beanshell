@@ -93,7 +93,7 @@ public class Interpreter
 {
 	/* --- Begin static members --- */
 
-	public static final String VERSION = "1.3a";
+	public static final String VERSION = "1.3a1";
 	/* 
 		Debug utils are static so that they are reachable by code that doesn't
 		necessarily have an interpreter reference (e.g. tracing in utils).
@@ -481,18 +481,21 @@ public class Interpreter
             catch (EvalError e)
             {
 				if ( interactive )
-					error( e.toString() );
+					error( "EvalError: "+e.toString() );
 				else
-					error( e.getMessage() );
+					error( "EvalError: "+e.getMessage() );
+
                 if(DEBUG)
                     e.printStackTrace();
+
                 if(!interactive)
                     eof = true;
             }
             catch(Exception e)
             {
                 error("Unknown error: " + e);
-                e.printStackTrace();
+				if ( DEBUG )
+                	e.printStackTrace();
                 if(!interactive)
                     eof = true;
             }
@@ -654,7 +657,8 @@ public class Interpreter
 					e.setNode( node );
 				e.reThrow( "Sourced file: "+sourceFileInfo );
             } catch ( Exception e) {
-                e.printStackTrace();
+                if ( DEBUG)
+                	e.printStackTrace();
                 throw new EvalError(
 					"Sourced file: "+sourceFileInfo+" unknown error: " 
 					+ e.getMessage(), node, callstack);
@@ -877,8 +881,8 @@ public class Interpreter
 	// end primary set and get methods
 
 	/**
-		Fetch a reference to the interpreter (global namespace), and cast it 
-		to the specified type of interface type.  Assuming the appropriate 
+		Get a reference to the interpreter (global namespace), cast 
+		to the specified interface type.  Assuming the appropriate 
 		methods of the interface are defined in the interpreter, then you may 
 		use this interface from Java, just like any other Java object.
 		<p>
