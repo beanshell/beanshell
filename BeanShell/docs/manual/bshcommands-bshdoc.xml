@@ -872,6 +872,22 @@
       </Comment>
   </File>
   <File>
+    <Name>setFont</Name>
+    <Method>
+      <Name>setFont</Name>
+      <Sig>Font setFont ( Component comp , int ptsize ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Change the point size of the font on the specified component, to ptsize.
+	This is just a convenience for playing with GUI components.
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
     <Name>setClassPath</Name>
     <Method>
       <Name>setClassPath</Name>
@@ -886,22 +902,6 @@
       <Tags>
       <method>void setClassPath( URL [] )
 </method>
-      </Tags>
-      </Comment>
-  </File>
-  <File>
-    <Name>setFont</Name>
-    <Method>
-      <Name>setFont</Name>
-      <Sig>Font setFont ( Component comp , int ptsize ) </Sig>
-    </Method>
-      <Comment>
-      <Text><![CDATA[
-	Change the point size of the font on the specified component, to ptsize.
-	This is just a convenience for playing with GUI components.
-
-]]></Text>
-      <Tags>
       </Tags>
       </Comment>
   </File>
@@ -1117,6 +1117,25 @@
       <Text><![CDATA[
 	Use classpath mapping to determine the source of the specified class
 	file.  (Like the Unix which command for executables).
+	<p/>
+
+    This command maps the entire classpath and prints all of the occurrences
+    of the class.  If you just want to find the first occurrence in the
+    classpath (the one that will be used by Java) you can also get it by
+    printing the URL of the resource. e.g.:
+	<p/>
+
+    <pre>
+        print( getResource("/com/foo/MyClass.class") );
+		// Same as...
+        // System.out.println(
+        //    getClass().getResourceAsStream("/com/foo/MyClass.class" ) );
+    </pre>
+	<p/>
+
+	Note: This is all a lie! This command is broken and only reports the
+	currently first occurence! To be fixed!
+	<p/>
 ]]></Text>
       <Tags>
       <method>which( classIdentifier | string | class )
@@ -1139,5 +1158,25 @@
 </method>
       </Tags>
       </Comment>
+  </File>
+  <File>
+    <Name>sourceRelative</Name>
+    <Method>
+      <Name>sourceRelative</Name>
+      <Sig>sourceRelative ( String file ) </Sig>
+      <Comment>
+      <Text><![CDATA[
+    Source a file relative to the caller's source file directory.
+    e.g. if you source or run a script in another directory, the script
+    can use this command to load additional scripts relative to its own
+    location without having to cd() to its home dir.
+]]></Text>
+      <Tags>
+      <since>bsh1.3</since>
+      <see>source( file | URL );
+</see>
+      </Tags>
+      </Comment>
+    </Method>
   </File>
 </BshDoc>
