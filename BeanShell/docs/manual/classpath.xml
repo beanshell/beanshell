@@ -15,11 +15,11 @@ located by URL, allowing them to be loaded over the network.
 <p/>
 Examples:
 <p/>
-<pre>
+<example>
 	addClassPath( "/home/pat/java/classes" );
 	addClassPath( "/home/pat/java/mystuff.jar" );
 	addClassPath( new URL("http://myserver/~pat/somebeans.jar") );
-</pre>
+</example>
 
 Note that if you add class path that overlaps with the existing Java user 
 classpath then the new path will effectively reload the classes in that
@@ -47,9 +47,9 @@ than the Java user path at startup.
 As an alternative to explicitly importing class names you may use the
 following statement to trigger automatic importing:
 
-<pre>
+<example>
 	<strong>import *;</strong>
-</pre>
+</example>
 
 There may be a significant delay while the class path is mapped.  This is why
 auto-importing is not turned on by default.  When run interactively, Bsh will 
@@ -83,9 +83,9 @@ the same time, unless you know what you are doing.
 The most course level of class reloading is accomplished by issuing the 
 reloadClasses() command with no arguments.  
 
-<pre>
+<example>
 	reloadClasses();
-</pre>
+</example>
 
 This will effectively reload all
 classes in the current classpath (including any changes you have made through
@@ -106,9 +106,9 @@ discussion of class loading details below.
 
 You can also reload all of the classes in a specified package:
 
-<pre>
+<example>
 	reloadClasses("mypackage.*");
-</pre>
+</example>
 
 This will reload only the classes in the specified package.  The classes will
 be reloaded even if they are located in different places in the claspath (e.g.
@@ -117,16 +117,16 @@ if you have some of the package in one directory and some in another).
 
 As a special case for reloading unpackaged classes the following commands
 are equivalent:
-<pre>
+<example>
 	reloadClasses(".*") 
 	reloadClasses("&lt;unpackaged&gt;")
-</pre>
+</example>
 <p/>
 
 You can also reload just an individual class file:
-<pre>
+<example>
 	reloadClasses("mypackage.MyClass") 
-</pre>
+</example>
 
 <em>Note: As of alpha1.1 classes contained in archives (jar files) cannot be
 reloaded. i.e. jar files cannot be swapped.</em>
@@ -163,8 +163,6 @@ as the same type of class.
 BeanShell works with objects dynamically through the reflection API, so
 your scripts will not have a problem recognizing reloaded class objects.
 However any objects which have you already created might not like them.
-
-<em>More, etc...</em>
 
 
 <h2>Class Loading in BeanShell</h2>

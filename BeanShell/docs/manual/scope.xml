@@ -66,15 +66,15 @@ other object, defined in the global context.  e.g.
 dataholder = object();
 
 foo() {
-	...
-	bar() {
-		dataholder.value = 42;
-	}
+    ...
+    bar() {
+        dataholder.value = 42;
+    }
 
-	bar();
-	print( dataholder.value );
+    bar();
+    print( dataholder.value );
 }
-	
+    
 </example>
 
 In the above example we used the BeanShell object() command to create an
@@ -99,7 +99,7 @@ But this is not always the case, as for bar() in the following example:
 
 <example>
 foo() { 
-	bar() { ... }
+    bar() { ... }
 }
 
 // somewhere
@@ -137,15 +137,15 @@ so it tells the interpreter to evaluate the string in a specfic namespace:
 the namespace of the caller; using this.caller.
 
 <example>
-	eval("a=5");
-	print( a ); // 5
+    eval("a=5");
+    print( a ); // 5
 </example>
 
 You can follow the call chain further back if you want to by chaining
 the '.caller' reference, like so:
 
 <example>
-	this.caller.caller...;
+    this.caller.caller...;
 </example>
 
 Or, more generally, another magic reference 'this.callstack' returns an

@@ -18,6 +18,7 @@
   <!ENTITY servermode SYSTEM "servermode.xml">
   <!ENTITY execscripts SYSTEM "execscripts.xml">
   <!ENTITY bshpackage SYSTEM "bshpackage.xml">
+  <!ENTITY reflectstyle SYSTEM "reflectivestyle.xml">
   <!ENTITY more SYSTEM "more.xml">
   <!ENTITY credit SYSTEM "credit.xml">
   <!ENTITY bshcommands SYSTEM "bshcommands.xml">
@@ -32,6 +33,7 @@
 	<contents/>
 	<!-- sections -->
 	&quickstart;
+	&bshmodes;
 	&syntax;
 	&methods;
 	&objects;
@@ -39,10 +41,10 @@
 	&interfaces;
 	&specialvarsvalues;
 	&classpath;
-	&bshmodes;
 	&servermode;
 	&desktop;
 	&execscripts;
+	&reflectstyle;
 	&bshpackage;
 	&more;
 	&credit;

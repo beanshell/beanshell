@@ -11,8 +11,8 @@ supports a number of pre-defined system variables and some "magic" values.
 <li><strong>$_</strong> - The value of the last expression evaluated.  The
 strange construct for this is drawn from Perl, but the idea exists in many
 scripting languages.  It is useful for getting back 
-the last result when you are working interactively.  <em>We may expand or 
-change this API in the future.</em> </li>
+the last result when you are working interactively.  
+</li>
 
 <li><strong>bsh</strong> - The BeanShell root system object, containing 
 system information and variables.</li>
@@ -33,7 +33,7 @@ be set to false to indicate that the BeanShell exit() command should not
 actually perform a System.exit();
 </li>
 
-<li><strong>bsh.Console bsh.console</strong> - If BeanShell is running in 
+<li><strong>bsh.console</strong> - If BeanShell is running in 
 its GUI desktop mode, this variable holds a reference to the current 
 interpreter's console, if it has one.</li>
 

@@ -1,16 +1,17 @@
 <project default="manual">
 	<property name="imagedir" value="../images"/>
+	<property name="bshmanual" value="bshmanual"/>
 	<!-- 
 		I am currently using the GPL 'htmldoc' to build a PDF from the HTML:
 			http://www.easysw.com/htmldoc/ 
 		I tried many xhtml->fo stylesheets, but none seemed to work well.	
 	-->
-	<property name="htmldoc" value="/home/niemeyp/pkg/htmldoc/bin/htmldoc"/>
+	<property name="htmldoc" value="/pkg/htmldoc/bin/htmldoc"/>
 
 	<target name="manual">     
 		<!-- build it every time... later we can add an updtodate check -->
 		<touch file="manual.xml"/>
-		<style style="xsl/manual.xsl" in="manual.xml" out="manual.html">
+		<style style="xsl/manual.xsl" in="manual.xml" out="${bshmanual}.html">
 			<param name="imagedir" expression="${imagedir}"/>
 		</style>
 	</target>   
@@ -23,15 +24,16 @@
 	<target name="pdf" depends="manual">
 		<apply executable="${htmldoc}">
 			<arg value="--webpage"/>
+			<arg value="--jpeg=0"/>
 			<arg value="--header"/><arg value="..."/>
-			<arg value="-f"/><arg value="manual.pdf"/>
-			<fileset dir="." includes="manual.html"/>
+			<arg value="-f"/><arg value="${bshmanual}.pdf"/>
+			<fileset dir="." includes="${bshmanual}.html"/>
 		</apply>
 	</target>
 
 	<target name="clean">     
-		<delete quiet="true" file="manual.html"/>
-		<delete quiet="true" file="manual.pdf"/>
+		<delete quiet="true" file="${bshmanual}.html"/>
+		<delete quiet="true" file="${bshmanual}.pdf"/>
 		<delete quiet="true" file="imagelist.txt"/>
 	</target>   
 
