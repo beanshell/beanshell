@@ -299,20 +299,6 @@ public class NameSpace
 		return method;
     }
 
-	/*
-    public BshMethod getMethod(String name) {
-		BshMethod method = null;
-
-		if(methods != null)
-			method = (BshMethod)(methods.get(name));
-
-		if((method == null) && (parent != null))
-			return parent.getMethod(name);
-
-		return method;
-    }
-	*/
-
     public void	importClass(String name)
     {
 		if(importedClasses == null)
@@ -321,7 +307,7 @@ public class NameSpace
 		importedClasses.put(Name.suffix(name, 1), name);
     }
 
-    public String getImportedClass(String name)
+    private String getImportedClass(String name)
 		throws ClassPathException
     {
 		String s = null;
@@ -334,13 +320,14 @@ public class NameSpace
 		if ((s == null) && (parent != null) )
 			return (String)parent.getImportedClass(name);
 
+		/*
 		// try super imported if available
 		if ( (s==null) && superImport )
 			s = BshClassManager.getClassManager().getClassNameByUnqName( name );
+		*/
 
 		return s;
     }
-
 
     public void	importPackage(String name)
     {
@@ -413,7 +400,8 @@ public class NameSpace
 		{
 			String fullname = getImportedClass(name);
 
-			if ( fullname != null ) {
+			if ( fullname != null ) 
+			{
 				/*
 					Found the full name in imported classes.
 				*/
@@ -448,6 +436,20 @@ public class NameSpace
 				Class c=classForName(s);
 				if ( c != null )
 					return c;
+			}
+
+			/*
+				Try super imported if available
+
+				Note: we do this last to allow explicitly imported classes
+				and packages to take priority.  This method will also throw an
+				error indicating ambiguity if it exists...
+			*/
+			if ( superImport ) {
+				String s = 
+				BshClassManager.getClassManager().getClassNameByUnqName( name );
+				if ( s != null )
+					return classForName( s );
 			}
 		}
 
