@@ -12,6 +12,8 @@ class Foo
 	bsh.This fooThis = this;
 	q=5; // loose vars act like instance vars
 
+	Foo() { } // Foo needs a default constructor for Bar()
+
 	Foo( int c ) {
 		b=c;
 	}

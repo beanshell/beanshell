@@ -472,14 +472,16 @@ class Name implements java.io.Serializable
 
 			/*
 				The following test handles the case of a scripted method in a
-				scripted class namespace.  This should really be in a subclass
-				of Name or NameSpace.  A reference to 'this' from inside a
-				method in a class instance should refer to the enclosing 
-				class instance, as in Java.
+				scripted class instance namespace.  This should really be in a
+				subclass of Name or NameSpace.  A reference to 'this' from
+				inside a method in a class instance should refer to the
+				enclosing class instance, as in Java.
 			*/
 			if ( thisNameSpace.isMethod 
 				&& thisNameSpace.getParent() != null 
-				&& thisNameSpace.getParent().isClassInstance 
+				&& thisNameSpace.getParent() instanceof ClassNameSpace
+				&& ((ClassNameSpace)(thisNameSpace.getParent()))
+					.isClassInstance()
 			)
 				ths = thisNameSpace.getParent().getThis( interpreter );
 
@@ -503,9 +505,14 @@ class Name implements java.io.Serializable
 
 			// If we're a class instance and the parent is also a class instance
 			// then super means our parent.
-			if ( thisNameSpace.isClassInstance
+			if ( 
+				thisNameSpace instanceof ClassNameSpace
+				&& ((ClassNameSpace)thisNameSpace).isClassInstance()
+
 				&& thisNameSpace.getParent() != null 
-				&& thisNameSpace.getParent().isClassInstance
+				&& thisNameSpace.getParent() instanceof ClassNameSpace
+				&& ((ClassNameSpace)(thisNameSpace.getParent()))
+					.isClassInstance()
 			)
 				ths = thisNameSpace.getParent().getThis( interpreter );
 

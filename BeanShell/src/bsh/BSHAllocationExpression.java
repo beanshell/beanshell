@@ -85,9 +85,13 @@ class BSHAllocationExpression extends SimpleNode
         Object obj = nameNode.toObject( 
 			callstack, interpreter, false/* force class*/ );
 
-		if ( obj instanceof This && ((This)obj).getNameSpace().isClass )
-			return constructClassInstance( 
-				(This)obj, args, interpreter, callstack );
+		// Is it a scripted class object?
+		if ( ClassNameSpace.isScriptedClass( obj ) )
+		{
+			ClassNameSpace cns = (ClassNameSpace)((This)obj).getNameSpace();
+			return cns.constructClassInstance( 
+				args, interpreter, callstack, this );
+		}
 
 		// Try regular class
 
@@ -110,102 +114,6 @@ class BSHAllocationExpression extends SimpleNode
 		} else
 			return constructObject( type, args, callstack );
     }
-
-	private This constructClassInstance( 
-		This classObject, Object[] args, 
-		Interpreter interpreter, CallStack callstack ) 
-		throws EvalError
-	{
-		NameSpace classNameSpace = classObject.getNameSpace();
-		String className = classNameSpace.getName();
-
-		// Get the default constructor
-		BshMethod defaultConstructor = null;
-		try {
-			defaultConstructor = 
-				classNameSpace.getMethod( 
-					BSHClassDeclaration.DEFCONSNAME, new Class[0] );
-		} catch ( UtilEvalError e ) { // shouldn't happen
-			throw e.toEvalError(
-				"Error getting default constructor", this, callstack );
-		}
-		if ( defaultConstructor == null )
-			throw new EvalError("Unable to find initializer for class.",
-				this, callstack);
-
-		// Get the (non-initializer) constructor, if any
-		Class [] sig = Reflect.getTypes( args );
-		BshMethod constructor = null;
-		try {
-			constructor = 
-				classNameSpace.getMethod( className, sig );
-		} catch ( UtilEvalError e ) { // shouldn't happen
-			throw e.toEvalError(
-				"Error getting constructor", this, callstack );
-		}
-		// No constructor found, if there are constructors it an error
-		// e.g. they called no args, but args exists
-		if ( constructor == null )
-		{
-			BshMethod [] methods = classNameSpace.getMethods();
-			for(int i=0; i<methods.length; i++)
-				if ( methods[i].getName().equals( className ) )
-					throw new EvalError("Constructor not found: "+
-						StringUtil.methodString( className, sig ), 
-						this, callstack );
-		}
-
-		// Invoke the constructors
-
-		// Recurse to handle superclasses
-		NameSpace superNameSpace = null; 
-		if ( classNameSpace.getParent().isClass )
-		{
-			This superInstance = constructClassInstance( 
-				classNameSpace.getParent().getThis( interpreter ),
-				new Object[0], interpreter, callstack );
-
-			superNameSpace = superInstance.getNameSpace();
-		}
-
-		// Chain the instance namespaces
-		NameSpace instanceNameSpace;
-		if ( superNameSpace != null )
-			instanceNameSpace = new NameSpace( superNameSpace, className );
-		else
-			instanceNameSpace = new NameSpace( classNameSpace, className );
-
-		instanceNameSpace.isClassInstance = true;
-
-		callstack.push( instanceNameSpace );
-
-		// Invoke the default constructor (class initializer)
-		try {
-			defaultConstructor.invoke( 
-				new Object[0], interpreter, callstack, this, 
-				true/*overrideNameSpace*/ );
-		} catch ( EvalError e ) {
-			e.reThrow("Exception in default constructor: "+e);
-		}
-
-		// Call the specific constructor if any
-		if ( constructor != null )
-		{
-			try {
-				constructor.invoke( 
-					args, interpreter, callstack, this, 
-					true/*overrideNameSpace*/ );
-			} catch ( EvalError e ) {
-				e.reThrow("Exception in constructor: "+e);
-			}
-		}
-
-		callstack.pop();
-		
-		// return the initialized object
-		This instance = instanceNameSpace.getThis( interpreter );
-		return instance;
-	}
 
 	private Object constructObject( 
 		Class type, Object[] args, CallStack callstack ) 

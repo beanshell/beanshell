@@ -148,7 +148,7 @@
 
 	<target name="compile" depends="jjtree,javacc,builddir">
 		<!-- exclude the ${excludes} as well as anything under a "bak" dir -->
-			<!--compiler="${build-compiler}"-->
+		<!--compiler="${build-compiler}"-->
 		<javac srcdir="${src-dir}:${test-src-dir}:${bsf-src-dir}"
 			destdir="${build-dir}"
 			deprecation="${deprecation}"
