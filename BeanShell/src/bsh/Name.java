@@ -47,10 +47,10 @@ import java.lang.reflect.InvocationTargetException;
 	This class is a name resolver.  It holds a possibly ambiguous dot 
 	separated name and reference to a namespace in which it allegedly lives.  
 	It provides methods that attempt to resolve the name to various types of 
-	entities: e.g. an Object, a Class, a localy declared bsh method.
+	entities: e.g. an Object, a Class, a declared scripted BeanShell method.
 	<p>
 
-	Name objects are not to be factoried by NameSpace.getNameResolver, 
+	Name objects are created by the factory method NameSpace getNameResolver(), 
 	which caches them subject to a class namespace change.  This means that 
 	we can cache information about various types of resolution here.
 	Currently very little if any information is cached.  However with a future
@@ -774,7 +774,7 @@ class Name implements java.io.Serializable
 	*/
 	/*
 		Note: instead of invoking the method directly here we should probably
-		call resolveObjectMethod passing a This reference.  That would have
+		call invokeObjectMethod passing a This reference.  That would have
 		the side effect of allowing a locally defined invoke() method to
 		handle undeclared method invocations just like in objects.  Not sure
 		if this is desirable...  It seems that if you invoke a method directly
@@ -787,7 +787,7 @@ class Name implements java.io.Serializable
 		Interpreter interpreter, Object[] args, CallStack callstack,
 		SimpleNode callerInfo
 	)
-        throws EvalError, ReflectError, InvocationTargetException
+        throws EvalError/*, ReflectError, InvocationTargetException*/
     {
         if ( Interpreter.DEBUG ) 
         	Interpreter.debug( "invokeLocalMethod: " + value );
@@ -812,123 +812,62 @@ class Name implements java.io.Serializable
 			return imeth.invoke( args, interpreter, callstack, callerInfo );
 	*/
 
-		// Try to load the command from the resource path
-        String resourcePath = "/bsh/commands/" +commandName +".bsh";
-		meth = loadMethod( commandName, argTypes, resourcePath, 
-			interpreter, callstack, callerInfo   );
-
-		// If we found it, invoke it
-		if ( meth != null )
-			return meth.invoke( args, interpreter, callstack, callerInfo );
-
-        // Look for a compiled bsh command class
-
 		BshClassManager bcm = interpreter.getClassManager();
-        String commandClassName = "bsh.commands." + value;
 
-        Class commandClass = bcm.classForName( commandClassName );
-        if ( commandClass == null )
-            throw new EvalError( "Command not found: " + commandName,
+		Object commandObject;
+		try {
+			commandObject = namespace.getCommand( 
+				commandName, argTypes, interpreter );
+		} catch ( UtilEvalError e ) {
+			throw e.toEvalError("Error loading command: ", 
 				callerInfo, callstack );
-
-		// Found compiled command
-		return invokeCompiledCommand( 
-			commandClass, args, interpreter, callstack, callerInfo );
-
-/*
-Need to re-integrate help now that we're allowing overloaded methods as
-commands.
-
-        // try to print help
-        try {
-            String s = (String)Reflect.invokeStaticMethod(
-				bcm, c, "usage", null);
-            interpreter.println(s);
-            return Primitive.VOID;
-        } catch(ReflectError e) {
-            if ( Interpreter.DEBUG ) Interpreter.debug("usage threw: " + e);
-            throw new EvalError(
-				"Wrong number or type of args for command:", 
-				callerInfo, callstack );
-        } catch( UtilEvalError e) {
-			throw e.toEvalError( callerInfo, callstack );
 		}
-*/
+
+		// should try to print usage here if nothing found
+		if ( commandObject == null )
+            throw new EvalError( "Command not found: " 
+				+StringUtil.methodString( commandName, argTypes ), 
+				callerInfo, callstack );
+
+		if ( commandObject instanceof BshMethod )
+			return ((BshMethod)commandObject).invoke( 
+				args, interpreter, callstack, callerInfo );
+
+		if ( commandObject instanceof Class )
+			try {
+				return Reflect.invokeCompiledCommand( 
+					((Class)commandObject), args, interpreter, callstack );
+			} catch ( UtilEvalError e ) {
+				throw e.toEvalError("Error invoking compiled command: ",
+				callerInfo, callstack );
+			}
+
+		throw new InterpreterError("invalid command type");
     }
 
-	/**
-		Load the scripted command from the specified resource path, evaluate it
-		and return the specified BshMethod.
-
-		@param path is relative to the class bsh.Interpreter
-		@return the BshMethod or null if not found.
-		@throws EvalError if the script loaded at the specified path throws an
-			error or if it exists and after evaluation does not contain the
-			specified method.
-	*/
-	private BshMethod loadMethod( 
-		String name, Class [] argTypes, String resourcePath, 
-		Interpreter interpreter, CallStack callstack, SimpleNode callerInfo )
-		throws EvalError
+/*
+	private String getHelp( String name )
+		throws UtilEvalError
 	{
-		if ( Interpreter.DEBUG ) 
-			Interpreter.debug("looking for resource: " + name );
-
-        InputStream in = Interpreter.class.getResourceAsStream( resourcePath );
-		if ( in == null ) // found nothing
-			return null;
-
-		// Found a script, try to eval it
 		try {
-			interpreter.eval( 
-				new InputStreamReader(in), namespace, resourcePath );
-		} catch ( EvalError e ) {
-		/* 
-			Here we catch any EvalError from the interpreter because we are
-			using it as a tool to load the command, not as part of the
-			execution path.  The the EvalError we throw here points to the
-			correct location in the calling script and the exception thrown
-			includes the attempted command's error message.
-		*/
-			Interpreter.debug( e.toString() );
-			throw new EvalError( "Error loading script: "+ e.getMessage(), 
-				callerInfo, callstack );
-		}
-
-		// Look for the loaded command 
-		BshMethod meth = namespace.getMethod( name, argTypes );
-		if ( meth == null )
-			throw new EvalError("Loaded resource: " + resourcePath +
-				"had an error or did not contain the correct method", 
-				 callerInfo, callstack );
-
-		return meth;
-	}
-
-	private Object invokeCompiledCommand( 
-		Class commandClass, Object [] args, Interpreter interpreter, 
-		CallStack callstack, SimpleNode callerInfo )
-		throws EvalError
-	{
-        // add interpereter and namespace to args list
-        Object[] invokeArgs = new Object[args.length + 2];
-        invokeArgs[0] = interpreter;
-        invokeArgs[1] = namespace;
-        System.arraycopy( args, 0, invokeArgs, 2, args.length );
-		BshClassManager bcm = interpreter.getClassManager();
-		try {
-        	return Reflect.invokeStaticMethod( 
-				bcm, commandClass, "invoke", invokeArgs );
-		} catch ( InvocationTargetException e ) {
-			throw new EvalError("Error in compiled command: "+e,
-				callerInfo, callstack );
-		} catch ( ReflectError e ) {
-			throw new EvalError("Error invoking compiled command: "+e,
-				callerInfo, callstack );
-		} catch ( UtilEvalError e ) {
-			throw e.toEvalError( callerInfo, callstack );
+			// should check for null namespace here
+			return get( "bsh.help."+name, null/interpreter/ );
+		} catch ( Exception e ) {
+			return "usage: "+name;
 		}
 	}
+
+	private String getHelp( Class commandClass )
+		throws UtilEvalError
+	{
+        try {
+            return (String)Reflect.invokeStaticMethod(
+				null/bcm/, commandClass, "usage", null );
+        } catch( Exception e )
+			return "usage: "+name;
+		}
+	}
+*/
 
 	// Static methods that operate on compound ('.' separated) names
 	// I guess we could move these to StringUtil someday

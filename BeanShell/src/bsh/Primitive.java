@@ -155,6 +155,8 @@ public class Primitive implements ParserConstants, java.io.Serializable
 		Perform a binary operation on two Primitives or wrapper types.
 		If both original args were Primitives return a Primitive result
 		else it was mixed (wrapper/primitive) return the wrapper type.
+		The exception is for boolean operations where we will return the 
+		primitive type eithe way.
 	*/
     public static Object binaryOperation(
 		Object obj1, Object obj2, int kind)
@@ -195,7 +197,10 @@ public class Primitive implements ParserConstants, java.io.Serializable
 
 		// If both original args were Primitives return a Primitive result
 		// else it was mixed (wrapper/primitive) return the wrapper type
-		if ( lhsOrgType == Primitive.class && rhsOrgType == Primitive.class )
+		// Exception is for boolean result, return the primitive
+		if ( (lhsOrgType == Primitive.class && rhsOrgType == Primitive.class)
+			|| result instanceof Boolean
+		)
 			return new Primitive( result );
 		else
 			return result;

@@ -349,16 +349,23 @@
         members without setAccessibility(true).  Error now shows non-public
         method and suggests turning on accessibility.
 
-	  - User defined command prompt in interactive mode.  If the command or
-		method getBshPrompt() is defined it will be called to get a string to
-		display as the user prompt.  For example, one could define the
-		following method to place the current working directory into their
-		command prompt:
+	  - User defined command prompt in interactive mode.  The user may set the
+		value for the prompt string using the variable bsh.prompt or by
+		defining the scripted method (or command) getBshPrompt().  
+
+		If the command or method getBshPrompt() is defined it will be called to
+		get a string to display as the user prompt.  For example, one could
+		define the following method to place the current working directory into
+		their command prompt:
 
 		    getBshPrompt() { return bsh.cwd + " % "; }
 	
-		If the method does not exist, throws an exception, or does not return a
-		String, the default prompt of "bsh % " will be used.
+		The default getBshPrompt() command returns the value of the variable
+		bsh.prompt if it is defined or the string "bsh % " if not.  If the
+		getBshPrompt() method does not exist, throws an exception, or does not
+		return a String, a default prompt of "bsh % " will be used.
+
+	  - Fixed JConsole backspace through prompt bug.
 
 </pre>
 

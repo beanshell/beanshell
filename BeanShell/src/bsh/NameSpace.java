@@ -79,6 +79,7 @@ public class NameSpace
     private Hashtable methods;
     private Hashtable importedClasses;
     private Vector importedPackages;
+    private Vector importedCommands;
 	transient private BshClassManager classManager;
 
 	// See notes in getThis()
@@ -600,8 +601,9 @@ public class NameSpace
 		this method outside of the bsh package you will have to be familiar
 		with BeanShell's use of the Primitive wrapper class.
 		@see bsh.Primitive
-		@return apparently the method or null
+		@return the BshMethod or null if not found
 	*/
+	/*
     public BshMethod getMethod( String name, Class [] sig ) 
 	{
 		BshMethod method = null;
@@ -610,7 +612,8 @@ public class NameSpace
 		if ( methods != null )
 			m = methods.get(name);
 
-		if ( m instanceof Vector ) {
+		if ( m instanceof Vector ) 
+		{
 			Vector vm = (Vector)m;
 			BshMethod [] ma = new BshMethod[ vm.size() ];
 			vm.copyInto( ma );
@@ -630,6 +633,43 @@ public class NameSpace
 
 		return method;
     }
+	*/
+    public BshMethod getMethod( String name, Class [] sig ) 
+	{
+		BshMethod method = null;
+
+		Object m = null;
+		if ( methods != null )
+			m = methods.get(name);
+
+		// m contains either BshMethod or Vector of BshMethod
+		if ( m != null ) 
+		{
+			// unwrap 
+			BshMethod [] ma;
+			if ( m instanceof Vector ) 
+			{
+				Vector vm = (Vector)m;
+				ma = new BshMethod[ vm.size() ];
+				vm.copyInto( ma );
+			} else
+				ma = new BshMethod[] { (BshMethod)m };
+
+			// Apply most specific signature matching
+			Class [][] candidates = new Class[ ma.length ][];
+			for( int i=0; i< ma.length; i++ )
+				candidates[i] = ma[i].getArgumentTypes();
+
+			int match = Reflect.findMostSpecificSignature( sig, candidates );
+			if ( match != -1 )
+				method = ma[match];
+		}
+
+		if ( (method == null) && (parent != null) )
+			return parent.getMethod( name, sig );
+
+		return method;
+    }
 
 	/**
 		Import a class name.
@@ -637,10 +677,10 @@ public class NameSpace
 	*/
     public void	importClass(String name)
     {
-		if(importedClasses == null)
+		if ( importedClasses == null )
 			importedClasses = new Hashtable();
 
-		importedClasses.put(Name.suffix(name, 1), name);
+		importedClasses.put( Name.suffix(name, 1), name );
 		nameSpaceChanged();
     }
 
@@ -661,30 +701,139 @@ public class NameSpace
     }
 
 	/**
-		Get a list of all imported packages in the order in which they were 
-		imported...  If recurse is true, also include the parent's.
+		Import scripted or compiled BeanShell commands in the following package
+		in the classpath.  You may use either "/" path or "." package notation.
+		e.g. importCommands("/bsh/commands") or importCommands("bsh.commands")
+		are equivalent.  If a relative path style specifier is used then it is
+		made into an absolute path by prepending "/".
 	*/
-    public Vector getImportedPackages( boolean recurse )
+    public void	importCommands( String name )
     {
-		if ( !recurse )
-			return importedPackages;
-		else {
-			Vector v = new Vector();
-			// add parent's
-			if ( parent != null ) {
-				Vector pv = parent.getImportedPackages( true/*recurse*/ );
-				// no way to add vectors?
-				for(int i=0; i<pv.size(); i++)
-					v.addElement(pv.elementAt(i) );
-			}
-			// add ours
-			if ( importedPackages != null )
-				for(int i=0; i< importedPackages.size(); i++)
-					v.addElement( importedPackages.elementAt(i) );
+		if ( importedCommands == null )
+			importedCommands = new Vector();
 
-			return v;
-		}
+		// dots to slashes
+		name = name.replace('.','/');
+		// absolute
+		if ( !name.startsWith("/") )
+			name = "/"+name;
+		// remove trailing
+		if ( name.endsWith("/") )
+			name = name.substring( 0, name.length()-1 );
+
+		// If it exists, remove it and add it at the end (avoid memory leak)
+		if ( importedCommands.contains( name ) )
+			importedCommands.remove( name );
+
+		importedCommands.addElement(name);
+		nameSpaceChanged();
     }
+
+	/**
+		A command is a scripted method or compiled command class implementing a 
+		specified method signature.  Commands are loaded from the classpath
+		and may be imported using the importCommands() method.
+		<p/>
+
+		This method searches the imported commands packages for a script or
+		command object corresponding to the name of the method.  If it is a
+		script the script is sourced into this namespace and the BshMethod for
+		the requested signature is returned.  If it is a compiled class the
+		class is returned.  (Compiled command classes implement static invoke()
+		methods).
+		<p/>
+
+		The imported packages are searched in reverse order, so that later
+		imports take priority.
+		Currently only the first object (script or class) with the appropriate
+		name is checked.  If another, overloaded form, is located in another
+		package it will not currently be found.  This could be fixed.
+		<p/>
+
+		@return a BshMethod, Class, or null if no such command is found.
+		@param name is the name of the desired command method
+		@param argTypes is the signature of the desired command method.
+		@throws UtilEvalError if loadScriptedCommand throws UtilEvalError
+			i.e. on errors loading a script that was found
+	*/
+	public Object getCommand( 	
+		String name, Class [] argTypes, Interpreter interpreter ) 
+		throws UtilEvalError
+	{
+		if (Interpreter.DEBUG) Interpreter.debug("getCommand: "+name);
+		BshClassManager bcm = interpreter.getClassManager();
+
+		if ( importedCommands != null )
+		{
+			// loop backwards for precedence
+			for(int i=importedCommands.size()-1; i>=0; i--)
+			{
+				String path = (String)importedCommands.elementAt(i);
+
+				String script = path +"/"+ name +".bsh";
+				Interpreter.debug("searching for script: "+script );
+        		InputStream in = 
+					Interpreter.class.getResourceAsStream( script );
+				if ( in != null )
+					return loadScriptedCommand( 
+						in, name, argTypes, path, interpreter );
+
+				// Chop leading "/" and change "/" to "."
+				String className = 
+					path.substring(1).replace('/','.') +"."+name;
+
+				Interpreter.debug("searching for class: "+className);
+        		Class clas = bcm.classForName( className );
+				if ( clas != null )
+					return clas;
+			}
+		}
+
+		if ( parent != null )
+			return parent.getCommand( name, argTypes, interpreter );
+		else
+			return null;
+	}
+
+	/**
+		Load a command script from the input stream and find the BshMethod in
+		the target namespace.
+		@throws UtilEvalError on error in parsing the script or if the the
+			method is not found after parsing the script.
+	*/
+	/*
+		If we want to support multiple commands in the command path we need to
+		change this to not throw the exception.
+	*/
+	private BshMethod loadScriptedCommand( 
+		InputStream in, String name, Class [] argTypes, String resourcePath, 
+		Interpreter interpreter )
+		throws UtilEvalError
+	{
+		try {
+			interpreter.eval( 
+				new InputStreamReader(in), this, resourcePath );
+		} catch ( EvalError e ) {
+		/* 
+			Here we catch any EvalError from the interpreter because we are
+			using it as a tool to load the command, not as part of the
+			execution path.
+		*/
+			Interpreter.debug( e.toString() );
+			throw new UtilEvalError( 
+				"Error loading script: "+ e.getMessage());
+		}
+
+		// Look for the loaded command 
+		BshMethod meth = getMethod( name, argTypes );
+		/*
+		if ( meth == null )
+			throw new UtilEvalError("Loaded resource: " + resourcePath +
+				"had an error or did not contain the correct method" );
+		*/
+
+		return meth;
+	}
 
 // debug
 //public static int cacheCount = 0;
@@ -1221,6 +1370,7 @@ public class NameSpace
 			importPackage("java.util");
 			importPackage("java.io");
 			importPackage("java.lang");
+			importCommands("/bsh/commands");
 		</pre>
 	*/
     public void loadDefaultImports()
@@ -1240,25 +1390,7 @@ public class NameSpace
 		importPackage("java.util");
 		importPackage("java.io");
 		importPackage("java.lang");
-
-	/*
-		String res = "lib/defaultImports";
-		InputStream in = NameSpace.class.getResourceAsStream(res);
-		if(in == null)
-			throw new IOException("couldn't load resource: " + res);
-		BufferedReader bin = new BufferedReader(new InputStreamReader(in));
-
-		String s;
-		try {
-			while((s = bin.readLine()) != null)
-			importPackage(s);
-
-			bin.close();
-		} catch(IOException e) {
-			Interpreter.debug("failed to load default imports...");
-		}
-	*/
-
+		importCommands("/bsh/commands");
     }
 
 	/**
