@@ -1013,6 +1013,11 @@ void ImportDeclaration() #ImportDeclaration :
     if ( t != null )
         jjtThis.importPackage = true;
     }
+  |
+	// bsh super import statement
+  "import" "*" ";" {
+		jjtThis.superImport = true;
+	}
 }
 
 void VariableDeclarator() #VariableDeclarator :

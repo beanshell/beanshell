@@ -155,6 +155,7 @@ public class BshClassManager
 		return (ClassLoader)loaderMap.get( name );
 	}
 
+
 	// Classpath mutators
 
 	/**
