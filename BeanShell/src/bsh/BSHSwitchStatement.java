@@ -40,13 +40,13 @@ class BSHSwitchStatement
 
 	public BSHSwitchStatement(int id) { super(id); }
 
-    public Object eval(NameSpace namespace, Interpreter interpreter)  
+    public Object eval( CallStack callstack, Interpreter interpreter )
 		throws EvalError
 	{
 		int numchild = jjtGetNumChildren();
 		int child = 0;
 		SimpleNode switchExp = ((SimpleNode)jjtGetChild(child++));
-		Object switchVal = switchExp.eval( namespace, interpreter );
+		Object switchVal = switchExp.eval( callstack, interpreter );
 
 		/*
 			Note: this could be made clearer by adding an inner class for the
@@ -67,7 +67,7 @@ class BSHSwitchStatement
 		{
 			// if label is default or equals switchVal
 			if ( label.isDefault 
-				|| label.eval( namespace, interpreter ).equals( switchVal ) )
+				|| label.eval( callstack, interpreter ).equals( switchVal ) )
 			{
 				// execute nodes, skipping labels, until a break or return
 				while ( child < numchild ) 
@@ -77,7 +77,7 @@ class BSHSwitchStatement
 						continue;
 					// eval it
 					Object value = 
-						((SimpleNode)node).eval( namespace, interpreter ); 
+						((SimpleNode)node).eval( callstack, interpreter ); 
 
 					// should check to disallow continue here?
 					if ( value instanceof ReturnControl ) {

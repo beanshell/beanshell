@@ -155,51 +155,49 @@ class LHS implements ParserConstants, java.io.Serializable
 
 	public Object assign( Object val ) throws EvalError
 	{
-		if(type == VARIABLE)
+		if ( type == VARIABLE )
 			nameSpace.setVariable(varName, val);
-		else if(type == FIELD)
-			try
-			{
+		else 
+		if ( type == FIELD )
+			try {
 				if(val instanceof Primitive)
 					val = ((Primitive)val).getValue();
 
 				field.set(object, val);
-
 				return val;
 			}
-			catch(NullPointerException e)
-			{
-				throw new EvalError("LHS not a static field.");
+			catch( NullPointerException e) {   
+    			throw new EvalError(
+					"LHS ("+field.getName()+") not a static field.");
+			}     
+   			catch( IllegalAccessException e2) {   
+				throw new EvalError(
+					"LHS ("+field.getName()+") can't access field.");
+			}     
+			catch( IllegalArgumentException e3) {
+				throw new EvalError(
+					"Argument type mismatch. "
+					+ (val == null ? "null" : val.getClass().getName())
+					+ " not assignable to field "+field.getName());
 			}
-			catch(IllegalAccessException e2)
-			{
-				throw new EvalError("LHS can't access field.");
-			}
-			catch(IllegalArgumentException e3)
-			{
-				throw new EvalError("Argument type mismatch");
-			}
+
 		else if(type == PROPERTY)
-			if(object instanceof Hashtable)
+			if ( object instanceof Hashtable )
 				((Hashtable)object).put(propName, val);
 			else
-				try
-				{
+				try {
 					Reflect.setObjectProperty(object, propName, val);
 				}
-				catch(ReflectError e)
-				{
+				catch(ReflectError e) {
 					Interpreter.debug("Assignment: " + e.getMessage());
 					throw new EvalError("No such property: " + propName);
 				}
 		else if(type == INDEX)
-			try
-			{
+			try {
 				Reflect.setIndex(object, index, val);
 			} catch(TargetError e1) { // pass along target error
 				throw e1;
-			} catch(Exception e)
-			{
+			} catch(Exception e) {
 				throw new EvalError("Assignment: " + e.getMessage());
 			}
 

@@ -1,10 +1,13 @@
 
 bsh.help.super = "usage: super( methodname )";
 
+/**
+	This implementation of this is fragile... 
+*/
 bsh.This super( String scope ) {
-	n=this;
+	n=this.caller.namespace;
 	while ( n != global ) {
-		if ( n.namespace.name.equals( "Method NameSpace: "+ scope ) )
+		if ( n.namespace.getName().equals( "Method NameSpace: "+ scope ) )
 			return n;
 		else
 			n=n.super;

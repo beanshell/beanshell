@@ -46,7 +46,11 @@ class BSHFormalParameter extends SimpleNode
 
 	BSHFormalParameter(int id) { super(id); }
 
-	public Object eval(NameSpace namespace, Interpreter interpreter)  
+	/**
+		Evaluate the type.  Note that type resolution does not require 
+		the interpreter instance.
+	*/
+	public Object eval( NameSpace namespace )  
 		throws EvalError
 	{
 		if(jjtGetNumChildren() > 0)

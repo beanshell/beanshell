@@ -38,14 +38,16 @@ class BSHLHSPrimaryExpression extends SimpleNode
 {
 	BSHLHSPrimaryExpression(int id) { super(id); }
 
-	public LHS toLHS(NameSpace namespace, Interpreter interpreter) throws EvalError
+	public LHS toLHS(CallStack callstack, Interpreter interpreter) 
+		throws EvalError
 	{
-		LHS lhs = ((BSHAmbiguousName)jjtGetChild(0)).toLHS(namespace, interpreter);
+		LHS lhs = ((BSHAmbiguousName)jjtGetChild(0)).toLHS(
+			callstack, interpreter);
 
 		int n = jjtGetNumChildren(); 
 		for(int i=1; i<n; i++)
 			lhs = ((BSHLHSPrimarySuffix)jjtGetChild(i)).doLHSSuffix(
-				lhs.getValue(), namespace, interpreter);
+				lhs.getValue(), callstack, interpreter);
 
 		return lhs;
 	}

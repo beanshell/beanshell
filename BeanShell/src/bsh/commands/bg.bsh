@@ -1,14 +1,20 @@
 
 bsh.help.run= "usage: Thread bg( filename )";
 
-/*
-	Run a command in its own thread and in a subordinate namespace.
+/**
+	Source a command in its own thread in the caller's namespace
 */
 Thread bg( String filename ) {
 
+	callerNameSpace = this.caller.namespace;
 	run() {
-		ns = new bsh.NameSpace( super.namespace, "Running command: "+filename, super.interpreter );
-		this.interpreter.source( filename, ns );
+	/*
+	used to be subordinate namespace
+		ns = new bsh.NameSpace( 
+			this.caller.namespace, 
+			"Running command: "+filename, super.interpreter );
+	*/
+		this.interpreter.source( filename, callerNameSpace );
 	}
 
 	thread = new Thread( this );

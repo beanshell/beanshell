@@ -41,12 +41,13 @@ class BSHImportDeclaration extends SimpleNode
 
 	BSHImportDeclaration(int id) { super(id); }
 
-	public Object eval( NameSpace namespace, Interpreter interpreter) 
+	public Object eval( CallStack callstack, Interpreter interpreter) 
 		throws EvalError
 	{
 		if ( superImport )
 			NameSpace.doSuperImport( interpreter );
 		else {
+			NameSpace namespace = callstack.top();
 			String name = 
 				((BSHAmbiguousName)jjtGetChild(0)).getName(namespace).value;
 

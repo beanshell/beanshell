@@ -63,13 +63,16 @@ class BSHPrimarySuffix extends SimpleNode
 		interpret it contextually. (e.g. for .class) Thereafter it will be 
 		a normal object.
 	*/
-	public Object doSuffix(Object obj, NameSpace namespace, Interpreter interpreter) throws EvalError
+	public Object doSuffix(
+		Object obj, CallStack callstack, Interpreter interpreter) 
+		throws EvalError
 	{
 		// Handle ".class" suffix operation
 		if ( operation == CLASS )
-			if ( obj instanceof BSHAmbiguousName )
-				return ((BSHAmbiguousName)obj).toClass(namespace );
-			else
+			if ( obj instanceof BSHAmbiguousName ) {
+				NameSpace namespace = callstack.top();
+				return ((BSHAmbiguousName)obj).toClass( namespace );
+			} else
 				throw new EvalError("Trying to call .class on something inappropriate...", this);
 
 		// Handle other suffix operations
@@ -83,22 +86,22 @@ class BSHPrimarySuffix extends SimpleNode
 		*/
 		if ( obj instanceof SimpleNode )
 			if ( obj instanceof BSHAmbiguousName )
-				obj = ((BSHAmbiguousName)obj).toObject(namespace, interpreter);
+				obj = ((BSHAmbiguousName)obj).toObject(callstack, interpreter);
 			else
-				obj = ((SimpleNode)obj).eval(namespace, interpreter);	
+				obj = ((SimpleNode)obj).eval(callstack, interpreter);	
 
 		try
 		{
 			switch(operation)
 			{
 				case INDEX:
-					return doIndex(obj, namespace, interpreter );
+					return doIndex(obj, callstack, interpreter );
 
 				case NAME:
-					return doName(obj, namespace, interpreter );
+					return doName(obj, callstack, interpreter );
 
 				case PROPERTY:
-					return doProperty(obj, namespace, interpreter );
+					return doProperty(obj, callstack, interpreter );
 
 				default:
 					throw new InterpreterError("LHS suffix");
@@ -119,7 +122,7 @@ class BSHPrimarySuffix extends SimpleNode
 		Field access might be .length on an array
 	*/
 	private Object doName(
-		Object obj, NameSpace namespace, Interpreter interpreter) 
+		Object obj, CallStack callstack, Interpreter interpreter) 
 		throws EvalError, ReflectError, InvocationTargetException
 	{
 		if(field.equals("length") && obj.getClass().isArray())
@@ -129,7 +132,8 @@ class BSHPrimarySuffix extends SimpleNode
 			return Reflect.getObjectField(obj, field);
 		else
 		{
-			Object[] oa = ((BSHArguments)jjtGetChild(0)).getArguments(namespace, interpreter);
+			Object[] oa = ((BSHArguments)jjtGetChild(0)).getArguments(
+				callstack, interpreter);
 			try {
 				return Reflect.invokeObjectMethod(interpreter, obj, field, oa);
 			} catch ( EvalError ee ) {
@@ -139,7 +143,9 @@ class BSHPrimarySuffix extends SimpleNode
 		}
 	}
 
-	private Object doIndex(Object obj, NameSpace namespace, Interpreter interpreter) throws EvalError, ReflectError
+	private Object doIndex(
+		Object obj, CallStack callstack, Interpreter interpreter) 
+		throws EvalError, ReflectError
 	{
 		if(!obj.getClass().isArray())
 			throw new EvalError("Not an array", this);
@@ -147,7 +153,8 @@ class BSHPrimarySuffix extends SimpleNode
 		int index;
 		try
 		{
-			Primitive val = (Primitive)(((SimpleNode)jjtGetChild(0)).eval(namespace, interpreter));
+			Primitive val = (Primitive)(((SimpleNode)jjtGetChild(0)).eval(
+				callstack, interpreter ));
 			index = val.intValue();
 		}
 		catch(Exception e)
@@ -158,7 +165,9 @@ class BSHPrimarySuffix extends SimpleNode
 		return Reflect.getIndex(obj, index);
 	}
 
-	private Object doProperty( Object obj, NameSpace namespace, Interpreter interpreter ) throws EvalError
+	private Object doProperty( 
+		Object obj, CallStack callstack, Interpreter interpreter ) 
+		throws EvalError
 	{
 		if(obj == Primitive.VOID)
 			throw new EvalError("Attempt to access property on void type", this);
@@ -166,7 +175,8 @@ class BSHPrimarySuffix extends SimpleNode
 		if(obj instanceof Primitive)
 			throw new EvalError("Attempt to access property on a primitive", this);
 
-		Object value = ((SimpleNode)jjtGetChild(0)).eval(namespace, interpreter);
+		Object value = ((SimpleNode)jjtGetChild(0)).eval(
+			callstack, interpreter);
 		if(!(value instanceof String))
 			throw new EvalError("Property expression must be a String or identifier.", this);
 

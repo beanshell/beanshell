@@ -39,16 +39,17 @@ class BSHAmbiguousName extends SimpleNode
     public String text;
 
     BSHAmbiguousName(int id) { super(id); }
-
-    public Name getName(NameSpace namespace)
+	
+	// I'm not sure why this is here any more...
+    public Name getName( NameSpace namespace )
     {
         return new Name(namespace, text);
     }
 
-    public Object toObject(NameSpace namespace, Interpreter interpreter) 
+    public Object toObject(CallStack callstack, Interpreter interpreter) 
 		throws EvalError
     {
-        return getName(namespace).toObject( interpreter );
+        return getName( callstack.top() ).toObject( callstack, interpreter );
     }
 
     public Class toClass(NameSpace namespace) throws EvalError
@@ -56,21 +57,22 @@ class BSHAmbiguousName extends SimpleNode
         return getName(namespace).toClass();
     }
 
-    public LHS toLHS(NameSpace namespace, Interpreter interpreter)
+    public LHS toLHS( CallStack callstack, Interpreter interpreter)
 		throws EvalError
     {
-        return getName(namespace).toLHS( interpreter );
+        return getName( callstack.top() ).toLHS( callstack, interpreter );
     }
 
 	/*
 		The interpretation of an ambiguous name is context sensitive.
 		We disallow a generic eval( ).
 	*/
-    public Object eval(NameSpace namespace, Interpreter interpreter) 
+    public Object eval( CallStack callstack, Interpreter interpreter ) 
 		throws EvalError
     {
 		throw new InterpreterError( 
-			"Don't know how to eval an ambiguous name!  Use toObject() if you want an object." );
+			"Don't know how to eval an ambiguous name!"
+			+"  Use toObject() if you want an object." );
     }
 }
 

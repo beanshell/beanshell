@@ -38,12 +38,13 @@ class BSHArguments extends SimpleNode
 {
     BSHArguments(int id) { super(id); }
 
-    public Object[] getArguments(NameSpace namespace, Interpreter interpreter) throws EvalError
+    public Object[] getArguments( CallStack callstack, Interpreter interpreter)
+		throws EvalError
     {
         // evaluate each child
         Object[] args = new Object[jjtGetNumChildren()];
         for(int i = 0; i < args.length; i++)
-            args[i] = ((SimpleNode)jjtGetChild(i)).eval(namespace, interpreter);
+            args[i] = ((SimpleNode)jjtGetChild(i)).eval(callstack, interpreter);
 
         return args;
     }

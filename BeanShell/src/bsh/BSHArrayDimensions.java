@@ -49,13 +49,17 @@ class BSHArrayDimensions extends SimpleNode
 
     public void addArrayDimension() { arrayDims++; }
 
-    public Object eval( Class type, NameSpace namespace, Interpreter interpreter ) throws EvalError {
+    public Object eval( 
+			Class type, CallStack callstack, Interpreter interpreter ) 
+		throws EvalError 
+	{
 		Interpreter.debug("array base type = "+type);
 		baseType = type;
-		return eval(namespace, interpreter);
+		return eval(callstack, interpreter);
 	}
 
-    public Object eval(NameSpace namespace, Interpreter interpreter)  throws EvalError
+    public Object eval(CallStack callstack, Interpreter interpreter)  
+		throws EvalError
     {
         int n = jjtGetNumChildren();
         if(n > 0) {
@@ -64,7 +68,8 @@ class BSHArrayDimensions extends SimpleNode
             {
 				if ( baseType == null )
 					throw new EvalError( "Internal Array Eval err:  unknown base type", this);
-                Object initValue = ((BSHArrayInitializer)child).eval(baseType, namespace, interpreter);
+                Object initValue = ((BSHArrayInitializer)child).eval(
+					baseType, callstack, interpreter);
 
                 Class arrayClass = initValue.getClass();
                 dimensions = new int[
@@ -91,9 +96,9 @@ class BSHArrayDimensions extends SimpleNode
                 dimensions = new int[n];
                 for(int i = 0; i < dimensions.length; i++)
                 {
-                    try
-                    {
-                        Object length = ((SimpleNode)jjtGetChild(i)).eval(namespace, interpreter);
+                    try {
+                        Object length = ((SimpleNode)jjtGetChild(i)).eval(
+							callstack, interpreter);
                         dimensions[i] = ((Primitive)length).intValue();
                     }
                     catch(Exception e)

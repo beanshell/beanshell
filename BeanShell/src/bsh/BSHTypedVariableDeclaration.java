@@ -40,17 +40,20 @@ class BSHTypedVariableDeclaration extends SimpleNode
 
     BSHTypedVariableDeclaration(int id) { super(id); }
 
-    public Object eval(NameSpace namespace, Interpreter interpreter)  throws EvalError
+    public Object eval( CallStack callstack, Interpreter interpreter)  
+		throws EvalError
     {
-        Class type = ((BSHType)jjtGetChild(0)).getType(namespace );
+		NameSpace namespace = callstack.top();
+        Class type = ((BSHType)jjtGetChild(0)).getType( namespace );
 
         int n = jjtGetNumChildren();
         for(int i = 1; i < n; i++)
         {
             BSHVariableDeclarator dec = (BSHVariableDeclarator)jjtGetChild(i);
-            dec.eval(namespace, interpreter);
+            dec.eval( callstack, interpreter);
             if(dec.initValue != null)
-                dec.initValue = NameSpace.checkAssignableFrom(dec.initValue, type);
+                dec.initValue = NameSpace.checkAssignableFrom(
+					dec.initValue, type);
             namespace.setTypedVariable(dec.name, type, dec.initValue, isFinal);
         }
 

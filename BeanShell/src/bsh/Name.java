@@ -42,14 +42,21 @@ import java.lang.reflect.InvocationTargetException;
 /**
 	What's in a name?  I'll tell you...
 	Name() is a somewhat ambiguous thing in the grammar and so is this.
+	<p>
 	
 	This class holds a possibly ambiguous dot separated name and reference to
 	a namespace in which it allegedly lives.  It provides methods that attempt 
 	to resolve the name to various types of entities: e.g. an Object, a Class, 
 	a localy declared bsh method.
+	<p>
 
-	Implementation note:
+	<strong>Implementation notes</strong>
+	<pre>
 
+	Thread safety: all of the work methods in this class must be synchronized
+	because they share the internal intermediate evaluation state.
+
+	Random note:
 	In some ways Name wants to be a private inner class of NameSpace... 
 	However it is used elsewhere as an absraction for objects which haven't
 	been pinned down yet.  So it is exposed.
@@ -59,6 +66,30 @@ import java.lang.reflect.InvocationTargetException;
 	subject to changes in the namespace...   One way to accompish this might
 	be to cache Name instances in the NameSpace and ask for them through
 	there first...  changes in class namespace could clear them.
+
+	Note on this.caller resolution:
+	Although references like these do work:
+
+		this.caller.caller.caller...   // works
+
+	the equivalent using successive calls:
+
+		// does *not* work
+		for( caller=this.caller; caller != null; caller = caller.caller );
+
+	is prohibited by the restriction that you can only call .caller on a 
+	literal	this or caller reference.
+	The effect is that magic caller reference only works through the current 
+	'this' reference.
+	The real explanation is that This referernces do not really know anything
+	about their depth on the call stack.  It might even be hard to define
+	such a thing...
+
+	For those purposes we provide :
+
+		this.callstack
+
+	</pre>
 */
 class Name implements java.io.Serializable
 {
@@ -68,6 +99,21 @@ class Name implements java.io.Serializable
 	// For evaluation
 	private String evalName;		// text left to eval
 	private Object evalBaseObject;	// base object for current eval
+
+	private int callstackDepth;		// number of times eval hit 'this.caller'
+	/** 
+		The last round consume the literal 'this' reference (not super, 
+		global, or another This type var).  We use this flag to support magic
+		variables that can only be referenced through 'this.xxx', e.g.
+		this.interpreter and this.caller;
+	*/
+	private boolean literalThisReference;
+	/** 
+		The last round consume the literal 'caller' reference (not super, 
+		global, or another This type var).  This is used to limit references
+		to .caller to only after a literal 'this' or compound '.caller'.
+	*/
+	private boolean literalCallerReference;
 
 	public Name(NameSpace namespace, String s)
 	{
@@ -91,12 +137,15 @@ class Name implements java.io.Serializable
 			my.package.stuff.MyClass.someField.someField...
 
 		Interpreter reference is necessary to allow resolution of 
-		".interpreter" magic field.
+		"this.interpreter" magic field.
+		CallStack reference is necessary to allow resolution of 
+		"this.caller" magic field.
+		"this.callstack" magic field.
 	*/
-	public Object toObject( Interpreter interpreter ) 
+	public Object toObject( CallStack callstack, Interpreter interpreter ) 
 		throws EvalError
 	{
-		return toObject( interpreter, false );
+		return toObject( callstack, interpreter, false );
 	}
 
 	/**
@@ -106,15 +155,14 @@ class Name implements java.io.Serializable
 		that we want a class; where in general the var path may be taken.
 	*/
 	synchronized public Object toObject( 
-		Interpreter interpreter, boolean forceClass ) 
+		CallStack callstack, Interpreter interpreter, boolean forceClass ) 
 		throws EvalError
 	{
-		evalName = value;
-		evalBaseObject = null;
+		reset();
 
 		Object obj = null;
 		while( evalName != null )
-			obj = consumeNextObjectField( interpreter, forceClass );
+			obj = consumeNextObjectField( callstack, interpreter, forceClass );
 
 		if ( obj == null )
 			throw new InterpreterError("null value in toObject()");
@@ -122,11 +170,11 @@ class Name implements java.io.Serializable
 		return obj;
 	}
 
-	/*  
+	/**
 		Get next prefixed object field component
 	*/
 	private Object consumeNextObjectField( 	
-		Interpreter interpreter, boolean forceClass ) 
+		CallStack callstack, Interpreter interpreter, boolean forceClass ) 
 		throws EvalError
 	{
 		/*
@@ -139,7 +187,7 @@ class Name implements java.io.Serializable
 			&& !forceClass ) 
 		{
 			Object obj = resolveThisFieldReference( 
-				namespace, interpreter, evalName, false );
+				callstack, namespace, interpreter, evalName, false );
 
 			if ( obj != Primitive.VOID ) {
 				evalName = null; // finished
@@ -158,13 +206,15 @@ class Name implements java.io.Serializable
 			String varName = prefix(evalName, 1);
 			Interpreter.debug("trying to resolve variable: " + varName);
 			Object obj;
-			if ( evalBaseObject == null )
+			if ( evalBaseObject == null ) {
 				obj = resolveThisFieldReference( 
-					namespace, interpreter, varName, false );
-			else
+					callstack, namespace, interpreter, varName, false );
+			} else {
+				// null callstack, cannot be caller reference
 				obj = resolveThisFieldReference( 
-					((This)evalBaseObject).namespace, 
+					callstack, ((This)evalBaseObject).namespace, 
 					interpreter, varName, true );
+			}
 
 			if ( obj != Primitive.VOID ) 
 			{
@@ -312,52 +362,108 @@ class Name implements java.io.Serializable
 
 		This is the general variable resolution method, accomodating special
 		fields from the This context.  Together the namespace and interpreter
-		comprise the This context.
+		comprise the This context.  The callstack, if available allows for the
+		this.caller construct.  
+
+		@param callstack may be null, but this is only legitimate in special
+		cases where we are sure resolution will not involve this.caller.
+
+		@param namespace the namespace of the this reference, should be the				same as the top of the stack ??
 
 		Optionally interpret special "magic" field names: e.g. interpreter.
 	*/
 	Object resolveThisFieldReference( 
-		NameSpace thisNamespace, Interpreter interpreter, 
+		CallStack callstack, NameSpace thisNamespace, Interpreter interpreter, 
 		String varName, boolean specialFieldsVisible ) 
+		throws EvalError
 	{
 		Object obj = null;
+		// preserve the state of the last round flags until the end
+		boolean 
+			wasThis = false,		
+			wasCaller = false;
 
-		if ( varName.equals("this") )
+		if ( varName.equals("this") ) {
+			// Hack! If the special fields are visible turn of further .this
+			// prevent user from skipping to things like super.this.caller
+			if ( specialFieldsVisible )
+				throw new EvalError("Redundant to call .this on This type");
 			obj = thisNamespace.getThis( interpreter );
-		else if ( varName.equals("super") )
-			obj = thisNamespace.getSuper().getThis( interpreter );
-		else if ( varName.equals("global") )
-			obj = thisNamespace.getGlobal().getThis( interpreter );
-		else
-			if ( specialFieldsVisible ) 
-				if (varName.equals("namespace"))
-					obj = thisNamespace;
-				else if (varName.equals("interpreter"))
+			wasThis = true;
+		} 
+
+		if ( obj == null ) {
+			if ( varName.equals("super") )
+				obj = thisNamespace.getSuper().getThis( interpreter );
+			else if ( varName.equals("global") )
+				obj = thisNamespace.getGlobal().getThis( interpreter );
+		}
+
+		if ( obj == null && specialFieldsVisible ) {
+			if (varName.equals("namespace"))
+				obj = thisNamespace;
+			else if (varName.equals("variables"))
+				obj = thisNamespace.getVariableNames();
+			else if (varName.equals("methods"))
+				obj = thisNamespace.getMethodNames();
+			else if ( varName.equals("interpreter") )
+				if ( literalThisReference )
 					obj = interpreter;
-				else if (varName.equals("variables"))
-					obj = thisNamespace.getVariableNames();
-				else if (varName.equals("methods"))
-					obj = thisNamespace.getMethodNames();
-				/*else if (varName.equals("caller"))
-					obj = caller; */
+				else
+					throw new EvalError(
+						"Can only call .interpreter on literal 'this'");
+		}
+
+		if ( obj == null && specialFieldsVisible && varName.equals("caller") )
+		{
+			if ( literalThisReference || literalCallerReference ) 
+			{
+				// get the previous context (see notes for this class)
+				if ( callstack == null )
+					throw new InterpreterError("no callstack");
+				obj = callstack.get( ++callstackDepth ).getThis( 
+					interpreter ); 
+			}
+			else
+				throw new EvalError(
+				"Can only call .caller on literal 'this' or literal '.caller'");
+
+			wasCaller = true;
+		}
+
+		if ( obj == null && specialFieldsVisible 
+			&& varName.equals("callstack") )
+		{
+			if ( literalThisReference ) 
+			{
+				// get the previous context (see notes for this class)
+				if ( callstack == null )
+					throw new InterpreterError("no callstack");
+				obj = callstack.toArray();
+			}
+			else
+				throw new EvalError(
+				"Can only call .callstack on literal 'this'");
+		}
+
 
 		if ( obj == null )
 			obj = thisNamespace.getVariable(varName);
 
+		literalThisReference = wasThis;
+		literalCallerReference = wasCaller;
 		return obj;
 	}
 
 	/**
 		Check the cache, else use toObject() to try to resolve to a class
-		identifier.  We do a little extra here to throw friendly error messages
-		if it resolves to something other than a class.
+		identifier.  
 
 		Throws EvalError on class not found...
 	*/
 	synchronized public Class toClass() throws EvalError 
 	{
-		evalName = value;
-		evalBaseObject = null;
+		reset();
 
 		/* Try straightforward class name first */
 		Class clas = namespace.getClass(evalName);
@@ -369,24 +475,13 @@ class Name implements java.io.Serializable
 			*/
 			Object obj = null;
 			try {
-				obj = toObject( null, true );  // null we don't care about interp ref
+				// Null interpreter and callstack references.
+				// class only resolution should not require them.
+				obj = toObject( null, null, true );  
 			} catch ( EvalError  e ) { }; // couldn't resolve it
 		
 			if ( obj instanceof ClassIdentifier )
 				clas = ((ClassIdentifier)obj).getTargetClass();
-			/*
-			else
-				if ( obj != null )
-					if ( obj == Primitive.VOID )
-						throw new EvalError( "\""+value+"\"" +
-							" does not resolve to a "+ 
-							"class name.  It is undefined." );
-					else
-						throw new EvalError( "\""+value+"\"" +
-							" does not resolve to a "+ 
-							"class name.  It resolves to an object of type: "+ 
-							obj.getClass().getName() );
-			*/
 		}
 
 		if( clas == null )
@@ -398,11 +493,11 @@ class Name implements java.io.Serializable
 
 	/*
 	*/
-	synchronized public LHS toLHS( Interpreter interpreter )
+	synchronized public LHS toLHS( 
+		CallStack callstack, Interpreter interpreter )
 		throws EvalError
 	{
-		evalName = value;
-		evalBaseObject = null;
+		reset();
 
 		//Interpreter.debug("Name toLHS: "+evalName+ " isCompound = "
 			//+isCompound(evalName));
@@ -418,7 +513,7 @@ class Name implements java.io.Serializable
 		try
 		{
 			while(isCompound(evalName))
-				obj = consumeNextObjectField( interpreter, false );
+				obj = consumeNextObjectField( callstack, interpreter, false );
 		}
 		catch(EvalError e)
 		{
@@ -496,19 +591,19 @@ class Name implements java.io.Serializable
 
     */
     public Object invokeMethod(
-		Interpreter interpreter, Object[] args)
+		Interpreter interpreter, Object[] args, CallStack callstack)
         throws EvalError, ReflectError, InvocationTargetException
     {
 		Name name = this;
 
         if(!Name.isCompound(name.value))
-            return name.invokeLocalMethod(interpreter, args);
+            return name.invokeLocalMethod(interpreter, args, callstack);
 
         // find target object
         Name targetName = new Name(name.namespace, Name.prefix(name.value));
         String methodName = Name.suffix(name.value, 1);
 
-        Object obj = targetName.toObject( interpreter );
+        Object obj = targetName.toObject( callstack, interpreter );
 
 		if ( obj == Primitive.VOID ) 
 			throw new EvalError( "Attempt to invoke method: "+methodName
@@ -561,7 +656,8 @@ class Name implements java.io.Serializable
 		Keeping this code separate allows us to differentiate between methods
 		invoked directly in scope and those invoked through object references.
 	*/
-    public Object invokeLocalMethod( Interpreter interpreter, Object[] args )
+    public Object invokeLocalMethod( 
+		Interpreter interpreter, Object[] args, CallStack callstack )
         throws EvalError, ReflectError, InvocationTargetException
     {
         Interpreter.debug("invoke local method: " + value);
@@ -569,7 +665,7 @@ class Name implements java.io.Serializable
         // Check for locally declared method
         BshMethod meth = toLocalMethod( args );
         if ( meth != null )
-            return meth.invokeDeclaredMethod( args, interpreter );
+            return meth.invokeDeclaredMethod( args, interpreter, callstack );
         else
             Interpreter.debug("no locally declared method: " + value);
 
@@ -592,7 +688,8 @@ class Name implements java.io.Serializable
             // try again
             meth = toLocalMethod( args );
             if(meth != null)
-                return meth.invokeDeclaredMethod( args, interpreter );
+                return meth.invokeDeclaredMethod( 
+					args, interpreter, callstack );
             else
                 throw new EvalError("Loaded resource: " + commandName +
                     "had an error or did not contain the correct method");
@@ -715,6 +812,12 @@ class Name implements java.io.Serializable
 		public String toString() {
 			return "Class Identifier: "+clas.getName();
 		}
+	}
+
+	private void reset() {
+		evalName = value;
+		evalBaseObject = null;
+		callstackDepth = 0;
 	}
 }
 

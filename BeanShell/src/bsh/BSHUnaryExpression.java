@@ -41,15 +41,16 @@ class BSHUnaryExpression extends SimpleNode implements ParserConstants
 
     BSHUnaryExpression(int id) { super(id); }
 
-    public Object eval(NameSpace namespace, Interpreter interpreter)  throws EvalError
+    public Object eval( CallStack callstack, Interpreter interpreter)  
+		throws EvalError
     {
         SimpleNode node = (SimpleNode)jjtGetChild(0);
 
         if(node instanceof BSHLHSPrimaryExpression)
             return lhsUnaryOperation(
-				((BSHLHSPrimaryExpression)node).toLHS(namespace, interpreter));
+				((BSHLHSPrimaryExpression)node).toLHS(callstack, interpreter));
         else
-            return unaryOperation(node.eval(namespace, interpreter), kind);
+            return unaryOperation(node.eval(callstack, interpreter), kind);
     }
 
     private Object lhsUnaryOperation(LHS lhs) throws EvalError

@@ -40,6 +40,9 @@ import java.util.Vector;
 	This shouldn't have to be public.	
 	We should add to bsh.This allowing us to invoke a method.
 	If we do that we should probably use it in Reflect.java
+
+	Note: caching of the structure is done in BshMethod
+	no caching need be done here or in formal param, etc.
 */
 class BSHMethodDeclaration extends SimpleNode
 {
@@ -56,8 +59,12 @@ class BSHMethodDeclaration extends SimpleNode
 	/**
 		Evaluate the declaration of the method.  That is, determine the
 		structure of the method and install it into the caller's namespace.
+	
+		Since the structure of the method is only determined by type evaluation
+		(through eval of BSHFormalParameters) we do not need the interpreter 
+		or callstack.
 	*/
-	public Object eval(NameSpace namespace, Interpreter interpreter)  
+	public Object eval( NameSpace namespace )  
 		throws EvalError
 	{
 		if(block == null) {
@@ -71,8 +78,7 @@ class BSHMethodDeclaration extends SimpleNode
 			if(jjtGetNumChildren() == 3)
 			{
 				returnType = 
-					((BSHReturnType)jjtGetChild(0)).getReturnType(
-						namespace, interpreter);
+					((BSHReturnType)jjtGetChild(0)).getReturnType( namespace );
 				params = (BSHFormalParameters)jjtGetChild(1);
 				block = (BSHBlock)jjtGetChild(2);
 			}
@@ -81,11 +87,16 @@ class BSHMethodDeclaration extends SimpleNode
 				params = (BSHFormalParameters)jjtGetChild(0);
 				block = (BSHBlock)jjtGetChild(1);
 			}
-			params.eval(namespace, interpreter);
+			params.eval( namespace );
 		}
 
 		// Install an *instance* of this method in the namespace.
 		// See notes in BshMethod 
+
+// This is not good...
+// need a way to update eval without re-installing...
+// so that we can re-eval params, etc. when classloader changes
+// look into this
 		namespace.setMethod( name, new BshMethod( this, namespace ) );
 
 		return Primitive.VOID;

@@ -41,10 +41,12 @@ class BSHVariableDeclarator extends SimpleNode
 
     BSHVariableDeclarator(int id) { super(id); }
 
-    public Object eval(NameSpace namespace, Interpreter interpreter)  throws EvalError
+    public Object eval( CallStack callstack, Interpreter interpreter)  
+		throws EvalError
     {
         if(jjtGetNumChildren() > 0)
-            initValue = ((SimpleNode)jjtGetChild(0)).eval(namespace, interpreter);
+            initValue = ((SimpleNode)jjtGetChild(0)).eval(
+				callstack, interpreter);
 
         return Primitive.VOID;
     }

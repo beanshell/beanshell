@@ -1,7 +1,7 @@
 
 bsh.help.run= "usage: Thread run( filename )";
 
-/*
+/**
 	Run a command in its own in its own private global namespace.
 	(kind of like the unix "chroot" for the namespace)
 	The root bsh system object is extended (with the extend() command) and 
@@ -10,7 +10,10 @@ bsh.help.run= "usage: Thread run( filename )";
 	Returns the context so that you can gather results.
 */
 run( String filename ) {
-	// extend the root system object
+	// Our local namespace is going to be the new root (global)
+	// make local copies of the system stuff.
+	//
+	// Extend the root system object
 	// this is problematic...  probably need more here...
 	bsh=extend(global.bsh); 
 	bsh.help=extend(bsh.help);

@@ -4,5 +4,5 @@ unset( String name ) {
 	if ( arg == null )
 		return;
 
-	super.namespace.setVariable(name, null);
+	this.caller.namespace.setVariable(name, null);
 }

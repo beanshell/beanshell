@@ -37,14 +37,22 @@ package bsh;
 class BSHFormalParameters extends SimpleNode
 {
 	int numArgs;
+
+// I'm not sure doing this is thread safe...
+//Will we be hit by different threads...  I think the namespace is the declaring
+//one... so it would be the same...
+// caching of the method structure happens in BshMethod, so it's not necessary
+//here...
 	String[] argNames;
 	Class[] argTypes;
 
 	BSHFormalParameters(int id) { super(id); }
 
 	/**
+		Evaluate the types.  
+		Note that type resolution does not require the interpreter instance.
 	*/
-	public Object eval(NameSpace namespace, Interpreter interpreter)  
+	public Object eval( NameSpace namespace )  
 		throws EvalError
 	{
 		numArgs = jjtGetNumChildren();
@@ -55,7 +63,7 @@ class BSHFormalParameters extends SimpleNode
 		for(int i=0; i<numArgs; i++)
 		{
 			BSHFormalParameter param = (BSHFormalParameter)jjtGetChild(i);
-			param.eval(namespace, interpreter);
+			param.eval( namespace );
 			argNames[i] = param.name;
 			argTypes[i] = param.type;
 		}

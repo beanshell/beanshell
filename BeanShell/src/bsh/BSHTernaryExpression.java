@@ -43,7 +43,7 @@ class BSHTernaryExpression extends SimpleNode {
 
     BSHTernaryExpression(int id) { super(id); }
 
-    public Object eval( NameSpace namespace, Interpreter interpreter) 
+    public Object eval( CallStack callstack, Interpreter interpreter) 
 		throws EvalError
     {
         SimpleNode
@@ -51,10 +51,10 @@ class BSHTernaryExpression extends SimpleNode {
 			evalTrue = (SimpleNode)jjtGetChild(1),
 			evalFalse = (SimpleNode)jjtGetChild(2);
 
-		if ( BSHIfStatement.evaluateCondition( cond, namespace, interpreter ) )
-			return evalTrue.eval( namespace, interpreter );
+		if ( BSHIfStatement.evaluateCondition( cond, callstack, interpreter ) )
+			return evalTrue.eval( callstack, interpreter );
 		else
-			return evalFalse.eval( namespace, interpreter );
+			return evalFalse.eval( callstack, interpreter );
     }
 
 }

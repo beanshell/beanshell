@@ -2,6 +2,12 @@
 <pre>
 <h2>Changes in 1.1alpha10</h2>
 <pre>
+	- Major internal change: added callstack.
+		two new magic references:
+			bsh.This this.caller
+			NameSpace [] this.callstack
+	- Some commands now behave correctly, some slight changes- see notes.
+
 	- made change to insure that pathToFile always returns canonical path
 	this fixed bug in addClassPath
 </pre>

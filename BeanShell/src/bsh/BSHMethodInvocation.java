@@ -38,14 +38,15 @@ class BSHMethodInvocation extends SimpleNode
 {
 	BSHMethodInvocation (int id) { super(id); }
 
-	public Object eval(
-		NameSpace namespace, Interpreter interpreter)  throws EvalError
+	public Object eval( CallStack callstack, Interpreter interpreter)
+		throws EvalError
 	{
+		NameSpace namespace = callstack.top();
 		Name name = ((BSHAmbiguousName)jjtGetChild(0)).getName(namespace);
 		Object[] args = 
-			((BSHArguments)jjtGetChild(1)).getArguments(namespace, interpreter);
+			((BSHArguments)jjtGetChild(1)).getArguments(callstack, interpreter);
 		try {
-			return name.invokeMethod(interpreter, args);
+			return name.invokeMethod(interpreter, args, callstack);
 		} catch (ReflectError e) {
 			throw new EvalError(
 				"Error in method invocation: " + e.getMessage(), this);

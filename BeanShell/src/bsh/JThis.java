@@ -94,7 +94,7 @@ class JThis extends This implements
 		if (method != null)
 			try {
 				method.invokeDeclaredMethod( 
-					new Object[] { event }, declaringInterpreter );
+					new Object[] { event }, declaringInterpreter, callstack );
 			} catch(EvalError e) {
 				declaringInterpreter.error(
 					"local event hander method invocation error:" + e );
@@ -105,7 +105,7 @@ class JThis extends This implements
 		if (method != null)
 			try {
 				method.invokeDeclaredMethod( 
-					new Object[] { event }, declaringInterpreter );
+					new Object[] { event }, declaringInterpreter, callstack );
 			} catch(EvalError e) {
 				declaringInterpreter.error(
 					"local event hander method invocation error:" + e );
@@ -214,7 +214,7 @@ class JThis extends This implements
 					img, new Primitive(infoflags), new Primitive(x), 
 					new Primitive(y), new Primitive(width), 
 					new Primitive(height) }, 
-					declaringInterpreter
+					declaringInterpreter, callstack
 				);
 			} catch(EvalError e) {
 				declaringInterpreter.error(

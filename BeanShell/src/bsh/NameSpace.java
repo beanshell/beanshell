@@ -54,6 +54,9 @@ import java.io.IOException;
 public class NameSpace 
 	implements java.io.Serializable, BshClassManager.Listener, NameCompletion
 {
+	public static final NameSpace JAVACODE = 
+		new NameSpace("Called from compiled Java code");
+
 	public String name; 
     private NameSpace parent;
     private Hashtable variables;
@@ -61,6 +64,7 @@ public class NameSpace
     private Hashtable importedClasses;
     private This thisReference;
     private Vector importedPackages;
+	//String debugInfo;
 
 	/** "import *;" operation has been performed */
 	transient private static boolean superImport;
@@ -74,20 +78,36 @@ public class NameSpace
 	}
 
     public NameSpace( NameSpace parent, String name ) {
-		this.name = name;
-		this.parent = parent;
+		setName(name);
+		setParent(parent);
 		// Register for notification of classloader change
 		BshClassManager.getClassManager().addListener(this);
     }
 
+	public void setName( String name ) {
+		this.name = name;
+	}
+	public String getName() {
+		return this.name;
+	}
+
+	/**
+	public void addDebugInfo( String msg ) {
+		if ( debugInfo == null )
+			debugInfo = msg;
+		else
+			debugInfo += " : "+msg;
+	}
+	*/
+
 	/**
 		Resolve name to an object through this namespace.
-		Note: the lazy instantiation here parallels that in getClass()
 	*/
 	public Object get( String name, Interpreter interpreter ) 
 		throws EvalError 
 	{
-		return new Name( this, name ).toObject( interpreter );
+		CallStack callstack = new CallStack();
+		return new Name( this, name ).toObject( callstack, interpreter );
 	}
 
     public void	setVariable(String name, Object	o) throws EvalError {
@@ -738,8 +758,12 @@ public class NameSpace
     }
 
 	public String toString() {
-		return "NameSpace: "+ 
-			( name==null ? super.toString(): name + " : " + super.toString() );
+		return
+			"NameSpace: "
+			+ ( name==null
+				? super.toString()
+				: name + " (" + super.toString() +")" ) 
+			/*+ ( debugInfo == null ? "" : " - " +debugInfo )*/;
 	}
 
 	/*
@@ -754,16 +778,33 @@ public class NameSpace
 	}
 
 	/**
-		Convenience for users outside of this package.
+		invoke a method in this namespace with the specified args and
+		interpreter reference.  The caller namespace is set to this namespace.
+		This is a convenience for users outside of this package.
 	*/
 	public Object invokeMethod( 
 		String methodName, Object [] args, Interpreter interpreter ) 
 		throws EvalError
 	{
+		CallStack callstack = new CallStack();
+		callstack.push( this );
+		return invokeMethod( methodName, args, interpreter, callstack );
+	}
+
+	/**
+		invoke a method in this namespace with the specified args,
+		interpreter reference, and callstack
+		This is a convenience for users outside of this package.
+	*/
+	public Object invokeMethod( 
+		String methodName, Object [] args, Interpreter interpreter, 
+		CallStack callstack ) 
+		throws EvalError
+	{
 		// Look for method in the bsh object
         BshMethod meth = getMethod( methodName, Reflect.getTypes( args ) );
         if ( meth != null )
-           return meth.invokeDeclaredMethod( args, interpreter );
+           return meth.invokeDeclaredMethod( args, interpreter, callstack );
 
 		// Look for a default invoke() handler method
 		meth = getMethod( "invoke", new Class [] { null, null } );
@@ -771,7 +812,7 @@ public class NameSpace
 		// Call script "invoke( String methodName, Object [] args );
 		if ( meth != null )
 			return meth.invokeDeclaredMethod( 
-				new Object [] { methodName, args }, interpreter );
+				new Object [] { methodName, args }, interpreter, callstack );
 
 		throw new EvalError( "No locally declared method: " 
 			+ methodName + " in namespace: " + this );

@@ -46,16 +46,26 @@ import java.io.IOException;
 */
 public class This implements java.io.Serializable, Runnable {
 	/**
+		The namespace that this This reference wraps.
+	*/
+	NameSpace namespace;
+
+	/**
 		This is the interpreter running when the This ref was created.
 		It's used as a default interpreter for callback through the This
 		where there is no current interpreter instance 
 		e.g. interface proxy or event call backs from outside of bsh.
 	*/
-	public transient Interpreter declaringInterpreter;
+	transient Interpreter declaringInterpreter;
+
 	/**
-		The namespace
+		invokeMethod() here is generally used by outside code to callback
+		into the bsh interpreter. e.g. when we are acting as an interface
+		for a scripted listener, etc.  In this case there is no real call stack
+		so we make a default one starting with the special JAVACODE namespace
+		and our namespace as the next.
 	*/
-	NameSpace namespace;
+	transient CallStack callstack;
 
 	/**
 		getThis() is a factory for bsh.This type references.  The capabilities
@@ -115,8 +125,12 @@ public class This implements java.io.Serializable, Runnable {
 	protected This( NameSpace namespace, Interpreter declaringInterpreter ) { 
 		this.namespace = namespace; 
 		this.declaringInterpreter = declaringInterpreter;
+		initCallStack( namespace );
 	}
 
+	public NameSpace getNameSpace() {
+		return namespace;
+	}
 
 	public String toString() {
 		return "'this' reference to Bsh object: " + namespace.name;
@@ -132,7 +146,11 @@ public class This implements java.io.Serializable, Runnable {
 	}
 
 	/**
-		Invoke specified method using declaring interpreter.
+		Invoke specified method from outside java code, using the declaring 
+		interpreter and current namespace.
+
+		The call stack will appear as if the method is being invoked from
+		outside of bsh in native java code.
 	*/
 	public Object invokeMethod( String name, Object [] args ) 
 		throws EvalError
@@ -153,7 +171,11 @@ public class This implements java.io.Serializable, Runnable {
 
 
 	/**
-		Bind a This reference to a parent's namespace.
+		Bind a This reference to a parent's namespace with the specified
+		declaring interpreter.  Also re-init the callstack.  It's necessary 
+		to bind a This reference before it can be used after deserialization.
+		<p>
+
 		This is a static utility method because it's used by a bsh command
 		bind() and the interpreter doesn't currently allow access to direct 
 		methods of This objects (small hack)
@@ -163,10 +185,11 @@ public class This implements java.io.Serializable, Runnable {
 	{ 
 		ths.namespace.setParent( namespace ); 
 		ths.declaringInterpreter = declaringInterpreter;
+		ths.initCallStack( namespace );
 	}
 
 
-	/*
+	/**
 		For serialization.
 	*/
     private synchronized void writeObject(java.io.ObjectOutputStream s)
@@ -177,13 +200,21 @@ public class This implements java.io.Serializable, Runnable {
 		NameSpace parent = namespace.getParent();
 		// Bind would set the interpreter, but it's possible that the parent
 		// is null (it's the root).  So save it...
-		Interpreter interpreter = declaringInterpreter;
+
+		//?Interpreter interpreter = declaringInterpreter;
+
 		namespace.prune();
 		s.defaultWriteObject();
 		// put it back
 		namespace.setParent( parent );
-		declaringInterpreter = interpreter;
+
+		//?declaringInterpreter = interpreter;
+		//?initCallStack( namespace );
 	}
 
+	private final void initCallStack( NameSpace namespace ) {
+		callstack = new CallStack();
+		callstack.push( namespace );
+	}
 }
 
