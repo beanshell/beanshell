@@ -742,6 +742,9 @@ class Reflect {
 		Note that the getAssigbableForm() method in NameSpace is the primary
 		bsh method for checking assignability.  It adds extended bsh
 		conversions, etc.
+
+		@param lhs assigning from rhs to lhs
+		@param rhs assigning from rhs to lsh
 	*/
     static boolean isAssignableFrom(Class lhs, Class rhs)
     {

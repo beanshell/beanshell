@@ -520,7 +520,11 @@ public class Primitive implements ParserConstants, java.io.Serializable
         }
     }
 
-    static Object promotePrimitive(Object primitive)
+	/**
+		Promote primitive wrapper type to to Integer wrapper type
+		Can we use the castPrimitive() (in BSHCastExpression) for this?
+	*/
+    static Object promoteToInteger(Object primitive)
     {
         if(primitive instanceof Character)
             return new Integer(((Character)primitive).charValue());
@@ -530,10 +534,14 @@ public class Primitive implements ParserConstants, java.io.Serializable
         return primitive;
     }
 
+	/**
+		Promote the pair of primitives to the maximum type of the two.
+		e.g. [int,long]->[long,long]
+	*/
     static Object[] promotePrimitives(Object lhs, Object rhs)
     {
-        lhs = promotePrimitive(lhs);
-        rhs = promotePrimitive(rhs);
+        lhs = promoteToInteger(lhs);
+        rhs = promoteToInteger(rhs);
 
         if((lhs instanceof Number) && (rhs instanceof Number))
         {
@@ -577,7 +585,7 @@ public class Primitive implements ParserConstants, java.io.Serializable
             throw new EvalError("illegal use of undefined object or 'void' literal");
 
         Class operandType = val.getType();
-        Object operand = promotePrimitive(val.getValue());
+        Object operand = promoteToInteger(val.getValue());
 
         if(operand instanceof Boolean)
             return new Primitive(booleanUnaryOperation((Boolean)operand, kind));
@@ -723,9 +731,25 @@ public class Primitive implements ParserConstants, java.io.Serializable
             throw new EvalError("Primitive not a boolean");
     }
 
+	/**
+		Are we a numeric type:
+		i.e. not boolean, null, or void
+		(but including char)
+	*/
+	public boolean isNumber() {
+		return ( !(value instanceof Boolean) 
+			&& !(this == NULL) && !(this == VOID) );
+	}
+
     public Number numberValue() throws EvalError
     {
-        if(value instanceof Number)
+		Object value = this.value;
+
+		// Promote character to Number type for these purposes
+		if (value instanceof Character)
+			value = new Integer(((Character)value).charValue());
+
+        if (value instanceof Number)
             return (Number)value;
         else
             throw new EvalError("Primitive not a number");

@@ -63,15 +63,22 @@ class BSHTypedVariableDeclaration extends SimpleNode
 				// which need it under some circumstances
 				Object value = dec.eval( typeNode, callstack, interpreter);
 
+				// simple declaration with no value, e.g. int a;
+				// null in value will prompt defaulting in setTypedVariable
 				if ( value == Primitive.VOID ) 
 					value = null;
 				else 
+				// true null value being assigned
 				if ( value == Primitive.NULL ) {
 					// leave as Primitive.NULL
 				}
 				else
-					// this getAssignableForm may be redundant
-					value = NameSpace.getAssignableForm( value, type );
+				// allow specific numeric conversions on declaration
+				if ( canCastToDeclaredType( value, type ) )
+					value = BSHCastExpression.castObject( value, type );
+				else {
+					// leave value alone
+				}
 
 				namespace.setTypedVariable( dec.name, type, value, isFinal );
 			}
@@ -81,4 +88,35 @@ class BSHTypedVariableDeclaration extends SimpleNode
 
         return Primitive.VOID;
     }
+
+	/**
+		Determine if a cast would be legitimate in order to handle the 
+		special cases where a numeric declared var is assigned a type larger 
+		than it can handle. (JLS cite??)
+
+			byte b = 5;
+			byte b1 = 5*10;
+
+		Normally the above would be int types.
+	*/
+	/*
+		Note: in theory this probably shouldn't be considered a cast, but 
+		should be taken into account during literal and expression evaluation
+		where the result type is guided by the context.  However this is much
+		simpler to deal with and there is no other use for the other that I'm
+		aware of.
+	*/
+	boolean canCastToDeclaredType( Object value, Class toType ) {
+		if ( !(value instanceof Primitive) )
+			return false;
+		Class fromType = ((Primitive)value).getType();
+		
+		if ( (toType==Byte.TYPE || toType==Short.TYPE || toType==Character.TYPE)
+			&& fromType == Integer.TYPE 
+		)
+			return true;
+		else
+			return false;
+	}
+
 }

@@ -31,22 +31,29 @@ String s = null;
 String s2 = (String)null;
 
 (Object)null;
+int x = (int)'a';
 
 // can't cast null to primitive type
 assert( isEvalError("(int)null"));
+
 // can't cast void to anything
 assert( isEvalError("(int)xyz"));
 assert( isEvalError("(Object)xyz"));
 
 // can't cast primitives to object types
-assert( isEvalError("(Object)true"));
 assert( isEvalError("(Object)5"));
 assert( isEvalError("(Object)'a'"));
 
+// boolean can be cast only in the trivial case
+(boolean)true;
 // can't cast boolean to other primitive type
 assert( isEvalError("(int)true"));
+// or object type
+assert( isEvalError("(Object)true"));
 
-int x = (int)'a';
+// can't cast object to primitive type
+assert( isEvalError("(int)\"foo\""));
+assert( isEvalError("(boolean)\"foo\""));
 
 complete();
 
