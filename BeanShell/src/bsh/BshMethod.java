@@ -40,7 +40,10 @@ class BshMethod implements java.io.Serializable
 		Object[] argValues, Interpreter interpreter ) throws EvalError 
 	{
 
-		if (method.params.numArgs != argValues.length) {
+		if ( argValues == null )
+			argValues = new Object [] { };
+
+		if ( argValues.length != method.params.numArgs ) {
 			// look for help string
 			try {
 				String help = 
