@@ -875,9 +875,11 @@ boolean Line() :
 {}
 {
   (
-  // Note: I don't know what I'm really doing with this lookahead here
-  // The compiler suggested it...
-  LOOKAHEAD(3) BlockStatement()
+  /* Note: I don't really know what I'm doing with this lookahead.
+     The compiler suggested it... */
+  LOOKAHEAD(3) 
+
+  BlockStatement()
 | ImportDeclaration()
 | Expression() ";"
   )  { 
