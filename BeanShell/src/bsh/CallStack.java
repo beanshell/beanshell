@@ -75,6 +75,13 @@ public class CallStack /*implements java.io.Serializable*/
 			return (NameSpace)(stack.elementAt(depth));
 	}
 	
+	/**
+		This is kind of crazy, but used by the setNameSpace command.
+		zero based.
+	*/
+	public void set(int depth, NameSpace ns) {
+		stack.setElementAt(ns, depth );
+	}
 
 	public NameSpace pop() {
 		if ( depth() < 1 )

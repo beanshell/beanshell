@@ -10,6 +10,10 @@
 	  see Name.identifierToClass();
 	- added which() command - shows class source
 	- modified class browser to show class source when class is selected
+	- Changed the type of the (very recently added) this.callstack reference
+		from an array to the actual internal CallStack type.  You can use
+		toArray() to get it as an array or get(depth).
+	- added unset() method to interpreter.  Fixed bug in set(name, null);
 </pre>
 
 <h2>Changes in 1.1alpha16</h2>

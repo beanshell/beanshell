@@ -200,7 +200,6 @@ class BshMethod implements java.io.Serializable
 	}
 
 	public String toString() {
-		//return "Bsh Method: "+method.getText();
 		return "Bsh Method: "+method.name;
 	}
 }

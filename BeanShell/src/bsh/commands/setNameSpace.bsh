@@ -1,0 +1,14 @@
+
+bsh.help.setNameSpace =
+	"usage: setNameSpace( bsh.NameSpace )";
+
+/**
+	Set the namespace of the current scope.
+	Use this only if you really know what you are doing.
+*/
+setNameSpace( ns ) 
+{
+	// Set the namespace at depth one (our caller) to the specified namespace.
+	this.callstack.set( 1, ns );
+}
+

@@ -21,7 +21,7 @@
 
 <!-- Project Configuration -->
 
-	<property name="version" value="1.1a16"/>
+	<property name="version" value="1.1a17"/>
 	<property name="deprecation" value="off"/>
 
 	<!-- choose an alternate compiler -->
@@ -58,7 +58,7 @@
 	<property name="excludes" value="${excludes-1.2},${excludes-1.1}"/>
 	-->
 
-	<property name="javadoc-jar" value="javadoc.jar"/>
+	<property name="javadoc-jar" value="javadoc.zip"/>
 	<property name="core-jar" value="bsh-core-${version}.jar"/>
 	<property name="src-jar" value="bsh-${version}-src.jar"/>
 	<property name="all-jar" value="bsh-${version}.jar"/>
