@@ -431,28 +431,46 @@ class Reflect {
     }
 
     /*
-        Implement JLS 15.11.2
-        This should be modified to throw NoSuchMethodException on failure
-
-        Note: the method findMostSpecificConstructor should always parallel
-        this method.  Combine the code someday...
+        Implement JLS 15.11.2 for method resolution
     */
-    static Method findMostSpecificMethod(String name, Class[] idealMatch, Method[] methods)
+    static Method findMostSpecificMethod(
+		String name, Class[] idealMatch, Method[] methods)
     {
+
+		// Pull out the method signatures whos name matches
+		Vector sigs = new Vector();
+		Vector meths = new Vector();
+		for(int i=0; i<methods.length; i++)
+			if ( methods[i].getName().equals( name ) ) {
+				meths.addElement( methods[i] );
+				sigs.addElement( methods[i].getParameterTypes() );
+			}
+
+		Class [][] candidates = new Class [ sigs.size() ][];
+		sigs.copyInto( candidates );
+
+		int match = findMostSpecificSignature( idealMatch, candidates );
+		if ( match == -1 )
+			return null;
+		else
+			return (Method)meths.elementAt( match );
+
+	/*
         Class[] bestMatch = null;
         Method bestMatchMethod = null;
 
-        Interpreter.debug("Find most specific method for " + methodString("args", idealMatch));
+        Interpreter.debug("Find most specific method for " + 
+			methodString("args", idealMatch));
 
         for(int i=0; i<methods.length; i++)
         {
             Class[] targetMatch = methods[i].getParameterTypes();
 
-            /*
+            /
                 If name is right and idealMatch fits targetMatch and this
                 is the first match or targetMatch is more specific than the
                 best match, make it the new best match.
-            */
+            /
             if (name.equals(methods[i].getName()) &&
                 isAssignable(idealMatch, targetMatch ) &&
                 ((bestMatch == null) ||
@@ -473,6 +491,9 @@ class Reflect {
             Interpreter.debug("no match found");
             return null;
         }
+	*/
+
+
     }
 
 	/**
@@ -513,6 +534,19 @@ class Reflect {
     static Constructor findMostSpecificConstructor(Class[] idealMatch,
         Constructor[] constructors)
     {
+
+		Class [][] candidates = new Class [ constructors.length ] [];
+		for(int i=0; i< candidates.length; i++ )
+			candidates[i] = constructors[i].getParameterTypes();
+
+		int match = findMostSpecificSignature( idealMatch, candidates );
+		if ( match == -1 )
+			return null;
+		else
+			return constructors[ match ];
+
+	
+	/*
         Class[] bestMatch = null;
         Constructor bestMatchConstructor = null;
 
@@ -542,7 +576,12 @@ class Reflect {
             Interpreter.debug("no match found");
             return null;
         }
+
+	*/
+
+
     }
+
 
 	/*
 		This uses the NameSpace.checkAssignableFrom() method to determine
@@ -575,6 +614,46 @@ class Reflect {
 
         return null;
     }
+
+
+
+	/**
+        Implement JLS 15.11.2
+		Return the index of the most specific arguments match or -1 if no	
+		match is found.
+	*/
+	static int findMostSpecificSignature(
+		Class [] idealMatch, Class [][] candidates )
+	{
+		Class [] bestMatch = null;
+		int bestMatchIndex = -1;
+
+		for (int i=0; i < candidates.length; i++) {
+			Class[] targetMatch = candidates[i];
+
+            /*
+                If idealMatch fits targetMatch and this is the first match 
+				or targetMatch is more specific than the best match, make it 
+				the new best match.
+            */
+			if ( isAssignable(idealMatch, targetMatch ) &&
+				((bestMatch == null) ||
+					isAssignable( targetMatch, bestMatch )))
+			{
+				bestMatch = targetMatch;
+				bestMatchIndex = i;
+			}
+		}
+
+		if ( bestMatch != null ) {
+			Interpreter.debug("best match: " + methodString("args",bestMatch));
+			return bestMatchIndex;
+		}
+		else {
+			Interpreter.debug("no match found");
+			return -1;
+		}
+	}
 
     static boolean isAssignable(Class[] from, Class[] to)
     {
