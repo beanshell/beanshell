@@ -43,16 +43,19 @@ import java.lang.reflect.Array;
 class BSHArrayDimensions extends SimpleNode
 {
 	public Class baseType;
-    private int arrayDims;
-
-	/** The Length in each dimension.  This value set by the eval() */
-	// is it ok to cache this here?
-	// it can't change, right?
-	public int [] dimensions;  
+    public int numDefinedDims;
+    public int numUndefinedDims;
+	/** 
+		The Length in each defined dimension.  This value set by the eval() 
+		Since the values can come from Expressions we should be re-eval()d each
+		time.
+	*/
+	public int [] definedDimensions;  
 
     BSHArrayDimensions(int id) { super(id); }
 
-    public void addArrayDimension() { arrayDims++; }
+    public void addDefinedDimension() { numDefinedDims++; }
+    public void addUndefinedDimension() { numUndefinedDims++; }
 
     public Object eval( 
 			Class type, CallStack callstack, Interpreter interpreter ) 
@@ -80,8 +83,14 @@ class BSHArrayDimensions extends SimpleNode
     {
 		SimpleNode child = (SimpleNode)jjtGetChild(0);
 
+		/*
+			Child is array initializer.  Evaluate it and fill in the 
+			dimensions it returns.  Initialized arrays are always fully defined
+			(no undefined dimensions to worry about).  
+			The syntax uses the undefinedDimension count.
+			e.g. int [][] { 1, 2 };
+		*/
 		if (child instanceof BSHArrayInitializer)
-		// evaluate the initializer and the dimensions it returns
 		{
 			if ( baseType == null )
 				throw new EvalError( 
@@ -89,39 +98,41 @@ class BSHArrayDimensions extends SimpleNode
 					this, callstack );
 
 			Object initValue = ((BSHArrayInitializer)child).eval(
-				baseType, arrayDims, callstack, interpreter);
+				baseType, numUndefinedDims, callstack, interpreter);
 
 			Class arrayClass = initValue.getClass();
-			dimensions = new int[
-				Reflect.getArrayDimensions(arrayClass) ];
+			int actualDimensions = Reflect.getArrayDimensions(arrayClass);
+			definedDimensions = new int[ actualDimensions ];
 
-			// compare with number of dimensions explicitly specified
-			if (dimensions.length != arrayDims)
+			// Compare with number of dimensions actually created with the
+			// number specified (syntax uses the undefined ones here)
+			if ( definedDimensions.length != numUndefinedDims )
 				throw new EvalError(
 				"Incompatible initializer. Allocation calls for a " + 
-				arrayDims + " dimensional array, but initializer is a " +
-					dimensions.length + " dimensional array", this, callstack );
+				numUndefinedDims+ " dimensional array, but initializer is a " +
+					actualDimensions + " dimensional array", this, callstack );
 
-			// fill in dimensions[] lengths
+			// fill in definedDimensions [] lengths
 			Object arraySlice = initValue;
-			for(int i = 0; i < dimensions.length; i++) {
-				dimensions[i] = Array.getLength( arraySlice );
-				if ( dimensions[i] > 0 )
+			for ( int i = 0; i < definedDimensions.length; i++ ) {
+				definedDimensions[i] = Array.getLength( arraySlice );
+				if ( definedDimensions[i] > 0 )
 					arraySlice = Array.get(arraySlice, 0);
 			}
 
 			return initValue;
 		}
 		else 
-		// evaluate the dimensions of the array
+		// Evaluate the defined dimensions of the array
 		{
-			dimensions = new int[ jjtGetNumChildren() ];
-			for(int i = 0; i < dimensions.length; i++)
+			definedDimensions = new int[ numDefinedDims ];
+
+			for(int i = 0; i < numDefinedDims; i++)
 			{
 				try {
 					Object length = ((SimpleNode)jjtGetChild(i)).eval(
 						callstack, interpreter);
-					dimensions[i] = ((Primitive)length).intValue();
+					definedDimensions[i] = ((Primitive)length).intValue();
 				}
 				catch(Exception e)
 				{

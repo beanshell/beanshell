@@ -583,7 +583,7 @@ void VariableDeclaratorId() #VariableDeclaratorId :
 { Token t; }
 {
   t=<IDENTIFIER> { jjtThis.name = t.image; }
-  ( "[" "]" { jjtThis.addArrayDimension(); } )*
+  ( "[" "]" { jjtThis.addUndefinedDimension(); } )*
 }
 */
 
@@ -2027,11 +2027,13 @@ void ArrayDimensions()                  :
 {/*@bgen(jjtree) ArrayDimensions */
   try {
 /*@egen*/
+	// e.g. int [4][3][][];
   LOOKAHEAD(2)
-  ( LOOKAHEAD(2) "[" Expression() "]" { jjtn000.addArrayDimension(); } )+
-  // Removed trailing "[]" identifiers.  Specify array dims fully.
+  ( LOOKAHEAD(2) "[" Expression() "]" { jjtn000.addDefinedDimension(); } )+
+  ( LOOKAHEAD(2) "[" "]" { jjtn000.addUndefinedDimension(); } )*
 |
-  ( "[" "]" { jjtn000.addArrayDimension(); } )+ ArrayInitializer()/*@bgen(jjtree)*/
+	// e.g. int [][] { {1,2}, {3,4} };
+  ( "[" "]" { jjtn000.addUndefinedDimension(); } )+ ArrayInitializer()/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);

@@ -481,7 +481,7 @@ void VariableDeclaratorId() #VariableDeclaratorId :
 { Token t; }
 {
   t=<IDENTIFIER> { jjtThis.name = t.image; }
-  ( "[" "]" { jjtThis.addArrayDimension(); } )*
+  ( "[" "]" { jjtThis.addUndefinedDimension(); } )*
 }
 */
 
@@ -1025,11 +1025,13 @@ void AllocationExpression() #AllocationExpression :
 void ArrayDimensions() #ArrayDimensions :
 {}
 {
+	// e.g. int [4][3][][];
   LOOKAHEAD(2)
-  ( LOOKAHEAD(2) "[" Expression() "]" { jjtThis.addArrayDimension(); } )+
-  // Removed trailing "[]" identifiers.  Specify array dims fully.
+  ( LOOKAHEAD(2) "[" Expression() "]" { jjtThis.addDefinedDimension(); } )+
+  ( LOOKAHEAD(2) "[" "]" { jjtThis.addUndefinedDimension(); } )*
 |
-  ( "[" "]" { jjtThis.addArrayDimension(); } )+ ArrayInitializer()
+	// e.g. int [][] { {1,2}, {3,4} };
+  ( "[" "]" { jjtThis.addUndefinedDimension(); } )+ ArrayInitializer()
 }
 
 
