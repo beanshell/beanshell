@@ -1,9 +1,9 @@
 #!/bin/java bsh.Interpreter
 
-test_failed=false;
-test_completed=false;
-test_warning=false;
-test_flag = 0;
+boolean test_failed=false;
+boolean test_completed=false;
+boolean test_warning=false;
+int test_flag = 0;
 
 assert( boolean condition ) {
 
@@ -21,7 +21,7 @@ assert( boolean condition ) {
 }
 
 isEvalError( String text ) {
-	flag = false;
+	boolean flag = false;
 	try {
 		// eval in the namespace of whomever sourced this file.
 		this.interpreter.eval(text, this.caller.namespace );

@@ -38,6 +38,19 @@ class BSHLHSPrimaryExpression extends SimpleNode
 {
 	BSHLHSPrimaryExpression(int id) { super(id); }
 
+	/**
+		Evaluate the expression to an object.
+	*/
+	public Object eval(CallStack callstack, Interpreter interpreter)  
+		throws EvalError
+	{
+		try {
+			return toLHS( callstack, interpreter ).getValue();
+		} catch ( UtilEvalError e ) {
+			throw e.toEvalError( this, callstack );
+		}
+	}
+
 	public LHS toLHS(CallStack callstack, Interpreter interpreter) 
 		throws EvalError
 	{
@@ -55,10 +68,9 @@ class BSHLHSPrimaryExpression extends SimpleNode
 		SimpleNode prefixNode = (SimpleNode)jjtGetChild(childNum++);
 		Object prefixValue = null;
 		LHS lhs = null;
-		if ( prefixNode instanceof BSHAmbiguousName )   {
+		if ( prefixNode instanceof BSHAmbiguousName )
 			lhs = ((BSHAmbiguousName)prefixNode).toLHS( callstack, interpreter);
-//System.err.println("lhs is ambig name ("+prefixNode+")= "+lhs);
-		} else
+		else
 			// Currently the only case is for BSHMethodInvocation
 			prefixValue = 
 				((SimpleNode)prefixNode).eval( callstack, interpreter);

@@ -114,8 +114,11 @@ public class Interpreter
 	/** Shared system object visible under bsh.system */
 	static This sharedObject;
 
-	/** Strict Java mode */
-	public static boolean strictJava = false;
+	/** 
+		Strict Java mode 
+		@see setStrictJava( boolean )
+	*/
+	private boolean strictJava = false;
 
 	/* --- End static members --- */
 
@@ -173,6 +176,8 @@ public class Interpreter
         this.interactive = interactive;
 		debug = err;
 		this.parent = parent;
+		if ( parent != null )
+			setStrictJava( parent.getStrictJava() );
 		this.sourceFileInfo = sourceFileInfo;
 
 		if ( namespace == null )
@@ -796,7 +801,7 @@ public class Interpreter
 		Assign the value to the name.	
 		name may evaluate to anything assignable. e.g. a variable or field.
 	*/
-    public void set(String name, Object value) 
+    public void set( String name, Object value )
 		throws EvalError 
 	{
 		// map null to Primtive.NULL coming in...
@@ -809,9 +814,9 @@ public class Interpreter
 			{
 				LHS lhs = globalNameSpace.getNameResolver( name ).toLHS( 
 					callstack, this );
-				lhs.assign( value );
+				lhs.assign( value, false );
 			} else // optimization for common case
-				globalNameSpace.setVariable(name, value);
+				globalNameSpace.setVariable( name, value, false );
 		} catch ( UtilEvalError e ) { 
 			throw e.toEvalError( SimpleNode.JAVACODE, callstack ); 
 		}
@@ -862,7 +867,7 @@ public class Interpreter
 					SimpleNode.JAVACODE, new CallStack() );
 
 			// null means remove it
-			lhs.assign( null );
+			lhs.assign( null, false );
 		} catch ( UtilEvalError e ) {
 			throw new EvalError( e.getMessage(), 
 				SimpleNode.JAVACODE, new CallStack() );
@@ -1029,6 +1034,29 @@ public class Interpreter
 		this.classManager = manager;
 	}
 	*/
+
+	/**
+		Set strict Java mode on or off.  
+		This mode attempts to make BeanShell syntax behave as Java
+		syntax, eliminating conveniences like loose variables, etc.
+		When enabled, variables are required to be declared or initialized 
+		before use and method arguments are reqired to have types. 
+		<p>
+
+		This mode will become more strict in a future release when 
+		classes are interpreted and there is an alternative to scripting
+		objects as method closures.
+	*/
+	public void setStrictJava( boolean b ) { 
+		this.strictJava = b; 
+	}
+
+	/**
+		@see #setStrictJava( boolean )
+	*/
+	public boolean getStrictJava() { 
+		return this.strictJava;
+	}
 
 	static void staticInit() 
 	{

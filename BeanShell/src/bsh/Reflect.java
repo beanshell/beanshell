@@ -332,7 +332,7 @@ class Reflect
 		We could probably cache our knowledge of method structure as well.
 		(working on this for 1.3... check back)
     */
-    private static Method resolveJavaMethod(
+    static Method resolveJavaMethod (
 		Class clas, Object object, String name, Object[] args,
 		boolean onlyStatic
 	)

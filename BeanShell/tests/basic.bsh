@@ -28,6 +28,7 @@ assert( java.awt.GridBagConstraints.BOTH == 1 );
 
 assert( this == this );
 assert( super == super );
+assert( ((ActionListener)this) == ((ActionListener)this) );
 
 // unset works
 assert( goober123423 == void );

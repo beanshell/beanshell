@@ -113,6 +113,10 @@ class BSHTryStatement extends SimpleNode
 				// namespace.
 				fp.eval( callstack, interpreter );
 
+				if ( fp.type == null && interpreter.getStrictJava() )
+					throw new EvalError(
+						"(Strict Java) Untyped catch block", this, callstack );
+
 				// If the param is typed check assignability
 				if ( fp.type != null ) 
 					try {
@@ -142,10 +146,10 @@ class BSHTryStatement extends SimpleNode
 
 				try {
 					if ( fp.type == BSHFormalParameter.UNTYPED )
-						cbNameSpace.setVariable(fp.name, thrown );
+						cbNameSpace.setVariable( fp.name, thrown, false );
 					else
 						cbNameSpace.setTypedVariable(
-							fp.name, fp.type, thrown,false);
+							fp.name, fp.type, thrown, false);
 				} catch ( UtilEvalError e ) {
 					throw new InterpreterError(
 						"Unable to set var in catch block namespace." );

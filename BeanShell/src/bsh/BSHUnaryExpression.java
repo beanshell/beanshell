@@ -47,18 +47,20 @@ class BSHUnaryExpression extends SimpleNode implements ParserConstants
         SimpleNode node = (SimpleNode)jjtGetChild(0);
 
 		try {
-			if ( node instanceof BSHLHSPrimaryExpression )
-				return lhsUnaryOperation(
-					((BSHLHSPrimaryExpression)node).toLHS(
-						callstack, interpreter));
-			else
-				return unaryOperation(node.eval(callstack, interpreter), kind);
+			if ( node instanceof BSHLHSPrimaryExpression ) {
+				LHS lhs = ((BSHLHSPrimaryExpression)node).toLHS( 
+					callstack, interpreter );
+				return lhsUnaryOperation( lhs, interpreter.getStrictJava() );
+			} else
+				return 
+					unaryOperation( node.eval(callstack, interpreter), kind );
 		} catch ( UtilEvalError e ) {
 			throw e.toEvalError( this, callstack );
 		}
     }
 
-    private Object lhsUnaryOperation( LHS lhs ) throws UtilEvalError
+    private Object lhsUnaryOperation( LHS lhs, boolean strictJava ) 
+		throws UtilEvalError
     {
         if ( Interpreter.DEBUG ) Interpreter.debug("lhsUnaryOperation");
         Object prevalue, postvalue;
@@ -71,7 +73,7 @@ class BSHUnaryExpression extends SimpleNode implements ParserConstants
 		else
 			retVal = postvalue;
 
-		lhs.assign(postvalue);
+		lhs.assign( postvalue, strictJava );
 		return retVal;
     }
 

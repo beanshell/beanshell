@@ -1628,24 +1628,13 @@ void PrimaryPrefix() : { }
 |
   AllocationExpression()
 |
-  // Careful about the parens here... they are important
-  // lookahead must apply to the correct choice points
-(
-	/*
-		The MethodInvocation node here simplifies the prefix/suffix parsing a 
-		bit by forcing the prefix to an object...  That was the idea anyway... 
-		should probably just move it to the suffix
-	*/
-    // SYNTACTIC_LOOKAHEAD
-    LOOKAHEAD( MethodInvocation() ) MethodInvocation()
-  |
-    (
-      LOOKAHEAD( Type() "." "class" ) 
-      Type()
-    |
-	  AmbiguousName()
-	)
-)
+ // SYNTACTIC_LOOKAHEAD
+ LOOKAHEAD( MethodInvocation() ) MethodInvocation()
+|
+   LOOKAHEAD( Type() "." "class" ) 
+   Type()
+|
+  AmbiguousName()
 
 /*
 |
@@ -1751,10 +1740,12 @@ void PrimarySuffix()                :
 */
 void LHSPrimaryPrefix() : { }
 {
+/*
   // SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( MethodInvocation() )
   MethodInvocation()
 |
+*/
   AmbiguousName()
 }
 
@@ -2769,40 +2760,49 @@ void ThrowStatement()                 :
 
 void TryStatement()              :
 /*
- * Semantic check required here to make sure that at least one
- * finally/catch is present.
+	Semantic check required here to make sure that at least one
+	finally/catch is present.  (You can have a try with finally and no catch).
  */
 {/*@bgen(jjtree) TryStatement */
   BSHTryStatement jjtn000 = new BSHTryStatement(JJTTRYSTATEMENT);
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
-/*@egen*/}
+/*@egen*/ boolean closed = false; }
 {/*@bgen(jjtree) TryStatement */
-  try {
+        try {
 /*@egen*/
-  "try" Block()
-  ( "catch" "(" FormalParameter() ")" Block() )*
-  [ "finally" Block() ]/*@bgen(jjtree)*/
-  } catch (Throwable jjte000) {
-    if (jjtc000) {
-      jjtree.clearNodeScope(jjtn000);
-      jjtc000 = false;
-    } else {
-      jjtree.popNode();
-    }
-    if (jjte000 instanceof RuntimeException) {
-      throw (RuntimeException)jjte000;
-    }
-    if (jjte000 instanceof ParseException) {
-      throw (ParseException)jjte000;
-    }
-    throw (Error)jjte000;
-  } finally {
-    if (jjtc000) {
-      jjtree.closeNodeScope(jjtn000, true);
-      jjtreeCloseNodeScope(jjtn000);
-    }
-  }
+	"try" Block()
+	( "catch" "(" FormalParameter() ")" Block() { closed = true; } )*
+	[ "finally" Block() { closed = true; } ]/*@bgen(jjtree)*/
+        {
+          jjtree.closeNodeScope(jjtn000, true);
+          jjtc000 = false;
+          jjtreeCloseNodeScope(jjtn000);
+        }
+/*@egen*/
+	{ 	
+		if ( !closed ) throw generateParseException();
+	}/*@bgen(jjtree)*/
+        } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            throw (RuntimeException)jjte000;
+          }
+          if (jjte000 instanceof ParseException) {
+            throw (ParseException)jjte000;
+          }
+          throw (Error)jjte000;
+        } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+            jjtreeCloseNodeScope(jjtn000);
+          }
+        }
 /*@egen*/
 }

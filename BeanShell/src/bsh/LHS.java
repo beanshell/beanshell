@@ -146,10 +146,11 @@ class LHS implements ParserConstants, java.io.Serializable
 		throw new InterpreterError("LHS type");
 	}
 
-	public Object assign( Object val ) throws UtilEvalError
+	public Object assign( Object val, boolean strictJava ) 
+		throws UtilEvalError
 	{
 		if ( type == VARIABLE )
-			nameSpace.setVariable(varName, val);
+			nameSpace.setVariable( varName, val, strictJava );
 		else 
 		if ( type == FIELD )
 			try {

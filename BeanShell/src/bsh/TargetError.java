@@ -128,7 +128,7 @@ public class TargetError extends EvalError
 	{
 		String getTarget =
 			"import java.lang.reflect.UndeclaredThrowableException;"+
-			"result=\"\";"+
+			"String result=\"\";"+
 			"while ( target instanceof UndeclaredThrowableException ) {"+
 			"	target=target.getUndeclaredThrowable(); " +
 			"	result+=\"Nested: \"+target.toString();" +

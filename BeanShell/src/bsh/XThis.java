@@ -116,10 +116,15 @@ class XThis extends This
 	class Handler implements InvocationHandler, java.io.Serializable 
 	{
 		public Object invoke( Object proxy, Method method, Object[] args ) 
-			throws EvalError 
+			throws Throwable
 		{
 			try { 
 				return invokeImpl( proxy, method, args );
+			} catch ( TargetError te ) {
+				// Unwrap target exception.  If the interface declares that 
+				// it throws the ex it will be delivered.  If not it will be 
+				// wrapped in an UndeclaredThrowable
+				throw te.getTarget();
 			} catch ( EvalError ee ) {
 				// Ease debugging...
 				// XThis.this refers to the enclosing class instance
