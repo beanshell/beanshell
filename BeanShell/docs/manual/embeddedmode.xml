@@ -154,8 +154,8 @@ invocation, eval() returns null.
 <p/>
 
 <example>
-	Object result = i.eval( "long time = 42; new Date( time )" ); // Date
-	Object result = i.eval("2*2");  // Integer
+Object result = i.eval( "long time = 42; new Date( time )" ); // Date
+Object result = i.eval("2*2");  // Integer
 </example>
 
 You can also evaluate text from a java.io.Reader stream using eval():
@@ -176,9 +176,9 @@ to be generated.
 
 <example>
 try {
-	i.eval( script );
+    i.eval( script );
 } catch ( EvalError e ) {
-	// Error evaluating script
+    // Error evaluating script
 }
 </example>
 
@@ -219,15 +219,15 @@ with the getTarget() method.
 
 <example>
 try {
-	i.eval( script );
+    i.eval( script );
 } catch ( TargetError e ) {
-	// The script threw an exception
-	Throwable t = e.getTarget();
-	print( "Script threw exception: " + t );
+    // The script threw an exception
+    Throwable t = e.getTarget();
+    print( "Script threw exception: " + t );
 } catch ( ParseException e ) {
-	// Parsing error
+    // Parsing error
 } catch ( EvalError e ) {
-	// General Error evaluating script
+    // General Error evaluating script
 }
 </example>
 
@@ -237,7 +237,7 @@ The Interpreter source() method can be used to read a script from an external
 file:
 
 <example>
-	i.source("myfile.bsh");
+i.source("myfile.bsh");
 </example>
 
 The Interpreter source() method may throw FileNotFoundException and 
@@ -303,7 +303,7 @@ i.eval( "actionPerformed( e ) { print( e ); }");
 
 // Get a reference to the script object (implementing the interface)
 ActionListener scriptedHandler = 
-	(ActionListener)i.eval("return (ActionListener)this");
+    (ActionListener)i.eval("return (ActionListener)this");
 
 // Use the scripted event handler normally...
 new JButton.addActionListener( script );
@@ -321,13 +321,13 @@ The following example fetches a reference to the interpreter global namespace
 and cast it to the specified type of interface type.  
 
 <pre>
-	Interpreter interpreter = new Interpreter();
-	// define a method called run()
-	interpreter.eval("run() { ... }");
+Interpreter interpreter = new Interpreter();
+// define a method called run()
+interpreter.eval("run() { ... }");
 
-	// Fetch a reference to the interpreter as a Runnable
-	Runnable runnable =
-		(Runnable)interpreter.getInterface( Runnable.class );
+// Fetch a reference to the interpreter as a Runnable
+Runnable runnable =
+    (Runnable)interpreter.getInterface( Runnable.class );
 </pre>
 <p/>
 
@@ -413,22 +413,22 @@ To detach a scripted object from its parent namespace you can use the
 namespace prune() method:
 
 <example>
-	// From BeanShell
-	object.namespace.prune();
+// From BeanShell
+object.namespace.prune();
 
-	// From Java
-	object.getNameSpace().prune();
+// From Java
+object.getNameSpace().prune();
 </example>
 
 To bind a BeanShell scripted object back into a particular method scope
 you can use the bind() command:
 
 <example>
-	// From BeanShell
-	bind( object, this.namespace );
+// From BeanShell
+bind( object, this.namespace );
 
-	// From Java
-	bsh.This.bind( object, namespace, interpreter );
+// From Java
+bsh.This.bind( object, namespace, interpreter );
 </example>
 
 The bind() operation requires not only the namespace (method scope) into which 

@@ -209,7 +209,7 @@ However any objects which have you already created might not like them.
 
 The following is a discussion of the BeanShell class loader architecture,
 which allows both course class path extension and fine grained individual
-class reloading...
+class reloading.
 <p/>
 
 <strong>Thriftiness</strong> - Abiding by the BeanShell thriftiness 

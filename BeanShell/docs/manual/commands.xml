@@ -166,6 +166,7 @@ Launch the BeanShell GUI desktop.
 Turn on or off name completion in the GUI console.
 </td></tr>
 </table>
+<p/>
 
 <note>
 The dir() command is written in Java; primarily as a demonstration of how
@@ -254,7 +255,7 @@ But this is not always the case, as for bar() in the following example:
 <example>
 foo() { 
     bar() { ... }
-	...
+    ...
 }
 
 // somewhere

@@ -28,6 +28,7 @@
 			<arg value="--webpage"/>
 			<arg value="--jpeg=0"/>
 			<arg value="--header"/><arg value="..."/>
+			<arg value="--linkstyle"/><arg value="plain"/>
 			<arg value="-f"/><arg value="${bshmanual}.pdf"/>
 			<fileset dir="." includes="${bshmanual}.html"/>
 		</apply>
