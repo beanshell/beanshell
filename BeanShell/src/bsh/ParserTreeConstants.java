@@ -2,7 +2,7 @@
 
 package bsh;
 
-interface ParserTreeConstants
+public interface ParserTreeConstants
 {
   public int JJTVOID = 0;
   public int JJTMETHODDECLARATION = 1;
@@ -30,14 +30,16 @@ interface ParserTreeConstants
   public int JJTALLOCATIONEXPRESSION = 23;
   public int JJTARRAYDIMENSIONS = 24;
   public int JJTBLOCK = 25;
-  public int JJTIFSTATEMENT = 26;
-  public int JJTWHILESTATEMENT = 27;
-  public int JJTFORSTATEMENT = 28;
-  public int JJTTYPEDVARIABLEDECLARATION = 29;
-  public int JJTSTATEMENTEXPRESSIONLIST = 30;
-  public int JJTRETURNSTATEMENT = 31;
-  public int JJTTHROWSTATEMENT = 32;
-  public int JJTTRYSTATEMENT = 33;
+  public int JJTSWITCHSTATEMENT = 26;
+  public int JJTSWITCHLABEL = 27;
+  public int JJTIFSTATEMENT = 28;
+  public int JJTWHILESTATEMENT = 29;
+  public int JJTFORSTATEMENT = 30;
+  public int JJTTYPEDVARIABLEDECLARATION = 31;
+  public int JJTSTATEMENTEXPRESSIONLIST = 32;
+  public int JJTRETURNSTATEMENT = 33;
+  public int JJTTHROWSTATEMENT = 34;
+  public int JJTTRYSTATEMENT = 35;
 
 
   public String[] jjtNodeName = {
@@ -67,6 +69,8 @@ interface ParserTreeConstants
     "AllocationExpression",
     "ArrayDimensions",
     "Block",
+    "SwitchStatement",
+    "SwitchLabel",
     "IfStatement",
     "WhileStatement",
     "ForStatement",
