@@ -4,6 +4,10 @@
 
 <h2>Changes in 1.1alpha13</h2>
 <pre>
+	- Moved all Name object construction into NameSpace.  This will support
+	Name resolvers caching information in the future. e.g. bsh could
+	know that a variable is final and optimize the resolution.  Or a long
+	chain of names (java.lang.Integer.MAX_INTEGER) could be optimized.
 	- .class on array types now working. e.g.  "int [][].class"
 	- Fixed bugs in grammar which dissallowed certain simple expressions
 	unless they were parenthesized.
