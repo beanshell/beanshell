@@ -72,6 +72,15 @@ This is useful for quick "one liners"; however it does not offer
 creature comforts such as command line history and editing.  We should note
 that some shells, such as the Windows environment, do command line history 
 and editing automatically - providing these features for BeanShell.
+<p/>
+
+<tip>
+You can exit from an interactive shell by typing Control-D.
+</tip>
+
+The return statement is ignored in interactive mode (it does not exit the 
+shell).
+<p/>
 
 <h2>The .bshrc Init File</h2>
 

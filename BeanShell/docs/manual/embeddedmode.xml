@@ -134,7 +134,6 @@ and the GUI console.
 
 The Interprete eval() method accepts a script as a string and interprets it,
 optionally returning a result.
-
 The string can contain any normal BeanShell script text with any number of 
 Java statements.
 The Interpreter maintains state over any number of eval() calls, so you can
@@ -157,6 +156,13 @@ invocation, eval() returns null.
 <example>
 	Object result = i.eval( "long time = 42; new Date( time )" ); // Date
 	Object result = i.eval("2*2");  // Integer
+</example>
+
+You can also evaluate text from a java.io.Reader stream using eval():
+
+<example>
+reader = new FileReader("myscript.bsh");
+i.eval( reader );
 </example>
 
 <h2>EvalError</h2>
@@ -237,6 +243,42 @@ file:
 The Interpreter source() method may throw FileNotFoundException and 
 IOException in addition to EvalError.  Aside from that source() is simply
 and eval() from a file.
+
+<h3>set(), get(), and unset()</h3>
+
+As we've seen in the examples thus far, set() and get() can be used to
+pass objects into the BeanShell interpreter as variables and retrieve the
+value of variables, respectively.
+<p/>
+
+It should be noted that get() and set() are capable of evaluation of
+arbitrarily complex or compound variable and field expression.  
+For example:
+
+<example>
+import bsh.Interpreter;
+i=new Interpreter();
+
+i.eval("myobject=object()" );
+i.set("myobject.bar", 5);
+
+i.eval("ar=new int[5]");
+i.set("ar[0]", 5);
+
+i.get("ar[0]");
+</example>
+
+The get() and set() methods have all of the evaluation capabilities of
+eval() except that they will resolve only one variable target or value
+and they will expect the expression to be of the appropriate resulting type.
+<p/>
+
+<em>The deprecated setVariable() and getVariable() methods are no longer
+used becaues the did not allow for complex evaluation of variable names</em>
+<p/>
+
+You can use the unset() method to return a variable to the undefined state.
+
 
 <h3>Getting Interfaces from Interpreter</h3>
 

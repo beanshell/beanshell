@@ -1,5 +1,5 @@
 <section>
-<name>Class Path Management</name>
+<name>Class Loading and Class Path Management</name>
 
 BeanShell is capable of some very fine grained and sophisticated class 
 reloading and modifications to the class path.  BeanShell can even map
@@ -16,15 +16,23 @@ located by URL, allowing them to be loaded over the network.
 Examples:
 <p/>
 <example>
-    addClassPath( "/home/pat/java/classes" );
-    addClassPath( "/home/pat/java/mystuff.jar" );
-    addClassPath( new URL("http://myserver/~pat/somebeans.jar") );
+addClassPath( "/home/pat/java/classes" );
+addClassPath( "/home/pat/java/mystuff.jar" );
+addClassPath( new URL("http://myserver/~pat/somebeans.jar") );
 </example>
 
 Note that if you add class path that overlaps with the existing Java user 
 classpath then the new path will effectively reload the classes in that
 area.
 <p/>
+
+If you add a relative path to the classpath it is evaluated to an absolute
+path; it does not "move with you".
+
+<example>
+cd("/tmp");
+addClassPath("."); // /tmp
+</example>
 
 <strong>setClassPath( URL [] )</strong>
 <p/>
@@ -48,7 +56,7 @@ As an alternative to explicitly importing class names you may use the
 following statement to trigger automatic importing:
 
 <example>
-    <strong>import *;</strong>
+<strong>import *;</strong>
 </example>
 
 There may be a significant delay while the class path is mapped.  This is why
@@ -84,7 +92,7 @@ The most course level of class reloading is accomplished by issuing the
 reloadClasses() command with no arguments.  
 
 <example>
-    reloadClasses();
+reloadClasses();
 </example>
 
 This will effectively reload all
@@ -107,7 +115,7 @@ discussion of class loading details below.
 You can also reload all of the classes in a specified package:
 
 <example>
-    reloadClasses("mypackage.*");
+reloadClasses("mypackage.*");
 </example>
 
 This will reload only the classes in the specified package.  The classes will
@@ -118,14 +126,14 @@ if you have some of the package in one directory and some in another).
 As a special case for reloading unpackaged classes the following commands
 are equivalent:
 <example>
-    reloadClasses(".*") 
-    reloadClasses("&lt;unpackaged&gt;")
+reloadClasses(".*") 
+reloadClasses("&lt;unpackaged&gt;")
 </example>
 <p/>
 
 You can also reload just an individual class file:
 <example>
-    reloadClasses("mypackage.MyClass") 
+reloadClasses("mypackage.MyClass") 
 </example>
 
 <em>Note: As of alpha1.1 classes contained in archives (jar files) cannot be
@@ -140,6 +148,38 @@ BeanShell must map some portions of the classpath to find the location of
 those class files.  This operation can be time consuming, but it is only
 done once.  If running in interactive mode feedback will be given on the
 progress of the mapping.
+<p/>
+
+<h2>Loading Classes Explicitly</h2>
+
+In order to perform an explicit class lookup by name while taking into 
+account any BeanShell class path modification you must use a replacement
+for the standard Class.forName() method.
+<p/>
+
+The getClass() command will load a class by name, using the BeanShell
+classpath.  Alternately, you can consult the class manager explicitly:
+
+<example>
+name="foo.bar.MyClass";
+c = getClass( name );
+c = BshClassManager.classForName( name );  // equivalent
+</example>
+
+<h2>Setting the Default ClassLoader</h2>
+
+The bsh.Interpeter setClassLoader() and bsh.BshClassManager.setClassLoader()
+methods can be used to set an external class loader which is consulted
+for all basic class loading in BeanShell.  
+<p/>
+
+BeanShell will use the specified class loader at the same point where it 
+would otherwise use the plain Class.forName().  If no explicit classpath 
+management is done from the script (addClassPath(), setClassPath(), 
+reloadClasses()) then BeanShell will only use the supplied classloader.  
+If additional classpath management is done then BeanShell will perform that 
+in addition to the supplied external classloader.  However BeanShell is not 
+currently able to reload classes supplied through the external classloader.  
 <p/>
 
 
@@ -208,5 +248,6 @@ Type caching is extremely important to BeanShell performance.  So changing
 the classloader, which necessitates clearing all type caches, should be 
 considered an expensive operation. 
 <p/>
+
 
 </section>

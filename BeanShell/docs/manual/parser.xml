@@ -1,12 +1,63 @@
 <section>
 <name>The BeanShell Parser</name>
 
-<h2>Performance Considerations</h2>
+how the parser works...
+
+<h2>Parsing and Performance</h2>
 
 The first time a script is sourced into an
     interpreter, BeanShell compiles the script internally.  So successive
     calls to the same script are faster than parsing the script each time.
 
-<h2>Using bsh.Parser</h2>
+wrapping in method for faster execution
+
+<h2>Validating Scripts With bsh.Parser</h2>
+
+This BeanShell parser class bsh.Parser is used internally by the BeanShell
+Interpreter.  It is responsible for the lexical parsing of the input text,
+the parsing of the grammar structure and the building of the internally
+parsed representation of BeanShell script files (an "abstract syntax tree").
+
+The Parser knows only how to parse the structure of the language, it does not 
+interpret names, or execute methods or commands.
+<p/>
+
+You can use the Parser class from the command line to do basic structural 
+validation of BeanShell files without actually executing them. e.g.
+<example>
+java bsh.Parser [ -p ] file [ file ] [ ... ]
+</example>
+
+The -p option causes some of the abstract syntax to be printed.
+<p/>
+
+<h2>Parsing Scripts Procedurally</h2>
+
+More generally can use the Parser to parse a BeanShell script into its
+abstract syntax tree elements like this:
+
+<example>
+in=new FileReader("somefile.bsh");
+Parser parser = new Parser(in);
+while( !(eof=parser.Line()) ) {
+    SimpleNode node = parser.popNode();
+    // Use the node, etc. (See the bsh.BSH* classes)
+    ...
+}
+</example>
+
+To learn more about the abstract syntax tree please download the source
+distribution and consult the source documentation.
+<p/>
+
+<tip>
+The BshDoc bshdoc.bsh script uses the parser to extract method signatures
+and comments from a BeanShell file.  Check it out for a more realistic
+example.
+</tip>
+
+<em>Note: Many components of the AST classes are not public at this time.
+Use setAccessibility(true) to access them.</em>
 
 </section>
+
