@@ -1,0 +1,42 @@
+source("TestHarness.bsh");
+
+import bsh.*;
+
+if ( Capabilities.classExists("bsh.ExternalNameSpace") )
+{
+
+Interpreter interpreter = new Interpreter();
+Map myMap = new HashMap();
+ens = new ExternalNameSpace( interpreter.getNameSpace(), "Test", myMap );
+interpreter.setNameSpace( ens );
+
+interpreter.eval("foo=42");
+
+assert( myMap.get("foo") instanceof Integer );
+assert( myMap.get("foo") == 42 );
+
+interpreter.eval("int bar = 43");
+
+assert( myMap.get("bar") instanceof Integer );
+assert( myMap.get("bar") == 43 );
+
+assert( interpreter.get("e1") == null );
+
+myMap.put( "e2", new Integer(44) );
+
+assert( interpreter.get("e2") == 44 );
+
+myMap.put( "d1", new Date() );
+
+assert( interpreter.get("d1") instanceof Date );
+
+myMap.put( "d1", new Double(49.9) );
+
+assert( interpreter.get("d1") instanceof Double );
+
+interpreter.eval("print(this.variables)");
+
+} else
+warning("No ExternalNameSpace to test...");
+
+complete();
