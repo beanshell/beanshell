@@ -35,7 +35,6 @@ package bsh;
 import java.util.*;
 
 /**
-	
 	This interface supports name completion, which is used primarily for 
 	command line tools, etc.  It provides a flat source of "names" in a 
 	space.  For example all of the classes in the classpath or all of the 
@@ -57,5 +56,12 @@ public interface NameSource
 
 	public static interface Listener {
 		public void nameSourceChanged( NameSource src );
+		/**
+			Provide feedback on the progress of mapping a namespace
+			@param msg is an update about what's happening
+			@perc is an integer in the range 0-100 indicating percentage done
+		public void nameSourceMapping( 
+			NameSource src, String msg, int perc );
+		*/
 	}
 }

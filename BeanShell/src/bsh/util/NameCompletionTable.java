@@ -39,16 +39,15 @@ import bsh.NameSource;
 
 /**
 	NameCompletionTable is a utility that implements simple name completion for 
-	a collection.  This uses a trivial linear search and comparison...  
-	
-	NameCompletionTable can compose children of other NameCompletionTables
-	and NameSources.
+	a collection of names, NameSources, and other NameCompletionTables.
+	This implementation uses a trivial linear search and comparison...  
 */
 public class NameCompletionTable extends ArrayList
 	implements NameCompletion
 {
 	/** Unimplemented - need a collection here */
 	NameCompletionTable table;
+	List sources;
 
 	/** Unimplemented - need a collection of sources here*/
 
@@ -63,7 +62,7 @@ public class NameCompletionTable extends ArrayList
 	public void add( NameCompletionTable table ) {
 		/** Unimplemented - need a collection here */
 		if ( this.table != null )
-			throw new RuntimeException("Unimplemented error");
+			throw new RuntimeException("Unimplemented usage error");
 
 		this.table = table;
 	}
@@ -73,13 +72,15 @@ public class NameCompletionTable extends ArrayList
 		Unimplemented - behavior is broken... no updates
 	*/
 	public void add( NameSource source ) {
-		/** Unimplemented - need a collection here */
 		/*
 			Unimplemented -
 			Need to add an inner class util here that holds the source and
 			monitors it by registering a listener
 		*/
-		addAll( Arrays.asList(source.getAllNames()) );
+		if ( sources == null )
+			sources = new ArrayList();
+
+		sources.add( source );
 	}
 
 	/**
@@ -87,16 +88,30 @@ public class NameCompletionTable extends ArrayList
 	*/
 	protected void getMatchingNames( String part, List found ) 
 	{
-		Iterator it = iterator();
-		while( it.hasNext() ) {
-			String name = (String)it.next();
+		// check our table
+		for( int i=0; i< size(); i++ ) {
+			String name = (String)get(i);
 			if ( name.startsWith( part ) )
 				found.add( name );
 		}
 
+		// Check other tables.
 		/** Unimplemented - need a collection here */
 		if ( table != null )
 			table.getMatchingNames( part, found );
+	
+		// Check other sources
+		// note should add caching in source adapters
+		if ( sources != null )
+			for( int i=0; i< sources.size(); i++ ) 
+			{
+				NameSource src = (NameSource)sources.get(i);
+				String [] names = src.getAllNames();
+				for( int j=0; j< names.length; j++ )
+					if ( names[j].startsWith( part ) )
+						found.add( names[j] );
+				
+			}
 	}
 
 	public String [] completeName( String part ) 
@@ -126,10 +141,14 @@ public class NameCompletionTable extends ArrayList
 	}
 
 	/**
-		Unimplemented -
-	class SourceMonitor implements NameSource.Listener
+	class SourceCache implements NameSource.Listener
 	{
-		public void nameSourceChanged( NameSource src ) { }
+		NameSource src;
+		SourceMonitor( NameSource src ) {
+			this.src = src;
+		}
+		public void nameSourceChanged( NameSource src ) { 
+		}
 	}
 	*/
 }

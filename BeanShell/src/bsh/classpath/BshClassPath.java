@@ -44,9 +44,6 @@ import bsh.ClassPathException;
 import java.lang.ref.WeakReference;
 import bsh.NameSource;
 
-//import bsh.util.NameCompletion;
-//import bsh.util.NameCompletionTable;
-
 /**
 	A BshClassPath encapsulates knowledge about a class path of URLs.
 	It can maps all classes the path which may include:
@@ -59,6 +56,8 @@ import bsh.NameSource;
 	Classpath traversal is done lazily when a call is made to 
 		getClassesForPackage() or getClassSource()
 	or can be done explicitily through insureInitialized().
+	Feedback on mapping progress is provided through the MappingFeedback
+	interface.
 
 	Design notes:
 	Several times here we traverse ourselves and our component paths to
@@ -83,8 +82,12 @@ public class BshClassPath
 	private boolean mapsInitialized;
 
 	private UnqualifiedNameTable unqNameTable;
-	//private NameCompletionTable nameCompletionTable;
-	private boolean nameCompletionIncludesUnqNames;
+
+	/**
+		This used to be configurable, but now we always include them.
+	*/
+	private boolean nameCompletionIncludesUnqNames = true;
+
 	Vector listeners = new Vector();
 
 	// constructors
@@ -198,7 +201,8 @@ public class BshClassPath
 			implies action taken to guard against attack or
 			loss.
 	*/
-	synchronized public void insureInitialized( ConsoleInterface feedback ) {
+	synchronized public void insureInitialized( ConsoleInterface feedback ) 
+	{
 		if ( compPaths != null )
 			for (int i=0; i< compPaths.size(); i++)
 				((BshClassPath)compPaths.get(i)).insureInitialized( feedback );
@@ -247,6 +251,7 @@ public class BshClassPath
 	public String getClassNameByUnqName( String name ) 
 		throws ClassPathException
 	{
+		insureInitialized(null);
 		UnqualifiedNameTable unqNameTable = getUnqualifiedNameTable();
 
 		Object obj = unqNameTable.get( name );
@@ -257,7 +262,11 @@ public class BshClassPath
 		return (String)obj;
 	}
 
-	UnqualifiedNameTable getUnqualifiedNameTable() {
+	/*
+		Note: we could probably do away with the unqualified name table
+		in favor of a second name source
+	*/
+	private UnqualifiedNameTable getUnqualifiedNameTable() {
 		if ( unqNameTable == null )
 			unqNameTable = buildUnqualifiedNameTable();
 		return unqNameTable;
@@ -265,7 +274,6 @@ public class BshClassPath
 
 	private UnqualifiedNameTable buildUnqualifiedNameTable() 
 	{
-		insureInitialized(null);
 		UnqualifiedNameTable unqNameTable = new UnqualifiedNameTable();
 
 		// add component names
@@ -284,42 +292,6 @@ public class BshClassPath
 		
 		return unqNameTable;
 	}
-
-/*
-	public String [] completeClassName( String part ) {
-		return getNameCompletionTable().completeName( part );
-	}
-*/
-
-/*
-	public NameCompletionTable getNameCompletionTable() {
-		if ( nameCompletionTable == null )
-			nameCompletionTable = buildNameCompletionTable();
-		return nameCompletionTable;
-	}
-*/
-
-/**
-		build the name completion table from all names in our packages
-		optionally including unqualified names
-	private NameCompletionTable buildNameCompletionTable() 
-	{
-		insureInitialized(null);
-		NameCompletionTable ncTable = new NameCompletionTable();
-
-		Iterator it = getPackagesSet().iterator();
-		while( it.hasNext() ) {
-			String pack = (String)it.next();
-			ncTable.addAll( 
-				removeInnerClassNames( getClassesForPackage( pack ) ) ); 
-		}
-
-		if ( nameCompletionIncludesUnqNames )
-			ncTable.addAll( getUnqualifiedNameTable().keySet() );
-
-		return ncTable;
-	}
-*/
 
 	public String [] getAllNames() 
 	{
@@ -423,7 +395,6 @@ public class BshClassPath
 		packageMap = new HashMap();
 		classSource = new HashMap();
 		unqNameTable = null;
-		//nameCompletionTable = null;
 		nameSpaceChanged();
 	}
 
@@ -432,18 +403,14 @@ public class BshClassPath
 		notifyListeners();	
 	}
 
+/*
 	public void setNameCompletionIncludeUnqNames( boolean b ) {
-	/*
-		// if the setting is changing clear the name table and allow rebuild
-		if ( nameCompletionIncludesUnqNames != b 
-				&& nameCompletionTable != null )
-			nameCompletionTable = null;
-	*/
 		if ( nameCompletionIncludesUnqNames != b ) {
 			nameCompletionIncludesUnqNames = b;
 			nameSpaceChanged();
 		}
 	}
+*/
 
 	// Begin Static stuff
 
@@ -691,6 +658,10 @@ public class BshClassPath
 	}
 
 
+	/*
+		Note: we could probably do away with the unqualified name table
+		in favor of a second name source
+	*/
 	static class UnqualifiedNameTable extends HashMap {
 		void add( String fullname ) {
 			String name = splitClassname( fullname )[1];
@@ -745,4 +716,19 @@ public class BshClassPath
 			nameSourceListeners = new ArrayList();
 		nameSourceListeners.add( listener );
 	}
+
+	public static interface MappingFeedback
+	{
+		public void startClassMapping();
+
+		/**
+			Provide feedback on the progress of mapping the classpath
+			@param msg is a message about the path component being mapped
+			@perc is an integer in the range 0-100 indicating percentage done
+		*/
+		public void classMapping( String msg, int perc );
+
+		public void endClassMapping();
+	}
+
 }

@@ -381,7 +381,10 @@ public class ClassManagerImpl extends BshClassManager
 			getClassPath().insureInitialized( feedback );
 			// prime the lookup table
 			getClassNameByUnqName( "" ) ;
-			getClassPath().setNameCompletionIncludeUnqNames(true);
+
+			// always true now
+			//getClassPath().setNameCompletionIncludeUnqNames(true);
+
 		} catch ( ClassPathException e ) {
 			feedback.error( e.getMessage() );
 		}
