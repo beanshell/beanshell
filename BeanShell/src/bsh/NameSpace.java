@@ -403,7 +403,10 @@ Move this to BCM
 		if ( absoluteNonClasses.get(name) != null)
 			return null;
 
-		c = classForName( name );
+		//c = classForName( name );
+		try {
+		c = Class.forName( name );
+		} catch ( ClassNotFoundException e ) { }
 		if ( c != null )
 			absoluteClassCache.put( name, c );
 
