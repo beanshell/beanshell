@@ -325,7 +325,8 @@ class Name implements java.io.Serializable
 				+value, new NullPointerException() );
 
 		if(evalBaseObject == Primitive.VOID) // previous round produced void
-			throw new EvalError("Void pointer error while evaluating: "+value);
+			throw new EvalError(
+				"Undefined variable or class name while evaluating: "+value);
 
 		if(evalBaseObject instanceof Primitive)
 			throw new EvalError("Can't treat primitive like an object. "+
@@ -404,13 +405,13 @@ class Name implements java.io.Serializable
 		fields from the This context.  Together the namespace and interpreter
 		comprise the This context.  The callstack, if available allows for the
 		this.caller construct.  
+		Optionally interpret special "magic" field names: e.g. interpreter.
 
 		@param callstack may be null, but this is only legitimate in special
 		cases where we are sure resolution will not involve this.caller.
 
-		@param namespace the namespace of the this reference, should be the				same as the top of the stack ??
-
-		Optionally interpret special "magic" field names: e.g. interpreter.
+		@param namespace the namespace of the this reference (should be the
+		same as the top of the stack?
 	*/
 	Object resolveThisFieldReference( 
 		CallStack callstack, NameSpace thisNamespace, Interpreter interpreter, 
@@ -479,7 +480,7 @@ class Name implements java.io.Serializable
 				// get the previous context (see notes for this class)
 				if ( callstack == null )
 					throw new InterpreterError("no callstack");
-				obj = callstack.toArray();
+				obj = callstack;
 			}
 			else
 				throw new EvalError(

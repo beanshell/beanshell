@@ -93,7 +93,7 @@ public class Interpreter
 {
 	/* --- Begin static stuff --- */
 
-	public static final String VERSION = "1.1a16";
+	public static final String VERSION = "1.1a17";
 	/* 
 		Debug utils are static so that they are reachable by code that doesn't
 		necessarily have an interpreter reference (e.g. tracing in utils).
@@ -103,6 +103,7 @@ public class Interpreter
 		turns it on or off...
 	*/
     public static boolean DEBUG, TRACE;
+
 	// This should be per instance
     static PrintStream debug;
 	static { 
@@ -488,8 +489,10 @@ public class Interpreter
             {
                 get_jjtree().reset();
 				// reinit the callstack
-				callstack.clear();
-				callstack.push( globalNameSpace );
+				if ( callstack.depth() > 1 ) {
+					callstack.clear();
+					callstack.push( globalNameSpace );
+				}
             }
         }
 
@@ -561,8 +564,6 @@ public class Interpreter
 				in, out, err, false, nameSpace, this, sourceFileInfo  );
 
 		CallStack callstack = new CallStack();
-		callstack.push( 
-			new NameSpace("Evaluation global for: "+sourceFileInfo) );
 		callstack.push( nameSpace );
 
         boolean eof = false;
@@ -584,7 +585,7 @@ public class Interpreter
                     retVal = node.eval( callstack, localInterpreter );
 
 					// sanity check during development
-					if ( callstack.depth() > 2 )
+					if ( callstack.depth() > 1 )
 						throw new InterpreterError(
 							"Callstack growing: "+callstack);
 
@@ -627,8 +628,12 @@ public class Interpreter
 					+ e.getMessage(), node );
             } finally {
                 localInterpreter.get_jjtree().reset();
-				callstack.clear();
-				callstack.push( nameSpace );
+
+				// reinit the callstack
+				if ( callstack.depth() > 1 ) {
+					callstack.clear();
+					callstack.push( nameSpace );
+				}
             }
         }
 		return Primitive.unwrap( retVal );
@@ -755,7 +760,13 @@ public class Interpreter
 		Assign the value to the name.	
 		name may evaluate to anything assignable. e.g. a variable or field.
 	*/
-    public void set(String name, Object value) throws EvalError {
+    public void set(String name, Object value) 
+		throws EvalError 
+	{
+		// map null to Primtive.NULL coming in...
+		if ( value == null )
+			value = Primitive.NULL;
+
 		CallStack callstack = new CallStack();
 		LHS lhs = globalNameSpace.getNameResolver( name ).toLHS( 
 			callstack, this );
@@ -789,6 +800,23 @@ public class Interpreter
         set(name, new Primitive(value));
 	}
 
+	/**
+		Unassign the variable name.	
+		Name should evaluate to a variable.
+	*/
+    public void unset( String name ) 
+		throws EvalError 
+	{
+		CallStack callstack = new CallStack();
+		LHS lhs = globalNameSpace.getNameResolver( name ).toLHS( 
+			callstack, this );
+
+		if ( lhs.type != LHS.VARIABLE )
+			throw new EvalError("Can't unset, not a variable: "+name);
+
+		// null means remove it
+		lhs.assign( null );
+	}
 
 
 	/**

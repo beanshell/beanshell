@@ -93,18 +93,26 @@ public abstract class BshClassManager
 	public static BshClassManager getClassManager() 
 	{
 		// Bootstrap the class manager if it exists
+
+		// have we loaded it before?
 		if ( !checkedForManager && manager == null )
+			// Do we have the necessary jdk1.2 packages?
 			try {
-				Class bcm = plainClassForName("bsh.classpath.ClassManagerImpl");
-				manager = (BshClassManager)bcm.newInstance();
+				if ( plainClassForName("java.lang.ref.WeakReference") != null
+					&& plainClassForName("java.util.HashMap")  != null )
+				{
+					// try to load the implementation
+					Class bcm = plainClassForName(
+						"bsh.classpath.ClassManagerImpl");
+					manager = (BshClassManager)bcm.newInstance();
+				}
 			} catch ( ClassNotFoundException e ) {
 				System.err.println("No class manager available.");
 			} catch ( Exception e ) {
 				System.err.println("Error loading classmanager: "+e);
-			} finally {
-				checkedForManager = true;
 			}
 
+		checkedForManager = true;
 		return manager;
 	}
 
