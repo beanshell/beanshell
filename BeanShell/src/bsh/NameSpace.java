@@ -194,8 +194,7 @@ public class NameSpace
 
 	/**
 		Get the specified variable in this namespace or a parent namespace.
-
-		If the variable is not defined return Primitive.VOID;
+		@return The variable value or Primitive.VOID if it is not defined.
 	*/
     public Object getVariable( String name ) {
 		return getVariable( name, true );
@@ -204,21 +203,39 @@ public class NameSpace
 	/**
 		Get the specified variable in this namespace.
 		If recurse is true extend search through parent namespaces.
-
-		If the variable is not defined return Primitive.VOID;
+		@return The variable value or Primitive.VOID if it is not defined.
 	*/
     public Object getVariable( String name, boolean recurse ) {
-		Object val = null;
-		if(variables !=	null)
-			val	= variables.get(name);
+		Object val = getVariableImpl( name, recurse );
+		return unwrapVariable( val );
+    }
 
-		if ( recurse && (val == null) && (parent != null) )
-			val	= parent.getVariable(name);
-
+	/**
+		Unwrap a typed variable to its value.
+		Turn null into Primitive.VOID
+	*/
+	protected Object unwrapVariable( Object val ) {
 		if (val instanceof TypedVariable)
 			val	= ((TypedVariable)val).getValue();
 
 		return (val == null) ? Primitive.VOID :	val;
+	}
+
+	/**
+		Return the raw variable retrieval (TypedVariable object or for untyped
+		the simple value) with optional recursion.
+		@return the raw variable value or null if it is not defined
+	*/
+    protected Object getVariableImpl( String name, boolean recurse ) {
+		Object val = null;
+
+		if(variables !=	null)
+			val	= variables.get(name);
+
+		if ( recurse && (val == null) && (parent != null) )
+			val	= parent.getVariable(name, recurse);
+
+		return val;
     }
 
     /**
@@ -600,7 +617,7 @@ public class NameSpace
 			throw new InterpreterError("null value in checkAssignable");
 
 		if(rhs == Primitive.VOID)
-			throw new EvalError("void cannot be	used in	an assignment statement");
+			throw new EvalError("void cannot be used in an assignment statement");
 
 		if(rhs == Primitive.NULL)
 			if(!lhsType.isPrimitive())

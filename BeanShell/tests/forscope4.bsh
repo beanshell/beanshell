@@ -2,18 +2,36 @@
 
 source("TestHarness.bsh");
 
-/*
-	If we want to act like Java we need to deal with this problem...
-	auto local variable allocation on assignment is inconsistent with Java	
-	for-init usage:	
+import bsh.ForBodyNameSpace;
 
+/**
+	The standard beanshell auto local variable allocation for untyped vars 
+	causes inconsistency with java in the case of for-init vars.
+
+	This causes particular trouble for new users who aren't trying to do 
+	anything fancy and simply want it to act like Java.
+
+	So in 1.1a9 we we simply changed the rules for this case to make it act like
+	Java...  If anyone really has trouble with this they can set the flag in 
+	ForBodyNameSpace.java and turn it back.
 */
-
 i=5;
+for(i=0, a=5; i<10; i++) { 
+	assert(a==5);
+	assert(i>=0 && i<10);
+}
 
-for(i=0; i<10; i++) { }
+if ( /*ForBodyNameSpace.JAVA_STYLE_FOR_LOOPS ==*/ true ) {
+	assert(i==10);
+	assert(a==5);
+} else {
+	assert(i==5);
+	assert(a==void);
+}
 
-// assert(i==10); ? 
-warning("Unresolved for-init issue...");
+// with types the spot where allocation occurs is always clear 
+int i=5;
+for(int i=0; i<10; i++) { }
+assert(i==5);
 
 complete();

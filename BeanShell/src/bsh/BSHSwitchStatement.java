@@ -33,27 +33,77 @@
 
 package bsh;
 
-class BSHSwitchStatement extends SimpleNode {
+class BSHSwitchStatement 
+	extends SimpleNode 
+	implements ParserConstants 
+{
 
 	public BSHSwitchStatement(int id) { super(id); }
 
     public Object eval(NameSpace namespace, Interpreter interpreter)  
 		throws EvalError
 	{
-/*
-		Vector catchBlocks = new Vector();
+		int numchild = jjtGetNumChildren();
+		int child = 0;
+		SimpleNode switchExp = ((SimpleNode)jjtGetChild(child++));
+		Object switchVal = switchExp.eval( namespace, interpreter );
 
-		int nchild = jjtGetNumChildren();
-		Node node = null;
-		int i=1;
-		while((i < nchild) && ((node = jjtGetChild(i++)) instanceof BSHFormalParameter))
+		/*
+			Note: this could be made clearer by adding an inner class for the
+			cases and an object context for the child traversal.
+		*/
+		// first label
+		BSHSwitchLabel label;
+		Object node;
+		ReturnControl returnControl=null;
+
+		// get the first label
+		if ( child >= numchild )
+			throw new EvalError("Empty switch statement...");
+		label = ((BSHSwitchLabel)jjtGetChild(child++));
+
+		// while more labels or blocks and haven't hit return control
+		while ( child < numchild && returnControl == null ) 
 		{
-			catchParams.addElement(node);
-			catchBlocks.addElement(jjtGetChild(i++));
-			node = null;
+			// if label is default or equals switchVal
+			if ( label.isDefault 
+				|| label.eval( namespace, interpreter ).equals( switchVal ) )
+			{
+				// execute nodes, skipping labels, until a break or return
+				while ( child < numchild ) 
+				{
+					node = jjtGetChild(child++);
+					if ( node instanceof BSHSwitchLabel )
+						continue;
+					// eval it
+					Object value = 
+						((SimpleNode)node).eval( namespace, interpreter ); 
+
+					// should check to disallow continue here?
+					if ( value instanceof ReturnControl ) {
+						returnControl = (ReturnControl)value;
+						break;
+					}
+				}
+			} else 
+			{
+				// skip nodes until next label
+				while ( child < numchild ) 
+				{
+					node = jjtGetChild(child++);
+					if ( node instanceof BSHSwitchLabel ) {
+						label = (BSHSwitchLabel)node;
+						break;
+					}
+				}
+			}
 		}
-		SimpleNode expression = ((SimpleNode)jjtGetChild(i++));
-*/
-		throw new EvalError("unimplemented");
+
+		if ( returnControl != null && returnControl.kind == RETURN )
+			return returnControl;
+		else
+			return Primitive.VOID;
 	}
+
 }
+

@@ -37,37 +37,59 @@ package	bsh;
 /**
     A specialized namespace	for the body of a "for" statement.
 	The for statement body acts like a child namespace but only for 
-	variables declared or initialized in the forInit() section.  Elsewhere
-	variable assignment acts like it is part of the containing block.
+	variables declared in the forInit() section.  Elsewhere variable 
+	assignment acts like it is part of the containing block.  
+
+	As of 1.1a9 untyped vars in the for-init are placed in the parent namespace.
+	See JAVA_STYLE_FOR_LOOPS below.
 
 	This namespace takes as an argument a namespace comprising the forInit()
 	variables and allows variables within it to shadow those in the parent
 	namespace.  Otherwise all assignments are delegated to the parent 
 	namespace.
-
-	There may be more methods from NameSpace that should be overidden here.
 */
-class ForBodyNameSpace extends NameSpace {
+class ForBodyNameSpace extends NameSpace 
+	{
 	NameSpace forInitNameSpace;
 
+	/**
+		See the docs regarding for-loops and java compatability.
+		If we are doing java style for loops allow refs to untyped vars in
+		the for-init section to refer to parent scope instead of local for-init
+		scope. This emulates Java but is inconsistent with the bsh model that
+		all var allocation is local unless scoped.
+	*/
+	protected static final boolean JAVA_STYLE_FOR_LOOPS = true;
+
     public ForBodyNameSpace( NameSpace parent, NameSpace forInitNameSpace ) 
+		throws EvalError
 	{
-		super( parent, parent.name + "ForBodyNameSpace" );
+		super( parent, parent.name + "/ForBodyNameSpace" );
 		this.forInitNameSpace = forInitNameSpace;
+
+		/*
+			Ugly hack as part of support for Java style for loops.
+			Move untyped vars that were initialized in the for-init to
+			the parent namespace. 
+		*/
+		if ( JAVA_STYLE_FOR_LOOPS ) 
+			copyUntypedVars( forInitNameSpace, parent );
     }
 
 	/**
+		Override the standard namespace behavior.
 		If the variables exists in the forInit space assign it there,
 		otherwise in the parent space.
 	*/
     public void	setVariable(String name, Object	o) throws EvalError {
-		if ( forInitSpaceHasVariable( name ) ) 
+		if ( forInitHasVar( name ) ) 
 			forInitNameSpace.setVariable( name, o );
 		else
 			getParent().setVariable( name, o );
     }
 
 	/**
+		Override the standard namespace behavior.
 		If the variables exists in the forInit space assign it there,
 		otherwise in the parent space.
 		
@@ -78,33 +100,65 @@ class ForBodyNameSpace extends NameSpace {
 		String name, Class type, Object value,	boolean	isFinal ) 
 		throws EvalError 
 	{
-		if ( forInitSpaceHasVariable( name ) ) 
+		if ( forInitHasVar( name ) ) 
 			forInitNameSpace.setTypedVariable( name, type, value, isFinal );
 		else
 			getParent().setTypedVariable( name, type, value, isFinal );
     }
 
-	boolean forInitSpaceHasVariable( String name ) {
-		return ( forInitNameSpace != null 
-				&& forInitNameSpace.getVariable(name, false) 
-					!= Primitive.VOID );
+	/**
+		Override the standard namespace behavior.  First check the forInit 
+		space.  If the variable is not defined there then delegate to our 
+		parent space.
+	*/
+    public Object getVariableImpl( String name, boolean recurse ) {
+		Object var = getForInitVar( name );
+		if ( var == null )  // not in for-init scope
+			var = getParent().getVariableImpl( name, recurse );
+		return var;
+	}
+
+	boolean forInitHasVar( String name ) {
+		return getForInitVar( name ) != null;
 	}
 
 	/**
-		get()s first check the forInit space.  If not defined there then
-		they are delegated to the parent space.
+		@return raw value - Typed, plain or null
 	*/
-    public Object getVariable( String name ) {
-		Object o = null;
+	Object getForInitVar( String name ) 
+	{
+		Object var = null;
 
 		if ( forInitNameSpace != null )
-			o = forInitNameSpace.getVariable( name );
+			var = forInitNameSpace.getVariableImpl( name, false );
+	
+		// If we are doing java style for loops allow refs to untyped vars
+		// to pass to parent scope instead of for-init.
+		if ( JAVA_STYLE_FOR_LOOPS && !(var instanceof TypedVariable) )
+			var = null;
 
-		if ( o == null || o == Primitive.VOID )
-			o = getParent().getVariable( name );
-		
-		return o;
+		return var;
 	}
 
+	/**
+		copy utyped variables in namespace 'from' to namespace 'to'
+		Part of the hack to support java style for loops.
+	*/
+	private void copyUntypedVars( NameSpace from, NameSpace to ) 
+		throws EvalError
+	{
+		if ( from == null )
+			return;
+		String [] vars = from.getVariableNames();
+		for(int i=0; i<vars.length; i++) {
+			Object value = from.getVariableImpl( vars[i], false );
+			if ( !(value instanceof TypedVariable) )
+				try {
+					to.setVariable( vars[i], value );
+				} catch ( EvalError e ) {
+					e.reThrow("Error in for-init var assignment: "+vars[i]);
+				}
+		}
+	}
 }
 
