@@ -12,21 +12,6 @@
  *                                                                           *
  *****************************************************************************/
 
-
-/*****************************************************************************
- *                                                                           *
- *  This file is part of the BeanShell Java Scripting distribution.          *
- *  Documentation and updates may be found at http://www.beanshell.org/      *
- *                                                                           *
- *  BeanShell is distributed under the terms of the LGPL:                    *
- *  GNU Library Public License http://www.gnu.org/copyleft/lgpl.html         *
- *                                                                           *
- *  Patrick Niemeyer (pat@pat.net)                                           *
- *  Author of Exploring Java, O'Reilly & Associates                          *
- *  http://www.pat.net/~pat/                                                 *
- *                                                                           *
- *****************************************************************************/
-
 package bsh;
 
 import java.lang.reflect.*;
@@ -865,8 +850,10 @@ class Reflect {
         }
     }
 
-    // This method is meant to convert a JVM-array class name to the correct
-    // 'fully-qualified name' for the array class - JLS 6.7
+    /** 
+		This method is meant to convert a JVM-array class name to the correct
+    	'fully-qualified name' for the array class - JLS 6.7
+	*/
     public static String normalizeClassName(Class type)
     {
         if(!type.isArray())
@@ -884,11 +871,9 @@ class Reflect {
         return className.toString();
     }
 
-    // returns the dimensionality of the Class
-    // returns 0 if the Class is not an array class
-	/*
-		Sean wrote this...  Can't we get this info through in a more 
-		concrete way?
+	/**[
+		returns the dimensionality of the Class
+		returns 0 if the Class is not an array class
 	*/
     public static int getArrayDimensions(Class arrayClass)
     {
@@ -910,98 +895,7 @@ class Reflect {
 
 		return arrayClass.getComponentType();
 
-		/*
-		// Why did we ever do this?  
-		// getComponentType() has been there since 1.1
-		// There must have been a reason
-
-        String arrayClassName = arrayClass.getName();
-        int startPos = arrayClassName.lastIndexOf('[') + 1;
-        int typeCode = arrayClassName.charAt(startPos);
-        switch(typeCode)
-        {
-            case 'Z':
-                return Boolean.TYPE;
-
-            case 'C':
-                return Character.TYPE;
-
-            case 'B':
-                return Byte.TYPE;
-
-            case 'S':
-                return Short.TYPE;
-
-            case 'I':
-                return Integer.TYPE;
-
-            case 'J':
-                return Long.TYPE;
-
-            case 'F':
-                return Float.TYPE;
-
-            case 'D':
-                return Double.TYPE;
-
-            case 'L':
-                int endPos = arrayClassName.indexOf(';');
-                String arrayBase = arrayClassName.substring(startPos + 1, endPos);
-
-                try
-                {
-                    return Class.forName(arrayBase);
-                }
-                catch(ClassNotFoundException e)
-                {
-                    throw new ReflectError("Unable to load class: " + arrayBase);
-                }
-
-            default:
-                throw new ReflectError("Invalid array class: " + arrayClassName);
-        }
-		*/
     }
 
-	/*
-	Don't think we need this any more...
-
-    // constructs the JVM-array class name for an dimensions-dimensional array
-    // of baseType objects.
-    public static String getArrayClassName(Class baseType, int dimensions)
-    {
-        StringBuffer typeName = new StringBuffer();
-        for(int i = 0; i < dimensions; i++)
-            typeName.append('[');
-
-        if(baseType.isPrimitive())
-        {
-            if(baseType == Boolean.TYPE)
-                typeName.append('Z');
-            else if(baseType == Character.TYPE)
-                typeName.append('C');
-            else if(baseType == Byte.TYPE)
-                typeName.append('B');
-            else if(baseType == Short.TYPE)
-                typeName.append('S');
-            else if(baseType == Integer.TYPE)
-                typeName.append('I');
-            else if(baseType == Long.TYPE)
-                typeName.append('J');
-            else if(baseType == Float.TYPE)
-                typeName.append('F');
-            else if(baseType == Double.TYPE)
-                typeName.append('D');
-        }
-        else
-        {
-            typeName.append('L');
-            typeName.append(baseType.getName());
-            typeName.append(';');
-        }
-
-        return typeName.toString();
-    }
-	*/
 }
 
