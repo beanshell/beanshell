@@ -14,7 +14,7 @@ Download and Run BeanShell
 Download the latest JAR file from http://www.beanshell.org
 and start up BeanShell either in the graphical desktop mode or on 
 the command line.
-<p CLEAR="ALL"/>
+<p/>
 
 If you just want to start playing around you may be able to to launch the 
 BeanShell desktop by simply double clicking on the BeanShell JAR file.  More 

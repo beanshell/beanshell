@@ -107,6 +107,18 @@
 	<xsl:comment>PAGE BREAK</xsl:comment>
 </xsl:template>
 
+<!-- Rewrite <p/> tags to add a clear attribute...  This is just here to
+	help out htmldoc -->
+<xsl:template match="p">
+	<xsl:choose>
+	<xsl:when test="@CLEAR">
+		<xsl:copy-of select="."/>
+	</xsl:when>
+	<xsl:otherwise>
+		<p CLEAR="ALL"/>
+	</xsl:otherwise>
+	</xsl:choose>
+</xsl:template>
 
 </xsl:stylesheet>
 
