@@ -1,5 +1,15 @@
-/*
+/**
     Show component in a frame, centered and packed.  Handle disposal.
+	<p>
+
+	Display the component, centered and packed, in a Frame, JFrame, or 
+	JInternalFrame.  Returns the frame.  If the GUI desktop is running then a 
+	JInternaFrame will be used and automatically added to the desktop.  
+	Otherwise if Swing is available a top level JFrame will be created.  
+	Otherwise a plain AWT Frame will be created.
+
+	@method Frame | JFrame | JInternalFrame frame( Component component )
+
 */
 bsh.help.frame = "usage: frame( Component component )";
  

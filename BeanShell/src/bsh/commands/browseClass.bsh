@@ -1,12 +1,19 @@
-
 /**
-	Browse the specified class, class name (as String), or the class 
-	of the specified object's type.
+	Open the class browser to view the specified class.  
+	If the argument is a string it is considered to be a class name.  
+	If the argument is an object, the class of the object is used.  
+	If the arg is a class, the class is used.
+	<p>
 
 	Note: To browse the String class you can't supply a String.
 	You'd have to do:  browseClass( String.class );
+	<p>
+
+
+	@method void browseClass( String | Object | Class )
 */
 import bsh.Name;
+
 browseClass( Object o ) {
 
 	if ( o instanceof String)

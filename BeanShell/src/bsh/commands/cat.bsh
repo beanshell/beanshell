@@ -1,3 +1,6 @@
+/**
+	Print the contents of filename, url, or stream (like Unix cat)
+*/
 
 bsh.help.cat = "usage: cat( filename )";
 

@@ -1,4 +1,7 @@
-
+/**
+	Print the BeanShell working directory.  This is the cwd obeyed by all the 
+	unix-like bsh comands.
+*/
 pwd() {
 	print( bsh.cwd );
 }

@@ -1,4 +1,7 @@
-
+/**
+	Setting accessibility on enables to private and other non-public
+	fields and method.
+*/
 import bsh.Capabilities;
 
 setAccessibility( boolean b ) 

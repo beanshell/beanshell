@@ -1,3 +1,6 @@
+/**
+	Open a workspace editor.
+*/
 
 bsh.help.editor = "usage: editor()";
 import java.awt.*;

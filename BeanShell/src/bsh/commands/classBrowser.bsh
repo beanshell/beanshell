@@ -1,6 +1,9 @@
+/**
+	Open the class browser.
+*/
 import bsh.util.ClassBrowser;
 
-classBrowser() {
+void classBrowser() {
 	inDesktop = ( bsh.system.desktop != void );
 
 	browser = new ClassBrowser();

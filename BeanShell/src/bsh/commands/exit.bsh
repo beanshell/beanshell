@@ -1,3 +1,6 @@
+/**
+	Call System.exit(0) unless bsh.system.shutdownOnExit == false.
+*/
 
 bsh.help.exit = "usage: exit()";
 

@@ -1,11 +1,11 @@
-
-bsh.help.setNameSpace =
-	"usage: setNameSpace( bsh.NameSpace )";
-
 /**
 	Set the namespace of the current scope.
 	Use this only if you really know what you are doing.
 */
+
+bsh.help.setNameSpace =
+	"usage: setNameSpace( bsh.NameSpace )";
+
 setNameSpace( ns ) 
 {
 	// Set the namespace at depth one (our caller) to the specified namespace.

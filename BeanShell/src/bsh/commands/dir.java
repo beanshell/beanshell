@@ -1,3 +1,10 @@
+/**
+	Display the contents of the current working directory.  
+	The format is similar to the Unix ls -l
+	<em>This is an example of a bsh command written in Java for speed.</em>
+	
+	@method void dir( String dirname )
+*/
 package bsh.commands;
 
 import java.io.*;
@@ -7,9 +14,6 @@ import java.util.Vector;
 import java.util.GregorianCalendar;
 import java.util.Calendar;
 
-/**
-	This is an example of a bsh command written in Java for speed.
-*/
 public class dir 
 {
 	static final String [] months = { "Jan", "Feb", "Mar", "Apr", 

@@ -1,5 +1,9 @@
+/**
+	Print the item as an error.  If in the GUI console the text will show up 
+	in (something like) red, else it will be printed to stderr
+*/
 
-error( item ) {
+void error( item ) {
 	this.interpreter.error( String.valueOf(item) );
 }
 

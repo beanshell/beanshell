@@ -1,9 +1,16 @@
+/**
+	Change the classpath to the specified array of directories and/or archives.
+	<p>
+	See <a href="classpath.html">Class Path Management</a>
+
+	@method void setClassPath( URL [] )
+*/
 
 bsh.help.setClassPath= "usage: setClassPath( URL [] )";
 
 import bsh.BshClassManager;
 
-setClassPath( urls ) {
+void setClassPath( urls ) {
 	BshClassManager.getClassManager().setClassPath( urls );
 }
 

@@ -1,7 +1,10 @@
+/**
+	Remove the file (like Unix rm)
+*/
 
 bsh.help.rm = "usage: cd( path )";
 
-rm( String pathname ) {
+void rm( String pathname ) {
     file = pathToFile( pathname );
 
 	if ( file == null )

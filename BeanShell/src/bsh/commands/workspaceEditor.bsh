@@ -1,6 +1,11 @@
+/**
+	Make a new workspaceEditor in the GUI.
+	@method workspaceEditor( bsh.Interpreter parent, String name )
+*/
 import java.awt.Insets;
+import bsh.Interpreter;
 
-workspaceEditor( bsh.Interpreter parent, String name ) {
+workspaceEditor(Interpreter parent, String name ) {
 
 	if ( bsh.system.desktop == void ) {
 		print("This only works with the bsh desktop...");

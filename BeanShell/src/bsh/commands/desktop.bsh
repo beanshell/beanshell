@@ -1,3 +1,8 @@
+/**
+	Start the BeanShell GUI desktop.
+
+	@method void desktop()
+*/
 import javax.swing.*;
 import bsh.util.JConsole;
 import bsh.util.Util;

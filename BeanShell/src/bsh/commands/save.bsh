@@ -1,7 +1,10 @@
+/**
+	Save a serializable Java object to filename. 
+*/
 
 bsh.help.save = "usage: save( object, filename )";
 
-save( Object obj, String filename ) {
+void save( Object obj, String filename ) {
 	file = pathToFile( filename );
 
 	if ( !(obj instanceof Serializable) ) {

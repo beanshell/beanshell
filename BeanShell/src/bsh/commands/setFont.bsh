@@ -1,3 +1,7 @@
+/**
+	Change the point size of the font on the specified component, to ptsize.
+	This is just a convenience for playing with GUI components.
+*/
 
 bsh.help.setFont = "usage: setFont( Component comp, int ptsize )";
 
