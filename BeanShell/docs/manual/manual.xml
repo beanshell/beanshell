@@ -16,6 +16,7 @@
   <!ENTITY desktop SYSTEM "desktop.xml">
   <!ENTITY bshmodes SYSTEM "bshmodes.xml">
   <!ENTITY servermode SYSTEM "servermode.xml">
+  <!ENTITY parser SYSTEM "parser.xml">
   <!ENTITY execscripts SYSTEM "execscripts.xml">
   <!ENTITY bshpackage SYSTEM "bshpackage.xml">
   <!ENTITY reflectstyle SYSTEM "reflectivestyle.xml">
@@ -43,6 +44,7 @@
 	&classpath;
 	&servermode;
 	&desktop;
+	&parser;
 	&execscripts;
 	&reflectstyle;
 	&bshpackage;
@@ -50,4 +52,5 @@
 	&credit;
 	&bshcommands;
 </manual>
+
 

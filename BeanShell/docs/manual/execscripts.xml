@@ -1,6 +1,9 @@
 <section>
 <name>Executable scripts under Unix</name>
 
+You can use BeanShell for writing scripts as you would any other shell 
+under Unix:
+
 <example>
 #!/usr/java/bin/java bsh.Interpreter 
 
@@ -14,5 +17,18 @@ print("foo");
 
 print("foo");
 </example>
+
+<h3>OSX</h3>
+
+For OSX the path is a bit different:
+
+<example>
+#!/Library/Java/home/bin/java bsh.Interpreter.
+
+print("foo");
+</example>
+
+On OSX /usr/bin/java is itself a shell script, which unfortunately won't
+work out-of-the-box.
 
 </section>

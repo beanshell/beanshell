@@ -1,8 +1,23 @@
 <section>
-<name>Using BeanShell in Your Application</name>
+<name>Modes of using BeanShell</name>
+
+There are currently five basic modes of use for BeanShell:
+
+<ul>
+<li>Standalone scripts</li>
+<li>Embedded in your application</li>
+<li>Remote server mode</li>
+<li>Servlet mode for in-container scripts</li>
+<li>Applet mode</li>
+</ul>
+
+<h2>Standalone Scripts</h2>
 
 <img src="scriptmode.gif"/>
 <br CLEAR="ALL"/>
+
+
+<h2>Embedding BeanShell in Your Application</h2>
 
 <img src="embeddedmode.gif"/>
 <br CLEAR="ALL"/>
@@ -20,15 +35,18 @@ Note: The trailing ";" semi-colon in the string containing the bsh statement
 to be evaluated is optional in this mode (bsh simply always adds one).
 <p/>
 
-<em>Embedding in Server Mode is the same, coming...</em><br/>
-
-<em>More coming...</em>
-<p/>
+<h2>Remote Server Mode</h2>
 
 <img src="remotemode.gif"/>
 <br CLEAR="ALL"/>
+
+<h2>The BeanShell Servlet</h2>
+
 <img src="servletmode.gif"/>
 <br CLEAR="ALL"/>
+
+<h2>The BeanShell Applet</h2>
+
 <img src="appletmode.gif"/>
 <br CLEAR="ALL"/>
 
