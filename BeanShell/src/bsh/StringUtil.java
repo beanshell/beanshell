@@ -38,4 +38,21 @@ public class StringUtil {
 		return out;
 	}
 
+    public static String methodString(String name, Class[] types)
+    {
+        StringBuffer sb = new StringBuffer(name + "( ");
+        for(int i=0; i<(types.length - 1); i++)
+        {
+            Class c = types[i];
+            sb.append(((c == null) ? "null" : c.getName()) + ", ");
+        }
+        if(types.length > 0)
+        {
+            Class c = types[types.length - 1];
+            sb.append(((c == null) ? "null" : c.getName()));
+        }
+        sb.append(" )");
+        return sb.toString();
+    }
+
 }
