@@ -106,6 +106,7 @@ public class Interpreter
 
 	// This should be per instance
     transient static PrintStream debug;
+	static String systemLineSeparator = "\n"; // default
 
 	static { 
 		staticInit();
@@ -767,7 +768,8 @@ public class Interpreter
 
     public final void println(String s)
     {
-        print(s + "\n");
+        //print(s + "\n");
+        print( s + systemLineSeparator );
     }
 
     public final void print(String s)
@@ -1093,6 +1095,7 @@ public class Interpreter
 		around 
 	*/
 		try {
+			systemLineSeparator = System.getProperty("line.separator");
     		debug = System.err;
     		DEBUG = Boolean.getBoolean("debug");
     		TRACE = Boolean.getBoolean("trace");

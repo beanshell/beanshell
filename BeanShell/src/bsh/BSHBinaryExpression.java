@@ -60,19 +60,26 @@ class BSHBinaryExpression extends SimpleNode
 			if ( lhs == Primitive.NULL )
 				return new Primitive(false);
 
+            Class rhs = ((BSHType)jjtGetChild(1)).getType( 
+				callstack, interpreter );
 		/*
 			// primitive (number or void) cannot be tested for instanceof
             if (lhs instanceof Primitive)
 				throw new EvalError("Cannot be instance of primitive type." );
 		*/
-			// Primitive (number or void) is not an instanceof anything
-            if (lhs instanceof Primitive)
-				return new Primitive(false);
+			/*
+				Primitive (number or void) is not normally an instanceof
+				anything.  But for internal use we'll test true for the
+				bsh.Primitive class.  
+				i.e. (5 instanceof bsh.Primitive) will be true
+			*/
+			if ( lhs instanceof Primitive )
+				if ( rhs == bsh.Primitive.class )
+					return new Primitive(true);
+				else
+					return new Primitive(false);
 
 			// General case - performe the instanceof based on assignability
-			NameSpace namespace = callstack.top();
-            Class rhs = ((BSHType)jjtGetChild(1)).getType( 
-				callstack, interpreter );
             boolean ret = Reflect.isJavaAssignableFrom( rhs, lhs.getClass() );
             return new Primitive(ret);
         }
