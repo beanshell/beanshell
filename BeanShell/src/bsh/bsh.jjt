@@ -1056,7 +1056,12 @@ void Literal() #Literal :
         jjtThis.value = new Primitive( new Long( literal ) );
     }
     else
-        jjtThis.value = new Primitive( Integer.decode( literal ) );
+		try {
+        	jjtThis.value = new Primitive( Integer.decode( literal ) );
+		} catch ( NumberFormatException e ) {
+			throw createParseException(
+				"Error or number too big for integer type: "+ literal );
+		}
   }
 |
   x = <FLOATING_POINT_LITERAL>
