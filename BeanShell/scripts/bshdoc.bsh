@@ -29,6 +29,9 @@
 	the command index.
 	<p/>
 
+	The bshdoc command requires Java 1.4 for regular expressions.
+	<p/>
+
 	@method void bshdoc( String filename, String text ) 
 	@method void bshdoc( String [] filenames ) 
 */
@@ -150,7 +153,12 @@ bshdoc( String [] filenames )
 	print("<BshDoc>");
 	tab();
 	for( i=0; i<filenames.length; i++)
-		bshdoc( filenames[i] );
+		try {
+			bshdoc( filenames[i] );
+		} catch ( e ) {
+			throw new RuntimeException( 
+				"bshdoc: Error parsing file: "+filenames[i]+": "+e );
+		}
 	untab();
 	print("</BshDoc>");
 }

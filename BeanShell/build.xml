@@ -23,7 +23,7 @@
 
 <property name="file" value=""/>
 
-	<property name="version" value="1.2b7"/>
+	<property name="version" value="1.3a"/>
 	<property name="deprecation" value="on"/>
 
 	<!-- choose an alternate compiler -->
@@ -137,7 +137,7 @@
 		<javac srcdir="${src-dir}:${test-src-dir}:${bsf-src-dir}"
 			destdir="${build-dir}"
 			deprecation="${deprecation}"
-			optimize="off"
+			optimize="on"
 			debug="on"
 			includes="**/*.java"
 			excludes="${excludes}"
@@ -372,6 +372,9 @@
 	<!-- 
 		This target produces XML source for beanshell documentation of the 
 		bsh command set.
+		
+		The bshdoc script requires Java 1.4 for regular expressions.
+	
 		Notes:
 			- I am concerned that the fileset argument could be too large for
 			parallel if ant is using full path names.  But the bshdoc script 

@@ -261,7 +261,7 @@ public class Interpreter
 	private void initRootSystemObject() 
 	{
 		BshClassManager bcm = getClassManager();
-System.out.println("init root bcm ="+bcm);
+//System.out.println("init root bcm ="+bcm);
 		// bsh
 		setu("bsh", new NameSpace( bcm, "Bsh Object" ).getThis( this ) );
 
