@@ -54,7 +54,7 @@
 -->
 <xsl:template match="entry">
 	<xsl:element name="a">
-		<xsl:attribute name="name"><xsl:number count="entry"/></xsl:attribute>
+		<xsl:attribute name="name"><xsl:number level="any" count="entry"/></xsl:attribute>
 		<h2><xsl:value-of select="question"/></h2>
 	</xsl:element>
 	<xsl:apply-templates select="answer"/>
@@ -79,7 +79,7 @@
 	<xsl:for-each select="/FAQ/body/category/entry">
 		<li>
 		<xsl:element name="a">
-			<xsl:attribute name="href">#<xsl:number count="entry"/></xsl:attribute>
+			<xsl:attribute name="href">#<xsl:number level="any" count="entry"/></xsl:attribute>
 			<xsl:value-of select="question"/>
 		</xsl:element>
 		</li>
