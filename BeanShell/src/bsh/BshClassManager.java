@@ -35,11 +35,9 @@ public class BshClassManager
 	BshClassLoader baseLoader;
 
 	/**
-		Map of loaders to use for reloaded classes
-		
-		This handles reloaded
+		Map by classname of loaders to use for reloaded classes
 	*/
-	Map classLoaderMap = new HashMap();
+	Map overlayLoaderMap = new HashMap();
 
 	public Class getClassForName( String name ) {
 		Class c = null;
@@ -62,11 +60,11 @@ public class BshClassManager
 	public void addClassPath( URL path ) {
 		if ( baseLoader == null )
 			setClassPath( new URL [] { path } );
-		else
+		else {
 			baseLoader.addURL( path );
+			classLoaderChanged();
+		}
 
-		// fire after change...  semantics are "has changed"
-		classLoaderChanged();
 	}
 
 	/**
@@ -75,7 +73,7 @@ public class BshClassManager
 	*/
 	public void setClassPath( URL [] cp ) {
 		classpath = cp;
-		baseLoader = BshClassLoader.getClassLoaderFor( classpath );
+		baseLoader = new BshClassLoader( classpath );
 
 		// fire after change...  semantics are "has changed"
 		classLoaderChanged();
