@@ -454,15 +454,18 @@ public class ClassManagerImpl extends BshClassManager
 		// clear the static caches in BshClassManager
 		clearCaches();
 
-		for (Enumeration e = listeners.elements(); e.hasMoreElements(); ) {
+		Vector toRemove = new Vector(); // safely remove
+		for ( Enumeration e = listeners.elements(); e.hasMoreElements(); ) 
+		{
 			WeakReference wr = (WeakReference)e.nextElement();
 			Listener l = (Listener)wr.get();
 			if ( l == null )  // garbage collected
-				listeners.removeElement( wr );
+			  toRemove.add( wr );
 			else
-				l.classLoaderChanged();
+			  l.classLoaderChanged();
 		}
-
+		for( Enumeration e = toRemove.elements(); e.hasMoreElements(); ) 
+			listeners.removeElement( e.nextElement() );
 	}
 
 	public void dump( PrintWriter i ) 
