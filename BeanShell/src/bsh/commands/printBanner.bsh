@@ -1,8 +1,12 @@
 
 import javax.swing.ImageIcon;
+import java.awt.*;
 
 /*
 	Daniel Leuck: supplied this
+
+	Note: any errors thrown in here will be caught by interpreter and
+	ignored... printing the default message.
 */
 printBanner() {
 
@@ -15,11 +19,11 @@ printBanner() {
 			new ImageIcon( getResource("/bsh/util/lib/small_bean_shell.gif")) );
 	    jconsole.print(
 			"1.1 alpha - by Pat Niemeyer (pat@pat.net)",
-			new java.awt.Font("SansSerif", Font.BOLD, 12), 
+			new Font("SansSerif", Font.BOLD, 12), 
 			new Color(20,100,20) );
 	    jconsole.println();
 
 	} else
-		print("BeanShell 1.1 beta - by Pat Niemeyer (pat@pat.net)");
+		print("BeanShell 1.1 alpha - by Pat Niemeyer (pat@pat.net)");
 
 }
