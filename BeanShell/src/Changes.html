@@ -172,6 +172,25 @@
 
 	- Did some minor refactoring and cleanup in Reflect.java.
 
+	- Added enhanced for loop as per JDK 1.5.  This is based on Daniel 
+      Leuck's "each" statement which he submitted long, long ago. 
+
+	    List foo = ... ;
+	    for ( untypedElement : foo ) { print( untypedElement ); }
+	    for ( Object typedElement: foo ) { print( typedElement ); }
+		// MORE DETAIL COMING
+
+	  Supported types include all the obvious things - see the new BshIterator
+	  addition below for details.
+	  // MORE DETAIL COMING
+
+	- Added BshIterator and bsh CollectionManager.  BeanShell now supports
+	  a unified api for iteration over collections, arrays, and anything else
+	  we decide to add.  This is initially to support the enhanced for loop
+	  above, but can also be used in BeanShell commands that want to loop over
+	  objects to display them.
+	
+
 </pre>
 
 <h2>Changes in 1.2b8 </h2>

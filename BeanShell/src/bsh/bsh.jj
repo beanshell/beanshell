@@ -146,6 +146,31 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/
 		}
 	}
 
+	/**
+		Lookahead for the enhanced for statement.  Expect "for" "(" and then 
+		see whether we hit ":" or a ";" before the ")"
+	*/
+	boolean isRegularForStatement() 
+	{
+		int curTok = 1;
+		Token tok;
+		tok = getToken(curTok++);
+		if ( tok.kind != FOR ) return false;
+		tok = getToken(curTok++);
+		if ( tok.kind != LPAREN ) return false;
+		while (true) 
+		{
+			tok = getToken(curTok++);
+			switch (tok.kind) {
+				case COLON:
+					return false;
+				case RPAREN:
+					return false;
+				case SEMICOLON:
+					return true;
+			}
+		}
+	}
 }
 
 
@@ -2027,7 +2052,10 @@ void Statement() : { }
 |
   DoStatement()
 |
+  LOOKAHEAD ( { isRegularForStatement() } )
   ForStatement()
+|
+  EnhancedForStatement()
 |
   BreakStatement()
 |
@@ -2360,11 +2388,67 @@ void ForStatement()               :
 {/*@bgen(jjtree) ForStatement */
   try {
 /*@egen*/
-  /* Regular for statment */
   "for" "(" [ ForInit() { jjtn000.hasForInit=true; } ]
     ";" [ Expression() { jjtn000.hasExpression=true; } ]
     ";" [ ForUpdate() { jjtn000.hasForUpdate=true; } ] ")"
     Statement()/*@bgen(jjtree)*/
+  } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      throw (RuntimeException)jjte000;
+    }
+    if (jjte000 instanceof ParseException) {
+      throw (ParseException)jjte000;
+    }
+    throw (Error)jjte000;
+  } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+  }
+/*@egen*/
+}
+
+/*
+	The new JDK1.5 enhanced for statement.
+	e.g. for( int a : arrayOfInts ) { }
+	We also support loose typing of the iterator var for BeanShell
+	e.g. for( a : arrayOfInts ) { }
+*/
+void EnhancedForStatement()                       :
+{/*@bgen(jjtree) EnhancedForStatement */
+  BSHEnhancedForStatement jjtn000 = new BSHEnhancedForStatement(JJTENHANCEDFORSTATEMENT);
+  boolean jjtc000 = true;
+  jjtree.openNodeScope(jjtn000);
+  jjtreeOpenNodeScope(jjtn000);
+/*@egen*/ Token t = null; }
+{/*@bgen(jjtree) EnhancedForStatement */
+  try {
+/*@egen*/
+  LOOKAHEAD( 4 ) // look ahead for the ":" before deciding
+  "for" "(" t=<IDENTIFIER> ":" Expression() ")"
+    Statement()/*@bgen(jjtree)*/
+                {
+                  jjtree.closeNodeScope(jjtn000, true);
+                  jjtc000 = false;
+                  jjtreeCloseNodeScope(jjtn000);
+                }
+/*@egen*/ { jjtn000.varName = t.image; }
+  |
+  "for" "(" Type() t=<IDENTIFIER> ":" Expression() ")"
+    Statement()/*@bgen(jjtree)*/
+                {
+                  jjtree.closeNodeScope(jjtn000, true);
+                  jjtc000 = false;
+                  jjtreeCloseNodeScope(jjtn000);
+                }
+/*@egen*/ { jjtn000.varName = t.image; }/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);

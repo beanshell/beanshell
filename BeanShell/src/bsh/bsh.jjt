@@ -146,6 +146,31 @@ public class Parser
 		}
 	}
 
+	/**
+		Lookahead for the enhanced for statement.  Expect "for" "(" and then 
+		see whether we hit ":" or a ";" before the ")"
+	*/
+	boolean isRegularForStatement() 
+	{
+		int curTok = 1;
+		Token tok;
+		tok = getToken(curTok++);
+		if ( tok.kind != FOR ) return false;
+		tok = getToken(curTok++);
+		if ( tok.kind != LPAREN ) return false;
+		while (true) 
+		{
+			tok = getToken(curTok++);
+			switch (tok.kind) {
+				case COLON:
+					return false;
+				case RPAREN:
+					return false;
+				case SEMICOLON:
+					return true;
+			}
+		}
+	}
 }
 
 
@@ -1004,7 +1029,10 @@ void Statement() : { }
 |
   DoStatement()
 |
+  LOOKAHEAD ( { isRegularForStatement() } )
   ForStatement()
+|
+  EnhancedForStatement()
 |
   BreakStatement()
 |
@@ -1130,11 +1158,27 @@ void DoStatement() #WhileStatement :
 void ForStatement() #ForStatement :
 { Token t = null; }
 {
-  /* Regular for statment */
   "for" "(" [ ForInit() { jjtThis.hasForInit=true; } ]
     ";" [ Expression() { jjtThis.hasExpression=true; } ]
     ";" [ ForUpdate() { jjtThis.hasForUpdate=true; } ] ")"
     Statement()
+}
+
+/*
+	The new JDK1.5 enhanced for statement.
+	e.g. for( int a : arrayOfInts ) { }
+	We also support loose typing of the iterator var for BeanShell
+	e.g. for( a : arrayOfInts ) { }
+*/
+void EnhancedForStatement() #EnhancedForStatement :
+{ Token t = null; }
+{
+  LOOKAHEAD( 4 ) // look ahead for the ":" before deciding
+  "for" "(" t=<IDENTIFIER> ":" Expression() ")"
+    Statement() { jjtThis.varName = t.image; }
+  |
+  "for" "(" Type() t=<IDENTIFIER> ":" Expression() ")"
+    Statement() { jjtThis.varName = t.image; }
 }
 
 void ForInit() :

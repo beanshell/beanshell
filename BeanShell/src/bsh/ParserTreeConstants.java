@@ -34,11 +34,12 @@ public interface ParserTreeConstants
   public int JJTIFSTATEMENT = 27;
   public int JJTWHILESTATEMENT = 28;
   public int JJTFORSTATEMENT = 29;
-  public int JJTTYPEDVARIABLEDECLARATION = 30;
-  public int JJTSTATEMENTEXPRESSIONLIST = 31;
-  public int JJTRETURNSTATEMENT = 32;
-  public int JJTTHROWSTATEMENT = 33;
-  public int JJTTRYSTATEMENT = 34;
+  public int JJTENHANCEDFORSTATEMENT = 30;
+  public int JJTTYPEDVARIABLEDECLARATION = 31;
+  public int JJTSTATEMENTEXPRESSIONLIST = 32;
+  public int JJTRETURNSTATEMENT = 33;
+  public int JJTTHROWSTATEMENT = 34;
+  public int JJTTRYSTATEMENT = 35;
 
 
   public String[] jjtNodeName = {
@@ -72,6 +73,7 @@ public interface ParserTreeConstants
     "IfStatement",
     "WhileStatement",
     "ForStatement",
+    "EnhancedForStatement",
     "TypedVariableDeclaration",
     "StatementExpressionList",
     "ReturnStatement",

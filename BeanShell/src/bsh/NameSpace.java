@@ -479,7 +479,7 @@ public class NameSpace
 		@param value If value is null, you'll get the default value for the type
     */
     public void	setTypedVariable(
-		String	name, Class type, Object value,	boolean	isFinal) 
+		String	name, Class type, Object value,	boolean	isFinal )
 		throws UtilEvalError 
 	{
 		if (variables == null)
