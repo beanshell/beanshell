@@ -55,12 +55,26 @@ options {
 PARSER_BEGIN(Parser)
 package bsh;
 
-import java.io.Reader;
+import java.io.*;
 
-class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/ {/*@bgen(jjtree)*/
+/**
+	This is the BeanShell parser.  It is used internally by the Interpreter
+	class (which is probably what you are looking for).  The parser knows
+	only how to parse the structure of the language, it does not understand
+	names, commands, etc.
+	<p>
+	You can use the Parser from the command line to do basic structural 
+	validation of BeanShell files without actually executing them. e.g.
+	<code><pre>
+		java bsh.Parser file [ file ] [ ... ]
+	</pre></code>
+*/
+public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/ 
+{/*@bgen(jjtree)*/
   protected JJTParserState jjtree = new JJTParserState();
 
 /*@egen*/ 
+	public boolean retainComments = false;
 
 	void jjtreeOpenNodeScope(Node n) {
 		((SimpleNode)n).firstToken = getToken(1);
@@ -77,6 +91,10 @@ class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/ {/*@bgen(jj
 		ReInit(in);
 	}
 
+	public SimpleNode rootNode() {
+		return (SimpleNode)jjtree.rootNode();
+	}
+
 	/**
 		Explicitly re-initialize just the token reader.
 		This seems to be necessary to avoid certain looping errors when
@@ -86,6 +104,16 @@ class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/ {/*@bgen(jj
 		jj_input_stream.ReInit( in, 
 			jj_input_stream.getEndLine(), 
 			jj_input_stream.getEndColumn() );
+	}
+
+	public static void main( String [] args ) 
+		throws IOException, ParseException
+	{
+		for(int i=0; i< args.length; i++) {
+			Reader in = new FileReader(args[i]);
+			Parser parser = new Parser(in);
+			while( !parser.Line()/*eof*/ );
+		}
 	}
 
 }
@@ -108,9 +136,13 @@ SPECIAL_TOKEN : /* COMMENTS */
 	spec, but comes up often enough to warrant it... (especially in eval()).
 */
   <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")? >
+
 | <HASH_BANG_COMMENT: "#!" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
-| <FORMAL_COMMENT: "/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
-| <MULTI_LINE_COMMENT: "/*" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+
+ /* Moved FORMAL_COMMENT to a real token.  Modified MULTI_LINE_COMMENT to not 
+    catch formal comments (require no star after star) */
+| <MULTI_LINE_COMMENT: 
+	"/*" (~["*"])+ "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
 }
 
 TOKEN : /* RESERVED WORDS AND LITERALS */
@@ -204,6 +236,10 @@ TOKEN : /* LITERALS */
       )*
       "\""
   >
+|
+   < FORMAL_COMMENT: 
+		"/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/"
+	>
 }
 
 TOKEN : /* IDENTIFIERS */
@@ -2161,7 +2197,8 @@ void Block()        :
 }
 
 void BlockStatement() :
-{}
+{
+}
 {
 // SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( MethodDeclarationLookahead() ) MethodDeclaration()
@@ -2172,11 +2209,43 @@ void BlockStatement() :
 |
   Statement()
 
-/* end */
+/* end */ // ??
 
 |  
   // Allow BeanShell imports in any block
   ImportDeclaration()
+|
+  FormalComment()
+}
+
+void FormalComment()                                  :
+{/*@bgen(jjtree) #FormalComment( retainComments) */
+        BSHFormalComment jjtn000 = new BSHFormalComment(JJTFORMALCOMMENT);
+        boolean jjtc000 = true;
+        jjtree.openNodeScope(jjtn000);
+        jjtreeOpenNodeScope(jjtn000);
+/*@egen*/
+	Token t;
+}
+{/*@bgen(jjtree) #FormalComment( retainComments) */
+        try {
+/*@egen*/
+	t=<FORMAL_COMMENT>/*@bgen(jjtree)*/
+                            {
+                              jjtree.closeNodeScope(jjtn000,  retainComments);
+                              jjtc000 = false;
+                              jjtreeCloseNodeScope(jjtn000);
+                            }
+/*@egen*/  {
+		jjtn000.text=t.image;
+	}/*@bgen(jjtree)*/
+        } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000,  retainComments);
+            jjtreeCloseNodeScope(jjtn000);
+          }
+        }
+/*@egen*/
 }
 
 void EmptyStatement() :

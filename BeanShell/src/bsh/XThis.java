@@ -138,6 +138,8 @@ class XThis extends This
 		public Object invokeImpl( Object proxy, Method method, Object[] args ) 
 			throws EvalError 
 		{
+			CallStack callstack = newCallStack();
+
 			Class [] sig = Reflect.getTypes( args );
 			BshMethod bmethod = 
 				namespace.getMethod( method.getName(), sig );

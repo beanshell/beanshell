@@ -45,11 +45,14 @@ class BSHBlock extends SimpleNode
 	}
 
 	/**
-		@param overrideNamespace if set to true *no* new BlockNamespace will
-		be swapped onto the stack and the eval will happen in the current
-		top namespace.  This is used by ForStatement, etc.  which must 
-		intialize the block with the for-init and also for those that 
-		perform multiple passes in the same block.
+		@param overrideNamespace if set to true the block will be executed
+		in the current namespace (not a subordinate one).
+		<p>
+		If true *no* new BlockNamespace will be swapped onto the stack and 
+		the eval will happen in the current
+		top namespace.  This is used by BshMethod, TryStatement, etc.  
+		which must intialize the block first and also for those that perform 
+		multiple passes in the same block.
 	*/
 	public Object eval( 
 		CallStack callstack, Interpreter interpreter, 
@@ -65,21 +68,30 @@ class BSHBlock extends SimpleNode
 			enclosingNameSpace= callstack.top();
 			BlockNameSpace bodyNameSpace = 
 				new BlockNameSpace( enclosingNameSpace );
+
+/*
+// Experiment - clone callstack before swap for thread safety
+callstack = (CallStack)callstack.clone();
+*/
+
 			callstack.swap( bodyNameSpace );
 		}
 
-		for(int i=0; i<statements; i++)
-		{
-			SimpleNode node = ((SimpleNode)jjtGetChild(i));
-			ret = node.eval( callstack, interpreter );
+		try {
+			for(int i=0; i<statements; i++)
+			{
+				SimpleNode node = ((SimpleNode)jjtGetChild(i));
+				ret = node.eval( callstack, interpreter );
 
-			// some statement or embedded block evaluated a return statement
-			if (ret instanceof ReturnControl)
-				break;
+				// some statement or embedded block evaluated a return statement
+				if (ret instanceof ReturnControl)
+					break;
+			}
+		} finally {
+			// make sure we put the namespace back when we leave.
+			if ( !overrideNamespace ) 
+				callstack.swap( enclosingNameSpace );
 		}
-
-		if ( !overrideNamespace ) 
-			callstack.swap( enclosingNameSpace );
 
 		return ret;
 	}

@@ -8,7 +8,7 @@
 <!-- TEMPLATE-scriptResult -->
 
 <h2>Script</h2>
-<form method="POST" action="eval">
+<form method="POST" action="<!-- TEMPLATE-servletURL -->">
 <TEXTAREA name="bsh.script" rows="10" cols="80">
 <!-- TEMPLATE-script-->
 </TEXTAREA>

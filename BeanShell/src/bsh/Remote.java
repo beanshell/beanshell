@@ -110,7 +110,7 @@ public class Remote {
 		  if ( rc != HttpURLConnection.HTTP_OK )
 			System.out.println("Error, HTTP response: "+rc );
 
-		  returnValue = urlcon.getHeaderField("bsh_return");
+		  returnValue = urlcon.getHeaderField("Bsh-Return");
 
 		  BufferedReader bin = new BufferedReader( 
 			new InputStreamReader( urlcon.getInputStream() ) );

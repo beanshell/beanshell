@@ -23,7 +23,7 @@
 <!-- Project Configuration -->
 
 	<property name="version" value="1.2b5"/>
-	<property name="deprecation" value="off"/>
+	<property name="deprecation" value="on"/>
 
 	<!-- choose an alternate compiler -->
 	<!-- 
@@ -302,6 +302,7 @@
 					<exclude name="BeanShell/*javadoc*"/>
 					<exclude name="**/CVS"/>
 					<exclude name="**/*.jar"/>
+					<exclude name="**/*.war"/>
 				</patternset>
 			</fileset>
 		</jar>

@@ -38,18 +38,28 @@ import java.util.Vector;
 /**
 	A stack of namespaces representing the call path.
 	The top of the stack is always the current namespace of evaluation.
+	<p>
 
 	This is necessary to support this this.caller magic reference and will
 	also be used to provide additional debug/tracking and error reporting
 	information in the future.
+	<p>
 
 	Note: it would be awefully nice to use the java.util.Stack here.
 	Sigh... have to stay 1.1 compatible.
+	<p>
 
-	We don't want to serialize this, do we?  It should be ephemeral, like
-	the interpreter reference I think.
+	Note: How can this be thread safe, you might ask?  Wouldn't
+	a thread executing various beanshell methods be mutating the callstack?
+	Don't we need one CallStack per Thread in the interpreter?
+	The answer is that we do.  java.lang.Thread executes our script via the
+	Runnable interface through an external (hard) Java reference via
+	bsh.XThis.  In that case XThis creates a new CallStack for each external
+	call...
+	<p>
+
 */
-public class CallStack /*implements java.io.Serializable*/
+public class CallStack 
 {
 	private Vector stack = new Vector(2);
 
