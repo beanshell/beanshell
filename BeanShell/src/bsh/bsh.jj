@@ -50,9 +50,12 @@ options {
 	/* Print detailed lookahead debugging info
 	DEBUG_LOOKAHEAD=true;
 	*/
+
+	// Not sure exactly what this does
 	ERROR_REPORTING=false;
 
-	// This breaks something on the command line.
+	// This breaks something for interactive use on the command line,
+	// but may be useful in non-interactive use.
 	//CACHE_TOKENS=true;
 }
 
@@ -487,35 +490,21 @@ TOKEN : /* OPERATORS */
 }
 
 
+/*
+	Thanks to Sreenivasa Viswanadha for suggesting how to get rid of expensive
+	lookahead here.
+*/
 boolean Line() :
 {}
 {
   <EOF> { 
 	Interpreter.debug("End of File!"); 
 	return true; 
-	}
+  }
 |
-  (
-	/*
-		SYNTACTIC_LOOKAHEAD
-		I'm guessing this is expensive, but I don't know how to work around
-		it...  Is there another syntactic indication that we are working 
-		through an expression as opposed to a statement?
-		What is the difference?  Well, some statements don't require a
-		semicolon and they don't return values...  We could probably broaden
-		bsh to allow everything to return a value, but the semi-colon thing
-		is tougher.  You don't want to have to say if ( foo ) { } ;
-		Maybe we can invert this and enumerate all of those types of 
-		statements in a special lookahead that's cheaper??
-	*/
-   LOOKAHEAD( Expression() ";" )
-   Expression() ";" 
-  |
-   BlockStatement()
-  )
-	{ 
-		return false; 
-	}
+  BlockStatement() {
+	return false; 
+  }
 }
 
 /*****************************************
@@ -2289,21 +2278,31 @@ void EmptyStatement() :
 }
 
 void StatementExpression() :
-/*
- * The last expansion of this production accepts more than the legal
- * Java expansions for StatementExpression.
- */
 { }
 {
-  PreIncrementExpression()
-|
-  PreDecrementExpression()
-|
-// SYNTACTIC_LOOKAHEAD
-  LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
-  Assignment() { }
-|
-  PostfixExpression()
+  /*
+	This is looser than normal Java to simplify the grammar.  This allows
+	us to type arbitrary expressions on the command line, e.g. "1+1;"
+	We should turn this off in the implementation in strict java mode.
+  */
+  Expression()
+/*
+	// This was the original Java grammar. 
+
+	//  Original comment:
+	//  The last expansion of this production accepts more than the legal
+	//  Java expansions for StatementExpression.
+	  PreIncrementExpression()
+	|
+	  PreDecrementExpression()
+	|
+	  // SYNTACTIC_LOOKAHEAD
+	  LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
+	  Assignment() { }
+	|
+	  PostfixExpression()
+*/
+
 }
 
 void SwitchStatement()                  :
