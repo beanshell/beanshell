@@ -4,6 +4,7 @@
 bsh.help.frame = "usage: frame( Component component )";
  
 import java.awt.*;
+imporg bsh.Capabilities;
 
 frame( Component comp ) {
 
@@ -23,7 +24,7 @@ frame( Component comp ) {
 		bsh.system.desktop.addInternalFrame( frame );
 	} else {
 		// make an external JFrame or Frame
-		if ( bsh.Capabilities.haveSwing() ) {
+		if ( Capabilities.haveSwing() ) {
 			frame = new javax.swing.JFrame();
 			frame.getContentPane().add( comp, "Center" );
 		} else {

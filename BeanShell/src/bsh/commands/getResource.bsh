@@ -1,7 +1,9 @@
 
 bsh.help.getResource = "usage: getResource( String name )";
 
+import bsh.Interpreter;
+
 getResource( String name ) {
 	//return this.interpreter.getClass().getResource(name);
-	return bsh.Interpreter.class.getResource(name);
+	return Interpreter.class.getResource(name);
 }

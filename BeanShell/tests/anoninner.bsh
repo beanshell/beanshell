@@ -2,19 +2,17 @@
 
 source("TestHarness.bsh");
 
-if ( bsh.Capabilities.haveProxyMechanism() ) {
-	r=new Runnable() {
-		run() {
-			flag();
-		}
-	};
+// Runnable is implemented by This and does not require the proxy mechansim
 
-	r.run();
+r=new Runnable() {
+	run() {
+		flag();
+	}
+};
 
-	assert( flag() == 1 );
-}
-	else
-		warning("No proxy mechanism.");
+r.run();
+
+assert( flag() == 1 );
 
 complete();
 

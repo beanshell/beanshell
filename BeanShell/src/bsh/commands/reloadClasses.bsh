@@ -2,11 +2,13 @@
 bsh.help.reloadClasses= 
 	"usage: reloadClasses( String class | String package | String [] classes )";
 
+import bsh.BshClassManager;
+
 /**
 	Reload specified set of classes
 */
 reloadClasses( item ) {
-	bcm = bsh.BshClassManager.getClassManager();
+	bcm = BshClassManager.getClassManager();
 
 	try {
 	if ( item instanceof String [] )

@@ -123,8 +123,10 @@ public class BshClassManager
 		if (c != null )
 			return c;
 
-		if ( absoluteNonClasses.get(name) != null)
+		if ( absoluteNonClasses.get(name) != null) {
+			Interpreter.debug("absoluteNonClass list hit: "+name);
 			return null;
+		}
 
 		// Try to load the class
 

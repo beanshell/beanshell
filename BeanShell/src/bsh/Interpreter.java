@@ -77,6 +77,7 @@ public class Interpreter
                 boolean interactive, NameSpace namespace)
     {
         this( in );
+long t1=System.currentTimeMillis();
         this.in = in;
         this.out = out;
         this.err = err;
@@ -144,6 +145,8 @@ public class Interpreter
 
                 if ( interactive )
                         loadRCFiles();
+long t2=System.currentTimeMillis();
+Interpreter.debug("Time to initialize interpreter: "+(t2-t1));
     }
 
         private void initRootSystemObject()
@@ -595,7 +598,7 @@ compare them side by side and see what they do differently.
     public final static void debug(String s)
     {
         if(DEBUG)
-            debug.println("// Debug: " + s);
+            debug.println("// Debug ("+System.currentTimeMillis()+"): " + s);
     }
 
         /*
@@ -4247,30 +4250,6 @@ void FormalParameter() #FormalParameter :
     return retval;
   }
 
-  final private boolean jj_3R_197() {
-    if (jj_3R_29()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3_5()) { jj_scanpos = xsp; break; }
-      if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    }
-    return false;
-  }
-
-  final private boolean jj_3R_100() {
-    if (jj_scan_token(LPAREN)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_116()) jj_scanpos = xsp;
-    else if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    if (jj_scan_token(RPAREN)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
   final private boolean jj_3R_86() {
     if (jj_scan_token(LBRACE)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
@@ -6830,6 +6809,30 @@ void FormalParameter() #FormalParameter :
 
   final private boolean jj_3R_120() {
     if (jj_scan_token(FLOATING_POINT_LITERAL)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
+  final private boolean jj_3R_197() {
+    if (jj_3R_29()) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3_5()) { jj_scanpos = xsp; break; }
+      if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    }
+    return false;
+  }
+
+  final private boolean jj_3R_100() {
+    if (jj_scan_token(LPAREN)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_116()) jj_scanpos = xsp;
+    else if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    if (jj_scan_token(RPAREN)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
     return false;
   }

@@ -54,6 +54,7 @@ class BSHAssignment extends SimpleNode implements InterpreterConstants
         {
             case ASSIGN:
 				try {
+Interpreter.debug("lhs assign: "+rhs);
 					return lhs.assign(rhs);
 				} catch ( TargetError e ) {
 					e.reThrow(this);
