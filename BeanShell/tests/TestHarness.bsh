@@ -25,7 +25,7 @@ isEvalError( String text ) {
 	boolean flag = false;
 	try {
 		// eval in the namespace of whomever sourced this file.
-		this.interpreter.eval(text, this.caller.namespace );
+		this.interpreter.eval( text, this.caller.namespace );
 	} catch ( bsh.EvalError e ) {
 		flag = true;
 	}

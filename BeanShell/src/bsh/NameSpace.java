@@ -157,11 +157,19 @@ public class NameSpace
 		and getInvocationText() methods.
 	*/
 	void setNode( SimpleNode node ) {
-		this.callerInfoNode= node;
+		callerInfoNode = node;
 	}
 
-	SimpleNode getNode() {
-		return this.callerInfoNode;
+	/**
+	*/
+	SimpleNode getNode() 
+	{
+		if ( callerInfoNode != null )
+			return callerInfoNode;
+		if ( parent != null )
+			return parent.getNode();
+		else
+			return null;
 	}
 
 	/**
@@ -175,18 +183,21 @@ public class NameSpace
 	}
 
 	/**
-		@deprecated  Use the form specifying strict java.  This method 
-			assumes strict java is false.
-		@see #setVariable( String, Object, boolean );
 	*/
-    public void	setVariable( String name, Object value ) 
+    public void	setVariable( String name, Object value, boolean strictJava ) 
 		throws UtilEvalError 
 	{
-		setVariable( name, value, false );
+		boolean recurse = strictJava;
+		//boolean recurse = true; // Trying 1.3 scoping change
+		setVariable( name, value, strictJava, recurse );
 	}
 
 	/**
-		Set a variable in this namespace.
+		Set the value of a the variable 'name' through this namespace.
+		The variable may be an existing or non-existing variable.
+		It may live in this namespace or in a parent namespace if recurse is 
+		true.
+
 		<p>
 		Note: this method is primarily intended for use internally.  If you use
 		this method outside of the bsh package and wish to set variables with
@@ -196,49 +207,56 @@ public class NameSpace
 		Setting a new variable (which didn't exist before) or removing
 		a variable causes a namespace change.
 
-		@param value a value of null will remove the variable definition.
 		@param strictJava specifies whether strict java rules are applied.
+		@param recurse determines whether we will search for the variable in
+		  our parent's scope before assigning locally.
 	*/
-    public void	setVariable( String name, Object value, boolean strictJava ) 
+    public void	setVariable( 
+		String name, Object value, boolean strictJava, boolean recurse ) 
 		throws UtilEvalError 
 	{
 		if ( variables == null )
 			variables =	new Hashtable();
 
-		// hack... should factor this out...
-		if ( value == null ) {
-			variables.remove(name);
-			nameSpaceChanged();
-			return;
-		}
+		// primitives should have been wrapped
+		if ( value == null )
+			throw new InterpreterError("null variable value");
 
-		// Locate the variable definition if it exists
-		// if strictJava then recurse, else default local scope
-		boolean recurse = strictJava;
-		Object orig = getVariableImpl( name, recurse );
+		// Locate the variable definition if it exists.
+		Variable existing = getVariableImpl( name, recurse );
 
-		// Found a typed variable
-		if ( (orig != null) && (orig instanceof TypedVariable) )
+		// Found an existing variable
+		if ( existing != null )
 		{
 			try {
-				((TypedVariable)orig).setValue( value );
+				existing.setValue( value );
 			} catch ( UtilEvalError e ) {
 				throw new UtilEvalError(
-					"Typed variable: " + name + ": " + e.getMessage());
-			} 
+					"Variable assignment: " + name + ": " + e.getMessage());
+			}
 		} else
-			// Untyped or non-existent.  
-			// (Allow assignment to existing untyped var even with strictJava)
-			if ( strictJava && orig == null )
+		// Non-existent.  
+		{
+			if ( strictJava )
 				throw new UtilEvalError(
 					"(Strict Java mode) Assignment to undeclared variable: "
 					+name );
-			else
-				variables.put(name, value);
 
-		if ( orig == null )
+			variables.put( name, new Variable( value, false ) );
+
+			// nameSpaceChanged() on new variable addition
 			nameSpaceChanged();
-    }
+    	}
+	}
+
+	/**
+		Remove the variable from the namespace.
+	*/
+	public void unsetVariable( String name )
+	{
+		variables.remove( name );
+		nameSpaceChanged();
+	}
 
 	/**
 		Get the names of variables defined in this namespace.
@@ -313,7 +331,7 @@ public class NameSpace
 
     public NameSpace getSuper()
     {
-		if(parent != null)
+		if (parent != null)
 			return parent;
 		else
 			return this;
@@ -371,9 +389,8 @@ public class NameSpace
 		if ( parent != null && parent != JAVACODE )
 			return parent.getClassManager();
 
-		System.out.println("No class manager:" +this.getName());
+		Interpreter.debug("No class manager namespace:" +this);
 		return null;
-		//throw new InterpreterError("No class manager:" +this.getName());
 	}
 
 	void setClassManager( BshClassManager classManager ) {
@@ -421,7 +438,8 @@ public class NameSpace
 
 	/**
 		Get the specified variable in this namespace.
-		If recurse is true extend search through parent namespaces.
+		@param recurse If recurse is true then we recursively search through 
+		parent namespaces for the variable.
 		<p>
 		Note: this method is primarily intended for use internally.  If you use
 		this method outside of the bsh package you will have to use 
@@ -431,43 +449,45 @@ public class NameSpace
 		@return The variable value or Primitive.VOID if it is not defined.
 	*/
     public Object getVariable( String name, boolean recurse ) {
-		Object val = getVariableImpl( name, recurse );
-		return unwrapVariable( val );
+		Variable var = getVariableImpl( name, recurse );
+		return unwrapVariable( var );
     }
 
 	/**
-		Unwrap a typed variable to its value.
-		Turn null into Primitive.VOID
+		Locate a variable and return the Variable object with optional 
+		recursion through parent name spaces.
+		@return the Variable value or null if it is not defined
 	*/
-	protected Object unwrapVariable( Object val ) {
-		if (val instanceof TypedVariable)
-			val	= ((TypedVariable)val).getValue();
+    protected Variable getVariableImpl( String name, boolean recurse ) 
+	{
+		Variable var = null;
 
-		return (val == null) ? Primitive.VOID :	val;
+		if ( variables != null )
+			var	= (Variable)variables.get(name);
+
+		if ( recurse && (var == null) && (parent != null) )
+			var	= parent.getVariableImpl( name, recurse );
+
+		return var;
+    }
+
+	/**
+		Unwrap a variable to its value.
+		@return return the variable value.  A null var is mapped to 
+			Primitive.VOID
+	*/
+	protected Object unwrapVariable( Variable var ) 
+	{
+		return (var == null) ? Primitive.VOID :	var.getValue();
 	}
 
-	/**
-		Return the raw variable retrieval (TypedVariable object or for untyped
-		the simple value) with optional recursion.
-		@return the raw variable value or null if it is not defined
-	*/
-    protected Object getVariableImpl( String name, boolean recurse ) {
-		Object val = null;
-
-		if(variables !=	null)
-			val	= variables.get(name);
-
-		if ( recurse && (val == null) && (parent != null) )
-			val	= parent.getVariableImpl(name, recurse);
-
-		return val;
-    }
-
     /**
-		Set the typed variable with the value.  
-		An existing typed variable may only be set to the same type.
-		If an untyped variable exists it will be overridden with the new
-		typed var.
+		Declare a variable and set its' initial value.
+		Value may be null to indicate that we would like the default value 
+		for the variable type. (e.g.  0 for integer types, null for object 
+		types).  An existing typed variable may only be set to the same type.
+		If an untyped variable of the same name exists it will be overridden 
+		with the new typed var.
 		The set will perform a getAssignableForm() on the value if necessary.
 
 		<p>
@@ -482,58 +502,40 @@ public class NameSpace
 		String	name, Class type, Object value,	boolean	isFinal )
 		throws UtilEvalError 
 	{
-		if (variables == null)
+		if ( variables == null )
 			variables =	new Hashtable();
 
-		if (value == null)
-		{
-			// initialize variable to appropriate default value	- JLS 4.5.4
-			if(type.isPrimitive())
-			{
-			if(type	== Boolean.TYPE)
-				value = new	Primitive(Boolean.FALSE);
-			else if(type ==	Byte.TYPE)
-				value = new	Primitive((byte)0);
-			else if(type ==	Short.TYPE)
-				value = new	Primitive((short)0);
-			else if(type ==	Character.TYPE)
-				value = new	Primitive((char)0);
-			else if(type ==	Integer.TYPE)
-				value = new	Primitive((int)0);
-			else if(type ==	Long.TYPE)
-				value = new	Primitive(0L);
-			else if(type ==	Float.TYPE)
-				value = new	Primitive(0.0f);
-			else if(type ==	Double.TYPE)
-				value = new	Primitive(0.0d);
-			}
-			else
-				value =	Primitive.NULL;
-		}
+		if ( value == null )
+			value = Primitive.getDefaultValue( type );
+
+		// Setting a typed variable is always a local operation.
+		Variable existing = getVariableImpl( name, false/*recurse*/ );
 
 		// does the variable already exist?
-		if ( variables.containsKey(name) ) 
+		if ( existing != null ) 
 		{
-			Object existing = getVariableImpl( name, false );
 			// is it typed?
-			if ( existing instanceof TypedVariable ) 
+			if ( existing.getType() != null ) 
 			{
-				// if it had a different type throw error
-				if ( ((TypedVariable)existing).getType() != type )
+				// If it had a different type throw error.
+				// This allows declaring the same var again, but not with
+				// a different (even if assignable) type.
+				if ( existing.getType() != type )
 					throw new UtilEvalError( "Typed variable: "+name
 						+" was previously declared with type: " 
-						+ ((TypedVariable)existing).getType() );
+						+ existing.getType() );
 				else {
 					// else set it and return
-					((TypedVariable)existing).setValue( value );
+					existing.setValue( value );
 					return;
 				}
 			}
+			// Carefull here:
 			// else fall through to override and install the new typed version
 		} 
 
-		// add the new typed var
-		variables.put(name, new	TypedVariable(type, value, isFinal));
+		// Add the new typed var
+		variables.put( name, new Variable( type, value, isFinal) );
     }
 
 	/**
@@ -585,7 +587,7 @@ public class NameSpace
 
 			Class [][] candidates = new Class[ ma.length ][];
 			for( int i=0; i< ma.length; i++ )
-				candidates[i] = ma[i].getArgTypes();
+				candidates[i] = ma[i].getArgumentTypes();
 
 			int match = Reflect.findMostSpecificSignature( sig, candidates );
 			if ( match != -1 )
@@ -887,18 +889,23 @@ public class NameSpace
 		getClassManager().doSuperImport();
 	}
 
-    static class TypedVariable implements java.io.Serializable 
+    static class Variable implements java.io.Serializable 
 	{
-		Class type;
-		Object value = null; // uninitiailized
+		/** A null type means an untyped variable */
+		Class type = null;
+		Object value;
 		boolean	isFinal;
 
-		TypedVariable(Class type, Object value,	boolean	isFinal)
+		Variable( Object value, boolean isFinal )
+			throws UtilEvalError
+		{
+			this( null, value, isFinal );
+		}
+
+		Variable( Class type, Object value, boolean isFinal )
 			throws UtilEvalError
 		{
 			this.type =	type;
-			if ( type == null )
-				throw new InterpreterError("null type in typed var: "+value);
 			this.isFinal = isFinal;
 			setValue( value );
 		}
@@ -906,34 +913,41 @@ public class NameSpace
 		/**
 			Set the value of the typed variable.
 		*/
-		void setValue(Object val) throws UtilEvalError
+		void setValue( Object val ) throws UtilEvalError
 		{
 			if ( isFinal && value != null )
-				throw new UtilEvalError ("Final variable, can't assign");
+				throw new UtilEvalError ("Final variable, can't re-assign.");
 
-			// do basic assignability check
-			val = getAssignableForm(val, type);
-			
-			// If we are a numeric primitive type we want to convert to the 
-			// actual numeric type of this variable...  Being assignable is 
-			// not good enough.
-			if ( val instanceof Primitive && ((Primitive)val).isNumber() )
-				try {
-					val = BSHCastExpression.castPrimitive( 
-						(Primitive)val, type );
-				} catch ( UtilEvalError e ) {
-					throw new InterpreterError("Auto assignment cast failed");
-				}
+			if ( type != null )
+			{
+				// Do basic assignability check / conversion
+				val = getAssignableForm( val, type );
+				
+				/* 
+					If we are a numeric primitive type we want to convert to 
+					the actual numeric type of this variable.  Being 
+					assignable is  not good enough.
+				*/
+				if ( val instanceof Primitive && ((Primitive)val).isNumber() )
+					try {
+						val = BSHCastExpression.castPrimitive( 
+							(Primitive)val, type );
+					} catch ( UtilEvalError e ) {
+						throw new InterpreterError(
+							"Assignment auto cast failed");
+					}
+			}
 
 			this.value= val;
 		}
 
 		Object getValue() { return value; }
 
+		/** A type of null means loosely typed variable */
 		Class getType() { return type;	}
 
 		public String toString() { 
-			return "TypedVariable: "+type+", value:"+value;
+			return "Variable type:"+type+", value:"+value;
 		}
     }
 

@@ -72,4 +72,9 @@ assert( isEvalError("java.lang.System.out instanceof PrintStream"));
 // caching of method resolution could mess this up
 assert( isEvalError("java.lang.System.out.println(\"ok\")") );
 
+// make sure void assignments don't work in method return
+void voidmethod1() { }
+assert( isEvalError("s1=voidmethod1()") );
+assert( isEvalError("String s2=voidmethod1()") );
+
 complete();

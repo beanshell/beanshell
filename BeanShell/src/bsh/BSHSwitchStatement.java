@@ -119,10 +119,10 @@ class BSHSwitchStatement
 	{
 		if ( switchVal instanceof Primitive || targetVal instanceof Primitive )
 			try {
-				// This can return Primitive or wrapper type 
+				// binaryOperation can return Primitive or wrapper type 
 				Object result = Primitive.binaryOperation( 
 					switchVal, targetVal, ParserConstants.EQ );
-				// Prims test equal to their wrappers
+				result = Primitive.unwrap( result ); 
 				return result.equals( Boolean.TRUE ); 
 			} catch ( UtilEvalError e ) {
 				throw e.toEvalError(

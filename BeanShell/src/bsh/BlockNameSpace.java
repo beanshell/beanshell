@@ -39,9 +39,16 @@ import java.util.Vector;
 /**
     A specialized namespace	for Blocks, e.g. the body of a "for" statement.
 	The Block acts like a child namespace but only for typed variables 
-	declared within it.  Elsewhere variable assignment (including untyped
+	declared within it.  Otherwise variable assignment (including untyped
 	variable usage) acts like it is part of the containing block.  
 	<p>
+*/
+/*
+	Note: This class essentially just delegates most of its methods to its
+	parent.  The setVariable() indirection is very small.  We could probably
+	fold this functionality back into the base NameSpace as a special case.
+	But this has changed a few times so I'd like to leave this abstraction for
+	now.
 
 	Note: It *must* remain possible for a BlockNameSpace to be a child of
 	another BlockNameSpace and have variable propogation pass all the way
@@ -70,7 +77,7 @@ class BlockNameSpace extends NameSpace
 		throws UtilEvalError 
 	{
 		if ( weHaveVar( name ) || initMode ) 
-			super.setVariable( name, o, strictJava );
+			super.setVariable( name, o, strictJava, false );
 		else
 			getParent().setVariable( name, o, strictJava );
     }

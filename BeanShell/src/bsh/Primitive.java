@@ -42,7 +42,7 @@ package bsh;
 */
 public class Primitive implements ParserConstants, java.io.Serializable
 {
-    // stored internally in java.lang. wrappers
+    /** The primitive value stored in its java.lang wrapper class */
     private Object value;
 
     private static class Special implements java.io.Serializable
@@ -161,10 +161,10 @@ public class Primitive implements ParserConstants, java.io.Serializable
         throws UtilEvalError
     {
 		// special primitive types
-        if(obj1 == NULL || obj2 == NULL)
+        if ( obj1 == NULL || obj2 == NULL )
             throw new UtilEvalError(
 				"Null value or 'null' literal in binary operation");
-        if(obj1 == VOID || obj2 == VOID)
+        if ( obj1 == VOID || obj2 == VOID )
             throw new UtilEvalError(
 			"Undefined variable, class, or 'void' literal in binary operation");
 
@@ -173,9 +173,9 @@ public class Primitive implements ParserConstants, java.io.Serializable
 		Class rhsOrgType = obj2.getClass();
 
 		// Unwrap primitives
-        if(obj1 instanceof Primitive)
+        if ( obj1 instanceof Primitive )
             obj1 = ((Primitive)obj1).getValue();
-        if(obj2 instanceof Primitive)
+        if ( obj2 instanceof Primitive )
             obj2 = ((Primitive)obj2).getValue();
 
         Object[] operands = promotePrimitives(obj1, obj2);
@@ -580,15 +580,17 @@ public class Primitive implements ParserConstants, java.io.Serializable
     public static Primitive unaryOperation(Primitive val, int kind)
         throws UtilEvalError
     {
-        if(val == NULL)
-            throw new UtilEvalError("illegal use of null object or 'null' literal");
-        if(val == VOID)
-            throw new UtilEvalError("illegal use of undefined object or 'void' literal");
+        if (val == NULL)
+            throw new UtilEvalError(
+				"illegal use of null object or 'null' literal");
+        if (val == VOID)
+            throw new UtilEvalError(
+				"illegal use of undefined object or 'void' literal");
 
         Class operandType = val.getType();
         Object operand = promoteToInteger(val.getValue());
 
-        if(operand instanceof Boolean)
+        if ( operand instanceof Boolean )
             return new Primitive(booleanUnaryOperation((Boolean)operand, kind));
         else if(operand instanceof Integer)
         {
@@ -614,10 +616,12 @@ public class Primitive implements ParserConstants, java.io.Serializable
         else if(operand instanceof Double)
             return new Primitive(doubleUnaryOperation((Double)operand, kind));
         else
-            throw new InterpreterError("An error occurred.  Please call technical support.");
+            throw new InterpreterError(
+				"An error occurred.  Please call technical support.");
     }
 
-    static boolean booleanUnaryOperation(Boolean B, int kind) throws UtilEvalError
+    static boolean booleanUnaryOperation(Boolean B, int kind) 
+		throws UtilEvalError
     {
         boolean operand = B.booleanValue();
         switch(kind)
@@ -757,15 +761,14 @@ public class Primitive implements ParserConstants, java.io.Serializable
 
 	/**
 		Primitives compare equal with other Primitives containing an equal
-		wrapped value and also directly with the wrapped value.
-(Is this necessary? try removing it and see what happens...)
+		wrapped value.
 	*/
 	public boolean equals( Object obj ) 
 	{
 		if ( obj instanceof Primitive )
 			return ((Primitive)obj).value.equals( this.value );
 		else
-			return obj.equals( this.value );
+			return false;
 	}
 
 	/**
@@ -784,7 +787,8 @@ public class Primitive implements ParserConstants, java.io.Serializable
 		@return corresponding "normal" Java type, "unwrapping" 
 			any bsh.Primitive types to their wrapper types.
 	*/
-	public static Object unwrap( Object obj ) {
+	public static Object unwrap( Object obj ) 
+	{
 		if ( obj == null )
 			return null;
 
@@ -797,6 +801,36 @@ public class Primitive implements ParserConstants, java.io.Serializable
             return((Primitive)obj).getValue();
         else
             return obj;
+	}
+
+	/**
+		Get the appropriate default value per JLS 4.5.4
+	*/
+	public static Primitive getDefaultValue( Class type )
+	{
+		if ( type.isPrimitive() )
+		{
+			if ( type == Boolean.TYPE )
+				return new Primitive(Boolean.FALSE);
+			if (type ==	Byte.TYPE)
+				return new	Primitive((byte)0);
+			if (type ==	Short.TYPE)
+				return new Primitive((short)0);
+			if (type ==	Character.TYPE)
+				return new Primitive((char)0);
+			if (type ==	Integer.TYPE)
+				return new Primitive((int)0);
+			if (type ==	Long.TYPE)
+				return new Primitive(0L);
+			if (type ==	Float.TYPE)
+				return new Primitive(0.0f);
+			if (type ==	Double.TYPE)
+				return new Primitive(0.0d);
+
+			throw new InterpreterError("unknown prim");
+		}
+		else
+			return Primitive.NULL;
 	}
 
 }

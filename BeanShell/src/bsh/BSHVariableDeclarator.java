@@ -63,7 +63,8 @@ class BSHVariableDeclarator extends SimpleNode
 		BSHType typeNode, CallStack callstack, Interpreter interpreter)  
 		throws EvalError
     {
-		Object value = Primitive.VOID;
+		// null value means no value
+		Object value = null;
 
         if ( jjtGetNumChildren() > 0 ) 
 		{
@@ -84,6 +85,9 @@ class BSHVariableDeclarator extends SimpleNode
 			else
 				value = initializer.eval( callstack, interpreter);
 		}
+
+		if ( value == Primitive.VOID )
+            throw new EvalError("Void initializer.", this, callstack );
 
         return value;
     }

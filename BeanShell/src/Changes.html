@@ -217,6 +217,13 @@
 	  If this proves to be useful we could add additional syntactic magic 
 	  later such as making all composite types implement the magic interface
 	  BshIterable, etc.
+
+	- Fixed void initializer bug whereby a void value in an initializer was
+	  allowed.
+
+	- Refactored variable management a bit - all variables (both typed and
+	  untyped) are now wrapped in the wrapper NameSpace.Variable.  We could put
+	  a listener API on there if we wanted to "watch" variables.
 </pre>
 
 <h2>Changes in 1.2b8 </h2>
