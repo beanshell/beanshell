@@ -30,7 +30,7 @@ the pathToFile() command to translate a relative file path to an absolute
 one relative to the current working directory.  Absolute paths are unmodified.
 
 <example>
-	absfilename =pathToFile( filename );
+absfilename = pathToFile( filename );
 </example>
 
 <h2>Path Names and Slashes</h2>
@@ -41,8 +41,8 @@ under Windows environments.  If you must use backslashes remember to
 escape them by doubling them:
 
 <example>
-	dir("c:/Windows"); // ok
-	dir("c:\\Windows"); // ok
+dir("c:/Windows"); // ok
+dir("c:\\Windows"); // ok
 </example>
 
 </section>

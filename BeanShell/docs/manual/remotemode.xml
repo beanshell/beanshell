@@ -18,10 +18,11 @@ you can use any web browser to bring up a remote GUI console.
 <tr><td>
 <strong>Warning:</strong>
 <br CLEAR="ALL"/>
-<h3>When activated remote server mode can provide unrestricted access
+<b>When activated remote server mode can provide unrestricted access
 to all parts of your application and the host server.  This mode should
 not be used in production environments or anywhere that server security
-is an issue.</h3>
+is an issue.
+</b>
 </td></tr>
 </table>
 </center>
@@ -68,7 +69,7 @@ When it starts you will have a BeanShell session that looks like the
 regular console, but is connected to the remote BeanShell VM.
 <p/>
 
-<img src="colorconsole.jpg"/>
+<img src="remoteconsole.gif"/>
 <p/>
 
 You can open as many sessions into that VM as you like in this way, but 

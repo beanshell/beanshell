@@ -22,17 +22,18 @@ in the same way as or in combination with the Jakarta project's cactus.
 
 <h2>Deploying BshServlet</h2>
 
-To test drive BshServlet you can grab a pre-build sample application WAR files
-here:
+To test drive BshServlet you can grab one of the following sample application 
+WAR files here:
 
-<pre>
-<a href="http://www.beanshell.org/bshservlet.war">
-http://www.beanshell.org/bshservlet.war</a>
-
+<ul>
+<li><a href="http://www.beanshell.org/bshservlet.war">
+http://www.beanshell.org/bshservlet.war</a></li>
+<li>
 <a href="http://www.beanshell.org/bshservlet-wbsh.war">
 http://www.beanshell.org/bshservlet-wbsh.war</a> 
 <em>Rename this file to "bshservlet.war" for use.</em>
-</pre>
+</li>
+</ul>
 
 <tip>
 A WAR file is a Web Application Archive.  It is a JAR file containing HTML,

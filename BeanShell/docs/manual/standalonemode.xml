@@ -40,15 +40,17 @@ system properties:
 <li><strong>outfile</strong> - Send all output to the specified file by 
 redirecting System.out and System.err</li>
 
-<li><strong>debug</strong> - Turn on debugging output.  <em>Note: this mode
+<li><strong>debug</strong> - Turn on debugging output by setting to
+true.  <em>Note: this mode
 is very verbose and unstructured.  It is not intended for general
 use.</em></li>
 
-<li><strong>trace</strong></li> - Setting to true turns on method tracing.  
+<li><strong>trace</strong> - Setting trace to true turns on method tracing.  
 This mode prints each line before it is executed.  <em>Note that this currently 
 prints only top level lines as they are parsed and executed by the 
 interpreter.  trace skips over method exectutions (including bsh commands) 
 etc.  This mode is incomplete.  It should be considered experimental.</em>
+</li>
 </ul>
 
 <h2>Remote</h2>
