@@ -56,6 +56,7 @@ public class JConsole extends JScrollPane
 	private	InputStream in;
 	private	PrintStream out;
 
+	public InputStream getInputStream() { return in; }
 	public Reader getIn() { return new InputStreamReader(in); }
 	public PrintStream getOut() { return out;	}
 	public PrintStream getErr() { return out;	}
