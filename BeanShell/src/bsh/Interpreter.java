@@ -3,10 +3,7 @@ package bsh;
 
 import java.util.Vector;
 import java.io.*;
-
-/*  Daniel Leuck: Added stuff to support JConsole Color and images */
 import java.awt.Color;
-import bsh.util.JConsole;
 
 /**
 	The BeanShell script interpreter.
@@ -269,7 +266,6 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
 		Run interactively.  (printing prompts, etc.)
 	*/
     public void run() {
-
         if(evalOnly)
             throw new RuntimeException("bsh Interpreter: No stream");
 
@@ -296,6 +292,7 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
                 Thread.yield();  // this helps a little
                 if(interactive)
                     print("bsh % ");
+
                 eof = Line();
 
                 if(jjtree.nodeArity() > 0)  // number of child nodes 
@@ -4051,6 +4048,12 @@ void FormalParameter() #FormalParameter :
     return retval;
   }
 
+  final private boolean jj_3R_161() {
+    if (jj_scan_token(EQ)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
   final private boolean jj_3R_163() {
     if (jj_3R_165()) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
@@ -5931,12 +5934,6 @@ void FormalParameter() #FormalParameter :
     } else if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
     } else if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
     if (jj_3R_165()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
-  final private boolean jj_3R_161() {
-    if (jj_scan_token(EQ)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
     return false;
   }
