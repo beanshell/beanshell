@@ -155,8 +155,13 @@ public class ClassManagerImpl extends BshClassManager
 		}
 
 		if ( c == null )
-			// There is a base loader and it's not one of our classes
-			if ( baseLoader != null && ! name.startsWith("bsh.") )
+			// insure that core classes are always loaded from the same loader
+			if ( name.startsWith("bsh.") )
+				try {
+					c = Interpreter.class.getClassLoader().loadClass( name );
+				} catch ( ClassNotFoundException e ) {}
+			// If there is a base loader use it
+			else if ( baseLoader != null )
 				try {
 					c = baseLoader.loadClass( name );
 				} catch ( ClassNotFoundException e ) {}
