@@ -535,6 +535,8 @@ public class NameSpace
 		TypedVariable(Class type, Object value,	boolean	isFinal)
 		{
 			this.type =	type;
+			if ( type == null )
+				throw new InterpreterError("null type in typed var: "+value);
 			this.value = value;
 			this.isFinal = isFinal;
 		}

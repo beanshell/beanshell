@@ -196,8 +196,9 @@ class LHS implements InterpreterConstants, java.io.Serializable
 			try
 			{
 				Reflect.setIndex(object, index, val);
-			}
-			catch(Exception e)
+			} catch(TargetError e1) { // pass along target error
+				throw e1;
+			} catch(Exception e)
 			{
 				throw new EvalError("Assignment: " + e.getMessage());
 			}

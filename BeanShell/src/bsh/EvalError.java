@@ -87,11 +87,20 @@ public class EvalError extends Exception {
 		Unfortunately at the moment java.lang.Exception's message isn't 
 		mutable so we just make a new one... could do something about this 
 		later.
+
+NOTE: should we add value of toString() here so as to produce a sort of
+bsh stack trace? 
 	*/
 	public void reThrow( String msg ) 
 		throws EvalError 
 	{
 		throw new EvalError( msg +":" + getMessage(), node );
+	}
+
+	public void reThrow( SimpleNode node ) 
+		throws EvalError 
+	{
+		throw new EvalError( getMessage(), node );
 	}
 }
 

@@ -142,54 +142,80 @@ public class Primitive implements InterpreterConstants, java.io.Serializable
         return null;
     }
 
-    public static Primitive binaryOperation(Primitive p1, Primitive p2, int kind)
+/*
+    public static Primitive binaryOperation(
+		Primitive p1, Primitive p2, int kind )
         throws EvalError
     {
-        if(p1 == NULL || p2 == NULL)
+		return new Primitive( binaryOperation( p1, p2, kind ) );
+    }
+*/
+
+	/**
+		Allow primitive operations on wrapper types such as Integer and Boolean.
+		This is static so that it can be reached from wherever...
+	*/
+    public static Object binaryOperation(
+		Object obj1, Object obj2, int kind)
+        throws EvalError
+    {
+		// special primitive types
+        if(obj1 == NULL || obj2 == NULL)
             throw new EvalError("illegal use of null object or 'null' literal");
-        if(p1 == VOID || p2 == VOID)
-            throw new EvalError("illegal use of undefined object or 'void' literal");
+        if(obj1 == VOID || obj2 == VOID)
+            throw new EvalError(
+				"illegal use of undefined object or 'void' literal");
 
-        Class lhsType = p1.getType();
-        Class rhsType = p2.getType();
+		// keep track of the original types
+		Class lhsOrgType = obj1.getClass();
+		Class rhsOrgType = obj2.getClass();
 
-        Object[] operands = promotePrimitives(p1.getValue(), p2.getValue());
+		// Unwrap primitives
+        if(obj1 instanceof Primitive)
+            obj1 = ((Primitive)obj1).getValue();
+        if(obj2 instanceof Primitive)
+            obj2 = ((Primitive)obj2).getValue();
+
+        Object[] operands = promotePrimitives(obj1, obj2);
         Object lhs = operands[0];
         Object rhs = operands[1];
 
         if(lhs.getClass() != rhs.getClass())
-            throw new EvalError("type mismatch in operator.  " + lhsType +
-                " cannot be matched with " + rhsType);
+            throw new EvalError("type mismatch in operator.  " 
+			+ lhs.getClass() + " cannot be matched with " + rhs.getClass() );
 
-        if(lhs instanceof Boolean)
-            return new Primitive(booleanBinaryOperation((Boolean)lhs, (Boolean)rhs, kind));
-        else if(lhs instanceof Integer)
-        {
-            Object result = intBinaryOperation((Integer)lhs, (Integer)rhs, kind);
+		Object result;
+		try {
+			result = binaryOperationImpl( lhs, rhs, kind );
+		} catch ( ArithmeticException e ) {
+			throw new TargetError("Arithemetic Exception in binary op", e);
+		}
 
-/*
-            if(result instanceof Number && lhsType == rhsType)
-            {
-                Number number = (Number)result;
-                if(lhsType == Byte.TYPE)
-                    return new Primitive(number.byteValue());
-                if(lhsType == Short.TYPE)
-                    return new Primitive(number.shortValue());
-                if(lhsType == Character.TYPE)
-                    return new Primitive((char)number.intValue());
-            }
-*/
-            return new Primitive(result);
-        }
-        else if(lhs instanceof Long)
-            return new Primitive(longBinaryOperation((Long)lhs, (Long)rhs, kind));
-        else if(lhs instanceof Float)
-            return new Primitive(floatBinaryOperation((Float)lhs, (Float)rhs, kind));
-        else if(lhs instanceof Double)
-            return new Primitive(doubleBinaryOperation((Double)lhs, (Double)rhs, kind));
-        else
-            throw new EvalError("Invalid type in binary operator");
+		// If both original args were Primitives return a Primitive result
+		// else it was mixed (wrapper/primitive) return the wrapper type
+		if ( lhsOrgType == Primitive.class && rhsOrgType == Primitive.class )
+			return new Primitive( result );
+		else
+			return result;
     }
+
+    static Object binaryOperationImpl( Object lhs, Object rhs, int kind )
+        throws EvalError
+	{
+        if(lhs instanceof Boolean)
+            return booleanBinaryOperation((Boolean)lhs, (Boolean)rhs, kind);
+        else if(lhs instanceof Integer)
+            return intBinaryOperation( (Integer)lhs, (Integer)rhs, kind );
+        else if(lhs instanceof Long)
+            return longBinaryOperation((Long)lhs, (Long)rhs, kind);
+        else if(lhs instanceof Float)
+            return floatBinaryOperation((Float)lhs, (Float)rhs, kind);
+        else if(lhs instanceof Double)
+            return doubleBinaryOperation( (Double)lhs, (Double)rhs, kind);
+        else
+            throw new EvalError("Invalid types in binary operator" );
+	}
+
 
     static Boolean booleanBinaryOperation(Boolean B1, Boolean B2, int kind)
         throws EvalError

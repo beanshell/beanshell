@@ -112,7 +112,11 @@ class BSHTryStatement extends SimpleNode
 				// Found match, execute catch block
 				BSHBlock cb = (BSHBlock)(catchBlocks.elementAt(i));
 
-				namespace.setTypedVariable(fp.name, fp.type, thrown,false);
+				if ( fp.type == BSHFormalParameter.UNTYPED )
+					namespace.setVariable(fp.name, thrown );
+				else
+					namespace.setTypedVariable(fp.name, fp.type, thrown,false);
+
 				ret = cb.eval( namespace, interpreter );
 				target = null;  // handled target
 				break;

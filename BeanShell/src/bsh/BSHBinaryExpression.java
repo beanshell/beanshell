@@ -35,9 +35,6 @@
 package bsh;
 
 /**
-	This class needs logic to prevent the right hand side of boolean logical
-	expressions from being naively evaluated...  e.g. for "foo && bar" bar 
-	should not be evaluated in the case where foo is true.
 */
 class BSHBinaryExpression extends SimpleNode 
 	implements InterpreterConstants 
@@ -115,7 +112,12 @@ class BSHBinaryExpression extends SimpleNode
 					FALL THROUGH TO OBJECT OPERATIONS BELOW.
 				*/
 			} else
-				return primitiveBinaryOperation(lhs, rhs, kind);
+				try {
+					return Primitive.binaryOperation(lhs, rhs, kind);
+				} catch ( TargetError e ) {
+					// this doesn't really help...  need to catch it higher?
+					e.reThrow( this );
+				}
         }
 
 		/*
@@ -147,58 +149,6 @@ class BSHBinaryExpression extends SimpleNode
         }
     }
 
-    public static Object primitiveBinaryOperation(Object obj1, Object obj2, int kind)
-        throws EvalError
-    {
-        if(obj1 instanceof Primitive && obj2 instanceof Primitive)
-            return Primitive.binaryOperation((Primitive)obj1, (Primitive)obj2, kind);
-
-        // if one operand is a primitive wrapper and the other is a primitive
-        // then wrap the primitive in a primitive wrapper.
-        if(obj1 instanceof Primitive)
-            obj1 = ((Primitive)obj1).getValue();
-        if(obj2 instanceof Primitive)
-            obj2 = ((Primitive)obj2).getValue();
-
-        Class lhsType = obj1.getClass();
-        Class rhsType = obj2.getClass();
-
-        Object[] operands = Primitive.promotePrimitives(obj1, obj2);
-        Object lhs = operands[0];
-        Object rhs = operands[1];
-
-        if(lhs.getClass() != rhs.getClass())
-            throw new EvalError("type mismatch in operator.  " + lhsType +
-                " cannot be matched with " + rhsType );
-
-        if(lhs instanceof Boolean)
-            return Primitive.booleanBinaryOperation((Boolean)lhs, (Boolean)rhs, kind);
-        else if(lhs instanceof Integer)
-        {
-            Object result = Primitive.intBinaryOperation((Integer)lhs, (Integer)rhs, kind);
-/*
-            if(result instanceof Number && lhsType == rhsType)
-            {
-                Number number = (Number)result;
-                if(lhsType == Byte.TYPE)
-                    result = new Byte(number.byteValue());
-                if(lhsType == Short.TYPE)
-                    result = new Short(number.shortValue());
-                if(lhsType == Character.TYPE)
-                    result = new Character((char)number.intValue());
-            }
-*/
-            return result;
-        }
-        else if(lhs instanceof Long)
-            return Primitive.longBinaryOperation((Long)lhs, (Long)rhs, kind);
-        else if(lhs instanceof Float)
-            return Primitive.floatBinaryOperation((Float)lhs, (Float)rhs, kind);
-        else if(lhs instanceof Double)
-            return Primitive.doubleBinaryOperation((Double)lhs, (Double)rhs, kind);
-        else
-            throw new EvalError("Invalid types in binary operator" );
-    }
 
 	/*
 		object is a non-null non-void Primitive type
