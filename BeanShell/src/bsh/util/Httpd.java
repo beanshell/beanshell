@@ -186,6 +186,9 @@ class HttpdConnection extends Thread
 		if(isHttp1)
 		{
 			pout.println("HTTP/1.0 200 Document follows");
+
+			pout.println("Content-length: " + data.length );
+
 			if ( file.endsWith(".gif") )
 				pout.println("Content-type: image/gif");
 			else 
@@ -194,7 +197,7 @@ class HttpdConnection extends Thread
 				else
 					pout.println("Content-Type: application/octet-stream");
 
-			pout.println("Content-length: " + data.length + "\n");
+			pout.println();
 		}
 
 		int bytesread =	0;

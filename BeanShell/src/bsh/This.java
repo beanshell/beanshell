@@ -231,6 +231,8 @@ public class This implements java.io.Serializable, Runnable {
 		}
 
 		// Look for a default invoke() handler method in the namespace
+		// Note: this code duplicates that in NameSpace getCommand()
+		// is that ok?
 		bshMethod = namespace.getMethod( 
 			"invoke", new Class [] { null, null } );
 

@@ -717,8 +717,8 @@ public class NameSpace
 		// absolute
 		if ( !name.startsWith("/") )
 			name = "/"+name;
-		// remove trailing
-		if ( name.endsWith("/") )
+		// remove trailing (but preserve case of simple "/")
+		if ( name.length() > 1 && name.endsWith("/") )
 			name = name.substring( 0, name.length()-1 );
 
 		// If it exists, remove it and add it at the end (avoid memory leak)
@@ -770,17 +770,26 @@ public class NameSpace
 			{
 				String path = (String)importedCommands.elementAt(i);
 
-				String script = path +"/"+ name +".bsh";
-				Interpreter.debug("searching for script: "+script );
-        		InputStream in = 
-					Interpreter.class.getResourceAsStream( script );
+				String scriptPath; 
+				if ( path.equals("/") )
+					scriptPath = path + name +".bsh";
+				else
+					scriptPath = path +"/"+ name +".bsh";
+
+				Interpreter.debug("searching for script: "+scriptPath );
+
+        		InputStream in = bcm.getResourceAsStream( scriptPath );
+
 				if ( in != null )
 					return loadScriptedCommand( 
-						in, name, argTypes, path, interpreter );
+						in, name, argTypes, scriptPath, interpreter );
 
 				// Chop leading "/" and change "/" to "."
-				String className = 
-					path.substring(1).replace('/','.') +"."+name;
+				String className;
+				if ( path.equals("/") )
+					className = name;
+				else
+					className = path.substring(1).replace('/','.') +"."+name;
 
 				Interpreter.debug("searching for class: "+className);
         		Class clas = bcm.classForName( className );

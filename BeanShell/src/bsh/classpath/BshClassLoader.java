@@ -70,9 +70,7 @@ public class BshClassLoader extends URLClassLoader
 		this( classManager, new URL [] { } );
 	}
 
-	/**
-		@param bases URLs JARClassLoader seems to require absolute paths 
-	*/
+	// public version of addURL
 	public void addURL( URL url ) {
 		super.addURL( url );
 	}
@@ -154,21 +152,14 @@ public class BshClassLoader extends URLClassLoader
 				throw new ClassNotFoundException(
 					"Designated loader could not find class: "+e );
 			}
-//if ( bcm.getBaseLoader() == this )
-//System.out.println("base loader here"+name );
 
 		// Let URLClassLoader try any paths it may have
 		if ( getURLs().length > 0 )
 			try {
-//if ( bcm.getBaseLoader() == this )
-//System.out.println("base loader here super findclass:"+name );
 				return super.findClass(name);
 			} catch ( ClassNotFoundException e ) { 
-//if ( bcm.getBaseLoader() == this ) {
-//System.out.println("base loader here caught class not found: "+name );
-//for(int i=0; i< getURLs().length; i++)
-	//System.out.println(">> base loader url: "+getURLs()[i]);
-//}
+				//System.out.println(
+				//	"base loader here caught class not found: "+name );
 			}
 
 

@@ -772,17 +772,6 @@ class Name implements java.io.Serializable
 		If the method is not already declared in the namespace then try
 		to load it as a resource from the /bsh/commands path.
 	*/
-	/*
-		Note: instead of invoking the method directly here we should probably
-		call invokeObjectMethod passing a This reference.  That would have
-		the side effect of allowing a locally defined invoke() method to
-		handle undeclared method invocations just like in objects.  Not sure
-		if this is desirable...  It seems that if you invoke a method directly
-		in scope it should be there.
-
-		Keeping this code separate allows us to differentiate between methods
-		invoked directly in scope and those invoked through object references.
-	*/
     private Object invokeLocalMethod( 
 		Interpreter interpreter, Object[] args, CallStack callstack,
 		SimpleNode callerInfo
@@ -805,13 +794,6 @@ class Name implements java.io.Serializable
         if ( meth != null )
 			return meth.invoke( args, interpreter, callstack, callerInfo );
 
-	/*
-		// Check for imported object method
-		Method imeth = toImportedMethod( args );
-        if ( imeth != null )
-			return imeth.invoke( args, interpreter, callstack, callerInfo );
-	*/
-
 		BshClassManager bcm = interpreter.getClassManager();
 
 		Object commandObject;
@@ -825,9 +807,22 @@ class Name implements java.io.Serializable
 
 		// should try to print usage here if nothing found
 		if ( commandObject == null )
+		{
+			// Look for a default invoke() handler method in the namespace
+			// Note: this code duplicates that in This.java... should it?
+			// Call on 'This' can never be a command
+			BshMethod invokeMethod = namespace.getMethod( 
+				"invoke", new Class [] { null, null } );
+
+			if ( invokeMethod != null )
+				return invokeMethod.invoke( 
+					new Object [] { commandName, args }, 
+					interpreter, callstack, callerInfo );
+
             throw new EvalError( "Command not found: " 
 				+StringUtil.methodString( commandName, argTypes ), 
 				callerInfo, callstack );
+		}
 
 		if ( commandObject instanceof BshMethod )
 			return ((BshMethod)commandObject).invoke( 

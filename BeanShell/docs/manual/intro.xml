@@ -2,22 +2,23 @@
 <name filename="intro">Introduction</name>
 
 This document is about BeanShell. 
-BeanShell is a small, free, embeddable, Java source interpreter with 
+BeanShell is a small, free, embeddable Java source interpreter with 
 object scripting language features, written in Java.  BeanShell executes 
 standard Java statements and expressions but also extends Java into the 
 scripting domain with common scripting language conventions and syntax.
+BeanShell is the *natural* scripting language for Java.
 <p/>
 
 <h2>Scripting vs. Application Languages</h2>
 
 Traditionally, the primary difference between a scripting language and 
 a compiled language has been in its type system: the way in which you define 
-and use variables.  You might be thinking that there is a more obvious 
+and use data elements.  You might be thinking that there is a more obvious 
 difference here - that of "interpreted" code vs. compiled code.  But 
 compilation in and of itself does not fundamentally change the way you work 
 with a language.  Nor does interpreting a language necessarily make 
 it more useful for what we think of as "scripting".
-It is the type system that makes it possible for a compiler 
+It is the type system of a language that makes it possible for a compiler 
 to analyze the structure of an application for correctness.
 Without types, compilation is reduced to just a grammar check and an 
 optimization for speed.
@@ -30,15 +31,18 @@ write large scale systems and make any assertions about their correctness
 before they are run.  But working with types imposes a burden on the developer.
 Types are labels and labeling things can be tedious.  It can be especially 
 tedious during certain kinds of development or special applications where 
-program structure is not paramount.  There are times where maximizing 
-flexibility and productivity is a more important criterion.  
+it is flexibility and not program structure that is paramount.  
+There are times where simplicity and ease of use is a more important 
+criterion.  
 <p/>
 
-This is not just hand waving to cover our laziness.  Productivity affects
+This is not just rationalization to cover some underlying laziness.  
+Productivity affects
 what people do and more importantly do *not* do in the real world, much more
 than you might think.  There is a lot of important software that exists in 
-the world today only because the cost/benefit ration in some developer's mind 
+the world today only because the cost/benefit ratio in some developer's mind 
 reached a certain threshold.  
+<p/>
 
 Unit testing - one of the foundations of 
 writing good code - is a prime example.  Unit tests for well written code are, 
@@ -46,28 +50,39 @@ in general, vitally important as a collective but almost insignificant
 individually.  It's a "tragedy of the commons" that leads individual
 developers to repeatedly weigh the importance of writing another unit test
 with working on "real code".
-This is an example where scripting can really pay off.  If developers have
-a tool that makes it easy to perform a test with a line or two of code they
-will probably use it.  If, moreover, it is also a tool that they enjoy using
-during their development process - that saves the time, they will be even
-more inclined to use it.   Scripting is good (too).
+Give developers have a tool that makes it easy to perform a test with a line or
+two of code they will probably use it.  If, moreover, it is also a tool that
+they enjoy using during their development process - that saves the time, they
+will be even more inclined to use it.   
 <p/>
+
+Customizability through scripting also opens the door to applications that 
+are more powerful than the sum of their parts.  When users can extend, enhance,
+and add to their applications they use them in new and unexpected ways.
+<p/>
+
+Scripting is powerful.
+<p/>
+
 
 <h2>Tearing Down the Barriers</h2>
 
-Traditionally (again, I'll say traditionally) scripting languages have traded
+Traditionally scripting languages have traded
 in the power of types for simplicity.  Most scripting languages distill the 
 type system to just one or a handful of types such as strings, numbers, or 
-simple lists.  This is often sufficient for some kinds of scripting.  
+simple lists.  This is sufficient for many kinds of scripting.  
+<p/>
 
-Many scripts live in a desolate, unstructured land; a place full of text 
-and course grained tools.  As such these scripting languages have evolved
+Many scripting languages operate in a loose, unstructured land - a place 
+domanated by text and course-grained tools.  
+As such these scripting languages have evolved
 sophisticated mechanisms for working with these simple types (regular
-expressions, pipes, etc.).  But the fact remains that they are still a 
-separate species, isolated from their brethren, the application languages.  
-There is a casm between the scripting languages 
+expressions, pipes, etc.). 
+As a result there has developed a casm between the scripting languages 
 and the application languages created by the collapse of the type system 
 in-between.
+The scripting languages have remained a separate species, isolated and 
+speaking a different dialect from their brothers the application languages.  
 <p/>
 
 BeanShell is a new kind of scripting language.  BeanShell begins with 
@@ -100,22 +115,24 @@ BeanShell does not impose a type boundary between your scripts and Java.
 
 <h2>History</h2>
 
-A long time ago, back in the summer of 1993 while working at Southwestern
-Bell Technology Resources, I was infatuated with the Tcl/Tk scripting 
-language.  At the time I was also playing around a bit with a 
-language called Oak written by James Gosling at Sun. 
-Little did I know that within just a few years Oak would not only spark the 
-Java revolution, but that I would be writing one of the first books on 
-the Java language (Exploring Java, O'Reilly &amp; Associates) and creating 
-Java's first scripting language, BeanShell, drawing motivation from Tcl.
+What seems like an eternity ago, back in the summer of 1993, I was working at
+Southwestern Bell Technology Resources and I was infatuated with the Tcl/Tk 
+scripting language. 
+On the advice of someone at Sun I also began playing around a bit with the 
+Oak language written by James Gosling.
+Little did I know that within just a few years Oak, which would become Java,
+would not only spark a revolution, but that I would be writing one of the 
+first books on the new Java language (Exploring Java, 
+O'Reilly &amp; Associates) and creating 
+Java's first scripting language, BeanShell, drawing inspiration from Tcl.
 <p/>
 
 BeanShell's first public release was not until 1997, but I had been
 poking at it in one form or another for some time before that. BeanShell 
-became truly practical when Sun added reflection to the Java language in 
-version 1.1.  After that, and after having seen its value in helping me create 
-examples and snippets for the second edition of my book, I decided to try to 
-polish it up and release it.
+as a language became practical when Sun added reflection to the Java language 
+in version 1.1.  After that, and after having seen its value in helping me 
+create examples and snippets for the second edition of my book, I decided to
+try to polish it up and release it.
 <p/>
 
 BeanShell has slowly, but steadily gained popularity since then.  It has
@@ -134,9 +151,9 @@ source development model and owe many thanks to everyone who has contributed.
 <h2>Conclusion</h2>
 
 I believe that BeanShell is the simplest and most natural scripting language 
-for Java because it is, foremost, Java.  BeanShell draws on a rich history
-of scripting languages for its scripting syntax and uses it to very 
-conservatively extend the Java language into this new domain.
+for Java because it is, foremost, Java.  BeanShell draws on a 
+rich history of scripting languages for its scripting syntax and uses it to
+very conservatively extend the Java language into this new domain.
 I hope that you have half as much fun using BeanShell as I have had working
 on it and I welcome all comments and suggestions.
 <p/>

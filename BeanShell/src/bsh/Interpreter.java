@@ -138,11 +138,8 @@ public class Interpreter
 	/** The name of the file or other source that this interpreter is reading */
 	String sourceFileInfo;
 
-	/** 
-		Specify whether we override exit on EOF as normally done in 
-		iteractive mode.  (e.g. as used by Sessiond)
-	*/
-	public boolean noExitOnEOF;
+	/** by default in interactive mode System.exit() on EOF */
+	private boolean exitOnEOF = true;
 
     protected boolean 
 		evalOnly, 		// Interpreter has no input stream, use eval() only
@@ -392,7 +389,8 @@ public class Interpreter
 	/**
 		Run interactively.  (printing prompts, etc.)
 	*/
-    public void run() {
+    public void run() 
+	{
         if(evalOnly)
             throw new RuntimeException("bsh Interpreter: No stream");
 
@@ -409,12 +407,11 @@ public class Interpreter
 					"BeanShell "+VERSION+" - by Pat Niemeyer (pat@pat.net)");
 			}
 
-        boolean eof = false;
-
 		// init the callstack.  
 		CallStack callstack = new CallStack( globalNameSpace );
 
-        while(!eof)
+        boolean eof = false;
+        while( !eof )
         {
             try
             {
@@ -428,7 +425,7 @@ public class Interpreter
 
                 eof = Line();
 
-                if(get_jjtree().nodeArity() > 0)  // number of child nodes 
+                if( get_jjtree().nodeArity() > 0 )  // number of child nodes 
                 {
                     SimpleNode node = (SimpleNode)(get_jjtree().rootNode());
 
@@ -526,7 +523,7 @@ public class Interpreter
             }
         }
 
-		if ( interactive && !noExitOnEOF )
+		if ( interactive && exitOnEOF )
 			System.exit(0);
     }
 
@@ -682,15 +679,6 @@ public class Interpreter
 		return Primitive.unwrap( retVal );
     }
 
-/*
-    public Object eval( 
-		Reader in, NameSpace nameSpace, String sourceFileInfo ) 
-		throws EvalError 
-	{
-		return eval( in, nameSpace, sourceFileInfo, null );
-	}
-*/
-
 	/**
 		Evaluate the inputstream in this interpreter's global namespace.
 	*/
@@ -702,19 +690,19 @@ public class Interpreter
 	/**
 		Evaluate the string in this interpreter's global namespace.
 	*/
-    public Object eval( String statement ) throws EvalError {
-		if ( Interpreter.DEBUG ) debug("eval(String): "+statement);
-		return eval(statement, globalNameSpace);
+    public Object eval( String statements ) throws EvalError {
+		if ( Interpreter.DEBUG ) debug("eval(String): "+statements);
+		return eval(statements, globalNameSpace);
 	}
 
 	/**
 		Evaluate the string in the specified namespace.
 	*/
-    public Object eval( String statement, NameSpace nameSpace ) 
+    public Object eval( String statements, NameSpace nameSpace ) 
 		throws EvalError 
 	{
 
-		String s = ( statement.endsWith(";") ? statement : statement+";" );
+		String s = ( statements.endsWith(";") ? statements : statements+";" );
         return eval( 
 			new StringReader(s), nameSpace, 
 			"inline evaluation of: ``"+ showEvalString(s)+"''" );
@@ -883,25 +871,25 @@ public class Interpreter
     public void unset( String name ) 
 		throws EvalError 
 	{
-	/*
+		/*
+			We jump through some hoops here to handle arbitrary cases like
+			unset("bsh.foo");
+		*/
 		CallStack callstack = new CallStack();
-		LHS lhs;
 		try {
-			lhs = globalNameSpace.getNameResolver( name ).toLHS( 
+			LHS lhs = globalNameSpace.getNameResolver( name ).toLHS( 
 				callstack, this );
 
 			if ( lhs.type != LHS.VARIABLE )
 				throw new EvalError("Can't unset, not a variable: "+name, 
 					SimpleNode.JAVACODE, new CallStack() );
 
-			// null means remove it
-			lhs.assign( null, false );
+			//lhs.assign( null, false );
+			lhs.nameSpace.unsetVariable( name );
 		} catch ( UtilEvalError e ) {
 			throw new EvalError( e.getMessage(), 
 				SimpleNode.JAVACODE, new CallStack() );
 		}
-	*/
-		globalNameSpace.unsetVariable( name );
 	}
 
 	// end primary set and get methods
@@ -1180,6 +1168,21 @@ public class Interpreter
 		} catch ( Exception e ) {
 			return "bsh % ";
 		}
+	}
+
+	/**
+		Specify whether, in interactive mode, the interpreter exits Java upon
+		end of input.  If true, when in interactive mode the interpreter will
+		issue a System.exit(0) upon eof.  If false the interpreter no
+		System.exit() will be done.
+		<p/>
+		Note: if you wish to cause an EOF externally you can try closing the
+		input stream.  This is not guaranteed to work in older versions of Java
+		due to Java limitations, but should work in newer JDK/JREs.  (That was
+		the motivation for the Java NIO package).
+	*/
+	public void setExitOnEOF( boolean value ) {
+		exitOnEOF = value; // ug
 	}
 }
 

@@ -2,9 +2,9 @@
 <name filename="quickstart">Quick Start</name>
 
 Welcome to BeanShell.
-This is a crash course to get you going.  We'll leave out some 
+This is a crash course to get you going.  We'll leave out many
 important options and details.  Please see the rest of the user's guide 
-for more details.
+for more information.
 <p/>
 
 <h2>
@@ -16,16 +16,16 @@ and start up BeanShell either in the graphical desktop mode or on
 the command line.
 <p/>
 
-If you just want to start playing around you may be able to to launch the 
+If you just want to start playing around you may be able to launch the 
 BeanShell desktop by simply double clicking on the BeanShell JAR file.  More 
 generally however you'll want to add the jar to your classpath so that you 
 can work with your own classes and applications easily.
 <p/>
 
 To do this you can either drop the BeanShell JAR file into your Java 
-extensions folder or add it to your classpath.  (Important: If you put BeanShell
-in the extensions folder and wish to use it with BSF applications like Jakarta Ant 
-you must install the bsf.jar in the same location).
+extensions folder or add it to your classpath.  (Important: If you put 
+BeanShell in the extensions folder and wish to use it with BSF applications 
+like Jakarta Ant you must install the bsf.jar in the same location).
 
 <example>
 To install as an extension place the bsh.jar file in your 
@@ -54,15 +54,23 @@ or
 </example>
 <p/>
 
-It's also possible to use BeanShell from within your own Java applications,
-in a remote server mode for debuggin, as a servlet, or even in an applet.
-See "BeanShell Modes of Operation" for more details.
+It's also possible to call BeanShell from within your own Java applications,
+to reach it in a remote server mode for debugging, to use it as a servlet, 
+or even in an applet.  See "BeanShell Modes of Operation" for more details.
 
 <h2>
 The BeanShell GUI
 </h2>
 
-Upon starting the BeanShell in GUI mode one console window will open.  
+The BeanShell GUI desktop is meant to allow some experimentation with the
+features of BeanShell.  It is not intended to be a replacement for a full
+featured IDE.  Please check out the 
+<a href="http://www.jedit.org/">jEdit editor</a>for an example of a full
+featured development environment based in part on BeanShell scripting
+capabilities.
+<p/>
+
+Upon starting the BeanShell in GUI mode a console window will open.  
 By right clicking on the desktop background you can open additional 
 console windows and other tools such as a simple class browser.
 <p/>
@@ -82,14 +90,14 @@ Java Statements and Expressions
 BeanShell understands standard Java statements, expressions, and 
 method declarations.
 Statements and expressions are all of the normal things that you'd say
-inside a Java method: e.g. variable declarations and assignments, 
-method calls, loops, conditionals, etc.  
+inside a Java method such as variable declarations and assignments, 
+method calls, loops, and conditionals.
 <p/>
 
 You can use these exactly as they would appear in Java,
 however in BeanShell you also have the option of working with "loosely typed"
-variables.  That is, you can simply be lazy and not declare the types of
-variables that you use (both primitives and objects).  BeanShell will only
+variables.  That is, you can simply omit the types of variables that you use 
+(both primitives and objects).  BeanShell will only
 signal an error if you attempt to misuse the actual type of the variable.
 <p/>
 
@@ -153,12 +161,13 @@ similar to the output of the Java javap command.</li>
 </ul>
 
 <p/>
-See the complete list of BeanShell Commands for more information.
+See the complete list of <a href="bshcommands.html">BeanShell Commands</a>
+for more information.
 <p/>
 
 <tip>
-BeanShell commands are not really "built-in" but are simply BeanShell scripted
-methods that are automatically loaded from the classpath.  You can add your 
+BeanShell commands are not really "built-in" but are simply BeanShell scripts
+that are automatically loaded from the classpath.  You can add your 
 own scripts to the classpath to extend the basic command set.
 </tip>
 
@@ -166,7 +175,7 @@ own scripts to the classpath to extend the basic command set.
 Scripted Methods
 </h2>
 
-You can declare and use methods in bsh just as you would in a Java class.
+You can declare and use methods in BeanShell just as you would in a Java class.
 
 <example>
 int addTwoNumbers( int a, int b ) {
@@ -177,7 +186,7 @@ sum = addTwoNumbers( 5, 7 );  // 12
 </example>
 
 
-Bsh methods may also have dynamic (loose) argument and return types.  
+Bsh methods may also allow dynamic (loose) argument and return types.  
 
 <example>
 add( a, b ) {
@@ -190,8 +199,8 @@ foo = add("Oh", " baby");   // "Oh baby"
 
 <h2>Implementing Interfaces</h2>
 
-<em>Note: implementing arbitrary interfaces requires BeanShell be running 
-under a Java 1.3 environment or higher</em>
+<em>Note: implementing arbitrary interfaces requires BeanShell be run
+under a Java 1.3 or higher environment.</em>
 <p/>
 
 You can use the standard Java anonymous inner class syntax to implement an
@@ -248,8 +257,9 @@ print( myfoo.x ); // prints "5"
 myfoo.bar();      // prints "bar"
 </example>
 
-If this seems strange to don't worry. Please see the user's manual for a 
-more thorough explanation.
+If this "closure" thing seems strange to don't worry.  It's just an 
+evolutionary step that languages acquired along the path to Objects.
+Please see the user's manual for a more thorough explanation.
 <p/>
 
 Within your scripts, BeanShell scripted objects 

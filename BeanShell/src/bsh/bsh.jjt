@@ -176,6 +176,8 @@ public class Parser
 					return false;
 				case SEMICOLON:
 					return true;
+				case EOF: 
+					return false;
 			}
 		}
 	}
@@ -185,21 +187,21 @@ public class Parser
 
 		// Case 1 - primitive or void
 		[ void, boolean, char, ... ] foo() { }
+		byte [] foo() { }
 
 		// Case 2 - simple type name
 		Foo foo () { } 
-		//Foo obj.foo () { }  not currently supported
+		Foo [] foo () { } 
 
 		// Case 3 - compound type name
 		foo.Foo foo () { }
-		//foo.Foo obj.foo () { } not currently supported
+		foo.Foo [] foo () { }
 
 		// Case 4 - Parameterized return type?
 		// ??
 
 		// Case N - no type
 		foo () { }
-		//obj.foo () { }  not currently supported
 	*/
 	/*
 		Note: it's important not to read ahead tokens (e.g. tok2) unless 
@@ -219,7 +221,9 @@ public class Parser
 				return true;
 
 		// Case 2
-		if ( tok1.kind == IDENTIFIER && (tok2=getToken(2)).kind == IDENTIFIER 
+		if ( tok1.kind == IDENTIFIER && (tok2=getToken(2)).kind == LBRACKET )
+			return true;
+		if ( tok1.kind == IDENTIFIER && tok2.kind == IDENTIFIER 
 			&& getToken(3).kind == LPAREN )
 			return true;
 

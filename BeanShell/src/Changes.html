@@ -118,7 +118,7 @@
       work (as in Java): 
         long [] la = { 1, 2 };  float [] fa = { 1, 2 }; byte [] ba = { 1, 2 };
 
-    - fixed import caching bug.
+    - Fixed import caching bugs.
 
     - Fixed problems with the method resolution caching: added hashcode to
       Primitive.java, fixed null argument issue, separated caches into object
@@ -135,6 +135,8 @@
     - Removed deprecated overloaded NameSpace.getImportedClasses()
     
     - Moved Name.ClassIdentifier to bsh.ClassIdentifier top level class.
+	  ClassIdentifier allows scripted methods to accept plain class names as
+	  arguments.  e.g.  javap( java.lang.String );
 
     - Enhanced error message for undefined argument to method - now prints the
       argument text instead of the method parameter name and position.
@@ -367,7 +369,57 @@
 
 	  - Fixed JConsole backspace through prompt bug.
 
-</pre>
+	  - User Command Path - You may now import BeanShell scripted or compiled
+		commands from any package path using the importCommands() method.
+		You may use either "/" path or "." package notation.  e.g. 
+
+			// equivalent
+			importCommands("/bsh/commands")
+			importCommands("bsh.commands")
+			importCommands("/mypackage/commands")
+
+		When searching for a command each path will be checked for first, a file
+		named 'command'.bsh and second a class file named 'command'.class.
+
+		You may add to the BeanShell classpath using the addClassPath() or
+		setClassPath() commands and then import them as usual.
+
+			addClassPath("mycommands.jar");
+			importCommands("/mypackage/commands");
+
+		If a relative path style specifier is used then it is made into an
+		absolute path by prepending "/".  Later imports take precedence over
+		earlier ones.
+
+		Imported commands are scoped just like imported clases.
+
+		See news about the invoke() meta-method for information about how you
+		could implement your own, arbitrary command loading.
+
+	  - The getResource() command now utilizes the BeanShell classpath. i.e.
+		you can get resources from paths added with addClassPath(), etc.
+
+	  - The BshClassManager now contains the methods getResource() and
+		getResourceAsStream().
+
+  	  - The invoke() meta method is now allowed directly in scope, e.g.
+
+			invoke( String methodName, Object [] arguments ) { ... }
+
+			// invoke() will be called to handle noSuchMethod()
+			noSuchMethod("foo"); 
+
+		Previously invoke() was only allowed when called through a 'this' type
+		reference, e.g. a scripted interface.
+
+		One could use this capability to implement arbitrary command loading
+		capabilites.  You would simply have to handle wrapping/ unwrapping
+		of primitive value argument and return types with bsh.Primitive.
+
+	  - Fixed bug in bsh.util.Httpd causing class format errors
+	  - Changed BshServlet redirect to a relative path rather than absolute URL
+
+	</pre>
 
 <h2>Changes in 1.2b8 </h2>
 <pre>

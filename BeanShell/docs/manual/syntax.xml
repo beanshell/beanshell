@@ -4,7 +4,7 @@
 BeanShell is, foremost, a Java interpreter. So you probably already know 
 most of what you need to start scripting with BeanShell.  This 
 section describes specifically what portion of the Java language BeanShell 
-interprets and how BeanShell extends it or "loosens it" to be more 
+interprets and how BeanShell extends it or "loosens" it to be more 
 scripting-language-like.
 <p/>
 
@@ -87,7 +87,7 @@ frame.setVisible(true);
 </example>
 
 This may not seem like it has saved us a great deal of work.  But you will
-feel the difference when you come to rely on scripting as part of your
+see the difference when you come to rely on scripting as part of your
 development and testing process; especially for in interactive use.
 <p/>
 
@@ -124,19 +124,23 @@ try {
 }
 </example>
 
-<h2>Scoping of Loose Variables</h2>
+<h2>Scoping of Variables</h2>
 
-We'll see in the next section that untyped variables in BeanShell methods
-default to the <em>local</em> scope.  This means that, in general, if you 
-assign a value to a variable without first declaring its type you are 
-creating a new local variable. 
-<p/>
+<tip>
+In BeanShell version 1.3 the default scoping of loose variables was changed 
+to be more consistent with Java.  BeanShell still supports an alternate
+scoping where loosely typed variables default to local scope.  This mode can be
+enabled (for the curious or for legacy code) by setting the system property
+"localscoping" to true.  See appendix "Local Scoping".
+</tip>
 
-However to be consistent with Java syntax, untyped variables used in block
-statements such as if-else, for-loops, while, try/catch, etc. act like
-they are part of the enclosing block, just as they would when referring to an
-existing variable in Java.  Typed variable declarations remain local to the 
-block, just as they would be in Java.  Here are some examples:
+Variable scoping in BeanShell acts, wherever possible, just like Java.
+However Java does not allow the use of "loose" variables that have not been 
+declared.
+We'll see in the next section that untyped variables default to the 
+<em>global</em> scope.  This means that, in general, if you 
+assign a value to a variable without first declaring its type somewhere you are 
+creating a new global variable.
 <p/>
 
 <example>
