@@ -372,6 +372,7 @@ class Reflect
 		@param onlyStatic 
 			The method located must be static, the object param may be null.
 		@throws ReflectError if method is not found
+// Why not MethodNotFound?
 	*/
 	/*
 		Note: Method invocation could probably be speeded up if we eliminated

@@ -664,13 +664,6 @@ class Name implements java.io.Serializable
 		throw new InterpreterError("Internal error in lhs...");
 	}
 	
-	private BshMethod toLocalMethod( Object [] args )
-	{
-		Class [] sig = Reflect.getTypes( args );
-		return namespace.getMethod( value, sig );
-	}
-
-
     /**
 		Invoke the method identified by this name.
 		Performs caching of method resolution using SignatureKey.
@@ -778,7 +771,8 @@ class Name implements java.io.Serializable
 		Invoke a locally declared method or a bsh command.
 		If the method is not already declared in the namespace then try
 		to load it as a resource from the /bsh/commands path.
-	
+	*/
+	/*
 		Note: instead of invoking the method directly here we should probably
 		call resolveObjectMethod passing a This reference.  That would have
 		the side effect of allowing a locally defined invoke() method to
@@ -796,15 +790,20 @@ class Name implements java.io.Serializable
         throws EvalError, ReflectError, InvocationTargetException
     {
         if ( Interpreter.DEBUG ) 
-        	Interpreter.debug("resolve local method: " + value);
+        	Interpreter.debug( "invokeLocalMethod: " + value );
+		if ( interpreter == null )
+			throw new InterpreterError(
+				"invokeLocalMethod: interpreter = null");
 
-        // Check for locally declared method
-        BshMethod meth = toLocalMethod( args );
+		String commandName = value;
+		Class [] argTypes = Reflect.getTypes( args );
+
+        // Check for existing method
+        BshMethod meth = namespace.getMethod( commandName, argTypes );
+
+		// If defined, invoke it
         if ( meth != null )
 			return meth.invoke( args, interpreter, callstack, callerInfo );
-        else
-            if ( Interpreter.DEBUG ) 
-				Interpreter.debug("no locally declared method: " + value);
 
 	/*
 		// Check for imported object method
@@ -813,69 +812,32 @@ class Name implements java.io.Serializable
 			return imeth.invoke( args, interpreter, callstack, callerInfo );
 	*/
 
-		// Look for scripted command as resource
-        String commandName = "commands/" + value + ".bsh";
-// Need to use class manager here...
-        InputStream in = Interpreter.class.getResourceAsStream(commandName);
-        if (in != null)
-        {
-            if ( Interpreter.DEBUG ) 
-				Interpreter.debug("loading resource: " + commandName);
+		// Try to load the command from the resource path
+        String resourcePath = "/bsh/commands/" +commandName +".bsh";
+		meth = loadMethod( commandName, argTypes, resourcePath, 
+			interpreter, callstack, callerInfo   );
 
-			if ( interpreter == null )
-				throw new InterpreterError(
-					"invokeLocalMethod: interpreter = null");
+		// If we found it, invoke it
+		if ( meth != null )
+			return meth.invoke( args, interpreter, callstack, callerInfo );
 
-			try {
-				interpreter.eval( 
-					new InputStreamReader(in), namespace, commandName);
-			/* 
-				Strange case where we actually catch an EvalError 
-				We are using the interpreter as
-				a tool to load the command... not as part of the execution
-				path.  The error points here... thrown exception includes the 
-				command's error... (right?)
-			*/
-			} catch ( EvalError e ) {
-				Interpreter.debug( e.toString() );
-				throw new EvalError(
-					"Error loading command: "+ e.getMessage(), 
-					callerInfo, callstack );
-			}
+        // Look for a compiled bsh command class
 
-            // try again
-            meth = toLocalMethod( args );
-            if ( meth != null )
-                return meth.invoke( args, interpreter, callstack, callerInfo );
-            else
-                throw new EvalError("Loaded resource: " + commandName +
-                    "had an error or did not contain the correct method", 
-					 callerInfo, callstack );
-        }
+		BshClassManager bcm = interpreter.getClassManager();
+        String commandClassName = "bsh.commands." + value;
 
-        // check for compiled bsh command class
+        Class commandClass = bcm.classForName( commandClassName );
+        if ( commandClass == null )
+            throw new EvalError( "Command not found: " + commandName,
+				callerInfo, callstack );
 
-        commandName = "bsh.commands." + value;
-        Class c = interpreter.getClassManager().classForName( commandName );
-        if ( c == null )
-            throw new EvalError("Command not found: " + value, 
-			callerInfo, callstack );
-		//System.out.println("found class: " +c);
+		// Found compiled command
+		return invokeCompiledCommand( 
+			commandClass, args, interpreter, callstack, callerInfo );
 
-		BshClassManager bcm = callstack.top().getClassManager();
-
-        // add interpereter and namespace to args list
-        Object[] invokeArgs = new Object[args.length + 2];
-        invokeArgs[0] = interpreter;
-        invokeArgs[1] = namespace;
-        System.arraycopy(args, 0, invokeArgs, 2, args.length);
-		try {
-        	return Reflect.invokeStaticMethod( bcm, c, "invoke", invokeArgs );
-		} catch ( ReflectError e ) {
-			System.err.println("Invoke method not found");
-		} catch ( UtilEvalError e ) {
-			throw e.toEvalError( callerInfo, callstack );
-		}
+/*
+Need to re-integrate help now that we're allowing overloaded methods as
+commands.
 
         // try to print help
         try {
@@ -891,12 +853,85 @@ class Name implements java.io.Serializable
         } catch( UtilEvalError e) {
 			throw e.toEvalError( callerInfo, callstack );
 		}
-
-		//throw new EvalError( "No local method or command: "+ value, 
-			//callerInfo, callstack );
+*/
     }
 
+	/**
+		Load the scripted command from the specified resource path, evaluate it
+		and return the specified BshMethod.
+
+		@param path is relative to the class bsh.Interpreter
+		@return the BshMethod or null if not found.
+		@throws EvalError if the script loaded at the specified path throws an
+			error or if it exists and after evaluation does not contain the
+			specified method.
+	*/
+	private BshMethod loadMethod( 
+		String name, Class [] argTypes, String resourcePath, 
+		Interpreter interpreter, CallStack callstack, SimpleNode callerInfo )
+		throws EvalError
+	{
+		if ( Interpreter.DEBUG ) 
+			Interpreter.debug("looking for resource: " + name );
+
+        InputStream in = Interpreter.class.getResourceAsStream( resourcePath );
+		if ( in == null ) // found nothing
+			return null;
+
+		// Found a script, try to eval it
+		try {
+			interpreter.eval( 
+				new InputStreamReader(in), namespace, resourcePath );
+		} catch ( EvalError e ) {
+		/* 
+			Here we catch any EvalError from the interpreter because we are
+			using it as a tool to load the command, not as part of the
+			execution path.  The the EvalError we throw here points to the
+			correct location in the calling script and the exception thrown
+			includes the attempted command's error message.
+		*/
+			Interpreter.debug( e.toString() );
+			throw new EvalError( "Error loading script: "+ e.getMessage(), 
+				callerInfo, callstack );
+		}
+
+		// Look for the loaded command 
+		BshMethod meth = namespace.getMethod( name, argTypes );
+		if ( meth == null )
+			throw new EvalError("Loaded resource: " + resourcePath +
+				"had an error or did not contain the correct method", 
+				 callerInfo, callstack );
+
+		return meth;
+	}
+
+	private Object invokeCompiledCommand( 
+		Class commandClass, Object [] args, Interpreter interpreter, 
+		CallStack callstack, SimpleNode callerInfo )
+		throws EvalError
+	{
+        // add interpereter and namespace to args list
+        Object[] invokeArgs = new Object[args.length + 2];
+        invokeArgs[0] = interpreter;
+        invokeArgs[1] = namespace;
+        System.arraycopy( args, 0, invokeArgs, 2, args.length );
+		BshClassManager bcm = interpreter.getClassManager();
+		try {
+        	return Reflect.invokeStaticMethod( 
+				bcm, commandClass, "invoke", invokeArgs );
+		} catch ( InvocationTargetException e ) {
+			throw new EvalError("Error in compiled command: "+e,
+				callerInfo, callstack );
+		} catch ( ReflectError e ) {
+			throw new EvalError("Error invoking compiled command: "+e,
+				callerInfo, callstack );
+		} catch ( UtilEvalError e ) {
+			throw e.toEvalError( callerInfo, callstack );
+		}
+	}
+
 	// Static methods that operate on compound ('.' separated) names
+	// I guess we could move these to StringUtil someday
 
 	public static boolean isCompound(String value)
 	{

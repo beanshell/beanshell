@@ -23,7 +23,7 @@
 
 <property name="file" value=""/>
 
-	<property name="version" value="1.3a5"/>
+	<property name="version" value="1.3a6"/>
 	<property name="deprecation" value="on"/>
 
 	<!-- choose an alternate compiler -->
@@ -265,6 +265,12 @@
 		</patternset>
 	</fileset>
 
+	<fileset id="collection-fileset" dir="${build-dir}">
+		<patternset>
+			<include name="bsh/collection/*.class"/>
+		</patternset>
+	</fileset>
+
 	<fileset id="bsf-fileset" dir="${build-dir}">
 		<patternset>
 			<include name="bsh/util/BeanShellBSFEngine.class"/>
@@ -317,6 +323,7 @@
 			<fileset refid="core-fileset"/>
 			<fileset refid="classpath-fileset"/>
 			<fileset refid="reflect-fileset"/>
+			<fileset refid="collection-fileset"/>
 			<fileset refid="util-fileset"/>
 			<fileset refid="commands-fileset"/>
 			<fileset refid="bsf-fileset"/>

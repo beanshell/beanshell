@@ -490,34 +490,21 @@ TOKEN : /* OPERATORS */
 }
 
 
+/*
+	Thanks to Sreenivasa Viswanadha for suggesting how to get rid of expensive
+	lookahead here.
+*/
 boolean Line() :
 {}
 {
   <EOF> { 
 	Interpreter.debug("End of File!"); 
 	return true; 
-	}
+  }
 |
-	/*
-		This condition allows you to type a raw expression on the command line.
-		e.g.  1+1;  This is useful in interactive mode when show() is turned
-		on.  However it's extremely expensive in the grammar, at least as we
-		have it implemented here.  BeanShell basically has to parse everything
-		twice.  Perhaps there is a better way.
-
-		If we did not desire this ability we could eliminate the branch and
-		simply use BlockStatement() alone.
-	*/
-  (
-	// SYNTACTIC_LOOKAHEAD
-   LOOKAHEAD( Expression() ";" )
-   Expression() ";" 
-  |
-   BlockStatement()
-  )
-	{ 
-		return false; 
-	}
+  BlockStatement() {
+	return false; 
+  }
 }
 
 /*****************************************
@@ -1220,21 +1207,31 @@ void EmptyStatement() :
 }
 
 void StatementExpression() :
-/*
- * The last expansion of this production accepts more than the legal
- * Java expansions for StatementExpression.
- */
 { }
 {
-  PreIncrementExpression()
-|
-  PreDecrementExpression()
-|
-// SYNTACTIC_LOOKAHEAD
-  LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
-  Assignment() { }
-|
-  PostfixExpression()
+  /*
+	This is looser than normal Java to simplify the grammar.  This allows
+	us to type arbitrary expressions on the command line, e.g. "1+1;"
+	We should turn this off in the implementation in strict java mode.
+  */
+  Expression()
+/*
+	// This was the original Java grammar. 
+
+	//  Original comment:
+	//  The last expansion of this production accepts more than the legal
+	//  Java expansions for StatementExpression.
+	  PreIncrementExpression()
+	|
+	  PreDecrementExpression()
+	|
+	  // SYNTACTIC_LOOKAHEAD
+	  LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
+	  Assignment() { }
+	|
+	  PostfixExpression()
+*/
+
 }
 
 void SwitchStatement() #SwitchStatement :
