@@ -1,0 +1,19 @@
+
+bsh.help.which= "usage: which( classIdentifier | string | class )";
+
+import bsh.Name;
+import bsh.BshClassManager;
+/*
+*/
+which( clas ) { 
+	// make the class into a name
+	if ( clas instanceof Name.ClassIdentifier )
+		clas = this.namespace.identifierToClass( clas );
+	if ( clas instanceof Class )
+		clas = clas.getName();
+	String className = clas;
+
+	cp = BshClassManager.getClassManager().getClassPath();
+	print ( cp.getClassSource( className ) );
+}
+

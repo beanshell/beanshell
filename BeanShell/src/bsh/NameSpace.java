@@ -1098,5 +1098,15 @@ public class NameSpace
 			return "<invoked from Java code>";
 	}
 
+	/**
+		This is a helper method for working inside of bsh scripts and commands.
+		In that context it is impossible to see a ClassIdentifier object
+		for what it is.  Attempting to access a method on it will look like
+		a static method invocation.
+	*/
+	public static Class identifierToClass( Name.ClassIdentifier ci ) 
+	{
+		return ci.getTargetClass();
+	}
 }
 
