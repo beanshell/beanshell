@@ -43,9 +43,12 @@ import java.awt.Color;
 		// Source from files
 		i.source("myscript.bsh");  // or i.eval("source(\"myscript.bsh\")");
 
-		// Pass in an object as a variable
-		i.setVariable( "date", new Date() );
+		// Pass objects in and out of variables
+		i.set( "date", new Date() );
+		Date date = (Date)i.get( "date" );
+
 		i.eval("year = date.getYear()");
+		Integer year = (Integer)i.get("year");  // primitives use wrappers
 
 		// Fetch script as an arbitrary interface 
 		i.eval(	"foo() { print( date ); }");

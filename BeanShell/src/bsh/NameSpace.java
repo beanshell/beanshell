@@ -740,6 +740,7 @@ public class NameSpace
 		importPackage("java.awt.event");
 		importPackage("javax.swing");
 		importPackage("javax.swing.event");
+		importClass("bsh.EvalError");
 
 	/*
 		String res = "lib/defaultImports";
