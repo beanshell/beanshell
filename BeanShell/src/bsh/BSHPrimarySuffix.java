@@ -252,6 +252,7 @@ class BSHPrimarySuffix extends SimpleNode
 
 		// Property style access to hashtable
 		// (LHS handles property assignment in LHS case.)
+		/*
 		if ( obj instanceof Hashtable )
 		{
 			Object val = ((Hashtable)obj).get((String)value);
@@ -259,12 +260,23 @@ class BSHPrimarySuffix extends SimpleNode
 				val = Primitive.NULL;
 			return val;
 		}
+		*/
+		CollectionManager cm = CollectionManager.getCollectionManager();
+		if ( cm.isMap( obj ) )
+		{
+			Object val = cm.getFromMap( obj, value/*key*/ );
+			return ( val == null ?  val = Primitive.NULL : val );
+		}
 
 		try {
 			return Reflect.getObjectProperty( obj, (String)value );
 		}
-		catch(ReflectError e) {
-			Interpreter.debug(e.toString());
+		catch ( UtilEvalError e)  
+		{
+			throw e.toEvalError( "Property: "+value, this, callstack );
+		}
+		catch (ReflectError e) 
+		{
 			throw new EvalError("No such property: " + value, this, callstack );
 		}
 	}

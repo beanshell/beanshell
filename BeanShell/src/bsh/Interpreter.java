@@ -422,8 +422,9 @@ public class Interpreter
                 System.out.flush();
                 System.err.flush();
                 Thread.yield();  // this helps a little
-                if(interactive)
-                    print("bsh % ");
+
+                if ( interactive )
+                    print( getBshPrompt() );
 
                 eof = Line();
 
@@ -1166,5 +1167,22 @@ public class Interpreter
 		}
 	}
 
+	/**
+		Get the prompt string defined by the getBshPrompt() method in the
+		global namespace.  This may be from the getBshPrompt() command or may
+		be defined by the user as with any other method.
+		Defaults to "bsh % " if the method is not defined or there is an error.
+	*/
+	private String getBshPrompt() 
+	{
+		return "bsh % ";
+		/*
+		try {
+			return (String)eval("getBshPrompt()");
+		} catch ( Exception e ) {
+			return "bsh % ";
+		}
+		*/
+	}
 }
 

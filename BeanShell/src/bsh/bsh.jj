@@ -51,6 +51,9 @@ options {
 	DEBUG_LOOKAHEAD=true;
 	*/
 	ERROR_REPORTING=false;
+
+	// This breaks something on the command line.
+	//CACHE_TOKENS=true;
 }
 
 PARSER_BEGIN(Parser)

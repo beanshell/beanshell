@@ -54,4 +54,23 @@ public class CollectionManagerImpl extends bsh.CollectionManager
 		else
 			return new bsh.CollectionManager.BasicBshIterator( obj ); 
 	}
+
+	public boolean isMap( Object obj ) 
+	{
+		if ( obj instanceof Map )
+			return true;
+		else
+			return super.isMap( obj );
+	}
+
+	public Object getFromMap( Object map, Object key ) 
+	{
+		// Hashtable implements Map
+		return ((Map)map).get(key);
+	}
+	public Object putInMap( Object map, Object key, Object value ) 
+	{
+		// Hashtable implements Map
+		return ((Map)map).put(key, value);
+	}
 }

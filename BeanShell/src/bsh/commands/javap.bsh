@@ -1,12 +1,22 @@
 /**
 	Print the public fields and methods of the specified class (output similar 
 	to the JDK javap command).
-	<p>
-	If the argument is a
-	string it is considered to be a class name.  If the argument is an object,
-	the class of the object is used.  If the arg is a class, the class is used.
+	<p/>
+	If the argument is a string it is considered to be a class name.  If the
+	argument is an object, the class of the object is used.  If the arg is a
+	class, the class is used.  If the argument is a class identifier, the class
+	identified by the class identifier will be used. e.g.  If the argument is
+	the empty string an error will be printed.
+	<p/>
+	<pre>
+		// equivalent
+		javap( java.util.Date ); // class identifier
+		javap( java.util.Date.class ); // class
+		javap( "java.util.Date" ); // String name of class
+		javap( new java.util.Date() ); // instance of class
+	</pre>
 
-	@method void javap( String | Object | Class )
+	@method void javap( String | Object | Class | ClassIdentifier )
 */
 
 bsh.help.javap= "usage: javap( value )";
@@ -19,9 +29,14 @@ javap( Object o )
 	Class clas;
 	if ( o instanceof ClassIdentifier )
 		clas = this.caller.namespace.identifierToClass(o);
-	if ( o instanceof String)
+	else if ( o instanceof String )
+	{
+		if ( o.length() < 1 ) {
+			error("javap: Empty class name.");
+			return;
+		}
 		clas = this.caller.namespace.getClass((String)o);
-	else if ( o instanceof Class )
+	} else if ( o instanceof Class )
 		clas = o;
 	else 
 		clas = o.getClass();

@@ -218,6 +218,14 @@
       later such as making all composite types implement the magic interface
       BshIterable, etc.
 
+    - Maps can now be used with the hastable style accessor syntax.  e.g.
+
+        Map map = new HashMap();
+        map{"foo"} = "bar":
+	
+	  This is another feature of the new CollectionManager (1.1 compatability
+	  is preserved).
+
     - Fixed void initializer bug whereby a void value in an initializer was
       allowed.
 
@@ -296,6 +304,12 @@
       setting the system property "oldscoping" to "true".
       See newscoping.bsh in the test suite for more examples.
 
+      Note: There is exactly *one* line of code in NameSpace.java that looks 
+      at the Interpreter.LOCALSCOPING flag to determine what to do.  
+      Everything else happens naturally.  So there should be no fear that we
+      are accumulating legacy baggage.  On the contrary, BeanShell refactoring
+      is making it more powerful and simpler.
+
       - Fixed bug in evaluation of operator-assignments with postfix in the
         RHS.  (Java behavior seems strange to me.) e.g.
             i=1; i+=i++; // should be 2 apparently
@@ -321,9 +335,19 @@
              synchronized( super ) { }  // inside gee() 
           }
 
-	  - The "throws" clause on methods is now supported.  Throws clause names
-		are validated to insure that they are known class types, however they
-		are not enforced beyond that.
+      - The "throws" clause on methods is now supported.  Throws clause names
+        are validated to insure that they are known class types, however they
+        are not enforced beyond that.
+
+      - Field style object property access now supports isFoo() style getters
+        for boolean properties. e.g.
+            
+            Float flot = new Float(0f);
+            print( flot.infinite ); // float.isInifinite()
+
+      - Improved error message on attempting to access private/protected 
+        members without setAccessibility(true).  Error now shows non-public
+        method and suggests turning on accessibility.
 </pre>
 
 <h2>Changes in 1.2b8 </h2>

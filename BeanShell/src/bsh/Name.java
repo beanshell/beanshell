@@ -551,7 +551,7 @@ class Name implements java.io.Serializable
 		reset();
 
 		// "var" means untyped, return null class
-		if ( evalName.equals("var") /*&& !Interpreter.LOCAL SCOPING*/ )
+		if ( evalName.equals("var") )
 			return asClass = null;
 
 		/* Try straightforward class name first */
@@ -599,12 +599,11 @@ class Name implements java.io.Serializable
 
 		LHS lhs;
 
-		// variable.  e.g. x=5;
+		// Simple (non-compound) variable assignment e.g. x=5;
 		if ( !isCompound(evalName) ) 
 		{
 			// Interpreter.debug("Simple var LHS...");
-			boolean recurse = !Interpreter.LOCALSCOPING;
-			lhs = new LHS( namespace, evalName, recurse );
+			lhs = new LHS( namespace, evalName, false/*bubble up if allowed*/);
 			return lhs;
 		}
 
@@ -636,10 +635,8 @@ class Name implements java.io.Serializable
 				
 				In the old scoping rules super didn't do this.
 			*/
-			boolean recurse = lastEvalName.equals("super") 
-				&& !Interpreter.LOCALSCOPING;
-			lhs = new LHS( ((This)obj).namespace, evalName, recurse );
-			return lhs;
+			boolean localVar = !lastEvalName.equals("super");
+			return new LHS( ((This)obj).namespace, evalName, localVar );
 		}
 
 		if ( evalName != null )

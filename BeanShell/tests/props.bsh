@@ -14,4 +14,8 @@ assert( b{"name"}.equals("MyButton!") );
 b.name = "Test";
 assert( b.name.equals("Test") );
 
+// for booleans support both getFoo() and isFoo() style
+Float fl = new Float(1.0f);
+assert( fl.infinite == false );
+
 complete();
