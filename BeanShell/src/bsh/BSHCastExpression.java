@@ -79,6 +79,11 @@ class BSHCastExpression extends SimpleNode {
                 }
             }
         } else 
+
+// Ack...  this probably shouldn't compile under 1.1 without XThis compiling
+// but it seems to...  ug.  probably need yet another factory here...
+// or a bsh script fragment or some other indirection
+
 			// Can we use the proxy mechanism to cast a bsh.This to interface
 			if ( Capabilities.haveProxyMechanism() &&
 				(result instanceof bsh.This) && toType.isInterface() ) {

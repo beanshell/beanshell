@@ -183,13 +183,15 @@ public class ClassBrowser extends JSplitPane
 		String cp=System.getProperty("java.class.path");
 		String [] paths=StringUtil.split(cp, File.pathSeparator);
 		for ( int i=0; i<paths.length; i++) {
-			String lcPath= paths[i].toLowerCase();
-			if ( lcPath.endsWith(".jar") || lcPath.endsWith(".zip") )
-			try {
-				System.out.println("Adding classes: "+paths[i]);
-				addJar( paths[i] );
-			} catch ( IOException e ) { 
-			}
+
+			//String lcPath= paths[i].toLowerCase();
+			//if ( lcPath.endsWith(".jar") || lcPath.endsWith(".zip") )
+			if ( BshClassPath.isArchiveFileName( paths[i] )
+				try {
+					System.out.println("Adding classes: "+paths[i]);
+					addJar( paths[i] );
+				} catch ( IOException e ) { 
+				}
 		}
 
 		// do we have the core classes?
