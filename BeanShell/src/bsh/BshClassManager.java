@@ -27,7 +27,7 @@ public class BshClassManager
 	Vector listeners = new Vector();
 
 	/**
-Do we need this at all?  why not map all reloaded?
+		This handles extension / modification of the base classpath
 
 		The loader to use where no mapping of reloaded classes exists.
 		baseLoader is initially null.
@@ -35,7 +35,9 @@ Do we need this at all?  why not map all reloaded?
 	BshClassLoader baseLoader;
 
 	/**
-		Map of loaders to use for reloaded packages and classes
+		Map of loaders to use for reloaded classes
+		
+		This handles reloaded
 	*/
 	Map classLoaderMap = new HashMap();
 
@@ -73,7 +75,7 @@ Do we need this at all?  why not map all reloaded?
 	*/
 	public void setClassPath( URL [] cp ) {
 		classpath = cp;
-		baseLoader = new BshClassLoader( classpath );
+		baseLoader = BshClassLoader.getClassLoaderFor( classpath );
 
 		// fire after change...  semantics are "has changed"
 		classLoaderChanged();
@@ -128,50 +130,5 @@ Do we need this at all?  why not map all reloaded?
 
 	}
 
-	/**
-		The user classpath from system property
-			java.class.path
-	*/
-	URL [] getJavaClassPath() 
-		throws IOException
-	{
-		String cp=System.getProperty("java.class.path");
-		String [] paths=StringUtil.split(cp, File.pathSeparator);
-
-		URL [] urls = new URL[ paths.length ];
-		for ( int i=0; i<paths.length; i++)
-			urls[i] = new File( paths[i] ).toURL();
-
-		return urls;
-	}
-
-	public static String canonicalizeClassName( String name ) {
-		String classname=name.replace('/', '.');
-		if ( classname.startsWith("class ") )
-			classname=classname.substring(6);
-		if ( classname.endsWith(".class") )
-			classname=classname.substring(0,classname.length()-6);
-		return classname;
-	}
-
-	/**
-		Split class name into package and name
-	*/
-	public static String [] splitClassname ( String classname ) {
-		classname = canonicalizeClassName( classname );
-
-		int i=classname.lastIndexOf(".");
-		String classn, packn;
-		if ( i == -1 )  {
-			// top level class
-			classn = classname;
-			packn="<unpackaged>";
-		} else {
-			packn = classname.substring(0,i);
-			classn = classname.substring(i+1);
-		}
-		return new String [] { packn, classn };
-	}
-	
 
 }

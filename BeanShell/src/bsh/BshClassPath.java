@@ -6,8 +6,17 @@ import java.io.*;
 import java.net.URL;
 import java.io.File;
 
+/**
+	Maps all classes in a specified set of URLs which may include:
+		Jar files, base dirs, individual class files
+
+*/
 public class BshClassPath 
 {
+	public BshClassPath( URL [] urls ) throws IOException {
+		add( urls );
+	}
+
 	/**
 		Set of all classes in a package 
 	*/
@@ -17,17 +26,23 @@ public class BshClassPath
 	*/
 	Map classSource = new HashMap();
 
-	public void add( List urls ) throws IOException { 
-		for(int i=0; i< urls.size(); i++)
-			add( (URL)urls.get(i) );
+	public void add( URL [] urls ) throws IOException { 
+		for(int i=0; i< urls.length; i++)
+			add( urls[i] );
 	}
 
 	public void add( URL url ) throws IOException { 
-		File f = new File( url.getFile() );
+		String name = url.getFile();
+		File f = new File( name );
+
 		if ( f.isDirectory() )
-			add( traverseDirForClasses( f ), f );
+			add( traverseDirForClasses( f ), new DirClassSource(f) );
+		else if ( isArchiveFileName( name ) )
+			add( searchJarForClasses( url ), new JarClassSource(url) );
+		else if ( isClassFileName( name ) )
+			add( looseClass( name ), url );
 		else
-			add( searchJarForClasses( url ), url );
+			System.out.println("Not a classpath component: "+ name );
 	}
 
 	private void add( String [] classes, Object source ) {
@@ -37,7 +52,7 @@ public class BshClassPath
 
 	void addClass( String className, Object source ) {
 		// add to package map
-		String [] sa = BshClassManager.splitClassname( className );
+		String [] sa = splitClassname( className );
 		String pack = sa[0];
 		String clas = sa[1];
 		Set set = (Set)packageMap.get( pack );
@@ -92,7 +107,7 @@ public class BshClassPath
 				list.addAll( traverseDirForClassesAux( topDir, child ) );
 			else {
 				String name = child.getAbsolutePath();
-				if ( isClassName( name ) ) {
+				if ( isClassFileName( name ) ) {
 					/* 
 						Remove absolute (topdir) portion of path and leave 
 						package-class part 
@@ -102,7 +117,7 @@ public class BshClassPath
 					else
 						throw new IOException( "problem parsing paths" );
 
-					name = BshClassManager.canonicalizeClassName(name);
+					name = canonicalizeClassName(name);
 					list.add( name );
 				}
 			}
@@ -125,8 +140,8 @@ public class BshClassPath
 		ZipEntry ze;
 		while( (ze= zin.getNextEntry()) != null ) {
 			String name=ze.getName();
-			if ( isClassName( name ) )
-				v.addElement( BshClassManager.canonicalizeClassName(name) );
+			if ( isClassFileName( name ) )
+				v.addElement( canonicalizeClassName(name) );
 		}
 		zin.close();
 
@@ -135,16 +150,84 @@ public class BshClassPath
 		return sa;
 	}
 
-	static boolean isClassName( String name ){
-			return ( name.endsWith(".class") && (name.indexOf('$')==-1) );
+	public static boolean isClassFileName( String name ){
+		return ( name.toLowerCase().endsWith(".class") 
+			&& (name.indexOf('$')==-1) );
+	}
+
+	public static boolean isArchiveFileName( String name ){
+		name = name.toLowerCase();
+		return ( name.endsWith(".jar") || name.endsWith(".zip") );
+	}
+
+	/**
+		turn / into .,  remove leading class and trailing .class
+	*/
+	public static String canonicalizeClassName( String name ) {
+		String classname=name.replace('/', '.');
+		if ( classname.startsWith("class ") )
+			classname=classname.substring(6);
+		if ( classname.endsWith(".class") )
+			classname=classname.substring(0,classname.length()-6);
+		return classname;
+	}
+
+	/**
+		Split class name into package and name
+	*/
+	public static String [] splitClassname ( String classname ) {
+		classname = canonicalizeClassName( classname );
+
+		int i=classname.lastIndexOf(".");
+		String classn, packn;
+		if ( i == -1 )  {
+			// top level class
+			classn = classname;
+			packn="<unpackaged>";
+		} else {
+			packn = classname.substring(0,i);
+			classn = classname.substring(i+1);
+		}
+		return new String [] { packn, classn };
+	}
+	
+	/**
+		The user classpath from system property
+			java.class.path
+	*/
+	URL [] getJavaClassPath() 
+		throws IOException
+	{
+		String cp=System.getProperty("java.class.path");
+		String [] paths=StringUtil.split(cp, File.pathSeparator);
+
+		URL [] urls = new URL[ paths.length ];
+		for ( int i=0; i<paths.length; i++)
+			urls[i] = new File( paths[i] ).toURL();
+
+		return urls;
+	}
+
+
+	public static class ClassSource { 
+		Object source;
+	}
+	public static class JarClassSource extends ClassSource { 
+		JarClassSource( URL url ) { source = url; }
+		public URL getURL() { return (URL)source; }
+		public String toString() { return "Jar: "+source; }
+	}
+	public static class DirClassSource extends ClassSource { 
+		DirClassSource( File dir ) { source = dir; }
+		public File getDir() { return (File)source; }
+		public String toString() { return "Dir: "+source; }
 	}
 
 	public static void main( String [] args ) throws Exception {
-		List urls = new ArrayList();
+		URL [] urls = new URL [ args.length ];
 		for(int i=0; i< args.length; i++)
-			urls.add (new File(args[i]).toURL());
-		BshClassPath bcp = new BshClassPath();
-		bcp.add( urls );
+			urls[i] =  new File(args[i]).toURL();
+		BshClassPath bcp = new BshClassPath( urls );
 	}
 
 }

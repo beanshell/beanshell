@@ -1,0 +1,3 @@
+cd bsh
+make.sh
+
