@@ -13,7 +13,7 @@ import java.io.File;
 */
 public class BshClassPath 
 {
-	public BshClassPath( URL [] urls ) throws IOException {
+	public BshClassPath( URL [] urls ) {
 		add( urls );
 	}
 
@@ -26,9 +26,14 @@ public class BshClassPath
 	*/
 	Map classSource = new HashMap();
 
-	public void add( URL [] urls ) throws IOException { 
+	public void add( URL [] urls ) { 
 		for(int i=0; i< urls.length; i++)
-			add( urls[i] );
+			try{
+				add( urls[i] );
+			} catch ( IOException e ) {
+				System.err.println("Error constructing classpath: "
+					+urls[i]+": "+e );
+			}
 	}
 
 	public void add( URL url ) throws IOException { 
@@ -48,8 +53,10 @@ public class BshClassPath
 	}
 
 	private void add( String [] classes, Object source ) {
-		for(int i=0; i< classes.length; i++)
+		for(int i=0; i< classes.length; i++) {
 			System.out.println( classes[i] +": "+ source );
+			addClass( classes[i], source );
+		}
 	}
 
 	void addClass( String className, Object source ) {
@@ -74,18 +81,16 @@ public class BshClassPath
 	/**
 		Return the set of classes in the specified package
 	*/
-	public Set getClassesForPackage( String pack ) {
-		return (Set)packageMap.get( pack );
+	public Collection getClassesForPackage( String pack ) {
+		return (Collection)packageMap.get( pack );
 	}
 
 	/**
 		Return the source of the specified class
-		  1) a URL for jar file 
-		or
-		  2) a File for directory
+		
 	*/
-	public Object getClassSource( String className ) {
-		return classSource.get( className );
+	public ClassSource getClassSource( String className ) {
+		return (ClassSource)classSource.get( className );
 	}
 
 

@@ -1,0 +1,24 @@
+
+bsh.help.reloadClasses= 
+	"usage: reloadClasses( String class | String package | String [] classes )";
+
+reloadClasses( item ) {
+	bcm = bsh.BshClassManager.getClassManager();
+
+	if ( item instanceof String [] )
+		bcm.reloadClasses( item );
+	else {
+		name = item;
+
+		if ( name.endsWith(".*" ) ) {
+			if ( name.equals(".*" ) )
+				pack = "<unpackaged>";
+			else
+				pack = name.substring( 0, name.length()-2 );
+			
+			bcm.reloadPackage( pack );
+		} else
+			bcm.reloadClasses( new String[] { name } );
+	}
+}
+

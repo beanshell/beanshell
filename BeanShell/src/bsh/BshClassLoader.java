@@ -34,22 +34,38 @@ public class BshClassLoader extends URLClassLoader
 	public Class loadClass(String name, boolean resolve)
         throws ClassNotFoundException
     {
-        Class c = findLoadedClass(name);
+        Class c = null;
+
+        c = findLoadedClass(name);
 		if ( c != null )
 			return c;
 
 		// wish we didn't have to catch the exception here... slow
 		try {
 			c = findClass( name );
-		} catch ( Exception e ) { }
+		} catch ( ClassNotFoundException e ) { }
 
 		if ( c == null )
-			return loadClass( name, resolve );
+			return super.loadClass( name, resolve );
 
 		if ( resolve )
 			resolveClass( c );
 
 		return c;
+	}
+
+// see if we can resolve classes through class manager rather than parent
+
+	public Class findClass( String name ) throws ClassNotFoundException {
+		ClassLoader cl = 	
+			BshClassManager.getClassManager().getLoaderForClass( name );
+
+		// Is the designated loader for the class us?
+		if ( cl!= null && cl != this )
+			// delegate
+			return cl.loadClass( name );
+		else
+			return super.findClass(name);
 	}
 
 	/*

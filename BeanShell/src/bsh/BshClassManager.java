@@ -4,6 +4,7 @@ import java.net.*;
 import java.util.*;
 import java.lang.ref.WeakReference;
 import java.io.IOException;
+import BshClassPath.DirClassSource;
 
 /**
 	Manage all classloading in BeanShell.
@@ -13,6 +14,8 @@ import java.io.IOException;
 	Is there a workaround for weak refs?  If so we could make this work
 	with 1.1 by supplying our own classloader code...
 
+	@see http://www.beanshell.org/manual/classloading.html for details
+	on the bsh classloader architecture.
 */
 public class BshClassManager
 {
@@ -23,7 +26,14 @@ public class BshClassManager
 		return manager;
 	}
 	
-	URL [] classpath;
+	// Note it's kind of goofy having both of these, but as it stands,
+	// constructing BshClassPath is expensive... should move lazy instantiation
+	// inside there...
+	/** Primary store for the classpath components */
+	List classPath = new ArrayList();
+	/** Lazily constructed full parse of the class path */
+	BshClassPath bshClassPath;
+
 	Vector listeners = new Vector();
 
 	/**
@@ -37,10 +47,26 @@ public class BshClassManager
 	/**
 		Map by classname of loaders to use for reloaded classes
 	*/
-	Map overlayLoaderMap = new HashMap();
+	Map loaderMap = new HashMap();
 
 	public Class getClassForName( String name ) {
 		Class c = null;
+
+		//ClassLoader overlayLoader = (ClassLoader)loaderMap.get( name );
+		ClassLoader overlayLoader = getLoaderForClass( name );
+		if ( overlayLoader != null ) {
+			try {
+				c = overlayLoader.loadClass(name);
+			} catch ( Exception e ) {
+			} catch ( NoClassDefFoundError e2 ) {
+			}
+
+			// Should be there since it was explicitly mapped
+			// throw an error?
+			if ( c != null )
+				return c;
+		}
+
 		if ( baseLoader == null )
 			try {
 				c = Class.forName(name);
@@ -57,38 +83,124 @@ public class BshClassManager
 		return c;
 	}
 
-	public void addClassPath( URL path ) {
+	public ClassLoader getLoaderForClass( String name ) {
+		return (ClassLoader)loaderMap.get( name );
+	}
+
+	// Classpath mutators
+
+	/**
+	*/
+// ioexception is for adding to bshclasspath... remove if we fix lazy
+// instantiaion inside of it
+	public void addClassPath( URL path ) throws IOException {
 		if ( baseLoader == null )
 			setClassPath( new URL [] { path } );
 		else {
 			baseLoader.addURL( path );
+			classPath.add( path );
+			bshClassPath.add( path );
 			classLoaderChanged();
 		}
-
 	}
 
 	/**
-		Resetting the classpath means a new classloader which means
-		all types change.
+		Clear all loaders and start over.
+	*/
+	public void reset() {
+		baseLoader = null;
+		loaderMap = new HashMap();
+		classPath = new ArrayList();
+		bshClassPath = null;
+		classLoaderChanged();
+	}
+
+	/**
+		Set the base classpath with a new classloader.
+		This means all types change.  This also resets the bsh classpath 
+		object which may be expensive to regenerate.
 	*/
 	public void setClassPath( URL [] cp ) {
-		classpath = cp;
-		baseLoader = new BshClassLoader( classpath );
+		reset();
+		classPath.addAll( Arrays.asList( cp ) );
+		baseLoader = new BshClassLoader( cp );
 
 		// fire after change...  semantics are "has changed"
 		classLoaderChanged();
 	}
 
+	// class reloading
+
 	/**
 		Reloading classes means creating a new classloader and using it
-		whenever we are asked for a class in the appropriate space.
+		whenever we are asked for classes in the appropriate space.
+		For this we use a DiscreteFilesClassLoader
 	*/
-	public void reloadClasses( String path ) {
-		if ( path.endsWith(".*") )  {
-			// validate that it is a package here?
-		} else { 
-			// validate that it is a class here?
+	public void reloadClasses( String [] classNames ) 
+		throws ClassPathException
+	{
+		// validate that it is a class here?
+
+		BshClassPath bcp = getClassPath();
+
+		DiscreteFilesClassLoader.ClassSourceMap map = 
+			new DiscreteFilesClassLoader.ClassSourceMap();
+
+		for (int i=0; i< classNames.length; i++) {
+			String name = classNames[i];
+			Object o = bcp.getClassSource( name );
+			if ( o == null )
+				throw new ClassPathException("Nothing known about class: "
+					+name );
+			if ( ! (o instanceof DirClassSource) )
+				throw new ClassPathException("Cannot reload class: "+name+
+					" from source: "+o);
+			map.put( name, ((DirClassSource)o).getDir() );
 		}
+
+		// Create classloader for the set of classes with the base loader
+		// as the parent
+		ClassLoader cl = new DiscreteFilesClassLoader( map, baseLoader );
+
+		// map those classes the loader in the overlay map
+		Iterator it = map.keySet().iterator();
+		while ( it.hasNext() )
+			loaderMap.put( (String)it.next(), cl );
+
+		classLoaderChanged();
+	}
+
+	/**
+		Reload all classes in the specified package: e.g. "com.sun.tools"
+
+		The special package name "<unpackaged>" can be used to refer 
+		to unpackaged classes.
+	*/
+	public void reloadPackage( String pack ) throws ClassPathException {
+		BshClassPath bcp = getClassPath();
+		Collection classes = bcp.getClassesForPackage( pack );
+		if ( classes == null )
+			throw new ClassPathException("No classes found for package: "+pack);
+
+		reloadClasses( (String[])classes.toArray( new String[0] ) );
+	}
+
+	public void reloadPathComponent( URL pc ) {
+	}
+
+	// end reloading
+
+	/**
+		Do lazy instantiation.  This may be expensive to create and we only
+		need it for class reloading or tools that require mapping the class
+		space.
+	*/
+	public BshClassPath getClassPath() {
+		if ( bshClassPath == null )
+			bshClassPath = new BshClassPath( 
+				(URL[])classPath.toArray(new URL[0]) );
+
+		return bshClassPath;
 	}
 
 	public static Class classForName( String name ) {
@@ -128,5 +240,16 @@ public class BshClassManager
 
 	}
 
+	public void dump( Interpreter i ) {
+		i.println("Class Manager Dump: ");
+		i.println("------------------- ");
+		i.println("baseLoader = "+baseLoader);
+		i.println("loaderMap= "+loaderMap);
+	}
+
+
+	public static class ClassPathException extends Exception {
+		public ClassPathException( String msg ) { super(msg); }
+	}
 
 }

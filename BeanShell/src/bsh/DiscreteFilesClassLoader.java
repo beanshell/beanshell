@@ -6,19 +6,29 @@ import java.util.*;
 import java.awt.*;
 
 public class DiscreteFilesClassLoader extends BshClassLoader {
-	File base;
-	Set classNames = new HashSet();
+	/**
+		Map of class sources which also implies our coverage space.
+	*/
+	ClassSourceMap map;
+
+	public static class ClassSourceMap extends HashMap {
+		public void put( String name, File baseDir ) {
+			super.put( name, baseDir );
+		}
+		public File get( String name ) {
+			return (File)super.get( name );
+		}
+	}
 	
-	public DiscreteFilesClassLoader( 
-		File base, String [] classNames, ClassLoader parent ) 
+	public DiscreteFilesClassLoader( ClassSourceMap map, ClassLoader parent ) 
 	{ 
 		super( parent );
-		this.base = base;
-		this.classNames.addAll( Arrays.asList(classNames) );
+		this.map = map;
 	}
 
 	public Class findClass( String name ) throws ClassNotFoundException {
-		if ( classNames.contains( name ) )
+		File base = map.get( name );
+		if ( base != null )
 			return loadClassFromFile( base, name );
 		else
 			return super.findClass( name );
@@ -48,5 +58,9 @@ public class DiscreteFilesClassLoader extends BshClassLoader {
 		Class c =defineClass(className, bytes, 0, bytes.length);
 		return c;
     }
+
+	public String toString() {
+		return super.toString() + "for files: "+map;
+	}
 
 }
