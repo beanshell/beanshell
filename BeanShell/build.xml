@@ -352,5 +352,34 @@
 			<lib dir="." includes="${all-jar}"/>
 		</war>
 	</target>
+	
+	<!-- 
+		This target produces beanshell documentation on the bsh command set.
+		Notes:
+			- I am concerned that the fileset argument could be too large for
+			parallel if ant is using full path names.  The bshdoc script 
+			wants all of the files simultaneously to produce one XML file
+			amenable to indexing, etc.
+			- Needs some file timestamp checking... mapper tag might help.
+	-->
+	<target name="bshdoc">     
+		<!-- 
+			I'd like to use the java target, but there seems to be no way
+			to supply a fileset in an arg argument.
+		-->
+		<apply executable="java" output="bshcommands.xml" parallel="true">
+			<arg value="-cp"/>
+			<arg value="${all-jar}"/>
+			<arg value="bsh.Interpreter"/>
+			<arg file="scripts/bshdoc.bsh"/>
+			<!--fileset refid="commands-fileset"/-->
+			<fileset dir="src/bsh/commands" includes="*.bsh"/>
+		</apply>
+
+		<style style="scripts/bshcommands.xsl" 
+			in="bshcommands.xml" out="bshcommands.html"/>
+
+		<delete file="bshcommands.xml"/>
+	</target>   
 
 </project>

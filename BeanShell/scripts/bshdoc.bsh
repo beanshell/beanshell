@@ -90,6 +90,8 @@ bshdoc( filename )
 	tab();
 	if ( filename.endsWith(".bsh") )
 		name=filename.substring(0,filename.length()-4);
+	if ( (i=name.lastIndexOf("/")) != -1 )
+		name=name.substring(i+1);
 	print("<Name>"+name+"</Name>");
 
 	parser = new Parser( new FileReader(filename) );

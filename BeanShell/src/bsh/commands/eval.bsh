@@ -7,11 +7,11 @@
 	with side effects in the current scope.
 	<p>
 	e.g.
-	<pre>
+	<code><pre>
 		a=5;
 		eval("b=a*2");
 		print(b); // 10
-	</pre>
+	</pre></code>
 	<p>
 
 	eval() acts just like invoked text except that any exceptions generated
