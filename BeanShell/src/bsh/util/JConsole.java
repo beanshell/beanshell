@@ -174,7 +174,7 @@ public class JConsole extends JScrollPane
 		type( e	);
     }
 
-    private void type( KeyEvent	e ) {
+    private synchronized void type( KeyEvent e ) {
 		switch ( e.getKeyCode()	) {
 
 			case ( KeyEvent.VK_ENTER ):

@@ -1,7 +1,3 @@
-#!/bin/sh
-
-CLASSPATH=/pkg/javautil/bsh.jar:$CLASSPATH
-export CLASSPATH
+set CLASSPATH=/pkg/javautil/bsh.jar;%CLASSPATH%
 
 java bsh.Interpreter $*
-
