@@ -5,6 +5,7 @@ import java.util.*;
 import java.lang.ref.WeakReference;
 import java.io.IOException;
 import BshClassPath.DirClassSource;
+import java.io.*;
 
 /**
 	Manage all classloading in BeanShell.
@@ -47,6 +48,12 @@ public class BshClassManager
 	*/
 	Map loaderMap;
 
+    // Global cache 
+    transient static Hashtable absoluteClassCache = new Hashtable();
+    // Global cache for things we know are *not* classes... value is unused
+    transient static Hashtable absoluteNonClasses = new Hashtable();
+
+
 	// Singleton for now
 
 	private static BshClassManager manager = new BshClassManager();
@@ -58,7 +65,17 @@ public class BshClassManager
 	}
 
 	public Class getClassForName( String name ) {
-		Class c = null;
+
+		// check cache 
+
+		Class c = (Class)absoluteClassCache.get(name);
+		if (c != null )
+			return c;
+
+		if ( absoluteNonClasses.get(name) != null)
+			return null;
+
+		// Try to load the class
 
 		ClassLoader overlayLoader = getLoaderForClass( name );
 		if ( overlayLoader != null ) {
@@ -70,20 +87,30 @@ public class BshClassManager
 
 			// Should be there since it was explicitly mapped
 			// throw an error?
-			if ( c != null )
-				return c;
 		}
 
-		if ( baseLoader != null )
-			try {
-				c = baseLoader.loadClass( name );
-			} catch ( ClassNotFoundException e ) {}
+		if ( c == null )
+			if ( baseLoader != null )
+				try {
+					c = baseLoader.loadClass( name );
+				} catch ( ClassNotFoundException e ) {}
+			else
+				try {
+					c = loadSystemClass( name );
+				} catch ( ClassNotFoundException e ) {}
+
+		// cache results
+
+		if ( c != null )
+			absoluteClassCache.put( name, c );
 		else
-			try {
-				c = loadSystemClass( name );
-			} catch ( ClassNotFoundException e ) {}
+			absoluteNonClasses.put( name, "unused" );
 
 		return c;
+	}
+
+	public static boolean classExists( String name ) {
+		return ( classForName( name ) != null );
 	}
 
 	protected ClassLoader getBaseLoader() {
@@ -269,8 +296,8 @@ public class BshClassManager
 		will not keep every namespace in existence forever.
 	*/
 	void classLoaderChanged() {
-    	NameSpace.absoluteNonClasses = new Hashtable();
-    	NameSpace.absoluteClassCache = new Hashtable();
+    	absoluteNonClasses = new Hashtable();
+    	absoluteClassCache = new Hashtable();
 
 		for (Enumeration e = listeners.elements(); e.hasMoreElements(); ) {
 			WeakReference wr = (WeakReference)e.nextElement();
@@ -291,5 +318,28 @@ public class BshClassManager
 		i.println("----------------------- ");
 		i.println("baseClassPath = "+baseClassPath);
 	}
+
+    public static void loadJavaPackagesOptimization() throws IOException
+    {
+		if(absoluteNonClasses != null)
+			return;
+
+		String res = "lib/javaPackages";
+		InputStream in = NameSpace.class.getResourceAsStream(res);
+		if(in == null)
+			throw new IOException("couldn't load resource: " + res);
+		BufferedReader bin = new BufferedReader(new InputStreamReader(in));
+
+		String s;
+		try {
+			while((s = bin.readLine()) != null)
+			absoluteNonClasses.put(s, "unused");
+
+			bin.close();
+		} catch(IOException e) {
+			Interpreter.debug("failed to load java package names...");
+		}
+    }
+
 
 }

@@ -10,7 +10,7 @@ public class Capabilities {
 		if ( checkedForSwing )
 			return haveSwing;
 
-		haveSwing = NameSpace.classExists( "javax.swing.JButton" );
+		haveSwing = BshClassManager.classExists( "javax.swing.JButton" );
 		checkedForSwing = true;
 		return ( haveSwing );
 	}
@@ -20,7 +20,8 @@ public class Capabilities {
 		if ( checkedForProxyMech )
 			return haveProxyMech;
 
-		haveProxyMech = NameSpace.classExists( "java.lang.reflect.Proxy" );
+		haveProxyMech = BshClassManager.classExists( 
+			"java.lang.reflect.Proxy" );
 		checkedForProxyMech = true;
 		return haveProxyMech;
 	}

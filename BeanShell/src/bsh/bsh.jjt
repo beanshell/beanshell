@@ -103,10 +103,10 @@ public class Interpreter implements Runnable /*,Serializable*/
 
         try {
             // To speed ambiguos name parsing
-            NameSpace.loadJavaPackagesOptimization();
+            BshClassManager.loadJavaPackagesOptimization();
 
             // The classes which are imported by default
-            NameSpace.loadDefaultImports(globalNameSpace);
+            globalNameSpace.loadDefaultImports();
         } catch(Exception e) {
             error("Couldn't load interpreter resources...");
         }
@@ -203,7 +203,6 @@ public class Interpreter implements Runnable /*,Serializable*/
 		this( new StringReader(""), 
 			System.out, System.err, false, null );
         evalOnly = true;
-		//setBshVariable( "evalOnly", new Primitive(true) );
 		setu( "bsh.evalOnly", new Primitive(true) );
     }
 
@@ -228,31 +227,19 @@ public class Interpreter implements Runnable /*,Serializable*/
     }
 	*/
 
-	/*
-	// dumb helper method
-	void setBshVariable( String name, Object obj ) {
-		try {
-			bshObject.namespace.setVariable( name, obj );
-		} catch (EvalError e ) {
-			throw new InterpreterError("Internal error: bsh namespace");
-		}
-	}
-
-	// dumb helper method
-	Object getBshVar( String name ) {
-		return unwrap( bshObject.namespace.getVariable( name ) );
-	}
-	*/
 
 	public void setConsole( ConsoleInterface console ) {
 		this.console = console;
-		//setBshVariable( "console", console );
 		setu( "bsh.console", console );
 	}
 
 	// End constructors
 
-    public static void main( String [] args ) {
+    public static void main( String [] args ) 
+	{
+		String outfilename = System.getProperty("outfile");
+		if ( outfilename != null )
+			redirectOutputToFile( outfilename );
 
         if ( args.length > 0 ) {
 			String filename = args[0];
@@ -265,7 +252,6 @@ public class Interpreter implements Runnable /*,Serializable*/
 				bshArgs = new String [0];
 
             Interpreter interpreter = new Interpreter();
-			//interpreter.setBshVariable( "args", bshArgs );
 			interpreter.setu( "bsh.args", bshArgs );
 			try {
 				interpreter.source( filename, interpreter.globalNameSpace );
@@ -297,7 +283,7 @@ public class Interpreter implements Runnable /*,Serializable*/
         }
     }
 
-	/*
+	/**
 		Run interactively.  (printing prompts, etc.)
 	*/
     public void run() {
@@ -594,7 +580,6 @@ public class Interpreter implements Runnable /*,Serializable*/
 		name may be any value. e.g. a variable or field
 	*/
     public Object get( String name ) throws EvalError {
-		//Object ret = new Name( globalNameSpace, name ).toObject( this );
 		Object ret = globalNameSpace.get( name, this );
 		return unwrap( ret );
 	}
@@ -733,6 +718,18 @@ public class Interpreter implements Runnable /*,Serializable*/
 		} 
 
 		return file;
+	}
+
+	public static void redirectOutputToFile( String filename ) 
+	{
+		try {
+		PrintStream pout = new PrintStream( 
+			new FileOutputStream( filename ) );
+		System.setOut( pout );
+		System.setErr( pout );
+		} catch ( IOException e ) {
+			System.err.println("Can't redirect output to file: "+filename );
+		}
 	}
 }
 
@@ -971,7 +968,6 @@ boolean Line() :
    */
    Expression() ";"
 |  BlockStatement()
-/*|  ImportDeclaration()*/
   )  { 
 		return false; 
 	}
@@ -1121,7 +1117,6 @@ void AmbiguousName() #AmbiguousName :
         s.append("."+t.image);
     }
   )* {
-        //jjtThis.name = new Name( nameSpace, s.toString() );
         jjtThis.text = s.toString();
     }
 }
@@ -1588,6 +1583,7 @@ void BlockStatement() :
 |
   Statement()
 |  
+  // Allow BeanShell imports in any block
   ImportDeclaration()
 }
 

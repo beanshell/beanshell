@@ -368,7 +368,7 @@ class Reflect {
     static Object constructObject(String clas, Object[] args)
         throws ReflectError, InvocationTargetException
     {
-		Class c = NameSpace.classForName( clas );
+		Class c = BshClassManager.classForName( clas );
 		if ( c == null )
 			throw new ReflectError("Class not found: "+clas); 
 

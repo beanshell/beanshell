@@ -24,10 +24,16 @@ import java.lang.reflect.InvocationTargetException;
 	What's in a name?  I'll tell you...
 	Name() is a highly ambiguous thing in the grammar and so is this.
 	
-	This class holds a possibly ambiguous dot separated name and a
-	namespace in which it lives.  It provides methods that attempt to resolve 
-	the name to various types of entities: e.g. an Object, a Class, a
-	localy declared bsh method.
+	This class holds a possibly ambiguous dot separated name and reference to
+	a namespace in which it allegedly lives.  It provides methods that attempt 
+	to resolve the name to various types of entities: e.g. an Object, a Class, 
+	a localy declared bsh method.
+
+	Implementation note:
+
+	In some ways Name wants to be a private inner class of NameSpace... 
+	However it is used elsewhere as an absraction for objects which haven't
+	been pinned down yet.  So it is exposed.
 */
 class Name implements java.io.Serializable
 {
@@ -261,6 +267,11 @@ class Name implements java.io.Serializable
 		return obj;
 	}
 
+	/**
+		Check the cache, else use toObject() to try to resolve to a class
+		identifier.  We do a little extra here to throw friendly error messages
+		if it resolves to something other than a class.
+	*/
 	synchronized public Class toClass() throws EvalError 
 	{
 		evalName = value;
@@ -497,7 +508,7 @@ class Name implements java.io.Serializable
         // check for compiled bsh command class
         commandName = "bsh.commands." + value;
         // create class outside of any namespace
-        Class c = NameSpace.getAbsoluteClass(commandName);
+        Class c = BshClassManager.classForName( commandName );
         if(c == null)
             throw new EvalError("Command not found: " + value);
 
