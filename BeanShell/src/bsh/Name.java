@@ -52,26 +52,18 @@ import java.lang.reflect.InvocationTargetException;
 	entities: e.g. an Object, a Class, a localy declared bsh method.
 	<p>
 
-	*** implementing ***
-	Name objects are not to be constructed arbitrarily, but are to be 
-	factoried by NameSpace.getNameResolver, which caches them subject to
-	a class namespace change.  This means that we can cache information about 
-	various types of resolution here and class resolution can be freely cached.
+	Name objects are not to be factoried by NameSpace.getNameResolver, 
+	which caches them subject to a class namespace change.  This means that 
+	we can cache information about various types of resolution here.
+	Currently very little if any information is cached.  However with a future
+	"optimize" setting that defeats certain dynamic behavior we might be able
+	to cache quite a bit.
 */
 /*
 	<strong>Implementation notes</strong>
 	<pre>
-
-	*** implementing ***
-	Name objects are not to be constructed arbitrarily, but are to be 
-	factoried by NameSpace.getNameResolver, which caches them subject to
-	a namespace change.  This means that we can cache information about various
-	types of resolution here.
-	Note that we cannot simply cache any result, we must be smart about it.
-	For example, the value of a variable may change between calls.  So we could	
-	cache the knowledge that it is a variable, but must re-fetch the value
-	each time.  We could even do cool optimizations such as knowing about
-	'final' variables ;)
+	Thread safety: all of the work methods in this class must be synchronized
+	because they share the internal intermediate evaluation state.
 
 	Note about invokeMethod():  We could simply use resolveMethod and return
 	the MethodInvoker (BshMethod or JavaMethod) however there is no easy way
@@ -79,21 +71,7 @@ import java.lang.reflect.InvocationTargetException;
 	information about the target to resolve overloaded methods.
 	(In Java, overloaded methods are resolved at complile time... here they
 	are, of necessity, dynamic).  So it would have to do what we do here
-	and cache by signature.  We'll do that for the client here and keep this
-	the abstraction inside the Name.
-
-	Questions: how much will this actually buy us?  The simple cases are not
-	expensive here, are they?  How often are long chains of names evaluated?
-	*** implementing ***
-
-	Threads:
-	Thread safety: all of the work methods in this class must be synchronized
-	because they share the internal intermediate evaluation state.
-
-	Random note:
-	In some ways Name wants to be a private inner class of NameSpace... 
-	However it is used elsewhere as an absraction for objects which haven't
-	been pinned down yet.  So it is exposed.
+	and cache by signature.  We now do that for the client in Reflect.java.
 
 	Note on this.caller resolution:
 	Although references like these do work:
@@ -176,8 +154,7 @@ class Name implements java.io.Serializable
 		Use NameSpace getNameResolver() which supports caching.
 		@see NameSpace getNameResolver().
 	*/
-// I wish I could make this "friendly" to only NameSpace
-// Trying package private
+	// I wish I could make this "friendly" to only NameSpace
 	Name( NameSpace namespace, String s )
 	{
 		this.namespace = namespace;
@@ -542,7 +519,7 @@ class Name implements java.io.Serializable
 		ambiguous unqualified name after super import. 
 	*/
 	synchronized public Class toClass() 
-		throws ClassNotFoundException, ClassPathException
+		throws ClassNotFoundException, UtilEvalError
 	{
 		if ( asClass != null )
 			return asClass;
@@ -811,11 +788,11 @@ class Name implements java.io.Serializable
         // check for compiled bsh command class
 
         commandName = "bsh.commands." + value;
-        Class c = BshClassManager.classForName( commandName );
-        if(c == null)
+        Class c = interpreter.getClassManager().classForName( commandName );
+        if ( c == null )
             throw new EvalError("Command not found: " + value, 
 			callerInfo, callstack );
-//System.out.println("found class: " +c);
+		//System.out.println("found class: " +c);
 
         // add interpereter and namespace to args list
         Object[] invokeArgs = new Object[args.length + 2];

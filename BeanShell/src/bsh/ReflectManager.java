@@ -51,13 +51,13 @@ public abstract class ReflectManager
 		@throws Unavailable
 	*/
 	public static ReflectManager getReflectManager() 
+		throws Unavailable
 	{
 		if ( rfm == null ) 
 		{
 			Class clas;
 			try {
-				clas = BshClassManager.plainClassForName(
-					"bsh.reflect.ReflectManagerImpl" );
+				clas = Class.forName( "bsh.reflect.ReflectManagerImpl" );
 				rfm = (ReflectManager)clas.newInstance();
 			} catch ( Exception e ) {
 				throw new Unavailable("Reflect Manager unavailable: "+e);

@@ -63,7 +63,7 @@ class BSHAmbiguousName extends SimpleNode
         	return getName( callstack.top() ).toClass();
 		} catch ( ClassNotFoundException e ) {
 			throw new EvalError( e.getMessage(), this, callstack );
-		} catch ( ClassPathException e2 ) {
+		} catch ( UtilEvalError e2 ) {
 			// ClassPathException is a type of UtilEvalError
 			throw e2.toEvalError( this, callstack );
 		}

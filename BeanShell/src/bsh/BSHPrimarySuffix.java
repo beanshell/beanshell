@@ -132,6 +132,7 @@ class BSHPrimarySuffix extends SimpleNode
 		Object obj, CallStack callstack, Interpreter interpreter) 
 		throws EvalError, ReflectError, InvocationTargetException
 	{
+try {
 		if(field.equals("length") && obj.getClass().isArray())
 			return new Primitive(Array.getLength(obj));
 		
@@ -151,6 +152,9 @@ class BSHPrimarySuffix extends SimpleNode
 				//throw e.toEvalError( this, callstack  );
 			//}
 		}
+} catch ( UtilEvalError e ) {
+	throw e.toEvalError( this, callstack );
+}
 	}
 
 	/**

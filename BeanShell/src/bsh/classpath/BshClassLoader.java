@@ -45,21 +45,34 @@ import bsh.BshClassManager;
 */
 public class BshClassLoader extends URLClassLoader 
 {
-	public BshClassLoader( URL [] bases ) {
-		super(bases);
+	BshClassManager classManager;
+
+	/**
+		@param bases URLs JARClassLoader seems to require absolute paths 
+	*/
+	public BshClassLoader( BshClassManager classManager, URL [] bases ) {
+		super( bases );
+		this.classManager = classManager;
 	}
 
-	public BshClassLoader( BshClassPath bcp ) {
-		super( bcp.getPathComponents() );
+	/**
+		@param bases URLs JARClassLoader seems to require absolute paths 
+	*/
+	public BshClassLoader( BshClassManager classManager, BshClassPath bcp ) {
+		this( classManager, bcp.getPathComponents() );
 	}
 
 	/**
 		For use by children
+		@param bases URLs JARClassLoader seems to require absolute paths 
 	*/
-	protected BshClassLoader() { 
-		super( new URL [] { } );
+	protected BshClassLoader( BshClassManager classManager ) { 
+		this( classManager, new URL [] { } );
 	}
 
+	/**
+		@param bases URLs JARClassLoader seems to require absolute paths 
+	*/
 	public void addURL( URL url ) {
 		super.addURL( url );
 	}
@@ -115,13 +128,21 @@ public class BshClassLoader extends URLClassLoader
 		Try system ???
 	*/
 	// add some caching for not found classes?
-	public Class findClass( String name ) throws ClassNotFoundException {
+	protected Class findClass( String name ) 
+		throws ClassNotFoundException 
+	{
+		// Deal with this cast somehow... maybe have this class use 
+		// ClassManagerImpl type directly.
+		// Don't add the method to BshClassManager... it's really an impl thing
+		ClassManagerImpl bcm = (ClassManagerImpl)getClassManager();
 
 		// Should we try to load the class ourselves or delegate?
 		// look for overlay loader
 
-		ClassLoader cl = 	
-			BshClassManager.getClassManager().getLoaderForClass( name );
+		// Deal with this cast somehow... maybe have this class use 
+		// ClassManagerImpl type directly.
+		// Don't add the method to BshClassManager... it's really an impl thing
+		ClassLoader cl = bcm.getLoaderForClass( name );
 
 		Class c;
 
@@ -133,23 +154,32 @@ public class BshClassLoader extends URLClassLoader
 				throw new ClassNotFoundException(
 					"Designated loader could not find class: "+e );
 			}
+//if ( bcm.getBaseLoader() == this )
+//System.out.println("base loader here"+name );
 
 		// Let URLClassLoader try any paths it may have
 		if ( getURLs().length > 0 )
 			try {
+//if ( bcm.getBaseLoader() == this )
+//System.out.println("base loader here super findclass:"+name );
 				return super.findClass(name);
-			} catch ( ClassNotFoundException e ) { }
+			} catch ( ClassNotFoundException e ) { 
+//if ( bcm.getBaseLoader() == this ) {
+//System.out.println("base loader here caught class not found: "+name );
+//for(int i=0; i< getURLs().length; i++)
+	//System.out.println(">> base loader url: "+getURLs()[i]);
+//}
+			}
 
 
 		// If there is a baseLoader and it's not us delegate to it
-		BshClassManager bcm = BshClassManager.getClassManager();
 		cl = bcm.getBaseLoader();
 
 		if ( cl != null && cl != this )
 			try {
 				return cl.loadClass( name );
 			} catch ( ClassNotFoundException e ) { }
-		
+
 		// Try system loader
 		return bcm.plainClassForName( name );
 	}
@@ -167,5 +197,7 @@ public class BshClassLoader extends URLClassLoader
             catch ClassNotFoundException 
                 c = findClass(name);
 	*/
+
+	BshClassManager getClassManager() { return classManager; }
 
 }

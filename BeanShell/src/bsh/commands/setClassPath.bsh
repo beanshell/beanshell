@@ -8,9 +8,7 @@
 
 bsh.help.setClassPath= "usage: setClassPath( URL [] )";
 
-import bsh.BshClassManager;
-
 void setClassPath( urls ) {
-	BshClassManager.getClassManager().setClassPath( urls );
+	this.caller.namespace.getClassManager().setClassPath( urls );
 }
 

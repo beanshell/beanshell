@@ -95,6 +95,7 @@ class BSHLHSPrimarySuffix extends SimpleNode
 		Object obj, CallStack callstack, Interpreter interpreter) 
 		throws EvalError, ReflectError, InvocationTargetException 
 	{
+try {
 		if (jjtGetNumChildren() == 0)
 			// simple field access
 			return Reflect.getLHSObjectField(obj, field);
@@ -112,6 +113,9 @@ throw new EvalError( "method invocation in suffix evaluation - broken", this, ca
 			return Reflect.getLHSObjectField(obj, field);
 */
 		}
+} catch ( UtilEvalError e ) {
+	throw e.toEvalError( this, callstack );
+}
 	}
 
 	private LHS doIndex(

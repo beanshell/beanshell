@@ -8,7 +8,6 @@
 bsh.help.which= "usage: which( classIdentifier | string | class )";
 
 import bsh.Name;
-import bsh.BshClassManager;
 
 which( clas ) { 
 	// make the class into a name
@@ -18,7 +17,7 @@ which( clas ) {
 		clas = clas.getName();
 	String className = clas;
 
-	cp = BshClassManager.getClassManager().getClassPath();
+	cp = this.caller.namespace.getClassManager().getClassPath();
 	print ( cp.getClassSource( className ) );
 }
 
