@@ -396,7 +396,19 @@ public class Interpreter
 				}
 				*/
                 error("Error parsing input: " + e);
-                //e.printStackTrace();
+
+                                /*
+					We get stuck in infinite loops here when unicode escapes
+					fail.  Must re-init the char stream reader 
+					(ASCII_UCodeESC_CharStream.java)
+
+					I don't know if the line / column numbers are meaningful,
+					but I'll try to save them.
+				*/
+                                jj_input_stream.ReInit( in,
+                                        jj_input_stream.getEndLine(),
+                                        jj_input_stream.getEndColumn() );
+
                 if(!interactive)
                     eof = true;
             }
@@ -430,8 +442,12 @@ public class Interpreter
         }
 
     /**
-        Spawn a local interpreter to evaluate text in the specified 
-		namespace.  
+Can't this be combined with run() ?
+run seems to have stuff in it for interactive vs. non-interactive...
+compare them side by side and see what they do differently.
+
+        Spawn a non-interactive local interpreter to evaluate text in the 
+		specified namespace.  
 
 		Return value is the evaluated object (or corresponding primitive 
 		wrapper).
@@ -465,8 +481,10 @@ public class Interpreter
                     SimpleNode node =
                                                 (SimpleNode)localInterpreter.jjtree.rootNode();
                     retVal = node.eval( nameSpace, this );
-                    if(retVal instanceof ReturnControl)
+                    if ( retVal instanceof ReturnControl ) {
                         retVal = ((ReturnControl)retVal).value;
+                                                break; // non-interactive, return control now
+                                        }
                 }
             } catch(ParseException e) {
                 throw new EvalError(
@@ -760,6 +778,10 @@ public class Interpreter
 
   final public boolean Line() throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+    case 0:
+      jj_consume_token(0);
+        debug("End of File!"); {if (true) return true;}
+      break;
     case BOOLEAN:
     case BREAK:
     case BYTE:
@@ -848,10 +870,6 @@ public class Interpreter
         }
       }
                 {if (true) return false;}
-      break;
-    case 0:
-      jj_consume_token(0);
-        debug("End of File!"); {if (true) return true;}
       break;
     default:
       jj_la1[1] = jj_gen;
@@ -4227,49 +4245,6 @@ void FormalParameter() #FormalParameter :
     return retval;
   }
 
-  final private boolean jj_3R_164() {
-    if (jj_scan_token(IDENTIFIER)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
-  final private boolean jj_3_6() {
-    if (jj_3R_30()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    if (jj_scan_token(IDENTIFIER)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
-  final private boolean jj_3R_134() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_6()) {
-    jj_scanpos = xsp;
-    if (jj_3R_164()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    } else if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
-  final private boolean jj_3R_116() {
-    if (jj_3R_134()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_135()) { jj_scanpos = xsp; break; }
-      if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    }
-    return false;
-  }
-
-  final private boolean jj_3R_120() {
-    if (jj_scan_token(FLOATING_POINT_LITERAL)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
   final private boolean jj_3R_197() {
     if (jj_3R_29()) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
@@ -4651,6 +4626,14 @@ void FormalParameter() #FormalParameter :
     return false;
   }
 
+  final private boolean jj_3_1() {
+    if (jj_3R_26()) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    if (jj_scan_token(SEMICOLON)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
   final private boolean jj_3R_248() {
     if (jj_scan_token(CATCH)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
@@ -4661,14 +4644,6 @@ void FormalParameter() #FormalParameter :
     if (jj_scan_token(RPAREN)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
     if (jj_3R_38()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
-  final private boolean jj_3_1() {
-    if (jj_3R_26()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    if (jj_scan_token(SEMICOLON)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
     return false;
   }
@@ -6810,6 +6785,49 @@ void FormalParameter() #FormalParameter :
 
   final private boolean jj_3R_121() {
     if (jj_scan_token(CHARACTER_LITERAL)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
+  final private boolean jj_3R_164() {
+    if (jj_scan_token(IDENTIFIER)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
+  final private boolean jj_3_6() {
+    if (jj_3R_30()) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    if (jj_scan_token(IDENTIFIER)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
+  final private boolean jj_3R_134() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_6()) {
+    jj_scanpos = xsp;
+    if (jj_3R_164()) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    } else if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
+  final private boolean jj_3R_116() {
+    if (jj_3R_134()) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3R_135()) { jj_scanpos = xsp; break; }
+      if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    }
+    return false;
+  }
+
+  final private boolean jj_3R_120() {
+    if (jj_scan_token(FLOATING_POINT_LITERAL)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
     return false;
   }

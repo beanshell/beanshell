@@ -1,5 +1,10 @@
 #!/bin/java bsh.Interpreter
 
+/**
+	'super' refers to the parent context in which the method was evaluated,
+	*not* the caller's namespace.
+*/
+
 source("TestHarness.bsh");
 
 // Test 1
