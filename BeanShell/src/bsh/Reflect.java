@@ -500,7 +500,8 @@ class Reflect {
 			if ( interpreter == null )
 				throw new InterpreterError("2234432 interpreter = null");
 
-            interpreter.eval(in, name.namespace, commandName);
+            interpreter.eval( 
+				new InputStreamReader(in), name.namespace, commandName);
 
             // try again
             meth = name.toLocalMethod();
