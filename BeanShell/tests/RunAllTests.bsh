@@ -64,6 +64,9 @@ if ( !failed && !warnings )
 
 print("Time to run all tests: "+(System.currentTimeMillis() - time) + "ms");
 
+import bsh.NameSpace;
+print( "cache count = "+NameSpace.cacheCount );
+
 if ( !bsh.interactive )
 	exit();
 

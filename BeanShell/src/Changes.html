@@ -2,7 +2,7 @@
 <head><title>BeanShell - Change Log</title></head>
 <body bgcolor=#ffffff>
 
-<h2>Changes in 1.2b2+ </h2>
+<h2>Changes up to 1.2b3 </h2>
 <pre>
 	- Fixed nasty bug in grammar, added test cases to expression.bsh
 	Note: this bug was preventing the latest version of bsh from being used
@@ -14,12 +14,16 @@
 	- cat() command will now print files, urls, streams, and readers
 	- Exceptions in native (compiled) user classes will now print with
 		both the BeanShell script trace and native Java stack trace.  
-		Exceptions generated directly from scripts will continue to show only 
-		the script trace (as that is all that is meaningful).
+		We will try to get Exceptions generated directly from scripts to 
+		continue to show only the script trace (as that is all that is 
+		meaningful).  But we are erring on the side of showing now...
 	- ParseException is now a subtype of EvalError... previously these were
 		caught and the contents were moved to an EvalError.  This means that 
 		now the ParseEx implements the contract as far as getErrorLineNumber(),
 		getErrorText(), and getErrorSourceFile()
+	- In interactive mode, the last uncaught exception is now available in
+		the variable $_e (like the $_ last result).
+
 </pre>
 </h2>
 
