@@ -38,8 +38,17 @@ import java.io.File;
 import java.util.*;
 import java.awt.*;
 import bsh.BshClassManager;
+import bsh.classpath.BshClassPath.ClassSource;
+import bsh.classpath.BshClassPath.DirClassSource;
+import bsh.classpath.BshClassPath.GeneratedClassSource;
 
-public class DiscreteFilesClassLoader extends BshClassLoader {
+/**
+	A classloader which can load one or more classes from specified sources.
+	Because the classes are loaded via a single classloader they change as a
+	group and any versioning cross dependencies can be managed.
+*/
+public class DiscreteFilesClassLoader extends BshClassLoader 
+{
 	/**
 		Map of class sources which also implies our coverage space.
 	*/
@@ -47,11 +56,11 @@ public class DiscreteFilesClassLoader extends BshClassLoader {
 
 	public static class ClassSourceMap extends HashMap 
 	{
-		public void put( String name, File baseDir ) {
-			super.put( name, baseDir );
+		public void put( String name, ClassSource source ) {
+			super.put( name, source );
 		}
-		public File get( String name ) {
-			return (File)super.get( name );
+		public ClassSource get( String name ) {
+			return (ClassSource)super.get( name );
 		}
 	}
 	
@@ -64,40 +73,20 @@ public class DiscreteFilesClassLoader extends BshClassLoader {
 
 	/**
 	*/
-	public Class findClass( String name ) throws ClassNotFoundException {
+	public Class findClass( String name ) throws ClassNotFoundException 
+	{
 		// Load it if it's one of our classes
-		File base = map.get( name );
-		if ( base != null )
-			return loadClassFromFile( base, name );
-		else
-			// Let BshClassLoader try to find appropriate source
+		ClassSource source = map.get( name );
+
+		if ( source != null )
+		{
+			byte [] code = source.getCode( name );
+			return defineClass( name, code, 0, code.length );
+		} else
+			// Let superclass BshClassLoader (URLClassLoader) findClass try 
+			// to find the class...
 			return super.findClass( name );
 	}
-  
-	public Class loadClassFromFile( File base, String className ) 
-	{
-		String n = className.replace( '.', File.separatorChar ) + ".class";
-		File file = new File( base, n );
-
-		if ( file == null || !file.exists() )
-			return null;
-
-		byte [] bytes;
-		try {
-			FileInputStream fis = new FileInputStream(file);
-			DataInputStream dis = new DataInputStream( fis );
-     
-			bytes = new byte [ (int)file.length() ];
-
-			dis.readFully( bytes );
-			dis.close();
-		} catch(IOException ie ) {
-			throw new RuntimeException("Couldn't load file: "+file);
-		}
-
-		Class c =defineClass(className, bytes, 0, bytes.length);
-		return c;
-    }
 
 	public String toString() {
 		return super.toString() + "for files: "+map;
