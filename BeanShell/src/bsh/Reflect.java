@@ -21,7 +21,7 @@ import java.util.Vector;
 // import Name.ClassIdentifier;  // does not work with 1.2.2?
 
 /**
-    All of the reflection API code lies here.  Most of it is in the form
+    All of the reflection API code lies here.  It is in the form
 	of static utilities.  See the design note about object wrappers 
 	in LHS.java for lamentations regarding this.
 */
@@ -382,37 +382,26 @@ class Reflect {
         Class[] types = getTypes(args);
         unwrapPrimitives(args);
 
-        try {
-            con = clas.getConstructor(types);
-        } catch(NoSuchMethodException e) { }
+        if ( con == null ) 
+		{
+			/* 
+				Find an appropriate constructor
+				use declared here to see package and private as well
+				(there are no inherited constructors to worry about) 
+			*/
+			Constructor[] constructors = clas.getDeclaredConstructors();
+			con = findMostSpecificConstructor(types, constructors);
 
-		if ( con == null && types.length == 0 ) {  // no arg constructor
-			throw new ReflectError(
-				"No args constructor not found in class'" 
-					+ clas.getName() + "'");
-		}
-
-        if(con == null) {
-			if ( types.length == 0 )  // no arg constructor
-				throw new ReflectError(
-					"No args constructor not found in class'" 
-						+ clas.getName() + "'");
-			else {
-				/* 
-					Find an appropriate constructor
-				   	use declared here to see package and private as well
-				   	(there are no inherited constructors to worry about) 
-				*/
-				Constructor[] constructors = clas.getDeclaredConstructors();
-				con = findMostSpecificConstructor(types, constructors);
-
-				if(con == null)
+			if ( con == null )
+				if ( types.length == 0 )
+					throw new ReflectError(
+						"Can't find default constructor for: "+clas);
+				else
 					con = findExtendedConstructor(args, constructors);
 
-				if(con == null)
-					throw new ReflectError("Can't find constructor: " 
-						+ clas.toString() );
-			}
+			if(con == null)
+				throw new ReflectError("Can't find constructor: " 
+					+ clas );
         }
 
         try
