@@ -30,13 +30,13 @@ Y y;
 A z;
 
 // these should use something like this.namespace.getClass() instead...
-ca = Class.forName("InheritanceTest.A");
-cb = Class.forName("InheritanceTest.B");
-cc = Class.forName("InheritanceTest.C");
-cw = Class.forName("InheritanceTest.W");
-cx = Class.forName("InheritanceTest.X");
-cy = Class.forName("InheritanceTest.Y");
-cz = Class.forName("InheritanceTest.Z");
+ca = getClass("InheritanceTest.A");
+cb = getClass("InheritanceTest.B");
+cc = getClass("InheritanceTest.C");
+cw = getClass("InheritanceTest.W");
+cx = getClass("InheritanceTest.X");
+cy = getClass("InheritanceTest.Y");
+cz = getClass("InheritanceTest.Z");
 
 sa = ca.getSuperclass();
 sb = cb.getSuperclass();
