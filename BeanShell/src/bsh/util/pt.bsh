@@ -1,0 +1,74 @@
+
+import java.util.*;
+import javax.swing.*;
+import javax.swing.tree.*;
+import javax.swing.event.*;
+import bsh.*;
+
+
+//classPath = BshClassManager.getClassManager().getClassPath();
+
+//s=classPath.getPackagesSet();
+packages=new HashSet();
+packages.add("java.lang");
+packages.add("java.lang.ref");
+packages.add("java.lang.reflect");
+packages.add("java.util");
+packages.add("com.sun.util");
+packages.add("bsh");
+packages.add("bsh.classpath");
+packages.add("org.omg");
+
+Map packageTree = new HashMap();
+
+it=packages.iterator();
+while(it.hasNext() ) {
+	sa= StringUtil.split( it.next(), "." );
+	level=packageTree;
+	for (int i=0; i< sa.length; i++ ) {
+		// e.g. java.lang.reflect
+		java = sa[i];
+		map=level.get( java );
+
+		if ( map == null ) {
+			map=new HashMap();
+			level.put( java, map );
+		} 
+		level = map;
+	}
+}
+
+makePackageTreeNode( Map map, String name ) {
+	node = new DefaultMutableTreeNode( name );
+	it=map.keySet().iterator();
+	while(it.hasNext() ) {
+		name = it.next();
+		val = (Map)map.get(name);
+		if ( val.size() == 0 )
+			node.add( new DefaultMutableTreeNode( name ) );
+		else
+			node.add( makePackageTreeNode( val, name ));
+	}
+
+	return node;
+}
+
+
+root = makePackageTreeNode( packageTree, "root" );
+treeModel = new DefaultTreeModel( root );
+tree= new JTree( treeModel );
+tree.setRootVisible(false);
+//tree.setShowsRootHandles(false);
+
+// expand to second level by default
+e1=root.children();
+while( e1.hasNext() ) {
+	e2 = e1.children();
+	while( e2.hasNext() ) {
+		tp =  new TreePath( treeModel.getPathToRoot( e2.getNext() ) );
+		tree.expandPath( tp );
+	}
+}
+
+frame( tree );
+

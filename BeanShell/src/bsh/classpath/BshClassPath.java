@@ -21,6 +21,11 @@ import bsh.ClassPathException;
 	Classpath traversal is done lazily when a call is made to 
 		getClassesForPackage() or getClassSource()
 	or can be done explicitily through insureInitialized().
+
+	Design notes:
+	Several times here we traverse ourselves and our component paths to
+	produce a composite view of some thing relating to the path.  This would
+	be an opportunity for a visitor pattern.
 */
 public class BshClassPath 
 {
@@ -93,18 +98,28 @@ public class BshClassPath
 
 	/**
 		Return the set of classes in the specified package
+		including all component paths.
 	*/
-	public Collection getClassesForPackage( String pack ) {
+	public Set getClassesForPackage( String pack ) {
 		insureInitialized( null );
-		Collection col = (Collection)packageMap.get( pack );
-		if ( col == null && compPaths != null )
-			for (int i=0; i<compPaths.size() && col==null; i++)
-				col = ((BshClassPath)compPaths.get(i)).getClassesForPackage( pack );
-		return col;
+		Set set = new HashSet();
+		Collection c = (Collection)packageMap.get( pack );
+		if ( c != null )
+			set.addAll( c );
+
+		if ( compPaths != null )
+			for (int i=0; i<compPaths.size(); i++) {
+				c = ((BshClassPath)compPaths.get(i)).getClassesForPackage( 
+					pack );
+				if ( c != null )
+					set.addAll( c );
+			}
+		return set;
 	}
 
 	/**
 		Return the source of the specified class
+		which may lie in component path
 	*/
 	public ClassSource getClassSource( String className ) {
 		insureInitialized( null );
@@ -424,13 +439,17 @@ public class BshClassPath
 	}
 
 	/**
-		return a read only view of the package map.
-		The Map contains Sets of class names mapped by package name.
-		This is a composite of the maps from all component paths as well.
+		Get a list of all of the known packages
 	*/
-	public Map getPackageMap() {
-		insureInitialized(null);
-		return Collections.unmodifiableMap( packageMap );
+	public Set getPackagesSet() {
+		Set set = new HashSet();
+		set.addAll( packageMap.keySet() );
+
+		if ( compPaths != null )
+			for (int i=0; i<compPaths.size(); i++)
+				set.addAll( 
+					((BshClassPath)compPaths.get(i)).packageMap.keySet() );
+		return set;
 	}
 
 	static BshClassPath userClassPath;
