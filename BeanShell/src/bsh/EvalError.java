@@ -57,31 +57,11 @@ public class EvalError extends Exception {
 		this.node = node;
 	}
 
-	/*
-	public String getLocation() {
-		String loc;
-		if ( node == null )
-			loc = "<Unknown location>";
-		else
-			loc = "Line "+node.firstToken.beginLine+" : ";
-
-		return loc;
-	}
-	*/
-	
-	/**
-		The error has trace info associated with it. 
-		i.e. It has an AST node that can print its location and source text.
-	*/
-	public boolean hasNode() {
-		return (node != null);
-	}
-
 	/**
 	*/
 	public String toString() {
 		String trace;
-		if ( hasNode() )
+		if ( node != null )
 			trace = " : at Line: "+ node.getLineNumber() 
 				+ " : in file: "+ node.getSourceFile()
 				+ " : "+node.getText();
@@ -156,8 +136,38 @@ public class EvalError extends Exception {
 		This is useful for the interpreter if it detects that there is no
 		trace info and wants to supply the Line() AST before printing.
 	*/
-	public void setNode( SimpleNode node ) {
+	void setNode( SimpleNode node ) {
 		this.node = node;
 	}
+
+	/**
+		The error has trace info associated with it. 
+		i.e. It has an AST node that can print its location and source text.
+	*/
+	SimpleNode getNode() {
+		return node;
+	}
+
+	public String getErrorText() { 
+		if ( node != null )
+			return node.getText() ;
+		else
+			return "<unknown error>";
+	}
+
+	public int getErrorLineNumber() { 
+		if ( node != null )
+			return node.getLineNumber() ;
+		else
+			return -1;
+	}
+
+	public String getErrorSourceFile() {
+		if ( node != null )
+			return node.getSourceFile() ;
+		else
+			return "<unknown file>";
+	}
+
 }
 

@@ -1,34 +1,23 @@
 package bsh.commands;
 
 import java.io.*;
-import java.io.File; // leave this
 import bsh.*;
 import java.util.Date;
 import java.util.Vector;
+import java.util.GregorianCalendar;
+import java.util.Calendar;
 
-/*
+/**
 	This is an example of a bsh command written in Java for speed.
 */
-
-public class dir {
-
+public class dir 
+{
 	static final String [] months = { "Jan", "Feb", "Mar", "Apr", 
 		"May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 	public static String usage() {
 		return "usage: dir( String dir )\n       dir()";
 	}
-
-	/*
-	static String getCWD( NameSpace namespace ) {
-		try {
-		return (String)namespace.resolveName("bsh.cwd");
-		} catch ( EvalError e ) {
-			Interpreter.debug("can't resolve cwd: "+e);
-			return ".";
-		}
-	}
-	*/
 
 	public static void invoke( Interpreter env, NameSpace namespace ) {
 		//String dir = getCWD( namespace );
@@ -67,8 +56,10 @@ public class dir {
 			sb.append( " ");
 
 			Date d = new Date(f.lastModified());
-			int day = d.getDate();
-			sb.append( months[ d.getMonth() ] + " " + day );
+			GregorianCalendar c = new GregorianCalendar();
+			c.setTime(d);
+			int day	= c.get(Calendar.DAY_OF_MONTH);
+			sb.append( months[ c.get(Calendar.MONTH) ] + " " + day );
 			if ( day < 10 ) 
 				sb.append(" ");
 
