@@ -163,16 +163,35 @@ public class BshClassPath
 	}
 
 	/**
-		Return the source of the specified class
-		which may lie in component path
+		Return the source of the specified class which may lie in component 
+		path.
 	*/
-	synchronized public ClassSource getClassSource( String className ) {
-		insureInitialized();
+	synchronized public ClassSource getClassSource( String className ) 
+	{
+		// Before triggering classpath mapping (initialization) check for
+		// explicitly set class sources (e.g. generated classes).  These would
+		// take priority over any found in the classpath anyway.
 		ClassSource cs = (ClassSource)classSource.get( className );
+		if ( cs != null )
+			return cs;
+
+		insureInitialized(); // trigger possible mapping
+
+		cs = (ClassSource)classSource.get( className );
 		if ( cs == null && compPaths != null )
 			for (int i=0; i<compPaths.size() && cs==null; i++)
-				cs = ((BshClassPath)compPaths.get(i)).getClassSource( className );
+				cs = ((BshClassPath)compPaths.get(i)).getClassSource(className);
 		return cs;
+	}
+
+	/**
+		Explicitly set a class source.  This is used for generated classes, but
+		could potentially be used to allow a user to override which version of
+		a class from the classpath is located.
+	*/
+	synchronized public void setClassSource( String className, ClassSource cs ) 
+	{
+		classSource.put( className, cs );
 	}
 
 	/**
@@ -368,7 +387,8 @@ public class BshClassPath
 		}
 	}
 
-	private void mapClass( String className, Object source ) {
+	private void mapClass( String className, Object source ) 
+	{
 		// add to package map
 		String [] sa = splitClassname( className );
 		String pack = sa[0];
@@ -382,7 +402,8 @@ public class BshClassPath
 
 		// Add to classSource map
 		Object obj = classSource.get( className );
-		// don't replace already parsed (earlier in classpath)
+		// don't replace previously set (found earlier in classpath or
+		// explicitly set via setClassSource() )
 		if ( obj == null )
 			classSource.put( className, source );
 	}
@@ -667,20 +688,67 @@ public class BshClassPath
 		return urlString.substring( "jar:file:".length(), i );
 	}
 
-	public static class ClassSource { 
+	public abstract static class ClassSource { 
 		Object source;
+		abstract byte [] getCode( String className );
 	}
 
 	public static class JarClassSource extends ClassSource { 
 		JarClassSource( URL url ) { source = url; }
 		public URL getURL() { return (URL)source; }
+		/*
+			Note: we should implement this for consistency, however our
+			BshClassLoader can natively load from a JAR because it is a
+			URLClassLoader... so it may be better to allow it to do it.
+		*/
+		public byte [] getCode( String className ) {
+			throw new Error("Unimplemented");
+		}
 		public String toString() { return "Jar: "+source; }
 	}
 
-	public static class DirClassSource extends ClassSource { 
+	public static class DirClassSource extends ClassSource 
+	{ 
 		DirClassSource( File dir ) { source = dir; }
 		public File getDir() { return (File)source; }
 		public String toString() { return "Dir: "+source; }
+
+		public byte [] getCode( String className ) {
+			return readBytesFromFile( getDir(), className );
+		}
+
+		public static byte [] readBytesFromFile( File base, String className ) 
+		{
+			String n = className.replace( '.', File.separatorChar ) + ".class";
+			File file = new File( base, n );
+
+			if ( file == null || !file.exists() )
+				return null;
+
+			byte [] bytes;
+			try {
+				FileInputStream fis = new FileInputStream(file);
+				DataInputStream dis = new DataInputStream( fis );
+		 
+				bytes = new byte [ (int)file.length() ];
+
+				dis.readFully( bytes );
+				dis.close();
+			} catch(IOException ie ) {
+				throw new RuntimeException("Couldn't load file: "+file);
+			}
+
+			return bytes;
+		}
+
+	}
+
+	public static class GeneratedClassSource extends ClassSource 
+	{
+		GeneratedClassSource( byte [] bytecode ) { source = bytecode; }
+		public byte [] getCode( String className ) {
+			return (byte [])source; 
+		}
 	}
 
 	public static void main( String [] args ) throws Exception {

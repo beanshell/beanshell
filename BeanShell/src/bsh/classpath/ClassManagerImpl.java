@@ -38,7 +38,9 @@ import java.util.*;
 import java.lang.ref.*;
 import java.io.IOException;
 import java.io.*;
-import bsh.classpath.BshClassPath.DirClassSource;
+import bsh.classpath.BshClassPath.ClassSource;
+import bsh.classpath.BshClassPath.JarClassSource;
+import bsh.classpath.BshClassPath.GeneratedClassSource;
 import bsh.BshClassManager;
 import bsh.ClassPathException;
 import bsh.Interpreter;  // for debug()
@@ -78,12 +80,11 @@ public class ClassManagerImpl extends BshClassManager
 {
 	static final String BSH_PACKAGE = "bsh";
 	/**
-		The classpath of the base loader.  Initially empty.
-		This grows as paths are added or is reset when the classpath 
-		is explicitly set.
-		This could also be called the "extension" class path, but is not
-		strictly confined to added path (could be set arbitrarily by
-		setClassPath())
+		The classpath of the base loader.  Initially and upon reset() this is
+		an empty instance of BshClassPath.  It grows as paths are added or is
+		reset when the classpath is explicitly set.  This could also be called
+		the "extension" class path, but is not strictly confined to added path
+		(could be set arbitrarily by setClassPath())
 	*/
 	private BshClassPath baseClassPath;
 	private boolean superImport;
@@ -335,27 +336,30 @@ public class ClassManagerImpl extends BshClassManager
 			String name = classNames[i];
 
 			// look in baseLoader class path 
-			baseClassPath.insureInitialized();
-			Object o = baseClassPath.getClassSource( name );
+			ClassSource classSource = baseClassPath.getClassSource( name );
 
 			// look in user class path 
-			if ( o == null ) {
+			if ( classSource == null ) {
 				BshClassPath.getUserClassPath().insureInitialized();
-				o = BshClassPath.getUserClassPath().getClassSource( name );
+				classSource = BshClassPath.getUserClassPath().getClassSource( 
+					name );
 			}
 
 			// No point in checking boot class path, can't reload those.
 			// else we could have used fullClassPath above.
 				
-			if ( o == null )
+			if ( classSource == null )
 				throw new ClassPathException("Nothing known about class: "
 					+name );
 
-			if ( ! (o instanceof DirClassSource) )
+			// JarClassSource is not working... just need to implement it's
+			// getCode() method or, if we decide to, allow the BshClassManager
+			// to handle it... since it is a URLClassLoader and can handle JARs
+			if ( classSource instanceof JarClassSource )
 				throw new ClassPathException("Cannot reload class: "+name+
-					" from source: "+o);
+					" from source: "+ classSource );
 
-			map.put( name, ((DirClassSource)o).getDir() );
+			map.put( name, classSource );
 		}
 
 		// Create classloader for the set of classes
@@ -489,6 +493,25 @@ public class ClassManagerImpl extends BshClassManager
 	public ClassLoader getClassLoader() {
 	}
 	*/
+
+	/*
+		Impl Notes:
+		We add the bytecode source and the "reload" the class, which causes the
+		BshClassLoader to be initialized and create a DiscreteFilesClassLoader
+		for the bytecode.
+
+		@exception ClassPathException can be thrown by reloadClasses
+	*/
+	public Class defineClass( String name, byte [] code ) 
+	{
+		baseClassPath.setClassSource( name, new GeneratedClassSource( code ) );
+		try {
+			reloadClasses( new String [] { name } );
+		} catch ( ClassPathException e ) {
+			throw new bsh.InterpreterError("defineClass: "+e);
+		}
+		return classForName( name );
+	}
 
 	/**
 		Clear global class cache and notify namespaces to clear their 
