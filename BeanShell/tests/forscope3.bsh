@@ -1,0 +1,26 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+// Joakim Sandgren <joakim.sandgren@free.fr>
+Vector proc(Vector midic) {     
+        Vector resultat = new Vector();
+        for(int i = 0; i < midic.size(); i++) {
+                for (int j = i; j < midic.size() - i; j++) {
+					print( j );
+					resultat.addElement( ""+j );
+                }       
+        }       
+        return resultat;
+}       
+
+v = new Vector();
+v.addElement("foo");
+v.addElement("foo");
+v.addElement("foo");
+v2 = proc( v );
+
+// had to add something to assert... - Pat
+assert( v2.elementAt(3).equals("1") );
+
+complete();
