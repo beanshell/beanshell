@@ -28,6 +28,7 @@ public class BshClassPath
 	public BshClassPath( URL [] urls ) {
 		add( urls );
 	}
+	public BshClassPath() { }
 
 	public URL [] getPathComponents() {
 		return (URL[])path.toArray( new URL[0] );

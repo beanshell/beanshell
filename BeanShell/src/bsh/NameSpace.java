@@ -66,22 +66,18 @@ public class NameSpace
 		if(variables ==	null)
 			variables =	new Hashtable();
 
-		if(o ==	null)
+		if ( o == null )
 			variables.remove(name);
-		else
-		{
+		else {
 			Object current = variables.get(name);
-			if((current	!= null) && (current instanceof	TypedVariable))
-			try
-			{
+			if ( (current!= null) && (current instanceof TypedVariable) )
+			try {
 				((TypedVariable)current).setValue(o);
-			}
-			catch(EvalError	e)
-			{
-				throw new EvalError("Typed variable: " + name + ": " + e.getMessage());
-			}
-			else
-			variables.put(name, o);
+			} catch(EvalError e) {
+				throw new EvalError(
+					"Typed variable: " + name + ": " + e.getMessage());
+			} else
+				variables.put(name, o);
 		}
     }
 
@@ -108,7 +104,7 @@ public class NameSpace
 		return sa;
 	}
 
-	/*
+	/**
 		Note: this isn't quite the same as getSuper().
 		getSuper() returns 'this' if we are at the root namespace.
 	*/
@@ -118,18 +114,18 @@ public class NameSpace
 
     public NameSpace getSuper()
     {
-	if(parent != null)
-	    return parent;
-	else
-	    return this;
+		if(parent != null)
+			return parent;
+		else
+			return this;
     }
 
     public NameSpace getGlobal()
     {
-	if(parent != null)
-	    return parent.getGlobal();
-	else
-	    return this;
+		if(parent != null)
+			return parent.getGlobal();
+		else
+			return this;
     }
 
 	
@@ -263,23 +259,23 @@ public class NameSpace
 
     public void	importClass(String name)
     {
-	if(importedClasses == null)
-	    importedClasses = new Hashtable();
+		if(importedClasses == null)
+			importedClasses = new Hashtable();
 
-	importedClasses.put(Name.suffix(name, 1), name);
+		importedClasses.put(Name.suffix(name, 1), name);
     }
 
     public String getImportedClass(String name)
     {
-	String s = null;
+		String s = null;
 
-	if(importedClasses != null)
-	    s =	(String)importedClasses.get(name);
+		if(importedClasses != null)
+			s =	(String)importedClasses.get(name);
 
-	if((s == null) && (parent != null))
-	    return (String)parent.getImportedClass(name);
+		if((s == null) && (parent != null))
+			return (String)parent.getImportedClass(name);
 
-	return s;
+		return s;
     }
 
 
@@ -318,8 +314,7 @@ public class NameSpace
 		if(classCache != null)
 			c =	(Class)classCache.get(name);
 
-		if(c ==	null)
-		{
+		if(c ==	null) {
 			c =	getClass2( name );
 
 			if(c != null) {
@@ -412,40 +407,9 @@ public class NameSpace
 		return c;
     }
 
-	/**
-		This is the central location for loading classes by name.
-		Caching and various strategies are implmented through here.
-		@returns class or null
-	*/
 	public static Class classForName( String name ) 
 	{
-
 		return BshClassManager.classForName( name );
-/*
-		if ( absoluteNonClasses.get(name) != null )
-			return null;
-
-		Class c	=(Class)absoluteClassCache.get(name);
-		if (c != null)
-			return c;
-
-	    try {
-			c = Class.forName(name);
-			// succeeded 
-			absoluteClassCache.put(name, c);
-			return c;
-	    } catch ( Exception e ) {
-			absoluteNonClasses.put(name, "unused");
-	    } catch ( NoClassDefFoundError e2 ) {
-			/
-				This is weird... jdk under Win is throwing these to
-				warn about lower case / upper case possible mismatch.
-				e.g. bsh.console bsh.Connsole
-			/
-			absoluteNonClasses.put(name, "unused");
-		}
-		return null;
-*/
 	}
 
     static class TypedVariable implements java.io.Serializable {
