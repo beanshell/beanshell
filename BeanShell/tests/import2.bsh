@@ -22,6 +22,7 @@ assert( this.namespace.getClass("MyClass") == null );
 
 // local blocks do *not* have their own namespace
 
+assert( this.namespace.getClass("MyClass") == null );
 {
 	import mypackage.*;
 	assert( this.namespace.getClass("MyClass") != null );

@@ -3,6 +3,7 @@
 source("TestHarness.bsh");
 
 import bsh.NameSpace;
+import bsh.CallStack;
 
 this.caller;
 
@@ -20,7 +21,7 @@ assert( isEvalError("super.this") );
 tmp=this;
 assert( isEvalError("tmp.caller") );
 
-assert( this.callstack instanceof NameSpace[] );
+assert( this.callstack instanceof CallStack );
 
 foo( caller ) {
 	assert( this.caller == caller );

@@ -23,7 +23,7 @@ public class TestBshBSF
 		String script = "foo + bar + bsf.lookupBean(\"gee\")";
 		Object result = beanshellEngine.eval( "Test eval...", -1, -1, script );
 
-		assert( result.equals("fooStringbarStringgeeString" ) );
+		assertTrue( result.equals("fooStringbarStringgeeString" ) );
 
 		// test apply()
 		Vector names = new Vector();
@@ -36,15 +36,15 @@ public class TestBshBSF
 		result = beanshellEngine.apply( 
 			"source string...", -1, -1, script, names, vals );
 	
-		assert( result.equals("PatPat" ) );
+		assertTrue( result.equals("PatPat" ) );
 
 		result = beanshellEngine.eval( "Test eval...", -1, -1, "name" );
 
 		// name should not be set 
-		assert( result == null );
+		assertTrue( result == null );
 	}
 
-	static void assert( boolean cond ) {
+	static void assertTrue( boolean cond ) {
 		if ( cond )
 			System.out.println("Passed...");
 		else
