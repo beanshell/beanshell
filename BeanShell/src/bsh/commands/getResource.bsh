@@ -1,9 +1,13 @@
+/**
+	The equivalent of calling getResource() on the interpreter class in
+	the bsh package.  Use absolute paths to get stuff in the classpath.
+*/
 
 bsh.help.getResource = "usage: getResource( String name )";
 
 import bsh.Interpreter;
 
-getResource( String name ) {
+URL getResource( String path ) {
 	//return this.interpreter.getClass().getResource(name);
 	return Interpreter.class.getResource(name);
 }

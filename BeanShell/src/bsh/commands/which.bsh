@@ -1,10 +1,15 @@
+/**
+	Use classpath mapping to determine the source of the specified class
+	file.  (Like the Unix which command for executables).
+
+	@method which( classIdentifier | string | class )
+*/
 
 bsh.help.which= "usage: which( classIdentifier | string | class )";
 
 import bsh.Name;
 import bsh.BshClassManager;
-/*
-*/
+
 which( clas ) { 
 	// make the class into a name
 	if ( clas instanceof Name.ClassIdentifier )

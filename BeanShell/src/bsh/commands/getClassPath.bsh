@@ -1,3 +1,7 @@
+/**
+Get the current classpath including all user path, extended path, and the
+boostrap JAR file if possible.
+*/
 
 bsh.help.getClassPath= "usage: getClassPath()";
 import bsh.BshClassManager;

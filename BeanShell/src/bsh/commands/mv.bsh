@@ -1,8 +1,9 @@
+/**
+	Rename a file (like Unix mv).
+*/
 
 bsh.help.mv = "usage: mv( fromFile, toFile )";
 
-/*
-*/
 mv( String fromFile, String toFile ) 
 {
     from = pathToFile( fromFile );

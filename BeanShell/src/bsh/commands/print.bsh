@@ -1,7 +1,20 @@
+/**
+	Print the string value of the argument, which may be of any type.
+	If beanshell is running interactively, the output will always go to the 
+	command line, otherwise it will go to System.out.
+	<p>
 
+	Most often the printed value of an object will simply be the Java 
+	toString() of the object.  However if the argument is an array the contents 
+	of the array will be (recursively) listed in a verbose way.
+	<p>
+
+	Note that you are always free to use System.out.println() 
+	instead of print().
+*/
 bsh.help.print = "usage: print( value )";
 
-print( arg ) {
+void print( arg ) {
 	if ( arg == null )
 		arg = "null";
 

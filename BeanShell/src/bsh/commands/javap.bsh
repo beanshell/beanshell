@@ -1,3 +1,13 @@
+/**
+	Print the public fields and methods of the specified class (output similar 
+	to the JDK javap command).
+	<p>
+	If the argument is a
+	string it is considered to be a class name.  If the argument is an object,
+	the class of the object is used.  If the arg is a class, the class is used.
+
+	@method void javap( String | Object | Class )
+*/
 
 bsh.help.javap= "usage: javap( value )";
 

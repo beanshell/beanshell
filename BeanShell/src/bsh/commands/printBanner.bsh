@@ -1,3 +1,8 @@
+/**
+	Print the BeanShell banner (version and author line) - GUI or non GUI.
+
+	@author Daniel Leuck
+*/
 
 import javax.swing.ImageIcon;
 import java.awt.*;
@@ -5,14 +10,12 @@ import bsh.Interpreter;
 import bsh.Capabilities;
 import bsh.util.JConsole;
 
-/**
-	Daniel Leuck: supplied this
-
+/*
 	Note: any errors thrown in here will be caught by interpreter and
 	ignored... printing the default message.
 */
-printBanner() {
-
+printBanner() 
+{
 	if ( bsh.console != void 
 		&& Capabilities.haveSwing() 
 		&& (bsh.console instanceof JConsole) ) {

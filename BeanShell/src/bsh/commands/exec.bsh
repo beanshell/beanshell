@@ -1,3 +1,7 @@
+/**
+	Get the Java Runtime and start the external process, display any
+	output to the standard bsh output.
+*/
 
 bsh.help.exec = "usage: exec( String arg )";
 

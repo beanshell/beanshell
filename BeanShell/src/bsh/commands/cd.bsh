@@ -1,10 +1,13 @@
+/**
+	Change working directory for dir(), etc. commands (like Unix cd)
+*/
 
 bsh.help.cd = "usage: cd( path )";
 
 /*
 	Additions by Kevin Raulerson, http://www.spin.com.mx/~kevinr/
 */
-cd( String pathname ) {
+void cd( String pathname ) {
 
     file = pathToFile( pathname );
 

@@ -1,3 +1,6 @@
+/**
+Toggle on and off debug mode... Note: debug output is verbose and gross.
+*/
 
 bsh.help.debug = "usage: debug()";
 

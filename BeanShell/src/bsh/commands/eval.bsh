@@ -1,7 +1,8 @@
-
-bsh.help.eval = "usage: eval( String expression )";
-
 /**
+	Evaluate the string in the current interpreter (see source()).
+	Returns the result of the evaluation or null.
+	<p>
+
 	Evaluate a string as if it were written directly in the current scope, 
 	with side effects in the current scope.
 	<p>
@@ -48,9 +49,18 @@ bsh.help.eval = "usage: eval( String expression )";
 		}
 	</pre>
 
+	<p>
+	Returns the value of the expression.
+	<p>
+	Throws bsh.EvalError on error
+	<p>
 	@return the value of the expression.
 	@throws bsh.EvalError on error
 */
-eval( String expression ) {
+
+bsh.help.eval = "usage: eval( String expression )";
+
+Object eval( String expression ) {
     return this.interpreter.eval( expression, this.caller.namespace );
 }
+

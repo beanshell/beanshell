@@ -1,5 +1,18 @@
+/**
+	When strict Java mode is enabled BeanShell will:
+	<p>
 
-void setStrictJava( boolean val ) {
+	<ol>
+	<li>Require typed variable declarations, method arguments and return types.
+	<li>Modify the scoping of variables to look for the variable
+	declaration first in the parent namespace, as in a java method inside 
+	a java class.  e.g. if you can write a method called incrementFoo() that 
+	will do the expected thing without referring to "super.foo".
+	</ul>
+*/
+
+void setStrictJava( boolean val ) 
+{
 	import bsh.Interpreter;
 
 	Interpreter.strictJava = val;
