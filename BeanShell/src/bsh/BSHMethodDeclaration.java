@@ -50,6 +50,7 @@ class BSHMethodDeclaration extends SimpleNode
 	BSHFormalParameters params;
 	BSHBlock block;
 	Object returnType; 	// null (none), Primitive.VOID, or a Class
+	Modifiers modifiers;
 
 	BSHMethodDeclaration(int id)
 	{

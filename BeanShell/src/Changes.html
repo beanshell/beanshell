@@ -300,6 +300,12 @@
 		RHS.  (Java behavior seems strange to me.) e.g.
 			i=1; i+=i++; // should be 2 apparently
 			i=1; i+=i++ + i++; // should be 4 apparently
+	
+	  - BeanShell now supports modifiers (e.g. public, private, static, etc.)
+	  on methods and typed variable declarations.  Basic sanity checks are done
+	  at parse time (e.g. you can't apply volatile to a method, mix
+	  public/private, etc.)  "final" is implemented for typed variables but 
+	  other modifiers are currently ignored.  More can be added in time.
 </pre>
 
 <h2>Changes in 1.2b8 </h2>

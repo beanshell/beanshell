@@ -53,12 +53,14 @@ options {
 	/* Print detailed lookahead debugging info
 	DEBUG_LOOKAHEAD=true;
 	*/
+	ERROR_REPORTING=false;
 }
 
 PARSER_BEGIN(Parser)
 package bsh;
 
 import java.io.*;
+import java.util.Vector;
 
 /**
 	This is the BeanShell parser.  It is used internally by the Interpreter
@@ -171,8 +173,119 @@ public class Parser
 			}
 		}
 	}
-}
 
+	/*
+		Lookahead to determine whether a method has a return type.
+
+		// Case 1 - primitive or void
+		[ void, boolean, char, ... ] foo() { }
+
+		// Case 2 - simple type name
+		Foo foo () { } 
+		//Foo obj.foo () { }  not currently supported
+
+		// Case 3 - compound type name
+		foo.Foo foo () { }
+		//foo.Foo obj.foo () { } not currently supported
+
+		// Case 4 - Parameterized return type?
+		// ??
+
+		// Case N - no type
+		foo () { }
+		//obj.foo () { }  not currently supported
+	*/
+	boolean methodHasReturnType() 
+	{
+		int curTok = 1;
+		Token 
+			tok1 = getToken(curTok++),
+			tok2 = getToken(curTok++),
+			tok3 = getToken(curTok++);
+
+		// Case 1
+		if ( tok1.kind == VOID || tok1.kind == BOOLEAN || tok1.kind == CHAR
+			|| tok1.kind == BYTE || tok1.kind == SHORT || tok1.kind == INT
+			|| tok1.kind == LONG || tok1.kind == FLOAT || tok1.kind == DOUBLE
+		)
+				return true;
+
+		// Case 2
+		if ( tok1.kind == IDENTIFIER && tok2.kind == IDENTIFIER 
+			&& tok3.kind == LPAREN )
+			return true;
+
+		// Case 3
+		if ( tok1.kind == IDENTIFIER && tok2.kind == DOT )
+			return true;
+
+		// Case N
+		return false;
+	}
+
+	/**
+		UNUSED:
+		This was an alternate approach to methodHasReturnType() which should
+		work with compound method names... for a case we don't support right
+		now. e.g.  myobject.foo() { }
+
+		Lookahead to determine whether a method has a return type.
+		Find the '(' and then count backwards through the AmbiguousName().
+		If there are tokens left then the other stuff must be a type, right?
+
+		// Case 1 - primitive or void
+		[ void, boolean, char, ... ] foo() { }
+
+		// Case 2 - simple type name
+		Foo foo () { } 
+		Foo obj.foo () { } 
+
+		// Case 3 - compound type name
+		foo.Foo foo () { }
+		foo.Foo obj.foo () { }
+
+		// Case 4 - Parameterized return type?
+		// ??
+
+		// Case N - no type
+		foo () { }
+		obj.foo () { }
+
+	boolean methodHasReturnType() 
+	{
+		int startTok=1, curTok=1;
+		Token tok;
+		while( (tok = getToken(curTok++)).kind != LPAREN ); // find the paren
+		curTok-=2; // last (or only) component of method name
+		while( curTok > startTok )
+		{
+			if ( getToken(curTok-1).kind == DOT 
+				&& getToken(curTok-2).kind == IDENTIFIER 
+			)
+				curTok -= 2;
+			else
+				break;
+		}
+
+		return curTok > startTok;
+	}
+	*/
+
+	/**
+		Generate a ParseException with the specified message, pointing to the
+		current token.
+		The auto-generated Parser.generateParseException() method does not
+		provide line number info, therefore we do this.
+	*/
+	ParseException createParseException( String message )
+	{
+		Token errortok = token;
+		int line = errortok.beginLine, column = errortok.beginColumn;
+		String mess = (errortok.kind == 0) ? tokenImage[0] : errortok.image;
+		return new ParseException( "Parse error at line " + line 
+			+ ", column " + column + " : " + message );
+	}
+}
 
 PARSER_END(Parser)
 
@@ -202,7 +315,8 @@ SPECIAL_TOKEN : /* COMMENTS */
 
 TOKEN : /* RESERVED WORDS AND LITERALS */
 {
-< BOOLEAN: "boolean" >
+< ABSTRACT : "abstract" >
+| < BOOLEAN: "boolean" >
 | < BREAK: "break" >
 | < CLASS: "class" >
 | < BYTE: "byte" >
@@ -227,6 +341,7 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < INT: "int" >
 | < INTERFACE: "interface" >
 | < LONG: "long" >
+| < NATIVE: "native" >
 | < NEW: "new" >
 | < NULL: "null" >
 | < PRIVATE: "private" >
@@ -236,10 +351,13 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < SHORT: "short" >
 | < STATIC: "static" >
 | < SWITCH: "switch" >
+| < SYNCHRONIZED: "synchronized" >
+| < TRANSIENT: "transient" >
 | < THROW: "throw" >
 | < TRUE: "true" >
 | < TRY: "try" >
 | < VOID: "void" >
+| < VOLATILE: "volatile" >
 | < WHILE: "while" >
 }
 
@@ -446,32 +564,60 @@ boolean Line() :
  * THE JAVA LANGUAGE GRAMMAR STARTS HERE *
  *****************************************/
 
-void MethodDeclaration() #MethodDeclaration :
-{ Token t = null; }
+Modifiers Modifiers( int context, boolean lookahead ) : 
 {
-	// SYNTACTIC_LOOKAHEAD
-	// this one seems cheap enough
-    LOOKAHEAD( MethodDeclarationTypeLookahead() )
-    ReturnType() t = <IDENTIFIER> { jjtThis.name = t.image; }
-    FormalParameters() Block()
-|
-    t = <IDENTIFIER> { jjtThis.name = t.image; }
+	Modifiers mods = null;
+}
+{
+  (
+	( 
+		"private" |	"protected" | "public" | "synchronized" | "final"
+		| "native" | "transient" | "volatile" |	"abstract" | "static" 
+	) {
+		if ( !lookahead )
+			try {
+				if ( mods == null ) mods = new Modifiers(); 
+				mods.addModifier( context, getToken(0).image );
+			} catch ( IllegalStateException e ) { 
+				throw createParseException( e.getMessage() );
+			}
+	}
+  )* {
+  	return mods;
+  }
+}
+
+void MethodDeclaration() #MethodDeclaration :
+{ 
+	Token t = null; 
+	Modifiers mods;
+}
+{
+	mods = Modifiers( Modifiers.METHOD, false ) { jjtThis.modifiers = mods; }
+    [ LOOKAHEAD( { methodHasReturnType() } ) ReturnType() ]
+	t = <IDENTIFIER> { jjtThis.name = t.image; }
     FormalParameters() Block()
 }
 
+/**
+	It's tempting to collapse this to one like like so:
+
+      [ LOOKAHEAD( { methodHasReturnType() } ) ReturnType() ]
+      <IDENTIFIER> FormalParameters() "{"
+
+	However this doesn't work because nested lookaheads are not evaluated
+	during lookahead!
+	http://www.engr.mun.ca/~theo/JavaCC-FAQ/javacc-faq.htm#tth_sEc4.9
+*/
 void MethodDeclarationLookahead() : { }
 {
-	// SYNTACTIC_LOOKAHEAD
-	// this one seems cheap enough
-    LOOKAHEAD( MethodDeclarationTypeLookahead() )
+	Modifiers( Modifiers.METHOD, true )
+  (
+    LOOKAHEAD( { methodHasReturnType() }  )
     ReturnType() <IDENTIFIER> FormalParameters() "{"
 |
-    <IDENTIFIER> FormalParameters() "{"
-}
-
-void MethodDeclarationTypeLookahead() : { }
-{
-    ReturnType() <IDENTIFIER> "("
+	<IDENTIFIER> FormalParameters() "{"
+  )
 }
 
 void ImportDeclaration() #ImportDeclaration :
@@ -493,9 +639,15 @@ void ImportDeclaration() #ImportDeclaration :
 }
 
 void VariableDeclarator() #VariableDeclarator :
-{ Token t; }
+{ 
+	Token t; 
+	Modifiers mods; 
+}
 {
-  t=<IDENTIFIER> [ "=" VariableInitializer() ] { jjtThis.name = t.image; }
+	t=<IDENTIFIER> [ "=" VariableInitializer() ] 
+	{ 
+  		jjtThis.name = t.image;
+	}
 }
 
 /*
@@ -921,7 +1073,7 @@ void Literal() #Literal :
 		try {
     		jjtThis.charSetup( x.image.substring(1, x.image.length() - 1) );
 		} catch ( Exception e ) {
-			throw new ParseException("Error parsing character: "+x.image);
+			throw createParseException("Error parsing character: "+x.image);
 		}
     }
 |
@@ -929,7 +1081,7 @@ void Literal() #Literal :
 		try {
 			jjtThis.stringSetup( x.image.substring(1, x.image.length() - 1) );
 		} catch ( Exception e ) {
-			throw new ParseException("Error parsing string: "+x.image);
+			throw createParseException("Error parsing string: "+x.image);
 		}
     }
 |
@@ -1065,7 +1217,7 @@ void BlockStatement() :
   LOOKAHEAD( MethodDeclarationLookahead() ) MethodDeclaration()
 |
   // SYNTACTIC_LOOKAHEAD
-  LOOKAHEAD([ "final" ] Type() <IDENTIFIER>)
+  LOOKAHEAD( Modifiers( Modifiers.FIELD, true ) Type() <IDENTIFIER> )
   TypedVariableDeclaration() ";"
 |
   Statement()
@@ -1185,7 +1337,7 @@ void ForInit() :
 { Token t = null; }
 {
 // SYNTACTIC_LOOKAHEAD
-  LOOKAHEAD( [ t="final" ] Type() <IDENTIFIER> )
+  LOOKAHEAD( Modifiers( Modifiers.FIELD, true ) Type() <IDENTIFIER> )
   TypedVariableDeclaration()
 |
   StatementExpressionList()
@@ -1199,12 +1351,13 @@ void ForInit() :
 void TypedVariableDeclaration() #TypedVariableDeclaration :
 { 
 	Token t = null; 
+	Modifiers mods;
 }
 {
-  [ t="final" ] Type() 
-		VariableDeclarator() ( "," VariableDeclarator() )*  
+	mods = Modifiers( Modifiers.FIELD, false )
+  	Type() VariableDeclarator() ( "," VariableDeclarator() )*  
 	{
-        jjtThis.isFinal = (t!=null);
+        jjtThis.modifiers = mods;
     }
 }
 

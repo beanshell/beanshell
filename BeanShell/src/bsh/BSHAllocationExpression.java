@@ -57,7 +57,7 @@ class BSHAllocationExpression extends SimpleNode
         {
             BSHAmbiguousName name = (BSHAmbiguousName)type;
 
-            if(args instanceof BSHArguments)
+            if (args instanceof BSHArguments)
                 return objectAllocation(name, (BSHArguments)args, 
 					callstack, interpreter );
             else

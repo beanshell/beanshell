@@ -23,7 +23,7 @@
 
 <property name="file" value=""/>
 
-	<property name="version" value="1.3a4"/>
+	<property name="version" value="1.3a5"/>
 	<property name="deprecation" value="on"/>
 
 	<!-- choose an alternate compiler -->
@@ -152,7 +152,7 @@
 			destdir="${build-dir}"
 			deprecation="${deprecation}"
 			optimize="on"
-			debug="on"
+			debug="off"
 			includes="**/*.java"
 			excludes="${excludes},**/bak/**"
 		>
