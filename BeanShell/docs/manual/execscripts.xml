@@ -1,0 +1,18 @@
+<section>
+<name>Executable scripts under Unix</name>
+
+<example>
+#!/usr/java/bin/java bsh.Interpreter 
+
+print("foo");
+</example>
+
+<example>
+#!/bin/sh
+#! The following hack allows java to reside anywhere in the PATH.
+//bin/sh -c "exec java bsh.Interpreter $0 $*"; exit
+
+print("foo");
+</example>
+
+</section>

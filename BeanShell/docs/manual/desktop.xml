@@ -1,0 +1,32 @@
+<section>
+<name>BeanShell Desktop</name>
+
+
+<img src="splash1.jpg"/>
+<p/>
+
+The BeanShell Desktop is a simple GUI environment that provides multiple
+bsh shell windows (MDI), a simple text editor, and a simple class browser.
+The desktop is mostly implemented by bsh scripts.
+<p/>
+
+<h3>Shell Windows</h3>
+
+<img src="colorconsole.jpg"/>
+<p/>
+
+The bsh console windows provide simple command line editing, history,
+cut &amp; paste, and variable and class name completion. 
+<p/>
+
+<h3>Editor Windows</h3>
+
+<img src="editorwindow.gif"/>
+<p/>
+
+<h3>The Class Browser</h3>
+
+<img src="bshclassbrowser.gif"/>
+<p/>
+
+</section>

@@ -1,0 +1,22 @@
+<section>
+<name>Using BeanShell in Your Application</name>
+
+<example>
+import bsh.Interpreter;
+...
+
+Interpreter i = new Interpreter();
+i.set("foo", 5);
+i.eval("bar = foo*10");
+System.out.println("bar = "+i.get("bar") );
+</example>
+
+Note: The trailing ";" semi-colon in the string containing the bsh statement 
+to be evaluated is optional in this mode (bsh simply always adds one).
+<p/>
+
+<em>Embedding in Server Mode is the same, coming...</em><br/>
+<em>More coming...</em>
+<p/>
+
+</section>

@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="manual.xsl"?>
+
+<!DOCTYPE manual [
+  <!ELEMENT manual ANY>
+
+  <!ENTITY quickstart SYSTEM "quickstart.xml">
+  <!ENTITY syntax SYSTEM "syntax.xml">
+  <!ENTITY methods SYSTEM "methods.xml">
+  <!ENTITY objects SYSTEM "objects.xml">
+  <!ENTITY events SYSTEM "events.xml">
+  <!ENTITY threads SYSTEM "threads.xml">
+  <!ENTITY specialvarsvalues SYSTEM "specialvarsvalues.xml">
+  <!ENTITY classpath SYSTEM "classpath.xml">
+  <!ENTITY desktop SYSTEM "desktop.xml">
+  <!ENTITY embedding SYSTEM "embedding.xml">
+  <!ENTITY servermode SYSTEM "servermode.xml">
+  <!ENTITY execscripts SYSTEM "execscripts.xml">
+  <!ENTITY bshpackage SYSTEM "bshpackage.xml">
+  <!ENTITY more SYSTEM "more.xml">
+  <!ENTITY credit SYSTEM "credit.xml">
+  <!ENTITY bshcommands SYSTEM "bshcommands.xml">
+
+  <!-- I can't figure out how to move this to the included bshcommands file -->
+  <!ENTITY bshcommands-bshdoc SYSTEM "bshcommands-bshdoc.xml">
+]>
+
+<manual>
+	<!-- Auto generated table of contents -->
+	<contents/>
+	<!-- sections -->
+	&quickstart;
+	&syntax;
+	&methods;
+	&objects;
+	&events;
+	&threads;
+	&specialvarsvalues;
+	&classpath;
+	&desktop;
+	&embedding;
+	&servermode;
+	&execscripts;
+	&bshpackage;
+	&more;
+	&credit;
+	&bshcommands;
+</manual>
+

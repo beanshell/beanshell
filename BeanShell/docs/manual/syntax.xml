@@ -1,0 +1,144 @@
+<section>
+<name>BeanShell Syntax</name>
+
+BeanShell is primarily a Java interpreter, so you probably already know 
+most of what you need to start using and scripting in bsh.  This section
+will describe specifically what portion of the Java langauge bsh interprets
+and how bsh extends it - loosens it up - to be more scripting language like.
+<p/>
+
+<heading>
+Standard Java Syntax
+</heading>
+
+At the prompt you can type normal Java statements and expressions and 
+display the results.  
+Statements and expressions are the kinds of things you normally find 
+inside of a Java method - variable assignments, method calls, math 
+expressions, for-loops, etc., etc.  
+<p/>
+
+Here are some examples:
+
+<example>
+    // Use a hashtable
+    Hashtable h = new Hashtable();
+    Date d = new Date();
+    h.put("today", d);
+
+    // Print the current clock value
+    print( System.currentTimeMillis() );
+
+    // Loop
+    for (int i=0; i&lt;5; i++)
+        print(i);
+
+    // Pop up an AWT frame with a button in it
+    JButton b = new JButton("My Button");
+    JFrame f = new JFrame("My Frame");
+    f.getContentPane()add(b, "Center");
+    f.pack();
+    f.show();
+</example>
+
+<heading>
+Loose Java Syntax
+</heading>
+
+In the examples above, all of our variables have declared types - e.g. 
+'JButton b'.  Beanshell will enforce these types, as you will see if you 
+later try to 
+assign something other than a JButton to the variable 'b' (you will get
+an error message).
+However bsh also supports dynamically typed variables - that is, you can 
+refer to 
+variables without declaring them first and without specifying any type.
+In this case bsh will do type checking where appropriate at "runtime".  So, 
+for example, we could have left off the types in the above example and 
+simply said something like:
+<example>
+    foo = new JButton("Another Button");
+</example>
+
+We are then free to assign 'foo' to another type of Java object later.
+Untyped bsh variables can also freely hold Java primitive values like int 
+and boolean.  Don't worry, bsh always knows the real types and only lets you
+use the values where appropriate.  For primitive types this includes doing the
+correct numeric promotion that the real Java language would do when you use
+them in an expression.
+<p/>
+<p/>
+
+<heading>
+Convenience Syntax
+</heading>
+<p/>
+
+In bsh you may access JavaBean properties as if they were fields:
+
+<pre>
+    b = new java.awt.Button();
+    b.label = "my button";  // Equivalent to: b.setLabel("my button");
+</pre>
+
+Of course if there is a field of the same name (e.g. label in the above
+example) then it would take precedence.
+<p/>
+
+If you wish to avoid ambiguity Bsh provides an additional, uniform syntax for 
+accessing Java Bean properties and Hashtable entries.  
+You may use the "{}" curly brace construct with a 
+String identifier as a qualifier on any variable of the appropriate type:
+
+<example>
+    b = new java.awt.Button();
+    b{"label"} = "my button";  // Equivalent to: b.setLabel("my button");
+
+    h = new Hashtable();
+    h{"foo"} = "bar";          // Equivalent to: h.put("foo", "bar");
+</example>
+
+
+<p/>
+
+<heading>
+Importing classes and packages
+</heading>
+
+In BeanShell as in Java, you can either refer to classes by their fully
+qualified names, or you can <strong>import</strong> one or more classes 
+from a Java package.
+<p/>
+
+<example>
+    import mypackage.MyClass;
+or
+    import mypackage.*;
+</example>
+<p/>
+
+You may also automatically import the entire classpath using:
+
+<example>
+	import *;
+</example>
+
+See <a href="classpath.html">Class Path Management</a> for details.
+<p/>
+
+By default, several Java core and extension packages are imported for 
+you.  They are:
+
+<ul>
+<li>java.lang</li>
+<li>java.awt</li>
+<li>java.awt.event</li>
+<li>javax.swing</li>
+<li>javax.swing.event</li>
+<li>java.util</li>
+<li>java.io</li>
+<li>java.net</li>
+</ul>
+<p/>
+
+</section>

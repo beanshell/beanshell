@@ -1,0 +1,83 @@
+<section>
+<name>Scripted Objects</name>
+
+In bsh you can script objects as "method closures", similar to 
+those in Perl5.0 and JavaScript.
+<p/>
+
+As in most languages, executing bsh methods have their own "local" scope 
+that holds argument variables and locally declared variables.  For example,
+any variables that we might have declared within our add() method above would 
+normally only be visible within the scope of and for the lifetime of a 
+particular method invocation:
+
+<example>
+    foo() {
+        bar = 42;
+        print( bar );
+    }   
+
+    foo();  // prints 42
+    print( bar ); // Error, var is undefined here 
+</example>
+
+However, in BeanShell you can "hang on" to this scope after
+exiting the method by returning the special value: "this".  As in Java,
+"this" refers to the current object context.  By saving the "this" reference,
+you can continue to refer to variables defined within the method, using
+the standard Java "." notation:
+
+<example>
+    foo() {
+        bar = 42;
+        return this;
+    }
+
+    obj = foo();
+    print( obj.bar ); // 42
+</example>
+
+In the above, the value returned by the foo() method is effectively
+an instance of a "foo" object. 
+In this case foo is really just acting like a structure,  but bsh methods
+are also allowed to contain their own methods:
+<example>
+    foo() {
+        bar() {
+            ...
+        }
+    }
+</example>
+Method may define any number of local methods in this way, to an arbitrary 
+depth.
+<p/>
+
+Statements and expressions within a Bsh method can call their own 
+"local" methods just like any other method.  (Locally declared methods shadow
+outer-more methods like local variables shadow outer variables.)
+And we can invoke local methods of objects through an appropriate 'this' 
+reference for that object:
+
+<example>
+    foo() {
+        int a = 42;
+        bar() {
+            print("The bar is open!");
+        }
+        
+        bar();
+        return this;
+    }
+
+    obj = foo();     // prints "the bar is open!"
+    print ( obj.a )  // 42
+    obj.bar();       // prints "the bar is open!"
+</example>
+
+
+Within a nested method, locally declared variables at each level of scope
+shadow methods of the same name in outer-more scopes.  Otherwise, variables
+are visible to an arbitrary depth of scope.
+<p/>
+
+</section>
