@@ -1,10 +1,17 @@
 #!/bin/java bsh.Interpreter
 
+// Givin' bsh its props ;)
+
 source("TestHarness.bsh");
 
+// {} syntax
 b = new java.awt.Button();
 print( b{"name"} );
 b{"name"} = "MyButton!";
 assert( b{"name"}.equals("MyButton!") );
+
+// extended field style access
+b.name = "Test";
+assert( b.name.equals("Test") );
 
 complete();

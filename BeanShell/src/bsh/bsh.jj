@@ -31,7 +31,7 @@ import java.awt.Color;
 	An instance of Interpreter or Server can be used to source scripts
 	and evaluate expressions.  Some examples:
 
-<p><blockquote><pre>
+	<p><blockquote><pre>
 		// Evaluate expressions
 		Interpeter i = new Interpreter();
 		i.eval("foo=5");
@@ -48,7 +48,7 @@ import java.awt.Color;
 		i.eval(	"foo() { print( date ); }");
 		MyInterface myObj = (MyInterface)i.eval("return (MyInterface)this");
 		myObj.foo();
-</pre></blockquote>
+	</pre></blockquote>
 
 	See the BeanShell User's Manual for more information.
 */

@@ -93,8 +93,18 @@ class Reflect {
     {
 		if ( object instanceof This )
 			return ((This)object).namespace.getVariable( fieldName );
-		else
-			return getFieldValue(object.getClass(), object, fieldName);
+		else {
+			try {
+				return getFieldValue(object.getClass(), object, fieldName);
+			} catch ( ReflectError e ) {
+				// no field, try property acces
+
+				if ( hasObjectPropertyGetter( object.getClass(), fieldName ) )
+					return getObjectProperty( object, fieldName );
+				else
+					throw e;
+			}
+		}
     }
 
     static LHS getLHSStaticField(Class clas, String fieldName)
@@ -104,14 +114,29 @@ class Reflect {
         return new LHS(f);
     }
 
+	/**
+		Get an LHS reference to an object field.
+
+		This method also deals with the field style property access.
+		In the field does not exist we check for a property setter.
+	*/
     static LHS getLHSObjectField(Object object, String fieldName)
         throws ReflectError
     {
 		if ( object instanceof This )
 			return new LHS(((This)object).namespace, fieldName );
 
-        Field f = getField(object.getClass(), fieldName);
-        return new LHS(object, f);
+		try {
+			Field f = getField(object.getClass(), fieldName);
+			return new LHS(object, f);
+		} catch ( ReflectError e ) {
+			// not a field, try property access
+
+			if ( hasObjectPropertySetter( object.getClass(), fieldName ) )
+				return new LHS( object, fieldName );
+			else
+				throw e;
+		}
     }
 
     private static Object getFieldValue(
@@ -655,37 +680,72 @@ class Reflect {
         return false;
     }
 
-    public static Object getObjectProperty(Object obj, String propName)
-        throws EvalError, ReflectError
-    {
-        String accessorName = "get" + Character.toUpperCase(propName.charAt(0)) +
-            propName.substring(1);
+	private static String accessorName( String getorset, String propName ) {
+        return getorset 
+			+ String.valueOf(Character.toUpperCase(propName.charAt(0))) 
+			+ propName.substring(1);
+	}
 
+    public static boolean hasObjectPropertyGetter( 
+		Class clas, String propName ) 
+	{
+		String getterName = accessorName("get", propName );
+		try {
+			clas.getMethod( getterName, new Class [0] );
+			return true;
+		} catch ( NoSuchMethodException e ) {
+			return false;
+		}
+	}
+
+    public static boolean hasObjectPropertySetter( 
+		Class clas, String propName ) 
+	{
+		String setterName = accessorName("set", propName );
+		Class [] sig = new Class [] { clas };
+		Method [] methods = clas.getMethods();
+
+		// we don't know the right hand side of the assignment yet.
+		// has at least one setter of the right name?
+		for(int i=0; i<methods.length; i++)
+			if ( methods[i].getName().equals( setterName ) )
+				return true;
+		return false;
+	}
+
+    public static Object getObjectProperty(
+		Object obj, String propName)
+        throws ReflectError
+    {
+        String accessorName = accessorName( "get", propName );
         Object[] args = new Object[] { };
 
         Interpreter.debug("property access: ");
-        try
-        {
+        try {
             // null interpreter, accessor doesn't need to know
+			try {
             return invokeObjectMethod(null, obj, accessorName, args);
+			} catch ( EvalError e ) {
+				// what does this mean?
+				throw new ReflectError("getter: "+e);
+			}
         }
         catch(InvocationTargetException e)
         {
-            throw new EvalError("Property accessor threw exception!");
+            throw new ReflectError(
+			"Property accessor threw exception:" + e );
         }
     }
 
-    public static void setObjectProperty(Object obj, String propName, Object value)
+    public static void setObjectProperty(
+		Object obj, String propName, Object value)
         throws ReflectError, EvalError
     {
-        String accessorName = "set" + Character.toUpperCase(propName.charAt(0)) +
-            propName.substring(1);
-
+        String accessorName = accessorName( "set", propName );
         Object[] args = new Object[] { value };
 
         Interpreter.debug("property access: ");
-        try
-        {
+        try {
             // null interpreter, accessor doesn't need to know
             invokeObjectMethod(null, obj, accessorName, args);
         }
