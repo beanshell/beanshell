@@ -119,7 +119,7 @@ class Reflect {
         try {
             Field f = getField(clas, fieldName);
 // experiment
-f.setAccessible(true);
+//f.setAccessible(true);
             if(f == null)
                 throw new ReflectError("internal error 234423");
 
@@ -142,8 +142,11 @@ f.setAccessible(true);
     {
         try
         {
-            //return clas.getField(fieldName);
-            return clas.getDeclaredField(fieldName);
+			// need to fix this for accessibility
+			// this one only finds public 
+            return clas.getField(fieldName);
+			// this one doesn't find interfaces, etc.
+            //return clas.getDeclaredField(fieldName);
         }
         catch(NoSuchFieldException e)
         {
@@ -154,6 +157,10 @@ f.setAccessible(true);
     /*
         The full blown invoke method.
         Everybody should come here.
+
+		Note: Method invocation could probably be speeded up if we eliminated
+		the throwing of exceptions in the search for the proper method.
+		We could probably cache our knowledge of method structure as well.
     */
     private static Object invokeMethod(
 		Class clas, Object object, String name, Object[] args)
@@ -175,10 +182,7 @@ f.setAccessible(true);
         Class[] types = getTypes(args);
         unwrapPrimitives(args);
 
-        /*  This is structured poorly...
-            findMostSpecificMethod should throw NoSuchMethodException on
-            failure.  This should be flattened out.
-        */
+        /*  This is structured poorly...  */
         try
         {
             try
@@ -195,32 +199,30 @@ f.setAccessible(true);
                     " not found in '" + clas.getName() + "'");
             }
 
-            if( returnValue == null ) {
+            if ( returnValue == null ) {
 				if ( types.length == 0 )
 					throw new ReflectError("No args method " + 
 						methodString(name, types) + " not found in class'" + 
 						clas.getName() + "'");
-				else {
-					// try to find an assignable method
-					Method[] methods = clas.getMethods();
-					Method m = findMostSpecificMethod(name, types, methods);
-					if(m == null)
-						m = findExtendedMethod(name, args, methods);
 
-					if(m == null)
-					{
-						throw new ReflectError("Method " + 
-							methodString(name, types) + 
-							" not found in class'" + clas.getName() + "'");
-					}
-					else 
-					{ // have the method
-						m = findAccessibleMethod(
-							clas, m.getName(), m.getParameterTypes());
-						returnValue = m.invoke(object, args);
-						returnType = m.getReturnType();
-					}
-				}
+				// try to find an assignable method
+				Method[] methods = clas.getMethods();
+				Method m = findMostSpecificMethod(name, types, methods);
+
+				if(m == null)
+					m = findExtendedMethod(name, args, methods);
+
+				if (m == null )
+					throw new ReflectError("Method " + 
+						methodString(name, types) + 
+						" not found in class'" + clas.getName() + "'");
+
+				// have the method
+				m = findAccessibleMethod(
+					clas, m.getName(), m.getParameterTypes());
+
+				returnValue = m.invoke(object, args);
+				returnType = m.getReturnType();
             }
         } catch(IllegalAccessException e) {
             throw new ReflectError( 
@@ -254,10 +256,12 @@ f.setAccessible(true);
 			if ( Modifier.isPublic( c.getModifiers() ) ) {
 				try {
 					meth = c.getDeclaredMethod( name, types );
-					if ( meth != null 
-						&& Modifier.isPublic( meth.getModifiers() ) )
+					if ( /*meth != null &&*/
+						Modifier.isPublic( meth.getModifiers() ) )
 						return meth; // Yes, it is.
-				} catch ( Exception e ) { }
+				} catch ( Exception e ) { 
+					// ignore and move on
+				}
 			}
 			// No, it is not.
 			
