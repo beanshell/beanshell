@@ -349,6 +349,7 @@ public class BshClassManager
 			getClassPath().insureInitialized( feedback );
 			// prime the lookup table
 			getClassNameByUnqName( "" ) ;
+			getClassPath().setNameCompletionIncludeUnqNames(true);
 		} catch ( ClassPathException e ) {
 			feedback.error( e.getMessage() );
 		}
