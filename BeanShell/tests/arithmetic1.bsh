@@ -22,4 +22,18 @@ q=5;
 q+=2;
 assert(q==7);
 
+// Assignment with postfix must behave as Java (strange as it is)
+
+i=1;
+i=i++;
+assert(i==1); // In Java this is 1
+
+i=1;
+i+=i++;
+assert(i==2); // In Java this is 2
+
+i=1;
+i+=i++ + i++;
+assert(i==4); // In Java this is 4
+
 complete();

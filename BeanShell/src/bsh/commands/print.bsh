@@ -15,20 +15,23 @@
 bsh.help.print = "usage: print( value )";
 import bsh.CollectionManager;
 import bsh.StringUtil;
+import bsh.Primitive;
 
 void print( arg ) 
 {
 	if ( arg == null )
 		arg = "null";
 	
-	this.type = arg.getClass();
-	if ( type.isArray() )
+	if ( !(arg instanceof Primitive) && arg.getClass().isArray() )
 	{
-        print( StringUtil.normalizeClassName(type) + ": {");
+        print( StringUtil.normalizeClassName(arg.getClass()) + ": {");
 		for(int i=0; i<arg.length; i++)
 			print( arg[i] + (i<arg.length?",":"") );
 		print("}");
 	}
+	else
+		this.interpreter.println(String.valueOf(arg));
+
 /*
 Do we want to iterate over iterable things?
 Most of the them already know how to print themselves.
@@ -44,7 +47,5 @@ Most of the them already know how to print themselves.
 		print("}");
 	}
 */
-	else
-		this.interpreter.println(String.valueOf(arg));
 }
 

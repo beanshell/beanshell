@@ -190,7 +190,7 @@ public class Primitive implements ParserConstants, java.io.Serializable
 		try {
 			result = binaryOperationImpl( lhs, rhs, kind );
 		} catch ( ArithmeticException e ) {
-			throw new UtilTargetError( "Arithemetic Exception in binary op", e );
+			throw new UtilTargetError( "Arithemetic Exception in binary op", e);
 		}
 
 		// If both original args were Primitives return a Primitive result

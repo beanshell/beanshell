@@ -39,14 +39,15 @@ import bsh.util.*;
 /**
 	Console startup class.
 */
-public class Console  {
-
+public class Console  
+{
 	public static void main( String args[] ) {
 
 		if ( !Capabilities.classExists( "bsh.util.Util" ) )
 			System.out.println("Can't find the BeanShell utilities...");
 
-		if ( Capabilities.haveSwing() ) {
+		if ( Capabilities.haveSwing() ) 
+		{
 			bsh.util.Util.startSplashScreen();
 			try {
 				new Interpreter().eval("desktop()");
@@ -55,9 +56,9 @@ public class Console  {
 			}
 		} else {
 			System.err.println(
-			"Can't find javax.swing package: starting lame AWT Console...");
-			AWTConsole.main( args );
+				"Can't find javax.swing package: "
+			+" An AWT based Console is available but not built by default.");
+			//AWTConsole.main( args );
 		}
 	}
-
 }
