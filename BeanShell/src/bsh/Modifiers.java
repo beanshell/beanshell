@@ -11,7 +11,7 @@ import java.util.Hashtable;
 */
 class Modifiers implements java.io.Serializable
 {
-	public static final int METHOD=0, FIELD=1;
+	public static final int CLASS=0, METHOD=1, FIELD=2;
 	Hashtable modifiers;
 
 	/**
@@ -33,37 +33,50 @@ class Modifiers implements java.io.Serializable
 			throw new IllegalStateException(
 				"public/private/protected cannot be used in combination." );
 
-		if ( context == METHOD )
+		switch( context ) 
+		{
+		case CLASS:
+			validateForClass();
+			break;
+		case METHOD:
 			validateForMethod();
-		else if ( context == FIELD )
+			break;
+		case FIELD:
 			validateForField();
+			break;
+		}
 	}
 
 	public boolean hasModifier( String name ) 
 	{
+		if ( modifiers == null )
+			modifiers = new Hashtable();
 		return modifiers.get(name) != null;
 	}
 
 	// could refactor these a bit
 	private void validateForMethod() 
 	{ 
-		if ( hasModifier("volatile") )
-			throw new IllegalStateException(
-				"Method cannot be declared 'volatile'");
-		if ( hasModifier("transient") )
-			throw new IllegalStateException(
-				"Method cannot be declared 'transient'");
+		insureNo("volatile", "Method");
+		insureNo("transient", "Method");
 	}
 	private void validateForField() 
 	{ 
-		if ( hasModifier("synchronized") )
+		insureNo("synchronized", "Variable");
+		insureNo("native", "Variable");
+		insureNo("abstract", "Variable");
+	}
+	private void validateForClass() 
+	{ 
+		validateForMethod(); // volatile, transient
+		insureNo("native", "Class");
+		insureNo("synchronized", "Class");
+	}
+
+	private void insureNo( String modifier, String context )
+	{
+		if ( hasModifier( modifier ) )
 			throw new IllegalStateException(
-				"Variable cannot be declared 'synchronized'");
-		if ( hasModifier("native") )
-			throw new IllegalStateException(
-				"Method cannot be declared 'native'");
-		if ( hasModifier("abstract") )
-			throw new IllegalStateException(
-				"Method cannot be declared 'abstract'");
+				context + " cannot be declared '"+modifier+"'");
 	}
 }

@@ -24,6 +24,9 @@ for( String a : al )
 		flag();
 }
 
+for (int i = new Integer(0).intValue(); i < 3; i++)
+    print(i);
+
 // the typed vars don't leak
 assert( a.equals("gee") );
 assert( flag() == 1 );

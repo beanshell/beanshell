@@ -18,4 +18,17 @@ assert( b.name.equals("Test") );
 Float fl = new Float(1.0f);
 assert( fl.infinite == false );
 
+
+// Properties style auto-allocation of object scope relative to 'this' type
+// references.
+assert( foo == void );
+
+foo.gee1.gee2.gee3 = true;
+
+assert( foo.gee1.gee2.gee3 == true );
+
+foo.bar.blah = true;
+foo.bar.blah2 = true;
+
+
 complete();

@@ -5,45 +5,47 @@ package bsh;
 public interface ParserTreeConstants
 {
   public int JJTVOID = 0;
-  public int JJTMETHODDECLARATION = 1;
-  public int JJTIMPORTDECLARATION = 2;
-  public int JJTVARIABLEDECLARATOR = 3;
-  public int JJTARRAYINITIALIZER = 4;
-  public int JJTFORMALPARAMETERS = 5;
-  public int JJTFORMALPARAMETER = 6;
-  public int JJTTYPE = 7;
-  public int JJTRETURNTYPE = 8;
-  public int JJTPRIMITIVETYPE = 9;
-  public int JJTAMBIGUOUSNAME = 10;
-  public int JJTASSIGNMENT = 11;
-  public int JJTTERNARYEXPRESSION = 12;
-  public int JJTBINARYEXPRESSION = 13;
-  public int JJTUNARYEXPRESSION = 14;
-  public int JJTCASTEXPRESSION = 15;
-  public int JJTPRIMARYEXPRESSION = 16;
-  public int JJTMETHODINVOCATION = 17;
-  public int JJTPRIMARYSUFFIX = 18;
-  public int JJTLITERAL = 19;
-  public int JJTARGUMENTS = 20;
-  public int JJTALLOCATIONEXPRESSION = 21;
-  public int JJTARRAYDIMENSIONS = 22;
-  public int JJTBLOCK = 23;
-  public int JJTFORMALCOMMENT = 24;
-  public int JJTSWITCHSTATEMENT = 25;
-  public int JJTSWITCHLABEL = 26;
-  public int JJTIFSTATEMENT = 27;
-  public int JJTWHILESTATEMENT = 28;
-  public int JJTFORSTATEMENT = 29;
-  public int JJTENHANCEDFORSTATEMENT = 30;
-  public int JJTTYPEDVARIABLEDECLARATION = 31;
-  public int JJTSTATEMENTEXPRESSIONLIST = 32;
-  public int JJTRETURNSTATEMENT = 33;
-  public int JJTTHROWSTATEMENT = 34;
-  public int JJTTRYSTATEMENT = 35;
+  public int JJTCLASSDECLARATION = 1;
+  public int JJTMETHODDECLARATION = 2;
+  public int JJTIMPORTDECLARATION = 3;
+  public int JJTVARIABLEDECLARATOR = 4;
+  public int JJTARRAYINITIALIZER = 5;
+  public int JJTFORMALPARAMETERS = 6;
+  public int JJTFORMALPARAMETER = 7;
+  public int JJTTYPE = 8;
+  public int JJTRETURNTYPE = 9;
+  public int JJTPRIMITIVETYPE = 10;
+  public int JJTAMBIGUOUSNAME = 11;
+  public int JJTASSIGNMENT = 12;
+  public int JJTTERNARYEXPRESSION = 13;
+  public int JJTBINARYEXPRESSION = 14;
+  public int JJTUNARYEXPRESSION = 15;
+  public int JJTCASTEXPRESSION = 16;
+  public int JJTPRIMARYEXPRESSION = 17;
+  public int JJTMETHODINVOCATION = 18;
+  public int JJTPRIMARYSUFFIX = 19;
+  public int JJTLITERAL = 20;
+  public int JJTARGUMENTS = 21;
+  public int JJTALLOCATIONEXPRESSION = 22;
+  public int JJTARRAYDIMENSIONS = 23;
+  public int JJTBLOCK = 24;
+  public int JJTFORMALCOMMENT = 25;
+  public int JJTSWITCHSTATEMENT = 26;
+  public int JJTSWITCHLABEL = 27;
+  public int JJTIFSTATEMENT = 28;
+  public int JJTWHILESTATEMENT = 29;
+  public int JJTFORSTATEMENT = 30;
+  public int JJTENHANCEDFORSTATEMENT = 31;
+  public int JJTTYPEDVARIABLEDECLARATION = 32;
+  public int JJTSTATEMENTEXPRESSIONLIST = 33;
+  public int JJTRETURNSTATEMENT = 34;
+  public int JJTTHROWSTATEMENT = 35;
+  public int JJTTRYSTATEMENT = 36;
 
 
   public String[] jjtNodeName = {
     "void",
+    "ClassDeclaration",
     "MethodDeclaration",
     "ImportDeclaration",
     "VariableDeclarator",

@@ -22,111 +22,116 @@ public interface ParserConstants {
   int DO = 21;
   int DOUBLE = 22;
   int ELSE = 23;
-  int FALSE = 24;
-  int FINAL = 25;
-  int FINALLY = 26;
-  int FLOAT = 27;
-  int FOR = 28;
-  int GOTO = 29;
-  int IF = 30;
-  int IMPORT = 31;
-  int INSTANCEOF = 32;
-  int INT = 33;
-  int INTERFACE = 34;
-  int LONG = 35;
-  int NATIVE = 36;
-  int NEW = 37;
-  int NULL = 38;
-  int PRIVATE = 39;
-  int PROTECTED = 40;
-  int PUBLIC = 41;
-  int RETURN = 42;
-  int SHORT = 43;
-  int STATIC = 44;
-  int SWITCH = 45;
-  int SYNCHRONIZED = 46;
-  int TRANSIENT = 47;
-  int THROW = 48;
-  int THROWS = 49;
-  int TRUE = 50;
-  int TRY = 51;
-  int VOID = 52;
-  int VOLATILE = 53;
-  int WHILE = 54;
-  int INTEGER_LITERAL = 55;
-  int DECIMAL_LITERAL = 56;
-  int HEX_LITERAL = 57;
-  int OCTAL_LITERAL = 58;
-  int FLOATING_POINT_LITERAL = 59;
-  int EXPONENT = 60;
-  int CHARACTER_LITERAL = 61;
-  int STRING_LITERAL = 62;
-  int FORMAL_COMMENT = 63;
-  int IDENTIFIER = 64;
-  int LETTER = 65;
-  int DIGIT = 66;
-  int LPAREN = 67;
-  int RPAREN = 68;
-  int LBRACE = 69;
-  int RBRACE = 70;
-  int LBRACKET = 71;
-  int RBRACKET = 72;
-  int SEMICOLON = 73;
-  int COMMA = 74;
-  int DOT = 75;
-  int ASSIGN = 76;
-  int GT = 77;
-  int GTX = 78;
-  int LT = 79;
-  int LTX = 80;
-  int BANG = 81;
-  int TILDE = 82;
-  int HOOK = 83;
-  int COLON = 84;
-  int EQ = 85;
-  int LE = 86;
-  int LEX = 87;
-  int GE = 88;
-  int GEX = 89;
-  int NE = 90;
-  int BOOL_OR = 91;
-  int BOOL_ORX = 92;
-  int BOOL_AND = 93;
-  int BOOL_ANDX = 94;
-  int INCR = 95;
-  int DECR = 96;
-  int PLUS = 97;
-  int MINUS = 98;
-  int STAR = 99;
-  int SLASH = 100;
-  int BIT_AND = 101;
-  int BIT_ANDX = 102;
-  int BIT_OR = 103;
-  int BIT_ORX = 104;
-  int XOR = 105;
-  int MOD = 106;
-  int LSHIFT = 107;
-  int LSHIFTX = 108;
-  int RSIGNEDSHIFT = 109;
-  int RSIGNEDSHIFTX = 110;
-  int RUNSIGNEDSHIFT = 111;
-  int RUNSIGNEDSHIFTX = 112;
-  int PLUSASSIGN = 113;
-  int MINUSASSIGN = 114;
-  int STARASSIGN = 115;
-  int SLASHASSIGN = 116;
-  int ANDASSIGN = 117;
-  int ANDASSIGNX = 118;
-  int ORASSIGN = 119;
-  int ORASSIGNX = 120;
-  int XORASSIGN = 121;
-  int MODASSIGN = 122;
-  int LSHIFTASSIGN = 123;
-  int LSHIFTASSIGNX = 124;
-  int RSIGNEDSHIFTASSIGN = 125;
-  int RSIGNEDSHIFTASSIGNX = 126;
-  int RUNSIGNEDSHIFTASSIGN = 127;
-  int RUNSIGNEDSHIFTASSIGNX = 128;
+  int ENUM = 24;
+  int EXTENDS = 25;
+  int FALSE = 26;
+  int FINAL = 27;
+  int FINALLY = 28;
+  int FLOAT = 29;
+  int FOR = 30;
+  int GOTO = 31;
+  int IF = 32;
+  int IMPLEMENTS = 33;
+  int IMPORT = 34;
+  int INSTANCEOF = 35;
+  int INT = 36;
+  int INTERFACE = 37;
+  int LONG = 38;
+  int NATIVE = 39;
+  int NEW = 40;
+  int NULL = 41;
+  int PACKAGE = 42;
+  int PRIVATE = 43;
+  int PROTECTED = 44;
+  int PUBLIC = 45;
+  int RETURN = 46;
+  int SHORT = 47;
+  int STATIC = 48;
+  int STRICTFP = 49;
+  int SWITCH = 50;
+  int SYNCHRONIZED = 51;
+  int TRANSIENT = 52;
+  int THROW = 53;
+  int THROWS = 54;
+  int TRUE = 55;
+  int TRY = 56;
+  int VOID = 57;
+  int VOLATILE = 58;
+  int WHILE = 59;
+  int INTEGER_LITERAL = 60;
+  int DECIMAL_LITERAL = 61;
+  int HEX_LITERAL = 62;
+  int OCTAL_LITERAL = 63;
+  int FLOATING_POINT_LITERAL = 64;
+  int EXPONENT = 65;
+  int CHARACTER_LITERAL = 66;
+  int STRING_LITERAL = 67;
+  int FORMAL_COMMENT = 68;
+  int IDENTIFIER = 69;
+  int LETTER = 70;
+  int DIGIT = 71;
+  int LPAREN = 72;
+  int RPAREN = 73;
+  int LBRACE = 74;
+  int RBRACE = 75;
+  int LBRACKET = 76;
+  int RBRACKET = 77;
+  int SEMICOLON = 78;
+  int COMMA = 79;
+  int DOT = 80;
+  int ASSIGN = 81;
+  int GT = 82;
+  int GTX = 83;
+  int LT = 84;
+  int LTX = 85;
+  int BANG = 86;
+  int TILDE = 87;
+  int HOOK = 88;
+  int COLON = 89;
+  int EQ = 90;
+  int LE = 91;
+  int LEX = 92;
+  int GE = 93;
+  int GEX = 94;
+  int NE = 95;
+  int BOOL_OR = 96;
+  int BOOL_ORX = 97;
+  int BOOL_AND = 98;
+  int BOOL_ANDX = 99;
+  int INCR = 100;
+  int DECR = 101;
+  int PLUS = 102;
+  int MINUS = 103;
+  int STAR = 104;
+  int SLASH = 105;
+  int BIT_AND = 106;
+  int BIT_ANDX = 107;
+  int BIT_OR = 108;
+  int BIT_ORX = 109;
+  int XOR = 110;
+  int MOD = 111;
+  int LSHIFT = 112;
+  int LSHIFTX = 113;
+  int RSIGNEDSHIFT = 114;
+  int RSIGNEDSHIFTX = 115;
+  int RUNSIGNEDSHIFT = 116;
+  int RUNSIGNEDSHIFTX = 117;
+  int PLUSASSIGN = 118;
+  int MINUSASSIGN = 119;
+  int STARASSIGN = 120;
+  int SLASHASSIGN = 121;
+  int ANDASSIGN = 122;
+  int ANDASSIGNX = 123;
+  int ORASSIGN = 124;
+  int ORASSIGNX = 125;
+  int XORASSIGN = 126;
+  int MODASSIGN = 127;
+  int LSHIFTASSIGN = 128;
+  int LSHIFTASSIGNX = 129;
+  int RSIGNEDSHIFTASSIGN = 130;
+  int RSIGNEDSHIFTASSIGNX = 131;
+  int RUNSIGNEDSHIFTASSIGN = 132;
+  int RUNSIGNEDSHIFTASSIGNX = 133;
 
   int DEFAULT = 0;
 
@@ -155,6 +160,8 @@ public interface ParserConstants {
     "\"do\"",
     "\"double\"",
     "\"else\"",
+    "\"enum\"",
+    "\"extends\"",
     "\"false\"",
     "\"final\"",
     "\"finally\"",
@@ -162,6 +169,7 @@ public interface ParserConstants {
     "\"for\"",
     "\"goto\"",
     "\"if\"",
+    "\"implements\"",
     "\"import\"",
     "\"instanceof\"",
     "\"int\"",
@@ -170,12 +178,14 @@ public interface ParserConstants {
     "\"native\"",
     "\"new\"",
     "\"null\"",
+    "\"package\"",
     "\"private\"",
     "\"protected\"",
     "\"public\"",
     "\"return\"",
     "\"short\"",
     "\"static\"",
+    "\"strictfp\"",
     "\"switch\"",
     "\"synchronized\"",
     "\"transient\"",

@@ -198,7 +198,8 @@ class Name implements java.io.Serializable
 
 		Object obj = null;
 		while( evalName != null )
-			obj = consumeNextObjectField( callstack, interpreter, forceClass );
+			obj = consumeNextObjectField( 
+				callstack, interpreter, forceClass, false/*autoalloc*/  );
 
 		if ( obj == null )
 			throw new InterpreterError("null value in toObject()");
@@ -216,10 +217,14 @@ class Name implements java.io.Serializable
 	}
 
 	/**
-		Get next prefixed object field component
+		Get the next object by consuming one or more components of evalName.  
+		Often this consumes just one component, but if the name is a classname 
+		it will consume all of the components necessary to make the class 
+		identifier.
 	*/
 	private Object consumeNextObjectField( 	
-		CallStack callstack, Interpreter interpreter, boolean forceClass ) 
+		CallStack callstack, Interpreter interpreter, 
+		boolean forceClass, boolean autoAllocateThis ) 
 		throws UtilEvalError
 	{
 		/*
@@ -241,7 +246,7 @@ class Name implements java.io.Serializable
 		/*
 			Is it a bsh script variable reference?
 			If we're just starting the eval of name (no base object)
-			or we're evaluating relative to a This reference check.
+			or we're evaluating relative to a This type reference check.
 		*/
 		if ( ( evalBaseObject == null || evalBaseObject instanceof This  )
 			&& !forceClass ) 
@@ -249,15 +254,28 @@ class Name implements java.io.Serializable
 			String varName = prefix(evalName, 1);
 			if ( Interpreter.DEBUG ) 
 				Interpreter.debug("trying to resolve variable: " + varName);
+
 			Object obj;
+			// switch namespace and special var visibility
 			if ( evalBaseObject == null ) {
 				obj = resolveThisFieldReference( 
 					callstack, namespace, interpreter, varName, false );
 			} else {
-				// null callstack, cannot be caller reference
 				obj = resolveThisFieldReference( 
 					callstack, ((This)evalBaseObject).namespace, 
 					interpreter, varName, true );
+			}
+
+			// No variable found in 'this' type ref.
+			// if autoAllocateThis then create one; a child 'this'.
+			if ( obj == Primitive.VOID && autoAllocateThis )
+			{
+				NameSpace targetNameSpace = 
+					( evalBaseObject == null ) ?  
+						namespace : ((This)evalBaseObject).namespace;
+				obj = new NameSpace( 
+					targetNameSpace, "auto: "+varName ).getThis( interpreter );
+				targetNameSpace.setVariable( varName, obj, false );
 			}
 
 			if ( obj != Primitive.VOID ) 
@@ -266,6 +284,7 @@ class Name implements java.io.Serializable
 				if ( Interpreter.DEBUG ) 
 					Interpreter.debug( "resolved variable: " + varName + 
 					" in namespace: "+namespace);
+
 				return completeRound( varName, suffix(evalName), obj );
 			}
 		}
@@ -393,21 +412,19 @@ class Name implements java.io.Serializable
 
 		String field = prefix(evalName, 1);
 
-		/* length access on array? */
-		if(field.equals("length") && evalBaseObject.getClass().isArray())
+		// length access on array? 
+		if ( field.equals("length") && evalBaseObject.getClass().isArray() )
 		{
 			Object obj = new Primitive(Array.getLength(evalBaseObject));
 			return completeRound( field, suffix(evalName), obj );
 		}
 
-		/* check for field on object */
+		// Check for field on object 
 		// Note: could eliminate throwing the exception somehow
-		try
-		{
+		try {
 			Object obj = Reflect.getObjectField(evalBaseObject, field);
 			return completeRound( field, suffix(evalName), obj );
-		}
-		catch(ReflectError e) { /* not a field */ }
+		} catch(ReflectError e) { /* not a field */ }
 	
 		// if we get here we have failed
 		throw new UtilEvalError(
@@ -589,14 +606,7 @@ class Name implements java.io.Serializable
 		throws UtilEvalError
 	{
 		// Should clean this up to a single return statement
-
 		reset();
-
-		/* if ( Interpreter.DEBUG ) 
-			Interpreter.debug("Name toLHS: "+evalName+ " isCompound = "
-			+ isCompound(evalName));
-		*/
-
 		LHS lhs;
 
 		// Simple (non-compound) variable assignment e.g. x=5;
@@ -607,19 +617,21 @@ class Name implements java.io.Serializable
 			return lhs;
 		}
 
-		// field
+		// Field e.g. foo.bar=5;
 		Object obj = null;
-		try
-		{
-			while( isCompound(evalName) )
-				obj = consumeNextObjectField( callstack, interpreter, false );
+		try {
+			while( evalName != null && isCompound( evalName ) )
+				obj = consumeNextObjectField( callstack, interpreter, 
+					false/*forcclass*/, true/*autoallocthis*/ );
 		} 
 		catch( UtilEvalError e ) {
 			throw new UtilEvalError("LHS evaluation: " + e);
 		}
 
+		if ( obj instanceof ClassIdentifier )
+			throw new UtilEvalError("Can't assign to class: " + value );
 		if ( obj == null )
-			throw new InterpreterError("null in lhs resolution");
+			throw new UtilEvalError("Error in LHS: " + value );
 
 		// e.g. this.x=5;  or someThisType.x=5;
 		if ( obj instanceof This )
@@ -651,11 +663,7 @@ class Name implements java.io.Serializable
 
 		if ( evalName != null )
 		{
-			try
-			{
-				//System.err.println("Name getLHSObjectField call obj = "
-				//	+obj+", name="+evalName);
-
+			try {
 				if ( obj instanceof ClassIdentifier ) 
 				{
 					Class clas = ((ClassIdentifier)obj).getTargetClass();
@@ -665,8 +673,7 @@ class Name implements java.io.Serializable
 					lhs = Reflect.getLHSObjectField(obj, evalName);
 					return lhs;
 				}
-			} catch(ReflectError e)
-			{
+			} catch(ReflectError e) {
 				throw new UtilEvalError("Field access: "+e);
 			}
 		}

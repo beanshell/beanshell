@@ -2,7 +2,30 @@
 <head><title>BeanShell - Change Log</title></head>
 <body bgcolor=#ffffff>
 
-<h2>Changes in 1.3</h2>
+<h2>Changes in 1.3 beta 2</h2>
+<pre>
+	- Rounded out reserved Java keywords.  Added: "strictfp", "implements", 
+	  "extends", "package", and the new Java 1.5 keyword "enum".  strictfp
+	  is now accepted as a modifier and ignored.  The rest are not supported
+	  (yet).
+
+	- Properties style auto-allocation of variables.
+
+		 // foo is initially undefined
+		 foo.bar.gee = 42; 
+		 print( foo.bar.gee ); // 42
+		 print( foo.bar ); 'this' reference (XThis) to Bsh object: auto: bar
+		 print( foo ); 'this' reference (XThis) to Bsh object: auto: foo
+
+	  When assigning to a compound name, undefined components being resolved
+	  relative to a scripted object (bsh 'this' type reference) will be
+	  auto-allocated as scripted objects.
+
+	  This means that you can use BeanShell scripts just like properties
+	  files for initialization parameters.
+</pre>
+
+<h2>Changes in 1.3 beta 1</h2>
 <pre>
     - Class management Changes - class management is now on a per-Interpreter
         (per-global namespace) basis.  Multiple interpreter instances do not 
