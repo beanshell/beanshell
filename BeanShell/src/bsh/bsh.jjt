@@ -875,13 +875,14 @@ boolean Line() :
 {}
 {
   (
-  /* Note: I don't really know what I'm doing with this lookahead.
-     The compiler suggested it... */
-  LOOKAHEAD(3) 
-
-  BlockStatement()
-| ImportDeclaration()
-| Expression() ";"
+   LOOKAHEAD( 3 )
+   /* 
+      The order here is important: Expression must be first.
+      else it will match on a minimal expression in...
+   */
+   Expression() ";"
+|  BlockStatement()
+|  ImportDeclaration()
   )  { 
 		return false; 
 	}
@@ -893,10 +894,6 @@ boolean Line() :
 /*****************************************
  * THE JAVA LANGUAGE GRAMMAR STARTS HERE *
  *****************************************/
-
-/*
- * Program structuring syntax follows.
- */
 
 void MethodDeclaration() #MethodDeclaration :
 { Token t = null; }
