@@ -343,8 +343,11 @@ public class NameSpace
 	*/
 	public void unsetVariable( String name )
 	{
-		variables.remove( name );
-		nameSpaceChanged();
+		if ( variables != null )
+		{
+			variables.remove( name );
+			nameSpaceChanged();
+		}
 	}
 
 	/**
