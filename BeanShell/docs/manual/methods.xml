@@ -56,17 +56,10 @@ set to void, the value of the last statement or expression in the method body
 becomes the return value (and must adhere to any declared return typing).
 <p/>
 
-<note>
-The namespaces for methods and variables are separate, so
-it is ok to have a method named "foo()" and variable named "foo" within
-the same scope.
-</note>
-<p/>
-
 <h2>Visibility of Variables and Methods</h2>
 
-Just as in Java, within a method you can refer to the values of 
-variables and method names from the "parent" context:
+As you might expect, within a method you can refer to the values of variables 
+and method names from the parent context.  For example:
 
 <example>
 a = 42;
@@ -81,15 +74,14 @@ foo() {
 foo(); // prints 42
 </example>
 
-So variable values and method names are "inherited" from the parent scope
-in the usual way.
-In BeanShell variable allocation and assignment, however, always defaults
-to local.  When you assign a value to a variable 
-within your method, it by default has local scope.  For example, a variable 
-assignment in the foo() method above would by default create a local variable 
-in the scope of the
-foo() method.  In the next section we'll talk more about this, why it is so,
-and what it implies.
+We could say that variable values and method names are "inherited" from the 
+parent scope in the usual way.
+In BeanShell variable assignment, however, always defaults to the local scope.
+When you assign a value to a variable within your method, it by default 
+creating a new variable in the current scope.
+For example, a variable assignment in the foo() method above would by default 
+create a local variable in the scope of the foo() method.  In the next section 
+we'll talk more about this, why it is so, and what it implies.
 
 <h2>Scope Modifiers: 'super'</h2>
 <p/>
@@ -115,8 +107,8 @@ print( a ); // prints 42
 In the case above, the variable 'a' by default refers to the local method 
 scope.  By qualifying 'a' with 'super' we can refer to the scope "above".
 Note that the local use of 'a' did not change the value in the parent scope.
+<p/>
 
-<note>
 This behavior might not be what you'd expect.  It may appear in this 
 example that we should be changing the value of the parent's 'a', rather 
 than creating a new local variable called 'a'.  This case is one of the only
@@ -128,33 +120,33 @@ here is a situation that can't exist in Java - a method within a method - and
 it is therefore not unreasonable to expect some new semantics.  
 <p/>
 
-For those who are still afraid, we'll refer you later to the BeanShell's 
-"Strict Java" mode, which eliminates any potential ambiguity, at the cost of 
-turning off loosely typed variables.   Please read on for details.
-</note>
-<p/>
+<tip>
+For those for whom strict Java compatability is the most important issue
+(e.g. Java students and teachers) BeanShell offers a "Strict Java" mode.
+Specifying setStrictJava( true ) eliminates any potential ambiguity, by
+turning off loosely typed variables and arguments entirely.
+</tip>
 
 So, we've seen that 'super' can be used to refer to the method's parent 
 context.  You may never have a need to do this if you simply do all your work 
 in your methods and return their results as a return value.  But we'll see
-a bit later how this fits in with scripting Objecs in BeanShell.
+a bit later how this fits in with scripting Objects in BeanShell.
 
-As we hinted in the intervening note, we'll see soon that BeanShell 
+As we hinted in the intervening note, we'll also see that BeanShell 
 allows methods to be declared at various levels.  Later we'll discuss another
-qualifier 'global', which as you might guess, always refers to the top-most
-scope.  In our previous example 'super' and 'global' refer both refer to 
-the same place - the context that defines foo().
+qualifier 'global', which always refers to the "top-most' scope.  In our 
+previous example 'super' and 'global' both referred to the same place, 
+the context that defines foo().
 <p/>
 
 Finally,
-Not to get too far ahead of ourselves, but we should note that (contrary
-to some confusing documentation) 'super' always refers to the parent - the
-scope in which the method was declared.  Later, when we get into more complex 
-situations involving scripted objects, it might be tempting to think of 'super'
-as the "caller's" context.  But that is not necessarily the case.  BeanShell has
-a special qualifier, which goes beyond standard Java, to allow referring to 
-the caller's scope.  It can be helpful in writing methods like BeanShell 
-commands that often must have side effects in the caller's scope, as opposed 
-to wherever the method is defined.
+Not to get too far ahead of ourselves, but we should note that 'super' always 
+refers to the parent context - the scope in which the method was declared.  
+Later when we talk about scripted objects it might be tempting to think of 
+'super' as the "caller's" context.  But that is not necessarily the case.  
+BeanShell has a different qualifier, which goes beyond standard Java, to allow 
+referring to the caller's scope.  It can be helpful in writing methods like 
+BeanShell commands that often must have side effects in the caller's scope
+(as opposed to wherever the method is defined).
 
 </section>

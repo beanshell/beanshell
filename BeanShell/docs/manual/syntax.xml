@@ -1,9 +1,9 @@
 <section>
 <name>BeanShell Syntax</name>
 
-BeanShell is primarily a Java interpreter, so you probably already know 
-most of what you need to start using and scripting BeanShell.  This section
-will describe specifically what portion of the Java langauge BeanShell 
+BeanShell is, foremost, a Java interpreter. So you probably already know 
+most of what you need to start scripting with BeanShell.  This 
+section describes specifically what portion of the Java langauge BeanShell 
 interprets and how BeanShell extends it or "loosens it" to be more 
 scripting-language-like.
 <p/>
@@ -133,13 +133,14 @@ creating a new local variable.
 <p/>
 
 However to be consistent with Java syntax, untyped variables used in block
-statements like if-else, for-loops, while, try/catch, etc. act like
+statements such as if-else, for-loops, while, try/catch, etc. act like
 they are part of the enclosing block, just as they would when referring to an
 existing variable in Java.  Typed variable declarations remain local to the 
 block, just as they would be in Java.  Here are some examples:
 <p/>
 
 <example>
+// Arbitrary code block
 {
     y = 2;      // Untyped variable assigned
     int x = 1;  // Typed variable assigned
@@ -163,7 +164,7 @@ rules as part of the block:
 for( int i=0; i&lt;10; i++ ) {  // typed for-init variable
     j=42;
 }
-print( i ); // Error! x is undefined.
+print( i ); // Error! 'i' is undefined.
 print( j ); // 42
 
 for( z=0; z&lt;10; z++ ) { }   // untyped for-init variable
@@ -201,10 +202,10 @@ h = new Hashtable();
 h{"foo"} = "bar";          // Equivalent to: h.put("foo", "bar");
 </example>
 
-<note>
+<em>
 This syntax will be refined and broadenend to cover general Java collections
 in an upcoming release.
-</note>
+</em>
 
 <h2>Importing Classes and Packages</h2>
 
@@ -214,14 +215,13 @@ from a Java package.
 <p/>
 
 <example>
-    import mypackage.MyClass;
-or
-    import mypackage.*;
+import javax.xml.parsers.*;
+import mypackage.MyClass;
 </example>
 <p/>
 
 In BeanShell import statements may appear anywhere - not just at the top of
-a script and, in the event of a conflict, later imports take precedence over 
+a script.  In the event of a conflict, later imports take precedence over 
 earlier ones.
 <p/>
 

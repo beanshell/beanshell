@@ -3,8 +3,7 @@
 
 Now that we've seen how methods can be nested and treated as objects, we
 can revisit the topic of variable scope and scope modifiers.
-
-BeanShell first rule is always to maintain Java compatability.  Where 
+BeanShell's first rule is to maintain Java compatability.  Where 
 new features are added that go beyond standard Java syntax however, we 
 sometimes have to add new rules.  The ability to use loose, undeclared 
 variables as they are implemented in BeanShell can make for some situations 
@@ -29,10 +28,10 @@ an object context. A scripted object can be thought of as encapsulated in a
 parent scope that determines its "environment" - inherited variables and 
 methods.  
 
-Both 'this' and 'super' are really the same
-kind of reference - a reference to a BeanShell method context 
-(i.e. a script object).  From here on We'll refer to 'this', 'super', and 
-any reference to scripted object contexts in general as a 
+The references 'this', 'super', and 'global' are really the same
+kind of reference - references to BeanShell method contexts, which can 
+be thought of as scripted objects.  From here on We'll refer to 'this', 
+'super', and any other reference to a scripted object context in general as a 
 <em>'this' type reference</em>.
 <p/>
 

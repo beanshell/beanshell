@@ -56,7 +56,7 @@ with them dynamically in your scripts; the integration can be seamless.
 See also <a href="examples/dragtext.html">the dragText example</a>.
 <p/>
 
-<h2>'This' references as Interface Types</h2>
+<h2>'this' references as Interface Types</h2>
 
 The anonymous inner class style syntax which we just discussed allows you
 to explicitly create an object of a specified interface type, just as you

@@ -36,8 +36,10 @@ Or add BeanShell to your classpath like this:
 <em>windows:</em>  set classpath %classpath%;bsh-xx.jar
 </example>
 
-<tip>From within BeanShell scripts or the command line you can to BeanShell's
-classpath using the addClassPath() command.</tip>
+<tip>
+You can modify the classpath from within BeanShell using the addClassPath()
+and setClassPath() commands.
+</tip>
 
 You can then run BeanShell in either a GUI or command line mode:
 
@@ -50,10 +52,9 @@ or
 </example>
 <p/>
 
-<tip>
-It's also possible to use BeanShell inside your own Java applications,
-to run BeanShell in a remote server mode, as a servlet, or even in an applet.
-</tip>
+It's also possible to use BeanShell from within your own Java applications,
+in a remote server mode for debuggin, as a servlet, or even in an applet.
+See "BeanShell Modes of Operation" for more details.
 
 <h2>
 The BeanShell GUI
@@ -64,12 +65,12 @@ By right clicking on the desktop background you can open additional
 console windows and other tools such as a simple class browser.
 <p/>
 
-Each console window effectively runs a separate bsh interpreter.
-Within the graphical console you have basic command history, line editing,
-cut and paste, and even class and variable name completion.  From any console 
-you can open a simple editor window for that console.  In it you can write 
-scripts and hit the 'eval' button to evaluate them in the attached console's
-workspace. 
+Each console window runs a separate instance of the BeanShell interpreter.
+The graphical console supports basic command history, line editing,
+cut and paste, and even class and variable name completion.  From the console 
+you can open a simple editor window.  In it you can write 
+scripts and use the 'eval' option to evaluate the text in the attached 
+console's workspace or a new workspace.
 <p/>
 
 <h2>
@@ -273,18 +274,20 @@ import bsh.Interpreter;
 
 Interpreter i = new Interpreter();  // Construct an interpreter
 i.set("foo", 5);                    // Set variables
-i.set("bar", new Date() ); 
+i.set("date", new Date() ); 
 
-// Eval a statement and get a variable back
+Date date = (Date)i.get("date");    // retrieve a variable
+
+// Eval a statement and get the result
 i.eval("bar = foo*10");             
-System.out.println("bar = "+i.get("bar") );
+System.out.println( i.get("bar") );
 
 // Source an external script file
 i.source("somefile.bsh");
 </example>
 
-<tip>In the above example the eval() method also returned the value of bar as
-the result of the evaluation.</tip>
+<tip>In the above example the Interpreter's eval() method also returned the 
+value of bar as the result of the evaluation.</tip>
 
 <h2>Conclusion</h2>
 

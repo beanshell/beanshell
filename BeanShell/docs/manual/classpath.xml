@@ -16,9 +16,9 @@ located by URL, allowing them to be loaded over the network.
 Examples:
 <p/>
 <example>
-	addClassPath( "/home/pat/java/classes" );
-	addClassPath( "/home/pat/java/mystuff.jar" );
-	addClassPath( new URL("http://myserver/~pat/somebeans.jar") );
+    addClassPath( "/home/pat/java/classes" );
+    addClassPath( "/home/pat/java/mystuff.jar" );
+    addClassPath( new URL("http://myserver/~pat/somebeans.jar") );
 </example>
 
 Note that if you add class path that overlaps with the existing Java user 
@@ -48,7 +48,7 @@ As an alternative to explicitly importing class names you may use the
 following statement to trigger automatic importing:
 
 <example>
-	<strong>import *;</strong>
+    <strong>import *;</strong>
 </example>
 
 There may be a significant delay while the class path is mapped.  This is why
@@ -84,7 +84,7 @@ The most course level of class reloading is accomplished by issuing the
 reloadClasses() command with no arguments.  
 
 <example>
-	reloadClasses();
+    reloadClasses();
 </example>
 
 This will effectively reload all
@@ -107,7 +107,7 @@ discussion of class loading details below.
 You can also reload all of the classes in a specified package:
 
 <example>
-	reloadClasses("mypackage.*");
+    reloadClasses("mypackage.*");
 </example>
 
 This will reload only the classes in the specified package.  The classes will
@@ -118,14 +118,14 @@ if you have some of the package in one directory and some in another).
 As a special case for reloading unpackaged classes the following commands
 are equivalent:
 <example>
-	reloadClasses(".*") 
-	reloadClasses("&lt;unpackaged&gt;")
+    reloadClasses(".*") 
+    reloadClasses("&lt;unpackaged&gt;")
 </example>
 <p/>
 
 You can also reload just an individual class file:
 <example>
-	reloadClasses("mypackage.MyClass") 
+    reloadClasses("mypackage.MyClass") 
 </example>
 
 <em>Note: As of alpha1.1 classes contained in archives (jar files) cannot be

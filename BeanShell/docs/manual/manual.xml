@@ -18,11 +18,12 @@
   <!ENTITY servermode SYSTEM "servermode.xml">
   <!ENTITY parser SYSTEM "parser.xml">
   <!ENTITY execscripts SYSTEM "execscripts.xml">
-  <!ENTITY bshpackage SYSTEM "bshpackage.xml">
-  <!ENTITY reflectstyle SYSTEM "reflectivestyle.xml">
+  <!ENTITY reflectivestyle SYSTEM "reflectivestyle.xml">
   <!ENTITY more SYSTEM "more.xml">
   <!ENTITY credit SYSTEM "credit.xml">
   <!ENTITY bshcommands SYSTEM "bshcommands.xml">
+  <!ENTITY bshdoc SYSTEM "bshdoc.xml">
+  <!ENTITY commands SYSTEM "commands.xml">
 
   <!-- I can't figure out how to move this to the included bshcommands file -->
   <!ENTITY bshcommands-bshdoc SYSTEM "bshcommands-bshdoc.xml">
@@ -41,13 +42,14 @@
 	&scope;
 	&interfaces;
 	&specialvarsvalues;
+	&commands;
 	&classpath;
 	&servermode;
 	&desktop;
 	&parser;
 	&execscripts;
-	&reflectstyle;
-	&bshpackage;
+	&reflectivestyle;
+	&bshdoc;
 	&more;
 	&credit;
 	&bshcommands;

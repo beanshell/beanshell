@@ -1,5 +1,11 @@
 <section>
-	<name>BeanShell Commands</name>
-	&bshcommands-bshdoc;
+	<name>BeanShell Commands Documentation</name>
+
+The following documentation was generated automatically by 'BshDoc' from 
+Javadoc style comments in the BeanShell command script files.  See "BshDoc"
+for more information.
+<p/>
+
+&bshcommands-bshdoc;
 </section>
 
