@@ -1,0 +1,74 @@
+<section>
+<name>BshServlet and In-Container Scripting</name>
+
+<pre>
+I know many of you are using BeanShell in your unit testing.  I am interested
+in the kinds of tools you have developed and what you'd like to see in a 
+standard BeanShell unit test framework. 
+
+A while back I posted a small test servlet that could be used to execute 
+bsh scripts inside a servlet container.  I have since moved this servlet 
+into a package in the main distribution in a way that I think can serve as 
+the basis for simple in-container unit testing.
+
+The new bsh.servlet package includes a standard BshServlet that accepts a
+script via the POST method.  The servlet captures output, optionally including
+stdout and stderr, from the script and returns it along with any return value.
+
+Scripts have access to the servlet environment through the variables 
+
+  bsh.httpServletRequest
+  bsh.httpServletResponse
+
+and can generate the a full response if they wish by specifying raw output
+from a servlet parameter.
+
+You can use the servlet interactively through a form that it generates, or,
+more importantly, through the new command line launcher bsh.Remote (analagous
+to bsh.Interpreter).  bsh.Remote accepts a URL for a target bsh interpreter 
+and one or more file names to send to that server, printing the results.  
+
+  java bsh.Remote http://localhost/bshservlet/eval test1.bsh
+
+BshServlet can handle scripts posted from the launcher, but bsh.Remote also 
+supports the traditional (telnet style) remote bsh server mode via the new 
+"bsh://" url. 
+
+  java bsh.Remote bsh://localhost:1234/ test1.bsh
+
+In either case, if bsh.Remote can parse the retun value as an integer it will 
+return it as the exit status to the command line.  You can also do this from 
+a script using the method bsh.Remote.eval().
+
+You can grab one of the sample application WAR files here:
+
+<a href="http://www.beanshell.org/bshservlet.war">bshservlet.war</a>
+<a href="http://www.beanshell.org/bshservlet-wbsh.war">bshservlet-wbsh.war</a> <em>Rename this file to "bshservlet.war" for use.</em>
+
+The first WAR assumes that BeanShell has been installed in your application
+server's classpath.  It includes only the web.xml file necessary to deploy
+an instance of the test servlet and an index.html README file.  To install 
+BeanShell in the Tomcat server classpath place the bsh.jar file in common/lib.  
+To use BeanShell in Weblogic you must upgrade its version of the package.  
+See <a href="weblogic.html">Upgrading BeanShell in Weblogic</a>.
+
+The second WAR (-wbsh) includes bsh-1.2b5 inside the WAR.  This includes 
+everything you need to just drop the WAR into an application server.  (Note
+that bshservlet-wbsh.war will still *not* work in Weblogic 6.x unless you 
+upgrade Weblogic's version.  
+See <a href="weblogic.html">Upgrading BeanShell in Weblogic</a>.
+
+To use the servlet for testing your own applications simply deploy an 
+instance of the test servlet in your WAR file.  This will allow it to share 
+a classloader with your webapp so that you can test things like application 
+classes and EJB local homes.  Since the servlet is included in the standard 
+distribution, all that is necessary to do this is to add an entry to your 
+web.xml file.  
+See the <a href="example-web.xml">example web.xml file</a> or the sample WARs above.
+
+I think that the ability to dynamically execute unit tests in the container
+without building, deploying, and re-deploying makes this a very powerful
+tool.  Please let me know what you think.
+</pre>
+
+</section>

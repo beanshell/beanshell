@@ -1,9 +1,8 @@
 <section>
 <name>Server Mode</name>
 
-<h3><em>Note: this document is out of date.  Check back soon for an 
-update with 1.0beta</em></h3>
-<p/>
+<img src="remotemode.gif"/>
+<br CLEAR="ALL"/>
 
 Server mode lets you access a bsh session inside of a remote VM.
 You can literally telnet into the application and type commands at the
@@ -24,9 +23,6 @@ In server mode bsh actually runs *two* services: a (minimal) httpd at
 the port you specify and a session server at your port + 1.  You can
 actually connect to the session server with telnet, if you want to try it
 out...(you have to type ";"s  manually at the end of every line).
-<p/>
-
-<em>More coming...</em>
 <p/>
 
 </section>
