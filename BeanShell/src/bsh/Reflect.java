@@ -597,8 +597,15 @@ class Reflect {
         return true;
     }
 
-    // This method is meant to address a deficiency of Class.isAssignableFrom()
-    // which does not take primitive widening conversions into account.
+    /**
+		This base method is meant to address a deficiency of 
+		Class.isAssignableFrom() which does not take primitive widening 
+		conversions into account.
+
+		Note that the checkAssignable() method in NameSpace is the primary
+		bsh method for checking assignability.  It adds extended bsh
+		conversions, etc.
+	*/
     static boolean isAssignableFrom(Class lhs, Class rhs)
     {
         if(lhs.isPrimitive() && rhs.isPrimitive())

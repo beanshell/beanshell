@@ -15,6 +15,10 @@
 
 package bsh;
 
+/**
+	A formal parameter declaration.
+	For loose variable declaration type is null.
+*/
 class BSHFormalParameter extends SimpleNode
 {
 	public String name;
@@ -22,7 +26,8 @@ class BSHFormalParameter extends SimpleNode
 
 	BSHFormalParameter(int id) { super(id); }
 
-	public Object eval(NameSpace namespace, Interpreter interpreter)  throws EvalError
+	public Object eval(NameSpace namespace, Interpreter interpreter)  
+		throws EvalError
 	{
 		if(jjtGetNumChildren() > 0)
 			type = ((BSHType)jjtGetChild(0)).getType(namespace);

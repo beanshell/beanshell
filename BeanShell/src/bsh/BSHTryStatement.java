@@ -62,22 +62,33 @@ class BSHTryStatement extends SimpleNode
 		if ( target != null )
 			thrown = target.getTarget();
 
-		if(thrown != null)	// we have an exception, find a catch
+		if(thrown != null)	// We have an exception, find a catch
 		{
 			int n = catchParams.size();
 			for(i=0; i<n; i++)
 			{
 				// get catch block
-				BSHFormalParameter fp = (BSHFormalParameter)catchParams.elementAt(i);
+				BSHFormalParameter fp = 
+					(BSHFormalParameter)catchParams.elementAt(i);
+
+				/* 
+					Does the formal parameter need to evaluated every
+				  	time?  I guess if it needs to reflect changes in the 
+				  	type namespace...
+				*/
 				fp.eval(namespace, interpreter);
 
-				// does it match?
-				try {
-					thrown = (Throwable)NameSpace.checkAssignableFrom(
-						thrown, fp.type);
-				} catch(EvalError e) {
-					continue;
-				}
+				// If the param is typed check assignability
+				if ( fp.type != null ) 
+					try {
+						thrown = (Throwable)NameSpace.checkAssignableFrom(
+							thrown, fp.type);
+					} catch(EvalError e) {
+						/* Catch the mismatch and continue to try the next
+							Note: this is innefficient, should have an 
+							isAssignableFrom() that doesn't throw */
+						continue;
+					}
 
 				// Found match, execute catch block
 				BSHBlock cb = (BSHBlock)(catchBlocks.elementAt(i));
