@@ -969,7 +969,7 @@ boolean Line() :
    */
    Expression() ";"
 |  BlockStatement()
-|  ImportDeclaration()
+/*|  ImportDeclaration()*/
   )  { 
 		return false; 
 	}
@@ -1585,6 +1585,8 @@ void BlockStatement() :
   TypedVariableDeclaration() ";"
 |
   Statement()
+|  
+  ImportDeclaration()
 }
 
 void EmptyStatement() :
