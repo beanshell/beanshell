@@ -67,7 +67,8 @@ class ForBodyNameSpace extends NameSpace {
 
 	boolean forInitSpaceHasVariable( String name ) {
 		return ( forInitNameSpace != null 
-				&& forInitNameSpace.getVariable(name) != Primitive.VOID );
+				&& forInitNameSpace.getVariable(name, false) 
+					!= Primitive.VOID );
 	}
 
 	/**
