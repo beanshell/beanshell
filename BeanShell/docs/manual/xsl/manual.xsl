@@ -24,8 +24,9 @@
 <xsl:import href="bshcommands.xsl"/>
 
 <!-- Parameters -->
-<xsl:param name="multipage"/><!-- Produce multi-page HTML output -->
 <xsl:param name="imagedir"/>
+<xsl:param name="multipage"/><!-- Produce multi-page HTML output -->
+<xsl:param name="pagesdir"/>
 
 <!-- Output directives -->
 <xsl:output method="xhtml" indent="yes"/>
@@ -59,23 +60,13 @@
 </xsl:template>
 
 <xsl:template match="manual" mode="multipage">
-MULTIMAN
 	<xsl:apply-templates mode="multipage"/>
-<!--
-	<xsl:call-template name="writepage">
-		<xsl:with-param name="file">manualpage.html</xsl:with-param>
-		<xsl:with-param name="title">BeanShell User's Manual</xsl:with-param>
-		<xsl:with-param name="body">Foo</xsl:with-param>
-	THIS IS CONTENT 
-	</xsl:call-template>
--->
 </xsl:template>
 
 <!-- 
 	Section
 -->
 <xsl:template match="section">
-SECTION
 	<h1>
 	<xsl:call-template name="anchor">
 		<xsl:with-param name="value" select="name"/>
@@ -93,18 +84,21 @@ SECTION
 <xsl:template match="section/name"/>
 
 <xsl:template match="section" mode="multipage">
-	<xsl:if test="not(@filename)">
+	<!-- Check file name -->
+	<xsl:if test="not(name[@filename])">
 		<xsl:message terminate="yes">
 			Missing filename attribute in section:
 			<xsl:value-of select="name"/>
 		</xsl:message>
 	</xsl:if>
-
-    <redirect:write file="{@filename}.html">
+	<!-- Send output to file -->
+    <redirect:write file="{$pagesdir}/{name/@filename}.html">
 		<html>
 		<head>
 			<title><xsl:value-of select="name"/></title>
-		</head><body bgcolor="ffffff">
+		</head>
+		<body bgcolor="ffffff">
+			<h1><xsl:value-of select="name"/></h1>
 			<xsl:apply-templates/>
 		</body>
 		</html>
@@ -115,12 +109,13 @@ SECTION
 	Table of contents
 -->
 <xsl:template match="tableofcontents">
-	<h1>Table of Contents</h1>
 	<ul>
 	<xsl:for-each select="/manual/section">
 		<li>
 		<xsl:call-template name="anchorref">
 			<xsl:with-param name="anchorto" select="name"/>
+			<!-- how do I deal with the whitespace here? -->
+			<xsl:with-param name="anchortofile"><xsl:if test="$multipage"><xsl:value-of select="name/@filename"/>.html</xsl:if></xsl:with-param>
 			<xsl:with-param name="value" select="name"/>
 		</xsl:call-template>
 		</li>
@@ -130,6 +125,8 @@ SECTION
 				<li>
 				<xsl:call-template name="anchorref">
 					<xsl:with-param name="anchorto" select="."/>
+					<!-- how do I deal with the whitespace here? -->
+					<xsl:with-param name="anchortofile"><xsl:if test="$multipage"><xsl:value-of select="../name/@filename"/>.html</xsl:if></xsl:with-param>
 					<xsl:with-param name="value" select="."/>
 				</xsl:call-template>
 				</li>
