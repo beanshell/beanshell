@@ -45,14 +45,16 @@ import bsh.*;
 	Nothing in the core language (bsh package) should depend on this.
 	Note: that promise is currently broken... fix it.
 */
-public class Util {
-
+public class Util 
+{
+	/*
 	public static ConsoleInterface makeConsole() {
 		if ( bsh.Capabilities.haveSwing() )
 			return new JConsole();
 		else
 			return new AWTConsole();
 	}
+	*/
 
 	static Window splashScreen;
 	/*
