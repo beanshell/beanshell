@@ -779,14 +779,14 @@ public class NameSpace
 		Class originalType;
 
 		if ( lhsType == null )
-			throw new InterpreterError("check assignable to null type");
+			throw new InterpreterError(
+				"Null value for type in getAssignableForm");
 
 		if(rhs == null)
-			throw new InterpreterError("null value in getAssignableForm");
+			throw new InterpreterError("Null value in getAssignableForm.");
 
 		if(rhs == Primitive.VOID)
-			throw new EvalError(
-			"void cannot be used in an assignment statement");
+			throw new EvalError( "Undefined variable or class name");
 
 		if (rhs == Primitive.NULL)
 			if(!lhsType.isPrimitive())
