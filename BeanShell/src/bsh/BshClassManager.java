@@ -35,7 +35,7 @@ package bsh;
 
 import java.net.*;
 import java.util.*;
-import java.lang.ref.WeakReference;
+import java.lang.ref.*;
 import java.io.IOException;
 import bsh.classpath.*;
 import bsh.classpath.BshClassPath.DirClassSource;
@@ -85,6 +85,7 @@ public class BshClassManager
 
 	// ClassPath Change listeners
 	Vector listeners = new Vector();
+	ReferenceQueue refQueue = new ReferenceQueue();
 
 	/**
 		This handles extension / modification of the base classpath
@@ -409,10 +410,23 @@ public class BshClassManager
 	}
 
 	public void addListener( Listener l ) {
-		listeners.addElement( new WeakReference(l) );
+		listeners.addElement( new WeakReference( l, refQueue) );
+
+		// clean up old listeners
+		Reference deadref;
+		while ( (deadref = refQueue.poll()) != null ) {
+			boolean ok = listeners.removeElement( deadref );
+			if ( ok ) {
+				//System.err.println("cleaned up weak ref: "+deadref);
+			} else {
+				Interpreter.debug(
+					"tried to remove non-existent weak ref: "+deadref);
+			}
+		}
 	}
+
 	public void removeListener( Listener l ) {
-		listeners.removeElement( l );
+		throw new Error("unimplemented");
 	}
 
 	/**
