@@ -2,7 +2,9 @@
 
 source("TestHarness.bsh");
 
-a=new AccessibilityTest();
+import mypackage.*;
+
+a=new Accessibility2();
 
 setAccessibility(false);
 
@@ -15,15 +17,50 @@ setAccessibility(true);
 
 javax.swing.JInternalFrame.DO_NOTHING_ON_CLOSE;
 
-assert(a.get1()==1);
-assert(a.get2()==2);
-assert(a.get3()==3);
-assert(a.get4()==4);
+/*
+x=new Accessibility2(1);
+x=new Accessibility2(1,2);
+x=new Accessibility2(1,2,3);
+*/
 
+// methods
+assert(a.getB1()==1);
+assert(a.getB2()==2);
+assert(a.getB3()==3);
+assert(a.getB4()==4);
+
+// methods from package hidden superclass
+assert(a.get4()==4);
+assert(a.get3()==3);
+assert(a.get2()==2);
+assert(a.get1()==1);
+assert(a.get1(1)==1);
+
+// fields
 assert(a.field1==1);
 assert(a.field2==2);
 assert(a.field3==3);
 assert(a.field4==4);
+
+a=null;
+
+/*
+b=new Accessibility1();
+
+x=new Accessibility1(1);
+x=new Accessibility1(1,2);
+x=new Accessibility1(1,2,3);
+
+assert(b.get1()==1);
+assert(b.get2()==2);
+assert(b.get3()==3);
+assert(b.get4()==4);
+
+assert(b.field1==1);
+assert(b.field2==2);
+assert(b.field3==3);
+assert(b.field4==4);
+*/
 
 setAccessibility(false);
 

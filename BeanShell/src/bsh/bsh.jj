@@ -66,7 +66,20 @@ import java.io.*;
 	You can use the Parser from the command line to do basic structural 
 	validation of BeanShell files without actually executing them. e.g.
 	<code><pre>
-		java bsh.Parser file [ file ] [ ... ]
+		java bsh.Parser [ -p ] file [ file ] [ ... ]
+	</pre></code>
+	<p>
+	The -p option causes the abstract syntax to be printed.
+	<p>
+
+	From code you'd use the Parser like this:
+	<p
+	<code><pre>
+		Parser parser = new Parser(in);
+		while( !(eof=parser.Line()) ) {
+			SimpleNode node = parser.popNode();
+			// use the node, etc. (See bsh.BSH* classes)
+		}
 	</pre></code>
 */
 public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/ 
@@ -74,7 +87,11 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/
   protected JJTParserState jjtree = new JJTParserState();
 
 /*@egen*/ 
-	public boolean retainComments = false;
+	boolean retainComments = false;
+	
+	public void setRetainComments( boolean b ) {
+		retainComments = b;
+	}
 
 	void jjtreeOpenNodeScope(Node n) {
 		((SimpleNode)n).firstToken = getToken(1);
@@ -91,8 +108,12 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/
 		ReInit(in);
 	}
 
-	public SimpleNode rootNode() {
-		return (SimpleNode)jjtree.rootNode();
+	public SimpleNode popNode() 
+	{
+		if ( jjtree.nodeArity() > 0)  // number of child nodes 
+			return (SimpleNode)jjtree.popNode();
+		else
+			return null;
 	}
 
 	/**
@@ -109,10 +130,19 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/
 	public static void main( String [] args ) 
 		throws IOException, ParseException
 	{
-		for(int i=0; i< args.length; i++) {
+		boolean print = false;
+		int i=0;
+		if ( args[0].equals("-p") ) {
+			i++;
+			print=true;
+		}
+		for(; i< args.length; i++) {
 			Reader in = new FileReader(args[i]);
 			Parser parser = new Parser(in);
-			while( !parser.Line()/*eof*/ );
+			parser.setRetainComments(true);
+			while( !parser.Line()/*eof*/ )
+				if ( print )
+					System.out.println( parser.popNode() );
 		}
 	}
 
