@@ -379,9 +379,10 @@ class Name implements java.io.Serializable
 		}
 	}
 	
-	public BshMethod toLocalMethod()
+	private BshMethod toLocalMethod( Object [] args )
 	{
-		return namespace.getMethod(value);
+		Class [] sig = Reflect.getTypes( args );
+		return namespace.getMethod( value, sig );
 	}
 
 
@@ -474,7 +475,7 @@ class Name implements java.io.Serializable
         Interpreter.debug("invoke local method: " + value);
 
         // Check for locally declared method
-        BshMethod meth = toLocalMethod();
+        BshMethod meth = toLocalMethod( args );
         if ( meth != null )
             return meth.invokeDeclaredMethod( args, interpreter );
         else
@@ -486,7 +487,7 @@ class Name implements java.io.Serializable
 		// Why not /bsh/commands here?  Why relative to Interpreter?
         String commandName = "commands/" + value + ".bsh";
         InputStream in = Interpreter.class.getResourceAsStream(commandName);
-        if(in != null)
+        if (in != null)
         {
             Interpreter.debug("loading resource: " + commandName);
 
@@ -497,7 +498,7 @@ class Name implements java.io.Serializable
 				new InputStreamReader(in), namespace, commandName);
 
             // try again
-            meth = toLocalMethod();
+            meth = toLocalMethod( args );
             if(meth != null)
                 return meth.invokeDeclaredMethod( args, interpreter );
             else

@@ -265,8 +265,12 @@ public class BshClassPath
 		The user classpath from system property
 			java.class.path
 	*/
+	static URL [] userClassPathComp;
 	public static URL [] getUserClassPathComponents() 
 	{
+		if ( userClassPathComp != null )
+			return userClassPathComp;
+
 		String cp=System.getProperty("java.class.path");
 		String [] paths=StringUtil.split(cp, File.pathSeparator);
 
@@ -278,6 +282,7 @@ public class BshClassPath
 			throw new InterpreterError("can't parse class path: "+e);
 		}
 
+		userClassPathComp = urls;
 		return urls;
 	}
 

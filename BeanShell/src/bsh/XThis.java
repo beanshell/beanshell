@@ -81,29 +81,23 @@ class XThis extends This {
 		I don't understand this.  JThis works just fine even if those
 		classes aren't there (doesn't it?)  This class shouldn't be loaded
 		if an XThis isn't instantiated in NameSpace.java, should it?
-
-		Note: there is another invoke method in This... combine?
 	*/
 	class Handler implements InvocationHandler, java.io.Serializable {
 
 		public Object invoke( Object proxy, Method method, Object[] args ) 
 			throws EvalError 
 		{
-			/*
-				Note: Reflect invokeObjectMethod does the same as the below 
-				to invoke the method.  Maybe we should create a 
-				NameSpace invokeMethod() method.
-			*/
-
+			Class [] sig = Reflect.getTypes( args );
 			BshMethod bmethod = 
-				namespace.getMethod( method.getName() );
+				namespace.getMethod( method.getName(), sig );
 
 			if ( bmethod != null )
 				return bmethod.invokeDeclaredMethod( 
 					args, declaringInterpreter );
 
 			// Look for the default handler
-			bmethod = namespace.getMethod( "invoke" );
+			bmethod = namespace.getMethod( "invoke", 
+				new Class [] { null, null } );
 
 			// Call script "invoke( String methodName, Object [] args );
 			if ( bmethod != null )

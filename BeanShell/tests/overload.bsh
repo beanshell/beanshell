@@ -1,0 +1,34 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+foo( a ) { 
+	return 1;
+}
+foo( a, b ) { 
+	return 2;
+}
+foo( String a ) { 
+	return 3;
+}
+foo( Object o ) {
+	return 4;
+}
+foo( Object o, String o2 ) {
+	return 5;
+}
+foo( String o, String o2 ) {
+	return 6;
+}
+foo() {
+	return 7;
+}
+
+assert( foo(99) == 1 );
+assert( foo(99, 99) == 2 );
+assert( foo("qbert") == 3 );
+assert( foo( new Object() ) == 4 );
+assert( foo( "foo", "bar" ) == 6 );
+assert( foo()==7 );
+
+complete();

@@ -90,7 +90,8 @@ public class BshClassManager
 		}
 
 		if ( c == null )
-			if ( baseLoader != null )
+			// There is a base loader and it's not one of our classes
+			if ( baseLoader != null && ! name.startsWith("bsh.") )
 				try {
 					c = baseLoader.loadClass( name );
 				} catch ( ClassNotFoundException e ) {}
@@ -152,7 +153,7 @@ public class BshClassManager
 	}
 
 	/**
-		Clear all loaders and start over.
+		Clear all loaders and start over.  No class loading.
 	*/
 	public void reset()
 	{
@@ -174,6 +175,18 @@ public class BshClassManager
 
 		// fire after change...  semantics are "has changed"
 		classLoaderChanged();
+	}
+
+	/**
+		Overlay the entire path with a new class loader.
+	*/
+	public void reloadAllClasses() {
+		List list = new ArrayList();
+		list.addAll( Arrays.asList( baseClassPath.getPathComponents() ) );
+		list.addAll( Arrays.asList( 
+			BshClassPath.getUserClassPathComponents() ) );
+		URL [] urls = (URL[])list.toArray( new URL[0] );
+		setClassPath( urls );
 	}
 
 	/**

@@ -3,8 +3,9 @@
 
 <h2>Changes </h2>
 <pre>
+	- Added overloading of bsh scripted methods
 	- Added classpath extension and class reloading
-
+		reloadClasses() reloadClasses(item)
 	- Loose arguments in catch clauses now work.
 	- deprecated getVariable/setVariable api.  Moving to get()/set()/eval();
 	- internally removed BshVariable - it wasn't doing what it was historically
@@ -19,6 +20,7 @@
 	prints public fields, methods
 
 	-Added -Doutfile=foo capture output to file (for Windows nightmare)
+	- Cleaned up a lot of internal structure in NameSpace, etc.
 </pre>
 
 <h2>Changes in bsh-1.01</h2>
