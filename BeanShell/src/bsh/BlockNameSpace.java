@@ -73,11 +73,10 @@ class BlockNameSpace extends NameSpace
 
 	/**
 		When set to true, handle all variable assignment in this local
-		scope - don't delegate to parent.  This is used in for-init and
-		catch block (and ?) to initialize local parameters to the block
-		then turned off to allow the normal BlockNameSpace behavior (which
-		is to keep only locally declared typed variables local and pass
-		the rest to the parent).
+		scope - don't delegate to parent.  This is used in catch blocks
+		to initialize local parameters to the block then turned off to allow 
+		the normal BlockNameSpace behavior (which is to keep only locally 
+		declared typed variables local and pass the rest to the parent).
 	*/
 	public void setInitMode( boolean b ) {
 		initMode = b;
