@@ -606,14 +606,14 @@ public class Interpreter
                 if(DEBUG)
                     e.printStackTrace();
 				// failsafe, set the Line as the origin of the error.
-				if ( !e.hasNode() )
+				if ( e.getNode()==null )
 					e.setNode( node );
 				e.reThrow("Sourced file: "+sourceFileInfo);
             } catch(EvalError e) {
                 if(DEBUG)
                     e.printStackTrace();
 				// failsafe, set the Line as the origin of the error.
-				if ( !e.hasNode() )
+				if ( e.getNode()==null )
 					e.setNode( node );
 				e.reThrow( "Sourced file: "+sourceFileInfo );
             } catch(Exception e) {
