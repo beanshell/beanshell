@@ -1,0 +1,8 @@
+
+bsh.help.getClassPath= "usage: getClassPath()";
+
+URL [] getClassPath() {
+	cp = bsh.BshClassManager.getClassManager().getClassPath();
+	return cp.getPathComponents();
+}
+

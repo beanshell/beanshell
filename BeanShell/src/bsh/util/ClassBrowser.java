@@ -70,7 +70,7 @@ public class ClassBrowser extends JSplitPane implements ListSelectionListener
 
 		Set set = classPath.getClassesForPackage( packagename );
 		if ( set == null )
-			return;
+			set = new HashSet();
 
 		// remove inner classes and shorten class names
 		List list = new ArrayList();
@@ -302,12 +302,6 @@ public class ClassBrowser extends JSplitPane implements ListSelectionListener
 	}
 
 	public void valueChanged(ListSelectionEvent e) {
-		/*
-		if ( e.getSource() == plist) {
-			String selectedPackage = (String)plist.getSelectedValue();
-			setClist( selectedPackage );
-		} else
-		*/
 		if ( e.getSource() == classlist ) {
 			String classname = (String)classlist.getSelectedValue();
 			setMlist( classname );
@@ -335,7 +329,7 @@ public class ClassBrowser extends JSplitPane implements ListSelectionListener
 		String classn = sa[1];
 
 		// Do we have the package?
-		if ( classPath.getClassesForPackage(packn) == null )
+		if ( classPath.getClassesForPackage(packn).size()==0 )
 			return;
 
 		ptree.setSelectedPackage( packn );
@@ -470,6 +464,8 @@ public class ClassBrowser extends JSplitPane implements ListSelectionListener
 
 			TreePath tp = new TreePath(treeModel.getPathToRoot( node ));
 			setSelectionPath( tp );
+			setClist( pack );
+
 			scrollPathToVisible( tp );
 		}
 

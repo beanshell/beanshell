@@ -38,9 +38,12 @@ public class StringUtil {
 		return out;
 	}
 
+	// Clean this up later...
     public static String methodString(String name, Class[] types)
     {
-        StringBuffer sb = new StringBuffer(name + "( ");
+        StringBuffer sb = new StringBuffer(name + "(");
+        if(types.length > 0)
+			sb.append(" ");
         for(int i=0; i<(types.length - 1); i++)
         {
             Class c = types[i];
@@ -50,8 +53,9 @@ public class StringUtil {
         {
             Class c = types[types.length - 1];
             sb.append(((c == null) ? "null" : c.getName()));
+			sb.append(" ");
         }
-        sb.append(" )");
+        sb.append(")");
         return sb.toString();
     }
 
