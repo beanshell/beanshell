@@ -191,12 +191,13 @@ public class NameSpace implements java.io.Serializable
 		return (val == null) ? Primitive.VOID :	val;
     }
 
-    /*
-	if value is null, you'll get the default value for the type
+    /**
+	 	If value is null, you'll get the default value for the type
     */
     public void	setTypedVariable(
 		String	name, Class type, Object value,	boolean	isFinal) 
-		throws EvalError {
+		throws EvalError 
+	{
 
 		if(variables ==	null)
 			variables =	new Hashtable();
@@ -445,16 +446,26 @@ public class NameSpace implements java.io.Serializable
 
 	/**
 		Determine if the RHS object can be assigned to the LHS type.
+
 		If a conversion can be performed to make it assignable do it and
 		return a new form of the RHS.
 
-		In addition to assignments this methods is used in method matching.
+		In addition to assignments this methods is used in method selection.
+
+		@returns an assignable form of the RHS
 	*/
     public static Object checkAssignableFrom(Object rhs, Class lhsType)
 		throws EvalError
     {
 		Class originalType;
 		Class rhsType;
+
+		/*
+			This probably means we are trying to assign to a loose type
+			should we accept it here?
+		*/
+		if ( lhsType == null )
+			throw new InterpreterError("check assignable to null type");
 
 		if(rhs == null)
 			throw new InterpreterError("null value in checkAssignable");

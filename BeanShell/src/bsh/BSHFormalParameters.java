@@ -23,7 +23,10 @@ class BSHFormalParameters extends SimpleNode
 
 	BSHFormalParameters(int id) { super(id); }
 
-	public Object eval(NameSpace namespace, Interpreter interpreter)  throws EvalError
+	/**
+	*/
+	public Object eval(NameSpace namespace, Interpreter interpreter)  
+		throws EvalError
 	{
 		numArgs = jjtGetNumChildren();
 

@@ -36,6 +36,9 @@ class BshMethod implements java.io.Serializable
 		
 	}
 
+	/**
+		Invoke the bsh method with the specified args and interpreter ref.
+	*/
 	public Object invokeDeclaredMethod( 
 		Object[] argValues, Interpreter interpreter ) throws EvalError 
 	{
@@ -43,6 +46,7 @@ class BshMethod implements java.io.Serializable
 		if ( argValues == null )
 			argValues = new Object [] { };
 
+		// Cardinality (number of args) mismatch
 		if ( argValues.length != method.params.numArgs ) {
 			// look for help string
 			try {
@@ -59,12 +63,15 @@ class BshMethod implements java.io.Serializable
 			}
 		}
 
+		// Make the local namespace of the method invocation
 		NameSpace localNameSpace = new NameSpace( 
 			declaringNameSpace, method.name );
 
 		for(int i=0; i<method.params.numArgs; i++)
 		{
-			if(method.params.argTypes[i] != null) {
+			// Set typed variable
+			if ( method.params.argTypes[i] != null ) 
+			{
 				try {
 					argValues[i] = NameSpace.checkAssignableFrom(argValues[i],
 					    method.params.argTypes[i]);
@@ -77,10 +84,11 @@ class BshMethod implements java.io.Serializable
 				}
 				localNameSpace.setTypedVariable( method.params.argNames[i], 
 					method.params.argTypes[i], argValues[i], false);
-			}
-			// checkAssignable would catch this for typed params
-			else
-				if(argValues[i] == Primitive.VOID)
+			} 
+			// Set untyped variable
+			else  // untyped param
+				// checkAssignable would catch this for typed param
+				if ( argValues[i] == Primitive.VOID)
 					throw new EvalError("Attempt to pass void parameter: " +
 						method.params.argNames[i] + " to method: " 
 						+ method.name, method);
@@ -92,7 +100,7 @@ class BshMethod implements java.io.Serializable
 		Object ret = method.block.eval( 
 			localNameSpace, interpreter );
 
-		if(ret instanceof ReturnControl)
+		if ( ret instanceof ReturnControl )
 		{
 			ReturnControl rs = (ReturnControl)ret;
 			if(rs.kind == rs.RETURN)
