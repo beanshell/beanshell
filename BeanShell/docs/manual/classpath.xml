@@ -1,5 +1,5 @@
 <section>
-<name>Class Loading and Class Path Management</name>
+<name filename="classpath">Class Loading and Class Path Management</name>
 
 BeanShell is capable of some very fine grained and sophisticated class 
 reloading and modifications to the class path.  BeanShell can even map

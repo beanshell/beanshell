@@ -1,5 +1,5 @@
 <section>
-<name>Working with Dirctories and Paths</name>
+<name filename="paths">Working with Dirctories and Paths</name>
 
 BeanShell supports the notion of a <em>current working directory</em> for
 commands that work with files.  The cd() command can be used to change the

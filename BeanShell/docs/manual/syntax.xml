@@ -1,5 +1,5 @@
 <section>
-<name>BeanShell Syntax</name>
+<name filename="syntax">BeanShell Syntax</name>
 
 BeanShell is, foremost, a Java interpreter. So you probably already know 
 most of what you need to start scripting with BeanShell.  This 

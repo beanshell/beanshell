@@ -1,5 +1,5 @@
 <section>
-<name>Scripted Objects</name>
+<name filename="objects">Scripted Objects</name>
 
 The majority people who currently use BeanShell use it to write scripts that 
 work with existing Java classes and APIs, or perform other kinds of dynamic 

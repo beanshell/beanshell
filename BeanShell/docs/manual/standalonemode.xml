@@ -1,5 +1,5 @@
 <section>
-<name>Modes of Operation</name>
+<name filename="standalonemode">Modes of Operation</name>
 
 There are currently five basic modes of operation for running BeanShell:
 
