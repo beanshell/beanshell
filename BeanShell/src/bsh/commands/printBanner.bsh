@@ -14,7 +14,7 @@ printBanner() {
 	    jconsole.println( 
 			new ImageIcon( getResource("/bsh/util/lib/small_bean_shell.gif")) );
 	    jconsole.print(
-			"1.1 beta - by Pat Niemeyer (pat@pat.net)",
+			"1.1 alpha - by Pat Niemeyer (pat@pat.net)",
 			new java.awt.Font("SansSerif", Font.BOLD, 12), 
 			new Color(20,100,20) );
 	    jconsole.println();
