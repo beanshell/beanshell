@@ -401,10 +401,10 @@ boolean Line() :
 		it...  Is there another syntactic indication that we are working 
 		through an expression as opposed to a statement?
 		What is the difference?  Well, some statements don't require a
-		semicolon and they don't return vlues...  We could probably broaden
+		semicolon and they don't return values...  We could probably broaden
 		bsh to allow everything to return a value, but the semi-colon thing
 		is tougher.  You don't want to have to say if ( foo ) { } ;
-		Maybe we can invert ths and enumerate all of those types of 
+		Maybe we can invert this and enumerate all of those types of 
 		statements in a special lookahead that's cheaper??
 	*/
    LOOKAHEAD( Expression() ";" )
@@ -583,7 +583,8 @@ void Expression() :
 {
 	/**
 		SYNTACTIC_LOOKAHEAD
-		This is probably expensive.  Can we simplify it somehow?
+		Note: the original grammar was cheating here and we've fixed that,
+		but at the expense of another syntactic lookahead.
 	*/
   LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
   Assignment()
@@ -849,53 +850,6 @@ void PrimarySuffix() #PrimarySuffix :
 */
 }
 
-
-/*
-	Begin LHS part of the grammar --
-
-	The reason this stuff is duplicated (e.g. LHSPrimaryPrefix and 
-	PrimaryPrefix) is that the whole grammar splits based on whether we 
-	are preparig to do an assignment or not.  This is an important issue 
-	to revisit in the future.
-
-void LHSPrimaryExpression() #LHSPrimaryExpression : { }
-{
-  LHSPrimaryPrefix() ( LHSPrimarySuffix() )*
-}
-
-void LHSPrimaryPrefix() : { }
-{
-  // SYNTACTIC_LOOKAHEAD
-  LOOKAHEAD( MethodInvocation() )
-  	MethodInvocation()
-|
-  AmbiguousName()
-}
-
-void LHSPrimarySuffix() #LHSPrimarySuffix :
-{
-    Token t=null, t1, t2 = null;
-}
-{
-  // Indexed to a field
-  "[" Expression() "]" {
-        jjtThis.operation = BSHLHSPrimarySuffix.INDEX;
-    }
-|
-  // Field access or method invocation
-  "." t = <IDENTIFIER> [ Arguments() ] {
-        jjtThis.operation = BSHLHSPrimarySuffix.NAME;
-        jjtThis.field = t.image;
-    }
-|
-  "{" Expression() "}" {
-        jjtThis.operation = BSHLHSPrimarySuffix.PROPERTY;
-    }
-}
-
-	-- End LHS part of the grammar
-*/
-
 void Literal() #Literal :
 {
     Token x;
@@ -1079,16 +1033,14 @@ void BlockStatement() :
 {
 }
 {
-// SYNTACTIC_LOOKAHEAD
+  // SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( MethodDeclarationLookahead() ) MethodDeclaration()
 |
-// SYNTACTIC_LOOKAHEAD
+  // SYNTACTIC_LOOKAHEAD
   LOOKAHEAD([ "final" ] Type() <IDENTIFIER>)
   TypedVariableDeclaration() ";"
 |
   Statement()
-
-/* end */ // ??
 
 |  
   // Allow BeanShell imports in any block
@@ -1178,6 +1130,10 @@ void DoStatement() #WhileStatement :
 void ForStatement() #ForStatement :
 {}
 {
+  LOOKAHEAD( "for" "(" PrimaryExpression() ":" )
+  "for" "(" PrimaryExpression() ":" Expression() ")"
+    Statement() { System.out.println("here!"); }
+  |
   "for" "(" [ ForInit() { jjtThis.hasForInit=true; } ]
     ";" [ Expression() { jjtThis.hasExpression=true; } ]
     ";" [ ForUpdate() { jjtThis.hasForUpdate=true; } ] ")"

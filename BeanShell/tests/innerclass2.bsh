@@ -5,7 +5,7 @@ source("TestHarness.bsh");
 // import inner class
 import InnerClass.Inner;
 
-assert( Inner instanceof bsh.Name.ClassIdentifier );
+assert( Inner instanceof bsh.ClassIdentifier );
 assert( new Inner() instanceof Object );
 
 complete();
