@@ -14,16 +14,15 @@ A long time ago, back in the summer of 1993, while working at Southwestern
 Bell Technology Resources, I was completely infatuated with the Tcl/Tk 
 scripting language.  At the time I was also playing around a bit with a 
 language called Oak written by James Gosling at Sun. 
-Little did I know at the time that within just a few years the little Oak 
-language would not only sparc a revolution named Java, but that I would be 
-writing one of the first books on Java language for O'Reilly &amp; 
-Associates and 
+Little did I know at the time that within just a few years Oak would not 
+only spark a revolution named Java, but that I would be writing one of the 
+first books on Java language for O'Reilly &amp; Associates and 
 creating Java's first scripting language, BeanShell, modeled on the ideas
 contained in Tcl.
 <p/>
 
-BeanShell's first public release was not until 1997, but it had been
-on my desk in one form or another since the beginning. BeanShell was not 
+BeanShell's first public release was not until 1997, but I had been
+poking at it in one form or another for some time. BeanShell was not 
 truly practical until Sun added reflection to the Java language in 
 version 1.1.  After that and after having felt its value in helping me create 
 examples and snippets for the second edition of my book, I decided to try to 
