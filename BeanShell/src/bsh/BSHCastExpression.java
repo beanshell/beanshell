@@ -79,8 +79,8 @@ class BSHCastExpression extends SimpleNode {
                 }
             }
         } else 
-			// Can we use the proxy mechanism to case a bsh.This to interface
-			if ( NameSpace.haveProxyMechanism() &&
+			// Can we use the proxy mechanism to cast a bsh.This to interface
+			if ( Capabilities.haveProxyMechanism() &&
 				(result instanceof bsh.This) && toType.isInterface() ) {
 					result = ((XThis)result).getInterface( toType );
 		} else 

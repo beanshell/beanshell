@@ -561,12 +561,10 @@ class Reflect {
         {
             Constructor currentConstructor = constructors[i];
             Class[] parameters = currentConstructor.getParameterTypes();
-            try
-            {
+            try {
                 for(int j = 0; j < parameters.length; j++)
-                {
-                    tempArgs[j] = NameSpace.checkAssignableFrom(args[j], parameters[j]);
-                }
+                    tempArgs[j] = 
+						NameSpace.checkAssignableFrom(args[j], parameters[j]);
 
                 // if you get here, all the arguments were assignable
                 System.arraycopy(tempArgs, 0, args, 0, args.length);

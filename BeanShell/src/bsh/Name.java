@@ -529,7 +529,7 @@ class Name implements java.io.Serializable
         }
     }
 
-
+	// Static methods that operate on compound ('.' separated) names
 
 	static boolean isCompound(String value)
 	{
@@ -591,6 +591,9 @@ class Name implements java.io.Serializable
 
 		return (index == -1) ? value : value.substring(index + 1);
 	}
+
+	// end compound name routines
+
 
 	public String toString() { return value; }
 

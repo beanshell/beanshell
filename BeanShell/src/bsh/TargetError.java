@@ -91,7 +91,7 @@ public class TargetError extends EvalError implements TargetErrorPrinter
 	public TargetErrorPrinter getTargetErrorPrinter() {
 		if ( targetPrinter == null )
 			try {
-				if ( NameSpace.haveProxyMechanism() )
+				if ( Capabilities.haveProxyMechanism() )
 					targetPrinter = 
 						(TargetErrorPrinter)Reflect.constructObject( 
 						"bsh.XTargetErrorPrinter", new Object [] { } );

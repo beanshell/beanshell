@@ -1,0 +1,13 @@
+
+bsh.help.addClassPath= "usage: addClassPath( string | URL )";
+
+addClassPath( path ) {
+	URL url;
+	if ( path instanceof URL )
+		url = path;
+	else
+		url = pathToFile( path ).toURL();
+
+	bsh.BshClassManager.getClassManager().addClassPath( url );
+}
+
