@@ -266,7 +266,12 @@ class Reflect {
         {
 			// Try the easy case: Look for an accessible version of the 
 			// direct match.
-			Method m = findAccessibleMethod(clas, name, types, onlyStatic);
+
+			Method m = null;
+			try {
+				m  = findAccessibleMethod(clas, name, types, onlyStatic);
+			} catch ( SecurityException e ) { }
+
 			if ( m == null )
 				Interpreter.debug("Exact method " + 
 					StringUtil.methodString(name, types) +
@@ -296,9 +301,12 @@ class Reflect {
 					m = findExtendedMethod(name, args, methods);
 
 				// If we found an assignable method, make sure it's accessible
-				if ( m != null )
-					m = findAccessibleMethod(
-						clas, m.getName(), m.getParameterTypes(), onlyStatic);
+				if ( m != null ) {
+					try {
+						m = findAccessibleMethod( clas, m.getName(), 
+							m.getParameterTypes(), onlyStatic);
+					} catch ( SecurityException e ) { }
+				}
             }
 
 			// Found something?

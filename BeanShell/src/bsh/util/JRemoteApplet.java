@@ -33,18 +33,39 @@
 
 package bsh.util;
 
-import java.awt.Component;
+import javax.swing.*;
+import java.awt.*;
+import java.io.*;
+import java.net.*;
 
 /**
 	A lightweight console applet for remote display of a Beanshell session.
 */
-public class JRemoteApplet extends RemoteApplet
+
+public class JRemoteApplet extends JApplet
 {
+	OutputStream out;
+	InputStream in;
+
 	public void init() 
 	{
-		super.init();
+		getContentPane().setLayout(new BorderLayout());
+
+		try {
+			URL base = getDocumentBase();
+
+			// connect to session server on port (httpd + 1)
+			Socket s = new Socket(base.getHost(), base.getPort() + 1);
+			out = s.getOutputStream();
+			in = s.getInputStream();
+		} catch(IOException e) {
+			getContentPane().add("Center", 
+				new Label("Remote Connection Failed", Label.CENTER));
+			return;
+		}
+
 		Component console = new JConsole(in, out);
-		add("Center", console);
+		getContentPane().add("Center", console);
 	}
 }
 

@@ -202,7 +202,6 @@
 	<fileset id="util-fileset" dir="${build-dir}">
 		<patternset>
 			<include name="bsh/util/*.class"/>
-			<exclude name="bsh/util/AWTConsole*"/>
 		</patternset>
 		<patternset id="util-lib-patternset">
 			<include name="bsh/util/lib/*"/>

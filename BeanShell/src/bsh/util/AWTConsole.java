@@ -288,9 +288,9 @@ public class AWTConsole extends TextArea
 		print( s, Color.red );
 	}
 
+	// No color
 	public void print( String s, Color c ) {
-		// just for the hell of it
-		print( "{" + c + "} " + s);
+		print( "*** " + s);
 	}
 
 	synchronized public void print( String s ) {
