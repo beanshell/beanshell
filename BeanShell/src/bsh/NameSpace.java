@@ -716,10 +716,11 @@ public class NameSpace
 
 		// Limit static. If we are a class def space being asked for an instance
 		// method throw an exception.
-		if ( isClass && method != null && 
-			!method.hasModifier("static") 
-			// Hack! Allow us to see constructors
-			&& !nsName.equals(name)
+		if ( isClass && method != null && !method.hasModifier("static") 
+			// Bit of a hack, allow us to see default constructor
+			&& !name.equals( BSHClassDeclaration.DEFCONSNAME )
+			// See regular constructors
+			&& !nsName.equals( name )
 		)
 			throw new UtilEvalError(
 				"Can't reach instance method: "+name

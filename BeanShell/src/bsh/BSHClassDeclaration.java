@@ -38,6 +38,10 @@ package bsh;
 */
 class BSHClassDeclaration extends SimpleNode
 {
+	/**
+		Default constructor name.
+	*/
+	static final String DEFCONSNAME= "_bshinit";
 	String name;
 	Modifiers modifiers;
 	int numInterfaces;
@@ -113,7 +117,8 @@ class BSHClassDeclaration extends SimpleNode
 		// Add the block as a default constructor method
 
 		BshMethod defaultConstructor =
-			new BshMethod( name, 
+			new BshMethod( 
+				DEFCONSNAME, 
 				null /*returnType*/,
 				new String [0] /*argNames*/,
 				new Class [0] /*argTypes*/,
@@ -123,7 +128,7 @@ class BSHClassDeclaration extends SimpleNode
 			);
 
 		try {
-			classStaticNameSpace.setMethod( name, defaultConstructor );	
+			classStaticNameSpace.setMethod( DEFCONSNAME, defaultConstructor );	
 		} catch ( UtilEvalError e ) {
 			throw e.toEvalError(this, callstack);
 		}
