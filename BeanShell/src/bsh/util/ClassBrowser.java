@@ -89,11 +89,33 @@ public class ClassBrowser extends JSplitPane implements ListSelectionListener
 	String [] parseMethods( Method [] methods ) {
 		String [] sa = new String [ methods.length ] ;
 		for(int i=0; i< sa.length; i++)
-			sa[i] = methods[i].getName();
+			sa[i] = StringUtil.methodString( 
+				methods[i].getName(), methods[i].getParameterTypes() );
 		//return bubbleSort(sa);
 		return sa;
 	}
 
+	String [] parseConstructors( Constructor [] constructors ) {
+		String [] sa = new String [ constructors.length ] ;
+		for(int i=0; i< sa.length; i++) {
+			Constructor con = constructors[i];
+			sa[i] = StringUtil.methodString( 
+				con.getName(), con.getParameterTypes() );
+		}
+		//return bubbleSort(sa);
+		return sa;
+	}
+
+	Constructor [] getPublicConstructors( Constructor [] constructors ) {
+		Vector v = new Vector();
+		for(int i=0; i< constructors.length; i++)
+			if ( Modifier.isPublic(constructors[i].getModifiers()) )
+				v.addElement( constructors[i] );
+
+		Constructor [] ca = new Constructor [ v.size() ];
+		v.copyInto( ca );
+		return ca;
+	}
 	Method [] getPublicMethods( Method [] methods ) {
 		Vector v = new Vector();
 		for(int i=0; i< methods.length; i++)
@@ -133,8 +155,8 @@ public class ClassBrowser extends JSplitPane implements ListSelectionListener
 			return;
 		}
 
-		consList = clas.getConstructors();
-		conslist.setListData( consList );
+		consList = getPublicConstructors( clas.getDeclaredConstructors() );
+		conslist.setListData( parseConstructors(consList) );
 	}
 
 	void setMethodLine( Object method ) {
@@ -265,7 +287,7 @@ public class ClassBrowser extends JSplitPane implements ListSelectionListener
 		ClassBrowser cb = new ClassBrowser();
 		cb.init();
 
-		JFrame f=new JFrame("BeanShell Class Browser v0.7");
+		JFrame f=new JFrame("BeanShell Class Browser v1.0");
 		f.getContentPane().add( "Center", cb );
 		cb.setFrame( f );
 		f.pack();
@@ -308,7 +330,6 @@ public class ClassBrowser extends JSplitPane implements ListSelectionListener
 
 	// fully qualified classname
 	public void driveToClass( String classname ) {
-System.out.println("drive to: "+classname);
 		String [] sa = BshClassPath.splitClassname( classname );
 		String packn = sa[0];
 		String classn = sa[1];
@@ -317,19 +338,6 @@ System.out.println("drive to: "+classname);
 		if ( classPath.getClassesForPackage(packn) == null )
 			return;
 
-		/*
-		boolean found = false;
-		for(int i=0; i< packagesList.length; i++) {
-			if ( packagesList[i].equals(packn) ) {
-				plist.setSelectedIndex(i);
-				plist.ensureIndexIsVisible(i);
-				found = true;
-				break;
-			}
-		}
-		if ( !found )
-			return;
-		*/
 		ptree.setSelectedPackage( packn );
 
 		for(int i=0; i< classesList.length; i++) {
@@ -396,13 +404,14 @@ System.out.println("drive to: "+classname);
 			}
 
 			root = makeNode( packageTree, "root" );
+			mapNodes(root);
 			return new DefaultTreeModel( root );
 		}
 
 
 		MutableTreeNode makeNode( Map map, String nodeName ) 
 		{
-			DefaultMutableTreeNode node = 
+			DefaultMutableTreeNode root = 
 				new DefaultMutableTreeNode( nodeName );
 			Iterator it=map.keySet().iterator();
 			while(it.hasNext() ) {
@@ -411,44 +420,57 @@ System.out.println("drive to: "+classname);
 				if ( val.size() == 0 ) {
 					DefaultMutableTreeNode leaf = 
 						new DefaultMutableTreeNode( name );
-					node.add( leaf );
-					addToMap( leaf );
-				} else
-					node.add( makeNode( val, name ));
+					root.add( leaf );
+				} else {
+					MutableTreeNode node = makeNode( val, name );
+					root.add( node );
+				}
 			}
-
-			return node;
+			return root;
 		}
 
 		/**
-			Map out the location of the leaf nodes by package name.
+			Map out the location of the nodes by package name.
 			Seems like we should be able to do this while we build above...
+			I'm tired... just going to do this.
 		*/
-		void addToMap( DefaultMutableTreeNode node ) {
+		void mapNodes( TreeNode node ) {
+			addNodeMap( node );
+
+			Enumeration e = node.children();
+			while(e.hasMoreElements()) {
+				TreeNode tn = (TreeNode)e.nextElement();
+				mapNodes( tn );
+			}
+		}
+
+		/**
+			map a single node up to the root
+		*/
+		void addNodeMap( TreeNode node ) {
+
 			StringBuffer sb = new StringBuffer();
 			TreeNode tn = node;
-			while( tn != null ) {
+			while( tn != root ) {
 				sb.insert(0, tn.toString() );
-				if ( tn.getParent() != null )
+				if ( tn.getParent() != root )
 					sb.insert(0, "." );
 				tn = tn.getParent();
 			}
 			String pack = sb.toString();
 
-//System.out.println("mapping package: "+pack);
 			nodeForPackage.put( pack, node );
 		}
 
 		void setSelectedPackage( String pack ) {
-System.out.println("selecting package: "+pack);
 			DefaultMutableTreeNode node = 
 				(DefaultMutableTreeNode)nodeForPackage.get(pack);
 			if ( node == null )
 				return;
-System.out.println("here: "+pack);
 
 			TreePath tp = new TreePath(treeModel.getPathToRoot( node ));
 			setSelectionPath( tp );
+			scrollPathToVisible( tp );
 		}
 
 	}

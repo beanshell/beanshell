@@ -1,0 +1,75 @@
+
+all:\
+ASCII_UCodeESC_CharStream.class \
+BSHAllocationExpression.class \
+BSHAmbiguousName.class \
+BSHArguments.class \
+BSHArrayDimensions.class \
+BSHArrayInitializer.class \
+BSHArrayType.class \
+BSHAssignment.class \
+BSHBinaryExpression.class \
+BSHBlock.class \
+BSHCastExpression.class \
+BSHForStatement.class \
+BSHFormalParameter.class \
+BSHFormalParameters.class \
+BSHIfStatement.class \
+BSHImportDeclaration.class \
+BSHLHSPrimaryExpression.class \
+BSHLHSPrimarySuffix.class \
+BSHLiteral.class \
+BSHMethodDeclaration.class \
+BSHMethodInvocation.class \
+BSHPrimaryExpression.class \
+BSHPrimarySuffix.class \
+BSHPrimitiveType.class \
+BSHReturnStatement.class \
+BSHReturnType.class \
+BSHStatementExpressionList.class \
+BSHTernaryExpression.class \
+BSHThrowStatement.class \
+BSHTryStatement.class \
+BSHType.class \
+BSHTypedVariableDeclaration.class \
+BSHUnaryExpression.class \
+BSHVariableDeclarator.class \
+BSHWhileStatement.class \
+BshClassManager.class \
+BshFile.class \
+BshMethod.class \
+Capabilities.class \
+ClassPathException.class \
+CommandLineReader.class \
+Console.class \
+ConsoleInterface.class \
+EvalError.class \
+ForBodyNameSpace.class \
+Interpreter.class \
+InterpreterConstants.class \
+InterpreterError.class \
+InterpreterTokenManager.class \
+InterpreterTreeConstants.class \
+JJTInterpreterState.class \
+JThis.class \
+LHS.class \
+Name.class \
+NameSpace.class \
+Node.class \
+ParseException.class \
+Primitive.class \
+Reflect.class \
+ReflectError.class \
+ReturnControl.class \
+SimpleNode.class \
+StringUtil.class \
+TargetError.class \
+This.class \
+Token.class \
+TokenMgrError.class \
+XThis.class \
+
+
+%.class : %.java
+	javac $< 
+

@@ -196,14 +196,14 @@ class Reflect {
             }
             catch(ReflectError e)
             {
-                Interpreter.debug("Exact method " + methodString(name, types) +
+                Interpreter.debug("Exact method " + StringUtil.methodString(name, types) +
                     " not found in '" + clas.getName() + "'");
             }
 
             if ( returnValue == null ) {
 				if ( types.length == 0 )
 					throw new ReflectError("No args method " + 
-						methodString(name, types) + " not found in class'" + 
+						StringUtil.methodString(name, types) + " not found in class'" + 
 						clas.getName() + "'");
 
 				// try to find an assignable method
@@ -215,7 +215,7 @@ class Reflect {
 
 				if (m == null )
 					throw new ReflectError("Method " + 
-						methodString(name, types) + 
+						StringUtil.methodString(name, types) + 
 						" not found in class'" + clas.getName() + "'");
 
 				// have the method
@@ -227,7 +227,7 @@ class Reflect {
             }
         } catch(IllegalAccessException e) {
             throw new ReflectError( 
-				"Cannot access method " + methodString(name, types) +
+				"Cannot access method " + StringUtil.methodString(name, types) +
                 " in '" + clas.getName() + "' :" + e);
         }
 
@@ -281,7 +281,7 @@ class Reflect {
 		
 		throw new ReflectError( 
 			"Can't find publically accessible version of method: "+
-			methodString(name, types) +
+			StringUtil.methodString(name, types) +
 			" in interfaces or class hierarchy of class "+clas.getName() );
 	}
 
@@ -308,23 +308,6 @@ class Reflect {
             }
             else
                 return value;
-    }
-
-    public static String methodString(String name, Class[] types)
-    {
-        StringBuffer sb = new StringBuffer(name + "(");
-        for(int i=0; i<(types.length - 1); i++)
-        {
-            Class c = types[i];
-            sb.append(((c == null) ? "null" : c.getName()) + ", ");
-        }
-        if(types.length > 0)
-        {
-            Class c = types[types.length - 1];
-            sb.append(((c == null) ? "null" : c.getName()));
-        }
-        sb.append(")");
-        return sb.toString();
     }
 
     public static Class[] getTypes( Object[] args)
@@ -571,7 +554,7 @@ class Reflect {
 		}
 
 		if ( bestMatch != null ) {
-			Interpreter.debug("best match: " + methodString("args",bestMatch));
+			Interpreter.debug("best match: " + StringUtil.methodString("args",bestMatch));
 			return bestMatchIndex;
 		}
 		else {
