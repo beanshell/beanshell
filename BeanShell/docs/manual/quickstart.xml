@@ -42,8 +42,8 @@ or
 <p/>
 
 
-Tip: From within BeanShell scripts or the command line you can to BeanShell's
-classpath using the addClassPath() command.
+<tip>From within BeanShell scripts or the command line you can to BeanShell's
+classpath using the addClassPath() command.</tip>
 <p/>
 
 The above examples show how to run BeanShell interactively for experimentation
@@ -73,7 +73,8 @@ workspace.
 Java Statements and Expressions
 </h2>
 
-At the prompt you can type standard Java statements and expressions.  
+At the prompt you can type standard Java statements, expressions, and
+method declarations.
 Statements and expressions are all of the normal things that you'd say
 inside a Java method: e.g. variable declarations and assignments, 
 method calls, loops, conditionals, etc.  
@@ -134,11 +135,11 @@ in a new interpreter</li>
 See the complete list of BeanShell commands for more information.
 <p/>
 
-Tip:
+<tip>
 BeanShell commands are not really "built-in" but are simply BeanShell scripted
 methods that are automatically loaded from the classpath.  You can add your 
 own scripts to the classpath to extend the basic command set.
-<p/>
+</tip>
 
 <h2>
 Scripted Methods
@@ -198,20 +199,14 @@ If this seems strange to don't worry. Please see the user's manual for a
 more thorough explanation.
 <p/>
 
-<h5>Implementing Interfaces</h5>
+<h2>Implementing Interfaces</h2>
 <p/>
-<em>Note: implementing interfaces requires BeanShell be running under a 
-Java 1.3 environment or higher</em>
-<p/>
-
-You may cast a BeanShell scripted object - i.e. any <em>this</em> reference like
- myFoo in the previous example - to any Java interface type.  When Java code
-calls methods on the interface the corresponding scripted methods will be 
-invoked to handle them.
+<em>Note: implementing arbitrary interfaces requires BeanShell be running 
+under a Java 1.3 environment or higher</em>
 <p/>
 
-You may also use standard Java anonymous inner class syntax to implement an
-interface type with a script.
+You can use the standard Java anonymous inner class syntax to implement an
+interface type with a script.  For example:
 
 <example>
 ActionListener scriptedListener = new ActionListener() {
@@ -219,8 +214,18 @@ ActionListener scriptedListener = new ActionListener() {
 }
 </example>
 
-You can script only the methods of the interface that you intend to call
-if you want to.  The calling code will simply throw an exception if it tries to 
+But more generally, you can simply use any BeanShell scripted object - i.e. 
+any <em>'this'</em> type reference like myFoo in the previous example - as
+any Java interface type, within your scripts.  When Java code calls methods 
+on the interface the corresponding scripted methods will be invoked to handle 
+them.  For passing references to BeanShell methods outside of your script,
+you can also perform an explicit cast where necessary.  Please see the user
+manual for details.
+<p/>
+
+You don't have to script all of the methods of an interface.  You can opt to
+script only those that you intend to call if you want to.  
+The calling code will simply throw an exception if it tries to 
 invoke a method that isn't defined.
 If you wish to override the behavior of a large number of methods - say to
 produce a "dummy" adapter for logging - you can implement a special method
@@ -253,9 +258,8 @@ i.eval("bar = foo*10");
 System.out.println("bar = "+i.get("bar") );
 </example>
 
-Tip: In the above example the eval() method also returned the value of bar as
-the result of the evaluation.
-<p/>
+<tip>In the above example the eval() method also returned the value of bar as
+the result of the evaluation.</tip>
 
 <h2>Conclusion</h2>
 

@@ -12,6 +12,8 @@
 <xsl:import href="example.xsl"/>
 <!-- Handle note text -->
 <xsl:import href="note.xsl"/>
+<!-- Handle tip text -->
+<xsl:import href="tip.xsl"/>
 <!-- Rewrite images using {$imagedir} -->
 <xsl:import href="img.xsl"/>
 <!-- Render indexed bsh commands doc -->

@@ -9,12 +9,12 @@
   <!ENTITY syntax SYSTEM "syntax.xml">
   <!ENTITY methods SYSTEM "methods.xml">
   <!ENTITY objects SYSTEM "objects.xml">
+  <!ENTITY scope SYSTEM "scope.xml">
   <!ENTITY interfaces SYSTEM "interfaces.xml">
-  <!ENTITY threads SYSTEM "threads.xml">
   <!ENTITY specialvarsvalues SYSTEM "specialvarsvalues.xml">
   <!ENTITY classpath SYSTEM "classpath.xml">
   <!ENTITY desktop SYSTEM "desktop.xml">
-  <!ENTITY embedding SYSTEM "embedding.xml">
+  <!ENTITY bshmodes SYSTEM "bshmodes.xml">
   <!ENTITY servermode SYSTEM "servermode.xml">
   <!ENTITY execscripts SYSTEM "execscripts.xml">
   <!ENTITY bshpackage SYSTEM "bshpackage.xml">
@@ -35,13 +35,13 @@
 	&syntax;
 	&methods;
 	&objects;
+	&scope;
 	&interfaces;
-	&threads;
 	&specialvarsvalues;
 	&classpath;
-	&desktop;
-	&embedding;
+	&bshmodes;
 	&servermode;
+	&desktop;
 	&execscripts;
 	&bshpackage;
 	&more;

@@ -1,83 +1,154 @@
 <section>
 <name>Scripted Objects</name>
 
-In bsh you can script objects as "method closures", similar to 
-those in Perl5.0 and JavaScript.
+The majority people who currently use BeanShell use it to write scripts that 
+work with existing Java classes and APIs, or perform other kinds of dynamic 
+activities for their own applications at run-time without the aid of a 
+compiler.  Often this means writing relatively unstructured code -
+for example, a sequence of method invocations or loops - all contained in a 
+single script file or eval() statement. 
+But in the previous section we saw that BeanShell
+is also capable of scripting methods, just like Java.  Creating methods and
+new BeanShell commands (which are just methods in their own files) is the 
+natural progression of organizing your scripts into re-usable and 
+maintainable components.
 <p/>
 
-As in most languages, executing bsh methods have their own "local" scope 
+Beyond methods and structured programming lies, of course, the full breadth of
+object oriented programming.  In Java, of course, objects are the products
+of classes.  While BeanShell is almost entirely compatible with standard 
+Java syntax for statements, expressions, and methods you can't yet script
+new Java classes within BeanShell.
+Instead, in BeanShell you can script objects as "method closures", similar to 
+the way it is done in Perl 5.x, JavaScript, and other object-capable 
+scripting languages.  This style of scripting objects (which we'll describe 
+in detail shortly) is simple and flows very naturally from the use of 
+scripting methods to the power of encapsulated objects.  The syntax, 
+as you'll see, is a straightforward extension of the standard Java concept of 
+referring to an object via a 'this' reference.
+<p/>
+
+<note>
+In standard Java, a method inside of an object (an instance method) may refer
+to the enclosing object using the special variable 'this'.  For example:
+<pre>
+    // MyClass.java
+    MyClass {
+        Object getObject() {
+            return this; // return a reference to our object
+        }
+    }
+</pre>
+
+In the example above, the getObject() method of MyClass returns a reference
+to its own instance of the MyClass object, using 'this'.  The 'this'
+reference can also be used to qualify variables and method names to make
+them refer to the enclosing object. e.g.
+<pre>
+    ...
+    this.foo = 42;
+</pre>
+</note>
+
+<h2>The 'this' reference</h2>
+
+As in most languages, an executing method in BeanShell has its own 
+"local" scope 
 that holds argument variables and locally declared variables.  For example,
-any variables that we might have declared within our add() method above would 
-normally only be visible within the scope of and for the lifetime of a 
-particular method invocation:
+in the following code segment any variables that we might use within 
+the foo() method will normally only be visible within the scope of foo() and 
+for the lifetime of one particular foo() method invocation:
 
 <example>
+// Define the foo() method:
 foo() {
-	bar = 42;
-	print( bar );
+    bar = 42;
+    print( bar );
 }   
 
+// Invoke the foo() method:
 foo();  // prints 42
-print( bar ); // Error, var is undefined here 
+
+print( bar ); // Error, bar is undefined here 
 </example>
 
-However, in BeanShell you can "hang on" to this scope after
-exiting the method by returning the special value: "this".  As in Java,
-"this" refers to the current object context.  By saving the "this" reference,
-you can continue to refer to variables defined within the method, using
-the standard Java "." notation:
-
-<example>
-foo() {
-	bar = 42;
-	return this;
-}
-
-obj = foo();
-print( obj.bar ); // 42
-</example>
-
-In the above, the value returned by the foo() method is effectively
-an instance of a "foo" object. 
-In this case foo is really just acting like a structure,  but bsh methods
-are also allowed to contain their own methods:
-<example>
-foo() {
-	bar() {
-		...
-	}
-}
-</example>
-Method may define any number of local methods in this way, to an arbitrary 
-depth.
+In the above, the bar variable is local to foo() and therefore not available
+outside of the method invocation - it is thrown away when the method exits,
+just like a standard Java local variable.
 <p/>
 
-Statements and expressions within a Bsh method can call their own 
-"local" methods just like any other method.  (Locally declared methods shadow
-outer-more methods like local variables shadow outer variables.)
-And we can invoke local methods of objects through an appropriate 'this' 
-reference for that object:
+Now comes the twist - In BeanShell you have the option to "hang on" to the 
+scope of a method invocation after exiting the method by referring to the 
+special 'this' reference.  As in Java, 'this' refers to the current object 
+context.   The only difference is that in this case the context is associated
+with the method and not a class instance.
+<p/>
+
+By saving the 'this' reference after the method returns, you can continue to 
+refer to variables defined within the method, using the standard Java "." 
+notation:
 
 <example>
 foo() {
-	int a = 42;
-	bar() {
-		print("The bar is open!");
-	}
-	
-	bar();
-	return this;
+    bar = 42;
+    return this;
 }
 
-obj = foo();     // prints "the bar is open!"
-print ( obj.a )  // 42
-obj.bar();       // prints "the bar is open!"
+fooObj = foo();
+print( fooObj.bar ); // prints 42!
 </example>
 
+In the above, the value returned by the foo() method (the 'this' reference)
+can be thought of as an instance of a "foo" object.  Each foo() method 
+invocation effectively creates a new objects; foo() is now not just a method,
+but a kind of object constructor.
+<p/>
 
-Within a nested method, locally declared variables at each level of scope
-shadow methods of the same name in outer-more scopes.  Otherwise, variables
-are visible to an arbitrary depth of scope.
+In this case our foo object is not so much an object, but really more of a 
+structure.  It contains variables (bar) but no "behavior".  The next twist
+that we'll introduce is that BeanShell methods are also allowed to contain 
+other methods:
+
+<example>
+foo() {
+    bar() {
+        ...
+    }
+}
+</example>
+Scripted methods may define any number of nested methods in this way, to an 
+arbitrary depth.  The methods are "local" to the method invocation.  
+<p/>
+
+Statements and expressions within the enclosing BeanShell method can call 
+their "local" methods just like any other method.  (Locally declared methods 
+override outer-more methods like local variables hide instance variables in
+Java.)  The enclosed methods are not directly accessible outside of their
+enclosing method.  However, as you might expect, we can invoke them as we
+would on a Java object, through an appropriate object reference:
+
+<example>
+foo() {
+    int a = 42;
+    bar() {
+        print("The bar is open!");
+    }
+    
+    bar();
+    return this;
+}
+
+// Construct the foo object
+fooObj = foo();     // prints "the bar is open!"
+// Print a variable of the foo object
+print ( fooObj.a )  // 42
+// Invoke a method on the foo object
+fooObj.bar();       // prints "the bar is open!"
+</example>
+
+<p/>
+In the next section we'll return to the topic of variable scoping and
+go into more depth about how to work with scripted methods and objects.
 <p/>
 
 </section>
