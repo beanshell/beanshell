@@ -1,5 +1,6 @@
 
 bsh.help.editor = "usage: editor()";
+import java.awt.*;
 
 editor() {
 	if ( bsh.system.desktop != void ) {

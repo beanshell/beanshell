@@ -15,12 +15,12 @@ browseClass( Object o ) {
 		classname = o.getClass().getName();
 
 	// really need a way to unset
-	if ( bsh.classbrowser == void || bsh.classbrowser == null ) {
+	if ( bsh.system.desktop.classbrowser == void || bsh.system.desktop.classbrowser == null ) {
 		classBrowser();
 	}
 
-	bsh.classbrowser.toFront();
-	bsh.classbrowser.driveToClass( classname );
+	bsh.system.desktop.classbrowser.toFront();
+	bsh.system.desktop.classbrowser.driveToClass( classname );
 }
 
 

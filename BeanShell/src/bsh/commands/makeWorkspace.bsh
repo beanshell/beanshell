@@ -1,3 +1,4 @@
+import javax.swing.*;
 
 makeWorkspace( String name ) {
 
@@ -15,13 +16,12 @@ makeWorkspace( String name ) {
 	interpreter.set( "bsh.desktop",  bsh.system.desktop );
 
 	frame = bsh.system.desktop.makeInternalFrame( name );
+	frame.setDefaultCloseOperation( frame.DO_NOTHING_ON_CLOSE );
 
 	internalFrameClosing( e ) {
-System.out.println("internal frame closing");
 		close();
 	}
 	frame.addInternalFrameListener(this);
-	frame.setClosable(true);
 
 	actionPerformed( e ) {
 		com = e.getActionCommand();
@@ -34,8 +34,12 @@ System.out.println("internal frame closing");
 		}
 	}
 
+	/*
+		Notes: Careful not to print anything before returning sys io...
+		console is now gone.
+	*/
 	close() {
-System.out.println("close method...");
+		frame.dispose();
 		if ( haveSysIO )
 			returnSysIO();
 	}
@@ -76,6 +80,7 @@ System.out.println("close method...");
 	sysIn = System.in;
 	sysOut = System.out;
 	sysErr = System.err;
+
 	captureSysIO() {
 		super.haveSysIO = true;
 		System.setIn( console.getInputStream() );
@@ -84,13 +89,11 @@ System.out.println("close method...");
 	}
 
 	returnSysIO() {
-System.out.println("returning sys io...");
 		super.haveSysIO = false;
 		System.setIn( sysIn );
 		System.setOut( sysOut );
 		System.setErr( sysErr );
 	}
-
 
 	return interpreter;
 }

@@ -2,28 +2,25 @@
 classBrowser() {
 	inDesktop = ( bsh.system.desktop != void );
 
-	bsh.classbrowser = new bsh.util.ClassBrowser();
-	bsh.classbrowser.init();
+	bsh.system.desktop.classbrowser = new bsh.util.ClassBrowser();
+	bsh.system.desktop.classbrowser.init();
 
-	if ( inDesktop ) {
+	if ( inDesktop )
 		frame = bsh.system.desktop.makeInternalFrame("BeanShell Class Browser");
-		frame.setClosable(true);
-	}
 	else
 		frame = new javax.swing.JFrame("BeanShell Class Browser");
 
 	// Ignore unhandled method invocations from listeners.
 	invoke( method, args ) { }
-	internalFrameClosing( e ) {
-		//frame.dispose();
 
+	internalFrameClosing( e ) {
 		// really need foo=void;...  
-		bsh.classbrowser = null;
+		bsh.system.desktop.classbrowser = null;
 	}
 	frame.addInternalFrameListener(this);
 
-	bsh.classbrowser.setFrame( frame );
-	frame.getContentPane().add("Center", bsh.classbrowser);
+	bsh.system.desktop.classbrowser.setFrame( frame );
+	frame.getContentPane().add("Center", bsh.system.desktop.classbrowser);
 	frame.pack();
 
 	if ( inDesktop )
