@@ -225,13 +225,11 @@ public class BshClassManager
 	public void cacheResolvedMethod( 
 		Class clas, Object [] args, Method method ) 
 	{
-		String methodName = method.getName();
-
 		if ( Interpreter.DEBUG )
 			Interpreter.debug(
-				"cacheResolvedMethod putting: " + clas +" - "+methodName );
+				"cacheResolvedMethod putting: " + clas +" "+ method );
 		
-		SignatureKey sk = new SignatureKey( clas, methodName, args );
+		SignatureKey sk = new SignatureKey( clas, method.getName(), args );
 		if ( Modifier.isStatic( method.getModifiers() ) )
 			resolvedStaticMethods.put( sk, method );
 		else

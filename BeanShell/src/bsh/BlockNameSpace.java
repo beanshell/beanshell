@@ -138,6 +138,11 @@ class BlockNameSpace extends NameSpace
 		getParent().importPackage( name );
 	}
 
+    public void	setMethod(String name, BshMethod method) 
+	{
+		getParent().setMethod( name, method );
+	}
+
 	/**
 		The block namespace acts like part of the enclosing block for most
 		vars.  So we need to add our locals to the enclosing when someone

@@ -8,8 +8,9 @@ int test_flag = 0;
 assert( boolean condition ) {
 
 	if ( condition )
-		print( "Test Passed..." );
-	else {
+	{
+		//print( "Test Passed..." );
+	} else {
 		print( 
 			"Test FAILED: "
 			+"Line: "+ this.namespace.getInvocationLine()

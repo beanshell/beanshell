@@ -938,65 +938,80 @@ public class NameSpace
     }
 
 	/**
-		Determine if the RHS object can be assigned to the LHS type (as is,
-		through widening, promotion, etc) and if so, return the assignable 
-		form of the RHS.  
-	
-		Note that this is *not* a cast operation.  Only assignments which are 
-		always legal (upcasts, promotion) are passed.
-		<p>
+		Determine if the RHS object can be assigned to the LHS type:
+		<p/>
+
+		1) As in a legal Java assignment (as determined by 
+		Reflect.isJavaAssignable()) through widening or promotion 
+		<p/>
+
+		2) Via special BeanShell extensions like interface generation or 
+		(gag) numeric-style promotion of primitive wrappers 
+		(e.g. Short to Integer).
+		<p/>
+
+		If the assignment is legal in BeanShell return the assignable form of 
+		the RHS.  
+		<p/>
+		
+		This method is used in many places throughout bsh including assignment
+		operations and method selection.
+		<p/>
 
 		In normal cases this functions as a simple check for assignability
 		and the value is returned unchanged.  e.g. a String is assignable to
 		an Object, but no conversion is necessary.  Similarly an int is 
-		assignable to a long, so no conversion is done.
+		assignable to a long, so no conversion is done. 
 		In this sense assignability is in terms of what the Java reflection API
 		will allow since the reflection api will do widening conversions in the 
-		case of sets on fields and arrays.
+		case of sets on fields and arrays. (CLARIFY: what about method args?)
 		<p>
+
 		The primary purpose of the "returning the assignable form"
-		abstraction is to allow non standard bsh assignment conversions. e.g.
-		the wrapper stuff.  I'm still not sure how much of that we should
-		be doing.
+		abstraction is to allow non-standard Java assignment conversions. e.g.
+		wrapper conversion for boxing and unboxing.  Some of this will be
+		considered standard in Java 1.5.
 		<p>
 
-		This method is used in many places throughout bsh including assignment
-		operations and method selection.
-		<p>
+		@param lhsType lhsType is a real Java class type or Java primitive TYPE
 
-		@return an assignable form of the RHS or throws UtilEvalError
-		@throws UtilEvalError on non assignable
+		@param  rhs is a value, bsh.Primitive wrapper, or Primitive.NULL.
+		If it is a Primitive wrapper it will be unwrapped and compared using 
+		Reflect.isJavaAssignableFrom().  If it is Primtive.VOID an error will
+		occur.
+
+		@return an assignable form of the rhs, usually the original rhs if
+		assignable.  If the rhs was a Primitive and it was assignable the
+		Primitive will be returned.  If the Primitive needed to be auto-boxed
+		to a wrapper type, the wrapper type will be returned.
+
+		@throws UtilEvalError if the assignment cannot be made legally
+		@throws UtilEvalError on rhs of Primitive.VOID (void assignment)
+
 		@see BSHCastExpression#castObject( java.lang.Object, java.lang.Class )
 	*/
     public static Object getAssignableForm( Object rhs, Class lhsType )
 		throws UtilEvalError
     {
 	/*
-		Notes:
-	
-		Need to define the exact behavior here:
-			Does this preserve Primitive types to Primitives, etc.?
-
 		This is very confusing in general...  need to simplify and clarify the
 		various places things are happening:
-			Reflect.isAssignableFrom()
+			Reflect.isJavaAssignableFrom()
 			Primitive?
 			here?
 	*/
 		Class originalType;
 
-		if ( lhsType == null )
+		if ( lhsType == null || rhs == null )
 			throw new InterpreterError(
-				"Null value for type in getAssignableForm");
+				"Null value in getAssignableForm: "+lhsType+", "+rhs );
 
-		if(rhs == null)
-			throw new InterpreterError("Null value in getAssignableForm.");
-
-		if(rhs == Primitive.VOID)
+		if ( rhs == Primitive.VOID)
 			throw new UtilEvalError( "Undefined variable or class name");
 
-		if (rhs == Primitive.NULL)
-			if(!lhsType.isPrimitive())
+		// Null is assignable to reference types
+		if ( rhs == Primitive.NULL )
+			if ( !lhsType.isPrimitive() )
 				return rhs;
 			else
 				throw new UtilEvalError(
@@ -1006,30 +1021,28 @@ public class NameSpace
 
 		if ( rhs instanceof Primitive ) 
 		{
-			// set the rhsType to the type of the primitive
+			// Set the rhsType to the Java primitive TYPE
 			rhsType = originalType = ((Primitive)rhs).getType();
 
-			// check for primitive/non-primitive mismatch
-			if ( lhsType.isPrimitive() ) {
-				// not doing this yet...  leaving as the assignable orig type
-				/*
-					We have two primitive types.  If Reflect.isAssignableFrom()
-					which knows about primitive widening conversions says they
-					are assignable, we will do a cast to change the value
-				if ( Reflect.isAssignableFrom(
-					((Primitive)lhs).getType(), ((Primitive)rhs).getType() )
-				*/
-			} else
+			// If lhsType is an object type (non primitive) try to get the rhs
+			// into an object type if applicable, else we have primitive to 
+			// primitive, fall through to test
+			if ( !lhsType.isPrimitive() ) 
 			{
-				// attempt promotion to	a primitive wrapper
-				// if lhs a wrapper type, get the rhs as wrapper value
-				// else error
-				if( Boolean.class.isAssignableFrom(lhsType) ||
-					Character.class.isAssignableFrom(lhsType) ||
-					Number.class.isAssignableFrom(lhsType) )
+				/* 
+					If the lhs is a primitive wrapper type or Object, get the 
+					rhs as its wrapper value so it will be tested for 
+					assignability below.  If lhs is not a wrapper type or 
+					Object, we cannot assign a Primitive to it.
+				*/
+				if ( lhsType == Boolean.class 
+					|| lhsType == Character.class 
+					|| Number.class.isAssignableFrom(lhsType) 
+					|| lhsType == Object.class )
 				{
+					// get the value as its wrapper
 					rhs	= ((Primitive)rhs).getValue();
-					// type is the wrapper class type
+					// type is now the wrapper class type
 					rhsType = rhs.getClass();
 				}
 				else
@@ -1037,13 +1050,13 @@ public class NameSpace
 			}
 		} else 
 		{
-			// set the rhs type
+			// Set the rhs type
 			rhsType = originalType = rhs.getClass();
 
-			// check for primitive/non-primitive mismatch
-			if ( lhsType.isPrimitive() ) {
-
-				// attempt unwrapping wrapper class for assignment 
+			// Check for primitive/non-primitive mismatch
+			if ( lhsType.isPrimitive() ) 
+			{
+				// Attempt unwrapping wrapper class for assignment 
 				// to a primitive
 
 				if (rhsType == Boolean.class)
@@ -1062,32 +1075,33 @@ public class NameSpace
 					rhsType = ((Primitive)rhs).getType();
 				}
 				else
-					assignmentError(lhsType, originalType);
+					assignmentError( lhsType, originalType );
 			}
 		}
 
 		// This handles both class types and primitive .TYPE types
-		if ( Reflect.isAssignableFrom(lhsType, rhsType) )
+		if ( Reflect.isJavaAssignableFrom( lhsType, rhsType ) )
 			return rhs;
 
 		/* 
-			bsh extension -
-			Attempt widening conversions as defined in JLS 5.1.2
-			except perform them on primitive wrapper objects.
+			Begin: support for numeric style promotion of wrapper types.  
+
+			Attempt conversions as defined in JLS 5.1.2
+			except perform them on the primitive wrapper objects.
+			Do we really need this??
 		*/
-		if(lhsType == Short.class)
+		if (lhsType == Short.class) {
 			if(rhsType == Byte.class)
 				return new Short(((Number)rhs).shortValue());
-
-		if(lhsType == Integer.class) {
+		}
+		if (lhsType == Integer.class) {
 			if(rhsType == Byte.class || rhsType == Short.class)
 				return new Integer(((Number)rhs).intValue());
 
 			if(rhsType == Character.class)
 				return new Integer(((Number)rhs).intValue());
 		}
-
-		if(lhsType == Long.class) {
+		if (lhsType == Long.class) {
 			if(rhsType == Byte.class || rhsType == Short.class ||
 				rhsType == Integer.class)
 				return new Long(((Number)rhs).longValue());
@@ -1095,8 +1109,7 @@ public class NameSpace
 			if(rhsType == Character.class)
 				return new Long(((Number)rhs).longValue());
 		}
-
-		if(lhsType == Float.class) {
+		if (lhsType == Float.class) {
 			if(rhsType == Byte.class || rhsType == Short.class ||
 				rhsType == Integer.class ||	rhsType	== Long.class)
 				return new Float(((Number)rhs).floatValue());
@@ -1104,8 +1117,7 @@ public class NameSpace
 			if(rhsType == Character.class)
 				return new Float(((Number)rhs).floatValue());
 		}
-
-		if(lhsType == Double.class) {
+		if (lhsType == Double.class) {
 			if(rhsType == Byte.class || rhsType == Short.class ||
 				rhsType == Integer.class ||	rhsType	== Long.class ||
 				rhsType == Float.class)
@@ -1114,6 +1126,8 @@ public class NameSpace
 			if(rhsType == Character.class)
 				return new Double(((Number)rhs).doubleValue());
 		}
+
+		// End: support for numeric style promotion of wrapper types.  
 
 		/*
 			Bsh This objects may be able to use the proxy mechanism to 
@@ -1130,7 +1144,8 @@ public class NameSpace
 		return rhs;
     }
 
-    private static void	assignmentError(Class lhs, Class rhs) throws UtilEvalError
+    private static void	assignmentError(Class lhs, Class rhs) 
+		throws UtilEvalError
     {
 		String lhsType = Reflect.normalizeClassName(lhs);
 		String rhsType = Reflect.normalizeClassName(rhs);

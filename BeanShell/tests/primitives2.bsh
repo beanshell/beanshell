@@ -24,4 +24,10 @@ check((long)5, 5, Long.class);
 check('5', '5', Character.class);
 check((float)5.0, 5.0, Float.class );
 
+// boxing numbers to Object type
+v = new Vector();
+v.add(1);
+v.add(2);
+v.add(3);
+
 complete();

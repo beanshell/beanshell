@@ -78,7 +78,6 @@ class Reflect
 				Method method = resolveJavaMethod( 
 					bcm, clas, object, methodName, args, false );
 
-				//args=unwrapPrimitives( args );
 				return invokeOnMethod( method, object, args );
 			} catch ( UtilEvalError e ) {
 				throw e.toEvalError( callerInfo, callstack );
@@ -98,17 +97,52 @@ class Reflect
         Interpreter.debug("invoke static Method");
         Method method = resolveJavaMethod( 
 			bcm, clas, null, methodName, args, true );
-		//args=unwrapPrimitives( args );
 		return invokeOnMethod( method, null, args );
     }
 
+	/**
+	*/
 	private static Object invokeOnMethod( 
 		Method method, Object object, Object[] args ) 
 		throws ReflectError, InvocationTargetException
 	{
-		args = unwrapPrimitives(args);
+		if ( Interpreter.DEBUG ) 
+		{
+			Interpreter.debug("Invoking method (entry): "
+				+method+" with args:" );
+			for(int i=0; i<args.length; i++)
+				Interpreter.debug(
+					"args["+i+"] = "+args[i]
+					+" type = "+args[i].getClass() );
+		}
+		
+		// Map types to assignable forms, need to keep this fast...
+		Object [] tmpArgs = new Object [ args.length ];
+		Class [] types = method.getParameterTypes();
 		try {
-			Object returnValue = method.invoke( object, args );
+			for (int i=0; i<args.length; i++)
+				tmpArgs[i] = NameSpace.getAssignableForm( args[i], types[i] );
+		} catch ( UtilEvalError e ) {
+			throw new InterpreterError(
+				"illegal argument type in method invocation: "+e );
+		}
+
+		// unwrap any primitives
+		tmpArgs = unwrapPrimitives( tmpArgs );
+
+		if ( Interpreter.DEBUG ) 
+		{
+			Interpreter.debug("Invoking method (after massaging values): "
+				+method+" with tmpArgs:" );
+			for(int i=0; i<tmpArgs.length; i++)
+				Interpreter.debug(
+					"tmpArgs["+i+"] = "+tmpArgs[i]
+					+" type = "+tmpArgs[i].getClass() );
+		}
+
+		try 
+		{
+			Object returnValue = method.invoke( object, tmpArgs );
 			if ( returnValue == null )
 				returnValue = Primitive.NULL;
 			Class returnType = method.getReturnType();
@@ -132,7 +166,8 @@ class Reflect
 		mechanism.  If not, then the method is evaluated by bsh.This itself
 		as a scripted method call.
 	*/
-	private static boolean passThisMethod( String name ) {
+	private static boolean passThisMethod( String name ) 
+	{
 		return name.equals("getClass") 
 			|| name.equals("invokeMethod")
 			|| name.equals("getInterface");
@@ -326,7 +361,8 @@ class Reflect
 
 		@param onlyStatic 
 			The method located must be static, the object param may be null.
-
+	*/
+	/*
 		Note: Method invocation could probably be speeded up if we eliminated
 		the throwing of exceptions in the search for the proper method.
 		After 1.3 we are caching method resolution anyway... shouldn't matter
@@ -340,83 +376,90 @@ class Reflect
     {
 		Method method = null;
 
-		if ( bcm != null )
-			method = bcm.getResolvedMethod( clas, name, args, onlyStatic );
-		else
+		if ( bcm == null ) 
 			Interpreter.debug("resolveJavaMethod UNOPTIMIZED lookup");
-		if ( method != null )
-			return method;
+		else
+		{
+			method = bcm.getResolvedMethod( clas, name, args, onlyStatic );
+			if ( method != null )
+				return method;
+		}
 
+		// This should probably be handled higher up
 		if ( object == Primitive.NULL )
 			throw new UtilTargetError( new NullPointerException(
 				"Attempt to invoke method " +name+" on null value" ) );
-		if ( object == Primitive.VOID )
-			throw new UtilEvalError("Attempt to invoke method "
-				+name+" on undefined variable or class name" );
 
-        if (args == null)
-            args = new Object[] { };
-
-		voidCheck( args, "method: "+name );
-        Class[] types = getTypes(args);
+        Class [] types = getTypes(args);
         args=unwrapPrimitives(args);
 
-		// Begin -This used to be wrapped in a try/catch for IllegalAccess
+		// First try for an accessible version of the exact match.
 
-		// Try the easy case: Look for an accessible version of the 
-		// direct match.
+		if ( Interpreter.DEBUG )
+			Interpreter.debug( "Searching for method: "+
+				StringUtil.methodString(name, types)
+					+ " in '" + clas.getName() + "'" );
+
+// Why do we do this?  Won't the overloaded resolution below find it
+// just as well -- try to merge these next 
 
 		try {
 			method  = findAccessibleMethod(clas, name, types, onlyStatic);
 		} catch ( SecurityException e ) { }
 
-		if ( method == null )
-			if ( Interpreter.DEBUG )
-				Interpreter.debug("Exact method " + 
-					StringUtil.methodString(name, types) +
-					" not found in '" + clas.getName() + "'" );
+		if ( Interpreter.DEBUG && method != null )
+			Interpreter.debug("findAccessibleMethod found: "+ method );
 
-		// Next look for an assignable match
-		if ( method == null ) {
-
-			// If no args stop here
+		// Look for an overloaded / standard Java assignable match
+		// (First find the method, then find accessible version of it)
+		if ( method == null ) 
+		{
+			// If no args stop here, can't do better than exact match above
 			if ( types.length == 0 )
 				throw new ReflectError(
 					"No args "+ ( onlyStatic ? "static " : "" )
 					+"method " + StringUtil.methodString(name, types) + 
 					" not found in class'" + clas.getName() + "'");
 
-			// try to find an assignable method
-			Method[] methods = clas.getMethods();
+			Method [] methods = clas.getMethods();
 			if ( onlyStatic )
-				// only try the static methods
 				methods = retainStaticMethods( methods );
 
-			method = findMostSpecificMethod(name, types, methods);
+			method = findMostSpecificMethod( name, types, methods );
+
+			if ( Interpreter.DEBUG && method != null )
+				Interpreter.debug("findMostSpecificMethod found: "+ method );
 
 			// try to find an extended method
-			methods = clas.getMethods();
 			if ( method == null )
-				method = findExtendedMethod(name, args, methods);
+			{
+				method = findExtendedMethod( name, args, methods );
 
-			// If we found an assignable method, make sure it's accessible
-			if ( method != null ) {
+				if ( Interpreter.DEBUG && method != null )
+					Interpreter.debug("findExtendedMethod found: "+ method );
+			}
+
+			// If we found an assignable or extended method, make sure we have 
+			// an accessible version of it
+			if ( method != null ) 
+			{
 				try {
 					method = findAccessibleMethod( clas, method.getName(), 
 						method.getParameterTypes(), onlyStatic);
 				} catch ( SecurityException e ) { }
+				if ( Interpreter.DEBUG && method == null )
+					Interpreter.debug(
+						"had a method, but it wasn't accessible");
 			}
 		}
 
-		// Found something?
+		// If we didn't find anything throw error
 		if ( method == null )
 			throw new ReflectError(
 				( onlyStatic ? "Static method " : "Method " )
 				+ StringUtil.methodString(name, types) + 
 				" not found in class'" + clas.getName() + "'");
 
-		// End - This used to be wrapped in a try/catch for IllegalAccess
-			
 		// Succeeded.  Cache the resolved method.
 		if ( bcm != null )
 			bcm.cacheResolvedMethod( clas, args, method );
@@ -562,12 +605,12 @@ System.out.println("findAcc: "
 
     public static Class[] getTypes( Object[] args )
     {
-        if(args == null)
+        if ( args == null )
             return new Class[0];
 
-        Class[] types = new Class[args.length];
+        Class[] types = new Class[ args.length ];
 
-        for(int i=0; i<args.length; i++)
+        for( int i=0; i<args.length; i++ )
         {
 			if ( args[i] == null )
 				types[i] = null;
@@ -581,9 +624,10 @@ System.out.println("findAcc: "
     }
 
     /*
-        Replace Primitive wrappers with their java.lang wrapper values.
+        Unwrap Primitive wrappers to their java.lang wrapper values.
+		e.g. Primitive(42) becomes Integer(42)
     */
-    private static Object [] unwrapPrimitives(Object[] args)
+    private static Object [] unwrapPrimitives( Object[] args )
     {
 		Object [] oa = new Object[ args.length ];
         for(int i=0; i<args.length; i++)
@@ -591,9 +635,9 @@ System.out.println("findAcc: "
 		return oa;
     }
 
-    private static Object unwrapPrimitive(Object arg)
+    private static Object unwrapPrimitive( Object arg )
     {
-        if(arg instanceof Primitive)
+        if ( arg instanceof Primitive )
             return((Primitive)arg).getValue();
         else
             return arg;
@@ -601,12 +645,12 @@ System.out.println("findAcc: "
 
 	/**
 		Primary object constructor
+		This method is simpler than those that must resolve general method
+		invocation because constructors are not inherited.
 	*/
     static Object constructObject( Class clas, Object[] args )
         throws ReflectError, InvocationTargetException
     {
-		voidCheck( args, "constructor for: "+clas );
-
 		if ( clas.isInterface() )
 			throw new ReflectError(
 				"Can't create instance of an interface: "+clas);
@@ -662,16 +706,18 @@ System.out.println("findAcc: "
     static Method findMostSpecificMethod(
 		String name, Class[] idealMatch, Method[] methods )
     {
-		// Pull out the method signatures whos name matches
+		// Pull out the method signatures with matching names
 		Vector sigs = new Vector();
 		Vector meths = new Vector();
 		for(int i=0; i<methods.length; i++)
+		{
 			// method matches name 
 			if ( methods[i].getName().equals( name )  ) 
 			{
 				meths.addElement( methods[i] );
 				sigs.addElement( methods[i].getParameterTypes() );
 			}
+		}
 
 		Class [][] candidates = new Class [ sigs.size() ][];
 		sigs.copyInto( candidates );
@@ -685,49 +731,13 @@ System.out.println("findAcc: "
 			return (Method)meths.elementAt( match );
     }
 
-	/**
-		This uses the NameSpace.getAssignableForm() method to determine
-		compatability of args.  This allows special (non standard Java) bsh 
-		widening operations...
-
-		@return null on not found
-	*/
-    static Method findExtendedMethod(
-		String name, Object[] args, Method[] methods)
-    {
-        Method bestMatch = null;
-        Object[] tempArgs = new Object[args.length];
-
-        for(int i = 0; i < methods.length; i++) {
-            Method currentMethod = methods[i];
-            if ( name.equals( currentMethod.getName() )) {
-                Class[] parameters = currentMethod.getParameterTypes();
-		
-				if ( parameters.length != args.length )
-					continue;
-                try {
-                    for(int j = 0; j < parameters.length; j++)
-                        tempArgs[j] = NameSpace.getAssignableForm( 
-							args[j], parameters[j]);
-
-                    // if you get here, all the arguments were assignable
-                    System.arraycopy(tempArgs, 0, args, 0, args.length);
-                    return currentMethod;
-                } catch(UtilEvalError e) {
-                    // do nothing (exception breaks you out of the for loop).
-                }
-            }
-        }
-
-        return null;
-    }
-
     /*
-        This method should exactly parallel findMostSpecificMethod()
+        This method should parallel findMostSpecificMethod()
     */
-    static Constructor findMostSpecificConstructor(Class[] idealMatch,
-        Constructor[] constructors)
+    static Constructor findMostSpecificConstructor(
+		Class[] idealMatch, Constructor[] constructors)
     {
+		// We don't have to worry about the name of our constructors
 
 		Class [][] candidates = new Class [ constructors.length ] [];
 		for(int i=0; i< candidates.length; i++ )
@@ -740,6 +750,31 @@ System.out.println("findAcc: "
 			return constructors[ match ];
     }
 
+	/**
+		This uses the NameSpace.getAssignableForm() method to determine
+		compatability of args.  This allows special (non standard Java) bsh 
+		widening operations...
+
+		@return null on not found
+	*/
+	/*
+		Note: shouldn't we use findMostSpecificSignature in some way on the 
+		result set?  Is that possible?
+	*/ 
+    static Method findExtendedMethod(
+		String name, Object[] args, Method[] methods )
+    {
+        for(int i = 0; i < methods.length; i++) 
+		{
+            Method currentMethod = methods[i];
+			Class[] parameterTypes = currentMethod.getParameterTypes();
+            if ( name.equals( currentMethod.getName() ) 
+					&& argsAssignable( parameterTypes, args ) ) 
+				return currentMethod;
+        }
+
+        return null;
+    }
 
 	/**
 		This uses the NameSpace.getAssignableForm() method to determine
@@ -749,33 +784,35 @@ System.out.println("findAcc: "
     static Constructor findExtendedConstructor(
 		Object[] args, Constructor[] constructors )
     {
-        Constructor bestMatch = null;
-        Object[] tempArgs = new Object[args.length];
-
-        for(int i = 0; i < constructors.length; i++)
-        {
+        for(int i = 0; i < constructors.length; i++) 
+		{
             Constructor currentConstructor = constructors[i];
-            Class[] parameters = currentConstructor.getParameterTypes();
-			if ( parameters.length != args.length )
-				continue;
-            try {
-                for(int j = 0; j < parameters.length; j++)
-                    tempArgs[j] = 
-						NameSpace.getAssignableForm(args[j], parameters[j]);
-
-                // if you get here, all the arguments were assignable
-                System.arraycopy(tempArgs, 0, args, 0, args.length);
-                return currentConstructor;
-            }
-            catch(UtilEvalError e)
-            {
-                // do nothing (exception breaks you out of the for loop).
-            }
+            Class[] parameterTypes = currentConstructor.getParameterTypes();
+            if ( argsAssignable( parameterTypes, args ) ) 
+				return currentConstructor;
         }
 
         return null;
     }
 
+	/**
+		Arguments are assignable as defined by NameSpace.getAssignableForm()
+		which takes into account special bsh conversions such as XThis and (ug)
+		primitive wrapper promotion.
+	*/
+	private static boolean argsAssignable( Class [] parameters, Object [] args )
+	{
+		if ( parameters.length != args.length )
+			return false;
+
+		try {
+			for(int j = 0; j < parameters.length; j++)
+				NameSpace.getAssignableForm( args[j], parameters[j]);
+		} catch ( UtilEvalError e ) {
+			return false;
+		}
+		return true;
+	}
 
 
 	/**
@@ -797,9 +834,9 @@ System.out.println("findAcc: "
 				or targetMatch is more specific than the best match, make it 
 				the new best match.
             */
-			if ( isAssignable(idealMatch, targetMatch ) &&
+			if ( isSignatureAssignable(idealMatch, targetMatch ) &&
 				((bestMatch == null) ||
-					isAssignable( targetMatch, bestMatch )))
+					isSignatureAssignable( targetMatch, bestMatch )))
 			{
 				bestMatch = targetMatch;
 				bestMatchIndex = i;
@@ -822,38 +859,23 @@ System.out.println("findAcc: "
 	}
 
 	/**
-		Determine if the 'from' signature is assignable to the 'to' signature
-		'from' arg types, 'to' candidate types
-		null value in 'from' or 'to' type parameter indicates loose type.
-
-		null value in either arg is considered empty array
+		Is the 'from' signature (argument types) assignable to the 'to' 
+		signature (candidate method types) using isJavaAssignableFrom()?
+		This method handles the special case of null values in 'to' types 
+		indicating a loose type and matching anything.
 	*/
-    static boolean isAssignable(Class[] from, Class[] to)
+    private static boolean isSignatureAssignable( Class[] from, Class[] to )
     {
-		if ( from == null )
-			from = new Class[0];
-		if ( to == null )
-			to = new Class[0];
-
-        if (from.length != to.length)
+        if ( from.length != to.length )
             return false;
 
         for(int i=0; i<from.length; i++)
         {
-			// Null type indicates loose type.  Match anything.
+			// Null 'to' type indicates loose type.  Match anything.
 			if ( to[i] == null )
 				continue;
 
-            // Let null arg type match any reference type
-            if (from[i] == null) {
-
-                if (!(to[i].isPrimitive()))
-                    continue;
-                else
-                    return false;
-            }
-
-            if(!isAssignableFrom(to[i], from[i]))
+            if ( !isJavaAssignableFrom( to[i], from[i] ) )
                 return false;
         }
 
@@ -861,49 +883,70 @@ System.out.println("findAcc: "
     }
 
     /**
-		This base method is meant to address a deficiency of 
-		Class.isAssignableFrom() which does not take primitive widening 
-		conversions into account.
+		Is a standard Java assignment legal from the rhs type to the lhs type
+		in a normal assignment?
+		<p/>
+		For Java primitive TYPE classes this method takes primitive promotion
+		into account.  The ordinary Class.isAssignableFrom() does not take 
+		primitive promotion conversions into account.  Note that Java allows
+		additional assignments without a cast in combination with variable
+		declarations.  Those are handled elsewhere (maybe should be here with a
+		flag?)
+		<p/>
+		This class accepts a null rhs type indicating that the rhs was the
+		value Primitive.NULL and allows it to be assigned to any object lhs
+		type (non primitive)
+		<p/>
 
 		Note that the getAssignableForm() method in NameSpace is the primary
-		bsh method for checking assignability.  It adds extended bsh
-		conversions, etc.
+		bsh method for checking assignability.  It adds additional bsh
+		conversions, etc. (need to clarify what)
 
 		@param lhs assigning from rhs to lhs
-		@param rhs assigning from rhs to lsh
+		@param rhs assigning from rhs to lhs
 	*/
-    static boolean isAssignableFrom(Class lhs, Class rhs)
+    static boolean isJavaAssignableFrom( Class lhs, Class rhs )
     {
-        if(lhs.isPrimitive() && rhs.isPrimitive())
-        {
-            if(lhs == rhs)
-                return true;
+		// null 'from' type corresponds to type of Primitive.NULL
+		// assign to any object type
+		if ( rhs == null ) 
+			return !lhs.isPrimitive();
 
-            // handle primitive widening conversions - JLS 5.1.2
-            if((rhs == Byte.TYPE) && (lhs == Short.TYPE || lhs == Integer.TYPE ||
+		if ( lhs.isPrimitive() && rhs.isPrimitive() )
+		{
+			if ( lhs == rhs )
+				return true;
+
+			// handle primitive widening conversions - JLS 5.1.2
+			if ( (rhs == Byte.TYPE) && 
+				(lhs == Short.TYPE || lhs == Integer.TYPE ||
                 lhs == Long.TYPE || lhs == Float.TYPE || lhs == Double.TYPE))
                     return true;
 
-            if((rhs == Short.TYPE) && (lhs == Integer.TYPE || lhs == Long.TYPE ||
+            if ( (rhs == Short.TYPE) && 
+				(lhs == Integer.TYPE || lhs == Long.TYPE ||
                 lhs == Float.TYPE || lhs == Double.TYPE))
                     return true;
 
-            if((rhs == Character.TYPE) && (lhs == Integer.TYPE || lhs == Long.TYPE ||
+            if ((rhs == Character.TYPE) && 
+				(lhs == Integer.TYPE || lhs == Long.TYPE ||
                 lhs == Float.TYPE || lhs == Double.TYPE))
                     return true;
 
-            if((rhs == Integer.TYPE) && (lhs == Long.TYPE || lhs == Float.TYPE ||
+            if ((rhs == Integer.TYPE) && 
+				(lhs == Long.TYPE || lhs == Float.TYPE ||
                 lhs == Double.TYPE))
                     return true;
 
-            if((rhs == Long.TYPE) && (lhs == Float.TYPE || lhs == Double.TYPE))
+            if ((rhs == Long.TYPE) && 
+				(lhs == Float.TYPE || lhs == Double.TYPE))
                 return true;
 
-            if((rhs == Float.TYPE) && (lhs == Double.TYPE))
+            if ((rhs == Float.TYPE) && (lhs == Double.TYPE))
                 return true;
         }
         else
-            if(lhs.isAssignableFrom(rhs))
+            if ( lhs.isAssignableFrom(rhs) )
                 return true;
 
         return false;
@@ -1008,7 +1051,7 @@ System.out.println("findAcc: "
         return className.toString();
     }
 
-	/**[
+	/**
 		returns the dimensionality of the Class
 		returns 0 if the Class is not an array class
 	*/
@@ -1033,16 +1076,39 @@ System.out.println("findAcc: "
 		return arrayClass.getComponentType();
 
     }
-
-    // Quick sanity check for voids
-	private static void voidCheck( Object [] args, String target )
-		throws ReflectError
-	{
-        for(int i=0; i<args.length; i++)
-            if(args[i] == Primitive.VOID)
-                throw new ReflectError("Attempt to pass void argument " +
-                    "(position " + i + ") to "+target );
-	}
 }
 
+
+/*
+Ok, I wrote this... should we use it?
+
+    private static Object findExtendedMethodOrConstructor(
+		String name, Object[] args, Object [] methodsOrConstructors )
+    {
+        for(int i = 0; i < methodsOrConstructors.length; i++) 
+		{
+            Object currentMethodOrConstructor = methodsOrConstructors[i];
+			Class[] parameterTypes = 
+				getParameterTypes( currentMethodOrConstructor );
+
+			if ( currentMethodOrConstructor instanceof Method
+				&& !name.equals(
+					((Method)currentMethodOrConstructor).getName() ) )
+				continue;
+
+            if ( argsAssignable( parameterTypes, args ) )
+				return currentMethodOrConstructor;
+        }
+
+        return null;
+    }
+
+	private static Class [] getParameterTypes( Object methodOrConstructor )
+	{
+		if ( methodOrConstructor instanceof Method )
+			return ((Method)methodOrConstructor).getParameterTypes();
+		else
+			return ((Constructor)methodOrConstructor).getParameterTypes();
+	}
+*/
 

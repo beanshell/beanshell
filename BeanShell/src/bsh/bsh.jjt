@@ -1128,12 +1128,9 @@ void DoStatement() #WhileStatement :
 }
 
 void ForStatement() #ForStatement :
-{}
+{ Token t = null; }
 {
-  LOOKAHEAD( "for" "(" PrimaryExpression() ":" )
-  "for" "(" PrimaryExpression() ":" Expression() ")"
-    Statement() { System.out.println("here!"); }
-  |
+  /* Regular for statment */
   "for" "(" [ ForInit() { jjtThis.hasForInit=true; } ]
     ";" [ Expression() { jjtThis.hasExpression=true; } ]
     ";" [ ForUpdate() { jjtThis.hasForUpdate=true; } ] ")"

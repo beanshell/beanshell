@@ -232,6 +232,8 @@
 
 	<target name="builddir">
 		<mkdir dir="${build-dir}" />
+		<!-- hack, make sure it's there for fileset -->
+		<mkdir dir="${lib-dir}" />
 	</target>
 
 	<!-- Begin: Filesets -->
