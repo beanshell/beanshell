@@ -1,7 +1,7 @@
 <section>
 <name filename="objects">Scripted Objects</name>
 
-The majority of people who currently use BeanShell use it to write scripts that 
+Many people who use BeanShell use it to write scripts that 
 work with existing Java classes and APIs, or perform other kinds of dynamic 
 activities for their own applications at run-time without the aid of a 
 compiler.  Often this means writing relatively unstructured code -
@@ -47,15 +47,15 @@ to its own object instance (an instance of the MyClass object) using 'this'.
 
 As in most languages, an executing method in BeanShell has its own 
 "local" scope 
-that holds argument variables and locally declared variables.  For example,
-in the following code segment any variables that we might use within 
+that holds argument (parameter) variables and locally declared variables.  For
+example, in the following code segment any variables that we might use within 
 the foo() method will normally only be visible within the scope of foo() and 
 for the lifetime of one particular foo() method invocation:
 
 <example>
 // Define the foo() method:
 foo() {
-    bar = 42;
+    int bar = 42;
     print( bar );
 }   
 
@@ -83,21 +83,21 @@ notation:
 
 <example>
 foo() {
-    bar = 42;
+    int bar = 42;
     return this;
 }
 
-fooObj = foo();
-print( fooObj.bar ); // prints 42!
+fooObject = foo();
+print( fooObject.bar ); // prints 42!
 </example>
 
 In the above, the value returned by the foo() method (the 'this' reference)
 can be thought of as an instance of a "foo" object.  Each foo() method 
-invocation effectively creates a new objects; foo() is now not just a method,
+invocation effectively creates a new object; foo() is now not just a method,
 but a kind of object constructor.
 <p/>
 
-In this case our foo object is not so much an object, but really more of a 
+In the above case our foo object is not so much an object, but really more of a 
 structure.  It contains variables (bar) but no "behavior".  The next twist
 that we'll introduce is that BeanShell methods are also allowed to contain 
 other methods:
@@ -116,7 +116,7 @@ arbitrary depth.  The methods are "local" to the method invocation.
 Statements and expressions within the enclosing BeanShell method can call 
 their "local" methods just like any other method.  (Locally declared methods 
 override outer-more methods like local variables hide instance variables in
-Java.)  The enclosed methods are not directly accessible outside of their
+Java.)  The enclosed methods are not directly visible outside of their
 enclosing method.  However, as you might expect, we can invoke them as we
 would on a Java object, through an appropriate object reference:
 
@@ -132,12 +132,33 @@ foo() {
 }
 
 // Construct the foo object
-fooObj = foo();     // prints "the bar is open!"
+fooObject = foo();     // prints "the bar is open!"
 // Print a variable of the foo object
-print ( fooObj.a )  // 42
+print ( fooObject.a )  // 42
 // Invoke a method on the foo object
-fooObj.bar();       // prints "the bar is open!"
+fooObject.bar();       // prints "the bar is open!"
 </example>
+<p/>
+
+Methods declared inside block structures within methods behave just as if they
+were declared directly in the method.  i.e. there are no block-local methods.
+For example:
+<example>
+foo() {
+
+	bar() { }
+
+	if ( true ) {
+		bar2() { }
+	}
+
+	return this;
+}
+</example>
+
+In the above example the methods bar() and bar2() are both defined within
+foo().
+<p/>
 
 <p/>
 In the next section we'll return to the topic of variable scoping and

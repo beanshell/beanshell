@@ -65,7 +65,7 @@ The BeanShell GUI
 The BeanShell GUI desktop is meant to allow some experimentation with the
 features of BeanShell.  It is not intended to be a replacement for a full
 featured IDE.  Please check out the 
-<a href="http://www.jedit.org/">jEdit editor</a>for an example of a full
+<a href="http://www.jedit.org/">jEdit editor</a> for an example of a full
 featured development environment based in part on BeanShell scripting
 capabilities.
 <p/>

@@ -30,7 +30,7 @@ Interpreter constructor, like so:
 
 <example>
 Interpreter interpreter = new Interpreter( console );
-interpreter.run();
+new Thread( interpreter ).start(); // start a thread to call the run() method
 </example>
 
 Or you can connect the JConsole to the Interpreter directly with 

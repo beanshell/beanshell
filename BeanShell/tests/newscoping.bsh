@@ -21,15 +21,18 @@ incrementX() {
 incrementX();
 assert( x == 1 );
 
+
+boolean goobaflag = false;
 // new untyped assignment defaults to global
 setFlag() {
-	goobaflag=1;
-	this.secret = 1;
+	goobaflag=true;
+	secret = 1;
 }
 setFlag();
-assert(goobaflag==1);
-assert(secret == void );
+assert( goobaflag == true );
+assert( secret == void );
 
+var p;
 foo() {
 	p=1;
 	this.p=2; // explicit this reference is a local assignment

@@ -2,7 +2,7 @@
 <name filename="specialvarsvalues">Special Variables and Values</name>
 
 In addition to the scope modifiers: 'this', 'super', 'global', BeanShell
-supports a number of pre-defined system variables and some "magic" values.
+supports a number of pre-defined system variables, "magic" values, and methods.
 <p/>
 
 <em>Special Values</em>
@@ -25,17 +25,12 @@ system information and variables.</li>
 <li><strong>bsh.args</strong> - An array of Strings passed as command 
 line arguments to the BeanShell interpreter.</li>
 
-<li><strong>bsh.system</strong> - A system object space which is 
+<li><strong>bsh.shared</strong> - A special static space which is 
 shared across all interpreter instances.  Normally each bsh.Interpreter 
 instance is entirely independent; having its own unique global namespace
-and settings.  bsh.system is implemented as a static namespace in the 
+and settings.  bsh.shared is implemented as a static namespace in the 
 bsh.Interpreter class.  It was added primarily to support communication
 among instances for the GUI desktop.
-</li>
-
-<li><strong>bsh.system.shutdownOnExit</strong> - A boolean value which can
-be set to false to indicate that the BeanShell exit() command should not
-actually perform a System.exit();
 </li>
 
 <li><strong>bsh.console</strong> - If BeanShell is running in 
@@ -123,5 +118,27 @@ a=5;
 unset("a"); // note the quotes
 a == void;  // true
 </example>
+
+<h2>Setting the Command Prompt</h2>
+
+Users may set the command line prompt string for use in interactive mode 
+by setting the value of the variable bsh.prompt or by defining the scripted
+method (or command) getBshPrompt().  
+<p/>
+
+If the command or method getBshPrompt() is defined it will be called to
+get a string to display as the user prompt.  For example, one could
+define the following method to place the current working directory into
+their command prompt:
+
+<example>
+	getBshPrompt() { return bsh.cwd + " % "; }
+</example>
+
+The default getBshPrompt() command returns the value of the variable
+bsh.prompt if it is defined or the string "bsh % " if not.  If the
+getBshPrompt() method or command does not exist, throws an exception, or does
+not return a String, a default prompt of "bsh % " will be used.
+<p/>
 
 </section>

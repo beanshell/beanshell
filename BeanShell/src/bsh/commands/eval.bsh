@@ -48,6 +48,15 @@
         }
     }
     </pre>
+	<p/>
+
+	Here is a cute example of how to use eval to implement a dynamic cast.  
+	i.e. to cast a script to an arbitrary type by name at run-time where the
+	type is not known when you are writing the script.  In this case the type
+	is in the variable interfaceType.
+	<pre>
+    reference = eval( "("+interfaceType+")this" );
+	</pre>
 
 	<p>
 	Returns the value of the expression.

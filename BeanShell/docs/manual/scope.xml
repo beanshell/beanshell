@@ -1,40 +1,28 @@
 <section>
-<name filename="scope">Visibility and Scope Modifiers</name>
+<name filename="scope">Scope Modifiers</name>
 
 Now that we've seen how methods can be nested and treated as objects, we
 can revisit the topic of variable scope and scope modifiers.
-BeanShell's first rule is to maintain Java compatibility.  Where 
-new features are added that go beyond standard Java syntax however, we 
-sometimes have to add new rules.  The ability to use loose, undeclared 
-variables as they are implemented in BeanShell can make for some situations 
-that look ambiguous with respect to Java.
 <p/>
 
 <h2>'this', 'super', and 'global'</h2>
 
-As we discussed in the "Syntax" section early on, variables references in 
-BeanShell default to the local scope, unless otherwise qualified.  
-This is a little different from some other scripting
-languages, but we feel is more consistent with Java, with object oriented 
-design in general, and a more natural extension of Java syntax into the 
-scripting domain.  Now let's look at what this means.
-<p/>
-
-In the "Syntax" section we described the use of 'super' to refer to a 
+In the "Scripted Methods" section we described the use of 'super' to refer to a 
 method's parent scope (the scope in which the method is defined).  
-And in this section we talked 
-about 'super's brother 'this', which refers to the current method's scope,
+And in the previous section we talked 
+about super's brother 'this', which refers to the current method's scope,
 allowing us to think of a method scope as an object.  Now we can see how 
-these concepts are related.  Any method scope can be thought of or used as
-an object context. A scripted object can be thought of as encapsulated in a 
-parent scope that determines its "environment" - inherited variables and 
-methods.  
+these concepts are related.  Any method scope, and indeed the 'global' scope,
+can be thought as an object context. A scripted object can be thought of as
+encapsulated in a parent scope that determines its "environment" - its inherited
+variables and methods.  
+<p/>
 
 The references 'this', 'super', and 'global' are really the same
 kind of reference - references to BeanShell method contexts, which can 
-be thought of as scripted objects.  From here on We'll refer to 'this', 
-'super', and any other reference to a scripted object context in general as a 
-<em>'this' type reference</em>.
+be used as scripted objects.  From here on We'll refer to 'this', 
+'super', 'global', and any other reference to a scripted object context in
+general as a <em>'this' type reference</em>.
 <p/>
 
 <note>
@@ -52,37 +40,30 @@ If you print a 'this' type reference you'll see what it refers to:
 </note>
 <p/>
 
-The above example shows that the foo() method's 'this' reference is local
+The above note shows that the foo() method's 'this' reference is local
 (named 'foo') and that it's parent is the global scope; the same scope in
 which foo is defined.
 
 <h3>'global'</h3>
 
-A third scope modifier, 'global', allows you to always refer to the top-most
+The scope modifier 'global' allows you to always refer to the top-most
 scope.  In the previous note you can see that the top level script context
 is called "global" and that it appears again as the 'super' of our foo() 
-method.  The global context is always the top scope of the script.  Referring
+method.  The global context is always the top scope of the script.  
+It is the global namespace of the current interpreter.  Referring
 to 'super' from the top scope simply returns the same 'global' again.  
-
-It is legal to say things like the following:
-
-<example>
-  super.super.super...foo = 42;  // Chain super. to reach the top
-</example>
-
-However if we are really trying to reach the top context it would probably 
-better to use 'global' in this situation:
 
 <example>
   global.foo = 42; 
 </example>
 
-More generally, in the spirit of object oriented programming we could simply
-refer to some other object, defined in a parent context, without specifying
-where it is:
+Global variables are not special in any way.  Their visibility derives simply
+from the fact that they are in the topmost scope.  However, for those who do
+not like the idea of qualifying anything with "global".  You can always use a
+more object oriented approach like the following.
 
 <example>
-// Create a global object to hold some state
+// Create a top level object to hold some state
 dataholder = object();
 
 foo() {
@@ -102,11 +83,33 @@ putting the 'value' variable directly in the global scope.
 
 <tip>
 In the above example we used the BeanShell object() command to create an
-"empty" BeanShell scripted object context in which to hold some data.  (The
+"empty" BeanShell scripted object context in which to hold some data.  The
 object() command is just a standard empty method named object() that 
-returns 'this'.)
+returns 'this'.  The variable 'dataholder' above is a 'this' type reference and
+has all of the properties of any other BeanShell object scope.
 </tip>
 
+<h2>Synchronized Methods Revisited</h2>
+
+Now that we have covered the meaning of 'this' and 'super' with respect to
+BeanShell methods we can define the meaning of the 'synchronized' modifier
+for BeanShell methods.  Synchronized BeanShell methods behave as if they were
+in a common class by synchronizing on their common 'super' reference object.
+For example, in the four cases in the following example, synchronization occurs
+on the same Java object.  That object is the 'this' type reference of the 
+global scope (a Beanshell object of type bsh.This):
+
+<example>
+print( this ); // 'this' reference (XThis) to Bsh object: global
+
+// The following cases all synchronize on the same lock
+synchronized ( this ) { }     // synchronized block
+synchronized int foo () { }   // synchronized method foo()
+synchronized int bar () { }   // synchronized method bar()
+int gee() {
+	synchronized( super ) { }  // synchronized blockinside gee() 
+}
+</example>
 
 </section>
 

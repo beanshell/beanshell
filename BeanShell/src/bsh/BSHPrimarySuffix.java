@@ -250,17 +250,7 @@ class BSHPrimarySuffix extends SimpleNode
 		if ( toLHS )
 			return new LHS(obj, (String)value);
 
-		// Property style access to hashtable
-		// (LHS handles property assignment in LHS case.)
-		/*
-		if ( obj instanceof Hashtable )
-		{
-			Object val = ((Hashtable)obj).get((String)value);
-			if ( val == null )
-				val = Primitive.NULL;
-			return val;
-		}
-		*/
+		// Property style access to Hashtable or Map
 		CollectionManager cm = CollectionManager.getCollectionManager();
 		if ( cm.isMap( obj ) )
 		{

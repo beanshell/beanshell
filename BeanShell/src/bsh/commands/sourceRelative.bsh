@@ -1,5 +1,6 @@
 /**
     Source a file relative to the callering script's directory.
+	<p/>
 
     e.g. scripts A running in dir A sources script B in dir B.
 	Script B can use this command to load additional scripts (data, etc.)

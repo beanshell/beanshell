@@ -1,16 +1,31 @@
 <section>
 <name filename="commands">BeanShell Commands</name>
 
-BeanShell commands take the form of pre-defined methods such as print().
-BeanShell Commands are are mostly composed of BeanShell scripts, supplied 
-in the JAR file.  We'll talk about adding your own commands to the classpath
-a bit later.  
+BeanShell commands appear to the user as pre-defined methods such as 
+print(), load(), or save().
+BeanShell Commands can be implemented as scripted methods or compiled Java 
+classes which are dynamically loaded on demand from the classpath.
+We'll talk about adding your own commands in the next section "Adding BeanShell Commands".
 <p/>
+
+<tip>
+You can easily override any BeanShell command simply by defining the method
+yourself in your script.  For example:
+<p/>
+<pre>
+print( arg ) {
+    System.out.println( "You printed: " + arg );
+}
+</pre>
+<p/>
+If you define the method in the global scope it will apply everywhere.  If you
+define it local to a scripted object it will only apply in that object context.
+</tip>
 
 <h2>Commands Overview</h2>
 
 This is a high level overview of the BeanShell command set.
-You can find documentation for all BeanShell commands in the "BeanShell
+You can find full documentation for all BeanShell commands in the "BeanShell
 Commands Documentation" section of this manual.  See also the "BshDoc" 
 section which covers javadoc style documentation of BeanShell script files.
 <p/>
@@ -68,8 +83,9 @@ applications:
 <tr><td>eval()</td><td>
 Evaluate a string as if it were typed in the current scope.
 </td></tr>
-<tr><td>source()</td><td>
-Source an external file into the current interpreter
+<tr><td>source(), sourceRelative()</td><td>
+Read an external script file into the interpreter and evaluate it in the
+current scope
 </td></tr>
 <tr><td>run(), bg()</td><td>
 Run an external file in a subordinate interpreter or in a background
@@ -167,199 +183,13 @@ Turn on or off name completion in the GUI console.
 </td></tr>
 </table>
 <p/>
+<br/>
+<p/>
 
 <note>
 The dir() command is written in Java; primarily as a demonstration of how
 to do this when desired.
 </note>
-
-<h2>Adding Commands to BeanShell</h2>
-<p/>
-
-Adding to the set of "prefab" commands supplied with BeanShell is as easy as 
-writing any other BeanShell methods.  You simply have to place your 
-script into a file named with the same name as the command and place the
-file in the classpath under a bsh/commands/ path.  The command files can
-be anywhere in the classpath - in your own directories or in a JAR file.
-<p/>
-
-For example, let's make a helloworld() command:
-
-<example>
-// File: helloworld.bsh
-helloworld() { 
-    print("Hello World!");
-}
-</example>
-
-If we place helloworld.bsh in the classpath under the path bsh/commands/
-we can now use helloworld() just like any other BeanShell command.
-<p/>
-
-BeanShell command scripts can contain any number of overloaded forms of the
-method, e.g.:
-
-<example>
-// File: helloworld.bsh
-helloworld() { print("Hello World!"); }
-helloworld( String msg ) { print(msg); }
-</example>
-
-You can also implement BeanShell commands directly in Java as compiled class 
-files which are dynamically loaded when needed.   The dir() command is an 
-example of a BeanShell command that is implemented in Java.   See it for
-an example.
-<p/>
-
-<h2>Commands Scope</h2>
-
-BeanShell commands are always sourced into the 'global' scope.
-A useful feature of BeanShell for command writers is the 'this.caller'
-reference, which allows you to create side effects in the caller's scope.
-For example:
-
-<example>
-// File: setvar.bsh
-fooSetter() {
-    this.caller.foo=42;
-}
-</example>
-
-The above command has the effect that after running it the variable 'foo'
-will be set in the current scope. e.g.:
-
-<example>
-fooSetter();
-print( foo ); // 42
-</example>
-
-It would not have been correct in this example for the command to refer 
-to 'super', as that would simply always point to the global scope.
-
-<h2>Getting the Caller Context</h2>
-
-We mentioned earlier in this manual the difference between the 'super' or 
-parent context of a method and the caller's context.  
-The 'super' of a method is always
-the context in which the method was defined.  But the caller may be any context
-in which the method is used.  In the following example,
-the parent context of foo() and the caller context of foo() are the same:
-
-<example>
-foo() { ... }
-foo();
-</example>
-
-But this is not always the case, as for bar() in the following example:
-
-<example>
-foo() { 
-    bar() { ... }
-    ...
-}
-
-// somewhere
-fooObject.bar();
-</example>
-
-The special "magic" field reference: 'this.caller' makes it possible 
-to reach the context of whomever called bar().  The 'this.caller' reference 
-always refers to the calling context of the current method context.
-<p/>
-
-<img src="caller.gif"/>
-<p/>
-
-The diagram above shows the foo() and bar() scopes, along with the caller's
-scope access via 'this.caller'.
-<p/>
-
-The most common example of where this is useful is in writing
-BeanShell commands.  
-BeanShell command methods are always loaded into the global 
-scope.  If you refer to 'super' from your command you will simply 
-get 'global'.  Often it is desirable to write commands that explicitly have 
-side effects in the caller's scope.  The ability to do so makes it possible to
-write new kinds of commands that have the appearance of being "built-in" 
-to the language.  
-<p/>
-
-A good example of this is the eval() BeanShell command.  eval() evaluates
-a string as if it were typed in the current context.  To do this, it sends
-the string to an instance of the BeanShell interpreter.  But when it does
-so it tells the interpreter to evaluate the string in a specific namespace:
-the namespace of the caller; using this.caller.
-
-<example>
-    eval("a=5");
-    print( a ); // 5
-</example>
-
-You can follow the call chain further back if you want to by chaining
-the '.caller' reference, like so:
-
-<example>
-    this.caller.caller...;
-</example>
-
-Or, more generally, another magic reference 'this.callstack' returns an
-array of bsh.NameSpace objects representing the full call "stack".  This is
-an advanced topic for developers that we'll discuss in another location.
-
-<h2>Getting the Invocation Text</h2>
-
-You can get specific information about the invocation of a method
-using namespace.getInvocationLine() and namespace.getInvocationText().
-The most important use for this is in support of the ability to write an
-assert() method for unit tests that automatically prints the assertion text.
-
-<example>
-assert( boolean condition ) 
-{
-    if ( condition )
-        print( "Test Passed..." );
-    else {
-        print(
-            "Test FAILED: "
-            +"Line: "+ this.namespace.getInvocationLine()
-            +" : "+this.namespace.getInvocationText()
-            +" : while evaluating file: "+getSourceFileInfo()
-        );
-        super.test_failed = true;
-    }
-}
-</example>
-
-<h2>Working With Class Identifiers</h2>
-
-You may have noticed that certain BeanShell commands such as javap(),
-which(), and browseClass() which take a class as an argument can accept any 
-type of argument, including a plain Java class identifier.  For example,
-all of the following are legal:
-
-<example>
-javap( class ); // use a class type directly
-javap( someobject ); // uses class of object
-javap( "java.lang.Thread" ); // Uses string name of class
-javap( java.lang.Thread );  // Use plain class identifier
-</example>
-
-In the last case above we used the plain Java class identifier 
-java.lang.Thread.  In Beanshell this resolves to a bsh.Name.ClassIdentifier
-reference.  You can get the class for a ClassIdentifier using the 
-Name.identifierToClass() method.  Here is an example of how to work
-with all of the above, converting the argument to a class type:
-
-<example>
-    if ( o instanceof Name.ClassIdentifier )
-        clas = this.namespace.identifierToClass(o);
-    if ( o instanceof String)
-        clas = this.namespace.getClass((String)o);
-    else if ( o instanceof Class )
-        clas = o;
-    else
-        clas = o.getClass();
-</example>
 
 
 </section>

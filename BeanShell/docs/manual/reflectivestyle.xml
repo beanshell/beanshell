@@ -129,6 +129,7 @@ argument types:
 <example>
 name = bshMethod.getName();
 Class [] types = bshMethod.getArgumentTypes();
+Class returnType = bshMethod.getReturnType();
 </example>
 
 To invoke the BshMethod, call its invoke() method, passing an array of 

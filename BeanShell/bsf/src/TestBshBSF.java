@@ -42,6 +42,12 @@ public class TestBshBSF
 
 		// name should not be set 
 		assertTrue( result == null );
+
+		// Verify the primitives are unwrapped
+		result = beanshellEngine.eval( "Test eval...", -1, -1, "1+1");
+
+		assertTrue( result instanceof Integer 
+			&& ((Integer)result).intValue() == 2 );
 	}
 
 	static void assertTrue( boolean cond ) {

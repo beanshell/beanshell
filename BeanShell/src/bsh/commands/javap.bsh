@@ -9,11 +9,11 @@
 	the empty string an error will be printed.
 	<p/>
 	<pre>
-		// equivalent
-		javap( java.util.Date ); // class identifier
-		javap( java.util.Date.class ); // class
-		javap( "java.util.Date" ); // String name of class
-		javap( new java.util.Date() ); // instance of class
+	// equivalent
+	javap( java.util.Date ); // class identifier
+	javap( java.util.Date.class ); // class
+	javap( "java.util.Date" ); // String name of class
+	javap( new java.util.Date() ); // instance of class
 	</pre>
 
 	@method void javap( String | Object | Class | ClassIdentifier )

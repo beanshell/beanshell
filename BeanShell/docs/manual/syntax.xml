@@ -1,5 +1,5 @@
 <section>
-<name filename="syntax">BeanShell Syntax</name>
+<name filename="syntax">Basic Syntax</name>
 
 BeanShell is, foremost, a Java interpreter. So you probably already know 
 most of what you need to start scripting with BeanShell.  This 
@@ -120,27 +120,50 @@ But you can loosely type your catch blocks if you wish:
 try {
     ...
 } catch ( e ) { 
-    ...
+    print( "caught exception: "+e );
 }
 </example>
 
-<h2>Scoping of Variables</h2>
+<h2>Basic Scoping of Variables</h2>
 
-<tip>
-In BeanShell version 1.3 the default scoping of loose variables was changed 
-to be more consistent with Java.  BeanShell still supports an alternate
-scoping where loosely typed variables default to local scope.  This mode can be
-enabled (for the curious or for legacy code) by setting the system property
-"localscoping" to true.  See appendix "Local Scoping".
-</tip>
+<note>
+As of BeanShell version 1.3 the default scoping of loosely typed variables was
+changed to be more consistent with Java.  BeanShell still supports an alternate
+scoping used in earlier versions.  This mode can be enabled for legacy code by 
+setting the system property "localscoping" to true.  
+See appendix "Local Scoping".
+</note>
 
-Variable scoping in BeanShell acts, wherever possible, just like Java.
-However Java does not allow the use of "loose" variables that have not been 
-declared.
-We'll see in the next section that untyped variables default to the 
-<em>global</em> scope.  This means that, in general, if you 
-assign a value to a variable without first declaring its type somewhere you are 
-creating a new global variable.
+Variable scoping in BeanShell behaves, wherever possible, just like that in 
+Java.  Ordinary Java, however, does not offer "loose" variables 
+(variables that can be used without being declared first).  
+So we must define their behavior within BeanShell.
+We'll see in the next section that untyped variables - variables that are not 
+declared and not assigned a value elsewhere - default to the 
+<em>local</em> scope.  
+This means that, in general, if you assign a value to a variable without first
+declaring it, you are creating a new local variable in the current scope.
+<p/>
+
+<h3>Blocks</h3>
+
+Blocks are statements between curly braces {}.  In BeanShell, as in Java, 
+blocks define a level of scope for typed variables: typed variables declared
+within a block are local to the block.  Other assignments within the block 
+occur, as always, wherever the variable was defined.
+<p/>
+
+Untyped variables in BeanShell, however, are not constrained by blocks.
+Instead they act as if they were declared at the outer (enclosing)
+scope's level.  
+With this in mind, BeanShell code looks just like Java code.
+
+In BeanShell if you declare a typed variable within a block it is local to the
+block.  But if you use an untyped variable (which looks just like an ordinary
+assignment in Java) it behaves as an assignment to the enclosing scope.
+<p/>
+
+This will make sense with a few examples:
 <p/>
 
 <example>
@@ -175,6 +198,14 @@ for( z=0; z&lt;10; z++ ) { }   // untyped for-init variable
 print( z ); // 10
 </example>
 
+<h2>Variable Modifiers</h2>
+
+The standard Java variable modifiers may be used on typed variables:
+private / protected / public, final, transient, volatile, static.
+Only 'final' is currently implemented.  The others are currently ignored.
+<p/>
+Modifiers may not be applied to untyped variables.
+
 <h2>Convenience Syntax</h2>
 
 In BeanShell you may access JavaBean properties as if they were fields:
@@ -182,20 +213,29 @@ In BeanShell you may access JavaBean properties as if they were fields:
 <example>
 button = new java.awt.Button();
 button.label = "my button";  // Equivalent to: b.setLabel("my button");
+print( button.label );       // Equivalent to print( b.getLabel() );
 </example>
 
 JavaBean properties are simply pairs of "setter" and "getter" methods that
 adhere to a naming convention.  In the above example BeanShell located
 a "setter" method with the name "setLabel()" and used it to assign the string
-value.
+value.  It then found the method named getLabel() to retrieve the value.
 <p/>
+
+Boolean properties may optionally use the syntax "is" for their "getter".
+e.g.
+
+<example>
+Float f = new Float(42f);
+print( f.infinite );  // Equivalent to print( f.isInfinite() ); // false
+</example>
 
 If there is any ambiguity with an actual Java field name of the object 
 (e.g. label in the above example) then the actual field name takes precedence.
 
-If you wish to avoid ambiguity BeanShell provides an additional, 
-uniform syntax for accessing Java Bean properties and Hashtable entries.  
-You may use the "{}" curly brace construct with a 
+If you wish to avoid any ambiguity BeanShell provides an additional, 
+uniform syntax for accessing both Java Bean properties and Hashtable or Map 
+entries.  You may use the "{}" curly brace construct with a 
 String identifier as a qualifier on any variable of the appropriate type:
 
 <example>
@@ -206,24 +246,83 @@ h = new Hashtable();
 h{"foo"} = "bar";          // Equivalent to: h.put("foo", "bar");
 </example>
 
-<em>
-This syntax will be refined and broadened to cover general Java collections
-in an upcoming release.
-</em>
+Where the java.util.Collections API is available, Maps are also supported.
+<p/>
 
-<h2>Boxing and Unboxing</h2>
+<h3>Enhanced 'for' Loop</h3>
+
+BeanShell supports the Java 1.5 style enhanced for-loop for iterating over
+collections and array types.  (Note that you do not have to be running Java 1.5
+to use this feature).
+
+<example>
+List foo = getSomeList();
+
+for ( untypedElement : foo ) 
+	print( untypedElement ); 
+
+for ( Object typedElement: foo ) 
+	print( typedElement );
+
+int [] array = new int [] { 1, 2, 3 };
+
+for( i : array ) 
+	print(i);
+
+for( char c : "a string" )
+	print( c ); 
+</example>
+
+Supported iterable types include all the obvious things.  
+
+<ul>
+<li>JDK 1.1+ - (no collections): Enumeration, arrays, Vector, String, StringBuffer</li>
+<li>JDK 1.2+ - (w/collections): Collections, Iterator</li>
+</ul>
+
+See also the BshIterator API which supports the ehanced for-loop and allows
+iteration over these types using the dynamically loaded BeanShell Collection 
+manager.
+<p/>
+
+<h3>Switch Statements</h3>
+
+In BeanShell, the switch statement may be used not only with numeric types
+but with objects.  For example, you may switch on Dates and Strings which
+are compared for equality with their equals() methods:
+
+<example>
+dateobj = new Date();
+
+switch( dateobj ) 
+{
+	case newYears:
+		break;
+	case christmas:
+		break;
+	default:
+}
+</example>
+
+
+<h2>Auto Boxing and Unboxing</h2>
 
 "Boxing" and "Unboxing" are the terms used to describe automatically wrapping 
 a primitive type in a wrapper class and unwrapping it as necessary.  Boxing
-is reportedly an upcoming feature in the next release of Java (SDK1.5).
+is a feature of Java (SDK1.5) and has been supported in BeanShell for many
+years.
 <p/>
 
 BeanShell supports boxing and unboxing of primitive types.  For example:
 
 <example>
-i=5;
-iw=new Integer(5);
+int i=5;
+Integer iw = new Integer(5);
 print( i * iw );  // 25
+
+Vector v = new Vector();
+v.put(1); 
+int x = v.getFirstElement();
 </example>
 
 <h2>Importing Classes and Packages</h2>
@@ -234,14 +333,15 @@ from a Java package.
 <p/>
 
 <example>
+// Standard Java
 import javax.xml.parsers.*;
 import mypackage.MyClass;
 </example>
 <p/>
 
-In BeanShell import statements may appear anywhere - not just at the top of
-a script.  In the event of a conflict, later imports take precedence over 
-earlier ones.
+In BeanShell import statements may appear anywhere, even inside a method, 
+not just at the top of a file.  In the event of a conflict, later imports take
+precedence over earlier ones.
 <p/>
 
 A somewhat experimental feature is the "super import".  With it you may 
@@ -268,25 +368,54 @@ Jar: file:/usr/java/j2sdk1.4.0/jre/lib/rt.jar
 </pre>
 </tip>
 
-See "Class Path Management" for more details.
+See "Class Path Management" for information about modifying the BeanShell
+classpath at run-time with the addClassPath() or setClassPath() commands.
+<p/>
+Also see "BeanShell Commands" for information about importing new BeanShell
+commands from the classpath.
 <p/>
 
 <h3>Default Imports</h3>
 
 By default, common Java core and extension packages are imported for 
-you.  They are:
+you.  They are, in the order in which they are imported:
 
 <ul>
-<li>java.lang</li>
-<li>java.io</li>
-<li>java.util</li>
-<li>java.net</li>
-<li>java.awt</li>
-<li>java.awt.event</li>
-<li>javax.swing</li>
 <li>javax.swing.event</li>
+<li>javax.swing</li>
+<li>java.awt.event</li>
+<li>java.awt</li>
+<li>java.net</li>
+<li>java.util</li>
+<li>java.io</li>
+<li>java.lang</li>
 </ul>
 <p/>
+
+Two BeanShell package classes are also imported by default:
+<p/>
+
+<ul>
+<li>bsh.EvalError</li>
+<li>bsh.Interpreter</li>
+</ul>
+<p/>
+
+Finally, we should mention that BeanShell commands may be imported from the 
+classpath.  The default commands are imported in the following way:
+
+<example>
+importCommands("/bsh/commands");
+</example>
+
+We will discuss how to import your own commands in a later section.
+
+<tip>
+The classes java.awt.List and java.util.List are both imported by default.  
+Because java.util.List is imported later, as part of the java.util package,
+it takes precedence.  To access java.awt.List simply import it in, or the
+java.awt package again your script.  Later imports take precedence.
+</tip>
 
 <h2>Document Friendly Entities</h2>
 
