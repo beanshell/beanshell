@@ -1,5 +1,8 @@
 import javax.swing.*;
 
+import bsh.Interpreter;
+import bsh.util.JConsole;
+
 makeWorkspace( String name ) {
 
 	if ( bsh.system.desktop == void ) {
@@ -7,10 +10,10 @@ makeWorkspace( String name ) {
 		return;
 	}
 
-	console	= new bsh.util.JConsole();
+	console	= new JConsole();
 	name="Bsh Workspace: "+name;
 
-	interpreter = new bsh.Interpreter( console );
+	interpreter = new Interpreter( console );
 
 	// for convenience and backwards compatability
 	interpreter.set( "bsh.desktop",  bsh.system.desktop );

@@ -231,13 +231,15 @@ class Name implements java.io.Serializable
 		*/
 
 		if(evalBaseObject == Primitive.NULL) // previous round produced null
-			throw new TargetError( "Null Pointer", new NullPointerException() );
+			throw new TargetError( "Null Pointer while evaluating: "
+				+value, new NullPointerException() );
 
 		if(evalBaseObject == Primitive.VOID) // previous round produced void
-			throw new EvalError("Void pointer error...");
+			throw new EvalError("Void pointer error while evaluating: "+value);
 
 		if(evalBaseObject instanceof Primitive)
-			throw new EvalError("Can't treat primitive like an object.");
+			throw new EvalError("Can't treat primitive like an object. "+
+			"Error while evaluating: "+value);
 
 		/* 
 			Resolve relative to a class type

@@ -1,8 +1,9 @@
+import bsh.util.ClassBrowser;
 
 classBrowser() {
 	inDesktop = ( bsh.system.desktop != void );
 
-	browser = new bsh.util.ClassBrowser();
+	browser = new ClassBrowser();
 	browser.init();
 
 	if ( inDesktop ) {
