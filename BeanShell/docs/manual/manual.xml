@@ -27,6 +27,9 @@
   <!ENTITY standalonemode SYSTEM "standalonemode.xml">
   <!ENTITY embeddedmode SYSTEM "embeddedmode.xml">
   <!ENTITY servletmode SYSTEM "servletmode.xml">
+  <!ENTITY appletmode SYSTEM "appletmode.xml">
+  <!ENTITY jconsole SYSTEM "jconsole.xml">
+  <!ENTITY paths SYSTEM "paths.xml">
 
   <!-- I can't figure out how to move this to the included bshcommands file -->
   <!ENTITY bshcommands-bshdoc SYSTEM "bshcommands-bshdoc.xml">
@@ -34,9 +37,7 @@
 
 <manual>
 	&title;
-	<!-- Auto generated table of contents -->
-	<contents/>
-	<!-- sections -->
+	<contents/> <!-- Auto generated table of contents -->
 	&intro;
 	&quickstart;
 	&syntax;
@@ -45,20 +46,23 @@
 	&scope;
 	&interfaces;
 	&specialvarsvalues;
-	&commands;
+	&commands; <!-- Section about important commands and adding commands -->
+	&paths;
 	&classpath;
 	&standalonemode;
 	&embeddedmode;
 	&servermode;
 	&servletmode;
+	&appletmode;
 	&desktop;
-	&parser;
-	&execscripts;
-	&reflectivestyle;
 	&bshdoc;
+	&parser;
+	&jconsole;
+	&reflectivestyle;
+	&execscripts;
 	&more;
 	&credit;
-	&bshcommands;
+	&bshcommands; <!-- bshdoc auto generated bsh commands documentation -->
 </manual>
 
 
