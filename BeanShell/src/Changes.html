@@ -135,6 +135,25 @@
 	- Removed deprecated overloaded NameSpace.getImportedClasses()
 	
 	- Moved Name.ClassIdentifier to bsh.ClassIdentifier top level class.
+
+	- Enhanced error message for undefined argument to method - now prints the
+	  argument text instead of the method parameter name and position.  
+
+	- Clarified the scoping of closures and fixed related bug.  This should now
+	  work as expected.  A 'this' reference always refers to the nearest 
+	  enclosing method or the root scope.  This is true even when the 
+	  expression returning or assigning the 'this' reference is inside one or 
+	  more nested Java blocks. e.g.
+	  myMethod() {
+	  	  if ( true ) { /* inside block */ } else { /* */ }
+		  { /* gratuitous block */ }
+	  }
+	  Returning or assigning 'this' from inside myMethod() or inside any of
+	  the blocks all use the same 'this' reference (myMethod).  You may
+	  refer to local, typed variables declared in the block this.varname as
+	  expected, but they are not visible outside of the block (as in Java).
+	  See tests/this.bsh.
+
 </pre>
 
 <h2>Changes in 1.2b8 </h2>

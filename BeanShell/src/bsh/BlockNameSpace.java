@@ -98,10 +98,30 @@ class BlockNameSpace extends NameSpace
 	}
 
 	/**
-		this is our parent's this
+		Get a 'this' reference is our parent's 'this' for the object closure.
+		e.g. Normally a 'this' reference to a BlockNameSpace (e.g. if () { } )
+		resolves to the parent namespace (e.g. the namespace containing the
+		"if" statement). 
+		@see #getBlockThis( Interpreter )
 	*/
     This getThis( Interpreter declaringInterpreter ) {
 		return getParent().getThis( declaringInterpreter );
+	}
+
+	/**
+		Get the actual BlockNameSpace 'this' reference.
+		<p/>
+		Normally a 'this' reference to a BlockNameSpace (e.g. if () { } )
+		resolves to the parent namespace (e.g. the namespace containing the
+		"if" statement).  However when code inside the BlockNameSpace needs to
+		resolve things relative to 'this' we must use the actual block's 'this'
+		reference.  Name.java is smart enough to handle this using
+		getBlockThis().
+		@see #getThis( Interpreter )
+	*/
+    This getBlockThis( Interpreter declaringInterpreter ) 
+	{
+		return super.getThis( declaringInterpreter );
 	}
 
 	/**

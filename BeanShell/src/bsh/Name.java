@@ -111,7 +111,7 @@ class Name implements java.io.Serializable
 
 	private int callstackDepth;		// number of times eval hit 'this.caller'
 	/** 
-		The last round consume the literal 'this' reference (not super, 
+		The last round consumed the literal 'this' reference (not super, 
 		global, or another This type var).  We use this flag to support magic
 		variables that can only be referenced through 'this.xxx', e.g.
 		this.interpreter and this.caller;
@@ -314,7 +314,7 @@ class Name implements java.io.Serializable
 				return evalBaseObject = Primitive.VOID;  // convention
 			} else
 				throw new UtilEvalError(
-					"Class or variable not found:" + evalName);
+					"Class or variable not found: " + evalName);
 		}
 
 		/*
@@ -382,7 +382,8 @@ class Name implements java.io.Serializable
 			a class type.
 		*/
 		if ( forceClass )
-			throw new UtilEvalError( value +" does not resolve to a class name." );
+			throw new UtilEvalError( 
+				value +" does not resolve to a class name." );
 
 		/* 
 			Some kind of field access?
@@ -434,19 +435,35 @@ class Name implements java.io.Serializable
 		throws UtilEvalError
 	{
 		Object obj = null;
-		// preserve the state of the last round flags until the end
-		boolean 
-			wasThis = false,		
-			wasCaller = false;
 
-		if ( varName.equals("this") ) {
-			// Hack! If the special fields are visible turn of further .this
-			// prevent user from skipping to things like super.this.caller
+		if ( varName.equals("this") ) 
+		{
+			// Somewhat of a hack.  If the special fields are visible (we're
+			// operating relative to a 'this' type already) dissallow
+			// further .this references to prevent user from skipping to 
+			// things like super.this.caller
 			if ( specialFieldsVisible )
 				throw new UtilEvalError("Redundant to call .this on This type");
-			obj = thisNamespace.getThis( interpreter );
-			wasThis = true;
-		} 
+
+			// The following test handles the special case of BlockNameSpace
+			// scoped 'this' refs (see BlockNameSpace getThis()).  This might
+			// be more elegant in a subclass of Name.java (e.g. BlockName.java
+			// corresponding to BlockNameSpace.java)  but is only a couple of 
+			// lines.  Explanation: a simple non-compound name always resolves
+			// to the parent ns.  Therefore any compound resolution means we
+			// are resolving within the block namespace.
+			if ( thisNamespace instanceof BlockNameSpace 
+				&& isCompound(evalName) )
+			{
+				obj = ((BlockNameSpace)thisNamespace).getBlockThis( 
+					interpreter );
+			} else
+				obj = thisNamespace.getThis( interpreter );
+
+			literalThisReference = true;
+			// early return
+			return obj;
+		}
 
 		if ( obj == null ) {
 			if ( varName.equals("super") )
@@ -484,7 +501,9 @@ class Name implements java.io.Serializable
 				throw new UtilEvalError(
 				"Can only call .caller on literal 'this' or literal '.caller'");
 
-			wasCaller = true;
+			literalThisReference = true;
+			// early return
+			return obj;
 		}
 
 		if ( obj == null && specialFieldsVisible 
@@ -506,8 +525,6 @@ class Name implements java.io.Serializable
 		if ( obj == null )
 			obj = thisNamespace.getVariable(varName);
 
-		literalThisReference = wasThis;
-		literalCallerReference = wasCaller;
 		return obj;
 	}
 
@@ -572,7 +589,8 @@ class Name implements java.io.Serializable
 		LHS lhs;
 
 		// variable
-		if(!isCompound(evalName)) {
+		if ( !isCompound(evalName) ) 
+		{
 			//Interpreter.debug("returning simple var LHS...");
 			lhs = new LHS(namespace,evalName);
 			return lhs;
@@ -593,7 +611,7 @@ class Name implements java.io.Serializable
 		if ( obj == null )
 			throw new InterpreterError("internal error 2893749283");
 
-		if(obj instanceof This)
+		if ( obj instanceof This )
 		{
 			Interpreter.debug("found This reference evaluating LHS");
 			lhs = new LHS(((This)obj).namespace, evalName);
@@ -665,13 +683,11 @@ class Name implements java.io.Serializable
         String methodName = Name.suffix(value, 1);
 		BshClassManager bcm = callstack.top().getClassManager();
 
-		// Added 06/2003 - check this if anything gets fishy 
-		// Check for optimization - have we already determined that this is a
-		// static method invocation
+		// Optimization - If classOfStaticMethod is set then we have already 
+		// been here and determined that this is a static method invocation.
 		// Note: maybe factor this out with path below... clean up.
         if ( classOfStaticMethod != null )
 		{
-//System.out.println("classOfStaticMethod hit");
 			return Reflect.invokeStaticMethod( 
 				bcm, classOfStaticMethod, methodName, args );
 		}
@@ -679,6 +695,12 @@ class Name implements java.io.Serializable
 		if ( !Name.isCompound(value) )
 			return invokeLocalMethod( 
 				interpreter, args, callstack, callerInfo );
+
+		// Note: if we want methods declared inside blocks to be accessible via
+		// this.methodname() inside the block we could handle it here as a
+		// special case.  See also resolveThisFieldReference() special handling
+		// for BlockNameSpace case.  They currently work via the direct name
+		// e.g. methodName().
 
         // Find target object or class identifier
         Name targetName = namespace.getNameResolver( Name.prefix(value));
