@@ -2215,6 +2215,8 @@ void Statement() : { }
 |
   ReturnStatement()
 |
+  SynchronizedStatement()
+|
   ThrowStatement()
 |
   TryStatement()
@@ -2795,6 +2797,49 @@ void ReturnStatement()                  :
                                   jjtreeCloseNodeScope(jjtn000);
                                 }
 /*@egen*/ { jjtn000.kind = RETURN; }/*@bgen(jjtree)*/
+  } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      throw (RuntimeException)jjte000;
+    }
+    if (jjte000 instanceof ParseException) {
+      throw (ParseException)jjte000;
+    }
+    throw (Error)jjte000;
+  } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+  }
+/*@egen*/
+}
+
+void SynchronizedStatement()        :
+{/*@bgen(jjtree) Block */
+  BSHBlock jjtn000 = new BSHBlock(JJTBLOCK);
+  boolean jjtc000 = true;
+  jjtree.openNodeScope(jjtn000);
+  jjtreeOpenNodeScope(jjtn000);
+/*@egen*/
+}
+{/*@bgen(jjtree) Block */
+  try {
+/*@egen*/
+  "synchronized" "(" Expression() ")" Block()/*@bgen(jjtree)*/
+                                              {
+                                                jjtree.closeNodeScope(jjtn000, true);
+                                                jjtc000 = false;
+                                                jjtreeCloseNodeScope(jjtn000);
+                                              }
+/*@egen*/ {
+  		jjtn000.isSynchronized=true;
+  }/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);

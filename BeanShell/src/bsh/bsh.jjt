@@ -1192,6 +1192,8 @@ void Statement() : { }
 |
   ReturnStatement()
 |
+  SynchronizedStatement()
+|
   ThrowStatement()
 |
   TryStatement()
@@ -1389,6 +1391,15 @@ void ReturnStatement() #ReturnStatement :
 {}
 {
   "return" [ Expression() ] ";" { jjtThis.kind = RETURN; }
+}
+
+void SynchronizedStatement() #Block :
+{
+}
+{
+  "synchronized" "(" Expression() ")" Block() {
+  		jjtThis.isSynchronized=true;
+  }
 }
 
 void ThrowStatement() #ThrowStatement :

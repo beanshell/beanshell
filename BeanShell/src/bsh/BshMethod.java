@@ -50,6 +50,7 @@ public class BshMethod
 	implements /*bsh.Reflect.MethodInvoker,*/ java.io.Serializable 
 {
 	BSHMethodDeclaration method;
+	Modifiers modifiers;
 
 	/* 
 		I believe this is always the namespace in which the method is
@@ -63,11 +64,12 @@ public class BshMethod
 	private Class [] argTypes;
 
 	BshMethod( 
-		BSHMethodDeclaration method, NameSpace declaringNameSpace ) 
+		BSHMethodDeclaration method, NameSpace declaringNameSpace, 
+		Modifiers modifiers ) 
 	{
 		this.method = method;
 		this.declaringNameSpace = declaringNameSpace;
-		
+		this.modifiers = modifiers;
 	}
 
 	/**
@@ -145,6 +147,26 @@ public class BshMethod
 			(enclosing) namespace in which the method is defined).
 	*/
 	public Object invoke( 
+		Object[] argValues, Interpreter interpreter, CallStack callstack,
+			SimpleNode callerInfo ) 
+		throws EvalError 
+	{
+		// is this a syncrhonized method?
+		if ( modifiers != null && modifiers.hasModifier("synchronized") )
+		{
+			// The lock is our declaring namespace's This reference
+			// (the method's 'super')
+			Object lock = declaringNameSpace.getThis(interpreter); // ???
+			synchronized( lock ) {
+				return invokeImpl( 
+					argValues, interpreter, callstack, callerInfo );
+			}
+		} else
+			return invokeImpl( 
+				argValues, interpreter, callstack, callerInfo );
+	}
+
+	private Object invokeImpl( 
 		Object[] argValues, Interpreter interpreter, CallStack callstack,
 			SimpleNode callerInfo ) 
 		throws EvalError 
