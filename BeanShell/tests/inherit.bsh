@@ -29,6 +29,7 @@ X x;
 Y y;
 A z;
 
+// these should use something like this.namespace.getClass() instead...
 ca = Class.forName("InheritanceTest.A");
 cb = Class.forName("InheritanceTest.B");
 cc = Class.forName("InheritanceTest.C");
@@ -139,6 +140,7 @@ z.x();
 assert("If we made it this far, then we're OK.".length() == 38);
 
 } catch ( Exception e) {
+	error("Caught exception: "+e);
 	assert(false);
 }
 

@@ -2,10 +2,9 @@
 
 source("TestHarness.bsh");
 
-/*
-	For loops shouldn't leak their init vars into the namespace
+/**
+	For loops shouldn't leak their typed init vars into the namespace
 */
-
 i=0;
 for(int i=1; i< 3; i++) {
 	assert(i >= 1);

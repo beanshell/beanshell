@@ -92,17 +92,21 @@ import java.awt.Color;
 public class Interpreter 
 	implements Runnable, ConsoleInterface /*,Serializable*/ 
 {
-	public static final String VERSION = "1.1a8";
+	public static final String VERSION = "1.1a9";
 	/* 
 		Debug utils are static so that they are reachable by code that doesn't
 		necessarily have an interpreter reference (e.g. tracing in utils).
 	*/
-    public static boolean DEBUG = Boolean.getBoolean("debug");
-    static PrintStream debug = System.err;
+    public static boolean DEBUG;
+    static PrintStream debug;
 	static {
-		String outfilename = System.getProperty("outfile");
-		if ( outfilename != null )
-			redirectOutputToFile( outfilename );
+		try {
+    		debug = System.err;
+    		DEBUG = Boolean.getBoolean("debug");
+			String outfilename = System.getProperty("outfile");
+			if ( outfilename != null )
+				redirectOutputToFile( outfilename );
+		} catch ( SecurityException e ) { }
 	}
 
 	/** Shared system object visible under bsh.system */
@@ -462,6 +466,9 @@ public class Interpreter
                 get_jjtree().reset();
             }
         }
+
+		if ( interactive ) 
+			System.exit(0);
     }
 
 	/**
