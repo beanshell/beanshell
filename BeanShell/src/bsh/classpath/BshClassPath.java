@@ -41,9 +41,11 @@ import java.io.File;
 import bsh.ConsoleInterface;
 import bsh.StringUtil;
 import bsh.ClassPathException;
-import bsh.util.NameCompletion;
 import java.lang.ref.WeakReference;
-import bsh.util.NameCompletionTable;
+import bsh.NameSource;
+
+//import bsh.util.NameCompletion;
+//import bsh.util.NameCompletionTable;
 
 /**
 	A BshClassPath encapsulates knowledge about a class path of URLs.
@@ -63,7 +65,8 @@ import bsh.util.NameCompletionTable;
 	produce a composite view of some thing relating to the path.  This would
 	be an opportunity for a visitor pattern.
 */
-public class BshClassPath implements ClassPathListener
+public class BshClassPath 
+	implements ClassPathListener, NameSource
 {
 	String name;
 
@@ -80,7 +83,7 @@ public class BshClassPath implements ClassPathListener
 	private boolean mapsInitialized;
 
 	private UnqualifiedNameTable unqNameTable;
-	private NameCompletionTable nameCompletionTable;
+	//private NameCompletionTable nameCompletionTable;
 	private boolean nameCompletionIncludesUnqNames;
 	Vector listeners = new Vector();
 
@@ -282,20 +285,23 @@ public class BshClassPath implements ClassPathListener
 		return unqNameTable;
 	}
 
+/*
 	public String [] completeClassName( String part ) {
 		return getNameCompletionTable().completeName( part );
 	}
+*/
 
+/*
 	public NameCompletionTable getNameCompletionTable() {
 		if ( nameCompletionTable == null )
 			nameCompletionTable = buildNameCompletionTable();
 		return nameCompletionTable;
 	}
+*/
 
-	/**
+/**
 		build the name completion table from all names in our packages
 		optionally including unqualified names
-	*/
 	private NameCompletionTable buildNameCompletionTable() 
 	{
 		insureInitialized(null);
@@ -312,6 +318,25 @@ public class BshClassPath implements ClassPathListener
 			ncTable.addAll( getUnqualifiedNameTable().keySet() );
 
 		return ncTable;
+	}
+*/
+
+	public String [] getAllNames() 
+	{
+		insureInitialized(null);
+
+		List names = new ArrayList();
+		Iterator it = getPackagesSet().iterator();
+		while( it.hasNext() ) {
+			String pack = (String)it.next();
+			names.addAll( 
+				removeInnerClassNames( getClassesForPackage( pack ) ) ); 
+		}
+
+		if ( nameCompletionIncludesUnqNames )
+			names.addAll( getUnqualifiedNameTable().keySet() );
+
+		return (String [])names.toArray(new String[0]);
 	}
 
 	synchronized void map( URL [] urls, ConsoleInterface feedback ) { 
@@ -398,7 +423,8 @@ public class BshClassPath implements ClassPathListener
 		packageMap = new HashMap();
 		classSource = new HashMap();
 		unqNameTable = null;
-		nameCompletionTable = null;
+		//nameCompletionTable = null;
+		nameSpaceChanged();
 	}
 
 	public void classPathChanged() {
@@ -407,12 +433,16 @@ public class BshClassPath implements ClassPathListener
 	}
 
 	public void setNameCompletionIncludeUnqNames( boolean b ) {
+	/*
 		// if the setting is changing clear the name table and allow rebuild
 		if ( nameCompletionIncludesUnqNames != b 
 				&& nameCompletionTable != null )
 			nameCompletionTable = null;
-
-		nameCompletionIncludesUnqNames = b;
+	*/
+		if ( nameCompletionIncludesUnqNames != b ) {
+			nameCompletionIncludesUnqNames = b;
+			nameSpaceChanged();
+		}
 	}
 
 	// Begin Static stuff
@@ -692,4 +722,27 @@ public class BshClassPath implements ClassPathListener
 		}
 	}
 
+	/**
+		Fire the NameSourceListeners
+	*/
+	void nameSpaceChanged() 
+	{
+		if ( nameSourceListeners == null )
+			return;
+
+		for(int i=0; i<nameSourceListeners.size(); i++)
+			((NameSource.Listener)(nameSourceListeners.get(i)))
+				.nameSourceChanged( this );
+	}
+
+	List nameSourceListeners;
+	/**
+		Implements NameSource
+		Add a listener who is notified upon changes to names in this space.
+	*/
+	public void addNameSourceListener( NameSource.Listener listener ) {
+		if ( nameSourceListeners == null )
+			nameSourceListeners = new ArrayList();
+		nameSourceListeners.add( listener );
+	}
 }
