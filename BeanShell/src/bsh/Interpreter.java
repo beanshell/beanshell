@@ -40,30 +40,51 @@ import java.awt.Color;
 /**
 	The BeanShell script interpreter.
 
-	An instance of Interpreter or Server can be used to source scripts
-	and evaluate expressions.  Some examples:
+	An instance of Interpreter can be used to source scripts and evaluate 
+	statements or expressions.  
+	<p>
+	Here are some examples:
 
 	<p><blockquote><pre>
-		// Evaluate expressions
-		Interpeter i = new Interpreter();
-		i.eval("foo=5");
-		i.eval("bar=foo*5);
+		Interpeter bsh = new Interpreter();
 
-		// Source from files
-		i.source("myscript.bsh");  // or i.eval("source(\"myscript.bsh\")");
+		// Evaluate statements and expressions
+		bsh.eval("foo=Math.sin(0.5)");
+		bsh.eval("bar=foo*5; bar=Math.cos(bar);");
+		bsh.eval("for(i=0; i<10; i++) { print(\"hello\"); }");
+		// same as above using java syntax and apis only
+		bsh.eval("for(int i=0; i<10; i++) { System.out.println(\"hello\"); }");
 
-		// Pass objects in and out of variables
-		i.set( "date", new Date() );
-		Date date = (Date)i.get( "date" );
+		// Source from files or streams
+		bsh.source("myscript.bsh");  // or bsh.eval("source(\"myscript.bsh\")");
 
-		i.eval("year = date.getYear()");
-		Integer year = (Integer)i.get("year");  // primitives use wrappers
+		// Use set() and get() to pass objects in and out of variables
+		bsh.set( "date", new Date() );
+		Date date = (Date)bsh.get( "date" );
+		// This would also work:
+		Date date = (Date)bsh.eval( "date" );
 
-		// Fetch script as an arbitrary interface 
-		i.eval(	"foo() { print( date ); }");
-		MyInterface myObj = (MyInterface)i.eval("return (MyInterface)this");
-		myObj.foo();
+		bsh.eval("year = date.getYear()");
+		Integer year = (Integer)bsh.get("year");  // primitives use wrappers
+
+		// With Java1.3+ scripts can implement arbitrary interfaces...
+		// Script an awt event handler (or source it from a file, more likely)
+		bsh.eval( "actionPerformed( e ) { print( e ); }");
+		// Get a reference to the script object (implementing the interface)
+		ActionListener scriptedHandler = 
+			(ActionListener)bsh.eval("return (ActionListener)this");
+		// Use the scripted event handler normally...
+		new JButton.addActionListener( script );
 	</pre></blockquote>
+	<p>
+
+	In the above examples we showed a single interpreter instance, however 
+	you may wish to use many instances, depending on the application and how
+	you structure your scripts.  Interpreter instances are very light weight
+	to create, however if you are going to execute the same script repeatedly
+	and require maximum performance you should consider scripting the code as 
+	a method and invoking the scripted method each time on the same interpreter
+	instance (using eval()). 
 	<p>
 
 	See the BeanShell User's Manual for more information.
@@ -71,6 +92,7 @@ import java.awt.Color;
 public class Interpreter 
 	implements Runnable, ConsoleInterface /*,Serializable*/ 
 {
+	public static final String VERSION = "1.1a8";
 	/* 
 		Debug utils are static so that they are reachable by code that doesn't
 		necessarily have an interpreter reference (e.g. tracing in utils).
@@ -271,6 +293,9 @@ public class Interpreter
 	}
 
 
+	/**
+		Run the text only interpreter on the command line or specify a file.
+	*/
     public static void main( String [] args ) 
 	{
         if ( args.length > 0 ) {
@@ -331,7 +356,7 @@ public class Interpreter
 			try { 
 				eval("printBanner();"); 
 			} catch ( EvalError e ) {
-				println("BeanShell 1.1 alpha - by Pat Niemeyer (pat@pat.net)");
+				println("BeanShell "+VERSION+" - by Pat Niemeyer (pat@pat.net)");
 			}
 
         boolean eof = false;
@@ -462,10 +487,6 @@ public class Interpreter
 	}
 
     /**
-Can't this be combined with run() ?
-run seems to have stuff in it for interactive vs. non-interactive...
-compare them side by side and see what they do differently.
-
         Spawn a non-interactive local interpreter to evaluate text in the 
 		specified namespace.  
 
@@ -474,6 +495,11 @@ compare them side by side and see what they do differently.
 
 		@throws EvalError on script problems
 		@throws TargetError on unhandled exceptions from the script
+
+Can't this be combined with run() ?
+run seems to have stuff in it for interactive vs. non-interactive...
+compare them side by side and see what they do differently.
+
     */
     public Object eval( 
 		Reader in, NameSpace nameSpace, String sourceFile ) 
@@ -555,6 +581,9 @@ compare them side by side and see what they do differently.
 		return eval(statement, globalNameSpace);
 	}
 
+	/**
+		Evaluate the string in the specified namespace.
+	*/
     public Object eval( String statement, NameSpace nameSpace ) 
 		throws EvalError {
 
@@ -563,6 +592,11 @@ compare them side by side and see what they do differently.
 			new StringReader(s), nameSpace, "<Inline eval of: "+s+" >" );
     }
 
+	/**
+		Print an error message in a standard format on the output stream
+		associated with this interpreter. On the GUI console this will appear 
+		in red, etc.
+	*/
     public final void error(String s) {
 		if ( console != null )
 				console.error( "// Error: " + s +"\n" );
@@ -577,8 +611,22 @@ compare them side by side and see what they do differently.
 	// uses.  Should clean this up by using an inner class to implement the
 	// console for us.
 
+	/** 
+		Get the input stream associated with this interpreter.
+		This may be be stdin or the GUI console.
+	*/
 	public Reader getIn() { return in; }
+
+	/** 
+		Get the outptut stream associated with this interpreter.
+		This may be be stdout or the GUI console.
+	*/
 	public PrintStream getOut() { return out; }
+
+	/** 
+		Get the error output stream associated with this interpreter.
+		This may be be stderr or the GUI console.
+	*/
 	public PrintStream getErr() { return err; }
 
     public final void println(String s)
@@ -610,6 +658,10 @@ compare them side by side and see what they do differently.
 
 	// End ConsoleInterface
 
+	/**
+		Print a debug message on debug stream associated with this interpreter
+		only if debugging is turned on.
+	*/
     public final static void debug(String s)
     {
         if(DEBUG)
