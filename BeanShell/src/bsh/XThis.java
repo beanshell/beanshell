@@ -50,21 +50,12 @@ class XThis extends This {
 	}
 
 	/**
-		Get dynamic proxy for interface by String name.
-	public Object getInterface( String name ) throws ClassNotFoundException {
-		Class clas = Class.forName( name );
-		return getInterface( clas );
-	}
-	*/
-
-	/**
 		Get dynamic proxy for interface.
 	*/
 	public Object getInterface( Class clas ) {
 		return Proxy.newProxyInstance(
 			clas.getClassLoader(), new Class[] { clas }, invocationHandler );
 	}
-
 
 	String toStringShowInts( Class [] ints ) {
 		StringBuffer sb = new StringBuffer( toString() + "\nimplements:" );

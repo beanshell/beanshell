@@ -2,7 +2,7 @@
 bsh.help.editor = "usage: editor()";
 
 editor() {
-	if ( bsh.desktop != void ) {
+	if ( bsh.system.desktop != void ) {
 		return workspaceEditor( super.interpreter );
 	}
 

@@ -61,7 +61,8 @@ public class Util {
 	}
 
 	public static void endSplashScreen() {
-		splashScreen.dispose();
+		if ( splashScreen != null )
+			splashScreen.dispose();
 	}
 
 }

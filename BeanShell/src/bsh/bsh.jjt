@@ -59,11 +59,15 @@ public class Interpreter implements Runnable /*,Serializable*/
 {
 	// These are static so that they are reachable by code that doesn't
 	// necessarily have an interpreter reference (e.g. tracing in utils).
-    static PrintStream debug = System.err;
     public static boolean DEBUG = Boolean.getBoolean("debug");
+    static PrintStream debug = System.err;
+
+	/**
+		Shared system object visible under bsh.system
+	*/
+	static This systemObject;
 
     NameSpace globalNameSpace;
-	This bshObject;
     Reader in;
     PrintStream out;
     PrintStream err;
@@ -110,6 +114,8 @@ public class Interpreter implements Runnable /*,Serializable*/
 		/* 
 			Create the root "bsh" system object if it doesn't exist.
 		*/
+
+		/*
 		Object bo = globalNameSpace.getVariable("bsh");
 		if ( ! (bo instanceof bsh.This) ) {
 			initRootSystemObject();
@@ -122,6 +128,10 @@ public class Interpreter implements Runnable /*,Serializable*/
 			}
 		} else
 			bshObject = (bsh.This)bo;
+		*/
+
+		if ( ! ( getu("bsh") instanceof bsh.This ) )
+			initRootSystemObject();
 
 		if ( interactive )
 			loadRCFiles();
@@ -129,25 +139,33 @@ public class Interpreter implements Runnable /*,Serializable*/
 
 	private void initRootSystemObject() 
 	{
-		bshObject = new NameSpace( "Bsh System Object" ).getThis( this );
+		// bsh
+		setu("bsh", new NameSpace( "Bsh Object" ).getThis( this ) );
+
+		// init the static shared systemObject if it's not there yet
+		if ( systemObject == null )
+			systemObject = new NameSpace( 
+				"Bsh System Object" ).getThis( this );
+		// bsh.system
+		setu( "bsh.system", systemObject );
 
 		// bsh.help
 		This helpText = new NameSpace( 
-			bshObject.namespace, "Bsh Command Help Text" ).getThis( this );
-		setBshVariable( "help", helpText );
+			"Bsh Command Help Text" ).getThis( this );
+		setu( "bsh.help", helpText );
 
 		// bsh.cwd
 		try {
-			setBshVariable( "cwd", System.getProperty("user.dir") );
+			setu( "bsh.cwd", System.getProperty("user.dir") );
 		} catch ( SecurityException e ) { 
 			// applets can't see sys props
-			setBshVariable( "cwd", "." );
+			setu( "bsh.cwd", "." );
 		}
 
 		// bsh.interactive
-		setBshVariable( "interactive", new Primitive(interactive) );
+		setu( "bsh.interactive", new Primitive(interactive) );
 		// bsh.evalOnly
-		setBshVariable( "evalOnly", new Primitive(evalOnly) );
+		setu( "bsh.evalOnly", new Primitive(evalOnly) );
 	}
 
     public Interpreter(
@@ -167,17 +185,6 @@ public class Interpreter implements Runnable /*,Serializable*/
 			true, globalNameSpace );
 
 		setConsole( console );
-
-		/*
-        // redirect system out/err to console if possible
-		We no longer do this.  Instead we have an option in Console menu
-		to capture stdin/stdout
-
-        try {
-            System.setOut(console.getOutStream());
-            System.setErr(console.getErrStream());
-        } catch (Exception e) { }
-		*/
     }
 
 	/**
@@ -196,7 +203,8 @@ public class Interpreter implements Runnable /*,Serializable*/
 		this( new StringReader(""), 
 			System.out, System.err, false, null );
         evalOnly = true;
-		setBshVariable( "evalOnly", new Primitive(true) );
+		//setBshVariable( "evalOnly", new Primitive(true) );
+		setu( "bsh.evalOnly", new Primitive(true) );
     }
 
 	/**
@@ -220,6 +228,7 @@ public class Interpreter implements Runnable /*,Serializable*/
     }
 	*/
 
+	/*
 	// dumb helper method
 	void setBshVariable( String name, Object obj ) {
 		try {
@@ -233,10 +242,12 @@ public class Interpreter implements Runnable /*,Serializable*/
 	Object getBshVar( String name ) {
 		return unwrap( bshObject.namespace.getVariable( name ) );
 	}
+	*/
 
 	public void setConsole( ConsoleInterface console ) {
 		this.console = console;
-		setBshVariable( "console", console );
+		//setBshVariable( "console", console );
+		setu( "bsh.console", console );
 	}
 
 	// End constructors
@@ -254,7 +265,8 @@ public class Interpreter implements Runnable /*,Serializable*/
 				bshArgs = new String [0];
 
             Interpreter interpreter = new Interpreter();
-			interpreter.setBshVariable( "args", bshArgs );
+			//interpreter.setBshVariable( "args", bshArgs );
+			interpreter.setu( "bsh.args", bshArgs );
 			try {
 				interpreter.source( filename, interpreter.globalNameSpace );
 			} catch ( FileNotFoundException e ) {
@@ -331,7 +343,7 @@ public class Interpreter implements Runnable /*,Serializable*/
                     if(ret != Primitive.VOID)
                     {
                         setVariable("$_", ret);
-                        Object show = getBshVar("show");
+                        Object show = getu("bsh.show");
                         if(show instanceof Boolean &&
                             ((Boolean)show).booleanValue() == true)
                             println("<" + ret + ">");
@@ -552,12 +564,6 @@ public class Interpreter implements Runnable /*,Serializable*/
             debug.println("// Debug: " + s);
     }
 
-    public Object getVariable(String name)
-    {
-        Object obj = globalNameSpace.getVariable(name);
-		return unwrap( obj );
-    }
-
 	/*
 		unwrap primitive and map voids to nulls
 	*/
@@ -576,31 +582,116 @@ public class Interpreter implements Runnable /*,Serializable*/
             return obj;
 	}
 
-	// These are squeltching error... should they?
+	/* 
+		Primary interpreter set and get variable methods
+		Note: These are squeltching errors... should they?
+	*/
 
+	/**
+		Get the value of the name.
+		name may be any value. e.g. a variable or field
+	*/
+    public Object get( String name ) throws EvalError {
+		Object ret = new Name( globalNameSpace, name ).toObject( this );
+		return unwrap( ret );
+	}
+
+	/**
+		Unchecked get for internal use
+	*/
+    Object getu( String name ) {
+		try { 
+			return get( name );
+		} catch ( EvalError e ) { 
+			throw new InterpreterError("set: "+e);
+		}
+	}
+
+	/**
+		Assign the value to the name.	
+		name may evaluate to anything assignable. e.g. a variable or field.
+	*/
+    public void set(String name, Object value) throws EvalError {
+		LHS lhs = new Name( globalNameSpace, name ).toLHS( this );
+		lhs.assign( value );
+	}
+
+	/**
+		Unchecked set for internal use
+	*/
+    void setu(String name, Object value) {
+		try { 
+			set(name, value);
+		} catch ( EvalError e ) { 
+			throw new InterpreterError("set: "+e);
+		}
+	}
+
+    public void set(String name, long value) throws EvalError {
+        set(name, new Primitive(value));
+	}
+    public void set(String name, int value) throws EvalError {
+        set(name, new Primitive(value));
+	}
+    public void set(String name, double value) throws EvalError {
+        set(name, new Primitive(value));
+	}
+    public void set(String name, float value) throws EvalError {
+        set(name, new Primitive(value));
+	}
+    public void set(String name, boolean value) throws EvalError {
+        set(name, new Primitive(value));
+	}
+
+
+
+	/**
+		@deprecated does not properly evaluate compound names
+	*/
+    public Object getVariable(String name)
+    {
+        Object obj = globalNameSpace.getVariable(name);
+		return unwrap( obj );
+    }
+
+	/**
+		@deprecated does not properly evaluate compound names
+	*/
     public void setVariable(String name, Object value)
     {
         try { globalNameSpace.setVariable(name, value); }
         catch(EvalError e) { error(e.toString()); }
     }
 
+	/**
+		@deprecated does not properly evaluate compound names
+	*/
     public void setVariable(String name, int value)
     {
         try { globalNameSpace.setVariable(name, new Primitive(value)); }
         catch(EvalError e) { error(e.toString()); }
     }
 
+	/**
+		@deprecated does not properly evaluate compound names
+	*/
     public void setVariable(String name, float value)
     {
         try { globalNameSpace.setVariable(name, new Primitive(value)); }
         catch(EvalError e) { error(e.toString()); }
     }
 
+	/**
+		@deprecated does not properly evaluate compound names
+	*/
     public void setVariable(String name, boolean value)
     {
         try { globalNameSpace.setVariable(name, new Primitive(value)); }
         catch(EvalError e) { error(e.toString()); }
     }
+
+
+	// end primary set and get methods
 
 	void jjtreeOpenNodeScope(Node n) {
 		((SimpleNode)n).firstToken = getToken(1);
@@ -627,7 +718,7 @@ public class Interpreter implements Runnable /*,Serializable*/
 		bsh.File file = new bsh.File( fileName );
 
 		String sourceDir, sourceFile;
-		String cwd = (String)getBshVar("cwd");
+		String cwd = (String)getu("bsh.cwd");
 
 		if ( file.isAbsolute() ) {
 			sourceDir = file.dirName();

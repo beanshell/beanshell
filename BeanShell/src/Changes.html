@@ -4,6 +4,12 @@
 <h2>Changes </h2>
 <pre>
 	- Loose arguments in catch clauses now work.
+	- deprecated getVariable/setVariable api.  Moving to get()/set()/eval();
+	- internally removed BshVariable - it wasn't doing what it was historically
+	intended for.  Replaced with a new bsh.system object which is shared
+	across all interpreter instances
+	- Added bsh.system.shutdownOnExit variable... set to false to prevent
+	exit() command and desktop close from exiting the VM.
 </pre>
 
 <h2>Changes in bsh-1.01</h2>
