@@ -26,7 +26,7 @@ class BSHMethodInvocation extends SimpleNode
 		Object[] args = 
 			((BSHArguments)jjtGetChild(1)).getArguments(namespace, interpreter);
 		try {
-			return Reflect.invokeMethod(interpreter, name, args);
+			return name.invokeMethod(interpreter, args);
 		} catch (ReflectError e) {
 			throw new EvalError(
 				"Error in method invocation: " + e.getMessage(), this);

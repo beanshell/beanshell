@@ -526,12 +526,9 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants, /
 	/* Daniel Leuck: added color */
     public final void error(String s) {
 
-		if(console != null) {
-			if ( NameSpace.haveSwing() && (console instanceof JConsole) )
-				((JConsole)console).print("// Error: " + s +"\n", Color.red);
-			else
-            	console.println("// Error: " + s);
-		} else {
+		if ( console != null )
+				console.print("// Error: " + s +"\n", Color.red);
+		else {
 			err.println("// Error: " + s);
 			err.flush();
 		}

@@ -51,39 +51,6 @@ class BSHType extends SimpleNode
                 int[] dims = new int[arrayDims];
                 Object obj = Array.newInstance(baseType, dims);
                 type = obj.getClass();
-/*
-                StringBuffer typeName = new StringBuffer();
-                for(int i = 0; i < arrayDims; i++)
-                    typeName.append('[');
-
-                if(baseType.isPrimitive())
-                {
-                    if(baseType == Boolean.TYPE)
-                        typeName.append('Z');
-                    else if(baseType == Character.TYPE)
-                        typeName.append('C');
-                    else if(baseType == Byte.TYPE)
-                        typeName.append('B');
-                    else if(baseType == Short.TYPE)
-                        typeName.append('S');
-                    else if(baseType == Integer.TYPE)
-                        typeName.append('I');
-                    else if(baseType == Long.TYPE)
-                        typeName.append('J');
-                    else if(baseType == Float.TYPE)
-                        typeName.append('F');
-                    else if(baseType == Double.TYPE)
-                        typeName.append('D');
-                }
-                else
-                {
-                    typeName.append('L');
-                    typeName.append(baseType.getName(namespace));
-                    typeName.append(';');
-                }
-
-                type = Class.forName(typeName.toString());
-*/
             }
             catch(Exception e)
             {

@@ -43,7 +43,7 @@ import bsh.ConsoleInterface;
   	Improvements by: Daniel Leuck
 		including Color and Image support, key press bug workaround
 */
-public final class JConsole extends JScrollPane
+public class JConsole extends JScrollPane
     implements ConsoleInterface, Runnable, KeyListener,
 	       MouseListener, ActionListener, PropertyChangeListener {
 
@@ -393,27 +393,28 @@ public final class JConsole extends JScrollPane
 	/**
 	  * Prints all primitive integer values
 	  * (i.e. byte,	short, int, and	long)
-	  */
 	public void println(long l) {
 		println(String.valueOf(l));
 	}
+	  */
 
 	/**
 	  * Prints the primitive type "double"
-	  */
 	public void println(double d) {
 		println(String.valueOf(d));
 	}
+	  */
 
 	/**
 	  * Prints the primitive type "float"
 	  * (needed because of float->double
 	  * coercion weirdness)
-	  */
 	public void println(float f) {
 		println(String.valueOf(f));
 	}
+	  */
 
+	/*
 	public void println(boolean b) {
 		println((b ? "true" : "false"));
 	}
@@ -421,6 +422,7 @@ public final class JConsole extends JScrollPane
 	public void println(char c) {
 		println(String.valueOf(c));
 	}
+	*/
 
 	public synchronized void print(Object object) {
 	    append(String.valueOf(object));
@@ -440,27 +442,28 @@ public final class JConsole extends JScrollPane
 	/**
 	  * Prints all primitive integer values
 	  * (i.e. byte,	short, int, and	long)
-	  */
 	public void print(long l) {
 		print(String.valueOf(l));
 	}
+	  */
 
 	/**
 	  * Prints the primitive type "double"
-	  */
 	public void print(double d) {
 	print(String.valueOf(d));
 	}
+	  */
 
 	/**
 	  * Prints the primitive type "float"
 	  * (needed because of float->double
 	  * coercion weirdness)
-	  */
 	public void print(float	f) {
 		print(String.valueOf(f));
 	}
+	  */
 
+	/*
 	public void print(boolean b) {
 		print(b	? "true" : "false");
 	}
@@ -468,12 +471,16 @@ public final class JConsole extends JScrollPane
 	public void print(char c) {
 		print(String.valueOf(c));
 	}
+	*/
 
 	public void print(Object s, Font font) {
 		print(s, font, null);
     }
 
 	public void print(Object s, Color color) {
+		print(s, null, color);
+    }
+	public void print(String s, Color color) {
 		print(s, null, color);
     }
 

@@ -27,74 +27,10 @@ import java.util.Vector;
 */
 class Reflect {
 
-    /**
-		Invoke the method identified by the Name name.
-
-        name contains a wholely unqualfied messy name; resolve it to 
-		( object | static prefix ) + method name and invoke.
-
-        The interpreter is necessary to support 'this.interpreter' references
-		in the called code. (e.g. debug());
-
-        Some cases:
-
-            // dynamic
-            local();
-            myVariable.foo();
-            myVariable.bar.blah.foo();
-            // static
-            java.lang.Integer.getInteger("foo");
-
-    */
-    public static Object invokeMethod(
-		Interpreter interpreter, Name name, Object[] args)
-        throws EvalError, ReflectError, InvocationTargetException
-    {
-        if(!Name.isCompound(name.value))
-            return invokeLocalMethod(interpreter, name, args);
-
-        // find target object
-        Name targetName = new Name(name.namespace, Name.prefix(name.value));
-        String methodName = Name.suffix(name.value, 1);
-
-        Object obj = targetName.toObject( interpreter );
-
-		if ( obj == Primitive.VOID ) 
-			throw new EvalError("Method invocation on void: "+name);
-
-        // if we've got an object, invoke the method
-        if ( !(obj instanceof Name.ClassIdentifier) ) {
-
-            if (obj instanceof Primitive) {
-
-                if (obj == Primitive.NULL)
-                    throw new EvalError("Null pointer error...");
-
-                // some other primitive
-                // should avoid calling methods on primitive, as we do
-                // in Name (can't treat primitive like an object message)
-                // but the hole is useful right now.
-                interpreter.error("Attempt to access method on primitive..." +
-                    " allowing bsh.Primitive to peek through for debugging");
-            }
-
-            // found an object and it's not an undefined variable
-            return invokeObjectMethod(interpreter, obj, methodName, args);
-        }
-
-        // try static method
-        Interpreter.debug("invokeMethod: trying static - " + targetName);
-
-        Class clas = ((Name.ClassIdentifier)obj).getTargetClass();
-        if (clas != null)
-            return invokeStaticMethod(clas, methodName, args);
-
-        // return null; ???
-		throw new EvalError("unknown target: " + targetName);
-    }
-
     /*
-		 Invoke method on object, may be static, dynamic, or This
+		Invoke method on object, may be static, dynamic, or This
+		Note: we could probably remove This handling and prevent it
+		from coming here...
 	*/
     public static Object invokeObjectMethod(
 		Interpreter interpreter, Object object, String methodName, 
@@ -103,34 +39,10 @@ class Reflect {
 	{
         Interpreter.debug("invoke Method " + methodName + " on object " 
 			+ object + " with args (");
-		/*
-        for(int i=0; i<args.length; i++)
-            Interpreter.debug((args[i]).toString());
-        Interpreter.debug(")");
-		*/
 
-        if(object instanceof This) {
-            NameSpace namespace = ((This)object).namespace;
-
-			/*
-				Note: XThis does the same as the below to invoke the method.
-				Maybe we should create a NameSpace invokeMethod() method.
-			*/
-			// Look for method in the bsh object
-            BshMethod meth = namespace.getMethod(methodName);
-            if ( meth != null )
-                return meth.invokeDeclaredMethod( args, interpreter );
-
-			// Look for a default invoke() handler method
-			meth = namespace.getMethod( "invoke" );
-			// Call script "invoke( String methodName, Object [] args );
-			if ( meth != null )
-				return meth.invokeDeclaredMethod( 
-					new Object [] { methodName, args }, interpreter );
-
-            throw new EvalError( "No locally declared method: " 
-				+ methodName + " in namespace: "+namespace );
-        } else
+		if ( object instanceof This )
+			return ((This)object).invokeMethod( methodName, args, interpreter );
+        else
 			return invokeMethod( object.getClass(), object, methodName, args );
     }
 
@@ -446,93 +358,15 @@ class Reflect {
             return arg;
     }
 
-	/**
-		Invoke a locally declared method: i.e. a bsh command.
-		If the method is not already declared in the namespace then try
-		to load it as a resource from the /bsh/commands path.
-	
-		Note: instead of invoking the method directly here we should probably
-		call invokeObjectMethod passing a This reference.  That would have
-		the side effect of allowing a locally defined invoke() method to
-		handle undeclared method invocations just like in objects.  Not sure
-		if this is desirable...  It seems that if you invoke a method directly
-		in scope it should be there.
-
-		Keeping this code separate allows us to differentiate between methods
-		invoked directly in scope and those invoked through object references.
-	*/
-    static Object invokeLocalMethod(
-		Interpreter interpreter, Name name, Object[] args)
-        throws EvalError, ReflectError, InvocationTargetException
+    static Object constructObject(String clas, Object[] args)
+        throws ReflectError, InvocationTargetException
     {
-        Interpreter.debug("invoke local method: " + name);
+		Class c = NameSpace.classForName( clas );
+		if ( c == null )
+			throw new ReflectError("Class not found: "+clas); 
 
-        // Check for locally declared method
-        BshMethod meth = name.toLocalMethod();
-        if(meth != null)
-            return meth.invokeDeclaredMethod( args, interpreter );
-        else
-            Interpreter.debug("no locally declared method: " + name.value);
-
-        /*
-			Look for scripted command as resource
-		*/
-		// Why not /bsh/commands here?  Why relative to Interpreter?
-        String commandName = "commands/" + name.value + ".bsh";
-        InputStream in = Interpreter.class.getResourceAsStream(commandName);
-        if(in != null)
-        {
-            Interpreter.debug("loading resource: " + commandName);
-
-			if ( interpreter == null )
-				throw new InterpreterError("2234432 interpreter = null");
-
-            interpreter.eval( 
-				new InputStreamReader(in), name.namespace, commandName);
-
-            // try again
-            meth = name.toLocalMethod();
-            if(meth != null)
-                return meth.invokeDeclaredMethod( args, interpreter );
-            else
-                throw new EvalError("Loaded resource: " + commandName +
-                    "had an error or did not contain the correct method");
-        }
-
-        // check for compiled bsh command class
-        commandName = "bsh.commands." + name.value;
-        // create class outside of any namespace
-        Class c = NameSpace.getAbsoluteClass(commandName);
-        if(c == null)
-            throw new EvalError("Command not found: " + name);
-
-        // add interpereter and namespace to args list
-        Object[] invokeArgs = new Object[args.length + 2];
-        invokeArgs[0] = interpreter;
-        invokeArgs[1] = name.namespace;
-        System.arraycopy(args, 0, invokeArgs, 2, args.length);
-        try
-        {
-            return Reflect.invokeStaticMethod(c, "invoke", invokeArgs);
-        }
-        catch(ReflectError e)
-        {
-            Interpreter.debug("invoke command args error:" + e);
-            // bad args
-        }
-        // try to print help
-        try
-        {
-            String s = (String)Reflect.invokeStaticMethod(c, "usage", null);
-            interpreter.println(s);
-            return Primitive.VOID;
-        }
-        catch(ReflectError e)
-        {
-            Interpreter.debug("usage threw: " + e);
-            throw new EvalError("Wrong number or type of args for command");
-        }
-    }
+		return constructObject( c, args );
+	}
 
     static Object constructObject(Class clas, Object[] args)
         throws ReflectError, InvocationTargetException
@@ -548,11 +382,9 @@ class Reflect {
         Class[] types = getTypes(args);
         unwrapPrimitives(args);
 
-        try
-        {
+        try {
             con = clas.getConstructor(types);
-        }
-        catch(NoSuchMethodException e) { }
+        } catch(NoSuchMethodException e) { }
 
 		if ( con == null && types.length == 0 ) {  // no arg constructor
 			throw new ReflectError(
@@ -566,15 +398,20 @@ class Reflect {
 					"No args constructor not found in class'" 
 						+ clas.getName() + "'");
 			else {
-				// find an appropriate constructor
-				Constructor[] constructors = clas.getConstructors();
+				/* 
+					Find an appropriate constructor
+				   	use declared here to see package and private as well
+				   	(there are no inherited constructors to worry about) 
+				*/
+				Constructor[] constructors = clas.getDeclaredConstructors();
 				con = findMostSpecificConstructor(types, constructors);
 
 				if(con == null)
 					con = findExtendedConstructor(args, constructors);
 
 				if(con == null)
-					throw new ReflectError("Can't find constructor");
+					throw new ReflectError("Can't find constructor: " 
+						+ clas.toString() );
 			}
         }
 
