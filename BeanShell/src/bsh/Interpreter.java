@@ -93,7 +93,7 @@ public class Interpreter
 {
 	/* --- Begin static members --- */
 
-	public static final String VERSION = "1.3a2";
+	public static final String VERSION = "1.3a3";
 	/* 
 		Debug utils are static so that they are reachable by code that doesn't
 		necessarily have an interpreter reference (e.g. tracing in utils).
@@ -703,8 +703,17 @@ public class Interpreter
 
 		String s = ( statement.endsWith(";") ? statement : statement+";" );
         return eval( 
-			new StringReader(s), nameSpace, "<Inline eval of: "+s+" >" );
+			new StringReader(s), nameSpace, 
+			"inline evaluation of: ``"+ showEvalString(s)+"''" );
     }
+
+	private String showEvalString( String s ) {
+		s = s.replace('\n', ' ');
+		s = s.replace('\r', ' ');
+		if ( s.length() > 80 )
+			s = s.substring( 0, 80 ) + " . . . ";
+		return s;
+	}
 
 	// end source and eval
 

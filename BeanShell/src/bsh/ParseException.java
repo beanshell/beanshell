@@ -265,7 +265,8 @@ public class ParseException extends EvalError {
 
 	// Begin BeanShell Modification - override error methods and toString
 
-	public int getErrorLineNumber() {
+	public int getErrorLineNumber() 
+	{
 		return currentToken.next.beginLine;
 	}
 

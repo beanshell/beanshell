@@ -125,6 +125,12 @@
 	  and static, removed side-effect from resolveJavaMethod in Reflect.  Did
 	  some initial profiling.  Overall I'm seeing about a 50% speedup in code
 	  that does primarily method dispatching.
+
+	- Improved BshServlet - EvalErrors (and ParseExceptions) no longer spew the
+	  whole script again in the error message.  Inline evals now report the
+	  "file" name as an abbreviated portion of the script.  Errors in the
+	  servlet results show the offending line highlighted (html) red with four 
+	  lines of context and line numbers.  Tweaked the template html just a bit.
 </pre>
 
 <h2>Changes in 1.2b8 </h2>

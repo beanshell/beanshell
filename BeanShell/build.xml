@@ -84,7 +84,8 @@
 	<property name="javadoc-jar" value="${dist-dir}/javadoc.zip"/>
 	<property name="core-jar" value="${dist-dir}/bsh-core-${version}.jar"/>
 	<property name="src-jar" value="${dist-dir}/bsh-${version}-src.jar"/>
-	<property name="all-jar" value="${dist-dir}/bsh-${version}.jar"/>
+	<property name="all-jar-name" value="bsh-${version}.jar"/>
+	<property name="all-jar" value="${dist-dir}/${all-jar-name}"/>
 	<property name="commands-jar" 
 		value="${dist-dir}/bsh-commands-${version}.jar"/>
 	<property name="classpath-jar" 
@@ -401,7 +402,7 @@
 			webxml="${src-dir}/bsh/servlet/example-web.xml">
 			<!--classes dir="${build-dir}" includes="bsh/servlet/**/*"/-->
 			<fileset dir="${src-dir}/bsh/servlet/" includes="index.html"/>
-			<lib dir="." includes="${all-jar}"/>
+			<lib dir="${dist-dir}" includes="${all-jar-name}"/>
 		</war>
 	</target>
 
