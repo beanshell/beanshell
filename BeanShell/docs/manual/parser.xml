@@ -1,0 +1,12 @@
+<section>
+<name>The BeanShell Parser</name>
+
+<h2>Performance Considerations</h2>
+
+The first time a script is sourced into an
+    interpreter, BeanShell compiles the script internally.  So successive
+    calls to the same script are faster than parsing the script each time.
+
+<h2>Using bsh.Parser</h2>
+
+</section>

@@ -3,15 +3,20 @@
 
 Now that we've seen how methods can be nested and treated as objects, we
 can revisit the topic of variable scope and scope modifiers.
+
+BeanShell first rule is always to maintain Java compatability.  Where 
+new features are added that go beyond standard Java syntax however, we 
+sometimes have to add new rules.  The ability to use loose, undeclared 
+variables as they are implemented in BeanShell can make for some situations 
+that look ambiguous with respect to Java.
 <p/>
 
 As we discussed in the "Syntax" section early on, variables references in 
 BeanShell default to the local scope, unless otherwise qualified.  
-
 This is a little different from some other scripting
-languages, but we feel is more consistent with Java, more consistent with
-object oriented design in general, and a more natural extension of Java 
-syntax into the scripting domain.  Now let's look at what this means.
+languages, but we feel is more consistent with Java, with object oriented 
+design in general, and a more natural extension of Java syntax into the 
+scripting domain.  Now let's look at what this means.
 <p/>
 
 In the "Syntax" section we described the use of 'super' to refer to a 
@@ -46,6 +51,10 @@ If you print a 'this' type reference you'll see what it refers to:
 </note>
 <p/>
 
+The above example shows that the foo() method's 'this' reference is local
+(named 'foo') and that it's parent is the global scope; the same scope in
+which foo is defined.
+
 <h2>'global' and Global Scope</h2>
 
 A third scope modifier, 'global', allows you to always refer to the top-most
@@ -53,13 +62,23 @@ scope.  In the previous note you can see that the top level script context
 is called "global" and that it appears again as the 'super' of our foo() 
 method.  The global context is always the top scope of the script.  Referring
 to 'super' from the top scope simply returns the same 'global' again.  
-Although it is legal to say things like: 
+
+It is legal to say things like the following:
+
 <example>
   super.super.super...foo = 42;  // Chain super. to reach the top
 </example>
 
-It is probably better to use 'global' in this situation or to refer to some
-other object, defined in the global context.  e.g.
+However if we are really trying to reach the top context it would probably 
+better to use 'global' in this situation:
+
+<example>
+  global.foo = 42; 
+</example>
+
+More generally, in the spirit of object oriented programming we could simply
+refer to some other object, defined in a parent context, without specifying
+where it is:
 
 <example>
 // Create a global object to hold some state
@@ -77,18 +96,26 @@ foo() {
     
 </example>
 
+In the above example we used a global object to hold some state, rather than
+putting the 'value' variable directly in the global scope. 
+
+<tip>
 In the above example we used the BeanShell object() command to create an
 "empty" BeanShell scripted object context in which to hold some data.  (The
 object() command is just a standard empty method named object() that 
 returns 'this'.)
+</tip>
 
 <h2>'this.caller' and the Caller Context</h2>
+
+<em>This topic is primarily of interest to BeanShell command developers</em>
+<p/>
 
 We mentioned earlier the difference between the 'super' or parent context
 of a method and the caller's context.  The 'super' of a method is always
 the context in which the method was defined.  But the caller may be any context
 in which the method is used.  In the following example,
-the parent and the caller context are the same:
+the parent context of foo() and the caller context of foo() are the same:
 
 <example>
 foo() { ... }
@@ -100,6 +127,7 @@ But this is not always the case, as for bar() in the following example:
 <example>
 foo() { 
     bar() { ... }
+	...
 }
 
 // somewhere

@@ -1,6 +1,8 @@
 <section>
 <name>Security and Visibility</name>
 
+setAccessible() to access private stuff...
+
 <note>
 If you're running bsh in as an untusted applet in a web browser, 
 you will see a security exception...  Of course bsh runs at whatever level
