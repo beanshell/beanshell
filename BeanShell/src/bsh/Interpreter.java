@@ -93,7 +93,7 @@ public class Interpreter
 {
 	/* --- Begin static members --- */
 
-	public static final String VERSION = "1.3b1";
+	public static final String VERSION = "1.3.0";
 	/*
 		Debug utils are static so that they are reachable by code that doesn't
 		necessarily have an interpreter reference (e.g. tracing in utils).
