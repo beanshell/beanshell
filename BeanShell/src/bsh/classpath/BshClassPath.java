@@ -263,7 +263,7 @@ public class BshClassPath
 		return getNameCompletionTable().completeName( part );
 	}
 
-	NameCompletion.Table getNameCompletionTable() {
+	public NameCompletion.Table getNameCompletionTable() {
 		if ( nameCompletionTable == null )
 			nameCompletionTable = buildNameCompletionTable();
 		return nameCompletionTable;

@@ -480,19 +480,23 @@ public class NameSpace
 		We don't do any caching of the name completion table here becaues
 		the name space is so volatile.
 	*/
-	public String [] completeName( String part ) {
-		/*
-		NameCompletionTable nct = new NameCompletionTable();
-		nct.addAll( getAllNames() );
-		return nct.completeName( part );
-		*/
+	public String [] completeName( String part ) 
+	{
+		// init table with parent of class names
+		NameCompletion.Table classNameComp = null;
 		try {
-			return BshClassManager.getClassManager().getClassPath()
-				.completeClassName( part );
+			classNameComp = BshClassManager.getClassManager()
+				.getClassPath().getNameCompletionTable();
 		} catch ( ClassPathException e ) {
 			System.err.println("classpath exception in name compl:"+e);
-			return new String[0];
 		}
+
+		NameCompletion.Table nct = new NameCompletion.Table( classNameComp );
+
+		// add all our names
+		nct.addAll( getAllNames() );
+
+		return nct.completeName( part );
 	}
 	
 	/**

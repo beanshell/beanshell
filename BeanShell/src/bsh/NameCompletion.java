@@ -32,27 +32,42 @@ public interface NameCompletion {
 			output: [ "java.lang." ]
 			input: "java.lang."
 			output: [ "java.lang.Thread", "java.lang.Integer", ... ]
+
+		Note: Alternatively, make a NameCompletionResult object someday...
 	*/
 	public String [] completeName( String part );
 
-
 	/**
-		Maybe make some kind of NameCompletionResult object someday...
-
-		This simple linear search could be reimplemented to be much more 
-		efficient? (Anyone?)
+		Simple linear search and comparison.
 	*/
 	public static class Table extends ArrayList
 	{
-		public String [] completeName( String part ) {
-			List found = new ArrayList();
+		NameCompletion.Table parent;
 
+		public Table() { }
+
+		public Table( NameCompletion.Table parent ) {
+			this.parent = parent;
+		}
+
+		/**
+			Add any matching names to list (including any from parent)
+		*/
+		protected void getMatchingNames( String part, List found ) {
 			Iterator it = iterator();
 			while( it.hasNext() ) {
 				String name = (String)it.next();
 				if ( name.startsWith( part ) )
 					found.add( name );
 			}
+
+			if ( parent != null )
+				parent.getMatchingNames( part, found );
+		}
+
+		public String [] completeName( String part ) {
+			List found = new ArrayList();
+			getMatchingNames( part, found );
 
 			if ( found.size() == 0 )
 				return new String [0];

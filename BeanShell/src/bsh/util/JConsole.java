@@ -68,6 +68,7 @@ public class JConsole extends JScrollPane
     private DefaultStyledDocument doc;
 
 	NameCompletion nameCompletion;
+	final int SHOW_AMBIG_MAX = 10;
 
 	// hack to prevent key repeat for some reason?
     private boolean gotUp = true;
@@ -161,7 +162,7 @@ public class JConsole extends JScrollPane
 			    if (e.getID() == KeyEvent.KEY_PRESSED) {
 					if (gotUp) {
 						enter();
-						cmdStart = text.getText().length();
+						resetCommandStart();
 						text.setCaretPosition(cmdStart);
 					}
 				}
@@ -288,19 +289,42 @@ public class JConsole extends JScrollPane
 
 System.out.println("completing part: "+part);
 
+		// no completion
 		String [] complete = nameCompletion.completeName(part);
-		if ( complete.length == 0 )
+		if ( complete.length == 0 ) {
+			java.awt.Toolkit.getDefaultToolkit().beep();
 			return;
-
-		if ( complete.length == 1 ) {
-			String append = complete[0].substring(part.length());
-			append( append );
 		}
 
-		// show ambig
-for(int i2=0; i2<complete.length; i2++)
-	System.out.println(complete[i2]);
+		// Found one completion (possibly what we already have)
+		if ( complete.length == 1 && !complete.equals(part) ) {
+			String append = complete[0].substring(part.length());
+			append( append );
+			return;
+		}
 
+		// Found ambiguous, show (some of) them
+
+		String line = text.getText();
+		String command = line.substring( cmdStart );
+		// Find prompt
+		for(i=cmdStart; line.charAt(i) != '\n' && i > 0; i--);
+		String prompt = line.substring( i+1, cmdStart );
+
+		// Show ambiguous
+		StringBuffer sb = new StringBuffer("\n");
+		for( i=0; i<complete.length && i<SHOW_AMBIG_MAX; i++)
+			sb.append( complete[i] +"\n" );
+		if ( i == SHOW_AMBIG_MAX )
+			sb.append("...\n");
+
+		print( sb, Color.gray );
+		print( prompt ); // print resets command start
+		append( command ); // append does not reset command start
+	}
+
+	private void resetCommandStart() {
+		cmdStart = text.getText().length();
 	}
 
 	private	void append(String string) {
@@ -411,7 +435,7 @@ for(int i2=0; i2<complete.length; i2++)
 
 	public synchronized void print(String string) {
 	    append( (string==null) ? "null" : string );
-		cmdStart = text.getText().length();
+		resetCommandStart();
 		text.setCaretPosition(cmdStart);
 	}
 
@@ -477,7 +501,7 @@ for(int i2=0; i2<complete.length; i2++)
 
 	public synchronized void print(Object object) {
 	    append(String.valueOf(object));
-		cmdStart = text.getText().length();
+		resetCommandStart();
 		text.setCaretPosition(cmdStart);
 	}
 
@@ -486,7 +510,7 @@ for(int i2=0; i2<complete.length; i2++)
 			return;
 
 		text.insertIcon(icon);
-		cmdStart = text.getText().length();
+		resetCommandStart();
 		text.setCaretPosition(cmdStart);
 	}
 
