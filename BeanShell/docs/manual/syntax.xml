@@ -207,6 +207,21 @@ This syntax will be refined and broadenend to cover general Java collections
 in an upcoming release.
 </em>
 
+<h2>Boxing and Unboxing</h2>
+
+"Boxing" and "Unboxing" are the terms used to describe automatically wrapping 
+a primitive type in a wrapper class and unwrapping it as necessary.  Boxing
+is reportedly an upcoming feature in the next release of Java (SDK1.5).
+<p/>
+
+BeanShell supports boxing and unboxing of primitive types.  For example:
+
+<example>
+i=5;
+iw=new Integer(5);
+print( i * iw );  // 25
+</example>
+
 <h2>Importing Classes and Packages</h2>
 
 In BeanShell as in Java, you can either refer to classes by their fully
@@ -268,5 +283,31 @@ you.  They are:
 <li>javax.swing.event</li>
 </ul>
 <p/>
+
+<h2>Document Friendly Entities</h2>
+
+BeanShell supports special overloaded text forms of all common operators
+to make it easier to embed BeanShell scripts inside other kinds of documents
+(e.g XML).
+<p/>
+
+<table border="1" cellpadding="5">
+<tr><td><strong>@gt</strong></td><td>&gt;</td></tr>
+<tr><td><strong>@lt</strong></td><td>&lt;</td></tr>
+<tr><td><strong>@lteq</strong></td><td>&lt;=</td></tr>
+<tr><td><strong>@gteq</strong></td><td>&gt;=</td></tr>
+<tr><td><strong>@or</strong></td><td>||</td></tr>
+<tr><td><strong>@and</strong></td><td>&amp;&amp;</td></tr>
+<tr><td><strong>@bitwise_and</strong></td><td>&amp;</td></tr>
+<tr><td><strong>@bitwise_or</strong></td><td>|</td></tr>
+<tr><td><strong>@left_shift</strong></td><td>&lt;&lt;</td></tr>
+<tr><td><strong>@right_shift</strong></td><td>&gt;&gt;</td></tr>
+<tr><td><strong>@right_unsigned_shift</strong></td><td>&gt;&gt;&gt;</td></tr>
+<tr><td><strong>@and_assign</strong></td><td>&amp;=</td></tr>
+<tr><td><strong>@or_assign</strong></td><td>|=</td></tr>
+<tr><td><strong>@left_shift_assign</strong></td><td>&lt;&lt;=</td></tr>
+<tr><td><strong>@right_shift_assign</strong></td><td>&gt;&gt;=</td></tr>
+<tr><td><strong>@right_unsigned_shift_assign</strong></td><td>&gt;&gt;&gt;=</td></tr>
+</table>
 
 </section>
