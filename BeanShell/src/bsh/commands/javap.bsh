@@ -1,9 +1,13 @@
 
 bsh.help.javap= "usage: javap( value )";
 
+import bsh.Name;
 javap( Object o ) {
 	import java.lang.reflect.Modifier;
 
+
+	if ( o instanceof Name.ClassIdentifier )
+		clas = this.namespace.identifierToClass(o);
 	if ( o instanceof String)
 		clas = this.namespace.getClass((String)o);
 	else if ( o instanceof Class )

@@ -227,7 +227,7 @@ public class ClassBrowser extends JSplitPane
 		// the core.
 		classPath = ((ClassManagerImpl)bcm).getClassPath();
 
-	// need to add MappingFeedbackListener here
+	// maybe add MappingFeedbackListener here... or let desktop if it has
 	/*
 		classPath.insureInitialized( null 
 			// get feedback on mapping...
@@ -338,6 +338,11 @@ public class ClassBrowser extends JSplitPane
 		if ( e.getSource() == classlist ) {
 			String classname = (String)classlist.getSelectedValue();
 			setMlist( classname );
+			// hack
+			// show the class source in the "method" line...
+			String fullClassName = selectedPackage+"."+classname;
+			setMethodLine( fullClassName
+				+" (from "+ classPath.getClassSource( fullClassName ) +")" );
 		} else
 		if ( e.getSource() == mlist ) {
 			int i = mlist.getSelectedIndex();

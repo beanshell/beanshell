@@ -6,9 +6,13 @@
 	Note: To browse the String class you can't supply a String.
 	You'd have to do:  browseClass( String.class );
 */
+import bsh.Name;
 browseClass( Object o ) {
+
 	if ( o instanceof String)
 		classname = o;
+	else if ( o instanceof Name.ClassIdentifier )
+		clasname = this.namespace.identifierToClass(o).getName();
 	else if ( o instanceof Class )
 		classname = o.getName();
 	else 

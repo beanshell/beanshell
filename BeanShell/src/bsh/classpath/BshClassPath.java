@@ -576,7 +576,9 @@ public class BshClassPath
 	/**
 		Get a list of all of the known packages
 	*/
-	public Set getPackagesSet() {
+	public Set getPackagesSet() 
+	{
+		insureInitialized();
 		Set set = new HashSet();
 		set.addAll( packageMap.keySet() );
 

@@ -301,7 +301,6 @@ class Name implements java.io.Serializable
 			- If we are compound then we must fail at this point.
 		*/
 		if ( evalBaseObject == null ) {
-			//if( suffix(evalName) == null ) {
 			if( !isCompound(evalName) ) {
 				evalName = null; // finished
 				return evalBaseObject = Primitive.VOID;  // convention
@@ -637,9 +636,7 @@ class Name implements java.io.Serializable
 	)
         throws EvalError, ReflectError, InvocationTargetException
     {
-		//Name name = this;
-
-        if(!Name.isCompound(value))
+        if ( !Name.isCompound(value) )
             return invokeLocalMethod(interpreter, args, callstack, callerInfo);
 
         // find target object
@@ -859,5 +856,7 @@ class Name implements java.io.Serializable
 			return "Class Identifier: "+clas.getName();
 		}
 	}
+
+
 }
 
