@@ -12,7 +12,7 @@
 		The name of the bsh jar file to include in the lib dir of the
 		"with bsh" version of the WAR file and the directory where it lives.
 	-->
-	<property name="bsh-jar" value="bsh-1.2b2.jar"/>
+	<property name="bsh-jar" value="bsh-1.2b4.jar"/>
 	<property name="bsh-dir" value=".."/>
 	
 	<property name="deprecation" value="off"/>
@@ -29,10 +29,11 @@
 			optimize="off"
 			includes="**/*.java"
 		/>
-		<!-- install bsh commands -->
-		<copy todir="${build-dir}/bsh/commands">
+		<!-- install extra stuff -->
+		<copy todir="${build-dir}">
 			<fileset dir="${src-dir}">
 				<include name="*.bsh"/>
+				<include name="*.template"/>
 			</fileset>
 		</copy>
 	</target>
