@@ -95,6 +95,16 @@
 	  (Let's see, how many places have owned JavaCC now?  Sun Test, then 
 	  meta-mata, then webgain, then Sun "experimental stuff"?  Sun has
 	  promised to open source this... I hope they follow through).
+	  Modified build.xml to use the new package name (no package) and to assume
+	  that the jar is in the classpath for now.
+
+	- Refactored and removed the ugly "LHS" part of the grammar.  This removed
+	  two ASTs which essentially duplicated the "straight" part of the grammar.
+	  There is still a bsh.LHS class (used as a wrapper for the target of an 
+	  assignment expression) but it is now created based on context rather than
+	  via a special part of the grammar.  Perhaps no one but the author will
+	  care about this but this always bugged me.  This also fixes some corner
+	  cases in assignments that were broken (tests fields1.bsh fields2.bsh).
 </pre>
 
 <h2>Changes in 1.2b8 </h2>

@@ -2,12 +2,7 @@
 
 source("TestHarness.bsh");
 
-/*
-	post increment is obviously broken
-*/
-
 a=1;
-// Post increment is broken!
 assert( a++ == 1);
 assert( a==2 );
 

@@ -38,37 +38,81 @@ class BSHPrimaryExpression extends SimpleNode
 {
 	BSHPrimaryExpression(int id) { super(id); }
 
-	/*
-		Should contain a prefix expression and any number of suffixes.
+	/**
+		Evaluate to a value object.
+	*/
+	public Object eval( CallStack callstack, Interpreter interpreter)  
+		throws EvalError
+	{
+		return eval( false, callstack, interpreter );
+	}
 
-		We don't eval( ) any nodes until the suffixes have had an
-		opportunity to work through them.  This let's the suffixes decide
+	/**
+		Evaluate to a value object.
+	*/
+	public LHS toLHS( CallStack callstack, Interpreter interpreter)  
+		throws EvalError
+	{
+		Object obj = eval( true, callstack, interpreter );
+
+		if ( ! (obj instanceof LHS) )
+			throw new EvalError("Can't assign to:", this, callstack );
+		else
+			return (LHS)obj;
+	}
+
+	/*
+		Our children are a prefix expression and any number of suffixes.
+		<p>
+
+		We don't eval() any nodes until the suffixes have had an
+		opportunity to work through them.  This lets the suffixes decide
 		how to interpret an ambiguous name (e.g. for the .class operation).
 	*/
-	public Object eval(CallStack callstack, Interpreter interpreter)  
+	private Object eval( boolean toLHS, 
+		CallStack callstack, Interpreter interpreter)  
 		throws EvalError
 	{
 		Object obj = jjtGetChild(0);
-		int n = jjtGetNumChildren(); 
+		int numChildren = jjtGetNumChildren(); 
 
-		for(int i=1; i<n; i++)
+		for(int i=1; i<numChildren; i++)
 			obj = ((BSHPrimarySuffix)jjtGetChild(i)).doSuffix(
-				obj, callstack, interpreter);
+				obj, toLHS, callstack, interpreter);
 
 		/*
-			eval the node to an object
-
-			Note: This construct is now necessary where the node may be
-			an ambiguous name.  If this becomes common we might want to 
-			make a static method nodeToObject() or something.
+			If the result is a Node eval() it to an object or LHS
+			(as determined by toLHS)
 		*/
 		if ( obj instanceof SimpleNode )
 			if ( obj instanceof BSHAmbiguousName )
-				obj = ((BSHAmbiguousName)obj).toObject(callstack, interpreter);
-			else
-				obj = ((SimpleNode)obj).eval(callstack, interpreter);	
+				if ( toLHS )
+					obj = ((BSHAmbiguousName)obj).toLHS(
+						callstack, interpreter);
+				else
+					obj = ((BSHAmbiguousName)obj).toObject(
+						callstack, interpreter);
+			else 
+				// Some arbitrary kind of node
+				if ( toLHS )
+					// is this right?
+					throw new EvalError("Can't assign to prefix.", 
+						this, callstack );
+				else
+					obj = ((SimpleNode)obj).eval(callstack, interpreter);	
 
-		return obj;
+		// return LHS or value object as determined by toLHS
+		if ( obj instanceof LHS )
+			if ( toLHS )
+				return obj;
+			else
+				try {
+					return ((LHS)obj).getValue();
+				} catch ( UtilEvalError e ) {
+					throw e.toEvalError( this, callstack );
+				}
+		else
+			return obj;
 	}
 }
 

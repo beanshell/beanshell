@@ -39,9 +39,11 @@
 	<property name="javadoc-dir" value="javadoc" />
 	<property name="bsf-src-dir" value="bsf/src" />
 
+	<!--
+		Let's just add the jar to the classpath from now on...
+
 	<property name="javacc-lib" 
 		value="/pkg/javacc/bin/lib/JavaCC.zip"/>
-	<!--
 	<property name="javacc-lib" 
 		value="/home/niemeyp/pkg/javacc/bin/lib/JavaCC.zip"/>
 	-->
@@ -118,11 +120,10 @@
 
 	<!-- Create bsh.jj when bsh.jjt changes. -->
 	<target name="jjtree" unless="jjtree.notRequired" depends="checkjjt">
-		<java classname="COM.sun.labs.jjtree.Main"
+		<java classname="jjtree"
 			fork="yes"
-			failonerror="yes"
-			classpath="${javacc-lib}"
-	>
+			failonerror="yes" >
+			<!-- classpath="${javacc-lib}" -->
 			<arg 
 				line="-OUTPUT_DIRECTORY=${src-dir}/bsh ${src-dir}/bsh/bsh.jjt"/>
 		</java>
@@ -130,23 +131,23 @@
 
 	<!-- Create Parser.java when bsh.jj changes. -->
 	<target name="javacc" unless="javacc.notRequired" depends="checkjj">
-		<java classname="COM.sun.labs.javacc.Main"
+		<java classname="javacc"
 			fork="yes"
-			failonerror="yes"
-			classpath="${javacc-lib}"
-		>
+			failonerror="yes" >
+			<!-- classpath="${javacc-lib}" -->
 			<arg line="-OUTPUT_DIRECTORY=${src-dir}/bsh ${src-dir}/bsh/bsh.jj"/>
 		</java>
 	</target>
 
 	<target name="compile" depends="jjtree,javacc,builddir">
+		<!-- exclude the ${excludes} as well as anything under a "bak" dir -->
 		<javac srcdir="${src-dir}:${test-src-dir}:${bsf-src-dir}"
 			destdir="${build-dir}"
 			deprecation="${deprecation}"
 			optimize="on"
 			debug="on"
 			includes="**/*.java"
-			excludes="${excludes}"
+			excludes="${excludes},**/bak/**"
 		/>
 
 		<copy todir="${build-dir}">
