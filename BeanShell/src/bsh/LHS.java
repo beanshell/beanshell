@@ -53,8 +53,8 @@ import java.util.Hashtable;
 class LHS implements ParserConstants, java.io.Serializable
 {
 	NameSpace nameSpace;
-	/** recurse on setVariable in nameSpace */
-	boolean recurse;
+	/** The assignment should be to a local variable */
+	boolean localVar;
 
 	/**
 		Identifiers for the various types of LHS.
@@ -88,15 +88,15 @@ throw new Error("namespace lhs");
 	}
 
 	/**
-		@param recurse if false the variable is set directly in the This
-		reference's local scope.  If true recursion to look for the variable
+		@param localVar if true the variable is set directly in the This
+		reference's local scope.  If false recursion to look for the variable
 		definition in parent's scope is allowed. (e.g. the default case for
 		undefined vars going to global).
 	*/
-	LHS( NameSpace nameSpace, String varName, boolean recurse )
+	LHS( NameSpace nameSpace, String varName, boolean localVar )
 	{
 		type = VARIABLE;
-		this.recurse = recurse;
+		this.localVar = localVar;
 		this.varName = varName;
 		this.nameSpace = nameSpace;
 	}
@@ -192,8 +192,11 @@ throw new Error("namespace lhs");
 	{
 		if ( type == VARIABLE )
 		{
-			// Set the variable in namespace according to local flag
-			nameSpace.setVariable( varName, val, strictJava, recurse );
+			// Set the variable in namespace according to localVar flag
+			if ( localVar )
+				nameSpace.setLocalVariable( varName, val, strictJava );
+			else
+				nameSpace.setVariable( varName, val, strictJava );
 		} else 
 		if ( type == FIELD )
 		{
@@ -222,8 +225,13 @@ throw new Error("namespace lhs");
 		else 
 		if ( type == PROPERTY )
 		{
+			/*
 			if ( object instanceof Hashtable )
 				((Hashtable)object).put(propName, val);
+			*/
+			CollectionManager cm = CollectionManager.getCollectionManager();
+			if ( cm.isMap( object ) )
+				cm.putInMap( object/*map*/, propName, val );
 			else
 				try {
 					Reflect.setObjectProperty(object, propName, val);

@@ -3782,23 +3782,6 @@ void VariableDeclaratorId() #VariableDeclaratorId :
     catch(LookaheadSuccess ls) { } return true;
   }
 
-  final private boolean jj_3_19() {
-    if (jj_scan_token(NEW)) return true;
-    if (jj_3R_37()) return true;
-    if (jj_3R_157()) return true;
-    return false;
-  }
-
-  final private boolean jj_3R_122() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3_19()) {
-    jj_scanpos = xsp;
-    if (jj_3R_145()) return true;
-    }
-    return false;
-  }
-
   final private boolean jj_3R_147() {
     if (jj_scan_token(COMMA)) return true;
     if (jj_3R_28()) return true;
@@ -5688,6 +5671,23 @@ void VariableDeclaratorId() #VariableDeclaratorId :
     if (jj_3R_158()) {
     jj_scanpos = xsp;
     if (jj_3R_159()) return true;
+    }
+    return false;
+  }
+
+  final private boolean jj_3_19() {
+    if (jj_scan_token(NEW)) return true;
+    if (jj_3R_37()) return true;
+    if (jj_3R_157()) return true;
+    return false;
+  }
+
+  final private boolean jj_3R_122() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3_19()) {
+    jj_scanpos = xsp;
+    if (jj_3R_145()) return true;
     }
     return false;
   }

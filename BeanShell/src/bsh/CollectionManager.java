@@ -35,6 +35,7 @@ package bsh;
 
 import java.util.Enumeration;
 import java.util.Vector;
+import java.util.Hashtable;
 import java.lang.reflect.Array;
 
 /**
@@ -89,13 +90,23 @@ public class CollectionManager
 		return new BasicBshIterator( obj ); 
 	}
 
+	public boolean isMap( Object obj ) {
+		return obj instanceof Hashtable;
+	}
+
+	public Object getFromMap( Object map, Object key ) {
+		return ((Hashtable)map).get(key);
+	}
+
+	public Object putInMap( Object map, Object key, Object value ) 
+	{
+		return ((Hashtable)map).put(key, value);
+	}
+
 	/**
 		Determine dynamically if the target is an iterator by the presence of a
 		pair of next() and hasNext() methods.
-	public static boolean isIterator() {
-		//unimplemented
-		return false;
-	}
+	public static boolean isIterator() { }
 	*/
 
 	/**

@@ -22,7 +22,9 @@ void print( arg )
 	if ( arg == null )
 		arg = "null";
 	
-	if ( !(arg instanceof Primitive) && arg.getClass().isArray() )
+	if ( !(arg instanceof Primitive) 
+		&& !(arg instanceof bsh.ClassIdentifier ) 
+		&& arg.getClass().isArray() )
 	{
         print( StringUtil.normalizeClassName(arg.getClass()) + ": {");
 		for(int i=0; i<arg.length; i++)

@@ -200,7 +200,7 @@ public class NameSpace
     public void	setVariable( String name, Object value, boolean strictJava ) 
 		throws UtilEvalError 
 	{
-		// if localscoping follow strictJava, else recurse
+		// if localscoping switch follow strictJava, else recurse
 		boolean recurse = Interpreter.LOCALSCOPING ? strictJava : true;
 		setVariable( name, value, strictJava, recurse );
 	}
@@ -221,9 +221,9 @@ public class NameSpace
 		It may live in this namespace or in a parent namespace if recurse is 
 		true.
 		<p>
-		Note: this method does *not* know about LOCALSCOPING.  It's caller
-		methods must set recurse intelligently in all situations (perhaps based
-		on LOCALSCOPING).
+		Note: This method is not public and does *not* know about LOCALSCOPING.
+		Its caller methods must set recurse intelligently in all situations 
+		(perhaps based on LOCALSCOPING).
 
 		<p>
 		Note: this method is primarily intended for use internally.  If you use

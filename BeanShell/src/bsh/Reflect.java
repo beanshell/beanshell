@@ -371,6 +371,7 @@ class Reflect
 
 		@param onlyStatic 
 			The method located must be static, the object param may be null.
+		@throws ReflectError if method is not found
 	*/
 	/*
 		Note: Method invocation could probably be speeded up if we eliminated
@@ -509,6 +510,7 @@ class Reflect
 		throws UtilEvalError
 	{
 		Method meth = null;
+		Method inaccessibleVersion = null;
 		Vector classQ = new Vector();
 
 		classQ.addElement( clas );
@@ -517,23 +519,15 @@ class Reflect
 		{
 			Class c = (Class)classQ.firstElement();
 			classQ.removeElementAt(0);
-//System.out.println("working on:"+c+", setacc"+ReflectManager.RMSetAccessible(c));
 
 			// Is this it?
 			// Is the class public or can we use accessibility?
 			if ( Modifier.isPublic( c.getModifiers() )
-				|| ( Capabilities.haveAccessibility() 
-					/*&& ReflectManager.RMSetAccessible( c )*/ ) )
-			// note: class is not an AccessibleObject, removed that
+				|| ( Capabilities.haveAccessibility() ) )
 			{
-/*
-System.out.println("findAcc: "
-	+c+", name="+name+", types="+types+", types.len="+types.length
-	+", only="+onlyStatic);
-*/
-				try {
+				try 
+				{
 					meth = c.getDeclaredMethod( name, types );
-//System.out.println("findAcc: method ="+meth);
 
 					// Is the method public or are we in accessibility mode?
 					if ( ( Modifier.isPublic( meth.getModifiers() )
@@ -543,6 +537,11 @@ System.out.println("findAcc: "
 					{
 						found = meth; // Yes, it is.
 						break;
+					}
+					else
+					{
+						// Found at least one matching method but couldn't use
+						inaccessibleVersion = meth;
 					}
 				} catch ( NoSuchMethodException e ) { 
 					// ignore and move on
@@ -574,17 +573,16 @@ System.out.println("findAcc: "
 		if ( found != null &&
 			( !onlyStatic || Modifier.isStatic( found.getModifiers() ) ) )
 			return found;
-		
-		// Didn't find one
-		/*
-		if ( Interpreter.DEBUG ) 
-			Interpreter.debug(
-			"Can't find publically accessible "+
-			( onlyStatic ? " static " : "" ) +" version of method: "+
-			StringUtil.methodString(name, types) +
-			" in interfaces or class hierarchy of class "+clas.getName() );
-		*/
 
+		/*
+			Not sure if this the best place to do this...
+		*/
+		if ( inaccessibleVersion != null )
+			throw new UtilEvalError("Found non-public method: "
+				+inaccessibleVersion
+				+".  Use setAccessibility(true) to enable access to "
+				+" private and protected members of classes." );
+		
 		return null;
 	}
 
@@ -975,6 +973,11 @@ System.out.println("findAcc: "
 		try {
 			clas.getMethod( getterName, new Class [0] );
 			return true;
+		} catch ( NoSuchMethodException e ) { /* fall through */ }
+		getterName = accessorName("is", propName );
+		try {
+			Method m = clas.getMethod( getterName, new Class [0] );
+			return ( m.getReturnType() == Boolean.TYPE );
 		} catch ( NoSuchMethodException e ) {
 			return false;
 		}
@@ -997,27 +1000,44 @@ System.out.println("findAcc: "
 
     public static Object getObjectProperty(
 		Object obj, String propName )
-        throws ReflectError
+        throws UtilEvalError, ReflectError
     {
-        String accessorName = accessorName( "get", propName );
         Object[] args = new Object[] { };
 
         Interpreter.debug("property access: ");
-        try {
+		Method method = null;
+
+		Exception e1=null, e2=null;
+		try {
+			String accessorName = accessorName( "get", propName );
+			method = resolveJavaMethod( 
+				null/*bcm*/, obj.getClass(), obj, 
+				accessorName, args, false );
+		} catch ( Exception e ) { 
+			e1 = e;
+		}
+		if ( method == null )
 			try {
-				Method method = resolveJavaMethod( 
+				String accessorName = accessorName( "is", propName );
+				method = resolveJavaMethod( 
 					null/*bcm*/, obj.getClass(), obj, 
 					accessorName, args, false );
-				return invokeOnMethod( method, obj, args );
-			} catch ( UtilEvalError e ) {
-				// what does this mean?
-				throw new ReflectError("getter: "+e);
+				if ( method.getReturnType() != Boolean.TYPE )
+					method = null;
+			} catch ( Exception e ) { 
+				e2 = e;
 			}
+		if ( method == null )
+			throw new ReflectError("Error in property getter: "
+				+e1 + (e2!=null?" : "+e2:"") );
+
+        try {
+			return invokeOnMethod( method, obj, args );
         }
         catch(InvocationTargetException e)
         {
-            throw new ReflectError(
-			"Property accessor threw exception:" + e );
+            throw new UtilEvalError("Property accessor threw exception: "
+				+e.getTargetException() );
         }
     }
 
@@ -1034,9 +1054,10 @@ System.out.println("findAcc: "
 				null/*bcm*/, obj.getClass(), obj, accessorName, args, false );
 			invokeOnMethod( method, obj, args );
         }
-        catch(InvocationTargetException e)
+        catch ( InvocationTargetException e )
         {
-            throw new UtilEvalError("Property accessor threw exception!");
+            throw new UtilEvalError("Property accessor threw exception: "
+				+e.getTargetException() );
         }
     }
 
