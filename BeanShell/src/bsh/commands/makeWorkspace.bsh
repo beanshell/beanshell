@@ -42,6 +42,10 @@ makeWorkspace( String name )
 	this.frame = bsh.system.desktop.makeInternalFrame( name );
 	frame.setDefaultCloseOperation( frame.DO_NOTHING_ON_CLOSE );
 
+	invoke( name, args ) {
+		if ( !name.startsWith("internalFrame") )
+			throw new Error("method: "+name);
+	}
 	internalFrameClosing( e ) {
 		close();
 	}
@@ -98,10 +102,13 @@ makeWorkspace( String name )
 	//frame.setLocation( off, off );
 	//frame.validate();
 	bsh.system.desktop.addInternalFrame( frame	);
-//console.requestFocus();
-//bsh.system.desktop.requestFocus();
 	frame.toFront();
 	frame.setSelected(true);
+
+	// trying desperately to get focus ;)
+	bsh.system.desktop.requestFocus();
+	frame.requestFocus();
+	console.requestFocus();
 
 	this.haveSysIO=false;
 	this.sysIn = System.in;

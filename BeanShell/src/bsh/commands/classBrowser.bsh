@@ -7,7 +7,7 @@ classBrowser()
 {
 	this.inDesktop = ( bsh.system.desktop != void );
 
-	this.browser = new ClassBrowser();
+	this.browser = new ClassBrowser( this.interpreter.getClassManager() );
 	browser.init();
 
 	if ( inDesktop ) {

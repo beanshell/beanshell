@@ -161,6 +161,12 @@ public class JConsole extends JScrollPane
 		requestFocus();
 	}
 
+	public void requestFocus() 
+	{
+		super.requestFocus();
+		text.requestFocus();
+	}
+
 	public void keyPressed(	KeyEvent e ) {
 	    type( e );
 	    gotUp=false;

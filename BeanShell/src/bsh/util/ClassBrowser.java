@@ -154,8 +154,10 @@ public class ClassBrowser extends JSplitPane
 		return ma;
 	}
 
-	void setMlist( String classname ) {
-		if ( classname == null ) {
+	void setMlist( String classname ) 
+	{
+		if ( classname == null ) 
+		{
 			mlist.setListData( new Object [] { } );
 			setConslist( null );
 			setClassTree( null );
@@ -164,10 +166,18 @@ public class ClassBrowser extends JSplitPane
 
 		Class clas;
 		try {
-			selectedClass = classManager.classForName( 
-				selectedPackage + "." + classname );
+			if ( selectedPackage.equals("<unpackaged>") )
+				selectedClass = classManager.classForName( classname );
+			else
+				selectedClass = classManager.classForName( 
+					selectedPackage + "." + classname );
 		} catch ( Exception e ) { 
-			System.out.println(e);
+			System.err.println(e);
+			return;
+		}
+		if ( selectedClass == null ) {
+			// not found?
+			System.err.println("class not found: "+classname);
 			return;
 		}
 		methodList = getPublicMethods( selectedClass.getDeclaredMethods() );
@@ -336,24 +346,42 @@ public class ClassBrowser extends JSplitPane
 		this.iframe = frame;
 	}
 
-	public void valueChanged(ListSelectionEvent e) {
-		if ( e.getSource() == classlist ) {
+	public void valueChanged(ListSelectionEvent e) 
+	{
+		if ( e.getSource() == classlist ) 
+		{
 			String classname = (String)classlist.getSelectedValue();
 			setMlist( classname );
+
 			// hack
 			// show the class source in the "method" line...
-			String fullClassName = selectedPackage+"."+classname;
-			setMethodLine( fullClassName
-				+" (from "+ classPath.getClassSource( fullClassName ) +")" );
-		} else
-		if ( e.getSource() == mlist ) {
+			String methodLineString;
+			if ( classname == null )
+				methodLineString = "Package: "+selectedPackage;
+			else
+			{
+				String fullClassName = 
+					selectedPackage.equals("<unpackaged>") ?  
+						classname : selectedPackage+"."+classname;
+				methodLineString = 
+					fullClassName
+					+" (from "+ classPath.getClassSource( fullClassName ) +")";
+			}
+
+			setMethodLine( methodLineString );
+		} 
+		else 
+		if ( e.getSource() == mlist ) 
+		{
 			int i = mlist.getSelectedIndex();
 			if ( i == -1 )
 				setMethodLine( null );
 			else
 				setMethodLine( methodList[i] );
-		} else
-		if ( e.getSource() == conslist ) {
+		} 
+		else
+		if ( e.getSource() == conslist ) 
+		{
 			int i = conslist.getSelectedIndex();
 			if ( i == -1 )
 				setMethodLine( null );
