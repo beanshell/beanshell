@@ -46,7 +46,8 @@ class BSHUnaryExpression extends SimpleNode implements InterpreterConstants
         SimpleNode node = (SimpleNode)jjtGetChild(0);
 
         if(node instanceof BSHLHSPrimaryExpression)
-            return lhsUnaryOperation(((BSHLHSPrimaryExpression)node).toLHS(namespace, interpreter));
+            return lhsUnaryOperation(
+				((BSHLHSPrimaryExpression)node).toLHS(namespace, interpreter));
         else
             return unaryOperation(node.eval(namespace, interpreter), kind);
     }

@@ -11,7 +11,6 @@ save( Object obj, String filename ) {
 	
 	out = new FileOutputStream( file );
 	oout = new ObjectOutputStream(out);
-	//oout = new bsh.DebugObjectOutputStream(out);
 	oout.writeObject( obj );
 	oout.close();
 }

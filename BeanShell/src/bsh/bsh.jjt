@@ -121,6 +121,7 @@ public class Interpreter
 		boolean interactive, NameSpace namespace)
     {
         this( in );
+long t1=System.currentTimeMillis();
         this.in = in;
         this.out = out;
         this.err = err;
@@ -188,6 +189,8 @@ public class Interpreter
 
 		if ( interactive )
 			loadRCFiles();
+long t2=System.currentTimeMillis();
+Interpreter.debug("Time to initialize interpreter: "+(t2-t1));
     }
 
 	private void initRootSystemObject() 

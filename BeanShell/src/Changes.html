@@ -1,6 +1,14 @@
 <html>
 <pre>
 
+- Fixed the precedence of name resolution to be consisten with Java.
+	variables now always trump class name resolution.  This simplifies
+	name resolution a bit and also makes things a bit faster.  However 
+	sometimes you have to use import now to get around a variable name hiding
+	a qualified class name.
+
+- Performance improvement: empty loop test case four times faster
+- Fixed bugs in certain runtime exception handling
 - Fixed bug in static vs. dynamic overloaded method resolution
 
 <h2>Changes in 1.1alpha6</h2>

@@ -41,7 +41,7 @@ import java.lang.reflect.InvocationTargetException;
 
 /**
 	What's in a name?  I'll tell you...
-	Name() is a highly ambiguous thing in the grammar and so is this.
+	Name() is a somewhat ambiguous thing in the grammar and so is this.
 	
 	This class holds a possibly ambiguous dot separated name and reference to
 	a namespace in which it allegedly lives.  It provides methods that attempt 
@@ -53,6 +53,12 @@ import java.lang.reflect.InvocationTargetException;
 	In some ways Name wants to be a private inner class of NameSpace... 
 	However it is used elsewhere as an absraction for objects which haven't
 	been pinned down yet.  So it is exposed.
+
+	Possibly optimization...  there are probably cases where once a name
+	is evaluated we can cache information and make the next eval very cheap,
+	subject to changes in the namespace...   One way to accompish this might
+	be to cache Name instances in the NameSpace and ask for them through
+	there first...  changes in class namespace could clear them.
 */
 class Name implements java.io.Serializable
 {
@@ -87,7 +93,20 @@ class Name implements java.io.Serializable
 		Interpreter reference is necessary to allow resolution of 
 		".interpreter" magic field.
 	*/
-	synchronized public Object toObject( Interpreter interpreter ) 
+	public Object toObject( Interpreter interpreter ) 
+		throws EvalError
+	{
+		return toObject( interpreter, false );
+	}
+
+	/**
+		@see toObject()
+		@param forceClass if true then resolution will only produce a class.
+		This is necessary to disambiguate in cases where the grammar knows
+		that we want a class; where in general the var path may be taken.
+	*/
+	synchronized public Object toObject( 
+		Interpreter interpreter, boolean forceClass ) 
 		throws EvalError
 	{
 		evalName = value;
@@ -95,7 +114,7 @@ class Name implements java.io.Serializable
 
 		Object obj = null;
 		while( evalName != null )
-			obj = consumeNextObjectField( interpreter );
+			obj = consumeNextObjectField( interpreter, forceClass );
 
 		if ( obj == null )
 			throw new InterpreterError("null value in toObject()");
@@ -106,18 +125,62 @@ class Name implements java.io.Serializable
 	/*  
 		Get next prefixed object field component
 	*/
-	private Object consumeNextObjectField( Interpreter interpreter ) 
+	private Object consumeNextObjectField( 	
+		Interpreter interpreter, boolean forceClass ) 
 		throws EvalError
 	{
 		/*
-			Is it a class name?
-			If we're just starting eval of name (and it wasn't a variable
-			reference per above) try to make it, else fail.
-			Class names are attempted before long variable chains because
-			we don't have any way to "back out" if we start down a chain
-			and we're wrong.  In general this seems ok.
+			Is it a simple variable name?
+			Doing this first gives the correct Java precedence for vars 
+			vs. imported class names (at least in the simple case - see
+			tests/precedence1.bsh).  It should also speed things up a bit.
 		*/
-		if( evalBaseObject == null ) {
+		if ( (evalBaseObject == null && !isCompound(evalName) )
+			&& !forceClass ) 
+		{
+			Object obj = resolveThisFieldReference( 
+				namespace, interpreter, evalName, false );
+
+			if ( obj != Primitive.VOID ) {
+				evalName = null; // finished
+				return evalBaseObject = obj;  // convention
+			}
+		}
+
+		/*
+			Is it a bsh script variable reference?
+			If we're just starting the eval of name (no base object)
+			or we're evaluating relative to a This reference check.
+		*/
+		if ( ( evalBaseObject == null || evalBaseObject instanceof This  )
+			&& !forceClass ) 
+		{
+			String varName = prefix(evalName, 1);
+			Interpreter.debug("trying to resolve variable: " + varName);
+			Object obj;
+			if ( evalBaseObject == null )
+				obj = resolveThisFieldReference( 
+					namespace, interpreter, varName, false );
+			else
+				obj = resolveThisFieldReference( 
+					((This)evalBaseObject).namespace, 
+					interpreter, varName, true );
+
+			if ( obj != Primitive.VOID ) 
+			{
+				// Resolved the variable
+				Interpreter.debug( "resolved variable: " + varName + 
+					" in namespace: "+namespace);
+				evalName = suffix(evalName);
+				return evalBaseObject = obj;
+			}
+		}
+
+		/*
+			Is it a class name?
+			If we're just starting eval of name try to make it, else fail.
+		*/
+		if ( evalBaseObject == null ) {
 			Interpreter.debug( "trying class: " + evalName);
 			
 			/*
@@ -134,45 +197,27 @@ class Name implements java.io.Serializable
 				return ( evalBaseObject = new ClassIdentifier(clas) );
 			}
 			// not a class (or variable per above)
-			//throw new EvalError("Class or variable not found:" + evalName);
 			Interpreter.debug( "not a class, trying var prefix "+evalName );
 		}
 
+
 		/*
-			Is it a bsh script variable reference?
-			If we're just starting the eval of name (no base object)
-			or we're evaluating relative to a This reference check.
+			If we didn't find a class or variable name (or prefix) above
+			there are two possibilities:
+
+			- If we are a simple name then we can pass as a void variable 
+			reference.
+			- If we are compound then we must fail at this point.
 		*/
-		if ( evalBaseObject == null || evalBaseObject instanceof This ) {
-
-			String varName = prefix(evalName, 1);
-			Interpreter.debug("trying to resolve variable: " + varName);
-			Object obj;
-			if ( evalBaseObject == null )
-				obj = resolveThisFieldReference( 
-					namespace, interpreter, varName, false );
-			else
-				obj = resolveThisFieldReference( 
-					((This)evalBaseObject).namespace, 
-					interpreter, varName, true );
-
-			if ( obj == Primitive.VOID ) {
-
-				if( suffix(evalName) == null ) {
-					evalName = null; // finished
-					return evalBaseObject = obj;  // convention
-				} else
-					throw new EvalError(
-						"Class or variable not found:" + evalName);
-			} else {
-				// Resolved the variable
-				Interpreter.debug( "resolved variable: " + varName + 
-					" in namespace: "+namespace);
-				evalName = suffix(evalName);
-				return evalBaseObject = obj;
-			}
+		if ( evalBaseObject == null ) {
+			//if( suffix(evalName) == null ) {
+			if( !isCompound(evalName) ) {
+				evalName = null; // finished
+				return evalBaseObject = Primitive.VOID;  // convention
+			} else
+				throw new EvalError(
+					"Class or variable not found:" + evalName);
 		}
-
 
 		/*
 			--------------------------------------------------------
@@ -224,9 +269,15 @@ class Name implements java.io.Serializable
 			return (evalBaseObject = obj);
 		}
 
+		/*
+			If we've fallen through here we are no longer resolving to
+			a class type.
+		*/
+		if ( forceClass )
+			throw new EvalError( value +" does not resolve to a class name." );
+
 		/* 
 			Some kind of field access?
-			or inner class?
 		*/
 
 		String field = prefix(evalName, 1);
@@ -239,7 +290,8 @@ class Name implements java.io.Serializable
 			return (evalBaseObject = obj);
 		}
 
-		/* check for field */
+		/* check for field on object */
+		// Note: could eliminate throwing the exception somehow
 		try
 		{
 			Object obj = Reflect.getObjectField(evalBaseObject, field);
@@ -253,8 +305,13 @@ class Name implements java.io.Serializable
 			"Cannot access field: " + field + ", on object: " + evalBaseObject);
 	}
 
-	/*
+	/**
 		Resolve a variable relative to a This reference.
+
+		This is the general variable resolution method, accomodating special
+		fields from the This context.  Together the namespace and interpreter
+		comprise the This context.
+
 		Optionally interpret special "magic" field names: e.g. interpreter.
 	*/
 	Object resolveThisFieldReference( 
@@ -310,11 +367,12 @@ class Name implements java.io.Serializable
 			*/
 			Object obj = null;
 			try {
-				obj = toObject( null ); // null we don't care about interp ref
+				obj = toObject( null, true );  // null we don't care about interp ref
 			} catch ( EvalError  e ) { }; // couldn't resolve it
 		
 			if ( obj instanceof ClassIdentifier )
 				clas = ((ClassIdentifier)obj).getTargetClass();
+			/*
 			else
 				if ( obj != null )
 					if ( obj == Primitive.VOID )
@@ -326,6 +384,7 @@ class Name implements java.io.Serializable
 							" does not resolve to a "+ 
 							"class name.  It resolves to an object of type: "+ 
 							obj.getClass().getName() );
+			*/
 		}
 
 		if( clas == null )
@@ -343,16 +402,21 @@ class Name implements java.io.Serializable
 		evalName = value;
 		evalBaseObject = null;
 
+		//Interpreter.debug("Name toLHS: "+evalName+ " isCompound = "
+			//+isCompound(evalName));
+
 		// variable
-		if(!isCompound(evalName))
+		if(!isCompound(evalName)) {
+			//Interpreter.debug("returning simple var LHS...");
 			return new LHS(namespace,evalName);
+		}
 
 		// field
 		Object obj = null;
 		try
 		{
 			while(isCompound(evalName))
-				obj = consumeNextObjectField( interpreter );
+				obj = consumeNextObjectField( interpreter, false );
 		}
 		catch(EvalError e)
 		{
@@ -445,7 +509,8 @@ class Name implements java.io.Serializable
         Object obj = targetName.toObject( interpreter );
 
 		if ( obj == Primitive.VOID ) 
-			throw new EvalError("Method invocation on void: "+name);
+			throw new EvalError( "Attempt to invoke method: "+methodName
+					+"() on void: "+targetName);
 
         // if we've got an object, invoke the method
         if ( !(obj instanceof Name.ClassIdentifier) ) {

@@ -2,7 +2,9 @@
 /*
 	Bind a bsh object into a particular namespace and interpreter
 */
+import bsh.This;
+
 bind( bsh.This ths, bsh.NameSpace namespace ) {
-	bsh.This.bind( ths, namespace, this.interpreter );
+	This.bind( ths, namespace, this.interpreter );
 }
 

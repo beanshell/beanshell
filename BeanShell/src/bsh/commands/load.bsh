@@ -5,14 +5,10 @@ Object load( String filename ) {
 	file = pathToFile( filename );
 
 	Object obj;
-	//try {
-		FileInputStream in = new FileInputStream( file );
-		ObjectInputStream oin = new ObjectInputStream(in);
-		obj = oin.readObject();
-		oin.close();
-	//} catch ( Exception e ) {
-		//throw new bsh.EvalError("Error loading object: "+e);
-	//}
+	FileInputStream in = new FileInputStream( file );
+	ObjectInputStream oin = new ObjectInputStream(in);
+	obj = oin.readObject();
+	oin.close();
 
 	// bind bsh objects into current namespace
 	if ( obj instanceof bsh.This )

@@ -194,8 +194,8 @@ public class NameSpace
 
 	/**
 		Get the specified variable in this namespace or a parent namespace.
-		There are four magic variable references: 
-			"this", "super", "global"
+
+		If the variable is not defined return Primitive.VOID;
 	*/
     public Object getVariable( String name ) {
 		return getVariable( name, true );
@@ -204,9 +204,8 @@ public class NameSpace
 	/**
 		Get the specified variable in this namespace.
 		If recurse is true extend search through parent namespaces.
-		
-		There are four magic variable references: 
-			"this", "super", "global"
+
+		If the variable is not defined return Primitive.VOID;
 	*/
     public Object getVariable( String name, boolean recurse ) {
 		Object val = null;

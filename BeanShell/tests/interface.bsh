@@ -6,7 +6,9 @@ source("TestHarness.bsh");
 
 assert( this instanceof Runnable );
 
-if ( bsh.Capabilities.haveProxyMechanism() ) {
+import bsh.Capabilities;
+
+if ( Capabilities.haveProxyMechanism() ) {
 
 	assert( this instanceof bsh.XThis );
 

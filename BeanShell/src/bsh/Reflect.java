@@ -496,6 +496,7 @@ class Reflect {
 			(there are no inherited constructors to worry about) 
 		*/
 		Constructor[] constructors = clas.getDeclaredConstructors();
+		Interpreter.debug("Looking for most specific constructor: "+clas);
 		con = findMostSpecificConstructor(types, constructors);
 
 		if ( con == null )
@@ -547,6 +548,7 @@ class Reflect {
 		Class [][] candidates = new Class [ sigs.size() ][];
 		sigs.copyInto( candidates );
 
+		Interpreter.debug("Looking for most specific method: "+name);
 		int match = findMostSpecificSignature( idealMatch, candidates );
 		if ( match == -1 )
 			return null;
@@ -676,7 +678,8 @@ class Reflect {
 		}
 
 		if ( bestMatch != null ) {
-			Interpreter.debug("best match: " + StringUtil.methodString("args",bestMatch));
+			Interpreter.debug("best match: " 
+			+ StringUtil.methodString("args",bestMatch));
 			return bestMatchIndex;
 		}
 		else {
