@@ -1,19 +1,24 @@
 <section>
-<name filename="bsf">BSF</name>
+<name filename="bsf">BSF Bean Scripting Framework</name>
 
-BSF is IBM's "Bean Scripting Framework".  It is generic framework that allows
+BSF is the Apache "Bean Scripting Framework".  
+It is generic framework that allows
 many scripting languages to be plugged into an application.  It shields
 the application from knowledge of how to invoke the scripting languages and
 their APIs, via adapter "engines". 
 <p/>
 
-BeanShell supports the BSF by providing the necessary adapter.  In theory,
-this means that BeanShell can be used as a scripting language for any BSF
-capable application simply by dropping the bsh JAR file into the classpath.
-In practice however, there is a problem.  BSF does not have a dynamic 
-registration mechanism.  So to make new scripting languages
-available (such as BeanShell) you have to explicitly register its adapter
-in your code.  Here is an example of how to do that:
+BeanShell supports the BSF API by providing the necessary adapter.  
+This means that BeanShell can be used as a scripting language for any BSF
+2.3 capable application simply by dropping the bsh JAR file into the classpath.
+<p/>
+
+Prior to version 2.3, BSF was maintained by IBM.  
+To get BeanShell to work with older versions of BSF you must use the 
+older bsh-bsf-1.2x.jar file which includes the adapter class for the previous
+ibm packaged BSF API.
+You must also explicitly register the BeanShell adapter with older versions
+of BSF.  Here is an example of how to do that:
 
 <example>
 import com.ibm.bsf.*;
@@ -25,11 +30,19 @@ BSFManager.registerScriptingEngine(
 </example>
 
 
-See <a href="http://oss.software.ibm.com/developerworks/projects/bsf">
-http://oss.software.ibm.com/developerworks/projects/bsf</a> for more 
-information about BSF.
+See 
+<a href="http://jakarta.apache.org/bsf/">http://jakarta.apache.org/bsf/</a> 
+and
+<a href="http://oss.software.ibm.com/developerworks/projects/bsf">
+http://oss.software.ibm.com/developerworks/projects/bsf</a> 
+
+for more information about BSF.
 
 <h2>Ant</h2>
+
+<em>This section needs to be updated.  I'm not sure what versionf of Ant use
+the new and which use the old BSF API.</em>
+<p/>
 
 Ant 1.5+ has explicit support for BeanShell as a BSF scripting language.
 The BeanShell JAR file includes the necessary BSF adapter.  You must

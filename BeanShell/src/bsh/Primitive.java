@@ -96,11 +96,15 @@ public class Primitive implements ParserConstants, java.io.Serializable
     public Primitive(float value) { this(new Float(value)); }
     public Primitive(double value) { this(new Double(value)); }
 
+	/**
+    	Return the primitive value stored in its java.lang wrapper class 
+	*/
     public Object getValue()
     {
-        if(value == Special.NULL_VALUE)
+        if ( value == Special.NULL_VALUE )
             return null;
-        else if(value == Special.VOID_TYPE)
+        else 
+		if ( value == Special.VOID_TYPE )
                 throw new InterpreterError("attempt to unwrap void type");
         else
             return value;
@@ -794,15 +798,12 @@ public class Primitive implements ParserConstants, java.io.Serializable
 	*/
 	public static Object unwrap( Object obj ) 
 	{
-		if ( obj == null )
-			return null;
-
         // map voids to nulls for the outside world
-        if(obj == Primitive.VOID)
+        if (obj == Primitive.VOID)
             return null;
 
         // unwrap primitives
-        if(obj instanceof Primitive)
+        if (obj instanceof Primitive)
             return((Primitive)obj).getValue();
         else
             return obj;

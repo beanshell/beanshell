@@ -24,12 +24,12 @@
   <!ENTITY bshcommands SYSTEM "bshcommands.xml">
   <!ENTITY bshdoc SYSTEM "bshdoc.xml">
   <!ENTITY commands SYSTEM "commands.xml">
+  <!ENTITY usercommands SYSTEM "usercommands.xml">
   <!ENTITY standalonemode SYSTEM "standalonemode.xml">
   <!ENTITY embeddedmode SYSTEM "embeddedmode.xml">
   <!ENTITY servletmode SYSTEM "servletmode.xml">
   <!ENTITY appletmode SYSTEM "appletmode.xml">
   <!ENTITY jconsole SYSTEM "jconsole.xml">
-  <!ENTITY paths SYSTEM "paths.xml">
   <!ENTITY strictjava SYSTEM "strictjava.xml">
   <!ENTITY bsf SYSTEM "bsf.xml">
   <!ENTITY contents SYSTEM "contents.xml">
@@ -49,8 +49,8 @@
 	&scope;
 	&interfaces;
 	&specialvarsvalues;
-	&commands; <!-- Section about important commands and adding commands -->
-	&paths;
+	&commands;
+	&usercommands;
 	&strictjava;
 	&classpath;
 	&standalonemode;

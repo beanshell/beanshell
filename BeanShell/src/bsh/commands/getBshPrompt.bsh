@@ -8,9 +8,9 @@
 	directory in your prompt:
 	<p/>
 	<pre>
-		String getBshPrompt() {
-			return bsh.cwd + " % ";
-		}
+	String getBshPrompt() {
+		return bsh.cwd + " % ";
+	}
 	</pre>
 */
 

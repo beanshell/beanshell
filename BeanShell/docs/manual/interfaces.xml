@@ -43,10 +43,10 @@ causing the BeanShell interpreter to run a script to evaluate the outcome.
 <p/>
 
 To generalize beyond this example a bit - Scripted interfaces work by looking
-for scripted methods to implement the methods of the interface type.
+for scripted methods to implement the methods of the interface.
 A Java method invocation on a script that implements an interface causes 
 BeanShell to look for a corresponding scripted method with 
-the same signature (name and argument types).  BeanShell then invokes the 
+a matching signature (name and argument types).  BeanShell then invokes the 
 method, passing along the arguments and passing back any return value.
 When BeanShell runs in the same Java VM as the rest of the code, you can
 freely pass "live" Java objects as arguments and return values, working
@@ -98,7 +98,7 @@ in a shell or on the command line.  You'll see that you can then redefine
 actionPerformed() as often as you like by simply entering the method again.  
 Each button press will find the current version in your shell.  In a sense,
 you are working inside a dynamic Java object that you are creating and 
-modifying as you type.  Neat, huh?
+modifying as you type.  Neat, huh?  Be the Bean!
 </note>
 
 Of course, you don't have to define all of your interface methods globally.
@@ -111,9 +111,9 @@ the GUI:
 
 <example>
 messageButton( message ) {
-    button = new Button("Press Me");
+    JButton button = new JButton("Press Me");
     button.addActionListener( this );
-    frame = frame( button );
+    JFrame frame = frame( button );
  
     actionPerformed( e ) {
         print( message );
@@ -283,6 +283,17 @@ By running this script with the XML file as an argument, we can see which
 of the dozen or so methods of the SAX API are being exercised by the structure 
 of the document, without having to write a stub for each of them.
 <p/>
+
+<tip>
+You can use the invoke( name, args ) meta-method directly in your own scope or
+in the global scope as well, in which case you can handle arbitrary "unknown"
+method invocations yourself, perhaps to implement your own "virtual" commands.
+Try typing this on the command line:
+<pre>
+  invoke(name,args) { print("Command: "+name+" invoked!"); }
+  noSuchMethod(); // prints "Command: noSuchMethod() invoked!"
+</pre>
+</tip>
 
 <h2>Threads - Scripting Runnable</h2>
 

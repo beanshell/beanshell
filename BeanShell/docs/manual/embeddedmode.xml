@@ -85,7 +85,7 @@ Beanshell is fairly small, even in its most general distribution.  The
 full JAR with all utilities weighs in at about 250K.  But BeanShell is
 also distributed in a componentized fashion, allowing you to choose to add
 only the utilities and other pieces that you need.  The core distribution
-includes only the BeanShell interpreter and is currently about 150K.  <em>We
+includes only the BeanShell interpreter and is currently about 130K.  <em>We
 expect this size to drop in the future with improvements in the parser
 generator.</em>  Any significant new features will always be provided in
 the form of add-on modules, so that the core language can remain small.

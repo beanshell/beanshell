@@ -198,7 +198,7 @@ class Reflect
         throws ReflectError, UtilTargetError
     {
         try {
-            val = unwrapPrimitive(val);
+            val = Primitive.unwrap(val);
             Array.set(array, index, val);
         }
         catch( ArrayStoreException e2 ) {
@@ -372,7 +372,6 @@ class Reflect
 		@param onlyStatic 
 			The method located must be static, the object param may be null.
 		@throws ReflectError if method is not found
-// Why not MethodNotFound?
 	*/
 	/*
 		Note: Method invocation could probably be speeded up if we eliminated
@@ -403,7 +402,9 @@ class Reflect
 				"Attempt to invoke method " +name+" on null value" ) );
 
         Class [] types = getTypes(args);
-        args=unwrapPrimitives(args);
+
+		// this was unecessary and counterproductive
+        //args=unwrapPrimitives(args);
 
 		// First try for an accessible version of the exact match.
 
@@ -640,10 +641,11 @@ class Reflect
     {
 		Object [] oa = new Object[ args.length ];
         for(int i=0; i<args.length; i++)
-            oa[i] = unwrapPrimitive(args[i]);
+            oa[i] = Primitive.unwrap( args[i] );
 		return oa;
     }
 
+	/*
     private static Object unwrapPrimitive( Object arg )
     {
         if ( arg instanceof Primitive )
@@ -651,6 +653,7 @@ class Reflect
         else
             return arg;
     }
+	*/
 
 	/**
 		Primary object constructor
@@ -666,7 +669,8 @@ class Reflect
 
         Object obj = null;
         Class[] types = getTypes(args);
-        args=unwrapPrimitives(args);
+		// this wasn't necessary until we invoke it, moved...
+        //args=unwrapPrimitives(args);
         Constructor con = null;
 
 		/* 
@@ -693,7 +697,8 @@ class Reflect
 				+" in class: "+ clas.getName() );;
 
         try {
-            obj = con.newInstance(args);
+        	args=unwrapPrimitives( args );
+            obj = con.newInstance( args );
         } catch(InstantiationException e) {
             throw new ReflectError("the class is abstract ");
         } catch(IllegalAccessException e) {
@@ -760,15 +765,19 @@ class Reflect
     }
 
 	/**
-		This uses the NameSpace.getAssignableForm() method to determine
-		compatability of args.  This allows special (non standard Java) bsh 
-		widening operations...
+		findExtendedMethod uses the NameSpace.getAssignableForm() method to 
+		determine compatability of arguments.  This allows special (non
+		standard Java) bsh widening operations.  
+		
+		Note that this method examines the *arguments* themselves not the types.
 
+		@param args the arguments
 		@return null on not found
 	*/
 	/*
-		Note: shouldn't we use findMostSpecificSignature in some way on the 
-		result set?  Is that possible?
+		Note: shouldn't we use something analagous to findMostSpecificSignature
+		on a result set, rather than choosing the first one we find?
+		(findMostSpecificSignature doesn't know about extended types).
 	*/ 
     static Method findExtendedMethod(
 		String name, Object[] args, Method[] methods )
@@ -1012,16 +1021,14 @@ class Reflect
 		try {
 			String accessorName = accessorName( "get", propName );
 			method = resolveJavaMethod( 
-				null/*bcm*/, obj.getClass(), obj, 
-				accessorName, args, false );
+				null/*bcm*/, obj.getClass(), obj, accessorName, args, false );
 		} catch ( Exception e ) { 
 			e1 = e;
 		}
 		if ( method == null )
 			try {
 				String accessorName = accessorName( "is", propName );
-				method = resolveJavaMethod( 
-					null/*bcm*/, obj.getClass(), obj, 
+				method = resolveJavaMethod( null/*bcm*/, obj.getClass(), obj, 
 					accessorName, args, false );
 				if ( method.getReturnType() != Boolean.TYPE )
 					method = null;

@@ -9,7 +9,7 @@ int addTwoNumbers( int a, int b ) {
 </example>
 
 And you can use them in your scripts just as you would any Java method or
-built-in BeanShell command:
+"built-in" BeanShell command:
 <example>
 sum = addTwoNumbers( 5, 7 );
 </example>
@@ -56,97 +56,171 @@ set to void, the value of the last statement or expression in the method body
 becomes the return value (and must adhere to any declared return typing).
 <p/>
 
-<h2>Visibility of Variables and Methods</h2>
+<h3>Method Modifiers and 'throws' Clauses</h3>
 
-As you might expect, within a method you can refer to the values of variables 
-and method names from the parent context.  For example:
+The standard Java modifiers may be applied to methods:
+private / protected / public, synchronized, final, native, abstract, and 
+static.  
+<p/>
+
+The synchronized modifier is the only modifier currently implemented.  The
+others are ignored.  The 'throws' clause of methods is checked for valid 
+class type names, but is not otherwise enforced.
+<p/>
+
+Synchronized methods are synchronized on the object representing the method's 
+common parent scope, so they behave like Java methods contained in a class.
+We will return to this topic after discussing scripted objects and "closures".
 
 <example>
-a = 42;
-someMethod() { ... }
+// foo() and bar() are synchronized as if they were in a common class
+synchronized foo() { }
+synchronized bar() { }
+</example>
+
+<h2>Scoping of Variables and Methods</h2>
+
+As in Java, a method can refer to the values of variables and method names 
+from the enclosing scope (in Java the "enclosing scope" would be a class).  
+For example:
+
+<example>
+a = 1;
+anotherMethod() { ... }
 
 foo() {
     print( a );
-    someMethod(); // invoke someMethod()
+	a = a+1;
+	anotherMethod();
 }
 
 // invoke foo()
-foo(); // prints 42
+foo();      // prints 1
+print( a ); // prints 2
 </example>
 
-We could say that variable values and method names are "inherited" from the 
-parent scope in the usual way.
-In BeanShell variable assignment, however, always defaults to the local scope.
-When you assign a value to a variable within your method, it by default 
-creating a new variable in the current scope.
-For example, a variable assignment in the foo() method above would by default 
-create a local variable in the scope of the foo() method.  In the next section 
-we'll talk more about this, why it is so, and what it implies.
+Variables and methods are "inherited" from the parent scope in the usual way.
+In the example above there are just two levels of scope: the top or "global"
+scope and the scope of the method foo().  Later we'll talk about scripting
+objects in BeanShell and see that there can be arbitrary levels of scoping
+involved.  But the rules will be the same.
+<p/>
 
-<h2>Scope Modifiers: 'super'</h2>
+As in Java, a typed variable is not visible outside the scope in which it is 
+declared.  So declaring a variable with a type is a way to limit its scope or
+make a <em>local</em> variable.  In BeanShell using an untyped or 
+"loosely" typed variable is also equivalent to declaring a local
+variable.  That is, if you use a variable that has not been defined elsewhere,
+it defaults to the local scope:
+
+<example>
+a = 1;
+
+foo() {
+	a = a + 1; // a is defined in parent scope
+	b = 3;     // undefined, defaults local scope
+	int c = 4; // declared local scope
+}
+
+// invoke foo()
+print( a ); // prints 2
+print( b ); // ERROR! b undefined
+print( c ); // ERROR! c undefined
+</example>
+
+In the above example the variable 'a' is declared in the global
+scope.  When its value is read and assigned inside of foo() the global value 
+of 'a' will be affected.  
+<p/>
+
+The variable 'b' is a usage of an untyped variable.  Since 'b' has not been
+declared or assigned a value in any enclosing scope, it becomes a local
+variable 'b' in the scope of foo.  The variable 'c' is explicitly declared
+(with a type) in the scope of foo() and is therefore, of course, local to 
+foo().
+<p/>
+
+Later we'll see that BeanShell allows arbitrary nesting of methods.  If we were
+to declare another method inside of foo() it could see all of these
+variables (a, b, and c) as it is also in the scope of foo().
+<p/>
+
+<h3>Scoping of Loosely Typed Variables</h3>
+
+As in Java, declaring a variable with a type will always make it local.  
+Even if the variable exists in the outer scope, it will be hidden by the 
+local variable declaration.  But what of loosely typed variables?  As we've
+seen, untyped variable usage looks just like an ordinary Java assignment.  What
+do we do if we want to make a local variable with the same name as a global
+one?  One answer would be to resort to declaring the variable with a type.  
+But if we wish to continue working with loosely typed variables in this case we
+have two options:  We can explicitly declare a loosely typed variable with the
+BeanShell 'var' type.  Or we can simply qualify our assignment with the 'this.'
+qualifier.
+<p/>
+
+If you wish to, you can explicitly declare an untyped variable
+(making it local) using the special type 'var'. e.g.
+
+<example>
+foo() {
+	var a = 1;
+}
+foo();
+print( a ); // ERROR! a is undefined!
+</example>
+
+'var' is a magic type in BeanShell that represents a loose (untyped) variable.
+The default value of a variable declared with 'var' is null.
+<p/>
+
+Alternately, you can use the scope modifier 'this' to explicitly qualify the
+variable assignment and make it local. 
+
+<example>
+foo() {
+	this.a = 1;
+}
+foo();
+print( a ); // ERROR! a is undefined!
+</example>
+
+In this example we used the modifier 'this' to qualify an untyped
+variable's scope and make it local.  We will explain 'this' and what it means 
+in BeanShell scripted methods in the next section on Scripted Objects.  
+<p/>
+
+
+<h2>Scope Modifier: 'super'</h2>
 <p/>
 
 Within a method, it is possible to explicitly qualify a variable or 
 method reference with the identifier 'super' in order to refer 
-to the parent method's scope (the scope in which the method is defined).  
-<p/>
+to a variable or method defined in an enclosing scope (the scope in which the 
+method is defined or "higher"). e.g.
 
 <example>
-a = 42;
+int a = 42;
 
 foo() {
-    a = 97;
+    int a = 97;
     print( a );
     print( super.a );
 }
 
 foo();  // prints 97, 42
-print( a ); // prints 42
 </example>
 
-In the case above, the variable 'a' by default refers to the local method 
-scope.  By qualifying 'a' with 'super' we can refer to the scope "above".
-Note that the local use of 'a' did not change the value in the parent scope.
+As in Java, the 'super' modifiers tells the scoping to begin its search for the
+variable or method in the parent scope. 
+In the case above, the variable 'a' by default refers to the variable in the
+local scope.  By qualifying 'a' with 'super' we can refer to the variable 'a'
+in the global scope (the "topmost" scope).
 <p/>
-
-This behavior might not be what you'd expect.  It may appear in this 
-example that we should be changing the value of the parent's 'a', rather 
-than creating a new local variable called 'a'.  This case is one of the only
-places where BeanShell could be perceived to have an ambiguity with respect to 
-standard Java syntax.  We will explain why this exists and what it means more 
-later.  But for now, if it makes you feel any better, the explanation is that 
-a BeanShell script is really like a Java method.  So technically what we have 
-here is a situation that can't exist in Java - a method within a method - and 
-it is therefore not unreasonable to expect some new semantics.  
-<p/>
-
-<tip>
-For those for whom strict Java compatibility is the most important issue
-(e.g. Java students and teachers) BeanShell offers a "Strict Java" mode.
-Specifying setStrictJava( true ) eliminates any potential ambiguity, by
-turning off loosely typed variables and arguments entirely.
-</tip>
 
 So, we've seen that 'super' can be used to refer to the method's parent 
-context.  You may never have a need to do this if you simply do all your work 
-in your methods and return their results as a return value.  But we'll see
-a bit later how this fits in with scripting Objects in BeanShell.
-
-As we hinted in the intervening note, we'll also see that BeanShell 
-allows methods to be declared at various levels.  Later we'll discuss another
-qualifier 'global', which always refers to the "top-most' scope.  In our 
-previous example 'super' and 'global' both referred to the same place, 
-the context that defines foo().
+context.  We'll see in the next section how 'this' and 'super' are used
+in scripting Objects in BeanShell.
 <p/>
-
-Finally,
-Not to get too far ahead of ourselves, but we should note that 'super' always 
-refers to the parent context - the scope in which the method was declared.  
-Later when we talk about scripted objects it might be tempting to think of 
-'super' as the "caller's" context.  But that is not necessarily the case.  
-BeanShell has a different qualifier, which goes beyond standard Java, to allow 
-referring to the caller's scope.  It can be helpful in writing methods like 
-BeanShell commands that often must have side effects in the caller's scope
-(as opposed to wherever the method is defined).
 
 </section>

@@ -10,9 +10,9 @@ utility class).
 
 Note:
 
-Changed over to Jakarta bsf 2.3 with BeanShell 1.3.
-The changes are package only.
-
+Changed over to Apache Jakarta BSF 2.3 with BeanShell 1.3.
+The changes are package name changes only.
+See http://www.beanshell.org/manual/bsf.html for some more info.
 
 
 @author Pat Niemeyer

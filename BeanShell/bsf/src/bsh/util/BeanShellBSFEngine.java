@@ -6,7 +6,6 @@ package bsh.util;
 
 	This file is hereby placed into the public domain...  You may copy,
 	modify, and redistribute it without restriction.
-
 */
 
 import java.util.Vector;
@@ -16,6 +15,7 @@ import bsh.Interpreter;
 import bsh.InterpreterError;
 import bsh.EvalError;
 import bsh.TargetError;
+import bsh.Primitive;
 
 /**
 	This is the BeanShell adapter for IBM's Bean Scripting Famework.
@@ -26,6 +26,7 @@ import bsh.TargetError;
 	I believe this implementation is complete (with some hesitation about the
 	the usefullness of the compileXXX() style methods - provided by the base
 	utility class).
+	<p/>
 
 	@author Pat Niemeyer
 */
@@ -69,6 +70,9 @@ public class BeanShellBSFEngine extends BSFEngineImpl
 	public Object call( Object object, String name, Object[] args )
 		throws BSFException
 	{
+		/*
+			If object is null use the interpreter's global scope.
+		*/
 		if ( object == null )
 			try {
 				object = interpreter.get("global");
@@ -79,7 +83,8 @@ public class BeanShellBSFEngine extends BSFEngineImpl
 		if ( object instanceof bsh.This )
 			try 
 			{
-				return ((bsh.This)object).invokeMethod( name, args );
+				Object value = ((bsh.This)object).invokeMethod( name, args );
+				return Primitive.unwrap( value );
 			} catch ( InterpreterError e ) 
 			{
 				throw new BSFException(
@@ -109,7 +114,7 @@ public class BeanShellBSFEngine extends BSFEngineImpl
 	final static String bsfApplyMethod =
 		"_bsfApply( _bsfNames, _bsfArgs, _bsfText ) {"
 			+"for(i=0;i<_bsfNames.length;i++)"
-				+"this.namespace.setVariable(_bsfNames[i], _bsfArgs[i]);"
+				+"this.namespace.setVariable(_bsfNames[i], _bsfArgs[i],false);"
 			+"return this.interpreter.eval(_bsfText, this.namespace);"
 		+"}";
 
@@ -117,6 +122,10 @@ public class BeanShellBSFEngine extends BSFEngineImpl
 		This is an implementation of the BSF apply() method.
 		It exectutes the funcBody text in an "anonymous" method call with
 		arguments.
+	*/
+	/*
+		Note: the apply() method may be supported directly in BeanShell in an
+		upcoming release and would not require special support here.
 	*/
 	public Object apply (
 		String source, int lineNo, int columnNo, Object funcBody, 
@@ -130,7 +139,7 @@ public class BeanShellBSFEngine extends BSFEngineImpl
 
 		String [] names = new String [ namesVec.size() ];
 		namesVec.copyInto(names);
-		Object [] args = new String [ argsVec.size() ];
+		Object [] args = new Object [ argsVec.size() ];
 		argsVec.copyInto(args);
 
 		try 
@@ -142,8 +151,9 @@ public class BeanShellBSFEngine extends BSFEngineImpl
 			}
 
 			bsh.This global = (bsh.This)interpreter.get("global");
-			return global.invokeMethod( 
+			Object value = global.invokeMethod( 
 				"_bsfApply", new Object [] { names, args, (String)funcBody } );
+			return Primitive.unwrap( value );
 
 		} catch ( InterpreterError e ) 
 		{
@@ -205,11 +215,11 @@ public class BeanShellBSFEngine extends BSFEngineImpl
 	will use the CodeBuffer utility to produce an example (Test) class that 
 	turns around and invokes the BSF Manager to call the script again.
 	
-	I assume a truly compileable language would return a real implementation
+	I assume a statically compiled language would return a real implementation
 	class adapter here?  But in source code form?  Would't it be more likely
 	to generate bytecode?
 	
-	And shouldn't a non-compileable language simply return a standard
+	And shouldn't a non-compiled language simply return a standard
 	precompiled adapter to itself?  The indirection of building a source
 	class to call the scripting engine (possibly through the interpreter)
 	seems kind of silly.

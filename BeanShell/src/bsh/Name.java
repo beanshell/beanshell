@@ -624,6 +624,16 @@ class Name implements java.io.Serializable
 		// e.g. this.x=5;  or someThisType.x=5;
 		if ( obj instanceof This )
 		{
+			// dissallow assignment to magic fields
+			if ( 
+				evalName.equals("namespace")
+				|| evalName.equals("variables")
+				|| evalName.equals("methods")
+				|| evalName.equals("caller")
+			)
+				throw new UtilEvalError(
+					"Can't assign to special variable: "+evalName );
+
 			Interpreter.debug("found This reference evaluating LHS");
 			/*
 				If this was a literal "super" reference then we allow recursion

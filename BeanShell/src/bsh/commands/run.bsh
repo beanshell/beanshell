@@ -5,9 +5,9 @@
 	The root bsh system object is extended (with the extend() command) and 
 	made visible here, so that general system info (e.g. current working
 	directory) is effectively inherited.  Because the root bsh object is 
-	extended it is effectively read / copy on write...  e.g. you can change 
-	directories in the child context, do imports, etc. and it will not affect 
-	the calling context.
+	extended it is effectively read only / copy on write...  
+	e.g. you can change directories in the child context, do imports, change
+	the classpath, etc. and it will not affect the calling context.
 	<p>
 
 	run() is like source() except that it runs the command in a new, 
@@ -16,14 +16,14 @@
 	command was run.
 	<p>
 
-	Returns the context so that you can gather results.
+	Returns the object context so that you can gather results.
 	<p>
 	Parameter runArgument an argument passed to the child context under the
 		name runArgument.  e.g. you might pass in the calling This context
 		from which to draw variables, etc.
 	<p>
 
-	@return Returns the context so that you can gather results.
+	@return Returns the object context so that you can gather results.
 	@param runArgument an argument passed to the child context under the
 		name runArgument.  e.g. you might pass in the calling This context
 		from which to draw variables, etc.

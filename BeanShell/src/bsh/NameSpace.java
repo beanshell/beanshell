@@ -271,7 +271,9 @@ public class NameSpace
 					+name );
 
 			// If recurse, set global untyped var, else set it here.	
-			NameSpace varScope = recurse ? getGlobal() : this;
+			//NameSpace varScope = recurse ? getGlobal() : this;
+			// This modification makes default allocation local
+			NameSpace varScope = this;
 
 			varScope.variables.put( name, new Variable( value, false ) );
 

@@ -67,6 +67,12 @@ void method1()
   }
 }
 
+// dissallow assignment to magic members
+assert( isEvalError("this.namespace=5") );
+assert( isEvalError("this.caller=5") );
+assert( isEvalError("this.variables=5") );
+assert( isEvalError("this.methods=5") );
+
 method1();
 
 complete();
