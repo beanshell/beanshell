@@ -10,8 +10,8 @@ package bsh.util;
 */
 
 import java.util.Vector;
-import com.ibm.bsf.*;
-import com.ibm.bsf.util.*;
+import org.apache.bsf.*;
+import org.apache.bsf.util.*;
 import bsh.Interpreter;
 import bsh.InterpreterError;
 import bsh.EvalError;

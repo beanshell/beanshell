@@ -1,5 +1,5 @@
 
-import com.ibm.bsf.*;
+import org.apache.bsf.*;
 import java.util.Vector;
 
 public class TestBshBSF 
