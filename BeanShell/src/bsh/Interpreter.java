@@ -242,11 +242,16 @@ public class Interpreter
 	// End constructors
 
 	/**
-		Attach the console thusly... ;)
+		Attach a console
+		Note: this method is incomplete.
 	*/
 	public void setConsole( ConsoleInterface console ) {
 		this.console = console;
 		setu( "bsh.console", console );
+		// redundant with constructor
+		setOut( console.getOut() );
+		setErr( console.getErr() );
+		// need to set the input stream - reinit the parser?
 	}
 
 	private void initRootSystemObject() 
@@ -1065,6 +1070,25 @@ public class Interpreter
 	}
 	public void setErr( PrintStream out ) {
 		this.err = err;
+	}
+
+	/**
+		De-serialization setup.
+		Default out and err streams to stdout, stderr if they are null.
+	*/
+	private void readObject(ObjectInputStream stream) 
+		throws java.io.IOException, ClassNotFoundException
+	{
+		stream.defaultReadObject();
+
+		// set transient fields
+		if ( console != null ) {
+			setOut( console.getOut() );
+			setErr( console.getErr() );
+		} else {
+			setOut( System.out );
+			setErr( System.err );
+		}
 	}
 
 }

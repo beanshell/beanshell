@@ -5,8 +5,7 @@
 	Uses Ant 1.3
 	http://www.apache.org/
 
-	Ant questions -
-	(I think these are fixed in Ant 1.4)
+	Ant issues - I've been told these are fixed in Ant 1.4.
 
 		- Why can't I nest filesets?  This seems like it would be so easy and
 		useful...
@@ -22,7 +21,7 @@
 
 <!-- Project Configuration -->
 
-	<property name="version" value="1.2b5"/>
+	<property name="version" value="1.2b6"/>
 	<property name="deprecation" value="on"/>
 
 	<!-- choose an alternate compiler -->
@@ -90,7 +89,7 @@
 
 <!-- Begin Targets -->
 
-	<!-- This is annoying... why aren't the javacc targets smarter? -->
+	<!-- The javacc targets could be smarter... -->
 	<target name="checkjjt">
 		<uptodate property="jjtree.notRequired" 
 				targetfile="${src-dir}/bsh/bsh.jj"

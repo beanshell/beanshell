@@ -412,11 +412,12 @@ class Reflect {
 	/**
 		Locate a version of the method with the exact signature specified 
 		that is accessible via a public interface or through a public 
+		superclass or - if accessibility is on - through any interface or
 		superclass.
 
-		This solves the problem that arises when a package private class
-		or private inner class implements a public interface or derives from
-		a public type.
+		In the normal (non-accessible) case this still solves the problem that 
+		arises when a package private class or private inner class implements a 
+		public interface or derives from a public type.
 
 		@param onlyStatic the method located must be static.
 		@returns null on not found
@@ -433,18 +434,27 @@ class Reflect {
 		{
 			Class c = (Class)classQ.firstElement();
 			classQ.removeElementAt(0);
+//System.out.println("working on:"+c+", setacc"+ReflectManager.RMSetAccessible(c));
 
 			// Is this it?
 			// Is the class public or can we use accessibility?
 			if ( Modifier.isPublic( c.getModifiers() )
 				|| ( Capabilities.haveAccessibility() 
-					&& ReflectManager.RMSetAccessible( c ) ) )
+					/*&& ReflectManager.RMSetAccessible( c )*/ ) )
+			// note: class is not an AccessibleObject, removed that
 			{
+/*
+System.out.println("findAcc: "
+	+c+", name="+name+", types="+types+", types.len="+types.length
+	+", only="+onlyStatic);
+*/
 				try {
 					meth = c.getDeclaredMethod( name, types );
+//System.out.println("findAcc: method ="+meth);
 
 					// Is the method public or are we in accessibility mode?
-					if ( Modifier.isPublic( meth.getModifiers() )  
+					if ( ( Modifier.isPublic( meth.getModifiers() )
+						&& Modifier.isPublic( c.getModifiers() ) )
 						|| ( Capabilities.haveAccessibility() 
 							&& ReflectManager.RMSetAccessible( meth ) ) )
 					{
