@@ -38,6 +38,7 @@ import java.util.*;
 import java.io.IOException;
 import java.io.*;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 /**
 	BshClassManager manages all classloading in BeanShell.
@@ -101,8 +102,12 @@ public class BshClassManager
     protected transient Hashtable absoluteNonClasses = new Hashtable();
 
 	/**
+		Caches for resolved object and static methods.
+		We keep these maps separate to support fast lookup in the general case
+		where the method may be either.
 	*/
-	protected transient Hashtable resolvedMethods = new Hashtable();
+	protected transient Hashtable resolvedObjectMethods = new Hashtable();
+	protected transient Hashtable resolvedStaticMethods = new Hashtable();
 
 	/**
 		Create a new instance of the class manager.  
@@ -214,34 +219,63 @@ public class BshClassManager
 	/**
 		Cache a resolved (possibly overloaded) method based on the 
 		argument types used to invoke it, subject to classloader change.
+		Static and Object methods are cached separately to support fast lookup
+		in the general case where either will do.
 	*/
 	public void cacheResolvedMethod( 
-		Class clas, String methodName, Object [] args, Method method ) 
+		Class clas, Object [] args, Method method ) 
 	{
-		resolvedMethods.put( 
-			new SignatureKey( clas, methodName, args ), method );
+		String methodName = method.getName();
+
+		if ( Interpreter.DEBUG )
+			Interpreter.debug(
+				"cacheResolvedMethod putting: " + clas +" - "+methodName );
+		
+		SignatureKey sk = new SignatureKey( clas, methodName, args );
+		if ( Modifier.isStatic( method.getModifiers() ) )
+			resolvedStaticMethods.put( sk, method );
+		else
+			resolvedObjectMethods.put( sk, method );
 	}
 
 	/**
+		Return a previously cached resolved method.
+		@param onlyStatic specifies that only a static method may be returned.
+		@return the Method or null
 	*/
 	public Method getResolvedMethod( 
-		Class clas, String methodName, Object [] args ) 
+		Class clas, String methodName, Object [] args, boolean onlyStatic  ) 
 	{
-		Method m = (Method)resolvedMethods.get( 
-			new SignatureKey( clas, methodName, args ) );
-		//if ( m == null )
-		//	System.out.println("method cache miss: " + clas +" - "+methodName );
-		return m;
+		SignatureKey sk = new SignatureKey( clas, methodName, args );
+
+		// Try static and then object, if allowed
+		// Note that the Java compiler should not allow both.
+		Method method = (Method)resolvedStaticMethods.get( sk );
+		if ( method == null && !onlyStatic)
+			method = (Method)resolvedObjectMethods.get( sk );
+
+		if ( Interpreter.DEBUG )
+		{
+			if ( method == null )
+				Interpreter.debug(
+					"getResolvedMethod cache MISS: " + clas +" - "+methodName );
+			else
+				Interpreter.debug(
+					"getResolvedMethod cache HIT: " + clas +" - " +method );
+		}
+		return method;
 	}
 
 	/**
 		Clear the caches in BshClassManager
 		@see public void #reset() for external usage
 	*/
-	protected void clearCaches() {
+	protected void clearCaches() 
+	{
     	absoluteNonClasses = new Hashtable();
     	absoluteClassCache = new Hashtable();
-    	resolvedMethods = new Hashtable();
+    	resolvedObjectMethods = new Hashtable();
+    	resolvedStaticMethods = new Hashtable();
 	}
 
 	/**
@@ -435,8 +469,16 @@ public class BshClassManager
 			if ( types.length != target.types.length )
 				return false;
 			for( int i =0; i< types.length; i++ )
-				if ( ! types[i].equals( target.types[i] ) )
-					return false;
+			{
+				if ( types[i]==null ) 
+				{
+					if ( !(target.types[i]==null) )
+						return false;
+				} else 
+					if ( !types[i].equals( target.types[i] ) )
+						return false;
+			}
+
 			return true;
 		}
 	}

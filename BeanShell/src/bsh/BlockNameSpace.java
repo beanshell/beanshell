@@ -56,7 +56,7 @@ class BlockNameSpace extends NameSpace
     public BlockNameSpace( NameSpace parent ) 
 		throws EvalError
 	{
-		super( parent, parent.name + "/BlockNameSpace" );
+		super( parent, parent.nsName + "/BlockNameSpace" );
     }
 
 	/**

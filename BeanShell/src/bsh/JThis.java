@@ -80,7 +80,7 @@ class JThis extends This implements
 	}
 
 	public String toString() {
-		return "'this' reference (JThis) to Bsh object: " + namespace.name;
+		return "'this' reference (JThis) to Bsh object: " + namespace.nsName;
 	}
 
 	void event(String name, Object event)

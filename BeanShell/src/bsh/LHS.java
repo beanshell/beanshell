@@ -71,7 +71,6 @@ class LHS implements ParserConstants, java.io.Serializable
 	Field field;
 	Object object;
 	int index;
-	//Method method;
 
 	/**
 		Variable LHS constructor.
@@ -133,26 +132,6 @@ class LHS implements ParserConstants, java.io.Serializable
 		this.index = index;
 	}
 
-	/**
-		Intermediate object Method evaluation LHS Constructor.
-		This type of LHS is used in an intermediate evaluation of a chain of 
-		suffixes and wraps a method invocation.  In this case it may only be 
-		resolved to a value and cannot be assigned. 
-	LHS( Method method, Object object ) {
-		this.type = METHOD_EVAL;
-		this.method = method;
-		this.object = object;
-	}
-	*/
-
-	/**
-		Intermediate static Method evaluation LHS Constructor.
-		@see #LHS( Method, Object )
-	LHS( Method method ) {
-		this( method, null );
-	}
-	*/
-
 	public Object getValue() throws UtilEvalError
 	{
 		if ( type == VARIABLE )
@@ -188,18 +167,10 @@ class LHS implements ParserConstants, java.io.Serializable
 
 	/**
 		Assign a value to the LHS.
-		This method throws InterpreterError if the LHS is an intermediate
-		evaluation state Method call LHS.
 	*/
 	public Object assign( Object val, boolean strictJava ) 
 		throws UtilEvalError
 	{
-	/*
-		if ( type == METHOD_EVAL )
-			throw new InterpreterError(
-				"Attempt to assign METHOD_EVAL LHS");
-	*/
-
 		if ( type == VARIABLE )
 			nameSpace.setVariable( varName, val, strictJava );
 		else 
