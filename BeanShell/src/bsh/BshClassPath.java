@@ -3,63 +3,134 @@ package bsh;
 import java.util.*;
 import java.util.zip.*;
 import java.io.*;
-import java.net.URL;
+import java.net.*;
 import java.io.File;
 
 /**
 	Maps all classes in a specified set of URLs which may include:
-		Jar files, base dirs, individual class files
+		jar/zip files and base dirs
 
+	Note: No classpath traversal is done unless/util a call is made to 
+		getClassesForPackage() or getClassSource()
 */
 public class BshClassPath 
 {
+	/** Set of all classes in a package */
+	Map packageMap = new HashMap();
+
+	/** Map of source (URL or File dir) of every clas */
+	Map classSource = new HashMap();
+
+	/**  Do lazy initialization of the maps... */
+	boolean mapsInitialized = false;
+	List path = new ArrayList();
+
 	public BshClassPath( URL [] urls ) {
 		add( urls );
 	}
 
-	/**
-		Set of all classes in a package 
+	public URL [] getPathComponents() {
+		return (URL[])path.toArray( new URL[0] );
+	}
+
+	/*
+	public BshClassPath( BshClassPath bcp ) {
+		path = bcp.path;
+	}
 	*/
-	Map packageMap = new HashMap();
-	/**
-		Map of source (URL or File dir) of every clas
-	*/
-	Map classSource = new HashMap();
 
 	public void add( URL [] urls ) { 
+		path.addAll( Arrays.asList(urls) );
+		if ( mapsInitialized )
+			map( urls );
+	}
+
+	public void add( URL url ) throws IOException { 
+		path.add(url);
+		if ( mapsInitialized )
+			map( url );
+	}
+
+	/**
+		Return the set of classes in the specified package
+	*/
+	public Collection getClassesForPackage( String pack ) {
+		insureInitialized();
+		return (Collection)packageMap.get( pack );
+	}
+
+	/**
+		Return the source of the specified class
+		
+	*/
+	public ClassSource getClassSource( String className ) {
+		insureInitialized();
+		return (ClassSource)classSource.get( className );
+	}
+
+	/**
+		If the claspath map is not initialized, do it.
+		
+		Should this be "insure" or "ensure".  I know I've seen "ensure" used
+		in the JDK source.  Here's what Webster has to say:
+
+		Main Entry:ensure
+		Pronunciation:in-'shur
+		Function:transitive verb
+		Inflected Form(s):ensured; ensuring
+		: to make sure,	certain, or safe : GUARANTEE
+		synonyms ENSURE, INSURE, ASSURE, SECURE	mean to	make a thing or	person
+		sure. ENSURE, INSURE, and ASSURE are interchangeable in	many contexts
+		where they indicate the	making certain or inevitable of	an outcome, but
+		INSURE sometimes stresses the taking of	necessary measures beforehand,
+		and ASSURE distinctively implies the removal of	doubt and suspense from
+		a person's mind. SECURE	implies	action taken to	guard against attack or
+		loss.
+	*/
+	public void insureInitialized() {
+		if ( !mapsInitialized )
+			map( getPathComponents() );
+		mapsInitialized = true;
+	}
+
+	public boolean isInitialized() {
+		return mapsInitialized;
+	}
+
+	void map( URL [] urls ) { 
 		for(int i=0; i< urls.length; i++)
 			try{
-				add( urls[i] );
+				map( urls[i] );
 			} catch ( IOException e ) {
 				System.err.println("Error constructing classpath: "
 					+urls[i]+": "+e );
 			}
 	}
 
-	public void add( URL url ) throws IOException { 
+	void map( URL url ) throws IOException { 
 		String name = url.getFile();
 		File f = new File( name );
 
 		if ( f.isDirectory() )
-			add( traverseDirForClasses( f ), new DirClassSource(f) );
+			map( traverseDirForClasses( f ), new DirClassSource(f) );
 		else if ( isArchiveFileName( name ) )
-			add( searchJarForClasses( url ), new JarClassSource(url) );
-/*
+			map( searchJarForClasses( url ), new JarClassSource(url) );
+		/*
 		else if ( isClassFileName( name ) )
-			add( looseClass( name ), url );
-*/
+			map( looseClass( name ), url );
+		*/
 		else
 			System.out.println("Not a classpath component: "+ name );
 	}
 
-	private void add( String [] classes, Object source ) {
+	private void map( String [] classes, Object source ) {
 		for(int i=0; i< classes.length; i++) {
 			System.out.println( classes[i] +": "+ source );
-			addClass( classes[i], source );
+			mapClass( classes[i], source );
 		}
 	}
 
-	void addClass( String className, Object source ) {
+	private void mapClass( String className, Object source ) {
 		// add to package map
 		String [] sa = splitClassname( className );
 		String pack = sa[0];
@@ -78,23 +149,8 @@ public class BshClassPath
 			classSource.put( className, source );
 	}
 
-	/**
-		Return the set of classes in the specified package
-	*/
-	public Collection getClassesForPackage( String pack ) {
-		return (Collection)packageMap.get( pack );
-	}
 
-	/**
-		Return the source of the specified class
-		
-	*/
-	public ClassSource getClassSource( String className ) {
-		return (ClassSource)classSource.get( className );
-	}
-
-
-	public static String [] traverseDirForClasses( File dir ) 
+	static String [] traverseDirForClasses( File dir ) 
 		throws IOException	
 	{
 		List list = traverseDirForClassesAux( dir, dir );
@@ -168,10 +224,14 @@ public class BshClassPath
 	}
 
 	/**
-		turn / into .,  remove leading class and trailing .class
+		Create a proper class name from a messy thing.
+		Turn / or \ into .,  remove leading class and trailing .class
+
+		Note: this makes lots of strings... could be faster.
 	*/
 	public static String canonicalizeClassName( String name ) {
 		String classname=name.replace('/', '.');
+		classname=name.replace('\\', '.');
 		if ( classname.startsWith("class ") )
 			classname=classname.substring(6);
 		if ( classname.endsWith(".class") )
@@ -198,23 +258,39 @@ public class BshClassPath
 		return new String [] { packn, classn };
 	}
 	
+	static URL [] userClassPathComp;
 	/**
 		The user classpath from system property
 			java.class.path
 	*/
-	URL [] getJavaClassPath() 
-		throws IOException
+	public static URL [] getUserClassPathComponents() 
 	{
+		if ( userClassPathComp != null )
+			return userClassPathComp;
+
 		String cp=System.getProperty("java.class.path");
 		String [] paths=StringUtil.split(cp, File.pathSeparator);
 
 		URL [] urls = new URL[ paths.length ];
-		for ( int i=0; i<paths.length; i++)
-			urls[i] = new File( paths[i] ).toURL();
+		try {
+			for ( int i=0; i<paths.length; i++)
+				urls[i] = new File( paths[i] ).toURL();
+		} catch ( MalformedURLException e ) {
+			throw new InterpreterError("can't parse class path: "+e);
+		}
 
+		userClassPathComp = urls;
 		return urls;
 	}
 
+	/**
+		Factory a new instance of BshClassPath initialized to the user path
+		from java.class.path
+	*/
+	public static BshClassPath getUserClassPath() 
+	{
+		return new BshClassPath( getUserClassPathComponents() );
+	}
 
 	public static class ClassSource { 
 		Object source;
@@ -237,4 +313,8 @@ public class BshClassPath
 		BshClassPath bcp = new BshClassPath( urls );
 	}
 
+
+	public String toString() {
+		return "BshClassPath: "+path;
+	}
 }

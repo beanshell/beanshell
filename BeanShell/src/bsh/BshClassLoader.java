@@ -15,6 +15,10 @@ public class BshClassLoader extends URLClassLoader
 		super(bases);
 	}
 
+	public BshClassLoader( BshClassPath bcp ) {
+		super( bcp.getPathComponents() );
+	}
+
 	/**
 		For use by children
 	*/
@@ -54,15 +58,12 @@ public class BshClassLoader extends URLClassLoader
 		return c;
 	}
 
-// see if we can resolve classes through class manager rather than parent
-
 	public Class findClass( String name ) throws ClassNotFoundException {
 		ClassLoader cl = 	
 			BshClassManager.getClassManager().getLoaderForClass( name );
 
-		// Is the designated loader for the class us?
-		if ( cl!= null && cl != this )
-			// delegate
+		// Delegate to loader if it's not us
+		if ( cl != null && cl != this )
 			return cl.loadClass( name );
 		else
 			return super.findClass(name);

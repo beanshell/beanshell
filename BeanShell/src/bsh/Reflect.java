@@ -384,32 +384,29 @@ class Reflect {
                 throw new ReflectError("Attempt to pass void argument " +
                     "(position " + i + ") to constructor for: " + clas);
 
-        Constructor con = null;
         Object obj = null;
         Class[] types = getTypes(args);
         unwrapPrimitives(args);
+        Constructor con = null;
 
-        if ( con == null ) 
-		{
-			/* 
-				Find an appropriate constructor
-				use declared here to see package and private as well
-				(there are no inherited constructors to worry about) 
-			*/
-			Constructor[] constructors = clas.getDeclaredConstructors();
-			con = findMostSpecificConstructor(types, constructors);
+		/* 
+			Find an appropriate constructor
+			use declared here to see package and private as well
+			(there are no inherited constructors to worry about) 
+		*/
+		Constructor[] constructors = clas.getDeclaredConstructors();
+		con = findMostSpecificConstructor(types, constructors);
 
-			if ( con == null )
-				if ( types.length == 0 )
-					throw new ReflectError(
-						"Can't find default constructor for: "+clas);
-				else
-					con = findExtendedConstructor(args, constructors);
+		if ( con == null )
+			if ( types.length == 0 )
+				throw new ReflectError(
+					"Can't find default constructor for: "+clas);
+			else
+				con = findExtendedConstructor(args, constructors);
 
-			if(con == null)
-				throw new ReflectError("Can't find constructor: " 
-					+ clas );
-        }
+		if(con == null)
+			throw new ReflectError("Can't find constructor: " 
+				+ clas );
 
         try
         {

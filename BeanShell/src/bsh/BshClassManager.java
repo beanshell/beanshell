@@ -16,43 +16,44 @@ import BshClassPath.DirClassSource;
 
 	@see http://www.beanshell.org/manual/classloading.html for details
 	on the bsh classloader architecture.
+
+	Bsh has a multi-tiered class loading architecture.  No class loader is
+	used unless/until the classpath is modified or a class is reloaded.
 */
 public class BshClassManager
 {
 	// Singleton for now
-	private BshClassManager() { }
 	private static BshClassManager manager = new BshClassManager();
 	public static BshClassManager getClassManager() {
 		return manager;
 	}
+	private BshClassManager() { 
+		reset();
+	}
 	
-	// Note it's kind of goofy having both of these, but as it stands,
-	// constructing BshClassPath is expensive... should move lazy instantiation
-	// inside there...
-	/** Primary store for the classpath components */
-	List classPath = new ArrayList();
-	/** Lazily constructed full parse of the class path */
-	BshClassPath bshClassPath;
+	/**
+		The class path.  Initially this is the java user class path.
+	*/
+	BshClassPath classPath;
 
 	Vector listeners = new Vector();
 
 	/**
 		This handles extension / modification of the base classpath
-
 		The loader to use where no mapping of reloaded classes exists.
-		baseLoader is initially null.
+
+		The baseLoader is initially null meaning no class loader is used.
 	*/
 	BshClassLoader baseLoader;
 
 	/**
 		Map by classname of loaders to use for reloaded classes
 	*/
-	Map loaderMap = new HashMap();
+	Map loaderMap;
 
 	public Class getClassForName( String name ) {
 		Class c = null;
 
-		//ClassLoader overlayLoader = (ClassLoader)loaderMap.get( name );
 		ClassLoader overlayLoader = getLoaderForClass( name );
 		if ( overlayLoader != null ) {
 			try {
@@ -67,6 +68,7 @@ public class BshClassManager
 				return c;
 		}
 
+fix me!!!!!!
 		if ( baseLoader == null )
 			try {
 				c = Class.forName(name);
@@ -84,22 +86,26 @@ public class BshClassManager
 	}
 
 	public ClassLoader getLoaderForClass( String name ) {
-		return (ClassLoader)loaderMap.get( name );
+		ClassLoader loader = (ClassLoader)loaderMap.get( name );
+		if ( loader != null )
+			return loader;
+		else
+			if ( baseLoader != null )
+				return baseLoader;
+			else
+				return ??
 	}
 
 	// Classpath mutators
 
 	/**
 	*/
-// ioexception is for adding to bshclasspath... remove if we fix lazy
-// instantiaion inside of it
 	public void addClassPath( URL path ) throws IOException {
 		if ( baseLoader == null )
 			setClassPath( new URL [] { path } );
 		else {
 			baseLoader.addURL( path );
 			classPath.add( path );
-			bshClassPath.add( path );
 			classLoaderChanged();
 		}
 	}
@@ -107,11 +113,11 @@ public class BshClassManager
 	/**
 		Clear all loaders and start over.
 	*/
-	public void reset() {
+	public void reset()
+	{
+		classPath = BshClassPath.getUserClassPath();
 		baseLoader = null;
 		loaderMap = new HashMap();
-		classPath = new ArrayList();
-		bshClassPath = null;
 		classLoaderChanged();
 	}
 
@@ -122,11 +128,18 @@ public class BshClassManager
 	*/
 	public void setClassPath( URL [] cp ) {
 		reset();
-		classPath.addAll( Arrays.asList( cp ) );
-		baseLoader = new BshClassLoader( cp );
+		classPath.add( cp );
+		initBaseLoader();
 
 		// fire after change...  semantics are "has changed"
 		classLoaderChanged();
+	}
+
+	/**
+		init the base loader from the current classpath
+	*/
+	private void initBaseLoader() {
+		baseLoader = new BshClassLoader( classPath );
 	}
 
 	// class reloading
@@ -141,14 +154,16 @@ public class BshClassManager
 	{
 		// validate that it is a class here?
 
-		BshClassPath bcp = getClassPath();
+		// init base class loader if there is none...
+		if ( baseLoader == null )
+			initBaseLoader();
 
 		DiscreteFilesClassLoader.ClassSourceMap map = 
 			new DiscreteFilesClassLoader.ClassSourceMap();
 
 		for (int i=0; i< classNames.length; i++) {
 			String name = classNames[i];
-			Object o = bcp.getClassSource( name );
+			Object o = classPath.getClassSource( name );
 			if ( o == null )
 				throw new ClassPathException("Nothing known about class: "
 					+name );
@@ -177,30 +192,28 @@ public class BshClassManager
 		to unpackaged classes.
 	*/
 	public void reloadPackage( String pack ) throws ClassPathException {
-		BshClassPath bcp = getClassPath();
-		Collection classes = bcp.getClassesForPackage( pack );
+		Collection classes = classPath.getClassesForPackage( pack );
 		if ( classes == null )
 			throw new ClassPathException("No classes found for package: "+pack);
 
 		reloadClasses( (String[])classes.toArray( new String[0] ) );
 	}
 
-	public void reloadPathComponent( URL pc ) {
+	/**
+		Unimplemented
+		For this we'd have to store a map by location as well as name...
+
+	public void reloadPathComponent( URL pc ) throws ClassPathException {
+		throw new ClassPathException("Unimplemented!");
 	}
+	*/
 
 	// end reloading
 
 	/**
-		Do lazy instantiation.  This may be expensive to create and we only
-		need it for class reloading or tools that require mapping the class
-		space.
 	*/
 	public BshClassPath getClassPath() {
-		if ( bshClassPath == null )
-			bshClassPath = new BshClassPath( 
-				(URL[])classPath.toArray(new URL[0]) );
-
-		return bshClassPath;
+		return classPath;
 	}
 
 	public static Class classForName( String name ) {
@@ -241,15 +254,12 @@ public class BshClassManager
 	}
 
 	public void dump( Interpreter i ) {
-		i.println("Class Manager Dump: ");
-		i.println("------------------- ");
+		i.println("Bsh Class Manager Dump: ");
+		i.println("----------------------- ");
 		i.println("baseLoader = "+baseLoader);
 		i.println("loaderMap= "+loaderMap);
-	}
-
-
-	public static class ClassPathException extends Exception {
-		public ClassPathException( String msg ) { super(msg); }
+		i.println("----------------------- ");
+		i.println("ClassPath = "+classPath);
 	}
 
 }
