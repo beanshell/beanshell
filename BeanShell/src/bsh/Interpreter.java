@@ -290,6 +290,8 @@ public class Interpreter
 				System.out.println("File not found: "+e);
 			} catch ( EvalError e ) {
 				System.out.println("Error in file: "+e);
+			} catch ( IOException e ) {
+				System.out.println("I/O Error: "+e);
 			}
         } else {
 			// Workaround for JDK bug 4071281, where system.in.available() 
@@ -445,7 +447,7 @@ public class Interpreter
 		Read text from fileName and eval it.
 	*/
     public Object source( String filename, NameSpace nameSpace ) 
-		throws FileNotFoundException, EvalError 
+		throws FileNotFoundException, IOException, EvalError 
 	{
 		File file = pathToFile( filename );
 		debug("Sourcing file: "+file);
@@ -458,7 +460,7 @@ public class Interpreter
 		Convenience method.  Use the global namespace.
 	*/
     public Object source( String filename ) 
-		throws FileNotFoundException, EvalError 
+		throws FileNotFoundException, IOException, EvalError 
 	{
 		return source( filename, globalNameSpace );
 	}
@@ -802,10 +804,12 @@ compare them side by side and see what they do differently.
 	}
 
 	/**
-		Localize a path to the file name based on the bsh.cwd ineterpreter 
+		Localize a path to the file name based on the bsh.cwd interpreter 
 		working directory.
 	*/
-    public File pathToFile( String fileName ) {
+    public File pathToFile( String fileName ) 
+		throws IOException
+	{
 		File file = new File( fileName );
 
 		// if relative, fix up to bsh.cwd
@@ -814,7 +818,7 @@ compare them side by side and see what they do differently.
 			file = new File( cwd + File.separator + fileName );
 		}
 
-		return file;
+		return file.getCanonicalFile();
 	}
 
 	public static void redirectOutputToFile( String filename ) 
