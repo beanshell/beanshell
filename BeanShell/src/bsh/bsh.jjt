@@ -100,6 +100,11 @@ SKIP : /* WHITE SPACE */
 
 SPECIAL_TOKEN : /* COMMENTS */
 {
+/*
+	Single line comments fail on the last line of a file with no terminating
+	linefeed.  I thought the <EOF> would fix that, but no...
+  <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* "<EOF>"|("\n"|"\r"|"\r\n")>
+*/
   <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
 | <HASH_BANG_COMMENT: "#!" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
 | <FORMAL_COMMENT: "/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
