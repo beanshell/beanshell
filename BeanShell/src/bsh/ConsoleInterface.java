@@ -38,10 +38,12 @@ import java.io.*;
 import java.awt.Color;
 
 /**
-	The capabilities of a GUI console for BeanShell.
+	The capabilities of a minimal console for BeanShell.
 	Stream I/O and optimized print for output.
 
-	A simple console may ignore some of these.
+	A simple console may ignore some of these or map them to trivial
+	implementations.  e.g. print() with color can be mapped to plain text.
+	@see bsh.util.GUIConsoleInterface
 */
 public interface ConsoleInterface {
 	public Reader getIn();
@@ -51,5 +53,5 @@ public interface ConsoleInterface {
 	public void print( String s );
 	public void print( String s, Color color );
 	public void error( String s );
-	public void setNameCompletion( NameCompletion nc );
 }
+

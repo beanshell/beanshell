@@ -41,8 +41,9 @@ import java.io.File;
 import bsh.ConsoleInterface;
 import bsh.StringUtil;
 import bsh.ClassPathException;
-import bsh.NameCompletion;
+import bsh.util.NameCompletion;
 import java.lang.ref.WeakReference;
+import bsh.util.NameCompletionTable;
 
 /**
 	A BshClassPath encapsulates knowledge about a class path of URLs.
@@ -79,7 +80,7 @@ public class BshClassPath implements ClassPathListener
 	private boolean mapsInitialized;
 
 	private UnqualifiedNameTable unqNameTable;
-	private NameCompletion.Table nameCompletionTable;
+	private NameCompletionTable nameCompletionTable;
 	private boolean nameCompletionIncludesUnqNames;
 	Vector listeners = new Vector();
 
@@ -285,7 +286,7 @@ public class BshClassPath implements ClassPathListener
 		return getNameCompletionTable().completeName( part );
 	}
 
-	public NameCompletion.Table getNameCompletionTable() {
+	public NameCompletionTable getNameCompletionTable() {
 		if ( nameCompletionTable == null )
 			nameCompletionTable = buildNameCompletionTable();
 		return nameCompletionTable;
@@ -295,10 +296,10 @@ public class BshClassPath implements ClassPathListener
 		build the name completion table from all names in our packages
 		optionally including unqualified names
 	*/
-	private NameCompletion.Table buildNameCompletionTable() 
+	private NameCompletionTable buildNameCompletionTable() 
 	{
 		insureInitialized(null);
-		NameCompletion.Table ncTable = new NameCompletion.Table();
+		NameCompletionTable ncTable = new NameCompletionTable();
 
 		Iterator it = getPackagesSet().iterator();
 		while( it.hasNext() ) {

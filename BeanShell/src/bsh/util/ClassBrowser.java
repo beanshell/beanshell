@@ -50,6 +50,7 @@ import bsh.classpath.ClassPathListener;
 import bsh.ClassPathException;
 import bsh.StringUtil;
 import bsh.ConsoleInterface;
+import bsh.classpath.ClassManagerImpl;
 
 /**
 	A simple class browser for the BeanShell desktop.
@@ -218,7 +219,13 @@ public class ClassBrowser extends JSplitPane
 
 	public void init() throws ClassPathException 
 	{
-		classPath = BshClassManager.getClassManager().getClassPath();
+		BshClassManager bcm = BshClassManager.getClassManager();
+		if ( bcm == null )
+			throw new ClassPathException("No Class Manager...");
+
+		// Currently we have to cast because BshClassPath is not known by
+		// the core.
+		classPath = ((ClassManagerImpl)bcm).getClassPath();
 		classPath.insureInitialized( null 
 			/*
 			// get feedback on mapping...

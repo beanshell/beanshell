@@ -94,7 +94,9 @@ assert( da[1] == 2.0 );
 // Some stuff submitted in the original bug report... thought I'd throw it in.
 Object[] oo = { new Object(), new Object() };
 oo = new Object[] { new Object(), new Object() };
+// doesn't work in 1.1
 oo = new Object[][] { { new Object() }, { new Object() } };
+// doesn't work in 1.1
 oo = new Object[][] { new Object[] { new Object() }, new Object[] { new Object() } };
 oo = new Object[] { 0, 1 };
 oo = new Object[] { "a", "b"};
