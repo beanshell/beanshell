@@ -53,7 +53,11 @@ class BSHAssignment extends SimpleNode implements InterpreterConstants
         switch(operator)
         {
             case ASSIGN:
-                return lhs.assign(rhs);
+				try {
+					return lhs.assign(rhs);
+				} catch ( TargetError e ) {
+					e.reThrow(this);
+				}
 
             case PLUSASSIGN:
                 return lhs.assign(operation(lhs.getValue(), rhs, PLUS));
@@ -129,7 +133,7 @@ class BSHAssignment extends SimpleNode implements InterpreterConstants
             (rhs instanceof Boolean || rhs instanceof Character ||
              rhs instanceof Number || rhs instanceof Primitive) )
         {
-            return BSHBinaryExpression.primitiveBinaryOperation(lhs, rhs, kind);
+            return Primitive.binaryOperation(lhs, rhs, kind);
         }
 
         throw new EvalError("Non primitive value in operator: " +

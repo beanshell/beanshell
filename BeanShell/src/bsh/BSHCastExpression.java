@@ -114,11 +114,6 @@ class BSHCastExpression extends SimpleNode {
 		be caught...
 	*/
     private void castError(Class from, Class to) throws EvalError {
-		/*
-        throw new EvalError("Illegal cast. Cannot cast " +
-            Reflect.normalizeClassName(from) + " to " +
-            Reflect.normalizeClassName(to), this );
-		*/
 		Exception cce = new ClassCastException("Illegal cast. Cannot cast " +
             Reflect.normalizeClassName(from) + " to " +
             Reflect.normalizeClassName(to) );

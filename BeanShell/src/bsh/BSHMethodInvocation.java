@@ -51,13 +51,11 @@ class BSHMethodInvocation extends SimpleNode
 				"Error in method invocation: " + e.getMessage(), this);
 		} catch (java.lang.reflect.InvocationTargetException e) {
 			throw new TargetError(e.getTargetException(), this);
-		} catch ( TargetError te ) {
-			// catch and re-throw to get line number right
-			throw new TargetError( te, this );
 		} catch ( EvalError ee ) {
-			// catch and re-throw to get line number right
-			throw new EvalError( ee.toString(), this );
+			ee.reThrow( this );
+			throw new Error("should be unreachable...");
 		}
+
 	}
 }
 

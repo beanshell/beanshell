@@ -82,25 +82,32 @@ class Reflect {
     }
 
     public static Object getIndex(Object array, int index)
-        throws ReflectError
+        throws ReflectError, TargetError
     {
         try {
             Object val = Array.get(array, index);
             return wrapPrimitive(val, array.getClass().getComponentType());
         }
-        catch(Exception e) {
+        catch( ArrayIndexOutOfBoundsException  e1 ) {
+			throw new TargetError( "Array Index", e1 );
+        } catch(Exception e) {
             throw new ReflectError("Array access:" + e);
         }
     }
 
     public static void setIndex(Object array, int index, Object val)
-        throws ReflectError
+        throws ReflectError, TargetError
     {
         try {
             val = unwrapPrimitive(val);
             Array.set(array, index, val);
         }
-        catch(Exception e) {
+        catch( ArrayStoreException e2 ) {
+			throw new TargetError( "Array store exception", e2 );
+        } catch( IllegalArgumentException e1 ) {
+			throw new TargetError( "Illegal Argument", 
+				new ArrayStoreException( e1.toString() ) );
+        } catch(Exception e) {
             throw new ReflectError("Array access:" + e);
         }
     }

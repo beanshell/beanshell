@@ -25,6 +25,7 @@ for( i=0; i<list.length; i++) {
 		r=run(f);
 	} catch ( EvalError e) {
 		print("Script: "+f+" produced an eval Error: " + e );
+		r=object();
 		r.test_failed = true;
 	}
 

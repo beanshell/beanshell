@@ -1,0 +1,22 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+int a=2;
+
+switch( a ) {
+	case 1: {
+	}
+	case 2: {
+		assert ( a==2 );
+		flag();
+	}
+	default: {
+		assert ( a != 1 && a !=2 );
+	}
+}
+
+assert( flag() == 1 );
+
+complete();
+

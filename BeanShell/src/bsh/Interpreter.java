@@ -32,6 +32,7 @@ import java.awt.Color;
 		MyInterface myObj = (MyInterface)i.eval("return (MyInterface)this");
 		myObj.foo();
 	</pre></blockquote>
+	<p>
 
 	See the BeanShell User's Manual for more information.
 */
@@ -363,7 +364,8 @@ public class Interpreter
             }
             catch(TargetError e)
             {
-                error("// Uncaught Exception: " + e.getTarget());
+                //error("// Uncaught Exception: " + e.getTarget());
+                error("// Uncaught Exception: " + e );
                 if(DEBUG)
                     e.printStackTrace();
                 if(!interactive)

@@ -48,7 +48,7 @@ import java.lang.reflect.InvocationTargetException;
 	EvalError and its subclasses.  Normal invocation target exceptions are
 	first wrapped in TargetError before being thrown up.
 	We should do the same with arbitrary exceptions that we generate 
-	(e.g. ClassCastException).
+	(e.g. ArithmeticException, ClassCastException).
 
 	Note: an important location to look at is BSHMethodInvocation.  There
 	we catch eval errors and rethrow them to compound the location information
@@ -66,6 +66,16 @@ public class TargetError extends EvalError
 	public TargetError(Throwable t, SimpleNode node )
 	{
 		this("TargetError", t, node);
+	}
+
+	/**
+		If you're going to use this please catch and re-throw the exception
+		in an AST and add the node...
+		@see reThrow()
+	*/
+	public TargetError( String s, Throwable t )
+	{
+		this(s, t, null);
 	}
 
 	public Throwable getTarget()
@@ -92,6 +102,7 @@ public class TargetError extends EvalError
 
 	/**
 		Re-throw the target error, prefixing msg to the message.
+
 		Unfortunately at the moment java.lang.Exception's message isn't 
 		mutable so we just make a new one... could do something about this 
 		later.
@@ -100,6 +111,26 @@ public class TargetError extends EvalError
 		throws TargetError 
 	{
 		throw new TargetError( msg+":"+getMessage(),  target, node );
+	}
+	/**
+
+		Re-throw the target error, prefixing msg and Node to the message.
+		msg may be null for no message
+	*/
+	public void reThrow( String msg, SimpleNode node  ) 
+		throws TargetError 
+	{
+		String m = ( msg == null ) ? "" : (msg + " : ");
+		throw new TargetError( m+getMessage(),  target, node );
+	}
+
+	/**
+		Re-throw the target error adding the Node 
+	*/
+	public void reThrow( SimpleNode node  ) 
+		throws TargetError 
+	{
+		reThrow( null, node );
 	}
 
 	public String printTargetError( Throwable t ) {

@@ -186,7 +186,7 @@ class Name implements java.io.Serializable
 		*/
 
 		if(evalBaseObject == Primitive.NULL) // previous round produced null
-			throw new EvalError("Null pointer error...");
+			throw new TargetError( "Null Pointer", new NullPointerException() );
 
 		if(evalBaseObject == Primitive.VOID) // previous round produced void
 			throw new EvalError("Void pointer error...");
@@ -453,7 +453,8 @@ class Name implements java.io.Serializable
             if (obj instanceof Primitive) {
 
                 if (obj == Primitive.NULL)
-                    throw new EvalError("Null pointer error...");
+                    throw new TargetError( "Null Pointer in Method Invocation",
+					new NullPointerException() );
 
                 // some other primitive
                 // should avoid calling methods on primitive, as we do

@@ -142,13 +142,7 @@ class BSHAllocationExpression extends SimpleNode
             return result;
         }
 
-        try {
-            return Array.newInstance(type, dimensionsNode.dimensions);
-        }
-        catch(Exception e) {
-            throw new EvalError(
-				"Can't construct array: " + e.getMessage(), this);
-        }
+		return arrayNewInstance( type, dimensionsNode );
     }
 
     private Object primitiveArrayAllocation(
@@ -167,11 +161,20 @@ class BSHAllocationExpression extends SimpleNode
             return result;
         }
 
+		return arrayNewInstance( type, dimensionsNode );
+    }
+
+	private Object arrayNewInstance( 
+		Class type, BSHArrayDimensions dimensionsNode )
+		throws EvalError
+	{
         try {
             return Array.newInstance(type, dimensionsNode.dimensions);
+        } catch( NegativeArraySizeException e1) {
+			throw new TargetError("Negative Array Size", e1);
         } catch(Exception e) {
             throw new EvalError("Can't construct primitive array: " +
                 e.getMessage(), this);
         }
-    }
+	}
 }
