@@ -724,8 +724,6 @@ public class NameSpace
     private Class getClassImpl( String name )
 		throws UtilEvalError
     {
-		// Unqualified (simple, non-compound) name
-		boolean unqualifiedName = !Name.isCompound(name);
 		Class c = null;
 
 		// Check the cache
@@ -735,6 +733,9 @@ public class NameSpace
 			if ( c != null )
 				return c;
 		}
+
+		// Unqualified (simple, non-compound) name
+		boolean unqualifiedName = !Name.isCompound(name);
 
 		// Unqualified name check imported
 		if ( unqualifiedName ) {

@@ -99,7 +99,8 @@ public class BshServlet extends HttpServlet
 			st.replace( "captureOutErr", "" );
 		if ( script != null )
 			st.replace( "scriptResult", 
-				formatScriptResult( scriptResult, scriptError, scriptOutput ) );
+				formatScriptResultHTML( 
+					script, scriptResult, scriptError, scriptOutput ) );
 
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
@@ -123,16 +124,33 @@ public class BshServlet extends HttpServlet
 
 	/**
 	*/
-	String formatScriptResult( 
-		Object result, Exception error, StringBuffer scriptOutput ) 
+	String formatScriptResultHTML( 
+		String script, Object result, Exception error, 
+		StringBuffer scriptOutput ) 
 		throws IOException
 	{
 		SimpleTemplate tmplt;
 
-		if ( error != null ) {
+		if ( error != null ) 
+		{
 			tmplt = new SimpleTemplate( 
 				getClass().getResource("error.template") );
-			tmplt.replace("error", escape(error.toString()) );
+
+			String errString;
+
+			if ( error instanceof bsh.EvalError )
+			{
+				int lineNo = ((EvalError)error).getErrorLineNumber();
+				String msg = error.getMessage();
+				int contextLines = 4;
+				errString = escape(msg);
+				if ( lineNo > -1 )
+					errString += "<hr>" 
+						+ showScriptContextHTML( script, lineNo, contextLines );
+			} else
+				errString = escape( error.toString() );
+		
+			tmplt.replace("error", errString );
 		} else {
 			tmplt = new SimpleTemplate( 
 				getClass().getResource("result.template") );
@@ -143,6 +161,48 @@ public class BshServlet extends HttpServlet
 		return tmplt.toString();
 	}
 
+	/*
+		Show context number lines of string before and after target line.
+		Add HTML formatting to bold the target line.
+	*/
+	String showScriptContextHTML( String s, int lineNo, int context ) 
+	{
+		StringBuffer sb = new StringBuffer();
+		BufferedReader br = new BufferedReader( new StringReader(s) );
+
+		int beginLine = Math.max( 1, lineNo-context );
+		int endLine = lineNo + context;
+		for( int i=1; i<=lineNo+context+1; i++ )
+		{
+			if ( i < beginLine )
+			{
+				try { 
+					br.readLine();
+				} catch ( IOException e ) { 
+					throw new RuntimeException( e.toString() );
+				}
+				continue;
+			}
+			if ( i > endLine )
+				break;
+
+			String line;
+			try { 
+				line = br.readLine();
+			} catch ( IOException e ) { 
+				throw new RuntimeException( e.toString() );
+			}
+
+			if ( line == null ) 
+				break;
+			if ( i == lineNo )
+				sb.append( "<font color=\"red\">"+i+": "+line +"</font><br/>" );
+			else
+				sb.append( i+": " +line +"<br/>" );
+		}
+
+		return sb.toString();
+	}
     public void doPost(
 		HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException 
@@ -212,5 +272,7 @@ public class BshServlet extends HttpServlet
 
 		return buf.toString();
     }
+
 }
+
 

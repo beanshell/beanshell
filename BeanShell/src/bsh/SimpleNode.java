@@ -153,16 +153,6 @@ class SimpleNode implements Node
 	}
 
 	/**
-		Some nodes require only a namespace for evaluation.
-	public Object eval( NameSpace namespace ) 
-		throws EvalError
-	{
-		throw new InterpreterError(
-			"Unimplemented or inappropriate for " + getClass().getName() );
-	}
-	*/
-
-	/**
 		This is the general signature for evaluation of a node.
 	*/
 	public Object eval( CallStack callstack, Interpreter interpreter ) 
@@ -170,13 +160,6 @@ class SimpleNode implements Node
 	{
 		throw new InterpreterError(
 			"Unimplemented or inappropriate for " + getClass().getName() );
-		/*
-			Try to call the simpler signature
-			I don't ilke this, but it's the price we pay for being able to
-			eval() any simplenode and still limit the signature on those
-			that only need namespace.
-		return eval( callstack.top() );
-		*/
 	}
 
 	/**
@@ -210,6 +193,13 @@ class SimpleNode implements Node
 	public int getLineNumber() {
 		return firstToken.beginLine;
 	}
+
+	/**
+		Get the ending line number of the starting token
+	public int getEndLineNumber() {
+		return lastToken.endLine;
+	}
+	*/
 
 	/**
 		Get the text of the tokens comprising this node.
