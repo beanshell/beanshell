@@ -20,6 +20,6 @@ printBanner() {
 	    jconsole.println();
 
 	} else
-		print("BeanShell 1.0 beta - by Pat Niemeyer (pat@pat.net)");
+		print("BeanShell 1.1 beta - by Pat Niemeyer (pat@pat.net)");
 
 }

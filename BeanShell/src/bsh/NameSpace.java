@@ -42,13 +42,9 @@ public class NameSpace
     private This thisReference;
 	public String name; 
 
-	// local class cache
+	// Local class cache for classes resolved through this namespace using
+	// getClass() (taking into account imports)
     transient private Hashtable classCache;
-
-    // Global cache 
-    transient static Hashtable absoluteClassCache = new Hashtable();
-    // Global cache for things we know are *not* classes... value is unused
-    transient static Hashtable absoluteNonClasses = new Hashtable();
 
     public NameSpace( String name ) { 
 		this( null, name );
@@ -60,6 +56,16 @@ public class NameSpace
 		// Register for notification of classloader change
 		BshClassManager.getClassManager().addListener(this);
     }
+
+	/**
+		Resolve name to an object through this namespace.
+		Note: the lazy instantiation here parallels that in getClass()
+	*/
+	public Object get( String name, Interpreter interpreter ) 
+		throws EvalError 
+	{
+		return new Name( this, name ).toObject( interpreter );
+	}
 
     public void	setVariable(String name, Object	o) throws EvalError {
 
@@ -305,7 +311,8 @@ public class NameSpace
 	/**
 		Load class through this namespace, taking into account imports.
 
-		Note: Do lazy instantiation of class cache.
+		Notes: This method does the caching for getClassImpl().
+		The lazy instantiation of cache here parallels that in get()
 	*/
     public Class getClass(String name)
     {
@@ -315,7 +322,7 @@ public class NameSpace
 			c =	(Class)classCache.get(name);
 
 		if(c ==	null) {
-			c =	getClass2( name );
+			c =	getClassImpl( name );
 
 			if(c != null) {
 				if(classCache == null)
@@ -329,60 +336,56 @@ public class NameSpace
     }
 
 	/**
-		Helper for getClass();
+		Implementation for getClass()
+		If not a compound name look for imported class or package.
+		Else try to load name.
 	*/
-    private Class getClass2( String name)
+    private Class getClassImpl( String name)
     {
-		NameSpace namespace = this;
-
 		// Simple (non compound name) check if imported
 		if ( !Name.isCompound(name) )
 		{
-			String fullname = namespace.getImportedClass(name);
+			String fullname = getImportedClass(name);
 
-			// Explicitly imported single class name (not a package).
-			if (fullname != null) {
-				Class c	= (Class)absoluteClassCache.get(fullname);
-				if(c !=	null)
-					return c;
-
+			if ( fullname != null ) {
+				/*
+					Found the full name in imported classes.
+				*/
 				// Try to make the name
-				//c=classForName(fullname);
-				c=getAbsoluteClass(fullname);
+				Class c=classForName(fullname);
 				if ( c!= null)
 					return c;
 
 				// Try imported inner class.  
 				try {
-					// use null here for interp... we only care if it resolve
-					// to a class
-					Object obj = new Name(namespace, fullname).toObject( null );
+					// Use null here for interp... we only care if it resolves
+					// to a class.  Note we could use Name toClass() here but it
+					// would just throw a more detailed error message.
+					Object obj = get( fullname, null );
 					Class clas = ((Name.ClassIdentifier)obj).getTargetClass();
-					absoluteClassCache.put(fullname, clas);
+
+					BshClassManager.absoluteClassCache.put(fullname, clas);
 					return clas;
-				} catch ( Exception e ) {
-				}
+				} catch ( EvalError e ) { 
+				} catch ( ClassCastException e2 ) { }
 
 				return null;  // ?  it was imported, right cannot be .*
 			}
 
-			// Try imported packages (.*)
-			String[] packages =	namespace.getImportedPackages();
+			/*
+				Try imported packages (.*)
+			*/
+			String[] packages =	getImportedPackages();
 			for(int i=0; i<packages.length; i++)
 			{
 				String s = packages[i] + "." + name;
-				Class c	= (Class)absoluteClassCache.get(s);
-				if(c !=	null)
-					return c;
-
-				//c=classForName(s);
-				c=getAbsoluteClass(s);
+				Class c=classForName(s);
 				if ( c != null )
 					return c;
 			}
 		}
 
-		Class c = getAbsoluteClass( name );
+		Class c = classForName( name );
 		if ( c != null )
 			return c;
 
@@ -390,30 +393,8 @@ public class NameSpace
 		return null;
     }
 
-	/**
-		Perform caching of absolute class lookups
-Move this to BCM
-	*/
-    static Class getAbsoluteClass( String name )
-    {
-		Class c = (Class)absoluteClassCache.get(name);
-		if(c !=	null)
-			return c;
 
-		if ( absoluteNonClasses.get(name) != null)
-			return null;
-
-		//c = classForName( name );
-		try {
-		c = Class.forName( name );
-		} catch ( ClassNotFoundException e ) { }
-		if ( c != null )
-			absoluteClassCache.put( name, c );
-
-		return c;
-    }
-
-	public static Class classForName( String name ) 
+	private Class classForName( String name ) 
 	{
 		return BshClassManager.classForName( name );
 	}
@@ -590,51 +571,6 @@ Move this to BCM
 		throw new EvalError ("Can't assign " + rhsType + " to "	+ lhsType);
     }
 
-    public static void loadDefaultImports( 
-		NameSpace namespace) throws IOException
-    {
-		String res = "lib/defaultImports";
-		InputStream in = NameSpace.class.getResourceAsStream(res);
-		if(in == null)
-			throw new IOException("couldn't load resource: " + res);
-		BufferedReader bin = new BufferedReader(new InputStreamReader(in));
-
-		String s;
-		try
-		{
-			while((s = bin.readLine()) != null)
-			namespace.importClass(s);
-
-			bin.close();
-		}
-		catch(IOException e)
-		{
-			Interpreter.debug("failed to load default imports...");
-		}
-    }
-
-    public static void loadJavaPackagesOptimization() throws IOException
-    {
-		if(absoluteNonClasses != null)
-			return;
-
-		String res = "lib/javaPackages";
-		InputStream in = NameSpace.class.getResourceAsStream(res);
-		if(in == null)
-			throw new IOException("couldn't load resource: " + res);
-		BufferedReader bin = new BufferedReader(new InputStreamReader(in));
-
-		String s;
-		try {
-			while((s = bin.readLine()) != null)
-			absoluteNonClasses.put(s, "unused");
-
-			bin.close();
-		} catch(IOException e) {
-			Interpreter.debug("failed to load java package names...");
-		}
-    }
-
 	public String toString() {
 		return "NameSpace: "+ 
 			( name==null ? super.toString(): name + " : " + super.toString() );
@@ -649,18 +585,6 @@ Move this to BCM
 
 		// do something here
 		s.defaultWriteObject();
-	}
-
-	public static boolean classExists( String name ) {
-		//return ( classForName( name ) != null );
-		return ( getAbsoluteClass( name ) != null );
-	}
-
-	// Convenience method
-	public Object get( String name, Interpreter interpreter ) 
-		throws EvalError 
-	{
-		return new Name( this, name ).toObject( interpreter );
 	}
 
 	/**
@@ -687,8 +611,34 @@ Move this to BCM
 			+ methodName + " in namespace: " + this );
 	}
 
+	/**
+		Clear all cached classes and names
+	*/
 	public void classLoaderChanged() {
 		classCache = null;
 	}
+
+	/**
+		re-evaluate the usefullness of this...
+	*/
+    public void loadDefaultImports() throws IOException
+    {
+		String res = "lib/defaultImports";
+		InputStream in = NameSpace.class.getResourceAsStream(res);
+		if(in == null)
+			throw new IOException("couldn't load resource: " + res);
+		BufferedReader bin = new BufferedReader(new InputStreamReader(in));
+
+		String s;
+		try {
+			while((s = bin.readLine()) != null)
+			importClass(s);
+
+			bin.close();
+		} catch(IOException e) {
+			Interpreter.debug("failed to load default imports...");
+		}
+    }
+
 }
 

@@ -29,9 +29,13 @@ class BSHType extends SimpleNode
     // Returns a class for the type
     public Class getType(NameSpace namespace) throws EvalError
     {
+/*
+Note: Broken - need to add class loader listener if we're going to cache types
+below is probably broken...  should work through namespace
+*/
         // return cached type if available
         //if(type != null)
-        //   return type;
+         //  return type;
 
 		// If we want to cache this as above we have to add a listener for
 		// the BshClassManager to let us know when types may have changed
@@ -46,22 +50,17 @@ class BSHType extends SimpleNode
         else 
             baseType = ((BSHAmbiguousName)node).toClass(namespace);
 
-        if(arrayDims > 0)
-        {
-            try
-            {
+        if(arrayDims > 0) {
+            try {
                 // construct array which has zero length in all dimensions
                 // (faster than constructing the name by hand - see below)
                 int[] dims = new int[arrayDims];
                 Object obj = Array.newInstance(baseType, dims);
                 type = obj.getClass();
-            }
-            catch(Exception e)
-            {
+            } catch(Exception e) {
                 throw new EvalError("Couldn't construct array type", this);
             }
-        }
-        else
+        } else
             type = baseType;
 
         return type;
