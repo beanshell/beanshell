@@ -3,8 +3,8 @@
 
 <a name="more"><h4>Learning More...</h4></a>
 
-Almost all of the built-in bsh commands are simply bsh scripts
-stored in the bsh jar file.  A good way to familiarize yourself with bsh
+Almost all of the built-in BeanShell commands are simply scripts
+stored in the bsh jar file.  A good way to familiarize yourself with BeanShell
 is to take a look at those commands -  simply unpack bsh/commands/*.bsh
 from the JAR file.
 <p/>

@@ -9,7 +9,7 @@
   <!ENTITY syntax SYSTEM "syntax.xml">
   <!ENTITY methods SYSTEM "methods.xml">
   <!ENTITY objects SYSTEM "objects.xml">
-  <!ENTITY events SYSTEM "events.xml">
+  <!ENTITY interfaces SYSTEM "interfaces.xml">
   <!ENTITY threads SYSTEM "threads.xml">
   <!ENTITY specialvarsvalues SYSTEM "specialvarsvalues.xml">
   <!ENTITY classpath SYSTEM "classpath.xml">
@@ -35,7 +35,7 @@
 	&syntax;
 	&methods;
 	&objects;
-	&events;
+	&interfaces;
 	&threads;
 	&specialvarsvalues;
 	&classpath;
