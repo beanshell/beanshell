@@ -95,7 +95,7 @@ h{"foo"} = "bar";          // Equivalent to: h.put("foo", "bar");
 </example>
 
 <h2>
-Importing classes and packages
+Importing Classes and Packages
 </h2>
 
 In BeanShell as in Java, you can either refer to classes by their fully
@@ -130,23 +130,25 @@ mapping the entire classpath.  You may disambiguate it by importing the
 class you intend.
 <p/>
 
-See Class Path Management for details.
+See "Class Path Management" for more details.
 <p/>
 
-By default, most Java core and extension packages are imported for 
+<h2>Default Imports</h2>
+
+By default, common Java core and extension packages are imported for 
 you.  They are:
 
-<em>List needs update...</em>
 <ul>
 <li>java.lang</li>
+<li>java.io</li>
+<li>java.util</li>
+<li>java.net</li>
 <li>java.awt</li>
 <li>java.awt.event</li>
 <li>javax.swing</li>
 <li>javax.swing.event</li>
-<li>java.util</li>
-<li>java.io</li>
-<li>java.net</li>
 </ul>
 <p/>
+
 
 </section>

@@ -1,0 +1,113 @@
+<section>
+<name>Reflective Style Access to Scripted Methods</name>
+
+The following examples show how to work with BeanShell methods dynamically 
+from within scripts, using the equivalent of reflective style access in Java.
+<p/>
+
+<h2>eval()</h2>
+
+The simplest form of reflective style access to scripts is through the 
+eval() command.  With eval() you can evaluate any text just as if it had 
+appeared in the current scope.  For example:
+
+<example>
+eval("a=5;");
+print( a ); // 5
+</example>
+
+If you know the signature (argument types) of the method you wish to work 
+with you can simply construct a method call as a string and evaluate it 
+with eval() as in the following:
+
+<example>
+// Declare methods foo() and bar( int, String )
+foo() {
+    print("foo");
+}
+
+bar( int arg1, String arg2 ) {
+    print("bar: int arg = "+arg1+", String arg ="+arg2);
+}
+
+// Invoke a no-args method by its name using eval()
+name="foo";
+// invoke foo() using eval()
+eval( name+"()");
+</example>
+
+and so on for multi-argument methods:
+
+<example>
+name="bar";
+arg1=5;
+arg2="stringy";
+// invoking bar(arg1,arg2) using eval()
+eval( name+"(arg1,arg2)");
+</example>
+
+<h2>Method Lookup</h2>
+
+The previous section showed how to invoke a method by name when we know
+the argument types.  Of course, in general we'd like to be able to find out
+what methods are defined in the current script or to look up a method by
+its signature.
+<p/>
+
+The simplest form of method lookup is to simply list the names of methods
+defined in the current, using the 'this.methods' magic reference:
+
+<example>
+// Print the methods defined in this namespace
+print( this.methods );
+</example>
+
+The most general mechanism however is to use the current namespace to 
+search for a method by name and signature type.  The result of the method
+is a bsh.BshMethod object, which can be used to invoke the method with 
+a set of arguments.    Continuing with the previous example:
+
+<example>
+name="bar";
+signature = new Class [] { Integer.TYPE, String.class };
+// Look up a method named bar with arg types int and String
+bshMethod = this.namespace.getMethod( name, signature );
+
+print("Found method: "+bshMethod);
+
+// invoke the method with arg
+bshMethod.invoke( 
+	new Object [] { new Integer(1), "blah!" }, 
+	this.interpreter, this.callstack );
+</example>
+
+In the above snippet we located the bar() method by its signature.  If there
+had been overloaded forms of bar() getMethod() would have located the most
+specific one according to the standard Java method resolution rules.
+<p/>
+
+Once we have the BshMethod object we can call its invoke method, passing
+an array of arguments, an interpreter reference, and a callstack.  The
+arguments array may be empty for no arguments (empty, not null).  For the
+interpreter and callstack references we may simply pass along the current
+context's values via 'this.interpreter' and 'this.callstack'. 
+<p/>
+
+You can list all of the methods defined in a context using the namespace
+getMethods() method, which returns an Enumeration of bsh.BshMethod objects:
+
+<example>
+	Enumeration e = this.namespace.getMethods();
+</example>
+
+
+<h2>Uses</h2>
+
+Why would anyone want to do this?  Well, perhaps you are source-ing a script
+created by a user and want to automatically begin using methods that they
+have defined.  Perhaps the user is allowed to define methods to take control 
+of various aspects of your application.  With the tools we've described
+in this section you can enumerate the methods they have defined and invoke
+them dynamically.
+
+</section>
