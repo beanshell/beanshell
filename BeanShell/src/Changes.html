@@ -2,14 +2,15 @@
 <head><title>BeanShell - Change Log</title></head>
 <body bgcolor=#ffffff>
 
-<h2>Changes in 1.2 final</h2>
+<h2>Changes in 1.2b2+ </h2>
 <pre>
 	- Fixed nasty bug in grammar, added test cases to expression.bsh
 	Note: this bug was preventing the latest version of bsh from being used
 	with Weblogic 6.1 (which uses bsh internally and was failing).
 	- Handled the "single line comment with no terminating linefeed" issue.
 	- Added getInterface() method to Interpreter.
-		
+	- Fixed issue with identity semantics for this in cast case, e.g.:
+		((ActionListener)this == (ActionListener)this) is now true.
 </pre>
 </h2>
 
