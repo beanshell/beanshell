@@ -1,7 +1,7 @@
 <project default="manual">
 	<property name="imagedir" value="../images"/>
 	<!-- 
-		I am currently using the GPL 'htmldoc' to build a pdf from the html:
+		I am currently using the GPL 'htmldoc' to build a PDF from the HTML:
 			http://www.easysw.com/htmldoc/ 
 		I tried many xhtml->fo stylesheets, but none seemed to work well.	
 	-->
@@ -23,8 +23,8 @@
 	<target name="pdf" depends="manual">
 		<apply executable="${htmldoc}">
 			<arg value="--webpage"/>
-			<arg value="-f"/>
-			<arg value="manual.pdf"/>
+			<arg value="--header"/><arg value="..."/>
+			<arg value="-f"/><arg value="manual.pdf"/>
 			<fileset dir="." includes="manual.html"/>
 		</apply>
 	</target>

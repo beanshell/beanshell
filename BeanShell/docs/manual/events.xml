@@ -57,11 +57,11 @@ to construct a scripted object implementing an interface:
 <p/>
 
 <example>
-	buttonHandler = new ActionListener() {
-		actionPerformed( event ) { 
-			print(event);
-		}
-	};
+buttonHandler = new ActionListener() {
+	actionPerformed( event ) { 
+		print(event);
+	}
+};
 </example>
 <p/>
 
@@ -80,17 +80,17 @@ when a method of the interface is not found. e.g.
 <p/>
 
 <example>
-	mouseHandler = new MouseListener() {
-		mousePressed( event ) { 
-			print("mouse button pressed");  
-		}
+mouseHandler = new MouseListener() {
+	mousePressed( event ) { 
+		print("mouse button pressed");  
+	}
 
-		invoke( method, args ) { 
-			print("Undefined method of MouseListener interface invoked:"
-				+ name +", with args: "+args
-			);
-		}
-	};
+	invoke( method, args ) { 
+		print("Undefined method of MouseListener interface invoked:"
+			+ name +", with args: "+args
+		);
+	}
+};
 </example>
 <p/>
 

@@ -7,14 +7,14 @@ important options and details.  Please see the rest of the user's guide
 (which is not very long in its entirety) for more details.
 <p/>
 
-<h4>
+<h2>
 Download and Run BeanShell
-</h4>
+</h2>
 
-Download the latest jar file
+Download the latest JAR file from http://www.beanshell.org
 and start up BeanShell either in the graphical desktop mode or on 
 the command line.
-<p/>
+<p CLEAR="ALL"/>
 
 If you just want to start playing around you may be able to to launch the 
 BeanShell desktop by simply double clicking on the BeanShell JAR file.  More 
@@ -35,9 +35,9 @@ classpath like this:
 
     java bsh.Console       // run the graphical desktop
 or
-	java bsh.Interpreter   // run as text-only on the command line
+    java bsh.Interpreter   // run as text-only on the command line
 or
-	java bsh.Interpreter filename [ args ] // run script from file
+    java bsh.Interpreter filename [ args ] // run script file
 </example>
 <p/>
 
@@ -46,33 +46,32 @@ Tip: From within BeanShell scripts or the command line you can to BeanShell's
 classpath using the addClassPath() command.
 <p/>
 
-The above examples show how to run bsh interactively for experimentation. 
-It's also possible to run bsh in a server mode, an applet mode, and to embed 
-bsh for non-interactive use in your applications.  You can even make 
-executable bsh scripts under Unix using the standard "#!" syntax.
+The above examples show how to run BeanShell interactively for experimentation
+and how to run BeanShell scripts from the command line.
+It's also possible to use BeanShell inside your own Java applications,
+to run BeanShell in a remote server mode, as a servlet, or even in an applet.
 <p/>
 
-<h4>
+<h2>
 The BeanShell Desktop and Console Windows
-</h4>
+</h2>
 
-Upon starting BeanShell one console window will open.  By right clicking on 
-the <a href="desktop.html">desktop</a> background can also open additional 
-console windows or other tools
-such as the BeanShell class browser.  
+Upon starting the BeanShell in GUI mode one console window will open.  
+By right clicking on the desktop background you can open additional 
+console windows and other tools such as a simple class browser.
 <p/>
 
 Each console window effectively runs a separate bsh interpreter.
 Within the graphical console you have basic command history, line editing,
-and cut and paste.  From any console window you can open a simple editor 
-window for that console.  In it you can write scripts and hit the 'eval' 
-button to evaluate them in the attached workspace. 
+cut and paste, and even class and variable name completion.  From any console 
+you can open a simple editor window for that console.  In it you can write 
+scripts and hit the 'eval' button to evaluate them in the attached console's
+workspace. 
 <p/>
 
-
-<h4>
+<h2>
 Java Statements and Expressions
-</h4>
+</h2>
 
 At the prompt you can type standard Java statements and expressions.  
 Statements and expressions are all of the normal things that you'd say
@@ -81,154 +80,191 @@ method calls, loops, conditionals, etc.
 <p/>
 
 You can use these exactly as they would appear in Java,
-however in BeanShell you have the option of working with "loosely typed"
+however in BeanShell you also have the option of working with "loosely typed"
 variables.  That is, you can simply be lazy and not declare the types of
-variables that you use (both primitives and objects).  BeanShell will still
-give you an error if you attempt to misuse the actual type of the variable.
+variables that you use (both primitives and objects).  BeanShell will only
+signal an error if you attempt to misuse the actual type of the variable.
 <p/>
 
 Here are some examples:
 <example>
-	foo = "Foo";	
-	four = (2 + 2)*2/2;
-	print( foo + " = " + four );   // print() is a bsh command
-	
-	// Do a loop
-    for (i=0; i&lt;5; i++)
-        print(i);   
+foo = "Foo";    
+four = (2 + 2)*2/2;
+print( foo + " = " + four );  // print() is a BeanShell command
 
-    // Pop up a frame with a button in it
-    b = new JButton("My Button");
-    f = new JFrame("My Frame");
-    f.getContentPane().add(b, "Center");
-    f.pack();
-    f.show();
+// Do a loop
+for (i=0; i&lt;5; i++)
+    print(i);   
+
+// Pop up a frame with a button in it
+button = new JButton( "My Button" );
+frame = new JFrame( "My Frame" );
+frame.getContentPane().add( button, "Center" );
+frame.pack();
+frame.setVisible(true);
 </example>
 <p/>
 
-<h4>
+<h2>
 Useful BeanShell Commands
-</h4>
+</h2>
 
 In the previous example we used a convenient "built-in" BeanShell command 
 called print(), to display values.  print() does pretty
 much the same thing as System.out.println() except that it insures that the
-ouput always goes to the command line.  print() also displays some types
+output always goes to the command line.  print() also displays some types
 of objects (such as arrays) more verbosely than Java would.  
 
-Another very useful command is show(), which toggles on and off automatic 
-print()ing of the result of every line you type.
+Another related command is show(), which toggles on and off automatic 
+display of the result of every line you type.
 <p/>
 
 Here are a few other examples of BeanShell commands:
 
 <ul>
-<li> source(), run()  - read a bsh script into this interpreter, or run it
+<li> source(), run()  - Read a bsh script into this interpreter, or run it
 in a new interpreter</li>
-<li> frame()  - display the AWT/JFC component in a Frame</li>
-<li> load(),  save() - load or save serializable objects</li>
+<li> frame()  - Display a GUI component in a Frame or JFrame.</li>
+<li> load(),  save() - Load or save serializable objects to a file.</li>
 <li> cd(), cat(), dir(), pwd(), etc.  - Unix-like shell commands</li>
-<li> exec() - run a native application </li>
+<li> exec() - Run a native application </li>
 </ul>
 
 <p/>
 See the complete list of BeanShell commands for more information.
 <p/>
 
-BeanShell commands are simply methods which are implemented by bsh scripts
-supplied in the bsh jar file.  You can, of course, define your own methods
-in bsh and also add your own scripts to the classpath to extend the basic 
-command set.
+Tip:
+BeanShell commands are not really "built-in" but are simply BeanShell scripted
+methods that are automatically loaded from the classpath.  You can add your 
+own scripts to the classpath to extend the basic command set.
 <p/>
 
-
-<h4>
+<h2>
 Scripted Methods
-</h4>
+</h2>
 
 You can declare and use methods in bsh just as you would in a Java class.
 
 <example>
-    int addTwoNumbers( int a, int b ) {
-        return a + b;
-    }
+int addTwoNumbers( int a, int b ) {
+    return a + b;
+}
 
-    sum = addTwoNumbers( 5, 7 );  // 12
+sum = addTwoNumbers( 5, 7 );  // 12
 </example>
 
 
 Bsh methods may also have dynamic (loose) argument and return types.  
 
 <example>
-    add( a, b ) {
-        return a + b;
-    }
+add( a, b ) {
+    return a + b;
+}
 
-    foo = add(1, 2);  			// 3
-    foo = add("Oh", " baby");	// "Oh baby"
+foo = add(1, 2);            // 3
+foo = add("Oh", " baby");   // "Oh baby"
 </example>
 
-<h4>
+<h2>
 Scripted Objects
-</h4>
+</h2>
 
 In BeanShell, as in JavaScript and Perl, method "closures" allow you to create
 scripted objects.  You can turn the results of a method call into an object
 reference by having the method return the special value <strong>this</strong>.
-You can then use that reference to refer to any variables set in the method 
-call.  To make useful objects you need instance methods of course so in 
-BeanShell methods may also contain methods at any level.
+You can then use the reference to refer to any variables set during the method 
+call.  Useful objects need methods of course, so in BeanShell scripted methods 
+may also contain methods at any level.  For example:
 
 <example>
-	foo() {
-		print("foo");
-		x=5;
+foo() {
+    print("foo");
+    x=5;
 
-		bar() {
-			print("bar");
-		}
+    bar() {
+        print("bar");
+    }
 
-		return this;
-	}
+    return this;
+}
 
-	myfoo = foo();    // prints "foo"
-	print( myfoo.x ); // prints "5"
-	myfoo.bar();      // prints "bar"
+myfoo = foo();    // prints "foo"
+print( myfoo.x ); // prints "5"
+myfoo.bar();      // prints "bar"
 </example>
 
-If this seems strange to you please see the user's manual for more details.
+If this seems strange to don't worry. Please see the user's manual for a 
+more thorough explanation.
 <p/>
 
-You may also cast your scripted objects (e.g. myFoo above) to any Java 
-interface type and supply the necessary methods in the script.
+<h5>Implementing Interfaces</h5>
 <p/>
-
-<em>Note: implementing interface types requires BeanShell be running under a 
+<em>Note: implementing interfaces requires BeanShell be running under a 
 Java 1.3 environment or higher</em>
-
-<h5>Inner Class Style</h5>
 <p/>
 
-You may also use the Java anonymous inner class style syntax to implement an
+You may cast a BeanShell scripted object - i.e. any <em>this</em> reference like
+ myFoo in the previous example - to any Java interface type.  When Java code
+calls methods on the interface the corresponding scripted methods will be 
+invoked to handle them.
+<p/>
+
+You may also use standard Java anonymous inner class syntax to implement an
 interface type with a script.
 
 <example>
-	ActionListener scriptedListener = new ActionListener() {
-		actionPerformed( event ) { ... }
-	}
+ActionListener scriptedListener = new ActionListener() {
+    actionPerformed( event ) { ... }
+}
 </example>
 
-Normally, if you leave out methods required by the interface the calling code
-will throw an exception.  However if you wish to override this behavior 
-you can implement the special method invoke(name, args) in your scripted 
-object to handle undefined method invocations:
+You can script only the methods of the interface that you intend to call
+if you want to.  The calling code will simply throw an exception if it tries to 
+invoke a method that isn't defined.
+If you wish to override the behavior of a large number of methods - say to
+produce a "dummy" adapter for logging - you can implement a special method
+signature: invoke(name, args) in your scripted object. The invoke() method
+is called to handle any undefined method invocations:
 
 <example>
-		ml = new MouseListener() {
-			mousePressed( event ) { ... }
-			// handle the rest
-			invoke( name, args ) { print("Method: "+name+" invoked!");
-		}
+ml = new MouseListener() {
+    mousePressed( event ) { ... }
+    // handle the rest
+    invoke( name, args ) { print("Method: "+name+" invoked!");
+}
 </example>
 
+<h2>Calling BeanShell From Your Application</h2>
+
+You can evaluate text and run scripts from within your application by
+creating an instance of the BeanShell interpreter and using the eval()
+or source() commands.  You may pass in variable references to objects you 
+wish to use in scripts via the set() method and retrieve results with the 
+get() method.
+
+<example>
+import bsh.Interpreter;
+...
+
+Interpreter i = new Interpreter();
+i.set("foo", 5);
+i.eval("bar = foo*10");
+System.out.println("bar = "+i.get("bar") );
+</example>
+
+Tip: In the above example the eval() method also returned the value of bar as
+the result of the evaluation.
+<p/>
+
+<h2>Conclusion</h2>
+
+We hope this brief introduction gets you started.  Please see the full user
+manual for more details.  We will strive the keep the documentation up to date
+but we will always lag behind.  So check the mailing lists and change log for 
+the application if you really want to know what's going on.
+
+
 </section>
+
+

@@ -4,6 +4,7 @@
 <!DOCTYPE manual [
   <!ELEMENT manual ANY>
 
+  <!ENTITY title SYSTEM "title.xml">
   <!ENTITY quickstart SYSTEM "quickstart.xml">
   <!ENTITY syntax SYSTEM "syntax.xml">
   <!ENTITY methods SYSTEM "methods.xml">
@@ -26,6 +27,7 @@
 ]>
 
 <manual>
+	&title;
 	<!-- Auto generated table of contents -->
 	<contents/>
 	<!-- sections -->

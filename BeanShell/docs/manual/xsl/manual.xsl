@@ -22,7 +22,7 @@
 <xsl:param name="imagedir"/>
 
 <!-- Output directives -->
-<xsl:output method="xhtml" indent="no"/>
+<xsl:output method="xhtml" indent="yes"/>
 
 <!-- 
 	Root
@@ -39,8 +39,6 @@
 	<html>
 	<head><title>BeanShell User's Manual</title></head>
 	<body bgcolor="#ffffff">
-		<h1>BeanShell User's Manual</h1>
-		This is the BeanShell User's Manual.
 		<xsl:apply-templates/>
 	</body>
 	</html>
@@ -106,6 +104,7 @@
 	</xsl:for-each>
 	</ul>
 	<hr/>
+	<xsl:comment>PAGE BREAK</xsl:comment>
 </xsl:template>
 
 
