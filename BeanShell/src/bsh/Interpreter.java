@@ -945,7 +945,7 @@ public class Interpreter
 		return parser.jjtree;
 	}
 
-  	private ASCII_UCodeESC_CharStream get_jj_input_stream() {
+  	private JavaCharStream get_jj_input_stream() {
 		return parser.jj_input_stream;
 	}
 

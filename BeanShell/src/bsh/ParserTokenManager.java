@@ -4,6 +4,8 @@ import java.io.*;
 
 public class ParserTokenManager implements ParserConstants
 {
+  public  java.io.PrintStream debugStream = System.out;
+  public  void setDebugStream(java.io.PrintStream ds) { debugStream = ds; }
 private final int jjStopStringLiteralDfa_0(int pos, long active0, long active1)
 {
    switch (pos)
@@ -1872,22 +1874,22 @@ static final long[] jjtoSkip = {
 static final long[] jjtoSpecial = {
    0x380L, 0x0L, 
 };
-private ASCII_UCodeESC_CharStream input_stream;
+protected JavaCharStream input_stream;
 private final int[] jjrounds = new int[74];
 private final int[] jjstateSet = new int[148];
 protected char curChar;
-public ParserTokenManager(ASCII_UCodeESC_CharStream stream)
+public ParserTokenManager(JavaCharStream stream)
 {
-   if (ASCII_UCodeESC_CharStream.staticFlag)
+   if (JavaCharStream.staticFlag)
       throw new Error("ERROR: Cannot use a static CharStream class with a non-static lexical analyzer.");
    input_stream = stream;
 }
-public ParserTokenManager(ASCII_UCodeESC_CharStream stream, int lexState)
+public ParserTokenManager(JavaCharStream stream, int lexState)
 {
    this(stream);
    SwitchTo(lexState);
 }
-public void ReInit(ASCII_UCodeESC_CharStream stream)
+public void ReInit(JavaCharStream stream)
 {
    jjmatchedPos = jjnewStateCnt = 0;
    curLexState = defaultLexState;
@@ -1901,7 +1903,7 @@ private final void ReInitRounds()
    for (i = 74; i-- > 0;)
       jjrounds[i] = 0x80000000;
 }
-public void ReInit(ASCII_UCodeESC_CharStream stream, int lexState)
+public void ReInit(JavaCharStream stream, int lexState)
 {
    ReInit(stream);
    SwitchTo(lexState);
@@ -1914,7 +1916,7 @@ public void SwitchTo(int lexState)
       curLexState = lexState;
 }
 
-private final Token jjFillToken()
+protected Token jjFillToken()
 {
    Token t = Token.newToken(jjmatchedKind);
    t.kind = jjmatchedKind;
@@ -1934,7 +1936,7 @@ int jjround;
 int jjmatchedPos;
 int jjmatchedKind;
 
-public final Token getNextToken() 
+public Token getNextToken() 
 {
   int kind;
   Token specialToken = null;
