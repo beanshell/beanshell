@@ -6,7 +6,8 @@
 
 	bshdoc reads a javadoc style comment and method signatures from one or
 	more files and generates XML output representing their contents.  
-	bshdoc.xsl renders this to an indexed HTML page describing the commands.
+	An XSL stylesheet bshcommands.xsl (supplied with the user manual source)
+	can be used to render this to an indexed HTML page describing the commands.
 	<p/>
 
 	Method signatures may be supplied expliticly via javadoc style @method 

@@ -6,7 +6,7 @@ import bsh.ForBodyNameSpace;
 
 /**
 	The standard beanshell auto local variable allocation for untyped vars 
-	causes inconsistency with java in the case of for-init vars.
+	would cause inconsistency with java in the case of for-init vars.
 
 	This causes particular trouble for new users who aren't trying to do 
 	anything fancy and simply want it to act like Java.
@@ -19,10 +19,14 @@ i=1;
 for(i=2, a=5; i<10; i++) { 
 	assert(a==5);
 	assert(i>=2 && i<10);
+	patfj=42;
 }
 
-assert(i==1);
-assert(a==void);
+//assert(i==1);  old behavior
+assert(i==10);
+//assert(a==void);  old behavior
+assert(a==5);
+assert(patfj==42);
 
 // with types the spot where allocation occurs is always clear 
 int i=5;

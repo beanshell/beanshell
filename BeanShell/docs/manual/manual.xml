@@ -5,6 +5,7 @@
   <!ELEMENT manual ANY>
 
   <!ENTITY title SYSTEM "title.xml">
+  <!ENTITY intro SYSTEM "intro.xml">
   <!ENTITY quickstart SYSTEM "quickstart.xml">
   <!ENTITY syntax SYSTEM "syntax.xml">
   <!ENTITY methods SYSTEM "methods.xml">
@@ -34,6 +35,7 @@
 	<!-- Auto generated table of contents -->
 	<contents/>
 	<!-- sections -->
+	&intro;
 	&quickstart;
 	&bshmodes;
 	&syntax;

@@ -86,7 +86,9 @@
 	<property name="bshservlet-wbsh-war" value="bshservlet-wbsh.war"/>
 	<property name="bshservlet-war" value="bshservlet.war"/>
 
-	<property name="commands-bshdoc" value="bshcommands-bshdoc.xml"/>
+	<!-- Put the auto-generated command doc in the manual dir -->
+	<property name="commands-bshdoc" 
+		value="docs/manual/bshcommands-bshdoc.xml"/>
 
 <!-- Begin Targets -->
 
@@ -370,7 +372,7 @@
 			- We should move the output commands-bshdoc to the docs dir
 			for inclusion with the user manual.
 	-->
-	<target name="bshdoc">     
+	<target name="bshdoc" depends="jarall">     
 		<!-- 
 			I'd like to use the java target, but there seems to be no way
 			to supply a fileset in an arg argument.
@@ -384,10 +386,10 @@
 			<fileset dir="src/bsh/commands" includes="*.bsh"/>
 		</apply>
 
+		<!-- This has moved to the docs/manual dir 
 		<style style="scripts/bshcommands.xsl" 
 			in="${commands-bshdoc}" out="bshcommands.html"/>
-
-		<!--delete file="bshcommands.xml"/-->
+		-->
 	</target>   
 
 </project>
