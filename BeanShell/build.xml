@@ -86,6 +86,7 @@
 	<property name="bshservlet-wbsh-war" value="bshservlet-wbsh.war"/>
 	<property name="bshservlet-war" value="bshservlet.war"/>
 
+	<property name="commands-bshdoc" value="bshcommands-bshdoc.xml"/>
 
 <!-- Begin Targets -->
 
@@ -198,6 +199,10 @@
 		<delete quiet="true" file="${bsf-jar}"/>
 		<delete quiet="true" file="${bshservlet-wbsh-war}"/>
 		<delete quiet="true" file="${bshservlet-war}"/>
+
+		<delete quiet="true" file="${commands-bshdoc}"/>
+		<!-- hack -->
+		<delete quiet="true" file="bshcommands.html"/>
 	</target>
 
 	<!-- This doesn't work!  I can find no way to set up the dir before the
@@ -361,13 +366,16 @@
 			wants all of the files simultaneously to produce one XML file
 			amenable to indexing, etc.
 			- Needs some file timestamp checking... mapper tag might help.
+		
+			- We should move the output commands-bshdoc to the docs dir
+			for inclusion with the user manual.
 	-->
 	<target name="bshdoc">     
 		<!-- 
 			I'd like to use the java target, but there seems to be no way
 			to supply a fileset in an arg argument.
 		-->
-		<apply executable="java" output="bshcommands.xml" parallel="true">
+		<apply executable="java" output="${commands-bshdoc}" parallel="true">
 			<arg value="-cp"/>
 			<arg value="${all-jar}"/>
 			<arg value="bsh.Interpreter"/>
@@ -377,9 +385,9 @@
 		</apply>
 
 		<style style="scripts/bshcommands.xsl" 
-			in="bshcommands.xml" out="bshcommands.html"/>
+			in="${commands-bshdoc}" out="bshcommands.html"/>
 
-		<delete file="bshcommands.xml"/>
+		<!--delete file="bshcommands.xml"/-->
 	</target>   
 
 </project>

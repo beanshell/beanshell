@@ -1,0 +1,1042 @@
+<BshDoc>
+  <File>
+    <Name>bind</Name>
+    <Method>
+      <Name>bind</Name>
+      <Sig>bind ( bsh .This ths , bsh .NameSpace namespace ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Bind a bsh object into a particular namespace and interpreter
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>bg</Name>
+    <Method>
+      <Name>bg</Name>
+      <Sig>Thread bg ( String filename ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Source a command in its own thread in the caller's namespace
+	<p/>
+
+	This is like run() except that it runs the command in its own thread.  
+	Returns the Thread object control.
+]]></Text>
+      <Tags>
+      <method>Thread bg( String filename )
+</method>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>workspaceEditor</Name>
+    <Method>
+      <Name>workspaceEditor</Name>
+      <Sig>workspaceEditor ( Interpreter parent , String name ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Make a new workspaceEditor in the GUI.
+]]></Text>
+      <Tags>
+      <method>workspaceEditor( bsh.Interpreter parent, String name )
+</method>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>browseClass</Name>
+    <Method>
+      <Name>browseClass</Name>
+      <Sig>browseClass ( Object o ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Open the class browser to view the specified class.  
+	If the argument is a string it is considered to be a class name.  
+	If the argument is an object, the class of the object is used.  
+	If the arg is a class, the class is used.
+	<p/>
+
+	Note: To browse the String class you can't supply a String.
+	You'd have to do:  browseClass( String.class );
+	<p/>
+]]></Text>
+      <Tags>
+      <method>void browseClass( String | Object | Class )
+</method>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>cat</Name>
+    <Method>
+      <Name>cat</Name>
+      <Sig>cat ( String filename ) </Sig>
+      <Comment>
+      <Text><![CDATA[
+	cat comment
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+    </Method>
+    <Method>
+      <Name>cat</Name>
+      <Sig>cat ( URL url ) </Sig>
+      <Comment>
+      <Text><![CDATA[
+	cat comment
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+    </Method>
+    <Method>
+      <Name>cat</Name>
+      <Sig>cat ( InputStream ins ) </Sig>
+    </Method>
+    <Method>
+      <Name>cat</Name>
+      <Sig>cat ( Reader reader ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Print the contents of filename, url, or stream (like Unix cat)
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>cd</Name>
+    <Method>
+      <Name>cd</Name>
+      <Sig>void cd ( String pathname ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Change working directory for dir(), etc. commands (like Unix cd)
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>classBrowser</Name>
+    <Method>
+      <Name>classBrowser</Name>
+      <Sig>void classBrowser ( ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Open the class browser.
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>debug</Name>
+    <Method>
+      <Name>debug</Name>
+      <Sig>debug ( ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+Toggle on and off debug mode... Note: debug output is verbose and gross.
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>desktop</Name>
+    <Method>
+      <Name>desktop</Name>
+      <Sig>desktop ( ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Start the BeanShell GUI desktop.
+]]></Text>
+      <Tags>
+      <method>void desktop()
+</method>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>editor</Name>
+    <Method>
+      <Name>editor</Name>
+      <Sig>editor ( ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Open a workspace editor.
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>eval</Name>
+    <Method>
+      <Name>eval</Name>
+      <Sig>Object eval ( String expression ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Evaluate the string in the current interpreter (see source()).
+	Returns the result of the evaluation or null.
+	<p/>
+
+	Evaluate a string as if it were written directly in the current scope, 
+	with side effects in the current scope.
+	<p/>
+	e.g.
+	<code><pre>
+		a=5;
+		eval("b=a*2");
+		print(b); // 10
+	</pre></code>
+	<p/>
+
+	eval() acts just like invoked text except that any exceptions generated
+	by the code are captured in a bsh.EvalError.  This includes ParseException
+	for syntactic errors and TargetError for exceptions thrown by the evaluated
+	code.
+	<p/>
+	e.g.
+	<pre>
+		try {
+			eval("foo>>><>M>JK$LJLK$");
+		} catch ( EvalError e ) {
+			// ParseException caught here
+		}
+
+		try {
+			eval("(Integer)true");  // illegal cast
+		} catch ( EvalError e ) {
+			// TargetException caught here
+			print( e.getTarget() )  // prints ClassCastException
+		}
+	</pre>
+	<p/>
+	
+	If you want eval() to throw target exceptions directly, without wrapping
+	them, you can simply redefine own eval like so:
+
+	<pre>
+		myeval( String expression ) {
+			try {
+				return eval( expression );
+			} catch ( TargetError e ) {
+				throw e.getTarget();
+			}
+		}
+	</pre>
+
+	<p/>
+	Returns the value of the expression.
+	<p/>
+	Throws bsh.EvalError on error
+	<p/>
+]]></Text>
+      <Tags>
+      <return>the value of the expression.</return>
+      <throws>bsh.EvalError on error
+</throws>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>exec</Name>
+    <Method>
+      <Name>exec</Name>
+      <Sig>exec ( String arg ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Get the Java Runtime and start the external process, display any
+	output to the standard bsh output.
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>exit</Name>
+    <Method>
+      <Name>exit</Name>
+      <Sig>exit ( ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Call System.exit(0) unless bsh.system.shutdownOnExit == false.
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>extend</Name>
+    <Method>
+      <Name>extend</Name>
+      <Sig>extend ( bsh .This parent ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Return a new object that is a child of the specified object.
+	<strong>
+	Note: this command will likely change along with a better inheritance 
+	mechanism for bsh in a future release.</strong>
+	<p/>
+
+	extend() is like the object() command, which
+	creates a new bsh scripted object, except that the namespace of
+	the new object is a child of the parent object. 
+	<p/>
+
+	For example:
+	<p/>
+
+	<pre>
+
+		foo=object();
+		bar=extend(foo);
+
+	is equivalent to:
+	  
+		foo() { 
+			bar() {
+				return this; 
+			}
+		}
+
+		foo=foo();
+		bar=foo.bar();
+
+	and also:
+	 
+	   foo=object();
+	   bar=object();
+	   bar.namespace.bind( foo.namespace );
+	</pre>
+	<p/>
+
+	The last example above is exactly what the extend() command does.
+	In each case the bar object inherits variables from foo in the usual way.
+]]></Text>
+      <Tags>
+      <method>This extend( This object )
+</method>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>frame</Name>
+    <Method>
+      <Name>frame</Name>
+      <Sig>frame ( Component comp ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+    Show component in a frame, centered and packed.  Handle disposal.
+	<p/>
+
+	Display the component, centered and packed, in a Frame, JFrame, or 
+	JInternalFrame.  Returns the frame.  If the GUI desktop is running then a 
+	JInternaFrame will be used and automatically added to the desktop.  
+	Otherwise if Swing is available a top level JFrame will be created.  
+	Otherwise a plain AWT Frame will be created.
+]]></Text>
+      <Tags>
+      <method>Frame | JFrame | JInternalFrame frame( Component component )
+
+</method>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>getResource</Name>
+    <Method>
+      <Name>getResource</Name>
+      <Sig>URL getResource ( String path ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	The equivalent of calling getResource() on the interpreter class in
+	the bsh package.  Use absolute paths to get stuff in the classpath.
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>load</Name>
+    <Method>
+      <Name>load</Name>
+      <Sig>Object load ( String filename ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Load a serialized Java object from filename.  Returns the object.
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>makeWorkspace</Name>
+    <Method>
+      <Name>makeWorkspace</Name>
+      <Sig>makeWorkspace ( String name ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Open a new workspace (shell) in the GUI.
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>object</Name>
+    <Method>
+      <Name>object</Name>
+      <Sig>object ( ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Returns a new bsh object which you can use to hold data items.  
+	e.g. 
+	<p/>
+	<pre>
+	  myStuff = object();
+	  myStuff.foo = 42;
+	  myStuff.bar = "blah";
+	</pre>
+]]></Text>
+      <Tags>
+      <method>This object()
+</method>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>pathToFile</Name>
+    <Method>
+      <Name>pathToFile</Name>
+      <Sig>File pathToFile ( String filename ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Create a File object corresponding to the specified file path name, taking
+	into account the bsh current working directory (bsh.cwd)
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>print</Name>
+    <Method>
+      <Name>print</Name>
+      <Sig>void print ( arg ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Print the string value of the argument, which may be of any type.
+	If beanshell is running interactively, the output will always go to the 
+	command line, otherwise it will go to System.out.
+	<p/>
+
+	Most often the printed value of an object will simply be the Java 
+	toString() of the object.  However if the argument is an array the contents 
+	of the array will be (recursively) listed in a verbose way.
+	<p/>
+
+	Note that you are always free to use System.out.println() 
+	instead of print().
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>printBanner</Name>
+    <Method>
+      <Name>printBanner</Name>
+      <Sig>printBanner ( ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Print the BeanShell banner (version and author line) - GUI or non GUI.
+]]></Text>
+      <Tags>
+      <author>Daniel Leuck
+</author>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>pwd</Name>
+    <Method>
+      <Name>pwd</Name>
+      <Sig>pwd ( ) </Sig>
+      <Comment>
+      <Text><![CDATA[
+	Print the BeanShell working directory.  This is the cwd obeyed by all the 
+	unix-like bsh comands.
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+    </Method>
+  </File>
+  <File>
+    <Name>rm</Name>
+    <Method>
+      <Name>rm</Name>
+      <Sig>void rm ( String pathname ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Remove the file (like Unix rm)
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>run</Name>
+    <Method>
+      <Name>run</Name>
+      <Sig>run ( String filename , Object runArgument ) </Sig>
+    </Method>
+    <Method>
+      <Name>run</Name>
+      <Sig>run ( String filename ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Run a command in its own in its own private global namespace and interpeter
+	context.  (kind of like the unix "chroot" for the namespace)
+	The root bsh system object is extended (with the extend() command) and 
+	made visible here, so that system info is effectively inherited.
+	Because the root bsh object is extended it is effectively read / copy
+	on write...  e.g. you can change directories in the child context, do
+	imports, etc. and it will not affect the calling context.
+	<p/>
+
+	run() is like source() except that it runs the command in a new, 
+	subordinate and prune()'d namespace.  So it's like "running" a command 
+	instead of "sourcing" it.  Returns the object context in which the command
+	was run.
+	<p/>
+
+	Returns the context so that you can gather results.
+	<p/>
+	Paramameter runArgument an argument passed to the child context under the
+		name runArgument.  e.g. you might pass in the calling This context
+		from which to draw variables, etc.
+	<p/>
+]]></Text>
+      <Tags>
+      <return>Returns the context so that you can gather results.</return>
+      <param>runArgument an argument passed to the child context under the
+		name runArgument.  e.g. you might pass in the calling This context
+		from which to draw variables, etc.
+</param>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>save</Name>
+    <Method>
+      <Name>save</Name>
+      <Sig>void save ( Object obj , String filename ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Save a serializable Java object to filename. 
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>server</Name>
+    <Method>
+      <Name>server</Name>
+      <Sig>void server ( int port ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Create a remote BeanShell listener service attached to 
+	the current interpreter, listening on the specified port.
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>setFont</Name>
+    <Method>
+      <Name>setFont</Name>
+      <Sig>Font setFont ( Component comp , int ptsize ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Change the point size of the font on the specified component, to ptsize.
+	This is just a convenience for playing with GUI components.
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>show</Name>
+    <Method>
+      <Name>show</Name>
+      <Sig>show ( ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Toggle on or off displaying the results of expressions (off by default).
+	When show mode is on bsh will print() the value returned by each expression 
+	you type on the command line.
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>source</Name>
+    <Method>
+      <Name>source</Name>
+      <Sig>Object source ( String filename ) </Sig>
+    </Method>
+    <Method>
+      <Name>source</Name>
+      <Sig>Object source ( URL url ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Read filename into the interpreter and evaluate it in the current
+	namespace.  Like the Bourne Shell "." command.
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>super</Name>
+    <Method>
+      <Name>super</Name>
+      <Sig>super ( String scope ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Returns a bsh This reference to the enclosing scope 
+	(method scope) of the specified name.
+	e.g. 
+	<p/>
+	<pre>
+		foo() {
+			x=1;
+			bar() {
+				x=2;
+				gee() {
+					x=3;
+					print( x ); // 3
+					print( super.x ); // 2
+					print( super("foo").x ); // 1
+				}
+			}
+		}
+	</pre>
+	<p/>
+
+	This is an experimental command that is not intended to be of general use.
+	<p/>
+]]></Text>
+      <Tags>
+      <method>This super( String scopename )
+</method>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>unset</Name>
+    <Method>
+      <Name>unset</Name>
+      <Sig>void unset ( String name ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	"Undefine" the variable specifed by 'name' (So that it tests == void).
+	<p/>
+	<em>Note: there will be a better way to do this in the future.  This is 
+	currently equivalent to doing namespace.setVariable(name, null);</em>
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>javap</Name>
+    <Method>
+      <Name>javap</Name>
+      <Sig>javap ( Object o ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Print the public fields and methods of the specified class (output similar 
+	to the JDK javap command).
+	<p/>
+	If the argument is a
+	string it is considered to be a class name.  If the argument is an object,
+	the class of the object is used.  If the arg is a class, the class is used.
+]]></Text>
+      <Tags>
+      <method>void javap( String | Object | Class )
+</method>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>reloadClasses</Name>
+    <Method>
+      <Name>reloadClasses</Name>
+      <Sig>void reloadClasses ( item ) </Sig>
+    </Method>
+    <Method>
+      <Name>reloadClasses</Name>
+      <Sig>void reloadClasses ( ) </Sig>
+      <Comment>
+      <Text><![CDATA[
+	Reload all classes
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Reload the specified class, package name, or all classes if no name is 
+	given.  e.g.
+	<p/>
+
+	<pre>
+		reloadClasses();
+		reloadClasses("mypackage.*");
+		reloadClasses(".*")  // reload unpackaged classes
+		reloadClasses("mypackage.MyClass") 
+	</pre>
+	<p/>
+	See <a href="classpath.html">Class Path Management</a>
+]]></Text>
+      <Tags>
+      <method>void reloadClasses( [ package name ] )
+</method>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>addClassPath</Name>
+    <Method>
+      <Name>addClassPath</Name>
+      <Sig>addClassPath ( path ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Add the specified directory or JAR file to the class path.
+	e.g.
+	<p/>
+	<pre>
+        addClassPath( "/home/pat/java/classes" );
+        addClassPath( "/home/pat/java/mystuff.jar" );
+        addClassPath( new URL("http://myserver/~pat/somebeans.jar") );
+	</pre>
+	<p/>
+	See <a href="classpath.html">Class Path Management</a>
+]]></Text>
+      <Tags>
+      <method>void addClassPath( string | URL )
+</method>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>setClassPath</Name>
+    <Method>
+      <Name>setClassPath</Name>
+      <Sig>void setClassPath ( urls ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Change the classpath to the specified array of directories and/or archives.
+	<p/>
+	See <a href="classpath.html">Class Path Management</a>
+]]></Text>
+      <Tags>
+      <method>void setClassPath( URL [] )
+</method>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>error</Name>
+    <Method>
+      <Name>error</Name>
+      <Sig>void error ( item ) </Sig>
+      <Comment>
+      <Text><![CDATA[
+	Print the item as an error.  If in the GUI console the text will show up 
+	in (something like) red, else it will be printed to stderr
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+    </Method>
+  </File>
+  <File>
+    <Name>setNameCompletion</Name>
+    <Method>
+      <Name>setNameCompletion</Name>
+      <Sig>void setNameCompletion ( boolean bool ) </Sig>
+      <Comment>
+      <Text><![CDATA[
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Allow users to turn off name completion.
+	<p/>
+	Turn name completion in the GUI console on or off.
+	Name competion is on by default.  Explicitly setting it to true however can
+	be used to prompt bsh to read the classpath and provide immediate feedback.
+	(Otherwise this may happen behind the scenes the first time name completion
+	is attempted).  Setting it to false will disable name completion.
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>getClassPath</Name>
+    <Method>
+      <Name>getClassPath</Name>
+      <Sig>URL [ ] getClassPath ( ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+Get the current classpath including all user path, extended path, and the
+boostrap JAR file if possible.
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>getClass</Name>
+    <Method>
+      <Name>getClass</Name>
+      <Sig>Class getClass ( String name ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Get a class through the current namespace utilizing the current imports,
+	extended classloader, etc.
+	<p/>
+
+	This is equivalent to the standard Class.forName() method for class loading,
+	however it takes advantage of the BeanShell class manager so that added 
+	classpath will be taken into account.  You can also use Class.forName(), 
+	however if you have modified the classpath or reloaded classes from within 
+	your script the modifications will only appear if you use the getClass() 
+	command.
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>getSourceFileInfo</Name>
+    <Method>
+      <Name>getSourceFileInfo</Name>
+      <Sig>getSourceFileInfo ( ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Return the name of the file or source from which the current interpreter
+	is reading.  Note that if you use this within a method, the result will
+	not be the file from which the method was sourced, but will be the file 
+	that the caller of the method is reading.   Methods are sourced once but
+	can be called many times... Each time the interpreter may be associated
+	with a different file and it is that calling interpreter that you are
+	asking for information.
+	<p/>
+
+	Note: although it may seems like this command would always return the
+	getSourceFileInfo.bsh file, it does not since it is being executed after
+	sourcing by the caller's interpreter.
+	If one wanted to know the file from which a bsh method was sourced one
+	would have to either capture that info when the file was sourced (by
+	saving the state of the getSourceFileInfo() in a variable outside of
+	the method or more generally we could add the info to the BshMethod class
+	so that bsh methods remember from what source they were created...
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>which</Name>
+    <Method>
+      <Name>which</Name>
+      <Sig>which ( clas ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Use classpath mapping to determine the source of the specified class
+	file.  (Like the Unix which command for executables).
+]]></Text>
+      <Tags>
+      <method>which( classIdentifier | string | class )
+</method>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>mv</Name>
+    <Method>
+      <Name>mv</Name>
+      <Sig>mv ( String fromFile , String toFile ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Rename a file (like Unix mv).
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>setStrictJava</Name>
+    <Method>
+      <Name>setStrictJava</Name>
+      <Sig>void setStrictJava ( boolean val ) </Sig>
+      <Comment>
+      <Text><![CDATA[
+	When strict Java mode is enabled BeanShell will:
+	<p/>
+
+	<ol>
+	<li>Require typed variable declarations, method arguments and return types.</li>
+	<li>Modify the scoping of variables to look for the variable
+	declaration first in the parent namespace, as in a java method inside 
+	a java class.  e.g. if you can write a method called incrementFoo() that 
+	will do the expected thing without referring to "super.foo".</li>
+	</ul>
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+    </Method>
+  </File>
+  <File>
+    <Name>setNameSpace</Name>
+    <Method>
+      <Name>setNameSpace</Name>
+      <Sig>setNameSpace ( ns ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Set the namespace of the current scope.
+	Use this only if you really know what you are doing.
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>setAccessibility</Name>
+    <Method>
+      <Name>setAccessibility</Name>
+      <Sig>setAccessibility ( boolean b ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[
+	Setting accessibility on enables to private and other non-public
+	fields and method.
+
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
+    <Name>clear</Name>
+    <Method>
+      <Name>clear</Name>
+      <Sig>clear ( ) </Sig>
+      <Comment>
+      <Text><![CDATA[
+	Clear all variables, methods, and imports from this namespace.
+	If this namespace is the root, it will be reset to the default 
+	imports.
+	See NameSpace.clear();
+]]></Text>
+      <Tags>
+      <see>NameSpace.clear();
+</see>
+      </Tags>
+      </Comment>
+    </Method>
+  </File>
+</BshDoc>

@@ -1,0 +1,65 @@
+<section>
+<name>Special Variables and Values</name>
+
+See also <a href="#this">BOGUSLINKthis, super, and global</a>.
+<p/>
+
+<em>Special variables</em>
+<p/>
+<ul>
+<li><strong>$_</strong> - the value of the last expression evaluated.</li>
+<li><strong>bsh.Console bsh.console</strong> - The primary console, if one exists.</li>
+<li><strong>java.awt.AppletContext bsh.appletcontext</strong> - the applet context, if one exists.</li>
+<li><strong>String bsh.cwd</strong> - used by the cd() and dir() commands.</li>
+<li><strong>boolean bsh.show</strong> - used by the show() command.</li>
+<li><strong>boolean bsh.interactive</strong> - is this interpreter running in an interactive mode or sourceing a file?</li>
+<li><strong>boolean bsh.evalOnly</strong> - Does this interpreter have an input stream or is it only serving as a bag for eval() operations.</li>
+</ul>
+<p/>
+
+<heading>
+Undefined variables
+</heading>
+<p/>
+You can test to see if a variable is "undefined" with the value "void", e.g.:
+<example>
+    if ( foobar == void )
+        // undefined
+</example>
+<p/>
+You can return a defined variable to the undefined state using the unset()
+command:
+
+<example>
+	a == void;  // true
+	a=5;
+	unset("a"); // note the quotes
+	a == void;  // true
+</example>
+
+<p/>
+
+<heading>
+Special features of 'This' type references
+</heading>
+<p/>
+'This' type references have four special "magic" members:  
+<ul>
+<li>".interpreter" is always a reference to the currently executing Bsh 
+Interpreter object.  </li>
+<li>".namespace" is always a reference to the Bsh NameSpace object  of the
+current context. </li>
+<li>".variables" is a String [] listing the variables defined in this
+namespace.</li>
+<li>".methods" is a String [] listing the methods defined in this
+namespace.</li>
+</ul>
+<p/>
+
+These are mainly for internal
+use by bsh commands.  Note that there are certain special situations in which 
+the ".interpreter" reference may not be available, such as in AWT 
+event handlers (see the next section).
+<p/>
+
+</section>

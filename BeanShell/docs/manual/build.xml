@@ -1,0 +1,38 @@
+<project default="manual">
+	<property name="imagedir" value="../images"/>
+	<!-- 
+		I am currently using the GPL 'htmldoc' to build a pdf from the html:
+			http://www.easysw.com/htmldoc/ 
+		I tried many xhtml->fo stylesheets, but none seemed to work well.	
+	-->
+	<property name="htmldoc" value="/pkg/htmldoc/bin/htmldoc"/>
+
+	<target name="manual">     
+		<!-- build it every time... later we can add an updtodate check -->
+		<touch file="manual.xml"/>
+		<style style="xsl/manual.xsl" in="manual.xml" out="manual.html">
+			<param name="imagedir" expression="${imagedir}"/>
+		</style>
+	</target>   
+
+	<!-- Output a list of all images referenced by the manual -->
+	<target name="images">     
+		<style style="xsl/imagelist.xsl" in="manual.xml" out="imagelist.txt"/>
+	</target>   
+
+	<target name="pdf" depends="manual">
+		<apply executable="${htmldoc}">
+			<arg value="--webpage"/>
+			<arg value="-f"/>
+			<arg value="manual.pdf"/>
+			<fileset dir="." includes="manual.html"/>
+		</apply>
+	</target>
+
+	<target name="clean">     
+		<delete quiet="true" file="manual.html"/>
+		<delete quiet="true" file="manual.pdf"/>
+		<delete quiet="true" file="imagelist.txt"/>
+	</target>   
+
+</project>

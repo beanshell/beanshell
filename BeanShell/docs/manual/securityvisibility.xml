@@ -1,0 +1,11 @@
+<section>
+<name>Security and Visibility</name>
+
+<note>
+If you're running bsh in as an untusted applet in a web browser, 
+you will see a security exception...  Of course bsh runs at whatever level
+of priviledge your Java VM has and we can't write files from an untrusted
+applet.  In that case you might want to download bsh and run it stand-alone.
+</note>
+
+</section>

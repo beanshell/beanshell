@@ -1,0 +1,19 @@
+<section>
+<name>The bsh Package</name>
+
+<h2>Adding Commands to BeanShell</h2>
+<p/>
+
+Adding to the set of "prefab" commands supplied with bsh can be about as easy as
+writing any other bsh methods.  You simply have to place your bsh scripts
+in a bsh/commands/ directory in the classpath (or inside the JAR file).
+<p/>
+You can also implement bsh commands directly in Java as .class files which 
+are dynamically loaded when needed.    The dir() commands are an example
+of a bsh command that is implemented in Java.  (I did this originaly for 
+speed).
+<p/>
+<em>More info coming</em>
+<p/>
+
+</section>
