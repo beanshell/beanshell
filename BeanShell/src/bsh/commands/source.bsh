@@ -5,11 +5,11 @@
 
 bsh.help.source = "usage: source( filename | URL )";
 
-void source( String filename ) {
+Object source( String filename ) {
 	return this.interpreter.source( filename, this.caller.namespace );
 }
 
-void source( URL url ) {
+Object source( URL url ) {
 	return this.interpreter.eval( 
 		new InputStreamReader(url.openStream()), this.caller.namespace,  
 		"URL: "+url.toString()
