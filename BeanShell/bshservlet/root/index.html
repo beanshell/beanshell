@@ -1,0 +1,31 @@
+<html>
+<head><title>Test BeanShell Servlet</title></head>
+<body>
+<h1>Test BeanShell Servlet</h1>
+
+The BeanShell Test Servlet evaluates the text you submit below and shows
+you the output, along with any return value.  It will also capture output sent 
+to System.out and System.err.
+<p>
+
+Please note the BeanShell version information displayed with the output.
+Some app servers (e.g. <b>Weblogic</b>) may come bundled with their own copy
+of BeanShell and may use their version even if you packaged a newer release
+inside the WAR file.  To upgrade you may have to place the new BeanShell
+release earlier in the app server's classpath.  See www.beanshell.org for more 
+information.
+<p>
+
+<h3>Enter text to evaluate:</h3>
+
+<form method="POST" action="eval">
+<TEXTAREA name="text" rows="20" cols="80">
+for(int i=0; i<10; i++)
+	System.out.println("Hello World!");
+</TEXTAREA>
+<p>
+<INPUT type="submit" value="Evaluate">
+</form>
+
+</body>
+<html>
