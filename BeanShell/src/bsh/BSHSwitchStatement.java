@@ -67,7 +67,10 @@ class BSHSwitchStatement
 		{
 			// if label is default or equals switchVal
 			if ( label.isDefault 
-				|| label.eval( callstack, interpreter ).equals( switchVal ) )
+				|| primitiveEquals( 
+					switchVal, label.eval( callstack, interpreter ), 
+					callstack, switchExp )
+				)
 			{
 				// execute nodes, skipping labels, until a break or return
 				while ( child < numchild ) 
@@ -105,5 +108,29 @@ class BSHSwitchStatement
 			return Primitive.VOID;
 	}
 
+	/**
+		Helper method for testing equals on two primitive or boxable objects.
+		yuck: factor this out into Primitive.java
+	*/
+	private boolean primitiveEquals( 
+		Object switchVal, Object targetVal, 
+		CallStack callstack, SimpleNode switchExp  ) 
+		throws EvalError
+	{
+		if ( switchVal instanceof Primitive || targetVal instanceof Primitive )
+			try {
+				// This can return Primitive or wrapper type 
+				Object result = Primitive.binaryOperation( 
+					switchVal, targetVal, ParserConstants.EQ );
+				// Prims test equal to their wrappers
+				return result.equals( Boolean.TRUE ); 
+			} catch ( UtilEvalError e ) {
+				throw e.toEvalError(
+					"Switch value: "+switchExp.getText()+": ", 
+					this, callstack );
+			}
+		else
+			return switchVal.equals( targetVal );
+	}
 }
 

@@ -23,7 +23,7 @@
 
 <property name="file" value=""/>
 
-	<property name="version" value="1.3a2"/>
+	<property name="version" value="1.3a3"/>
 	<property name="deprecation" value="on"/>
 
 	<!-- choose an alternate compiler -->

@@ -98,9 +98,6 @@ print("test float");
 test_flag = 0;
 flt= 3.14F;
 switch( flt ) {
-	case "foo": {
-		assert(false);
-	}
 	case 3.14F: {
 		flag();
 		break;
