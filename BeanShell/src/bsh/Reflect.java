@@ -466,6 +466,9 @@ class Reflect {
             Method currentMethod = methods[i];
             if ( name.equals( currentMethod.getName() )) {
                 Class[] parameters = currentMethod.getParameterTypes();
+		
+				if ( parameters.length != args.length )
+					continue;
                 try {
                     for(int j = 0; j < parameters.length; j++)
                         tempArgs[j] = NameSpace.checkAssignableFrom( 
@@ -517,6 +520,8 @@ class Reflect {
         {
             Constructor currentConstructor = constructors[i];
             Class[] parameters = currentConstructor.getParameterTypes();
+			if ( parameters.length != args.length )
+				continue;
             try {
                 for(int j = 0; j < parameters.length; j++)
                     tempArgs[j] = 
@@ -589,7 +594,7 @@ class Reflect {
 		if ( to == null )
 			to = new Class[0];
 
-        if(from.length != to.length)
+        if (from.length != to.length)
             return false;
 
         for(int i=0; i<from.length; i++)
