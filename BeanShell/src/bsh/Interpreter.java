@@ -801,9 +801,13 @@ public class Interpreter
 
 		CallStack callstack = new CallStack();
 		try {
-			LHS lhs = globalNameSpace.getNameResolver( name ).toLHS( 
-				callstack, this );
-			lhs.assign( value );
+			if ( Name.isCompound( name ) ) 
+			{
+				LHS lhs = globalNameSpace.getNameResolver( name ).toLHS( 
+					callstack, this );
+				lhs.assign( value );
+			} else // optimization for common case
+				globalNameSpace.setVariable(name, value);
 		} catch ( UtilEvalError e ) { 
 			throw e.toEvalError( SimpleNode.JAVACODE, callstack ); 
 		}
@@ -1059,7 +1063,7 @@ public class Interpreter
 	public void setOut( PrintStream out ) {
 		this.out = out;
 	}
-	public void setErr( PrintStream out ) {
+	public void setErr( PrintStream err ) {
 		this.err = err;
 	}
 
