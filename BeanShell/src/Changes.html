@@ -348,6 +348,18 @@
       - Improved error message on attempting to access private/protected 
         members without setAccessibility(true).  Error now shows non-public
         method and suggests turning on accessibility.
+
+	  - User defined command prompt in interactive mode.  If the command or
+		method getBshPrompt() is defined it will be called to get a string to
+		display as the user prompt.  For example, one could define the
+		following method to place the current working directory into their
+		command prompt:
+
+		    getBshPrompt() { return bsh.cwd + " % "; }
+	
+		If the method does not exist, throws an exception, or does not return a
+		String, the default prompt of "bsh % " will be used.
+
 </pre>
 
 <h2>Changes in 1.2b8 </h2>

@@ -1175,14 +1175,11 @@ public class Interpreter
 	*/
 	private String getBshPrompt() 
 	{
-		return "bsh % ";
-		/*
 		try {
 			return (String)eval("getBshPrompt()");
 		} catch ( Exception e ) {
 			return "bsh % ";
 		}
-		*/
 	}
 }
 

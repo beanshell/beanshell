@@ -177,7 +177,7 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/
 		}
 	}
 
-	/*
+	/**
 		Lookahead to determine whether a method has a return type.
 
 		// Case 1 - primitive or void
@@ -198,13 +198,15 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/
 		foo () { }
 		//obj.foo () { }  not currently supported
 	*/
+	/*
+		Note: it's important not to read ahead tokens (e.g. tok2) unless 
+		previous ones match.  We're used in lookaheads and if we have to wait
+		for tokens that couldn't match it messes up interactivity on the
+		command line.
+	*/
 	boolean methodHasReturnType() 
 	{
-		int curTok = 1;
-		Token 
-			tok1 = getToken(curTok++),
-			tok2 = getToken(curTok++),
-			tok3 = getToken(curTok++);
+		Token tok1 = getToken(1), tok2=null;
 
 		// Case 1
 		if ( tok1.kind == VOID || tok1.kind == BOOLEAN || tok1.kind == CHAR
@@ -214,8 +216,8 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/
 				return true;
 
 		// Case 2
-		if ( tok1.kind == IDENTIFIER && tok2.kind == IDENTIFIER 
-			&& tok3.kind == LPAREN )
+		if ( tok1.kind == IDENTIFIER && (tok2=getToken(2)).kind == IDENTIFIER 
+			&& getToken(3).kind == LPAREN )
 			return true;
 
 		// Case 3
@@ -225,54 +227,6 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/
 		// Case N
 		return false;
 	}
-
-	/**
-		UNUSED:
-		This was an alternate approach to methodHasReturnType() which should
-		work with compound method names... for a case we don't support right
-		now. e.g.  myobject.foo() { }
-
-		Lookahead to determine whether a method has a return type.
-		Find the '(' and then count backwards through the AmbiguousName().
-		If there are tokens left then the other stuff must be a type, right?
-
-		// Case 1 - primitive or void
-		[ void, boolean, char, ... ] foo() { }
-
-		// Case 2 - simple type name
-		Foo foo () { } 
-		Foo obj.foo () { } 
-
-		// Case 3 - compound type name
-		foo.Foo foo () { }
-		foo.Foo obj.foo () { }
-
-		// Case 4 - Parameterized return type?
-		// ??
-
-		// Case N - no type
-		foo () { }
-		obj.foo () { }
-
-	boolean methodHasReturnType() 
-	{
-		int startTok=1, curTok=1;
-		Token tok;
-		while( (tok = getToken(curTok++)).kind != LPAREN ); // find the paren
-		curTok-=2; // last (or only) component of method name
-		while( curTok > startTok )
-		{
-			if ( getToken(curTok-1).kind == DOT 
-				&& getToken(curTok-2).kind == IDENTIFIER 
-			)
-				curTok -= 2;
-			else
-				break;
-		}
-
-		return curTok > startTok;
-	}
-	*/
 
 	/**
 		Generate a ParseException with the specified message, pointing to the
