@@ -1,6 +1,13 @@
 /**
-	Open a new workspace (JConsole) in the GUI desktop.
-*/
+ * Creates a JConsole in a JInternalFrame and adds it to the desktop 
+ *
+ * @return this (the workspace scripted object for allowing access to the 
+ *          frame, interpreter, etc.)
+ *
+ * @author Pat Niemeyer
+ * @author Daniel Leuck (bug fixes)
+ */
+
 import javax.swing.*;
 import bsh.Interpreter;
 import bsh.BshClassManager;
@@ -40,12 +47,9 @@ makeWorkspace( String name )
 	interpreter.set( "bsh.desktop",  bsh.system.desktop );
 
 	this.frame = bsh.system.desktop.makeInternalFrame( name );
+	frame.frameIcon=bsh.system.icons.workspace;
 	frame.setDefaultCloseOperation( frame.DO_NOTHING_ON_CLOSE );
-
-	invoke( name, args ) {
-		if ( !name.startsWith("internalFrame") )
-			throw new Error("method: "+name);
-	}
+	
 	internalFrameClosing( e ) {
 		close();
 	}
@@ -62,7 +66,14 @@ makeWorkspace( String name )
 			close();
 		}
 	}
-
+	
+	internalFrameActivated(ife) {}
+	internalFrameDeactivated(ife) {}
+	internalFrameClosed(ife) {}
+	internalFrameOpened(ife) {}
+	internalFrameIconified(ife) {}
+	internalFrameDeiconified(ife) {}
+	
 	/*
 		Notes: Careful not to print anything before returning sys io...
 		console is now gone.
@@ -86,7 +97,7 @@ makeWorkspace( String name )
 	menu.add(mi);
 	menubar.add(menu);
 
-	menu = bsh.system.desktop.makeFontMenu( console );
+	menu = fontMenu(console);
 	menubar.add(menu);
 
 	frame.setMenuBar(menubar);
@@ -104,11 +115,6 @@ makeWorkspace( String name )
 	bsh.system.desktop.addInternalFrame( frame	);
 	frame.toFront();
 	frame.setSelected(true);
-
-	// trying desperately to get focus ;)
-	bsh.system.desktop.requestFocus();
-	frame.requestFocus();
-	console.requestFocus();
 
 	this.haveSysIO=false;
 	this.sysIn = System.in;
@@ -129,6 +135,6 @@ makeWorkspace( String name )
 		System.setErr( sysErr );
 	}
 
-	return interpreter;
+	return this;
 }
 
