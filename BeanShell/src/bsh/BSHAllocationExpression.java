@@ -106,7 +106,8 @@ class BSHAllocationExpression extends SimpleNode
         } catch(InvocationTargetException e) {
             Interpreter.debug("The constructor threw an exception:\n\t" +
                 e.getTargetException());
-            throw new TargetError(e.getTargetException(), this);
+            throw new TargetError(
+				"Object constructor", e.getTargetException(), this, true);
         }
 	}
 

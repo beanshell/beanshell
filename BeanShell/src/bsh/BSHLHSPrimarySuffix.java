@@ -86,7 +86,8 @@ class BSHLHSPrimarySuffix extends SimpleNode
 		}
 		catch(InvocationTargetException e)
 		{
-			throw new TargetError(e.getTargetException(), this);
+			throw new TargetError(
+				"target exception", e.getTargetException(), this, true);
 		}
 	}
 

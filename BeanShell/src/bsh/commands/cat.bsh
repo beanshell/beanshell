@@ -1,21 +1,36 @@
 
 bsh.help.cat = "usage: cat( filename )";
 
-cat( String filename ) {
-
+cat( String filename ) 
+{
 	file = pathToFile( filename );
 
 	if ( !file.exists() || !file.canRead() ) {
 		print( "Can't read " + file );
 		return;
 	}
+
+	cat ( new FileReader( file ) );
+}
+
+cat( URL url ) 
+{
+	cat( url.openStream() );
+}
+
+cat( InputStream ins ) 
+{
+	bin = new BufferedReader( new InputStreamReader( ins ) );
+	cat( bin );
+}
+
+cat( Reader reader ) 
+{
 	try {
-		bin = new BufferedReader( new InputStreamReader( 
-			new FileInputStream ( file ) ) );
+		bin = new BufferedReader( reader );
 		while ( (line=bin.readLine() ) != null )
 			print( line );
 	} catch ( Exception e ) {
-		print( "Error reading file..." );
+		print( "Error reading stream:"+ e);
 	}
 }
-

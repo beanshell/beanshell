@@ -2,6 +2,10 @@
 /* 	
 	Note: Leave the ^M carriage return in the above auto-generated line or 
 	JavaCC will complain about version on Win systems.
+
+	This file was auto generated, but has been modified since then.  If we
+	need to regenerate it for some reason we should be careful to look at
+	the notes below.
 */
 
 /*****************************************************************************
@@ -42,8 +46,17 @@ package	bsh;
 
 /*
 	BeanShell - 
-	Modified getMessage() to print more tersely.
-	Removed the "Was expecting one of..."
+	Modified getMessage() to print more tersely, changed message to add
+	file info.  Removed the "Was expecting one of..." except during debug
+	Made ParseException extend EvalError, override 
+		getErrorLineNumber()
+		getErrorText()
+		getErrorSourceFile()
+		toString()
+
+	added sourceFile attribute
+
+	modified constructors to use EvalError
 */
 
 /**
@@ -55,7 +68,8 @@ package	bsh;
  * You can modify this class to	customize your error reporting
  * mechanisms so long as you retain the	public fields.
  */
-class ParseException extends Exception {
+class ParseException extends EvalError {
+	String sourceFile = "<unknown>";
 
   /**
    * This constructor is used by the method "generateParseException"
@@ -74,7 +88,7 @@ class ParseException extends Exception {
 			String[] tokenImageVal
 		       )
   {
-    super("");
+	this();
     specialConstructor = true;
     currentToken = currentTokenVal;
     expectedTokenSequences = expectedTokenSequencesVal;
@@ -92,13 +106,13 @@ class ParseException extends Exception {
    */
 
   public ParseException() {
-    super();
+    this("");
     specialConstructor = false;
   }
 
   public ParseException(String message)	{
-    super(message);
-    specialConstructor = false;
+		super(message);
+    	specialConstructor = false;
   }
 
   /**
@@ -140,7 +154,7 @@ class ParseException extends Exception {
    * gets displayed.
    */
   public String	getMessage() {
-	return getMessage( true );
+	return getMessage( false );
   }
 
   public String	getMessage( boolean debug ) {
@@ -161,7 +175,7 @@ class ParseException extends Exception {
       }
       expected += eol +	"    ";
     }
-    String retval = "Encountered \"";
+    String retval = "In file: "+ sourceFile +" Encountered \"";
     Token tok =	currentToken.next;
     for	(int i = 0; i <	maxSize; i++) {
       if (i != 0) retval += " ";
@@ -241,5 +255,52 @@ class ParseException extends Exception {
       }
       return retval.toString();
    }
+
+	
+	// added for bsh
+	public String getErrorText() { 
+		// copied from generated getMessage()
+		int	maxSize	= 0;
+		for	(int i = 0; i <	expectedTokenSequences.length; i++) {
+		  if (maxSize < expectedTokenSequences[i].length)
+			maxSize	= expectedTokenSequences[i].length;
+		}
+
+		String retval = "";
+		Token tok =	currentToken.next;
+		for	(int i = 0; i <	maxSize; i++) 
+		{
+		  if (i != 0) retval += " ";
+		  if (tok.kind == 0) {
+			retval += tokenImage[0];
+			break;
+		  }
+		  retval +=	add_escapes(tok.image);
+		  tok = tok.next;
+		}
+		
+		return retval;
+	}
+
+	// added for bsh
+	public int getErrorLineNumber() { 
+    	return currentToken.next.beginLine;
+	}
+
+	// added for bsh
+	public String getErrorSourceFile() { 
+		return sourceFile; 
+	}
+
+	/**
+		Used to add source file info to exception
+	*/
+	public void setErrorSourceFile( String file ) {
+		this.sourceFile = file;
+	}
+
+	public String toString() {
+		return getMessage();
+	}
 
 }

@@ -338,6 +338,10 @@ public class Interpreter
 				interpreter.source( filename, interpreter.globalNameSpace );
 			} catch ( FileNotFoundException e ) {
 				System.out.println("File not found: "+e);
+			} catch ( TargetError e ) {
+				System.out.println("Script threw exception: "+e);
+				if ( e.inNativeCode() )
+					e.printStackTrace( DEBUG, System.err );
 			} catch ( EvalError e ) {
 				System.out.println("Evaluation Error: "+e);
 			} catch ( IOException e ) {
@@ -434,8 +438,8 @@ public class Interpreter
             catch(ParseException e)
             {
                 error("Parser Error: " + e.getMessage(DEBUG));
-                if(DEBUG)
-                    e.printStackTrace();
+				if ( DEBUG )
+                	e.printStackTrace();
                 if(!interactive)
                     eof = true;
 
@@ -451,8 +455,8 @@ public class Interpreter
             catch(TargetError e)
             {
                 error("// Uncaught Exception: " + e );
-                if(DEBUG)
-                    e.printStackTrace();
+				if ( e.inNativeCode() )
+					e.printStackTrace( DEBUG, err );
                 if(!interactive)
                     eof = true;
             }
@@ -598,17 +602,25 @@ public class Interpreter
 					}
                 }
             } catch(ParseException e) {
+				/*
                 throw new EvalError(
 					"Sourced file: "+sourceFileInfo+" parser Error: " 
 					+ e.getMessage( DEBUG ), node );
+				*/
+				if ( DEBUG )
+					// show extra "expecting..." info
+					error( e.getMessage(DEBUG) );
+
+				// add the source file info and throw again
+				e.setErrorSourceFile( sourceFileInfo );
+				throw e;
+
             } catch(InterpreterError e) {
                 e.printStackTrace();
                 throw new EvalError(
 					"Sourced file: "+sourceFileInfo+" internal Error: " 
 					+ e.getMessage(), node);
             } catch( TargetError e ) {
-                if(DEBUG)
-                    e.printStackTrace();
 				// failsafe, set the Line as the origin of the error.
 				if ( e.getNode()==null )
 					e.setNode( node );
