@@ -85,6 +85,7 @@ class JThis extends This implements
 
 	void event(String name, Object event)
 	{
+		CallStack callstack = newCallStack();
 		BshMethod method;
 
 		// handleEvent gets all events
@@ -209,6 +210,7 @@ class JThis extends This implements
 			new Class [] { null, null, null, null, null, null } );
 		if(method != null)
 			try {
+				CallStack callstack = newCallStack();
 				method.invokeDeclaredMethod( 
 					new Object[] { 
 						img, new Primitive(infoflags), new Primitive(x), 

@@ -65,7 +65,8 @@ public class This implements java.io.Serializable, Runnable {
 		so we make a default one starting with the special JAVACODE namespace
 		and our namespace as the next.
 	*/
-	transient CallStack callstack;
+// not thread safe... trying workaround
+	//transient CallStack callstack;
 
 	/**
 		getThis() is a factory for bsh.This type references.  The capabilities
@@ -125,7 +126,7 @@ public class This implements java.io.Serializable, Runnable {
 	protected This( NameSpace namespace, Interpreter declaringInterpreter ) { 
 		this.namespace = namespace; 
 		this.declaringInterpreter = declaringInterpreter;
-		initCallStack( namespace );
+		//initCallStack( namespace );
 	}
 
 	public NameSpace getNameSpace() {
@@ -190,7 +191,7 @@ public class This implements java.io.Serializable, Runnable {
 	{ 
 		ths.namespace.setParent( namespace ); 
 		ths.declaringInterpreter = declaringInterpreter;
-		ths.initCallStack( namespace );
+		//ths.initCallStack( namespace );
 	}
 
 	/**
@@ -207,9 +208,16 @@ public class This implements java.io.Serializable, Runnable {
 	}
 */
 
+/*
 	private final void initCallStack( NameSpace namespace ) {
 		callstack = new CallStack();
 		callstack.push( namespace );
+	}
+*/
+	CallStack newCallStack() {
+		CallStack callstack = new CallStack();
+		callstack.push( namespace );
+		return callstack;
 	}
 }
 

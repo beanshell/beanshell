@@ -5,6 +5,11 @@
 <h2>Changes in 1.2b6 </h2>
 <pre>
 	- Fixed accessibility bug in finding fields
+	- Fixed minor bugs in bsh.servlet.BshServlet
+	- Modified scoping on for-loop and catch blocks such that untyped variables
+	in the for-init and catch parameter (respectively) do not leak out of
+	the block.   They now act as you would expect in normal Java.
+	- Fixed some thread safety bugs with try/catch blocks.
 </pre>
 
 <h2>Changes in 1.2b5 </h2>

@@ -66,8 +66,7 @@ public class BshServlet extends HttpServlet
 			}
 		}
 
-		//response.setHeader( "bsh.return", String.valueOf(scriptResult) );
-		response.setHeader( "bsh_return", "5" );
+		response.setHeader( "Bsh-Return", String.valueOf(scriptResult) );
 
 		if ( (output != null && output.equalsIgnoreCase("raw"))
 				|| ( client != null && client.equals("Remote") ) )
@@ -88,6 +87,8 @@ public class BshServlet extends HttpServlet
 		SimpleTemplate st = new SimpleTemplate( 
 			BshServlet.class.getResource("page.template") );
 		st.replace( "version", getBshVersion() );
+		st.replace( "servletURL", 
+			HttpUtils.getRequestURL( request ).toString() );
 		if ( script != null )
 			st.replace( "script", script );
 		else
@@ -103,6 +104,7 @@ public class BshServlet extends HttpServlet
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
 		st.write(out);
+		out.flush();
     }
 
 	void sendRaw( 
@@ -116,6 +118,7 @@ public class BshServlet extends HttpServlet
 			out.println( "Script Error:\n"+scriptError );
 		else
 			out.println( scriptOutput.toString() );
+		out.flush();
 	}
 
 	/**

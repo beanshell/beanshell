@@ -7,55 +7,55 @@ public interface ParserConstants {
   int NONPRINTABLE = 6;
   int SINGLE_LINE_COMMENT = 7;
   int HASH_BANG_COMMENT = 8;
-  int FORMAL_COMMENT = 9;
-  int MULTI_LINE_COMMENT = 10;
-  int BOOLEAN = 11;
-  int BREAK = 12;
-  int CLASS = 13;
-  int BYTE = 14;
-  int CASE = 15;
-  int CATCH = 16;
-  int CHAR = 17;
-  int CONST = 18;
-  int CONTINUE = 19;
-  int _DEFAULT = 20;
-  int DO = 21;
-  int DOUBLE = 22;
-  int ELSE = 23;
-  int FALSE = 24;
-  int FINAL = 25;
-  int FINALLY = 26;
-  int FLOAT = 27;
-  int FOR = 28;
-  int GOTO = 29;
-  int IF = 30;
-  int IMPORT = 31;
-  int INSTANCEOF = 32;
-  int INT = 33;
-  int INTERFACE = 34;
-  int LONG = 35;
-  int NEW = 36;
-  int NULL = 37;
-  int PRIVATE = 38;
-  int PROTECTED = 39;
-  int PUBLIC = 40;
-  int RETURN = 41;
-  int SHORT = 42;
-  int STATIC = 43;
-  int SWITCH = 44;
-  int THROW = 45;
-  int TRUE = 46;
-  int TRY = 47;
-  int VOID = 48;
-  int WHILE = 49;
-  int INTEGER_LITERAL = 50;
-  int DECIMAL_LITERAL = 51;
-  int HEX_LITERAL = 52;
-  int OCTAL_LITERAL = 53;
-  int FLOATING_POINT_LITERAL = 54;
-  int EXPONENT = 55;
-  int CHARACTER_LITERAL = 56;
-  int STRING_LITERAL = 57;
+  int MULTI_LINE_COMMENT = 9;
+  int BOOLEAN = 10;
+  int BREAK = 11;
+  int CLASS = 12;
+  int BYTE = 13;
+  int CASE = 14;
+  int CATCH = 15;
+  int CHAR = 16;
+  int CONST = 17;
+  int CONTINUE = 18;
+  int _DEFAULT = 19;
+  int DO = 20;
+  int DOUBLE = 21;
+  int ELSE = 22;
+  int FALSE = 23;
+  int FINAL = 24;
+  int FINALLY = 25;
+  int FLOAT = 26;
+  int FOR = 27;
+  int GOTO = 28;
+  int IF = 29;
+  int IMPORT = 30;
+  int INSTANCEOF = 31;
+  int INT = 32;
+  int INTERFACE = 33;
+  int LONG = 34;
+  int NEW = 35;
+  int NULL = 36;
+  int PRIVATE = 37;
+  int PROTECTED = 38;
+  int PUBLIC = 39;
+  int RETURN = 40;
+  int SHORT = 41;
+  int STATIC = 42;
+  int SWITCH = 43;
+  int THROW = 44;
+  int TRUE = 45;
+  int TRY = 46;
+  int VOID = 47;
+  int WHILE = 48;
+  int INTEGER_LITERAL = 49;
+  int DECIMAL_LITERAL = 50;
+  int HEX_LITERAL = 51;
+  int OCTAL_LITERAL = 52;
+  int FLOATING_POINT_LITERAL = 53;
+  int EXPONENT = 54;
+  int CHARACTER_LITERAL = 55;
+  int STRING_LITERAL = 56;
+  int FORMAL_COMMENT = 57;
   int IDENTIFIER = 58;
   int LETTER = 59;
   int DIGIT = 60;
@@ -134,7 +134,6 @@ public interface ParserConstants {
     "<NONPRINTABLE>",
     "<SINGLE_LINE_COMMENT>",
     "<HASH_BANG_COMMENT>",
-    "<FORMAL_COMMENT>",
     "<MULTI_LINE_COMMENT>",
     "\"boolean\"",
     "\"break\"",
@@ -183,6 +182,7 @@ public interface ParserConstants {
     "<EXPONENT>",
     "<CHARACTER_LITERAL>",
     "<STRING_LITERAL>",
+    "<FORMAL_COMMENT>",
     "<IDENTIFIER>",
     "<LETTER>",
     "<DIGIT>",

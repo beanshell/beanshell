@@ -103,13 +103,15 @@ class BSHTryStatement extends SimpleNode
 			int n = catchParams.size();
 			for(i=0; i<n; i++)
 			{
-				NameSpace namespace = callstack.top();
-				// get catch block
+				// Get catch block
 				BSHFormalParameter fp = 
 					(BSHFormalParameter)catchParams.elementAt(i);
 
-				// should cache this subject to classloader change message
-				fp.eval( namespace );
+				// Should cache this subject to classloader change message
+				// Evaluation of the formal parameter simply resolves its
+				// type via the specified namespace.. it doesn't modify the
+				// namespace.
+				fp.eval( callstack.top() );
 
 				// If the param is typed check assignability
 				if ( fp.type != null ) 
@@ -126,12 +128,31 @@ class BSHTryStatement extends SimpleNode
 				// Found match, execute catch block
 				BSHBlock cb = (BSHBlock)(catchBlocks.elementAt(i));
 
-				if ( fp.type == BSHFormalParameter.UNTYPED )
-					namespace.setVariable(fp.name, thrown );
-				else
-					namespace.setTypedVariable(fp.name, fp.type, thrown,false);
+				// Prepare to execute the block.
+				// We must create a new BlockNameSpace to hold the catch
+				// parameter and swap it on the stack after initializing it.
 
-				ret = cb.eval( callstack, interpreter );
+				NameSpace enclosingNameSpace = callstack.top();
+				BlockNameSpace cbNameSpace = 
+					new BlockNameSpace( enclosingNameSpace );
+
+				cbNameSpace.setInitMode(true); // set params in local scope
+				if ( fp.type == BSHFormalParameter.UNTYPED )
+					cbNameSpace.setVariable(fp.name, thrown );
+				else
+					cbNameSpace.setTypedVariable(
+						fp.name, fp.type, thrown,false);
+				cbNameSpace.setInitMode(false); // normal mode
+
+				// put cbNameSpace on the top of the stack
+				callstack.swap( cbNameSpace );
+				try {
+					ret = cb.eval( callstack, interpreter );
+				} finally {
+					// put it back
+					callstack.swap( enclosingNameSpace );
+				}
+
 				target = null;  // handled target
 				break;
 			}

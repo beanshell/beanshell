@@ -30,16 +30,17 @@ public interface ParserTreeConstants
   public int JJTALLOCATIONEXPRESSION = 23;
   public int JJTARRAYDIMENSIONS = 24;
   public int JJTBLOCK = 25;
-  public int JJTSWITCHSTATEMENT = 26;
-  public int JJTSWITCHLABEL = 27;
-  public int JJTIFSTATEMENT = 28;
-  public int JJTWHILESTATEMENT = 29;
-  public int JJTFORSTATEMENT = 30;
-  public int JJTTYPEDVARIABLEDECLARATION = 31;
-  public int JJTSTATEMENTEXPRESSIONLIST = 32;
-  public int JJTRETURNSTATEMENT = 33;
-  public int JJTTHROWSTATEMENT = 34;
-  public int JJTTRYSTATEMENT = 35;
+  public int JJTFORMALCOMMENT = 26;
+  public int JJTSWITCHSTATEMENT = 27;
+  public int JJTSWITCHLABEL = 28;
+  public int JJTIFSTATEMENT = 29;
+  public int JJTWHILESTATEMENT = 30;
+  public int JJTFORSTATEMENT = 31;
+  public int JJTTYPEDVARIABLEDECLARATION = 32;
+  public int JJTSTATEMENTEXPRESSIONLIST = 33;
+  public int JJTRETURNSTATEMENT = 34;
+  public int JJTTHROWSTATEMENT = 35;
+  public int JJTTRYSTATEMENT = 36;
 
 
   public String[] jjtNodeName = {
@@ -69,6 +70,7 @@ public interface ParserTreeConstants
     "AllocationExpression",
     "ArrayDimensions",
     "Block",
+    "FormalComment",
     "SwitchStatement",
     "SwitchLabel",
     "IfStatement",
