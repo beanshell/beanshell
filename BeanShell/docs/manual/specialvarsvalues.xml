@@ -1,32 +1,117 @@
 <section>
 <name>Special Variables and Values</name>
 
-See also <a href="#this">BOGUSLINKthis, super, and global</a>.
+In addition to the scope modifiers: 'this', 'super', 'global', BeanShell
+supports a number of pre-defined system variables and some "magic" values.
 <p/>
 
-<em>Special variables</em>
+<em>Special Values</em>
 <p/>
 <ul>
-<li><strong>$_</strong> - the value of the last expression evaluated.</li>
-<li><strong>bsh.Console bsh.console</strong> - The primary console, if one exists.</li>
-<li><strong>java.awt.AppletContext bsh.appletcontext</strong> - the applet context, if one exists.</li>
-<li><strong>String bsh.cwd</strong> - used by the cd() and dir() commands.</li>
-<li><strong>boolean bsh.show</strong> - used by the show() command.</li>
-<li><strong>boolean bsh.interactive</strong> - is this interpreter running in an interactive mode or sourceing a file?</li>
-<li><strong>boolean bsh.evalOnly</strong> - Does this interpreter have an input stream or is it only serving as a bag for eval() operations.</li>
+<li><strong>$_</strong> - The value of the last expression evaluated.  The
+strange construct for this is drawn from Perl, but the idea exists in many
+scripting languages.  It is useful for getting back 
+the last result when you are working interactively.  <em>We may expand or 
+change this API in the future.</em> </li>
+
+<li><strong>bsh</strong> - The BeanShell root system object, containing 
+system information and variables.</li>
+
+<li><strong>bsh.args</strong> - An array of Strings passed as command 
+line arguments to the BeanShell interpreter.</li>
+
+<li><strong>bsh.system</strong> - A system object space which is 
+shared across all interpreter instances.  Normally each bsh.Interpreter 
+instance is entirely independent; having its own unique global namespace
+and settings.  bsh.system is implemented as a static namespace in the 
+bsh.Interpreter class.  It was added primarily to support communication
+among instances for the GUI desktop.
+</li>
+
+<li><strong>bsh.system.shutdownOnExit</strong> - A boolean value which can
+be set to false to indicate that the BeanShell exit() command should not
+actually perform a System.exit();
+</li>
+
+<li><strong>bsh.Console bsh.console</strong> - If BeanShell is running in 
+its GUI desktop mode, this variable holds a reference to the current 
+interpreter's console, if it has one.</li>
+
+<li><strong>bsh.appletcontext</strong> - If BeanShell
+is running inside an Applet, the current applet ccontext, if one exists.</li>
+
+<li><strong>bsh.cwd</strong> - A String representing the current working
+directory of the BeanShell interpreter.  This is used or manimpulated by the 
+cd(), dir(), pwd(), and pathToFile() commands.</li>
+
+<li><strong>bsh.show</strong> - A boolean value used by the show() command.
+It indicates whether results are always printed, for interactive use.
+</li>
+
+<li><strong>bsh.interactive</strong> - A boolean indicating whether this 
+interpreter running in an interactive mode</li> 
+
+<li><strong>bsh.evalOnly</strong> - A boolean indicating whether this 
+interpreter has an input stream or whether is it only serving as an engine 
+for eval() operations (e.g. for embedded use).</li>
 </ul>
 <p/>
 
-<h2>Undefined variables</h2>
+<note>
+The choice of "bsh" for the root system object name was somewhat unfortunate
+because it conflicts with the current package name for BeanShell (also bsh).
+This means that if you wish to work with BeanShell classes explicitly from
+BeanShell scripts (e.g. bsh.Interpreter) you must first import them, e.g.:
+<pre>
+	import bsh.Interpreter;
+	i=new Interpreter();
+</pre>
+</note>
+
+<h2>Special Members of 'this' type References</h2>
 <p/>
-You can test to see if a variable is "undefined" with the value "void", e.g.:
+
+'this' type references have several "magic" members:  
+
+<ul>
+
+<li><strong>this.variables</strong> - An array of Strings listing the 
+variables defined in the current method context (namespace).</li>
+
+<li><strong>this.methods</strong> - An array of Strings listing the methods 
+defined the current method context (namespace).</li>
+
+<li><strong>this.interpreter</strong> - A bsh.Interpreter reference to the 
+currently executing BeanShell Interpreter object.</li>
+
+<li><strong>this.namespace</strong> - A bsh.NameSpace reference to the BeanShell
+NameSpace object of the current method context. See "Advanced Topics".</li>
+
+<li><strong>this.caller</strong> - A bsh.This reference to the calling
+BeanShell method context. See "Variables and Scope Modifiers".</li>
+
+<li><strong>this.callstack</strong> - An array of bsh.NameSpace references 
+representing the "call stack" up to the current method context. 
+See "Advanced Topics".</li>
+
+</ul>
+<p/>
+
+These magic references are primarily used by BeanShell commands.   For example,
+<p/>
+
+<h2>Undefined Variables</h2>
+<p/>
+You can test to see if a variable is defined using the special value 
+<b>void</b>.  For example:
+
 <example>
 if ( foobar == void )
 	// undefined
 </example>
-<p/>
-You can return a defined variable to the undefined state using the unset()
-command:
+
+You can "undefine" a variabel - return it to the undefined state using the 
+unset() command:
 
 <example>
 a == void;  // true
@@ -37,25 +122,5 @@ a == void;  // true
 
 <p/>
 
-<h2>Special features of 'This' type references</h2>
-<p/>
-'This' type references have four special "magic" members:  
-<ul>
-<li>".interpreter" is always a reference to the currently executing Bsh 
-Interpreter object.  </li>
-<li>".namespace" is always a reference to the Bsh NameSpace object  of the
-current context. </li>
-<li>".variables" is a String [] listing the variables defined in this
-namespace.</li>
-<li>".methods" is a String [] listing the methods defined in this
-namespace.</li>
-</ul>
-<p/>
-
-These are mainly for internal
-use by bsh commands.  Note that there are certain special situations in which 
-the ".interpreter" reference may not be available, such as in AWT 
-event handlers (see the next section).
-<p/>
 
 </section>

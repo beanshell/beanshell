@@ -1,0 +1,156 @@
+<section>
+<name>Visibility and Scope Modifiers</name>
+
+Now that we've seen how methods can be nested and treated as objects, we
+can revisit the topic of variable scope and scope modifiers.
+<p/>
+
+As we discussed in the "Syntax" section early on, variables references in 
+BeanShell default to the local scope, unless otherwise qualified.  
+
+This is a little different from some other scripting
+languages, but we feel is more consistent with Java, more consistent with
+object oriented design in general, and a more natural extension of Java 
+syntax into the scripting domain.  Now let's look at what this means.
+<p/>
+
+In the "Syntax" section we described the use of 'super' to refer to a 
+method's parent scope (the scope in which the method is defined).  
+And in this section we talked 
+about 'super's brother 'this', which refers to the current method's scope,
+allowing us to think of a method scope as an object.  Now we can see how 
+these concepts are related.  Any method scope can be thought of or used as
+an object context. A scripted object can be thought of as encapsulated in a 
+parent scope that determines its "environment" - inherited variables and 
+methods.  
+
+Both 'this' and 'super' are really the same
+kind of reference - a reference to a BeanShell method context 
+(i.e. a script object).  From here on We'll refer to 'this', 'super', and 
+any reference to scripted object contexts in general as a 
+<em>'this' type reference</em>.
+<p/>
+
+<note>
+If you print a 'this' type reference you'll see what it refers to:
+
+<pre>
+    BeanShell 1.3 - by Pat Niemeyer (pat@pat.net)
+    bsh % print( this );
+    'this' reference (XThis) to Bsh object: global
+    bsh % foo() { print(this); print(super); }
+    bsh % foo();
+    'this' reference (XThis) to Bsh object: foo
+    'this' reference (XThis) to Bsh object: global
+</pre>
+</note>
+<p/>
+
+<h2>'global' and Global Scope</h2>
+
+A third scope modifier, 'global', allows you to always refer to the top-most
+scope.  In the previous note you can see that the top level script context
+is called "global" and that it appears again as the 'super' of our foo() 
+method.  The global context is always the top scope of the script.  Referring
+to 'super' from the top scope simply returns the same 'global' again.  
+Although it is legal to say things like: 
+<example>
+  super.super.super...foo = 42;  // Chain super. to reach the top
+</example>
+
+It is probably better to use 'global' in this situation or to refer to some
+other object, defined in the global context.  e.g.
+
+<example>
+// Create a global object to hold some state
+dataholder = object();
+
+foo() {
+	...
+	bar() {
+		dataholder.value = 42;
+	}
+
+	bar();
+	print( dataholder.value );
+}
+	
+</example>
+
+In the above example we used the BeanShell object() command to create an
+"empty" BeanShell scripted object context in which to hold some data.  (The
+object() command is just a standard empty method named object() that 
+returns 'this'.)
+
+<h2>'this.caller' and the Caller Context</h2>
+
+We mentioned earlier the difference between the 'super' or parent context
+of a method and the caller's context.  The 'super' of a method is always
+the context in which the method was defined.  But the caller may be any context
+in which the method is used.  In the following example,
+the parent and the caller context are the same:
+
+<example>
+foo() { ... }
+foo();
+</example>
+
+But this is not always the case, as for bar() in the following example:
+
+<example>
+foo() { 
+	bar() { ... }
+}
+
+// somewhere
+fooObject.bar();
+</example>
+
+The special "magic" field reference: 'this.caller' makes it possible 
+to reach the context of whomever called bar().  The 'this.caller' reference 
+always refers to the calling context of the current method context.
+<p/>
+
+<img src="caller.gif"/>
+<p/>
+
+The diagram above shows the foo() and bar() scopes, along with the caller's
+scope access via 'this.caller'.
+<p/>
+
+The most common example of where this is useful is in writing
+BeanShell commands.  BeanShell commands are simply BeanShell methods
+contained in external script files, automatically loaded when their name
+is invoked.  (You can write your own commands and add them to the classpath
+if you wish.)  BeanShell command methods are always loaded into the global 
+scope.  If you refer to 'super' from your BeanShell command you will simply 
+get 'global'.  Often it is desirable to write commands that explicitly have 
+side effects in the caller's scope.  The ability to do so makes it possible to
+write new kinds of commands that have the appearance of being "built-in" 
+to the language.  
+<p/>
+
+A good example of this is the eval() BeanShell command.  eval() evaluates
+a string as if it were typed in the current context.  To do this, it sends
+the string to an instance of the BeanShell interpreter.  But when it does
+so it tells the interpreter to evaluate the string in a specfic namespace:
+the namespace of the caller; using this.caller.
+
+<example>
+	eval("a=5");
+	print( a ); // 5
+</example>
+
+You can follow the call chain further back if you want to by chaining
+the '.caller' reference, like so:
+
+<example>
+	this.caller.caller...;
+</example>
+
+Or, more generally, another magic reference 'this.callstack' returns an
+array of bsh.NameSpace objects representing the full call "stack".  This is
+an advanced topic for developers that we'll discuss in another location.
+
+</section>
+

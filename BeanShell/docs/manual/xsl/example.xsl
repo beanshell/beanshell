@@ -8,7 +8,7 @@
 	<p/>
 	<center>
 	<table width="100%" cellpadding="5" border="1">
-	<tr><td	bgcolor="#cfcfcc">
+	<tr><td	bgcolor="#dfdfdc">
 	<pre>
 		<xsl:value-of select='.'/>
 	</pre>

@@ -1,6 +1,11 @@
 <section>
 <name>Using BeanShell in Your Application</name>
 
+<img src="scriptmode.gif"/>
+<br CLEAR="ALL"/>
+
+<img src="embeddedmode.gif"/>
+<br CLEAR="ALL"/>
 <example>
 import bsh.Interpreter;
 ...
@@ -16,7 +21,16 @@ to be evaluated is optional in this mode (bsh simply always adds one).
 <p/>
 
 <em>Embedding in Server Mode is the same, coming...</em><br/>
+
 <em>More coming...</em>
 <p/>
+
+<img src="remotemode.gif"/>
+<br CLEAR="ALL"/>
+<img src="servletmode.gif"/>
+<br CLEAR="ALL"/>
+<img src="appletmode.gif"/>
+<br CLEAR="ALL"/>
+
 
 </section>

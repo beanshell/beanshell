@@ -29,7 +29,7 @@ print( System.currentTimeMillis() );
 
 // Loop
 for (int i=0; i&lt;5; i++)
-	print(i);
+    print(i);
 
 // Pop up a frame with a button in it
 JButton button = new JButton( "My Button" );
