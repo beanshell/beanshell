@@ -88,7 +88,7 @@ we'll talk more about this, why it is so, and what it implies.
 
 Within a method, it is possible to explicitly qualify a variable or 
 method reference with the identifier 'super' in order to refer 
-to parent method's scope (the scope in which the method is defined).  
+to the parent method's scope (the scope in which the method is defined).  
 <p/>
 
 <example>

@@ -9,10 +9,7 @@
 	<center>
 	<table width="100%" cellpadding="5" border="1">
 	<tr><td	bgcolor="#dfdfdc">
-	<pre>
-		<xsl:value-of select='.'/>
-	</pre>
-	</td></tr>
+	<pre><xsl:value-of select='.'/></pre></td></tr>
 	</table>
 	</center>
 	<p/>
