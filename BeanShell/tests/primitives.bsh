@@ -5,16 +5,27 @@ source("TestHarness.bsh");
 
 // basic
 byte b = (byte)2;
+byte b = 0xff;
 byte b = 2;
+i=b;
+assert( i == 2 );
 char c = 'A';
+char c = 5;
 short s = (short)2;
 short s = 2;
 int i = 2;
-double d = 3.0f;
+float f = 3.0f;
+// float's don't get auto cast in declarations
+assert( isEvalError("float f = 3.0"));
+double d = 3.0;
 
-i=b;
-// peek at the bsh.Primitive to confirm type
-assert( i == 2 );
+// promote
+double d1 = 3.0f;
+assert( d1.getType() == Double.TYPE );
+long l1 = 5;
+assert( l1.getType() == Long.TYPE );
+l1 = (byte)5;
+assert( l1.getType() == Long.TYPE );
 
 // basic assignment promotion
 int i2 = (byte)5;

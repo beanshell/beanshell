@@ -97,7 +97,7 @@ public class Interpreter
 		Debug utils are static so that they are reachable by code that doesn't
 		necessarily have an interpreter reference (e.g. tracing in utils).
 	*/
-    public static boolean DEBUG;
+    public static boolean DEBUG, TRACE;
     static PrintStream debug;
 	static {
 	// apparently in some environments you can't catch the security exception
@@ -106,6 +106,7 @@ public class Interpreter
 		try {
     		debug = System.err;
     		DEBUG = Boolean.getBoolean("debug");
+    		TRACE = Boolean.getBoolean("trace");
 			String outfilename = System.getProperty("outfile");
 			if ( outfilename != null )
 				redirectOutputToFile( outfilename );
@@ -563,6 +564,10 @@ exception handling.
                 if (localInterpreter.get_jjtree().nodeArity() > 0)
                 {
                     node = (SimpleNode)localInterpreter.get_jjtree().rootNode();
+
+					if ( TRACE )
+						println( "// " +node.getText() );
+
                     retVal = node.eval( callstack, this );
 
 					// sanity check during development

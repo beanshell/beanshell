@@ -51,4 +51,16 @@ int a=6;
 // but not a different type
 assert(isEvalError("Object a=\"foo\""));
 
+// untyped can be overridden with a typed
+un1 = "foo";
+un1 = 5;
+String un1 = "foo";
+un1="bar";
+assert(isEvalError("un1=5"));
+
+// typed declaration and assignments work
+assert( isEvalError("String s1 = 5"));
+String s2;
+assert( isEvalError("s2 = 5"));
+
 complete();

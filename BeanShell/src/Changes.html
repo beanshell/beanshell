@@ -4,6 +4,17 @@
 
 <h2>Changes in 1.1alpha12</h2>
 <pre>
+	- Added "trace" option.
+		java -Dtrace=true bsh.Interpreter or trace() command.
+		turns on printing of each line before it is executed
+	- Fixed bugs in primitive handling:
+		primitives smaller than int are now properly assigned in declarations:
+			e.g.: byte b = 5;
+		primitive are internally promoted to the correct type on assignment
+		to a typed variable, 
+			e.g.:  long l = (byte)5;  // l is a long value internally
+	- Cleanup in cast operation.. re-factored the cast code into two types
+		of cast operations.
 	- Tightened up re-declaration of typed variables...  You can only redeclare
 		a typed var with the same type, else you can an error.  Previously
 		there was odd behavior where you could redeclare with an assignable

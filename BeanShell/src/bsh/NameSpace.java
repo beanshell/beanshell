@@ -259,6 +259,11 @@ public class NameSpace
     }
 
     /**
+		Set the typed variable with the value.  
+		An existing typed variable may only be set to the same type.
+		If an untyped variable exists it will be overridden with the new
+		typed var.
+		The set will perform a getAssignableForm() on the value if necessary.
 		@param value If value is null, you'll get the default value for the type
     */
     public void	setTypedVariable(
@@ -294,18 +299,28 @@ public class NameSpace
 				value =	Primitive.NULL;
 		}
 
-		// if the variable already exists with a different type, throw error
-		if ( variables.containsKey(name) ) {
+		// does the variable already exist?
+		if ( variables.containsKey(name) ) 
+		{
 			Object existing = getVariableImpl( name, false );
-			if ( existing instanceof TypedVariable 
-				&& ((TypedVariable)existing).getType() != type 
-			)
-				throw new EvalError( "Typed variable: "+name
-					+" was previously declared with type: " 
-					+ ((TypedVariable)existing).getType() );
-		}
+			// is it typed?
+			if ( existing instanceof TypedVariable ) 
+			{
+				// if it had a different type throw error
+				if ( ((TypedVariable)existing).getType() != type )
+					throw new EvalError( "Typed variable: "+name
+						+" was previously declared with type: " 
+						+ ((TypedVariable)existing).getType() );
+				else {
+					// else set it and return
+					((TypedVariable)existing).setValue( value );
+					return;
+				}
+			}
+			// else fall through to override and install the new typed version
+		} 
 
-		// add the typed var
+		// add the new typed var
 		variables.put(name, new	TypedVariable(type, value, isFinal));
     }
 
@@ -592,25 +607,42 @@ public class NameSpace
 
     static class TypedVariable implements java.io.Serializable {
 		Class type;
-		Object value;
+		Object value = null; // uninitiailized
 		boolean	isFinal;
 
 		TypedVariable(Class type, Object value,	boolean	isFinal)
+			throws EvalError
 		{
 			this.type =	type;
 			if ( type == null )
 				throw new InterpreterError("null type in typed var: "+value);
-			this.value = value;
 			this.isFinal = isFinal;
+			setValue( value );
 		}
 
+		/**
+			Set the value of the typed variable.
+		*/
 		void setValue(Object val) throws EvalError
 		{
-			if (isFinal)
+			if ( isFinal && value != null )
 				throw new EvalError ("Final variable, can't assign");
 
-			val	= getAssignableForm(val, type); // throws error on failure
-			value = val;
+			// do basic assignability check
+			val = getAssignableForm(val, type);
+			
+			// If we are a numeric primitive type we want to convert to the 
+			// actual numeric type of this variable...  Being assignable is 
+			// not good enough.
+			if ( val instanceof Primitive && ((Primitive)val).isNumber() )
+				try {
+					val = BSHCastExpression.castPrimitive( 
+						(Primitive)val, type );
+				} catch ( EvalError e ) {
+					throw new InterpreterError("auto assignment cast failed");
+				}
+
+			this.value= val;
 		}
 
 		Object getValue() { return value; }
@@ -619,7 +651,7 @@ public class NameSpace
 
 	/**
 		@deprecated name changed.
-		@see getAssignableForm
+		@see getAssignableForm()
 	*/
     public static Object checkAssignableFrom(Object rhs, Class lhsType)
 		throws EvalError
@@ -629,14 +661,23 @@ public class NameSpace
 
 	/**
 		Determine if the RHS object can be assigned to the LHS type (as is,
-		through widening, promotion, arbitrary magic) and if so, return the 
-		assignable form of the RHS.  
+		through widening, promotion, etc. ) and if so, return the 
+		assignable form of the RHS.  Note that this is *not* a cast operation.
+		Only assignments which are always legal (upcasts, promotion) are 
+		passed.
 		<p>
 
-		Note that assignability is in terms of what the Java reflection API
-		will allow.  So for primitive types the returned value may be 
-		unchanged since the reflect api will do widening conversions in the 
-		case of field sets and array sets.
+		In normal cases this functions as a simple check for assignability
+		and the value is returned unchanged.  e.g. a String is assignable to
+		an Object, but no conversion is necessary.  Similarly an int is 
+		assignable to a long, so no conversion is done.
+		In this sense assignability is in terms of what the Java reflection API
+		will allow since the reflection api will do widening conversions in the 
+		case of sets on fields and arrays.
+		<p>
+		The primary purpose of the abstraction "returning the assignable form"			abstraction is to allow non standard bsh assignment conversions. e.g.
+		the wrapper stuff.  I'm still not sure how much of that we should
+		be doing.
 		<p>
 
 		This method is used in many places throughout bsh including assignment
@@ -645,16 +686,17 @@ public class NameSpace
 
 		@returns an assignable form of the RHS or throws EvalError
 		@throws EvalError on non assignable
+		@see BSHCastExpression.castObject();
 	*/
 	/*
 		Notes:
 	
 		Need to define the exact behavior here:
-			does this preserve Primitive types to Primitives or unwrap, etc?
+			Does this preserve Primitive types to Primitives, etc.?
 
 		This is very confusing in general...  need to simplify and clarify the
 		various places things are happening:
-			Reflect.checkAssignable
+			Reflect.isAssignableFrom()
 			Primitive?
 			here?
 	*/
@@ -688,10 +730,18 @@ public class NameSpace
 			rhsType = originalType = ((Primitive)rhs).getType();
 
 			// check for primitive/non-primitive mismatch
-			if ( !lhsType.isPrimitive() ) 
+			if ( lhsType.isPrimitive() ) {
+				// not doing this yet...  leaving as the assignable orig type
+				/*
+					We have two primitive types.  If Reflect.isAssignableFrom()
+					which knows about primitive widening conversions says they
+					are assignable, we will do a cast to change the value
+				if ( Reflect.isAssignableFrom(
+					((Primitive)lhs).getType(), ((Primitive)rhs).getType() )
+				*/
+			} else
 			{
 				// attempt promotion to	a primitive wrapper
-				
 				// if lhs a wrapper type, get the rhs as wrapper value
 				// else error
 				if( Boolean.class.isAssignableFrom(lhsType) ||

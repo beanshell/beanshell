@@ -86,10 +86,11 @@ class BSHUnaryExpression extends SimpleNode implements ParserConstants
         throws EvalError
     {
         Class operandType = val.getClass();
-        Object operand = Primitive.promotePrimitive(val);
+        Object operand = Primitive.promoteToInteger(val);
 
         if(operand instanceof Boolean)
-            return new Boolean(Primitive.booleanUnaryOperation((Boolean)operand, kind));
+            return new Boolean(
+				Primitive.booleanUnaryOperation((Boolean)operand, kind));
         else if(operand instanceof Integer)
         {
             int result = Primitive.intUnaryOperation((Integer)operand, kind);
