@@ -73,8 +73,7 @@ is included in the standard BeanShell distribution, all that is necessary to
 do this is to include bsh.jar and add an entry to your wegapp's web.xml file.  
 Here is an example:
 
-<example>
-<![CDATA[ 
+<example><![CDATA[ 
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE web-app
     PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
@@ -92,8 +91,7 @@ Here is an example:
     </servlet-mapping>
 
 </web-app>
-]]>
-</example>
+]]></example>
 
 The above example deploys an instance of BshServlet under the name "/eval".
 The full path to the servlet will then depend on the name given to the
@@ -149,14 +147,12 @@ can have your script generate HTML or other output to be consumed by the client.
 
 For example:
 
-<example>
-<![CDATA[ 
+<example><![CDATA[ 
 // Server side script generates HTML response page
 bsh.httpServletRequest.setResponseType("text/html");
 out = bsh.httpServletRequest.getWriter();
 out.println("<html><body><h1>Hello World!</h1></body></html>");
-]]>
-</example>
+]]></example>
 
 More generally, you can use the httpServletRequest to get access to the
 server environment such as the servlet session object.  You can also access

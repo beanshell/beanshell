@@ -33,4 +33,18 @@ It is a comprehensive overview of the Java language and APIs including
 a brief introduction to BeanShell as well! 
 <p/>
 
+<h2>License and Terms of Use</h2>
+
+You may freely use and reproduce this document in its entirety as long as 
+you preserve this license information and a pointer to the original
+web site: http://www.beanshell.org.  You may integrate parts of this document
+into your own documentation as long as you provide this same information 
+at an appropriate place in your document.
+<p/>
+
+This document is copyright Pat Niemeyer, 2002.  Sections contributed by
+other authors are copyrighted to those individuals and subject to the
+terms of use described above.
+<p/>
+
 </section>

@@ -175,10 +175,10 @@ print( z ); // 10
 
 In BeanShell you may access JavaBean properties as if they were fields:
 
-<pre>
-    button = new java.awt.Button();
-    button.label = "my button";  // Equivalent to: b.setLabel("my button");
-</pre>
+<example>
+button = new java.awt.Button();
+button.label = "my button";  // Equivalent to: b.setLabel("my button");
+</example>
 
 JavaBean properties are simply pairs of "setter" and "getter" methods that
 adhere to a naming convention.  In the above example BeanShell located

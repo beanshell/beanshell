@@ -11,6 +11,7 @@
 	</td></tr>
 	</table>
 	</center>
+	<p/>
 </xsl:template>
 
 </xsl:stylesheet>
