@@ -347,7 +347,8 @@ public class NameSpace
 					return c;
 
 				// Try to make the name
-				c=classForName(fullname);
+				//c=classForName(fullname);
+				c=getAbsoluteClass(fullname);
 				if ( c!= null)
 					return c;
 
@@ -374,7 +375,8 @@ public class NameSpace
 				if(c !=	null)
 					return c;
 
-				c=classForName(s);
+				//c=classForName(s);
+				c=getAbsoluteClass(s);
 				if ( c != null )
 					return c;
 			}
@@ -389,7 +391,8 @@ public class NameSpace
     }
 
 	/**
-		See getClass()
+		Perform caching of absolute class lookups
+Move this to BCM
 	*/
     static Class getAbsoluteClass( String name )
     {
@@ -400,7 +403,7 @@ public class NameSpace
 		if ( absoluteNonClasses.get(name) != null)
 			return null;
 
-		c = classForName(name);
+		c = classForName( name );
 		if ( c != null )
 			absoluteClassCache.put( name, c );
 
@@ -646,7 +649,8 @@ public class NameSpace
 	}
 
 	public static boolean classExists( String name ) {
-		return ( classForName( name ) != null );
+		//return ( classForName( name ) != null );
+		return ( getAbsoluteClass( name ) != null );
 	}
 
 	// Convenience method
