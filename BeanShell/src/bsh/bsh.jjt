@@ -423,19 +423,25 @@ void FormalParameter() #FormalParameter :
   t=<IDENTIFIER> { jjtThis.name = t.image; }
 }
 
-/*
- * Type, name and expression syntax follows.
- */
 
-SimpleNode Type() #Type :
+/*
+	Type, name and expression syntax follows.
+*/
+void Type() #Type :
 { }
 {
+	/* 
+		The embedded lookahead is necessary to disambiguate for
+		PrimaryPrefix.  ( )* is a choice point.  It took me a while to
+		figure out where to put that.  This stuff is annoying.
+	*/
   ( PrimitiveType() | AmbiguousName() ) 
-	( "[" "]" { jjtThis.addArrayDimension(); } )* {
-		return jjtThis;
-	}
+	( LOOKAHEAD(2) "[" "]" { jjtThis.addArrayDimension(); } )* 
 }
 
+/*
+	Originally called ResultType in the grammar
+*/
 void ReturnType() #ReturnType :
 { }
 {
@@ -697,11 +703,19 @@ void PrimaryPrefix() : { }
 |
   AllocationExpression()
 |
+  LOOKAHEAD( Type() "." "class" )
+  Type()
+|
 	/* 
-	Handle method invocation OR straight ambigous name...
-	couldn't we just write this as two rules more clearly? 
+		Handle method invocation OR straight ambigous name...
+		(probably should just write this as two rules more clearly)
 	*/ 
   ( AmbiguousName() [ Arguments() ]  ) #MethodInvocation(>1)
+
+/*
+|
+  LOOKAHEAD( "void" "." "class" )
+*/
 }
 
 void PrimarySuffix() #PrimarySuffix :

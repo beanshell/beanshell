@@ -68,12 +68,22 @@ class BSHPrimarySuffix extends SimpleNode
 		throws EvalError
 	{
 		// Handle ".class" suffix operation
+		/*
 		if ( operation == CLASS )
 			if ( obj instanceof BSHAmbiguousName ) {
 				NameSpace namespace = callstack.top();
 				return ((BSHAmbiguousName)obj).toClass( namespace );
 			} else
-				throw new EvalError("Trying to call .class on something inappropriate...", this);
+				throw new EvalError(
+					"Attemp to .class on non class...", this);
+		*/
+		if ( operation == CLASS )
+			if ( obj instanceof BSHType ) {
+				NameSpace namespace = callstack.top();
+				return ((BSHType)obj).getType( namespace );
+			} else
+				throw new EvalError(
+					"Attemp to invoke .class on non class.", this);
 
 		// Handle other suffix operations
 

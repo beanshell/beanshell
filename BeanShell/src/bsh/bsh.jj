@@ -621,11 +621,11 @@ void FormalParameter()                  :
 /*@egen*/
 }
 
-/*
- * Type, name and expression syntax follows.
- */
 
-SimpleNode Type()       :
+/*
+	Type, name and expression syntax follows.
+*/
+void Type()       :
 {/*@bgen(jjtree) Type */
   BSHType jjtn000 = new BSHType(JJTTYPE);
   boolean jjtc000 = true;
@@ -635,16 +635,13 @@ SimpleNode Type()       :
 {/*@bgen(jjtree) Type */
   try {
 /*@egen*/
+	/* 
+		The embedded lookahead is necessary to disambiguate for
+		PrimaryPrefix.  ( )* is a choice point.  It took me a while to
+		figure out where to put that.  This stuff is annoying.
+	*/
   ( PrimitiveType() | AmbiguousName() ) 
-	( "[" "]" { jjtn000.addArrayDimension(); } )*/*@bgen(jjtree)*/
-                                                      {
-                                                        jjtree.closeNodeScope(jjtn000, true);
-                                                        jjtc000 = false;
-                                                        jjtreeCloseNodeScope(jjtn000);
-                                                      }
-/*@egen*/ {
-		return jjtn000;
-	}/*@bgen(jjtree)*/
+	( LOOKAHEAD(2) "[" "]" { jjtn000.addArrayDimension(); } )*/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
@@ -665,9 +662,12 @@ SimpleNode Type()       :
       jjtreeCloseNodeScope(jjtn000);
     }
   }
-/*@egen*/
+/*@egen*/ 
 }
 
+/*
+	Originally called ResultType in the grammar
+*/
 void ReturnType()             :
 {/*@bgen(jjtree) ReturnType */
   BSHReturnType jjtn000 = new BSHReturnType(JJTRETURNTYPE);
@@ -1491,6 +1491,9 @@ void PrimaryPrefix() : { }
   "(" Expression() ")"
 |
   AllocationExpression()
+|
+  LOOKAHEAD( Type() "." "class" )
+  Type()
 |/*@bgen(jjtree) #MethodInvocation(> 1) */
   {
     BSHMethodInvocation jjtn001 = new BSHMethodInvocation(JJTMETHODINVOCATION);
@@ -1501,8 +1504,8 @@ void PrimaryPrefix() : { }
   try {
 /*@egen*/
 	/* 
-	Handle method invocation OR straight ambigous name...
-	couldn't we just write this as two rules more clearly? 
+		Handle method invocation OR straight ambigous name...
+		(probably should just write this as two rules more clearly)
 	*/ 
   ( AmbiguousName() [ Arguments() ]  )/*@bgen(jjtree)*/
   } catch (Throwable jjte001) {
@@ -1526,6 +1529,11 @@ void PrimaryPrefix() : { }
     }
   }
 /*@egen*/
+
+/*
+|
+  LOOKAHEAD( "void" "." "class" )
+*/
 }
 
 void PrimarySuffix()                :

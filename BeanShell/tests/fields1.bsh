@@ -33,5 +33,15 @@ f=Fields.getFields();
 assert( f.ambigName.equals("field") );
 assert( f.ambigName().equals("method") );
 
+// .class access
+assert( Integer.class instanceof Class );
+assert( Object [].class instanceof Class );
+assert( Object [][][].class instanceof Class );
+assert( boolean [][][].class instanceof Class );
+
+cl1=String[][].class;
+cl2=(new String[1][1]).getClass();
+assert(cl1 == cl2);
+
 complete();
 
