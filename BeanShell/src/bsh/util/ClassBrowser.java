@@ -37,26 +37,28 @@ import bsh.ConsoleInterface;
 public class ClassBrowser extends JSplitPane
 	implements ListSelectionListener, TreeSelectionListener {
 
-	Map packages;
+	BshClassPath classPath;
 
-	String [] packagesList, classesList;
+	// GUI
+	JFrame frame;
+	JInternalFrame iframe;
+	JList plist, classlist, mlist, conslist;
+	JTextArea methodLine;
+	JTree tree;
+	// For JList models
+	String [] packagesList;
+	String [] classesList;
 	Method [] methodList;
 	Constructor [] consList;
 
-	JFrame frame;
-	JInternalFrame iframe;
-
-	JList plist, classlist, mlist, conslist;
 	String selectedPackage;
 	Class selectedClass;
-	JTextArea methodLine;
-	JTree tree;
 
 	public ClassBrowser() {
 		super( VERTICAL_SPLIT, true );
 	}
 
-	String [] toSortedList ( Collection c ) {
+	String [] toSortedStrings ( Collection c ) {
 		List l = new ArrayList( c );
 		String [] sa = (String[])(l.toArray( new String[0] ));
 		return StringUtil.bubbleSort(sa);
@@ -65,11 +67,11 @@ public class ClassBrowser extends JSplitPane
 	void setClist( String packagename ) {
 		this.selectedPackage = packagename;
 
-		Set s=(Set)packages.get( packagename );
+		Set s = classPath.getClassesForPackage( packagename );
 		if ( s == null )
 			return;
 
-		classesList = toSortedList(s);
+		classesList = toSortedStrings(s);
 		classlist.setListData( classesList );
 		//setMlist( (String)classlist.getModel().getElementAt(0) );
 	}
@@ -97,20 +99,20 @@ public class ClassBrowser extends JSplitPane
 		if ( classname == null ) {
 			mlist.setListData( new Object [] { } );
 			setConslist( null );
-			setTree( null );
+			setClassTree( null );
 			return;
 		}
 
 		Class clas;
 		try {
-			selectedClass = Class.forName( selectedPackage+"."+classname );
+			selectedClass = BshClassManager.classForName( classname );
 		} catch ( Exception e ) { 
 			System.out.println(e);
 			return;
 		}
 		methodList = getPublicMethods( selectedClass.getDeclaredMethods() );
 		mlist.setListData( parseMethods(methodList) );
-		setTree( selectedClass );
+		setClassTree( selectedClass );
 		setConslist( selectedClass );
 	}
 
@@ -128,7 +130,7 @@ public class ClassBrowser extends JSplitPane
 		methodLine.setText( method==null ? "" : method.toString() );
 	}
 
-	void setTree( Class clas ) {
+	void setClassTree( Class clas ) {
 		if ( clas == null ) {
 			tree.setModel( null );
 			return;
@@ -163,8 +165,8 @@ public class ClassBrowser extends JSplitPane
 
 	public void init() throws ClassPathException 
 	{
-		BshClassPath bcp = BshClassManager.getClassManager().getClassPath();
-		bcp.insureInitialized( 
+		classPath = BshClassManager.getClassManager().getClassPath();
+		classPath.insureInitialized( 
 			// get feedback on mapping...
 			new ConsoleInterface() {
 				public Reader getIn() { return null; }
@@ -176,13 +178,9 @@ public class ClassBrowser extends JSplitPane
 				public void error( String s ) { print( s ); }
 			}
 		);
-		packages = bcp.getPackageMap();
-System.out.println("pmap = "+packages);
 
-		Set s = packages.keySet();
-		packagesList = toSortedList(s);
-for(int i=0; i<packagesList.length; i++)
-System.out.println(packagesList[i]);
+		List l = classPath.getPackagesList();
+		packagesList = toSortedStrings(l);
 
 		plist=new JList( packagesList );
 		plist.addListSelectionListener(this);
@@ -222,7 +220,7 @@ System.out.println(packagesList[i]);
 		tree = new JTree();
 		tree.addTreeSelectionListener( this );
 		tree.setBorder( BorderFactory.createRaisedBevelBorder() );
-		setTree(null);
+		setClassTree(null);
 		p.add( "Center", tree );
 		bottompanel.add("Center", p );
 
@@ -289,8 +287,7 @@ System.out.println(packagesList[i]);
 		String classn = sa[1];
 
 		// Do we have the package?
-		Set s = (Set)packages.get(packn);
-		if ( s == null )
+		if ( classPath.getClassesForPackage(packn) == null )
 			return;
 
 		boolean found = false;
