@@ -82,13 +82,18 @@
 	-->
 
 	<!-- Legacy excludes.  Comment this *out* to build these legacy items -->
-	<property name="legacy-excludes" 
+	<property name="excludes-legacy" 
 		value="bsh/JThis.java"/>
+
+	<!-- Arbitrary excludes.  Comment this *out* to build these experimental or
+	other items which we've decided not to build right now. -->
+	<property name="excludes-arbitrary" 
+		value="bsh/ExternalNameSpace.java"/>
 
 	<!--  Add up all of the excludes -->
 	<!-- how do I add strings to break this long line? -->
 	<property name="excludes" 
-		value="${exclude-1.2},${exclude-1.1},${exclude-bsf},${exclude-servlet},${legacy-excludes},${exclude-classgen}"/>
+		value="${exclude-1.2},${exclude-1.1},${exclude-bsf},${exclude-servlet},${excludes-legacy},${exclude-classgen},${excludes-arbitrary}"/>
 
 	<!-- JARs -->
 	<property name="javadoc-jar" value="${dist-dir}/javadoc.zip"/>

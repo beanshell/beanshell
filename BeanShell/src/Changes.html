@@ -2,6 +2,20 @@
 <head><title>BeanShell - Change Log</title></head>
 <body bgcolor=#ffffff>
 
+<h2>Changes in 2.0 beta 2</h2>
+<pre>
+	Added code to address the class redefinition problem.  BeanShell will now
+	use the bsh classloader to allow the classes to be reloaded as necessary.
+
+	<p/>
+	Note: this only affects users who are utilizing the new BeanShell 2.0+
+	features to script classes and interfaces using the standard Java
+	class/interface syntax.  There is no problem with scripting interfaces
+	using bsh objects or the anonymous inner class style syntax that has always
+	been supported.
+
+</pre>
+
 <h2>Changes in 2.0 beta 1</h2>
 <pre>
       - With release 2.0 BeanShell supports the full Java syntax.
