@@ -1,0 +1,19 @@
+<section>
+<name>BshApplet</name>
+
+<img src="appletmode.gif"/>
+<br CLEAR="ALL"/>
+
+The BeanShell Applet is primarily for demonstration and educational purposes.
+It allows you to experiment with BeanShell live, directly in your web
+browser.  In fact, here it is!
+<p/>
+
+<h1>Insert Applet Here</h1>
+
+There are many additional security restrictions on Applets and this limits
+what you can do with BeanShell in this mode.  For unrestricted access 
+try the signed version of the applet here.  It requires the Java 1.4 plug-in
+to function.
+
+</section>

@@ -298,8 +298,111 @@ generated.  However if you attempt to invoke one that is not defined
 you will get a runtime exception.
 <p/>
 
-<h2>How Many Interpreter Instances?</h2>
+<h2>Multiple Interpreters vs. Multi-threading</h2>
 
-see "The BeanShell Parser" for more.
+A common design question is whether to use a single BeanShell
+interpreter or multiple interpreter instances in your application.  
+<p/>
+
+The Interpreter class is, in general, thread safe and allows you to 
+work with threads, within the normal bounds of the Java language.  BeanShell
+does not change the normal application level threading issues of multiple 
+threads from accessing the same variables: you still have to synchronize
+access using some mechanism if necessary. 
+However it is legal to perform multiple simultaneous evaluations. 
+You can also write multi-threaded scripts within the language, as we discussed
+briefly in "Scripting Interfaces".
+<p/>
+
+Since working with multiple threads introduces issues of synchronization
+and application structure, you may wish to simply create multiple Interpreter
+instances.  BeanShell Interpreter instances were designed to be very light
+weight.  Construction time is usually negligable and in simple tests, we have 
+found that it is possible to maintain hundreds (or even thousands) of 
+instances.
+<p/>
+
+There are other options in-between options as well.  It is possible to 
+retrieve BeanShell scripted objects from the interpreter and "re-bind" them
+again to the interpreter.  We'll talk about that in the next section.
+You can also get and set the root level bsh.NameSpace object for the
+entire Interpreter.  The NameSpace is roughly equivalent to a BeanShell method
+context.   Each method context has an associated NameSpace object.
+
+<tip>
+You can clear all variables, methods, and imports from a scope using
+the clear() command.
+</tip>
+
+
+<em>Note: at the time of this writing the synchronized language keyword
+is not implemented.  This will be corrected in an upcoming release.</em>
+<p/>
+
+See also "The BeanShell Parser" for more about performance issues.
+
+<h2>Serializing Interpreters and Scripted Objects</h2>
+
+The BeanShell Interpreter is serializable, assuming of course that all
+objects referenced by variables in the global scope are also serializable.
+So you can save the entire static state of the interpreter by serializing
+it and storing it.  Note that serializing the Intepreter does not "freeze"
+execution of BeanShell scripts in any sense other than saving the current
+state of the variables.  In general if you serialize an Interpreter while 
+it is executing code the results will be undetermined.  De-serializing an
+interpreter does not automatically restart method executions; it simply
+restores state.
+<p/>
+
+<note>
+There is serious Java bug that affects BeanShell serializability in Java
+versions prior to 1.3.  When using these versions of Java the primitive type 
+class identifiers cannot be de-serialized.  See the FAQ for a workaround.
+</note>
+
+It is also possible to serialize individual BeanShell scripted objects
+('this' type references and interfaces to scripts).  The same rules apply.
+One thing to note is that by default serializing a scripted object context
+will also serialize all of that object's parent contexts up to the global
+scope - effectively serializing the whole interpreter.
+<p/>
+
+To detach a scripted object from its parent namespace you can use the
+namespace prune() method:
+
+<example>
+	// From BeanShell
+	object.namespace.prune();
+
+	// From Java
+	object.getNameSpace().prune();
+</example>
+
+To bind a BeanShell scripted object back into a particular method scope
+you can use the bind() command:
+
+<example>
+	// From BeanShell
+	bind( object, this.namespace );
+
+	// From Java
+	bsh.This.bind( object, namespace, interpreter );
+</example>
+
+The bind() operation requires not only the namespace (method scope) into which 
+to bind the object, but an interpreter reference as well.  The interpreter
+reference is the "declaring interpreter" of the object and is used for cases
+where there is no active interpreter - e.g. where an external method call
+from compiled Java enters the object.
+<p/>
+
+The BeanShell save() command which serializes objects recognize when you are 
+trying to save a BeanShell scripted object (a bsh.This reference) type and 
+automatically prune()s it from the parent namespace, so that saving the object 
+doesn't drag along the whole interpreter along for the ride.  Similarly, 
+load() binds the object to the current scope.
+<p/>
+
 
 </section>
+
