@@ -55,7 +55,16 @@ import java.io.*;
 	Bsh has a multi-tiered class loading architecture.  No class loader is
 	used unless/until the classpath is modified or a class is reloaded.
 
-	Note: need some synchronization in here
+	Note: we may need some synchronization in here
+
+	Note on jdk1.2 dependency:
+
+	We are forced to use weak references here to accomodate all of the 
+	fleeting namespace listeners.  (NameSpaces must be informed if the class 
+	space changes so that they can un-cache names).  I had the interesting 
+	thought that a way around this would be to implement BeanShell's own 
+	garbage collector...  Then I came to my senses and said - screw it, 
+	class re-loading will require 1.2.
 */
 public class BshClassManager
 {
@@ -100,10 +109,13 @@ public class BshClassManager
 	*/
 	Map loaderMap;
 
-    // Global cache 
+	/**
+		Global caches for things we know are or are not classes.
+		Note: these should probably be re-implemented with Soft references.
+		(as opposed to strong or Weak)
+	*/
     transient static Hashtable absoluteClassCache = new Hashtable();
-    // Global cache for things we know are *not* classes... value is unused
-    transient static Hashtable absoluteNonClasses = new Hashtable();
+    transient static Set absoluteNonClasses = new HashSet();
 
 
 	// Singleton for now
@@ -119,17 +131,17 @@ public class BshClassManager
 	public Class getClassForName( String name ) {
 
 		// check cache 
-
 		Class c = (Class)absoluteClassCache.get(name);
 		if (c != null )
 			return c;
 
-		if ( absoluteNonClasses.get(name) != null) {
+		if ( absoluteNonClasses.contains(name) ) {
 			Interpreter.debug("absoluteNonClass list hit: "+name);
 			return null;
 		}
 
 		// Try to load the class
+		Interpreter.debug("Trying to load class: "+name);
 
 		ClassLoader overlayLoader = getLoaderForClass( name );
 		if ( overlayLoader != null ) {
@@ -159,7 +171,7 @@ public class BshClassManager
 		if ( c != null )
 			absoluteClassCache.put( name, c );
 		else
-			absoluteNonClasses.put( name, "unused" );
+			absoluteNonClasses.add( name );
 
 		return c;
 	}
@@ -437,7 +449,7 @@ public class BshClassManager
 		will not keep every namespace in existence forever.
 	*/
 	void classLoaderChanged() {
-    	absoluteNonClasses = new Hashtable();
+    	absoluteNonClasses = new HashSet();
     	absoluteClassCache = new Hashtable();
 
 		for (Enumeration e = listeners.elements(); e.hasMoreElements(); ) {
@@ -459,28 +471,5 @@ public class BshClassManager
 		i.println("----------------------- ");
 		i.println("baseClassPath = "+baseClassPath);
 	}
-
-    public static void loadJavaPackagesOptimization() throws IOException
-    {
-		if(absoluteNonClasses != null)
-			return;
-
-		String res = "lib/javaPackages";
-		InputStream in = NameSpace.class.getResourceAsStream(res);
-		if(in == null)
-			throw new IOException("couldn't load resource: " + res);
-		BufferedReader bin = new BufferedReader(new InputStreamReader(in));
-
-		String s;
-		try {
-			while((s = bin.readLine()) != null)
-			absoluteNonClasses.put(s, "unused");
-
-			bin.close();
-		} catch(IOException e) {
-			Interpreter.debug("failed to load java package names...");
-		}
-    }
-
 
 }

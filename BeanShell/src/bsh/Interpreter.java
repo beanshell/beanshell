@@ -149,42 +149,12 @@ public class Interpreter
 		else
 			this.globalNameSpace = namespace;
 
-        try {
-            // To speed ambiguos name parsing
-            BshClassManager.loadJavaPackagesOptimization();
-
-            // The classes which are imported by default
-            globalNameSpace.loadDefaultImports();
-
-	
-			// Source startup script from jar?
-			// If we are a top level interpreter
-
-		// too expensive for now, don't do it
-		/*
-			if ( namespace == null ) 
-			{
-
-			// create a getResource or sourceResouce method somewhere 
-			// and combine with the thing in Name that loads commands
-
-				String res = "lib/startup.bsh";
-				InputStream rin = Interpreter.class.getResourceAsStream(res);
-				if ( rin == null )
-					throw new IOException("couldn't load resource: " + res);
-			// even more expensive
-				eval( new InputStreamReader(rin), globalNameSpace, res );
-			}
-		*/
-
-        } catch(Exception e) {
-            error("Couldn't load interpreter resources: " + e);
-        }
+		// The classes which are imported by default
+		globalNameSpace.loadDefaultImports();
 
 		/* 
 			Create the root "bsh" system object if it doesn't exist.
 		*/
-
 		if ( ! ( getu("bsh") instanceof bsh.This ) )
 			initRootSystemObject();
 
@@ -834,25 +804,15 @@ compare them side by side and see what they do differently.
 	/**
 		Localize a path to the file name based on the bsh.cwd ineterpreter 
 		working directory.
-
-		Note: This functionality should probaby be moved into bsh.BshFile
-		(or that class should be eliminated if really not needed).
 	*/
     public File pathToFile( String fileName ) {
+		File file = new File( fileName );
 
-		BshFile file = new BshFile( fileName );
-
-		String sourceDir, sourceFile;
-		String cwd = (String)getu("bsh.cwd");
-
-		if ( file.isAbsolute() ) {
-			sourceDir = file.dirName();
-			sourceFile = file.baseName();
-		} else {
-			sourceDir = cwd + File.separator + file.dirName();
-			sourceFile = file.baseName();
-			file = new BshFile( sourceDir + File.separator + sourceFile );
-		} 
+		// if relative, fix up to bsh.cwd
+		if ( !file.isAbsolute() ) {
+			String cwd = (String)getu("bsh.cwd");
+			file = new File( cwd + File.separator + fileName );
+		}
 
 		return file;
 	}

@@ -506,7 +506,7 @@ public class NameSpace
 		if ( c != null )
 			return c;
 
-		Interpreter.debug("getClass(): " + name	+ " not	found.");
+		Interpreter.debug("getClass(): " + name	+ " not	found in "+this);
 		return null;
     }
 
@@ -791,7 +791,7 @@ public class NameSpace
 	/**
 		Load universally imported packages.
 	*/
-    public void loadDefaultImports() throws IOException
+    public void loadDefaultImports()
     {
 		/**
 			Note: the resolver looks through these in reverse order, per
