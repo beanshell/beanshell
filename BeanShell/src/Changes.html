@@ -2,6 +2,14 @@
 <head><title>BeanShell - Change Log</title></head>
 <body bgcolor=#ffffff>
 
+<h2>Changes in 1.2b41 </h2>
+<pre>
+	- Fixed bug affecting scoping in blocks.  This was breaking the test 
+	harness in a way that caused it not to be caught before!
+	- Added a special test for the test harness to catch this sort of thing
+	in the future.
+</pre>
+
 <h2>Changes in 1.2b3 and 1.2b4 </h2>
 <pre>
 	- The class manager now uses the Thread "context classloader" to factory

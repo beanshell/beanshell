@@ -73,5 +73,33 @@ class BlockNameSpace extends NameSpace
 		return super.getVariableImpl( name, false ) != null;
 	}
 
+	/**
+		super is our parent's super
+	*/
+    public NameSpace getSuper() {
+		return getParent().getSuper();
+	}
+
+	/**
+		this is our parent's this
+	*/
+    This getThis( Interpreter declaringInterpreter ) {
+		return getParent().getThis( declaringInterpreter );
+	}
+
+	/**
+		delegate import to our parent
+	*/
+    public void	importClass(String name) {
+		getParent().importClass( name );
+	}
+
+	/**
+		delegate import to our parent
+	*/
+    public void	importPackage(String name) {
+		getParent().importPackage( name );
+	}
+
 }
 
