@@ -1,0 +1,16 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+r=new Runnable() {
+	run() {
+		flag();
+	}
+};
+
+r.run();
+
+assert( flag() == 1 );
+
+complete();
+

@@ -19,7 +19,8 @@ class BSHBlock extends SimpleNode
 {
 	BSHBlock(int id) { super(id); }
 
-	public Object eval(NameSpace namespace, Interpreter interpreter)  throws EvalError
+	public Object eval( NameSpace namespace, Interpreter interpreter) 
+		throws EvalError
 	{
 		Object ret = Primitive.VOID;
 		int n = jjtGetNumChildren();

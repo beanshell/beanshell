@@ -665,7 +665,7 @@ public class NameSpace
 		if ( Capabilities.haveProxyMechanism() && 
 			lhsType.isInterface() && ( rhs instanceof bsh.This ) ) 
 		{
-			return ((XThis)rhs).getInterface( lhsType );
+			return ((bsh.This)rhs).getInterface( lhsType );
 		}
 
 		assignmentError(lhsType, originalType);

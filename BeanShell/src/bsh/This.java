@@ -71,6 +71,15 @@ public class This implements java.io.Serializable, Runnable {
 		} 
     }
 
+	/**
+		Get dynamic proxy for interface.
+	*/
+	public Object getInterface( Class clas ) 
+		throws EvalError
+	{
+		throw new EvalError( "Dynamic proxy mechanism not available");
+	}
+
 	/*
 		I wish protected access were limited to children and not also 
 		package scope... I want this to be a singleton implemented by various

@@ -271,6 +271,8 @@ class Name implements java.io.Serializable
 		Check the cache, else use toObject() to try to resolve to a class
 		identifier.  We do a little extra here to throw friendly error messages
 		if it resolves to something other than a class.
+
+		Throws EvalError on class not found...
 	*/
 	synchronized public Class toClass() throws EvalError 
 	{

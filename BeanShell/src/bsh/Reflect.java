@@ -359,6 +359,9 @@ class Reflect {
 		return constructObject( c, args );
 	}
 
+	/**
+		Primary object constructor
+	*/
     static Object constructObject(Class clas, Object[] args)
         throws ReflectError, InvocationTargetException
     {
@@ -367,6 +370,10 @@ class Reflect {
             if(args[i] == Primitive.VOID)
                 throw new ReflectError("Attempt to pass void argument " +
                     "(position " + i + ") to constructor for: " + clas);
+
+		if ( clas.isInterface() )
+			throw new ReflectError(
+				"Can't create instance of an interface: "+clas);
 
         Object obj = null;
         Class[] types = getTypes(args);
