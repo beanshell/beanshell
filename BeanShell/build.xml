@@ -19,6 +19,7 @@
 
 <!-- Project Configuration -->
 
+	<property name="version" value="1.1a9"/>
 	<property name="deprecation" value="off"/>
 
 	<!-- choose an alternate compiler -->
@@ -39,8 +40,7 @@
 
 	<!-- 
 		Optional things you can't build under older versions of Java.
-		Is there some way to automate this in Ant?  e.g. to detect a java
-		version or the existence of a class in the classpath?
+		I think we can automate this in ant... deal with it later.
 	-->
 	<property name="excludes-1.2" 
 		value="bsh/XThis.java,bsh/util/ClassBrowser.java"/>
@@ -50,11 +50,12 @@
 	-->
 
 	<property name="javadoc-jar" value="javadoc.jar"/>
-	<property name="corejar" value="bsh-core.jar"/>
-	<property name="alljar" value="bsh.jar"/>
-	<property name="commandsjar" value="bsh-commands.jar"/>
-	<property name="classpathjar" value="bsh-classpath.jar"/>
-	<property name="utiljar" value="bsh-util.jar"/>
+	<property name="core-jar" value="bsh-core-${version}.jar"/>
+	<property name="src-jar" value="bsh-${version}-src.jar"/>
+	<property name="all-jar" value="bsh-${version}.jar"/>
+	<property name="commands-jar" value="bsh-commands-${version}.jar"/>
+	<property name="classpath-jar" value="bsh-classpath-${version}.jar"/>
+	<property name="util-jar" value="bsh-util-${version}.jar"/>
 
 
 <!-- Begin Targets -->
@@ -149,11 +150,12 @@
 		<delete quiet="true" dir="${javadoc-dir}"/>
 		<delete file="${javadoc-jar}"/>
 
-		<delete quiet="true" file="${corejar}"/>
-		<delete quiet="true" file="${alljar}"/>
-		<delete quiet="true" file="${utiljar}"/>
-		<delete quiet="true" file="${classpathjar}"/>
-		<delete quiet="true" file="${commandsjar}"/>
+		<delete quiet="true" file="${src-jar}"/>
+		<delete quiet="true" file="${core-jar}"/>
+		<delete quiet="true" file="${all-jar}"/>
+		<delete quiet="true" file="${util-jar}"/>
+		<delete quiet="true" file="${classpath-jar}"/>
+		<delete quiet="true" file="${commands-jar}"/>
 	</target>
 
 	<fileset id="core-fileset" dir="${build-dir}">
@@ -191,15 +193,15 @@
 	<!-- Jar targets -->
 
 	<target name="jarcore" depends="compile">
-		<delete file="${corejar}"/>
-		<jar jarfile="${corejar}" manifest="src/Manifest.interp">
+		<delete file="${core-jar}"/>
+		<jar jarfile="${core-jar}" manifest="src/Manifest.interp">
 			<fileset refid="core-fileset"/>
 		</jar>
 	</target>
 
 	<target name="jarall" depends="compile">
-		<delete file="${alljar}"/>
-		<jar jarfile="${alljar}" manifest="src/Manifest.console">
+		<delete file="${all-jar}"/>
+		<jar jarfile="${all-jar}" manifest="src/Manifest.console">
 			<fileset refid="core-fileset"/>
 			<fileset refid="classpath-fileset"/>
 			<fileset refid="util-fileset"/>
@@ -207,17 +209,32 @@
 		</jar>
 	</target>
 
-	<!-- Make the rest of the nitty gritty dist jars -->
-	<target name="dist" depends="compile,jarcore,jarall,javadoc">
-		<delete file="${commandsjar}:${classpathjar}:${utiljar}"/>
+	<target name="jarsrc">
+		<delete file="${src-jar}"/>
+		<jar jarfile="${src-jar}">
+			<fileset dir="${basedir}/..">
+				<patternset>
+					<include name="BeanShell/**/*"/>
+					<exclude name="BeanShell/classes/**/*"/>
+					<exclude name="BeanShell/*javadoc*"/>
+					<exclude name="**/CVS"/>
+					<exclude name="**/*.jar"/>
+				</patternset>
+			</fileset>
+		</jar>
+	</target>
 
-		<jar jarfile="${commandsjar}">
+	<!-- Make the rest of the nitty gritty dist jars -->
+	<target name="dist" depends="compile,jarcore,jarall,javadoc,jarsrc">
+		<delete file="${commands-jar}:${classpath-jar}:${util-jar}"/>
+
+		<jar jarfile="${commands-jar}">
 			<fileset refid="commands-fileset"/>
 		</jar>
-		<jar jarfile="${classpathjar}">
+		<jar jarfile="${classpath-jar}">
 			<fileset refid="classpath-fileset"/>
 		</jar>
-		<jar jarfile="${utiljar}">
+		<jar jarfile="${util-jar}">
 			<fileset refid="util-fileset"/>
 		</jar>
 	</target>
