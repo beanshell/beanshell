@@ -82,9 +82,19 @@
 
 	- Fixed bug allowing try { } without catch or finally.
 
-	- Enhanced bsh shell script launcher to add a default bsh package if none
+	- Enhanced bsh shell script launcher to add a default bsh JAR if none
 		is in the classpath (as determined by a simplistic name test).  Works
 		on cygwin and unix.
+
+	- added sourceRelative() command, which sources the file relative to the
+	  caller's directory, not the working directory. (See the bshdoc for
+	  more explanation).
+
+	- Upgraded to JavaCC 3.0 available from:
+	  http://www.experimentalstuff.com/Technologies/JavaCC/index.html
+	  (Let's see, how many places have owned JavaCC now?  Sun Test, then 
+	  meta-mata, then webgain, then Sun "experimental stuff"?  Sun has
+	  promised to open source this... I hope they follow through).
 </pre>
 
 <h2>Changes in 1.2b8 </h2>
