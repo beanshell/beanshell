@@ -69,11 +69,6 @@ class BSHBlock extends SimpleNode
 			BlockNameSpace bodyNameSpace = 
 				new BlockNameSpace( enclosingNameSpace );
 
-/*
-// Experiment - clone callstack before swap for thread safety
-callstack = (CallStack)callstack.clone();
-*/
-
 			callstack.swap( bodyNameSpace );
 		}
 

@@ -18,15 +18,15 @@ foo().bar();
 fb=foo().bar();
 fb.xx=5;
 
-// Why don't these var assignments to ephemeral objects work?
-// this one used to work in 1.2b6 prior to caching changes...
+// this works with a big hack in BSHLHSPrimarySuffix (hopscotch) (fix for 1.3?)
 foo().bar().x=5;
 // This case isn't working either
-//foo().bar2().bar().x=5;
+// probably needs grammar fix...  how is this being parsed?
+// working on this... (fix for 1.3?)
+foo().bar2().bar().x=5;
 
-// just an experiment
+// just an experiment 
 foo().bar2().bar2().bar2().bar();
-
 
 Fields [] fa = { new Fields(), new Fields() };
 fa[0].x=5;

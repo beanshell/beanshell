@@ -37,6 +37,7 @@ import java.net.*;
 import java.util.*;
 import java.io.IOException;
 import java.io.*;
+import java.lang.reflect.Method;
 
 /**
 	BshClassManager manages all classloading in BeanShell.
@@ -106,6 +107,10 @@ public abstract class BshClassManager
 		(as opposed to strong or Weak)
 	*/
     protected transient static Hashtable absoluteNonClasses = new Hashtable();
+
+	/**
+	*/
+	protected transient static Hashtable resolvedMethods = new Hashtable();
 
 	// Begin static methods
 
@@ -228,11 +233,35 @@ public abstract class BshClassManager
 	}
 
 	/**
+		Cache a resolved (possibly overloaded) method based on the 
+		argument types used to invoke it, subject to classloader change.
+	*/
+	public static void cacheResolvedMethod( 
+		Class clas, String methodName, Object [] args, Method method ) 
+	{
+		resolvedMethods.put( 
+			new SignatureKey( clas, methodName, args ), method );
+	}
+
+	/**
+	*/
+	public static Method getResolvedMethod( 
+		Class clas, String methodName, Object [] args ) 
+	{
+		Method m = (Method)resolvedMethods.get( 
+			new SignatureKey( clas, methodName, args ) );
+		if ( m == null )
+			System.out.println("method cache miss: " + methodName );
+		return m;
+	}
+
+	/**
 		Clear the static caches in BshClassManager
 	*/
 	protected void clearCaches() {
     	absoluteNonClasses = new Hashtable();
     	absoluteClassCache = new Hashtable();
+    	resolvedMethods = new Hashtable();
 	}
 
 	/**
@@ -364,4 +393,69 @@ public abstract class BshClassManager
 	public abstract void dump( PrintWriter pw );
 
 	protected abstract void classLoaderChanged();
+
+	/**
+		SignatureKey serves as a hash of the object types for fast lookup
+		of overloaded and general resolved Java methods. 
+		<p>
+
+		Note: is using SignatureKey in this way dangerous?  In the pathological
+		case a user could eat up memory caching every possible combination of
+		argument types to an untyped method.  Maybe we could be smarter about
+		it by ignoring the types of untyped parameter positions?  The method
+		resolver could return a set of "hints" for the signature key caching?
+	*/
+public static long sktime = 0;
+	static class SignatureKey
+	{
+		Class clas;
+		Class [] types;
+		String methodName;
+		int hashCode = 0;
+
+		SignatureKey( Class clas, String methodName, Object [] args ) {
+			this.clas = clas;
+			this.methodName = methodName;
+			this.types = Reflect.getTypes( args );
+		}
+		
+
+		public int hashCode() 
+		{ 
+long t1 = System.currentTimeMillis();
+			if ( hashCode == 0 ) 
+			{
+				hashCode = clas.hashCode() * methodName.hashCode();
+				if ( types == null ) // no args method
+					return hashCode; 
+				for( int i =0; i < types.length; i++ ) {
+					int hc = types[i] == null ? 21 : types[i].hashCode();
+					hashCode = hashCode*(i+1) + hc;
+				}
+			}
+long t2 = System.currentTimeMillis();
+BshClassManager.sktime+=(t2-t1);
+			return hashCode;
+		}
+
+		public boolean equals( Object o ) { 
+//System.out.println("equals: "+this+", "+o);
+long t1 = System.currentTimeMillis();
+			SignatureKey target = (SignatureKey)o;
+			if ( types == null )
+				return target.types == null;
+			if ( clas != target.clas )
+				return false;
+			if ( !methodName.equals( target.methodName ) )
+				return false;
+			if ( types.length != target.types.length )
+				return false;
+			for( int i =0; i< types.length; i++ )
+				if ( ! types[i].equals( target.types[i] ) )
+					return false;
+long t2 = System.currentTimeMillis();
+BshClassManager.sktime+=(t2-t1);
+			return true;
+		}
+	}
 }

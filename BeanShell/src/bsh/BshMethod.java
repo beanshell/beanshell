@@ -47,7 +47,7 @@ package bsh;
 	The local method context is a child namespace of the declaring namespace.
 */
 public class BshMethod 
-	implements bsh.Reflect.MethodInvoker, java.io.Serializable 
+	implements /*bsh.Reflect.MethodInvoker,*/ java.io.Serializable 
 {
 	BSHMethodDeclaration method;
 
@@ -108,9 +108,7 @@ public class BshMethod
 		It is used primarily for debugging in order to provide access to the 
 		text of the construct that invoked the method through the namespace.
 		@param callerInfo is the node representing the method invocation
-		@param callstack is the callstack of course.  If you are using a 
-		hacked version of BeanShell that exposed this method take a look
-		at NameSpace invokeMethod to see how to make a fake callstack...
+		@param callstack is the callstack of course.  
 	*/
 	public Object invoke( 
 		Object[] argValues, Interpreter interpreter, CallStack callstack,

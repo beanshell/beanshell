@@ -145,31 +145,102 @@ public class This implements java.io.Serializable, Runnable {
 	}
 
 	/**
-		Invoke specified method from outside java code, using the declaring 
-		interpreter and current namespace.
-
-		The call stack will appear as if the method is being invoked from
+		Invoke specified method as from outside java code, using the 
+		declaring interpreter and current namespace.
+		The call stack will indicate that the method is being invoked from
 		outside of bsh in native java code.
+		Note: you must still wrap/unwrap args/return values using 
+		Primitive/Primitive.unwrap() for use outside of BeanShell.
+		@see bsh.Primitive
 	*/
 	public Object invokeMethod( String name, Object [] args ) 
 		throws EvalError
 	{
-		// null callstack, one will be created for us in namespace.invokMethod
+		// null callstack, one will be created for us 
 		return invokeMethod( 
 			name, args, declaringInterpreter, null, SimpleNode.JAVACODE );
 	}
 
 	/**
-		Invoke specified method with specified interpreter.
-		This is simply a convenience method.
+		Invoke a method in this namespace with the specified args,
+		interpreter reference, callstack, and caller info.
+		<p>
+
+		Note: If you use this method outside of the bsh package and wish to 
+		use variables with primitive values you will have to wrap them using 
+		bsh.Primitive.  Consider using This getInterface() to make a true Java
+		interface for invoking your scripted methods.
+		<p>
+
+		This method also implements the default object protocol of toString(), 
+		hashCode() and equals() and the invoke() meta-method handling as a 
+		last resort.
+		<p>
+
+		Note: the invoke() method will not catch the object method 
+		(toString, ...).  If you want to override them you have to script
+		them directly.
+		<p>
+
+		@see bsh.This.invokeMethod( 
+			String methodName, Object [] args, Interpreter interpreter, 
+			CallStack callstack, SimpleNode callerInfo )
+		@param if callStack is null a new CallStack will be created and
+			initialized with this namespace.
+		@see bsh.Primitive
 	*/
 	public Object invokeMethod( 
-		String name, Object [] args, Interpreter interpreter, 
+		String methodName, Object [] args, Interpreter interpreter, 
 			CallStack callstack, SimpleNode callerInfo  ) 
 		throws EvalError
 	{
-		return namespace.invokeMethod( 
-			name, args, interpreter, callstack, callerInfo );
+		if ( callstack == null )
+			callstack = new CallStack( namespace );
+
+		// Find the bsh method
+		Class [] types = Reflect.getTypes( args );
+		BshMethod bshMethod = namespace.getMethod( methodName, types );
+
+		if ( bshMethod != null )
+			return bshMethod.invoke( 
+				args, interpreter, callstack, callerInfo );
+
+		/*
+			No scripted method of that name.
+			Implement the required part of the Object protocol:
+				public int hashCode();
+				public boolean equals(java.lang.Object);
+				public java.lang.String toString();
+			if these were not handled by scripted methods we must provide
+			a default impl.
+		*/
+		// a default toString() that shows the interfaces we implement
+		if ( methodName.equals("toString" ) )
+			return toString();
+
+		// a default hashCode()
+		if ( methodName.equals("hashCode" ) )
+			return new Integer(this.hashCode());
+
+		// a default equals() testing for equality with the This reference
+		if ( methodName.equals("equals" ) ) {
+			Object obj = args[0];
+			return new Boolean( this == obj );
+		}
+
+		// Look for a default invoke() handler method in the namespace
+		bshMethod = namespace.getMethod( 
+			"invoke", new Class [] { null, null } );
+
+		// Call script "invoke( String methodName, Object [] args );
+		if ( bshMethod != null )
+			return bshMethod.invoke( new Object [] { methodName, args }, 
+				interpreter, callstack, callerInfo );
+
+		throw new EvalError("Method " + 
+			StringUtil.methodString( methodName, types ) +
+			" not found in bsh scripted object: "+ namespace.getName(), 
+			callerInfo, callstack );
 	}
 
 

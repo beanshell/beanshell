@@ -99,17 +99,18 @@ class BSHLHSPrimarySuffix extends SimpleNode
 			// simple field access
 			return Reflect.getLHSObjectField(obj, field);
 		else {
+throw new EvalError( "method invocation in suffix evaluation - broken", this, callstack );
+/*
 			// intermediate method invocation, and field access
+//System.out.println("here: "+obj);
 			Object[] oa = ((BSHArguments)jjtGetChild(0)).getArguments(
 				callstack, interpreter);
-			try {
-				// Need to deal with this case and cache somewhere...
-				obj = Reflect.resolveObjectMethod( obj, field, oa ).invoke( 
-					oa, interpreter, callstack, this );
-			} catch ( UtilEvalError e ) {
-				throw e.toEvalError( this, callstack  );
-			}
+			// replace obj with result of method invocation
+			obj = Reflect.invokeObjectMethod( 
+				obj, method, oa, interpreter, callstack, this );
+//System.out.println("here2: "+obj);
 			return Reflect.getLHSObjectField(obj, field);
+*/
 		}
 	}
 

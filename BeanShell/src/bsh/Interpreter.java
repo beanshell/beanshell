@@ -1042,6 +1042,19 @@ public class Interpreter
 	public Interpreter getParent() {
 		return parent;
 	}
+
+	/**
+		Get the class manager for this interpreter.
+	*/
+	public BshClassManager getClassManager() 
+	{
+		// In 1.3 migrating to per Interpreter class management.
+		// this is just a stepping stone...
+		// This won't work in 1.1 or without the optional classpath package
+		// need to change pattern to use default manager in that case.
+		// (remove all the static methods)
+		return BshClassManager.getClassManager();
+	}
 	
 	public void setOut( PrintStream out ) {
 		this.out = out;

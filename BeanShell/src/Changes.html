@@ -4,26 +4,42 @@
 
 <h3>Changes in 1.3</h3>
 <pre>
-	*** In progress ***
-	- Implementing caching of class info for method resolution for performance.
+	- Implemented preliminary caching of class method resolution for 
+		performance.  When a method (overloaded or single) is resolved
+		for a set of arguments, that method is cached based on the argument
+		types.  In the test case of a loop simply calling a Java method on
+		an object or class this results in about a 40% speedup.
+
+	- Consolidated bsh scripted method dispatching code into This.java.
+	- All scripted objects now implement the standard object protocol of
+		toString(), hashcode() and equals().  Scripted object behavior is now 
+		more consistent.  
+		+ One minor incompatible change: the invoke() meta-method no longer
+		intercepts toString(), hashcode() or equals().  If you wish to 
+		override these you must script them directly in the object.
 
 	- All normal error messages should now include line numbers and invocation 
 		text.  Removed the no context constructors for EvalError and 
 		TargetError.  Added checked parallel exceptions UtilEvalError and 
 		UtilTargetError for use in other areas.  Use UtilEvalError 
 		toEvalError( node, callstack ) to rethrow these as necessary.
-	- Added script stack trace to error messages.  EvalError and TargeError
-		now require callstack.  Added getScriptStackTrace() method to
-		EvalError API.  toString() prints the script stack trace by default.
+
+	- Added script stack trace to error messages (e.g. method a() called 
+		method b(), etc.).  EvalError and TargeError now require callstack.  
+		Added getScriptStackTrace() method to EvalError API.  toString() 
+		prints the script stack trace by default.
+
 	- Errors indicating bad return control or return type from method now
 		point to the exactly location of the return.
+
 	- Removed deprecated get/setVariable methods...  optimized for common case
 		in 1.2 branch so there should be no performance penalty for using
 		set over setVariable.
+
 	- Remote client can now utilize bsh:// URLs to talk to embedded bsh server.
+
 	- Added "bsh" target to build.xml for running a script from the current
 		build.  e.g. ant -Dfile=foo.bsh bsh
-
 
 	- Stopped squeltching NoClassDefFound errors... This was the source of
 	much frustration where BeanShell would indicate that a class was not found

@@ -56,19 +56,6 @@ class BSHAmbiguousName extends SimpleNode
 		}
     }
 
-/*
-    public Class toClass( NameSpace namespace ) throws EvalError
-    {
-		try {
-        	return getName( namespace ).toClass();
-		} catch ( ClassNotFoundException e ) {
-			throw new EvalError( e.getMessage(), this );
-		} catch ( ClassPathException e2 ) {
-			// ClassPathException is a type of UtilEvalError
-			throw e2.toEvalError( this, callstack );
-		}
-    }
-*/
     public Class toClass( CallStack callstack, Interpreter interpreter ) 
 		throws EvalError
     {

@@ -38,8 +38,8 @@ import java.lang.reflect.Array;
 import java.util.Hashtable;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
-import bsh.Reflect.MethodInvoker;
-import bsh.Reflect.JavaMethod;
+//import bsh.Reflect.MethodInvoker;
+//import bsh.Reflect.JavaMethod;
 
 /**
 	What's in a name?  I'll tell you...
@@ -160,7 +160,6 @@ class Name implements java.io.Serializable
 	// Note: it's ok to cache class resolution here because when the class
 	// space changes the namespace will discard cached names.
 	Class asClass;
-	Hashtable resolvedMethods;
 
 	// End Cached result structures
 
@@ -175,10 +174,11 @@ class Name implements java.io.Serializable
 	/**
 		This constructor should *not* be used in general. 
 		Use NameSpace getNameResolver() which supports caching.
-		I wish I could make this "friendly" to just that class.
 		@see NameSpace getNameResolver().
 	*/
-	public Name(NameSpace namespace, String s)
+// I wish I could make this "friendly" to only NameSpace
+// Trying package private
+	Name( NameSpace namespace, String s )
 	{
 		this.namespace = namespace;
 		value = s;
@@ -679,52 +679,15 @@ class Name implements java.io.Serializable
             java.lang.Integer.getInteger("foo");
 		</pre>
     */
-	/*
-		Note: we previously thought about having this method
-	*/
     public Object invokeMethod(
 		Interpreter interpreter, Object[] args, CallStack callstack,
 		SimpleNode callerInfo
 	)
-        throws EvalError, ReflectError, InvocationTargetException
-    {
-		if ( resolvedMethods == null )
-			resolvedMethods = new Hashtable();
-
-		SignatureKey key = new SignatureKey( args );
-		MethodInvoker methodInvoker = null; //(MethodInvoker)resolvedMethods.get( key );
-		
-		if ( methodInvoker == null ) {
-			//System.err.println("method cache miss: "+value+", key ="+key);
-			try {
-				methodInvoker = resolveMethod( interpreter, args, callstack );
-			} catch ( UtilEvalError e ) {
-				throw e.toEvalError( callerInfo, callstack );
-			}
-			resolvedMethods.put( key, methodInvoker );
-			//System.err.println("Caching method: "+value+", key ="+key);
-		} else {
-			//System.err.println("method cache hit: "+value+", key ="+key);
-		}
-
-//System.out.println("method invoker: "+methodInvoker);
-//System.out.println("args.length: "+args.length);
-		return methodInvoker.invoke( args, interpreter, callstack, callerInfo );
-	}
-
-	/**
-		Resolve the name to a MethodInvoker, allowing the result to be
-		cached for subsequent invocations.
-	*/
-    private MethodInvoker resolveMethod(
-		Interpreter interpreter, Object[] args, CallStack callstack 
-		/*,SimpleNode callerInfo*/
-	)
-        throws UtilEvalError, ReflectError/*, InvocationTargetException*/
+        throws UtilEvalError, EvalError, ReflectError, InvocationTargetException
     {
 		if ( !Name.isCompound(value) )
-			return resolveLocalMethod( 
-				interpreter, args, callstack/*, callerInfo*/ );
+			return invokeLocalMethod( 
+				interpreter, args, callstack, callerInfo );
 
         // find target object or class identifier
         Name targetName = namespace.getNameResolver( Name.prefix(value));
@@ -754,8 +717,8 @@ class Name implements java.io.Serializable
             }
 
             // found an object and it's not an undefined variable
-            return Reflect.resolveObjectMethod(
-				obj, methodName, args );
+            return Reflect.invokeObjectMethod(
+				obj, methodName, args, interpreter, callstack, callerInfo );
         }
 
 		// It's a class
@@ -767,7 +730,7 @@ class Name implements java.io.Serializable
         Class clas = ((Name.ClassIdentifier)obj).getTargetClass();
 		
         if ( clas != null )
-			return Reflect.resolveStaticMethod( clas, methodName, args );
+			return Reflect.invokeStaticMethod( clas, methodName, args );
 
         // return null; ???
 		throw new UtilEvalError("invokeMethod: unknown target: " + targetName);
@@ -788,11 +751,11 @@ class Name implements java.io.Serializable
 		Keeping this code separate allows us to differentiate between methods
 		invoked directly in scope and those invoked through object references.
 	*/
-    private MethodInvoker resolveLocalMethod( 
-		Interpreter interpreter, Object[] args, CallStack callstack
-		/*, SimpleNode callerInfo*/
+    private Object invokeLocalMethod( 
+		Interpreter interpreter, Object[] args, CallStack callstack,
+		SimpleNode callerInfo
 	)
-        throws UtilEvalError, ReflectError/*, InvocationTargetException*/
+        throws EvalError, ReflectError, InvocationTargetException
     {
         if ( Interpreter.DEBUG ) 
         	Interpreter.debug("resolve local method: " + value);
@@ -800,7 +763,7 @@ class Name implements java.io.Serializable
         // Check for locally declared method
         BshMethod meth = toLocalMethod( args );
         if ( meth != null )
-			return meth;
+			return meth.invoke( args, interpreter, callstack, callerInfo );
         else
             if ( Interpreter.DEBUG ) 
 				Interpreter.debug("no locally declared method: " + value);
@@ -816,30 +779,33 @@ class Name implements java.io.Serializable
 
 			if ( interpreter == null )
 				throw new InterpreterError(
-					"resolveLocalMethod: interpreter = null");
+					"invokeLocalMethod: interpreter = null");
 
 			try {
 				interpreter.eval( 
 					new InputStreamReader(in), namespace, commandName);
 			/* 
-				Strange case where we actually catch an EvalError and turn
-				it into a UtilEvalError... We are using the interpreter as
+				Strange case where we actually catch an EvalError 
+				We are using the interpreter as
 				a tool to load the command... not as part of the execution
 				path.  The error points here... thrown exception includes the 
 				command's error... (right?)
 			*/
 			} catch ( EvalError e ) {
-				throw new UtilEvalError(
-					"Error loading command: "+ e.getMessage() );
+				Interpreter.debug( e.toString() );
+				throw new EvalError(
+					"Error loading command: "+ e.getMessage(), 
+					callerInfo, callstack );
 			}
 
             // try again
             meth = toLocalMethod( args );
             if ( meth != null )
-                return meth;
+                return meth.invoke( args, interpreter, callstack, callerInfo );
             else
-                throw new UtilEvalError("Loaded resource: " + commandName +
-                    "had an error or did not contain the correct method");
+                throw new EvalError("Loaded resource: " + commandName +
+                    "had an error or did not contain the correct method", 
+					 callerInfo, callstack );
         }
 
         // check for compiled bsh command class
@@ -847,7 +813,8 @@ class Name implements java.io.Serializable
         commandName = "bsh.commands." + value;
         Class c = BshClassManager.classForName( commandName );
         if(c == null)
-            throw new UtilEvalError("Command not found: " + value);
+            throw new EvalError("Command not found: " + value, 
+			callerInfo, callstack );
 //System.out.println("found class: " +c);
 
         // add interpereter and namespace to args list
@@ -856,25 +823,30 @@ class Name implements java.io.Serializable
         invokeArgs[1] = namespace;
         System.arraycopy(args, 0, invokeArgs, 2, args.length);
 		try {
-        	return Reflect.resolveStaticMethod( c, "invoke", invokeArgs );
+        	return Reflect.invokeStaticMethod( c, "invoke", invokeArgs );
 		} catch ( ReflectError e ) {
-			System.err.println("invoke method not found");
+			System.err.println("Invoke method not found");
+		} catch ( UtilEvalError e ) {
+			throw e.toEvalError( callerInfo, callstack );
 		}
-/*
-System.err.println("warning: help text broken");
+
         // try to print help
         try {
-            String s = (String)(JavaMethod)Reflect.resolveStaticMethod(
+            String s = (String)Reflect.invokeStaticMethod(
 				c, "usage", null);
             interpreter.println(s);
             return Primitive.VOID;
         } catch(ReflectError e) {
             if ( Interpreter.DEBUG ) Interpreter.debug("usage threw: " + e);
-            throw new UtilEvalError("Wrong number or type of args for command");
-        }
-*/
+            throw new EvalError(
+				"Wrong number or type of args for command:", 
+				callerInfo, callstack );
+        } catch( UtilEvalError e) {
+			throw e.toEvalError( callerInfo, callstack );
+		}
 
-		throw new UtilEvalError( "No local method or command: "+ value );
+		//throw new EvalError( "No local method or command: "+ value, 
+			//callerInfo, callstack );
     }
 
 	// Static methods that operate on compound ('.' separated) names
@@ -958,54 +930,6 @@ System.err.println("warning: help text broken");
 
 		public String toString() {
 			return "Class Identifier: "+clas.getName();
-		}
-	}
-
-	/**
-		SignatureKey serves as a hash of the object types for fast lookup
-		of overloaded resolved methods. 
-		<p>
-
-		Note: is using SignatureKey in this way dangerous?  In the pathological
-		case a user could eat up memory caching every possible combination of
-		argument types to an untyped method.  Maybe we could be smarter about
-		it by ignoring the types of untyped parameter positions?  The method
-		resolver could return a set of "hints" for the signature key caching.
-	*/
-	static class SignatureKey
-	{
-		Class [] types;
-		int hashCode = 0;
-
-		SignatureKey( Object [] args ) {
-			this.types = Reflect.getTypes( args );
-		}
-		
-		public int hashCode() { 
-			if ( types == null ) // no args method
-				return 1; 
-
-			if ( hashCode == 0 ) {
-				hashCode = 17;
-				for( int i =0; i < types.length; i++ ) {
-					int hc = types[i] == null ? 21 : types[i].hashCode();
-					hashCode = hashCode*(i+1) + hc;
-				}
-			}
-			return hashCode;
-		}
-
-		public boolean equals( Object o ) { 
-//System.out.println("equals: "+this+", "+o);
-			SignatureKey target = (SignatureKey)o;
-			if ( types == null )
-				return target.types == null;
-			if ( types.length != target.types.length )
-				return false;
-			for( int i =0; i< types.length; i++ )
-				if ( ! types[i].equals( target.types[i] ) )
-					return false;
-			return true;
 		}
 	}
 
