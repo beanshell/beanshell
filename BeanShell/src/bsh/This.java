@@ -18,6 +18,7 @@ package bsh;
 import java.io.IOException;
 
 /**
+	'This' is the type of bsh scripted objects.
 	A 'This' object is a bsh scripted object context.  It holds a namespace 
 	reference and implements event listeners and various other interfaces.
 

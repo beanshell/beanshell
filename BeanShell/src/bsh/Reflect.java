@@ -118,6 +118,8 @@ class Reflect {
     {
         try {
             Field f = getField(clas, fieldName);
+// experiment
+f.setAccessible(true);
             if(f == null)
                 throw new ReflectError("internal error 234423");
 
@@ -140,7 +142,8 @@ class Reflect {
     {
         try
         {
-            return clas.getField(fieldName);
+            //return clas.getField(fieldName);
+            return clas.getDeclaredField(fieldName);
         }
         catch(NoSuchFieldException e)
         {

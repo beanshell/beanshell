@@ -688,7 +688,7 @@ public class NameSpace implements java.io.Serializable
 	}
 
 	// Convenience method
-	public Object resolveName( String name, Interpreter interpreter ) 
+	public Object get( String name, Interpreter interpreter ) 
 		throws EvalError 
 	{
 		return new Name( this, name ).toObject( interpreter );

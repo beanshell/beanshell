@@ -51,7 +51,7 @@ class BshMethod implements java.io.Serializable
 			// look for help string
 			try {
 				String help = 
-					(String)declaringNameSpace.resolveName(
+					(String)declaringNameSpace.get(
 					"bsh.help."+method.name, interpreter );
 
 				interpreter.println(help);
