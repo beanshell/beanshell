@@ -3,17 +3,19 @@
 */
 import bsh.util.ClassBrowser;
 
-classBrowser() {
-	inDesktop = ( bsh.system.desktop != void );
+classBrowser() 
+{
+	this.inDesktop = ( bsh.system.desktop != void );
 
-	browser = new ClassBrowser();
+	this.browser = new ClassBrowser();
 	browser.init();
 
 	if ( inDesktop ) {
-		frame = bsh.system.desktop.makeInternalFrame("BeanShell Class Browser");
+		this.frame = 
+			bsh.system.desktop.makeInternalFrame("BeanShell Class Browser");
 		bsh.system.desktop.classbrowser = browser;
 	} else
-		frame = new javax.swing.JFrame("BeanShell Class Browser");
+		this.frame = new javax.swing.JFrame("BeanShell Class Browser");
 
 	// Ignore unhandled method invocations from listeners.
 	invoke( method, args ) { }

@@ -5,58 +5,63 @@
 import java.awt.Insets;
 import bsh.Interpreter;
 
-workspaceEditor(Interpreter parent, String name ) {
-
+workspaceEditor(Interpreter parent, String name ) 
+{
 	if ( bsh.system.desktop == void ) {
 		print("This only works with the bsh desktop...");
 		return;
 	}
 
-	textarea = new JTextArea(15,40);
+	this.textarea = new JTextArea(15,40);
 	textarea.setLineWrap(true);
 	textarea.setWrapStyleWord(true);
 	textarea.setTabSize(4);
 	textarea.setMargin( new Insets(5,5,5,5) );
 
 	// probably should overload desktop makeInternalFrame
-	frame = new JInternalFrame("Editor for: "+name, true, true, true, true );
+	this.frame = 
+		new JInternalFrame("Editor for: "+name, true, true, true, true );
 	frame.getContentPane().add( new JScrollPane(textarea), "Center");
 	frame.setVisible( true );
 
-	open() {
-		chooser = new JFileChooser();
+	open() 
+	{
+		this.chooser = new JFileChooser();
 		chooser.setCurrentDirectory( pathToFile(bsh.cwd) );
-		returnVal = chooser.showOpenDialog( bsh.system.desktop.pane );
-		if(returnVal == JFileChooser.APPROVE_OPTION) {
-			file = chooser.getSelectedFile();
-			reader=new FileReader( file );
-			ca=new char [file.length()];
+		this.returnVal = chooser.showOpenDialog( bsh.system.desktop.pane );
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			this.file = chooser.getSelectedFile();
+			this.reader=new FileReader( file );
+			this.ca=new char [file.length()];
 			reader.read(ca);
 			textarea.setText( new String(ca) );
 		}
 	}
 
-	save() {
-		chooser = new JFileChooser();
+	save() 
+	{
+		this.chooser = new JFileChooser();
 		chooser.setCurrentDirectory( pathToFile(bsh.cwd) );
-		returnVal = chooser.showSaveDialog( bsh.system.desktop.pane );
-		if(returnVal == JFileChooser.APPROVE_OPTION) {
-			file = chooser.getSelectedFile();
-			writer=new FileWriter( file );
+		this.returnVal = chooser.showSaveDialog( bsh.system.desktop.pane );
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			this.file = chooser.getSelectedFile();
+			this.writer=new FileWriter( file );
 			writer.write( textarea.getText().toCharArray() );
 			writer.close();
 		}
 	}
 
-	run() {
-		interpreter = makeWorkspace( "Run Output: " +name);
+	run() 
+	{
+		this.interpreter = makeWorkspace( "Run Output: " +name);
 		// should make this new namespace... look at run() command
     	interpreter.eval( textarea.getText() );
 		print("done run...");
 	}
 
-	actionPerformed(e) {
-		com = e.getActionCommand();
+	actionPerformed(e) 
+	{
+		this.com = e.getActionCommand();
 		if ( com.equals("Close") )
 			frame.dispose();
 		else if ( com.equals("New") )
@@ -72,10 +77,9 @@ workspaceEditor(Interpreter parent, String name ) {
 			run();
 	}
 
-	menubar = new JMenuBar();
-
-	menu = new JMenu("File");
-	mi = new JMenuItem("New");
+	this.menubar = new JMenuBar();
+	this.menu = new JMenu("File");
+	this.mi = new JMenuItem("New");
 	mi.addActionListener(this);
 	menu.add(mi);
 	mi = new JMenuItem("Open");
@@ -108,4 +112,3 @@ workspaceEditor(Interpreter parent, String name ) {
 	frame.toFront();
 	return frame;
 }
-

@@ -7,10 +7,11 @@ bsh.help.setFont = "usage: setFont( Component comp, int ptsize )";
 
 import java.awt.*;
 
-Font setFont( Component comp, int ptsize ) {
-    font = comp.getFont();
-    f = font.getFamily();
-    s = font.getStyle();
+Font setFont( Component comp, int ptsize ) 
+{
+    this.font = comp.getFont();
+    this.f = font.getFamily();
+    this.s = font.getStyle();
     font = new Font( f, s, ptsize );
     comp.setFont( font );
 	comp.validate();

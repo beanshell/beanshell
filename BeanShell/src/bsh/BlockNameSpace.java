@@ -58,7 +58,7 @@ import java.util.Vector;
 class BlockNameSpace extends NameSpace 
 {
 	/** When true, capture all variable assignment locally */
-	boolean initMode;
+	//boolean initMode;
 
     public BlockNameSpace( NameSpace parent ) 
 		throws EvalError
@@ -66,31 +66,36 @@ class BlockNameSpace extends NameSpace
 		super( parent, parent.nsName + "/BlockNameSpace" );
     }
 
+// I think we could get rid of the weHaveVar() with the new scoping
+// still need the getThis() indirection though... right?
 	/**
 		Override the standard namespace behavior.
-		If the variables exists in our namespace assign it there,
-		otherwise in the parent space.
+		If the variables exists in our namespace assign it here,
+		otherwise in the parent (enclosing) namespace.
 		i.e. only allow typed var declaration to happen in this namespace.
 		Typed vars are handled in the ordinary way... local scope.
 	*/
-    public void	setVariable( String name, Object o, boolean strictJava ) 
+    public void	setVariable( 
+		String name, Object value, boolean strictJava, boolean recurse ) 
 		throws UtilEvalError 
 	{
-		if ( weHaveVar( name ) || initMode ) 
-			super.setVariable( name, o, strictJava, false );
+		// if oldscoping == true
+		if ( weHaveVar( name ) ) 
+			super.setVariable( name, value, strictJava, false );
 		else
-			getParent().setVariable( name, o, strictJava );
+			getParent().setVariable( name, value, strictJava, recurse );
     }
 
 	/**
-		When set to true, handle all variable assignment in this local
-		scope - don't delegate to parent.  This is used in catch blocks
-		to initialize local parameters to the block then turned off to allow 
-		the normal BlockNameSpace behavior (which is to keep only locally 
-		declared typed variables local and pass the rest to the parent).
+		Set an untyped variable in the block namespace.
+		The BlockNameSpace would normally delegate this set to the parent.
+		Typed variables are naturally set locally.
+		This is used in try/catch block argument. 
 	*/
-	public void setInitMode( boolean b ) {
-		initMode = b;
+    public void	setBlockVariable( String name, Object value ) 
+		throws UtilEvalError 
+	{
+		super.setVariable( name, value, false/*strict?*/, false/*recurse*/ );
 	}
 
 	boolean weHaveVar( String name ) {

@@ -52,19 +52,11 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants
 				"enumeration portion of a for statement cannot be null.", 
 				this, callstack );
 
-// Just testing -- 1.2 stuff
-		Iterator iterator = ((java.util.Collection)iteratee).iterator();
-
-		/*
-		ReflectManager.BSHIterator iterator = null;
-		
-		try {
-			iterator = ReflectManager.wrapIterator(iteratee);
-		} catch(Throwable t) {
-			throw new EvalError("each iteration failed for reason: " +
-				String.valueOf(t.getMessage()));
-		}
-		*/
+		CollectionManager cm = CollectionManager.getCollectionManager();
+		if ( !cm.isBshIterable( iteratee ) )
+			throw new EvalError("Can't iterate over type: "
+				+iteratee.getClass(), this, callstack );
+		BshIterator iterator = cm.getBshIterator( iteratee );
 		
 		Object returnControl = Primitive.VOID;
         while( iterator.hasNext() )

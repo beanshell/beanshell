@@ -42,7 +42,7 @@ bar( caller ) {
 }
 
 caller() {
-	x=99;
+	this.x=99;
 	bar(this);
 }
 

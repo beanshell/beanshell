@@ -42,7 +42,8 @@
 	@method This extend( This object )
 */
 bsh.help.extend= "usage: extend( This parent )";
-extend( bsh.This parent ) { 
+extend( bsh.This parent ) 
+{
 	this.namespace.setParent( parent.namespace );
 	return this; 
 }

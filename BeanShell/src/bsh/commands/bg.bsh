@@ -9,14 +9,14 @@
 
 bsh.help.run= "usage: Thread bg( filename )";
 
-Thread bg( String filename ) {
-
-	callerNameSpace = this.caller.namespace;
+Thread bg( String filename ) 
+{
+	this.callerNameSpace = this.caller.namespace;
 	run() {
 		this.interpreter.source( filename, callerNameSpace );
 	}
 
-	thread = new Thread( this );
+	this.thread = new Thread( this );
 	thread.start();
 	return thread;
 }

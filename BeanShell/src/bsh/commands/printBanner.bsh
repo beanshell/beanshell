@@ -18,9 +18,10 @@ printBanner()
 {
 	if ( bsh.console != void 
 		&& Capabilities.haveSwing() 
-		&& (bsh.console instanceof JConsole) ) {
+		&& (bsh.console instanceof JConsole) ) 
+	{
 
-	    jconsole =	bsh.console;
+	    this.jconsole = bsh.console;
 	    jconsole.println( 
 			new ImageIcon( getResource("/bsh/util/lib/small_bean_shell.gif")) );
 	    jconsole.print(

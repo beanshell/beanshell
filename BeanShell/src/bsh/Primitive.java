@@ -808,7 +808,7 @@ public class Primitive implements ParserConstants, java.io.Serializable
 	*/
 	public static Primitive getDefaultValue( Class type )
 	{
-		if ( type.isPrimitive() )
+		if ( type != null && type.isPrimitive() )
 		{
 			if ( type == Boolean.TYPE )
 				return new Primitive(Boolean.FALSE);

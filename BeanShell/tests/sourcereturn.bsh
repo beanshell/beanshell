@@ -3,7 +3,6 @@
 source("TestHarness.bsh");
 
 // Note: no import needed here because the source() handled it.
-// Neat!
 assert( source("Data/actionHandler.bsh") instanceof ActionListener );
 
 // check source scope

@@ -4,8 +4,9 @@
 
 bsh.help.load = "usage: load(filename)";
 
-Object load( String filename ) {
-	file = pathToFile( filename );
+Object load( String filename ) 
+{
+	this.file = pathToFile( filename );
 
 	Object obj;
 	FileInputStream in = new FileInputStream( file );

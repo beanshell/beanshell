@@ -4,8 +4,9 @@
 
 bsh.help.rm = "usage: cd( path )";
 
-boolean rm( String pathname ) {
-    file = pathToFile( pathname );
+boolean rm( String pathname ) 
+{
+    this.file = pathToFile( pathname );
 
 	if ( file == null )
 		throw new java.io.FileNotFoundException("pathname");

@@ -10,7 +10,8 @@ import bsh.Interpreter;
 import java.awt.Component;
 import bsh.Capabilities;
 
-desktop() {
+desktop() 
+{
 	// need a way to set things to void again
 	if ( bsh.system.desktop != void ) {
 		print("There is	already	a desktop running...");
@@ -21,9 +22,10 @@ desktop() {
 	// Ignore unhandled method invocations from listeners.
 	invoke( method, args ) { }
 
-	makeFontMenu( Component	component ) {
-		menu = new JMenu("Font");
-		mi = new JMenuItem("Normal");
+	makeFontMenu( Component	component ) 
+	{
+		this.menu = new JMenu("Font");
+		this.mi = new JMenuItem("Normal");
 		mi.addActionListener(this);
 		menu.add(mi);
 		mi = new JMenuItem("Big");
@@ -33,8 +35,9 @@ desktop() {
 		mi.addActionListener(this);
 		menu.add(mi);
 
-		actionPerformed(e) {
-			com = e.getActionCommand();
+		actionPerformed(e) 
+		{
+			this.com = e.getActionCommand();
 			if ( com.equals("Normal") )
 				setFont( component, 12 );
 			else if	( com.equals("Big") )
@@ -46,14 +49,16 @@ desktop() {
 		return menu;
 	}
 
-	makeInternalFrame( String name ) {
+	makeInternalFrame( String name ) 
+	{
 		// Closable by default
-		frame = new JInternalFrame(	name, true, true, true, true);
+		this.frame = new JInternalFrame( name, true, true, true, true );
 		frame.setVisible( true );
 		return frame;
 	}
 
-	addInternalFrame( frame ) {
+	addInternalFrame( frame ) 
+	{
 		bsh.system.desktop.pane.add( frame	);
 		/*
 		frame.pack();
@@ -62,7 +67,7 @@ desktop() {
 		*/
 	}
 
-	windowCount=0;
+	this.windowCount=0;
 
 	mousePressed( e	) {
 		popup.show( pane, e.getX(), e.getY() );
@@ -79,8 +84,9 @@ desktop() {
 		exit();
 	}
 
-	actionPerformed( e ) {
-		com = e.getActionCommand();
+	actionPerformed( e ) 
+	{
+		this.com = e.getActionCommand();
 		if ( com.equals("New Bsh Workspace") )
 			makeWorkspace( ""+ super.windowCount++);
 		if ( com.equals("New Class Browser") )
@@ -91,10 +97,10 @@ desktop() {
 			shutdown();
 	}
 
-	pane=new JDesktopPane();
+	this.pane=new JDesktopPane();
 
-	popup=new JPopupMenu("Root Menu");
-	mi=new JMenuItem("New Bsh Workspace");
+	this.popup=new JPopupMenu("Root Menu");
+	this.mi=new JMenuItem("New Bsh Workspace");
 	mi.addActionListener(this);
 	popup.add( mi );
 	mi=new JMenuItem("New Class Browser");
@@ -109,7 +115,7 @@ desktop() {
 
 	pane.addMouseListener( this );
 
-	frame=new JFrame("BeanShell Desktop 1.0");
+	this.frame=new JFrame("BeanShell Desktop 1.0");
 	frame.getContentPane().add("Center", pane);
 
 	windowClosing( e ) {
@@ -143,5 +149,6 @@ desktop() {
 	frame.setSize(800,600);
 	frame.show();
 	frame.toFront();
+	frame.requestFocus();
 	Util.endSplashScreen();
 }

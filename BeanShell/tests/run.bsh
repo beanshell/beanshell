@@ -19,7 +19,7 @@ assert( !r.cwd.equals( bsh.cwd) );
 arg = object();
 arg.foo=1;
 r = run("Data/run_aux.bsh", arg);
-// run_aux copies runArgument to ra for no reason
+// run_aux copies runArgument to ra 
 assert( r.ra.foo == 1 );
 
 // test that classloading doesn't affect us

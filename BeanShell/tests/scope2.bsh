@@ -4,19 +4,19 @@ source("TestHarness.bsh");
 
 foo() {
 	a=5;
-	super.a=4;
+	super.a=5;
 }
 
 // calling foo does not affect 'a';
 bar() {
-	a=99;
+	int a=99;
 	foo();
-	assert( a==99);
+	assert( a==99 );
 }
 
 bar();
 
 // set by foo()
-assert( a == 4 );
+assert( a == 5 );
 
 complete();

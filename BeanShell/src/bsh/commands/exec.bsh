@@ -5,9 +5,10 @@
 
 bsh.help.exec = "usage: exec( String arg )";
 
-exec( String arg ) {
-	proc = Runtime.getRuntime().exec(arg);
-	din = new DataInputStream( proc.getInputStream() );
+exec( String arg ) 
+{
+	this.proc = Runtime.getRuntime().exec(arg);
+	this.din = new DataInputStream( proc.getInputStream() );
 	while( (line=din.readLine()) != null )
 		print(line);
 }

@@ -28,8 +28,9 @@ bsh.help.super = "usage: super( methodname )";
 
 // The implementation of this command is very fragile
 
-super( String scope ) {
-	n=this.caller.namespace;
+super( String scope ) 
+{
+	this.n=this.caller.namespace;
 	while ( n != global ) {
 		if ( n.namespace.getName().equals( "Method NameSpace: "+ scope ) )
 			return n;

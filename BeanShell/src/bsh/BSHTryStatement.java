@@ -142,20 +142,18 @@ class BSHTryStatement extends SimpleNode
 				BlockNameSpace cbNameSpace = 
 					new BlockNameSpace( enclosingNameSpace );
 
-				cbNameSpace.setInitMode(true); // set params in local scope
-
 				try {
 					if ( fp.type == BSHFormalParameter.UNTYPED )
-						cbNameSpace.setVariable( fp.name, thrown, false );
+						// set an untyped variable directly in the block
+						cbNameSpace.setBlockVariable( fp.name, thrown );
 					else
+						// set a typed variable (directly in the block)
 						cbNameSpace.setTypedVariable(
 							fp.name, fp.type, thrown, false);
 				} catch ( UtilEvalError e ) {
 					throw new InterpreterError(
 						"Unable to set var in catch block namespace." );
 				}
-
-				cbNameSpace.setInitMode(false); // normal mode
 
 				// put cbNameSpace on the top of the stack
 				callstack.swap( cbNameSpace );

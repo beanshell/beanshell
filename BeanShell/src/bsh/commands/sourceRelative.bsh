@@ -13,8 +13,8 @@
 */
 sourceRelative( String file )
 {
-    dir=dirname( getSourceFileInfo() );
-    path=pathToFile( dir + File.separator + file ) .getAbsolutePath();
+    this.dir=dirname( getSourceFileInfo() );
+    this.path=pathToFile( dir + File.separator + file ) .getAbsolutePath();
     return this.interpreter.source( path, this.caller.namespace );
 }
 

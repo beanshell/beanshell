@@ -19,8 +19,8 @@ foo3( arg1 ) {
 }
 
 myObject( arg1, arg2 ) {
-	foo = arg1;
-	bar = arg2;
+	this.foo = arg1;
+	this.bar = arg2;
 	return this;
 }
 

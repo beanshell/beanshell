@@ -94,15 +94,15 @@ public class Interpreter
 	/* --- Begin static members --- */
 
 	public static final String VERSION = "1.3a4";
-	/* 
+	/*
 		Debug utils are static so that they are reachable by code that doesn't
 		necessarily have an interpreter reference (e.g. tracing in utils).
 		In the future we may want to allow debug/trace to be turned on on
 		a per interpreter basis, in which case we'll need to use the parent 
 		reference in some way to determine the scope of the command that 
-		turns it on or off...
+		turns it on or off.
 	*/
-    public static boolean DEBUG, TRACE;
+    public static boolean DEBUG, TRACE, OLDSCOPING;
 
 	// This should be per instance
     transient static PrintStream debug;
@@ -1096,6 +1096,7 @@ public class Interpreter
     		debug = System.err;
     		DEBUG = Boolean.getBoolean("debug");
     		TRACE = Boolean.getBoolean("trace");
+    		OLDSCOPING = Boolean.getBoolean("oldscoping");
 			String outfilename = System.getProperty("outfile");
 			if ( outfilename != null )
 				redirectOutputToFile( outfilename );

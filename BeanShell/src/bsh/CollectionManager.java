@@ -55,23 +55,18 @@ public class CollectionManager
 		if ( manager == null 
 			&& Capabilities.classExists("java.util.Collection") ) 
 		{
-	System.out.println("here1");
 			Class clas;
 			try {
 				clas = Class.forName( "bsh.collection.CollectionManagerImpl" );
-	System.out.println("here2");
 				manager = (CollectionManager)clas.newInstance();
 			} catch ( Exception e ) {
-	System.out.println("e ="+e);
 				Interpreter.debug("unable to load CollectionManagerImpl: "+e);
 			}
 		}
-	System.out.println("here manager ="+manager);
 
 		if ( manager == null ) 
 			manager = new CollectionManager(); // default impl
 	
-	System.out.println("here2 manager ="+manager);
 		return manager;
 	}
 

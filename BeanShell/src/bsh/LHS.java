@@ -53,6 +53,8 @@ import java.util.Hashtable;
 class LHS implements ParserConstants, java.io.Serializable
 {
 	NameSpace nameSpace;
+	/** recurse on setVariable in nameSpace */
+	boolean recurse;
 
 	/**
 		Identifiers for the various types of LHS.
@@ -72,12 +74,29 @@ class LHS implements ParserConstants, java.io.Serializable
 	Object object;
 	int index;
 
-	/**
+/**
 		Variable LHS constructor.
-	*/
+*/
 	LHS( NameSpace nameSpace, String varName )
 	{
+throw new Error("namespace lhs");
+/*
 		type = VARIABLE;
+		this.varName = varName;
+		this.nameSpace = nameSpace;
+*/
+	}
+
+	/**
+		@param recurse if false the variable is set directly in the This
+		reference's local scope.  If true recursion to look for the variable
+		definition in parent's scope is allowed. (e.g. the default case for
+		undefined vars going to global).
+	*/
+	LHS( NameSpace nameSpace, String varName, boolean recurse )
+	{
+		type = VARIABLE;
+		this.recurse = recurse;
 		this.varName = varName;
 		this.nameSpace = nameSpace;
 	}
@@ -98,7 +117,7 @@ class LHS implements ParserConstants, java.io.Serializable
 	*/
 	LHS( Object object, Field field )
 	{
-		if(object == null)
+		if ( object == null)
 			throw new NullPointerException("constructed empty LHS");
 
 		type = FIELD;
@@ -135,8 +154,8 @@ class LHS implements ParserConstants, java.io.Serializable
 	public Object getValue() throws UtilEvalError
 	{
 		if ( type == VARIABLE )
-			return nameSpace.getVariable(varName);
-		else 
+			return nameSpace.getVariable( varName );
+
 		if (type == FIELD)
 			try {
 				return field.get(object);
@@ -144,8 +163,8 @@ class LHS implements ParserConstants, java.io.Serializable
 			catch(IllegalAccessException e2) {
 				throw new UtilEvalError("Can't read field: " + field);
 			}
-		else 
-		if( type == PROPERTY )
+
+		if ( type == PROPERTY )
 			try {
 				return Reflect.getObjectProperty(object, propName);
 			}
@@ -153,8 +172,8 @@ class LHS implements ParserConstants, java.io.Serializable
 				Interpreter.debug(e.getMessage());
 				throw new UtilEvalError("No such property: " + propName);
 			}
-		else 
-		if( type == INDEX )
+
+		if ( type == INDEX )
 			try {
 				return Reflect.getIndex(object, index);
 			}
@@ -172,9 +191,12 @@ class LHS implements ParserConstants, java.io.Serializable
 		throws UtilEvalError
 	{
 		if ( type == VARIABLE )
-			nameSpace.setVariable( varName, val, strictJava );
-		else 
+		{
+			// Set the variable in namespace according to local flag
+			nameSpace.setVariable( varName, val, strictJava, recurse );
+		} else 
 		if ( type == FIELD )
+		{
 			try {
 				if(val instanceof Primitive)
 					val = ((Primitive)val).getValue();
@@ -196,8 +218,10 @@ class LHS implements ParserConstants, java.io.Serializable
 					+ (val == null ? "null" : val.getClass().getName())
 					+ " not assignable to field "+field.getName());
 			}
-
-		else if ( type == PROPERTY )
+		}
+		else 
+		if ( type == PROPERTY )
+		{
 			if ( object instanceof Hashtable )
 				((Hashtable)object).put(propName, val);
 			else
@@ -208,7 +232,8 @@ class LHS implements ParserConstants, java.io.Serializable
 					Interpreter.debug("Assignment: " + e.getMessage());
 					throw new UtilEvalError("No such property: " + propName);
 				}
-		else if ( type == INDEX )
+		} else 
+		if ( type == INDEX )
 			try {
 				Reflect.setIndex(object, index, val);
 			} catch ( UtilTargetError e1 ) { // pass along target error
@@ -216,6 +241,8 @@ class LHS implements ParserConstants, java.io.Serializable
 			} catch ( Exception e ) {
 				throw new UtilEvalError("Assignment: " + e.getMessage());
 			}
+		else
+			throw new InterpreterError("unknown lhs");
 
 		return val;
 	}
