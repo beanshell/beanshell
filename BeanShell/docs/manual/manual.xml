@@ -31,6 +31,7 @@
   <!ENTITY jconsole SYSTEM "jconsole.xml">
   <!ENTITY paths SYSTEM "paths.xml">
   <!ENTITY strictjava SYSTEM "strictjava.xml">
+  <!ENTITY bsf SYSTEM "bsf.xml">
 
   <!-- I can't figure out how to move this to the included bshcommands file -->
   <!ENTITY bshcommands-bshdoc SYSTEM "bshcommands-bshdoc.xml">
@@ -62,6 +63,7 @@
 	&jconsole;
 	&reflectivestyle;
 	&execscripts;
+	&bsf;
 	&more;
 	&credit;
 	&bshcommands; <!-- bshdoc auto generated bsh commands documentation -->

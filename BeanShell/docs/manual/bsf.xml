@@ -1,0 +1,35 @@
+<section>
+<name>BSF</name>
+
+BSF is IBM's "Bean Scripting Framework".  It is generic framework that allows
+many scripting languages to be plugged into an application.  It shields
+the application from knowlege of how to invoke the scripting languages and
+their APIs, via adapter "engines". 
+<p/>
+
+BeanShell supports the BSF by providing the necessary adapter.  In theory,
+this means that BeanShell can be used as a scripting language for any BSF
+capable application simply by dropping the bsh JAR file into the classpath.
+In practice however, there is a problem.  BSF does not have a dynamic 
+registration mechanism.  So to make new scripting languages
+available (such as BeanShell) you have to explicitly register its adapter
+in your code.  Here is an example of how to do that:
+
+<example>
+import com.ibm.bsf.*;
+
+// register beanshell with the BSF framework
+String [] extensions = { "bsh" };
+BSFManager.registerScriptingEngine(
+	"beanshell", "bsh.util.BeanShellBSFEngine", extensions );
+</example>
+
+<tip>
+Ant 1.5 will add explicit support for BeanShell as a BSF scripting language.
+</tip>
+
+See <a href="http://oss.software.ibm.com/developerworks/projects/bsf">
+http://oss.software.ibm.com/developerworks/projects/bsf</a> for more 
+information about BSF.
+
+</section>

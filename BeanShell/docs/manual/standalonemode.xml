@@ -44,8 +44,11 @@ redirecting System.out and System.err</li>
 is very verbose and unstructured.  It is not intended for general
 use.</em></li>
 
-<li><strong>trace</strong></li> - Turn on method tracing.  <em>Note: this mode
-is incomplete.  It should be considered experimental.</em>
+<li><strong>trace</strong></li> - Setting to true turns on method tracing.  
+This mode prints each line before it is executed.  <em>Note that this currently 
+prints only top level lines as they are parsed and executed by the 
+interpreter.  trace skips over method exectutions (including bsh commands) 
+etc.  This mode is incomplete.  It should be considered experimental.</em>
 </ul>
 
 <h2>Remote</h2>

@@ -14,6 +14,11 @@ scripting languages.  It is useful for getting back
 the last result when you are working interactively.  
 </li>
 
+<li><strong>$_e</strong> - The last uncaught exception object thrown.  
+This is useful in interactive use for retrieving the last exception to inspect
+it for details.
+</li>
+
 <li><strong>bsh</strong> - The BeanShell root system object, containing 
 system information and variables.</li>
 
