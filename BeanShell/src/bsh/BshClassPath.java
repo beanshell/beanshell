@@ -21,6 +21,8 @@ import java.io.File;
 */
 public class BshClassPath 
 {
+	String name;
+
 	/** Set of all classes in a package */
 	Map packageMap;
 
@@ -33,18 +35,19 @@ public class BshClassPath
 	/** The URL path components */
 	private List path;
 
-	/** components BshClassPaths */
+	/** Ordered list of components BshClassPaths */
 	private List compPaths;
 
 	// constructors
 
-	public BshClassPath() { 
+	public BshClassPath( String name ) { 
+		this.name = name;
 		reset();
 	}
 
-	public BshClassPath( URL [] urls ) {
-		this();
-		add( urls );
+	public BshClassPath(  String name, URL [] urls ) {
+		this( name );
+		add( urls, null );
 	}
 
 	// end constructors
@@ -53,14 +56,14 @@ public class BshClassPath
 
 	public void setPath( URL[] urls ) {
 		reset();
-		add( urls );
+		add( urls, null );
 	}
 
 	/**
 		Add the specified BshClassPath as a component of our path.
 		Changes in the bcp will be reflected through us.
 	*/
-	public void add( BshClassPath bcp ) { 
+	public void addComponent( BshClassPath bcp ) { 
 		if ( compPaths == null )
 			compPaths = new ArrayList();
 		compPaths.add( bcp );
@@ -73,23 +76,23 @@ public class BshClassPath
 		return (URL[])getFullPath().toArray( new URL[0] );
 	}
 
-	public void add( URL [] urls ) { 
+	public void add( URL [] urls, Interpreter feedback  ) { 
 		path.addAll( Arrays.asList(urls) );
 		if ( mapsInitialized )
-			map( urls );
+			map( urls, feedback );
 	}
 
-	public void add( URL url ) throws IOException { 
+	public void add( URL url, Interpreter feedback  ) throws IOException { 
 		path.add(url);
 		if ( mapsInitialized )
-			map( url );
+			map( url, feedback );
 	}
 
 	/**
 		Return the set of classes in the specified package
 	*/
 	public Collection getClassesForPackage( String pack ) {
-		insureInitialized();
+		insureInitialized( null );
 		Collection col = (Collection)packageMap.get( pack );
 		if ( col == null && compPaths != null )
 			for (int i=0; i<compPaths.size() && col==null; i++)
@@ -102,7 +105,7 @@ public class BshClassPath
 		
 	*/
 	public ClassSource getClassSource( String className ) {
-		insureInitialized();
+		insureInitialized( null );
 		ClassSource cs = (ClassSource)classSource.get( className );
 		if ( cs == null && compPaths != null )
 			for (int i=0; i<compPaths.size() && cs==null; i++)
@@ -111,8 +114,12 @@ public class BshClassPath
 	}
 
 	/**
-		If the claspath map is not initialized, do it.
+		If the claspath map is not initialized, do it now.
 		Note: this does not initialize any component classpaths.
+
+		If interpreter is non-null it will be used to print feedback to
+		the user on the progress of mapping.
+
 		
 		Random note:
 		Should this be "insure" or "ensure".  I know I've seen "ensure" used
@@ -133,58 +140,85 @@ public class BshClassPath
 			implies action taken to guard against attack or
 			loss.
 	*/
-	public void insureInitialized() {
-		if ( !mapsInitialized )
-			map( getPathComponents() );
+	public void insureInitialized( Interpreter feedback ) {
+		if ( !mapsInitialized ) {
+			map( getPathComponents(), feedback );
+		}
 		mapsInitialized = true;
 	}
 
+	/*
 	public boolean isInitialized() {
 		return mapsInitialized;
 	}
+	*/
 
-
+	/**
+		Get the full path including component paths.
+		(component paths listed first, in order)
+		Duplicate path components are removed.
+	*/
 	protected List getFullPath() {
 		List list = new ArrayList();
 		if ( compPaths != null )
-			for (int i=0; i<compPaths.size(); i++)
-				list.addAll( ((BshClassPath)compPaths.get(i)).getFullPath() );
+			for (int i=0; i<compPaths.size(); i++) {
+				List l = ((BshClassPath)compPaths.get(i)).getFullPath();
+				// take care to remove dups
+				// wish we had an ordered set collection
+				Iterator it = l.iterator();
+				while ( it.hasNext() ) {
+					Object o = it.next();
+					if ( !list.contains(o) )
+						list.add( o );
+				}
+			}
 		list.addAll( path );
 		return list;
 	}
 
 
-	void map( URL [] urls ) { 
+	void map( URL [] urls, Interpreter feedback ) { 
 		for(int i=0; i< urls.length; i++)
 			try{
-				map( urls[i] );
+				map( urls[i], feedback );
 			} catch ( IOException e ) {
-				System.err.println("Error constructing classpath: "
-					+urls[i]+": "+e );
+				String s = "Error constructing classpath: " +urls[i]+": "+e;
+				if ( feedback != null )
+					feedback.println( s );
+				else
+					System.err.println(s );
 			}
 	}
 
-	void map( URL url ) throws IOException { 
-		System.out.println("Mapping class path: "+url);
-
+	void map( URL url, Interpreter feedback ) throws IOException { 
 		String name = url.getFile();
 		File f = new File( name );
 
-		if ( f.isDirectory() )
+		if ( f.isDirectory() ) {
+			if ( feedback != null )
+				feedback.println("Mapping directory: "+f );
 			map( traverseDirForClasses( f ), new DirClassSource(f) );
-		else if ( isArchiveFileName( name ) )
+		} else if ( isArchiveFileName( name ) ) {
+			if ( feedback != null )
+				feedback.println("Mapping archive: "+url );
 			map( searchJarForClasses( url ), new JarClassSource(url) );
+		} 
 		/*
 		else if ( isClassFileName( name ) )
 			map( looseClass( name ), url );
 		*/
-		else
-			System.out.println("Not a classpath component: "+ name );
+		else {
+			String s = "Not a classpath component: "+ name ;
+			if ( feedback != null )
+				feedback.println( s );
+			else
+				System.err.println( s  );
+		}
 	}
 
 	private void map( String [] classes, Object source ) {
 		for(int i=0; i< classes.length; i++) {
-			System.out.println( classes[i] +": "+ source );
+			//System.out.println( classes[i] +": "+ source );
 			mapClass( classes[i], source );
 		}
 	}
@@ -213,6 +247,7 @@ public class BshClassPath
 		classSource = new HashMap();
 		mapsInitialized = false;
 		path = new ArrayList();
+		compPaths = null;
 	}
 
 	static String [] traverseDirForClasses( File dir ) 
@@ -328,7 +363,7 @@ public class BshClassPath
 			java.class.path
 	*/
 	static URL [] userClassPathComp;
-	public static URL [] getUserClassPathComponents() 
+	private static URL [] getUserClassPathComponents() 
 	{
 		if ( userClassPathComp != null )
 			return userClassPathComp;
@@ -356,7 +391,8 @@ public class BshClassPath
 	public static BshClassPath getUserClassPath() 
 	{
 		if ( userClassPath == null )
-			userClassPath = new BshClassPath( getUserClassPathComponents() );
+			userClassPath = new BshClassPath( 
+				"User Class Path", getUserClassPathComponents() );
 		return userClassPath;
 	}
 
@@ -371,7 +407,8 @@ public class BshClassPath
 			try {
 				String rtjar = System.getProperty("java.home")+"/lib/rt.jar";
 				URL url = new File( rtjar ).toURL();
-				bootClassPath = new BshClassPath( new URL[] { url } );
+				bootClassPath = new BshClassPath( 
+					"Boot Class Path", new URL[] { url } );
 			} catch ( MalformedURLException e ) {
 				throw new ClassPathException(" can't find boot jar: "+e);
 			}
@@ -396,11 +433,10 @@ public class BshClassPath
 		URL [] urls = new URL [ args.length ];
 		for(int i=0; i< args.length; i++)
 			urls[i] =  new File(args[i]).toURL();
-		BshClassPath bcp = new BshClassPath( urls );
+		BshClassPath bcp = new BshClassPath( "Test", urls );
 	}
 
 	public String toString() {
-		return "BshClassPath: "+path;
+		return "BshClassPath "+name+"("+super.toString()+") : "+path;
 	}
-
 }
