@@ -77,19 +77,22 @@
 	<property name="excludes" 
 		value="${exclude-1.2},${exclude-1.1},${exclude-bsf},${exclude-servlet}"/>
 
-	<! -- JARs -->
-	<property name="javadoc-jar" value="${dist}/javadoc.zip"/>
-	<property name="core-jar" value="${dist}/bsh-core-${version}.jar"/>
-	<property name="src-jar" value="${dist}/bsh-${version}-src.jar"/>
-	<property name="all-jar" value="${dist}/bsh-${version}.jar"/>
-	<property name="commands-jar" value="${dist}/bsh-commands-${version}.jar"/>
+	<!-- JARs -->
+	<property name="javadoc-jar" value="${dist-dir}/javadoc.zip"/>
+	<property name="core-jar" value="${dist-dir}/bsh-core-${version}.jar"/>
+	<property name="src-jar" value="${dist-dir}/bsh-${version}-src.jar"/>
+	<property name="all-jar" value="${dist-dir}/bsh-${version}.jar"/>
+	<property name="commands-jar" 
+		value="${dist-dir}/bsh-commands-${version}.jar"/>
 	<property name="classpath-jar" 
-		value="${dist}/bsh-classpath-${version}.jar"/>
-	<property name="reflect-jar" value="${dist}/bsh-reflect-${version}.jar"/>
-	<property name="util-jar" value="${dist}/bsh-util-${version}.jar"/>
-	<property name="bsf-jar" value="${dist}/bsh-bsf-${version}.jar"/>
-	<property name="bshservlet-wbsh-war" value="${dist}/bshservlet-wbsh.war"/>
-	<property name="bshservlet-war" value="${dist}/bshservlet.war"/>
+		value="${dist-dir}/bsh-classpath-${version}.jar"/>
+	<property name="reflect-jar" 
+		value="${dist-dir}/bsh-reflect-${version}.jar"/>
+	<property name="util-jar" value="${dist-dir}/bsh-util-${version}.jar"/>
+	<property name="bsf-jar" value="${dist-dir}/bsh-bsf-${version}.jar"/>
+	<property name="bshservlet-wbsh-war" 
+		value="${dist-dir}/bshservlet-wbsh.war"/>
+	<property name="bshservlet-war" value="${dist-dir}/bshservlet.war"/>
 
 	<!-- Put the auto-generated command doc in the manual dir -->
 	<property name="commands-bshdoc" 
@@ -172,7 +175,6 @@
 			 doctitle="&lt;h1&gt;BeanShell&lt;h1&gt;"
 			 bottom="&lt;em&gt;&#169; 2000 pat@pat.net :-)&lt;/em&gt;"
 		/>
-		<jar jarfile="${javadoc-jar}" basedir="${javadoc-dir}"/>
 	</target>
 
 	<!-- Jar target setup -->
@@ -195,8 +197,10 @@
 		</delete>
 
 		<delete quiet="true" dir="${javadoc-dir}"/>
-		<delete file="${javadoc-jar}"/>
+		<delete quiet="true" dir="${dist-dir}"/>
 
+		<!-- Moved to dist dir
+		<delete quiet="true" file="${javadoc-jar}"/>
 		<delete quiet="true" file="${src-jar}"/>
 		<delete quiet="true" file="${core-jar}"/>
 		<delete quiet="true" file="${all-jar}"/>
@@ -207,6 +211,7 @@
 		<delete quiet="true" file="${bsf-jar}"/>
 		<delete quiet="true" file="${bshservlet-wbsh-war}"/>
 		<delete quiet="true" file="${bshservlet-war}"/>
+		-->
 
 		<delete quiet="true" file="${commands-bshdoc}"/>
 		<!-- hack -->
@@ -322,10 +327,12 @@
 		</jar>
 	</target>
 
-	<!-- Make all of the dist jars -->
-	<target name="dist" depends="compile,jarcore,jarall,javadoc,jarsrc,bshservlet-war,bshservlet-wbsh-war,bshdoc">
-
+	<target name="_distdir">
 		<mkdir dir="${dist-dir}" />
+	</target>
+
+	<!-- Make all of the dist jars -->
+	<target name="dist" depends="_distdir,compile,jarcore,jarall,javadoc,jarsrc,bshservlet-war,bshservlet-wbsh-war,bshdoc">
 
 		<delete file="${commands-jar}"/>
 		<jar jarfile="${commands-jar}">
@@ -351,6 +358,9 @@
 		<jar jarfile="${bsf-jar}">
 			<fileset refid="bsf-fileset"/>
 		</jar>
+
+		<delete file="${javadoc-jar}"/>
+		<jar jarfile="${javadoc-jar}" basedir="${javadoc-dir}"/>
 
 		<!-- Build the documentation -->
 		<ant dir="docs/manual"/>
