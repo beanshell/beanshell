@@ -73,5 +73,9 @@ class BSHAmbiguousName extends SimpleNode
 			"Don't know how to eval an ambiguous name!"
 			+"  Use toObject() if you want an object." );
     }
+
+	public String toString() {
+		return "AmbigousName: "+text;
+	}
 }
 

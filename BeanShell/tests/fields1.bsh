@@ -45,5 +45,10 @@ cl1=String[][].class;
 cl2=(new String[1][1]).getClass();
 assert(cl1 == cl2);
 
+Fields.staticField = true;
+assert( Fields.staticField == true );
+Fields.staticField = false;
+assert( Fields.staticField == false);
+
 complete();
 

@@ -2,14 +2,21 @@
 bsh.help.run= "usage: Thread run( filename )";
 
 /**
-	Run a command in its own in its own private global namespace.
-	(kind of like the unix "chroot" for the namespace)
+	Run a command in its own in its own private global namespace and interpeter
+	context.  (kind of like the unix "chroot" for the namespace)
 	The root bsh system object is extended (with the extend() command) and 
 	made visible here, so that system info is effectively inherited.
+	Because the root bsh object is extended it is effectively read / copy
+	on write...  e.g. you can change directories in the child context, do
+	imports, etc. and it will not affect the calling context.
 
-	Returns the context so that you can gather results.
+	@return Returns the context so that you can gather results.
+	@param runArgument an argument passed to the child context under the
+		name runArgument.  e.g. you might pass in the calling This context
+		from which to draw variables, etc.
 */
-run( String filename ) {
+run( String filename, Object runArgument ) 
+{
 	// Our local namespace is going to be the new root (global)
 	// make local copies of the system stuff.
 	//
@@ -24,3 +31,6 @@ run( String filename ) {
 	return this;
 }
 
+run( String filename ) {
+	run( filename, null );
+}

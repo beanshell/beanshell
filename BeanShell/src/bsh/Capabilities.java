@@ -57,6 +57,26 @@ public class Capabilities
 		return classExists( "java.lang.reflect.Proxy" );
 	}
 
+/*
+	static boolean checkedAcc;
+	static boolean haveAcc;
+	public static boolean haveAccessibility() {
+		if ( !checkedAcc ) 
+		{
+			SecurityManager sm = System.getSecurityManager();
+			if (sm != null) 
+				try {
+					sm.checkPermission(ACCESS_PERMISSION);
+					haveAcc = true;
+				} catch ( SecurityExcpetion e ) {
+					haveAcc = false;
+				}
+		}
+
+		return haveAcc;
+	}
+*/
+
 	private static Hashtable classes = new Hashtable();
 	/**
 		Use direct Class.forName() to test for the existence of a class.

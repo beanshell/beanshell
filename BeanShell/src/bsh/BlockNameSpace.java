@@ -41,13 +41,13 @@ package	bsh;
 	variable usage) acts like it is part of the containing block.  
 	<p>
 
-	Note: It *must* remain possible for a BlocckNameSpace to be a child of
+	Note: It *must* remain possible for a BlockNameSpace to be a child of
 	another BlockNameSpace and have variable propogation pass all the way
 	through.  (This happens naturally and simply here). This is used in 
 	BSHForStatement (see notes there).
 */
 class BlockNameSpace extends NameSpace 
-	{
+{
 
     public BlockNameSpace( NameSpace parent ) 
 		throws EvalError

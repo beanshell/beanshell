@@ -21,7 +21,7 @@
 
 <!-- Project Configuration -->
 
-	<property name="version" value="1.1a17"/>
+	<property name="version" value="1.1a18"/>
 	<property name="deprecation" value="off"/>
 
 	<!-- choose an alternate compiler -->

@@ -48,15 +48,17 @@ class BSHLHSPrimaryExpression extends SimpleNode
 			The method invocation bit here is somewhat of a hack to handle 
 			the fact that we have moved prefix method invocation into the 
 			PrimaryPrefix in order to get it to always produce an object type.
+
 			This is too complicated.
 		*/
 		int childNum = 0;
 		SimpleNode prefixNode = (SimpleNode)jjtGetChild(childNum++);
 		Object prefixValue = null;
 		LHS lhs = null;
-		if ( prefixNode instanceof BSHAmbiguousName ) 
+		if ( prefixNode instanceof BSHAmbiguousName )   {
 			lhs = ((BSHAmbiguousName)prefixNode).toLHS( callstack, interpreter);
-		else
+//System.err.println("lhs is ambig name ("+prefixNode+")= "+lhs);
+		} else
 			// Currently the only case is for BSHMethodInvocation
 			prefixValue = 
 				((SimpleNode)prefixNode).eval( callstack, interpreter);
@@ -70,7 +72,7 @@ class BSHLHSPrimaryExpression extends SimpleNode
 
 		// Apply the suffixes
 		int numChildren = jjtGetNumChildren(); 
-		while( childNum<numChildren )
+		while( childNum<numChildren ) 
 			lhs = ((BSHLHSPrimarySuffix)jjtGetChild(childNum++)).doLHSSuffix(
 				lhs.getValue(), callstack, interpreter);
 

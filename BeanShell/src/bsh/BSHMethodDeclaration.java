@@ -67,7 +67,8 @@ class BSHMethodDeclaration extends SimpleNode
 	public Object eval( NameSpace namespace )  
 		throws EvalError
 	{
-		if(block == null) {
+		if ( block == null ) 
+		{
 			// We will allow methods to be re-written.
 			/*  
 			if( namespace has method )
@@ -88,6 +89,22 @@ class BSHMethodDeclaration extends SimpleNode
 				block = (BSHBlock)jjtGetChild(1);
 			}
 			params.eval( namespace );
+
+			// if strictJava mode, check for loose parameters and return type
+			if ( Interpreter.strictJava )
+			{
+				for(int i=0; i<params.argTypes.length; i++)
+					if ( params.argTypes[i] == null )
+						throw new EvalError(
+					"(Strict Java Mode) Undeclared argument type, parameter: " +
+						params.argNames[i] + " in method: " 
+						+ name, this );
+
+				if ( returnType == null )
+					throw new EvalError(
+					"(Strict Java Mode) Undeclared return type for method: "
+						+ name, this );
+			}
 		}
 
 		// Install an *instance* of this method in the namespace.

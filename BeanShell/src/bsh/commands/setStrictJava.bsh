@@ -1,0 +1,7 @@
+
+void setStrictJava( boolean val ) {
+	import bsh.Interpreter;
+
+	Interpreter.strictJava = val;
+}
+

@@ -34,6 +34,9 @@
 
 package bsh;
 
+/**
+	For loose type parameters the argTypes are null.
+*/
 class BSHFormalParameters extends SimpleNode
 {
 	int numArgs;
