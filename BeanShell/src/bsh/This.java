@@ -25,7 +25,6 @@ import java.io.IOException;
 	outside of bsh.
 */
 public class This implements java.io.Serializable, Runnable {
-
 	/**
 		This is the interpreter running when the This ref was created.
 		It's used as a default interpreter for callback through the This
@@ -38,7 +37,45 @@ public class This implements java.io.Serializable, Runnable {
 	*/
 	public NameSpace namespace;
 
-	This( NameSpace namespace, Interpreter declaringInterpreter ) { 
+	/**
+		getThis() is a factory for bsh.This type references.  The capabilities
+		of ".this" references in bsh are version dependent up until jdk1.3.
+		The version dependence was to support different default interface
+		implementations.  i.e. different sets of listener interfaces which
+		scripted objects were capable of implementing.  In jdk1.3 the 
+		reflection proxy mechanism was introduced which allowed us to 
+		implement arbitrary interfaces.  This is fantastic.
+
+		A This object is a thin layer over a namespace, comprising a bsh object
+		context.  We create it here only if needed for the namespace.
+
+		Note: this method is relatively slow because of the way it dynamically
+		factories objects.  So This references are cached in NameSpace.
+	*/
+    static This getThis( 
+		NameSpace namespace, Interpreter declaringInterpreter ) 
+	{
+		try {
+			if ( NameSpace.haveProxyMechanism() )
+				return (This)Reflect.constructObject( "bsh.XThis",
+					new Object [] { namespace, declaringInterpreter } );
+			else if ( NameSpace.haveSwing() )
+				return (This)Reflect.constructObject( "bsh.JThis",
+					new Object [] { namespace, declaringInterpreter } );
+			else
+				return new This( namespace, declaringInterpreter );
+
+		} catch ( Exception e ) {
+			throw new InterpreterError("internal error 1 in This: "+e);
+		} 
+    }
+
+	/*
+		I wish protected access were limited to children and not also 
+		package scope... I want this to be a singleton implemented by various
+		children.  
+	*/
+	protected This( NameSpace namespace, Interpreter declaringInterpreter ) { 
 		this.namespace = namespace; 
 		this.declaringInterpreter = declaringInterpreter;
 	}
@@ -58,24 +95,31 @@ public class This implements java.io.Serializable, Runnable {
 	}
 
 	/**
-		Convenience for users outside of this package.
+		Invoke specified method using declaring interpreter.
 	*/
 	public Object invokeMethod( String name, Object [] args ) 
 		throws EvalError
 	{
-		BshMethod method = namespace.getMethod( name );
-		if ( method != null )
-			return method.invokeDeclaredMethod( args, declaringInterpreter );
-		else
-			throw new EvalError("Method: "+name
-				+" not found in namespace: "+ namespace );
+		return invokeMethod( name, args, declaringInterpreter );
 	}
 
 	/**
+		Invoke specified method with specified interpreter.
+		This is simply a convenience method.
+	*/
+	public Object invokeMethod( 
+		String name, Object [] args, Interpreter interpreter  ) 
+		throws EvalError
+	{
+		return namespace.invokeMethod( name, args, interpreter );
+	}
+
+
+	/**
 		Bind a This reference to a parent's namespace.
-		This is a static utility method because the interpreter doesn't 
-		currently allow access to direct methods of This objects.
-		
+		This is a static utility method because it's used by a bsh command
+		bind() and the interpreter doesn't currently allow access to direct 
+		methods of This objects (small hack)
 	*/
 	public static void bind( 
 		This ths, NameSpace namespace, Interpreter declaringInterpreter ) 

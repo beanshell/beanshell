@@ -43,8 +43,8 @@ public class NameSpace implements java.io.Serializable
     transient private Hashtable classCache;
 
     // A cache for things we know are *not* classes... actual value is unused
-    transient static Hashtable absoluteNonClasses;
-    transient static Hashtable absoluteClassCache	= new Hashtable();
+    transient static Hashtable absoluteNonClasses = new Hashtable();
+    transient static Hashtable absoluteClassCache = new Hashtable();
 
     public NameSpace( String name ) { 
 		this( null, name );
@@ -110,37 +110,6 @@ public class NameSpace implements java.io.Serializable
 		return parent;
 	}
 
-
-	/*
-		getThis() is a factory for bsh.This type references.  The capabilities
-		of ".this" references in bsh are version dependent up until jdk1.3.
-		The version dependence was to support different default interface
-		implementations.  i.e. different sets of listener interfaces which
-		scripted objects were capable of implementing.  In jdk1.3 the 
-		reflection proxy mechanism was introduced which allowed us to 
-		implement arbitrary interfaces.  This is fantastic.
-
-		A This object is a thin layer over a namespace, comprising a bsh object
-		context.  We create it here only if needed for the namespace.
-		
-		Note: I keep thinking about combining This and NameSpace, but I just 
-		don't want to.  They have different semantics...
-
-	*/
-    This getThis( Interpreter declaringInterpreter ) {
-
-		if ( thisReference == null ) {
-			if ( haveProxyMechanism() )
-				thisReference = new XThis( this, declaringInterpreter );
-			else if ( haveSwing() )
-				thisReference = new JThis( this, declaringInterpreter );
-			else
-				thisReference = new This( this, declaringInterpreter );
-		}
-
-		return thisReference;
-    }
-
     public NameSpace getSuper()
     {
 	if(parent != null)
@@ -155,6 +124,23 @@ public class NameSpace implements java.io.Serializable
 	    return parent.getGlobal();
 	else
 	    return this;
+    }
+
+	
+	/*
+		A This object is a thin layer over a namespace, comprising a bsh object
+		context.  We create it here only if needed for the namespace.
+
+		Note: that This is factoried for different capabilities.  When we
+		add classpath modification we'll have to have a listener here to
+		uncache the This reference and allow it to be refactoried.
+	*/
+    This getThis( Interpreter declaringInterpreter ) {
+
+		if ( thisReference == null )
+			thisReference = This.getThis( this, declaringInterpreter );
+
+		return thisReference;
     }
 
 	/*
@@ -622,7 +608,6 @@ public class NameSpace implements java.io.Serializable
 		if(absoluteNonClasses != null)
 			return;
 
-		absoluteNonClasses = new Hashtable();
 		String res = "lib/javaPackages";
 		InputStream in = NameSpace.class.getResourceAsStream(res);
 		if(in == null)
@@ -682,11 +667,15 @@ public class NameSpace implements java.io.Serializable
 	}
 
 	static boolean classExists( String name ) {
+		/*
 		Class c = null;
 		try { 
 			c = Class.forName( name ); 
 		} catch ( Exception e ) { }
 		return ( c != null );
+		*/
+
+		return ( classForName( name ) != null );
 	}
 
 	// Convenience method
@@ -696,5 +685,28 @@ public class NameSpace implements java.io.Serializable
 		return new Name( this, name ).toObject( interpreter );
 	}
 
+	/**
+		Convenience for users outside of this package.
+	*/
+	public Object invokeMethod( 
+		String methodName, Object [] args, Interpreter interpreter ) 
+		throws EvalError
+	{
+		// Look for method in the bsh object
+        BshMethod meth = getMethod(methodName);
+        if ( meth != null )
+           return meth.invokeDeclaredMethod( args, interpreter );
+
+		// Look for a default invoke() handler method
+		meth = getMethod( "invoke" );
+
+		// Call script "invoke( String methodName, Object [] args );
+		if ( meth != null )
+			return meth.invokeDeclaredMethod( 
+				new Object [] { methodName, args }, interpreter );
+
+		throw new EvalError( "No locally declared method: " 
+			+ methodName + " in namespace: " + this );
+	}
 }
 

@@ -264,6 +264,12 @@ public class AWTConsole extends TextArea
 	public void println( String s ) {
 		print( s+"\n" );
 	}
+
+	public void print( String s, Color c ) {
+		// just for the hell of it
+		print( "{" + c + "} " + s);
+	}
+
 	synchronized public void print( String s ) {
 		append(s);
 		textLength = getText().length(); // sync for safety

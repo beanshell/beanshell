@@ -34,6 +34,11 @@ import java.beans.*;
 	Users of 1.1 sans swing will have minimal interface support (just run()).
 	
 	Bsh doesn't run on 1.02 and below because there is no reflection! 
+
+	Note: This module relies on features of Swing and will only compile
+	with JDK1.2 or JDK1.1 + the swing package.  For other environments simply 
+	do not compile this class.
+
 */
 class JThis extends This implements
 	// All core AWT listeners

@@ -17,11 +17,6 @@ package bsh;
 
 import java.lang.reflect.InvocationTargetException;
 
-/*
-	We can't support this here... need to factory an extended class
-	(like XThis) to coexist under older JDK.
-*/
-import java.lang.reflect.UndeclaredThrowableException;
 
 /**
 	TargetError is an EvalError that wraps an exception thrown by the script	
@@ -39,9 +34,10 @@ import java.lang.reflect.UndeclaredThrowableException;
 	Note: an important location to look at is BSHMethodInvocation.  There
 	we catch eval errors and rethrow them to compound the location information
 */
-public class TargetError extends EvalError
+public class TargetError extends EvalError implements TargetErrorPrinter
 {
 	Throwable target;
+	TargetErrorPrinter targetPrinter;
 
 	public TargetError(String msg, Throwable t, SimpleNode node )
 	{
@@ -65,15 +61,9 @@ public class TargetError extends EvalError
 
 	public String toString() {
 
-		String re = 
-			super.toString() + "\nTarget exception: " + target.toString();
-		if ( NameSpace.haveProxyMechanism() ) {
-			if ( target instanceof UndeclaredThrowableException )
-				re += "\n" + 
-				((UndeclaredThrowableException)target).getUndeclaredThrowable();
-		}
-
-		return re;
+		return super.toString() 
+			+ "\nTarget exception: " + 
+			getTargetErrorPrinter().printTargetError( target );
 	}
 
     public void printStackTrace() { 
@@ -93,5 +83,31 @@ public class TargetError extends EvalError
 	{
 		throw new TargetError( msg+":"+getMessage(),  target, node );
 	}
+
+	/**
+		This factory allows us to print InvocationTargetExceptions when
+		the proxy mechanism is available.
+	*/
+	public TargetErrorPrinter getTargetErrorPrinter() {
+		if ( targetPrinter == null )
+			try {
+				if ( NameSpace.haveProxyMechanism() )
+					targetPrinter = 
+						(TargetErrorPrinter)Reflect.constructObject( 
+						"bsh.XTargetErrorPrinter", new Object [] { } );
+				else
+					targetPrinter = this;
+
+			} catch ( Exception e ) {
+				throw new InterpreterError("internal error 1 in TargetError: "+e);
+			} 
+
+		return targetPrinter;
+	}
+
+	public String printTargetError( Throwable t ) {
+		return target.toString();
+	}
+
 }
 

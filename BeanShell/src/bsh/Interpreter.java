@@ -503,12 +503,9 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
         /* Daniel Leuck: added color */
     public final void error(String s) {
 
-                if(console != null) {
-                        if ( NameSpace.haveSwing() && (console instanceof JConsole) )
-                                ((JConsole)console).print("// Error: " + s +"\n", Color.red);
-                        else
-                console.println("// Error: " + s);
-                } else {
+                if ( console != null )
+                                console.print("// Error: " + s +"\n", Color.red);
+                else {
                         err.println("// Error: " + s);
                         err.flush();
                 }
@@ -4054,6 +4051,31 @@ void FormalParameter() #FormalParameter :
     return retval;
   }
 
+  final private boolean jj_3R_163() {
+    if (jj_3R_165()) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3R_166()) { jj_scanpos = xsp; break; }
+      if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    }
+    return false;
+  }
+
+  final private boolean jj_3R_156() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_161()) {
+    jj_scanpos = xsp;
+    if (jj_3R_162()) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    } else if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    if (jj_3R_155()) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
   final private boolean jj_3R_171() {
     if (jj_scan_token(LE)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
@@ -5915,31 +5937,6 @@ void FormalParameter() #FormalParameter :
 
   final private boolean jj_3R_161() {
     if (jj_scan_token(EQ)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
-  final private boolean jj_3R_163() {
-    if (jj_3R_165()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_166()) { jj_scanpos = xsp; break; }
-      if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    }
-    return false;
-  }
-
-  final private boolean jj_3R_156() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_161()) {
-    jj_scanpos = xsp;
-    if (jj_3R_162()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    } else if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    if (jj_3R_155()) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
     return false;
   }
