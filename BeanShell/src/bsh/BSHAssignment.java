@@ -79,13 +79,31 @@ class BSHAssignment extends SimpleNode implements InterpreterConstants
         }
     }
 
-    private Object operation(Object lhs, Object rhs, int kind) throws EvalError
+    private Object operation(Object lhs, Object rhs, int kind) 
+		throws EvalError
     {
-        if(lhs instanceof Primitive || rhs instanceof Primitive)
+		/*
+			Implement String += value;
+			According to the JLS, value may be anything.
+			In BeanShell, we'll disallow VOID (undefined) values.
+			(or should we map them to the empty string?)
+		*/
+		if ( lhs instanceof String && rhs != Primitive.VOID ) {
+			if ( kind != PLUS )
+				throw new EvalError(
+					"Use of non + operator with String LHS", this);     
+
+			return (String)lhs + rhs;
+		}
+
+        if ( lhs instanceof Primitive || rhs instanceof Primitive )
             if(lhs == Primitive.VOID || rhs == Primitive.VOID)
-                throw new EvalError("Illegal use of undefined object or 'void' literal", this);
-            else if(lhs == Primitive.NULL || rhs == Primitive.NULL)
-                throw new EvalError("Illegal use of null object or 'null' literal", this);
+                throw new EvalError(
+					"Illegal use of undefined object or 'void' literal", this);
+            else if ( lhs == Primitive.NULL || rhs == Primitive.NULL )
+                throw new EvalError(
+					"Illegal use of null object or 'null' literal", this);
+
 
         if( (lhs instanceof Boolean || lhs instanceof Character ||
              lhs instanceof Number || lhs instanceof Primitive) &&
@@ -94,10 +112,6 @@ class BSHAssignment extends SimpleNode implements InterpreterConstants
         {
             return BSHBinaryExpression.primitiveBinaryOperation(lhs, rhs, kind);
         }
-
-		// Implement String += String;
-		if ( lhs instanceof String && rhs instanceof String )
-			return (String)lhs + (String)rhs;
 
         throw new EvalError("Non primitive value in operator: " +
             lhs.getClass() + " " + tokenImage[kind] + " " + rhs.getClass(), this);

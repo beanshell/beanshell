@@ -4,7 +4,11 @@ source("TestHarness.bsh");
 
 a="foo";
 a+="bar";
+a+=5;
+a+=null;
 
-assert( a.equals("foobar") );
+assert( a.equals("foobar5null") );
+
+b="foo"+"bar"+5;
 
 complete();
