@@ -37,7 +37,7 @@ package bsh;
 /**
 */
 class BSHBinaryExpression extends SimpleNode 
-	implements InterpreterConstants 
+	implements ParserConstants 
 {
     public int kind;
 

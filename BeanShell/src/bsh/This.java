@@ -55,7 +55,7 @@ public class This implements java.io.Serializable, Runnable {
 	/**
 		The namespace
 	*/
-	public NameSpace namespace;
+	NameSpace namespace;
 
 	/**
 		getThis() is a factory for bsh.This type references.  The capabilities

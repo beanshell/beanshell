@@ -59,7 +59,7 @@ public interface NameCompletion {
 	/**
 		Simple linear search and comparison.
 	*/
-	public static class Table extends ArrayList
+	static class Table extends ArrayList
 	{
 		NameCompletion.Table parent;
 

@@ -34,10 +34,10 @@
 
 package bsh;
 
-/*
-	A heinous internal error in the interpreter
+/**
+	An internal error in the interpreter has occurred.
 */
-class InterpreterError extends RuntimeException
+public class InterpreterError extends RuntimeException
 {
 	public InterpreterError(String s)
 	{

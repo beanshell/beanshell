@@ -34,7 +34,7 @@
 
 package bsh;
 
-class BSHReturnStatement extends SimpleNode implements InterpreterConstants
+class BSHReturnStatement extends SimpleNode implements ParserConstants
 {
 	public int kind;
 
