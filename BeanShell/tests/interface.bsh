@@ -54,6 +54,13 @@ if ( Capabilities.haveProxyMechanism() ) {
 	assert( isEvalError( "consumer.consumeInterface( si2 )") );
 	assert( isEvalError( "si2.getString()" ) );
 
+	// proxy interfaces implement the object protocol
+	Runnable r1 = new Runnable() { };
+	String s = r1.toString();
+	int i = r1.hashCode();
+	assert( r1.equals( r1 ) );
+	assert( !r1.equals( "foo" ) );
+
 } else
 	warning("No proxy mechanism to test!");
 

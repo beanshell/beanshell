@@ -126,8 +126,27 @@ class XThis extends This {
 					new Object [] { method.getName(), args }, 
 					declaringInterpreter, callstack ) );
 
+			/*
+				implement the required part of the Object protocol:
+					public int hashCode();
+					public boolean equals(java.lang.Object);
+					public java.lang.String toString();
+				if these were not handled by scripted methods we must provide
+				a default impl.
+			*/
+			// a default toString() that shows the interfaces we implement
 			if ( method.getName().equals("toString" ) )
 				return toStringShowInts( proxy.getClass().getInterfaces());
+
+			// a default hashCode()
+			if ( method.getName().equals("hashCode" ) )
+				return new Integer(this.hashCode());
+
+			// a default equals()
+			if ( method.getName().equals("equals" ) ) {
+				Object obj = args[0];
+				return new Boolean( proxy == obj );
+			}
 
 			throw new EvalError("Bsh script method: "+ method.getName()
 				+ " not found in namespace: "+ namespace.name );
@@ -157,4 +176,6 @@ class XThis extends This {
 		declaringInterpreter = interpreter;
 	}
 }
+
+
 

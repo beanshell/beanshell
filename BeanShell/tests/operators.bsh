@@ -1,0 +1,17 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+a=5;
+a*=2;
+assert(a==10);
+
+assert( (255 ^ 128) == 127 );
+a=0xff;
+a^=128;
+assert(a==127);
+
+assert( 13%10 == 3 );
+
+complete();
+
