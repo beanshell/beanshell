@@ -23,7 +23,9 @@ can work with your own classes and applications easily.
 <p/>
 
 To do this you can either drop the BeanShell JAR file into your Java 
-extensions folder or add it to your classpath.
+extensions folder or add it to your classpath.  (Important: If you put BeanShell
+in the extensions folder and wish to use it with BSF applications like Jakarta Ant 
+you must install the bsf.jar in the same location).
 
 <example>
 To install as an extension place the bsh.jar file in your 

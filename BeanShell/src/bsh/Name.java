@@ -132,9 +132,6 @@ class Name implements java.io.Serializable
 
 	// Begin Cached result structures
 
-	Object asObject;
-	LHS asLHS;
-
 	// Note: it's ok to cache class resolution here because when the class
 	// space changes the namespace will discard cached names.
 	Class asClass;
@@ -198,9 +195,6 @@ class Name implements java.io.Serializable
 		CallStack callstack, Interpreter interpreter, boolean forceClass ) 
 		throws UtilEvalError
 	{
-		//if ( asObject != null )
-			//return asObject;
-
 		reset();
 
 		Object obj = null;
@@ -210,8 +204,7 @@ class Name implements java.io.Serializable
 		if ( obj == null )
 			throw new InterpreterError("null value in toObject()");
 
-		asObject = obj;
-		return asObject;
+		return obj;
 	}
 
 	/**
@@ -559,9 +552,6 @@ class Name implements java.io.Serializable
 		CallStack callstack, Interpreter interpreter )
 		throws UtilEvalError
 	{
-		//if ( asLHS != null ) 
-			//return asLHS;
-
 	// Need to clean this up to a single return statement
 
 		reset();
@@ -571,11 +561,13 @@ class Name implements java.io.Serializable
 			+ isCompound(evalName));
 		*/
 
+		LHS lhs;
+
 		// variable
 		if(!isCompound(evalName)) {
 			//Interpreter.debug("returning simple var LHS...");
-			asLHS = new LHS(namespace,evalName);
-			return asLHS;
+			lhs = new LHS(namespace,evalName);
+			return lhs;
 		}
 
 		// field
@@ -596,8 +588,8 @@ class Name implements java.io.Serializable
 		if(obj instanceof This)
 		{
 			Interpreter.debug("found This reference evaluating LHS");
-			asLHS = new LHS(((This)obj).namespace, evalName);
-			return asLHS;
+			lhs = new LHS(((This)obj).namespace, evalName);
+			return lhs;
 		}
 
 		if(evalName != null)
@@ -610,11 +602,11 @@ class Name implements java.io.Serializable
 				if ( obj instanceof ClassIdentifier ) 
 				{
 					Class clas = ((ClassIdentifier)obj).getTargetClass();
-					asLHS = Reflect.getLHSStaticField(clas, evalName);
-					return asLHS;
+					lhs = Reflect.getLHSStaticField(clas, evalName);
+					return lhs;
 				} else {
-					asLHS = Reflect.getLHSObjectField(obj, evalName);
-					return asLHS;
+					lhs = Reflect.getLHSObjectField(obj, evalName);
+					return lhs;
 				}
 			} catch(ReflectError e)
 			{

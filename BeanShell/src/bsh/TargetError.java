@@ -95,7 +95,7 @@ public class TargetError extends EvalError
     public void printStackTrace( boolean debug, PrintStream out ) {
 		if ( debug ) {
 			super.printStackTrace( out );
-			System.out.println("--- Target Stack Trace ---");
+			out.println("--- Target Stack Trace ---");
 		}
 		target.printStackTrace( out );
 	}

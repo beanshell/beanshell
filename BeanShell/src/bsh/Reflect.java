@@ -135,7 +135,9 @@ class Reflect
 		as a scripted method call.
 	*/
 	private static boolean passThisMethod( String name ) {
-		return ( name.equals("getClass") || name.equals("invokeMethod") );
+		return name.equals("getClass") 
+			|| name.equals("invokeMethod")
+			|| name.equals("getInterface");
 	}
 
     public static Object getIndex(Object array, int index)
@@ -670,7 +672,6 @@ System.out.println("findAcc: "
 
     /**
         Implement JLS 15.11.2 for method resolution
-		@param onlyStatic  only static methods will be considered.
 		@return null on no match
     */
     static Method findMostSpecificMethod(
