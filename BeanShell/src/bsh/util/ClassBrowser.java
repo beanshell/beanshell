@@ -22,10 +22,14 @@ import javax.swing.event.*;
 import java.io.*;
 import java.awt.*;
 import java.lang.reflect.*;
+import java.util.List;
 
 // For string related utils
+import bsh.BshClassManager;
 import bsh.classpath.BshClassPath;
+import bsh.ClassPathException;
 import bsh.StringUtil;
+import bsh.ConsoleInterface;
 
 /**
 	A simple class browser for the BeanShell desktop.
@@ -33,61 +37,39 @@ import bsh.StringUtil;
 public class ClassBrowser extends JSplitPane
 	implements ListSelectionListener, TreeSelectionListener {
 
+	Map packages;
+
+	String [] packagesList, classesList;
+	Method [] methodList;
+	Constructor [] consList;
+
 	JFrame frame;
 	JInternalFrame iframe;
-	Hashtable packages=new Hashtable();
+
 	JList plist, classlist, mlist, conslist;
 	String selectedPackage;
 	Class selectedClass;
 	JTextArea methodLine;
-	String [] packagesList, classesList;
-	Method [] methodList;
-	Constructor [] consList;
 	JTree tree;
 
 	public ClassBrowser() {
 		super( VERTICAL_SPLIT, true );
 	}
 
-	void addClass( String classname ) {
-		String [] sa = BshClassPath.splitClassname( classname );
-		String packn = sa[0];
-		String classn = sa[1];
-		
-		Vector pack=(Vector)packages.get(packn);
-		if ( pack == null ) {
-			pack = new Vector();
-			packages.put(packn, pack);
-		}
-		pack.addElement( classn );
-	}
-
-	void addJar( String jarname ) throws IOException {
-		ZipFile f=new ZipFile(jarname);
-		Enumeration  e=f.entries();
-		//Vector v=new Vector();
-		while( e.hasMoreElements() ) {
-			String name=((ZipEntry)e.nextElement()).getName();
-			if ( name.endsWith(".class") && (name.indexOf('$')==-1) ) {
-				//v.addElement(name);
-				addClass( name );
-			}
-		}
-	}
-
-	String [] toSortedList ( Vector v ) {
-		String [] sa = new String [v.size()];
-		v.copyInto(sa);
+	String [] toSortedList ( Collection c ) {
+		List l = new ArrayList( c );
+		String [] sa = (String[])(l.toArray( new String[0] ));
 		return StringUtil.bubbleSort(sa);
 	}
 
 	void setClist( String packagename ) {
 		this.selectedPackage = packagename;
-		Vector v=(Vector)packages.get( packagename );
-		if ( v == null )
+
+		Set s=(Set)packages.get( packagename );
+		if ( s == null )
 			return;
 
-		classesList = toSortedList(v);
+		classesList = toSortedList(s);
 		classlist.setListData( classesList );
 		//setMlist( (String)classlist.getModel().getElementAt(0) );
 	}
@@ -179,36 +161,29 @@ public class ClassBrowser extends JSplitPane
 		return jp;
 	}
 
-	public void init() {
-		String cp=System.getProperty("java.class.path");
-		String [] paths=StringUtil.split(cp, File.pathSeparator);
-		for ( int i=0; i<paths.length; i++) {
-
-			//String lcPath= paths[i].toLowerCase();
-			//if ( lcPath.endsWith(".jar") || lcPath.endsWith(".zip") )
-			if ( BshClassPath.isArchiveFileName( paths[i] ) )
-				try {
-					System.out.println("Adding classes: "+paths[i]);
-					addJar( paths[i] );
-				} catch ( IOException e ) { 
-				}
-		}
-
-		// do we have the core classes?
-		// try some standard locations
-		if ( packages.get("java.lang") == null )
-			try {
-				addJar( System.getProperty("java.home")+"/lib/rt.jar"  );
-			} catch ( IOException e ) {
-				System.out.println("Can't find core classes....");
+	public void init() throws ClassPathException 
+	{
+		BshClassPath bcp = BshClassManager.getClassManager().getClassPath();
+		bcp.insureInitialized( 
+			// get feedback on mapping...
+			new ConsoleInterface() {
+				public Reader getIn() { return null; }
+				public PrintStream getOut() { return System.out; }
+				public PrintStream getErr() { return System.err; }
+				public void println( String s ) { System.out.println(s); }
+				public void print( String s ) { System.out.print(s); }
+				public void print( String s, Color color ) { print( s ); }
+				public void error( String s ) { print( s ); }
 			}
+		);
+		packages = bcp.getPackageMap();
+System.out.println("pmap = "+packages);
 
-		Vector v=new Vector();
-		Enumeration e=packages.keys();
-		while(e.hasMoreElements()) 
-			v.addElement(e.nextElement());
+		Set s = packages.keySet();
+		packagesList = toSortedList(s);
+for(int i=0; i<packagesList.length; i++)
+System.out.println(packagesList[i]);
 
-		packagesList = toSortedList(v);
 		plist=new JList( packagesList );
 		plist.addListSelectionListener(this);
 
@@ -258,7 +233,9 @@ public class ClassBrowser extends JSplitPane
 		setBottomComponent( bottompanel );
 	}
 
-	public static void main( String [] args ) {
+	public static void main( String [] args ) 
+		throws Exception
+	{
 		ClassBrowser cb = new ClassBrowser();
 		cb.init();
 
@@ -311,8 +288,9 @@ public class ClassBrowser extends JSplitPane
 		String packn = sa[0];
 		String classn = sa[1];
 
-		Vector v =  (Vector)packages.get(packn);
-		if ( v == null )
+		// Do we have the package?
+		Set s = (Set)packages.get(packn);
+		if ( s == null )
 			return;
 
 		boolean found = false;

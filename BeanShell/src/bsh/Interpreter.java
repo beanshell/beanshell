@@ -32,7 +32,8 @@ import java.awt.Color;
 
 	See the BeanShell User's Manual for more information.
 */
-public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Runnable, InterpreterConstants /*,Serializable*/
+public class Interpreter
+        implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Runnable, ConsoleInterface, InterpreterConstants /*,Serializable*/
 {/*@bgen(jjtree)*/
   protected JJTInterpreterState jjtree = new JJTInterpreterState();// These are static so that they are reachable by code that doesn't
         // necessarily have an interpreter reference (e.g. tracing in utils).
@@ -179,8 +180,7 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
 	*/
     public Interpreter(ConsoleInterface console, NameSpace globalNameSpace) {
 
-        this( new InputStreamReader(console.getIn()),
-                        console.getOut(), console.getErr(),
+        this( console.getIn(), console.getOut(), console.getErr(),
                         true, globalNameSpace );
 
                 setConsole( console );
@@ -508,9 +508,6 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
                 return eval(statement, globalNameSpace);
         }
 
-        /**
-		Note: StringBufferInputStream is deprecated, fix this
-	*/
     public Object eval( String statement, NameSpace nameSpace )
                 throws EvalError {
 
@@ -519,16 +516,20 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
                         new StringReader(s), nameSpace, "<inline eval>" );
     }
 
-        /* Daniel Leuck: added color */
     public final void error(String s) {
-
                 if ( console != null )
-                                console.print("// Error: " + s +"\n", Color.red);
+                                console.error( "// Error: " + s +"\n" );
                 else {
                         err.println("// Error: " + s);
                         err.flush();
                 }
     }
+
+        // ConsoleInterface
+
+        public Reader getIn() { return in; }
+        public PrintStream getOut() { return out; }
+        public PrintStream getErr() { return err; }
 
     public final void println(String s)
     {
@@ -537,13 +538,24 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
 
     public final void print(String s)
     {
-                if(console != null) {
+                if (console != null) {
             console.print(s);
         } else {
             out.print(s);
             out.flush();
         }
     }
+
+        public void print( String s, Color color ) {
+                if (console != null) {
+            console.print(s, color);
+        } else {
+            out.print(s);
+            out.flush();
+        }
+        }
+
+        // End ConsoleInterface
 
     public final static void debug(String s)
     {
@@ -4188,64 +4200,6 @@ void FormalParameter() #FormalParameter :
     return retval;
   }
 
-  final private boolean jj_3R_49() {
-    if (jj_scan_token(LBRACKET)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    if (jj_scan_token(RBRACKET)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
-  final private boolean jj_3R_144() {
-    if (jj_3R_26()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_150()) { jj_scanpos = xsp; break; }
-      if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    }
-    return false;
-  }
-
-  final private boolean jj_3_7() {
-    if (jj_scan_token(DOT)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    if (jj_scan_token(IDENTIFIER)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
-  final private boolean jj_3R_135() {
-    if (jj_3R_144()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
-  final private boolean jj_3R_28() {
-    if (jj_scan_token(IDENTIFIER)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3_7()) { jj_scanpos = xsp; break; }
-      if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    }
-    return false;
-  }
-
-  final private boolean jj_3R_120() {
-    if (jj_scan_token(LPAREN)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_135()) jj_scanpos = xsp;
-    else if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    if (jj_scan_token(RPAREN)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
   final private boolean jj_3R_131() {
     if (jj_scan_token(VOID)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
@@ -6082,6 +6036,64 @@ void FormalParameter() #FormalParameter :
     if (jj_scan_token(COMMA)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
     if (jj_3R_26()) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
+  final private boolean jj_3R_49() {
+    if (jj_scan_token(LBRACKET)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    if (jj_scan_token(RBRACKET)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
+  final private boolean jj_3R_144() {
+    if (jj_3R_26()) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3R_150()) { jj_scanpos = xsp; break; }
+      if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    }
+    return false;
+  }
+
+  final private boolean jj_3_7() {
+    if (jj_scan_token(DOT)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    if (jj_scan_token(IDENTIFIER)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
+  final private boolean jj_3R_135() {
+    if (jj_3R_144()) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
+  final private boolean jj_3R_28() {
+    if (jj_scan_token(IDENTIFIER)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3_7()) { jj_scanpos = xsp; break; }
+      if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    }
+    return false;
+  }
+
+  final private boolean jj_3R_120() {
+    if (jj_scan_token(LPAREN)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_135()) jj_scanpos = xsp;
+    else if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    if (jj_scan_token(RPAREN)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
     return false;
   }

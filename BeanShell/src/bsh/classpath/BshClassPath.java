@@ -5,7 +5,7 @@ import java.util.zip.*;
 import java.io.*;
 import java.net.*;
 import java.io.File;
-import bsh.Interpreter;
+import bsh.ConsoleInterface;
 import bsh.StringUtil;
 import bsh.ClassPathException;
 
@@ -26,7 +26,7 @@ public class BshClassPath
 {
 	String name;
 
-	/** Set of all classes in a package */
+	/** Set of classes in a package mapped by package name */
 	Map packageMap;
 
 	/** Map of source (URL or File dir) of every clas */
@@ -72,13 +72,13 @@ public class BshClassPath
 		compPaths.add( bcp );
 	}
 
-	public void add( URL [] urls, Interpreter feedback  ) { 
+	public void add( URL [] urls, ConsoleInterface feedback  ) { 
 		path.addAll( Arrays.asList(urls) );
 		if ( mapsInitialized )
 			map( urls, feedback );
 	}
 
-	public void add( URL url, Interpreter feedback  ) throws IOException { 
+	public void add( URL url, ConsoleInterface feedback  ) throws IOException { 
 		path.add(url);
 		if ( mapsInitialized )
 			map( url, feedback );
@@ -141,7 +141,7 @@ public class BshClassPath
 			implies action taken to guard against attack or
 			loss.
 	*/
-	public void insureInitialized( Interpreter feedback ) {
+	public void insureInitialized( ConsoleInterface feedback ) {
 		if ( compPaths != null )
 			for (int i=0; i< compPaths.size(); i++)
 				((BshClassPath)compPaths.get(i)).insureInitialized( feedback );
@@ -216,7 +216,7 @@ public class BshClassPath
 			unqNameTable.add( (String)it.next() );
 	}
 
-	void map( URL [] urls, Interpreter feedback ) { 
+	void map( URL [] urls, ConsoleInterface feedback ) { 
 		for(int i=0; i< urls.length; i++)
 			try{
 				map( urls[i], feedback );
@@ -229,7 +229,7 @@ public class BshClassPath
 			}
 	}
 
-	void map( URL url, Interpreter feedback ) throws IOException { 
+	void map( URL url, ConsoleInterface feedback ) throws IOException { 
 		String name = url.getFile();
 		File f = new File( name );
 
@@ -421,6 +421,16 @@ public class BshClassPath
 
 		userClassPathComp = urls;
 		return urls;
+	}
+
+	/**
+		return a read only view of the package map.
+		The Map contains Sets of class names mapped by package name.
+		This is a composite of the maps from all component paths as well.
+	*/
+	public Map getPackageMap() {
+		insureInitialized(null);
+		return Collections.unmodifiableMap( packageMap );
 	}
 
 	static BshClassPath userClassPath;

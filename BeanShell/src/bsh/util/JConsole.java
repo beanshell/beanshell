@@ -56,7 +56,7 @@ public class JConsole extends JScrollPane
 	private	InputStream in;
 	private	PrintStream out;
 
-	public InputStream getIn() { return in; }
+	public Reader getIn() { return new InputStreamReader(in); }
 	public PrintStream getOut() { return out;	}
 	public PrintStream getErr() { return out;	}
 
@@ -375,6 +375,10 @@ public class JConsole extends JScrollPane
 	public void println() {
 	    print("\n");
 		text.repaint();
+	}
+
+	public void error( String s ) {
+	    print( s, Color.red );
 	}
 
 	public void println(Object object) {
