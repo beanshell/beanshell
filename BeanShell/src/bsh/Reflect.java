@@ -633,9 +633,11 @@ System.out.println("findAcc: "
 			else
 				con = findExtendedConstructor(args, constructors);
 
-		if(con == null)
-			throw new ReflectError("Can't find constructor: " 
-				+ clas );
+		if ( con == null )
+			throw new ReflectError(
+				"Can't find constructor: " 
+				+ StringUtil.methodString( clas.getName(), types )
+				+" in class: "+ clas.getName() );;
 
         try {
             obj = con.newInstance(args);

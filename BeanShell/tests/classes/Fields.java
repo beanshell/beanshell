@@ -3,6 +3,7 @@ public class Fields {
 	public static boolean staticField;
 
 	public int x = 5;
+	public static short shortTwentyTwo = 22;
 	
 	public static Fields getFields() {
 		return new Fields();

@@ -137,7 +137,7 @@
 	- Moved Name.ClassIdentifier to bsh.ClassIdentifier top level class.
 
 	- Enhanced error message for undefined argument to method - now prints the
-	  argument text instead of the method parameter name and position.  
+	  argument text instead of the method parameter name and position.
 
 	- Clarified the scoping of closures and fixed related bug.  This should now
 	  work as expected.  A 'this' reference always refers to the nearest 
@@ -154,6 +154,16 @@
 	  expected, but they are not visible outside of the block (as in Java).
 	  See tests/this.bsh.
 
+	- Enhanced error message on missing or incorrect constructor.
+
+	- Switch statements should now work with all types.  Previously numeric 
+  	  switch statements only worked on the type int.  Now any numeric type or 
+	  wrapper will serve as the switch value and auto-boxing/unboxing occur as 
+	  elsewhere in BeanShell.  Switch statements also work with object types - 
+	  e.g. you can switch on Strings, Dates, or any objects that test properly
+	  with equals().  The only comparsion that is not allowed is primitive to
+	  arbitrary (non wrapper) object type.  e.g. compare 2 to a "two".  This 
+	  will cause a primtiive / object mismatch error.
 </pre>
 
 <h2>Changes in 1.2b8 </h2>

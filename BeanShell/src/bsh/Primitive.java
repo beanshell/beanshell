@@ -153,8 +153,9 @@ public class Primitive implements ParserConstants, java.io.Serializable
     }
 
 	/**
-		Allow primitive operations on wrapper types such as Integer and Boolean.
-		This is static so that it can be reached from wherever...
+		Perform a binary operation on two Primitives or wrapper types.
+		If both original args were Primitives return a Primitive result
+		else it was mixed (wrapper/primitive) return the wrapper type.
 	*/
     public static Object binaryOperation(
 		Object obj1, Object obj2, int kind)
@@ -798,6 +799,5 @@ public class Primitive implements ParserConstants, java.io.Serializable
         else
             return obj;
 	}
-
 
 }
