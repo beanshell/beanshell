@@ -172,25 +172,51 @@
 
 	- Did some minor refactoring and cleanup in Reflect.java.
 
-	- Added enhanced for loop as per JDK 1.5.  This is based on Daniel 
-      Leuck's "each" statement which he submitted long, long ago. 
+	- Added enhanced for loop as per JDK 1.5.  (Belated thanks to Daniel Leuck 
+	  for submitting his "each" statement long, long ago.)
+	  So you can now do things like:
 
-	    List foo = ... ;
-	    for ( untypedElement : foo ) { print( untypedElement ); }
-	    for ( Object typedElement: foo ) { print( typedElement ); }
-		// MORE DETAIL COMING
+	    List foo = getSomeList();
 
-	  Supported types include all the obvious things - see the new BshIterator
-	  addition below for details.
-	  // MORE DETAIL COMING
+	    for ( untypedElement : foo ) 
+			print( untypedElement ); 
 
-	- Added BshIterator and bsh CollectionManager.  BeanShell now supports
-	  a unified api for iteration over collections, arrays, and anything else
-	  we decide to add.  This is initially to support the enhanced for loop
-	  above, but can also be used in BeanShell commands that want to loop over
-	  objects to display them.
-	
+	    for ( Object typedElement: foo ) 
+			print( typedElement );
 
+		int [] array = new int [] { 1, 2, 3 };
+
+		for( i : array ) 
+			print(i);
+
+		for( char c : "a string" )
+			print( c ); 
+
+	  Supported iterable types include all the obvious things.  See the new 
+	  BshIterator API addition below for specifics.
+
+	- Added BshIterator interface and bsh CollectionManager.  BeanShell now 
+	  supports a unified API for iteration over composite types including:
+
+	    JDK 1.1+ (no collections): Enumeration, arrays, Vector, String,
+		StringBuffer
+		JDK 1.2+ (w/collections): Collections, Iterator
+
+	  This was added to support the enhanced for loop above, but can also be 
+	  used in BeanShell commands that wish to loop over composite objects to 
+	  display them.  Usage e.g.:
+
+	    cm = CollectionManager.getCollectionManager();
+		if ( cm.isBshIterable( myObject ) ) 
+		{
+		    BshIterator iterator = cm.getBshIterator( myObject );
+			while ( iterator.hasNext() )
+			    i = iterator.next();
+		}
+
+	  If this proves to be useful we could add additional syntactic magic 
+	  later such as making all composite types implement the magic interface
+	  BshIterable, etc.
 </pre>
 
 <h2>Changes in 1.2b8 </h2>
