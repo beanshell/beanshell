@@ -39,8 +39,10 @@ public class BshClassPath
 			add( traverseDirForClasses( f ), new DirClassSource(f) );
 		else if ( isArchiveFileName( name ) )
 			add( searchJarForClasses( url ), new JarClassSource(url) );
+/*
 		else if ( isClassFileName( name ) )
 			add( looseClass( name ), url );
+*/
 		else
 			System.out.println("Not a classpath component: "+ name );
 	}

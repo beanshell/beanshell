@@ -15,7 +15,7 @@
 
 package bsh;
 
-//import java.io.FileNotFoundException;
+import java.io.File;
 
 /**
 	A File that supports localized paths using the bsh current working 
@@ -27,10 +27,10 @@ package bsh;
 	the "util" package.  It's here so that we're consistent in the source()
 	feature of the interpreter.
 */
-class File extends java.io.File {
+class BshFile extends java.io.File {
 	String dirName = "", baseName;
 
-    File( String fileName ) { 
+    BshFile( String fileName ) { 
 		super( fileName );
 
 		// init dirName, baseName

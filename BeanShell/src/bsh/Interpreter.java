@@ -695,7 +695,7 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
 
     public File pathToFile( String fileName ) {
 
-                bsh.File file = new bsh.File( fileName );
+                BshFile file = new BshFile( fileName );
 
                 String sourceDir, sourceFile;
                 String cwd = (String)getu("bsh.cwd");
@@ -706,7 +706,7 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
                 } else {
                         sourceDir = cwd + File.separator + file.dirName();
                         sourceFile = file.baseName();
-                        file = new bsh.File( sourceDir + File.separator + sourceFile );
+                        file = new BshFile( sourceDir + File.separator + sourceFile );
                 }
 
                 return file;
