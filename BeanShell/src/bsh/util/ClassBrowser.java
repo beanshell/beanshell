@@ -27,6 +27,7 @@ import java.util.List;
 // For string related utils
 import bsh.BshClassManager;
 import bsh.classpath.BshClassPath;
+import bsh.classpath.ClassPathListener;
 import bsh.ClassPathException;
 import bsh.StringUtil;
 import bsh.ConsoleInterface;
@@ -34,9 +35,9 @@ import bsh.ConsoleInterface;
 /**
 	A simple class browser for the BeanShell desktop.
 */
-public class ClassBrowser extends JSplitPane implements ListSelectionListener 
-	{
-
+public class ClassBrowser extends JSplitPane 
+	implements ListSelectionListener, ClassPathListener
+{
 	BshClassPath classPath;
 
 	// GUI
@@ -213,6 +214,7 @@ public class ClassBrowser extends JSplitPane implements ListSelectionListener
 			}
 			*/
 		);
+		classPath.addListener( this );
 
 		Set pset = classPath.getPackagesSet();
 
@@ -360,8 +362,7 @@ public class ClassBrowser extends JSplitPane implements ListSelectionListener
 		Map nodeForPackage = new HashMap();
 
 		PackageTree( Collection packages ) {
-			treeModel = makeTreeModel(packages);
-			setModel( treeModel );
+			setPackages( packages );
 
 			setRootVisible(false);
 			setShowsRootHandles(false);
@@ -376,6 +377,11 @@ public class ClassBrowser extends JSplitPane implements ListSelectionListener
 				expandPath( tp );
 			}
 			*/
+		}
+
+		public void setPackages( Collection packages ) {
+			treeModel = makeTreeModel(packages);
+			setModel( treeModel );
 		}
 		
 		DefaultTreeModel makeTreeModel( Collection packages ) 
@@ -471,6 +477,12 @@ public class ClassBrowser extends JSplitPane implements ListSelectionListener
 			scrollPathToVisible( tp );
 		}
 
+	}
+
+	public void classPathChanged() {
+		Set pset = classPath.getPackagesSet();
+		ptree.setPackages( pset );
+		setClist(null);
 	}
 
 }
