@@ -96,7 +96,6 @@ public class NameSpace
 		return this.name;
 	}
 
-	// experimental
 	SimpleNode callerInfoNode;
 	/**
 		Set the node associated with the creation of this namespace.
@@ -108,7 +107,6 @@ public class NameSpace
 	SimpleNode getNode() {
 		return this.callerInfoNode;
 	}
-	// experimental
 
 	/**
 		Resolve name to an object through this namespace.
@@ -128,25 +126,48 @@ public class NameSpace
 		this method outside of the bsh package and wish to set variables with
 		primitive values you will have to wrap them using bsh.Primitive.
 		@see bsh.Primitive
+
+		@param value a value of null will remove the variable definition.
 	*/
-    public void	setVariable(String name, Object	o) throws EvalError 
+    public void	setVariable(String name, Object	value) throws EvalError 
 	{
 		if ( variables == null )
 			variables =	new Hashtable();
 
-		if ( o == null )
+		// hack... should factor this out...
+		if ( value == null ) {
 			variables.remove(name);
-		else {
-			Object current = variables.get(name);
-			if ( (current!= null) && (current instanceof TypedVariable) )
+			return;
+		}
+
+		// Locate the variable definition if it exists
+		// if strictJava then recurse, else default local scope
+		boolean recurse = Interpreter.strictJava;
+		Object current = getVariableImpl( name, recurse );
+
+//if ( Interpreter.strictJava )
+//System.err.println("recursing, found: "+current);
+		//Object current = variables.get(name);
+
+		// found a typed variable
+		if ( (current != null) && (current instanceof TypedVariable) )
+		{
+//System.err.println("found typed var: "+current);
 			try {
-				((TypedVariable)current).setValue(o);
+				((TypedVariable)current).setValue(value);
 			} catch(EvalError e) {
 				throw new EvalError(
 					"Typed variable: " + name + ": " + e.getMessage());
-			} else
-				variables.put(name, o);
-		}
+			} 
+		} else
+			if ( Interpreter.strictJava )
+				throw new EvalError(
+					"(Strict Java mode) Assignment to undeclared variable: "
+					+name );
+			else {
+//System.err.println("untyped assignment: "+name);
+				variables.put(name, value);
+			}
     }
 
 	/**
@@ -297,8 +318,9 @@ public class NameSpace
 			val	= variables.get(name);
 
 		if ( recurse && (val == null) && (parent != null) )
-			val	= parent.getVariable(name, recurse);
+			val	= parent.getVariableImpl(name, recurse);
 
+//System.err.println("getVarImpl name: "+name+", val ="+val);
 		return val;
     }
 
@@ -677,7 +699,8 @@ public class NameSpace
 		superImport = true;
 	}
 
-    static class TypedVariable implements java.io.Serializable {
+    static class TypedVariable implements java.io.Serializable 
+	{
 		Class type;
 		Object value = null; // uninitiailized
 		boolean	isFinal;
@@ -718,7 +741,12 @@ public class NameSpace
 		}
 
 		Object getValue() { return value; }
+
 		Class getType() { return type;	}
+
+		public String toString() { 
+			return "TypedVariable: "+type+", value:"+value;
+		}
     }
 
 	/**

@@ -185,10 +185,17 @@ class Reflect {
     {
         try {
             Field f = getField(clas, fieldName);
+/*
 // experiment
-//f.setAccessible(true);
-            if(f == null)
-                throw new ReflectError("internal error 234423");
+try {
+System.err.println("setting acessible: "+f);
+f.setAccessible(true);
+System.err.println("done setting acessible: "+f);
+} catch ( SecurityException e ) { }
+*/
+
+            if ( f == null )
+                throw new ReflectError("internal: field not found:"+fieldName);
 
             Object value = f.get(object);
             Class returnType = f.getType();
@@ -209,17 +216,34 @@ class Reflect {
     {
         try
         {
-			// need to fix this for accessibility
 			// this one only finds public 
             return clas.getField(fieldName);
-			// this one doesn't find interfaces, etc.
-            //return clas.getDeclaredField(fieldName);
         }
         catch(NoSuchFieldException e)
         {
+			// try declaredField
             throw new ReflectError("No such field: " + fieldName );
         }
     }
+
+/**
+move this to accessibility manager
+		Need to improve this to handle interfaces
+	private static Field findDeclaredField( Class clas, String fieldName ) 
+		throws NoSuchFieldException
+	{
+		while ( clas != null )
+		{
+			try {
+				return clas.getDeclaredField(fieldName);
+			}
+			catch(NoSuchFieldException e) { }
+
+			clas = clas.getSuperclass();
+		}
+		throw new NoSuchFieldException( fieldName );
+	}
+*/
 
     /**
         The full blown invoke method.  Everybody should come here.

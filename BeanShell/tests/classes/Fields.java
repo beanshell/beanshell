@@ -1,5 +1,7 @@
 
 public class Fields {
+	public static boolean staticField;
+
 	public int x = 5;
 	
 	public static Fields getFields() {

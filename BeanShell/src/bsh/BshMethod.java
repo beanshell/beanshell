@@ -145,6 +145,7 @@ class BshMethod implements java.io.Serializable
 			} 
 			// Set untyped variable
 			else  // untyped param
+			{
 				// checkAssignable would catch this for typed param
 				if ( argValues[i] == Primitive.VOID)
 					throw new EvalError(
@@ -154,6 +155,7 @@ class BshMethod implements java.io.Serializable
 				else
 					localNameSpace.setVariable(
 						method.params.argNames[i], argValues[i]);
+			}
 		}
 
 		// Push the new namespace on the call stack

@@ -336,13 +336,16 @@ class Name implements java.io.Serializable
 			Resolve relative to a class type
 			static field, inner class, ?
 		*/
-		if ( evalBaseObject instanceof ClassIdentifier ) {
+		if ( evalBaseObject instanceof ClassIdentifier ) 
+		{
 			Class clas = ((ClassIdentifier)evalBaseObject).getTargetClass();
 			String field = prefix(evalName, 1);
 
 			Object obj = null;
 			// static field?
 			try {
+//System.err.println("Name call to getStaticField, class: "
+	//+clas+", field:"+field);
 				obj = Reflect.getStaticField(clas, field);
 			} catch(ReflectError e) { }
 
@@ -556,13 +559,12 @@ class Name implements java.io.Serializable
 			while(isCompound(evalName))
 				obj = consumeNextObjectField( callstack, interpreter, false );
 		}
-		catch(EvalError e)
+		catch( EvalError e )
 		{
-			Interpreter.debug("LHS evaluation: " + e);
-			return null;
+			throw new EvalError("LHS evaluation: " + e);
 		}
 
-		if(obj == null)
+		if ( obj == null )
 			throw new InterpreterError("internal error 2893749283");
 
 		if(obj instanceof This)
@@ -575,14 +577,26 @@ class Name implements java.io.Serializable
 		{
 			try
 			{
-				return Reflect.getLHSObjectField(obj, evalName);
-			}
-			catch(ReflectError e)
+//System.err.println("Name getLHSObjectField call obj = "
+//	+obj+", name="+evalName);
+
+				if ( obj instanceof ClassIdentifier ) 
+				{
+					Class clas = ((ClassIdentifier)obj).getTargetClass();
+					return Reflect.getLHSStaticField(clas, evalName);
+				} else
+					return Reflect.getLHSObjectField(obj, evalName);
+			} catch(ReflectError e)
 			{
-				Interpreter.debug("reflect error:" + e);
-				return null;
+				throw new EvalError("Field access: "+e);
 			}
 		}
+
+		throw new InterpreterError("Internal error in lhs...");
+
+	/*
+	This appears to have been something very old and incorrect...
+	I don't think we need it anymore.
 
 		// We bit off our field in the very first bite
 		// have to back off and make a class out of the prefix
@@ -603,6 +617,8 @@ class Name implements java.io.Serializable
 			Interpreter.debug("reflect error:" + e);
 			return null;
 		}
+	*/
+
 	}
 	
 	private BshMethod toLocalMethod( Object [] args )

@@ -51,17 +51,34 @@ import java.io.*;
 
 	Bsh has a multi-tiered class loading architecture.  No class loader is
 	used unless/until the classpath is modified or a class is reloaded.
+	<p>
+
+	Note: currently class loading features affect all instances of the
+	Interpreter.  However the basic design of this class will allow for
+	per instance class management in the future if it is desired.
+*/
+/*
+	Implementation notes:
 
 	Note: we may need some synchronization in here
 
 	Note on jdk1.2 dependency:
+	<p>
 
 	We are forced to use weak references here to accomodate all of the 
-	fleeting namespace listeners.  (NameSpaces must be informed if the class 
-	space changes so that they can un-cache names).  I had the interesting 
-	thought that a way around this would be to implement BeanShell's own 
-	garbage collector...  Then I came to my senses and said - screw it, 
-	class re-loading will require 1.2.
+	fleeting namespace listeners as they fall out of scope.  (NameSpaces must 
+	be informed if the class space changes so that they can un-cache names).  
+	I had the thought that a way around this would be to implement BeanShell's 
+	own garbage collector...  Then I came to my senses.
+	<p>
+
+	Perhaps a simpler idea would be to have entities that reference cached
+	types always perform a light weight check with a counter / reference
+	value and use that to detect changes in the namespace.  This puts the 
+	burden on the consumer to check at appropriate times, but could eliminate
+	the need for the listener system in many places and the necessity of weak 
+	references in this package.
+	<p>
 */
 public abstract class BshClassManager
 {
@@ -70,6 +87,11 @@ public abstract class BshClassManager
 	private static boolean checkedForManager;
 	// Use a hashtable as a Set...
 	private static Object NOVALUE = new Object(); 
+	
+	/**
+		An external classloader supplied by the setClassLoader() command.
+	*/
+	private static ClassLoader externalClassLoader;
 
 	/**
 		Global cache for things we know are classes.
@@ -107,7 +129,7 @@ public abstract class BshClassManager
 					manager = (BshClassManager)bcm.newInstance();
 				}
 			} catch ( ClassNotFoundException e ) {
-				System.err.println("No class manager available.");
+				//System.err.println("No class manager available.");
 			} catch ( Exception e ) {
 				System.err.println("Error loading classmanager: "+e);
 			}
@@ -126,7 +148,7 @@ public abstract class BshClassManager
 		@return the class or null
 	*/
 	public static Class classForName( String name ) {
-		getClassManager(); // prime the singleton
+		BshClassManager manager = getClassManager(); // prime the singleton
 		if ( manager != null )
 			return manager.getClassForName( name );
 		else
@@ -148,7 +170,12 @@ public abstract class BshClassManager
 		throws ClassNotFoundException 
 	{
 		try {
-			Class c = Class.forName(name);
+			Class c;
+			if ( externalClassLoader != null ) {
+				c = externalClassLoader.loadClass( name );
+			}else
+				c = Class.forName(name);
+
 			cacheClassInfo( name, c );
 			return c;
 		/*
@@ -177,6 +204,14 @@ public abstract class BshClassManager
 	}
 
 	/**
+		Clear the static caches in BshClassManager
+	*/
+	protected void clearCaches() {
+    	absoluteNonClasses = new Hashtable();
+    	absoluteClassCache = new Hashtable();
+	}
+
+	/**
 		Add a BshClassManager.Listener to the class manager.
 		The listener is informed upon changes to the classpath.
 		This is a static convenience form of BshClassManager addListener().
@@ -186,6 +221,23 @@ public abstract class BshClassManager
 		getClassManager(); // prime it
 		if ( manager != null )
 			manager.addListener( l );
+	}
+
+	/**
+		Set an external class loader.  BeanShell will use this at the same 
+		point it would otherwise use the plain Class.forName().
+		i.e. if no explicit classpath management is done from the script
+		(addClassPath(), setClassPath(), reloadClasses()) then BeanShell will
+		only use the supplied classloader.  If additional classpath management
+		is done then BeanShell will perform that in addition to the supplied
+		external classloader.
+		However BeanShell is not currently able to reload
+		classes supplied through the external classloader.
+	*/
+	public static void setClassLoader( ClassLoader externalCL ) 
+	{
+		externalClassLoader = externalCL;
+		getClassManager().classLoaderChanged();
 	}
 
 	// end static methods
@@ -271,4 +323,5 @@ public abstract class BshClassManager
 
 	public abstract void dump( PrintWriter pw );
 
+	protected abstract void classLoaderChanged();
 }

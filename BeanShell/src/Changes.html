@@ -2,69 +2,91 @@
 <head><title>BeanShell - Change Log</title></head>
 <body bgcolor=#ffffff>
 
+<h2>Changes in 1.1alpha19</h2>
+<pre>
+	- Added a somewhat experimental "strict java" mode.  When activated with
+	setStrictJava(true) BeanShell will:
+		1) require typed variable declarations, method arguments and 
+			return types
+		2) modify the scoping of variables to look for the variable declaration
+			first in the parent namespace, as in a java method inside a java
+			class.  e.g. if you can write a method called incrementFoo() that
+			will do the correct thing without referring to super.foo.
+
+	-Added another form of the run() command that accepts an argument to be
+		passed to the child context.
+</pre>
+
+<h2>Changes in 1.1alpha18</h2>
+<pre>
+    - Fixed a bug affecting static field access.
+    - Added a static setClassLoader() method to Interpreter and BshClassManager.
+        This allows an external classloader to be specified.
+</pre>
+
 <h2>Changes in 1.1alpha17</h2>
 <pre>
-	- Added simple mechanism to allow scripted commands/methods to accept
-	  class identifiers as arguments. e.g.:
-	  	foo( java.lang.String );
-	  see Name.identifierToClass();
-	- added which() command - shows class source
-	- modified class browser to show class source when class is selected
-	- Changed the type of the (very recently added) this.callstack reference
-		from an array to the actual internal CallStack type.  You can use
-		toArray() to get it as an array or get(depth).
-	- added unset() method to interpreter.  Fixed bug in set(name, null);
+    - Added simple mechanism to allow scripted commands/methods to accept
+      class identifiers as arguments. e.g.:
+        foo( java.lang.String );
+      see Name.identifierToClass();
+    - added which() command - shows class source
+    - modified class browser to show class source when class is selected
+    - Changed the type of the (very recently added) this.callstack reference
+        from an array to the actual internal CallStack type.  You can use
+        toArray() to get it as an array or get(depth).
+    - added unset() method to interpreter.  Fixed bug in set(name, null);
 </pre>
 
 <h2>Changes in 1.1alpha16</h2>
 <pre>
-	Improved error reporting on errors during method invocation.
+    Improved error reporting on errors during method invocation.
 </pre>
 
 <h2>Changes in 1.1alpha15</h2>
 <pre>
-	- Fixed server mode and re-added demo applets
+    - Fixed server mode and re-added demo applets
 </pre>
 
 <h2>Changes in 1.1alpha14</h2>
 <pre>
-	- Important addition - nodes now remember the source file from which
-	they were parsed...  This means that debug messages are much more useful
-	now, especially with errors thrown from multiple files.
-	- Re-worked classpath mapping user feedback mechanism (will support a GUI
-	now).
-	- Fixed general block scoping bugs.  Things should act like Java now.
-	typed vars declared within blocks does not leak out.  e.g. { int i=2; } 
-	- Added getSourceFileInfo() command to return the name of the file or
-	source from which the current interpreter is reading.  
-	(uses this.interpreter.getSourceFileInfo())
-	- Added a parent ref to the interpreter for future use by the child
-	eval interpreters.
-	- Added new form of source() command that takes a URL.
-	- Tenatively added new feature to get the text of a method invocation 
-	from within the method body...  may be useful along with this.caller.
-	See namespace.getInovcationText() namespace.getInvocationLine().
+    - Important addition - nodes now remember the source file from which
+    they were parsed...  This means that debug messages are much more useful
+    now, especially with errors thrown from multiple files.
+    - Re-worked classpath mapping user feedback mechanism (will support a GUI
+    now).
+    - Fixed general block scoping bugs.  Things should act like Java now.
+    typed vars declared within blocks does not leak out.  e.g. { int i=2; } 
+    - Added getSourceFileInfo() command to return the name of the file or
+    source from which the current interpreter is reading.  
+    (uses this.interpreter.getSourceFileInfo())
+    - Added a parent ref to the interpreter for future use by the child
+    eval interpreters.
+    - Added new form of source() command that takes a URL.
+    - Tenatively added new feature to get the text of a method invocation 
+    from within the method body...  may be useful along with this.caller.
+    See namespace.getInovcationText() namespace.getInvocationLine().
 </pre>
 <h2>Changes in 1.1alpha13</h2>
 <pre>
-	- Removed core bsh package dependencies on 1.2.  bsh will now compile and
-		run under 1.2  with some features limited.
-	- Moved some console related functionality out of the core and into 
-		bsh.util.  There is a new bsh.util.GUIConsoleInterface.  NameCompletion
-		is now in bsh.util and has been replaced with a more primitive 
-		supporting interface bsh.NameSource in the core.
+    - Removed core bsh package dependencies on 1.2.  bsh will now compile and
+        run under 1.2  with some features limited.
+    - Moved some console related functionality out of the core and into 
+        bsh.util.  There is a new bsh.util.GUIConsoleInterface.  NameCompletion
+        is now in bsh.util and has been replaced with a more primitive 
+        supporting interface bsh.NameSource in the core.
 </pre>
 <h2>Changes in 1.1alpha13</h2>
 <pre>
-	- Moved all Name object construction into NameSpace.  This will support
-	Name resolvers caching information in the future. e.g. bsh could
-	know that a variable is final and optimize the resolution.  Or a long
-	chain of names (java.lang.Integer.MAX_INTEGER) could be optimized.
-	- .class on array types now working. e.g.  "int [][].class"
-	- Fixed bugs in grammar which dissallowed certain simple expressions
-	unless they were parenthesized.
-	- Fixed related case relating to expressions with assignment to a 
-	throw-away method invocation.
+    - Moved all Name object construction into NameSpace.  This will support
+    Name resolvers caching information in the future. e.g. bsh could
+    know that a variable is final and optimize the resolution.  Or a long
+    chain of names (java.lang.Integer.MAX_INTEGER) could be optimized.
+    - .class on array types now working. e.g.  "int [][].class"
+    - Fixed bugs in grammar which dissallowed certain simple expressions
+    unless they were parenthesized.
+    - Fixed related case relating to expressions with assignment to a 
+    throw-away method invocation.
 </pre>
 
 
@@ -73,9 +95,9 @@
     - Added "trace" option.
         java -Dtrace=true bsh.Interpreter or trace() command.
         turns on printing of each line before it is executed.  Note that
-		this currently prints only top level lines as they are parsed and
-		executed by the interpreter.  trace skips over method exectutions 
-		(including bsh commands) etc.  We may enhance this in the future.
+        this currently prints only top level lines as they are parsed and
+        executed by the interpreter.  trace skips over method exectutions 
+        (including bsh commands) etc.  We may enhance this in the future.
     - Fixed bugs in primitive handling:
         primitives smaller than int are now properly assigned in declarations:
             e.g.: byte b = 5;

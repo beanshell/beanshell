@@ -411,9 +411,10 @@ public class ClassManagerImpl extends BshClassManager
 		The listener list is implemented with weak references so that we 
 		will not keep every namespace in existence forever.
 	*/
-	void classLoaderChanged() {
-    	absoluteNonClasses = new Hashtable();
-    	absoluteClassCache = new Hashtable();
+	protected void classLoaderChanged() 
+	{
+		// clear the static caches in BshClassManager
+		clearCaches();
 
 		for (Enumeration e = listeners.elements(); e.hasMoreElements(); ) {
 			WeakReference wr = (WeakReference)e.nextElement();

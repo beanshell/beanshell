@@ -5,3 +5,6 @@ global.g = 6;
 cd("..");
 cwd=bsh.cwd;
 
+// copy to another var for no real reason
+ra = runArgument;
+
