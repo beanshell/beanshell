@@ -1,0 +1,21 @@
+#!/bin/sh
+
+mkdir -p bak
+
+convert() 
+{
+	cp $f bak
+	cat /tmp/License.txt > $f
+	tail +15 bak/$f >> $f
+}
+
+for f in $*
+do
+	if head -3 $f | grep -s '^ \*  This file is part of the BeanShell '>/dev/null
+	then
+		convert $f
+	else
+		echo "No license in file: $f"
+	fi
+done
+
