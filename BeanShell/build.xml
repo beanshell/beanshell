@@ -65,9 +65,9 @@
 	-->
 
 	<!-- Uncomment to build without making the servlet package 
+	-->
 	<property name="exclude-servlet" 
 		value="bsh/servlet/*"/>
-	-->
 
 	<!--  Add up all of the excludes -->
 	<!-- how do I add strings to break that line? -->
@@ -137,13 +137,15 @@
 			excludes="${excludes}"
 		/>
 
-		<!-- install the bsh commands -->
-		<!-- install the util/lib stuff -->
 		<copy todir="${build-dir}">
 			<fileset dir="${src-dir}">
-			<patternset refid="commands-bsh-patternset"/>
-			<patternset refid="util-lib-patternset"/>
-			<patternset refid="bshservlet-patternset"/>
+				<!-- install the bsh commands -->
+				<patternset refid="commands-bsh-patternset"/>
+				<!-- install the util/lib stuff -->
+				<patternset refid="util-lib-patternset"/>
+<!-- need to break this into a separate target to use exclude -->
+				<!-- install the servlet stuff -->
+				<patternset refid="bshservlet-patternset"/>
 			</fileset>
 		</copy>
 	</target>
@@ -176,6 +178,8 @@
 			I'd like to remove the classes dir itself, but ant won't let
 			me.  The filset targets above will error out if the dir doesn't
 			exists... even before they are ever referenced.
+
+			I think maybe this has been fixed in Ant 1.4... need to check.
 		-->
 		<delete quiet="true" includeEmptyDirs="true">
 			<fileset dir="${build-dir}" includes="**/*"/>
@@ -331,14 +335,15 @@
 		</jar>
 	</target>
 
-	<target name="bshservlet-war" depends="compile">
+	<target name="bshservlet-war" depends="compile" unless="exclude-servlet">
 		<war warfile="${bshservlet-war}" 
 			webxml="${src-dir}/bsh/servlet/example-web.xml">
 			<classes dir="${build-dir}" includes="bsh/servlet/**/*"/>
 			<fileset dir="${src-dir}/bsh/servlet/" includes="index.html"/>
 		</war>
 	</target>
-	<target name="bshservlet-wbsh-war" depends="compile,jarall">
+	<target name="bshservlet-wbsh-war" 
+					depends="compile,jarall" unless="exclude-servlet">
 		<war warfile="${bshservlet-wbsh-war}" 
 			webxml="${src-dir}/bsh/servlet/example-web.xml">
 			<classes dir="${build-dir}" includes="bsh/servlet/**/*"/>
