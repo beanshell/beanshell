@@ -10,9 +10,9 @@
 	formal (javadoc style) comments in the parse tree.
 	- Fixed accessibility bug in finding fields
 	- Fixed minor bugs in bsh.servlet.BshServlet
-	- Modified scoping on for-loop and catch blocks such that untyped variables
-	in the for-init and catch parameter (respectively) do not leak out of
-	the block.   They now act as you would expect in normal Java.
+	- Fixed scoping on catch blocks such that untyped variables
+	in the catch parameter do not leak out of the block. They now act as they
+	would with a declared type in Java (local).
 	- Fixed some thread safety bugs with try/catch blocks.
 	- Fixed Interpreter serialization issue - reset streams
 	- Fixed bug in accessibility affecting access to package 
@@ -20,6 +20,8 @@
 	- Added bshdoc.bsh script and bshdoc.xsl stylesheet to the scripts dir.
 	These can be used to support javadoc style documentation of bsh files
 	and commands.
+	- Exposed bsh.BshMethod and added a public invoke() method.
+	- Added getMethod() method to namespace to enumerate methods
 </pre>
 
 <h2>Changes in 1.2b5 </h2>

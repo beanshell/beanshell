@@ -199,6 +199,17 @@ public class NameSpace
 			return enumerationToStringArray( methods.keys() );
 	}
 
+	/**
+		Get the methods defined in this namespace.
+		(This does not show methods in parent namespaces).
+	*/
+	public BshMethod [] getMethods() {
+		if ( methods == null )
+			return new BshMethod [0];
+		else
+			return flattenMethodCollection( methods.elements() );
+	}
+
 	private String [] enumerationToStringArray( Enumeration e ) {
 		Vector v = new Vector();
 		while ( e.hasMoreElements() )
@@ -207,6 +218,26 @@ public class NameSpace
 		v.copyInto( sa );
 		return sa;
 	}
+
+	/**
+		Support for friendly getMethods();
+	*/
+    private BshMethod [] flattenMethodCollection( Enumeration e ) {
+        Vector v = new Vector();
+        while ( e.hasMoreElements() ) {
+            Object o = e.nextElement();
+            if ( o instanceof BshMethod )
+                v.addElement( o );
+            else {
+                Vector ov = (Vector)o;
+                for(int i=0; i<ov.size(); i++)
+                    v.addElement( ov.elementAt( i ) );
+            }
+        }
+        BshMethod [] bma = new BshMethod [ v.size() ];
+        v.copyInto( bma );
+        return bma;
+    }
 
 	/**
 		Get the parent namespace.

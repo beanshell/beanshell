@@ -37,6 +37,7 @@ package bsh;
 	This represents an *instance* of a bsh method declaration in a particular
 	namespace.  This is a thin wrapper around the BSHMethodDeclaration
 	with a pointer to the declaring namespace.
+	<p>
 
 	The issue is that when a method is located in a subordinate namespace or
 	invoked from an arbitrary namespace it must nontheless execute with its
@@ -45,7 +46,7 @@ package bsh;
 	i.e.
 	The local method context is a child namespace of the declaring namespace.
 */
-class BshMethod implements java.io.Serializable 
+public class BshMethod implements java.io.Serializable 
 {
 	BSHMethodDeclaration method;
 
@@ -80,6 +81,21 @@ class BshMethod implements java.io.Serializable
 		return argTypes;
 	}
 
+	public String getName() {
+		return method.name;
+	}
+
+	/**
+		Invoke the declared method with the specified arguments, interpreter
+		reference, and callstack.
+	*/
+	public Object invoke( 
+		Object[] argValues, Interpreter interpreter, CallStack callstack ) 
+		throws EvalError 
+	{
+		return invokeDeclaredMethod( argValues, interpreter, callstack, null );
+	}
+
 	/**
 		Invoke the bsh method with the specified args, interpreter ref,
 		and callstack.
@@ -92,7 +108,7 @@ class BshMethod implements java.io.Serializable
 		hacked version of BeanShell that exposed this method take a look
 		at NameSpace invokeMethod to see how to make a fake callstack...
 	*/
-	public Object invokeDeclaredMethod( 
+	Object invokeDeclaredMethod( 
 		Object[] argValues, Interpreter interpreter, CallStack callstack,
 			SimpleNode callerInfo ) 
 		throws EvalError 
