@@ -1,0 +1,17 @@
+
+bsh.help.cd = "usage: cd( path )";
+
+/*
+	Additions by Kevin Raulerson, http://www.spin.com.mx/~kevinr/
+*/
+cd( String pathname ) {
+
+    file = pathToFile( pathname );
+
+	if ( file.exists() && file.isDirectory() )
+		super.bsh.cwd = file.getCanonicalPath();
+	else
+        print( "No such directory: "+pathname);
+
+}
+

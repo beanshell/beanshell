@@ -1,0 +1,32 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+java.lang.System.out.println("Basic print: passed");
+System.out.println("Imported java.lang: passed");
+
+System.out.println("print date:");
+System.out.println( new java.util.Date() );
+System.out.println("print var containing date:");
+a = new java.util.Date();
+System.out.println( a );
+
+print("method access on var");
+s = "failed pass failed";
+assert( s.substring(7,11).equals("pass") );
+
+System.out.println("static method access");
+assert( System.currentTimeMillis() > 900000000000L );
+
+System.out.println("static field access");
+out = System.out;
+assert( out instanceof PrintStream );
+
+out.println("more field access:");
+// note: this could conceivably change , but I doubt it
+assert( java.awt.GridBagConstraints.BOTH == 1 );
+
+assert( this == this );
+assert( super == super );
+
+complete();

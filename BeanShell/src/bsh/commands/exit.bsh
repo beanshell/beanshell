@@ -1,0 +1,6 @@
+
+bsh.help.exit = "usage: exit()";
+
+exit() {
+	System.exit(0);
+}

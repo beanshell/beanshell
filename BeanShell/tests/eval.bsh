@@ -1,0 +1,24 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+eval("b=2");
+assert(b==2);
+
+foo() {
+	return 42;
+}
+
+a=eval("foo()");
+assert(a==42);
+
+try {
+	b=eval("bogus()");
+} catch ( bsh.EvalError e ) {
+	flag();
+}
+
+assert( flag() == 1 );
+
+complete();
+

@@ -1,0 +1,36 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+booga=37;
+
+foo() {
+	run() {
+		print("hello");
+		return 42;
+	}
+	getBooga() {
+		return booga;
+	}
+	return this;
+}
+
+f=foo();
+save(f, "f.ser");
+
+booga=12;
+
+print("here1");
+f2=load("f.ser");
+print("this.interpreter = "+this.interpreter);
+print("f2.interpreter = "+f2.interpreter);
+
+//print("here2");
+assert( f2.run() == 42 );
+//print("here3");
+assert( f2.getBooga() == 12 );
+//print("here4");
+
+rm("f.ser");
+
+complete();

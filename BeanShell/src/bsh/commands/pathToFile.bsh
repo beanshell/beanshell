@@ -1,0 +1,6 @@
+
+bsh.help.pathToFile = "usage: File pathToFile( String )";
+
+File pathToFile( String filename ) {
+	return this.interpreter.pathToFile( filename );
+}

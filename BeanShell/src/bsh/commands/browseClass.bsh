@@ -1,0 +1,17 @@
+
+/*
+	Browse the specified class or the class of the specified object.
+*/
+browseClass( Object o ) {
+	if ( o instanceof Class )
+		classname = o;
+	else
+		classname = o.getClass().getName();
+
+	if ( bsh.classbrowser == void ) {
+		classBrowser();
+	}
+
+	bsh.classbrowser.toFront();
+	bsh.classbrowser.driveToClass( classname );
+}

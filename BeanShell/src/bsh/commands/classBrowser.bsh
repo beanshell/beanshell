@@ -1,0 +1,23 @@
+
+classBrowser() {
+	inDesktop = ( bsh.desktop != void );
+
+	bsh.classbrowser = new bsh.util.ClassBrowser();
+	bsh.classbrowser.init();
+
+	if ( inDesktop )
+		frame = bsh.desktop.makeInternalFrame("BeanShell Class Browser");
+	else
+		frame = new javax.swing.JFrame("BeanShell Class Browser");
+
+	bsh.classbrowser.setFrame( frame );
+	frame.getContentPane().add("Center", bsh.classbrowser);
+	frame.pack();
+
+	if ( inDesktop )
+		bsh.desktop.addInternalFrame(frame);
+
+	frame.show();
+	frame.toFront();
+}
+

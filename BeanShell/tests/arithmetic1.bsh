@@ -1,0 +1,24 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+a=2;
+a++;
+assert(a==3);
+
+a=2;
+++a;
+assert(a==3);
+
+a=1;
+// Post increment is broken!
+//assert( a++ == 1);
+a++;
+assert( a==2 );
+assert( (++a)++ == 4);
+
+q=5;
+q+=2;
+assert(q==7);
+
+complete();

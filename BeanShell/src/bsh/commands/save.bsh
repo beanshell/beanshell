@@ -1,0 +1,19 @@
+
+bsh.help.save = "usage: save( object, filename )";
+
+save( Object obj, String filename ) {
+	file = pathToFile( filename );
+
+	if ( !(obj instanceof Serializable) ) {
+		print("Type "+obj.getClass()+" is not serializable");
+		return;
+	}
+	
+	out = new FileOutputStream( file );
+	oout = new ObjectOutputStream(out);
+	//oout = new bsh.DebugObjectOutputStream(out);
+	oout.writeObject( obj );
+	oout.close();
+}
+
+

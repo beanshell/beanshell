@@ -1,0 +1,10 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+b = new java.awt.Button();
+print( b{"name"} );
+b{"name"} = "MyButton!";
+assert( b{"name"}.equals("MyButton!") );
+
+complete();

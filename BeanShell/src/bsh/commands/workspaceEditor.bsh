@@ -1,0 +1,103 @@
+
+workspaceEditor( bsh.Interpreter parent, String name ) {
+
+	if ( bsh.desktop == void ) {
+		print("This only works with the bsh desktop...");
+		return;
+	}
+
+	textarea = new JTextArea(15,40);
+	textarea.setLineWrap(true);
+	textarea.setWrapStyleWord(true);
+	textarea.setTabSize(4);
+	textarea.setMargin( new Insets(5,5,5,5) );
+	frame = new JInternalFrame("Editor for: "+name, true, false, true, true );
+	frame.getContentPane().add( new JScrollPane(textarea), "Center");
+	frame.setVisible( true );
+
+	open() {
+		chooser = new JFileChooser();
+		chooser.setCurrentDirectory( pathToFile(bsh.cwd) );
+		returnVal = chooser.showOpenDialog( bsh.desktop.pane );
+		if(returnVal == JFileChooser.APPROVE_OPTION) {
+			file = chooser.getSelectedFile();
+			reader=new FileReader( file );
+			ca=new char [file.length()];
+			reader.read(ca);
+			textarea.setText( new String(ca) );
+		}
+	}
+
+	save() {
+		chooser = new JFileChooser();
+		chooser.setCurrentDirectory( pathToFile(bsh.cwd) );
+		returnVal = chooser.showSaveDialog( bsh.desktop.pane );
+		if(returnVal == JFileChooser.APPROVE_OPTION) {
+			file = chooser.getSelectedFile();
+			writer=new FileWriter( file );
+			writer.write( textarea.getText().toCharArray() );
+			writer.close();
+		}
+	}
+
+	run() {
+		interpreter = makeWorkspace( "Run Output: " +name);
+		// should make this new namespace... look at run() command
+    	interpreter.eval( textarea.getText() );
+		print("done run...");
+	}
+
+	actionPerformed(e) {
+		com = e.getActionCommand();
+		if ( com.equals("Close") )
+			frame.dispose();
+		else if ( com.equals("New") )
+			textarea.setText("");
+		else if ( com.equals("Open") )
+			open();
+		else if ( com.equals("Save") )
+			save();
+		else if ( com.equals("Eval in Workspace") )
+			// eval in parent global namespace
+    		parent.eval( textarea.getText() );
+		else if ( com.equals("Run in new Workspace") )
+			run();
+	}
+
+	menubar = new JMenuBar();
+
+	menu = new JMenu("File");
+	mi = new JMenuItem("New");
+	mi.addActionListener(this);
+	menu.add(mi);
+	mi = new JMenuItem("Open");
+	mi.addActionListener(this);
+	menu.add(mi);
+	mi = new JMenuItem("Save");
+	mi.addActionListener(this);
+	menu.add(mi);
+	mi = new JMenuItem("Close");
+	mi.addActionListener(this);
+	menu.add(mi);
+	menubar.add(menu);
+
+	menu = new JMenu("Evaluate");
+	mi = new JMenuItem("Eval in Workspace");
+	mi.addActionListener(this);
+	menu.add(mi);
+	mi = new JMenuItem("Run in new Workspace");
+	mi.addActionListener(this);
+	menu.add(mi);
+	menubar.add(menu);
+
+	menu = bsh.desktop.makeFontMenu( textarea );
+	menubar.add(menu);
+
+	frame.setMenuBar( menubar );
+
+	frame.pack();
+	bsh.desktop.pane.add( frame );
+	frame.toFront();
+	return frame;
+}
+

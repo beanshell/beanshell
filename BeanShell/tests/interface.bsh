@@ -1,0 +1,24 @@
+#!/bin/java bsh.Interpreter
+
+import java.awt.event.ActionListener;
+
+source("TestHarness.bsh");
+
+assert( this instanceof Runnable );
+
+if ( bsh.NameSpace.haveProxyMechanism() ) {
+
+	assert( this instanceof bsh.XThis );
+
+	// Explicit cast
+	assert( ((ActionListener)this) instanceof ActionListener );
+
+	// Automatic cast
+	ActionListener al = object();
+	assert( al instanceof ActionListener );
+
+} else
+	warning("No proxy mechanism to test!");
+
+complete();
+

@@ -1,0 +1,1645 @@
+/*****************************************************************************
+ *                                                                           *
+ *  This file is part of the BeanShell Java Scripting distribution.          *
+ *  Documentation and updates may be found at http://www.beanshell.org/      *
+ *                                                                           *
+ *  BeanShell is distributed under the terms of the LGPL:                    *
+ *  GNU Library Public License http://www.gnu.org/copyleft/lgpl.html         *
+ *                                                                           *
+ *  Patrick Niemeyer (pat@pat.net)                                           *
+ *  Author of Exploring Java, O'Reilly & Associates                          *
+ *  http://www.pat.net/~pat/                                                 *
+ *                                                                           *
+ *****************************************************************************/
+
+options {
+    JAVA_UNICODE_ESCAPE=true;
+    STATIC=false;
+    MULTI=true;
+    NODE_DEFAULT_VOID=true;
+	NODE_SCOPE_HOOK=true;
+	NODE_PREFIX="BSH";
+}
+
+PARSER_BEGIN(Interpreter)
+package bsh;
+
+import java.util.Vector;
+import java.io.*;
+
+/*  Daniel Leuck: Added stuff to support JConsole Color and images */
+import java.awt.Color;
+import javax.swing.ImageIcon;
+import bsh.util.JConsole;
+
+/**
+	The BeanShell script interpreter.
+
+	An instance of Interpreter or Server can be used to source scripts
+	and evaluate expressions.  Some examples:
+
+<p><blockquote><pre>
+		// Evaluate expressions
+		Interpeter i = new Interpreter();
+		i.eval("foo=5");
+		i.eval("bar=foo*5);
+
+		// Source from files
+		i.source("myscript.bsh");  // or i.eval("source(\"myscript.bsh\")");
+
+		// Pass in an object as a variable
+		i.setVariable( "date", new Date() );
+		i.eval("year = date.getYear()");
+
+		// Fetch script as an arbitrary interface 
+		i.eval(	"foo() { print( date ); }");
+		MyInterface myObj = (MyInterface)i.eval("return (MyInterface)this");
+		myObj.foo();
+</pre></blockquote>
+
+	See the BeanShell User's Manual for more information.
+*/
+public class Interpreter implements Runnable /*,Serializable*/ 
+{
+	// These are static so that they are reachable by code that doesn't
+	// necessarily have an interpreter reference (e.g. tracing in utils).
+    static PrintStream debug = System.err;
+    public static boolean DEBUG = Boolean.getBoolean("debug");
+
+    NameSpace globalNameSpace;
+	This bshObject;
+    InputStream in;
+    PrintStream out;
+    PrintStream err;
+    ConsoleInterface console; 
+
+	// Can these be combined?
+    private boolean 
+		evalOnly, 		// Interpreter has no input stream, use eval() only
+		interactive;	// Interpreter has a user, print prompts, etc.
+
+	/**
+		The main constructor.
+		All constructors should now pass through here.
+
+		If namespace is non-null then this interpreter's root 
+		will be made a child of the specified namespace. 
+	*/
+    public Interpreter(
+		InputStream in, PrintStream out, PrintStream err, 
+		boolean interactive, NameSpace namespace)
+    {
+        this( in );
+        this.in = in;
+        this.out = out;
+        this.err = err;
+        this.interactive = interactive;
+		debug = err;  // correct?
+
+		if ( namespace == null )
+        	this.globalNameSpace = new NameSpace("global");
+		else
+			this.globalNameSpace = namespace;
+
+        try {
+            // To speed ambiguos name parsing
+            NameSpace.loadJavaPackagesOptimization();
+
+            // The classes which are imported by default
+            NameSpace.loadDefaultImports(globalNameSpace);
+        } catch(Exception e) {
+            error("Couldn't load interpreter resources...");
+        }
+
+		/* 
+			Create the root "bsh" system object if it doesn't exist.
+		*/
+		Object bo = globalNameSpace.getVariable("bsh");
+		if ( ! (bo instanceof bsh.This) ) {
+			initRootSystemObject();
+
+			// set the bsh variable in our root namespace
+			try {
+				globalNameSpace.setVariable( "bsh", bshObject );
+			} catch ( EvalError e ) {
+				throw new InterpreterError("can't create system namespace");
+			}
+		} else
+			bshObject = (bsh.This)bo;
+
+		if ( interactive )
+			loadRCFiles();
+    }
+
+	private void initRootSystemObject() 
+	{
+		bshObject = new NameSpace( "Bsh System Object" ).getThis( this );
+
+		// bsh.help
+		This helpText = new NameSpace( 
+			bshObject.namespace, "Bsh Command Help Text" ).getThis( this );
+		setBshVariable( "help", helpText );
+
+		// bsh.cwd
+		try {
+			setBshVariable( "cwd", System.getProperty("user.dir") );
+		} catch ( SecurityException e ) { 
+			// applets can't see sys props
+			setBshVariable( "cwd", "." );
+		}
+
+		// bsh.interactive
+		setBshVariable( "interactive", new Primitive(interactive) );
+		// bsh.evalOnly
+		setBshVariable( "evalOnly", new Primitive(evalOnly) );
+	}
+
+    public Interpreter(
+		InputStream in, PrintStream out, PrintStream err, boolean interactive)
+    {
+        this(in, out, err, interactive, null);
+    }
+
+	/**
+		Construct a new interactive interpreter attached to the specified 
+		console using the specified parent namespace.
+	*/
+    public Interpreter(ConsoleInterface console, NameSpace globalNameSpace) {
+
+        this(
+			console.getIn(), console.getOut(), console.getErr(), 
+			true, globalNameSpace );
+
+		setConsole( console );
+
+		/*
+        // redirect system out/err to console if possible
+		We no longer do this.  Instead we have an option in Console menu
+		to capture stdin/stdout
+
+        try {
+            System.setOut(console.getOutStream());
+            System.setErr(console.getErrStream());
+        } catch (Exception e) { }
+		*/
+    }
+
+	/**
+		Construct a new interactive interpreter attached to the specified 
+		console.
+	*/
+    public Interpreter(ConsoleInterface console) {
+        this(console, null);
+    }
+
+	/**
+		Create an interpreter for evaluation only.
+		Note: StringBufferInputStream is deprecated, fix this
+	*/
+    public Interpreter()
+    {
+		this( new StringBufferInputStream(""), 
+			System.out, System.err, false, null );
+        evalOnly = true;
+		setBshVariable( "evalOnly", new Primitive(true) );
+    }
+
+	/**
+		Create an interpreter and source the specified resource file.
+		Note:
+		Resource files of course are located relative to the classpath 
+		and may be stored in separate files or inside of JAR files.
+		'resource' is relative to the bsh package unless you specify an
+		absolute "/xxx" path.
+		
+		@throws EvalError since it does a source.
+    public Interpreter( String resource )
+		throws EvalError
+    {
+		this();
+		InputStream in = getClass().getResourceAsStream( resource );
+		if ( in == null )
+			throw new EvalError("Script not found: "+resource);
+		in = new BufferedInputStream( in );
+		eval( in, globalNameSpace, resource );
+    }
+	*/
+
+	// dumb helper method
+	void setBshVariable( String name, Object obj ) {
+		try {
+			bshObject.namespace.setVariable( name, obj );
+		} catch (EvalError e ) {
+			throw new InterpreterError("Internal error: bsh namespace");
+		}
+	}
+
+	// dumb helper method
+	Object getBshVar( String name ) {
+		return unwrap( bshObject.namespace.getVariable( name ) );
+	}
+
+	public void setConsole( ConsoleInterface console ) {
+		this.console = console;
+		setBshVariable( "console", console );
+	}
+
+	// End constructors
+
+    public static void main( String [] args ) {
+
+        if ( args.length > 0 ) {
+			String filename = args[0];
+
+			String [] bshArgs;
+			if ( args.length > 1 ) {
+				bshArgs = new String [ args.length -1 ];
+				System.arraycopy( args, 1, bshArgs, 0, args.length-1 );
+			} else
+				bshArgs = new String [0];
+
+            Interpreter interpreter = new Interpreter();
+			interpreter.setBshVariable( "args", bshArgs );
+			try {
+				interpreter.source( filename, interpreter.globalNameSpace );
+			} catch ( FileNotFoundException e ) {
+				System.out.println("File not found: "+e);
+			} catch ( EvalError e ) {
+				System.out.println("Error in file: "+e);
+			}
+        } else {
+			// Workaround for JDK bug 4071281, where system.in.available() 
+			// returns too large a value. This bug has been fixed in JDK 1.2.
+			InputStream src;
+			if ( System.getProperty("os.name").startsWith("Windows") 
+				&& System.getProperty("java.version").startsWith("1.1."))
+			{
+				src = new FilterInputStream(System.in) {
+					public int available() throws IOException {
+						return 0;
+					}
+				};
+			}
+			else
+				src = System.in;
+
+            InputStream in = new CommandLineInputStream(src);
+            Interpreter interpreter = 
+				new Interpreter( in, System.out, System.err, true );
+        	interpreter.run();
+        }
+    }
+
+	/*
+		Run interactively.  (printing prompts, etc.)
+	*/
+    public void run() {
+
+        if(evalOnly)
+            throw new RuntimeException("bsh Interpreter: No stream");
+
+        /*
+          We'll print our banner using eval(String) in order to
+          exercise the parser and get the basic expression classes loaded...
+          This ameliorates the delay after typing the first statement.
+        */
+        if ( interactive )
+			try { 
+				eval("printBanner();"); 
+			} catch ( EvalError e ) {
+				println("BeanShell 1.0 beta - by Pat Niemeyer (pat@pat.net)");
+			}
+
+        boolean eof = false;
+        while(!eof)
+        {
+            try
+            {
+                // try to sync up the console
+                System.out.flush();
+                System.err.flush();
+                Thread.yield();  // this helps a little
+                if(interactive)
+                    print("bsh % ");
+                eof = Line();
+
+                if(jjtree.nodeArity() > 0)  // number of child nodes 
+                {
+                    SimpleNode node = (SimpleNode)(jjtree.rootNode());
+
+                    if(DEBUG)
+                        node.dump(">");
+
+                    Object ret = node.eval( globalNameSpace, this );
+                    if(ret instanceof ReturnControl)
+                        ret = ((ReturnControl)ret).value;
+                    if(ret != Primitive.VOID)
+                    {
+                        setVariable("$_", ret);
+                        Object show = getBshVar("show");
+                        if(show instanceof Boolean &&
+                            ((Boolean)show).booleanValue() == true)
+                            println("<" + ret + ">");
+                    }
+                }
+            }
+            catch(ParseException e)
+            {
+                error("Parser Error: " + e.getMessage());
+                if(DEBUG)
+                    e.printStackTrace();
+                if(!interactive)
+                    eof = true;
+
+                ReInit(in);
+            }
+            catch(InterpreterError e)
+            {
+                error("Internal Error: " + e.getMessage());
+                e.printStackTrace();
+                if(!interactive)
+                    eof = true;
+            }
+            catch(TargetError e)
+            {
+                error("// Uncaught Exception: " + e.getTarget());
+                if(!interactive)
+                    eof = true;
+            }
+            catch (EvalError e)
+            {
+				String err = 
+					( !interactive ? e.getLocation() : "" )+ e.toString();
+                error( err );
+                if(DEBUG)
+                    e.printStackTrace();
+                if(!interactive)
+                    eof = true;
+            }
+            catch(Exception e)
+            {
+                error("Unknown error: " + e);
+                e.printStackTrace();
+                if(!interactive)
+                    eof = true;
+            }
+            catch(TokenMgrError e)
+            {
+				/*
+				if ( tokenMgrErrors++ > 25 ) {
+					error("Too many token mgr errors, stopping.");
+					eof=true;
+					return;
+				}
+				*/
+                error("Error parsing input: " + e);
+                //e.printStackTrace();
+                if(!interactive)
+                    eof = true;
+            }
+            finally
+            {
+                jjtree.reset();
+            }
+        }
+    }
+
+	/**
+		Read text from fileName and eval it.
+	*/
+    public Object source( String filename, NameSpace nameSpace ) 
+		throws FileNotFoundException, EvalError 
+	{
+		File file = pathToFile( filename );
+		debug("Sourcing file: "+file);
+		InputStream in = new BufferedInputStream( new FileInputStream(file) );
+		return eval( in, nameSpace, filename );
+	}
+
+	/**
+		Read text from fileName and eval it.
+		Convenience method.  Use the global namespace.
+	*/
+    public Object source( String filename ) 
+		throws FileNotFoundException, EvalError 
+	{
+		return source( filename, globalNameSpace );
+	}
+
+    /**
+        Spawn a local interpreter to evaluate text in the specified 
+		namespace.  
+
+		Return value is the evaluated object (or corresponding primitive 
+		wrapper).
+
+		@throws EvalError on script problems
+		@throws TargetError on unhandled exceptions from the script
+    */
+    public Object eval( 
+		InputStream in, NameSpace nameSpace, String sourceFile ) 
+		throws EvalError {
+
+		Object retVal = null;
+		debug("eval: nameSpace = "+nameSpace);
+
+		/* 
+			Create non-interactive local interpreter for this namespace
+			with source from the input stream and out/err same as 
+			this interpreter.
+		*/
+        Interpreter localInterpreter = 
+			new Interpreter( in, out, err, false, nameSpace );
+
+        boolean eof = false;
+        while(!eof)
+        {
+            try
+            {
+                eof = localInterpreter.Line();
+                if(localInterpreter.jjtree.nodeArity() > 0)
+                {
+                    SimpleNode node = 
+						(SimpleNode)localInterpreter.jjtree.rootNode();
+                    retVal = node.eval( nameSpace, this );
+                    if(retVal instanceof ReturnControl)
+                        retVal = ((ReturnControl)retVal).value;
+                }
+            } catch(ParseException e) {
+                throw new EvalError(
+					"Sourced file: "+sourceFile+" parser Error: " 
+					+ e.getMessage() );
+            } catch(InterpreterError e) {
+                e.printStackTrace();
+                throw new EvalError(
+					"Sourced file: "+sourceFile+" internal Error: " 
+					+ e.getMessage());
+            } catch( TargetError e ) {
+                if(DEBUG)
+                    e.printStackTrace();
+				e.reThrow("Sourced file: "+sourceFile);
+            } catch(EvalError e) {
+                if(DEBUG)
+                    e.printStackTrace();
+                throw new EvalError( e.getLocation() + 
+					"sourced file: "+sourceFile+"\n"+ e.toString() );
+            } catch(Exception e) {
+                e.printStackTrace();
+                throw new EvalError(
+					"Sourced file: "+sourceFile+" unknown error: " 
+					+ e.getMessage());
+            } catch(TokenMgrError e) {
+                throw new EvalError(
+					"Sourced file: "+sourceFile+" Token Parsing Error: " 
+					+ e.getMessage() );
+            } finally {
+                localInterpreter.jjtree.reset();
+            }
+        }
+		return unwrap( retVal );
+    }
+
+	/**
+		Evaluate the inputstream in this interpreter's global namespace.
+	*/
+    public Object eval( InputStream in ) throws EvalError 
+	{
+		return eval( in, globalNameSpace, "eval stream" );
+	}
+
+	/**
+		Evaluate the string in this interpreter's global namespace.
+	*/
+    public Object eval( String statement ) throws EvalError {
+		return eval(statement, globalNameSpace);
+	}
+
+	/**
+		Note: StringBufferInputStream is deprecated, fix this
+	*/
+    public Object eval( String statement, NameSpace nameSpace ) 
+		throws EvalError {
+
+		String s = ( statement.endsWith(";") ? statement : statement+";" );
+        return eval( 
+			new StringBufferInputStream(s), nameSpace, "<inline eval>" );
+    }
+
+	/* Daniel Leuck: added color */
+    public final void error(String s) {
+
+		if(console != null) {
+			if ( NameSpace.haveSwing() && (console instanceof JConsole) )
+				((JConsole)console).print("// Error: " + s +"\n", Color.red);
+			else
+            	console.println("// Error: " + s);
+		} else {
+			err.println("// Error: " + s);
+			err.flush();
+		}
+    }
+
+    public final void println(String s)
+    {
+        print(s + "\n");
+    }
+
+    public final void print(String s)
+    {
+		if(console != null) {
+            console.print(s);
+        } else {
+            out.print(s);
+            out.flush();
+        }
+    }
+
+    public final static void debug(String s)
+    {
+        if(DEBUG)
+            debug.println("// Debug: " + s);
+    }
+
+    public Object getVariable(String name)
+    {
+        Object obj = globalNameSpace.getVariable(name);
+		return unwrap( obj );
+    }
+
+	/*
+		unwrap primitive and map voids to nulls
+	*/
+	Object unwrap( Object obj ) {
+		if ( obj == null )
+			return null;
+
+        // map voids to nulls for the outside world
+        if(obj == Primitive.VOID)
+            return null;
+
+        // unwrap primitives
+        if(obj instanceof Primitive)
+            return((Primitive)obj).getValue();
+        else
+            return obj;
+	}
+
+	// These are squeltching error... should they?
+
+    public void setVariable(String name, Object value)
+    {
+        try { globalNameSpace.setVariable(name, value); }
+        catch(EvalError e) { error(e.toString()); }
+    }
+
+    public void setVariable(String name, int value)
+    {
+        try { globalNameSpace.setVariable(name, new Primitive(value)); }
+        catch(EvalError e) { error(e.toString()); }
+    }
+
+    public void setVariable(String name, float value)
+    {
+        try { globalNameSpace.setVariable(name, new Primitive(value)); }
+        catch(EvalError e) { error(e.toString()); }
+    }
+
+    public void setVariable(String name, boolean value)
+    {
+        try { globalNameSpace.setVariable(name, new Primitive(value)); }
+        catch(EvalError e) { error(e.toString()); }
+    }
+
+	void jjtreeOpenNodeScope(Node n) {
+		((SimpleNode)n).firstToken = getToken(1);
+	}
+
+	void jjtreeCloseNodeScope(Node n) {
+		((SimpleNode)n).lastToken = getToken(0);
+	}
+
+	void loadRCFiles() {
+		try {
+			String rcfile = 
+				// Default is c:\windows under win98, $HOME under Unix
+				System.getProperty("user.home") + File.separator + ".bshrc";
+			source( rcfile, globalNameSpace );
+		} catch ( Exception e ) { 
+			// squeltch security exception, filenotfoundexception
+			debug("Could not find rc file: "+e);
+		}
+	}
+
+    public File pathToFile( String fileName ) {
+
+		bsh.File file = new bsh.File( fileName );
+
+		String sourceDir, sourceFile;
+		String cwd = (String)getBshVar("cwd");
+
+		if ( file.isAbsolute() ) {
+			sourceDir = file.dirName();
+			sourceFile = file.baseName();
+		} else {
+			sourceDir = cwd + File.separator + file.dirName();
+			sourceFile = file.baseName();
+			file = new bsh.File( sourceDir + File.separator + sourceFile );
+		} 
+
+		return file;
+	}
+}
+
+PARSER_END(Interpreter)
+
+SKIP : /* WHITE SPACE */
+{ 
+	" " | "\t" | "\n" | "\r" | "\f" | 
+	< NONPRINTABLE: (["\u0000"-"\u0020", "\u0080"-"\u00ff"])+ >
+}
+
+SPECIAL_TOKEN : /* COMMENTS */
+{
+  <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+| <HASH_BANG_COMMENT: "#!" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+| <FORMAL_COMMENT: "/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+| <MULTI_LINE_COMMENT: "/*" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+}
+
+TOKEN : /* RESERVED WORDS AND LITERALS */
+{
+< BOOLEAN: "boolean" >
+| < BREAK: "break" >
+| < CLASS: "class" >
+| < BYTE: "byte" >
+| < CASE: "case" >
+| < CATCH: "catch" >
+| < CHAR: "char" >
+| < CONST: "const" >
+| < CONTINUE: "continue" >
+| < _DEFAULT: "default" >
+| < DO: "do" >
+| < DOUBLE: "double" >
+| < ELSE: "else" >
+| < FALSE: "false" >
+| < FINAL: "final" >
+| < FINALLY: "finally" >
+| < FLOAT: "float" >
+| < FOR: "for" >
+| < GOTO: "goto" >
+| < IF: "if" >
+| < IMPORT: "import" >
+| < INSTANCEOF: "instanceof" >
+| < INT: "int" >
+| < INTERFACE: "interface" >
+| < LONG: "long" >
+| < NEW: "new" >
+| < NULL: "null" >
+| < PRIVATE: "private" >
+| < PROTECTED: "protected" >
+| < PUBLIC: "public" >
+| < RETURN: "return" >
+| < SHORT: "short" >
+| < STATIC: "static" >
+| < SWITCH: "switch" >
+| < THROW: "throw" >
+| < TRUE: "true" >
+| < TRY: "try" >
+| < VOID: "void" >
+| < WHILE: "while" >
+}
+
+TOKEN : /* LITERALS */
+{
+  < INTEGER_LITERAL:
+        <DECIMAL_LITERAL> (["l","L"])?
+      | <HEX_LITERAL> (["l","L"])?
+      | <OCTAL_LITERAL> (["l","L"])?
+  >
+|
+  < #DECIMAL_LITERAL: ["1"-"9"] (["0"-"9"])* >
+|
+  < #HEX_LITERAL: "0" ["x","X"] (["0"-"9","a"-"f","A"-"F"])+ >
+|
+  < #OCTAL_LITERAL: "0" (["0"-"7"])* >
+|
+  < FLOATING_POINT_LITERAL:
+        (["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)? (["f","F","d","D"])?
+      | "." (["0"-"9"])+ (<EXPONENT>)? (["f","F","d","D"])?
+      | (["0"-"9"])+ <EXPONENT> (["f","F","d","D"])?
+      | (["0"-"9"])+ (<EXPONENT>)? ["f","F","d","D"]
+  >
+|
+  < #EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
+|
+  < CHARACTER_LITERAL:
+      "'"
+      (   (~["'","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )
+      "'"
+  >
+|
+  < STRING_LITERAL:
+      "\""
+      (   (~["\"","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      "\""
+  >
+}
+
+TOKEN : /* IDENTIFIERS */
+{
+  < IDENTIFIER: <LETTER> (<LETTER>|<DIGIT>)* >
+|
+  < #LETTER:
+      [
+       "\u0024",
+       "\u0041"-"\u005a",
+       "\u005f",
+       "\u0061"-"\u007a",
+       "\u00c0"-"\u00d6",
+       "\u00d8"-"\u00f6",
+       "\u00f8"-"\u00ff",
+       "\u0100"-"\u1fff",
+       "\u3040"-"\u318f",
+       "\u3300"-"\u337f",
+       "\u3400"-"\u3d2d",
+       "\u4e00"-"\u9fff",
+       "\uf900"-"\ufaff"
+      ]
+  >
+|
+  < #DIGIT:
+      [
+       "\u0030"-"\u0039",
+       "\u0660"-"\u0669",
+       "\u06f0"-"\u06f9",
+       "\u0966"-"\u096f",
+       "\u09e6"-"\u09ef",
+       "\u0a66"-"\u0a6f",
+       "\u0ae6"-"\u0aef",
+       "\u0b66"-"\u0b6f",
+       "\u0be7"-"\u0bef",
+       "\u0c66"-"\u0c6f",
+       "\u0ce6"-"\u0cef",
+       "\u0d66"-"\u0d6f",
+       "\u0e50"-"\u0e59",
+       "\u0ed0"-"\u0ed9",
+       "\u1040"-"\u1049"
+      ]
+  >
+}
+
+TOKEN : /* SEPARATORS */
+{
+  < LPAREN: "(" >
+| < RPAREN: ")" >
+| < LBRACE: "{" >
+| < RBRACE: "}" >
+| < LBRACKET: "[" >
+| < RBRACKET: "]" >
+| < SEMICOLON: ";" >
+| < COMMA: "," >
+| < DOT: "." >
+}
+
+TOKEN : /* OPERATORS */
+{
+  < ASSIGN: "=" >
+| < GT: ">" >
+| < GTX: "@gt" >
+| < LT: "<" >
+| < LTX: "@lt" >
+| < BANG: "!" >
+| < TILDE: "~" >
+| < HOOK: "?" >
+| < COLON: ":" >
+| < EQ: "==" >
+| < LE: "<=" >
+| < LEX: "@lteq" >
+| < GE: ">=" >
+| < GEX: "@gteq" >
+| < NE: "!=" >
+| < BOOL_OR: "||" >
+| < BOOL_ORX: "@or" >
+| < BOOL_AND: "&&" >
+| < BOOL_ANDX: "@and" >
+| < INCR: "++" >
+| < DECR: "--" >
+| < PLUS: "+" >
+| < MINUS: "-" >
+| < STAR: "*" >
+| < SLASH: "/" >
+| < BIT_AND: "&" >
+| < BIT_ANDX: "@bitwise_and" >
+| < BIT_OR: "|" >
+| < BIT_ORX: "@bitwise_or" >
+| < XOR: "^" >
+| < MOD: "%" >
+| < LSHIFT: "<<" >
+| < LSHIFTX: "@left_shift" >
+| < RSIGNEDSHIFT: ">>" >
+| < RSIGNEDSHIFTX: "@right_shift" >
+| < RUNSIGNEDSHIFT: ">>>" >
+| < RUNSIGNEDSHIFTX: "@right_unsigned_shift" >
+| < PLUSASSIGN: "+=" >
+| < MINUSASSIGN: "-=" >
+| < STARASSIGN: "*=" >
+| < SLASHASSIGN: "/=" >
+| < ANDASSIGN: "&=" >
+| < ANDASSIGNX: "@and_assign" >
+| < ORASSIGN: "|=" >
+| < ORASSIGNX: "@or_assign" >
+| < XORASSIGN: "^=" >
+| < MODASSIGN: "%=" >
+| < LSHIFTASSIGN: "<<=" >
+| < LSHIFTASSIGNX: "@left_shift_assign" >
+| < RSIGNEDSHIFTASSIGN: ">>=" >
+| < RSIGNEDSHIFTASSIGNX: "@right_shift_assign" >
+| < RUNSIGNEDSHIFTASSIGN: ">>>=" >
+| < RUNSIGNEDSHIFTASSIGNX: "@right_unsigned_shift_assign" >
+}
+
+
+boolean Line() :
+{}
+{
+  (
+  // Note: I don't know what I'm really doing with this lookahead here
+  // The compiler suggested it...
+  LOOKAHEAD(3) BlockStatement()
+| ImportDeclaration()
+| Expression() ";"
+  )  { 
+		return false; 
+	}
+  | <EOF> { 
+	debug("End of File!"); return true; 
+	}
+}
+
+/*****************************************
+ * THE JAVA LANGUAGE GRAMMAR STARTS HERE *
+ *****************************************/
+
+/*
+ * Program structuring syntax follows.
+ */
+
+void MethodDeclaration() #MethodDeclaration :
+{ Token t = null; }
+{
+    LOOKAHEAD( MethodDeclarationTypeLookahead() )
+    ReturnType() t = <IDENTIFIER> { jjtThis.name = t.image; }
+    FormalParameters() Block()
+|
+    t = <IDENTIFIER> { jjtThis.name = t.image; }
+    FormalParameters() Block()
+}
+
+void MethodDeclarationLookahead() : { }
+{
+    LOOKAHEAD( MethodDeclarationTypeLookahead() )
+    ReturnType() <IDENTIFIER> FormalParameters() "{"
+|
+    <IDENTIFIER> FormalParameters() "{"
+}
+
+void MethodDeclarationTypeLookahead() : { }
+{
+    ReturnType() <IDENTIFIER> "("
+}
+
+void ImportDeclaration() #ImportDeclaration :
+{
+    Token t = null;
+}
+{
+  "import" AmbiguousName() [ t = "." "*" ] ";" {
+    if ( t != null )
+        jjtThis.importPackage = true;
+    }
+}
+
+void VariableDeclarator() #VariableDeclarator :
+{ Token t; }
+{
+  t=<IDENTIFIER> [ "=" VariableInitializer() ] { jjtThis.name = t.image; }
+}
+
+/*
+Can get rid of this if we ignore postfix array dimensions in declarations.
+I don't like them and I don't want to deal with them right now.
+
+void VariableDeclaratorId() #VariableDeclaratorId :
+{ Token t; }
+{
+  t=<IDENTIFIER> { jjtThis.name = t.image; }
+  ( "[" "]" { jjtThis.addArrayDimension(); } )*
+}
+*/
+
+void VariableInitializer() :
+{}
+{
+  ArrayInitializer()
+|
+  Expression()
+}
+
+void ArrayInitializer() #ArrayInitializer :
+{}
+{
+  "{" [ VariableInitializer() ( LOOKAHEAD(2) "," VariableInitializer() )* ] [ "," ] "}"
+}
+
+void FormalParameters() #FormalParameters :
+{}
+{
+  "(" [ FormalParameter() ( "," FormalParameter() )* ] ")"
+}
+
+/*
+void FormalParameter() #FormalParameter :
+{ Token t; }
+{
+    // added [] to Type for bsh.  Removed [ final ] - is that legal?
+  [ LOOKAHEAD(2) Type() ] t=<IDENTIFIER> { jjtThis.name = t.image; }
+}
+*/
+void FormalParameter() #FormalParameter :
+{ Token t; }
+{
+  // added [] to Type for bsh.  Removed [ final ] - is that legal?
+  LOOKAHEAD(2) Type() t=<IDENTIFIER> { jjtThis.name = t.image; }
+|
+  t=<IDENTIFIER> { jjtThis.name = t.image; }
+}
+
+/*
+ * Type, name and expression syntax follows.
+ */
+
+void Type() #Type :
+{ }
+{
+  ( PrimitiveType() | AmbiguousName() ) ( "[" "]" { jjtThis.addArrayDimension(); } )*
+}
+
+void ReturnType() #ReturnType :
+{ }
+{
+  "void" { jjtThis.isVoid = true; }
+|
+  Type()
+}
+
+void PrimitiveType() #PrimitiveType :
+{ } {
+"boolean" { jjtThis.type = Boolean.TYPE; }
+| "char" { jjtThis.type =  Character.TYPE; }
+| "byte" { jjtThis.type =  Byte.TYPE; }
+| "short" { jjtThis.type =  Short.TYPE; }
+| "int" { jjtThis.type =  Integer.TYPE; }
+| "long" { jjtThis.type =  Long.TYPE; }
+| "float" { jjtThis.type =  Float.TYPE; }
+| "double" { jjtThis.type =  Double.TYPE; }
+}
+
+void AmbiguousName() #AmbiguousName :
+/*
+ * A lookahead of 2 is required below since "Name" can be followed
+ * by a ".*" when used in the context of an "ImportDeclaration".
+ */
+{
+    Token t;
+    StringBuffer s;
+}
+{
+  t = <IDENTIFIER> {
+        s = new StringBuffer(t.image);
+    }
+  ( LOOKAHEAD(2) "." t = <IDENTIFIER> {
+        s.append("."+t.image);
+    }
+  )* {
+        //jjtThis.name = new Name( nameSpace, s.toString() );
+        jjtThis.text = s.toString();
+    }
+}
+
+/*
+ * Expression syntax follows.
+ */
+
+void Expression() :
+{ }
+{
+  LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
+  Assignment()
+|
+  ConditionalExpression()
+}
+
+void Assignment() #Assignment :
+{ int op ; }
+{
+  LHSPrimaryExpression()
+  op = AssignmentOperator() {
+    jjtThis.operator = op;
+  }
+  Expression()
+}
+
+int AssignmentOperator() :
+{ Token t; }
+{
+    ( "=" | "*=" | "/=" | "%=" | "+=" | "-=" | "&=" | "^=" | "|=" |
+      "<<=" | "@left_shift_assign" | ">>=" | "@right_shift_assign" |
+      ">>>=" | "@right_unsigned_shift_assign" )
+    {
+        t = getToken(0);
+        return t.kind;
+    }
+}
+
+void ConditionalExpression() : 
+{ }
+{
+  ConditionalOrExpression() [ "?" Expression() ":" ConditionalExpression() 
+	#TernaryExpression(3) ]
+}
+
+void ConditionalOrExpression() :
+{ Token t=null; }
+{
+  ConditionalAndExpression()
+  ( ( t = "||" | t = "@or" )
+    ConditionalAndExpression()
+    { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
+}
+
+void ConditionalAndExpression() :
+{ Token t=null; }
+{
+  InclusiveOrExpression()
+  ( ( t = "&&" | t = "@and" )
+    InclusiveOrExpression()
+    { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
+}
+
+void InclusiveOrExpression() :
+{ Token t=null; }
+{
+  ExclusiveOrExpression()
+  ( ( t = "|" | t = "@bitwise_or" )
+    ExclusiveOrExpression()
+    { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
+}
+
+void ExclusiveOrExpression() :
+{ Token t=null; }
+{
+  AndExpression() ( t="^" AndExpression()
+    { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
+}
+
+void AndExpression() :
+{ Token t=null; }
+{
+  EqualityExpression()
+  ( ( t = "&" | t = "@bitwise_and" )
+    EqualityExpression()
+    { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
+}
+
+void EqualityExpression() :
+{ Token t = null; }
+{
+  InstanceOfExpression() ( ( t= "==" | t= "!=" ) InstanceOfExpression()
+    { jjtThis.kind = t.kind; } #BinaryExpression(2)
+  )*
+}
+
+void InstanceOfExpression() :
+{ Token t = null; }
+{
+  RelationalExpression()
+  [ t = "instanceof" Type() { jjtThis.kind = t.kind; } #BinaryExpression(2) ]
+}
+
+void RelationalExpression() :
+{ Token t = null; }
+{
+  ShiftExpression()
+  ( ( t = "<" | t = "@lt" | t = ">" | t = "@gt" |
+      t = "<=" | t = "@lteq" | t = ">=" | t = "@gteq" )
+  ShiftExpression()
+  { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
+}
+
+void ShiftExpression() :
+{ Token t = null; }
+{
+  AdditiveExpression()
+  ( ( t = "<<" | t = "@left_shift" | t = ">>" | t = "@right_shift" |
+      t = ">>>" | t = "@right_unsigned_shift" )
+  AdditiveExpression()
+  { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
+}
+
+void AdditiveExpression() :
+{ Token t = null; }
+{
+  MultiplicativeExpression()
+  ( ( t= "+" | t= "-" ) MultiplicativeExpression() { jjtThis.kind = t.kind; }
+    #BinaryExpression(2)
+  )*
+}
+
+void MultiplicativeExpression() :
+{ Token t = null; }
+{
+  UnaryExpression() ( ( t= "*" | t= "/" | t= "%" )
+  UnaryExpression() { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
+}
+
+void UnaryExpression() :
+{ Token t = null; }
+{
+  ( t="+" | t="-" ) UnaryExpression()
+    { jjtThis.kind = t.kind; } #UnaryExpression(1)
+|
+  PreIncrementExpression()
+|
+  PreDecrementExpression()
+|
+  UnaryExpressionNotPlusMinus()
+}
+
+void PreIncrementExpression() :
+{ Token t = null; }
+{
+  t="++" LHSPrimaryExpression()
+    { jjtThis.kind = t.kind; } #UnaryExpression(1)
+}
+
+void PreDecrementExpression() :
+{ Token t = null; }
+{
+  t="--" LHSPrimaryExpression()
+    { jjtThis.kind = t.kind; } #UnaryExpression(1)
+}
+
+void UnaryExpressionNotPlusMinus() :
+{ Token t = null; }
+{
+  ( t="~" | t="!" ) UnaryExpression()
+    { jjtThis.kind = t.kind; } #UnaryExpression(1)
+|
+  LOOKAHEAD( CastLookahead() ) CastExpression()
+|
+  PostfixExpression()
+}
+
+// This production is to determine lookahead only.
+void CastLookahead() : { }
+{
+  LOOKAHEAD(2) "(" PrimitiveType()
+|
+  LOOKAHEAD( "(" AmbiguousName() "[" ) "(" AmbiguousName() "[" "]"
+|
+  "(" AmbiguousName() ")" ( "~" | "!" | "(" | <IDENTIFIER> | /* "this" | "super" | */ "new" | Literal() )
+}
+
+void PostfixExpression() :
+{ Token t = null; }
+{
+ (
+  LOOKAHEAD( LHSPrimaryExpression() ("++"|"--") )
+  LHSPrimaryExpression()
+|
+  PrimaryExpression()
+ )
+  [ ( t="++" | t="--" ) { 
+	jjtThis.kind = t.kind; jjtThis.postfix = true; } #UnaryExpression(1) ]
+}
+
+void CastExpression() #CastExpression :
+{ }
+{
+  LOOKAHEAD( "(" PrimitiveType() ) "(" Type() ")" UnaryExpression()
+|
+  "(" Type() ")" UnaryExpressionNotPlusMinus()
+}
+
+void PrimaryExpression() #PrimaryExpression : { }
+{
+ PrimaryPrefix() ( PrimarySuffix() )*
+}
+
+// The MethodInvocation node here simplifies the prefix/suffix parsing a bit
+//  by forcing the prefix to an object.
+void PrimaryPrefix() : { }
+{
+  Literal()
+|
+  "(" Expression() ")"
+|
+  AllocationExpression()
+|
+  ( AmbiguousName() [ Arguments() ]  ) #MethodInvocation(>1)
+}
+
+void PrimarySuffix() #PrimarySuffix :
+{
+    Token t = null;
+}
+{
+  LOOKAHEAD(2)
+  "." "class" {
+        jjtThis.operation = BSHPrimarySuffix.CLASS;
+    }
+|
+  "[" Expression() "]" {
+        jjtThis.operation = BSHPrimarySuffix.INDEX;
+    }
+|
+    // Field access or method invocation
+  "." t = <IDENTIFIER> [ Arguments() ] {
+        jjtThis.operation = BSHPrimarySuffix.NAME;
+        jjtThis.field = t.image;
+    }
+|
+  "{" Expression() "}" {
+        jjtThis.operation = BSHPrimarySuffix.PROPERTY;
+    }
+/*
+    For inner classes
+|
+  LOOKAHEAD(2)
+  "." AllocationExpression()
+*/
+}
+
+/*
+    Note: I have gotten rid of LHSPrimaryPrefix because I believe the
+    only meaningful rule is the AmbiguousName.  I believe the only other
+    plausable rule was AllocationExpression...  don't see the point right now.
+*/
+void LHSPrimaryExpression() #LHSPrimaryExpression : { }
+{
+  AmbiguousName()  ( LHSPrimarySuffix( ) )*
+}
+
+void LHSPrimarySuffix() #LHSPrimarySuffix :
+{
+    Token t=null, t1, t2 = null;
+}
+{
+    // Indexed to a field
+  "[" Expression() "]" {
+        jjtThis.operation = BSHLHSPrimarySuffix.INDEX;
+    }
+|
+    // Field access or method invocation followed by field access
+  "." t1 = <IDENTIFIER> [ Arguments() "." t2 = <IDENTIFIER> ] {
+        jjtThis.operation = BSHLHSPrimarySuffix.NAME;
+        if ( t2 == null )
+            jjtThis.field = t1.image;
+        else {
+            jjtThis.method = t1.image;
+            jjtThis.field = t2.image;
+        }
+    }
+|
+  "{" Expression() "}" {
+        jjtThis.operation = BSHLHSPrimarySuffix.PROPERTY;
+    }
+}
+
+void Literal() #Literal :
+{
+    Token x;
+    boolean b;
+    String literal;
+    char ch;
+}
+{
+  x = <INTEGER_LITERAL>
+  {
+    literal = x.image;
+    ch = literal.charAt(literal.length()-1);
+    if(ch == 'l' || ch == 'L')
+    {
+        literal = literal.substring(0,literal.length()-1);
+
+        // This really should be Long.decode, but there isn't one. As a result,
+        // hex and octal literals ending in 'l' or 'L' don't work.
+        jjtThis.value = new Primitive( new Long( literal ) );
+    }
+    else
+        jjtThis.value = new Primitive( Integer.decode( literal ) );
+  }
+|
+  x = <FLOATING_POINT_LITERAL>
+  {
+    literal = x.image;
+    ch = literal.charAt(literal.length()-1);
+    if(ch == 'f' || ch == 'F')
+    {
+        literal = literal.substring(0,literal.length()-1);
+        jjtThis.value = new Primitive( new Float( literal ) );
+    }
+    else
+    {
+        if(ch == 'd' || ch == 'D')
+            literal = literal.substring(0,literal.length()-1);
+
+        jjtThis.value = new Primitive( new Double( literal ) );
+    }
+  }
+|
+  x = <CHARACTER_LITERAL> {
+    jjtThis.charSetup( x.image.substring(1, x.image.length() - 1) );
+    }
+|
+  x = <STRING_LITERAL> {
+    jjtThis.stringSetup( x.image.substring(1, x.image.length() - 1) );
+    }
+|
+  b = BooleanLiteral()  {
+    jjtThis.value = new Primitive( new Boolean(b) ); }
+|
+  NullLiteral() {
+    jjtThis.value = Primitive.NULL; }
+|
+ VoidLiteral() {
+    jjtThis.value = Primitive.VOID; }
+}
+
+boolean BooleanLiteral() :
+{}
+{
+  "true" { return true; }
+|
+  "false" { return false; }
+}
+
+void NullLiteral() :
+{}
+{
+  "null"
+}
+
+void VoidLiteral() :
+{}
+{
+  "void"
+}
+
+void Arguments() #Arguments :
+{ }
+{
+  "(" [ ArgumentList()  ]  ")"
+}
+
+// leave these on the stack for Arguments() to handle
+void ArgumentList() :
+{ }
+{
+  Expression()
+  ( "," Expression() )*
+}
+
+void AllocationExpression() #AllocationExpression :
+{ }
+{
+  LOOKAHEAD(2)
+  "new" PrimitiveType() ArrayDimensions()
+|
+  "new" AmbiguousName() ( ArrayDimensions() | Arguments() )
+}
+
+void ArrayDimensions() #ArrayDimensions :
+{}
+{
+  LOOKAHEAD(2)
+  ( LOOKAHEAD(2) "[" Expression() "]" { jjtThis.addArrayDimension(); } )+
+  // Removed trailing "[]" identifiers.  Specify array dims fully.
+|
+  ( "[" "]" { jjtThis.addArrayDimension(); } )+ ArrayInitializer()
+}
+
+
+/*
+ * Statement syntax follows.
+ */
+
+void Statement() : { }
+{
+  LOOKAHEAD(2)
+  LabeledStatement()
+|
+  Block()
+|
+  EmptyStatement()
+|
+  StatementExpression() ";"
+|
+  SwitchStatement()
+|
+  IfStatement()
+|
+  WhileStatement()
+|
+  DoStatement()
+|
+  ForStatement()
+|
+  BreakStatement()
+|
+  ContinueStatement()
+|
+  ReturnStatement()
+|
+  ThrowStatement()
+|
+  TryStatement()
+}
+
+void LabeledStatement() :
+{}
+{
+  <IDENTIFIER> ":" Statement()
+}
+
+void Block() #Block :
+{}
+{
+  "{" ( BlockStatement() )* "}"
+}
+
+void BlockStatement() :
+{}
+{
+  LOOKAHEAD( MethodDeclarationLookahead() ) MethodDeclaration()
+|
+  LOOKAHEAD([ "final" ] Type() <IDENTIFIER>)
+  TypedVariableDeclaration() ";"
+|
+  Statement()
+}
+
+void EmptyStatement() :
+{}
+{
+  ";"
+}
+
+void StatementExpression() :
+/*
+ * The last expansion of this production accepts more than the legal
+ * Java expansions for StatementExpression.
+ */
+{ }
+{
+  PreIncrementExpression()
+|
+  PreDecrementExpression()
+|
+  LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
+  Assignment() { }
+|
+  PostfixExpression()
+}
+
+void SwitchStatement() :
+{}
+{
+  "switch" "(" Expression() ")" "{"
+    ( SwitchLabel() ( BlockStatement() )* )*
+  "}"
+}
+
+void SwitchLabel() :
+{}
+{
+  "case" Expression() ":"
+|
+  "default" ":"
+}
+
+void IfStatement() #IfStatement :
+/*
+ * The disambiguating algorithm of JavaCC automatically binds dangling
+ * else's to the innermost if statement.  The LOOKAHEAD specification
+ * is to tell JavaCC that we know what we are doing.
+ */
+{}
+{
+  "if" "(" Expression() ")" Statement() [ LOOKAHEAD(1) "else" Statement() ]
+}
+
+void WhileStatement() #WhileStatement :
+{}
+{
+  "while" "(" Expression() ")" Statement()
+}
+
+/*
+	Do statement is just a While statement with a special hook to execute
+	at least once.
+*/
+void DoStatement() #WhileStatement :
+{}
+{
+  "do" Statement() "while" "(" Expression() ")" ";" 
+	{ jjtThis.isDoStatement=true;  }
+}
+
+void ForStatement() #ForStatement :
+{}
+{
+  "for" "(" [ ForInit() { jjtThis.hasForInit=true; } ]
+    ";" [ Expression() { jjtThis.hasExpression=true; } ]
+    ";" [ ForUpdate() { jjtThis.hasForUpdate=true; } ] ")"
+    Statement()
+}
+
+void ForInit() :
+{ Token t = null; }
+{
+  LOOKAHEAD( [ t="final" ] Type() <IDENTIFIER> )
+  TypedVariableDeclaration()
+|
+  StatementExpressionList()
+}
+
+void TypedVariableDeclaration() #TypedVariableDeclaration :
+{ Token t = null; }
+{
+  [ t="final" ] Type() VariableDeclarator() ( "," VariableDeclarator() )*  {
+        jjtThis.isFinal = (t!=null);
+    }
+}
+
+void StatementExpressionList() #StatementExpressionList :
+{}
+{
+  StatementExpression() ( "," StatementExpression() )*
+}
+
+void ForUpdate() :
+{}
+{
+  StatementExpressionList()
+}
+
+void BreakStatement() #ReturnStatement :
+{}
+{
+  "break" [ <IDENTIFIER> ] ";" { jjtThis.kind = BREAK; }
+}
+
+void ContinueStatement() #ReturnStatement :
+{}
+{
+  "continue" [ <IDENTIFIER> ] ";" { jjtThis.kind = CONTINUE; }
+}
+
+void ReturnStatement() #ReturnStatement :
+{}
+{
+  "return" [ Expression() ] ";" { jjtThis.kind = RETURN; }
+}
+
+void ThrowStatement() #ThrowStatement :
+{}
+{
+  "throw" Expression() ";"
+}
+
+void TryStatement() #TryStatement:
+/*
+ * Semantic check required here to make sure that at least one
+ * finally/catch is present.
+ */
+{}
+{
+  "try" Block()
+  ( "catch" "(" FormalParameter() ")" Block() )*
+  [ "finally" Block() ]
+}

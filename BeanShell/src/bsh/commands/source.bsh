@@ -1,0 +1,6 @@
+
+bsh.help.source = "usage: source( filename )";
+
+source( String filename ) {
+	return this.interpreter.source( filename, super.namespace );
+}

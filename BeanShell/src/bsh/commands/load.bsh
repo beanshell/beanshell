@@ -1,0 +1,21 @@
+
+bsh.help.load = "usage: load(filename)";
+
+Object load( String filename ) {
+	file = pathToFile( filename );
+
+	Object obj;
+	//try {
+		FileInputStream in = new FileInputStream( file );
+		ObjectInputStream oin = new ObjectInputStream(in);
+		obj = oin.readObject();
+	//} catch ( Exception e ) {
+		//throw new bsh.EvalError("Error loading object: "+e);
+	//}
+
+	// bind bsh objects into current namespace
+	if ( obj instanceof bsh.This )
+		bind( obj, super.namespace );
+
+	return obj;
+}

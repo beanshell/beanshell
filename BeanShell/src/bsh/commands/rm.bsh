@@ -1,0 +1,17 @@
+
+bsh.help.rm = "usage: cd( path )";
+
+rm( String pathname ) {
+    file = pathToFile( pathname );
+
+	if ( file == null )
+		throw new java.io.FileNotFoundException("pathname");
+
+    if ( file.isDirectory() ) {
+        print( pathname + "is a directory" );
+        return;
+    }
+
+	return file.delete();
+}
+
