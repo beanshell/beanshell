@@ -9,7 +9,7 @@ cd( String pathname ) {
     file = pathToFile( pathname );
 
 	if ( file.exists() && file.isDirectory() )
-		super.bsh.cwd = file.getCanonicalPath();
+		bsh.cwd = file.getCanonicalPath();
 	else
         print( "No such directory: "+pathname);
 
