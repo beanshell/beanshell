@@ -14,12 +14,7 @@
 
 package bsh.util;
 
-import java.io.DataInputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.IOException;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.util.StringTokenizer;
 import java.net.Socket;
 import java.net.ServerSocket;
@@ -62,7 +57,7 @@ public class Httpd extends Thread
 class HttpdConnection extends Thread
 {
 	Socket client;
-	DataInputStream din;
+	BufferedReader in;
 	OutputStream out;
 	PrintStream pout;
 	boolean isHttp1;
@@ -78,17 +73,18 @@ class HttpdConnection extends Thread
 //		System.out.println("new http connection");
 		try
 		{
-			din = new DataInputStream(client.getInputStream());
+			in = new BufferedReader( new InputStreamReader(
+				client.getInputStream() ) );
 			out = client.getOutputStream();
 			pout = new PrintStream(out);
 
-			String request = din.readLine();
+			String request = in.readLine();
 //			System.out.println( "Request: " + request );
 
 			if(request.toLowerCase().indexOf("http/1.") != -1)
 			{
 				String s;
-				while((!(s = din.readLine()).equals("")) && (s != null))
+				while((!(s = in.readLine()).equals("")) && (s != null))
 				{ ; }
 
 				isHttp1 = true;

@@ -14,9 +14,7 @@
 
 package bsh.util;
 
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.io.IOException;
+import java.io.*;
 
 import java.net.Socket;
 import java.net.ServerSocket;
@@ -72,7 +70,9 @@ class SessiondConnection extends Thread
 		{
 			InputStream in = client.getInputStream();
 			PrintStream out = new PrintStream(client.getOutputStream());
-			new Interpreter(in, out, out, true, globalNameSpace).run();
+			new Interpreter(
+				new InputStreamReader(in), 
+				out, out, true, globalNameSpace).run();
 		}
 		catch(IOException e) { System.out.println(e); }
 	}

@@ -45,7 +45,7 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
 
     NameSpace globalNameSpace;
         This bshObject;
-    InputStream in;
+    Reader in;
     PrintStream out;
     PrintStream err;
     ConsoleInterface console;
@@ -63,7 +63,7 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
 		will be made a child of the specified namespace. 
 	*/
     public Interpreter(
-                InputStream in, PrintStream out, PrintStream err,
+                Reader in, PrintStream out, PrintStream err,
                 boolean interactive, NameSpace namespace)
     {
         this( in );
@@ -132,7 +132,7 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
         }
 
     public Interpreter(
-                InputStream in, PrintStream out, PrintStream err, boolean interactive)
+                Reader in, PrintStream out, PrintStream err, boolean interactive)
     {
         this(in, out, err, interactive, null);
     }
@@ -143,8 +143,8 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
 	*/
     public Interpreter(ConsoleInterface console, NameSpace globalNameSpace) {
 
-        this(
-                        console.getIn(), console.getOut(), console.getErr(),
+        this( new InputStreamReader(console.getIn()),
+                        console.getOut(), console.getErr(),
                         true, globalNameSpace );
 
                 setConsole( console );
@@ -171,11 +171,10 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
 
         /**
 		Create an interpreter for evaluation only.
-		Note: StringBufferInputStream is deprecated, fix this
 	*/
     public Interpreter()
     {
-                this( new StringBufferInputStream(""),
+                this( new StringReader(""),
                         System.out, System.err, false, null );
         evalOnly = true;
                 setBshVariable( "evalOnly", new Primitive(true) );
@@ -198,7 +197,7 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
 		if ( in == null )
 			throw new EvalError("Script not found: "+resource);
 		in = new BufferedInputStream( in );
-		eval( in, globalNameSpace, resource );
+		eval( new InputStreamReader(in), globalNameSpace, resource );
     }
 	*/
 
@@ -260,7 +259,7 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
                         else
                                 src = System.in;
 
-            InputStream in = new CommandLineInputStream(src);
+            Reader in = new CommandLineReader( new InputStreamReader(src));
             Interpreter interpreter =
                                 new Interpreter( in, System.out, System.err, true );
                 interpreter.run();
@@ -389,7 +388,7 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
         {
                 File file = pathToFile( filename );
                 debug("Sourcing file: "+file);
-                InputStream in = new BufferedInputStream( new FileInputStream(file) );
+                Reader in = new BufferedReader( new FileReader(file) );
                 return eval( in, nameSpace, filename );
         }
 
@@ -414,7 +413,7 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
 		@throws TargetError on unhandled exceptions from the script
     */
     public Object eval(
-                InputStream in, NameSpace nameSpace, String sourceFile )
+                Reader in, NameSpace nameSpace, String sourceFile )
                 throws EvalError {
 
                 Object retVal = null;
@@ -479,7 +478,7 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
         /**
 		Evaluate the inputstream in this interpreter's global namespace.
 	*/
-    public Object eval( InputStream in ) throws EvalError
+    public Object eval( Reader in ) throws EvalError
         {
                 return eval( in, globalNameSpace, "eval stream" );
         }
@@ -499,7 +498,7 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
 
                 String s = ( statement.endsWith(";") ? statement : statement+";" );
         return eval(
-                        new StringBufferInputStream(s), nameSpace, "<inline eval>" );
+                        new StringReader(s), nameSpace, "<inline eval>" );
     }
 
         /* Daniel Leuck: added color */
@@ -4043,6 +4042,12 @@ void FormalParameter() #FormalParameter :
     return retval;
   }
 
+  final private boolean jj_3R_229() {
+    if (jj_scan_token(LT)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
   final private boolean jj_3_20() {
     if (jj_3R_30()) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
@@ -5278,12 +5283,6 @@ void FormalParameter() #FormalParameter :
     return false;
   }
 
-  final private boolean jj_3R_134() {
-    if (jj_scan_token(ASSIGN)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
   final private boolean jj_3R_123() {
     Token xsp;
     xsp = jj_scanpos;
@@ -5307,6 +5306,12 @@ void FormalParameter() #FormalParameter :
     } else if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
     } else if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
     } else if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
+  final private boolean jj_3R_134() {
+    if (jj_scan_token(ASSIGN)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
     return false;
   }
 
@@ -6386,12 +6391,6 @@ void FormalParameter() #FormalParameter :
 
   final private boolean jj_3R_233() {
     if (jj_scan_token(LE)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
-  final private boolean jj_3R_229() {
-    if (jj_scan_token(LT)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
     return false;
   }
