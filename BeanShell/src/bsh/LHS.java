@@ -38,25 +38,31 @@ import java.lang.reflect.Field;
 import java.util.Hashtable;
 
 /**
-	The left hand side in an assignment
-
-	This is probably the most debatable design issue in bsh...
-	Because of the way things started, the grammar splits on whether
-	something is an LHS or not...  The alternative would be to wrap all
-	objects in bsh, rather than just carrying types that might be used in
-	an assignment.  Wrapping all objects, say, in a generalized BshObject 
-	type, would also provide a nice place to put all the reflection stuff, 
-	which is now static in bsh.Reflect
+	An LHS is a wrapper for an variable, field, or property.  It ordinarily 
+	holds the "left hand side" of an assignment and may be either resolved to 
+	a value or assigned a value.
+	<p>
+	
+	There is one special case here termed METHOD_EVAL where the LHS is used
+	in an intermediate evaluation of a chain of suffixes and wraps a method
+	invocation.  In this case it may only be resolved to a value and cannot be 
+	assigned.  (You can't assign a value to the result of a method call e.g.
+	"foo() = 5;").
+	<p>
 */
 class LHS implements ParserConstants, java.io.Serializable
 {
 	NameSpace nameSpace;
 
+	/**
+		Identifiers for the various types of LHS.
+	*/
 	static final int
 		VARIABLE = 0,
 		FIELD = 1,
 		PROPERTY = 2,
-		INDEX = 3;
+		INDEX = 3,
+		METHOD_EVAL = 4;
 
 	int type;
 
@@ -65,24 +71,33 @@ class LHS implements ParserConstants, java.io.Serializable
 	Field field;
 	Object object;
 	int index;
+	//Method method;
 
-	LHS(NameSpace nameSpace, String varName)
+	/**
+		Variable LHS constructor.
+	*/
+	LHS( NameSpace nameSpace, String varName )
 	{
 		type = VARIABLE;
 		this.varName = varName;
 		this.nameSpace = nameSpace;
 	}
 
-	// Static field
-	LHS(Field field)
+	/**
+		Static field LHS Constructor.
+		This simply calls Object field constructor with null object.
+	*/
+	LHS( Field field )
 	{
 		type = FIELD;
 		this.object = null;
 		this.field = field;
 	}
 
-	// Object field
-	LHS(Object object, Field field)
+	/**
+		Object field LHS Constructor.
+	*/
+	LHS( Object object, Field field )
 	{
 		if(object == null)
 			throw new NullPointerException("constructed empty LHS");
@@ -92,8 +107,10 @@ class LHS implements ParserConstants, java.io.Serializable
 		this.field = field;
 	}
 
-	// Object property
-	LHS(Object object, String propName)
+	/**
+		Object property LHS Constructor.
+	*/
+	LHS( Object object, String propName )
 	{
 		if(object == null)
 			throw new NullPointerException("constructed empty LHS");
@@ -103,8 +120,10 @@ class LHS implements ParserConstants, java.io.Serializable
 		this.propName = propName;
 	}
 
-	// Array index
-	LHS(Object array, int index)
+	/**
+		Array index LHS Constructor.
+	*/
+	LHS( Object array, int index )
 	{
 		if(array == null)
 			throw new NullPointerException("constructed empty LHS");
@@ -114,18 +133,40 @@ class LHS implements ParserConstants, java.io.Serializable
 		this.index = index;
 	}
 
+	/**
+		Intermediate object Method evaluation LHS Constructor.
+		This type of LHS is used in an intermediate evaluation of a chain of 
+		suffixes and wraps a method invocation.  In this case it may only be 
+		resolved to a value and cannot be assigned. 
+	LHS( Method method, Object object ) {
+		this.type = METHOD_EVAL;
+		this.method = method;
+		this.object = object;
+	}
+	*/
+
+	/**
+		Intermediate static Method evaluation LHS Constructor.
+		@see #LHS( Method, Object )
+	LHS( Method method ) {
+		this( method, null );
+	}
+	*/
+
 	public Object getValue() throws UtilEvalError
 	{
-		if(type == VARIABLE)
+		if ( type == VARIABLE )
 			return nameSpace.getVariable(varName);
-		else if (type == FIELD)
+		else 
+		if (type == FIELD)
 			try {
 				return field.get(object);
 			}
 			catch(IllegalAccessException e2) {
 				throw new UtilEvalError("Can't read field: " + field);
 			}
-		else if(type == PROPERTY)
+		else 
+		if( type == PROPERTY )
 			try {
 				return Reflect.getObjectProperty(object, propName);
 			}
@@ -133,22 +174,32 @@ class LHS implements ParserConstants, java.io.Serializable
 				Interpreter.debug(e.getMessage());
 				throw new UtilEvalError("No such property: " + propName);
 			}
-		else if(type == INDEX)
-			try
-			{
+		else 
+		if( type == INDEX )
+			try {
 				return Reflect.getIndex(object, index);
 			}
-			catch(Exception e)
-			{
+			catch(Exception e) {
 				throw new UtilEvalError("Array access: " + e);
 			}
 
 		throw new InterpreterError("LHS type");
 	}
 
+	/**
+		Assign a value to the LHS.
+		This method throws InterpreterError if the LHS is an intermediate
+		evaluation state Method call LHS.
+	*/
 	public Object assign( Object val, boolean strictJava ) 
 		throws UtilEvalError
 	{
+	/*
+		if ( type == METHOD_EVAL )
+			throw new InterpreterError(
+				"Attempt to assign METHOD_EVAL LHS");
+	*/
+
 		if ( type == VARIABLE )
 			nameSpace.setVariable( varName, val, strictJava );
 		else 

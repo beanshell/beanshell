@@ -593,7 +593,7 @@ void Expression() :
 		SYNTACTIC_LOOKAHEAD
 		This is probably expensive.  Can we simplify it somehow?
 	*/
-  LOOKAHEAD( LHSPrimaryExpression() AssignmentOperator() )
+  LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
   Assignment()
 |
   ConditionalExpression()
@@ -602,7 +602,7 @@ void Expression() :
 void Assignment() #Assignment :
 { int op ; }
 {
-  LHSPrimaryExpression()
+  PrimaryExpression()
   op = AssignmentOperator() {
     jjtThis.operator = op;
   }
@@ -738,14 +738,14 @@ void UnaryExpression() :
 void PreIncrementExpression() :
 { Token t = null; }
 {
-  t="++" LHSPrimaryExpression()
+  t="++" PrimaryExpression()
     { jjtThis.kind = t.kind; } #UnaryExpression(1)
 }
 
 void PreDecrementExpression() :
 { Token t = null; }
 {
-  t="--" LHSPrimaryExpression()
+  t="--" PrimaryExpression()
     { jjtThis.kind = t.kind; } #UnaryExpression(1)
 }
 
@@ -776,8 +776,8 @@ void PostfixExpression() :
 { Token t = null; }
 {
 // SYNTACTIC_LOOKAHEAD
-  LOOKAHEAD( LHSPrimaryExpression() ("++"|"--") )
-  LHSPrimaryExpression()
+  LOOKAHEAD( PrimaryExpression() ("++"|"--") )
+  PrimaryExpression()
 	  ( t="++" | t="--" ) { 
 		jjtThis.kind = t.kind; jjtThis.postfix = true; } #UnaryExpression(1)
 |
@@ -865,25 +865,19 @@ void PrimarySuffix() #PrimarySuffix :
 	PrimaryPrefix) is that the whole grammar splits based on whether we 
 	are preparig to do an assignment or not.  This is an important issue 
 	to revisit in the future.
-*/
-/**
-	The method invocation is here to force this to an object type in order 
-	to simplify the suffix processing.  
-*/
-void LHSPrimaryPrefix() : { }
-{
-/*
-  // SYNTACTIC_LOOKAHEAD
-  LOOKAHEAD( MethodInvocation() )
-  MethodInvocation()
-|
-*/
-  AmbiguousName()
-}
 
 void LHSPrimaryExpression() #LHSPrimaryExpression : { }
 {
-  LHSPrimaryPrefix() ( LHSPrimarySuffix( ) )*
+  LHSPrimaryPrefix() ( LHSPrimarySuffix() )*
+}
+
+void LHSPrimaryPrefix() : { }
+{
+  // SYNTACTIC_LOOKAHEAD
+  LOOKAHEAD( MethodInvocation() )
+  	MethodInvocation()
+|
+  AmbiguousName()
 }
 
 void LHSPrimarySuffix() #LHSPrimarySuffix :
@@ -891,25 +885,15 @@ void LHSPrimarySuffix() #LHSPrimarySuffix :
     Token t=null, t1, t2 = null;
 }
 {
-    // Indexed to a field
+  // Indexed to a field
   "[" Expression() "]" {
         jjtThis.operation = BSHLHSPrimarySuffix.INDEX;
     }
 |
-/*
-	Broken - return to this...
-	Look at PrimarySuffix... why can't we do it right, as there?
-	See BSHLHSPrimarySuffix.java
-*/
-    // Field access or method invocation followed by field access
-  "." t1 = <IDENTIFIER> [ Arguments() "." t2 = <IDENTIFIER> ] {
+  // Field access or method invocation
+  "." t = <IDENTIFIER> [ Arguments() ] {
         jjtThis.operation = BSHLHSPrimarySuffix.NAME;
-        if ( t2 == null )
-            jjtThis.field = t1.image;
-        else {
-            jjtThis.method = t1.image;
-            jjtThis.field = t2.image;
-        }
+        jjtThis.field = t.image;
     }
 |
   "{" Expression() "}" {
@@ -917,7 +901,6 @@ void LHSPrimarySuffix() #LHSPrimarySuffix :
     }
 }
 
-/*
 	-- End LHS part of the grammar
 */
 

@@ -46,9 +46,12 @@ class BSHUnaryExpression extends SimpleNode implements ParserConstants
     {
         SimpleNode node = (SimpleNode)jjtGetChild(0);
 
+		// If this is a unary increment of decrement (either pre or postfix)
+		// then we need an LHS to which to assign the result.  Otherwise
+		// just do the unary operation for the value.
 		try {
-			if ( node instanceof BSHLHSPrimaryExpression ) {
-				LHS lhs = ((BSHLHSPrimaryExpression)node).toLHS( 
+			if ( kind == INCR || kind == DECR ) {
+				LHS lhs = ((BSHPrimaryExpression)node).toLHS( 
 					callstack, interpreter );
 				return lhsUnaryOperation( lhs, interpreter.getStrictJava() );
 			} else

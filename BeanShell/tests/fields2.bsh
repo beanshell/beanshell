@@ -18,15 +18,17 @@ foo().bar();
 fb=foo().bar();
 fb.xx=5;
 
-// This works with a big hack in BSHLHSPrimarySuffix (hopscotch) (fix for 1.3?)
 foo().bar().x=5;
-// This case isn't working either
-// probably needs grammar fix...  how is this being parsed?
-// working on this... (fix for 1.3?)
 foo().bar2().bar().x=5;
 
 // just an experiment 
 foo().bar2().bar2().bar2().bar();
+
+setAccessibility(true);
+Thread.currentThread().daemon = false;
+Thread.currentThread().currentThread().daemon = false;
+Thread.currentThread().currentThread().currentThread().daemon = false;
+setAccessibility(false);
 
 Fields [] fa = { new Fields(), new Fields() };
 fa[0].x=5;
