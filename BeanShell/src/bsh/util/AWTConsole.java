@@ -343,7 +343,4 @@ public class AWTConsole extends TextArea
 	// unused
 	public void keyTyped(KeyEvent e) { }
     public void keyReleased(KeyEvent e) { }
-
-	public void setNameCompletion( NameCompletion nc ) { }
-
 }

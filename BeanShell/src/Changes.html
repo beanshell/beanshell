@@ -4,6 +4,15 @@
 
 <h2>Changes in 1.1alpha13</h2>
 <pre>
+	- Removed core bsh package dependencies on 1.2.  bsh will now compile and
+		run under 1.2  with some features limited.
+	- Moved some console related functionality out of the core and into 
+		bsh.util.  There is a new bsh.util.GUIConsoleInterface.  NameCompletion
+		is now in bsh.util and has been replaced with a more primitive 
+		supporting interface bsh.NameSource in the core.
+</pre>
+<h2>Changes in 1.1alpha13</h2>
+<pre>
 	- Moved all Name object construction into NameSpace.  This will support
 	Name resolvers caching information in the future. e.g. bsh could
 	know that a variable is final and optimize the resolution.  Or a long

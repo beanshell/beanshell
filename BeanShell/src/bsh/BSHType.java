@@ -59,7 +59,7 @@ class BSHType extends SimpleNode
 
     BSHType(int id) { 
 		super(id); 
-		BshClassManager.getClassManager().addListener(this);
+		BshClassManager.addCMListener(this);
 	}
 
 	/**

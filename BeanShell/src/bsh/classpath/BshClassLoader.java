@@ -151,7 +151,7 @@ public class BshClassLoader extends URLClassLoader
 			} catch ( ClassNotFoundException e ) { }
 		
 		// Try system loader
-		return bcm.loadSystemClass( name );
+		return bcm.plainClassForName( name );
 	}
 
 	/*

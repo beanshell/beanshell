@@ -21,7 +21,7 @@
 
 <!-- Project Configuration -->
 
-	<property name="version" value="1.1a13"/>
+	<property name="version" value="1.1a14"/>
 	<property name="deprecation" value="off"/>
 
 	<!-- choose an alternate compiler -->
@@ -48,9 +48,14 @@
 	-->
 	<property name="excludes-1.2" 
 		value="bsh/XThis.java,bsh/util/ClassBrowser.java"/>
+	<property name="excludes-1.1" 
+		value="bsh/JThis.java,bsh/classpath/*,bsh/util/*"/>
 
 	<!-- Uncomment to build under JDK1.2 without warnings 
 	<property name="excludes" value="${excludes-1.2}"/>
+	-->
+	<!-- Uncomment to build under JDK1.1 without warnings 
+	<property name="excludes" value="${excludes-1.2},${excludes-1.1}"/>
 	-->
 
 	<property name="javadoc-jar" value="javadoc.jar"/>

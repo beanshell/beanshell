@@ -42,12 +42,12 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.util.Vector;
+import java.awt.Cursor;
 
 import javax.swing.text.*;
 import javax.swing.*;
 
-import bsh.ConsoleInterface;
-import bsh.NameCompletion;
+import bsh.util.NameCompletion;
 
 /**
 	A JFC/Swing based console for the BeanShell desktop.
@@ -60,9 +60,9 @@ import bsh.NameCompletion;
 		including Color and Image support, key press bug workaround
 */
 public class JConsole extends JScrollPane
-    implements ConsoleInterface, Runnable, KeyListener,
-	       MouseListener, ActionListener, PropertyChangeListener {
-
+	implements GUIConsoleInterface, Runnable, KeyListener,
+	MouseListener, ActionListener, PropertyChangeListener 
+{
     private final static String	CUT = "Cut";
     private final static String	COPY = "Copy";
     private final static String	PASTE =	"Paste";
@@ -808,6 +808,13 @@ System.out.println("completing part: "+part);
 
 	public void setNameCompletion( NameCompletion nc ) {
 		this.nameCompletion = nc;
+	}
+
+	public void setWaitFeedback( boolean on ) {
+		if ( on )
+			setCursor( Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) );
+		else
+			setCursor( Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR) );
 	}
 
 }

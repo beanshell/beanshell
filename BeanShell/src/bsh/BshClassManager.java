@@ -35,10 +35,7 @@ package bsh;
 
 import java.net.*;
 import java.util.*;
-import java.lang.ref.*;
 import java.io.IOException;
-import bsh.classpath.*;
-import bsh.classpath.BshClassPath.DirClassSource;
 import java.io.*;
 
 /**
@@ -66,182 +63,149 @@ import java.io.*;
 	garbage collector...  Then I came to my senses and said - screw it, 
 	class re-loading will require 1.2.
 */
-public class BshClassManager
+public abstract class BshClassManager
 {
-	/**
-		The classpath of the base loader.  Initially empty.
-		This grows as paths are added or is reset when the classpath 
-		is explicitly set.
-		This could also be called the "extension" class path, but is not
-		strictly confined to added path (could be set arbitrarily by
-		setClassPath())
-	*/
-	BshClassPath baseClassPath;
+	/** Singleton class manager */
+	private static BshClassManager manager;
+	private static boolean checkedForManager;
+	// Use a hashtable as a Set...
+	private static Object NOVALUE = new Object(); 
 
 	/**
-		This is the full blown classpath including baseClassPath (extensions),
-		user path, and java bootstrap path (rt.jar)
-
-		This is lazily constructed and further (and more importantly) lazily 
-		intialized in components because mapping the full path could be 
-		expensive.
-
-		The full class path is a composite of:
-			baseClassPath (user extension) : userClassPath : bootClassPath 
-		in that order.
-	*/
-	BshClassPath fullClassPath;
-
-	// ClassPath Change listeners
-	Vector listeners = new Vector();
-	ReferenceQueue refQueue = new ReferenceQueue();
-
-	/**
-		This handles extension / modification of the base classpath
-		The loader to use where no mapping of reloaded classes exists.
-
-		The baseLoader is initially null meaning no class loader is used.
-	*/
-	BshClassLoader baseLoader;
-
-	/**
-		Map by classname of loaders to use for reloaded classes
-	*/
-	Map loaderMap;
-
-	/**
-		Global caches for things we know are or are not classes.
+		Global cache for things we know are classes.
 		Note: these should probably be re-implemented with Soft references.
 		(as opposed to strong or Weak)
 	*/
-    transient static Hashtable absoluteClassCache = new Hashtable();
-    transient static Set absoluteNonClasses = new HashSet();
+    protected transient static Hashtable absoluteClassCache = new Hashtable();
+	/**
+		Global cache for things we know are *not* classes.
+		Note: these should probably be re-implemented with Soft references.
+		(as opposed to strong or Weak)
+	*/
+    protected transient static Hashtable absoluteNonClasses = new Hashtable();
 
+	// Begin static methods
 
-	// Singleton for now
-
-	private static BshClassManager manager = new BshClassManager();
-	public static BshClassManager getClassManager() {
-		return manager;
-	}
-	private BshClassManager() { 
-		reset();
-	}
-
-	public Class getClassForName( String name ) {
-
-		// check cache 
-		Class c = (Class)absoluteClassCache.get(name);
-		if (c != null )
-			return c;
-
-		if ( absoluteNonClasses.contains(name) ) {
-			Interpreter.debug("absoluteNonClass list hit: "+name);
-			return null;
-		}
-
-		// Try to load the class
-		Interpreter.debug("Trying to load class: "+name);
-
-		ClassLoader overlayLoader = getLoaderForClass( name );
-		if ( overlayLoader != null ) {
+	/**
+		@return the BshClassManager singleton or null, indicating no
+		class manager is available.
+	*/
+	public static BshClassManager getClassManager() 
+	{
+		// Bootstrap the class manager if it exists
+		if ( !checkedForManager && manager == null )
 			try {
-				c = overlayLoader.loadClass(name);
+				manager = (BshClassManager)(plainClassForName(
+					"bsh.classpath.ClassManagerImpl").newInstance());
 			} catch ( Exception e ) {
-			} catch ( NoClassDefFoundError e2 ) {
+				Interpreter.debug("No classmanager found: "+e);
+			} finally {
+				checkedForManager = true;
 			}
 
-			// Should be there since it was explicitly mapped
-			// throw an error?
-		}
-
-		if ( c == null )
-			// There is a base loader and it's not one of our classes
-			if ( baseLoader != null && ! name.startsWith("bsh.") )
-				try {
-					c = baseLoader.loadClass( name );
-				} catch ( ClassNotFoundException e ) {}
-			else
-				try {
-					c = loadSystemClass( name );
-				} catch ( ClassNotFoundException e ) {}
-
-		// cache results
-
-		if ( c != null )
-			absoluteClassCache.put( name, c );
-		else
-			absoluteNonClasses.add( name );
-
-		return c;
+		return manager;
 	}
 
 	public static boolean classExists( String name ) {
 		return ( classForName( name ) != null );
 	}
 
-	public ClassLoader getBaseLoader() {
-		return baseLoader;
+	/**
+		Load the specified class by name, taking into account added classpath
+		and reloaded classes, etc.
+		@return the class or null
+	*/
+	public static Class classForName( String name ) {
+		getClassManager(); // prime the singleton
+		if ( manager != null )
+			return manager.getClassForName( name );
+		else
+			try {
+				return plainClassForName( name );
+			} catch ( ClassNotFoundException e ) {
+				return null;
+			}
 	}
 
-	public Class loadSystemClass( String name ) 
+	/**
+		Perform a plain Class.forName() 
+		This simply wraps that method call and provides a central point for
+		monitoring and handling certain Java version dependent bugs, etc.
+		Note: this used to be called loadSystemClass()
+		@return the class
+	*/
+	public static Class plainClassForName( String name ) 
 		throws ClassNotFoundException 
 	{
 		try {
-			return Class.forName(name);
-		} catch ( NoClassDefFoundError e ) {
-			/*
+			Class c = Class.forName(name);
+			cacheClassInfo( name, c );
+			return c;
+		/*
 			This is weird... jdk under Win is throwing these to
 			warn about lower case / upper case possible mismatch.
 			e.g. bsh.console bsh.Console
-			*/
+		*/
+		} catch ( NoClassDefFoundError e ) {
+			cacheClassInfo( name, null ); // non-class
 			throw new ClassNotFoundException( e.toString() );
 		}
 	}
 
-	public ClassLoader getLoaderForClass( String name ) {
-		return (ClassLoader)loaderMap.get( name );
+	/**
+		Cache info about whether name is a class or not.
+		@param value 
+			if value is non-null, cache the class
+			if value is null, set the flag that it is *not* a class to
+			speed later resolution
+	*/
+	public static void cacheClassInfo( String name, Class value ) {
+		if ( value != null )
+			absoluteClassCache.put( name, value );
+		else
+			absoluteNonClasses.put( name, NOVALUE );
 	}
-
-
-	// Classpath mutators
 
 	/**
+		Add a BshClassManager.Listener to the class manager.
+		The listener is informed upon changes to the classpath.
+		This is a static convenience form of BshClassManager addListener().
+		If there is no class manager the listener will be ignored.
 	*/
-	public void addClassPath( URL path, ConsoleInterface feedback ) 
-		throws IOException 
-	{
-		if ( baseLoader == null )
-			setClassPath( new URL [] { path } );
-		else {
-			// opportunity here for listener in classpath
-			baseLoader.addURL( path );
-			baseClassPath.add( path, feedback );
-			classLoaderChanged();
-		}
+	public static void addCMListener( Listener l ) {
+		getClassManager(); // prime it
+		if ( manager != null )
+			manager.addListener( l );
 	}
+
+	// end static methods
+
+	public static interface Listener {
+		public void classLoaderChanged();
+	}
+
+
+	// Begin interface methods
+
+	public abstract Class getClassForName( String name );
+
+	public abstract ClassLoader getBaseLoader();
+
+	public abstract ClassLoader getLoaderForClass( String name );
+
+	public abstract void addClassPath( URL path, ConsoleInterface feedback )
+		throws IOException;
 
 	/**
 		Clear all loaders and start over.  No class loading.
 	*/
-	public void reset()
-	{
-		baseClassPath = new BshClassPath("baseClassPath");
-		baseLoader = null;
-		loaderMap = new HashMap();
-		classLoaderChanged();
-	}
+	public abstract void reset();
 
 	/**
 		Set a new base classpath and create a new base classloader.
 		This means all types change. 
 	*/
-	public void setClassPath( URL [] cp ) {
-		baseClassPath.setPath( cp );
-		initBaseLoader();
-		loaderMap = new HashMap();
-		classLoaderChanged();
-	}
+	public abstract void setClassPath( URL [] cp );
 
 	/**
 		Overlay the entire path with a new class loader.
@@ -249,84 +213,19 @@ public class BshClassManager
 
 		No point in including the boot class path (can't reload thos).
 	*/
-	public void reloadAllClasses() throws ClassPathException 
-	{
-		BshClassPath bcp = new BshClassPath("temp");
-		bcp.addComponent( baseClassPath );
-		bcp.addComponent( BshClassPath.getUserClassPath() );
-		setClassPath( bcp.getPathComponents() );
-	}
-
-	/**
-		init the baseLoader from the baseClassPath
-	*/
-	private void initBaseLoader() {
-		baseLoader = new BshClassLoader( baseClassPath );
-	}
-
-	// class reloading
+	public abstract void reloadAllClasses() throws ClassPathException;
 
 	/**
 		Reloading classes means creating a new classloader and using it
 		whenever we are asked for classes in the appropriate space.
 		For this we use a DiscreteFilesClassLoader
 
-		If interpreter is non-null it will be used to provide feedback on
+		If ConsoleInterface is non-null it will be used to provide feedback on
 		mapping of the classpath where necessary.
 	*/
-	public void reloadClasses( String [] classNames, ConsoleInterface feedback ) 
-		throws ClassPathException
-	{
-		// validate that it is a class here?
-
-		// init base class loader if there is none...
-		if ( baseLoader == null )
-			initBaseLoader();
-
-		DiscreteFilesClassLoader.ClassSourceMap map = 
-			new DiscreteFilesClassLoader.ClassSourceMap();
-
-		for (int i=0; i< classNames.length; i++) {
-			String name = classNames[i];
-
-			// look in baseLoader class path 
-			if ( feedback != null )
-				baseClassPath.insureInitialized( feedback );
-			Object o = baseClassPath.getClassSource( name );
-
-			// look in user class path 
-			if ( o == null ) {
-				if ( feedback != null )
-					BshClassPath.getUserClassPath().insureInitialized( 
-						feedback );
-
-				o = BshClassPath.getUserClassPath().getClassSource( name );
-			}
-
-			// No point in checking boot class path, can't reload those.
-			// else we could have used fullClassPath above.
-				
-			if ( o == null )
-				throw new ClassPathException("Nothing known about class: "
-					+name );
-
-			if ( ! (o instanceof DirClassSource) )
-				throw new ClassPathException("Cannot reload class: "+name+
-					" from source: "+o);
-
-			map.put( name, ((DirClassSource)o).getDir() );
-		}
-
-		// Create classloader for the set of classes
-		ClassLoader cl = new DiscreteFilesClassLoader( map );
-
-		// map those classes the loader in the overlay map
-		Iterator it = map.keySet().iterator();
-		while ( it.hasNext() )
-			loaderMap.put( (String)it.next(), cl );
-
-		classLoaderChanged();
-	}
+	public abstract void reloadClasses( 
+		String [] classNames, ConsoleInterface feedback )
+		throws ClassPathException;
 
 	/**
 		Reload all classes in the specified package: e.g. "com.sun.tools"
@@ -337,139 +236,36 @@ public class BshClassManager
 		If interpreter is non-null it will be used to provide feedback on
 		mapping of the classpath where necessary.
 	*/
-	public void reloadPackage( String pack, ConsoleInterface feedback ) 
-		throws ClassPathException 
-	{
-		Collection classes = 
-			baseClassPath.getClassesForPackage( pack );
-
-		if ( classes == null )
-			classes = 
-				BshClassPath.getUserClassPath().getClassesForPackage( pack );
-
-		// no point in checking boot class path, can't reload those
-
-		if ( classes == null )
-			throw new ClassPathException("No classes found for package: "+pack);
-
-		reloadClasses( (String[])classes.toArray( new String[0] ), feedback );
-	}
+	public abstract void reloadPackage( String pack, ConsoleInterface feedback ) 
+		throws ClassPathException ;
 
 	/**
-		Unimplemented
-		For this we'd have to store a map by location as well as name...
+		This has been removed from the interface to shield the core from the
+		rest of the classpath package. If you need the classpath you will have
+		to cast the classmanager to its impl.
 
-	public void reloadPathComponent( URL pc ) throws ClassPathException {
-		throw new ClassPathException("Unimplemented!");
-	}
+		public abstract BshClassPath getClassPath() throws ClassPathException;
 	*/
-
-	// end reloading
-
-	/**
-		Get the full blown classpath.
-	*/
-	public BshClassPath getClassPath() 
-		throws ClassPathException
-	{
-		if ( fullClassPath != null )
-			return fullClassPath;
-	
-		fullClassPath = new BshClassPath("BeanShell Full Class Path");
-		fullClassPath.addComponent( BshClassPath.getUserClassPath() );
-		try {
-			fullClassPath.addComponent( BshClassPath.getBootClassPath() );
-		} catch ( ClassPathException e ) { 
-			System.err.println("Warning: can't get boot class path");
-		}
-		fullClassPath.addComponent( baseClassPath );
-
-		return fullClassPath;
-	}
 
 	/**
 		Support for "import *;"
 		Hide details in here as opposed to NameSpace.
+	Note: this used to be package private...
 	*/
-	void doSuperImport( ConsoleInterface feedback ) 
-	{
-		try {
-			getClassPath().insureInitialized( feedback );
-			// prime the lookup table
-			getClassNameByUnqName( "" ) ;
-			getClassPath().setNameCompletionIncludeUnqNames(true);
-		} catch ( ClassPathException e ) {
-			feedback.error( e.getMessage() );
-		}
-	}
+	public abstract void doSuperImport( ConsoleInterface feedback ) ;
 
 	/**
 		Return the name or null if none is found,
 		Throw an ClassPathException containing detail if name is ambigous.
+	Note: this used to be package private...
 	*/
-	String getClassNameByUnqName( String name ) 
-		throws ClassPathException
-	{
-		return getClassPath().getClassNameByUnqName( name );
-	}
+	public abstract String getClassNameByUnqName( String name ) 
+		throws ClassPathException;
 
-	public static Class classForName( String name ) {
-		return getClassManager().getClassForName( name );
-	}
+	public abstract void addListener( Listener l );
 
-	static interface Listener {
-		public void classLoaderChanged();
-	}
+	public abstract void removeListener( Listener l );
 
-	public void addListener( Listener l ) {
-		listeners.addElement( new WeakReference( l, refQueue) );
-
-		// clean up old listeners
-		Reference deadref;
-		while ( (deadref = refQueue.poll()) != null ) {
-			boolean ok = listeners.removeElement( deadref );
-			if ( ok ) {
-				//System.err.println("cleaned up weak ref: "+deadref);
-			} else {
-				Interpreter.debug(
-					"tried to remove non-existent weak ref: "+deadref);
-			}
-		}
-	}
-
-	public void removeListener( Listener l ) {
-		throw new Error("unimplemented");
-	}
-
-	/**
-		Clear global class cache and notify namespaces to clear their 
-		class caches.
-
-		The listener list is implemented with weak references so that we 
-		will not keep every namespace in existence forever.
-	*/
-	void classLoaderChanged() {
-    	absoluteNonClasses = new HashSet();
-    	absoluteClassCache = new Hashtable();
-
-		for (Enumeration e = listeners.elements(); e.hasMoreElements(); ) {
-			WeakReference wr = (WeakReference)e.nextElement();
-			Listener l = (Listener)wr.get();
-			if ( l == null )  // garbage collected
-				listeners.removeElement( wr );
-			else
-				l.classLoaderChanged();
-		}
-
-	}
-
-	public void dump( ConsoleInterface i ) {
-		i.println("Bsh Class Manager Dump: ");
-		i.println("----------------------- ");
-		i.println("baseLoader = "+baseLoader);
-		i.println("loaderMap= "+loaderMap);
-		i.println("----------------------- ");
-		i.println("baseClassPath = "+baseClassPath);
-	}
+	public abstract void dump( ConsoleInterface i );
 
 }

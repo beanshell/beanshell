@@ -31,83 +31,102 @@
  *                                                                           *
  *****************************************************************************/
 
-package bsh;
+package bsh.util;
+
 import java.util.*;
+import bsh.StringUtil;
+import bsh.NameSource;
 
 /**
-	The interface for name completion.
-
-	Table is an inner utility class that implements simple name completion
-	for collections.
+	NameCompletionTable is a utility that implements simple name completion for 
+	collections.  This uses a trivial linear search and comparison...  
 */
-public interface NameCompletion {
+public class NameCompletionTable extends ArrayList
+	implements NameCompletion
+{
+	/** Unimplemented - need a collection here */
+	NameCompletionTable table;
+
+	/** Unimplemented - need a collection of sources here*/
 
 	/**
-		Return an array containing a string element of the maximum 
-		unambiguous namespace completion or, if there is no common prefix, 
-		return the list of ambiguous names.
-		e.g. 
-			input: "java.l"
-			output: [ "java.lang." ]
-			input: "java.lang."
-			output: [ "java.lang.Thread", "java.lang.Integer", ... ]
-
-		Note: Alternatively, make a NameCompletionResult object someday...
 	*/
-	public String [] completeName( String part );
+	public NameCompletionTable() { }
 
 	/**
-		Simple linear search and comparison.
+		Add a NameCompletionTable, which is more optimized than the more
+		general NameSource
 	*/
-	static class Table extends ArrayList
-	{
-		NameCompletion.Table parent;
+	public void add( NameCompletionTable table ) {
+		/** Unimplemented - need a collection here */
+		if ( this.table != null )
+			throw new RuntimeException("Unimplemented error");
 
-		public Table() { }
-
-		public Table( NameCompletion.Table parent ) {
-			this.parent = parent;
-		}
-
-		/**
-			Add any matching names to list (including any from parent)
-		*/
-		protected void getMatchingNames( String part, List found ) {
-			Iterator it = iterator();
-			while( it.hasNext() ) {
-				String name = (String)it.next();
-				if ( name.startsWith( part ) )
-					found.add( name );
-			}
-
-			if ( parent != null )
-				parent.getMatchingNames( part, found );
-		}
-
-		public String [] completeName( String part ) {
-			List found = new ArrayList();
-			getMatchingNames( part, found );
-
-			if ( found.size() == 0 )
-				return new String [0];
-
-			// Find the max common prefix
-			String maxCommon = (String)found.get(0);
-			for(int i=1; i<found.size() && maxCommon.length() > 0; i++) {
-				maxCommon = StringUtil.maxCommonPrefix( 
-					maxCommon, (String)found.get(i) );
-
-				// if maxCommon gets as small as part, stop trying
-				if ( maxCommon.equals( part ) )
-					break;
-			}
-
-			// Return max common or all ambiguous
-			if ( maxCommon.length() > part.length() )
-				return new String [] { maxCommon };
-			else
-				return (String[])(found.toArray(new String[0]));
-		}
+		this.table = table;
 	}
 
+	/**
+		Add a NameSource which is monitored for names.
+		Unimplemented - behavior is broken... no updates
+	*/
+	public void add( NameSource source ) {
+		/** Unimplemented - need a collection here */
+		/*
+			Unimplemented -
+			Need to add an inner class util here that holds the source and
+			monitors it by registering a listener
+		*/
+		addAll( Arrays.asList(source.getAllNames()) );
+	}
+
+	/**
+		Add any matching names to list (including any from other tables)
+	*/
+	protected void getMatchingNames( String part, List found ) 
+	{
+		Iterator it = iterator();
+		while( it.hasNext() ) {
+			String name = (String)it.next();
+			if ( name.startsWith( part ) )
+				found.add( name );
+		}
+
+		/** Unimplemented - need a collection here */
+		if ( table != null )
+			table.getMatchingNames( part, found );
+	}
+
+	public String [] completeName( String part ) 
+	{
+		List found = new ArrayList();
+		getMatchingNames( part, found );
+
+		if ( found.size() == 0 )
+			return new String [0];
+
+		// Find the max common prefix
+		String maxCommon = (String)found.get(0);
+		for(int i=1; i<found.size() && maxCommon.length() > 0; i++) {
+			maxCommon = StringUtil.maxCommonPrefix( 
+				maxCommon, (String)found.get(i) );
+
+			// if maxCommon gets as small as part, stop trying
+			if ( maxCommon.equals( part ) )
+				break;
+		}
+
+		// Return max common or all ambiguous
+		if ( maxCommon.length() > part.length() )
+			return new String [] { maxCommon };
+		else
+			return (String[])(found.toArray(new String[0]));
+	}
+
+	/**
+		Unimplemented -
+	class SourceMonitor implements NameSource.Listener
+	{
+		public void nameSourceChanged( NameSource src ) { }
+	}
+	*/
 }

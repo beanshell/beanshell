@@ -56,7 +56,8 @@ import java.io.IOException;
 	compatible with JDK1.1 
 */
 public class NameSpace 
-	implements java.io.Serializable, BshClassManager.Listener, NameCompletion
+	implements java.io.Serializable, BshClassManager.Listener, 
+	NameSource
 {
 	public static final NameSpace JAVACODE = 
 		new NameSpace("Called from compiled Java code");
@@ -85,7 +86,7 @@ public class NameSpace
 		setName(name);
 		setParent(parent);
 		// Register for notification of classloader change
-		BshClassManager.getClassManager().addListener(this);
+		BshClassManager.addCMListener(this);
     }
 
 	public void setName( String name ) {
@@ -555,9 +556,10 @@ public class NameSpace
 							"imported unpackaged name not found:" +fullname);
 				}
 
-				// Found something?
+				// Found something?  Cache the class and return it.
 				if ( clas != null ) {
-					BshClassManager.absoluteClassCache.put(fullname, clas);
+					// (should we cache info in not a class case too?)
+					BshClassManager.cacheClassInfo( fullname, clas );
 					return clas;
 				}
 
@@ -589,10 +591,12 @@ public class NameSpace
 				error indicating ambiguity if it exists...
 			*/
 			if ( superImport ) {
-				String s = 
-				BshClassManager.getClassManager().getClassNameByUnqName( name );
-				if ( s != null )
-					return classForName( s );
+				BshClassManager bcm = BshClassManager.getClassManager();
+				if ( bcm != null ) {
+					String s = bcm.getClassNameByUnqName( name );
+					if ( s != null )
+						return classForName( s );
+				}
 			}
 		}
 
@@ -609,43 +613,35 @@ public class NameSpace
 		return BshClassManager.classForName( name );
 	}
 
-//
-// Fix this... can't use List in the core
-//
-	Set getAllNames() {
+	// Fix this - can't use List in core
+	/**
+		Implements NameSource
+		@return all class and variable names in this and all parent
+		namespaces
+	*/
+	public String [] getAllNames() {
+		/*
 		Set all = new HashSet();
 		getAllNamesAux( all );
 		return all;
+		*/
+		return new String [0];
 	}
-	void getAllNamesAux( Set set ) {
+	/**
+		Helper for implementing NameSource
+	protected void getAllNamesAux( Set set ) {
 		set.addAll( variables.keySet() );
 		set.addAll( methods.keySet() );
 		if ( parent != null )
 			parent.getAllNamesAux( set );
 	}
-//
+	*/
 
 	/**
-		We don't do any caching of the name completion table here becaues
-		the name space is so volatile.
+		Implements NameSource
+		Add a listener who is notified upon changes to names in this space.
 	*/
-	public String [] completeName( String part ) 
-	{
-		// init table with parent of class names
-		NameCompletion.Table classNameComp = null;
-		try {
-			classNameComp = BshClassManager.getClassManager()
-				.getClassPath().getNameCompletionTable();
-		} catch ( ClassPathException e ) {
-			System.err.println("classpath exception in name compl:"+e);
-		}
-
-		NameCompletion.Table nct = new NameCompletion.Table( classNameComp );
-
-		// add all our names
-		nct.addAll( getAllNames() );
-
-		return nct.completeName( part );
+	public void addNameSourceListener( NameSource.Listener listener ) {
 	}
 	
 	/**
@@ -654,7 +650,9 @@ public class NameSpace
 	*/
 	public static void doSuperImport( Interpreter feedback ) 
 	{
-		BshClassManager.getClassManager().doSuperImport( feedback );
+		BshClassManager bcm = BshClassManager.getClassManager();
+		if ( bcm != null )
+			bcm.doSuperImport( feedback );
 		superImport = true;
 	}
 

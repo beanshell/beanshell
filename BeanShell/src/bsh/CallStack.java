@@ -54,7 +54,7 @@ public class CallStack /*implements java.io.Serializable*/
 	private Vector stack = new Vector(2);
 
 	public void clear() {
-		stack.clear();
+		stack.removeAllElements();
 	}
 
 	public void push( NameSpace ns ) {

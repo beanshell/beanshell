@@ -31,71 +31,27 @@
  *                                                                           *
  *****************************************************************************/
 
-package bsh;
+package bsh.util;
 
-import java.util.Hashtable;
+import java.util.*;
 
 /**
-	The map of extended features supported by the runtime in which we live.
-	<p>
-
-	This class should be independent of all other bsh classes!
-	<p>
-
-	Note that tests for class existence here do *not* use the 
-	BshClassManager, as it may require other optional class files to be 
-	loaded.  
+	The interface for name completion.
 */
-public class Capabilities 
+public interface NameCompletion 
 {
-
-	public static boolean haveSwing() {
-		return classExists( "javax.swing.JButton" );
-	}
-
-	public static boolean haveProxyMechanism() {
-		return classExists( "java.lang.reflect.Proxy" );
-	}
-
-	private static Hashtable classes = new Hashtable();
 	/**
-		Use direct Class.forName() to test for the existence of a class.
-		We should not use BshClassManager here because:
-			a) the systems using these tests would probably not load the
-			classes through it anyway.
-			b) bshclassmanager is heavy and touches other class files.  
-			this capabilities code must be light enough to be used by any
-			system including the remote applet.
+		Return an array containing a string element of the maximum 
+		unambiguous namespace completion or, if there is no common prefix, 
+		return the list of ambiguous names.
+		e.g. 
+			input: "java.l"
+			output: [ "java.lang." ]
+			input: "java.lang."
+			output: [ "java.lang.Thread", "java.lang.Integer", ... ]
+
+		Note: Alternatively, make a NameCompletionResult object someday...
 	*/
-	private static boolean classExists( String name ) 
-	{
-		Object c = classes.get( name );
+	public String [] completeName( String part );
 
-		if ( c == null ) {
-			try {
-				/*
-					Note: do *not* change this to 
-					BshClassManager.plainClassForName() or equivalent.
-					This class must not touch any other bsh classes.
-				*/
-				c = Class.forName( name );
-			} catch ( ClassNotFoundException e ) { }
-
-			if ( c != null )
-				classes.put(c,"unused");
-		}
-
-		return c != null;
-	}
-
-	/**
-		An attempt was made to use an unavailable capability
-		This exception is used in core facilities where integration is
-		necessarily tight. 
-	public static class Unavailable extends Exception {
-		public Unavailable(String s ){ super(s); }
-	}
-	*/
 }
-
-

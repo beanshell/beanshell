@@ -31,71 +31,23 @@
  *                                                                           *
  *****************************************************************************/
 
-package bsh;
+package bsh.util;
 
-import java.util.Hashtable;
+import bsh.ConsoleInterface;
 
 /**
-	The map of extended features supported by the runtime in which we live.
+	Additional capabilities of an interactive console for BeanShell.
+	Althought this is called "GUIConsoleInterface" it might just as well be 
+	used by a more sophisticated text-only command line.
 	<p>
-
-	This class should be independent of all other bsh classes!
-	<p>
-
-	Note that tests for class existence here do *not* use the 
-	BshClassManager, as it may require other optional class files to be 
-	loaded.  
+	Note: we may want to express the command line history, editing, 
+	and cut & paste functionality here as well at some point. 
 */
-public class Capabilities 
+public interface GUIConsoleInterface extends ConsoleInterface 
 {
+	public void setNameCompletion( NameCompletion nc );
 
-	public static boolean haveSwing() {
-		return classExists( "javax.swing.JButton" );
-	}
-
-	public static boolean haveProxyMechanism() {
-		return classExists( "java.lang.reflect.Proxy" );
-	}
-
-	private static Hashtable classes = new Hashtable();
-	/**
-		Use direct Class.forName() to test for the existence of a class.
-		We should not use BshClassManager here because:
-			a) the systems using these tests would probably not load the
-			classes through it anyway.
-			b) bshclassmanager is heavy and touches other class files.  
-			this capabilities code must be light enough to be used by any
-			system including the remote applet.
-	*/
-	private static boolean classExists( String name ) 
-	{
-		Object c = classes.get( name );
-
-		if ( c == null ) {
-			try {
-				/*
-					Note: do *not* change this to 
-					BshClassManager.plainClassForName() or equivalent.
-					This class must not touch any other bsh classes.
-				*/
-				c = Class.forName( name );
-			} catch ( ClassNotFoundException e ) { }
-
-			if ( c != null )
-				classes.put(c,"unused");
-		}
-
-		return c != null;
-	}
-
-	/**
-		An attempt was made to use an unavailable capability
-		This exception is used in core facilities where integration is
-		necessarily tight. 
-	public static class Unavailable extends Exception {
-		public Unavailable(String s ){ super(s); }
-	}
-	*/
+	/** e.g. the wait cursor */
+	public void setWaitFeedback( boolean on );
 }
-
 

@@ -32,70 +32,30 @@
  *****************************************************************************/
 
 package bsh;
-
-import java.util.Hashtable;
+import java.util.*;
 
 /**
-	The map of extended features supported by the runtime in which we live.
+	
+	This interface supports name completion, which is used primarily for 
+	command line tools, etc.  It provides a flat source of "names" in a 
+	space.  For example all of the classes in the classpath or all of the 
+	variables in a namespace (or all of those).
 	<p>
-
-	This class should be independent of all other bsh classes!
+	NameSource is the lightest weight mechanism for sources which wish to
+	support name completion.  In the future it might be better for NameSpace
+	to implement NameCompletion directly in a more native and efficient 
+	fasion.  However in general name competion is used for human interaction
+	and therefore does not require high performance.
 	<p>
-
-	Note that tests for class existence here do *not* use the 
-	BshClassManager, as it may require other optional class files to be 
-	loaded.  
+	@see bsh.util.NameCompletion
+	@see bsh.util.NameCompletionTable
 */
-public class Capabilities 
+public interface NameSource 
 {
+	public String [] getAllNames();
+	public void addNameSourceListener( NameSource.Listener listener );
 
-	public static boolean haveSwing() {
-		return classExists( "javax.swing.JButton" );
+	public static interface Listener {
+		public void nameSourceChanged( NameSource src );
 	}
-
-	public static boolean haveProxyMechanism() {
-		return classExists( "java.lang.reflect.Proxy" );
-	}
-
-	private static Hashtable classes = new Hashtable();
-	/**
-		Use direct Class.forName() to test for the existence of a class.
-		We should not use BshClassManager here because:
-			a) the systems using these tests would probably not load the
-			classes through it anyway.
-			b) bshclassmanager is heavy and touches other class files.  
-			this capabilities code must be light enough to be used by any
-			system including the remote applet.
-	*/
-	private static boolean classExists( String name ) 
-	{
-		Object c = classes.get( name );
-
-		if ( c == null ) {
-			try {
-				/*
-					Note: do *not* change this to 
-					BshClassManager.plainClassForName() or equivalent.
-					This class must not touch any other bsh classes.
-				*/
-				c = Class.forName( name );
-			} catch ( ClassNotFoundException e ) { }
-
-			if ( c != null )
-				classes.put(c,"unused");
-		}
-
-		return c != null;
-	}
-
-	/**
-		An attempt was made to use an unavailable capability
-		This exception is used in core facilities where integration is
-		necessarily tight. 
-	public static class Unavailable extends Exception {
-		public Unavailable(String s ){ super(s); }
-	}
-	*/
 }
-
-
