@@ -158,7 +158,8 @@
     </Method>
       <Comment>
       <Text><![CDATA[
-Toggle on and off debug mode... Note: debug output is verbose and gross.
+	Toggle on and off debug mode. 
+	Debug output is verbose and generally useful only for developers.
 
 ]]></Text>
       <Tags>
@@ -189,7 +190,10 @@ Toggle on and off debug mode... Note: debug output is verbose and gross.
     </Method>
       <Comment>
       <Text><![CDATA[
-	Open a workspace editor.
+	Open a GUI editor from the command line or in the GUI desktop mode.
+	When run from the command line the editor is a simple standalone
+	frame.  When run inside the GUI desktop it is a workspace editor.
+	See workspaceEditor()
 
 ]]></Text>
       <Tags>
@@ -212,11 +216,11 @@ Toggle on and off debug mode... Note: debug output is verbose and gross.
 	with side effects in the current scope.
 	<p>
 	e.g.
-	<code><pre>
-		a=5;
-		eval("b=a*2");
-		print(b); // 10
-	</pre></code>
+    <code><pre>
+    a=5;
+    eval("b=a*2");
+    print(b); // 10
+    </pre></code>
 	<p>
 
 	eval() acts just like invoked text except that any exceptions generated
@@ -225,34 +229,34 @@ Toggle on and off debug mode... Note: debug output is verbose and gross.
 	code.
 	<p>
 	e.g.
-	<pre>
-		try {
-			eval("foo>>><>M>JK$LJLK$");
-		} catch ( EvalError e ) {
-			// ParseException caught here
-		}
+    <pre>
+    try {
+        eval("foo>>><>M>JK$LJLK$");
+    } catch ( EvalError e ) {
+        // ParseException caught here
+    }
 
-		try {
-			eval("(Integer)true");  // illegal cast
-		} catch ( EvalError e ) {
-			// TargetException caught here
-			print( e.getTarget() )  // prints ClassCastException
-		}
-	</pre>
+    try {
+        eval("(Integer)true");  // illegal cast
+    } catch ( EvalError e ) {
+        // TargetException caught here
+        print( e.getTarget() )  // prints ClassCastException
+    }
+    </pre>
 	<p>
 	
 	If you want eval() to throw target exceptions directly, without wrapping
 	them, you can simply redefine own eval like so:
 
-	<pre>
-		myeval( String expression ) {
-			try {
-				return eval( expression );
-			} catch ( TargetError e ) {
-				throw e.getTarget();
-			}
-		}
-	</pre>
+    <pre>
+    myEval( String expression ) {
+        try {
+            return eval( expression );
+        } catch ( TargetError e ) {
+            throw e.getTarget();
+        }
+    }
+    </pre>
 
 	<p>
 	Returns the value of the expression.
@@ -275,8 +279,8 @@ Toggle on and off debug mode... Note: debug output is verbose and gross.
     </Method>
       <Comment>
       <Text><![CDATA[
-	Get the Java Runtime and start the external process, display any
-	output to the standard bsh output.
+	Start an external application using the Java Runtime exec() method.
+	Display any output to the standard BeanShell output using print().
 
 ]]></Text>
       <Tags>
@@ -291,6 +295,7 @@ Toggle on and off debug mode... Note: debug output is verbose and gross.
     </Method>
       <Comment>
       <Text><![CDATA[
+	Conditionally exit the virtual machine.
 	Call System.exit(0) unless bsh.system.shutdownOnExit == false.
 
 ]]></Text>
@@ -320,28 +325,27 @@ Toggle on and off debug mode... Note: debug output is verbose and gross.
 	For example:
 	<p>
 
-	<pre>
+    <pre>
+    foo=object();
+    bar=extend(foo);
 
-		foo=object();
-		bar=extend(foo);
+    is equivalent to:
+      
+    foo() { 
+        bar() {
+            return this; 
+        }
+    }
 
-	is equivalent to:
-	  
-		foo() { 
-			bar() {
-				return this; 
-			}
-		}
+    foo=foo();
+    bar=foo.bar();
 
-		foo=foo();
-		bar=foo.bar();
-
-	and also:
-	 
-	   foo=object();
-	   bar=object();
-	   bar.namespace.bind( foo.namespace );
-	</pre>
+    and also:
+     
+    oo=object();
+    ar=object();
+    ar.namespace.bind( foo.namespace );
+    </pre>
 	<p>
 
 	The last example above is exactly what the extend() command does.
@@ -361,7 +365,8 @@ Toggle on and off debug mode... Note: debug output is verbose and gross.
     </Method>
       <Comment>
       <Text><![CDATA[
-    Show component in a frame, centered and packed.  Handle disposal.
+    Show component in a frame, centered and packed, handling disposal with
+	the close button.
 	<p>
 
 	Display the component, centered and packed, in a Frame, JFrame, or 
@@ -385,8 +390,12 @@ Toggle on and off debug mode... Note: debug output is verbose and gross.
     </Method>
       <Comment>
       <Text><![CDATA[
-	The equivalent of calling getResource() on the interpreter class in
-	the bsh package.  Use absolute paths to get stuff in the classpath.
+	Get a resource from the classpath.
+	Note: Currently this comand does not take into account any BeanShell
+	modifications to the classpath, but in the future it will.
+	Currently this is the equivalent of calling getResource() on the 
+	interpreter class in the BeanShell package.  Use absolute paths to get 
+	items in the classpath.
 
 ]]></Text>
       <Tags>
@@ -416,7 +425,7 @@ Toggle on and off debug mode... Note: debug output is verbose and gross.
     </Method>
       <Comment>
       <Text><![CDATA[
-	Open a new workspace (shell) in the GUI.
+	Open a new workspace (JConsole) in the GUI desktop.
 
 ]]></Text>
       <Tags>
@@ -431,13 +440,13 @@ Toggle on and off debug mode... Note: debug output is verbose and gross.
     </Method>
       <Comment>
       <Text><![CDATA[
-	Returns a new bsh object which you can use to hold data items.  
-	e.g. 
+	Return an "empty" BeanShell object context which can be used to hold 
+	data items.  e.g. 
 	<p>
 	<pre>
-	  myStuff = object();
-	  myStuff.foo = 42;
-	  myStuff.bar = "blah";
+    myStuff = object();
+    myStuff.foo = 42;
+    myStuff.bar = "blah";
 	</pre>
 ]]></Text>
       <Tags>
@@ -528,7 +537,7 @@ Toggle on and off debug mode... Note: debug output is verbose and gross.
     </Method>
       <Comment>
       <Text><![CDATA[
-	Remove the file (like Unix rm)
+	Remove a file (like Unix rm).
 
 ]]></Text>
       <Tags>
@@ -670,24 +679,24 @@ Toggle on and off debug mode... Note: debug output is verbose and gross.
     </Method>
       <Comment>
       <Text><![CDATA[
-	Returns a bsh This reference to the enclosing scope 
+	Return a BeanShell 'this' reference to the enclosing scope 
 	(method scope) of the specified name.
 	e.g. 
 	<p>
-	<pre>
-		foo() {
-			x=1;
-			bar() {
-				x=2;
-				gee() {
-					x=3;
-					print( x ); // 3
-					print( super.x ); // 2
-					print( super("foo").x ); // 1
-				}
-			}
-		}
-	</pre>
+    <pre>
+    foo() {
+        x=1;
+        bar() {
+            x=2;
+            gee() {
+                x=3;
+                print( x ); // 3
+                print( super.x ); // 2
+                print( super("foo").x ); // 1
+            }
+        }
+    }
+    </pre>
 	<p>
 
 	This is an experimental command that is not intended to be of general use.
@@ -763,13 +772,14 @@ Toggle on and off debug mode... Note: debug output is verbose and gross.
 	<p>
 
 	<pre>
-		reloadClasses();
-		reloadClasses("mypackage.*");
-		reloadClasses(".*")  // reload unpackaged classes
-		reloadClasses("mypackage.MyClass") 
+    reloadClasses();
+    reloadClasses("mypackage.*");
+    reloadClasses(".*")  // reload unpackaged classes
+    reloadClasses("mypackage.MyClass") 
 	</pre>
 	<p>
-	See <a href="classpath.html">Class Path Management</a>
+
+	See "Class Path Management"
 ]]></Text>
       <Tags>
       <method>void reloadClasses( [ package name ] )
@@ -789,9 +799,9 @@ Toggle on and off debug mode... Note: debug output is verbose and gross.
 	e.g.
 	<p>
 	<pre>
-        addClassPath( "/home/pat/java/classes" );
-        addClassPath( "/home/pat/java/mystuff.jar" );
-        addClassPath( new URL("http://myserver/~pat/somebeans.jar") );
+    addClassPath( "/home/pat/java/classes" );
+    addClassPath( "/home/pat/java/mystuff.jar" );
+    addClassPath( new URL("http://myserver/~pat/somebeans.jar") );
 	</pre>
 	<p>
 	See <a href="classpath.html">Class Path Management</a>
@@ -812,7 +822,7 @@ Toggle on and off debug mode... Note: debug output is verbose and gross.
       <Text><![CDATA[
 	Change the classpath to the specified array of directories and/or archives.
 	<p>
-	See <a href="classpath.html">Class Path Management</a>
+	See "Class Path Management" for details.
 ]]></Text>
       <Tags>
       <method>void setClassPath( URL [] )
@@ -827,8 +837,9 @@ Toggle on and off debug mode... Note: debug output is verbose and gross.
       <Sig>void error ( item ) </Sig>
       <Comment>
       <Text><![CDATA[
-	Print the item as an error.  If in the GUI console the text will show up 
-	in (something like) red, else it will be printed to stderr
+	Print the item as an error.  
+	In the GUI console the text will show up in (something like) red, 
+	else it will be printed to standard error.
 
 ]]></Text>
       <Tags>
@@ -872,8 +883,8 @@ Toggle on and off debug mode... Note: debug output is verbose and gross.
     </Method>
       <Comment>
       <Text><![CDATA[
-Get the current classpath including all user path, extended path, and the
-boostrap JAR file if possible.
+    Get the current classpath including all user path, extended path, and the
+    boostrap JAR file if possible.
 
 ]]></Text>
       <Tags>
@@ -974,6 +985,7 @@ boostrap JAR file if possible.
       <Sig>void setStrictJava ( boolean val ) </Sig>
       <Comment>
       <Text><![CDATA[
+	Enable or disable "Strict Java Mode".
 	When strict Java mode is enabled BeanShell will:
 	<p>
 
@@ -984,6 +996,12 @@ boostrap JAR file if possible.
 	a java class.  e.g. if you can write a method called incrementFoo() that 
 	will do the expected thing without referring to "super.foo".
 	</ul>
+
+	See "Strict Java Mode" for more details.
+
+	<em>Note: Currently most standard BeanShell commands will not work in 
+	Strict Java mode simply because they have not been written with full
+	types, etc.
 
 ]]></Text>
       <Tags>
@@ -999,39 +1017,37 @@ boostrap JAR file if possible.
     </Method>
       <Comment>
       <Text><![CDATA[
-
 	Set the namespace (context) of the current scope.
 	<p/>
 
-The following example illustrates swapping the current namespace.
-<p/>
+	The following example illustrates swapping the current namespace.
+	<p/>
 
-<pre>
-fooState = object(); 
-barState = object(); 
+	<pre>
+    fooState = object(); 
+    barState = object(); 
+    
+    print(this.namespace);
+    setNameSpace(fooState.namespace);
+    print(this.namespace);
+    a=5;
+    setNameSpace(barState.namespace);
+    print(this.namespace);
+    a=6;
+    
+    setNameSpace(fooState.namespace);
+    print(this.namespace);
+    print(a);  // 5
+    
+    setNameSpace(barState.namespace);
+    print(this.namespace);
+    print(a); // 6
+    </pre>
+	<p/>
 
-print(this.namespace);
-setNameSpace(fooState.namespace);
-print(this.namespace);
-a=5;
-setNameSpace(barState.namespace);
-print(this.namespace);
-a=6;
-
-setNameSpace(fooState.namespace);
-print(this.namespace);
-print(a);  // 5
-
-setNameSpace(barState.namespace);
-print(this.namespace);
-print(a); // 6
-</pre>
-<p/>
-
-You could use this to creats the effect of a static namespace for a
-method by explicitly setting the namespace upon entry.
-<p/>
-
+	You could use this to creats the effect of a static namespace for a
+	method by explicitly setting the namespace upon entry.
+	<p/>
 
 ]]></Text>
       <Tags>
