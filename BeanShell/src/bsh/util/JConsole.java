@@ -43,9 +43,10 @@ import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.util.Vector;
 import java.awt.Cursor;
-
 import javax.swing.text.*;
 import javax.swing.*;
+
+// Things that are not in the core packages
 
 import bsh.util.NameCompletion;
 

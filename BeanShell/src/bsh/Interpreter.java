@@ -92,7 +92,9 @@ import java.awt.Color;
 public class Interpreter 
 	implements Runnable, ConsoleInterface /*,Serializable*/ 
 {
-	public static final String VERSION = "1.1a14";
+	/* --- Begin static stuff --- */
+
+	public static final String VERSION = "1.1a15";
 	/* 
 		Debug utils are static so that they are reachable by code that doesn't
 		necessarily have an interpreter reference (e.g. tracing in utils).
@@ -111,9 +113,9 @@ public class Interpreter
 	/** Shared system object visible under bsh.system */
 	static This systemObject;
 
-	// end static stuff
+	/* --- end static stuff --- */
 
-	/* Instance data */
+	/* --- Instance data --- */
 
 	Parser parser;
     NameSpace globalNameSpace;
@@ -121,16 +123,24 @@ public class Interpreter
     PrintStream out;
     PrintStream err;
     ConsoleInterface console; 
+
 	/** If this interpeter is a child of another, the parent */
 	Interpreter parent;
+
 	/** The name of the file or other source that this interpreter is reading */
 	String sourceFileInfo;
+
+	/** 
+		Do we override exit on EOF as normally done in iteractive mode?
+		(This is used by Sessiond)
+	*/
+	public boolean noExitOnEOF;
 
     private boolean 
 		evalOnly, 		// Interpreter has no input stream, use eval() only
 		interactive;	// Interpreter has a user, print prompts, etc.
 
-	/* End instance data */
+	/* --- End instance data --- */
 
 	/**
 		The main constructor.
@@ -484,7 +494,7 @@ public class Interpreter
             }
         }
 
-		if ( interactive ) 
+		if ( interactive && !noExitOnEOF ) 
 			System.exit(0);
     }
 

@@ -4,6 +4,11 @@
 
 <h2>Changes in 1.1alpha14</h2>
 <pre>
+	- Important addition - nodes now remember the source file from which
+	they were parsed...  This means that debug messages are much more useful
+	now, especially with errors thrown from multiple files.
+	- Re-worked classpath mapping user feedback mechanism (will support a GUI
+	now).
 	- Fixed general block scoping bugs.  Things should act like Java now.
 	typed vars declared within blocks does not leak out.  e.g. { int i=2; } 
 	- Added getSourceFileInfo() command to return the name of the file or

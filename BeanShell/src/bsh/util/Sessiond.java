@@ -42,6 +42,8 @@ import bsh.*;
 /**
 	BeanShell remote session server.
 	Starts instances of bsh for client connections.
+	Note: the sessiond effectively maps all connections to the same interpreter
+	(shared namespace).
 */
 public class Sessiond extends Thread
 {
@@ -89,9 +91,10 @@ class SessiondConnection extends Thread
 		{
 			InputStream in = client.getInputStream();
 			PrintStream out = new PrintStream(client.getOutputStream());
-			new Interpreter(
-				new InputStreamReader(in), 
-				out, out, true, globalNameSpace).run();
+			Interpreter i = new Interpreter( 
+				new InputStreamReader(in), out, out, true, globalNameSpace);
+			i.noExitOnEOF = true; // hack for us
+			i.run();
 		}
 		catch(IOException e) { System.out.println(e); }
 	}
