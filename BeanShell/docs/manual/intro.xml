@@ -8,6 +8,106 @@ standard Java statements and expressions but also extends Java into the
 scripting domain with common scripting language conventions and syntax.
 <p/>
 
+<h2>Why Scripting?</h2>
+
+Traditionally, the primary difference between a scripting language and 
+a compiled language has been in its type system: the way in which you define 
+and use variables.  You might be thinking that there is a more obvious 
+difference here - that of "interpreted" code vs. compiled code.  But 
+compilation in and of itself does not fundamentally change the way you work 
+with a language.  Simply interpreting a language does not necessarily make 
+it more convenient or more useful for "scripting".
+It is the type system that makes it possible for a compiler 
+to analyze the structure of an application for correctness.
+Without types, compilation is reduced to just a grammar check and an 
+optimization for speed.
+From the developer's perspective, it is also the type system that 
+characterizes the way in which we interact with the code.
+<p/>
+
+Types are good.  Without strongly type languages it would be very hard to
+write large scale systems and make any assertions about their correctness
+before they are run.  But working with types imposes a burden on the developer.
+It can be tedious to label things.  And it's especially tedious in 
+certain kinds of development or cerain areas where program structure is not
+paramount.  There are times where maximizing flexibility and productivity
+is a more important criterion.  
+<p/>
+
+This is not just hand waving to cover our laziness.  Productivity affects
+what people do and more importantly do *not* do in the real world, more
+than you might think.  There is a lot of important software that exists in 
+the world today only because the cost/benefit ration in some developer's mind 
+reached a certain threshhold.  
+
+Unit testing - one of the foundations of 
+writing good code is a prime example.  Unit tests for well written code are, 
+in general, vitally important as a collective but almost insignificant 
+individually.  It's a "tradgedy of the commons" that leads individual
+developers to repeatedly weigh the importance of writing another unit test
+with working on "real code".
+This is an example where scripting can really pay off.  If developers have
+a tool that makes it easy to perform a test with a line or two of code they
+will probably use it.  If, moreover, it is also a tool that they enjoy using
+during their development process - that saves the time, they will be even
+more inclined to use it.   Enter scripting languages.
+<p/>
+
+<h2>Tearing Down the Barriers</h2>
+
+Traditionally (again, we say traditionally) scripting languages have traded
+in the power of types for simplicity.  Most scripting languages distill
+the type system to just one or a handful of types such as strings, numbers,
+or simple lists.  This is usually sufficient for working in the desired
+domain of scripting.  
+
+Scripts tend to live in a desolate, unstructured land; a place full of text 
+and course grained tools.  As such these scripting languages have evolved
+sophisticated mechanisms for working with these simple types.  But the fact
+remains that they are still a separate species, isolated from their cousins, 
+the application languages.  There is a casm between the scripting languages 
+and the application languages created by the collapse of the type system 
+in-between.
+<p/>
+
+BeanShell is a new kind of scripting language.  BeanShell begins with 
+the standard Java languages and bridges it into the scripting domain in a 
+natural way, but allowing the developer to relaxing types where appropriate.
+It is possible to write BeanShell scripts that look exactly like Java 
+method code.  But it's also possible to write scripts that look more like
+a traditional scripting language, while still maintaining the framework
+of the Java syntax.
+<p/>
+
+By emulating typed variables and parameters when they are used, BeanShell 
+let's you "seed" your code with strong types where appropriate.  You can 
+"shore up" repeatedly used methods as you return to them, migrating them 
+closer to Java.  Eventually you may find that you want to compile
+these methods and maintain them in standard Java.  With BeanShell this is
+easy.  BeanShell does not impose a syntactic boundary between your scripts and 
+Java.
+<p/>
+
+But the bridge to Java extends much deeper than simple code similarity.  
+BeanShell is one of a new breed of scripting languages made possible by
+Java's advanced reflection capabilities.  Since BeanShell can run in the same
+Java virtual machine as your application, you can freely work with real,
+live, Java objects - passing them into and out of your scripts.  Combined
+with BeanShell's ability to implement Java interfaces, you can achieve 
+seamless and simple integration of scripting into your Java applications.
+BeanShell does not impose a type boundary between your scripts and Java.
+<p/>
+
+<h2>Conclusion</h2>
+
+I believe that BeanShell is the simplest and most natural scripting language 
+for Java because it is, foremost, Java.  BeanShell draws on a rich history
+of scripting languages for its scripting syntax and uses it to very 
+conservatively extend the Java language into this new domain.
+I hope that you have half as much fun using BeanShell as I have had working
+on it and I welcome all comments and suggestions.
+<p/>
+
 <h2>History</h2>
 
 A long time ago, back in the summer of 1993 while working at Southwestern
@@ -16,8 +116,8 @@ language.  At the time I was also playing around a bit with a
 language called Oak written by James Gosling at Sun. 
 Little did I know that within just a few years Oak would not only spark the 
 Java revolution, but that I would be writing one of the first books on 
-the Java language for O'Reilly &amp; Associates and creating Java's first 
-scripting language, BeanShell, using ideas from Tcl.
+the Java language (Exploring Java, O'Reilly &amp; Associates) and creating 
+Java's first scripting language, BeanShell, drawing motivation from Tcl.
 <p/>
 
 BeanShell's first public release was not until 1997, but I had been

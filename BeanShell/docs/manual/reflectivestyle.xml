@@ -47,7 +47,7 @@ using the 'this.methods' magic reference, which returns an array of Strings:
 print( this.methods );
 </example>
 
-But we'll talk about more powerful method lookupin a moment.
+We'll talk about more powerful forms of method lookup in a moment.
 
 <h2>invokeMethod()</h2>
 
