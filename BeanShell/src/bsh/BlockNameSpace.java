@@ -32,56 +32,46 @@
  *****************************************************************************/
 
 
-package bsh;
+package	bsh;
 
-class BSHBlock extends SimpleNode
-{
-	BSHBlock(int id) { super(id); }
+/**
+    A specialized namespace	for Blocks, e.g. the body of a "for" statement.
+	The Block acts like a child namespace but only for typed variables 
+	declared within it.  Elsewhere variable assignment (including untyped
+	variable usage) acts like it is part of the containing block.  
+	<p>
 
-	public Object eval( CallStack callstack, Interpreter interpreter) 
+	Note: It *must* remain possible for a BlocckNameSpace to be a child of
+	another BlockNameSpace and have variable propogation pass all the way
+	through.  (This happens naturally and simply here). This is used in 
+	BSHForStatement (see notes there).
+*/
+class BlockNameSpace extends NameSpace 
+	{
+
+    public BlockNameSpace( NameSpace parent ) 
 		throws EvalError
 	{
-		return eval( callstack, interpreter, false );
-	}
+		super( parent, parent.name + "/BlockNameSpace" );
+    }
 
 	/**
-		@param overrideNamespace if set to true *no* new BlockNamespace will
-		be swapped onto the stack and the eval will happen in the current
-		top namespace.  This is used by ForStatement, etc.  which must 
-		intialize the block with the for-init and also for those that 
-		perform multiple passes in the same block.
+		Override the standard namespace behavior.
+		If the variables exists in our namespace assign it there,
+		otherwise in the parent space.
+		i.e. only allow typed var declaration to happen in this namespace.
+		Typed vars are handled in the ordinary way... local scope.
 	*/
-	public Object eval( 
-		CallStack callstack, Interpreter interpreter, 
-		boolean overrideNamespace ) 
-		throws EvalError
-	{
-		Object ret = Primitive.VOID;
-		int statements = jjtGetNumChildren();
+    public void	setVariable(String name, Object	o) throws EvalError {
+		if ( weHaveVar( name ) ) 
+			super.setVariable( name, o );
+		else
+			getParent().setVariable( name, o );
+    }
 
-		NameSpace enclosingNameSpace = null;
-		if ( !overrideNamespace ) 
-		{
-			enclosingNameSpace= callstack.top();
-			BlockNameSpace bodyNameSpace = 
-				new BlockNameSpace( enclosingNameSpace );
-			callstack.swap( bodyNameSpace );
-		}
-
-		for(int i=0; i<statements; i++)
-		{
-			SimpleNode node = ((SimpleNode)jjtGetChild(i));
-			ret = node.eval( callstack, interpreter );
-
-			// some statement or embedded block evaluated a return statement
-			if (ret instanceof ReturnControl)
-				break;
-		}
-
-		if ( !overrideNamespace ) 
-			callstack.swap( enclosingNameSpace );
-
-		return ret;
+	boolean weHaveVar( String name ) {
+		return super.getVariableImpl( name, false ) != null;
 	}
+
 }
 

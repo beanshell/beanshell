@@ -1,6 +1,14 @@
 
-bsh.help.source = "usage: source( filename )";
+bsh.help.source = "usage: source( filename | URL )";
 
 source( String filename ) {
 	return this.interpreter.source( filename, this.caller.namespace );
 }
+
+source( URL url ) {
+	return this.interpreter.eval( 
+		new InputStreamReader(url.openStream()), this.caller.namespace,  
+		"URL: "+url.toString()
+	);
+}
+

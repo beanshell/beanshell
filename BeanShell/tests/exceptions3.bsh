@@ -24,7 +24,7 @@ try { Exceptions.throwRuntime();
 // Catch a checked exception
 try { Exceptions.throwException();
 } catch ( e2 ) {
-	print(e); flag();
+	print(e2); flag();
 }
 
 foo() {
