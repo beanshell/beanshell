@@ -5,9 +5,12 @@ source("TestHarness.bsh");
 
 // basic
 byte b = (byte)2;
+byte b = 2;
 char c = 'A';
 short s = (short)2;
+short s = 2;
 int i = 2;
+double d = 3.0f;
 
 i=b;
 // peek at the bsh.Primitive to confirm type

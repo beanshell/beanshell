@@ -45,6 +45,9 @@ class BSHCastExpression extends SimpleNode {
 
     public BSHCastExpression(int id) { super(id); }
 
+	/**
+		@return the cast object
+	*/
 	public Object eval(
 		CallStack callstack, Interpreter interpreter ) throws EvalError
     {
@@ -53,15 +56,25 @@ class BSHCastExpression extends SimpleNode {
 		SimpleNode expression = (SimpleNode)jjtGetChild(1);
 
         // evaluate the expression
-        Object result = expression.eval(callstack, interpreter);
-        Class fromType = result.getClass();
+        Object fromValue = expression.eval(callstack, interpreter);
+        Class fromType = fromValue.getClass();
 
-        if ( toType.isPrimitive() ) {
+        Object result = fromValue;
+
+		if ( result == Primitive.VOID )
+			castError( "void value", Reflect.normalizeClassName(toType) );
+
+		// going to a primitive type
+        if ( toType.isPrimitive() ) 
+		{
+			if ( result == Primitive.NULL )
+				castError( "null value", Reflect.normalizeClassName(toType) );
 
             // cannot convert from object to primitive
             if(!(result instanceof Primitive))
                 castError(result.getClass(), toType);
 
+			// we have a Primitive, unwrap
             Object primitive = ((Primitive)result).getValue();
             fromType = ((Primitive)result).getType();
 
@@ -73,7 +86,7 @@ class BSHCastExpression extends SimpleNode {
             }
             else
             {
-                // first promote char to int to avoid duplicating code
+                // first promote char to Number type to avoid duplicating code
                 if(primitive instanceof Character)
                     primitive = new Integer(((Character)primitive).charValue());
 
@@ -100,13 +113,23 @@ class BSHCastExpression extends SimpleNode {
                 }
             }
         } else 
-			// Can we use the proxy mechanism to cast a bsh.This to interface?
-			if ( Capabilities.haveProxyMechanism() &&
-				(result instanceof bsh.This) && toType.isInterface() ) {
-					result = ((bsh.This)result).getInterface( toType );
-		} else 
-			if ( !toType.isInstance(result) )
-           		castError(fromType, toType);
+		// Going to an object type
+		{
+			if ( result instanceof Primitive ) {
+				// null can be any object type
+				if ( result != Primitive.NULL )
+					castError("primitive value", "object type");
+				// else leave as Primitive.NULL
+			} else
+				// Can we use the proxy mechanism to cast a bsh.This to 
+				// the correct interface?
+				if ( Capabilities.haveProxyMechanism() &&
+					(result instanceof bsh.This) && toType.isInterface() ) 
+						result = ((bsh.This)result).getInterface( toType );
+				else 
+					if ( !toType.isInstance(result) )
+						castError(fromType, toType);
+		}
 
 		return result;
     }
@@ -115,11 +138,14 @@ class BSHCastExpression extends SimpleNode {
 		Wrap up the ClassCastException in a TargetError so that it can
 		be caught...
 	*/
-    private void castError(Class from, Class to) throws EvalError {
-		Exception cce = new ClassCastException("Illegal cast. Cannot cast " +
-            Reflect.normalizeClassName(from) + " to " +
-            Reflect.normalizeClassName(to) );
+    void castError(Class from, Class to) throws EvalError {
+		castError( 
+			Reflect.normalizeClassName(from), Reflect.normalizeClassName(to) );
+    }
 
+    void castError(String from, String to) throws EvalError {
+		Exception cce = new ClassCastException("Illegal cast. Cannot cast " +
+            from + " to " + to );
 		throw new TargetError( cce, this );
     }
 }
