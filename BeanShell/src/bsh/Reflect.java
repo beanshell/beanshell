@@ -72,14 +72,22 @@ class Reflect {
 			+ object + " with args (");
 		*/
 
-		if ( object instanceof This )
+		if ( object instanceof This && !showThisMethod( methodName) ) {
 			// This .invokeMethod() just calls the namespace invokeMethod
 			return ((This)object).invokeMethod( 
 				methodName, args, interpreter, null, callerInfo );
-        else
+        } else
 			return invokeMethod( 
 				object.getClass(), object, methodName, args, false );
     }
+
+	/**
+		Allow invocations of these method names on This type objects.
+		Don't give bsh.This a chance to override their behavior.
+	*/
+	private static boolean showThisMethod( String name ) {
+		return ( name.equals("getClass") || name.equals("invokeMethod") );
+	}
 
     /** 
 		Invoke a static method.  No object instance is provided.

@@ -14,9 +14,8 @@
 	- cat() command will now print files, urls, streams, and readers
 	- Exceptions in native (compiled) user classes will now print with
 		both the BeanShell script trace and native Java stack trace.  
-		We will try to get Exceptions generated directly from scripts to 
-		continue to show only the script trace (as that is all that is 
-		meaningful).  But we are erring on the side of showing now...
+		Exceptions generated directly from scripts continue to show only the 
+		script trace (as that is all that is meaningful).  
 	- ParseException is now a subtype of EvalError... previously these were
 		caught and the contents were moved to an EvalError.  This means that 
 		now the ParseEx implements the contract as far as getErrorLineNumber(),
@@ -25,7 +24,9 @@
 		the variable $_e (like the $_ last result).
 	- Improved the way that imported class names are cached in namespaces,
 		reducing the number of caches created and improving performance.
-
+	- Improved javap() command slightly
+	- Modified This references so that you can invoke the methods: getClass()
+		and invokeMethod() on them.
 </pre>
 </h2>
 

@@ -8,10 +8,10 @@ public class InterfaceConsumer
 		Integer i = interf.getInteger();
 		int i2 = interf.getPrimitiveInt();
 		boolean b = interf.getPrimitiveBool();
-		assert( interf.getNull() == null );
+		assertTrue( interf.getNull() == null );
 		return true;
 	}
-	public static void assert( boolean cond ) {
+	public static void assertTrue( boolean cond ) {
 		if ( !cond ) throw new RuntimeException("assert failed..");
 	}
 }

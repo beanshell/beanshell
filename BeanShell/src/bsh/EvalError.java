@@ -46,14 +46,21 @@ package bsh;
 	@see TargetError
 */
 public class EvalError extends Exception {
+	/**
+		Note: we could make this a vector and hold the full stack trace of
+		method invocations that lead to the exception...
+	*/
 	SimpleNode node;
 
+	// Note: no way to get at Throwable message, must maintain our own
+	String message;
+
 	public EvalError(String s) {
-		super(s);
+		setMessage(s);
 	}
 
 	public EvalError(String s, SimpleNode node) {
-		super(s);
+		this(s);
 		this.node = node;
 	}
 
@@ -75,11 +82,7 @@ public class EvalError extends Exception {
 	}
 
 	/**
-		Re-throw the eval error, prefixing msg to the message.
-		<p>
-		Unfortunately at the moment java.lang.Exception's message isn't 
-		mutable so we just make a new one... could do something about this 
-		later.
+		Re-throw the eval error, prepending msg to the message.
 	*/
 	public void reThrow( String msg ) 
 		throws EvalError 
@@ -89,13 +92,8 @@ public class EvalError extends Exception {
 
 	/**
 		Re-throw the eval error, specifying the node.
-		If a node already exists the node is ignored.
+		If a node already exists the argument node is ignored.
 		@see setNode()
-		<p>
-
-		Unfortunately at the moment java.lang.Exception's message isn't 
-		mutable so we just make a new one... could do something about this 
-		later.
 	*/
 	public void reThrow( SimpleNode node ) 
 		throws EvalError 
@@ -105,28 +103,17 @@ public class EvalError extends Exception {
 
 	/**
 		Re-throw the eval error, prefixing msg to the message and specifying
-		the node.
-		If a node already exists the addNode is ignored.
+		the node.  If a node already exists the addNode is ignored.
 		@see setNode()
 		<p>
 		@param msg may be null for no additional message.
-
-		Unfortunately at the moment java.lang.Exception's message isn't 
-		mutable so we just make a new one... could do something about this 
-		later.
 	*/
 	public void reThrow( String addMsg, SimpleNode addNode ) 
 		throws EvalError 
 	{
-		String msg = getMessage();
-		if ( addMsg != null )
-			msg = addMsg +" : " + msg;
-
-		SimpleNode node = this.node;
-		if ( node == null && addNode != null )
-			node = addNode;
-	
-		throw new EvalError( msg, node );
+		prependMessage( addMsg );
+		addNode( addNode );
+		throw this;
 	}
 
 	/**
@@ -169,5 +156,22 @@ public class EvalError extends Exception {
 			return "<unknown file>";
 	}
 
+	public String getMessage() { return message; }
+
+	public void setMessage( String s ) { message = s; }
+
+	/**
+		Prepend the message if it is non-null.
+	*/
+	protected void prependMessage( String s ) { 
+		if ( s != null )
+			message = s + " : "+ message;
+	}
+
+	protected void addNode( SimpleNode addNode  ) {
+		SimpleNode node = this.node;
+		if ( node == null && addNode != null )
+			node = addNode;
+	}
 }
 

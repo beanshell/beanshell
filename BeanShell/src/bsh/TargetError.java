@@ -107,7 +107,11 @@ public class TargetError extends EvalError
 		printStackTrace( false, System.err );
 	}
 
-    public void printStackTrace( boolean debug, PrintStream out ) { 
+    public void printStackTrace( PrintStream out ) { 
+		printStackTrace( false, out );
+	}
+
+    public void printStackTrace( boolean debug, PrintStream out ) {
 		if ( debug ) {
 			super.printStackTrace( out );
 			System.out.println("--- Target Stack Trace ---");
@@ -116,42 +120,7 @@ public class TargetError extends EvalError
 	}
 
 	/**
-		Re-throw the target error, prefixing msg to the message.
-
-		Unfortunately at the moment java.lang.Exception's message isn't 
-		mutable so we just make a new one... could do something about this 
-		later.
-	*/
-	public void reThrow( String msg ) 
-		throws TargetError 
-	{
-		throw new TargetError( 
-			msg+":"+getMessage(), target, node, inNativeCode );
-	}
-	/**
-
-		Re-throw the target error, prefixing msg and Node to the message.
-		msg may be null for no message
-	*/
-	public void reThrow( String msg, SimpleNode node  ) 
-		throws TargetError 
-	{
-		String m = ( msg == null ) ? "" : (msg + " : ");
-		throw new TargetError( m+getMessage(),  target, node, inNativeCode );
-	}
-
-	/**
-		Re-throw the target error adding the Node 
-	*/
-	public void reThrow( SimpleNode node  ) 
-		throws TargetError 
-	{
-		reThrow( null, node );
-	}
-
-	/**
 		Generate a printable string showing the wrapped target exception.
-		//If the exception is an InvocationTargetException further unwrap it.
 		If the proxy mechanism is available, allow the extended print to
 		check for UndeclaredThrowableException and print that embedded error.
 	*/
@@ -159,11 +128,6 @@ public class TargetError extends EvalError
 	{
 		String s = target.toString();
 
-	/*
-		if ( target instanceof InvocationTargetException )
-			s +=  ((InvocationTargetException)target).getTargetException();
-		else 
-	*/
 		if ( Capabilities.canGenerateInterfaces() )
 			s += "\n" + xPrintTargetError( t );
 
@@ -205,7 +169,8 @@ public class TargetError extends EvalError
 		explicitly threw an exception... (the stack trace would simply point
 		to the bsh internals which generated the exception).
 	*/
-	public boolean inNativeCode() { return inNativeCode; }
-
+	public boolean inNativeCode() { 
+		return inNativeCode; 
+	}
 }
 
