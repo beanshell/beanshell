@@ -1,0 +1,17 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+s1="foo";
+s2="bar";
+
+s1.equals(s2);
+!true;
+a=!s1.equals(s2);
+(!s1.equals(s2));
+
+// this is failing...  why? 
+!s1.equals(s2);
+
+complete();
+

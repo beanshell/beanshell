@@ -1,4 +1,6 @@
-#!/bin/java bsh.Interpreter
+#!/bin/sh
+#! The following hack allows java to reside anywhere in the path.
+//bin/sh -c "exec java bsh.Interpreter $0 $*"; exit
 
 list=pathToFile( bsh.cwd ).list();
 

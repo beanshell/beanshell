@@ -2686,88 +2686,144 @@ void FormalParameter() #FormalParameter :
   }
 
   final public void SwitchStatement() throws ParseException {
-    jj_consume_token(SWITCH);
-    jj_consume_token(LPAREN);
-    Expression();
-    jj_consume_token(RPAREN);
-    jj_consume_token(LBRACE);
-    label_21:
-    while (true) {
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case CASE:
-      case _DEFAULT:
-        ;
-        break;
-      default:
-        jj_la1[72] = jj_gen;
-        break label_21;
-      }
-      SwitchLabel();
-      label_22:
+ /*@bgen(jjtree) SwitchStatement */
+  BSHSwitchStatement jjtn000 = new BSHSwitchStatement(JJTSWITCHSTATEMENT);
+  boolean jjtc000 = true;
+  jjtree.openNodeScope(jjtn000);
+  jjtreeOpenNodeScope(jjtn000);
+    try {
+      jj_consume_token(SWITCH);
+      jj_consume_token(LPAREN);
+      Expression();
+      jj_consume_token(RPAREN);
+      jj_consume_token(LBRACE);
+      label_21:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-        case BOOLEAN:
-        case BREAK:
-        case BYTE:
-        case CHAR:
-        case CONTINUE:
-        case DO:
-        case DOUBLE:
-        case FALSE:
-        case FINAL:
-        case FLOAT:
-        case FOR:
-        case IF:
-        case IMPORT:
-        case INT:
-        case LONG:
-        case NEW:
-        case NULL:
-        case RETURN:
-        case SHORT:
-        case SWITCH:
-        case THROW:
-        case TRUE:
-        case TRY:
-        case VOID:
-        case WHILE:
-        case INTEGER_LITERAL:
-        case FLOATING_POINT_LITERAL:
-        case CHARACTER_LITERAL:
-        case STRING_LITERAL:
-        case IDENTIFIER:
-        case LPAREN:
-        case LBRACE:
-        case SEMICOLON:
-        case INCR:
-        case DECR:
+        case CASE:
+        case _DEFAULT:
           ;
           break;
         default:
-          jj_la1[73] = jj_gen;
-          break label_22;
+          jj_la1[72] = jj_gen;
+          break label_21;
         }
-        BlockStatement();
+        SwitchLabel();
+        label_22:
+        while (true) {
+          switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+          case BOOLEAN:
+          case BREAK:
+          case BYTE:
+          case CHAR:
+          case CONTINUE:
+          case DO:
+          case DOUBLE:
+          case FALSE:
+          case FINAL:
+          case FLOAT:
+          case FOR:
+          case IF:
+          case IMPORT:
+          case INT:
+          case LONG:
+          case NEW:
+          case NULL:
+          case RETURN:
+          case SHORT:
+          case SWITCH:
+          case THROW:
+          case TRUE:
+          case TRY:
+          case VOID:
+          case WHILE:
+          case INTEGER_LITERAL:
+          case FLOATING_POINT_LITERAL:
+          case CHARACTER_LITERAL:
+          case STRING_LITERAL:
+          case IDENTIFIER:
+          case LPAREN:
+          case LBRACE:
+          case SEMICOLON:
+          case INCR:
+          case DECR:
+            ;
+            break;
+          default:
+            jj_la1[73] = jj_gen;
+            break label_22;
+          }
+          BlockStatement();
+        }
       }
+      jj_consume_token(RBRACE);
+    } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
     }
-    jj_consume_token(RBRACE);
+    if (jjte000 instanceof RuntimeException) {
+      {if (true) throw (RuntimeException)jjte000;}
+    }
+    if (jjte000 instanceof ParseException) {
+      {if (true) throw (ParseException)jjte000;}
+    }
+    {if (true) throw (Error)jjte000;}
+    } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+    }
   }
 
   final public void SwitchLabel() throws ParseException {
-    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case CASE:
-      jj_consume_token(CASE);
-      Expression();
-      jj_consume_token(COLON);
-      break;
-    case _DEFAULT:
-      jj_consume_token(_DEFAULT);
-      jj_consume_token(COLON);
-      break;
-    default:
-      jj_la1[74] = jj_gen;
-      jj_consume_token(-1);
-      throw new ParseException();
+ /*@bgen(jjtree) SwitchLabel */
+  BSHSwitchLabel jjtn000 = new BSHSwitchLabel(JJTSWITCHLABEL);
+  boolean jjtc000 = true;
+  jjtree.openNodeScope(jjtn000);
+  jjtreeOpenNodeScope(jjtn000);
+    try {
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case CASE:
+        jj_consume_token(CASE);
+        Expression();
+        jj_consume_token(COLON);
+        break;
+      case _DEFAULT:
+        jj_consume_token(_DEFAULT);
+        jj_consume_token(COLON);
+                  jjtree.closeNodeScope(jjtn000, true);
+                  jjtc000 = false;
+                  jjtreeCloseNodeScope(jjtn000);
+                  jjtn000.isDefault = true;
+        break;
+      default:
+        jj_la1[74] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
+    } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      {if (true) throw (RuntimeException)jjte000;}
+    }
+    if (jjte000 instanceof ParseException) {
+      {if (true) throw (ParseException)jjte000;}
+    }
+    {if (true) throw (Error)jjte000;}
+    } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
     }
   }
 

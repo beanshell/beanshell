@@ -24,8 +24,8 @@ if ( !result.myClassVisible ) {
 source("Data/import_aux2.bsh");
 assert( myClassVisible );
 
-// test for specific bug
-import Integer;
-Integer foo;
+// test for specific bug...
+// the bug would cause a stack overflow here and probably stop the VM
+assert( isEvalError("import NoSuchClass; NoSuchClass foo;") );
 
 complete();

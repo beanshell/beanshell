@@ -317,12 +317,16 @@ public class NameSpace
 		return method;
     }
 
+	/**
+		subsequent imports override earlier ones
+	*/
     public void	importClass(String name)
     {
 		if(importedClasses == null)
 			importedClasses = new Hashtable();
 
 		importedClasses.put(Name.suffix(name, 1), name);
+		nameSpaceChanged();
     }
 
     private String getImportedClass(String name)
@@ -341,16 +345,23 @@ public class NameSpace
 		return s;
     }
 
+	/**
+		subsequent imports override earlier ones
+	*/
     public void	importPackage(String name)
     {
 		if(importedPackages == null)
 			importedPackages = new Vector();
 
 		importedPackages.addElement(name);
+		nameSpaceChanged();
     }
 
 	/**
 		Get a list of all imported packages including parents.
+		in the order in which they were imported...
+		Note that the resolver may use them in the reverse order for
+		precedece reasons.
 	*/
     public String[] getImportedPackages()
     {
@@ -417,32 +428,41 @@ public class NameSpace
 				/*
 					Found the full name in imported classes.
 				*/
-				// Try to make the name
-				Class c=classForName(fullname);
-				if ( c!= null)
-					return c;
+				// Try to make the full imported name
+				Class clas=classForName(fullname);
+				
+				// If the imported name we found is compound, try to resolve
+				// to an inner class.  
+				if ( clas == null ) 
+				{
+					if ( Name.isCompound( fullname ) )
+						try {
+							clas = new Name( this, fullname ).toClass();
+						} catch ( EvalError e ) { /* not a class */ }
+					else 
+						Interpreter.debug(
+							"imported unpackaged name not found:" +fullname);
+				}
 
-				// Try imported inner class.  
-				try {
-					// Use null here for interp... we only care if it resolves
-					// to a class.  Note we could use Name toClass() here but it
-					// would just throw a more detailed error message.
-					Object obj = get( fullname, null );
-					Class clas = ((Name.ClassIdentifier)obj).getTargetClass();
-
+				// Found something?
+				if ( clas != null ) {
 					BshClassManager.absoluteClassCache.put(fullname, clas);
 					return clas;
-				} catch ( EvalError e ) { 
-				} catch ( ClassCastException e2 ) { }
+				}
 
-				return null;  // ?  it was imported, right cannot be .*
+				// It was explicitly imported, but we don't know what it is.
+				// should we throw an error here??
+				return null;  
 			}
 
 			/*
 				Try imported packages (.*)
+				in reverse order of import...
+				(give later imports precedence...)
 			*/
 			String[] packages =	getImportedPackages();
-			for(int i=0; i<packages.length; i++)
+			//for(int i=0; i<packages.length; i++)
+			for(int i=packages.length-1; i>=0; i--)
 			{
 				String s = packages[i] + "." + name;
 				Class c=classForName(s);
@@ -744,23 +764,32 @@ public class NameSpace
 		Clear all cached classes and names
 	*/
 	public void classLoaderChanged() {
+		nameSpaceChanged();
+	}
+
+	public void nameSpaceChanged() {
 		classCache = null;
 	}
 
 	/**
-		Re-evaluate the usefullness of this...
+		Load universally imported packages.
 	*/
     public void loadDefaultImports() throws IOException
     {
-		importPackage("java.lang");
+		/**
+			Note: the resolver looks through these in reverse order, per
+			precedence rules...  so for max efficiency put the most common
+			ones later.
+		*/
+		importClass("bsh.EvalError");
+		importPackage("javax.swing.event");
+		importPackage("javax.swing");
+		importPackage("java.awt.event");
+		importPackage("java.awt");
+		importPackage("java.net");
 		importPackage("java.util");
 		importPackage("java.io");
-		importPackage("java.net");
-		importPackage("java.awt");
-		importPackage("java.awt.event");
-		importPackage("javax.swing");
-		importPackage("javax.swing.event");
-		importClass("bsh.EvalError");
+		importPackage("java.lang");
 
 	/*
 		String res = "lib/defaultImports";

@@ -560,7 +560,7 @@ compare them side by side and see what they do differently.
 
 		String s = ( statement.endsWith(";") ? statement : statement+";" );
         return eval( 
-			new StringReader(s), nameSpace, "<inline eval>" );
+			new StringReader(s), nameSpace, "<Inline eval of: "+s+" >" );
     }
 
     public final void error(String s) {
@@ -772,6 +772,13 @@ compare them side by side and see what they do differently.
 		}
 	}
 
+	/**
+		Localize a path to the file name based on the bsh.cwd ineterpreter 
+		working directory.
+
+		Note: This functionality should probaby be moved into bsh.BshFile
+		(or that class should be eliminated if really not needed).
+	*/
     public File pathToFile( String fileName ) {
 
 		BshFile file = new BshFile( fileName );
