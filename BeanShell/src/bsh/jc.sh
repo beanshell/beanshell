@@ -1,2 +1,2 @@
-javac $1 *.java util/*.java commands/*.java
+javac $1 *.java classpath/*.java util/*.java commands/*.java
 
