@@ -48,6 +48,39 @@ use.</em></li>
 is incomplete.  It should be considered experimental.</em>
 </ul>
 
+<h2>Remote</h2>
+
+The bsh.Remote launcher is the equivalent of bsh.Interpreter, but runs
+the specified file in a remote BeanShell engine.  The remote engine may
+be a servlet mode BeanShell engine (BshServlet) or a native server mode 
+remote BeanShell instance (embedded interpreter).
+<p/>
+
+bsh.Remote accepts a URL and filename as arguments:
+
+<example>
+// servlet mode URL
+java bsh.Remote http://localhost/bshservlet/eval test1.bsh
+
+// remote server mode URL
+java bsh.Remote bsh://localhost:1234/ test1.bsh
+</example>
+
+An HTTP URL may be specified that points to an instance of BshServlet
+(See "Servlet Mode" for details).  Or a native "bsh:" URL may be specified,
+pointing to an instance of the BeanShell interpreter running in remote
+server mode.
+
+<em>
+At the time of this writing bsh: style URLs for accessing native remote
+server mode instances are not implemented.
+</em>
+<p/>
+
+In either case, bsh.Remote sends the script to the remote engine for
+evaluation.  If Remote can parse the retun value of the script as an integer 
+it will return the value as the exit status to the command line.  
+
 <h2>Interactive Use</h2>
 
 One of the most popular uses for BeanShell is, of course, as a "shell" for

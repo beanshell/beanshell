@@ -1,6 +1,47 @@
 <section>
 <name>Introduction</name>
 
+This is a book about BeanShell. 
+BeanShell is a small, free, embeddable, Java source interpreter with 
+object scripting language features, written in Java.  BeanShell executes 
+standard Java statements and expressions but also extends Java into the 
+scripting domain with common scripting language conventions and syntax.
+<p/>
+
 <h2>History</h2>
+
+A long time ago, back in the summer of 1993, while working at Southwestern
+Bell Technology Resources, I was completely infatuated with the Tcl/Tk 
+scripting language.  At the time I was also playing around a bit with a 
+language called Oak written by James Gosling at Sun. 
+Little did I know at the time that within just a few years the little Oak 
+language would not only sparc a revolution named Java, but that I would be 
+writing one of the first books on Java language for O'Reilly &amp; 
+Associates and 
+creating Java's first scripting language, BeanShell, modeled on the ideas
+contained in Tcl.
+<p/>
+
+BeanShell's first public release was not until 1997, but it had been
+on my desk in one form or another since the beginning. BeanShell was not 
+truly practical until Sun added reflection to the Java language in 
+version 1.1.  After that and after having felt its value in helping me create 
+examples and snippets for the second edition of my book, I decided to try to 
+polish it up and release it.
+<p/>
+
+BeanShell has slowly, but steadily gained popularity since then.  It has
+grown in fits and spurts as its contributor's time has allowed.  But recently
+BeanShell has seemed to achieve a sort of critical mass.  
+BeanShell is distributed with
+Emacs as part of the JDE and with Sun Microsystem's NetBeans / Forte for Java
+IDEs.  BeanShell is now also bundled by BEA with their Weblogic application 
+server.  We've had reports of BeanShell being used everywhere from 
+the high energy physics laboratory CERN, to classrooms teaching programming
+to nine year olds.  BeanShell sightings have placed it in large financial 
+applications all the way down to embedded systems floating in Buoys in the
+pacific ocean.   I attribute this success to the power of the open source 
+development model and owe many thanks to everyone who has contributed.
+<p/>
 
 </section>

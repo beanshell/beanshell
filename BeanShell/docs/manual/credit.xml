@@ -4,11 +4,13 @@
 Many people have contributed substantially to BeanShell over the years.
 I will attempt to start crediting those individual here.  Please do not be 
 offended if your name is missing.  This list will grow as I have time to
-work through my email and recover names.
+work backwards through my email and recover names. 
 <p/>
 
-Thanks to <font size="+1">Daniel Leuck</font> for his long time support
-of the project.
+<ul>
+<li>Thanks to Daniel Leuck for his long time support and many contributions
+to the project.</li>
+</ul>
 
 <h2>Me</h2>
 
@@ -18,9 +20,17 @@ Pat Niemeyer (pat@pat.net)
 
 <img align="left" src="lj.gif"/>
 If you like BeanShell check out my book:
+
 <a href="http://www.ora.com/catalog/learnjava2/">
 Learning Java, O'Reilly &amp; Associates, 2nd edition</a>.
 <br clear="left"/>
+<p/>
+
+Winner of the Best Java Introductory Book - JavaOne 2001.  Learning Java
+(previously titled Exploring Java) is available in eight languages world-wide.
+
+It is a comprehensive overview of the Java language and APIs including
+a brief introduction to BeanShell as well! 
 <p/>
 
 </section>
