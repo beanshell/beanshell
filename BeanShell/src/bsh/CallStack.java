@@ -63,6 +63,12 @@ public class CallStack
 {
 	private Vector stack = new Vector(2);
 
+	public CallStack() { }
+
+	public CallStack( NameSpace namespace ) { 
+		push( namespace );
+	}
+
 	public void clear() {
 		stack.removeAllElements();
 	}
@@ -129,5 +135,15 @@ public class CallStack
 			sb.append("\t"+nsa[i]+"\n");
 
 		return sb.toString();
+	}
+
+	/**
+		Occasionally we need to freeze the callstack for error reporting
+		purposes, etc.
+	*/
+	public CallStack copy() {
+		CallStack cs = new CallStack();
+		cs.stack = (Vector)this.stack.clone();
+		return cs;
 	}
 }

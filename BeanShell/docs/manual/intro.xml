@@ -28,7 +28,7 @@ characterizes the way in which we interact with the code.
 Types are good.  Without strongly type languages it would be very hard to
 write large scale systems and make any assertions about their correctness
 before they are run.  But working with types imposes a burden on the developer.
-Types are labels and labelling things can be tedious.  It can be especially 
+Types are labels and labeling things can be tedious.  It can be especially 
 tedious during certain kinds of development or special applications where 
 program structure is not paramount.  There are times where maximizing 
 flexibility and productivity is a more important criterion.  
@@ -38,7 +38,7 @@ This is not just hand waving to cover our laziness.  Productivity affects
 what people do and more importantly do *not* do in the real world, much more
 than you might think.  There is a lot of important software that exists in 
 the world today only because the cost/benefit ration in some developer's mind 
-reached a certain threshhold.  
+reached a certain threshold.  
 
 Unit testing - one of the foundations of 
 writing good code - is a prime example.  Unit tests for well written code are, 

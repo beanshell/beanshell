@@ -12,7 +12,7 @@ a bit later.
 This is a high level overview of the BeanShell command set.
 You can find documentation for all BeanShell commands in the "BeanShell
 Commands Documentation" section of this manual.  See also the "BshDoc" 
-section which covers javadoc style documenation of BeanShell script files.
+section which covers javadoc style documentation of BeanShell script files.
 <p/>
 
 <h3>Interpreter Modes</h3>
@@ -40,7 +40,7 @@ unstructured output and is primarily of interest to developers.
 </td></tr>
 <tr><td>setStrictJava()</td><td>
 Turn on "strict Java" mode which enforces Java
-compatability by dissallowing loose types and undeclared variables.
+compatibility by dissallowing loose types and undeclared variables.
 </td></tr>
 </table>
 
@@ -96,7 +96,7 @@ determine the location of the specified class.
 or save one to a file.  Special handling is provided for certain objects.
 </td></tr>
 <tr><td>object()</td><td>
-Create an "emtpy" object context to hold variables; analagous to a Map.
+Create an "empty" object context to hold variables; analogous to a Map.
 </td></tr>
 </table>
 
@@ -287,7 +287,7 @@ to the language.
 A good example of this is the eval() BeanShell command.  eval() evaluates
 a string as if it were typed in the current context.  To do this, it sends
 the string to an instance of the BeanShell interpreter.  But when it does
-so it tells the interpreter to evaluate the string in a specfic namespace:
+so it tells the interpreter to evaluate the string in a specific namespace:
 the namespace of the caller; using this.caller.
 
 <example>

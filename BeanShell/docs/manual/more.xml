@@ -1,7 +1,7 @@
 <section>
 <name filename="more">Learning More</name>
 
-BeanShell is a simple tool but one with rapdily evolving capabilites.  To learn
+BeanShell is a simple tool but one with rapidly evolving capabilities.  To learn
 more about BeanShell you are highly encouraged to download the source and
 build it (using the Ant build file).  Even if you don't consider yourself
 a developer, you can learn a lot from the source distribution by looking
@@ -16,7 +16,7 @@ The BeanShell test suite consists of many BeanShell scripts that exercise
 all parts of the language.
 <p/>
 
-In addition to the mailing list and mailing list archives, an imporant
+In addition to the mailing list and mailing list archives, an important
 source of information is the "recent changes" file supplied with the source
 distribution and online at: http://www.beanshell.org/Changes.html.  This
 file is one of the few documents that is always up to date with the latest

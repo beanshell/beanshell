@@ -2,6 +2,10 @@
 #! The following hack allows java to reside anywhere in the path.
 //bin/sh -c "exec java bsh.Interpreter $0 $*"; exit
 
+// Change to the test directory
+path=pathToFile( getSourceFileInfo() ).getAbsolutePath();
+cd( dirname( path ) );
+
 list=pathToFile( bsh.cwd ).list();
 
 failed=false;

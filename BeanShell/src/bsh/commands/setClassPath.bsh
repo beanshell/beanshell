@@ -1,7 +1,7 @@
 /**
 	Change the classpath to the specified array of directories and/or archives.
 	<p>
-	See <a href="classpath.html">Class Path Management</a>
+	See "Class Path Management" for details.
 
 	@method void setClassPath( URL [] )
 */

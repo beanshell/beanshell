@@ -72,9 +72,13 @@ class BSHLHSPrimaryExpression extends SimpleNode
 
 		// Apply the suffixes
 		int numChildren = jjtGetNumChildren(); 
-		while( childNum<numChildren ) 
-			lhs = ((BSHLHSPrimarySuffix)jjtGetChild(childNum++)).doLHSSuffix(
-				lhs.getValue(), callstack, interpreter);
+		while ( childNum<numChildren )
+			try {
+				lhs = ((BSHLHSPrimarySuffix)jjtGetChild(childNum++))
+					.doLHSSuffix( lhs.getValue(), callstack, interpreter);
+			} catch ( UtilEvalError e ) {
+				throw e.toEvalError( this, callstack  );
+			}
 
 		return lhs;
 	}

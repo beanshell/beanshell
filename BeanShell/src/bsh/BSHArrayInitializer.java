@@ -43,7 +43,8 @@ class BSHArrayInitializer extends SimpleNode
     public Object eval( CallStack callstack, Interpreter interpreter )
 		throws EvalError 
 	{
-		throw new EvalError( "Array initializer has no base type.");
+		throw new EvalError( "Array initializer has no base type.", 
+			this, callstack );
 	}
 
 	/**
@@ -75,7 +76,8 @@ class BSHArrayInitializer extends SimpleNode
 			if ( node instanceof BSHArrayInitializer ) {
 				if ( dimensions < 2 )
 					throw new EvalError(
-						"Invalid Location for Intializer, position: "+i, this);
+						"Invalid Location for Intializer, position: "+i, 
+						this, callstack );
             	currentInitializer = 
 					((BSHArrayInitializer)node).eval( 
 						baseType, dimensions-1, callstack, interpreter);
@@ -84,7 +86,7 @@ class BSHArrayInitializer extends SimpleNode
 
 			if ( currentInitializer == Primitive.VOID )
 				throw new EvalError(
-					"Void in array initializer, position"+i, this);
+					"Void in array initializer, position"+i, this, callstack );
 
 			// unwrap primitive to the wrapper type
 			Object value;
@@ -99,10 +101,10 @@ class BSHArrayInitializer extends SimpleNode
 
             } catch( IllegalArgumentException e ) {
 				Interpreter.debug("illegal arg"+e);
-				throwTypeError( baseType, currentInitializer, i );
+				throwTypeError( baseType, currentInitializer, i, callstack );
             } catch( ArrayStoreException e ) { // I think this can happen
 				Interpreter.debug("arraystore"+e);
-				throwTypeError( baseType, currentInitializer, i );
+				throwTypeError( baseType, currentInitializer, i, callstack );
             }
         }
 
@@ -110,7 +112,7 @@ class BSHArrayInitializer extends SimpleNode
     }
 
 	private void throwTypeError( 
-		Class baseType, Object initializer, int argNum ) 
+		Class baseType, Object initializer, int argNum, CallStack callstack ) 
 		throws EvalError
 	{
 		String lhsType = Reflect.normalizeClassName(baseType);
@@ -125,6 +127,6 @@ class BSHArrayInitializer extends SimpleNode
 
 		throw new EvalError ( "Incompatible type: " + rhsType 
 			+" in initializer of array type: "+ baseType
-			+" at position: "+argNum, this );
+			+" at position: "+argNum, this, callstack );
 	}
 }

@@ -49,7 +49,7 @@ public class dir
 		}
 
 		String [] files = file.list();
-		files = bubbleSort(files);
+		files = StringUtil.bubbleSort(files);
 
 		for( int i=0; i< files.length; i++ ) {
 			File f = new File( dir + File.separator + files[i] );
@@ -94,6 +94,8 @@ public class dir
 		}
 	}
 
+	/*
+	Moved to stringutil
 	public static String [] bubbleSort( String [] in ) {
 		Vector v = new Vector();
 		for(int i=0; i<in.length; i++)
@@ -117,5 +119,6 @@ public class dir
 		v.copyInto(out);
 		return out;
 	}
+	*/
 }
 

@@ -36,13 +36,13 @@ package bsh;
 
 import java.io.*;
 import java.net.*;
-
+import java.text.*;
 /**
-	Remoe executor class.
+	Remote executor class.
 */
 public class Remote {
 
-	public static void main( String args[] ) 
+    public static void main( String args[] ) 
 		throws Exception
 	{
 		if ( args.length < 2 ) {
@@ -54,7 +54,7 @@ public class Remote {
 		String text = getFile(args[1]);
 		int ret = eval( url, text, null );
 		System.exit( ret );
-	}
+		}
 
 	/**
 		Evaluate text in the interpreter at url, capturing output into
@@ -67,7 +67,7 @@ public class Remote {
 		if ( url.startsWith( "http:" ) ) {
 			returnValue = doHttp( url, text );
 		} else if ( url.startsWith( "bsh:" ) ) {
-			//doBsh( url, args );
+			returnValue = doBsh( url, text );
 		} else
 			throw new IOException( "Unrecognized URL type."
 				+"Scheme must be http:// or bsh://");
@@ -80,7 +80,59 @@ public class Remote {
 		}
 	}
 
-	//static void doBsh( String url, String text ) { }
+	static String doBsh( String url, String text ) 
+	{ 
+	    OutputStream out;
+	    InputStream in;
+	    String host = "";
+	    String port = "";
+	    String returnValue = "-1";
+		String orgURL = url;
+	    
+		// Need some format checking here
+	    try {
+			url = url.substring(6); // remove the bsh://
+			// get the index of the : between the host and the port is located
+			int index = url.indexOf(":");
+			host = url.substring(0,index);
+			port = url.substring(index+1,url.length());
+		} catch ( Exception ex ) {
+			System.err.println("Bad URL: "+orgURL+": "+ex  );
+			return returnValue;
+	    }
+
+	    try {
+			System.out.println("Connecting to host : " 
+				+ host + " at port : " + port);
+			Socket s = new Socket(host, Integer.parseInt(port) + 1);
+			
+			out = s.getOutputStream();
+			in = s.getInputStream();
+			
+			sendLine( text, out );
+
+			BufferedReader bin = new BufferedReader( 
+				new InputStreamReader(in));
+			  String line;
+			  while ( (line=bin.readLine()) != null )
+				System.out.println( line );
+
+			// Need to scrape a value from the last line?
+			returnValue="1";
+			return returnValue;
+	    } catch(Exception ex) {
+			System.err.println("Error communicating with server: "+ex);
+			return returnValue;
+	    }
+	}
+
+    private static void sendLine( String line, OutputStream outPipe )
+		throws IOException
+	{
+		outPipe.write( line.getBytes() );
+		outPipe.flush();
+    }
+    
 
 	static String doHttp( String postURL, String text ) 
 	{

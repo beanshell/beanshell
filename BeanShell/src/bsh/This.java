@@ -65,8 +65,6 @@ public class This implements java.io.Serializable, Runnable {
 		so we make a default one starting with the special JAVACODE namespace
 		and our namespace as the next.
 	*/
-// not thread safe... trying workaround
-	//transient CallStack callstack;
 
 	/**
 		getThis() is a factory for bsh.This type references.  The capabilities
@@ -109,12 +107,12 @@ public class This implements java.io.Serializable, Runnable {
 		else try complain that we don't have the proxy mechanism.
 	*/
 	public Object getInterface( Class clas ) 
-		throws EvalError
+		throws UtilEvalError
 	{
 		if ( clas.isInstance( this ) )
 			return this;
 		else
-			throw new EvalError( "Dynamic proxy mechanism not available. "
+			throw new UtilEvalError( "Dynamic proxy mechanism not available. "
 			+ "Cannot construct interface type: "+clas );
 	}
 
@@ -157,8 +155,8 @@ public class This implements java.io.Serializable, Runnable {
 		throws EvalError
 	{
 		// null callstack, one will be created for us in namespace.invokMethod
-		// null callerInfo is legal
-		return invokeMethod( name, args, declaringInterpreter, null, null );
+		return invokeMethod( 
+			name, args, declaringInterpreter, null, SimpleNode.JAVACODE );
 	}
 
 	/**
@@ -191,33 +189,6 @@ public class This implements java.io.Serializable, Runnable {
 	{ 
 		ths.namespace.setParent( namespace ); 
 		ths.declaringInterpreter = declaringInterpreter;
-		//ths.initCallStack( namespace );
-	}
-
-	/**
-		Remove a This reference from a parent's namespace.
-		It's necessary to unbind a This reference before serialization if
-		you don't want serialization to save the entire interpreter and all
-		enclosing namespaces.  This is used by the bsh save() command.
-		<p>
-
-		This is a static utility method because it's used by a bsh command
-		bind() and the interpreter doesn't currently allow access to direct 
-		methods of This objects (small hack)
-	public static void unbind( This ths ) {
-	}
-*/
-
-/*
-	private final void initCallStack( NameSpace namespace ) {
-		callstack = new CallStack();
-		callstack.push( namespace );
-	}
-*/
-	CallStack newCallStack() {
-		CallStack callstack = new CallStack();
-		callstack.push( namespace );
-		return callstack;
 	}
 }
 

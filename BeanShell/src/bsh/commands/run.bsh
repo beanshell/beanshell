@@ -16,7 +16,7 @@
 
 	Returns the context so that you can gather results.
 	<p>
-	Paramameter runArgument an argument passed to the child context under the
+	Parameter runArgument an argument passed to the child context under the
 		name runArgument.  e.g. you might pass in the calling This context
 		from which to draw variables, etc.
 	<p>

@@ -3,9 +3,9 @@
 	e.g.
 	<p>
 	<pre>
-        addClassPath( "/home/pat/java/classes" );
-        addClassPath( "/home/pat/java/mystuff.jar" );
-        addClassPath( new URL("http://myserver/~pat/somebeans.jar") );
+    addClassPath( "/home/pat/java/classes" );
+    addClassPath( "/home/pat/java/mystuff.jar" );
+    addClassPath( new URL("http://myserver/~pat/somebeans.jar") );
 	</pre>
 	<p>
 	See <a href="classpath.html">Class Path Management</a>

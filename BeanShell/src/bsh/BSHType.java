@@ -73,7 +73,8 @@ class BSHType extends SimpleNode
     /**
 		 Returns a class for the type
 	*/
-    public Class getType( NameSpace namespace ) 
+    //public Class getType( NameSpace namespace ) 
+    public Class getType( CallStack callstack, Interpreter interpreter ) 
 		throws EvalError
     {
         // return cached type if available
@@ -86,9 +87,10 @@ class BSHType extends SimpleNode
         if(node instanceof BSHPrimitiveType)
             baseType = ((BSHPrimitiveType)node).getType();
         else 
-            baseType = ((BSHAmbiguousName)node).toClass( namespace );
+            baseType = ((BSHAmbiguousName)node).toClass( 
+				callstack, interpreter );
 
-        if(arrayDims > 0) {
+        if ( arrayDims > 0 ) {
             try {
                 // Get the type by constructing a prototype array with
 				// arbitrary (zero) length in each dimension.
@@ -96,7 +98,8 @@ class BSHType extends SimpleNode
                 Object obj = Array.newInstance(baseType, dims);
                 type = obj.getClass(); 
             } catch(Exception e) {
-                throw new EvalError("Couldn't construct array type", this);
+                throw new EvalError("Couldn't construct array type", 
+					this, callstack );
             }
         } else
             type = baseType;

@@ -1,5 +1,5 @@
 /**
-	Open a new workspace (shell) in the GUI.
+	Open a new workspace (JConsole) in the GUI desktop.
 */
 import javax.swing.*;
 

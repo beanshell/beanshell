@@ -115,8 +115,8 @@ stylesheet could (and will) be easily created for more general BeanShell
 file documentation.  Please check the web site for updates.
 
 <p/>
-Method signatures displayed for methods can be overriden for the 
-bshcommands.xsl stylesheet by expliticly supplying them in special 
+Method signatures displayed for methods can be overridden for the 
+bshcommands.xsl stylesheet by explicitly supplying them in special 
 javadoc @method tags within a 
 Method Comment.  For example you might do this to provide a more
 verbose description for loosely typed arguments to a BeanShell command.  

@@ -36,7 +36,7 @@ absfilename = pathToFile( filename );
 <h2>Path Names and Slashes</h2>
 
 When working with path names you can generally just use forward slashes
-in BeanShell.  Java localizes forward slashes to the approprate value
+in BeanShell.  Java localizes forward slashes to the appropriate value
 under Windows environments.  If you must use backslashes remember to 
 escape them by doubling them:
 

@@ -43,10 +43,10 @@ its GUI desktop mode, this variable holds a reference to the current
 interpreter's console, if it has one.</li>
 
 <li><strong>bsh.appletcontext</strong> - If BeanShell
-is running inside an Applet, the current applet ccontext, if one exists.</li>
+is running inside an Applet, the current applet context, if one exists.</li>
 
 <li><strong>bsh.cwd</strong> - A String representing the current working
-directory of the BeanShell interpreter.  This is used or manimpulated by the 
+directory of the BeanShell interpreter.  This is used or manipulated by the 
 cd(), dir(), pwd(), and pathToFile() commands.</li>
 
 <li><strong>bsh.show</strong> - A boolean value used by the show() command.

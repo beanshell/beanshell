@@ -129,7 +129,8 @@ class XThis extends This
 				return invokeImpl( proxy, method, args );
 			} catch ( EvalError ee ) {
 				// Ease debugging...
-				Interpreter.debug( "EvalError in scripted interface: "
+				if ( Interpreter.DEBUG ) 
+					Interpreter.debug( "EvalError in scripted interface: "
 					+ XThis.this.toString() + ": "+ ee );
 				throw ee;
 			}
@@ -138,7 +139,7 @@ class XThis extends This
 		public Object invokeImpl( Object proxy, Method method, Object[] args ) 
 			throws EvalError 
 		{
-			CallStack callstack = newCallStack();
+			CallStack callstack = new CallStack( namespace );
 
 			Class [] sig = Reflect.getTypes( args );
 			BshMethod bmethod = 
@@ -146,7 +147,7 @@ class XThis extends This
 
 			if ( bmethod != null )
 				return Primitive.unwrap( 
-					bmethod.invokeDeclaredMethod( 
+					bmethod.invoke( 
 					args, declaringInterpreter, callstack, null ) );
 
 			// Look for the default handler
@@ -156,7 +157,7 @@ class XThis extends This
 			// Call script "invoke( String methodName, Object [] args );
 			if ( bmethod != null )
 				return Primitive.unwrap( 
-					bmethod.invokeDeclaredMethod( 
+					bmethod.invoke( 
 					new Object [] { method.getName(), args }, 
 					declaringInterpreter, callstack, null ) );
 
@@ -182,11 +183,16 @@ class XThis extends This
 				return new Boolean( proxy == obj );
 			}
 
+			// Passing null node (unknown location) and null callstack in error.
+			// This is the case where we are crossing a proxy invocation
+			// boundary...  If called from a script maybe we could add 
+			// an additional interface with another form of invoke() to 
+			// allow us to bypass the proxy class and do the invoke, passing
+			//  the callerInfo node along and preserving the location.
 			throw new EvalError("Bsh script method: "+ method.getName()
-				+ " not found in namespace: "+ namespace.name );
+				+ " not found in namespace: "+ namespace.name, null, null );
 		}
 	};
-
 }
 
 

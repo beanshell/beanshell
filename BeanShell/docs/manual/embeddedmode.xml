@@ -274,7 +274,7 @@ and they will expect the expression to be of the appropriate resulting type.
 <p/>
 
 <em>The deprecated setVariable() and getVariable() methods are no longer
-used becaues the did not allow for complex evaluation of variable names</em>
+used because the did not allow for complex evaluation of variable names</em>
 <p/>
 
 You can use the unset() method to return a variable to the undefined state.
@@ -306,7 +306,7 @@ ActionListener scriptedHandler =
     (ActionListener)i.eval("return (ActionListener)this");
 
 // Use the scripted event handler normally...
-new JButton.addActionListener( script );
+new JButton.addActionListener( scriptedHandler );
 </example>
 
 Here we have performed the explicit cast in the script as we returned the
@@ -359,7 +359,7 @@ briefly in "Scripting Interfaces".
 Since working with multiple threads introduces issues of synchronization
 and application structure, you may wish to simply create multiple Interpreter
 instances.  BeanShell Interpreter instances were designed to be very light
-weight.  Construction time is usually negligable and in simple tests, we have 
+weight.  Construction time is usually negligible and in simple tests, we have 
 found that it is possible to maintain hundreds (or even thousands) of 
 instances.
 <p/>

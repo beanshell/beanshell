@@ -176,32 +176,41 @@ public abstract class BshClassManager
 		@return the class
 	*/
 	public static Class plainClassForName( String name ) 
-		throws ClassNotFoundException 
+		throws ClassNotFoundException
 	{
-		try {
-			Class c;
-			if ( externalClassLoader != null )
-				c = externalClassLoader.loadClass( name );
-			else {
-				// If BCM exists, delegate to it.
-				BshClassManager bcm = manager; // Don't create if not there yet.
-				if ( bcm != null )
-					c = bcm.getPlainClassForName( name );				
-				else
-					c = Class.forName( name );
-			}
+		Class c = null;
 
-			cacheClassInfo( name, c );
-			return c;
+		try {
+	
+		if ( externalClassLoader != null )
+			c = externalClassLoader.loadClass( name );
+		else {
+			// If BCM exists, delegate to it.
+			BshClassManager bcm = manager; // Don't create if not there yet.
+			if ( bcm != null )
+				c = bcm.getPlainClassForName( name );				
+			else
+				c = Class.forName( name );
+		}
+
+		cacheClassInfo( name, c );
+
 		/*
-			This is weird... jdk under Win is throwing these to
+			Original note: Jdk under Win is throwing these to
 			warn about lower case / upper case possible mismatch.
 			e.g. bsh.console bsh.Console
+	
+			Update: Prior to 1.3 we were squeltching NoClassDefFoundErrors 
+			which was very annoying.  I cannot reproduce the original problem 
+			and this was never a valid solution.  If there are legacy VMs that
+			have problems we can include a more specific test for them here.
 		*/
 		} catch ( NoClassDefFoundError e ) {
-			cacheClassInfo( name, null ); // non-class
-			throw new ClassNotFoundException( e.toString() );
+			//cacheClassInfo( name, null ); // non-class
+			throw noClassDefFound( name, e );
 		}
+
+		return c;
 	}
 
 	/**
@@ -255,6 +264,12 @@ public abstract class BshClassManager
 		BshClassManager bcm = getClassManager();
 		if ( bcm != null )
 			bcm.classLoaderChanged();
+	}
+
+	protected static Error noClassDefFound( String className, Error e ) {
+		return new NoClassDefFoundError(
+			"A class required by class: "+className +" could not be loaded:\n"
+			+e.toString() );
 	}
 
 	// end static methods
@@ -332,7 +347,7 @@ public abstract class BshClassManager
 		Hide details in here as opposed to NameSpace.
 	Note: this used to be package private...
 	*/
-	public abstract void doSuperImport() throws EvalError;
+	public abstract void doSuperImport() throws UtilEvalError;
 
 	/**
 		Return the name or null if none is found,

@@ -85,7 +85,7 @@ class JThis extends This implements
 
 	void event(String name, Object event)
 	{
-		CallStack callstack = newCallStack();
+		CallStack callstack = new CallStack( namespace );
 		BshMethod method;
 
 		// handleEvent gets all events
@@ -94,7 +94,7 @@ class JThis extends This implements
 
 		if (method != null)
 			try {
-				method.invokeDeclaredMethod( 
+				method.invoke( 
 					new Object[] { event }, declaringInterpreter, callstack, null );
 			} catch(EvalError e) {
 				declaringInterpreter.error(
@@ -105,7 +105,7 @@ class JThis extends This implements
 		method = namespace.getMethod( name, new Class [] { null } );
 		if (method != null)
 			try {
-				method.invokeDeclaredMethod( 
+				method.invoke( 
 					new Object[] { event }, declaringInterpreter, callstack, null );
 			} catch(EvalError e) {
 				declaringInterpreter.error(
@@ -210,8 +210,8 @@ class JThis extends This implements
 			new Class [] { null, null, null, null, null, null } );
 		if(method != null)
 			try {
-				CallStack callstack = newCallStack();
-				method.invokeDeclaredMethod( 
+				CallStack callstack = new CallStack( namespace );
+				method.invoke( 
 					new Object[] { 
 						img, new Primitive(infoflags), new Primitive(x), 
 						new Primitive(y), new Primitive(width), 

@@ -59,12 +59,8 @@ class BSHMethodDeclaration extends SimpleNode
 	/**
 		Evaluate the declaration of the method.  That is, determine the
 		structure of the method and install it into the caller's namespace.
-	
-		Since the structure of the method is only determined by type evaluation
-		(through eval of BSHFormalParameters) we do not need the interpreter 
-		or callstack.
 	*/
-	public Object eval( NameSpace namespace )  
+	public Object eval( CallStack callstack, Interpreter interpreter )  
 		throws EvalError
 	{
 		if ( block == null ) 
@@ -76,10 +72,10 @@ class BSHMethodDeclaration extends SimpleNode
 				"Method: " + name + " already defined in scope", this);
 			*/
 
-			if(jjtGetNumChildren() == 3)
+			if ( jjtGetNumChildren() == 3 )
 			{
 				returnType = 
-					((BSHReturnType)jjtGetChild(0)).getReturnType( namespace );
+					((BSHReturnType)jjtGetChild(0)).getReturnType( callstack, interpreter );
 				params = (BSHFormalParameters)jjtGetChild(1);
 				block = (BSHBlock)jjtGetChild(2);
 			}
@@ -88,22 +84,26 @@ class BSHMethodDeclaration extends SimpleNode
 				params = (BSHFormalParameters)jjtGetChild(0);
 				block = (BSHBlock)jjtGetChild(1);
 			}
-			params.eval( namespace );
+			params.eval( callstack, interpreter );
 
 			// if strictJava mode, check for loose parameters and return type
 			if ( Interpreter.strictJava )
 			{
 				for(int i=0; i<params.argTypes.length; i++)
 					if ( params.argTypes[i] == null )
+						// Warning: Null callstack here.  Don't think we need
+						// a stack trace to indicate how we sourced the method.
 						throw new EvalError(
 					"(Strict Java Mode) Undeclared argument type, parameter: " +
 						params.argNames[i] + " in method: " 
-						+ name, this );
+						+ name, this, null );
 
 				if ( returnType == null )
+					// Warning: Null callstack here.  Don't think we need
+					// a stack trace to indicate how we sourced the method.
 					throw new EvalError(
 					"(Strict Java Mode) Undeclared return type for method: "
-						+ name, this );
+						+ name, this, null );
 			}
 		}
 
@@ -114,6 +114,7 @@ class BSHMethodDeclaration extends SimpleNode
 // need a way to update eval without re-installing...
 // so that we can re-eval params, etc. when classloader changes
 // look into this
+		NameSpace namespace = callstack.top();
 		namespace.setMethod( name, new BshMethod( this, namespace ) );
 
 		return Primitive.VOID;

@@ -112,7 +112,7 @@ Note that the local use of 'a' did not change the value in the parent scope.
 This behavior might not be what you'd expect.  It may appear in this 
 example that we should be changing the value of the parent's 'a', rather 
 than creating a new local variable called 'a'.  This case is one of the only
-places where BeanShell could be percieved to have an ambiguity with respect to 
+places where BeanShell could be perceived to have an ambiguity with respect to 
 standard Java syntax.  We will explain why this exists and what it means more 
 later.  But for now, if it makes you feel any better, the explanation is that 
 a BeanShell script is really like a Java method.  So technically what we have 
@@ -121,7 +121,7 @@ it is therefore not unreasonable to expect some new semantics.
 <p/>
 
 <tip>
-For those for whom strict Java compatability is the most important issue
+For those for whom strict Java compatibility is the most important issue
 (e.g. Java students and teachers) BeanShell offers a "Strict Java" mode.
 Specifying setStrictJava( true ) eliminates any potential ambiguity, by
 turning off loosely typed variables and arguments entirely.

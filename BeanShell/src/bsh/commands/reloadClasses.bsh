@@ -4,13 +4,14 @@
 	<p>
 
 	<pre>
-		reloadClasses();
-		reloadClasses("mypackage.*");
-		reloadClasses(".*")  // reload unpackaged classes
-		reloadClasses("mypackage.MyClass") 
+    reloadClasses();
+    reloadClasses("mypackage.*");
+    reloadClasses(".*")  // reload unpackaged classes
+    reloadClasses("mypackage.MyClass") 
 	</pre>
 	<p>
-	See <a href="classpath.html">Class Path Management</a>
+
+	See "Class Path Management"
 
 	@method void reloadClasses( [ package name ] )
 */

@@ -40,91 +40,55 @@ package bsh;
 
 	EvalError may be thrown for a script syntax error, an evaluation 
 	error such as referring to an undefined variable, an internal error.
+	<p>
 	
-	If the script has thrown an exception the exception will be wrapped
-	in a TargetError.  
 	@see TargetError
 */
-public class EvalError extends Exception {
-	/**
-		Note: we could make this a vector and hold the full stack trace of
-		method invocations that lead to the exception...
-	*/
+public class EvalError extends Exception 
+{
 	SimpleNode node;
 
-	// Note: no way to get at Throwable message, must maintain our own
+	// Note: no way to mutate the Throwable message, must maintain our own
 	String message;
 
-	public EvalError(String s) {
-		setMessage(s);
-	}
+	CallStack callstack;
 
-	public EvalError(String s, SimpleNode node) {
-		this(s);
+	public EvalError( String s, SimpleNode node, CallStack callstack ) {
+		setMessage(s);
 		this.node = node;
+		// freeze the callstack for the stack trace.
+		if ( callstack != null )
+			this.callstack = callstack.copy();
 	}
 
 	/**
+		Print the error with line number and stack trace.
 	*/
-	public String toString() {
+	public String toString() 
+	{
 		String trace;
 		if ( node != null )
 			trace = " : at Line: "+ node.getLineNumber() 
 				+ " : in file: "+ node.getSourceFile()
 				+ " : "+node.getText();
 		else
-			// users should not see this, in the worst case the interpreter
-			// should insert the Line() AST node.
+			// Users should not normally see this.
 			trace = ": <at unknown location>";
 
-			//return super.toString() + trace;
-			return getMessage() + trace;
+		if ( callstack != null )
+			trace = trace +"\n" + getScriptStackTrace();
+
+		return getMessage() + trace;
 	}
 
 	/**
-		Re-throw the eval error, prepending msg to the message.
+		Re-throw the error, prepending the specified message.
 	*/
 	public void reThrow( String msg ) 
 		throws EvalError 
 	{
-		reThrow( msg, null );
-	}
-
-	/**
-		Re-throw the eval error, specifying the node.
-		If a node already exists the argument node is ignored.
-		@see #setNode( bsh.SimpleNode )
-	*/
-	public void reThrow( SimpleNode node ) 
-		throws EvalError 
-	{
-		reThrow( null, node );
-	}
-
-	/**
-		Re-throw the eval error, prefixing msg to the message and specifying
-		the node.  If a node already exists the addNode is ignored.
-		@see #setNode( bsh.SimpleNode )
-		<p>
-		@param msg may be null for no additional message.
-	*/
-	public void reThrow( String addMsg, SimpleNode addNode ) 
-		throws EvalError 
-	{
-		prependMessage( addMsg );
-		addNode( addNode );
+		prependMessage( msg );
 		throw this;
-	}
-
-	/**
-		Set the AST node for trace info.
-		@see reThrow
-	
-		This is useful for the interpreter if it detects that there is no
-		trace info and wants to supply the Line() AST before printing.
-	*/
-	void setNode( SimpleNode node ) {
-		this.node = node;
 	}
 
 	/**
@@ -133,6 +97,10 @@ public class EvalError extends Exception {
 	*/
 	SimpleNode getNode() {
 		return node;
+	}
+
+	void setNode( SimpleNode node ) {
+		this.node = node;
 	}
 
 	public String getErrorText() { 
@@ -156,6 +124,30 @@ public class EvalError extends Exception {
 			return "<unknown file>";
 	}
 
+	public String getScriptStackTrace() 
+	{
+		if ( callstack == null )
+			return "<Unknown>";
+
+		String trace = "";
+		CallStack stack = callstack.copy();
+		while ( stack.depth() > 0 ) 
+		{
+			NameSpace ns = stack.pop();
+			SimpleNode node = ns.getNode();
+			if ( ns.isMethod )
+				trace = trace + "\nCalled from method: " + ns.getName()
+				+ " : at Line: "+ node.getLineNumber() 
+				+ " : in file: "+ node.getSourceFile()
+				+ " : "+node.getText();
+		}
+
+		return trace;
+	}
+
+	/**
+		@see #toString() for a full display of the information
+	*/
 	public String getMessage() { return message; }
 
 	public void setMessage( String s ) { message = s; }
@@ -168,10 +160,5 @@ public class EvalError extends Exception {
 			message = s + " : "+ message;
 	}
 
-	protected void addNode( SimpleNode addNode  ) {
-		SimpleNode node = this.node;
-		if ( node == null && addNode != null )
-			node = addNode;
-	}
 }
 

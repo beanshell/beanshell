@@ -58,7 +58,7 @@ class BSHArrayDimensions extends SimpleNode
 			Class type, CallStack callstack, Interpreter interpreter ) 
 		throws EvalError 
 	{
-		Interpreter.debug("array base type = "+type);
+		if ( Interpreter.DEBUG ) Interpreter.debug("array base type = "+type);
 		baseType = type;
 		return eval( callstack, interpreter );
 	}
@@ -85,7 +85,8 @@ class BSHArrayDimensions extends SimpleNode
 		{
 			if ( baseType == null )
 				throw new EvalError( 
-					"Internal Array Eval err:  unknown base type", this);
+					"Internal Array Eval err:  unknown base type", 
+					this, callstack );
 
 			Object initValue = ((BSHArrayInitializer)child).eval(
 				baseType, arrayDims, callstack, interpreter);
@@ -99,7 +100,7 @@ class BSHArrayDimensions extends SimpleNode
 				throw new EvalError(
 				"Incompatible initializer. Allocation calls for a " + 
 				arrayDims + " dimensional array, but initializer is a " +
-					dimensions.length + " dimensional array", this);
+					dimensions.length + " dimensional array", this, callstack );
 
 			// fill in dimensions[] lengths
 			Object arraySlice = initValue;
@@ -126,7 +127,7 @@ class BSHArrayDimensions extends SimpleNode
 				{
 					throw new EvalError(
 						"Array index: " + i + 
-						" does not evaluate to an integer", this);
+						" does not evaluate to an integer", this, callstack );
 				}
 			}
 		}

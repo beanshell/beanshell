@@ -1,6 +1,10 @@
 /**
-	The equivalent of calling getResource() on the interpreter class in
-	the bsh package.  Use absolute paths to get stuff in the classpath.
+	Get a resource from the classpath.
+	Note: Currently this command does not take into account any BeanShell
+	modifications to the classpath, but in the future it will.
+	Currently this is the equivalent of calling getResource() on the 
+	interpreter class in the BeanShell package.  Use absolute paths to get 
+	items in the classpath.
 */
 
 bsh.help.getResource = "usage: getResource( String name )";

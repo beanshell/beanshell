@@ -31,95 +31,61 @@
  *                                                                           *
  *****************************************************************************/
 
+
 package bsh;
 
-import java.util.Hashtable;
-
 /**
-	The map of extended features supported by the runtime in which we live.
+	UtilEvalError is an error corresponding to an EvalError but thrown by a 
+	utility or other class that does not have the caller context (Node) 
+	available to it.  A normal EvalError must supply the caller Node in order 
+	for error messages to be pinned to the correct line and location in the 
+	script.  UtilEvalError is a checked exception that is *not* a subtype of 
+	EvalError, but instead must be caught and rethrown as an EvalError by 
+	the a nearest location with context.  The method toEvalError( Node ) 
+	should be used to throw the EvalError, supplying the node.
 	<p>
 
-	This class should be independent of all other bsh classes!
+	To summarize: Utilities throw UtilEvalError.  ASTs throw EvalError.
+	ASTs catch UtilEvalError and rethrow it as EvalError using 
+	toEvalError( Node ).  
 	<p>
 
-	Note that tests for class existence here do *not* use the 
-	BshClassManager, as it may require other optional class files to be 
-	loaded.  
+	Philosophically, EvalError and UtilEvalError corrospond to 
+	RuntimeException.  However they are constrained in this way in order to 
+	add the context for error reporting.
+
+	@see UtilTargetError
 */
-public class Capabilities 
+public class UtilEvalError extends Exception 
 {
-	private static boolean accessibility = false;
-
-	public static boolean haveSwing() {
-		// classExists caches info for us
-		return classExists( "javax.swing.JButton" );
+	protected UtilEvalError() {
 	}
 
-	public static boolean canGenerateInterfaces() {
-		// classExists caches info for us
-		return classExists( "java.lang.reflect.Proxy" );
+	public UtilEvalError( String s ) {
+		super(s);
 	}
 
 	/**
-		If accessibility is enabled
-		determine if the accessibility mechanism exists and if we have
-		the optional bsh package to use it.
-		Note that even if both are true it does not necessarily mean that we 
-		have runtime permission to access the fields... Java security has
-	 	a say in it.
-		@see bsh.ReflectManager
+		Re-throw as an eval error, prefixing msg to the message and specifying
+		the node.  If a node already exists the addNode is ignored.
+		@see #setNode( bsh.SimpleNode )
+		<p>
+		@param msg may be null for no additional message.
 	*/
-	public static boolean haveAccessibility() 
+	public EvalError toEvalError( 
+		String msg, SimpleNode node, CallStack callstack  ) 
 	{
-		// classExists caches the tests for us
-		return ( accessibility 
-			&& classExists( "java.lang.reflect.AccessibleObject" )
-			&& classExists("bsh.reflect.ReflectManagerImpl") 
-		);
+		if ( msg == null )
+			msg = "";
+		else
+			msg = msg + ": ";
+		return new EvalError( msg+getMessage(), node, callstack );
 	}
 
-	public static void setAccessibility( boolean b ) { accessibility = b; }
-
-	private static Hashtable classes = new Hashtable();
-	/**
-		Use direct Class.forName() to test for the existence of a class.
-		We should not use BshClassManager here because:
-			a) the systems using these tests would probably not load the
-			classes through it anyway.
-			b) bshclassmanager is heavy and touches other class files.  
-			this capabilities code must be light enough to be used by any
-			system **including the remote applet**.
-	*/
-	public static boolean classExists( String name ) 
+	public EvalError toEvalError ( SimpleNode node, CallStack callstack ) 
 	{
-		Object c = classes.get( name );
-
-		if ( c == null ) {
-			try {
-				/*
-					Note: do *not* change this to 
-					BshClassManager.plainClassForName() or equivalent.
-					This class must not touch any other bsh classes.
-				*/
-				c = Class.forName( name );
-			} catch ( ClassNotFoundException e ) { }
-
-			if ( c != null )
-				classes.put(c,"unused");
-		}
-
-		return c != null;
+		return toEvalError( null, node, callstack );
 	}
 
-	/**
-		An attempt was made to use an unavailable capability supported by
-		an optional package.  The normal operation is to test before attempting
-		to use these packages... so this is runtime exception.
-	*/
-	public static class Unavailable extends RuntimeException 
-	{
-		public Unavailable(String s ){ super(s); }
-	}
 }
-
 

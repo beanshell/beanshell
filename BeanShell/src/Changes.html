@@ -2,6 +2,57 @@
 <head><title>BeanShell - Change Log</title></head>
 <body bgcolor=#ffffff>
 
+<h3>Changes in 1.3</h3>
+<pre>
+	*** In progress ***
+	- Implementing caching of class info for method resolution for performance.
+
+	- All normal error messages should now include line numbers and invocation 
+		text.  Removed the no context constructors for EvalError and 
+		TargetError.  Added checked parallel exceptions UtilEvalError and 
+		UtilTargetError for use in other areas.  Use UtilEvalError 
+		toEvalError( node, callstack ) to rethrow these as necessary.
+	- Added script stack trace to error messages.  EvalError and TargeError
+		now require callstack.  Added getScriptStackTrace() method to
+		EvalError API.  toString() prints the script stack trace by default.
+	- Errors indicating bad return control or return type from method now
+		point to the exactly location of the return.
+	- Removed deprecated get/setVariable methods...  optimized for common case
+		in 1.2 branch so there should be no performance penalty for using
+		set over setVariable.
+	- Remote client can now utilize bsh:// URLs to talk to embedded bsh server.
+	- Added "bsh" target to build.xml for running a script from the current
+		build.  e.g. ant -Dfile=foo.bsh bsh
+
+
+	- Stopped squeltching NoClassDefFound errors... This was the source of
+	much frustration where BeanShell would indicate that a class was not found
+	when it was really a dependent class that was missing.  We now catch
+	NoClassDefFoundError and add a message specifying which class was being
+	loaded when the missing class was encountered.
+
+</pre>
+
+<h2>Changes in 1.2b8 </h2>
+<pre>
+	- Added check for return of value from void method.  Fixed a couple of
+		places where we made this mistake.
+	- Added dirname() command
+	- Added "test" target to build file (runs tests/RunAllTests.bsh).  Modified
+		RunAllTests.bsh to cd() to the directory containing the RunAllTests.bsh
+		script before executing the tests.
+	- Certain return type errors now point to specific locations, rather
+		than the method declaration.
+</pre>
+
+<h2>Changes in 1.2b7 </h2>
+<pre>
+	- Fixed bug where Interepreter was not closing Reader streams after
+	sourcing files.
+	- Updated JConsole to work with Java 1.4.1 (changed getText.length() calls
+	to getDocument().getLength()).
+</pre>
+
 <h2>Changes in 1.2b6 </h2>
 <pre>
 	- Made bsh.Parser public and added a main() method allowing users to 
@@ -502,3 +553,5 @@ If you close the console they are restored to the original System.in,out,err.
 </ul>
 
 <hr>
+</body>
+</head>

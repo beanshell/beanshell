@@ -38,6 +38,8 @@ import java.lang.reflect.Array;
 import java.util.Hashtable;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import bsh.Reflect.MethodInvoker;
+import bsh.Reflect.JavaMethod;
 
 /**
 	What's in a name?  I'll tell you...
@@ -53,8 +55,8 @@ import java.lang.reflect.InvocationTargetException;
 	*** implementing ***
 	Name objects are not to be constructed arbitrarily, but are to be 
 	factoried by NameSpace.getNameResolver, which caches them subject to
-	a namespace change.  This means that we can cache information about various
-	types of resolution here.
+	a class namespace change.  This means that we can cache information about 
+	various types of resolution here and class resolution can be freely cached.
 */
 /*
 	<strong>Implementation notes</strong>
@@ -70,7 +72,16 @@ import java.lang.reflect.InvocationTargetException;
 	cache the knowledge that it is a variable, but must re-fetch the value
 	each time.  We could even do cool optimizations such as knowing about
 	'final' variables ;)
-	
+
+	Note about invokeMethod():  We could simply use resolveMethod and return
+	the MethodInvoker (BshMethod or JavaMethod) however there is no easy way
+	for the AST (BSHMehodInvocation) to use this as it doesn't have type
+	information about the target to resolve overloaded methods.
+	(In Java, overloaded methods are resolved at complile time... here they
+	are, of necessity, dynamic).  So it would have to do what we do here
+	and cache by signature.  We'll do that for the client here and keep this
+	the abstraction inside the Name.
+
 	Questions: how much will this actually buy us?  The simple cases are not
 	expensive here, are they?  How often are long chains of names evaluated?
 	*** implementing ***
@@ -141,6 +152,17 @@ class Name implements java.io.Serializable
 	//  End mutable instance variables.
 	// ---------------------------------------------------------
 
+	// Begin Cached result structures
+
+	Object asObject;
+	LHS asLHS;
+
+	// Note: it's ok to cache class resolution here because when the class
+	// space changes the namespace will discard cached names.
+	Class asClass;
+	Hashtable resolvedMethods;
+
+	// End Cached result structures
 
 	private void reset() {
 		evalName = value;
@@ -184,7 +206,7 @@ class Name implements java.io.Serializable
 		"this.callstack" magic field.
 	*/
 	public Object toObject( CallStack callstack, Interpreter interpreter ) 
-		throws EvalError
+		throws UtilEvalError
 	{
 		return toObject( callstack, interpreter, false );
 	}
@@ -197,8 +219,11 @@ class Name implements java.io.Serializable
 	*/
 	synchronized public Object toObject( 
 		CallStack callstack, Interpreter interpreter, boolean forceClass ) 
-		throws EvalError
+		throws UtilEvalError
 	{
+		//if ( asObject != null )
+			//return asObject;
+
 		reset();
 
 		Object obj = null;
@@ -208,7 +233,8 @@ class Name implements java.io.Serializable
 		if ( obj == null )
 			throw new InterpreterError("null value in toObject()");
 
-		return obj;
+		asObject = obj;
+		return asObject;
 	}
 
 	/**
@@ -216,7 +242,7 @@ class Name implements java.io.Serializable
 	*/
 	private Object consumeNextObjectField( 	
 		CallStack callstack, Interpreter interpreter, boolean forceClass ) 
-		throws EvalError
+		throws UtilEvalError
 	{
 		/*
 			Is it a simple variable name?
@@ -245,7 +271,8 @@ class Name implements java.io.Serializable
 			&& !forceClass ) 
 		{
 			String varName = prefix(evalName, 1);
-			Interpreter.debug("trying to resolve variable: " + varName);
+			if ( Interpreter.DEBUG ) 
+				Interpreter.debug("trying to resolve variable: " + varName);
 			Object obj;
 			if ( evalBaseObject == null ) {
 				obj = resolveThisFieldReference( 
@@ -260,7 +287,8 @@ class Name implements java.io.Serializable
 			if ( obj != Primitive.VOID ) 
 			{
 				// Resolved the variable
-				Interpreter.debug( "resolved variable: " + varName + 
+				if ( Interpreter.DEBUG ) 
+					Interpreter.debug( "resolved variable: " + varName + 
 					" in namespace: "+namespace);
 				evalName = suffix(evalName);
 				return evalBaseObject = obj;
@@ -272,7 +300,8 @@ class Name implements java.io.Serializable
 			If we're just starting eval of name try to make it, else fail.
 		*/
 		if ( evalBaseObject == null ) {
-			Interpreter.debug( "trying class: " + evalName);
+			if ( Interpreter.DEBUG ) 
+				Interpreter.debug( "trying class: " + evalName);
 			
 			/*
 				Keep adding parts until we have a class 
@@ -288,7 +317,8 @@ class Name implements java.io.Serializable
 				return ( evalBaseObject = new ClassIdentifier(clas) );
 			}
 			// not a class (or variable per above)
-			Interpreter.debug( "not a class, trying var prefix "+evalName );
+			if ( Interpreter.DEBUG ) 
+				Interpreter.debug( "not a class, trying var prefix "+evalName );
 		}
 
 
@@ -305,7 +335,7 @@ class Name implements java.io.Serializable
 				evalName = null; // finished
 				return evalBaseObject = Primitive.VOID;  // convention
 			} else
-				throw new EvalError(
+				throw new UtilEvalError(
 					"Class or variable not found:" + evalName);
 		}
 
@@ -320,16 +350,16 @@ class Name implements java.io.Serializable
 			Do some basic validity checks.
 		*/
 
-		if(evalBaseObject == Primitive.NULL) // previous round produced null
-			throw new TargetError( "Null Pointer while evaluating: "
-				+value, new NullPointerException() );
+		if ( evalBaseObject == Primitive.NULL) // previous round produced null
+			throw new UtilTargetError( new NullPointerException( 
+				"Null Pointer while evaluating: " +value ) );
 
-		if(evalBaseObject == Primitive.VOID) // previous round produced void
-			throw new EvalError(
+		if ( evalBaseObject == Primitive.VOID) // previous round produced void
+			throw new UtilEvalError(
 				"Undefined variable or class name while evaluating: "+value);
 
-		if(evalBaseObject instanceof Primitive)
-			throw new EvalError("Can't treat primitive like an object. "+
+		if ( evalBaseObject instanceof Primitive)
+			throw new UtilEvalError("Can't treat primitive like an object. "+
 			"Error while evaluating: "+value);
 
 		/* 
@@ -344,11 +374,13 @@ class Name implements java.io.Serializable
 			Object obj = null;
 			// static field?
 			try {
-				Interpreter.debug("Name call to getStaticField, class: " 
-					+clas+", field:"+field);
+				if ( Interpreter.DEBUG ) 
+					Interpreter.debug("Name call to getStaticField, class: " 
+						+clas+", field:"+field);
 				obj = Reflect.getStaticField(clas, field);
 			} catch( ReflectError e ) { 
-				Interpreter.debug("field reflect error: "+e);
+				if ( Interpreter.DEBUG ) 
+					Interpreter.debug("field reflect error: "+e);
 			}
 
 			// inner class?
@@ -360,7 +392,7 @@ class Name implements java.io.Serializable
 			}
 
 			if ( obj == null )
-				throw new EvalError(
+				throw new UtilEvalError(
 					"No static field or inner class: " + field + " of " + clas);
 
 			evalName = suffix(evalName);
@@ -372,7 +404,7 @@ class Name implements java.io.Serializable
 			a class type.
 		*/
 		if ( forceClass )
-			throw new EvalError( value +" does not resolve to a class name." );
+			throw new UtilEvalError( value +" does not resolve to a class name." );
 
 		/* 
 			Some kind of field access?
@@ -399,7 +431,7 @@ class Name implements java.io.Serializable
 		catch(ReflectError e) { /* not a field */ }
 	
 		// if we get here we have failed
-		throw new EvalError(
+		throw new UtilEvalError(
 			"Cannot access field: " + field + ", on object: " + evalBaseObject);
 	}
 
@@ -421,7 +453,7 @@ class Name implements java.io.Serializable
 	Object resolveThisFieldReference( 
 		CallStack callstack, NameSpace thisNamespace, Interpreter interpreter, 
 		String varName, boolean specialFieldsVisible ) 
-		throws EvalError
+		throws UtilEvalError
 	{
 		Object obj = null;
 		// preserve the state of the last round flags until the end
@@ -433,7 +465,7 @@ class Name implements java.io.Serializable
 			// Hack! If the special fields are visible turn of further .this
 			// prevent user from skipping to things like super.this.caller
 			if ( specialFieldsVisible )
-				throw new EvalError("Redundant to call .this on This type");
+				throw new UtilEvalError("Redundant to call .this on This type");
 			obj = thisNamespace.getThis( interpreter );
 			wasThis = true;
 		} 
@@ -456,7 +488,7 @@ class Name implements java.io.Serializable
 				if ( literalThisReference )
 					obj = interpreter;
 				else
-					throw new EvalError(
+					throw new UtilEvalError(
 						"Can only call .interpreter on literal 'this'");
 		}
 
@@ -471,7 +503,7 @@ class Name implements java.io.Serializable
 					interpreter ); 
 			}
 			else
-				throw new EvalError(
+				throw new UtilEvalError(
 				"Can only call .caller on literal 'this' or literal '.caller'");
 
 			wasCaller = true;
@@ -488,7 +520,7 @@ class Name implements java.io.Serializable
 				obj = callstack;
 			}
 			else
-				throw new EvalError(
+				throw new UtilEvalError(
 				"Can only call .callstack on literal 'this'");
 		}
 
@@ -505,10 +537,16 @@ class Name implements java.io.Serializable
 		Check the cache, else use toObject() to try to resolve to a class
 		identifier.  
 
-		Throws EvalError on class not found...
+		@throws ClassNotFoundException on class not found.
+		@throws ClassPathException (type of EvalError) on special case of 
+		ambiguous unqualified name after super import. 
 	*/
-	synchronized public Class toClass() throws EvalError 
+	synchronized public Class toClass() 
+		throws ClassNotFoundException, ClassPathException
 	{
+		if ( asClass != null )
+			return asClass;
+
 		reset();
 
 		/* Try straightforward class name first */
@@ -524,34 +562,43 @@ class Name implements java.io.Serializable
 				// Null interpreter and callstack references.
 				// class only resolution should not require them.
 				obj = toObject( null, null, true );  
-			} catch ( EvalError  e ) { }; // couldn't resolve it
+			} catch ( UtilEvalError  e ) { }; // couldn't resolve it
 		
 			if ( obj instanceof ClassIdentifier )
 				clas = ((ClassIdentifier)obj).getTargetClass();
 		}
 
-		if( clas == null )
-			throw new EvalError(
+		if ( clas == null )
+			throw new ClassNotFoundException(
 				"Class: " + value+ " not found in namespace");
 
-		return clas;
+		asClass = clas;
+		return asClass;
 	}
 
 	/*
 	*/
 	synchronized public LHS toLHS( 
 		CallStack callstack, Interpreter interpreter )
-		throws EvalError
+		throws UtilEvalError
 	{
+		//if ( asLHS != null ) 
+			//return asLHS;
+
+	// Need to clean this up to a single return statement
+
 		reset();
 
-		//Interpreter.debug("Name toLHS: "+evalName+ " isCompound = "
-			//+isCompound(evalName));
+		/* if ( Interpreter.DEBUG ) 
+			Interpreter.debug("Name toLHS: "+evalName+ " isCompound = "
+			+ isCompound(evalName));
+		*/
 
 		// variable
 		if(!isCompound(evalName)) {
 			//Interpreter.debug("returning simple var LHS...");
-			return new LHS(namespace,evalName);
+			asLHS = new LHS(namespace,evalName);
+			return asLHS;
 		}
 
 		// field
@@ -561,9 +608,9 @@ class Name implements java.io.Serializable
 			while(isCompound(evalName))
 				obj = consumeNextObjectField( callstack, interpreter, false );
 		}
-		catch( EvalError e )
+		catch( UtilEvalError e )
 		{
-			throw new EvalError("LHS evaluation: " + e);
+			throw new UtilEvalError("LHS evaluation: " + e);
 		}
 
 		if ( obj == null )
@@ -572,55 +619,33 @@ class Name implements java.io.Serializable
 		if(obj instanceof This)
 		{
 			Interpreter.debug("found This reference evaluating LHS");
-			return new LHS(((This)obj).namespace, evalName);
+			asLHS = new LHS(((This)obj).namespace, evalName);
+			return asLHS;
 		}
 
 		if(evalName != null)
 		{
 			try
 			{
-//System.err.println("Name getLHSObjectField call obj = "
-//	+obj+", name="+evalName);
+				//System.err.println("Name getLHSObjectField call obj = "
+				//	+obj+", name="+evalName);
 
 				if ( obj instanceof ClassIdentifier ) 
 				{
 					Class clas = ((ClassIdentifier)obj).getTargetClass();
-					return Reflect.getLHSStaticField(clas, evalName);
-				} else
-					return Reflect.getLHSObjectField(obj, evalName);
+					asLHS = Reflect.getLHSStaticField(clas, evalName);
+					return asLHS;
+				} else {
+					asLHS = Reflect.getLHSObjectField(obj, evalName);
+					return asLHS;
+				}
 			} catch(ReflectError e)
 			{
-				throw new EvalError("Field access: "+e);
+				throw new UtilEvalError("Field access: "+e);
 			}
 		}
 
 		throw new InterpreterError("Internal error in lhs...");
-
-	/*
-	This appears to have been something very old and incorrect...
-	I don't think we need it anymore.
-
-		// We bit off our field in the very first bite
-		// have to back off and make a class out of the prefix
-		Interpreter.debug("very first field was it...");
-
-		Class clas = namespace.getClass(prefix(value));
-		if(clas == null)
-			throw new InterpreterError("internal error 238974983");
-
-		String field = suffix(value, 1);
-
-		try
-		{
-			return Reflect.getLHSStaticField(clas, field);
-		}
-		catch(ReflectError e)
-		{
-			Interpreter.debug("reflect error:" + e);
-			return null;
-		}
-	*/
-
 	}
 	
 	private BshMethod toLocalMethod( Object [] args )
@@ -631,14 +656,19 @@ class Name implements java.io.Serializable
 
 
     /**
-		Invoke the method identified by name.
+		Invoke the method identified by this name.
+		Performs caching of method resolution using SignatureKey.
+		<p>
 
         Name contains a wholely unqualfied messy name; resolve it to 
 		( object | static prefix ) + method name and invoke.
+		<p>
 
         The interpreter is necessary to support 'this.interpreter' references
 		in the called code. (e.g. debug());
+		<p>
 
+		<pre>
         Some cases:
 
             // dynamic
@@ -647,35 +677,73 @@ class Name implements java.io.Serializable
             myVariable.bar.blah.foo();
             // static
             java.lang.Integer.getInteger("foo");
-
+		</pre>
     */
+	/*
+		Note: we previously thought about having this method
+	*/
     public Object invokeMethod(
 		Interpreter interpreter, Object[] args, CallStack callstack,
 		SimpleNode callerInfo
 	)
         throws EvalError, ReflectError, InvocationTargetException
     {
-        if ( !Name.isCompound(value) )
-            return invokeLocalMethod(interpreter, args, callstack, callerInfo);
+		if ( resolvedMethods == null )
+			resolvedMethods = new Hashtable();
 
-        // find target object
+		SignatureKey key = new SignatureKey( args );
+		MethodInvoker methodInvoker = null; //(MethodInvoker)resolvedMethods.get( key );
+		
+		if ( methodInvoker == null ) {
+			//System.err.println("method cache miss: "+value+", key ="+key);
+			try {
+				methodInvoker = resolveMethod( interpreter, args, callstack );
+			} catch ( UtilEvalError e ) {
+				throw e.toEvalError( callerInfo, callstack );
+			}
+			resolvedMethods.put( key, methodInvoker );
+			//System.err.println("Caching method: "+value+", key ="+key);
+		} else {
+			//System.err.println("method cache hit: "+value+", key ="+key);
+		}
+
+//System.out.println("method invoker: "+methodInvoker);
+//System.out.println("args.length: "+args.length);
+		return methodInvoker.invoke( args, interpreter, callstack, callerInfo );
+	}
+
+	/**
+		Resolve the name to a MethodInvoker, allowing the result to be
+		cached for subsequent invocations.
+	*/
+    private MethodInvoker resolveMethod(
+		Interpreter interpreter, Object[] args, CallStack callstack 
+		/*,SimpleNode callerInfo*/
+	)
+        throws UtilEvalError, ReflectError/*, InvocationTargetException*/
+    {
+		if ( !Name.isCompound(value) )
+			return resolveLocalMethod( 
+				interpreter, args, callstack/*, callerInfo*/ );
+
+        // find target object or class identifier
         Name targetName = namespace.getNameResolver( Name.prefix(value));
         String methodName = Name.suffix(value, 1);
 
         Object obj = targetName.toObject( callstack, interpreter );
 
 		if ( obj == Primitive.VOID ) 
-			throw new EvalError( "Attempt to invoke method: "+methodName
+			throw new UtilEvalError( "Attempt to resolve method: "+methodName
 					+"() on undefined variable or class name: "+targetName);
 
-        // if we've got an object, invoke the method
+        // if we've got an object, resolve the method
         if ( !(obj instanceof Name.ClassIdentifier) ) {
 
             if (obj instanceof Primitive) {
 
                 if (obj == Primitive.NULL)
-                    throw new TargetError( "Null Pointer in Method Invocation",
-					new NullPointerException() );
+                    throw new UtilTargetError( new NullPointerException( 
+						"Null Pointer in Method Invocation" ) );
 
                 // some other primitive
                 // should avoid calling methods on primitive, as we do
@@ -686,19 +754,23 @@ class Name implements java.io.Serializable
             }
 
             // found an object and it's not an undefined variable
-            return Reflect.invokeObjectMethod(
-				interpreter, obj, methodName, args, callerInfo);
+            return Reflect.resolveObjectMethod(
+				obj, methodName, args );
         }
 
+		// It's a class
+
         // try static method
-        Interpreter.debug("invokeMethod: trying static - " + targetName);
+        if ( Interpreter.DEBUG ) 
+        	Interpreter.debug("invokeMethod: trying static - " + targetName);
 
         Class clas = ((Name.ClassIdentifier)obj).getTargetClass();
-        if (clas != null)
-            return Reflect.invokeStaticMethod(clas, methodName, args);
+		
+        if ( clas != null )
+			return Reflect.resolveStaticMethod( clas, methodName, args );
 
         // return null; ???
-		throw new EvalError("unknown target: " + targetName);
+		throw new UtilEvalError("invokeMethod: unknown target: " + targetName);
     }
 
 	/**
@@ -707,7 +779,7 @@ class Name implements java.io.Serializable
 		to load it as a resource from the /bsh/commands path.
 	
 		Note: instead of invoking the method directly here we should probably
-		call invokeObjectMethod passing a This reference.  That would have
+		call resolveObjectMethod passing a This reference.  That would have
 		the side effect of allowing a locally defined invoke() method to
 		handle undeclared method invocations just like in objects.  Not sure
 		if this is desirable...  It seems that if you invoke a method directly
@@ -716,80 +788,93 @@ class Name implements java.io.Serializable
 		Keeping this code separate allows us to differentiate between methods
 		invoked directly in scope and those invoked through object references.
 	*/
-    public Object invokeLocalMethod( 
-		Interpreter interpreter, Object[] args, CallStack callstack,
-		SimpleNode callerInfo
+    private MethodInvoker resolveLocalMethod( 
+		Interpreter interpreter, Object[] args, CallStack callstack
+		/*, SimpleNode callerInfo*/
 	)
-        throws EvalError, ReflectError, InvocationTargetException
+        throws UtilEvalError, ReflectError/*, InvocationTargetException*/
     {
-        Interpreter.debug("invoke local method: " + value);
+        if ( Interpreter.DEBUG ) 
+        	Interpreter.debug("resolve local method: " + value);
 
         // Check for locally declared method
         BshMethod meth = toLocalMethod( args );
         if ( meth != null )
-            return meth.invokeDeclaredMethod( args, interpreter, callstack, callerInfo );
+			return meth;
         else
-            Interpreter.debug("no locally declared method: " + value);
+            if ( Interpreter.DEBUG ) 
+				Interpreter.debug("no locally declared method: " + value);
 
-        /*
-			Look for scripted command as resource
-		*/
-		// Why not /bsh/commands here?  Why relative to Interpreter?
+		// Look for scripted command as resource
         String commandName = "commands/" + value + ".bsh";
+// Need to use class manager here...
         InputStream in = Interpreter.class.getResourceAsStream(commandName);
         if (in != null)
         {
-            Interpreter.debug("loading resource: " + commandName);
+            if ( Interpreter.DEBUG ) 
+				Interpreter.debug("loading resource: " + commandName);
 
 			if ( interpreter == null )
-				throw new InterpreterError("2234432 interpreter = null");
+				throw new InterpreterError(
+					"resolveLocalMethod: interpreter = null");
 
-            interpreter.eval( 
-				new InputStreamReader(in), namespace, commandName);
+			try {
+				interpreter.eval( 
+					new InputStreamReader(in), namespace, commandName);
+			/* 
+				Strange case where we actually catch an EvalError and turn
+				it into a UtilEvalError... We are using the interpreter as
+				a tool to load the command... not as part of the execution
+				path.  The error points here... thrown exception includes the 
+				command's error... (right?)
+			*/
+			} catch ( EvalError e ) {
+				throw new UtilEvalError(
+					"Error loading command: "+ e.getMessage() );
+			}
 
             // try again
             meth = toLocalMethod( args );
-            if(meth != null)
-                return meth.invokeDeclaredMethod( 
-					args, interpreter, callstack, callerInfo );
+            if ( meth != null )
+                return meth;
             else
-                throw new EvalError("Loaded resource: " + commandName +
+                throw new UtilEvalError("Loaded resource: " + commandName +
                     "had an error or did not contain the correct method");
         }
 
         // check for compiled bsh command class
+
         commandName = "bsh.commands." + value;
-        // create class outside of any namespace
         Class c = BshClassManager.classForName( commandName );
         if(c == null)
-            throw new EvalError("Command not found: " + value);
+            throw new UtilEvalError("Command not found: " + value);
+//System.out.println("found class: " +c);
 
         // add interpereter and namespace to args list
         Object[] invokeArgs = new Object[args.length + 2];
         invokeArgs[0] = interpreter;
         invokeArgs[1] = namespace;
         System.arraycopy(args, 0, invokeArgs, 2, args.length);
-        try
-        {
-            return Reflect.invokeStaticMethod(c, "invoke", invokeArgs);
-        }
-        catch(ReflectError e)
-        {
-            Interpreter.debug("invoke command args error:" + e);
-            // bad args
-        }
+		try {
+        	return Reflect.resolveStaticMethod( c, "invoke", invokeArgs );
+		} catch ( ReflectError e ) {
+			System.err.println("invoke method not found");
+		}
+/*
+System.err.println("warning: help text broken");
         // try to print help
-        try
-        {
-            String s = (String)Reflect.invokeStaticMethod(c, "usage", null);
+        try {
+            String s = (String)(JavaMethod)Reflect.resolveStaticMethod(
+				c, "usage", null);
             interpreter.println(s);
             return Primitive.VOID;
+        } catch(ReflectError e) {
+            if ( Interpreter.DEBUG ) Interpreter.debug("usage threw: " + e);
+            throw new UtilEvalError("Wrong number or type of args for command");
         }
-        catch(ReflectError e)
-        {
-            Interpreter.debug("usage threw: " + e);
-            throw new EvalError("Wrong number or type of args for command");
-        }
+*/
+
+		throw new UtilEvalError( "No local method or command: "+ value );
     }
 
 	// Static methods that operate on compound ('.' separated) names
@@ -843,14 +928,14 @@ class Name implements java.io.Serializable
 
 	public static String suffix(String value, int parts)
 	{
-		if(parts < 1)
+		if (parts < 1)
 			return null;
 
 		int count = 0;
 		int index = value.length() + 1;
 
-		while(((index = value.lastIndexOf('.', index - 1)) != -1) && (++count < parts))
-		{ ; }
+		while ( ((index = value.lastIndexOf('.', index - 1)) != -1) 
+			&& (++count < parts) );
 
 		return (index == -1) ? value : value.substring(index + 1);
 	}
@@ -860,7 +945,7 @@ class Name implements java.io.Serializable
 
 	public String toString() { return value; }
 
-	static class ClassIdentifier {
+	public static class ClassIdentifier {
 		Class clas;
 
 		public ClassIdentifier( Class clas ) {
@@ -876,6 +961,53 @@ class Name implements java.io.Serializable
 		}
 	}
 
+	/**
+		SignatureKey serves as a hash of the object types for fast lookup
+		of overloaded resolved methods. 
+		<p>
+
+		Note: is using SignatureKey in this way dangerous?  In the pathological
+		case a user could eat up memory caching every possible combination of
+		argument types to an untyped method.  Maybe we could be smarter about
+		it by ignoring the types of untyped parameter positions?  The method
+		resolver could return a set of "hints" for the signature key caching.
+	*/
+	static class SignatureKey
+	{
+		Class [] types;
+		int hashCode = 0;
+
+		SignatureKey( Object [] args ) {
+			this.types = Reflect.getTypes( args );
+		}
+		
+		public int hashCode() { 
+			if ( types == null ) // no args method
+				return 1; 
+
+			if ( hashCode == 0 ) {
+				hashCode = 17;
+				for( int i =0; i < types.length; i++ ) {
+					int hc = types[i] == null ? 21 : types[i].hashCode();
+					hashCode = hashCode*(i+1) + hc;
+				}
+			}
+			return hashCode;
+		}
+
+		public boolean equals( Object o ) { 
+//System.out.println("equals: "+this+", "+o);
+			SignatureKey target = (SignatureKey)o;
+			if ( types == null )
+				return target.types == null;
+			if ( types.length != target.types.length )
+				return false;
+			for( int i =0; i< types.length; i++ )
+				if ( ! types[i].equals( target.types[i] ) )
+					return false;
+			return true;
+		}
+	}
 
 }
 

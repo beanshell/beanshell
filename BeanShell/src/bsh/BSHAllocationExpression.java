@@ -76,17 +76,12 @@ class BSHAllocationExpression extends SimpleNode
 		throws EvalError
     {
 		NameSpace namespace = callstack.top();
-        Class type = nameNode.toClass(namespace);
-
-		/* toClass throws this
-        if (type == null)
-            throw new EvalError(
-				"Class " + nameNode.getName(namespace) + " not found.", this);
-		*/
+        Class type = nameNode.toClass( callstack, interpreter );
 
         Object[] args = argumentsNode.getArguments(callstack, interpreter);
-        if(args == null)
-            throw new EvalError("Trying to new a class...?", this);
+        if ( args == null)
+            throw new EvalError( "Trying to perform new operation on a class?",
+				this, callstack );
 
 		// Is an inner class style object allocation
 		boolean hasBody = jjtGetNumChildren() > 2;
@@ -96,21 +91,23 @@ class BSHAllocationExpression extends SimpleNode
 			return constructWithBody( 
 				type, args, body, callstack, interpreter );
 		} else
-			return constructObject( type, args );
+			return constructObject( type, args, callstack );
     }
 
-	private Object constructObject( Class type, Object[] args ) 
+	private Object constructObject( 
+		Class type, Object[] args, CallStack callstack ) 
 		throws EvalError
 	{
         try {
-            return Reflect.constructObject(type, args);
-        } catch(ReflectError e) {
-            throw new EvalError("Constructor error: " + e.getMessage(), this);
+            return Reflect.constructObject( type, args );
+        } catch ( ReflectError e) {
+            throw new EvalError(
+				"Constructor error: " + e.getMessage(), this, callstack );
         } catch(InvocationTargetException e) {
             Interpreter.debug("The constructor threw an exception:\n\t" +
                 e.getTargetException());
             throw new TargetError(
-				"Object constructor", e.getTargetException(), this, true);
+				"Object constructor", e.getTargetException(), this, callstack, true);
         }
 	}
 
@@ -121,7 +118,7 @@ class BSHAllocationExpression extends SimpleNode
 	{
 		if ( ! type.isInterface() )
 			throw new EvalError(
-				"BeanShell cannot extend class types: "+ type );
+				"BeanShell cannot extend class types: "+ type, this, callstack);
 
 		NameSpace namespace = callstack.top();
 // Maybe we should swap in local namespace for the top?
@@ -130,7 +127,11 @@ class BSHAllocationExpression extends SimpleNode
 		callstack.push(local);
 		body.eval( callstack, interpreter, true );
 		callstack.pop();
-		return local.getThis(interpreter).getInterface( type );
+		try {
+			return local.getThis(interpreter).getInterface( type );
+		} catch ( UtilEvalError e ) {
+			throw e.toEvalError( this, callstack );
+		}
 	}
 
 // combine part of this with primitiveArrayAllocation
@@ -141,17 +142,17 @@ class BSHAllocationExpression extends SimpleNode
 		throws EvalError
     {
 		NameSpace namespace = callstack.top();
-        Class type = nameNode.toClass(namespace);
+        Class type = nameNode.toClass( callstack, interpreter );
         if(type == null)
-            throw new EvalError(
-				"Class " + nameNode.getName(namespace) + " not found.", this);
+            throw new EvalError( "Class " + nameNode.getName(namespace) 
+				+ " not found.", this, callstack );
 
 		// dimensionsNode can return either an intialized version or none.
         Object result = dimensionsNode.eval( type, callstack, interpreter );
         if(result != Primitive.VOID)
             return result;
 		else
-			return arrayNewInstance( type, dimensionsNode );
+			return arrayNewInstance( type, dimensionsNode, callstack );
     }
 
 // combine part of this with objectArrayAllocation
@@ -168,20 +169,20 @@ class BSHAllocationExpression extends SimpleNode
         if (result != Primitive.VOID) 
             return result;
 
-		return arrayNewInstance( type, dimensionsNode );
+		return arrayNewInstance( type, dimensionsNode, callstack );
     }
 
 	private Object arrayNewInstance( 
-		Class type, BSHArrayDimensions dimensionsNode )
+		Class type, BSHArrayDimensions dimensionsNode, CallStack callstack )
 		throws EvalError
 	{
         try {
-            return Array.newInstance(type, dimensionsNode.dimensions);
-        } catch( NegativeArraySizeException e1) {
-			throw new TargetError("Negative Array Size", e1);
-        } catch(Exception e) {
+            return Array.newInstance( type, dimensionsNode.dimensions );
+        } catch( NegativeArraySizeException e1 ) {
+			throw new TargetError( e1, this, callstack );
+        } catch( Exception e ) {
             throw new EvalError("Can't construct primitive array: " +
-                e.getMessage(), this);
+                e.getMessage(), this, callstack);
         }
 	}
 }

@@ -42,7 +42,7 @@ import bsh.classpath.BshClassPath.DirClassSource;
 import bsh.BshClassManager;
 import bsh.ClassPathException;
 import bsh.Interpreter;  // for debug()
-import bsh.EvalError; 
+import bsh.UtilEvalError; 
 
 /**
 	<pre>
@@ -135,19 +135,24 @@ public class ClassManagerImpl extends BshClassManager
 			return c;
 
 		if ( absoluteNonClasses.get(name)!=null ) {
-			Interpreter.debug("absoluteNonClass list hit: "+name);
+			if ( Interpreter.DEBUG ) 
+				Interpreter.debug("absoluteNonClass list hit: "+name);
 			return null;
 		}
 
 		// Try to load the class
-		Interpreter.debug("Trying to load class: "+name);
+		if ( Interpreter.DEBUG ) 
+			Interpreter.debug("Trying to load class: "+name);
 
 		ClassLoader overlayLoader = getLoaderForClass( name );
 		if ( overlayLoader != null ) {
 			try {
 				c = overlayLoader.loadClass(name);
 			} catch ( Exception e ) {
-			} catch ( NoClassDefFoundError e2 ) {
+			// used to squeltch this... changed for 1.3
+			// see BshClassManager 
+			} catch ( NoClassDefFoundError e2 ) { 
+				throw noClassDefFound( name, e2 );
 			}
 
 			// Should be there since it was explicitly mapped
@@ -384,7 +389,7 @@ public class ClassManagerImpl extends BshClassManager
 		Hide details in here as opposed to NameSpace.
 	*/
 	public void doSuperImport() 
-		throws EvalError
+		throws UtilEvalError
 	{
 		try {
 			getClassPath().insureInitialized();
@@ -395,7 +400,7 @@ public class ClassManagerImpl extends BshClassManager
 			//getClassPath().setNameCompletionIncludeUnqNames(true);
 
 		} catch ( ClassPathException e ) {
-			throw new EvalError("Error importing classpath "+ e );
+			throw new UtilEvalError("Error importing classpath "+ e );
 		}
 	}
 
@@ -419,7 +424,7 @@ public class ClassManagerImpl extends BshClassManager
 			if ( ok ) {
 				//System.err.println("cleaned up weak ref: "+deadref);
 			} else {
-				Interpreter.debug(
+				if ( Interpreter.DEBUG ) Interpreter.debug(
 					"tried to remove non-existent weak ref: "+deadref);
 			}
 		}

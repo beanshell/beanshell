@@ -34,27 +34,32 @@
 
 package bsh;
 
+import bsh.Reflect.MethodInvoker;
+
 class BSHMethodInvocation extends SimpleNode
 {
+
 	BSHMethodInvocation (int id) { super(id); }
 
 	/**
 		Evaluate the method invocation with the specified callstack and 
 		interpreter
 	*/
-	public Object eval( CallStack callstack, Interpreter interpreter)
+	public Object eval( CallStack callstack, Interpreter interpreter )
 		throws EvalError
 	{
 		NameSpace namespace = callstack.top();
 		Name name = ((BSHAmbiguousName)jjtGetChild(0)).getName(namespace);
 		Object[] args = 
 			((BSHArguments)jjtGetChild(1)).getArguments(callstack, interpreter);
+
 		try {
-			return name.invokeMethod(interpreter, args, callstack, this);
-		} catch (ReflectError e) {
+			return name.invokeMethod( interpreter, args, callstack, this);
+		} catch ( ReflectError e ) {
 			throw new EvalError(
-				"Error in method invocation: " + e.getMessage(), this);
-		} catch (java.lang.reflect.InvocationTargetException e) 
+				"Error in method invocation: " + e.getMessage(), 
+				this, callstack );
+		} catch ( java.lang.reflect.InvocationTargetException e ) 
 		{
 			String msg = "Method Invocation "+name;
 			Throwable te = e.getTargetException();
@@ -71,13 +76,9 @@ class BSHMethodInvocation extends SimpleNode
 				else
 					isNative = false;
 			
-			throw new TargetError( msg, te, this, isNative );
+			throw new TargetError( msg, te, this, callstack, isNative );
 
-		} catch ( EvalError ee ) {
-			ee.reThrow( this );
-			throw new Error("should be unreachable...");
-		}
-
+		} 
 	}
 }
 

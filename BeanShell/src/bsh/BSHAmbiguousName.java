@@ -48,18 +48,48 @@ class BSHAmbiguousName extends SimpleNode
     public Object toObject(CallStack callstack, Interpreter interpreter) 
 		throws EvalError
     {
-        return getName( callstack.top() ).toObject( callstack, interpreter );
+		try {
+        	return 
+				getName( callstack.top() ).toObject( callstack, interpreter );
+		} catch ( UtilEvalError e ) {
+			throw e.toEvalError( this, callstack );
+		}
     }
 
-    public Class toClass(NameSpace namespace) throws EvalError
+/*
+    public Class toClass( NameSpace namespace ) throws EvalError
     {
-        return getName(namespace).toClass();
+		try {
+        	return getName( namespace ).toClass();
+		} catch ( ClassNotFoundException e ) {
+			throw new EvalError( e.getMessage(), this );
+		} catch ( ClassPathException e2 ) {
+			// ClassPathException is a type of UtilEvalError
+			throw e2.toEvalError( this, callstack );
+		}
+    }
+*/
+    public Class toClass( CallStack callstack, Interpreter interpreter ) 
+		throws EvalError
+    {
+		try {
+        	return getName( callstack.top() ).toClass();
+		} catch ( ClassNotFoundException e ) {
+			throw new EvalError( e.getMessage(), this, callstack );
+		} catch ( ClassPathException e2 ) {
+			// ClassPathException is a type of UtilEvalError
+			throw e2.toEvalError( this, callstack );
+		}
     }
 
     public LHS toLHS( CallStack callstack, Interpreter interpreter)
 		throws EvalError
     {
-        return getName( callstack.top() ).toLHS( callstack, interpreter );
+		try {
+			return getName( callstack.top() ).toLHS( callstack, interpreter );
+		} catch ( UtilEvalError e ) {
+			throw e.toEvalError( this, callstack );
+		}
     }
 
 	/*
