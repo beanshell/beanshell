@@ -25,4 +25,10 @@ for(x=0, a=2, y="foo"; x<3; x++) {
 // x,a  are undefined 
 assert( isEvalError( "print(x)" ) );
 
+// Can't declare var again already declared in forinit
+assert( 
+	isEvalError(
+		"for (int foo=1, int bar=2; foo < 3; foo++ ) { int bar = 3; }" ) 
+);
+
 complete();

@@ -42,7 +42,7 @@ public class NameSpace implements java.io.Serializable
 	public String name; 
     transient private Hashtable classCache;
 
-    // A cach e for things we know are *not* classes... actual value is unused
+    // A cache for things we know are *not* classes... actual value is unused
     transient static Hashtable absoluteNonClasses;
     transient static Hashtable absoluteClassCache	= new Hashtable();
 
@@ -176,18 +176,30 @@ public class NameSpace implements java.io.Serializable
 	}
 
 	/**
-		Get the specified variable in this namespace.
+		Get the specified variable in this namespace or a parent namespace.
 		There are four magic variable references: 
 			"this", "super", "global"
 	*/
-    public Object getVariable(String name) {
+    public Object getVariable( String name ) {
+		return getVariable( name, true );
+	}
+
+	/**
+		Get the specified variable in this namespace.
+		If recurse is true extend search through parent namespaces.
+		
+		There are four magic variable references: 
+			"this", "super", "global"
+	*/
+    public Object getVariable( String name, boolean recurse ) {
 		Object val = null;
 		if(variables !=	null)
 			val	= variables.get(name);
-		if((val	== null) && (parent != null))
+
+		if ( recurse && (val == null) && (parent != null) )
 			val	= parent.getVariable(name);
 
-		if(val instanceof TypedVariable)
+		if (val instanceof TypedVariable)
 			val	= ((TypedVariable)val).getValue();
 
 		return (val == null) ? Primitive.VOID :	val;

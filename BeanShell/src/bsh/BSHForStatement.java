@@ -46,7 +46,8 @@ class BSHForStatement extends SimpleNode implements InterpreterConstants
 
         // Do the for init
         if ( hasForInit ) {
-			forInitNameSpace = new NameSpace( "ForInitNameSpace" );
+			forInitNameSpace = 
+				new NameSpace( namespace, "ForInitNameSpace" );
             forInit.eval( forInitNameSpace, interpreter );
 		} 
 
