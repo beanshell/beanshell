@@ -55,6 +55,9 @@ import java.io.IOException;
 	Note: I'd really like to use collections here, but we have to keep this
 	compatible with JDK1.1 
 */
+/*
+	Thanks to Slava Pestov (of jEdit fame) for import caching enhancements.
+*/
 public class NameSpace 
 	implements java.io.Serializable, BshClassManager.Listener, 
 	NameSource
