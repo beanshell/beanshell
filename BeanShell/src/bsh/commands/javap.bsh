@@ -1,0 +1,30 @@
+
+bsh.help.javap= "usage: javap( value )";
+
+javap( Object o ) {
+	import java.lang.reflect.Modifier;
+
+	if ( o instanceof String)
+		clas = this.namespace.getClass((String)o);
+	else if ( o instanceof Class )
+		clas = o;
+	else 
+		clas = o.getClass();
+
+	methods=clas.getDeclaredMethods();
+	//print("------------- Methods ----------------");
+	for(int i=0; i<methods.length; i++) {
+		m = methods[i];
+		if ( Modifier.isPublic( m.getModifiers() ) )
+			print( m );
+	}
+
+	//print("------------- Fields ----------------");
+	fields=clas.getDeclaredFields();
+	for(int i=0; i<fields.length; i++) {
+		f = fields[i];
+		if ( Modifier.isPublic( f.getModifiers() ) )
+			print( f );
+	}
+}
+
