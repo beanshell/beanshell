@@ -24,7 +24,7 @@ reloadClasses( item ) {
 		} else
 			bcm.reloadClasses( new String[] { name }, this.interpreter );
 	}
-	} catch ( bsh.ClassPathException e ) {
+	} catch ( bsh.classpath.ClassPathException e ) {
 		error( e.getMessage() );
 	}
 }
