@@ -2,15 +2,19 @@
 
 source("TestHarness.bsh");
 
-r=new Runnable() {
-	run() {
-		flag();
-	}
-};
+if ( bsh.Capabilities.haveProxyMechanism() ) {
+	r=new Runnable() {
+		run() {
+			flag();
+		}
+	};
 
-r.run();
+	r.run();
 
-assert( flag() == 1 );
+	assert( flag() == 1 );
+}
+	else
+		warning("No proxy mechanism.");
 
 complete();
 
