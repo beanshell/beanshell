@@ -764,11 +764,26 @@ public class Primitive implements ParserConstants, java.io.Serializable
             throw new UtilEvalError("Primitive not a number");
     }
 
-	public boolean equals( Object obj ) {
+	/**
+		Primitives compare equal with other Primitives containing an equal
+		wrapped value and also directly with the wrapped value.
+(Is this necessary? try removing it and see what happens...)
+	*/
+	public boolean equals( Object obj ) 
+	{
 		if ( obj instanceof Primitive )
 			return ((Primitive)obj).value.equals( this.value );
 		else
 			return obj.equals( this.value );
+	}
+
+	/**
+		The hash of the Primitive is tied to the hash of the wrapped value but
+		shifted so that they are not the same.
+	*/
+	public int hashCode() 
+	{
+		return this.value.hashCode() * 21; // arbitrary
 	}
 
 	/**

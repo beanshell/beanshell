@@ -73,7 +73,7 @@ public class NameSpace
 	// Begin instance data
 	// Note: if we add something here we should reset it in the clear() method.
 
-	public String name; 
+	public String nsName; 
     private NameSpace parent;
     private Hashtable variables;
     private Hashtable methods;
@@ -145,10 +145,10 @@ public class NameSpace
 	// End constructors
 
 	public void setName( String name ) {
-		this.name = name;
+		this.nsName = name;
 	}
 	public String getName() {
-		return this.name;
+		return this.nsName;
 	}
 
 	/**
@@ -670,7 +670,7 @@ public class NameSpace
 	/**
 		Helper that caches class.
 	*/
-	private void cacheClass( Class c ) {
+	private void cacheClass( String name, Class c ) {
 		if ( classCache == null ) {
 			classCache = new Hashtable();
 			//cacheCount++; // debug
@@ -679,6 +679,7 @@ public class NameSpace
 		classCache.put(name, c);
 	}
 
+//public static long getClassImplTime = 0;
 	/**
 		Load a class through this namespace taking into account imports.
 		The class search will proceed through the parent namespaces if
@@ -689,7 +690,10 @@ public class NameSpace
     public Class getClass( String name)
 		throws UtilEvalError
     {
+//long l1 = System.currentTimeMillis();
 		Class c = getClassImpl(name);
+//long l2 = System.currentTimeMillis();
+//getClassImplTime += (l2-l1);
 		if ( c != null )
 			return c;
 		else
@@ -731,14 +735,14 @@ public class NameSpace
 			if ( c != null )
 				return c;
 		}
-			
+
 		// Unqualified name check imported
 		if ( unqualifiedName ) {
 			c = getImportedClassImpl( name );
 
 			// if found as imported also cache it
 			if ( c != null ) {
-				cacheClass( c );
+				cacheClass( name, c );
 				return c;
 			}
 		}
@@ -748,7 +752,7 @@ public class NameSpace
 		if ( c != null ) {
 			// Cache unqualified names to prevent import check again
 			if ( unqualifiedName )
-				cacheClass( c );
+				cacheClass( name, c );
 			return c;
 		}
 
@@ -945,16 +949,6 @@ public class NameSpace
 			return "TypedVariable: "+type+", value:"+value;
 		}
     }
-
-	/**
-		@deprecated name changed.
-		@see #getAssignableForm( Object, Class )
-    public static Object checkAssignableFrom(Object rhs, Class lhsType)
-		throws UtilEvalError
-    {
-		return getAssignableForm( rhs, lhsType );
-	}
-	*/
 
 	/**
 		Determine if the RHS object can be assigned to the LHS type (as is,
@@ -1159,9 +1153,9 @@ public class NameSpace
 	public String toString() {
 		return
 			"NameSpace: "
-			+ ( name==null
+			+ ( nsName==null
 				? super.toString()
-				: name + " (" + super.toString() +")" );
+				: nsName + " (" + super.toString() +")" );
 	}
 
 	/*
@@ -1301,12 +1295,18 @@ public class NameSpace
 	{
 		if ( names == null )
 			names = new Hashtable();
+
 		Name name = (Name)names.get( ambigname );
+
 		if ( name == null ) {
+/*
+System.out.println(
+"getnameResolver: new name for "+ambigname+" in namespace: "
++System.identityHashCode(this) );
+*/
 			name = new Name( this, ambigname );
 			names.put( ambigname, name );
-		} else {
-		}
+		} 
 
 		return name;
 	}

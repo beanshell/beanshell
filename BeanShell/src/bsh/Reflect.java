@@ -39,8 +39,8 @@ import java.util.Vector;
 
 /**
     All of the reflection API code lies here.  It is in the form
-	of static utilities.  See the design note about object wrappers 
-	in LHS.java for lamentations regarding this.
+	of static utilities.  Maybe this belongs in LHS.java or a generic object 
+	wrapper class.
 
 	Note: More work to do in here to fix up the extended signature matching.
 	need to work in a search along with findMostSpecificSignature...
@@ -72,18 +72,13 @@ class Reflect
 		{ 
 			// find the java method
 			try {
-				// Check to see if we've resolve this method before
-				Class clas = object.getClass();
 				BshClassManager bcm = callstack.top().getClassManager();
-				Method method = bcm.getResolvedMethod( clas, methodName, args );
+				Class clas = object.getClass();
 
-				if ( method == null )
-					method = resolveJavaMethod( 
-						clas, object, methodName, args, false );
+				Method method = resolveJavaMethod( 
+					bcm, clas, object, methodName, args, false );
 
-				// Succeeded.  Cache the resolved method.
-				bcm.cacheResolvedMethod( clas, methodName, args, method );
-
+				//args=unwrapPrimitives( args );
 				return invokeOnMethod( method, object, args );
 			} catch ( UtilEvalError e ) {
 				throw e.toEvalError( callerInfo, callstack );
@@ -97,11 +92,13 @@ class Reflect
 		method being a bsh scripted method.
 	*/
     public static Object invokeStaticMethod(
-		Class clas, String methodName, Object [] args)
+		BshClassManager bcm, Class clas, String methodName, Object [] args )
         throws ReflectError, UtilEvalError, InvocationTargetException
     {
         Interpreter.debug("invoke static Method");
-        Method method = resolveJavaMethod( clas, null, methodName, args, true );
+        Method method = resolveJavaMethod( 
+			bcm, clas, null, methodName, args, true );
+		//args=unwrapPrimitives( args );
 		return invokeOnMethod( method, null, args );
     }
 
@@ -109,8 +106,9 @@ class Reflect
 		Method method, Object object, Object[] args ) 
 		throws ReflectError, InvocationTargetException
 	{
+		args = unwrapPrimitives(args);
 		try {
-			Object returnValue =  method.invoke(object, args);
+			Object returnValue = method.invoke( object, args );
 			if ( returnValue == null )
 				returnValue = Primitive.NULL;
 			Class returnType = method.getReturnType();
@@ -179,7 +177,7 @@ class Reflect
         return getFieldValue(clas, null, fieldName);
     }
 
-    public static Object getObjectField(Object object, String fieldName)
+    public static Object getObjectField( Object object, String fieldName )
         throws UtilEvalError, ReflectError
     {
 		if ( object instanceof This )
@@ -331,15 +329,24 @@ class Reflect
 
 		Note: Method invocation could probably be speeded up if we eliminated
 		the throwing of exceptions in the search for the proper method.
-		We could probably cache our knowledge of method structure as well.
-		(working on this for 1.3... check back)
+		After 1.3 we are caching method resolution anyway... shouldn't matter
+		much.
     */
     static Method resolveJavaMethod (
-		Class clas, Object object, String name, Object[] args,
-		boolean onlyStatic
+		BshClassManager bcm, Class clas, Object object, 
+		String name, Object[] args, boolean onlyStatic
 	)
         throws ReflectError, UtilEvalError
     {
+		Method method = null;
+
+		if ( bcm != null )
+			method = bcm.getResolvedMethod( clas, name, args, onlyStatic );
+		else
+			Interpreter.debug("resolveJavaMethod UNOPTIMIZED lookup");
+		if ( method != null )
+			return method;
+
 		if ( object == Primitive.NULL )
 			throw new UtilTargetError( new NullPointerException(
 				"Attempt to invoke method " +name+" on null value" ) );
@@ -350,34 +357,27 @@ class Reflect
         if (args == null)
             args = new Object[] { };
 
-        // Simple sanity check for voids
-        // (maybe this should have been caught further up?)
-        for(int i=0; i<args.length; i++)
-            if(args[i] == Primitive.VOID)
-                throw new ReflectError("Attempt to pass void argument " +
-                    "(position " + i + ") to method: " + name);
-
+		voidCheck( args, "method: "+name );
         Class[] types = getTypes(args);
-        unwrapPrimitives(args);
+        args=unwrapPrimitives(args);
 
 		// Begin -This used to be wrapped in a try/catch for IllegalAccess
 
 		// Try the easy case: Look for an accessible version of the 
 		// direct match.
 
-		Method m = null;
 		try {
-			m  = findAccessibleMethod(clas, name, types, onlyStatic);
+			method  = findAccessibleMethod(clas, name, types, onlyStatic);
 		} catch ( SecurityException e ) { }
 
-		if ( m == null )
+		if ( method == null )
 			if ( Interpreter.DEBUG )
 				Interpreter.debug("Exact method " + 
 					StringUtil.methodString(name, types) +
 					" not found in '" + clas.getName() + "'" );
 
 		// Next look for an assignable match
-		if ( m == null ) {
+		if ( method == null ) {
 
 			// If no args stop here
 			if ( types.length == 0 )
@@ -392,24 +392,24 @@ class Reflect
 				// only try the static methods
 				methods = retainStaticMethods( methods );
 
-			m = findMostSpecificMethod(name, types, methods);
+			method = findMostSpecificMethod(name, types, methods);
 
 			// try to find an extended method
 			methods = clas.getMethods();
-			if ( m == null )
-				m = findExtendedMethod(name, args, methods);
+			if ( method == null )
+				method = findExtendedMethod(name, args, methods);
 
 			// If we found an assignable method, make sure it's accessible
-			if ( m != null ) {
+			if ( method != null ) {
 				try {
-					m = findAccessibleMethod( clas, m.getName(), 
-						m.getParameterTypes(), onlyStatic);
+					method = findAccessibleMethod( clas, method.getName(), 
+						method.getParameterTypes(), onlyStatic);
 				} catch ( SecurityException e ) { }
 			}
 		}
 
 		// Found something?
-		if (m == null )
+		if ( method == null )
 			throw new ReflectError(
 				( onlyStatic ? "Static method " : "Method " )
 				+ StringUtil.methodString(name, types) + 
@@ -417,7 +417,11 @@ class Reflect
 
 		// End - This used to be wrapped in a try/catch for IllegalAccess
 			
-		return m;
+		// Succeeded.  Cache the resolved method.
+		if ( bcm != null )
+			bcm.cacheResolvedMethod( clas, args, method );
+
+		return method;
 	}
 
 	/**
@@ -565,9 +569,6 @@ System.out.println("findAcc: "
 
         for(int i=0; i<args.length; i++)
         {
-			//if ( args[i] == null )
-				//throw new InterpreterError("Null arg in getTypes()");
-
 			if ( args[i] == null )
 				types[i] = null;
             else if ( args[i] instanceof Primitive )
@@ -580,16 +581,14 @@ System.out.println("findAcc: "
     }
 
     /*
-        Replace Primitive wrappers with their java.lang wrapper values
-
-        These barf if one of the args is void...  maybe these should throw
-        an exception on void arg to force the rest of the code to clean up.
-        There are places where we don't check right now... (constructors, index)
+        Replace Primitive wrappers with their java.lang wrapper values.
     */
-    private static void unwrapPrimitives(Object[] args)
+    private static Object [] unwrapPrimitives(Object[] args)
     {
+		Object [] oa = new Object[ args.length ];
         for(int i=0; i<args.length; i++)
-            args[i] = unwrapPrimitive(args[i]);
+            oa[i] = unwrapPrimitive(args[i]);
+		return oa;
     }
 
     private static Object unwrapPrimitive(Object arg)
@@ -600,29 +599,13 @@ System.out.println("findAcc: "
             return arg;
     }
 
-	/*
-    static Object constructObject( String clas, Object[] args )
-        throws ReflectError, InvocationTargetException
-    {
-		Class c = BshClassManager.classForName( clas );
-		if ( c == null )
-			throw new ReflectError("Class not found: "+clas); 
-
-		return constructObject( c, args );
-	}
-	*/
-
 	/**
 		Primary object constructor
 	*/
-    static Object constructObject(Class clas, Object[] args)
+    static Object constructObject( Class clas, Object[] args )
         throws ReflectError, InvocationTargetException
     {
-        // simple sanity check for arguments
-        for(int i=0; i<args.length; i++)
-            if(args[i] == Primitive.VOID)
-                throw new ReflectError("Attempt to pass void argument " +
-                    "(position " + i + ") to constructor for: " + clas);
+		voidCheck( args, "constructor for: "+clas );
 
 		if ( clas.isInterface() )
 			throw new ReflectError(
@@ -630,7 +613,7 @@ System.out.println("findAcc: "
 
         Object obj = null;
         Class[] types = getTypes(args);
-        unwrapPrimitives(args);
+        args=unwrapPrimitives(args);
         Constructor con = null;
 
 		/* 
@@ -880,7 +863,7 @@ System.out.println("findAcc: "
 		Class.isAssignableFrom() which does not take primitive widening 
 		conversions into account.
 
-		Note that the getAssigbableForm() method in NameSpace is the primary
+		Note that the getAssignableForm() method in NameSpace is the primary
 		bsh method for checking assignability.  It adds extended bsh
 		conversions, etc.
 
@@ -958,7 +941,7 @@ System.out.println("findAcc: "
 	}
 
     public static Object getObjectProperty(
-		Object obj, String propName)
+		Object obj, String propName )
         throws ReflectError
     {
         String accessorName = accessorName( "get", propName );
@@ -968,7 +951,8 @@ System.out.println("findAcc: "
         try {
 			try {
 				Method method = resolveJavaMethod( 
-					obj.getClass(), obj, accessorName, args, false );
+					null/*bcm*/, obj.getClass(), obj, 
+					accessorName, args, false );
 				return invokeOnMethod( method, obj, args );
 			} catch ( UtilEvalError e ) {
 				// what does this mean?
@@ -991,10 +975,8 @@ System.out.println("findAcc: "
 
         Interpreter.debug("property access: ");
         try {
-			// This cast to JavaMethod allows us to call the simple args
-			// invoke... need to clean this up somehow.
 			Method method = resolveJavaMethod( 
-				obj.getClass(), obj, accessorName, args, false );
+				null/*bcm*/, obj.getClass(), obj, accessorName, args, false );
 			invokeOnMethod( method, obj, args );
         }
         catch(InvocationTargetException e)
@@ -1050,6 +1032,15 @@ System.out.println("findAcc: "
 
     }
 
+    // Quick sanity check for voids
+	private static void voidCheck( Object [] args, String target )
+		throws ReflectError
+	{
+        for(int i=0; i<args.length; i++)
+            if(args[i] == Primitive.VOID)
+                throw new ReflectError("Attempt to pass void argument " +
+                    "(position " + i + ") to "+target );
+	}
 }
 
 

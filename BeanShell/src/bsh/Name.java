@@ -69,7 +69,7 @@ import java.lang.reflect.InvocationTargetException;
 	the MethodInvoker (BshMethod or JavaMethod) however there is no easy way
 	for the AST (BSHMehodInvocation) to use this as it doesn't have type
 	information about the target to resolve overloaded methods.
-	(In Java, overloaded methods are resolved at complile time... here they
+	(In Java, overloaded methods are resolved at compile time... here they
 	are, of necessity, dynamic).  So it would have to do what we do here
 	and cache by signature.  We now do that for the client in Reflect.java.
 
@@ -131,10 +131,20 @@ class Name implements java.io.Serializable
 	// ---------------------------------------------------------
 
 	// Begin Cached result structures
+	// These are optimizations 
 
 	// Note: it's ok to cache class resolution here because when the class
 	// space changes the namespace will discard cached names.
+
+	/** 
+		The result is a class 
+	*/
 	Class asClass;
+
+	/** 
+		The result is a static method call on the following class 
+	*/
+	Class classOfStaticMethod;
 
 	// End Cached result structures
 
@@ -654,13 +664,26 @@ class Name implements java.io.Serializable
 	)
         throws UtilEvalError, EvalError, ReflectError, InvocationTargetException
     {
+        String methodName = Name.suffix(value, 1);
+		BshClassManager bcm = callstack.top().getClassManager();
+
+		// Added 06/2003 - check this if anything gets fishy 
+		// Check for optimization - have we already determined that this is a
+		// static method invocation
+		// Note: maybe factor this out with path below... clean up.
+        if ( classOfStaticMethod != null )
+		{
+//System.out.println("classOfStaticMethod hit");
+			return Reflect.invokeStaticMethod( 
+				bcm, classOfStaticMethod, methodName, args );
+		}
+
 		if ( !Name.isCompound(value) )
 			return invokeLocalMethod( 
 				interpreter, args, callstack, callerInfo );
 
         // Find target object or class identifier
         Name targetName = namespace.getNameResolver( Name.prefix(value));
-        String methodName = Name.suffix(value, 1);
 
         Object obj = targetName.toObject( callstack, interpreter );
 
@@ -697,9 +720,12 @@ class Name implements java.io.Serializable
         	Interpreter.debug("invokeMethod: trying static - " + targetName);
 
         Class clas = ((Name.ClassIdentifier)obj).getTargetClass();
+
+		// cache the fact that this is a static method invocation on this class
+		classOfStaticMethod = clas;
 		
         if ( clas != null )
-			return Reflect.invokeStaticMethod( clas, methodName, args );
+			return Reflect.invokeStaticMethod( bcm, clas, methodName, args );
 
         // return null; ???
 		throw new UtilEvalError("invokeMethod: unknown target: " + targetName);
@@ -793,13 +819,15 @@ class Name implements java.io.Serializable
 			callerInfo, callstack );
 		//System.out.println("found class: " +c);
 
+		BshClassManager bcm = callstack.top().getClassManager();
+
         // add interpereter and namespace to args list
         Object[] invokeArgs = new Object[args.length + 2];
         invokeArgs[0] = interpreter;
         invokeArgs[1] = namespace;
         System.arraycopy(args, 0, invokeArgs, 2, args.length);
 		try {
-        	return Reflect.invokeStaticMethod( c, "invoke", invokeArgs );
+        	return Reflect.invokeStaticMethod( bcm, c, "invoke", invokeArgs );
 		} catch ( ReflectError e ) {
 			System.err.println("Invoke method not found");
 		} catch ( UtilEvalError e ) {
@@ -809,7 +837,7 @@ class Name implements java.io.Serializable
         // try to print help
         try {
             String s = (String)Reflect.invokeStaticMethod(
-				c, "usage", null);
+				bcm, c, "usage", null);
             interpreter.println(s);
             return Primitive.VOID;
         } catch(ReflectError e) {
