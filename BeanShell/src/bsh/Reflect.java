@@ -58,7 +58,7 @@ class Reflect {
 		throws ReflectError, InvocationTargetException, EvalError 
 	{
         Interpreter.debug("invoke Method " + methodName + " on object " 
-			+ object + " with args (");
+			+ object.getClass().getName() + " with args (");
 
 		if ( object instanceof This )
 			return ((This)object).invokeMethod( methodName, args, interpreter );
