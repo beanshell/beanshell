@@ -16,6 +16,13 @@ makeWorkspace( String name ) {
 
 	frame = bsh.system.desktop.makeInternalFrame( name );
 
+	internalFrameClosing( e ) {
+System.out.println("internal frame closing");
+		close();
+	}
+	frame.addInternalFrameListener(this);
+	frame.setClosable(true);
+
 	actionPerformed( e ) {
 		com = e.getActionCommand();
 		if ( com.equals("Workspace Editor") )
@@ -23,11 +30,14 @@ makeWorkspace( String name ) {
 		else if ( com.equals("Capture System in/out/err") )
 			captureSysIO();
 		else if	( com.equals("Close") )	{
-			frame.dispose();
-			if ( haveSysIO )
-				returnSysIO();
-			//thread.stop();
+			close();
 		}
+	}
+
+	close() {
+System.out.println("close method...");
+		if ( haveSysIO )
+			returnSysIO();
 	}
 
 	menubar	= new JMenuBar();
@@ -68,12 +78,13 @@ makeWorkspace( String name ) {
 	sysErr = System.err;
 	captureSysIO() {
 		super.haveSysIO = true;
-		System.setIn( console.getIn() );
+		System.setIn( console.getInputStream() );
 		System.setOut( console.getOut() );
 		System.setErr( console.getErr() );
 	}
 
 	returnSysIO() {
+System.out.println("returning sys io...");
 		super.haveSysIO = false;
 		System.setIn( sysIn );
 		System.setOut( sysOut );

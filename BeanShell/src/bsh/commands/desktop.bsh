@@ -40,18 +40,19 @@ desktop() {
 	}
 
 	makeInternalFrame( String name ) {
-		// Not closable (if we want this we need to add a listener in
-		// workspace to relingquish sys io
+		// Not closable by default
 		frame = new JInternalFrame(	name, true, false, true, true);
-		frame.setDefaultCloseOperation( frame.DO_NOTHING_ON_CLOSE );
 
+		/*
+		frame.setDefaultCloseOperation( frame.DO_NOTHING_ON_CLOSE );
 		internalFrameClosing( e ) {
 			frame.dispose();
 			// Return stdin/stdout if we have it
 			// ...
 		}
-
 		frame.addInternalFrameListener(this);
+		*/
+
 		frame.setVisible( true );
 		return frame;
 	}
