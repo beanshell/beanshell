@@ -1,5 +1,5 @@
 <section>
-<name>The BeanShell Parser</name>
+<name filename="parser">The BeanShell Parser</name>
 
 This BeanShell parser class bsh.Parser is used internally by the BeanShell
 Interpreter.  It is responsible for the lexical parsing of the input text,

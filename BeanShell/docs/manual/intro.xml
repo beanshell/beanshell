@@ -1,5 +1,5 @@
 <section>
-<name>Introduction</name>
+<name filename="intro">Introduction</name>
 
 This document is about BeanShell. 
 BeanShell is a small, free, embeddable, Java source interpreter with 

@@ -1,5 +1,5 @@
 <section>
-<name>Reflective Style Access to Scripted Methods</name>
+<name filename="reflectivestyle" >Reflective Style Access to Scripted Methods</name>
 
 The following examples show how to work with BeanShell methods dynamically 
 from within scripts, using the equivalent of reflective style access in Java.

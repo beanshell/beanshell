@@ -1,5 +1,5 @@
 <section>
-<name>BSF</name>
+<name filename="bsf">BSF</name>
 
 BSF is IBM's "Bean Scripting Framework".  It is generic framework that allows
 many scripting languages to be plugged into an application.  It shields

@@ -1,5 +1,5 @@
 <section>
-<name>Scripting Interfaces</name>
+<name filename="interfaces">Scripting Interfaces</name>
 
 One of the most powerful features of BeanShell is the ability to script 
 Java interfaces.  This feature allows you to write scripts that serve

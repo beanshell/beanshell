@@ -1,5 +1,5 @@
 <section>
-<name>Visibility and Scope Modifiers</name>
+<name filename="scope">Visibility and Scope Modifiers</name>
 
 Now that we've seen how methods can be nested and treated as objects, we
 can revisit the topic of variable scope and scope modifiers.

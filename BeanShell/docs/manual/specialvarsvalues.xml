@@ -1,5 +1,5 @@
 <section>
-<name>Special Variables and Values</name>
+<name filename="specialvarsvalues">Special Variables and Values</name>
 
 In addition to the scope modifiers: 'this', 'super', 'global', BeanShell
 supports a number of pre-defined system variables and some "magic" values.

@@ -1,5 +1,5 @@
 <section>
-<name>Scripted Methods</name>
+<name filename="methods">Scripted Methods</name>
 
 You can define define methods in BeanShell, just as they would appear in Java:
 <example>

@@ -1,5 +1,5 @@
 <section>
-<name>BshApplet</name>
+<name filename="appletmode">The BeanShell Demo Applet</name>
 
 <img src="appletmode.gif"/>
 <br CLEAR="ALL"/>

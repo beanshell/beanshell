@@ -1,5 +1,5 @@
 <section>
-<name>Executable scripts under Unix</name>
+<name filename="execscripts">Executable scripts under Unix</name>
 
 You can use BeanShell for writing scripts as you would any other shell 
 under Unix:

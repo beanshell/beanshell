@@ -93,10 +93,14 @@ SECTION
 <xsl:template match="section/name"/>
 
 <xsl:template match="section" mode="multipage">
-	MULTIPAGE SECTION
-	<xsl:variable 
-		name="file">file<xsl:number count="section"/>.txt</xsl:variable>
-	<redirect:write file="{$file}">
+	<xsl:if test="not(@filename)">
+		<xsl:message terminate="yes">
+			Missing filename attribute in section:
+			<xsl:value-of select="name"/>
+		</xsl:message>
+	</xsl:if>
+
+    <redirect:write file="{@filename}.html">
 		<html>
 		<head>
 			<title><xsl:value-of select="name"/></title>
@@ -165,24 +169,6 @@ SECTION
 	</xsl:otherwise>
 	</xsl:choose>
 </xsl:template>
-
-<!--
-	Write multi-page HTML output.
-	This uses the xalan extensions right now.  Later we'll switch to 
-	the xsl:document tag when it's available.
-<xsl:template name="writepage">
-	<xsl:param name="file"/>
-	<xsl:param name="title"/>
-
-    <redirect:write file="{$file}">
-	<html><head>
-		<title><xsl:value-of select="$title"/></title>
-	</head><body bgcolor="ffffff">
-		<xsl:apply-templates/>
-	</body></html>
-    </redirect:write>
-</xsl:template>
--->
 
 </xsl:stylesheet>
 

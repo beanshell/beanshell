@@ -1,5 +1,5 @@
 <section>
-<name>BeanShell Commands</name>
+<name filename="commands">BeanShell Commands</name>
 
 BeanShell commands take the form of pre-defined methods such as print().
 BeanShell Commands are are mostly composed of BeanShell scripts, supplied 

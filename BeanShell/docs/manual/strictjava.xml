@@ -1,5 +1,5 @@
 <section>
-<name>Strict Java Mode</name>
+<name filename="strictjava">Strict Java Mode</name>
 
 If you are using BeanShell as a teaching aid, or you are a student and 
 you don't want any potential confusing by using BeanShell's loose scripting 
