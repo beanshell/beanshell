@@ -33,7 +33,7 @@
 
 package bsh;
 
-public class BSHSwitchStatement extends SimpleNode {
+class BSHSwitchStatement extends SimpleNode {
 
 	public BSHSwitchStatement(int id) { super(id); }
 

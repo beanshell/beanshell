@@ -2,7 +2,7 @@
 
 package bsh;
 
-public interface ParserTreeConstants
+interface ParserTreeConstants
 {
   public int JJTVOID = 0;
   public int JJTMETHODDECLARATION = 1;

@@ -2,7 +2,7 @@
 
 package bsh;
 
-public class BSHSwitchLabel extends SimpleNode {
+class BSHSwitchLabel extends SimpleNode {
 	boolean isDefault;
 
 	public BSHSwitchLabel(int id) { super(id); }
