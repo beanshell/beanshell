@@ -113,7 +113,7 @@ public class BshClassManager
 	*/
 	public static BshClassManager createClassManager() 
 	{
-System.out.println("creating class manager");
+//System.out.println("creating class manager");
 
 		BshClassManager manager;
 
@@ -229,8 +229,8 @@ System.out.println("creating class manager");
 	{
 		Method m = (Method)resolvedMethods.get( 
 			new SignatureKey( clas, methodName, args ) );
-		if ( m == null )
-			System.out.println("method cache miss: " + clas +" - "+methodName );
+		//if ( m == null )
+		//	System.out.println("method cache miss: " + clas +" - "+methodName );
 		return m;
 	}
 
