@@ -117,39 +117,38 @@ public class Primitive implements ParserConstants, java.io.Serializable
     }
 
 	/**
-		Get the primitive TYPE class corresponding to this Primitive.
+		Get the corresponding primitive TYPE class for the Primitive
+		@return the primitive TYPE class type of the value or Void.TYPE for
+		Primitive.VOID or null value for type of Primitive.NULL
 	*/
     public Class getType()
     {
-        return getPrimitiveType(value);
-    }
+		if ( this == Primitive.VOID )
+			return Void.TYPE;
 
-	/**
-		Get the corresponding primitive TYPE class for the a wrapper.
-		@return the type of null if not a wrapper type 
-		(also for VOID and NULL type ??)
-	*/
-    private static Class getPrimitiveType( Object wrapper )
-    {
-        if(wrapper instanceof Boolean)
+		// NULL return null as type... we currently use null type to indicate 
+		// loose typing throughout bsh.
+		if ( this == Primitive.NULL )
+			return null;
+
+        if ( value instanceof Boolean )
             return Boolean.TYPE;
-        else if(wrapper instanceof Byte)
+        else if(value instanceof Byte)
             return Byte.TYPE;
-        else if(wrapper instanceof Short)
+        else if(value instanceof Short)
             return Short.TYPE;
-        else if(wrapper instanceof Character)
+        else if(value instanceof Character)
             return Character.TYPE;
-        else if(wrapper instanceof Integer)
+        else if(value instanceof Integer)
             return Integer.TYPE;
-        else if(wrapper instanceof Long)
+        else if(value instanceof Long)
             return Long.TYPE;
-        else if(wrapper instanceof Float)
+        else if(value instanceof Float)
             return Float.TYPE;
-        else if(wrapper instanceof Double)
+        else if(value instanceof Double)
             return Double.TYPE;
 
-		// VOID, NULL return null as type?
-        return null;
+		throw new InterpreterError("uknown prim: "+ this );
     }
 
 	/**

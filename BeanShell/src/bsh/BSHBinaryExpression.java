@@ -73,7 +73,7 @@ class BSHBinaryExpression extends SimpleNode
 			NameSpace namespace = callstack.top();
             Class rhs = ((BSHType)jjtGetChild(1)).getType( 
 				callstack, interpreter );
-            boolean ret = (Reflect.isAssignableFrom(rhs, lhs.getClass()));
+            boolean ret = Reflect.isJavaAssignableFrom( rhs, lhs.getClass() );
             return new Primitive(ret);
         }
 

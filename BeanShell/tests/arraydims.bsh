@@ -104,7 +104,9 @@ oo = new Object[] { 0, "a" };
 oo = new Object[] { new Integer(0), new String("a") };
 oo = new Object[] { (Object) new Integer(0), (Object) new String("a") };
 ov = new Vector();
-ov.add(0); ov.add("a"); oo = ov.toArray();
+ov.add(0); 
+ov.add("a"); 
+oo = ov.toArray();
 
 // new stuff to support undefined array dimensions
 
