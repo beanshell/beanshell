@@ -283,14 +283,14 @@
 
 	<!-- Jar targets -->
 
-	<target name="jarcore" depends="compile">
+	<target name="jarcore" depends="compile,_distdir">
 		<delete file="${core-jar}"/>
 		<jar jarfile="${core-jar}" manifest="src/Manifest.interp">
 			<fileset refid="core-fileset"/>
 		</jar>
 	</target>
 
-	<target name="jarall" depends="compile">
+	<target name="jarall" depends="compile,_distdir">
 		<delete file="${all-jar}"/>
 		<jar jarfile="${all-jar}" manifest="src/Manifest.console">
 			<fileset refid="core-fileset"/>
@@ -310,7 +310,7 @@
 		</jar>
 	</target>
 
-	<target name="jarsrc">
+	<target name="jarsrc" depends="_distdir">
 		<delete file="${src-jar}"/>
 		<jar jarfile="${src-jar}">
 			<fileset dir="${basedir}/..">

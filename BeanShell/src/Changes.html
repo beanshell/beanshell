@@ -114,6 +114,11 @@
 	- Enhanced array creation to support undefined array dimensions as in Java.
 	  e.g. int [][][] foo = new int [3][][];
 
+	- Enhanced array creation to support auto-casting in array initializers,
+	  e.g.  even though a primitive number is an int by default, the following 
+	  work (as in Java): 
+	  	long [] la = { 1, 2 };  float [] fa = { 1, 2 }; byte [] ba = { 1, 2 };
+
 </pre>
 
 <h2>Changes in 1.2b8 </h2>

@@ -91,7 +91,37 @@ class BSHArrayInitializer extends SimpleNode
 			// unwrap primitive to the wrapper type
 			Object value;
 			if ( currentInitializer instanceof Primitive )
-				value = ((Primitive)currentInitializer).getValue();
+			{
+				Primitive primValue = (Primitive)currentInitializer;
+				/*
+				TODO:
+					to get cast and boxing working e.g.
+					e.g. Byte [] ia = { 1, 2 }
+
+					If the baseType is a wrapper type then we need to get the 
+					primitive TYPE class for the base type here in order for 
+					the cast to allow it... Then boxing will happen naturally in
+					the Array.set().
+					e.g. Integer [] ia = { 1, 2 }
+				*/
+				/*
+				if ( Primitive.isWrapperType( baseType ) )
+					baseType = Primitive.getPrimitiveTypeForType( baseType );
+				*/
+
+				// don't deal with object types here... unless above
+				if ( baseType.isPrimitive() )
+					try {
+						primValue = BSHCastExpression.castPrimitive( 
+							primValue, baseType );
+					} catch ( UtilEvalError e ) {
+					e.printStackTrace();
+						Interpreter.debug("error:"+e);
+						throwTypeError( baseType, primValue, i, callstack );
+					}
+
+				value = primValue.getValue();
+			}
 			else
 				value = currentInitializer;
 
@@ -129,4 +159,5 @@ class BSHArrayInitializer extends SimpleNode
 			+" in initializer of array type: "+ baseType
 			+" at position: "+argNum, this, callstack );
 	}
+
 }
