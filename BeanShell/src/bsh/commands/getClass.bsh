@@ -1,0 +1,10 @@
+
+/**
+	Get a class through the current namespace utilizing the current imports,		extended classloader, etc.
+*/
+bsh.help.getClass= "usage: getClass( String name )";
+
+Class getClass( String name ) {
+	return this.caller.namespace.getClass( name );
+}
+
