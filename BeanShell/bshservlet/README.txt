@@ -1,8 +1,6 @@
 
-This test servlet is an example of running bsh from a webapp
+This directory is obsolete.
 
-If you want to bundle a copy of the bsh.jar file inside the WAR file
-you must tell build.xml where to find it.
+Please see src/bsh/servlet.
 
-After deploying, hit /bshservlet/index.html for instructions.
 

@@ -51,20 +51,40 @@ public class Remote {
 			System.exit(1);
 		}
 		String url = args[0];
+		String text = getFile(args[1]);
+		int ret = eval( url, text, null );
+		System.exit( ret );
+	}
+
+	/**
+		Evaluate text in the interpreter at url, capturing output into
+		output and returning a possible integer return value.
+	*/
+	public static int eval( String url, String text, StringBuffer output )
+		throws IOException
+	{
+		String returnValue = null;
 		if ( url.startsWith( "http:" ) ) {
-			String text = getFile(args[1]);
-			doHttp( url, text );
+			returnValue = doHttp( url, text );
 		} else if ( url.startsWith( "bsh:" ) ) {
 			//doBsh( url, args );
 		} else
-			System.out.println( "Unrecognized URL type."
+			throw new IOException( "Unrecognized URL type."
 				+"Scheme must be http:// or bsh://");
+
+		try {
+			return Integer.parseInt( returnValue );
+		} catch ( Exception e ) {
+			// this convention may change...
+			return 0;
+		}
 	}
 
 	//static void doBsh( String url, String text ) { }
 
-	static void doHttp( String postURL, String text ) 
+	static String doHttp( String postURL, String text ) 
 	{
+		String returnValue = null;
 		StringBuffer sb = new StringBuffer();
 		sb.append( "bsh.client=Remote" );
 		sb.append( "&bsh.script=" );
@@ -90,17 +110,23 @@ public class Remote {
 		  if ( rc != HttpURLConnection.HTTP_OK )
 			System.out.println("Error, HTTP response: "+rc );
 
+		  returnValue = urlcon.getHeaderField("bsh_return");
+
 		  BufferedReader bin = new BufferedReader( 
 			new InputStreamReader( urlcon.getInputStream() ) );
 		  String line;
 		  while ( (line=bin.readLine()) != null )
 			System.out.println( line );
 
+		  System.out.println( "Return Value: "+returnValue );
+
 		} catch (MalformedURLException e) {
 		  System.out.println(e);     // bad postURL
 		} catch (IOException e2) {
 		  System.out.println(e2);    // I/O error
 		}
+
+		return returnValue;
 	}
 
 	static String getFile( String name ) 

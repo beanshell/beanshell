@@ -1,3 +1,5 @@
+package bsh.servlet;
+
 import java.io.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
@@ -5,14 +7,10 @@ import bsh.*;
 
 /**
 	This file is part of BeanShell - www.beanshell.org
-
-	A simple test harness for bsh in a servlet.
-	Evaluate the text supplied int the parameter "text", showing the 
-	return value and captured output.
 	
 	@author Pat Niemeyer
 */
-public class TestBshServlet extends HttpServlet 
+public class BshServlet extends HttpServlet 
 {
 	static String bshVersion;
 	static String exampleScript = "print(\"hello!\");";
@@ -33,7 +31,7 @@ public class TestBshServlet extends HttpServlet
 		*/
 		Interpreter bsh = new Interpreter();
 		try {
-			bsh.eval( new InputStreamReader( TestBshServlet.class.getResource(
+			bsh.eval( new InputStreamReader( BshServlet.class.getResource(
 				"getVersion.bsh").openStream() ) );
 			bshVersion = (String)bsh.eval( "getVersion()" ); 
 		} catch ( Exception e ) {
@@ -49,7 +47,6 @@ public class TestBshServlet extends HttpServlet
 	{
 		String script = request.getParameter("bsh.script");
 		String client = request.getParameter("bsh.client");
-System.out.println( "bsh.client = "+client );
 		String output = request.getParameter("bsh.servlet.output");
 		String captureOutErr = 
 			request.getParameter("bsh.servlet.captureOutErr");
@@ -69,6 +66,9 @@ System.out.println( "bsh.client = "+client );
 			}
 		}
 
+		//response.setHeader( "bsh.return", String.valueOf(scriptResult) );
+		response.setHeader( "bsh_return", "5" );
+
 		if ( (output != null && output.equalsIgnoreCase("raw"))
 				|| ( client != null && client.equals("Remote") ) )
 			sendRaw( 
@@ -86,7 +86,7 @@ System.out.println( "bsh.client = "+client );
 	{
 		// Format the output using a simple templating utility
 		SimpleTemplate st = new SimpleTemplate( 
-			TestBshServlet.class.getResource("page.template") );
+			BshServlet.class.getResource("page.template") );
 		st.replace( "version", getBshVersion() );
 		if ( script != null )
 			st.replace( "script", script );

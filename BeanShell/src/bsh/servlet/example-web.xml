@@ -6,12 +6,12 @@
 
 <web-app>
     <servlet>
-        <servlet-name>testbsh</servlet-name>
-        <servlet-class>TestBshServlet</servlet-class>
+        <servlet-name>bshservlet</servlet-name>
+        <servlet-class>bsh.servlet.BshServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>testbsh</servlet-name>
+        <servlet-name>bshservlet</servlet-name>
         <url-pattern>/eval</url-pattern>
     </servlet-mapping>
 
