@@ -106,4 +106,28 @@ oo = new Object[] { (Object) new Integer(0), (Object) new String("a") };
 ov = new Vector();
 ov.add(0); ov.add("a"); oo = ov.toArray();
 
+// new stuff to support undefined array dimensions
+
+Integer [][] ua1x = new Integer [5][0];
+assert( ua1x[0] instanceof Integer[] );
+
+Integer [][] ua1 = new Integer [5][];
+assert( ua1 instanceof Integer [][] );
+assert ( ua1[0] == null );
+ua1[0] = new Integer[5];
+
+ua2x = new Integer [3][3][3];
+assert( ua2x instanceof Integer [][][] );
+
+ua2 = new Integer [3][][];
+assert( ua2 instanceof Integer [][][] );
+ua2[0] = new Integer [1][1] ;
+ua2[0][0] = new Integer [1] ;
+ua2[1] = new Integer [][] { {1,2}, {1,2} };
+
+String[][] array2dim1 = new String[10][];
+
+int[][][] primi3 = new int [3][][];
+assert( primi3 instanceof int[][][] );
+
 complete();
