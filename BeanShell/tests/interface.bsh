@@ -6,7 +6,7 @@ source("TestHarness.bsh");
 
 assert( this instanceof Runnable );
 
-if ( bsh.NameSpace.haveProxyMechanism() ) {
+if ( bsh.Capabilities.haveProxyMechanism() ) {
 
 	assert( this instanceof bsh.XThis );
 
