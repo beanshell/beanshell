@@ -95,4 +95,23 @@ public class MethodSelection {
 		System.out.println("selected no args method");
 		return Void.TYPE;
 	}
+
+	public static Class staticVsDynamic1( Object obj ) {
+		System.out.println("Object");
+		return Object.class;
+	}
+
+	public Class staticVsDynamic1( String obj ) {
+		System.out.println("String");
+		return String.class;
+	}
+
+	public static void main( String [] args ) {
+		System.out.println("should be string");
+		new MethodSelection().staticVsDynamic1( "foo" );
+
+		System.out.println("should be object");
+		new MethodSelection().staticVsDynamic1( new Object() );
+
+	}
 }
