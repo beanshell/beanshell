@@ -40,19 +40,8 @@ desktop() {
 	}
 
 	makeInternalFrame( String name ) {
-		// Not closable by default
-		frame = new JInternalFrame(	name, true, false, true, true);
-
-		/*
-		frame.setDefaultCloseOperation( frame.DO_NOTHING_ON_CLOSE );
-		internalFrameClosing( e ) {
-			frame.dispose();
-			// Return stdin/stdout if we have it
-			// ...
-		}
-		frame.addInternalFrameListener(this);
-		*/
-
+		// Closable by default
+		frame = new JInternalFrame(	name, true, true, true, true);
 		frame.setVisible( true );
 		return frame;
 	}

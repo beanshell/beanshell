@@ -703,6 +703,8 @@ public class NameSpace
 		importPackage("java.util");
 		importPackage("java.io");
 		importPackage("java.net");
+		importPackage("javax.swing");
+		importPackage("javax.swing.event");
 
 	/*
 		String res = "lib/defaultImports";

@@ -39,6 +39,11 @@ public class Interpreter
         // necessarily have an interpreter reference (e.g. tracing in utils).
     public static boolean DEBUG = Boolean.getBoolean("debug");
     static PrintStream debug = System.err;
+        static {
+                String outfilename = System.getProperty("outfile");
+                if ( outfilename != null )
+                        redirectOutputToFile( outfilename );
+        }
 
         /**
 		Shared system object visible under bsh.system
@@ -236,10 +241,6 @@ public class Interpreter
 
     public static void main( String [] args )
         {
-                String outfilename = System.getProperty("outfile");
-                if ( outfilename != null )
-                        redirectOutputToFile( outfilename );
-
         if ( args.length > 0 ) {
                         String filename = args[0];
 
@@ -734,10 +735,10 @@ public class Interpreter
         public static void redirectOutputToFile( String filename )
         {
                 try {
-                PrintStream pout = new PrintStream(
-                        new FileOutputStream( filename ) );
-                System.setOut( pout );
-                System.setErr( pout );
+                        PrintStream pout = new PrintStream(
+                                new FileOutputStream( filename ) );
+                        System.setOut( pout );
+                        System.setErr( pout );
                 } catch ( IOException e ) {
                         System.err.println("Can't redirect output to file: "+filename );
                 }

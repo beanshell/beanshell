@@ -1,3 +1,4 @@
+import java.awt.Insets;
 
 workspaceEditor( bsh.Interpreter parent, String name ) {
 
@@ -11,7 +12,9 @@ workspaceEditor( bsh.Interpreter parent, String name ) {
 	textarea.setWrapStyleWord(true);
 	textarea.setTabSize(4);
 	textarea.setMargin( new Insets(5,5,5,5) );
-	frame = new JInternalFrame("Editor for: "+name, true, false, true, true );
+
+	// probably should overload desktop makeInternalFrame
+	frame = new JInternalFrame("Editor for: "+name, true, true, true, true );
 	frame.getContentPane().add( new JScrollPane(textarea), "Center");
 	frame.setVisible( true );
 

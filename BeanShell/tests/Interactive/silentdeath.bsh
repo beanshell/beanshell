@@ -1,5 +1,7 @@
 #!/usr/bin/java bsh.Interpreter
 
+import javax.swing.*;
+
 source("../TestHarness.bsh");
 /*
 	callbacks from awt don't have an interpreter reference...
@@ -17,7 +19,7 @@ actionPerformed( e ) {
 //  This works (causes it to complain and die)
 //actionPerformed( null );
 
-b=new Button("Press Me!");
+b=new JButton("Press Me!");
 b.addActionListener(this);
 frame(b);
 
