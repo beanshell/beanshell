@@ -87,15 +87,27 @@ public class BshMethod
 	*/
 	/*
 		Note: bshmethod needs to re-evaluate arg types here
-		This is broken
+		This is broken.
 	*/
 	public Class [] getArgumentTypes() 
 	{
 		if ( argTypes == null )
-			// should re-eval here...
 			argTypes = method.params.argTypes ;
 
 		return argTypes;
+	}
+
+	/**
+		Get the return type of the method.
+		@return Returns null for a loosely typed return value, 
+			Primitive.VOID for a void return type, or the Class of the type.
+	*/
+	/*
+		Note: bshmethod needs to re-evaluate the method return type here.
+		This is broken.
+	*/
+	public Object getReturnType() {
+		return method.returnType;
 	}
 
 	public String getName() {
@@ -179,7 +191,9 @@ public class BshMethod
 			argValues = new Object [] { };
 
 		// Cardinality (number of args) mismatch
-		if ( argValues.length != method.params.numArgs ) {
+		if ( argValues.length != method.params.numArgs ) 
+		{
+		/*
 			// look for help string
 			try {
 				// should check for null namespace here
@@ -190,10 +204,12 @@ public class BshMethod
 				interpreter.println(help);
 				return Primitive.VOID;
 			} catch ( Exception e ) {
-				throw new EvalError( 
-					"Wrong number of arguments for local method: " 
-					+ method.name, callerInfo, callstack );
+				throw eval error
 			}
+		*/
+			throw new EvalError( 
+				"Wrong number of arguments for local method: " 
+				+ method.name, callerInfo, callstack );
 		}
 
 		// Make the local namespace for the method invocation
@@ -303,6 +319,7 @@ public class BshMethod
 	}
 
 	public String toString() {
-		return "Bsh Method: "+method.name;
+		return "Scripted Method: "
+			+ StringUtil.methodString( method.name, getArgumentTypes() ); 
 	}
 }

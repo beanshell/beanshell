@@ -49,7 +49,10 @@ class BSHMethodDeclaration extends SimpleNode
 	String name;
 	BSHFormalParameters params;
 	BSHBlock block;
+
+	// Unsafe caching of type here.
 	Object returnType; 	// null (none), Primitive.VOID, or a Class
+
 	Modifiers modifiers;
 	int numThrows = 0;
 

@@ -144,7 +144,7 @@ public class Interpreter
 	*/
 	public boolean noExitOnEOF;
 
-    private boolean 
+    protected boolean 
 		evalOnly, 		// Interpreter has no input stream, use eval() only
 		interactive;	// Interpreter has a user, print prompts, etc.
 

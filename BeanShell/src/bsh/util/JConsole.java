@@ -176,8 +176,8 @@ public class JConsole extends JScrollPane
     }
 
     private synchronized void type( KeyEvent e ) {
-		switch ( e.getKeyCode()	) {
-
+		switch ( e.getKeyCode()	) 
+		{
 			case ( KeyEvent.VK_ENTER ):
 			    if (e.getID() == KeyEvent.KEY_PRESSED) {
 					if (gotUp) {
@@ -208,7 +208,8 @@ public class JConsole extends JScrollPane
 			case ( KeyEvent.VK_BACK_SPACE ):
 			case ( KeyEvent.VK_DELETE ):
 				if (text.getCaretPosition() <= cmdStart) {
-// Why isn't this working? JDK1.3 ignores this consume...
+					// This doesn't work for backspace.
+					// See default case for workaround
 					e.consume();
 				}
 				break;
@@ -284,6 +285,19 @@ public class JConsole extends JScrollPane
 					// plain character
 					forceCaretMoveToEnd();
 				}
+
+				/*
+					The getKeyCode function always returns VK_UNDEFINED for
+					keyTyped events, so backspace is not fully consumed.
+				*/
+				if (e.paramString().indexOf("Backspace") != -1)
+				{ 
+				  if (text.getCaretPosition() <= cmdStart) {
+						e.consume();
+						break;
+					}
+				}
+
 				break;
 		}
 	}
