@@ -1,0 +1,19 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+/*
+	If we want to act like Java we need to deal with this problem...
+	auto local variable allocation on assignment is inconsistent with Java	
+	for-init usage:	
+
+*/
+
+i=5;
+
+for(i=0; i<10; i++) { }
+
+// assert(i==10); ? 
+warning("Unresolved for-init issue...");
+
+complete();

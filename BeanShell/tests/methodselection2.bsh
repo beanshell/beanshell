@@ -1,0 +1,23 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+/**
+	Make sure that overloaded method resolution knows whether it's looking
+	for a static only or a dynamic/static method
+*/
+
+m=new MethodSelection();
+assert( m.staticVsDynamic1( new Object() ) == Object.class );
+assert( m.staticVsDynamic1( new String() ) == String.class );
+
+assert( MethodSelection.staticVsDynamic1( new Object() ) == Object.class );
+assert( MethodSelection.staticVsDynamic1( new String() ) == Object.class );
+
+al=new ArrayList();
+al.add("foo");
+assert( isEvalError("ArrayList.add(\"foo\")") );
+assert( isEvalError("java.util.ArrayList.add(\"foo\")"));
+
+complete();
+
