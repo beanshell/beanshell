@@ -22,10 +22,9 @@ public class BshClassLoader extends URLClassLoader
 
 	/**
 		For use by children
-// NO longer using parent? get rid of this...
 	*/
-	protected BshClassLoader( ClassLoader parent ) { 
-		super( new URL [] { }, parent );
+	protected BshClassLoader() { 
+		super( new URL [] { } );
 	}
 
 	public void addURL( URL url ) {

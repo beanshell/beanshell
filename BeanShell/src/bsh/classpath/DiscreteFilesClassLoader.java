@@ -20,11 +20,17 @@ public class DiscreteFilesClassLoader extends BshClassLoader {
 		}
 	}
 	
+	public DiscreteFilesClassLoader( ClassSourceMap map ) { 
+		this.map = map;
+	}
+
+	/*
 	public DiscreteFilesClassLoader( ClassSourceMap map, ClassLoader parent ) 
 	{ 
 		super( parent );
 		this.map = map;
 	}
+	*/
 
 	/**
 	*/

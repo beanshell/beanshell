@@ -268,9 +268,8 @@ public class BshClassManager
 			map.put( name, ((DirClassSource)o).getDir() );
 		}
 
-		// Create classloader for the set of classes with the base loader
-		// as the parent
-		ClassLoader cl = new DiscreteFilesClassLoader( map, baseLoader );
+		// Create classloader for the set of classes
+		ClassLoader cl = new DiscreteFilesClassLoader( map );
 
 		// map those classes the loader in the overlay map
 		Iterator it = map.keySet().iterator();
