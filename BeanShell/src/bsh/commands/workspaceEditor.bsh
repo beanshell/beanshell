@@ -1,12 +1,20 @@
+
 /**
-	Make a new workspaceEditor in the GUI.
-	@method workspaceEditor( bsh.Interpreter parent, String name )
-*/
+ * Make a new workspaceEditor associated with a workspace and place it on the
+ * desktop.
+ *
+ * @method workspaceEditor( bsh.Interpreter parent, String name )
+ *
+ * @author Pat Niemeyer
+ * @author Daniel Leuck
+ */
+ 
 import java.awt.Insets;
 import bsh.Interpreter;
 
 workspaceEditor(Interpreter parent, String name ) 
 {
+	
 	if ( bsh.system.desktop == void ) {
 		print("This only works with the bsh desktop...");
 		return;
@@ -21,6 +29,7 @@ workspaceEditor(Interpreter parent, String name )
 	// probably should overload desktop makeInternalFrame
 	this.frame = 
 		new JInternalFrame("Editor for: "+name, true, true, true, true );
+	frame.frameIcon=bsh.system.icons.script;
 	frame.getContentPane().add( new JScrollPane(textarea), "Center");
 	frame.setVisible( true );
 
@@ -102,13 +111,13 @@ workspaceEditor(Interpreter parent, String name )
 	menu.add(mi);
 	menubar.add(menu);
 
-	menu = bsh.system.desktop.makeFontMenu( textarea );
+	menu = fontMenu( textarea );
 	menubar.add(menu);
 
 	frame.setMenuBar( menubar );
 
 	frame.pack();
-	bsh.system.desktop.pane.add( frame );
-	frame.toFront();
+	bsh.system.desktop.addInternalFrame( frame );
+	frame.selected=true;
 	return frame;
 }
