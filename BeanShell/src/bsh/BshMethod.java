@@ -82,17 +82,6 @@ class BshMethod implements java.io.Serializable
 
 	/**
 		Invoke the bsh method with the specified args, interpreter ref,
-		and callstack.  This method 
-	public Object invokeDeclaredMethod( 
-		Object[] argValues, Interpreter interpreter, CallStack callstack )
-		throws EvalError 
-	{
-		return invokeDeclaredMethod( argValues, interpreter, callstack, null );
-	}
-	*/
-
-	/**
-		Invoke the bsh method with the specified args, interpreter ref,
 		and callstack.
 		callerInfo is the node representing the method invocation
 		It is used primarily for debugging in order to provide access to the 
@@ -108,7 +97,6 @@ class BshMethod implements java.io.Serializable
 			SimpleNode callerInfo ) 
 		throws EvalError 
 	{
-
 		if ( argValues == null )
 			argValues = new Object [] { };
 
@@ -116,7 +104,7 @@ class BshMethod implements java.io.Serializable
 		if ( argValues.length != method.params.numArgs ) {
 			// look for help string
 			try {
-// should check for null here
+				// should check for null namespace here
 				String help = 
 					(String)declaringNameSpace.get(
 					"bsh.help."+method.name, interpreter );
@@ -126,7 +114,7 @@ class BshMethod implements java.io.Serializable
 			} catch ( Exception e ) {
 				throw new EvalError( 
 					"Wrong number of arguments for local method: " 
-					+ method.name, method);
+					+ method.name, callerInfo);
 			}
 		}
 
@@ -147,10 +135,10 @@ class BshMethod implements java.io.Serializable
 				}
 				catch(EvalError e) {
 					throw new EvalError(
-						"Incorrect argument type for parameter: " 
-						+ method.params.argNames[i] + " in method: " 
-						+ method.name + ": " + 
-						e.getMessage(), method);
+						"Invalid argument: " 
+						+ "`"+method.params.argNames[i]+"'" + " for method: " 
+						+ method.name + " : " + 
+						e.getMessage(), callerInfo);
 				}
 				localNameSpace.setTypedVariable( method.params.argNames[i], 
 					method.params.argTypes[i], argValues[i], false);
@@ -159,9 +147,10 @@ class BshMethod implements java.io.Serializable
 			else  // untyped param
 				// checkAssignable would catch this for typed param
 				if ( argValues[i] == Primitive.VOID)
-					throw new EvalError("Attempt to pass void parameter: " +
+					throw new EvalError(
+						"Undefined variable or class name, parameter: " +
 						method.params.argNames[i] + " to method: " 
-						+ method.name, method);
+						+ method.name, callerInfo);
 				else
 					localNameSpace.setVariable(
 						method.params.argNames[i], argValues[i]);
@@ -180,6 +169,7 @@ class BshMethod implements java.io.Serializable
 			if(rs.kind == rs.RETURN)
 				ret = ((ReturnControl)ret).value;
 			else 
+				// This error points to the method, should it?
 				throw new EvalError("continue or break in method body", method);
 		}
 
@@ -199,6 +189,7 @@ class BshMethod implements java.io.Serializable
 					ret, (Class)method.returnType);
 			}
 			catch(EvalError e) {
+				// This error points to the method, should it?
 				throw new EvalError(
 					"Incorrect type returned from method: " 
 					+ method.name + e.getMessage(), method);
@@ -209,6 +200,7 @@ class BshMethod implements java.io.Serializable
 	}
 
 	public String toString() {
+		//return "Bsh Method: "+method.getText();
 		return "Bsh Method: "+method.name;
 	}
 }

@@ -8,7 +8,7 @@ assert( this instanceof Runnable );
 
 import bsh.Capabilities;
 
-if ( Capabilities.haveProxyMechanism() ) {
+if ( Capabilities.canGenerateInterfaces() ) {
 
 	assert( this instanceof bsh.XThis );
 
