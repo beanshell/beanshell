@@ -55,7 +55,8 @@ class BSHMethodInvocation extends SimpleNode
 			throw new EvalError(
 				"Error in method invocation: " + e.getMessage(), this);
 		} catch (java.lang.reflect.InvocationTargetException e) {
-			throw new TargetError(e.getTargetException(), this);
+			throw new TargetError(
+				"Method invocation", e.getTargetException(), this, true );
 		} catch ( EvalError ee ) {
 			ee.reThrow( this );
 			throw new Error("should be unreachable...");

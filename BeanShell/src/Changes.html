@@ -11,6 +11,15 @@
 	- Added getInterface() method to Interpreter.
 	- Fixed issue with identity semantics for this in cast case, e.g.:
 		((ActionListener)this == (ActionListener)this) is now true.
+	- cat() command will now print files, urls, streams, and readers
+	- Exceptions in native (compiled) user classes will now print with
+		both the BeanShell script trace and native Java stack trace.  
+		Exceptions generated directly from scripts will continue to show only 
+		the script trace (as that is all that is meaningful).
+	- ParseException is now a subtype of EvalError... previously these were
+		caught and the contents were moved to an EvalError.  This means that 
+		now the ParseEx implements the contract as far as getErrorLineNumber(),
+		getErrorText(), and getErrorSourceFile()
 </pre>
 </h2>
 
