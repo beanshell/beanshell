@@ -160,13 +160,13 @@ public class BshClassManager
 
 	/**
 	*/
-	public void addClassPath( URL path, Interpreter feedback ) 
+	public void addClassPath( URL path, ConsoleInterface feedback ) 
 		throws IOException 
 	{
 		if ( baseLoader == null )
 			setClassPath( new URL [] { path } );
 		else {
-// opportunitty here for listener in classpath
+			// opportunity here for listener in classpath
 			baseLoader.addURL( path );
 			baseClassPath.add( path, feedback );
 			classLoaderChanged();
@@ -226,7 +226,7 @@ public class BshClassManager
 		If interpreter is non-null it will be used to provide feedback on
 		mapping of the classpath where necessary.
 	*/
-	public void reloadClasses( String [] classNames, Interpreter feedback ) 
+	public void reloadClasses( String [] classNames, ConsoleInterface feedback ) 
 		throws ClassPathException
 	{
 		// validate that it is a class here?
@@ -289,7 +289,7 @@ public class BshClassManager
 		If interpreter is non-null it will be used to provide feedback on
 		mapping of the classpath where necessary.
 	*/
-	public void reloadPackage( String pack, Interpreter feedback ) 
+	public void reloadPackage( String pack, ConsoleInterface feedback ) 
 		throws ClassPathException 
 	{
 		Collection classes = 
@@ -343,7 +343,7 @@ public class BshClassManager
 		Support for "import *;"
 		Hide details in here as opposed to NameSpace.
 	*/
-	void doSuperImport( Interpreter feedback ) 
+	void doSuperImport( ConsoleInterface feedback ) 
 	{
 		try {
 			getClassPath().insureInitialized( feedback );
@@ -401,7 +401,7 @@ public class BshClassManager
 
 	}
 
-	public void dump( Interpreter i ) {
+	public void dump( ConsoleInterface i ) {
 		i.println("Bsh Class Manager Dump: ");
 		i.println("----------------------- ");
 		i.println("baseLoader = "+baseLoader);

@@ -72,7 +72,7 @@ public class AWTConsole extends TextArea
 	private InputStream in;
 	private PrintStream out;
 
-	public InputStream getIn() { return in; }
+	public Reader getIn() { return new InputStreamReader(in); }
 	public PrintStream getOut() { return out; }
 	public PrintStream getErr() { return out; }
 
@@ -196,7 +196,7 @@ public class AWTConsole extends TextArea
 
 	/* 
 		Here's the really disguisting hack.
-		We have to got to the peer because TextComponent will refuse to
+		We have to get to the peer because TextComponent will refuse to
 		let us set us set a caret position greater than the text length.
 		Great.  What a piece of crap.
 	*/
@@ -263,6 +263,10 @@ public class AWTConsole extends TextArea
 
 	public void println( String s ) {
 		print( s+"\n" );
+	}
+
+	public void error( String s ) {
+		print( s, Color.red );
 	}
 
 	public void print( String s, Color c ) {

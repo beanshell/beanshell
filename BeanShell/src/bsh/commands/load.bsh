@@ -9,6 +9,7 @@ Object load( String filename ) {
 		FileInputStream in = new FileInputStream( file );
 		ObjectInputStream oin = new ObjectInputStream(in);
 		obj = oin.readObject();
+		oin.close();
 	//} catch ( Exception e ) {
 		//throw new bsh.EvalError("Error loading object: "+e);
 	//}
