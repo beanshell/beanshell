@@ -2,11 +2,7 @@
 bsh.help.eval = "usage: eval( String expression )";
 
 /**
-	This is currently broken - the reference to super.namespace causes
-	the side effects to appear in the global namespace...  they should
-	appear in the caller...  need to add a 'caller' mechanism to get the
-	caller namespace.
 */
 eval( String expression ) {
-    return this.interpreter.eval( expression, super.namespace );
+    return this.interpreter.eval( expression, this.caller.namespace );
 }

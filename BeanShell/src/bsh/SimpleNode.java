@@ -126,8 +126,8 @@ class SimpleNode implements Node {
 
 	//  ---- BeanShell specific stuff hereafter ----  //
 
-	/*
-		Chop this node from its parent.
+	/**
+		Detach this node from its parent.
 		This is primarily useful in node serialization.
 		(see BSHMethodDeclaration)
 	*/
@@ -135,18 +135,30 @@ class SimpleNode implements Node {
 		jjtSetParent( null );
 	}
 
-	public Object eval(NameSpace namespace, Interpreter interpreter) throws EvalError
+	/**
+		Some nodes require only a namespace for evaluation.
+	*/
+	public Object eval( NameSpace namespace ) 
+		throws EvalError
 	{
-		throw new EvalError("Unimplemented or inappropriate for " + getClass().getName());
+		throw new EvalError(
+			"Unimplemented or inappropriate for " + getClass().getName());
 	}
 
-	/*
-    private synchronized void writeObject(java.io.ObjectOutputStream s)
-        throws java.io.IOException
-    {
-		s.defaultWriteObject();
-		System.out.println("serializing: "+this);
-	}
+	/**
+		This is the general signature for evaluation of a node.
 	*/
+	public Object eval( CallStack callstack, Interpreter interpreter ) 
+		throws EvalError
+	{
+		/*
+			Try to call the simpler signature
+			I don't ilke this, but it's the price we pay for being able to
+			eval() any simplenode and still limit the signature on those
+			that only need namespace.
+		*/
+		return eval( callstack.top() );
+	}
+
 }
 

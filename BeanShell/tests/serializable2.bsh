@@ -4,7 +4,8 @@ source("TestHarness.bsh");
 
 booga=37;
 
-foo() {
+foo( arg ) {
+	goo=booga;
 	run() {
 		print("hello");
 		return 42;
@@ -12,24 +13,24 @@ foo() {
 	getBooga() {
 		return booga;
 	}
+	getArg() {
+		return arg;
+	}
 	return this;
 }
 
-f=foo();
+f=foo( 5 );
 save(f, "f.ser");
 
 booga=12;
 
 print("here1");
 f2=load("f.ser");
-print("this.interpreter = "+this.interpreter);
-print("f2.interpreter = "+f2.interpreter);
 
-//print("here2");
 assert( f2.run() == 42 );
-//print("here3");
 assert( f2.getBooga() == 12 );
-//print("here4");
+assert( f2.goo==37);
+assert( f2.getArg() == 5 );
 
 rm("f.ser");
 

@@ -38,7 +38,7 @@ class BSHBlock extends SimpleNode
 {
 	BSHBlock(int id) { super(id); }
 
-	public Object eval( NameSpace namespace, Interpreter interpreter) 
+	public Object eval( CallStack callstack, Interpreter interpreter) 
 		throws EvalError
 	{
 		Object ret = Primitive.VOID;
@@ -46,7 +46,7 @@ class BSHBlock extends SimpleNode
 		for(int i=0; i<n; i++)
 		{
 			SimpleNode node = ((SimpleNode)jjtGetChild(i));
-			ret = node.eval( namespace, interpreter );
+			ret = node.eval( callstack, interpreter );
 
 			// some statement or embedded block evaluated a return statement
 			if(ret instanceof ReturnControl)

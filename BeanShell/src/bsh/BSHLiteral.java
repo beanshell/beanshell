@@ -40,7 +40,8 @@ class BSHLiteral extends SimpleNode
 
     BSHLiteral(int id) { super(id); }
 
-    public Object eval(NameSpace namespace, Interpreter interpreter)  throws EvalError
+    public Object eval( CallStack callstack, Interpreter interpreter)  
+		throws EvalError
     {
         return value;
     }

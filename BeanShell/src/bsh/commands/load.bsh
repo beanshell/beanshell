@@ -10,9 +10,9 @@ Object load( String filename ) {
 	obj = oin.readObject();
 	oin.close();
 
-	// bind bsh objects into current namespace
+	// bind bsh objects into the caller's namespace
 	if ( obj instanceof bsh.This )
-		bind( obj, super.namespace );
+		bind( obj, this.caller.namespace );
 
 	return obj;
 }

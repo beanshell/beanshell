@@ -29,4 +29,20 @@ assert( java.awt.GridBagConstraints.BOTH == 1 );
 assert( this == this );
 assert( super == super );
 
+// unset works
+assert( goober123423 == void );
+goober123423=5;
+assert( goober123423 != void );
+unset("goober123423");
+assert( goober123423 == void );
+
+// unset scope works
+foo=5;
+foo() {
+	foo=6;
+	unset("foo");
+	assert(foo==void);
+}
+assert(foo==5);
+
 complete();

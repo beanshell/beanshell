@@ -34,6 +34,14 @@
 
 package bsh;
 
+/**
+	Implementation of the for(;;) statement.
+*/
+/*
+	Note: there is some manipulation of the call stack in here to preserve
+	the validity of this.caller even when new subordinate namespaces are 
+	made for the for-init and for-body.
+*/
 class BSHForStatement extends SimpleNode implements ParserConstants
 {
     public boolean hasForInit;
@@ -49,7 +57,8 @@ class BSHForStatement extends SimpleNode implements ParserConstants
 
     BSHForStatement(int id) { super(id); }
 
-    public Object eval(NameSpace namespace, Interpreter interpreter)  throws EvalError
+    public Object eval(CallStack callstack , Interpreter interpreter)  
+		throws EvalError
     {
         int i = 0;
         if(hasForInit)
@@ -62,34 +71,57 @@ class BSHForStatement extends SimpleNode implements ParserConstants
             statement = ((SimpleNode)jjtGetChild(i));
 
 		NameSpace forInitNameSpace = null;
+		// save the parent namespace, we're going to do some swapping
+		NameSpace enclosingNameSpace= callstack.top();
 
         // Do the for init
         if ( hasForInit ) {
 			forInitNameSpace = 
-				new NameSpace( namespace, "ForInitNameSpace" );
-            forInit.eval( forInitNameSpace, interpreter );
+				new NameSpace( enclosingNameSpace, "ForInitNameSpace" );
+
+			// swap in the forInitSpace so that this.caller stays meaningful
+			NameSpace tmp = callstack.swap( forInitNameSpace );
+            forInit.eval( callstack, interpreter );
+			callstack.swap( tmp );  // put it back
 		} 
 
 		// the forInitNameSpace may be null if there is no forInit
 		NameSpace forBodyNameSpace = new ForBodyNameSpace(
-			namespace, forInitNameSpace );
+			enclosingNameSpace, forInitNameSpace );
 
+		Object returnControl = Primitive.VOID;
         while(true)
         {
-            if(hasExpression && !BSHIfStatement.evaluateCondition(
-								expression, forBodyNameSpace, interpreter))
+			/*
+            if ( hasExpression && !BSHIfStatement.evaluateCondition(
+				expression, forBodyNameSpace, interpreter) )
                 break;
+			*/
+            if ( hasExpression ) {
+				NameSpace tmp = callstack.swap( forBodyNameSpace );
+				boolean cond = BSHIfStatement.evaluateCondition(
+					expression, callstack, interpreter );
+				callstack.swap( tmp );  // put it back
+
+				if ( !cond ) 
+					break;
+			}
 
             boolean breakout = false; // switch eats a multi-level break here?
-            if(statement != null) // not empty statement
+            if ( statement != null ) // not empty statement
             {
-                Object ret = statement.eval(forBodyNameSpace, interpreter);
+				// swap in the forBodyNameSpace so this.caller stays meaningful
+				NameSpace tmp = callstack.swap( forBodyNameSpace );
+                Object ret = statement.eval( callstack, interpreter );
+				callstack.swap( tmp );  // put it back
 
-                if(ret instanceof ReturnControl)
+                if (ret instanceof ReturnControl)
                 {
                     switch(((ReturnControl)ret).kind)
                     {
                         case RETURN:
+							returnControl = ret;
+							breakout = true;
                             return ret;
 
                         case CONTINUE:
@@ -104,11 +136,15 @@ class BSHForStatement extends SimpleNode implements ParserConstants
             if(breakout)
                 break;
 
-            if(hasForUpdate)
-                forUpdate.eval(forBodyNameSpace, interpreter);
+            if ( hasForUpdate ) {
+				// swap in the forBodyNameSpace so this.caller stays meaningful
+				NameSpace tmp = callstack.swap( forBodyNameSpace );
+                forUpdate.eval( callstack, interpreter );
+				callstack.swap( tmp );  // put it back
+			}
         }
 
-        return Primitive.VOID;
+        return returnControl;
     }
 
 }

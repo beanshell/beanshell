@@ -40,10 +40,14 @@ class BSHAssignment extends SimpleNode implements ParserConstants
 
     BSHAssignment(int id) { super(id); }
 
-    public Object eval(NameSpace namespace, Interpreter interpreter)  throws EvalError
+    public Object eval(
+		CallStack callstack, Interpreter interpreter) 
+		throws EvalError
     {
-        LHS lhs = ((BSHLHSPrimaryExpression)jjtGetChild(0)).toLHS(namespace, interpreter);
-        Object rhs = ((SimpleNode)jjtGetChild(1)).eval(namespace, interpreter);
+		//NameSpace namespace = callstack.top();
+        LHS lhs = ((BSHLHSPrimaryExpression)jjtGetChild(0)).toLHS(
+			callstack, interpreter);
+        Object rhs = ((SimpleNode)jjtGetChild(1)).eval(callstack, interpreter);
 
         if(rhs == Primitive.VOID)
             throw new EvalError("Void assignment.", this);

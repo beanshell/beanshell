@@ -43,7 +43,7 @@ class BSHWhileStatement extends SimpleNode implements ParserConstants
 
     BSHWhileStatement(int id) { super(id); }
 
-    public Object eval(NameSpace namespace, Interpreter interpreter)  
+    public Object eval( CallStack callstack, Interpreter interpreter)  
 		throws EvalError
     {
 		int numChild = jjtGetNumChildren();
@@ -63,13 +63,13 @@ class BSHWhileStatement extends SimpleNode implements ParserConstants
 		boolean doOnceFlag = isDoStatement;
         while( 
 			doOnceFlag || 
-			BSHIfStatement.evaluateCondition(condExp, namespace, interpreter )
+			BSHIfStatement.evaluateCondition(condExp, callstack, interpreter )
 		)
 		{
 			if ( body == null ) // no body?
 				continue;
 
-			Object ret = body.eval(namespace, interpreter);
+			Object ret = body.eval(callstack, interpreter);
 
 			boolean breakout = false;
 			if(ret instanceof ReturnControl)

@@ -49,8 +49,11 @@ class BSHType extends SimpleNode
 
     public void addArrayDimension() { arrayDims++; }
 
-    // Returns a class for the type
-    public Class getType(NameSpace namespace) throws EvalError
+    /**
+		 Returns a class for the type
+	*/
+    public Class getType( NameSpace namespace ) 
+		throws EvalError
     {
         // return cached type if available
 		if (type != null)
@@ -63,7 +66,7 @@ class BSHType extends SimpleNode
         if(node instanceof BSHPrimitiveType)
             baseType = ((BSHPrimitiveType)node).getType();
         else 
-            baseType = ((BSHAmbiguousName)node).toClass(namespace);
+            baseType = ((BSHAmbiguousName)node).toClass( namespace );
 
         if(arrayDims > 0) {
             try {

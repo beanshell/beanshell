@@ -31,23 +31,94 @@
  *                                                                           *
  *****************************************************************************/
 
-
 package bsh;
 
-class BSHStatementExpressionList extends SimpleNode
-{
-	BSHStatementExpressionList(int id) { super(id); }
+import java.util.Vector;
 
-	public Object eval(CallStack callstack, Interpreter interpreter)  
-		throws EvalError
-	{
-		int n = jjtGetNumChildren();
-		for(int i=0; i<n; i++)
-		{
-			SimpleNode node = ((SimpleNode)jjtGetChild(i));
-			node.eval(callstack, interpreter);
-		}
-		return Primitive.VOID;
+/**
+	A stack of namespaces representing the call path.
+	The top of the stack is always the current namespace of evaluation.
+
+	This is necessary to support this this.caller magic reference and will
+	also be used to provide additional debug/tracking and error reporting
+	information in the future.
+
+	Note: it would be awefully nice to use the java.util.Stack here.
+	Sigh... have to stay 1.1 compatible.
+
+	We don't want to serialize this, do we?  It should be ephemeral, like
+	the interpreter reference I think.
+*/
+public class CallStack /*implements java.io.Serializable*/
+{
+	private Vector stack = new Vector();
+
+	/*
+	public static CallStack fromJava() {
+		CallStack cs = new CallStack();
+		cs.push( NameSpace.JAVACODE );
+		return cs;
+	}
+	*/
+
+	public void clear() {
+		stack.clear();
+	}
+
+	public void push( NameSpace ns ) {
+		stack.insertElementAt( ns, 0 );
+	}
+
+	public NameSpace top() {
+		return get(0);
+	}
+
+	/**
+		zero based.
+	*/
+	public NameSpace get(int depth) {
+		if ( depth >= depth() )
+			return NameSpace.JAVACODE;
+		else
+			return (NameSpace)(stack.elementAt(depth));
+	}
+	
+
+	public NameSpace pop() {
+		if ( depth() < 1 )
+			throw new InterpreterError("pop on empty CallStack");
+		NameSpace top = top();
+		stack.removeElementAt(0);
+		return top;
+	}
+
+	/**
+		Swap in the value as the new top of the stack and return the old
+		value.
+	*/
+	public NameSpace swap( NameSpace newTop ) {
+		NameSpace oldTop = (NameSpace)(stack.elementAt(0));
+		stack.setElementAt( newTop, 0 );
+		return oldTop;
+	}
+
+	public int depth() {
+		return stack.size();
+	}
+
+	public NameSpace [] toArray() {
+		NameSpace [] nsa = new NameSpace [ depth() ];
+		stack.copyInto( nsa );
+		return nsa;
+	}
+
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("CallStack:\n");
+		NameSpace [] nsa = toArray();
+		for(int i=0; i<nsa.length; i++)
+			sb.append("\t"+nsa[i]+"\n");
+
+		return sb.toString();
 	}
 }
-

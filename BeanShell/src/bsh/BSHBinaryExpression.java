@@ -43,9 +43,10 @@ class BSHBinaryExpression extends SimpleNode
 
     BSHBinaryExpression(int id) { super(id); }
 
-    public Object eval(NameSpace namespace, Interpreter interpreter)  throws EvalError
+    public Object eval( CallStack callstack, Interpreter interpreter)  
+		throws EvalError
     {
-        Object lhs = ((SimpleNode)jjtGetChild(0)).eval(namespace, interpreter);
+        Object lhs = ((SimpleNode)jjtGetChild(0)).eval(callstack, interpreter);
 
 		/*
 			Doing instanceof?  Next node is a type.
@@ -59,6 +60,7 @@ class BSHBinaryExpression extends SimpleNode
 
             }
 
+			NameSpace namespace = callstack.top();
             Class rhs = ((BSHType)jjtGetChild(1)).getType(namespace);
             boolean ret = (Reflect.isAssignableFrom(rhs, lhs.getClass()));
             return new Primitive(ret);
@@ -99,7 +101,7 @@ class BSHBinaryExpression extends SimpleNode
 			Are both the lhs and rhs either wrappers or primitive values?
 		*/
 		boolean isLhsWrapper = isWrapper( lhs );
-        Object rhs = ((SimpleNode)jjtGetChild(1)).eval(namespace, interpreter);
+        Object rhs = ((SimpleNode)jjtGetChild(1)).eval(callstack, interpreter);
 		boolean isRhsWrapper = isWrapper( rhs );
 
 		if ( ( isLhsWrapper || isPrimitiveValue( lhs ) ) &&

@@ -4,7 +4,7 @@ import java.awt.*;
 
 editor() {
 	if ( bsh.system.desktop != void ) {
-		return workspaceEditor( super.interpreter );
+		return workspaceEditor( this.interpreter );
 	}
 
 	ta = new TextArea(15,40);

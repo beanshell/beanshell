@@ -112,7 +112,7 @@ class XThis extends This {
 
 			if ( bmethod != null )
 				return bmethod.invokeDeclaredMethod( 
-					args, declaringInterpreter );
+					args, declaringInterpreter, callstack );
 
 			// Look for the default handler
 			bmethod = namespace.getMethod( "invoke", 
@@ -122,7 +122,7 @@ class XThis extends This {
 			if ( bmethod != null )
 				return bmethod.invokeDeclaredMethod( 
 					new Object [] { method.getName(), args }, 
-					declaringInterpreter );
+					declaringInterpreter, callstack );
 
 			if ( method.getName().equals("toString" ) )
 				return toStringShowInts( proxy.getClass().getInterfaces());

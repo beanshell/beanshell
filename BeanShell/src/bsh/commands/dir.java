@@ -36,8 +36,16 @@ public class dir {
 		invoke( env, namespace, dir );
 	}
 
-	public static void invoke( Interpreter env, NameSpace namespace, String dir ) {
-		File file =  env.pathToFile( dir );
+	public static void invoke( 
+		Interpreter env, NameSpace namespace, String dir ) 
+	{
+		File file;
+		try {
+			file =  env.pathToFile( dir );
+		} catch (IOException e ) {
+			env.println("error reading path: "+e);
+			return;
+		}
 
 		if ( !file.exists() || !file.canRead() ) {
 			env.println( "Can't read " + file );

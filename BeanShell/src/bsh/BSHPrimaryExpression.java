@@ -45,16 +45,18 @@ class BSHPrimaryExpression extends SimpleNode
 		opportunity to work through them.  This let's the suffixes decide
 		how to interpret an ambiguous name (e.g. for the .class operation).
 	*/
-	public Object eval(NameSpace namespace, Interpreter interpreter)  throws EvalError
+	public Object eval(CallStack callstack, Interpreter interpreter)  
+		throws EvalError
 	{
 		Object obj = jjtGetChild(0);
 		int n = jjtGetNumChildren(); 
 
 		for(int i=1; i<n; i++)
-			obj = ((BSHPrimarySuffix)jjtGetChild(i)).doSuffix(obj, namespace, interpreter);
+			obj = ((BSHPrimarySuffix)jjtGetChild(i)).doSuffix(
+				obj, callstack, interpreter);
 
 		/*
-			eval(namespace, interpreter) the node to an object
+			eval the node to an object
 
 			Note: This construct is now necessary where the node may be
 			an ambiguous name.  If this becomes common we might want to 
@@ -62,9 +64,9 @@ class BSHPrimaryExpression extends SimpleNode
 		*/
 		if ( obj instanceof SimpleNode )
 			if ( obj instanceof BSHAmbiguousName )
-				obj = ((BSHAmbiguousName)obj).toObject(namespace, interpreter);
+				obj = ((BSHAmbiguousName)obj).toObject(callstack, interpreter);
 			else
-				obj = ((SimpleNode)obj).eval(namespace, interpreter);	
+				obj = ((SimpleNode)obj).eval(callstack, interpreter);	
 
 		return obj;
 	}

@@ -59,20 +59,22 @@ class BSHLHSPrimarySuffix extends SimpleNode
 
 	BSHLHSPrimarySuffix(int id) { super(id); }
 
-	public LHS doLHSSuffix(Object obj, NameSpace namespace, Interpreter interpreter) throws EvalError
+	public LHS doLHSSuffix(
+		Object obj, CallStack callstack, Interpreter interpreter) 
+		throws EvalError
 	{
 		try
 		{
 			switch(operation)
 			{
 				case INDEX:
-					return doIndex(obj, namespace, interpreter);
+					return doIndex(obj, callstack, interpreter);
 
 				case NAME:
-					return doName(obj, namespace, interpreter);
+					return doName(obj, callstack, interpreter);
 
 				case PROPERTY:
-					return doProperty(obj, namespace, interpreter);
+					return doProperty(obj, callstack, interpreter);
 
 				default:
 					throw new InterpreterError("LHS suffix");
@@ -89,7 +91,7 @@ class BSHLHSPrimarySuffix extends SimpleNode
 	}
 
 	private LHS doName(
-		Object obj, NameSpace namespace, Interpreter interpreter) 
+		Object obj, CallStack callstack, Interpreter interpreter) 
 		throws EvalError, ReflectError, InvocationTargetException 
 	{
 		if (jjtGetNumChildren() == 0)
@@ -97,7 +99,8 @@ class BSHLHSPrimarySuffix extends SimpleNode
 			return Reflect.getLHSObjectField(obj, field);
 		else {
 			// intermediate method invocation, and field access
-			Object[] oa = ((BSHArguments)jjtGetChild(0)).getArguments(namespace, interpreter);
+			Object[] oa = ((BSHArguments)jjtGetChild(0)).getArguments(
+				callstack, interpreter);
 			try {
 				obj = Reflect.invokeObjectMethod(interpreter, obj, method, oa);
 			} catch ( EvalError ee ) {
@@ -108,7 +111,9 @@ class BSHLHSPrimarySuffix extends SimpleNode
 		}
 	}
 
-	private LHS doIndex(Object obj, NameSpace namespace, Interpreter interpreter) throws EvalError, ReflectError
+	private LHS doIndex(
+		Object obj, CallStack callstack, Interpreter interpreter) 
+		throws EvalError, ReflectError
 	{
 		if(!obj.getClass().isArray())
 			throw new EvalError("Not an array", this);
@@ -116,7 +121,8 @@ class BSHLHSPrimarySuffix extends SimpleNode
 		int index;
 		try
 		{
-			Primitive val = (Primitive)(((SimpleNode)jjtGetChild(0)).eval(namespace, interpreter));
+			Primitive val = (Primitive)(((SimpleNode)jjtGetChild(0)).eval(
+				callstack, interpreter));
 			index = val.intValue();
 		}
 		catch(Exception e)
@@ -126,8 +132,9 @@ class BSHLHSPrimarySuffix extends SimpleNode
 
 		return new LHS(obj, index);
 	}
-
-	private LHS doProperty(Object obj, NameSpace namespace, Interpreter interpreter) throws EvalError, ReflectError
+	private LHS doProperty(
+		Object obj, CallStack callstack, Interpreter interpreter) 
+		throws EvalError, ReflectError
 	{
 		if(obj == Primitive.VOID)
 			throw new EvalError("Attempt to access property on a void type", this);
@@ -135,7 +142,9 @@ class BSHLHSPrimarySuffix extends SimpleNode
 		else if(obj instanceof Primitive)
 			throw new EvalError("Attempt to access property on a primitive", this);
 
-		Object value = ((SimpleNode)jjtGetChild(0)).eval(namespace, interpreter);
+		Object value = ((SimpleNode)jjtGetChild(0)).eval(
+			callstack, interpreter);
+
 		if(!(value instanceof String))
 			throw new EvalError("Property expression must be a String or identifier.", this);
 

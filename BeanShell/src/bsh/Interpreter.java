@@ -92,7 +92,7 @@ import java.awt.Color;
 public class Interpreter 
 	implements Runnable, ConsoleInterface /*,Serializable*/ 
 {
-	public static final String VERSION = "1.1a9";
+	public static final String VERSION = "1.1a10";
 	/* 
 		Debug utils are static so that they are reachable by code that doesn't
 		necessarily have an interpreter reference (e.g. tracing in utils).
@@ -266,6 +266,43 @@ public class Interpreter
 		setu( "bsh.evalOnly", new Primitive(evalOnly) );
 	}
 
+	/**
+		Set the global namespace for this interpreter.
+		<p>
+
+		Note: This is here for completeness.  If you're using this a lot 
+		it may be an indication that you are doing more work than you have 
+		to.  For example, caching the interpreter instance rather than the 
+		namespace should not add a significant overhead.  No state other 
+		than the debug status is stored in the interpreter.
+		<p>
+
+		All features of the namespace can also be accessed using the 
+		interpreter via eval() and the script variable 'this.namespace'
+		(or global.namespace as necessary).
+	*/
+	public void setNameSpace( NameSpace globalNameSpace ) {
+		this.globalNameSpace = globalNameSpace;
+	}
+
+	/**
+		Get the global namespace of this interpreter.
+		<p>
+
+		Note: This is here for completeness.  If you're using this a lot 
+		it may be an indication that you are doing more work than you have 
+		to.  For example, caching the interpreter instance rather than the 
+		namespace should not add a significant overhead.  No state other than 
+		the debug status is stored in the interpreter.  
+		<p>
+
+		All features of the namespace can also be accessed using the 
+		interpreter via eval() and the script variable 'this.namespace'
+		(or global.namespace as necessary).
+	*/
+	public NameSpace getNameSpace() {
+		return globalNameSpace;
+	}
 
 	/**
 		Run the text only interpreter on the command line or specify a file.
@@ -336,6 +373,11 @@ public class Interpreter
 			}
 
         boolean eof = false;
+
+		// init the callstack.  
+		CallStack callstack = new CallStack();
+		callstack.push( globalNameSpace );
+
         while(!eof)
         {
             try
@@ -356,7 +398,13 @@ public class Interpreter
                     if(DEBUG)
                         node.dump(">");
 
-                    Object ret = node.eval( globalNameSpace, this );
+                    Object ret = node.eval( callstack, this );
+				
+					// sanity check during development
+					if ( callstack.depth() > 1 )
+						throw new InterpreterError(
+							"Callstack growing: "+callstack);
+
                     if(ret instanceof ReturnControl)
                         ret = ((ReturnControl)ret).value;
                     if(ret != Primitive.VOID)
@@ -436,6 +484,9 @@ public class Interpreter
             finally
             {
                 get_jjtree().reset();
+				// reinit the callstack
+				callstack.clear();
+				callstack.push( globalNameSpace );
             }
         }
 
@@ -477,13 +528,14 @@ public class Interpreter
 
 Can't this be combined with run() ?
 run seems to have stuff in it for interactive vs. non-interactive...
-compare them side by side and see what they do differently.
+compare them side by side and see what they do differently, aside from the
+exception handling.
 
     */
     public Object eval( 
 		Reader in, NameSpace nameSpace, String sourceFile ) 
-		throws EvalError {
-
+		throws EvalError 
+	{
 		Object retVal = null;
 		debug("eval: nameSpace = "+nameSpace);
 
@@ -495,6 +547,10 @@ compare them side by side and see what they do differently.
         Interpreter localInterpreter = 
 			new Interpreter( in, out, err, false, nameSpace );
 
+		CallStack callstack = new CallStack();
+		callstack.push( new NameSpace("Evaluation global for: "+sourceFile) );
+		callstack.push( nameSpace );
+
         boolean eof = false;
         while(!eof)
         {
@@ -505,7 +561,14 @@ compare them side by side and see what they do differently.
                 {
                     SimpleNode node = 
 						(SimpleNode)localInterpreter.get_jjtree().rootNode();
-                    retVal = node.eval( nameSpace, this );
+
+                    retVal = node.eval( callstack, this );
+
+					// sanity check during development
+					if ( callstack.depth() > 2 )
+						throw new InterpreterError(
+							"Callstack growing: "+callstack);
+
                     if ( retVal instanceof ReturnControl ) {
                         retVal = ((ReturnControl)retVal).value;
 						break; // non-interactive, return control now
@@ -540,6 +603,8 @@ compare them side by side and see what they do differently.
 					+ e.getMessage() );
             } finally {
                 localInterpreter.get_jjtree().reset();
+				callstack.clear();
+				callstack.push( nameSpace );
             }
         }
 		return unwrap( retVal );
@@ -695,7 +760,8 @@ compare them side by side and see what they do differently.
 		name may evaluate to anything assignable. e.g. a variable or field.
 	*/
     public void set(String name, Object value) throws EvalError {
-		LHS lhs = new Name( globalNameSpace, name ).toLHS( this );
+		CallStack callstack = new CallStack();
+		LHS lhs = new Name( globalNameSpace, name ).toLHS( callstack, this );
 		lhs.assign( value );
 	}
 

@@ -19,7 +19,7 @@
 
 <!-- Project Configuration -->
 
-	<property name="version" value="1.1a9"/>
+	<property name="version" value="1.1a10"/>
 	<property name="deprecation" value="off"/>
 
 	<!-- choose an alternate compiler -->

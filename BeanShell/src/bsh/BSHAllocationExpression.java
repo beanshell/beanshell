@@ -41,7 +41,8 @@ class BSHAllocationExpression extends SimpleNode
 {
     BSHAllocationExpression(int id) { super(id); }
 
-    public Object eval(NameSpace namespace, Interpreter interpreter)  throws EvalError
+    public Object eval( CallStack callstack, Interpreter interpreter) 
+		throws EvalError
     {
         // type is either a class name or a primitive type
         SimpleNode type = (SimpleNode)jjtGetChild(0);
@@ -55,22 +56,23 @@ class BSHAllocationExpression extends SimpleNode
 
             if(args instanceof BSHArguments)
                 return objectAllocation(name, (BSHArguments)args, 
-					namespace, interpreter );
+					callstack, interpreter );
             else
                 return objectArrayAllocation(name, (BSHArrayDimensions)args, 
-					namespace, interpreter );
+					callstack, interpreter );
         }
         else
             return primitiveArrayAllocation((BSHPrimitiveType)type,
-                (BSHArrayDimensions)args, namespace, interpreter );
+                (BSHArrayDimensions)args, callstack, interpreter );
     }
 
     private Object objectAllocation(
 		BSHAmbiguousName nameNode, BSHArguments argumentsNode, 
-		NameSpace namespace, Interpreter interpreter 
+		CallStack callstack, Interpreter interpreter 
 	) 
 		throws EvalError
     {
+		NameSpace namespace = callstack.top();
         Class type = nameNode.toClass(namespace);
 
 		/* toClass throws this
@@ -79,7 +81,7 @@ class BSHAllocationExpression extends SimpleNode
 				"Class " + nameNode.getName(namespace) + " not found.", this);
 		*/
 
-        Object[] args = argumentsNode.getArguments(namespace, interpreter);
+        Object[] args = argumentsNode.getArguments(callstack, interpreter);
         if(args == null)
             throw new EvalError("Trying to new a class...?", this);
 
@@ -89,7 +91,7 @@ class BSHAllocationExpression extends SimpleNode
 		if ( hasBody ) {
         	BSHBlock body = (BSHBlock)jjtGetChild(2);
 			return constructWithBody( 
-				type, args, body, namespace, interpreter );
+				type, args, body, callstack, interpreter );
 		} else
 			return constructObject( type, args );
     }
@@ -110,30 +112,36 @@ class BSHAllocationExpression extends SimpleNode
 
 	private Object constructWithBody( 
 		Class type, Object[] args, BSHBlock body,
-		NameSpace namespace, Interpreter interpreter ) 
+		CallStack callstack, Interpreter interpreter ) 
 		throws EvalError
 	{
 		if ( ! type.isInterface() )
 			throw new EvalError(
 				"BeanShell cannot extend class types: "+ type );
 
+		NameSpace namespace = callstack.top();
+// Maybe we should swap in local namespace for the top?
+// who is the caller?
 		NameSpace local = new NameSpace(namespace, "anonymous block object");
-		body.eval( local, interpreter );
+		callstack.push(local);
+		body.eval( callstack, interpreter );
+		callstack.pop();
 		return local.getThis(interpreter).getInterface( type );
 	}
 
     private Object objectArrayAllocation(
 		BSHAmbiguousName nameNode, BSHArrayDimensions dimensionsNode, 
-		NameSpace namespace, Interpreter interpreter 
+		CallStack callstack, Interpreter interpreter 
 	) 
 		throws EvalError
     {
+		NameSpace namespace = callstack.top();
         Class type = nameNode.toClass(namespace);
         if(type == null)
             throw new EvalError(
 				"Class " + nameNode.getName(namespace) + " not found.", this);
 
-        Object result = dimensionsNode.eval( type, namespace, interpreter );
+        Object result = dimensionsNode.eval( type, callstack, interpreter );
         if(result != Primitive.VOID)
         {
             // check the BASE type for assignment compatibility
@@ -147,13 +155,13 @@ class BSHAllocationExpression extends SimpleNode
 
     private Object primitiveArrayAllocation(
 		BSHPrimitiveType typeNode, BSHArrayDimensions dimensionsNode, 
-		NameSpace namespace, Interpreter interpreter 
+		CallStack callstack, Interpreter interpreter 
 	) 
 		throws EvalError
     {
         Class type = typeNode.getType();
 
-        Object result = dimensionsNode.eval( type, namespace, interpreter );
+        Object result = dimensionsNode.eval( type, callstack, interpreter );
         if(result != Primitive.VOID) {
             // check the BASE type for assignment compatibility
             // NOT IMPLEMENTED

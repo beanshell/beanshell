@@ -45,13 +45,14 @@ class BSHCastExpression extends SimpleNode {
     public BSHCastExpression(int id) { super(id); }
 
 	public Object eval(
-		NameSpace namespace, Interpreter interpreter ) throws EvalError
+		CallStack callstack, Interpreter interpreter ) throws EvalError
     {
+		NameSpace namespace = callstack.top();
         Class toType = ((BSHType)jjtGetChild(0)).getType(namespace);
 		SimpleNode expression = (SimpleNode)jjtGetChild(1);
 
         // evaluate the expression
-        Object result = expression.eval(namespace, interpreter);
+        Object result = expression.eval(callstack, interpreter);
         Class fromType = result.getClass();
 
         if ( toType.isPrimitive() ) {

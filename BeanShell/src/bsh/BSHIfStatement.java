@@ -38,16 +38,17 @@ class BSHIfStatement extends SimpleNode
 {
     BSHIfStatement(int id) { super(id); }
 
-    public Object eval(NameSpace namespace, Interpreter interpreter)  throws EvalError
+    public Object eval(CallStack callstack, Interpreter interpreter)  
+		throws EvalError
     {
         Object ret = null;
 
         if( evaluateCondition( 
-			(SimpleNode)jjtGetChild(0), namespace, interpreter ) )
-            ret = ((SimpleNode)jjtGetChild(1)).eval(namespace, interpreter);
+			(SimpleNode)jjtGetChild(0), callstack, interpreter ) )
+            ret = ((SimpleNode)jjtGetChild(1)).eval(callstack, interpreter);
         else
             if(jjtGetNumChildren() > 2)
-                ret = ((SimpleNode)jjtGetChild(2)).eval(namespace, interpreter);
+                ret = ((SimpleNode)jjtGetChild(2)).eval(callstack, interpreter);
 
         if(ret instanceof ReturnControl)
             return ret;
@@ -56,10 +57,10 @@ class BSHIfStatement extends SimpleNode
     }
 
     public static boolean evaluateCondition(
-		SimpleNode condExp, NameSpace namespace, Interpreter interpreter) 
+		SimpleNode condExp, CallStack callstack, Interpreter interpreter) 
 		throws EvalError
     {
-        Object obj = condExp.eval(namespace, interpreter);
+        Object obj = condExp.eval(callstack, interpreter);
         if(obj instanceof Primitive) {
 			if ( obj == Primitive.VOID )
 				throw new EvalError("Condition evaluates to void type", condExp );

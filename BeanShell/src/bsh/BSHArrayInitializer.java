@@ -40,11 +40,15 @@ class BSHArrayInitializer extends SimpleNode
 {
     BSHArrayInitializer(int id) { super(id); }
 
-    public Object eval(NameSpace namespace, Interpreter interpreter)  throws EvalError {
+    public Object eval(CallStack callstack, Interpreter interpreter)  
+		throws EvalError 
+	{
 		throw new EvalError("array initializer Internal error, no base type");
 	}
 
-    public Object eval( Class baseType, NameSpace namespace, Interpreter interpreter ) throws EvalError
+    public Object eval( 
+		Class baseType, CallStack callstack, Interpreter interpreter ) 
+		throws EvalError
     {
         int n = jjtGetNumChildren();
         Class initializerType = null;
@@ -52,7 +56,8 @@ class BSHArrayInitializer extends SimpleNode
 
         for(int i = 0; i < n; i++)
         {
-            Object currentInitializer = ((SimpleNode)jjtGetChild(i)).eval(namespace, interpreter);
+            Object currentInitializer = ((SimpleNode)jjtGetChild(i)).eval(
+				callstack, interpreter);
 
             // allocate the array to store the initializers
             if(initializers == null)

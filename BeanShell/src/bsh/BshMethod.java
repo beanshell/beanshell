@@ -38,14 +38,15 @@ package bsh;
 	namespace.  This is a thin wrapper around the BSHMethodDeclaration
 	with a pointer to the declaring namespace.
 
-	The issue is that when a method is located in a derived namespace or
-	called from an arbitrary namespace it must nontheless execute with its
+	The issue is that when a method is located in a subordinate namespace or
+	invoked from an arbitrary namespace it must nontheless execute with its
 	'super' as the context in which it was declared.
 */
 class BshMethod implements java.io.Serializable 
 {
 	public BSHMethodDeclaration method;
 	NameSpace declaringNameSpace;
+	Class [] argTypes;
 
 	public BshMethod( 
 		BSHMethodDeclaration method, NameSpace declaringNameSpace ) 
@@ -57,17 +58,24 @@ class BshMethod implements java.io.Serializable
 
 	/**
 		Note: bshmethod needs to re-evaluate arg types here
-		BSHMethod is broken
+		This is broken
 	*/
 	public Class [] getArgTypes() {
-		return method.params.argTypes ;
+		if ( argTypes == null )
+			// should re-eval here...
+			argTypes = method.params.argTypes ;
+
+		return argTypes;
 	}
 
 	/**
-		Invoke the bsh method with the specified args and interpreter ref.
+		Invoke the bsh method with the specified args, interpreter ref,
+		and callstack.
 	*/
 	public Object invokeDeclaredMethod( 
-		Object[] argValues, Interpreter interpreter ) throws EvalError 
+		Object[] argValues, Interpreter interpreter, 
+		CallStack callstack ) 
+		throws EvalError 
 	{
 
 		if ( argValues == null )
@@ -90,10 +98,11 @@ class BshMethod implements java.io.Serializable
 			}
 		}
 
-		// Make the local namespace of the method invocation
+		// Make the local namespace for the method invocation
 		NameSpace localNameSpace = new NameSpace( 
 			declaringNameSpace, method.name );
 
+		// set the method parameters in the local namespace
 		for(int i=0; i<method.params.numArgs; i++)
 		{
 			// Set typed variable
@@ -105,8 +114,9 @@ class BshMethod implements java.io.Serializable
 				}
 				catch(EvalError e) {
 					throw new EvalError(
-						"Incorrect argument type for parameter: " +
-						method.params.argNames[i] + " in method: " + method.name + ": " + 
+						"Incorrect argument type for parameter: " 
+						+ method.params.argNames[i] + " in method: " 
+						+ method.name + ": " + 
 						e.getMessage(), method);
 				}
 				localNameSpace.setTypedVariable( method.params.argNames[i], 
@@ -124,8 +134,12 @@ class BshMethod implements java.io.Serializable
 						method.params.argNames[i], argValues[i]);
 		}
 
-		Object ret = method.block.eval( 
-			localNameSpace, interpreter );
+		// Push the new namespace on the call stack
+		callstack.push( localNameSpace );
+		// Invoke the method
+		Object ret = method.block.eval( callstack, interpreter );
+		// pop back to caller namespace
+		callstack.pop();
 
 		if ( ret instanceof ReturnControl )
 		{
@@ -147,9 +161,9 @@ class BshMethod implements java.io.Serializable
 				return method.returnType;
 
 			// return type is a class
-			try
-			{
-				ret = NameSpace.checkAssignableFrom(ret, (Class)method.returnType);
+			try {
+				ret = NameSpace.checkAssignableFrom(
+					ret, (Class)method.returnType);
 			}
 			catch(EvalError e) {
 				throw new EvalError(
