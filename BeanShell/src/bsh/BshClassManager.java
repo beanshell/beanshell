@@ -22,8 +22,10 @@ public class BshClassManager
 	}
 	
 	URL [] classpath;
-	ClassLoader loader;
 	Vector listeners = new Vector();
+
+	ClassLoader defaultLoader;
+	Map classLoaderMap = new HashMap();
 
 	public Class getClassForName( String name ) {
 		Class c = null;
@@ -43,15 +45,15 @@ public class BshClassManager
 		return c;
 	}
 
-/*
 	public void addClassPath( URL path ) {
-		classpath = cp;
-		loader = new URLClassLoader( classpath );
+		if ( loader == null )
+			loader = new URLClassLoader( new URL [] { path } );
+		else
+			loader.addURL( path );
+
 		// fire after change...  semantics are "has changed"
 		classLoaderChanged();
 	}
-*/
-
 
 	/**
 		Resetting the classpath means a new classloader which means
@@ -59,7 +61,8 @@ public class BshClassManager
 	*/
 	public void setClassPath( URL [] cp ) {
 		classpath = cp;
-		loader = new URLClassLoader( classpath );
+		loader = new BshClassLoader( classpath );
+
 		// fire after change...  semantics are "has changed"
 		classLoaderChanged();
 	}
