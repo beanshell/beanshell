@@ -2,12 +2,13 @@
 classBrowser() {
 	inDesktop = ( bsh.system.desktop != void );
 
-	bsh.system.desktop.classbrowser = new bsh.util.ClassBrowser();
-	bsh.system.desktop.classbrowser.init();
+	browser = new bsh.util.ClassBrowser();
+	browser.init();
 
-	if ( inDesktop )
+	if ( inDesktop ) {
 		frame = bsh.system.desktop.makeInternalFrame("BeanShell Class Browser");
-	else
+		bsh.system.desktop.classbrowser = browser;
+	} else
 		frame = new javax.swing.JFrame("BeanShell Class Browser");
 
 	// Ignore unhandled method invocations from listeners.
@@ -17,10 +18,12 @@ classBrowser() {
 		// really need foo=void;...  
 		bsh.system.desktop.classbrowser = null;
 	}
-	frame.addInternalFrameListener(this);
 
-	bsh.system.desktop.classbrowser.setFrame( frame );
-	frame.getContentPane().add("Center", bsh.system.desktop.classbrowser);
+	if ( inDesktop )
+		frame.addInternalFrameListener(this);
+
+	browser.setFrame( frame );
+	frame.getContentPane().add("Center", browser);
 	frame.pack();
 
 	if ( inDesktop )
@@ -28,5 +31,7 @@ classBrowser() {
 
 	frame.show();
 	frame.toFront();
+
+	return browser;
 }
 

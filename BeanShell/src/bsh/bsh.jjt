@@ -1564,7 +1564,12 @@ void AllocationExpression() #AllocationExpression :
   LOOKAHEAD(2)
   "new" PrimitiveType() ArrayDimensions()
 |
-  "new" AmbiguousName() ( ArrayDimensions() | Arguments() )
+  "new" AmbiguousName() 
+	( 
+		ArrayDimensions() 
+	| 
+		Arguments() [ LOOKAHEAD(2) Block() ]
+	)
 }
 
 void ArrayDimensions() #ArrayDimensions :

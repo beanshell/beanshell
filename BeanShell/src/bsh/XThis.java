@@ -49,14 +49,6 @@ class XThis extends This {
 		return "'this' reference (XThis) to Bsh object: " + namespace.name;
 	}
 
-	/**
-		Get dynamic proxy for interface.
-	*/
-	public Object getInterface( Class clas ) {
-		return Proxy.newProxyInstance(
-			clas.getClassLoader(), new Class[] { clas }, invocationHandler );
-	}
-
 	String toStringShowInts( Class [] ints ) {
 		StringBuffer sb = new StringBuffer( toString() + "\nimplements:" );
 		for(int i=0; i<ints.length; i++)
@@ -65,14 +57,22 @@ class XThis extends This {
 	}
 
 	/**
+		Get dynamic proxy for interface.
+	*/
+	public Object getInterface( Class clas ) {
+		return Proxy.newProxyInstance(
+			clas.getClassLoader(), new Class[] { clas }, invocationHandler );
+	}
+
+	/**
 		Get a proxy interface for the specified XThis reference.
 		This is a static utility method because the interpreter doesn't 
 		currently allow access to direct methods of This objects.
 		
-	*/
 	public static Object getInterface( XThis ths, Class interf ) { 
 		return ths.getInterface( interf ); 
 	}
+	*/
 
 	/**
 		Inner class for the invocation handler seems to shield this unavailable

@@ -26,6 +26,14 @@ public class Capabilities {
 		return haveProxyMech;
 	}
 
+	/**
+		An attempt was made to use an unavailable capability
+		This exception is used in core facilities where integration is
+		necessarily tight. 
+	public static class Unavailable extends Exception {
+		public Unavailable(String s ){ super(s); }
+	}
+	*/
 }
 
 

@@ -2613,7 +2613,12 @@ void AllocationExpression()                       :
   LOOKAHEAD(2)
   "new" PrimitiveType() ArrayDimensions()
 |
-  "new" AmbiguousName() ( ArrayDimensions() | Arguments() )/*@bgen(jjtree)*/
+  "new" AmbiguousName() 
+	( 
+		ArrayDimensions() 
+	| 
+		Arguments() [ LOOKAHEAD(2) Block() ]
+	)/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
