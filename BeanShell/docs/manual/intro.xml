@@ -25,7 +25,7 @@ From the developer's perspective, it is also the type system that
 characterizes the way in which we interact with the code.
 <p/>
 
-<b>Types are good.</b>  Without strongly type languages it would be very hard to
+Types are good.  Without strongly type languages it would be very hard to
 write large scale systems and make any assertions about their correctness
 before they are run.  But working with types imposes a burden on the developer.
 Types are labels and labelling things can be tedious.  It can be especially 
@@ -50,7 +50,7 @@ This is an example where scripting can really pay off.  If developers have
 a tool that makes it easy to perform a test with a line or two of code they
 will probably use it.  If, moreover, it is also a tool that they enjoy using
 during their development process - that saves the time, they will be even
-more inclined to use it.   <b>Scripting is good (too).</b>
+more inclined to use it.   Scripting is good (too).
 <p/>
 
 <h2>Tearing Down the Barriers</h2>
@@ -84,8 +84,8 @@ allows you to "seed" your code with strong types where appropriate.  You can
 "shore up" repeatedly used methods as you work on them, migrating them 
 closer to Java.  Eventually you may find that you want to compile
 these methods and maintain them in standard Java.  With BeanShell this is
-easy.  <b>BeanShell does not impose a syntactic boundary between your 
-scripts and Java.</b>
+easy.  BeanShell does not impose a syntactic boundary between your 
+scripts and Java.
 <p/>
 
 But the bridge to Java extends much deeper than simple code similarity.  
@@ -95,7 +95,7 @@ Java virtual machine as your application, you can freely work with real,
 live, Java objects - passing them into and out of your scripts.  Combined
 with BeanShell's ability to implement Java interfaces, you can achieve 
 seamless and simple integration of scripting into your Java applications.
-<b>BeanShell does not impose a type boundary between your scripts and Java.</b>
+BeanShell does not impose a type boundary between your scripts and Java.
 <p/>
 
 <h2>History</h2>

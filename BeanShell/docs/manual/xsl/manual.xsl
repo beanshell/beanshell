@@ -29,7 +29,7 @@
 <xsl:param name="pagesdir"/>
 
 <!-- Output directives -->
-<xsl:output method="xhtml" indent="yes"/>
+<xsl:output method="xhtml" indent="no"/>
 
 <!-- 
 	Root
@@ -94,15 +94,79 @@
 	<!-- Send output to file -->
     <redirect:write file="{$pagesdir}/{name/@filename}.html">
 		<html>
-		<head>
-			<title><xsl:value-of select="name"/></title>
-		</head>
+		<head><title><xsl:value-of select="name"/></title></head>
 		<body bgcolor="ffffff">
+			<xsl:call-template name="navigation"/>
 			<h1><xsl:value-of select="name"/></h1>
-			<xsl:apply-templates/>
+				<xsl:apply-templates/>
+			<xsl:call-template name="navigation"/>
 		</body>
 		</html>
 	</redirect:write>
+</xsl:template>
+
+<!--
+	Multipage navigation header
+-->
+<xsl:template name="navigation">
+	<table cellspacing="10">
+	<tr>
+
+	<!-- Home -->
+	<td align="center">
+		<a href="http://www.beanshell.org/">
+			<img src="{$imagedir}/homebutton.gif"/><br/>Home</a>
+	</td>
+
+	<!-- Back -->
+	<td>
+		<xsl:call-template name="anchorref">
+			<xsl:with-param name="anchorto" 
+				select="preceding-sibling::section[1]/name"/>
+			<xsl:with-param name="anchortofile">
+				<xsl:value-of 
+					select="preceding-sibling::section[1]/name/@filename"/>.html
+			</xsl:with-param>
+			<xsl:with-param name="value">
+				 <img src="{$imagedir}/backbutton.gif"/><br/>Back
+			</xsl:with-param>
+			<xsl:with-param name="defeatlink" 
+				select="not(preceding-sibling::section[1])"/>
+		</xsl:call-template>
+	</td>
+
+	<!-- Contents -->
+	<td align="center">
+		<xsl:choose>
+		<xsl:when test="name/@filename='contents'">
+			<img src="{$imagedir}/upbutton.gif"/><br/>Contents
+		</xsl:when>
+		<xsl:otherwise>
+		<a href="contents.html">
+			<img src="{$imagedir}/upbutton.gif"/><br/>Contents</a>
+		</xsl:otherwise>
+		</xsl:choose>
+	</td>
+
+	<!-- Forward -->
+	<td align="center">
+		<xsl:call-template name="anchorref">
+			<xsl:with-param name="anchorto" 
+				select="following-sibling::section[1]/name"/>
+			<xsl:with-param name="anchortofile">
+				<xsl:value-of 
+					select="following-sibling::section[1]/name/@filename"/>.html
+			</xsl:with-param>
+			<xsl:with-param name="value">
+				 <img src="{$imagedir}/forwardbutton.gif"/><br/>Next
+			</xsl:with-param>
+			<xsl:with-param name="defeatlink" 
+				select="not(following-sibling::section[1])"/>
+		</xsl:call-template>
+	</td>
+
+	</tr>
+	</table>
 </xsl:template>
 
 <!--
@@ -114,9 +178,13 @@
 		<li>
 		<xsl:call-template name="anchorref">
 			<xsl:with-param name="anchorto" select="name"/>
-			<!-- how do I deal with the whitespace here? -->
-			<xsl:with-param name="anchortofile"><xsl:if test="$multipage"><xsl:value-of select="name/@filename"/>.html</xsl:if></xsl:with-param>
-			<xsl:with-param name="value" select="name"/>
+			<!-- How do I deal with the whitespace here? -->
+			<xsl:with-param name="anchortofile">
+				<xsl:value-of select="name/@filename"/>.html
+			</xsl:with-param>
+			<xsl:with-param name="value">
+				<xsl:value-of select="name"/>
+			</xsl:with-param>
 		</xsl:call-template>
 		</li>
 		<xsl:if test="h2">
@@ -125,9 +193,12 @@
 				<li>
 				<xsl:call-template name="anchorref">
 					<xsl:with-param name="anchorto" select="."/>
-					<!-- how do I deal with the whitespace here? -->
-					<xsl:with-param name="anchortofile"><xsl:if test="$multipage"><xsl:value-of select="../name/@filename"/>.html</xsl:if></xsl:with-param>
-					<xsl:with-param name="value" select="."/>
+					<xsl:with-param name="anchortofile">
+						<xsl:value-of select="../name/@filename"/>.html
+					</xsl:with-param>
+					<xsl:with-param name="value">
+						<xsl:value-of select="."/>
+					</xsl:with-param>
 				</xsl:call-template>
 				</li>
 			</xsl:for-each>
@@ -135,8 +206,6 @@
 		</xsl:if>
 	</xsl:for-each>
 	</ul>
-	<hr/>
-	<xsl:comment>PAGE BREAK</xsl:comment>
 </xsl:template>
 
 <!-- 
@@ -153,8 +222,9 @@
 
 <!-- 
 	Rewrite <p/> tags to add a default clear attribute.  
-	(Is there a simpler way to do this?)
 	This is just here to help out htmldoc or other XHTML tools.
+	Is there a simpler way to do this using XSL?
+	Why is this necessary anyway?
 -->
 <xsl:template match="p">
 	<xsl:choose>
