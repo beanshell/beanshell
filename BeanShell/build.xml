@@ -34,6 +34,7 @@
 
 	<property name="src-dir" value="src" />
 	<property name="build-dir" value="classes" />
+	<property name="lib-dir" value="lib" />
 	<property name="dist-dir" value="dist" />
 	<property name="test-src-dir" value="tests/classes" />
 	<property name="javadoc-dir" value="javadoc" />
@@ -123,9 +124,11 @@
 		<java classname="jjtree"
 			fork="yes"
 			failonerror="yes" >
-			<!-- classpath="${javacc-lib}" -->
 			<arg 
 				line="-OUTPUT_DIRECTORY=${src-dir}/bsh ${src-dir}/bsh/bsh.jjt"/>
+			<classpath>
+				<fileset refid="lib-fileset"/>
+			</classpath>
 		</java>
 	</target>
 
@@ -136,6 +139,9 @@
 			failonerror="yes" >
 			<!-- classpath="${javacc-lib}" -->
 			<arg line="-OUTPUT_DIRECTORY=${src-dir}/bsh ${src-dir}/bsh/bsh.jj"/>
+			<classpath>
+				<fileset refid="lib-fileset"/>
+			</classpath>
 		</java>
 	</target>
 
@@ -145,10 +151,14 @@
 			destdir="${build-dir}"
 			deprecation="${deprecation}"
 			optimize="on"
-			debug="off"
+			debug="on"
 			includes="**/*.java"
 			excludes="${excludes},**/bak/**"
-		/>
+		>
+			<classpath>
+				<fileset refid="lib-fileset"/>
+			</classpath>
+		</javac>
 
 		<copy todir="${build-dir}">
 			<fileset dir="${src-dir}">
@@ -219,11 +229,17 @@
 		<delete quiet="true" file="bshcommands.html"/>
 	</target>
 
-	<!-- This doesn't work!  I can find no way to set up the dir before the
-		filesets error out, short of including them in the jar file  -->
 	<target name="builddir">
 		<mkdir dir="${build-dir}" />
 	</target>
+
+	<!-- Begin: Filesets -->
+
+	<fileset id="lib-fileset" dir="${lib-dir}">
+		<patternset>
+			<include name="*.jar"/>
+		</patternset>
+	</fileset>
 
 	<fileset id="core-fileset" dir="${build-dir}">
 		<patternset>
@@ -280,6 +296,8 @@
 			<exclude name="CVS"/>
 		</patternset>
 	</fileset>
+
+	<!-- End: Filesets -->
 
 	<!-- Jar targets -->
 

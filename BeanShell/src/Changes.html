@@ -37,7 +37,6 @@
 		argument types, and method name.  In the test case of a loop simply 
 		calling a Java method on an object or class this results in about a 
 		40% speedup.  
-		** I am interested in feedback on whether this is good. **
 
 	- Consolidated bsh scripted method dispatching code into This.java.
 
@@ -119,6 +118,13 @@
 	  work (as in Java): 
 	  	long [] la = { 1, 2 };  float [] fa = { 1, 2 }; byte [] ba = { 1, 2 };
 
+	- fixed import caching bug.
+
+	- Fixed problems with the method resolution caching: added hashcode to
+	  Primitive.java, fixed null argument issue, separated caches into object
+	  and static, removed side-effect from resolveJavaMethod in Reflect.  Did
+	  some initial profiling.  Overall I'm seeing about a 50% speedup in code
+	  that does primarily method dispatching.
 </pre>
 
 <h2>Changes in 1.2b8 </h2>
