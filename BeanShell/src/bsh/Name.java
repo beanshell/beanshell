@@ -38,8 +38,6 @@ import java.lang.reflect.Array;
 import java.util.Hashtable;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
-//import bsh.Reflect.MethodInvoker;
-//import bsh.Reflect.JavaMethod;
 
 /**
 	What's in a name?  I'll tell you...
@@ -692,7 +690,7 @@ class Name implements java.io.Serializable
 					+"() on undefined variable or class name: "+targetName);
 
         // if we've got an object, resolve the method
-        if ( !(obj instanceof Name.ClassIdentifier) ) {
+        if ( !(obj instanceof ClassIdentifier) ) {
 
             if (obj instanceof Primitive) {
 
@@ -719,7 +717,7 @@ class Name implements java.io.Serializable
         if ( Interpreter.DEBUG ) 
         	Interpreter.debug("invokeMethod: trying static - " + targetName);
 
-        Class clas = ((Name.ClassIdentifier)obj).getTargetClass();
+        Class clas = ((ClassIdentifier)obj).getTargetClass();
 
 		// cache the fact that this is a static method invocation on this class
 		classOfStaticMethod = clas;
@@ -921,22 +919,6 @@ class Name implements java.io.Serializable
 
 
 	public String toString() { return value; }
-
-	public static class ClassIdentifier {
-		Class clas;
-
-		public ClassIdentifier( Class clas ) {
-			this.clas = clas;
-		}
-
-		public Class getTargetClass() {
-			return clas;
-		}
-
-		public String toString() {
-			return "Class Identifier: "+clas.getName();
-		}
-	}
 
 }
 

@@ -625,21 +625,6 @@ public class NameSpace
     }
 
 	/**
-		Get a list of all imported packages including parents.
-		in the order in which they were imported...
-		Note that the resolver may use them in the reverse order for
-		precedece reasons.
-		@deprecated
-	*/
-    public String[] getImportedPackages()
-    {
-		Vector v = getImportedPackages(true);
-		String[] packages = new	String[ v.size() ];
-		v.copyInto(packages);
-		return packages;
-    }
-
-	/**
 		Get a list of all imported packages in the order in which they were 
 		imported...  If recurse is true, also include the parent's.
 	*/
@@ -651,9 +636,10 @@ public class NameSpace
 			Vector v = new Vector();
 			// add parent's
 			if ( parent != null ) {
-				String [] psa = parent.getImportedPackages();
-				for(int i=0; i<psa.length; i++)
-					v.addElement(psa[i]);
+				Vector pv = parent.getImportedPackages( true/*recurse*/ );
+				// no way to add vectors?
+				for(int i=0; i<pv.size(); i++)
+					v.addElement(pv.elementAt(i) );
 			}
 			// add ours
 			if ( importedPackages != null )
@@ -1330,13 +1316,17 @@ System.out.println(
 	/**
 		This is a helper method for working inside of bsh scripts and commands.
 		In that context it is impossible to see a ClassIdentifier object
-		for what it is.  Attempting to access a method on it will look like
-		a static method invocation.
+		for what it is.  Attempting to access a method on a ClassIdentifier
+		will look like a static method invocation.  
+		
+		This method is in NameSpace for convenience (you don't have to import
+		bsh.ClassIdentifier to use it );
 	*/
-	public static Class identifierToClass( Name.ClassIdentifier ci ) 
+	public static Class identifierToClass( ClassIdentifier ci ) 
 	{
 		return ci.getTargetClass();
 	}
+
 
 	/**
 		Clear all variables, methods, and imports from this namespace.

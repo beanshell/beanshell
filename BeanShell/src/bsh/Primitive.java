@@ -152,15 +152,6 @@ public class Primitive implements ParserConstants, java.io.Serializable
         return null;
     }
 
-/*
-    public static Primitive binaryOperation(
-		Primitive p1, Primitive p2, int kind )
-        throws UtilEvalError
-    {
-		return new Primitive( binaryOperation( p1, p2, kind ) );
-    }
-*/
-
 	/**
 		Allow primitive operations on wrapper types such as Integer and Boolean.
 		This is static so that it can be reached from wherever...
