@@ -67,7 +67,7 @@ public class Capabilities
 			this capabilities code must be light enough to be used by any
 			system including the remote applet.
 	*/
-	private static boolean classExists( String name ) 
+	public static boolean classExists( String name ) 
 	{
 		Object c = classes.get( name );
 

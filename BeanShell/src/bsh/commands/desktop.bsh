@@ -6,7 +6,7 @@ import java.awt.Component;
 
 desktop() {
 	// need a way to set things to void again
-	if ( bsh.system.desktop instanceof Object ) {
+	if ( bsh.system.desktop != void ) {
 		print("There is	already	a desktop running...");
 		return;
 	} else

@@ -622,35 +622,46 @@ public class NameSpace
 		return BshClassManager.classForName( name );
 	}
 
-	// Fix this - can't use List in core
 	/**
 		Implements NameSource
 		@return all class and variable names in this and all parent
 		namespaces
 	*/
-	public String [] getAllNames() {
-		/*
-		Set all = new HashSet();
-		getAllNamesAux( all );
-		return all;
-		*/
-		return new String [0];
+	public String [] getAllNames() 
+	{
+		Vector vec = new Vector();
+		getAllNamesAux( vec );
+		String [] names = new String [ vec.size() ];
+		vec.copyInto( names );
+		return names;
 	}
+
 	/**
 		Helper for implementing NameSource
-	protected void getAllNamesAux( Set set ) {
-		set.addAll( variables.keySet() );
-		set.addAll( methods.keySet() );
-		if ( parent != null )
-			parent.getAllNamesAux( set );
-	}
 	*/
+	protected void getAllNamesAux( Vector vec ) 
+	{
+		Enumeration varNames = variables.keys();
+		while( varNames.hasMoreElements() )
+			vec.addElement( varNames.nextElement() );
 
+		Enumeration methodNames = methods.keys();
+		while( methodNames.hasMoreElements() )
+			vec.addElement( methodNames.nextElement() );
+
+		if ( parent != null )
+			parent.getAllNamesAux( vec );
+	}
+
+	Vector nameSourceListeners;
 	/**
 		Implements NameSource
 		Add a listener who is notified upon changes to names in this space.
 	*/
 	public void addNameSourceListener( NameSource.Listener listener ) {
+		if ( nameSourceListeners == null )
+			nameSourceListeners = new Vector();
+		nameSourceListeners.addElement( listener );
 	}
 	
 	/**

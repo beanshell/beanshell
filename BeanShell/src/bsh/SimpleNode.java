@@ -55,6 +55,9 @@ class SimpleNode implements Node {
 	protected int id;
 	Token firstToken, lastToken;
 
+	/** the source of the text from which this was parsed */
+	String sourceFile;
+
 	public SimpleNode(int i) {
 		id = i;
 	}
@@ -64,6 +67,7 @@ class SimpleNode implements Node {
 
 	public void jjtSetParent(Node n) { parent = n; }
 	public Node jjtGetParent() { return parent; }
+	//public SimpleNode getParent() { return (SimpleNode)parent; }
 
 	public void jjtAddChild(Node n, int i)
 	{
@@ -82,6 +86,9 @@ class SimpleNode implements Node {
 
 	public Node jjtGetChild(int i) { 
 		return children[i]; 
+	}
+	public SimpleNode getChild( int i ) {
+		return (SimpleNode)jjtGetChild(i);
 	}
 
 	public int jjtGetNumChildren() {
@@ -152,6 +159,31 @@ class SimpleNode implements Node {
 			that only need namespace.
 		*/
 		return eval( callstack.top() );
+	}
+
+	/**
+		Set the name of the source file (or more generally source) of
+		the text from which this node was parsed.
+	*/
+	public void setSourceFile( String sourceFile ) {
+		this.sourceFile = sourceFile;
+	}
+
+	/**
+		Get the name of the source file (or more generally source) of
+		the text from which this node was parsed.
+		This will recursively search up the chain of parent nodes until
+		a source is found or return a string indicating that the source
+		is unknown.
+	*/
+	public String getSourceFile() {
+		if ( sourceFile == null )
+			if ( parent != null )
+				return ((SimpleNode)parent).getSourceFile();
+			else
+				return "<unknown file>";
+		else
+			return sourceFile;
 	}
 
 	/**

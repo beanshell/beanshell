@@ -1,7 +1,9 @@
 import javax.swing.*;
 
 import bsh.Interpreter;
+import bsh.BshClassManager;
 import bsh.util.JConsole;
+import bsh.util.NameCompletionTable;
 
 makeWorkspace( String name ) {
 
@@ -14,6 +16,23 @@ makeWorkspace( String name ) {
 	name="Bsh Workspace: "+name;
 
 	interpreter = new Interpreter( console );
+
+	// provide name completion for console, name source is global namespace
+	// move this into JConsole?
+
+	nct = new NameCompletionTable();
+	nct.add( interpreter.getNameSpace() );
+	try {
+		bcm = BshClassManager.getClassManager();
+		if ( bcm != null ) {
+			classNames = bcm.getClassPath().getNameCompletionTable();
+			nct.add( classNames );
+		}
+	} catch ( ClassPathException e ) {
+		error("classpath exception in name compl:"+e);
+	}
+	console.setNameCompletion( nct );
+	// end setup name completion
 
 	// for convenience and backwards compatability
 	interpreter.set( "bsh.desktop",  bsh.system.desktop );

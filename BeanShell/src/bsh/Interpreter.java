@@ -566,6 +566,8 @@ public class Interpreter
                 if (localInterpreter.get_jjtree().nodeArity() > 0)
                 {
                     node = (SimpleNode)localInterpreter.get_jjtree().rootNode();
+					// nodes remember from where they were sourced
+					node.setSourceFile( sourceFileInfo );
 
 					if ( TRACE )
 						println( "// " +node.getText() );
@@ -916,11 +918,19 @@ public class Interpreter
 		}
 	}
 
+	/**
+		Specify the source of the text from which this interpreter is reading.
+		Note: there is a difference between what file the interrpeter is 
+		sourcing and from what file a method was originally parsed.  One
+		file may call a method sourced from another file.  See SimpleNode
+		for origination file info.
+		@see SimpleNode.getSourceFile 
+	*/
 	public String getSourceFileInfo() { 
 		if ( sourceFileInfo != null )
 			return sourceFileInfo;
 		else
-			return "<unknown>";
+			return "<unknown source>";
 	}
 
 	public Interpreter getParent() {
