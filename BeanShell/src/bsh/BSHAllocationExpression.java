@@ -129,6 +129,7 @@ class BSHAllocationExpression extends SimpleNode
 		return local.getThis(interpreter).getInterface( type );
 	}
 
+// combine part of this with primitiveArrayAllocation
     private Object objectArrayAllocation(
 		BSHAmbiguousName nameNode, BSHArrayDimensions dimensionsNode, 
 		CallStack callstack, Interpreter interpreter 
@@ -141,18 +142,15 @@ class BSHAllocationExpression extends SimpleNode
             throw new EvalError(
 				"Class " + nameNode.getName(namespace) + " not found.", this);
 
+		// dimensionsNode can return either an intialized version or none.
         Object result = dimensionsNode.eval( type, callstack, interpreter );
         if(result != Primitive.VOID)
-        {
-            // check the BASE type for assignment compatibility
-            // NOT IMPLEMENTED
-
             return result;
-        }
-
-		return arrayNewInstance( type, dimensionsNode );
+		else
+			return arrayNewInstance( type, dimensionsNode );
     }
 
+// combine part of this with objectArrayAllocation
     private Object primitiveArrayAllocation(
 		BSHPrimitiveType typeNode, BSHArrayDimensions dimensionsNode, 
 		CallStack callstack, Interpreter interpreter 
@@ -161,13 +159,10 @@ class BSHAllocationExpression extends SimpleNode
     {
         Class type = typeNode.getType();
 
+		// dimensionsNode can return either an intialized version or none.
         Object result = dimensionsNode.eval( type, callstack, interpreter );
-        if(result != Primitive.VOID) {
-            // check the BASE type for assignment compatibility
-            // NOT IMPLEMENTED
-
+        if (result != Primitive.VOID) 
             return result;
-        }
 
 		return arrayNewInstance( type, dimensionsNode );
     }

@@ -427,10 +427,13 @@ void FormalParameter() #FormalParameter :
  * Type, name and expression syntax follows.
  */
 
-void Type() #Type :
+SimpleNode Type() #Type :
 { }
 {
-  ( PrimitiveType() | AmbiguousName() ) ( "[" "]" { jjtThis.addArrayDimension(); } )*
+  ( PrimitiveType() | AmbiguousName() ) 
+	( "[" "]" { jjtThis.addArrayDimension(); } )* {
+		return jjtThis;
+	}
 }
 
 void ReturnType() #ReturnType :
@@ -1038,10 +1041,20 @@ void ForInit() :
   StatementExpressionList()
 }
 
+/**
+	Declared a typed variable.  The type node is saved and passed through
+	to the RHS VariableDeclarator noes for the special case of untyped array 
+	initializers. 
+	e.g.  int [] ia = { 1, 2 };
+*/
 void TypedVariableDeclaration() #TypedVariableDeclaration :
-{ Token t = null; }
+{ 
+	Token t = null; 
+}
 {
-  [ t="final" ] Type() VariableDeclarator() ( "," VariableDeclarator() )*  {
+  [ t="final" ] Type() 
+		VariableDeclarator() ( "," VariableDeclarator() )*  
+	{
         jjtThis.isFinal = (t!=null);
     }
 }

@@ -43,29 +43,44 @@ class BSHArrayInitializer extends SimpleNode
     public Object eval(CallStack callstack, Interpreter interpreter)  
 		throws EvalError 
 	{
-		throw new EvalError("array initializer Internal error, no base type");
+		throw new InterpreterError("array initializer, no base type");
 	}
 
 	/**
 		Construct the array from the initializer syntax.
-		baseType may be null to indicate an untyped allocation, in which case
-		the base type is determined as follows:
-			< unimplemented >
+
+		@param baseType the base class type of the array (no dimensionality)
+		@param dimensions the top number of dimensions of the array 
+			e.g. 2 for a String [][];
 	*/
-    public Object eval( 
-		Class baseType, CallStack callstack, Interpreter interpreter ) 
+    public Object eval( Class baseType, int dimensions, 
+						CallStack callstack, Interpreter interpreter ) 
 		throws EvalError
     {
-        int numChildren = jjtGetNumChildren();
+        int numInitializers = jjtGetNumChildren();
+
 		// allocate the array to store the initializers
+		int [] dima = new int [dimensions]; // description of the array
+		// The other dimensions default to zero and are assigned when 
+		// the values are set.
+		dima[0] = numInitializers;
         Object initializers = 
-			Array.newInstance( baseType, numChildren );
+			Array.newInstance( baseType, dima );
 
 		// Evaluate the initializers
-        for(int i = 0; i < numChildren; i++)
+        for (int i = 0; i < numInitializers; i++)
         {
-            Object currentInitializer = 
-				((SimpleNode)jjtGetChild(i)).eval( callstack, interpreter);
+			SimpleNode node = (SimpleNode)jjtGetChild(i);
+            Object currentInitializer;
+			if ( node instanceof BSHArrayInitializer ) {
+				if ( dimensions < 2 )
+					throw new EvalError(
+						"Invalid Location for Intializer, position: "+i, this);
+            	currentInitializer = 
+					((BSHArrayInitializer)node).eval( 
+						baseType, dimensions-1, callstack, interpreter);
+			} else
+            	currentInitializer = node.eval( callstack, interpreter);
 
 			if ( currentInitializer == Primitive.VOID )
 				throw new EvalError(
