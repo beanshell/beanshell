@@ -95,10 +95,14 @@ public abstract class BshClassManager
 		// Bootstrap the class manager if it exists
 		if ( !checkedForManager && manager == null )
 			try {
-				manager = (BshClassManager)(plainClassForName(
-					"bsh.classpath.ClassManagerImpl").newInstance());
+				Class bcm = plainClassForName("bsh.classpath.ClassManagerImpl");
+				if ( bcm == null )
+					System.err.println("No class manager available.");
+				else
+					manager = (BshClassManager)bcm.newInstance();
 			} catch ( Exception e ) {
-				Interpreter.debug("No classmanager found: "+e);
+				System.err.println("Error loading classmanager: "+e);
+e.printStackTrace(System.err);
 			} finally {
 				checkedForManager = true;
 			}

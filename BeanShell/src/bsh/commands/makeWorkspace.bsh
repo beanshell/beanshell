@@ -25,8 +25,8 @@ makeWorkspace( String name ) {
 	try {
 		bcm = BshClassManager.getClassManager();
 		if ( bcm != null ) {
-			classNames = bcm.getClassPath().getNameCompletionTable();
-			nct.add( classNames );
+			classNamesSource = bcm.getClassPath();
+			nct.add( classNamesSource );
 		}
 	} catch ( ClassPathException e ) {
 		error("classpath exception in name compl:"+e);
