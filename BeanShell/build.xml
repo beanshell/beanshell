@@ -64,9 +64,15 @@
 		value="bsh/util/BeanShellBSFEngine.java,TestBshBSF.java"/>
 	-->
 
+	<!-- Uncomment to build without making the servlet package 
+	<property name="exclude-servlet" 
+		value="bsh/servlet/*"/>
+	-->
+
 	<!--  Add up all of the excludes -->
+	<!-- how do I add strings to break that line? -->
 	<property name="excludes" 
-		value="${exclude-1.2},${exclude-1.1},${exclude-bsf}"/>
+		value="${exclude-1.2},${exclude-1.1},${exclude-bsf},${exclude-servlet}"/>
 
 	<property name="javadoc-jar" value="javadoc.zip"/>
 	<property name="core-jar" value="bsh-core-${version}.jar"/>
