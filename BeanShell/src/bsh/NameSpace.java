@@ -666,13 +666,14 @@ public class NameSpace
 	
 	/**
 		Perform "import *;" causing the entire classpath to be mapped.
-		This can take a while.  Feedback will be sent to the interpreter.
+		This can take a while.
 	*/
-	public static void doSuperImport( Interpreter feedback ) 
+	public static void doSuperImport() 
+		throws EvalError
 	{
 		BshClassManager bcm = BshClassManager.getClassManager();
 		if ( bcm != null )
-			bcm.doSuperImport( feedback );
+			bcm.doSuperImport();
 		superImport = true;
 	}
 
@@ -911,7 +912,7 @@ public class NameSpace
 			Bsh This objects may be able to use the proxy mechanism to 
 			become an LHS type.
 		*/
-		if ( Capabilities.haveProxyMechanism() && 
+		if ( Capabilities.canGenerateInterfaces() && 
 			lhsType.isInterface() && ( rhs instanceof bsh.This ) ) 
 		{
 			return ((bsh.This)rhs).getInterface( lhsType );

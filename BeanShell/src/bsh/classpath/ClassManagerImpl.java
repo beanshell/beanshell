@@ -41,14 +41,8 @@ import java.io.*;
 import bsh.classpath.BshClassPath.DirClassSource;
 import bsh.BshClassManager;
 import bsh.ClassPathException;
-/*
-	The console interace (and GUIConsoleInterface) are used to provide 
-	feedback on classpath mapping for interactive use.  They are allowed to
-	be null.  In the future we might define a "feedback" interface to narrow
-	this a bit...
-*/
-import bsh.ConsoleInterface;
 import bsh.Interpreter;  // for debug()
+import bsh.EvalError; 
 
 /**
 	<pre>
@@ -192,7 +186,7 @@ public class ClassManagerImpl extends BshClassManager
 
 	/**
 	*/
-	public void addClassPath( URL path, ConsoleInterface feedback ) 
+	public void addClassPath( URL path ) 
 		throws IOException 
 	{
 		if ( baseLoader == null )
@@ -200,7 +194,7 @@ public class ClassManagerImpl extends BshClassManager
 		else {
 			// opportunity here for listener in classpath
 			baseLoader.addURL( path );
-			baseClassPath.add( path, feedback );
+			baseClassPath.add( path );
 			classLoaderChanged();
 		}
 	}
@@ -254,12 +248,8 @@ public class ClassManagerImpl extends BshClassManager
 		Reloading classes means creating a new classloader and using it
 		whenever we are asked for classes in the appropriate space.
 		For this we use a DiscreteFilesClassLoader
-
-		If interpreter is non-null it will be used to provide feedback on
-		mapping of the classpath where necessary.
 	*/
-	public void reloadClasses( 
-		String [] classNames, ConsoleInterface feedback ) 
+	public void reloadClasses( String [] classNames ) 
 		throws ClassPathException
 	{
 		// validate that it is a class here?
@@ -275,16 +265,12 @@ public class ClassManagerImpl extends BshClassManager
 			String name = classNames[i];
 
 			// look in baseLoader class path 
-			if ( feedback != null )
-				baseClassPath.insureInitialized( feedback );
+			baseClassPath.insureInitialized();
 			Object o = baseClassPath.getClassSource( name );
 
 			// look in user class path 
 			if ( o == null ) {
-				if ( feedback != null )
-					BshClassPath.getUserClassPath().insureInitialized( 
-						feedback );
-
+				BshClassPath.getUserClassPath().insureInitialized();
 				o = BshClassPath.getUserClassPath().getClassSource( name );
 			}
 
@@ -318,11 +304,8 @@ public class ClassManagerImpl extends BshClassManager
 
 		The special package name "<unpackaged>" can be used to refer 
 		to unpackaged classes.
-
-		If interpreter is non-null it will be used to provide feedback on
-		mapping of the classpath where necessary.
 	*/
-	public void reloadPackage( String pack, ConsoleInterface feedback ) 
+	public void reloadPackage( String pack ) 
 		throws ClassPathException 
 	{
 		Collection classes = 
@@ -337,7 +320,7 @@ public class ClassManagerImpl extends BshClassManager
 		if ( classes == null )
 			throw new ClassPathException("No classes found for package: "+pack);
 
-		reloadClasses( (String[])classes.toArray( new String[0] ), feedback );
+		reloadClasses( (String[])classes.toArray( new String[0] ) );
 	}
 
 	/**
@@ -375,10 +358,11 @@ public class ClassManagerImpl extends BshClassManager
 		Support for "import *;"
 		Hide details in here as opposed to NameSpace.
 	*/
-	public void doSuperImport( ConsoleInterface feedback ) 
+	public void doSuperImport() 
+		throws EvalError
 	{
 		try {
-			getClassPath().insureInitialized( feedback );
+			getClassPath().insureInitialized();
 			// prime the lookup table
 			getClassNameByUnqName( "" ) ;
 
@@ -386,7 +370,7 @@ public class ClassManagerImpl extends BshClassManager
 			//getClassPath().setNameCompletionIncludeUnqNames(true);
 
 		} catch ( ClassPathException e ) {
-			feedback.error( e.getMessage() );
+			throw new EvalError("Error importing classpath "+ e );
 		}
 	}
 
@@ -442,7 +426,8 @@ public class ClassManagerImpl extends BshClassManager
 
 	}
 
-	public void dump( ConsoleInterface i ) {
+	public void dump( PrintWriter i ) 
+	{
 		i.println("Bsh Class Manager Dump: ");
 		i.println("----------------------- ");
 		i.println("baseLoader = "+baseLoader);

@@ -141,7 +141,7 @@ public class TargetError extends EvalError
 	public String printTargetError( Throwable t ) {
 		String s = target.toString();
 
-		if ( Capabilities.haveProxyMechanism() )
+		if ( Capabilities.canGenerateInterfaces() )
 			s += "\n" + xPrintTargetError( t );
 
 		return s;

@@ -195,7 +195,7 @@ public abstract class BshClassManager
 
 	public abstract ClassLoader getLoaderForClass( String name );
 
-	public abstract void addClassPath( URL path, ConsoleInterface feedback )
+	public abstract void addClassPath( URL path )
 		throws IOException;
 
 	/**
@@ -221,12 +221,8 @@ public abstract class BshClassManager
 		Reloading classes means creating a new classloader and using it
 		whenever we are asked for classes in the appropriate space.
 		For this we use a DiscreteFilesClassLoader
-
-		If ConsoleInterface is non-null it will be used to provide feedback on
-		mapping of the classpath where necessary.
 	*/
-	public abstract void reloadClasses( 
-		String [] classNames, ConsoleInterface feedback )
+	public abstract void reloadClasses( String [] classNames )
 		throws ClassPathException;
 
 	/**
@@ -234,11 +230,8 @@ public abstract class BshClassManager
 
 		The special package name "<unpackaged>" can be used to refer 
 		to unpackaged classes.
-
-		If interpreter is non-null it will be used to provide feedback on
-		mapping of the classpath where necessary.
 	*/
-	public abstract void reloadPackage( String pack, ConsoleInterface feedback ) 
+	public abstract void reloadPackage( String pack ) 
 		throws ClassPathException ;
 
 	/**
@@ -254,7 +247,7 @@ public abstract class BshClassManager
 		Hide details in here as opposed to NameSpace.
 	Note: this used to be package private...
 	*/
-	public abstract void doSuperImport( ConsoleInterface feedback ) ;
+	public abstract void doSuperImport() throws EvalError;
 
 	/**
 		Return the name or null if none is found,
@@ -268,6 +261,6 @@ public abstract class BshClassManager
 
 	public abstract void removeListener( Listener l );
 
-	public abstract void dump( ConsoleInterface i );
+	public abstract void dump( PrintWriter pw );
 
 }

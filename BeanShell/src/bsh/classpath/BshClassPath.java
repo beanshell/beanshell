@@ -99,7 +99,7 @@ public class BshClassPath
 
 	public BshClassPath(  String name, URL [] urls ) {
 		this( name );
-		add( urls, null );
+		add( urls );
 	}
 
 	// end constructors
@@ -108,7 +108,7 @@ public class BshClassPath
 
 	public void setPath( URL[] urls ) {
 		reset();
-		add( urls, null );
+		add( urls );
 	}
 
 	/**
@@ -122,16 +122,16 @@ public class BshClassPath
 		bcp.addListener( this );
 	}
 
-	public void add( URL [] urls, ConsoleInterface feedback  ) { 
+	public void add( URL [] urls ) { 
 		path.addAll( Arrays.asList(urls) );
 		if ( mapsInitialized )
-			map( urls, feedback );
+			map( urls );
 	}
 
-	public void add( URL url, ConsoleInterface feedback  ) throws IOException { 
+	public void add( URL url ) throws IOException { 
 		path.add(url);
 		if ( mapsInitialized )
-			map( url, feedback );
+			map( url );
 	}
 
 	/**
@@ -146,7 +146,7 @@ public class BshClassPath
 		including all component paths.
 	*/
 	synchronized public Set getClassesForPackage( String pack ) {
-		insureInitialized( null );
+		insureInitialized();
 		Set set = new HashSet();
 		Collection c = (Collection)packageMap.get( pack );
 		if ( c != null )
@@ -167,7 +167,7 @@ public class BshClassPath
 		which may lie in component path
 	*/
 	synchronized public ClassSource getClassSource( String className ) {
-		insureInitialized( null );
+		insureInitialized();
 		ClassSource cs = (ClassSource)classSource.get( className );
 		if ( cs == null && compPaths != null )
 			for (int i=0; i<compPaths.size() && cs==null; i++)
@@ -179,9 +179,6 @@ public class BshClassPath
 		If the claspath map is not initialized, do it now.
 		If component maps are not do them as well...
 
-		If interpreter is non-null it will be used to print feedback to
-		the user on the progress of mapping.
-		
 		Random note:
 		Should this be "insure" or "ensure".  I know I've seen "ensure" used
 		in the JDK source.  Here's what Webster has to say:
@@ -201,18 +198,33 @@ public class BshClassPath
 			implies action taken to guard against attack or
 			loss.
 	*/
-	synchronized public void insureInitialized( ConsoleInterface feedback ) 
+	public void insureInitialized() 
 	{
+		insureInitialized( true );
+	}
+
+	/**
+		@param topPath indicates that this is the top level classpath
+		component and it should send the startClassMapping message
+	*/
+	protected synchronized void insureInitialized( boolean topPath ) 
+	{
+		// If we are the top path and haven't been initialized before
+		// inform the listeners we are going to do expensive map
+		if ( topPath && !mapsInitialized )
+			startClassMapping();
+
+		// initialize components
 		if ( compPaths != null )
 			for (int i=0; i< compPaths.size(); i++)
-				((BshClassPath)compPaths.get(i)).insureInitialized( feedback );
+				((BshClassPath)compPaths.get(i)).insureInitialized( false );
 
-		if ( !mapsInitialized ) {
-			if ( feedback == null )
-				System.out.println("Mapping : "+this);
+		// initialize ourself
+		if ( !mapsInitialized ) 
+			map( (URL[])path.toArray( new URL[0] ) );
 
-			map( (URL[])path.toArray( new URL[0] ), feedback );
-		}
+		if ( topPath && !mapsInitialized )
+			endClassMapping();
 
 		mapsInitialized = true;
 	}
@@ -222,7 +234,8 @@ public class BshClassPath
 		(component paths listed first, in order)
 		Duplicate path components are removed.
 	*/
-	protected List getFullPath() {
+	protected List getFullPath() 
+	{
 		List list = new ArrayList();
 		if ( compPaths != null ) {
 			for (int i=0; i<compPaths.size(); i++) {
@@ -251,7 +264,7 @@ public class BshClassPath
 	public String getClassNameByUnqName( String name ) 
 		throws ClassPathException
 	{
-		insureInitialized(null);
+		insureInitialized();
 		UnqualifiedNameTable unqNameTable = getUnqualifiedNameTable();
 
 		Object obj = unqNameTable.get( name );
@@ -295,7 +308,7 @@ public class BshClassPath
 
 	public String [] getAllNames() 
 	{
-		insureInitialized(null);
+		insureInitialized();
 
 		List names = new ArrayList();
 		Iterator it = getPackagesSet().iterator();
@@ -311,32 +324,31 @@ public class BshClassPath
 		return (String [])names.toArray(new String[0]);
 	}
 
-	synchronized void map( URL [] urls, ConsoleInterface feedback ) { 
+	/**
+		call map(url) for each url in the array
+	*/
+	synchronized void map( URL [] urls ) 
+	{ 
 		for(int i=0; i< urls.length; i++)
 			try{
-				map( urls[i], feedback );
+				map( urls[i] );
 			} catch ( IOException e ) {
 				String s = "Error constructing classpath: " +urls[i]+": "+e;
-				if ( feedback != null )
-					feedback.println( s );
-				else
-					System.err.println(s );
+				errorWhileMapping( s );
 			}
 	}
 
-	synchronized void map( URL url, ConsoleInterface feedback ) 
+	synchronized void map( URL url ) 
 		throws IOException 
 	{ 
 		String name = url.getFile();
 		File f = new File( name );
 
 		if ( f.isDirectory() ) {
-			if ( feedback != null )
-				feedback.println("Mapping directory: "+f );
+			classMapping( "Directory "+ f.toString() );
 			map( traverseDirForClasses( f ), new DirClassSource(f) );
 		} else if ( isArchiveFileName( name ) ) {
-			if ( feedback != null )
-				feedback.println("Mapping archive: "+url );
+			classMapping("Archive: "+url );
 			map( searchJarForClasses( url ), new JarClassSource(url) );
 		} 
 		/*
@@ -345,10 +357,7 @@ public class BshClassPath
 		*/
 		else {
 			String s = "Not a classpath component: "+ name ;
-			if ( feedback != null )
-				feedback.println( s );
-			else
-				System.err.println( s  );
+			errorWhileMapping( s );
 		}
 	}
 
@@ -717,6 +726,46 @@ public class BshClassPath
 		nameSourceListeners.add( listener );
 	}
 
+	/** only allow one for now */
+	static MappingFeedback mappingFeedbackListener;
+
+	/**
+	*/
+	public static void addMappingFeedback( MappingFeedback mf ) 
+	{
+		if ( mappingFeedbackListener != null )
+			throw new RuntimeException("Unimplemented: already a listener");
+		mappingFeedbackListener = mf;
+	}
+
+	void startClassMapping() {
+		if ( mappingFeedbackListener != null )
+			mappingFeedbackListener.startClassMapping();
+		else
+			System.err.println( "Start ClassPath Mapping" );
+	}
+
+	void classMapping( String msg ) {
+		if ( mappingFeedbackListener != null ) {
+			mappingFeedbackListener.classMapping( msg );
+		} else
+			System.err.println( "Mapping: "+msg );
+	}
+
+	void errorWhileMapping( String s ) {
+		if ( mappingFeedbackListener != null )
+			mappingFeedbackListener.errorWhileMapping( s );
+		else
+			System.err.println( s );
+	}
+
+	void endClassMapping() {
+		if ( mappingFeedbackListener != null )
+			mappingFeedbackListener.endClassMapping();
+		else
+			System.err.println( "End ClassPath Mapping" );
+	}
+	
 	public static interface MappingFeedback
 	{
 		public void startClassMapping();
@@ -725,8 +774,15 @@ public class BshClassPath
 			Provide feedback on the progress of mapping the classpath
 			@param msg is a message about the path component being mapped
 			@perc is an integer in the range 0-100 indicating percentage done
-		*/
 		public void classMapping( String msg, int perc );
+		*/
+
+		/**
+			Provide feedback on the progress of mapping the classpath
+		*/
+		public void classMapping( String msg );
+
+		public void errorWhileMapping( String msg );
 
 		public void endClassMapping();
 	}

@@ -99,7 +99,7 @@ class BSHCastExpression extends SimpleNode {
 			else
 				// Can we use the proxy mechanism to cast a bsh.This to 
 				// the correct interface?
-				if ( Capabilities.haveProxyMechanism() &&
+				if ( Capabilities.canGenerateInterfaces() &&
 					(fromValue instanceof bsh.This) && toType.isInterface() ) 
 						result = ((bsh.This)fromValue).getInterface( toType );
 				else 

@@ -226,8 +226,10 @@ public class ClassBrowser extends JSplitPane
 		// Currently we have to cast because BshClassPath is not known by
 		// the core.
 		classPath = ((ClassManagerImpl)bcm).getClassPath();
+
+	// need to add MappingFeedbackListener here
+	/*
 		classPath.insureInitialized( null 
-			/*
 			// get feedback on mapping...
 			new ConsoleInterface() {
 				public Reader getIn() { return null; }
@@ -238,8 +240,9 @@ public class ClassBrowser extends JSplitPane
 				public void print( String s, Color color ) { print( s ); }
 				public void error( String s ) { print( s ); }
 			}
-			*/
 		);
+	*/
+
 		classPath.addListener( this );
 
 		Set pset = classPath.getPackagesSet();

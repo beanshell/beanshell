@@ -45,7 +45,7 @@ class BSHImportDeclaration extends SimpleNode
 		throws EvalError
 	{
 		if ( superImport )
-			NameSpace.doSuperImport( interpreter );
+			NameSpace.doSuperImport();
 		else {
 			NameSpace namespace = callstack.top();
 			String name = 
