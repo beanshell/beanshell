@@ -162,10 +162,11 @@ public class Primitive implements ParserConstants, java.io.Serializable
     {
 		// special primitive types
         if(obj1 == NULL || obj2 == NULL)
-            throw new EvalError("illegal use of null object or 'null' literal");
+            throw new EvalError(
+				"Null value or 'null' literal in binary operation");
         if(obj1 == VOID || obj2 == VOID)
             throw new EvalError(
-				"illegal use of undefined object or 'void' literal");
+			"Undefined variable, class, or 'void' literal in binary operation");
 
 		// keep track of the original types
 		Class lhsOrgType = obj1.getClass();
@@ -183,7 +184,7 @@ public class Primitive implements ParserConstants, java.io.Serializable
 
         if(lhs.getClass() != rhs.getClass())
             throw new EvalError("type mismatch in operator.  " 
-			+ lhs.getClass() + " cannot be matched with " + rhs.getClass() );
+			+ lhs.getClass() + " cannot be used with " + rhs.getClass() );
 
 		Object result;
 		try {

@@ -96,14 +96,19 @@ public class NameSpace
 		return this.name;
 	}
 
+	// experimental
+	SimpleNode callerInfoNode;
 	/**
-	public void addDebugInfo( String msg ) {
-		if ( debugInfo == null )
-			debugInfo = msg;
-		else
-			debugInfo += " : "+msg;
-	}
+		Set the node associated with the creation of this namespace.
+		This is used in debugging.
 	*/
+	void setNode( SimpleNode node ) {
+		this.callerInfoNode= node;
+	}
+	SimpleNode getNode() {
+		return this.callerInfoNode;
+	}
+	// experimental
 
 	/**
 		Resolve name to an object through this namespace.
@@ -942,9 +947,7 @@ public class NameSpace
 		String methodName, Object [] args, Interpreter interpreter ) 
 		throws EvalError
 	{
-		CallStack callstack = new CallStack();
-		callstack.push( this );
-		return invokeMethod( methodName, args, interpreter, callstack );
+		return invokeMethod( methodName, args, interpreter, null, null );
 	}
 
 	/**
@@ -955,17 +958,24 @@ public class NameSpace
 		Note: this method is primarily intended for use internally.  If you use
 		this method outside of the bsh package and wish to use variables with
 		primitive values you will have to wrap them using bsh.Primitive.
+		@param if callStack is null a new CallStack will be created and
+			initialized with this namespace.
 		@see bsh.Primitive
 	*/
 	public Object invokeMethod( 
 		String methodName, Object [] args, Interpreter interpreter, 
-		CallStack callstack ) 
+		CallStack callstack, SimpleNode callerInfo ) 
 		throws EvalError
 	{
+		if ( callstack == null ) {
+			callstack = new CallStack();
+			callstack.push( this );
+		}
+
 		// Look for method in the bsh object
         BshMethod meth = getMethod( methodName, Reflect.getTypes( args ) );
         if ( meth != null )
-           return meth.invokeDeclaredMethod( args, interpreter, callstack );
+           return meth.invokeDeclaredMethod( args, interpreter, callstack, callerInfo );
 
 		// Look for a default invoke() handler method
 		meth = getMethod( "invoke", new Class [] { null, null } );
@@ -973,7 +983,7 @@ public class NameSpace
 		// Call script "invoke( String methodName, Object [] args );
 		if ( meth != null )
 			return meth.invokeDeclaredMethod( 
-				new Object [] { methodName, args }, interpreter, callstack );
+				new Object [] { methodName, args }, interpreter, callstack, callerInfo );
 
 		throw new EvalError( "No locally declared method: " 
 			+ methodName + " in namespace: " + this );
@@ -1055,6 +1065,21 @@ public class NameSpace
 	Name getNameResolver( String name ) {
 		// no caching yet
 		return new Name(this,name);
+	}
+
+	public int getInvocationLine() {
+		SimpleNode node = getNode();
+		if ( node != null )
+			return node.getLineNumber();
+		else
+			return -1;
+	}
+	public String getInvocationText() {
+		SimpleNode node = getNode();
+		if ( node != null )
+			return node.getText();
+		else
+			return "<invoked from Java code>";
 	}
 
 }

@@ -51,13 +51,20 @@ class Reflect {
 		Invoke method on object.
 		invocation may be static (through the object instance) or dynamic.
 		Object may be This type.
-
-		Note: we could probably remove This handling and prevent it
-		from coming here...
+		
+		The This handling is necessary here (previously thought it might 
+		not be).
+		@param callerInfo will be passed along in the caes where the method
+		is a bsh scripted method.  It may be null to indicate no caller info.
 	*/
+/*
+	In the case where this method calls a bsh scripted method the callstack
+	is currently lost
+*/
     public static Object invokeObjectMethod(
 		Interpreter interpreter, Object object, String methodName, 
-		Object[] args) 
+		Object[] args, SimpleNode callerInfo 
+	) 
 		throws ReflectError, InvocationTargetException, EvalError 
 	{
         /*
@@ -66,7 +73,9 @@ class Reflect {
 		*/
 
 		if ( object instanceof This )
-			return ((This)object).invokeMethod( methodName, args, interpreter );
+			// This .invokeMethod() just calls the namespace invokeMethod
+			return ((This)object).invokeMethod( 
+				methodName, args, interpreter, null, callerInfo );
         else
 			return invokeMethod( 
 				object.getClass(), object, methodName, args, false );
@@ -77,7 +86,7 @@ class Reflect {
 	*/
     public static Object invokeStaticMethod(
 		Class clas, String methodName, Object [] args)
-        throws ReflectError, InvocationTargetException
+        throws ReflectError, InvocationTargetException, EvalError
     {
         Interpreter.debug("invoke static Method");
         return invokeMethod( clas, null, methodName, args, true );
@@ -228,8 +237,15 @@ class Reflect {
 		Class clas, Object object, String name, Object[] args,
 		boolean onlyStatic
 	)
-        throws ReflectError, InvocationTargetException
+        throws ReflectError, InvocationTargetException, EvalError
     {
+		if ( object == Primitive.NULL )
+			throw new TargetError("Attempt to invoke method "
+				+name+" on null value", new NullPointerException() );
+		if ( object == Primitive.VOID )
+			throw new EvalError("Attempt to invoke method "
+				+name+" on undefined variable or class name" );
+
         if (args == null)
             args = new Object[] { };
 
@@ -825,9 +841,10 @@ class Reflect {
 
         Interpreter.debug("property access: ");
         try {
-            // null interpreter, accessor doesn't need to know
 			try {
-            return invokeObjectMethod(null, obj, accessorName, args);
+            	// null interpreter, accessor doesn't need to know
+				// null callerInfo
+				return invokeObjectMethod(null, obj, accessorName, args, null);
 			} catch ( EvalError e ) {
 				// what does this mean?
 				throw new ReflectError("getter: "+e);
@@ -850,7 +867,8 @@ class Reflect {
         Interpreter.debug("property access: ");
         try {
             // null interpreter, accessor doesn't need to know
-            invokeObjectMethod(null, obj, accessorName, args);
+			// null callerInfo
+            invokeObjectMethod(null, obj, accessorName, args, null);
         }
         catch(InvocationTargetException e)
         {

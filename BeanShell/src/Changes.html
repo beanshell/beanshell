@@ -29,7 +29,10 @@
 <pre>
     - Added "trace" option.
         java -Dtrace=true bsh.Interpreter or trace() command.
-        turns on printing of each line before it is executed
+        turns on printing of each line before it is executed.  Note that
+		this currently prints only top level lines as they are parsed and
+		executed by the interpreter.  trace skips over method exectutions 
+		(including bsh commands) etc.  We may enhance this in the future.
     - Fixed bugs in primitive handling:
         primitives smaller than int are now properly assigned in declarations:
             e.g.: byte b = 5;

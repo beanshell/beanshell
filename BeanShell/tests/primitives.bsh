@@ -50,5 +50,10 @@ assert( dw == b );
 // .equal wrappers don't test ==
 assert( !(iw == dw) );
 
+assert( iw instanceof Integer );
+assert( iw != null );
+Integer in = null;
+assert( in == null );
+
 complete();
 

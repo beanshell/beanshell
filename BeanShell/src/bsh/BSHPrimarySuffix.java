@@ -139,13 +139,15 @@ class BSHPrimarySuffix extends SimpleNode
 			return new Primitive(Array.getLength(obj));
 		
 		if (jjtGetNumChildren() == 0)
+			// field access
 			return Reflect.getObjectField(obj, field);
 		else
 		{
+			// method invocation
 			Object[] oa = ((BSHArguments)jjtGetChild(0)).getArguments(
 				callstack, interpreter);
 			try {
-				return Reflect.invokeObjectMethod(interpreter, obj, field, oa);
+				return Reflect.invokeObjectMethod(interpreter, obj, field, oa, this);
 			} catch ( EvalError ee ) {
 				// catch and re-throw to get line number right
 				throw new EvalError( ee.getMessage(), this );
@@ -180,7 +182,7 @@ class BSHPrimarySuffix extends SimpleNode
 		throws EvalError
 	{
 		if(obj == Primitive.VOID)
-			throw new EvalError("Attempt to access property on void type", this);
+			throw new EvalError("Attempt to access property on undefined variable or class name", this);
 
 		if(obj instanceof Primitive)
 			throw new EvalError("Attempt to access property on a primitive", this);

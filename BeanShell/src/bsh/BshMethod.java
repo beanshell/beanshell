@@ -70,11 +70,30 @@ class BshMethod implements java.io.Serializable
 
 	/**
 		Invoke the bsh method with the specified args, interpreter ref,
+		and callstack.  This method 
+	public Object invokeDeclaredMethod( 
+		Object[] argValues, Interpreter interpreter, CallStack callstack )
+		throws EvalError 
+	{
+		return invokeDeclaredMethod( argValues, interpreter, callstack, null );
+	}
+	*/
+
+	/**
+		Invoke the bsh method with the specified args, interpreter ref,
 		and callstack.
+		callerInfo is the node representing the method invocation
+		It is used primarily for debugging in order to provide access to the 
+		text of the construct that invoked the method through the namespace.
+		@param callerInfo is the node representing the method invocation
+			This is used primarily for debugging and may be null.
+		@param callstack is the callstack of course.  If you are using a 
+		hacked version of BeanShell that exposed this method take a look
+		at NameSpace invokeMethod to see how to make a fake callstack...
 	*/
 	public Object invokeDeclaredMethod( 
-		Object[] argValues, Interpreter interpreter, 
-		CallStack callstack ) 
+		Object[] argValues, Interpreter interpreter, CallStack callstack,
+			SimpleNode callerInfo ) 
 		throws EvalError 
 	{
 
@@ -101,6 +120,7 @@ class BshMethod implements java.io.Serializable
 		// Make the local namespace for the method invocation
 		NameSpace localNameSpace = new NameSpace( 
 			declaringNameSpace, method.name );
+		localNameSpace.setNode( callerInfo );
 
 		// set the method parameters in the local namespace
 		for(int i=0; i<method.params.numArgs; i++)

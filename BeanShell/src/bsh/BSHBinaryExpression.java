@@ -35,6 +35,9 @@
 package bsh;
 
 /**
+	Implement binary expressions...
+	Note: this is too complicated... need some cleanup and simplification.
+	@see Primitive.binaryOperation
 */
 class BSHBinaryExpression extends SimpleNode 
 	implements ParserConstants 
@@ -51,15 +54,22 @@ class BSHBinaryExpression extends SimpleNode
 		/*
 			Doing instanceof?  Next node is a type.
 		*/
-        if(kind == INSTANCEOF)
+        if (kind == INSTANCEOF)
         {
-            if(lhs instanceof Primitive)
-            {
-				// primitive can't be instance of anything, right?
+			// null object ref is not instance of any type
+			if ( lhs == Primitive.NULL )
 				return new Primitive(false);
 
-            }
+		/*
+			// primitive (number or void) cannot be tested for instanceof
+            if (lhs instanceof Primitive)
+				throw new EvalError("Cannot be instance of primitive type." );
+		*/
+			// Primitive (number or void) is not an instanceof anything
+            if (lhs instanceof Primitive)
+				return new Primitive(false);
 
+			// General case - performe the instanceof based on assignability
 			NameSpace namespace = callstack.top();
             Class rhs = ((BSHType)jjtGetChild(1)).getType(namespace);
             boolean ret = (Reflect.isAssignableFrom(rhs, lhs.getClass()));
@@ -95,20 +105,23 @@ class BSHBinaryExpression extends SimpleNode
 				return new Primitive(true);
 		}
 
-		// end stuff that was tacked on.
+		// end stuff that was tacked on for boolean short-circuiting.
 
 		/*
 			Are both the lhs and rhs either wrappers or primitive values?
+			do binary op
 		*/
 		boolean isLhsWrapper = isWrapper( lhs );
         Object rhs = ((SimpleNode)jjtGetChild(1)).eval(callstack, interpreter);
 		boolean isRhsWrapper = isWrapper( rhs );
-
-		if ( ( isLhsWrapper || isPrimitiveValue( lhs ) ) &&
-			 ( isRhsWrapper || isPrimitiveValue( rhs ) ) )
+		if ( 
+			( isLhsWrapper || isPrimitiveValue( lhs ) )
+			&& ( isRhsWrapper || isPrimitiveValue( rhs ) )
+		)
         {
 			// Special case for EQ on two wrapper objects
-			if ( isLhsWrapper && isRhsWrapper && kind == EQ ) {
+			if ( (isLhsWrapper && isRhsWrapper && kind == EQ)) 
+			{
 				/*  
 					Don't auto-unwrap wrappers (preserve identity semantics)
 					FALL THROUGH TO OBJECT OPERATIONS BELOW.
@@ -123,8 +136,37 @@ class BSHBinaryExpression extends SimpleNode
         }
 
 		/*
-			Treat lhs and rhs as arbitrary objects
+			Do we have a mixture of primitive values and non-primitives ?  
+			(primitiveValue = not null, not void)
+			god, this is getting ugly...
 		*/
+	/*
+	Removing this restriction for now...
+
+		int primCount = 0;
+		if ( isPrimitiveValue( lhs ) )
+			++primCount;
+		if ( isPrimitiveValue( rhs ) )
+			++primCount;
+
+		if ( primCount > 1 )
+			// both primitive types, should have been handled above
+			throw new InterpreterError("should not be here");
+		else if ( primCount == 1 )
+			// mixture of one and the other
+			throw new EvalError( "Invalid use of primitive and non-primitive"
+				+" values in binary operation.");
+		// else fall through to handle both non-primitive types
+
+		// end check for primitive and non-primitive mix 
+	*/
+
+
+		/*
+			Treat lhs and rhs as arbitrary objects and do the operation.
+			(including NULL and VOID represented by their Primitive types)
+		*/
+		//System.out.println("binary op arbitrary obj: {"+lhs+"}, {"+rhs+"}");
         switch(kind)
         {
             case EQ:
@@ -142,9 +184,12 @@ class BSHBinaryExpression extends SimpleNode
             default:
                 if(lhs instanceof Primitive || rhs instanceof Primitive)
                     if(lhs == Primitive.VOID || rhs == Primitive.VOID)
-                        throw new EvalError("illegal use of undefined object or 'void' literal", this);
-                    else if(lhs == Primitive.NULL || rhs == Primitive.NULL)
-                        throw new EvalError("illegal use of null object or 'null' literal", this);
+                        throw new EvalError(
+		"illegal use of undefined variable, class, or 'void' literal", this);
+                    else 
+					if(lhs == Primitive.NULL || rhs == Primitive.NULL)
+                        throw new EvalError(
+				"illegal use of null value or 'null' literal", this);
 
                 throw new EvalError("Operator: '" + tokenImage[kind] +
                     "' inappropriate for objects", this);
@@ -153,11 +198,11 @@ class BSHBinaryExpression extends SimpleNode
 
 
 	/*
-		object is a non-null non-void Primitive type
+		object is a non-null and non-void Primitive type
 	*/
 	private boolean isPrimitiveValue( Object obj ) {
-        return ( (obj instanceof Primitive) && (obj != Primitive.VOID && 
-		obj != Primitive.NULL) );
+        return ( (obj instanceof Primitive) 
+			&& (obj != Primitive.VOID) && (obj != Primitive.NULL) );
 	}
 
 	/*
