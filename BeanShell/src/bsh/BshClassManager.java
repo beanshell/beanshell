@@ -19,6 +19,8 @@ import BshClassPath.DirClassSource;
 
 	Bsh has a multi-tiered class loading architecture.  No class loader is
 	used unless/until the classpath is modified or a class is reloaded.
+
+	Note: need some synchronization in here
 */
 public class BshClassManager
 {
@@ -68,32 +70,39 @@ public class BshClassManager
 				return c;
 		}
 
-fix me!!!!!!
-		if ( baseLoader == null )
+		if ( baseLoader != null )
 			try {
-				c = Class.forName(name);
-			} catch ( Exception e ) {
-			} catch ( NoClassDefFoundError e2 ) {
-			}
+				c = baseLoader.loadClass( name );
+			} catch ( ClassNotFoundException e ) {}
 		else
 			try {
-				c = baseLoader.loadClass(name);
-			} catch ( Exception e ) {
-			} catch ( NoClassDefFoundError e2 ) {
-			}
+				c = loadSystemClass( name );
+			} catch ( ClassNotFoundException e ) {}
 
 		return c;
 	}
 
+	protected ClassLoader getBaseLoader() {
+		return baseLoader;
+	}
+
+	protected Class loadSystemClass( String name ) 
+		throws ClassNotFoundException 
+	{
+		try {
+			return Class.forName(name);
+		} catch ( NoClassDefFoundError e ) {
+			/*
+			This is weird... jdk under Win is throwing these to
+			warn about lower case / upper case possible mismatch.
+			e.g. bsh.console bsh.Console
+			*/
+			throw new ClassNotFoundException( e.toString() );
+		}
+	}
+
 	public ClassLoader getLoaderForClass( String name ) {
-		ClassLoader loader = (ClassLoader)loaderMap.get( name );
-		if ( loader != null )
-			return loader;
-		else
-			if ( baseLoader != null )
-				return baseLoader;
-			else
-				return ??
+		return (ClassLoader)loaderMap.get( name );
 	}
 
 	// Classpath mutators
@@ -104,6 +113,7 @@ fix me!!!!!!
 		if ( baseLoader == null )
 			setClassPath( new URL [] { path } );
 		else {
+// opportunitty here for listener in classpath
 			baseLoader.addURL( path );
 			classPath.add( path );
 			classLoaderChanged();
@@ -115,7 +125,8 @@ fix me!!!!!!
 	*/
 	public void reset()
 	{
-		classPath = BshClassPath.getUserClassPath();
+		//classPath = BshClassPath.getUserClassPath();
+		classPath = new BshClassPath();
 		baseLoader = null;
 		loaderMap = new HashMap();
 		classLoaderChanged();

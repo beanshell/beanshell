@@ -34,6 +34,7 @@ public class DiscreteFilesClassLoader extends BshClassLoader {
 		if ( base != null )
 			return loadClassFromFile( base, name );
 		else
+			// Let BshClassLoader try to find appropriate source
 			return super.findClass( name );
 	}
   
