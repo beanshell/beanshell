@@ -75,13 +75,6 @@ class XThis extends This
 		return "'this' reference (XThis) to Bsh object: " + namespace.name;
 	}
 
-	String toStringShowInts( Class [] ints ) {
-		StringBuffer sb = new StringBuffer( toString() + "\nimplements:" );
-		for(int i=0; i<ints.length; i++)
-			sb.append( " "+ ints[i].getName() + ((ints.length > 1)?",":"") );
-		return sb.toString();
-	}
-
 	/**
 		Get dynamic proxy for interface, caching those it creates.
 	*/
@@ -129,6 +122,7 @@ class XThis extends This
 				return invokeImpl( proxy, method, args );
 			} catch ( EvalError ee ) {
 				// Ease debugging...
+				// XThis.this refers to the enclosing class instance
 				if ( Interpreter.DEBUG ) 
 					Interpreter.debug( "EvalError in scripted interface: "
 					+ XThis.this.toString() + ": "+ ee );
@@ -139,58 +133,42 @@ class XThis extends This
 		public Object invokeImpl( Object proxy, Method method, Object[] args ) 
 			throws EvalError 
 		{
+			String methodName = method.getName();
 			CallStack callstack = new CallStack( namespace );
 
-			Class [] sig = Reflect.getTypes( args );
-			BshMethod bmethod = 
-				namespace.getMethod( method.getName(), sig );
-
-			if ( bmethod != null )
-				return Primitive.unwrap( 
-					bmethod.invoke( 
-					args, declaringInterpreter, callstack, null ) );
-
-			// Look for the default handler
-			bmethod = namespace.getMethod( "invoke", 
-				new Class [] { null, null } );
-
-			// Call script "invoke( String methodName, Object [] args );
-			if ( bmethod != null )
-				return Primitive.unwrap( 
-					bmethod.invoke( 
-					new Object [] { method.getName(), args }, 
-					declaringInterpreter, callstack, null ) );
-
 			/*
-				implement the required part of the Object protocol:
-					public int hashCode();
-					public boolean equals(java.lang.Object);
-					public java.lang.String toString();
-				if these were not handled by scripted methods we must provide
-				a default impl.
+				If equals() is not explicitly defined we must override the 
+				default implemented by the This object protocol for scripted
+				object.  To support XThis equals() must test for equality with 
+				the generated proxy object, not the scripted bsh This object;
+				otherwise callers from outside in Java will not see a the 
+				proxy object as equal to itself.
 			*/
-			// a default toString() that shows the interfaces we implement
-			if ( method.getName().equals("toString" ) )
-				return toStringShowInts( proxy.getClass().getInterfaces());
-
-			// a default hashCode()
-			if ( method.getName().equals("hashCode" ) )
-				return new Integer(this.hashCode());
-
-			// a default equals()
-			if ( method.getName().equals("equals" ) ) {
+			if ( methodName.equals("equals" ) 
+				&& namespace.getMethod( 
+					"equals", new Class [] { Object.class } ) == null ) {
 				Object obj = args[0];
 				return new Boolean( proxy == obj );
 			}
 
-			// Passing null node (unknown location) and null callstack in error.
-			// This is the case where we are crossing a proxy invocation
-			// boundary...  If called from a script maybe we could add 
-			// an additional interface with another form of invoke() to 
-			// allow us to bypass the proxy class and do the invoke, passing
-			//  the callerInfo node along and preserving the location.
-			throw new EvalError("Bsh script method: "+ method.getName()
-				+ " not found in namespace: "+ namespace.name, null, null );
+			/*
+				If toString() is not explicitly defined override the default 
+				to show the proxy interfaces.
+			*/
+			if ( methodName.equals("toString" ) 
+				&& namespace.getMethod( "toString", new Class [] { } ) == null)
+			{
+				Class [] ints = proxy.getClass().getInterfaces();
+				// XThis.this refers to the enclosing class instance
+				StringBuffer sb = new StringBuffer( 
+					XThis.this.toString() + "\nimplements:" );
+				for(int i=0; i<ints.length; i++)
+					sb.append( " "+ ints[i].getName() 
+						+ ((ints.length > 1)?",":"") );
+				return sb.toString();
+			}
+
+			return Primitive.unwrap( invokeMethod( methodName, args ) );
 		}
 	};
 }

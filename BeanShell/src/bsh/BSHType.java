@@ -53,7 +53,21 @@ class BSHType extends SimpleNode
 
 	/** 
 		Internal cache of the fully expressed type. 
-		i.e. primtive, class, or array.  Cleared on classloader change.
+		i.e. primtive, class, or array.  
+		Cleared on classloader change.
+
+		Technically, this is not correct.  We would need to clear it on
+		any change in the namespace in which we are embedded (e.g. to reflect
+		new imports or variable shadowing, etc.)  With the Name caching
+		improvements in 1.3 it should be fast enough to simply re-resolve
+		the type to a class each time... should test this.  Leaving it for
+		now as it's not a common problem.
+
+		To summarize:  I believe if you declare a typed var in a namespace
+		and then cause the type to change (e.g. by a subsequent import)
+		it will not change here... it's broken.  The more important case of
+		reloading classes or adding classpath *does* work because we are
+		a class manager listener.
 	*/
     private Class type;
 
@@ -73,7 +87,6 @@ class BSHType extends SimpleNode
     /**
 		 Returns a class for the type
 	*/
-    //public Class getType( NameSpace namespace ) 
     public Class getType( CallStack callstack, Interpreter interpreter ) 
 		throws EvalError
     {

@@ -51,96 +51,78 @@ import java.util.Vector;
 	searching.  This has to be inefficient...  I wish they would add a more
 	normal Java API for locating fields.
 */
-class Reflect {
-
+class Reflect 
+{
     /**
-		Invoke method on object.
+		Invoke method on arbitrary object.
 		invocation may be static (through the object instance) or dynamic.
-		Object may be This type.
-		
-		The This handling is necessary here (previously thought it might 
-		not be).
-		@param callerInfo will be passed along in the caes where the method
-		is a bsh scripted method.  It may be null to indicate no caller info.
+		Object may be a bsh scripted object (This type).
 	*/
-	/*
-		In the case where this method calls a bsh scripted method the callstack
-		is currently lost
-	*/
-    public static MethodInvoker resolveObjectMethod(
-		Object object, String methodName, Object[] args ) 
-		throws ReflectError, UtilEvalError 
+    public static Object invokeObjectMethod(
+		Object object, String methodName, Object[] args, 
+		Interpreter interpreter, CallStack callstack, SimpleNode callerInfo ) 
+		throws ReflectError, EvalError, InvocationTargetException
 	{
+		// Bsh scripted object
 		if ( object instanceof This && !passThisMethod( methodName) ) 
-		{
-			MethodInvoker methodInvoker = 
-				((This)object).getNameSpace().getMethod( 
-					methodName, getTypes( args ) );
-
-			if ( methodInvoker == null )
-				throw new UtilEvalError("Method " + 
-					StringUtil.methodString(methodName, getTypes(args)) +
-					" not found in '" + object.getClass().getName() + "'" );
-			else
-				return methodInvoker;
-        } else
-			return resolveMethod( 
-				object.getClass(), object, methodName, args, false );
-    }
-
-	/**
-		Encapsulate the results of method selection on an object or class.
-	*/
-	public interface MethodInvoker 
-	{
-		/**
-			The underlying method may be a bsh scripted method or a 
-			compiled Java method.
-		*/
-		public Object invoke( Object[] args, Interpreter interpreter, 
-			CallStack callStack, SimpleNode callerInfo ) 
-			throws ReflectError, EvalError, InvocationTargetException;
-	}
-
-	/**
-		Encapsulate invocation of a Java method on a particular object or class.
-	*/
-	public static class JavaMethod implements MethodInvoker
-	{
-		Object object;
-		Method method;
-
-		public JavaMethod( Object object, Method method ) { 
-			this.object = object;
-			this.method = method;
-		}
-
-		public Object invoke( Object[] args, Interpreter interpreter, 
-			CallStack callStack, SimpleNode callerInfo ) 
-			throws ReflectError, InvocationTargetException
-		{
-			return invoke( args );
-		}
-
-		public Object invoke( Object[] args ) 
-			throws ReflectError, InvocationTargetException
-		{
+			return ((This)object).invokeMethod( 
+				methodName, args, interpreter, callstack, callerInfo );
+		else 
+		// Java object
+		{ 
+			// find the java method
 			try {
-				Object returnValue =  method.invoke(object, args);
-				if ( returnValue == null )
-					returnValue = Primitive.NULL;
-				Class returnType = method.getReturnType();
+				// Check to see if we've resolve this method before
+				Class clas = object.getClass();
+				Method method = BshClassManager.getResolvedMethod(
+					clas, methodName, args );
 
-				return wrapPrimitive( returnValue, returnType );
-			} catch( IllegalAccessException e ) {
-				throw new ReflectError( "Cannot access method " 
-					+ StringUtil.methodString(
-						method.getName(), method.getParameterTypes() ) 
-					+ " in '" + method.getDeclaringClass() + "' :" + e );
+				if ( method == null )
+					method = resolveJavaMethod( 
+						clas, object, methodName, args, false );
+
+				// Succeeded.  Cache the resolved method.
+				BshClassManager.cacheResolvedMethod(
+					clas, methodName, args, method );
+
+				return invokeOnMethod( method, object, args );
+			} catch ( UtilEvalError e ) {
+				throw e.toEvalError( callerInfo, callstack );
 			}
 		}
+    }
 
-		public String toString() { return method.toString(); }
+    /** 
+		Invoke a method known to be static.
+		No object instance is needed and there is no possibility of the 
+		method being a bsh scripted method.
+	*/
+    public static Object invokeStaticMethod(
+		Class clas, String methodName, Object [] args)
+        throws ReflectError, UtilEvalError, InvocationTargetException
+    {
+        Interpreter.debug("invoke static Method");
+        Method method = resolveJavaMethod( clas, null, methodName, args, true );
+		return invokeOnMethod( method, null, args );
+    }
+
+	private static Object invokeOnMethod( 
+		Method method, Object object, Object[] args ) 
+		throws ReflectError, InvocationTargetException
+	{
+		try {
+			Object returnValue =  method.invoke(object, args);
+			if ( returnValue == null )
+				returnValue = Primitive.NULL;
+			Class returnType = method.getReturnType();
+
+			return wrapPrimitive( returnValue, returnType );
+		} catch( IllegalAccessException e ) {
+			throw new ReflectError( "Cannot access method " 
+				+ StringUtil.methodString(
+					method.getName(), method.getParameterTypes() ) 
+				+ " in '" + method.getDeclaringClass() + "' :" + e );
+		}
 	}
 
 	/**
@@ -156,17 +138,6 @@ class Reflect {
 	private static boolean passThisMethod( String name ) {
 		return ( name.equals("getClass") || name.equals("invokeMethod") );
 	}
-
-    /** 
-		Invoke a static method.  No object instance is provided.
-	*/
-    public static MethodInvoker resolveStaticMethod(
-		Class clas, String methodName, Object [] args)
-        throws ReflectError, UtilEvalError
-    {
-        Interpreter.debug("invoke static Method");
-        return resolveMethod( clas, null, methodName, args, true );
-    }
 
     public static Object getIndex(Object array, int index)
         throws ReflectError, UtilTargetError
@@ -361,7 +332,7 @@ class Reflect {
 		We could probably cache our knowledge of method structure as well.
 		(working on this for 1.3... check back)
     */
-    private static MethodInvoker resolveMethod(
+    private static Method resolveJavaMethod(
 		Class clas, Object object, String name, Object[] args,
 		boolean onlyStatic
 	)
@@ -383,9 +354,6 @@ class Reflect {
             if(args[i] == Primitive.VOID)
                 throw new ReflectError("Attempt to pass void argument " +
                     "(position " + i + ") to method: " + name);
-
-        //Class returnType = null;
-        //Object returnValue = null;
 
         Class[] types = getTypes(args);
         unwrapPrimitives(args);
@@ -447,7 +415,7 @@ class Reflect {
 
 		// End - This used to be wrapped in a try/catch for IllegalAccess
 			
-		return new JavaMethod( object, m );
+		return m;
 	}
 
 	/**
@@ -594,10 +562,12 @@ System.out.println("findAcc: "
 
         for(int i=0; i<args.length; i++)
         {
-			if ( args[i] == null )
-				throw new InterpreterError("Null arg in getTypes()");
+			//if ( args[i] == null )
+				//throw new InterpreterError("Null arg in getTypes()");
 
-            if(args[i] instanceof Primitive)
+			if ( args[i] == null )
+				types[i] = null;
+            else if ( args[i] instanceof Primitive )
                 types[i] = ((Primitive)args[i]).getType();
             else
                 types[i] = args[i].getClass();
@@ -865,7 +835,7 @@ System.out.println("findAcc: "
 	/**
 		Determine if the 'from' signature is assignable to the 'to' signature
 		'from' arg types, 'to' candidate types
-		null value in 'to' type parameter indicates loose type.
+		null value in 'from' or 'to' type parameter indicates loose type.
 
 		null value in either arg is considered empty array
 	*/
@@ -993,11 +963,9 @@ System.out.println("findAcc: "
         Interpreter.debug("property access: ");
         try {
 			try {
-				// This cast to JavaMethod allows us to call the simple args
-				// invoke... need to clean this up somehow.
-				return ((JavaMethod)resolveMethod( 
-					obj.getClass(), obj, accessorName, args, false 
-					)).invoke( args );
+				Method method = resolveJavaMethod( 
+					obj.getClass(), obj, accessorName, args, false );
+				return invokeOnMethod( method, obj, args );
 			} catch ( UtilEvalError e ) {
 				// what does this mean?
 				throw new ReflectError("getter: "+e);
@@ -1021,9 +989,9 @@ System.out.println("findAcc: "
         try {
 			// This cast to JavaMethod allows us to call the simple args
 			// invoke... need to clean this up somehow.
-			((JavaMethod)resolveMethod( 
-				obj.getClass(), obj, accessorName, args, false 
-				)).invoke( args );
+			Method method = resolveJavaMethod( 
+				obj.getClass(), obj, accessorName, args, false );
+			invokeOnMethod( method, obj, args );
         }
         catch(InvocationTargetException e)
         {

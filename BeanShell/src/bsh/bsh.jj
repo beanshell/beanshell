@@ -1814,6 +1814,11 @@ void LHSPrimarySuffix()                   :
         jjtn000.operation = BSHLHSPrimarySuffix.INDEX;
     }
 |
+/*
+	Broken - return to this...
+	Look at PrimarySuffix... why can't we do it right, as there?
+	See BSHLHSPrimarySuffix.java
+*/
     // Field access or method invocation followed by field access
   "." t1 = <IDENTIFIER> [ Arguments() "." t2 = <IDENTIFIER> ]/*@bgen(jjtree)*/
                                                               {

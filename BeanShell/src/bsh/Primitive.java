@@ -140,6 +140,7 @@ public class Primitive implements ParserConstants, java.io.Serializable
         else if(o instanceof Double)
             return Double.TYPE;
 
+		// VOID and NULL return null as type?
         return null;
     }
 

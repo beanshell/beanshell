@@ -144,13 +144,12 @@ class BSHPrimarySuffix extends SimpleNode
 			// method invocation
 			Object[] oa = ((BSHArguments)jjtGetChild(0)).getArguments(
 				callstack, interpreter);
-			try {
-				// Need to deal with this case and cache somewhere...
-				return Reflect.resolveObjectMethod( obj, field, oa ).invoke( 
-					oa, interpreter, callstack, this );
-			} catch ( UtilEvalError e ) {
-				throw e.toEvalError( this, callstack  );
-			}
+			//try {
+				return Reflect.invokeObjectMethod( 
+					obj, field, oa, interpreter, callstack, this );
+			//} catch ( UtilEvalError e ) {
+				//throw e.toEvalError( this, callstack  );
+			//}
 		}
 	}
 

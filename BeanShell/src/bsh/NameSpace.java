@@ -41,9 +41,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
 
-// TODO:: test effect of removing all caching from this class and relying on
-// name caching
-
 /**
     A namespace	in which methods and variables live.  This is package public 
 	because it is used in the implementation of some bsh commands.  However
@@ -77,8 +74,8 @@ public class NameSpace
     private Hashtable variables;
     private Hashtable methods;
     private Hashtable importedClasses;
-    private This thisReference;
     private Vector importedPackages;
+    private This thisReference;
 	/** Name resolver objects */
     private Hashtable names;
 
@@ -142,7 +139,6 @@ public class NameSpace
 		CallStack callstack = new CallStack();
 		return getNameResolver( name ).toObject( callstack, interpreter );
 	}
-
 
 	/**
 		Set a variable in this namespace.
@@ -276,7 +272,7 @@ public class NameSpace
 
     public NameSpace getGlobal()
     {
-		if(parent != null)
+		if ( parent != null )
 			return parent.getGlobal();
 		else
 			return this;
@@ -285,14 +281,37 @@ public class NameSpace
 	
 	/**
 		A This object is a thin layer over a namespace, comprising a bsh object
-		context.  We create it here only if needed for the namespace.
-		Are there any cases where we need to destroy this reference?
-	*/
-    This getThis( Interpreter declaringInterpreter ) {
+		context.  It handles things like the interface types the bsh object
+		supports and aspects of method invocation on it.  
+		<p>
 
+		The declaringInterpreter is here to support callbacks from Java through
+		generated proxies.  The scripted object "remembers" who created it for
+		things like printing messages and other per-interpreter phenomenon
+		when called externally from Java.
+	*/
+	/*
+		Note: we need a singleton here so that things like 'this == this' work
+		(and probably a good idea for speed).
+
+		Caching a single instance here seems technically incorrect,
+		considering the declaringInterpreter could be different under some
+		circumstances.  (Case: a child interpreter running a source() / eval() 
+		command ).  However the effect is just that the main interpreter that
+		executes your script should be the one involved in call-backs from Java.
+
+		I do not know if there are corner cases where a child interpreter would
+		be the first to use a This reference in a namespace or if that would
+		even cause any problems if it did...  We could do some experiments
+		to find out... and if necessary we could cache on a per interpreter
+		basis if we had weak references...  We might also look at skipping 
+		over child interpreters and going to the parent for the declaring 
+		interpreter, so we'd be sure to get the top interpreter.
+	*/
+    This getThis( Interpreter declaringInterpreter ) 
+	{
 		if ( thisReference == null )
 			thisReference = This.getThis( this, declaringInterpreter );
-
 		return thisReference;
     }
 
@@ -1089,15 +1108,13 @@ public class NameSpace
 
 	/**
 		Invoke a method in this namespace with the specified args and
-		interpreter reference.  The caller namespace is set to this namespace.
-		This is a convenience for users outside of this package. It passes
-		a null callerInfo reference, which creates a new stack.
+		interpreter reference.  No caller information or call stack is
+		required.  The method will appear as if called externally from Java.
 		<p>
 
-		Note: this method is primarily intended for use internally.  If you use
-		this method outside of the bsh package and wish to use variables with
-		primitive values you will have to wrap them using bsh.Primitive.
-		@see bsh.Primitive
+		@see bsh.This.invokeMethod( 
+			String methodName, Object [] args, Interpreter interpreter, 
+			CallStack callstack, SimpleNode callerInfo )
 	*/
 	public Object invokeMethod( 
 		String methodName, Object [] args, Interpreter interpreter ) 
@@ -1107,42 +1124,19 @@ public class NameSpace
 	}
 
 	/**
-		invoke a method in this namespace with the specified args,
-		interpreter reference, and callstack
-		This is a convenience for users outside of this package.
+		This method simply delegates to This.invokeMethod();
 		<p>
-		Note: this method is primarily intended for use internally.  If you use
-		this method outside of the bsh package and wish to use variables with
-		primitive values you will have to wrap them using bsh.Primitive.
-		@param if callStack is null a new CallStack will be created and
-			initialized with this namespace.
-		@see bsh.Primitive
+		@see bsh.This.invokeMethod( 
+			String methodName, Object [] args, Interpreter interpreter, 
+			CallStack callstack, SimpleNode callerInfo )
 	*/
 	public Object invokeMethod( 
 		String methodName, Object [] args, Interpreter interpreter, 
 		CallStack callstack, SimpleNode callerInfo ) 
 		throws EvalError
 	{
-		if ( callstack == null ) {
-			callstack = new CallStack();
-			callstack.push( this );
-		}
-
-		// Look for method in the bsh object
-        BshMethod meth = getMethod( methodName, Reflect.getTypes( args ) );
-        if ( meth != null )
-           return meth.invoke( args, interpreter, callstack, callerInfo );
-
-		// Look for a default invoke() handler method
-		meth = getMethod( "invoke", new Class [] { null, null } );
-
-		// Call script "invoke( String methodName, Object [] args );
-		if ( meth != null )
-			return meth.invoke( new Object [] { methodName, args }, 
-				interpreter, callstack, callerInfo );
-
-		throw new EvalError( "No locally declared method: " 
-			+ methodName + " in namespace: " + this, callerInfo, callstack );
+		return getThis( interpreter ).invokeMethod( 
+			methodName, args, interpreter, callstack, callerInfo);
 	}
 
 	/**
@@ -1214,12 +1208,25 @@ public class NameSpace
 	/**
 		This is the factory for Name objects which resolve names within
 		this namespace (e.g. toObject(), toClass(), toLHS()).
-		This supports name resolver caching, allowing Name objects to 
-		cache info about the resolution of names for performance reasons.
-		(This would be called getName() if it weren't already used for the
-		simple name of the NameSpace)
+		<p>
+
+		This was intended to support name resolver caching, allowing 
+		Name objects to cache info about the resolution of names for 
+		performance reasons.  However this not proven useful yet.  
+		<p>
+
+		We'll leave the caching as it will at least minimize Name object
+		creation.
+		<p>
+
+		(This method would be called getName() if it weren't already used for 
+		the simple name of the NameSpace)
+		<p>
+
+		This method was public for a time, which was a mistake.  
+		Use get() instead.
 	*/
-	public Name getNameResolver( String ambigname ) 
+	Name getNameResolver( String ambigname ) 
 	{
 		if ( names == null )
 			names = new Hashtable();

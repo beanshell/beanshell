@@ -34,8 +34,6 @@
 
 package bsh;
 
-import bsh.Reflect.MethodInvoker;
-
 class BSHMethodInvocation extends SimpleNode
 {
 
@@ -77,8 +75,9 @@ class BSHMethodInvocation extends SimpleNode
 					isNative = false;
 			
 			throw new TargetError( msg, te, this, callstack, isNative );
-
-		} 
+		} catch ( UtilEvalError e ) {
+			throw e.toEvalError( this, callstack );
+		}
 	}
 }
 
