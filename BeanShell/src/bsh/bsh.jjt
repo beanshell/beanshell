@@ -364,7 +364,7 @@ public class Interpreter implements Runnable /*,Serializable*/
             catch (EvalError e)
             {
 				String err = 
-					( !interactive ? e.getLocation() : "" )+ e.toString();
+					( !interactive ? e.getLocation() : "" ) + e.getMessage();
                 error( err );
                 if(DEBUG)
                     e.printStackTrace();
@@ -1009,6 +1009,8 @@ void ImportDeclaration() #ImportDeclaration :
     Token t = null;
 }
 {
+  LOOKAHEAD( 2 )
+
   "import" AmbiguousName() [ t = "." "*" ] ";" {
     if ( t != null )
         jjtThis.importPackage = true;

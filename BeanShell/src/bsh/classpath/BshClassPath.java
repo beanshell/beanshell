@@ -7,6 +7,7 @@ import java.net.*;
 import java.io.File;
 import bsh.Interpreter;
 import bsh.StringUtil;
+import bsh.ClassPathException;
 
 /**
 	A BshClassPath encapsulates knowledge about a class path of URLs.
@@ -141,11 +142,12 @@ public class BshClassPath
 			loss.
 	*/
 	public void insureInitialized( Interpreter feedback ) {
-		for (int i=0; i< compPaths.size(); i++)
-			((BshClassPath)compPaths.get(i)).insureInitialized( feedback );
+		if ( compPaths != null )
+			for (int i=0; i< compPaths.size(); i++)
+				((BshClassPath)compPaths.get(i)).insureInitialized( feedback );
 
 		if ( !mapsInitialized )
-			map( getPathComponents(), feedback );
+			map( (URL[])path.toArray( new URL[0] ), feedback );
 
 		mapsInitialized = true;
 	}
@@ -157,7 +159,7 @@ public class BshClassPath
 	*/
 	protected List getFullPath() {
 		List list = new ArrayList();
-		if ( compPaths != null )
+		if ( compPaths != null ) {
 			for (int i=0; i<compPaths.size(); i++) {
 				List l = ((BshClassPath)compPaths.get(i)).getFullPath();
 				// take care to remove dups
@@ -169,25 +171,49 @@ public class BshClassPath
 						list.add( o );
 				}
 			}
+		}
 		list.addAll( path );
 		return list;
 	}
 
+
 	/**
-		Support super import "*";
+		Support for super import "*";
+		Get the full name associated with the unqualified name in this 
+		classpath.  Returns either the String name or an AmbiguousName object
+		encapsulating the various names.
 	*/
-	public getClassNameByUnqualifiedName( String name ) {
+	public String getClassNameByUnqName( String name ) 
+		throws ClassPathException
+	{
+		if ( unqNameTable == null )
+			buildUnqualifiedNameTable();
+
+		Object obj = unqNameTable.get( name );
+		if ( obj instanceof AmbiguousName )
+			throw new ClassPathException("Ambigous class names: "+
+				((AmbiguousName)obj).get() );
+
+		return (String)obj;
 	}
 
-	void buildUnqualifiedNameTable() {
-		Map map = new HashMap();
+	static UnqualifiedNameTable unqNameTable;
+	private void buildUnqualifiedNameTable() {
+		unqNameTable = new UnqualifiedNameTable();
 
+		// add component names
 		if ( compPaths != null )
 			for (int i=0; i<compPaths.size(); i++) {
-				Map m = ((BshClassPath)compPaths.get(i)).classSource;
-				//Iterator
+				Set s = ((BshClassPath)compPaths.get(i)).classSource.keySet();
+				Iterator it = s.iterator();
+				while(it.hasNext()) 
+					unqNameTable.add( (String)it.next() );
 			}
-		
+
+		// add ours
+		Iterator it = classSource.keySet().iterator();
+		while(it.hasNext()) 
+			unqNameTable.add( (String)it.next() );
 	}
 
 	void map( URL [] urls, Interpreter feedback ) { 
@@ -344,7 +370,7 @@ public class BshClassPath
 	*/
 	public static String canonicalizeClassName( String name ) {
 		String classname=name.replace('/', '.');
-		classname=name.replace('\\', '.');
+		classname=classname.replace('\\', '.');
 		if ( classname.startsWith("class ") )
 			classname=classname.substring(6);
 		if ( classname.endsWith(".class") )
@@ -452,6 +478,40 @@ public class BshClassPath
 	}
 
 	public String toString() {
-		return "BshClassPath "+name+"("+super.toString()+") : "+path;
+		return "BshClassPath "+name+"("+super.toString()+") path= "+path +"\n"
+			+ "compPaths = {" + compPaths +" }";
 	}
+
+
+	static class UnqualifiedNameTable extends HashMap {
+		void add( String fullname ) {
+			String name = splitClassname( fullname )[1];
+			Object have = super.get( name );
+
+			if ( have == null )
+				super.put( name, fullname );
+			else
+				if ( have instanceof AmbiguousName )
+					((AmbiguousName)have).add( fullname );
+				else  // String
+				{
+					AmbiguousName an = new AmbiguousName();
+					an.add( (String)have );
+					an.add( fullname );
+					super.put( name, an );
+				}
+		}
+	}
+
+	public static class AmbiguousName {
+		List list = new ArrayList();
+		public void add( String name ) { 
+			list.add( name ); 
+		}
+		public List get() {
+			//return (String[])list.toArray(new String[0]);
+			return list;
+		}
+	}
+
 }

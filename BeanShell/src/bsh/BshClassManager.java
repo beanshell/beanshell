@@ -339,6 +339,31 @@ public class BshClassManager
 		return fullClassPath;
 	}
 
+	/**
+		Support for "import *;"
+		Hide details in here as opposed to NameSpace.
+	*/
+	void doSuperImport( Interpreter feedback ) 
+	{
+		try {
+			getClassPath().insureInitialized( feedback );
+			// prime the lookup table
+			getClassNameByUnqName( "" ) ;
+		} catch ( ClassPathException e ) {
+			feedback.error( e.getMessage() );
+		}
+	}
+
+	/**
+		Return the name or null if none is found,
+		Throw an ClassPathException containing detail if name is ambigous.
+	*/
+	String getClassNameByUnqName( String name ) 
+		throws ClassPathException
+	{
+		return getClassPath().getClassNameByUnqName( name );
+	}
+
 	public static Class classForName( String name ) {
 		return getClassManager().getClassForName( name );
 	}
