@@ -1,5 +1,17 @@
 <html>
+<head><title>BeanShell - Change Log</title></head>
+<body bgcolor=#ffffff>
+
 <pre>
+<h2>Changes in 1.1alpha11</h2>
+<pre>
+	- Improved error reporting.  There should no longer be any errors that
+		report "unknown location".  At minimum, any error should report the
+		source file and line number.  Normally errors should report the text
+		of the offending construct.
+	- Cleanup in array handling
+		- fixed bugs with null initializers, loose types, promotion
+</pre>
 <h2>Changes in 1.1alpha10</h2>
 <pre>
 	- Major internal change: added callstack.

@@ -396,7 +396,8 @@ void VariableInitializer() :
 void ArrayInitializer() #ArrayInitializer :
 {}
 {
-  "{" [ VariableInitializer() ( LOOKAHEAD(2) "," VariableInitializer() )* ] [ "," ] "}"
+  "{" [ VariableInitializer() 
+		( LOOKAHEAD(2) "," VariableInitializer() )* ] [ "," ] "}"
 }
 
 void FormalParameters() #FormalParameters :
@@ -821,7 +822,8 @@ void Literal() #Literal :
     jjtThis.value = new Primitive( new Boolean(b) ); }
 |
   NullLiteral() {
-    jjtThis.value = Primitive.NULL; }
+    jjtThis.value = Primitive.NULL; 
+}
 |
  VoidLiteral() {
     jjtThis.value = Primitive.VOID; }

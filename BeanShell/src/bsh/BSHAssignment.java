@@ -58,9 +58,9 @@ class BSHAssignment extends SimpleNode implements ParserConstants
         {
             case ASSIGN:
 				try {
-Interpreter.debug("lhs assign: "+rhs);
+					//Interpreter.debug("lhs assign: "+rhs);
 					return lhs.assign(rhs);
-				} catch ( TargetError e ) {
+				} catch ( EvalError e ) {
 					e.reThrow(this);
 				}
 

@@ -178,7 +178,7 @@ public class NameSpace
     }
 
 	
-	/*
+	/**
 		A This object is a thin layer over a namespace, comprising a bsh object
 		context.  We create it here only if needed for the namespace.
 
@@ -194,7 +194,7 @@ public class NameSpace
 		return thisReference;
     }
 
-	/*
+	/**
 		Used for serialization
 	*/
 	public void prune() {
@@ -602,7 +602,7 @@ public class NameSpace
 			if(isFinal)
 			throw new EvalError ("Final variable, can't assign");
 
-			val	= checkAssignableFrom(val, type); // throws error on failure
+			val	= getAssignableForm(val, type); // throws error on failure
 			value = val;
 		}
 
@@ -611,74 +611,116 @@ public class NameSpace
     }
 
 	/**
-		Determine if the RHS object can be assigned to the LHS type.
-
-		If a conversion can be performed to make it assignable do it and
-		return a new form of the RHS.
-
-		In addition to assignments this methods is used in method selection.
-
-		@returns an assignable form of the RHS
+		@deprecated name changed.
+		@see getAssignableForm
 	*/
     public static Object checkAssignableFrom(Object rhs, Class lhsType)
 		throws EvalError
     {
-		Class originalType;
-		Class rhsType;
+		return getAssignableForm( rhs, lhsType );
+	}
 
-		/*
-			This probably means we are trying to assign to a loose type
-			should we accept it here?
-		*/
+	/**
+		Determine if the RHS object can be assigned to the LHS type (as is,
+		through widening, promotion, arbitrary magic) and if so, return the 
+		assignable form of the RHS.  
+		<p>
+
+		Note that assignability is in terms of what the Java reflection API
+		will allow.  So for primitive types the returned value may be 
+		unchanged since the reflect api will do widening conversions in the 
+		case of field sets and array sets.
+		<p>
+
+		This method is used in many places throughout bsh including assignment
+		operations and method selection.
+		<p>
+
+		@returns an assignable form of the RHS or throws EvalError
+		@throws EvalError on non assignable
+	*/
+	/*
+		Notes:
+	
+		Need to define the exact behavior here:
+			does this preserve Primitive types to Primitives or unwrap, etc?
+
+		This is very confusing in general...  need to simplify and clarify the
+		various places things are happening:
+			Reflect.checkAssignable
+			Primitive?
+			here?
+	*/
+    public static Object getAssignableForm(Object rhs, Class lhsType)
+		throws EvalError
+    {
+		Class originalType;
+
 		if ( lhsType == null )
 			throw new InterpreterError("check assignable to null type");
 
 		if(rhs == null)
-			throw new InterpreterError("null value in checkAssignable");
+			throw new InterpreterError("null value in getAssignableForm");
 
 		if(rhs == Primitive.VOID)
-			throw new EvalError("void cannot be used in an assignment statement");
+			throw new EvalError(
+			"void cannot be used in an assignment statement");
 
-		if(rhs == Primitive.NULL)
+		if (rhs == Primitive.NULL)
 			if(!lhsType.isPrimitive())
 				return rhs;
 			else
 				throw new EvalError(
 					"Can't assign null to primitive type " + lhsType.getName());
 
-		if( rhs instanceof Primitive ) {
-			originalType = rhsType = ((Primitive)rhs).getType();
+
+		Class rhsType;
+
+		if ( rhs instanceof Primitive ) 
+		{
+			// set the rhsType to the type of the primitive
+			rhsType = originalType = ((Primitive)rhs).getType();
 
 			// check for primitive/non-primitive mismatch
-			if(!lhsType.isPrimitive()) {
+			if ( !lhsType.isPrimitive() ) 
+			{
 				// attempt promotion to	a primitive wrapper
+				
+				// if lhs a wrapper type, get the rhs as wrapper value
+				// else error
 				if( Boolean.class.isAssignableFrom(lhsType) ||
 					Character.class.isAssignableFrom(lhsType) ||
 					Number.class.isAssignableFrom(lhsType) )
 				{
 					rhs	= ((Primitive)rhs).getValue();
+					// type is the wrapper class type
 					rhsType = rhs.getClass();
 				}
 				else
 					assignmentError(lhsType, originalType);
 			}
-		} else {
-			originalType = rhsType = rhs.getClass();
+		} else 
+		{
+			// set the rhs type
+			rhsType = originalType = rhs.getClass();
 
 			// check for primitive/non-primitive mismatch
 			if ( lhsType.isPrimitive() ) {
-				// attempt unwrapping primitive	wrapper
-				if(rhsType == Boolean.class)
+
+				// attempt unwrapping wrapper class for assignment 
+				// to a primitive
+
+				if (rhsType == Boolean.class)
 				{
 					rhs	= new Primitive((Boolean)rhs);
 					rhsType = Boolean.TYPE;
 				}
-				else if(rhsType	== Character.class)
+				else if (rhsType == Character.class)
 				{
 					rhs	= new Primitive((Character)rhs);
 					rhsType = Character.TYPE;
 				}
-				else if(Number.class.isAssignableFrom(rhsType))
+				else if (Number.class.isAssignableFrom(rhsType))
 				{
 					rhs	= new Primitive((Number)rhs);
 					rhsType = ((Primitive)rhs).getType();
@@ -688,10 +730,12 @@ public class NameSpace
 			}
 		}
 
+		// This handles both class types and primitive .TYPE types
 		if ( Reflect.isAssignableFrom(lhsType, rhsType) )
 			return rhs;
 
 		/* 
+			bsh extension -
 			Attempt widening conversions as defined in JLS 5.1.2
 			except perform them on primitive wrapper objects.
 		*/

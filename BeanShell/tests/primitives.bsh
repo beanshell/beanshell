@@ -3,24 +3,38 @@
 source("TestHarness.bsh");
 
 
-// declarations
+// basic
 byte b = (byte)2;
 char c = 'A';
 short s = (short)2;
 int i = 2;
 
+i=b;
+// peek at the bsh.Primitive to confirm type
+assert( i == 2 );
+
+// basic assignment promotion
+int i2 = (byte)5;
+long l1 = 5;
+assert(l1==5);
+long l2 = b;
+assert(l2==2);
+
+long l3=(byte)2;
+
 /*
-	Note: 	
-	This stuff was added by Sean.
+	Unification of wrapper types with primitives
+	Note: 	This stuff was added by Sean.
 	I'm still considering it experimental. 
 */
-// unification of wrapper types with primitives
 Integer iw = 2;
 Double dw = 2.0;
-print ( iw == i );
-print ( dw == b );
-// identity semantics
-print( iw == dw );
+assert( iw == i );
+assert( dw == b );
+
+// preserve identity semantics
+// .equal wrappers don't test ==
+assert( !(iw == dw) );
 
 complete();
 

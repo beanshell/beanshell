@@ -160,5 +160,31 @@ class SimpleNode implements Node {
 		return eval( callstack.top() );
 	}
 
+	/**
+		Get the line number of the starting token
+	*/
+	public int getLineNumber() {
+		return firstToken.beginLine;
+	}
+
+	/**
+		Get the text of the tokens comprising this node.
+	*/
+	public String getText() 
+	{
+		StringBuffer text = new StringBuffer();
+		Token t = firstToken;
+		while ( t!=null ) {
+			text.append(t.image);
+			if ( !t.image.equals(".") )
+				text.append(" ");
+			if ( t==lastToken ||
+				t.image.equals("{") || t.image.equals(";") )
+				break;
+			t=t.next;
+		}
+			
+		return text.toString();
+	}
 }
 

@@ -57,6 +57,7 @@ public class EvalError extends Exception {
 		this.node = node;
 	}
 
+	/*
 	public String getLocation() {
 		String loc;
 		if ( node == null )
@@ -66,47 +67,94 @@ public class EvalError extends Exception {
 
 		return loc;
 	}
+	*/
+	
+	/**
+		The error has trace info associated with it. 
+		i.e. It has an AST node that can print its location and source text.
+	*/
+	public boolean hasNode() {
+		return (node != null);
+	}
 
-	/*
-		bug fix by: Andreas.Rasmusson@sics.se
+	/**
 	*/
 	public String toString() {
-		String err = "";
-		if ( node != null ) {
-			Token t = node.firstToken;
-			while ( t!=null ) {
-				err += t.image;
-				if ( !t.image.equals(".") )
-					err += " ";
-				if ( t==node.lastToken ||
-					t.image.equals("{") || t.image.equals(";") )
-					break;
-				t=t.next;
-			}
-		}
-			
-		return super.toString() + " : " + err;
+		String trace;
+		if ( hasNode() )
+			trace = " : at Line: "+ node.getLineNumber() 
+				+ " : "+node.getText();
+		else
+			// users should not see this, in the worst case the interpreter
+			// should insert the Line() AST node.
+			trace = ": <at unknown location>";
+
+			//return super.toString() + trace;
+			return getMessage() + trace;
 	}
 
 	/**
 		Re-throw the eval error, prefixing msg to the message.
+		<p>
 		Unfortunately at the moment java.lang.Exception's message isn't 
 		mutable so we just make a new one... could do something about this 
 		later.
-
-NOTE: should we add value of toString() here so as to produce a sort of
-bsh stack trace? 
 	*/
 	public void reThrow( String msg ) 
 		throws EvalError 
 	{
-		throw new EvalError( msg +":" + getMessage(), node );
+		reThrow( msg, null );
 	}
 
+	/**
+		Re-throw the eval error, specifying the node.
+		<p>
+
+		Unfortunately at the moment java.lang.Exception's message isn't 
+		mutable so we just make a new one... could do something about this 
+		later.
+	*/
 	public void reThrow( SimpleNode node ) 
 		throws EvalError 
 	{
-		throw new EvalError( getMessage(), node );
+		reThrow( null, node );
+	}
+
+	/**
+		Re-throw the eval error, prefixing msg to the message and specifying
+		the node.
+		<p>
+		@param msg may be null for no additional message.
+
+		Unfortunately at the moment java.lang.Exception's message isn't 
+		mutable so we just make a new one... could do something about this 
+		later.
+	*/
+	public void reThrow( String addMsg, SimpleNode addNode ) 
+		throws EvalError 
+	{
+		String msg = getMessage();
+		if ( addMsg != null )
+			msg = addMsg +" : " + msg;
+
+		SimpleNode node;
+		if ( addNode != null )
+			node = addNode;
+		else
+			node = this.node;
+	
+		throw new EvalError( msg, node );
+	}
+
+	/**
+		Set the AST node for trace info.
+		@see reThrow
+	
+		This is useful for the interpreter if it detects that there is no
+		trace info and wants to supply the Line() AST before printing.
+	*/
+	public void setNode( SimpleNode node ) {
+		this.node = node;
 	}
 }
 

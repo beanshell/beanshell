@@ -109,7 +109,7 @@ class BshMethod implements java.io.Serializable
 			if ( method.params.argTypes[i] != null ) 
 			{
 				try {
-					argValues[i] = NameSpace.checkAssignableFrom(argValues[i],
+					argValues[i] = NameSpace.getAssignableForm(argValues[i],
 					    method.params.argTypes[i]);
 				}
 				catch(EvalError e) {
@@ -162,7 +162,7 @@ class BshMethod implements java.io.Serializable
 
 			// return type is a class
 			try {
-				ret = NameSpace.checkAssignableFrom(
+				ret = NameSpace.getAssignableForm(
 					ret, (Class)method.returnType);
 			}
 			catch(EvalError e) {

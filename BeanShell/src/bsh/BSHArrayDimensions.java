@@ -41,9 +41,11 @@ class BSHArrayDimensions extends SimpleNode
 	public Class baseType;
     private int arrayDims;
 
-	// The Length in each dimension
-	// this value is only meaningfull after an eval()
-    transient public int [] dimensions;  
+	/** The Length in each dimension.  This value set by the eval() */
+	// is it ok to cache this here?
+	// it can't change, right?
+    /*transient?why?*/ 
+	public int [] dimensions;  
 
     BSHArrayDimensions(int id) { super(id); }
 
@@ -55,19 +57,22 @@ class BSHArrayDimensions extends SimpleNode
 	{
 		Interpreter.debug("array base type = "+type);
 		baseType = type;
-		return eval(callstack, interpreter);
+		return eval( callstack, interpreter );
 	}
 
-    public Object eval(CallStack callstack, Interpreter interpreter)  
+    public Object eval( CallStack callstack, Interpreter interpreter )  
 		throws EvalError
     {
         int n = jjtGetNumChildren();
-        if(n > 0) {
+        if(n > 0) 
+		{
             SimpleNode child = (SimpleNode)jjtGetChild(0);
-            if(child instanceof BSHArrayInitializer)
+            if (child instanceof BSHArrayInitializer)
             {
 				if ( baseType == null )
-					throw new EvalError( "Internal Array Eval err:  unknown base type", this);
+					throw new EvalError( 
+						"Internal Array Eval err:  unknown base type", this);
+
                 Object initValue = ((BSHArrayInitializer)child).eval(
 					baseType, callstack, interpreter);
 
@@ -76,7 +81,7 @@ class BSHArrayDimensions extends SimpleNode
 					Reflect.getArrayDimensions(arrayClass) ];
 
                 // compare with number of dimensions explicitly specified
-                if(dimensions.length != arrayDims)
+                if (dimensions.length != arrayDims)
                     throw new EvalError(
 					"Incompatible initializer. Allocation calls for a " + 
 					arrayDims + " dimensional array, but initializer is a " +

@@ -151,14 +151,16 @@ class HttpdConnection extends Thread
 		}
 */
 
-		try
-		{
-			sendFileData(file);
-		}
-		catch(FileNotFoundException e)
-		{
+		// don't send java packages over... (e.g. swing)
+		if ( file.startsWith("/java" ) )
 			error(404, "Object Not Found");
-		}
+		else
+			try {
+				System.out.println("sending file: "+file);
+				sendFileData(file);
+			} catch(FileNotFoundException e) {
+				error(404, "Object Not Found");
+			}
 	}
 
 	private void sendFileData(String file) throws IOException, FileNotFoundException

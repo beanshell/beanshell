@@ -46,76 +46,70 @@ class BSHArrayInitializer extends SimpleNode
 		throw new EvalError("array initializer Internal error, no base type");
 	}
 
+	/**
+		Construct the array from the initializer syntax.
+		baseType may be null to indicate an untyped allocation, in which case
+		the base type is determined as follows:
+			< unimplemented >
+	*/
     public Object eval( 
 		Class baseType, CallStack callstack, Interpreter interpreter ) 
 		throws EvalError
     {
-        int n = jjtGetNumChildren();
-        Class initializerType = null;
-        Object initializers = null;
+        int numChildren = jjtGetNumChildren();
+		// allocate the array to store the initializers
+        Object initializers = 
+			Array.newInstance( baseType, numChildren );
 
-        for(int i = 0; i < n; i++)
+		// Evaluate the initializers
+        for(int i = 0; i < numChildren; i++)
         {
-            Object currentInitializer = ((SimpleNode)jjtGetChild(i)).eval(
-				callstack, interpreter);
+            Object currentInitializer = 
+				((SimpleNode)jjtGetChild(i)).eval( callstack, interpreter);
 
-            // allocate the array to store the initializers
-            if(initializers == null)
-            {
-                // determine the type of the initializer
-                if(currentInitializer instanceof Primitive)
-                    initializerType = ((Primitive)currentInitializer).getType();
-                else
-                    initializerType = currentInitializer.getClass();
+			if ( currentInitializer == Primitive.VOID )
+				throw new EvalError(
+					"Void in array initializer, position"+i, this);
 
-                initializers = Array.newInstance(initializerType, jjtGetNumChildren());
-            }
+			// unwrap primitive to the wrapper type
+			Object value;
+			if ( currentInitializer instanceof Primitive )
+				value = ((Primitive)currentInitializer).getValue();
+			else
+				value = currentInitializer;
 
-            try
-            {
-                // store the initializer in the array
-                if((initializerType.isArray()) || (!initializerType.isPrimitive()))
-                    ((Object[])initializers)[i] = currentInitializer;
-                else
-                {
-                    Object primitive = ((Primitive)currentInitializer).getValue();
+			// store the value in the array
+            try {
+				Array.set(initializers, i, value);
 
-                    if(initializerType == Boolean.TYPE)
-                        ((boolean[])initializers)[i] = ((Boolean)primitive).booleanValue();
-                    else if(initializerType == Character.TYPE)
-                        ((char[])initializers)[i] = ((Character)primitive).charValue();
-                    else if(initializerType == Byte.TYPE)
-                        ((byte[])initializers)[i] = ((Byte)primitive).byteValue();
-                    else if(initializerType == Short.TYPE)
-                        ((short[])initializers)[i] = ((Short)primitive).shortValue();
-                    else if(initializerType == Integer.TYPE)
-                        ((int[])initializers)[i] = ((Integer)primitive).intValue();
-                    else if(initializerType == Long.TYPE)
-                        ((long[])initializers)[i] = ((Long)primitive).longValue();
-                    else if(initializerType == Float.TYPE)
-                        ((float[])initializers)[i] = ((Float)primitive).floatValue();
-                    else if(initializerType == Double.TYPE)
-                        ((double[])initializers)[i] = ((Double)primitive).doubleValue();
-                }
-            }
-            catch(Exception e)
-            {
-                String lhsType = Reflect.normalizeClassName(initializerType);
-
-                String rhsType;
-                if(currentInitializer instanceof Primitive)
-                    rhsType = ((Primitive)currentInitializer).getType().getName();
-                else
-                    rhsType = Reflect.normalizeClassName(currentInitializer.getClass());
-
-                throw new EvalError ("Incompatible types in initializer. Initializer contains both " + lhsType + " and " + rhsType, this);
+            } catch( IllegalArgumentException e ) {
+				Interpreter.debug("illegal arg"+e);
+				throwTypeError( baseType, currentInitializer, i );
+            } catch( ArrayStoreException e ) { // I think this can happen
+				Interpreter.debug("arraystore"+e);
+				throwTypeError( baseType, currentInitializer, i );
             }
         }
 
-		// zero length array init
-		if ( initializers == null )
-			initializers = Array.newInstance( baseType, 0 );
-
         return initializers;
     }
+
+	private void throwTypeError( 
+		Class baseType, Object initializer, int argNum ) 
+		throws EvalError
+	{
+		String lhsType = Reflect.normalizeClassName(baseType);
+
+		String rhsType;
+		if (initializer instanceof Primitive)
+			rhsType = 
+				((Primitive)initializer).getType().getName();
+		else
+			rhsType = Reflect.normalizeClassName(
+				initializer.getClass());
+
+		throw new EvalError ( "Incompatible type: " + rhsType 
+			+" in initializer of array type: "+ baseType
+			+" at position: "+argNum, this );
+	}
 }

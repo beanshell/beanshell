@@ -60,8 +60,10 @@ class Reflect {
 		Object[] args) 
 		throws ReflectError, InvocationTargetException, EvalError 
 	{
-        Interpreter.debug("invoke Method " + methodName + " on object " 
+        /*
+		Interpreter.debug("invoke Method " + methodName + " on object " 
 			+ object + " with args (");
+		*/
 
 		if ( object instanceof This )
 			return ((This)object).invokeMethod( methodName, args, interpreter );
@@ -385,12 +387,14 @@ class Reflect {
 			return found;
 		
 		// Didn't find one
+		/*
 		Interpreter.debug(
 			"Can't find publically accessible "+
 			( onlyStatic ? " static " : "" )
 			+" version of method: "+
 			StringUtil.methodString(name, types) +
 			" in interfaces or class hierarchy of class "+clas.getName() );
+		*/
 
 		return null;
 	}
@@ -557,7 +561,7 @@ class Reflect {
     }
 
 	/**
-		This uses the NameSpace.checkAssignableFrom() method to determine
+		This uses the NameSpace.getAssignableForm() method to determine
 		compatability of args.  This allows special (non standard Java) bsh 
 		widening operations...
 
@@ -578,7 +582,7 @@ class Reflect {
 					continue;
                 try {
                     for(int j = 0; j < parameters.length; j++)
-                        tempArgs[j] = NameSpace.checkAssignableFrom( 
+                        tempArgs[j] = NameSpace.getAssignableForm( 
 							args[j], parameters[j]);
 
                     // if you get here, all the arguments were assignable
@@ -613,7 +617,7 @@ class Reflect {
 
 
 	/**
-		This uses the NameSpace.checkAssignableFrom() method to determine
+		This uses the NameSpace.getAssignableForm() method to determine
 		compatability of args.  This allows special (non standard Java) bsh 
 		widening operations...
 	*/
@@ -632,7 +636,7 @@ class Reflect {
             try {
                 for(int j = 0; j < parameters.length; j++)
                     tempArgs[j] = 
-						NameSpace.checkAssignableFrom(args[j], parameters[j]);
+						NameSpace.getAssignableForm(args[j], parameters[j]);
 
                 // if you get here, all the arguments were assignable
                 System.arraycopy(tempArgs, 0, args, 0, args.length);
@@ -678,8 +682,11 @@ class Reflect {
 		}
 
 		if ( bestMatch != null ) {
+			/*
 			Interpreter.debug("best match: " 
-			+ StringUtil.methodString("args",bestMatch));
+				+ StringUtil.methodString("args",bestMatch));
+			*/
+				
 			return bestMatchIndex;
 		}
 		else {
@@ -732,7 +739,7 @@ class Reflect {
 		Class.isAssignableFrom() which does not take primitive widening 
 		conversions into account.
 
-		Note that the checkAssignable() method in NameSpace is the primary
+		Note that the getAssigbableForm() method in NameSpace is the primary
 		bsh method for checking assignability.  It adds extended bsh
 		conversions, etc.
 	*/

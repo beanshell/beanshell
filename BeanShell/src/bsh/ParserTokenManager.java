@@ -2,7 +2,7 @@
 package bsh;
 import java.io.Reader;
 
-class ParserTokenManager implements ParserConstants
+public class ParserTokenManager implements ParserConstants
 {
 private final int jjStopStringLiteralDfa_0(int pos, long active0, long active1)
 {

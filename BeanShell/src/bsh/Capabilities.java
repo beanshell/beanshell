@@ -32,31 +32,50 @@
  *****************************************************************************/
 
 package bsh;
+import java.util.Hashtable;
 
 /**
 	The map of extended features supported by the runtime in which we live.
+
+	Capability should be independent of all other bsh classes.
+	Note that tests for class existence here should not use the 
+	BshClassManager, as it may require other optional class files to be 
+	loaded.  
 */
 public class Capabilities {
-	static boolean checkedForSwing, haveSwing;
+
 	public static boolean haveSwing() {
-
-		if ( checkedForSwing )
-			return haveSwing;
-
-		haveSwing = BshClassManager.classExists( "javax.swing.JButton" );
-		checkedForSwing = true;
-		return ( haveSwing );
+		return classExists( "javax.swing.JButton" );
 	}
 
-	static boolean checkedForProxyMech, haveProxyMech;
 	public static boolean haveProxyMechanism() {
-		if ( checkedForProxyMech )
-			return haveProxyMech;
+		return classExists( "java.lang.reflect.Proxy" );
+	}
 
-		haveProxyMech = BshClassManager.classExists( 
-			"java.lang.reflect.Proxy" );
-		checkedForProxyMech = true;
-		return haveProxyMech;
+	private static Hashtable classes = new Hashtable();
+	/**
+		Use plain Class.forName() to test for the existence of a class.
+		We should not use BshClassManager here because:
+			a) the systems using these tests would probably not load the
+			classes through it anyway.
+			b) bshclassmanager is heavy and touches other class files.  
+			this capabilities code must be light enough to be used by any
+			system including the remote applet.
+	*/
+	private static boolean classExists( String name ) 
+	{
+		Object c = classes.get( name );
+
+		if ( c == null ) {
+			try {
+				c = Class.forName( name );
+			} catch ( ClassNotFoundException e ) { }
+
+			if ( c != null )
+				classes.put(c,"unused");
+		}
+
+		return c != null;
 	}
 
 	/**

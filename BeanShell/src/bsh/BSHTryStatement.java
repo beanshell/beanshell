@@ -114,7 +114,7 @@ class BSHTryStatement extends SimpleNode
 				// If the param is typed check assignability
 				if ( fp.type != null ) 
 					try {
-						thrown = (Throwable)NameSpace.checkAssignableFrom(
+						thrown = (Throwable)NameSpace.getAssignableForm(
 							thrown, fp.type);
 					} catch(EvalError e) {
 						/* Catch the mismatch and continue to try the next
