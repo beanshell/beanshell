@@ -4,6 +4,16 @@
 
 <h2>Changes in 1.2b42 </h2>
 <pre>
+	- Modified Interpreter so that it is serializable.  It is now possible
+	to serialize the entire bsh instance.  The load() and save() commands
+	however recognize when you are trying to save a bsh object (bsh.This)
+	type and detach it from the parent namespace, so that saving a bsh object
+	in this way doesn't drag along the whole interpreter  See This.bind()
+	and This.unbind().
+</pre>
+
+<h2>Changes in 1.2b42 </h2>
+<pre>
 	- Fixed bug affecting scoping in blocks.  This was breaking the test 
 	harness in a way that caused it not to be caught before!
 	- Added a special test for the test harness to catch this sort of thing

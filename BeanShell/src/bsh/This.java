@@ -178,6 +178,7 @@ public class This implements java.io.Serializable, Runnable {
 		Bind a This reference to a parent's namespace with the specified
 		declaring interpreter.  Also re-init the callstack.  It's necessary 
 		to bind a This reference before it can be used after deserialization.
+		This is used by the bsh load() command.
 		<p>
 
 		This is a static utility method because it's used by a bsh command
@@ -192,29 +193,19 @@ public class This implements java.io.Serializable, Runnable {
 		ths.initCallStack( namespace );
 	}
 
-
 	/**
-		For serialization.
-	*/
-    private synchronized void writeObject(java.io.ObjectOutputStream s)
-        throws IOException {
+		Remove a This reference from a parent's namespace.
+		It's necessary to unbind a This reference before serialization if
+		you don't want serialization to save the entire interpreter and all
+		enclosing namespaces.  This is used by the bsh save() command.
+		<p>
 
-		// Temporarily prune the namespace.
-
-		NameSpace parent = namespace.getParent();
-		// Bind would set the interpreter, but it's possible that the parent
-		// is null (it's the root).  So save it...
-
-		//?Interpreter interpreter = declaringInterpreter;
-
-		namespace.prune();
-		s.defaultWriteObject();
-		// put it back
-		namespace.setParent( parent );
-
-		//?declaringInterpreter = interpreter;
-		//?initCallStack( namespace );
+		This is a static utility method because it's used by a bsh command
+		bind() and the interpreter doesn't currently allow access to direct 
+		methods of This objects (small hack)
+	public static void unbind( This ths ) {
 	}
+*/
 
 	private final void initCallStack( NameSpace namespace ) {
 		callstack = new CallStack();
