@@ -35,7 +35,6 @@ package bsh;
 
 import java.util.Vector;
 import java.io.*;
-import java.awt.Color;
 
 /**
 	The BeanShell script interpreter.
@@ -714,15 +713,6 @@ public class Interpreter
             out.flush();
         }
     }
-
-	public void print( String s, Color color ) {
-		if (console != null) {
-            console.print(s, color);
-        } else {
-            out.print(s);
-            out.flush();
-        }
-	}
 
 	// End ConsoleInterface
 

@@ -35,7 +35,6 @@
 package bsh;
 
 import java.io.*;
-import java.awt.Color;
 
 /**
 	The capabilities of a minimal console for BeanShell.
@@ -51,7 +50,6 @@ public interface ConsoleInterface {
 	public PrintStream getErr();
 	public void println( String s );
 	public void print( String s );
-	public void print( String s, Color color );
 	public void error( String s );
 }
 
