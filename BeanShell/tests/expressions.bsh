@@ -38,5 +38,22 @@ a=!s1.equals(s2);
 Math.sin(0.5)*2;
 !s1.equals(s2);
 
+
+// This set of stuff used to trigger nasty bug in PrimaryPrefix lookahead
+
+value="foo";
+
+(value != null) && (value.trim().length() > 0);
+(value.trim()!=null) && true;
+
+true && (value.trim().length()!=0);
+
+"foo".trim().trim().trim() != null;
+
+true && (value.trim().length() > 0);
+
+// end - This set of stuff 
+
+
 complete();
 

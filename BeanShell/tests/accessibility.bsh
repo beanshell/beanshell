@@ -21,4 +21,6 @@ assert(a.field2==2);
 assert(a.field3==3);
 assert(a.field4==4);
 
+setAccessibility(false);
+
 complete();

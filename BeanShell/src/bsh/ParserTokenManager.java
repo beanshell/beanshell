@@ -2,7 +2,7 @@
 package bsh;
 import java.io.Reader;
 
-class ParserTokenManager implements ParserConstants
+public class ParserTokenManager implements ParserConstants
 {
 private final int jjStopStringLiteralDfa_0(int pos, long active0, long active1)
 {
@@ -1283,7 +1283,11 @@ private final int jjMoveNfa_0(int startState, int curPos)
                   if (curChar == 42)
                      jjCheckNAddTwoStates(69, 70);
                   else if (curChar == 47)
+                  {
+                     if (kind > 7)
+                        kind = 7;
                      jjCheckNAddStates(18, 20);
+                  }
                   if (curChar == 42)
                      jjstateSet[jjnewStateCnt++] = 61;
                   break;
@@ -1514,8 +1518,11 @@ private final int jjMoveNfa_0(int startState, int curPos)
                      jjAddStates(7, 9);
                   break;
                case 57:
-                  if ((0xffffffffffffdbffL & l) != 0L)
-                     jjCheckNAddStates(18, 20);
+                  if ((0xffffffffffffdbffL & l) == 0L)
+                     break;
+                  if (kind > 7)
+                     kind = 7;
+                  jjCheckNAddStates(18, 20);
                   break;
                case 58:
                   if ((0x2400L & l) != 0L && kind > 7)
@@ -1663,6 +1670,8 @@ private final int jjMoveNfa_0(int startState, int curPos)
                   jjCheckNAddTwoStates(53, 9);
                   break;
                case 57:
+                  if (kind > 7)
+                     kind = 7;
                   jjAddStates(18, 20);
                   break;
                case 62:
@@ -1736,8 +1745,11 @@ private final int jjMoveNfa_0(int startState, int curPos)
                   jjCheckNAdd(35);
                   break;
                case 57:
-                  if (jjCanMove_1(hiByte, i1, i2, l1, l2))
-                     jjAddStates(18, 20);
+                  if (!jjCanMove_1(hiByte, i1, i2, l1, l2))
+                     break;
+                  if (kind > 7)
+                     kind = 7;
+                  jjAddStates(18, 20);
                   break;
                case 62:
                   if (jjCanMove_1(hiByte, i1, i2, l1, l2))

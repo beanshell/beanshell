@@ -2,13 +2,22 @@
 <head><title>BeanShell - Change Log</title></head>
 <body bgcolor=#ffffff>
 
-<h2>Changes in 1.1alpha19</h2>
+<h2>Changes in 1.2 final</h2>
+<pre>
+	- Fixed nasty bug in grammar, added test cases to expression.bsh
+	Note: this bug was preventing the latest version of bsh from being used
+	with Weblogic 6.1 (which uses bsh internally and was failing).
+	- Handled the "single line comment with no terminating linefeed" issue.
+</pre>
+</h2>
+
+<h2>Changes in 1.2b1</h2>
 <pre>
 	- Added support for accessibility - Using a dynamically loaded extension
 	(ReflectManager) bsh will use the accessibility API to allow access to
 	private/protected fields, methods and non-public classes.
 	- added the setAccessible() command to turn this behavior on/off
-	(on by default)
+	(it is *off* by default in this release...  we may change that later.)
 	- added the bsh.reflect package and ReflectManager to support the above.
 	- Added support for IBM's Bean Scripting Framework (BSF). 
 	- Added a new jar with the BSF adapter class bsh.util.BeanShellBSFEngine.
