@@ -173,6 +173,26 @@ public class ClassManagerImpl extends BshClassManager
 		return c;
 	}
 
+	/**
+		Delegate for bottom level implementation of Class.forName().
+		This is here solely to provide for Java version specific features.
+		In this case - the Thread getContextClassLoader() which is required
+		to get bsh to see user classpath when it's installed in the lib/ext
+		directory.
+		@see BshClassManager.plainClassForName()
+	*/
+	public Class getPlainClassForName( String name )  
+		throws ClassNotFoundException
+	{
+		// Requires JDK 1.2+
+		ClassLoader contextClassLoader = 
+			Thread.currentThread().getContextClassLoader();
+		if ( contextClassLoader != null )
+			return Class.forName( name, true, contextClassLoader );
+		else
+			return Class.forName( name );
+	}
+
 	public ClassLoader getBaseLoader() {
 		return baseLoader;
 	}

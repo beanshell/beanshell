@@ -57,6 +57,8 @@ import java.io.IOException;
 */
 /*
 	Thanks to Slava Pestov (of jEdit fame) for import caching enhancements.
+
+	Note: This class has gotten too big.  It should be broken down a bit.
 */
 public class NameSpace 
 	implements java.io.Serializable, BshClassManager.Listener, 
@@ -65,6 +67,9 @@ public class NameSpace
 	public static final NameSpace JAVACODE = 
 		new NameSpace("Called from compiled Java code");
 
+	// Begin instance data
+	// Note: if we add something here we should reset it in the clear() method.
+
 	public String name; 
     private NameSpace parent;
     private Hashtable variables;
@@ -72,7 +77,6 @@ public class NameSpace
     private Hashtable importedClasses;
     private This thisReference;
     private Vector importedPackages;
-	//String debugInfo;
 
 	/** "import *;" operation has been performed */
 	transient private static boolean superImport;
@@ -84,6 +88,8 @@ public class NameSpace
 		always absolute and are cached by BshClassManager.
 	*/
     transient private Hashtable classCache;
+
+	// End instance data
 
     public NameSpace( String name ) { 
 		this( null, name );
@@ -1200,6 +1206,24 @@ public class NameSpace
 	public static Class identifierToClass( Name.ClassIdentifier ci ) 
 	{
 		return ci.getTargetClass();
+	}
+
+	/**
+		Clear all variables, methods, and imports from this namespace.
+		If this namespace is the root, it will be reset to the default 
+		imports.
+		@see loadDefaultImports()
+	*/
+	public void clear() 
+	{
+		variables = null;
+		methods = null;
+		importedClasses = null;
+		importedPackages = null;
+		superImport = false;
+		if ( parent == null )
+			loadDefaultImports();	
+    	classCache = null;
 	}
 }
 

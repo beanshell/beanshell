@@ -2,6 +2,17 @@
 <head><title>BeanShell - Change Log</title></head>
 <body bgcolor=#ffffff>
 
+<h2>Changes in 1.2b3 and 1.2b4 </h2>
+<pre>
+	- The class manager now uses the Thread "context classloader" to factory
+	classes when available.  This allows bsh to be instaled in the 
+	jre/lib/ext directory (previously user classes wouldn't be seen).  Yeah!
+	This may also allow bsh to see user classpath in application servers
+	like Weblogic, which include it in the core classpath.
+	- added the clear() command to clear variables and methods from a namespace.
+	- added setOut() and setErr() methods to Interpreter.
+</pre>
+
 <h2>Changes in 1.2b2 and 1.2b3 </h2>
 <pre>
 	- Fixed nasty bug in grammar, added test cases to expression.bsh
@@ -28,7 +39,6 @@
 	- Modified This references so that you can invoke the methods: getClass()
 		and invokeMethod() on them.
 </pre>
-</h2>
 
 <h2>Changes in 1.2b1</h2>
 <pre>
@@ -42,7 +52,6 @@
 	- Added a new jar with the BSF adapter class bsh.util.BeanShellBSFEngine.
 	This is also included in the full dist (it's small).
 </pre>
-</h2>
 
 <h2>Changes in 1.1alpha19</h2>
 <pre>

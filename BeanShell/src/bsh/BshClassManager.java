@@ -163,10 +163,16 @@ public abstract class BshClassManager
 	}
 
 	/**
-		Perform a plain Class.forName() 
-		This simply wraps that method call and provides a central point for
-		monitoring and handling certain Java version dependent bugs, etc.
-		Note: this used to be called loadSystemClass()
+		Perform a plain Class.forName() or call the externally provided
+		class loader.
+		If a BshClassManager implementation is loaded the call will be 
+		delegated to it, to allow for additional hooks.
+
+		This simply wraps that bottom level class lookup call and provides a 
+		central point for monitoring and handling certain Java version 
+		dependent bugs, etc.
+
+		@see getPlainClassForName()
 		@return the class
 	*/
 	public static Class plainClassForName( String name ) 
@@ -174,10 +180,16 @@ public abstract class BshClassManager
 	{
 		try {
 			Class c;
-			if ( externalClassLoader != null ) {
+			if ( externalClassLoader != null )
 				c = externalClassLoader.loadClass( name );
-			}else
-				c = Class.forName(name);
+			else {
+				// If BCM exists, delegate to it.
+				BshClassManager bcm = manager; // Don't create if not there yet.
+				if ( bcm != null )
+					c = bcm.getPlainClassForName( name );				
+				else
+					c = Class.forName( name );
+			}
 
 			cacheClassInfo( name, c );
 			return c;
@@ -254,7 +266,15 @@ public abstract class BshClassManager
 
 	// Begin interface methods
 
+	/** @see classForName */
 	public abstract Class getClassForName( String name );
+
+	/** 
+		Delegate for plainClassForName.
+		@see plainClassForName
+	 */
+	public abstract Class getPlainClassForName( String name ) 
+		throws ClassNotFoundException ;
 
 	public abstract ClassLoader getBaseLoader();
 
