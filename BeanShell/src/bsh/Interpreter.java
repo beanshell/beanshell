@@ -6,7 +6,7 @@ import java.io.*;
 
 /*  Daniel Leuck: Added stuff to support JConsole Color and images */
 import java.awt.Color;
-import javax.swing.ImageIcon;
+//import javax.swing.ImageIcon;
 import bsh.util.JConsole;
 
 /**

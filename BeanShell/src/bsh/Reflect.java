@@ -108,7 +108,9 @@ class Reflect {
 		throw new EvalError("unknown target: " + targetName);
     }
 
-    // Invoke method on object, may be static, dynamic, or This
+    /*
+		 Invoke method on object, may be static, dynamic, or This
+	*/
     public static Object invokeObjectMethod(
 		Interpreter interpreter, Object object, String methodName, 
 		Object[] args) 
