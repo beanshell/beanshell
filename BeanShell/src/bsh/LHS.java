@@ -47,9 +47,6 @@ import java.util.Hashtable;
 	an assignment.  Wrapping all objects, say, in a generalized BshObject 
 	type, would also provide a nice place to put all the reflection stuff, 
 	which is now static in bsh.Reflect
-
-	Note: moving some stuff from Reflect to a BshObject, but not going
-	as far as the above yet...
 */
 class LHS implements ParserConstants, java.io.Serializable
 {

@@ -80,7 +80,7 @@ public class dir
 				len.insert(0, pad);
 			}
 			
-			sb.append( len );
+			sb.append( len.toString() );
 
 			sb.append( " " + f.getName() );
 			if ( f.isDirectory() ) 

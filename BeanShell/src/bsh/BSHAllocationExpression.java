@@ -37,6 +37,9 @@ package bsh;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 
+/**
+	New object, new array, or inner class style allocation with body.
+*/
 class BSHAllocationExpression extends SimpleNode
 {
     BSHAllocationExpression(int id) { super(id); }
