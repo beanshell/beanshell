@@ -9,15 +9,8 @@ makeWorkspace( String name ) {
 	console	= new bsh.util.JConsole();
 	name="Bsh Workspace: "+name;
 
-	try {
-		interpreter = new bsh.Interpreter( console );
-	} catch ( Exception e ) {
-		print(e);
-		file=new FileWriter("e.out");
-		e.printStackTrace( new PrintWriter( file ) );
-		file.close();
-		print("saved...");
-	}
+	interpreter = new bsh.Interpreter( console );
+
 	// give the new interpreter a reference to the desktop
 	ibsh = interpreter.getVariable("bsh");
 	ibsh.desktop = bsh.desktop;

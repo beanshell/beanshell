@@ -282,7 +282,7 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
                         try {
                                 eval("printBanner();");
                         } catch ( EvalError e ) {
-                                println("BeanShell 1.0 beta - by Pat Niemeyer (pat@pat.net)");
+                                println("BeanShell 1.01 beta - by Pat Niemeyer (pat@pat.net)");
                         }
 
         boolean eof = false;
