@@ -168,9 +168,14 @@ class Reflect
 	*/
 	private static boolean passThisMethod( String name ) 
 	{
-		return name.equals("getClass") 
+		return 
+			name.equals("getClass") 
 			|| name.equals("invokeMethod")
-			|| name.equals("getInterface");
+			|| name.equals("getInterface")
+			// These are necessary to let us test synchronization from scripts
+			|| name.equals("wait") 
+			|| name.equals("notify")
+			|| name.equals("notifyAll");
 	}
 
     public static Object getIndex(Object array, int index)

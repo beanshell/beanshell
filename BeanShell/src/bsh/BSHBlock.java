@@ -36,6 +36,8 @@ package bsh;
 
 class BSHBlock extends SimpleNode
 {
+	public boolean isSynchronized = false;
+
 	BSHBlock(int id) { super(id); }
 
 	public Object eval( CallStack callstack, Interpreter interpreter) 
@@ -59,9 +61,31 @@ class BSHBlock extends SimpleNode
 		boolean overrideNamespace ) 
 		throws EvalError
 	{
-		Object ret = Primitive.VOID;
-		int statements = jjtGetNumChildren();
+		Object syncValue = null;
+		if ( isSynchronized ) 
+		{
+			// First node is the expression on which to sync
+			SimpleNode exp = ((SimpleNode)jjtGetChild(0));
+			syncValue = exp.eval(callstack, interpreter);
+		}
 
+		Object ret;
+		if ( isSynchronized ) // Do the actual synchronization
+			synchronized( syncValue )
+			{
+				ret = evalBlock( callstack, interpreter, overrideNamespace );
+			}
+		else
+				ret = evalBlock( callstack, interpreter, overrideNamespace );
+
+		return ret;
+	}
+
+	Object evalBlock( CallStack callstack, Interpreter interpreter, 
+		boolean overrideNamespace ) 
+		throws EvalError
+	{	
+		Object ret = Primitive.VOID;
 		NameSpace enclosingNameSpace = null;
 		if ( !overrideNamespace ) 
 		{
@@ -72,8 +96,11 @@ class BSHBlock extends SimpleNode
 			callstack.swap( bodyNameSpace );
 		}
 
+		int startChild = isSynchronized ? 1 : 0;
+		int numChildren = jjtGetNumChildren();
+
 		try {
-			for(int i=0; i<statements; i++)
+			for(int i=startChild; i<numChildren; i++)
 			{
 				SimpleNode node = ((SimpleNode)jjtGetChild(i));
 				ret = node.eval( callstack, interpreter );
@@ -87,7 +114,6 @@ class BSHBlock extends SimpleNode
 			if ( !overrideNamespace ) 
 				callstack.swap( enclosingNameSpace );
 		}
-
 		return ret;
 	}
 }

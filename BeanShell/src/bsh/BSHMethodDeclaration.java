@@ -119,7 +119,8 @@ class BSHMethodDeclaration extends SimpleNode
 // look into this
 
 		namespace = callstack.top(); // don't think we need this
-		namespace.setMethod( name, new BshMethod( this, namespace ) );
+		BshMethod bshMethod = new BshMethod( this, namespace, modifiers );
+		namespace.setMethod( name, bshMethod );
 
 		return Primitive.VOID;
 	}
