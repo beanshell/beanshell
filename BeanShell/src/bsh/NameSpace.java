@@ -74,8 +74,12 @@ public class NameSpace
 	/** "import *;" operation has been performed */
 	transient private static boolean superImport;
 
-	// Local class cache for classes resolved through this namespace using
-	// getClass() (taking into account imports)
+	/**
+		Local class cache for classes resolved through this namespace using 
+		getClass() (taking into account imports).  Only unqualified class names
+		are cached here (those which might be imported).  Qualified names are 
+		always absolute and are cached by BshClassManager.
+	*/
     transient private Hashtable classCache;
 
     public NameSpace( String name ) { 
@@ -85,6 +89,7 @@ public class NameSpace
     public NameSpace( NameSpace parent, String name ) {
 		setName(name);
 		setParent(parent);
+
 		// Register for notification of classloader change
 		BshClassManager.addCMListener(this);
     }
@@ -145,14 +150,9 @@ public class NameSpace
 		boolean recurse = Interpreter.strictJava;
 		Object current = getVariableImpl( name, recurse );
 
-//if ( Interpreter.strictJava )
-//System.err.println("recursing, found: "+current);
-		//Object current = variables.get(name);
-
 		// found a typed variable
 		if ( (current != null) && (current instanceof TypedVariable) )
 		{
-//System.err.println("found typed var: "+current);
 			try {
 				((TypedVariable)current).setValue(value);
 			} catch(EvalError e) {
@@ -164,10 +164,8 @@ public class NameSpace
 				throw new EvalError(
 					"(Strict Java mode) Assignment to undeclared variable: "
 					+name );
-			else {
-//System.err.println("untyped assignment: "+name);
+			else
 				variables.put(name, value);
-			}
     }
 
 	/**
@@ -247,7 +245,7 @@ public class NameSpace
 		Used for serialization
 	*/
 	public void prune() {
-		parent = null;
+		setParent( null );
 
 	/*
 	Do we need this?
@@ -263,6 +261,10 @@ public class NameSpace
 
 	public void setParent( NameSpace parent ) {
 		this.parent = parent;
+
+		// If we are disconnected from root we need to handle the def imports
+		if ( parent == null )
+			loadDefaultImports();
 	}
 
 	/**
@@ -320,7 +322,6 @@ public class NameSpace
 		if ( recurse && (val == null) && (parent != null) )
 			val	= parent.getVariableImpl(name, recurse);
 
-//System.err.println("getVarImpl name: "+name+", val ="+val);
 		return val;
     }
 
@@ -472,22 +473,6 @@ public class NameSpace
 		nameSpaceChanged();
     }
 
-    private String getImportedClass(String name)
-		throws ClassPathException
-    {
-		String s = null;
-
-		// try imported in our space
-		if ( importedClasses != null )
-			s =	(String)importedClasses.get(name);
-
-		// try imported in our parent's space
-		if ((s == null) && (parent != null) )
-			return (String)parent.getImportedClass(name);
-
-		return s;
-    }
-
 	/**
 		subsequent imports override earlier ones
 	*/
@@ -505,137 +490,214 @@ public class NameSpace
 		in the order in which they were imported...
 		Note that the resolver may use them in the reverse order for
 		precedece reasons.
+		@deprecated
 	*/
     public String[] getImportedPackages()
     {
-		Vector v = new Vector();
-		// add parent's
-		if ( parent != null ) {
-			String [] psa = parent.getImportedPackages();
-			for(int i=0; i<psa.length; i++)
-				v.addElement(psa[i]);
-		}
-		// add ours
-		if ( importedPackages != null )
-			for(int i=0; i< importedPackages.size(); i++)
-				v.addElement( importedPackages.elementAt(i) );
-
+		Vector v = getImportedPackages(true);
 		String[] packages = new	String[ v.size() ];
 		v.copyInto(packages);
 		return packages;
     }
 
 	/**
-		Load class through this namespace, taking into account imports.
-
-		Notes: This method does the caching for getClassImpl().
-		The lazy instantiation of cache here parallels that in get()
+		Get a list of all imported packages in the order in which they were 
+		imported...  If recurse is true, also include the parent's.
 	*/
-    public Class getClass(String name)
+    public Vector getImportedPackages( boolean recurse )
+    {
+		if ( !recurse )
+			return importedPackages;
+		else {
+			Vector v = new Vector();
+			// add parent's
+			if ( parent != null ) {
+				String [] psa = parent.getImportedPackages();
+				for(int i=0; i<psa.length; i++)
+					v.addElement(psa[i]);
+			}
+			// add ours
+			if ( importedPackages != null )
+				for(int i=0; i< importedPackages.size(); i++)
+					v.addElement( importedPackages.elementAt(i) );
+
+			return v;
+		}
+    }
+
+// debug
+//public static int cacheCount = 0;
+
+	/**
+		Helper that caches class.
+	*/
+	private void cacheClass( Class c ) {
+		if ( classCache == null ) {
+			classCache = new Hashtable();
+			//cacheCount++; // debug
+		}
+
+		classCache.put(name, c);
+	}
+
+	/**
+		Load a class through this namespace taking into account imports.
+		The class search will proceed through the parent namespaces if
+		necessary.
+
+		@return null if not found.
+	*/
+    public Class getClass( String name)
 		throws ClassPathException
     {
-		Class c	= null;
+		Class c = getClassImpl(name);
+		if ( c != null )
+			return c;
+		else
+			// implement the recursion for getClassImpl()
+			if ( parent != null )
+				return parent.getClass( name );
+			else
+				return null;
+	}
 
-		if(classCache != null)
+	/**
+		Implementation of getClass() 
+
+		Load a class through this namespace taking into account imports.
+		<p>
+
+		Check the cache first.  If an unqualified name look for imported 
+		class or package.  Else try to load absolute name.
+		<p>
+
+		This method implements caching of unqualified names (normally imports).
+		Qualified names are cached by BshClassManager.
+		Unqualified absolute class names (e.g. unpackaged Foo) are cached too
+		so that we don't go searching through the imports for them each time.
+
+		@return null if not found.
+	*/
+    private Class getClassImpl( String name )
+		throws ClassPathException
+    {
+		// Unqualified (simple, non-compound) name
+		boolean unqualifiedName = !Name.isCompound(name);
+		Class c = null;
+
+		// Check the cache
+		if (classCache != null) {
 			c =	(Class)classCache.get(name);
 
-		if(c ==	null) {
-			c =	getClassImpl( name );
+			if ( c != null )
+				return c;
+		}
+			
+		// Unqualified name check imported
+		if ( unqualifiedName ) {
+			c = getImportedClassImpl( name );
 
-			if(c != null) {
-				if(classCache == null)
-					classCache = new Hashtable();
-
-				classCache.put(name, c);
+			// if found as imported also cache it
+			if ( c != null ) {
+				cacheClass( c );
+				return c;
 			}
 		}
 
-		return c;
+		// Try absolute
+		c = classForName( name );
+		if ( c != null ) {
+			// Cache unqualified names to prevent import check again
+			if ( unqualifiedName )
+				cacheClass( c );
+			return c;
+		}
+
+		// Not found
+		Interpreter.debug("getClass(): " + name	+ " not	found in "+this);
+		return null;
     }
 
 	/**
-		Implementation for getClass()
-		If not a compound name look for imported class or package.
-		Else try to load name.
+		Try to make the name into an imported class.
+		This method takes into account only imports (class or package)
+		found directly in this NameSpace (no parent chain).
 	*/
-    private Class getClassImpl( String name)
+    private Class getImportedClassImpl( String name )
 		throws ClassPathException
     {
-		// Simple (non compound name) check if imported
-		if ( !Name.isCompound(name) )
+		// Try explicitly imported class, e.g. import foo.Bar;
+		String fullname = null;
+		if ( importedClasses != null )
+			fullname = (String)importedClasses.get(name);
+
+		if ( fullname != null ) 
 		{
-			String fullname = getImportedClass(name);
-
-			if ( fullname != null ) 
+			/*
+				Found the full name in imported classes.
+			*/
+			// Try to make the full imported name
+			Class clas=classForName(fullname);
+			
+			// Handle imported inner class case
+			if ( clas == null ) 
 			{
-				/*
-					Found the full name in imported classes.
-				*/
-				// Try to make the full imported name
-				Class clas=classForName(fullname);
-				
-				// If the imported name we found is compound, try to resolve
-				// to an inner class.  
-				if ( clas == null ) 
-				{
-					if ( Name.isCompound( fullname ) )
-						try {
-							clas = getNameResolver( fullname ).toClass();
-						} catch ( EvalError e ) { /* not a class */ }
-					else 
-						Interpreter.debug(
-							"imported unpackaged name not found:" +fullname);
-				}
+				// Imported full name wasn't found as an absolute class
+				// If it is compound, try to resolve to an inner class.  
+				// (maybe this should happen BshClassManager?)
 
-				// Found something?  Cache the class and return it.
+				if ( Name.isCompound( fullname ) )
+					try {
+						clas = getNameResolver( fullname ).toClass();
+					} catch ( EvalError e ) { /* not a class */ }
+				else 
+					Interpreter.debug(
+						"imported unpackaged name not found:" +fullname);
+
+				// If found cache the full name in BshClassManager
 				if ( clas != null ) {
 					// (should we cache info in not a class case too?)
 					BshClassManager.cacheClassInfo( fullname, clas );
 					return clas;
 				}
+			} else
+				return clas;
 
-				// It was explicitly imported, but we don't know what it is.
-				// should we throw an error here??
-				return null;  
-			}
+			// It was explicitly imported, but we don't know what it is.
+			// should we throw an error here??
+			return null;  
+		}
 
-			/*
-				Try imported packages (.*)
-				in reverse order of import...
-				(give later imports precedence...)
-			*/
-			String[] packages =	getImportedPackages();
-			//for(int i=0; i<packages.length; i++)
-			for(int i=packages.length-1; i>=0; i--)
+		/*
+			Try imported packages, e.g. "import foo.bar.*;"
+			in reverse order of import...
+			(give later imports precedence...)
+		*/
+		if ( importedPackages != null )
+			for(int i=importedPackages.size()-1; i>=0; i--)
 			{
-				String s = packages[i] + "." + name;
+				String s = ((String)importedPackages.get(i)) + "." + name;
 				Class c=classForName(s);
 				if ( c != null )
 					return c;
 			}
 
-			/*
-				Try super imported if available
-
-				Note: we do this last to allow explicitly imported classes
-				and packages to take priority.  This method will also throw an
-				error indicating ambiguity if it exists...
-			*/
-			if ( superImport ) {
-				BshClassManager bcm = BshClassManager.getClassManager();
-				if ( bcm != null ) {
-					String s = bcm.getClassNameByUnqName( name );
-					if ( s != null )
-						return classForName( s );
-				}
+		/*
+			Try super imported if available
+			Note: we do this last to allow explicitly imported classes
+			and packages to take priority.  This method will also throw an
+			error indicating ambiguity if it exists...
+		*/
+		if ( superImport ) 
+		{
+			BshClassManager bcm = BshClassManager.getClassManager();
+			if ( bcm != null ) {
+				String s = bcm.getClassNameByUnqName( name );
+				if ( s != null )
+					return classForName( s );
 			}
 		}
 
-		Class c = classForName( name );
-		if ( c != null )
-			return c;
-
-		Interpreter.debug("getClass(): " + name	+ " not	found in "+this);
 		return null;
     }
 

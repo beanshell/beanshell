@@ -240,7 +240,9 @@ public abstract class BshClassManager
 	public static void setClassLoader( ClassLoader externalCL ) 
 	{
 		externalClassLoader = externalCL;
-		getClassManager().classLoaderChanged();
+		BshClassManager bcm = getClassManager();
+		if ( bcm != null )
+			bcm.classLoaderChanged();
 	}
 
 	// end static methods

@@ -93,7 +93,7 @@ public class Interpreter
 {
 	/* --- Begin static stuff --- */
 
-	public static final String VERSION = "1.2b2";
+	public static final String VERSION = "1.2b3";
 	/* 
 		Debug utils are static so that they are reachable by code that doesn't
 		necessarily have an interpreter reference (e.g. tracing in utils).
@@ -178,8 +178,9 @@ public class Interpreter
 		else
 			this.globalNameSpace = namespace;
 
+		// now done in NameSpace automatically when root
 		// The classes which are imported by default
-		globalNameSpace.loadDefaultImports();
+		//globalNameSpace.loadDefaultImports();
 
 		/* 
 			Create the root "bsh" system object if it doesn't exist.
@@ -459,6 +460,7 @@ public class Interpreter
 					e.printStackTrace( DEBUG, err );
                 if(!interactive)
                     eof = true;
+				setVariable("$_e", e.getTarget());
             }
             catch (EvalError e)
             {
