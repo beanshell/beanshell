@@ -47,8 +47,11 @@ import java.util.Vector;
 */
 class Reflect {
 
-    /*
-		Invoke method on object, may be static, dynamic, or This
+    /**
+		Invoke method on object.
+		invocation may be static (through the object instance) or dynamic.
+		Object may be This type.
+
 		Note: we could probably remove This handling and prevent it
 		from coming here...
 	*/
@@ -58,23 +61,24 @@ class Reflect {
 		throws ReflectError, InvocationTargetException, EvalError 
 	{
         Interpreter.debug("invoke Method " + methodName + " on object " 
-			+ object.getClass().getName() + " with args (");
+			+ object + " with args (");
 
 		if ( object instanceof This )
 			return ((This)object).invokeMethod( methodName, args, interpreter );
         else
-			return invokeMethod( object.getClass(), object, methodName, args );
+			return invokeMethod( 
+				object.getClass(), object, methodName, args, false );
     }
 
     /** 
-		Invoke static method
+		Invoke a static method.  No object instance is provided.
 	*/
     public static Object invokeStaticMethod(
 		Class clas, String methodName, Object [] args)
         throws ReflectError, InvocationTargetException
     {
         Interpreter.debug("invoke static Method");
-        return invokeMethod(clas, null, methodName, args);
+        return invokeMethod( clas, null, methodName, args, true );
     }
 
     public static Object getIndex(Object array, int index)
@@ -199,23 +203,29 @@ class Reflect {
         }
     }
 
-    /*
-        The full blown invoke method.
-        Everybody should come here.
+    /**
+        The full blown invoke method.  Everybody should come here.
+		The invoked method may be static or dynamic unless onlyStatic is set
+		(in which case object may be null).
+
+		@param onlyStatic 
+			The method located must be static, the object param may be null.
 
 		Note: Method invocation could probably be speeded up if we eliminated
 		the throwing of exceptions in the search for the proper method.
 		We could probably cache our knowledge of method structure as well.
     */
     private static Object invokeMethod(
-		Class clas, Object object, String name, Object[] args)
+		Class clas, Object object, String name, Object[] args,
+		boolean onlyStatic
+	)
         throws ReflectError, InvocationTargetException
     {
-        if(args == null)
+        if (args == null)
             args = new Object[] { };
 
-        // simple sanity check for voids
-        // maybe this should have been caught further up?
+        // Simple sanity check for voids
+        // (maybe this should have been caught further up?)
         for(int i=0; i<args.length; i++)
             if(args[i] == Primitive.VOID)
                 throw new ReflectError("Attempt to pass void argument " +
@@ -227,48 +237,58 @@ class Reflect {
         Class[] types = getTypes(args);
         unwrapPrimitives(args);
 
-        /*  This is structured poorly...  */
         try
         {
-            try
-            {
-				Method m = findAccessibleMethod(clas, name, types);
-                returnValue =  m.invoke(object, args);
-                if(returnValue == null)
-                    returnValue = Primitive.NULL;
-                returnType = m.getReturnType();
-            }
-            catch(ReflectError e)
-            {
-                Interpreter.debug("Exact method " + StringUtil.methodString(name, types) +
-                    " not found in '" + clas.getName() + "'");
-            }
+			// Try the easy case: Look for an accessible version of the 
+			// direct match.
+			Method m = findAccessibleMethod(clas, name, types, onlyStatic);
+			if ( m == null )
+				Interpreter.debug("Exact method " + 
+					StringUtil.methodString(name, types) +
+					" not found in '" + clas.getName() + "'" );
 
-            if ( returnValue == null ) {
+			// Next look for an assignable match
+            if ( m == null ) {
+
+				// If no args stop here
 				if ( types.length == 0 )
-					throw new ReflectError("No args method " + 
-						StringUtil.methodString(name, types) + " not found in class'" + 
-						clas.getName() + "'");
+					throw new ReflectError(
+						"No args "+ ( onlyStatic ? "static " : "" )
+						+"method " + StringUtil.methodString(name, types) + 
+						" not found in class'" + clas.getName() + "'");
 
 				// try to find an assignable method
 				Method[] methods = clas.getMethods();
-				Method m = findMostSpecificMethod(name, types, methods);
+				if ( onlyStatic )
+					// only try the static methods
+					methods = retainStaticMethods( methods );
 
-				if(m == null)
+				m = findMostSpecificMethod(name, types, methods);
+
+				// try to find an extended method
+				methods = clas.getMethods();
+				if ( m == null )
 					m = findExtendedMethod(name, args, methods);
 
-				if (m == null )
-					throw new ReflectError("Method " + 
-						StringUtil.methodString(name, types) + 
-						" not found in class'" + clas.getName() + "'");
-
-				// have the method
-				m = findAccessibleMethod(
-					clas, m.getName(), m.getParameterTypes());
-
-				returnValue = m.invoke(object, args);
-				returnType = m.getReturnType();
+				// If we found an assignable method, make sure it's accessible
+				if ( m != null )
+					m = findAccessibleMethod(
+						clas, m.getName(), m.getParameterTypes(), onlyStatic);
             }
+
+			// Found something?
+			if (m == null )
+				throw new ReflectError(
+					( onlyStatic ? "Static method " : "Method " )
+					+ StringUtil.methodString(name, types) + 
+					" not found in class'" + clas.getName() + "'");
+
+			// Invoke it
+            returnValue =  m.invoke(object, args);
+            if(returnValue == null)
+                returnValue = Primitive.NULL;
+            returnType = m.getReturnType();
+
         } catch(IllegalAccessException e) {
             throw new ReflectError( 
 				"Cannot access method " + StringUtil.methodString(name, types) +
@@ -278,33 +298,55 @@ class Reflect {
         return wrapPrimitive(returnValue, returnType);
     }
 
-	/*
-		Locate a version of the method that is accessible via a public 
-		interface or through a public superclass.
+	/**
+		Return only the static methods
+	*/
+	private static Method [] retainStaticMethods( Method [] methods ) {
+		Vector v = new Vector();
+		for(int i=0; i<methods.length; i++)
+			if ( Modifier.isStatic( methods[i].getModifiers() ) )
+				v.addElement( methods[i] );
+
+		Method [] ma = new Method [ v.size() ];
+		v.copyInto( ma );
+		return ma;
+	}
+
+	/**
+		Locate a version of the method with the exact signature specified 
+		that is accessible via a public interface or through a public 
+		superclass.
 
 		This solves the problem that arises when a package private class
 		or private inner class implements a public interface or derives from
 		a public type.
+
+		@param onlyStatic the method located must be static.
+		@returns null on not found
 	*/
 	static Method findAccessibleMethod( 
-		Class clas, String name, Class [] types ) throws ReflectError 
+		Class clas, String name, Class [] types, boolean onlyStatic ) 
 	{
 		Method meth = null;
 		Vector classQ = new Vector();
 
 		classQ.addElement( clas );
+		Method found = null;
 		while ( classQ.size() > 0 ) {
 			Class c = (Class)classQ.firstElement();
 			classQ.removeElementAt(0);
 
 			// Is this it?
+			// is the class public?
 			if ( Modifier.isPublic( c.getModifiers() ) ) {
 				try {
 					meth = c.getDeclaredMethod( name, types );
-					if ( /*meth != null &&*/
-						Modifier.isPublic( meth.getModifiers() ) )
-						return meth; // Yes, it is.
-				} catch ( Exception e ) { 
+					// is the method public?
+					if ( Modifier.isPublic( meth.getModifiers() ) ) {
+						found = meth; // Yes, it is.
+						break;
+					}
+				} catch ( NoSuchMethodException e ) { 
 					// ignore and move on
 				}
 			}
@@ -322,11 +364,28 @@ class Reflect {
 			for( int i=0; i< intfs.length; i++ )
 				classQ.addElement((Object)intfs[i]);
 		}
+
+		/* 
+			If we found one and it satisfies onlyStatic return it
+			
+			Note: I don't believe it is necessary to check for the static
+			condition in the above search because the Java compiler will not
+			let dynamic and static methods hide/override one another.  So
+			we simply check what is found, if any, at the end.
+		*/
+		if ( found != null &&
+			( !onlyStatic || Modifier.isStatic( found.getModifiers() ) ) )
+			return found;
 		
-		throw new ReflectError( 
-			"Can't find publically accessible version of method: "+
+		// Didn't find one
+		Interpreter.debug(
+			"Can't find publically accessible "+
+			( onlyStatic ? " static " : "" )
+			+" version of method: "+
 			StringUtil.methodString(name, types) +
 			" in interfaces or class hierarchy of class "+clas.getName() );
+
+		return null;
 	}
 
     private static Object wrapPrimitive(
@@ -459,18 +518,21 @@ class Reflect {
         return obj;
     }
 
-    /*
+    /**
         Implement JLS 15.11.2 for method resolution
+		@param onlyStatic  only static methods will be considered.
+		@returns null on no match
     */
     static Method findMostSpecificMethod(
-		String name, Class[] idealMatch, Method[] methods)
+		String name, Class[] idealMatch, Method[] methods )
     {
-
 		// Pull out the method signatures whos name matches
 		Vector sigs = new Vector();
 		Vector meths = new Vector();
 		for(int i=0; i<methods.length; i++)
-			if ( methods[i].getName().equals( name ) ) {
+			// method matches name 
+			if ( methods[i].getName().equals( name )  ) 
+			{
 				meths.addElement( methods[i] );
 				sigs.addElement( methods[i].getParameterTypes() );
 			}
@@ -489,6 +551,8 @@ class Reflect {
 		This uses the NameSpace.checkAssignableFrom() method to determine
 		compatability of args.  This allows special (non standard Java) bsh 
 		widening operations...
+
+		@returns null on not found
 	*/
     static Method findExtendedMethod(
 		String name, Object[] args, Method[] methods)
