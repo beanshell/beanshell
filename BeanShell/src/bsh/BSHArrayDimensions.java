@@ -48,7 +48,6 @@ class BSHArrayDimensions extends SimpleNode
 	/** The Length in each dimension.  This value set by the eval() */
 	// is it ok to cache this here?
 	// it can't change, right?
-    /*transient?why?*/ 
 	public int [] dimensions;  
 
     BSHArrayDimensions(int id) { super(id); }
