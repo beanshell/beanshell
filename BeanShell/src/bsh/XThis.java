@@ -111,8 +111,9 @@ class XThis extends This {
 				namespace.getMethod( method.getName(), sig );
 
 			if ( bmethod != null )
-				return bmethod.invokeDeclaredMethod( 
-					args, declaringInterpreter, callstack );
+				return Primitive.unwrap( 
+					bmethod.invokeDeclaredMethod( 
+					args, declaringInterpreter, callstack ) );
 
 			// Look for the default handler
 			bmethod = namespace.getMethod( "invoke", 
@@ -120,9 +121,10 @@ class XThis extends This {
 
 			// Call script "invoke( String methodName, Object [] args );
 			if ( bmethod != null )
-				return bmethod.invokeDeclaredMethod( 
+				return Primitive.unwrap( 
+					bmethod.invokeDeclaredMethod( 
 					new Object [] { method.getName(), args }, 
-					declaringInterpreter, callstack );
+					declaringInterpreter, callstack ) );
 
 			if ( method.getName().equals("toString" ) )
 				return toStringShowInts( proxy.getClass().getInterfaces());

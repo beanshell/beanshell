@@ -92,7 +92,7 @@ import java.awt.Color;
 public class Interpreter 
 	implements Runnable, ConsoleInterface /*,Serializable*/ 
 {
-	public static final String VERSION = "1.1a12";
+	public static final String VERSION = "1.1a13";
 	/* 
 		Debug utils are static so that they are reachable by code that doesn't
 		necessarily have an interpreter reference (e.g. tracing in utils).
@@ -618,7 +618,7 @@ exception handling.
 				callstack.push( nameSpace );
             }
         }
-		return unwrap( retVal );
+		return Primitive.unwrap( retVal );
     }
 
 	/**
@@ -723,24 +723,6 @@ exception handling.
             debug.println("// Debug: " + s);
     }
 
-	/*
-		unwrap primitive and map voids to nulls
-	*/
-	Object unwrap( Object obj ) {
-		if ( obj == null )
-			return null;
-
-        // map voids to nulls for the outside world
-        if(obj == Primitive.VOID)
-            return null;
-
-        // unwrap primitives
-        if(obj instanceof Primitive)
-            return((Primitive)obj).getValue();
-        else
-            return obj;
-	}
-
 	/* 
 		Primary interpreter set and get variable methods
 		Note: These are squeltching errors... should they?
@@ -752,7 +734,7 @@ exception handling.
 	*/
     public Object get( String name ) throws EvalError {
 		Object ret = globalNameSpace.get( name, this );
-		return unwrap( ret );
+		return Primitive.unwrap( ret );
 	}
 
 	/**
@@ -811,7 +793,7 @@ exception handling.
     public Object getVariable(String name)
     {
         Object obj = globalNameSpace.getVariable(name);
-		return unwrap( obj );
+		return Primitive.unwrap( obj );
     }
 
 	/**
