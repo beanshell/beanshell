@@ -762,4 +762,27 @@ public class Primitive implements ParserConstants, java.io.Serializable
 			return obj.equals( this.value );
 	}
 
+	/**
+		Unwrap primitive values and map voids to nulls.
+		Normal (non Primitive) types remain unchanged.
+		@param obj object type which may be bsh.Primitive
+		@return corresponding "normal" Java type, "unwrapping" 
+			any bsh.Primitive types to their wrapper types.
+	*/
+	public static Object unwrap( Object obj ) {
+		if ( obj == null )
+			return null;
+
+        // map voids to nulls for the outside world
+        if(obj == Primitive.VOID)
+            return null;
+
+        // unwrap primitives
+        if(obj instanceof Primitive)
+            return((Primitive)obj).getValue();
+        else
+            return obj;
+	}
+
+
 }

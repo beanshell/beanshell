@@ -13,13 +13,15 @@
 		- Why does a fileset cause an error if the target directory does not
 		exist...  This seems wrong, the set should be empty.  And we can't 
 		control the order of evaluation by wrapping the fileset in a target
-		because they won't accept them...
+		because they won't accept them... e.g. I can't make a target that sets
+		up the build dir!  It has to be done manually the first time (or put
+		in the jar file). There must be a way to fix this...
 -->
 <project name="beanshell" default="compile" basedir=".">
 
 <!-- Project Configuration -->
 
-	<property name="version" value="1.1a11"/>
+	<property name="version" value="1.1a13"/>
 	<property name="deprecation" value="off"/>
 
 	<!-- choose an alternate compiler -->
@@ -99,8 +101,7 @@
 		</java>
 	</target>
 
-	<target name="compile" depends="jjtree,javacc">
-		<mkdir dir="${build-dir}" />
+	<target name="compile" depends="jjtree,javacc,builddir">
 		<javac srcdir="${src-dir}:${test-src-dir}"
 			destdir="${build-dir}"
 			deprecation="${deprecation}"
@@ -156,6 +157,12 @@
 		<delete quiet="true" file="${util-jar}"/>
 		<delete quiet="true" file="${classpath-jar}"/>
 		<delete quiet="true" file="${commands-jar}"/>
+	</target>
+
+	<!-- This doesn't work!  I can find no way to set up the dir before the
+		filesets error out, short of including them in the jar file  -->
+	<target name="builddir">
+		<mkdir dir="${build-dir}" />
 	</target>
 
 	<fileset id="core-fileset" dir="${build-dir}">
