@@ -3,6 +3,7 @@ package bsh;
 import java.net.*;
 import java.util.*;
 import java.lang.ref.WeakReference;
+import java.io.IOException;
 
 /**
 	Manage all classloading in BeanShell.
@@ -11,6 +12,7 @@ import java.lang.ref.WeakReference;
 	Currently relies on 1.2 for BshClassLoader and weak references.
 	Is there a workaround for weak refs?  If so we could make this work
 	with 1.1 by supplying our own classloader code...
+
 */
 public class BshClassManager
 {
@@ -24,7 +26,17 @@ public class BshClassManager
 	URL [] classpath;
 	Vector listeners = new Vector();
 
+	/**
+Do we need this at all?  why not map all reloaded?
+
+		The loader to use where no mapping of reloaded classes exists.
+		baseLoader is initially null.
+	*/
 	BshClassLoader baseLoader;
+
+	/**
+		Map of loaders to use for reloaded packages and classes
+	*/
 	Map classLoaderMap = new HashMap();
 
 	public Class getClassForName( String name ) {
@@ -67,44 +79,21 @@ public class BshClassManager
 		classLoaderChanged();
 	}
 
+	/**
+		Reloading classes means creating a new classloader and using it
+		whenever we are asked for a class in the appropriate space.
+	*/
+	public void reloadClasses( String path ) {
+		if ( path.endsWith(".*") )  {
+			// validate that it is a package here?
+		} else { 
+			// validate that it is a class here?
+		}
+	}
+
 	public static Class classForName( String name ) {
 		return getClassManager().getClassForName( name );
 	}
-
-/*
-	public Class loadClass(String name, boolean resolve)
-        throws ClassNotFoundException
-    {
-		Class c = null;
-		try {
-			c = super.findClass( name );
-		} catch ( Exception e ) { }
-
-		if ( c == null )
-			return super.loadClass( name, resolve );
-
-		if ( resolve )
-			resolveClass( c );
-
-		return c;
-
-        // First, check if the class has already been loaded
-        Class c = findLoadedClass(name);
-        if (c == null) {
-            try {
-                if (parent != null) {
-                    c = parent.loadClass(name, false);
-                } else {
-                    c = findBootstrapClass0(name);
-                }
-            } catch (ClassNotFoundException e) {
-                // If still not found, then call findClass in order
-                // to find the class.
-                c = findClass(name);
-            }
-        }
-	}
-*/
 
 	static interface Listener {
 		public void classLoaderChanged();
@@ -120,6 +109,9 @@ public class BshClassManager
 	/**
 		Clear global class cache and notify namespaces to clear their 
 		class caches.
+
+		The listener list is implemented with weak references so that we 
+		will not keep every namespace in existence forever.
 	*/
 	void classLoaderChanged() {
     	NameSpace.absoluteNonClasses = new Hashtable();
@@ -136,12 +128,37 @@ public class BshClassManager
 
 	}
 
-	public static String [] splitClassname ( String classname ) {
-		classname=classname.replace('/', '.');
+	/**
+		The user classpath from system property
+			java.class.path
+	*/
+	URL [] getJavaClassPath() 
+		throws IOException
+	{
+		String cp=System.getProperty("java.class.path");
+		String [] paths=StringUtil.split(cp, File.pathSeparator);
+
+		URL [] urls = new URL[ paths.length ];
+		for ( int i=0; i<paths.length; i++)
+			urls[i] = new File( paths[i] ).toURL();
+
+		return urls;
+	}
+
+	public static String canonicalizeClassName( String name ) {
+		String classname=name.replace('/', '.');
 		if ( classname.startsWith("class ") )
 			classname=classname.substring(6);
 		if ( classname.endsWith(".class") )
 			classname=classname.substring(0,classname.length()-6);
+		return classname;
+	}
+
+	/**
+		Split class name into package and name
+	*/
+	public static String [] splitClassname ( String classname ) {
+		classname = canonicalizeClassName( classname );
 
 		int i=classname.lastIndexOf(".");
 		String classn, packn;
@@ -155,5 +172,6 @@ public class BshClassManager
 		}
 		return new String [] { packn, classn };
 	}
+	
 
 }
