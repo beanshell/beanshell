@@ -147,10 +147,12 @@ public class TargetError extends EvalError
 	{
 		String getTarget =
 			"import java.lang.reflect.UndeclaredThrowableException;"+
-			"if ( target instanceof UndeclaredThrowableException )"+
-			"	return target.getUndeclaredThrowable().toString();" +
-			"else return \"\"";
-
+			"result=\"\";"+
+			"while ( target instanceof UndeclaredThrowableException ) {"+
+			"	target=target.getUndeclaredThrowable(); " +
+			"	result+=\"Nested: \"+target.toString();" +
+			"}"+
+			"return result;";
 		Interpreter i = new Interpreter();
 		try {
 			i.set("target", t);

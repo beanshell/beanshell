@@ -109,6 +109,10 @@ class XThis extends This
 	*/
 
 	/**
+		This is the invocation handler for the dynamic proxy.
+		<p>
+
+		Notes:
 		Inner class for the invocation handler seems to shield this unavailable
 		interface from JDK1.2 VM...  
 		
@@ -116,9 +120,22 @@ class XThis extends This
 		classes aren't there (doesn't it?)  This class shouldn't be loaded
 		if an XThis isn't instantiated in NameSpace.java, should it?
 	*/
-	class Handler implements InvocationHandler, java.io.Serializable {
-
+	class Handler implements InvocationHandler, java.io.Serializable 
+	{
 		public Object invoke( Object proxy, Method method, Object[] args ) 
+			throws EvalError 
+		{
+			try { 
+				return invokeImpl( proxy, method, args );
+			} catch ( EvalError ee ) {
+				// Ease debugging...
+				Interpreter.debug( "EvalError in scripted interface: "
+					+ XThis.this.toString() + ": "+ ee );
+				throw ee;
+			}
+		}
+
+		public Object invokeImpl( Object proxy, Method method, Object[] args ) 
 			throws EvalError 
 		{
 			Class [] sig = Reflect.getTypes( args );

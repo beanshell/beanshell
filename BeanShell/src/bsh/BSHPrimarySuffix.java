@@ -156,25 +156,42 @@ class BSHPrimarySuffix extends SimpleNode
 		}
 	}
 
+	/**
+		Just factoring out some common code for the two suffix classes...
+		later need to complete factoring of these classes
+		(BSHPrimarySuffix, BSHLHSPrimarySuffix)
+	*/
+	static int getIndexAux(
+		Object obj, CallStack callstack, Interpreter interpreter, 
+		SimpleNode callerNode ) 
+		throws EvalError
+	{
+		if ( !obj.getClass().isArray() )
+			throw new EvalError("Not an array", callerNode );
+
+		int index;
+		try {
+			Object indexVal = 
+				((SimpleNode)callerNode.jjtGetChild(0)).eval( 
+					callstack, interpreter );
+			if ( !(indexVal instanceof Primitive) )
+				indexVal = NameSpace.getAssignableForm( indexVal, Integer.TYPE);
+			index = ((Primitive)indexVal).intValue();
+		} catch( EvalError e ) {
+			Interpreter.debug("doIndex: "+e);
+			e.reThrow(
+				"You can only index arrays by integer types", callerNode );
+			throw new Error("can't get here");
+		}
+
+		return index;
+	}
+
 	private Object doIndex(
 		Object obj, CallStack callstack, Interpreter interpreter) 
 		throws EvalError, ReflectError
 	{
-		if(!obj.getClass().isArray())
-			throw new EvalError("Not an array", this);
-
-		int index;
-		try
-		{
-			Primitive val = (Primitive)(((SimpleNode)jjtGetChild(0)).eval(
-				callstack, interpreter ));
-			index = val.intValue();
-		}
-		catch(Exception e)
-		{
-			throw new EvalError("You can only index arrays by integer types", this);
-		}
-
+		int index = getIndexAux( obj, callstack, interpreter, this );
 		return Reflect.getIndex(obj, index);
 	}
 

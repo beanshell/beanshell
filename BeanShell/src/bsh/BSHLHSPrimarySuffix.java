@@ -116,23 +116,11 @@ class BSHLHSPrimarySuffix extends SimpleNode
 		Object obj, CallStack callstack, Interpreter interpreter) 
 		throws EvalError, ReflectError
 	{
-		if(!obj.getClass().isArray())
-			throw new EvalError("Not an array", this);
-
-		int index;
-		try
-		{
-			Primitive val = (Primitive)(((SimpleNode)jjtGetChild(0)).eval(
-				callstack, interpreter));
-			index = val.intValue();
-		}
-		catch(Exception e)
-		{
-			throw new EvalError("You can only index arrays by integer types", this);
-		}
-
+		int index = BSHPrimarySuffix.getIndexAux( 
+			obj, callstack, interpreter, this );
 		return new LHS(obj, index);
 	}
+
 	private LHS doProperty(
 		Object obj, CallStack callstack, Interpreter interpreter) 
 		throws EvalError, ReflectError
