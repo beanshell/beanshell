@@ -305,7 +305,7 @@
         on methods and typed variable declarations.  Basic sanity checks are
         done at parse time (e.g. you can't apply volatile to a method, mix
         public/private, etc.)  "final" is implemented for typed variables but
-        other modifiers are currently ignored.  More can be added in time.j
+        other modifiers are currently ignored. 
 
       - The "synchronized" modifier is now implemented for methods and
         synchronized blocks.  Synchronized blocks work as in Java.
@@ -321,6 +321,9 @@
              synchronized( super ) { }  // inside gee() 
           }
 
+	  - The "throws" clause on methods is now supported.  Throws clause names
+		are validated to insure that they are known class types, however they
+		are not enforced beyond that.
 </pre>
 
 <h2>Changes in 1.2b8 </h2>

@@ -51,6 +51,7 @@ class BSHMethodDeclaration extends SimpleNode
 	BSHBlock block;
 	Object returnType; 	// null (none), Primitive.VOID, or a Class
 	Modifiers modifiers;
+	int numThrows = 0;
 
 	BSHMethodDeclaration(int id)
 	{
@@ -75,18 +76,27 @@ class BSHMethodDeclaration extends SimpleNode
 				"Method: " + name + " already defined in scope", this);
 			*/
 
-			if ( jjtGetNumChildren() == 3 )
+			Object firstNode = jjtGetChild(0);
+			int firstThrows = 1;
+			if ( firstNode instanceof BSHReturnType )
 			{
-				returnType = ((BSHReturnType)jjtGetChild(0)).getReturnType( 
+				returnType = ((BSHReturnType)firstNode).getReturnType( 
 					callstack, interpreter );
 				params = (BSHFormalParameters)jjtGetChild(1);
-				block = (BSHBlock)jjtGetChild(2);
+				block = (BSHBlock)jjtGetChild(2+numThrows); // skip throws
+				++firstThrows;
 			}
 			else
 			{
 				params = (BSHFormalParameters)jjtGetChild(0);
-				block = (BSHBlock)jjtGetChild(1);
+				block = (BSHBlock)jjtGetChild(1+numThrows); // skip throws
 			}
+			
+			// validate that the throws names are class names
+			for(int i=firstThrows; i<numThrows+firstThrows; i++)
+				((BSHAmbiguousName)jjtGetChild(i)).toClass( 
+					callstack, interpreter );
+
 			params.eval( callstack, interpreter );
 
 			// if strictJava mode, check for loose parameters and return type

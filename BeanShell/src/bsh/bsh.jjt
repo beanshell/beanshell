@@ -354,6 +354,7 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < SYNCHRONIZED: "synchronized" >
 | < TRANSIENT: "transient" >
 | < THROW: "throw" >
+| < THROWS: "throws" >
 | < TRUE: "true" >
 | < TRY: "try" >
 | < VOID: "void" >
@@ -591,12 +592,15 @@ void MethodDeclaration() #MethodDeclaration :
 { 
 	Token t = null; 
 	Modifiers mods;
+	int count;
 }
 {
 	mods = Modifiers( Modifiers.METHOD, false ) { jjtThis.modifiers = mods; }
     [ LOOKAHEAD( { methodHasReturnType() } ) ReturnType() ]
 	t = <IDENTIFIER> { jjtThis.name = t.image; }
-    FormalParameters() Block()
+    FormalParameters() 
+	[ "throws" count=NameList() { jjtThis.numThrows=count; } ] 
+	Block()
 }
 
 /**
@@ -613,10 +617,10 @@ void MethodDeclarationLookahead() : { }
 {
 	Modifiers( Modifiers.METHOD, true )
   (
-    LOOKAHEAD( { methodHasReturnType() }  )
-    ReturnType() <IDENTIFIER> FormalParameters() "{"
+    LOOKAHEAD( { methodHasReturnType() }  ) ReturnType() 
+	<IDENTIFIER> FormalParameters() [ "throws" NameList() ] "{"
 |
-	<IDENTIFIER> FormalParameters() "{"
+	<IDENTIFIER> FormalParameters() [ "throws" NameList() ] "{"
   )
 }
 
@@ -733,23 +737,27 @@ void PrimitiveType() #PrimitiveType :
 
 void AmbiguousName() #AmbiguousName :
 /*
- * A lookahead of 2 is required below since "Name" can be followed
- * by a ".*" when used in the context of an "ImportDeclaration".
- */
+	A lookahead of 2 is required below since "Name" can be followed by a ".*"
+	when used in the context of an "ImportDeclaration".
+*/
 {
     Token t;
     StringBuffer s;
 }
 {
-  t = <IDENTIFIER> {
-        s = new StringBuffer(t.image);
-    }
-  ( LOOKAHEAD(2) "." t = <IDENTIFIER> {
-        s.append("."+t.image);
-    }
-  )* {
-        jjtThis.text = s.toString();
-    }
+  t = <IDENTIFIER> { 
+  	s = new StringBuffer(t.image); 
+  }
+  ( LOOKAHEAD(2) "." t = <IDENTIFIER> { s.append("."+t.image); } )* { 
+  	jjtThis.text = s.toString(); 
+  }
+}
+
+int NameList() :
+{ int count = 0; }
+{
+  AmbiguousName() { ++count; } ( "," AmbiguousName() { ++count; } )*
+  { return count; }
 }
 
 /*
