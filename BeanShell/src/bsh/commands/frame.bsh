@@ -21,7 +21,7 @@ frame( Component comp ) {
 	}
 
 	// make an external JFrame or Frame
-	if ( bsh.NameSpace.haveSwing() ) {
+	if ( bsh.Capabilities.haveSwing() ) {
 		frame = new javax.swing.JFrame();
 		frame.getContentPane().add( comp, "Center" );
 	} else {

@@ -24,7 +24,7 @@ import java.awt.*;
 import java.lang.reflect.*;
 
 // For string related utils
-import bsh.BshClassManager;
+import bsh.BshClassPath;
 import bsh.StringUtil;
 
 /**
@@ -50,7 +50,7 @@ public class ClassBrowser extends JSplitPane
 	}
 
 	void addClass( String classname ) {
-		String [] sa = BshClassManager.splitClassname( classname );
+		String [] sa = BshClassPath.splitClassname( classname );
 		String packn = sa[0];
 		String classn = sa[1];
 		
@@ -186,7 +186,7 @@ public class ClassBrowser extends JSplitPane
 
 			//String lcPath= paths[i].toLowerCase();
 			//if ( lcPath.endsWith(".jar") || lcPath.endsWith(".zip") )
-			if ( BshClassPath.isArchiveFileName( paths[i] )
+			if ( BshClassPath.isArchiveFileName( paths[i] ) )
 				try {
 					System.out.println("Adding classes: "+paths[i]);
 					addJar( paths[i] );
@@ -307,7 +307,7 @@ public class ClassBrowser extends JSplitPane
 
 	// fully qualified classname
 	public void driveToClass( String classname ) {
-		String [] sa = BshClassManager.splitClassname( classname );
+		String [] sa = BshClassPath.splitClassname( classname );
 		String packn = sa[0];
 		String classn = sa[1];
 

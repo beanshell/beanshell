@@ -7,7 +7,7 @@ import javax.swing.ImageIcon;
 printBanner() {
 
 	if ( bsh.console != void 
-		&& bsh.NameSpace.haveSwing() 
+		&& bsh.Capabilities.haveSwing() 
 		&& (bsh.console instanceof bsh.util.JConsole) ) {
 
 	    jconsole =	bsh.console;
