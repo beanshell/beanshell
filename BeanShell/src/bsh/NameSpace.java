@@ -31,7 +31,8 @@ import java.io.IOException;
 	A bsh.This object is a thin layer over a NameSpace.  Together they 
 	comprise a bsh scripted object context.
 */
-public class NameSpace implements java.io.Serializable
+public class NameSpace 
+	implements java.io.Serializable, BshClassManager.Listener
 {
     private NameSpace parent;
     private Hashtable variables;
@@ -40,11 +41,14 @@ public class NameSpace implements java.io.Serializable
     private Vector importedPackages;
     private This thisReference;
 	public String name; 
+
+	// local class cache
     transient private Hashtable classCache;
 
-    // A cache for things we know are *not* classes... actual value is unused
-    transient static Hashtable absoluteNonClasses = new Hashtable();
+    // Global cache 
     transient static Hashtable absoluteClassCache = new Hashtable();
+    // Global cache for things we know are *not* classes... value is unused
+    transient static Hashtable absoluteNonClasses = new Hashtable();
 
     public NameSpace( String name ) { 
 		this( null, name );
@@ -53,6 +57,8 @@ public class NameSpace implements java.io.Serializable
     public NameSpace( NameSpace parent, String name ) {
 		this.name = name;
 		this.parent = parent;
+		// Register for notification of classloader change
+		BshClassManager.getClassManager().addListener(this);
     }
 
     public void	setVariable(String name, Object	o) throws EvalError {
@@ -279,27 +285,32 @@ public class NameSpace implements java.io.Serializable
 
     public void	importPackage(String name)
     {
-	if(importedPackages == null)
-	    importedPackages = new Vector();
+		if(importedPackages == null)
+			importedPackages = new Vector();
 
-	importedPackages.addElement(name);
+		importedPackages.addElement(name);
     }
 
-    // This may be fucked up....  if you import packages within a namespace
+    // This may be messed up....  if you import packages within a namespace
     // they shadow all inherited ones.
     public String[] getImportedPackages()
     {
-	if(importedPackages == null)
-	    if(parent != null)
-		return parent.getImportedPackages();
-	    else
-		return new String[] { };
+		if(importedPackages == null)
+			if(parent != null)
+			return parent.getImportedPackages();
+			else
+			return new String[] { };
 
-	String[] packages = new	String[importedPackages.size()];
-	importedPackages.copyInto(packages);
-	return packages;
+		String[] packages = new	String[importedPackages.size()];
+		importedPackages.copyInto(packages);
+		return packages;
     }
 
+	/**
+		Load class through this namespace, taking into account imports.
+
+		Note: Do lazy instantiation of class cache.
+	*/
     public Class getClass(String name)
     {
 		Class c	= null;
@@ -309,32 +320,32 @@ public class NameSpace implements java.io.Serializable
 
 		if(c ==	null)
 		{
-			c =	getClass(this, name);
-			if(c != null)
-			{
-			if(classCache == null)
-				classCache = new Hashtable();
+			c =	getClass2( name );
 
-			classCache.put(name, c);
+			if(c != null) {
+				if(classCache == null)
+					classCache = new Hashtable();
+
+				classCache.put(name, c);
 			}
 		}
 
 		return c;
     }
 
-    static Class getAbsoluteClass(String name)
+	/**
+		Helper for getClass();
+	*/
+    private Class getClass2( String name)
     {
-		return getClass(null, name);
-    }
+		NameSpace namespace = this;
 
-    private static Class getClass(NameSpace namespace, String name)
-    {
-		// name	does not contain a . check for imported	names
-		if( (namespace != null) && !Name.isCompound(name) )
+		// Simple (non compound name) check if imported
+		if ( !Name.isCompound(name) )
 		{
 			String fullname = namespace.getImportedClass(name);
 
-			// Was explicitly imported single class name (not a package).
+			// Explicitly imported single class name (not a package).
 			if (fullname != null) {
 				Class c	= (Class)absoluteClassCache.get(fullname);
 				if(c !=	null)
@@ -345,9 +356,7 @@ public class NameSpace implements java.io.Serializable
 				if ( c!= null)
 					return c;
 
-				/* 
-					Try inner class.  
-				*/
+				// Try imported inner class.  
 				try {
 					// use null here for interp... we only care if it resolve
 					// to a class
@@ -376,21 +385,31 @@ public class NameSpace implements java.io.Serializable
 			}
 		}
 
-		// Try whatever
-		// why this construct?
-		if( absoluteNonClasses.get(name) == null) {
-			Class c	=(Class)absoluteClassCache.get(name);
-			if(c !=	null)
-				return c;
-
-			c = classForName(name);
-			if ( c != null )
-				return c;
-		}
-
+		Class c = getAbsoluteClass( name );
+		if ( c != null )
+			return c;
 
 		Interpreter.debug("getClass(): " + name	+ " not	found.");
 		return null;
+    }
+
+	/**
+		See getClass()
+	*/
+    static Class getAbsoluteClass( String name )
+    {
+		Class c = (Class)absoluteClassCache.get(name);
+		if(c !=	null)
+			return c;
+
+		if ( absoluteNonClasses.get(name) != null)
+			return null;
+
+		c = classForName(name);
+		if ( c != null )
+			absoluteClassCache.put( name, c );
+
+		return c;
     }
 
 	/**
@@ -400,6 +419,9 @@ public class NameSpace implements java.io.Serializable
 	*/
 	public static Class classForName( String name ) 
 	{
+
+		return BshClassManager.classForName( name );
+/*
 		if ( absoluteNonClasses.get(name) != null )
 			return null;
 
@@ -415,14 +437,15 @@ public class NameSpace implements java.io.Serializable
 	    } catch ( Exception e ) {
 			absoluteNonClasses.put(name, "unused");
 	    } catch ( NoClassDefFoundError e2 ) {
-			/*
+			/
 				This is weird... jdk under Win is throwing these to
 				warn about lower case / upper case possible mismatch.
 				e.g. bsh.console bsh.Connsole
-			*/
+			/
 			absoluteNonClasses.put(name, "unused");
 		}
 		return null;
+*/
 	}
 
     static class TypedVariable implements java.io.Serializable {
@@ -674,10 +697,6 @@ public class NameSpace implements java.io.Serializable
 		if ( checkedForProxyMech )
 			return haveProxyMech;
 
-		/*
-		haveProxyMech = 
-			Package.getPackage("java.lang").isCompatibleWith("1.3");
-		*/
 		haveProxyMech = classExists( "java.lang.reflect.Proxy" );
 		checkedForProxyMech = true;
 		return haveProxyMech;
@@ -716,6 +735,10 @@ public class NameSpace implements java.io.Serializable
 
 		throw new EvalError( "No locally declared method: " 
 			+ methodName + " in namespace: " + this );
+	}
+
+	public void classLoaderChanged() {
+		classCache = null;
 	}
 }
 
