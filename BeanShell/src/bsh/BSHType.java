@@ -36,29 +36,25 @@ package bsh;
 
 import java.lang.reflect.Array;
 
-class BSHType extends SimpleNode
+class BSHType extends SimpleNode 
+	implements BshClassManager.Listener
 {
     private int arrayDims;
-    //private Class type;
+    private Class type;
 
-    BSHType(int id) { super(id); }
+    BSHType(int id) { 
+		super(id); 
+		BshClassManager.getClassManager().addListener(this);
+	}
 
     public void addArrayDimension() { arrayDims++; }
 
     // Returns a class for the type
     public Class getType(NameSpace namespace) throws EvalError
     {
-/*
-Note: Broken - need to add class loader listener if we're going to cache types
-below is probably broken...  should work through namespace
-*/
         // return cached type if available
-        //if(type != null)
-         //  return type;
-
-		// If we want to cache this as above we have to add a listener for
-		// the BshClassManager to let us know when types may have changed
-    	Class type;
+		if (type != null)
+			return type;
 
         //  first node will either be PrimitiveType or AmbiguousName
         SimpleNode node = (SimpleNode)jjtGetChild(0);
@@ -84,4 +80,8 @@ below is probably broken...  should work through namespace
 
         return type;
     }
+
+	public void classLoaderChanged() {
+		type = null;
+	}
 }

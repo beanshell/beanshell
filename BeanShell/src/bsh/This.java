@@ -69,8 +69,10 @@ public class This implements java.io.Serializable, Runnable {
 		A This object is a thin layer over a namespace, comprising a bsh object
 		context.  We create it here only if needed for the namespace.
 
-		Note: this method is relatively slow because of the way it dynamically
-		factories objects.  So This references are cached in NameSpace.
+		Note: this method could be considered slow because of the way it 
+		dynamically factories objects.  However I've also done tests where 
+		I hard-code the factory to return JThis and see no change in the 
+		rough test suite time.  This references are also cached in NameSpace.  
 	*/
     static This getThis( 
 		NameSpace namespace, Interpreter declaringInterpreter ) 

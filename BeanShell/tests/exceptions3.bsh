@@ -1,5 +1,7 @@
 #!/bin/java bsh.Interpreter
 
+import Exceptions;
+
 source("TestHarness.bsh");
 
 // Catch a checked exception
