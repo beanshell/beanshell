@@ -71,13 +71,6 @@ public class BshClassPath
 		compPaths.add( bcp );
 	}
 
-	/**
-		Get the path components including any component paths.
-	*/
-	public URL [] getPathComponents() {
-		return (URL[])getFullPath().toArray( new URL[0] );
-	}
-
 	public void add( URL [] urls, Interpreter feedback  ) { 
 		path.addAll( Arrays.asList(urls) );
 		if ( mapsInitialized )
@@ -88,6 +81,13 @@ public class BshClassPath
 		path.add(url);
 		if ( mapsInitialized )
 			map( url, feedback );
+	}
+
+	/**
+		Get the path components including any component paths.
+	*/
+	public URL [] getPathComponents() {
+		return (URL[])getFullPath().toArray( new URL[0] );
 	}
 
 	/**
@@ -104,7 +104,6 @@ public class BshClassPath
 
 	/**
 		Return the source of the specified class
-		
 	*/
 	public ClassSource getClassSource( String className ) {
 		insureInitialized( null );
@@ -117,11 +116,10 @@ public class BshClassPath
 
 	/**
 		If the claspath map is not initialized, do it now.
-		Note: this does not initialize any component classpaths.
+		If component maps are not do them as well...
 
 		If interpreter is non-null it will be used to print feedback to
 		the user on the progress of mapping.
-
 		
 		Random note:
 		Should this be "insure" or "ensure".  I know I've seen "ensure" used
@@ -143,17 +141,14 @@ public class BshClassPath
 			loss.
 	*/
 	public void insureInitialized( Interpreter feedback ) {
-		if ( !mapsInitialized ) {
+		for (int i=0; i< compPaths.size(); i++)
+			((BshClassPath)compPaths.get(i)).insureInitialized( feedback );
+
+		if ( !mapsInitialized )
 			map( getPathComponents(), feedback );
-		}
+
 		mapsInitialized = true;
 	}
-
-	/*
-	public boolean isInitialized() {
-		return mapsInitialized;
-	}
-	*/
 
 	/**
 		Get the full path including component paths.
@@ -178,6 +173,22 @@ public class BshClassPath
 		return list;
 	}
 
+	/**
+		Support super import "*";
+	*/
+	public getClassNameByUnqualifiedName( String name ) {
+	}
+
+	void buildUnqualifiedNameTable() {
+		Map map = new HashMap();
+
+		if ( compPaths != null )
+			for (int i=0; i<compPaths.size(); i++) {
+				Map m = ((BshClassPath)compPaths.get(i)).classSource;
+				//Iterator
+			}
+		
+	}
 
 	void map( URL [] urls, Interpreter feedback ) { 
 		for(int i=0; i< urls.length; i++)

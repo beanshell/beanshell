@@ -18,18 +18,24 @@ package bsh;
 class BSHImportDeclaration extends SimpleNode
 {
 	public boolean importPackage;
+	public boolean superImport;
 
 	BSHImportDeclaration(int id) { super(id); }
 
-	// for side effect only
-	public Object eval(NameSpace namespace, Interpreter interpreter)  throws EvalError
+	public Object eval( NameSpace namespace, Interpreter interpreter) 
+		throws EvalError
 	{
-		String name = ((BSHAmbiguousName)jjtGetChild(0)).getName(namespace).value;
+		if ( superImport )
+			
+		else {
+			String name = 
+				((BSHAmbiguousName)jjtGetChild(0)).getName(namespace).value;
 
-		if(importPackage)
-			namespace.importPackage(name);
-		else
-			namespace.importClass(name);
+			if ( importPackage )
+				namespace.importPackage(name);
+			else
+				namespace.importClass(name);
+		}
 
         return Primitive.VOID;
 	}

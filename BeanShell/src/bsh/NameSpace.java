@@ -41,6 +41,7 @@ public class NameSpace
     private Hashtable variables;
     private Hashtable methods;
     private Hashtable importedClasses;
+
     private Vector importedPackages;
     private This thisReference;
 	public String name; 
@@ -324,10 +325,10 @@ public class NameSpace
     {
 		String s = null;
 
-		if(importedClasses != null)
+		if ( importedClasses != null )
 			s =	(String)importedClasses.get(name);
 
-		if((s == null) && (parent != null))
+		if ((s == null) && (parent != null) )
 			return (String)parent.getImportedClass(name);
 
 		return s;
@@ -449,10 +450,16 @@ public class NameSpace
 		return null;
     }
 
-
 	private Class classForName( String name ) 
 	{
 		return BshClassManager.classForName( name );
+	}
+	
+	/**
+		Support "import *;"
+	*/
+	public static void superImport( Interpreter feedback ) {
+		BshClassManager.getClassPath().insureInitialized( interpreter );
 	}
 
     static class TypedVariable implements java.io.Serializable {
