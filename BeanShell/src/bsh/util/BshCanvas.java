@@ -15,6 +15,7 @@
 package bsh.util;
 
 import java.awt.*;
+import javax.swing.*;
 import bsh.*;
 
 /**
@@ -27,7 +28,7 @@ import bsh.*;
 		is useful for simple immediate procedural rendering from scripts...  
 
 */
-public class BshCanvas extends Canvas {
+public class BshCanvas extends JComponent {
 	This ths;
 	Image imageBuffer;
 
@@ -37,7 +38,7 @@ public class BshCanvas extends Canvas {
 		this.ths = ths;
 	}
 
-	public void paint( Graphics g ) {
+	public void paintComponent( Graphics g ) {
 		// copy buffered image
 		if ( imageBuffer != null )
 			g.drawImage(imageBuffer, 0,0, this);
@@ -53,7 +54,7 @@ public class BshCanvas extends Canvas {
 		}
 	}
 
-	/*
+	/**
 		Get a buffered (persistent) image for drawing on this component
 	*/
 	public Graphics getBufferedGraphics() {
@@ -61,5 +62,12 @@ public class BshCanvas extends Canvas {
 		imageBuffer = createImage( dim.width, dim.height );
 		return imageBuffer.getGraphics();
 	}
+
+	public void setBounds( int x, int y, int width, int height ) {
+		setPreferredSize( new Dimension(width, height) );
+		setMinimumSize( new Dimension(width, height) );
+		super.setBounds( x, y, width, height );
+	}
+
 }
 

@@ -736,6 +736,8 @@ public class NameSpace
 		importPackage("java.util");
 		importPackage("java.io");
 		importPackage("java.net");
+		importPackage("java.awt");
+		importPackage("java.awt.event");
 		importPackage("javax.swing");
 		importPackage("javax.swing.event");
 
