@@ -34,13 +34,7 @@
 
 package bsh;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import java.util.Vector;
 import bsh.util.*;
-import bsh.ConsoleInterface;
-
 
 /**
 	Console startup class.
@@ -49,7 +43,7 @@ public class Console  {
 
 	public static void main( String args[] ) {
 
-		if ( !BshClassManager.classExists( "bsh.util.Util" ) )
+		if ( !Capabilities.classExists( "bsh.util.Util" ) )
 			System.out.println("Can't find the BeanShell utilities...");
 
 		if ( Capabilities.haveSwing() ) {

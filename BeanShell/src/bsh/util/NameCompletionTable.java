@@ -39,7 +39,10 @@ import bsh.NameSource;
 
 /**
 	NameCompletionTable is a utility that implements simple name completion for 
-	collections.  This uses a trivial linear search and comparison...  
+	a collection.  This uses a trivial linear search and comparison...  
+	
+	NameCompletionTable can compose children of other NameCompletionTables
+	and NameSources.
 */
 public class NameCompletionTable extends ArrayList
 	implements NameCompletion

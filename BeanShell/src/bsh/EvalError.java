@@ -83,6 +83,7 @@ public class EvalError extends Exception {
 		String trace;
 		if ( hasNode() )
 			trace = " : at Line: "+ node.getLineNumber() 
+				+ " : in file: "+ node.getSourceFile()
 				+ " : "+node.getText();
 		else
 			// users should not see this, in the worst case the interpreter
@@ -108,6 +109,8 @@ public class EvalError extends Exception {
 
 	/**
 		Re-throw the eval error, specifying the node.
+		If a node already exists the node is ignored.
+		@see setNode()
 		<p>
 
 		Unfortunately at the moment java.lang.Exception's message isn't 
@@ -123,6 +126,8 @@ public class EvalError extends Exception {
 	/**
 		Re-throw the eval error, prefixing msg to the message and specifying
 		the node.
+		If a node already exists the addNode is ignored.
+		@see setNode()
 		<p>
 		@param msg may be null for no additional message.
 
@@ -137,11 +142,9 @@ public class EvalError extends Exception {
 		if ( addMsg != null )
 			msg = addMsg +" : " + msg;
 
-		SimpleNode node;
-		if ( addNode != null )
+		SimpleNode node = this.node;
+		if ( node == null && addNode != null )
 			node = addNode;
-		else
-			node = this.node;
 	
 		throw new EvalError( msg, node );
 	}

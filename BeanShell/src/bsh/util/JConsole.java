@@ -306,7 +306,7 @@ public class JConsole extends JScrollPane
 		if ( part.length() < 2 )  // reasonable completion length
 			return;
 
-System.out.println("completing part: "+part);
+		//System.out.println("completing part: "+part);
 
 		// no completion
 		String [] complete = nameCompletion.completeName(part);
