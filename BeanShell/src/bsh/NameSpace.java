@@ -872,7 +872,7 @@ public class NameSpace
 			Primitive?
 			here?
 	*/
-    static Object getAssignableForm(Object rhs, Class lhsType)
+    public static Object getAssignableForm( Object rhs, Class lhsType )
 		throws EvalError
     {
 		Class originalType;

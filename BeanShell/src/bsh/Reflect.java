@@ -103,6 +103,7 @@ class Reflect {
     public static Object getIndex(Object array, int index)
         throws ReflectError, TargetError
     {
+		Interpreter.debug("getIndex: "+array+", index="+index);
         try {
             Object val = Array.get(array, index);
             return wrapPrimitive(val, array.getClass().getComponentType());
