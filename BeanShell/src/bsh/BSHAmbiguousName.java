@@ -40,10 +40,9 @@ class BSHAmbiguousName extends SimpleNode
 
     BSHAmbiguousName(int id) { super(id); }
 	
-	// I'm not sure why this is here any more...
     public Name getName( NameSpace namespace )
     {
-        return new Name(namespace, text);
+        return namespace.getNameResolver( text );
     }
 
     public Object toObject(CallStack callstack, Interpreter interpreter) 

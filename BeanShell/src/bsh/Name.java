@@ -44,15 +44,38 @@ import java.lang.reflect.InvocationTargetException;
 	Name() is a somewhat ambiguous thing in the grammar and so is this.
 	<p>
 	
-	This class holds a possibly ambiguous dot separated name and reference to
-	a namespace in which it allegedly lives.  It provides methods that attempt 
-	to resolve the name to various types of entities: e.g. an Object, a Class, 
-	a localy declared bsh method.
+	This class is a name resolver.  It holds a possibly ambiguous dot 
+	separated name and reference to a namespace in which it allegedly lives.  
+	It provides methods that attempt to resolve the name to various types of 
+	entities: e.g. an Object, a Class, a localy declared bsh method.
 	<p>
 
+	*** implementing ***
+	Name objects are not to be constructed arbitrarily, but are to be 
+	factoried by NameSpace.getNameResolver, which caches them subject to
+	a namespace change.  This means that we can cache information about various
+	types of resolution here.
+*/
+/*
 	<strong>Implementation notes</strong>
 	<pre>
 
+	*** implementing ***
+	Name objects are not to be constructed arbitrarily, but are to be 
+	factoried by NameSpace.getNameResolver, which caches them subject to
+	a namespace change.  This means that we can cache information about various
+	types of resolution here.
+	Note that we cannot simply cache any result, we must be smart about it.
+	For example, the value of a variable may change between calls.  So we could	
+	cache the knowledge that it is a variable, but must re-fetch the value
+	each time.  We could even do cool optimizations such as knowing about
+	'final' variables ;)
+	
+	Questions: how much will this actually buy us?  The simple cases are not
+	expensive here, are they?  How often are long chains of names evaluated?
+	*** implementing ***
+
+	Threads:
 	Thread safety: all of the work methods in this class must be synchronized
 	because they share the internal intermediate evaluation state.
 
@@ -60,12 +83,6 @@ import java.lang.reflect.InvocationTargetException;
 	In some ways Name wants to be a private inner class of NameSpace... 
 	However it is used elsewhere as an absraction for objects which haven't
 	been pinned down yet.  So it is exposed.
-
-	Possibly optimization...  there are probably cases where once a name
-	is evaluated we can cache information and make the next eval very cheap,
-	subject to changes in the namespace...   One way to accompish this might
-	be to cache Name instances in the NameSpace and ask for them through
-	there first...  changes in class namespace could clear them.
 
 	Note on this.caller resolution:
 	Although references like these do work:
@@ -93,8 +110,13 @@ import java.lang.reflect.InvocationTargetException;
 */
 class Name implements java.io.Serializable
 {
+	// These do not change during evaluation
 	public NameSpace namespace;
 	String value = null;
+	
+	// ---------------------------------------------------------
+	// The following instance variables mutate during evaluation and should
+	// be reset by the reset() method where necessary
 
 	// For evaluation
 	private String evalName;		// text left to eval
@@ -115,6 +137,25 @@ class Name implements java.io.Serializable
 	*/
 	private boolean literalCallerReference;
 
+	//  
+	//  End mutable instance variables.
+	// ---------------------------------------------------------
+
+
+	private void reset() {
+		evalName = value;
+		evalBaseObject = null;
+		callstackDepth = 0;
+		literalThisReference=false;
+		literalCallerReference=false;
+	}
+
+	/**
+		This constructor should *not* be used in general. 
+		Use NameSpace getNameResolver() which supports caching.
+		I wish I could make this "friendly" to just that class.
+		@see NameSpace getNameResolver().
+	*/
 	public Name(NameSpace namespace, String s)
 	{
 		this.namespace = namespace;
@@ -594,14 +635,14 @@ class Name implements java.io.Serializable
 		Interpreter interpreter, Object[] args, CallStack callstack)
         throws EvalError, ReflectError, InvocationTargetException
     {
-		Name name = this;
+		//Name name = this;
 
-        if(!Name.isCompound(name.value))
-            return name.invokeLocalMethod(interpreter, args, callstack);
+        if(!Name.isCompound(value))
+            return invokeLocalMethod(interpreter, args, callstack);
 
         // find target object
-        Name targetName = new Name(name.namespace, Name.prefix(name.value));
-        String methodName = Name.suffix(name.value, 1);
+        Name targetName = namespace.getNameResolver( Name.prefix(value));
+        String methodName = Name.suffix(value, 1);
 
         Object obj = targetName.toObject( callstack, interpreter );
 
@@ -812,12 +853,6 @@ class Name implements java.io.Serializable
 		public String toString() {
 			return "Class Identifier: "+clas.getName();
 		}
-	}
-
-	private void reset() {
-		evalName = value;
-		evalBaseObject = null;
-		callstackDepth = 0;
 	}
 }
 

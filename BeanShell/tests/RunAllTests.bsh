@@ -62,8 +62,7 @@ if ( warnings )
 if ( !failed && !warnings )
 	print("All tests passed OK.");
 
-print("Time to run all tests: "+(System.currentTimeMillis() - time)/1000 +
-	" seconds");
+print("Time to run all tests: "+(System.currentTimeMillis() - time) + "ms");
 
 if ( !bsh.interactive )
 	exit();
