@@ -4,7 +4,7 @@
 bsh.help.frame = "usage: frame( Component component )";
  
 import java.awt.*;
-imporg bsh.Capabilities;
+import bsh.Capabilities;
 
 frame( Component comp ) {
 
