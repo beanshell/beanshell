@@ -43,6 +43,10 @@ class Foo
 		// static 'this' is method closure for now
 		assert( this.namespace.getName().equals("smethod") );
 	}
+
+	method2() { 
+		return "foo"; 
+	}
 }
 
 class Bar extends Foo { 
@@ -57,7 +61,10 @@ class Bar extends Foo {
 		smethod();
 		assert( this == barThis );
 		assert( super == fooThis );
+		assert( method2().equals("bar") );
+		assert( super.method2().equals("foo") );
 	}
+	method2() { return "bar"; }
 }
 
 // static
@@ -113,6 +120,9 @@ if ( Interpreter.LOCALSCOPING ) // not sure if we should allow this
 	assert( gee.q == 5 );
 else
 	assert( gee.q == 6 );
+
+assert( bar.method2().equals("bar") );
+assert( gee.method2().equals("bar") );
 
 complete();
 

@@ -1,0 +1,34 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+class Foo {
+	int a=5;
+}
+
+class Bar {
+	int b=5;
+	Bar() {
+		b=6; // change value
+	}
+}
+
+class Gee {
+	int c=5;
+	Gee( int x ) {
+		c=x;
+	}
+}
+
+foo=new Foo();
+assert(foo.a==5);
+
+bar=new Bar();
+assert(bar.b==6);
+
+assert(isEvalError("new Gee()")); // no default const
+gee=new Gee(42);
+assert(gee.c==42);
+
+complete();
+

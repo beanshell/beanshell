@@ -217,11 +217,16 @@
     </Method>
       <Comment>
       <Text><![CDATA[
-	Start the BeanShell GUI desktop.
+ * Start the BeanShell GUI desktop in a JFrame.  A starter workspace is created
+ * and added to the desktop.
+ *
+ * @method void desktop()
+ *
+ * @author Pat Niemeyer
+ * @author Daniel Leuck
+ 
 ]]></Text>
       <Tags>
-      <method>void desktop()
-</method>
       </Tags>
       </Comment>
   </File>
@@ -453,6 +458,25 @@
 </method>
       </Tags>
       </Comment>
+  </File>
+  <File>
+    <Name>fontMenu</Name>
+    <Method>
+      <Name>fontMenu</Name>
+      <Sig>fontMenu ( component ) </Sig>
+      <Comment>
+      <Text><![CDATA[
+ * Creates a font menu for use with the workspace and workspace editors
+ *
+ * @return a font menu
+ *
+ * @author Daniel Leuck
+ 
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+    </Method>
   </File>
   <File>
     <Name>frame</Name>
@@ -690,8 +714,14 @@
     </Method>
       <Comment>
       <Text><![CDATA[
-	Open a new workspace (JConsole) in the GUI desktop.
-
+ * Creates a JConsole in a JInternalFrame and adds it to the desktop 
+ *
+ * @return this (the workspace scripted object for allowing access to the 
+ *          frame, interpreter, etc.)
+ *
+ * @author Pat Niemeyer
+ * @author Daniel Leuck (bug fixes)
+ 
 ]]></Text>
       <Tags>
       </Tags>
@@ -978,7 +1008,11 @@
     <Name>setFont</Name>
     <Method>
       <Name>setFont</Name>
-      <Sig>Font setFont ( Component comp , int ptsize ) </Sig>
+      <Sig>Font setFont ( Component comp , String family , int style , int size ) </Sig>
+    </Method>
+    <Method>
+      <Name>setFont</Name>
+      <Sig>Font setFont ( Component comp , int size ) </Sig>
     </Method>
       <Comment>
       <Text><![CDATA[
@@ -1200,6 +1234,32 @@
       </Comment>
   </File>
   <File>
+    <Name>thinBorder</Name>
+    <Method>
+      <Name>thinBorder</Name>
+      <Sig>public thinBorder ( ) </Sig>
+    </Method>
+    <Method>
+      <Name>thinBorder</Name>
+      <Sig>public thinBorder ( Color lightColor , Color darkColor ) </Sig>
+    </Method>
+    <Method>
+      <Name>thinBorder</Name>
+      <Sig>public thinBorder ( Color lightColor , Color darkColor , boolean rollOver ) </Sig>
+    </Method>
+      <Comment>
+      <Text><![CDATA[ 
+ * A one pixel wide bevel border.  This border works for buttons (with optional
+ * rollover) and other components
+ *
+ * @author Daniel Leuck
+ 
+]]></Text>
+      <Tags>
+      </Tags>
+      </Comment>
+  </File>
+  <File>
     <Name>unset</Name>
     <Method>
       <Name>unset</Name>
@@ -1261,11 +1321,16 @@
     </Method>
       <Comment>
       <Text><![CDATA[
-	Make a new workspaceEditor in the GUI.
+ * Make a new workspaceEditor associated with a workspace and place it on the
+ * desktop.
+ *
+ * @method workspaceEditor( bsh.Interpreter parent, String name )
+ *
+ * @author Pat Niemeyer
+ * @author Daniel Leuck
+ 
 ]]></Text>
       <Tags>
-      <method>workspaceEditor( bsh.Interpreter parent, String name )
-</method>
       </Tags>
       </Comment>
   </File>

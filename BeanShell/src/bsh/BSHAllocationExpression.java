@@ -123,28 +123,36 @@ class BSHAllocationExpression extends SimpleNode
 		BshMethod defaultConstructor = null;
 		try {
 			defaultConstructor = 
-				classNameSpace.getMethod( className, new Class[0] );
+				classNameSpace.getMethod( 
+					BSHClassDeclaration.DEFCONSNAME, new Class[0] );
 		} catch ( UtilEvalError e ) { // shouldn't happen
 			throw e.toEvalError(
 				"Error getting default constructor", this, callstack );
 		}
+		if ( defaultConstructor == null )
+			throw new EvalError("Unable to find initializer for class.",
+				this, callstack);
 
-		// Get the non-default constructor, if args
+		// Get the (non-initializer) constructor, if any
+		Class [] sig = Reflect.getTypes( args );
 		BshMethod constructor = null;
-		if ( args.length > 0 ) 
+		try {
+			constructor = 
+				classNameSpace.getMethod( className, sig );
+		} catch ( UtilEvalError e ) { // shouldn't happen
+			throw e.toEvalError(
+				"Error getting constructor", this, callstack );
+		}
+		// No constructor found, if there are constructors it an error
+		// e.g. they called no args, but args exists
+		if ( constructor == null )
 		{
-			Class [] sig = Reflect.getTypes( args );
-			try {
-				constructor = 
-					classNameSpace.getMethod( className, sig );
-			} catch ( UtilEvalError e ) { // shouldn't happen
-				throw e.toEvalError(
-					"Error getting constructor", this, callstack );
-			}
-			if ( constructor == null )
-				throw new EvalError("Constructor not found: "+
-					StringUtil.methodString( className, sig ), 
-					this, callstack );
+			BshMethod [] methods = classNameSpace.getMethods();
+			for(int i=0; i<methods.length; i++)
+				if ( methods[i].getName().equals( className ) )
+					throw new EvalError("Constructor not found: "+
+						StringUtil.methodString( className, sig ), 
+						this, callstack );
 		}
 
 		// Invoke the constructors
@@ -171,16 +179,15 @@ class BSHAllocationExpression extends SimpleNode
 
 		callstack.push( instanceNameSpace );
 
-		if ( defaultConstructor != null )
-		{
-			try {
-				defaultConstructor.invoke( 
-					new Object[0], interpreter, callstack, this, 
-					true/*overrideNameSpace*/ );
-			} catch ( EvalError e ) {
-				e.reThrow("Exception in default constructor: "+e);
-			}
+		// Invoke the default constructor (class initializer)
+		try {
+			defaultConstructor.invoke( 
+				new Object[0], interpreter, callstack, this, 
+				true/*overrideNameSpace*/ );
+		} catch ( EvalError e ) {
+			e.reThrow("Exception in default constructor: "+e);
 		}
+
 		// Call the specific constructor if any
 		if ( constructor != null )
 		{
