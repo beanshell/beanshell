@@ -36,7 +36,7 @@ package bsh;
 
 class BSHTypedVariableDeclaration extends SimpleNode
 {
-    public boolean isFinal;
+	public Modifiers modifiers;
 	
     BSHTypedVariableDeclaration(int id) { super(id); }
 
@@ -87,7 +87,10 @@ class BSHTypedVariableDeclaration extends SimpleNode
 				}
 
 				try {
-					namespace.setTypedVariable( dec.name, type, value, isFinal);
+					boolean isFinal = 
+						modifiers != null && modifiers.hasModifier("final");
+					namespace.setTypedVariable( 
+						dec.name, type, value, isFinal );
 				} catch ( UtilEvalError e ) { 
 					throw e.toEvalError( this, callstack ); 
 				}

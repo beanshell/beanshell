@@ -551,7 +551,7 @@ class Name implements java.io.Serializable
 		reset();
 
 		// "var" means untyped, return null class
-		if ( evalName.equals("var") && !Interpreter.LOCALSCOPING )
+		if ( evalName.equals("var") /*&& !Interpreter.LOCAL SCOPING*/ )
 			return asClass = null;
 
 		/* Try straightforward class name first */
