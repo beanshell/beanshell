@@ -74,7 +74,7 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants
 				eachNameSpace.setTypedVariable(
 					varName, elementType, iterator.next(), false );
 			else
-				eachNameSpace.setVariable( varName, iterator.next() );
+				eachNameSpace.setVariable( varName, iterator.next(), false );
 			} catch ( UtilEvalError e ) {
 				throw e.toEvalError(
 					"for loop iterator variable:"+ varName, this, callstack );

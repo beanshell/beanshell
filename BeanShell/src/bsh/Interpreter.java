@@ -93,7 +93,7 @@ public class Interpreter
 {
 	/* --- Begin static members --- */
 
-	public static final String VERSION = "1.3a3";
+	public static final String VERSION = "1.3a4";
 	/* 
 		Debug utils are static so that they are reachable by code that doesn't
 		necessarily have an interpreter reference (e.g. tracing in utils).
@@ -580,7 +580,8 @@ public class Interpreter
 	*/
 
     public Object eval( 
-		Reader in, NameSpace nameSpace, String sourceFileInfo ) 
+		Reader in, NameSpace nameSpace, String sourceFileInfo
+			/*, CallStack callstack */ ) 
 		throws EvalError 
 	{
 		Object retVal = null;
@@ -679,6 +680,15 @@ public class Interpreter
 		return Primitive.unwrap( retVal );
     }
 
+/*
+    public Object eval( 
+		Reader in, NameSpace nameSpace, String sourceFileInfo ) 
+		throws EvalError 
+	{
+		return eval( in, nameSpace, sourceFileInfo, null );
+	}
+*/
+
 	/**
 		Evaluate the inputstream in this interpreter's global namespace.
 	*/
@@ -699,7 +709,8 @@ public class Interpreter
 		Evaluate the string in the specified namespace.
 	*/
     public Object eval( String statement, NameSpace nameSpace ) 
-		throws EvalError {
+		throws EvalError 
+	{
 
 		String s = ( statement.endsWith(";") ? statement : statement+";" );
         return eval( 
@@ -869,6 +880,7 @@ public class Interpreter
     public void unset( String name ) 
 		throws EvalError 
 	{
+	/*
 		CallStack callstack = new CallStack();
 		LHS lhs;
 		try {
@@ -885,6 +897,8 @@ public class Interpreter
 			throw new EvalError( e.getMessage(), 
 				SimpleNode.JAVACODE, new CallStack() );
 		}
+	*/
+		globalNameSpace.unsetVariable( name );
 	}
 
 	// end primary set and get methods
