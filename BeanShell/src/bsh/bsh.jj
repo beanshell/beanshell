@@ -26,7 +26,6 @@ import java.io.*;
 
 /*  Daniel Leuck: Added stuff to support JConsole Color and images */
 import java.awt.Color;
-import javax.swing.ImageIcon;
 import bsh.util.JConsole;
 
 /**
@@ -876,11 +875,14 @@ boolean Line() :
 {}
 {
   (
-  // Note: I don't know what I'm really doing with this lookahead here
-  // The compiler suggested it...
-  LOOKAHEAD(3) BlockStatement()
-| ImportDeclaration()
-| Expression() ";"
+   LOOKAHEAD( 3 )
+   /* 
+      The order here is important: Expression must be first.
+      else it will match on a minimal expression in...
+   */
+   Expression() ";"
+|  BlockStatement()
+|  ImportDeclaration()
   )  { 
 		return false; 
 	}
@@ -892,10 +894,6 @@ boolean Line() :
 /*****************************************
  * THE JAVA LANGUAGE GRAMMAR STARTS HERE *
  *****************************************/
-
-/*
- * Program structuring syntax follows.
- */
 
 void MethodDeclaration()                    :
 {/*@bgen(jjtree) MethodDeclaration */
