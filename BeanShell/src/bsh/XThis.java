@@ -78,28 +78,37 @@ class XThis extends This
 	/**
 		Get dynamic proxy for interface, caching those it creates.
 	*/
-	public Object getInterface( Class clas ) {
-		if ( interfaces == null )
-			interfaces = new Hashtable();
-
-		Object interf = interfaces.get( clas );
-		if ( interf == null ) {
-			interf = Proxy.newProxyInstance( clas.getClassLoader(), 
-				new Class[] { clas }, invocationHandler );
-			interfaces.put( clas, interf );
-		}
-		return interf;
+	public Object getInterface( Class clas ) 
+	{
+		return getInterface( new Class[] { clas } );
 	}
 
 	/**
-		Get a proxy interface for the specified XThis reference.
-		This is a static utility method because the interpreter doesn't 
-		currently allow access to direct methods of This objects.
-		
-	public static Object getInterface( XThis ths, Class interf ) { 
-		return ths.getInterface( interf ); 
-	}
+		Get dynamic proxy for interface, caching those it creates.
 	*/
+	public Object getInterface( Class [] ca ) 
+	{
+		if ( interfaces == null )
+			interfaces = new Hashtable();
+
+		// Make a hash of the interface hashcodes in order to cache them
+		int hash = 21;
+		for(int i=0; i<ca.length; i++)
+			hash *= ca[i].hashCode() + 3;
+		Object hashKey = new Integer(hash);
+
+		Object interf = interfaces.get( hashKey );
+
+		if ( interf == null ) 
+		{
+			ClassLoader classLoader = ca[0].getClassLoader(); // ?
+			interf = Proxy.newProxyInstance( 
+				classLoader, ca, invocationHandler );
+			interfaces.put( hashKey, interf );
+		}
+
+		return interf;
+	}
 
 	/**
 		This is the invocation handler for the dynamic proxy.

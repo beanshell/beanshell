@@ -35,13 +35,19 @@
 			void method() { }
 			static void anotherMethod() { }
 		}
+		class Bar extends Foo { }
 		foo = new Foo(42);
 
 	  Current Limitations:
-	  	1) extends and implement clauses are currently ignored
-		2) Scripted class types may only be used with new keyword and not yet
-		as general types.
-		
+	  	0) Scripted classes may only extend other scripted classes
+	  	1) implement clauses are currently ignored
+		2) All Scripted classes appear as type bsh.This - they are effectively
+		   the same type of object.  So, for example, the instanceof operator 
+		   does not properly distinguish between scripted class types.
+		3) Casts do not affect shadowed field visibility. e.g.
+		   ((Foo)bar).field will see field in the type Bar, not Foo (assuming
+		   it's in both).  However super.field references do work as in Java.
+		   
 	  Loose variables and methods are allowed in classes.
 
 	  	class Bar {
@@ -64,6 +70,9 @@
 				}
 			}
 	  	}
+
+	- BeanShell 'this' type references can now implement more than one
+	  interface.  Use getInterface( Class[] ).
 
 </pre>
 

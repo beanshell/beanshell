@@ -28,8 +28,8 @@
 
 	<!-- choose an alternate compiler -->
 	<!-- 
-		<property name="build.compiler" value="jikes"/> 
-		<property name="build.compiler" value="classic"/> 
+		<property name="build-compiler" value="modern"/> 
+		<property name="build-compiler" value="jikes"/> 
 	-->
 
 	<property name="src-dir" value="src" />
@@ -148,11 +148,12 @@
 
 	<target name="compile" depends="jjtree,javacc,builddir">
 		<!-- exclude the ${excludes} as well as anything under a "bak" dir -->
+			<!--compiler="${build-compiler}"-->
 		<javac srcdir="${src-dir}:${test-src-dir}:${bsf-src-dir}"
 			destdir="${build-dir}"
 			deprecation="${deprecation}"
 			optimize="on"
-			debug="on"
+			debug="off"
 			includes="**/*.java"
 			excludes="${excludes},**/bak/**"
 		>

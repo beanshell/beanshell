@@ -70,6 +70,20 @@ if ( Capabilities.canGenerateInterfaces() ) {
 	Object getNull() { return null; }
 	consumer.consumeInterface(this);
 
+	// validate that proxy objec caching is happening
+	assert( this == this );
+	this1 = (Interface)this;
+	this2 = (Interface)this;
+	assert( this1 == this2 );
+	this1 = this.getInterface( Interface.class );
+	this2 = this.getInterface( Interface.class );
+	assert( this1 == this2 );
+	this1 = this.getInterface( 
+		new Class[] { Interface.class, java.util.EventListener.class } );
+	this2 = this.getInterface( 
+		new Class[] { Interface.class, java.util.EventListener.class } );
+	assert( this1 == this2 );
+
 } else
 	warning("No proxy mechanism to test!");
 

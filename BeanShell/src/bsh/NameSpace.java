@@ -73,6 +73,11 @@ public class NameSpace
 	// Begin instance data
 	// Note: if we add something here we should reset it in the clear() method.
 
+	/**
+		The name of this namespace.  If the namespace is a method body
+		namespace then this is the name of the method.  If it's a class or
+		class instance then it's the name of the class.
+	*/
 	public String nsName; 
     private NameSpace parent;
     private Hashtable variables;
@@ -98,18 +103,13 @@ public class NameSpace
 	*/
 	boolean isMethod;
 	/**
-		Note that the namespace is a class body namespace.
+		Note that the namespace is a class body or instance namespace.
 		This is used to affect the behavior of static and 'this' references 
-		in classes.
-
-		This needs to be factored out into a subclass of NameSpace
-	*/
-	/*
-		isClass and isStatic - a class definition
-		isClass and !isStatic - a class instance
+		in classes.  This should probably be factored out into a subclass of
+		NameSpace
 	*/
 	boolean isClass;
-	boolean isStatic;
+	boolean isClassInstance;
 
 	/**
 		Local class cache for classes resolved through this namespace using 
@@ -216,8 +216,8 @@ public class NameSpace
 	{
 		// if localscoping switch follow strictJava, else recurse
 		boolean recurse = Interpreter.LOCALSCOPING ? strictJava : true;
-		// class is top scope for loose vars
-		if ( isClass ) 
+		// class instance is top scope for loose vars
+		if ( isClassInstance ) 
 			recurse = false;
 		setVariable( name, value, strictJava, recurse );
 	}
@@ -378,6 +378,11 @@ public class NameSpace
 		return parent;
 	}
 
+	/**
+		Get the parent namespace or this namespace if we are the top.
+		Note: this method should probably return type bsh.This to be consistent
+		with getThis();
+	*/
     public NameSpace getSuper()
     {
 		if (parent != null)
@@ -386,6 +391,11 @@ public class NameSpace
 			return this;
     }
 
+	/**
+		Get the top level namespace or this namespace if we are the top.
+		Note: this method should probably return type bsh.This to be consistent
+		with getThis();
+	*/
     public NameSpace getGlobal()
     {
 		if ( parent != null )
@@ -523,16 +533,16 @@ public class NameSpace
 		if ( variables != null )
 			var	= (Variable)variables.get(name);
 
-		// If we are a static class space being asked for an instance variable 
-		// throw an exception.
-		if ( isClass && isStatic && var != null && !var.hasModifier("static") )
+		// If we are a class declaration space being asked for an instance
+		// variable throw an exception.
+		if ( isClass && var != null && !var.hasModifier("static") )
 			throw new UtilEvalError(
 				"Can't reach instance var: "+name
 					+" from static context: "+this);
 
 		// If we are a class instance ignore any static variables and allow
 		// them to be found in the static class space.
-		if ( isClass && !isStatic && var != null && var.hasModifier("static") )
+		if ( isClassInstance && var != null && var.hasModifier("static") )
 			var = null;
 
 		// try parent
@@ -581,11 +591,18 @@ public class NameSpace
 		@see bsh.Primitive
 
 		@param value If value is null, you'll get the default value for the type
+		@param modifiers may be null
     */
     public void	setTypedVariable(
 		String	name, Class type, Object value,	Modifiers modifiers )
 		throws UtilEvalError 
 	{
+		if ( !isClass && !isClassInstance 
+			&& modifiers!=null && modifiers.hasModifier("static") 
+		)
+			throw new UtilEvalError(
+				"Can't declare static variable outside of class: "+name );
+
 		if ( variables == null )
 			variables =	new Hashtable();
 
@@ -631,9 +648,14 @@ public class NameSpace
 		@see Interpreter#source( String )
 		@see Interpreter#eval( String )
 	*/
-    public void	setMethod(String name, BshMethod method) 
+    public void	setMethod( String name, BshMethod method )
+		throws UtilEvalError
 	{
-		if(methods == null)
+		if ( !isClass && !isClassInstance && method.hasModifier("static") )
+			throw new UtilEvalError(
+				"Can't declare static method outside of class: "+name );
+
+		if ( methods == null )
 			methods = new Hashtable();
 
 		Object m = methods.get(name);
@@ -692,12 +714,12 @@ public class NameSpace
 				method = ma[match];
 		}
 
-		// Limit static. If we are a static space being asked for an instance
-		// var throw an exception.
-		if ( isClass && isStatic && method != null && 
+		// Limit static. If we are a class def space being asked for an instance
+		// method throw an exception.
+		if ( isClass && method != null && 
 			!method.hasModifier("static") 
 			// Hack! Allow us to see constructors
-			&& (!isClass || !nsName.equals(name) )
+			&& !nsName.equals(name)
 		)
 			throw new UtilEvalError(
 				"Can't reach instance method: "+name
@@ -705,7 +727,7 @@ public class NameSpace
 
 		// If we are a class instance ignore any static methods and allow
 		// them to be found in the static class space.
-		if ( isClass && !isStatic && method != null 
+		if ( isClassInstance && method != null 
 			&& method.hasModifier("static") 
 		)
 			method  = null;
@@ -964,8 +986,14 @@ public class NameSpace
 		boolean unqualifiedName = !Name.isCompound(name);
 
 		// Unqualified name check imported
-		if ( unqualifiedName ) {
-			c = getImportedClassImpl( name );
+		if ( unqualifiedName ) 
+		{
+			// Temporary workaround for scripted classes
+			c = getScriptedClass( name );
+
+			// Try imported class
+			if ( c == null )
+				c = getImportedClassImpl( name );
 
 			// if found as imported also cache it
 			if ( c != null ) {
@@ -988,6 +1016,19 @@ public class NameSpace
 			Interpreter.debug("getClass(): " + name	+ " not	found in "+this);
 		return null;
     }
+
+	/**
+		Temporary workaround for scripted classes.  Return bsh.This class.
+	*/
+	private Class getScriptedClass( String name ) 
+		throws UtilEvalError // probably shouldn't
+	{
+		Object obj = getVariable( name, true/*recurse*/ );
+		if ( obj instanceof This && ((This)obj).getNameSpace().isClass )
+			return This.class;
+
+		return null;
+	}
 
 	/**
 		Try to make the name into an imported class.
@@ -1347,7 +1388,7 @@ public class NameSpace
 		return
 			"NameSpace: " 
 			+(isClass?"Scripted Class ":"") 
-			+(isClass&&!isStatic?"Instance ":"") 
+			+(isClassInstance?"Scripted Class Instance ":"") 
 			+ ( nsName==null
 				? super.toString()
 				: nsName + " (" + super.toString() +")" );
@@ -1479,11 +1520,6 @@ public class NameSpace
 		Name name = (Name)names.get( ambigname );
 
 		if ( name == null ) {
-/*
-System.out.println(
-"getnameResolver: new name for "+ambigname+" in namespace: "
-+System.identityHashCode(this) );
-*/
 			name = new Name( this, ambigname );
 			names.put( ambigname, name );
 		} 

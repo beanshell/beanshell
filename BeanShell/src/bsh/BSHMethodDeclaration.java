@@ -77,7 +77,11 @@ class BSHMethodDeclaration extends SimpleNode
 
 		NameSpace namespace = callstack.top();
 		BshMethod bshMethod = new BshMethod( this, namespace, modifiers );
-		namespace.setMethod( name, bshMethod );
+		try {
+			namespace.setMethod( name, bshMethod );
+		} catch ( UtilEvalError e ) {
+			throw e.toEvalError(this,callstack);
+		}
 
 		return Primitive.VOID;
 	}
