@@ -40,12 +40,13 @@ class BSHReturnType extends SimpleNode
 
 	BSHReturnType(int id) { super(id); }
 
-	public Object getReturnType( NameSpace namespace ) throws EvalError
+	public Object getReturnType( 
+		CallStack callstack, Interpreter interpreter ) throws EvalError
 	{
 		if(isVoid)
 			return Primitive.VOID;
 		else
-			return ((BSHType)jjtGetChild(0)).getType( namespace );
+			return ((BSHType)jjtGetChild(0)).getType( callstack, interpreter );
 	}
 }
 

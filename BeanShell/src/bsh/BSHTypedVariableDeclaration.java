@@ -51,7 +51,7 @@ class BSHTypedVariableDeclaration extends SimpleNode
 		try {
 			NameSpace namespace = callstack.top();
 			BSHType typeNode = ((BSHType)jjtGetChild(0));
-			Class type = typeNode.getType( namespace );
+			Class type = typeNode.getType( callstack, interpreter );
 
 			int n = jjtGetNumChildren();
 			for (int i = 1; i < n; i++)
@@ -75,15 +75,24 @@ class BSHTypedVariableDeclaration extends SimpleNode
 				else
 				// allow specific numeric conversions on declaration
 				if ( canCastToDeclaredType( value, type ) )
-					value = BSHCastExpression.castObject( value, type );
+					try {
+						value = BSHCastExpression.castObject( value, type );
+					} catch ( UtilEvalError e ) { 
+						throw e.toEvalError( this, callstack  ); 
+					}
 				else {
 					// leave value alone
 				}
 
-				namespace.setTypedVariable( dec.name, type, value, isFinal );
+				try {
+					namespace.setTypedVariable( dec.name, type, value, isFinal);
+				} catch ( UtilEvalError e ) { 
+					throw e.toEvalError( this, callstack ); 
+				}
+			
 			}
 		} catch ( EvalError e ) {
-			e.reThrow( "Typed variable declaration", this );
+			e.reThrow( "Typed variable declaration" );
 		}
 
         return Primitive.VOID;

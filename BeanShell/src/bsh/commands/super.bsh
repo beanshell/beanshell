@@ -1,22 +1,22 @@
 /**
-	Returns a bsh This reference to the enclosing scope 
+	Return a BeanShell 'this' reference to the enclosing scope 
 	(method scope) of the specified name.
 	e.g. 
 	<p>
-	<pre>
-		foo() {
-			x=1;
-			bar() {
-				x=2;
-				gee() {
-					x=3;
-					print( x ); // 3
-					print( super.x ); // 2
-					print( super("foo").x ); // 1
-				}
-			}
-		}
-	</pre>
+    <pre>
+    foo() {
+        x=1;
+        bar() {
+            x=2;
+            gee() {
+                x=3;
+                print( x ); // 3
+                print( super.x ); // 2
+                print( super("foo").x ); // 1
+            }
+        }
+    }
+    </pre>
 	<p>
 
 	This is an experimental command that is not intended to be of general use.

@@ -146,7 +146,7 @@ public class Primitive implements ParserConstants, java.io.Serializable
 /*
     public static Primitive binaryOperation(
 		Primitive p1, Primitive p2, int kind )
-        throws EvalError
+        throws UtilEvalError
     {
 		return new Primitive( binaryOperation( p1, p2, kind ) );
     }
@@ -158,14 +158,14 @@ public class Primitive implements ParserConstants, java.io.Serializable
 	*/
     public static Object binaryOperation(
 		Object obj1, Object obj2, int kind)
-        throws EvalError
+        throws UtilEvalError
     {
 		// special primitive types
         if(obj1 == NULL || obj2 == NULL)
-            throw new EvalError(
+            throw new UtilEvalError(
 				"Null value or 'null' literal in binary operation");
         if(obj1 == VOID || obj2 == VOID)
-            throw new EvalError(
+            throw new UtilEvalError(
 			"Undefined variable, class, or 'void' literal in binary operation");
 
 		// keep track of the original types
@@ -183,14 +183,14 @@ public class Primitive implements ParserConstants, java.io.Serializable
         Object rhs = operands[1];
 
         if(lhs.getClass() != rhs.getClass())
-            throw new EvalError("type mismatch in operator.  " 
+            throw new UtilEvalError("Type mismatch in operator.  " 
 			+ lhs.getClass() + " cannot be used with " + rhs.getClass() );
 
 		Object result;
 		try {
 			result = binaryOperationImpl( lhs, rhs, kind );
 		} catch ( ArithmeticException e ) {
-			throw new TargetError("Arithemetic Exception in binary op", e);
+			throw new UtilTargetError( "Arithemetic Exception in binary op", e );
 		}
 
 		// If both original args were Primitives return a Primitive result
@@ -202,7 +202,7 @@ public class Primitive implements ParserConstants, java.io.Serializable
     }
 
     static Object binaryOperationImpl( Object lhs, Object rhs, int kind )
-        throws EvalError
+        throws UtilEvalError
 	{
         if(lhs instanceof Boolean)
             return booleanBinaryOperation((Boolean)lhs, (Boolean)rhs, kind);
@@ -215,12 +215,12 @@ public class Primitive implements ParserConstants, java.io.Serializable
         else if(lhs instanceof Double)
             return doubleBinaryOperation( (Double)lhs, (Double)rhs, kind);
         else
-            throw new EvalError("Invalid types in binary operator" );
+            throw new UtilEvalError("Invalid types in binary operator" );
 	}
 
 
     static Boolean booleanBinaryOperation(Boolean B1, Boolean B2, int kind)
-        throws EvalError
+        throws UtilEvalError
     {
         boolean lhs = B1.booleanValue();
         boolean rhs = B2.booleanValue();
@@ -400,7 +400,7 @@ public class Primitive implements ParserConstants, java.io.Serializable
 
     // returns Object covering both Double and Boolean return types
     static Object doubleBinaryOperation(Double D1, Double D2, int kind)
-        throws EvalError
+        throws UtilEvalError
     {
         double lhs = D1.doubleValue();
         double rhs = D2.doubleValue();
@@ -453,7 +453,7 @@ public class Primitive implements ParserConstants, java.io.Serializable
             case RSIGNEDSHIFTX:
             case RUNSIGNEDSHIFT:
             case RUNSIGNEDSHIFTX:
-                throw new EvalError("Can't shift doubles");
+                throw new UtilEvalError("Can't shift doubles");
 
             default:
                 throw new InterpreterError("Unimplemented binary double operator");
@@ -461,7 +461,7 @@ public class Primitive implements ParserConstants, java.io.Serializable
     }
     // returns Object covering both Long and Boolean return types
     static Object floatBinaryOperation(Float F1, Float F2, int kind)
-        throws EvalError
+        throws UtilEvalError
     {
         float lhs = F1.floatValue();
         float rhs = F2.floatValue();
@@ -514,7 +514,7 @@ public class Primitive implements ParserConstants, java.io.Serializable
             case RSIGNEDSHIFTX:
             case RUNSIGNEDSHIFT:
             case RUNSIGNEDSHIFTX:
-                throw new EvalError("Can't shift floats ");
+                throw new UtilEvalError("Can't shift floats ");
 
             default:
                 throw new InterpreterError("Unimplemented binary float operator");
@@ -578,12 +578,12 @@ public class Primitive implements ParserConstants, java.io.Serializable
     }
 
     public static Primitive unaryOperation(Primitive val, int kind)
-        throws EvalError
+        throws UtilEvalError
     {
         if(val == NULL)
-            throw new EvalError("illegal use of null object or 'null' literal");
+            throw new UtilEvalError("illegal use of null object or 'null' literal");
         if(val == VOID)
-            throw new EvalError("illegal use of undefined object or 'void' literal");
+            throw new UtilEvalError("illegal use of undefined object or 'void' literal");
 
         Class operandType = val.getType();
         Object operand = promoteToInteger(val.getValue());
@@ -617,7 +617,7 @@ public class Primitive implements ParserConstants, java.io.Serializable
             throw new InterpreterError("An error occurred.  Please call technical support.");
     }
 
-    static boolean booleanUnaryOperation(Boolean B, int kind) throws EvalError
+    static boolean booleanUnaryOperation(Boolean B, int kind) throws UtilEvalError
     {
         boolean operand = B.booleanValue();
         switch(kind)
@@ -626,7 +626,7 @@ public class Primitive implements ParserConstants, java.io.Serializable
                 return !operand;
 
             default:
-                throw new EvalError("Operator inappropriate for boolean");
+                throw new UtilEvalError("Operator inappropriate for boolean");
         }
     }
 
@@ -716,20 +716,20 @@ public class Primitive implements ParserConstants, java.io.Serializable
         }
     }
 
-    public int intValue() throws EvalError
+    public int intValue() throws UtilEvalError
     {
         if(value instanceof Number)
             return((Number)value).intValue();
         else
-            throw new EvalError("Primitive not a number");
+            throw new UtilEvalError("Primitive not a number");
     }
 
-    public boolean booleanValue() throws EvalError
+    public boolean booleanValue() throws UtilEvalError
     {
         if(value instanceof Boolean)
             return((Boolean)value).booleanValue();
         else
-            throw new EvalError("Primitive not a boolean");
+            throw new UtilEvalError("Primitive not a boolean");
     }
 
 	/**
@@ -741,7 +741,7 @@ public class Primitive implements ParserConstants, java.io.Serializable
 			&& !(this == NULL) && !(this == VOID) );
 	}
 
-    public Number numberValue() throws EvalError
+    public Number numberValue() throws UtilEvalError
     {
 		Object value = this.value;
 
@@ -752,7 +752,7 @@ public class Primitive implements ParserConstants, java.io.Serializable
         if (value instanceof Number)
             return (Number)value;
         else
-            throw new EvalError("Primitive not a number");
+            throw new UtilEvalError("Primitive not a number");
     }
 
 	public boolean equals( Object obj ) {

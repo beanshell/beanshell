@@ -55,7 +55,7 @@ class BSHFormalParameters extends SimpleNode
 		Evaluate the types.  
 		Note that type resolution does not require the interpreter instance.
 	*/
-	public Object eval( NameSpace namespace )  
+	public Object eval( CallStack callstack, Interpreter interpreter )  
 		throws EvalError
 	{
 		numArgs = jjtGetNumChildren();
@@ -66,7 +66,7 @@ class BSHFormalParameters extends SimpleNode
 		for(int i=0; i<numArgs; i++)
 		{
 			BSHFormalParameter param = (BSHFormalParameter)jjtGetChild(i);
-			param.eval( namespace );
+			param.eval( callstack, interpreter );
 			argNames[i] = param.name;
 			argTypes[i] = param.type;
 		}

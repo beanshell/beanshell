@@ -71,7 +71,8 @@ class BSHBinaryExpression extends SimpleNode
 
 			// General case - performe the instanceof based on assignability
 			NameSpace namespace = callstack.top();
-            Class rhs = ((BSHType)jjtGetChild(1)).getType(namespace);
+            Class rhs = ((BSHType)jjtGetChild(1)).getType( 
+				callstack, interpreter );
             boolean ret = (Reflect.isAssignableFrom(rhs, lhs.getClass()));
             return new Primitive(ret);
         }
@@ -129,9 +130,8 @@ class BSHBinaryExpression extends SimpleNode
 			} else
 				try {
 					return Primitive.binaryOperation(lhs, rhs, kind);
-				} catch ( TargetError e ) {
-					// this doesn't really help...  need to catch it higher?
-					e.reThrow( this );
+				} catch ( UtilEvalError e ) {
+					throw e.toEvalError( this, callstack  );
 				}
         }
 
@@ -183,16 +183,17 @@ class BSHBinaryExpression extends SimpleNode
 
             default:
                 if(lhs instanceof Primitive || rhs instanceof Primitive)
-                    if(lhs == Primitive.VOID || rhs == Primitive.VOID)
+                    if ( lhs == Primitive.VOID || rhs == Primitive.VOID )
                         throw new EvalError(
-		"illegal use of undefined variable, class, or 'void' literal", this);
+				"illegal use of undefined variable, class, or 'void' literal", 
+							this, callstack );
                     else 
-					if(lhs == Primitive.NULL || rhs == Primitive.NULL)
+					if ( lhs == Primitive.NULL || rhs == Primitive.NULL )
                         throw new EvalError(
-				"illegal use of null value or 'null' literal", this);
+				"illegal use of null value or 'null' literal", this, callstack);
 
                 throw new EvalError("Operator: '" + tokenImage[kind] +
-                    "' inappropriate for objects", this);
+                    "' inappropriate for objects", this, callstack );
         }
     }
 

@@ -21,7 +21,9 @@
 
 <!-- Project Configuration -->
 
-	<property name="version" value="1.2b6"/>
+<property name="file" value=""/>
+
+	<property name="version" value="1.2b7"/>
 	<property name="deprecation" value="on"/>
 
 	<!-- choose an alternate compiler -->
@@ -136,6 +138,7 @@
 			destdir="${build-dir}"
 			deprecation="${deprecation}"
 			optimize="off"
+			debug="on"
 			includes="**/*.java"
 			excludes="${excludes}"
 		/>
@@ -307,7 +310,7 @@
 					<exclude name="BeanShell/classes/**/*"/>
 					<exclude name="BeanShell/*javadoc*"/>
 					<exclude name="BeanShell/javadoc/**/*"/>
-					<exclude name="BeanShell/docs/**/*"/>
+					<!--exclude name="BeanShell/docs/**/*"/-->
 					<exclude name="**/CVS"/>
 					<exclude name="**/*.jar"/>
 					<exclude name="**/*.war"/>
@@ -365,7 +368,7 @@
 			<lib dir="." includes="${all-jar}"/>
 		</war>
 	</target>
-	
+
 	<!-- 
 		This target produces XML source for beanshell documentation of the 
 		bsh command set.
@@ -392,5 +395,29 @@
 			<fileset dir="src/bsh/commands" includes="*.bsh"/>
 		</apply>
 	</target>   
+
+	<!-- 
+		Run a script specified in the file property using the build 
+		classpath (e.g. latest compiled version)
+			
+			ant -Dfile=foo.bsh bsh
+	-->
+	<target name="bsh" depends="compile">
+		<java classname="bsh.Interpreter" fork="true">
+			<classpath>
+				<pathelement location="${build-dir}"/>
+			</classpath>
+			<arg value="${file}"/>
+		</java>
+	</target>
+
+	<!-- 
+		Run the test suite.
+	-->
+	<target name="test">
+		<antcall target="bsh">
+			<param name="file" value="tests/RunAllTests.bsh"/>
+		</antcall>
+	</target>
 
 </project>

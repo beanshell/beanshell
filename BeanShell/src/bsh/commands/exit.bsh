@@ -1,4 +1,5 @@
 /**
+	Conditionally exit the virtual machine.
 	Call System.exit(0) unless bsh.system.shutdownOnExit == false.
 */
 

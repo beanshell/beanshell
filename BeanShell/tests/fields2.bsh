@@ -15,13 +15,18 @@ foo() {
 
 foo().x=5;
 foo().bar();
+fb=foo().bar();
+fb.xx=5;
+
+// Why don't these var assignments to ephemeral objects work?
+// this one used to work in 1.2b6 prior to caching changes...
 foo().bar().x=5;
+// This case isn't working either
+//foo().bar2().bar().x=5;
 
 // just an experiment
 foo().bar2().bar2().bar2().bar();
 
-// This pathological case isn't working , don't know why
-//foo().bar2().bar().x=5;
 
 Fields [] fa = { new Fields(), new Fields() };
 fa[0].x=5;

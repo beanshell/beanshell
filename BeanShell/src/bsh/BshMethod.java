@@ -46,7 +46,8 @@ package bsh;
 	i.e.
 	The local method context is a child namespace of the declaring namespace.
 */
-public class BshMethod implements java.io.Serializable 
+public class BshMethod 
+	implements bsh.Reflect.MethodInvoker, java.io.Serializable 
 {
 	BSHMethodDeclaration method;
 
@@ -88,12 +89,16 @@ public class BshMethod implements java.io.Serializable
 	/**
 		Invoke the declared method with the specified arguments, interpreter
 		reference, and callstack.
+		<p/>
+		Note: this form of invoke() uses a null Node for the caller.
+		This method is for scripts performing relective style access to
+		scripted methods.
 	*/
 	public Object invoke( 
 		Object[] argValues, Interpreter interpreter, CallStack callstack ) 
 		throws EvalError 
 	{
-		return invokeDeclaredMethod( argValues, interpreter, callstack, null );
+		return invoke( argValues, interpreter, callstack, null );
 	}
 
 	/**
@@ -103,12 +108,11 @@ public class BshMethod implements java.io.Serializable
 		It is used primarily for debugging in order to provide access to the 
 		text of the construct that invoked the method through the namespace.
 		@param callerInfo is the node representing the method invocation
-			This is used primarily for debugging and may be null.
 		@param callstack is the callstack of course.  If you are using a 
 		hacked version of BeanShell that exposed this method take a look
 		at NameSpace invokeMethod to see how to make a fake callstack...
 	*/
-	Object invokeDeclaredMethod( 
+	public Object invoke( 
 		Object[] argValues, Interpreter interpreter, CallStack callstack,
 			SimpleNode callerInfo ) 
 		throws EvalError 
@@ -130,7 +134,7 @@ public class BshMethod implements java.io.Serializable
 			} catch ( Exception e ) {
 				throw new EvalError( 
 					"Wrong number of arguments for local method: " 
-					+ method.name, callerInfo);
+					+ method.name, callerInfo, callstack );
 			}
 		}
 
@@ -138,6 +142,7 @@ public class BshMethod implements java.io.Serializable
 		NameSpace localNameSpace = new NameSpace( 
 			declaringNameSpace, method.name );
 		localNameSpace.setNode( callerInfo );
+		localNameSpace.isMethod = true;
 
 		// set the method parameters in the local namespace
 		for(int i=0; i<method.params.numArgs; i++)
@@ -149,15 +154,20 @@ public class BshMethod implements java.io.Serializable
 					argValues[i] = NameSpace.getAssignableForm(argValues[i],
 					    method.params.argTypes[i]);
 				}
-				catch(EvalError e) {
+				catch( UtilEvalError e) {
 					throw new EvalError(
 						"Invalid argument: " 
 						+ "`"+method.params.argNames[i]+"'" + " for method: " 
 						+ method.name + " : " + 
-						e.getMessage(), callerInfo);
+						e.getMessage(), callerInfo, callstack );
 				}
-				localNameSpace.setTypedVariable( method.params.argNames[i], 
-					method.params.argTypes[i], argValues[i], false);
+				try {
+					localNameSpace.setTypedVariable( method.params.argNames[i], 
+						method.params.argTypes[i], argValues[i], false);
+				} catch ( UtilEvalError e2 ) {
+					throw e2.toEvalError( "Typed method parameter assignment", 
+						callerInfo, callstack  );
+				}
 			} 
 			// Set untyped variable
 			else  // untyped param
@@ -167,10 +177,14 @@ public class BshMethod implements java.io.Serializable
 					throw new EvalError(
 						"Undefined variable or class name, parameter: " +
 						method.params.argNames[i] + " to method: " 
-						+ method.name, callerInfo);
+						+ method.name, callerInfo, callstack );
 				else
-					localNameSpace.setVariable(
-						method.params.argNames[i], argValues[i]);
+					try {
+						localNameSpace.setVariable(
+							method.params.argNames[i], argValues[i]);
+					} catch ( UtilEvalError e3 ) {
+						throw e3.toEvalError( callerInfo, callstack );
+					}
 			}
 		}
 
@@ -178,39 +192,51 @@ public class BshMethod implements java.io.Serializable
 		callstack.push( localNameSpace );
 		// Invoke the method
 		Object ret = method.block.eval( callstack, interpreter, true );
+		// save the callstack including the called method, just for error mess
+		CallStack returnStack = callstack.copy();
 		// pop back to caller namespace
 		callstack.pop();
 
+		ReturnControl retControl = null;
 		if ( ret instanceof ReturnControl )
 		{
-			ReturnControl rs = (ReturnControl)ret;
-			if(rs.kind == rs.RETURN)
+			retControl = (ReturnControl)ret;
+
+			// Method body can only use 'return' statment type return control.
+			if ( retControl.kind == retControl.RETURN )
 				ret = ((ReturnControl)ret).value;
 			else 
-				// This error points to the method, should it?
-				throw new EvalError("continue or break in method body", method);
+				// retControl.returnPoint is the Node of the return statement
+				throw new EvalError("continue or break in method body", 
+					retControl.returnPoint, returnStack );
+
+			// Check for explicit return of value from void method type.
+			// retControl.returnPoint is the Node of the return statement
+			if ( method.returnType == Primitive.VOID && ret != Primitive.VOID )
+				throw new EvalError( "Cannot return value from void method", 
+				retControl.returnPoint, returnStack);
 		}
 
-		// there should be a check in here for an explicit value return 
-		// from a void type method... (throw evalerror)
-
-		if(method.returnType != null)
+		if ( method.returnType != null )
 		{
-			// if void return type throw away any value
-			// ideally, we'd error on an explicit 'return' of value
-			if(method.returnType == Primitive.VOID)
-				return method.returnType;
+			// If return type void, return void as the value.
+			if ( method.returnType == Primitive.VOID )
+				return Primitive.VOID;
 
 			// return type is a class
 			try {
 				ret = NameSpace.getAssignableForm(
 					ret, (Class)method.returnType);
-			}
-			catch(EvalError e) {
-				// This error points to the method, should it?
-				throw new EvalError(
+			} catch( UtilEvalError e ) 
+			{
+				// Point to return statement point if we had one.
+				// (else it was implicit return? What's the case here?)
+				SimpleNode node = callerInfo;
+				if ( retControl != null )
+					node = retControl.returnPoint;
+				throw e.toEvalError(
 					"Incorrect type returned from method: " 
-					+ method.name + e.getMessage(), method);
+					+ method.name + e.getMessage(), node, callstack );
 			}
 		}
 

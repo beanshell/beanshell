@@ -93,7 +93,7 @@ public class Interpreter
 {
 	/* --- Begin static stuff --- */
 
-	public static final String VERSION = "1.2b6";
+	public static final String VERSION = "1.3a";
 	/* 
 		Debug utils are static so that they are reachable by code that doesn't
 		necessarily have an interpreter reference (e.g. tracing in utils).
@@ -192,7 +192,8 @@ public class Interpreter
 			loadRCFiles();
 
 		long t2=System.currentTimeMillis();
-		Interpreter.debug("Time to initialize interpreter: "+(t2-t1));
+		if ( Interpreter.DEBUG ) 
+			Interpreter.debug("Time to initialize interpreter: "+(t2-t1));
     }
 
     public Interpreter(
@@ -433,7 +434,7 @@ public class Interpreter
                         ret = ((ReturnControl)ret).value;
                     if(ret != Primitive.VOID)
                     {
-                        setVariable("$_", ret);
+                        setu("$_", ret);
                         Object show = getu("bsh.show");
                         if(show instanceof Boolean &&
                             ((Boolean)show).booleanValue() == true)
@@ -465,7 +466,7 @@ public class Interpreter
 					e.printStackTrace( DEBUG, err );
                 if(!interactive)
                     eof = true;
-				setVariable("$_e", e.getTarget());
+				setu("$_e", e.getTarget());
             }
             catch (EvalError e)
             {
@@ -510,7 +511,7 @@ public class Interpreter
             }
         }
 
-		if ( interactive && !noExitOnEOF ) 
+		if ( interactive && !noExitOnEOF )
 			System.exit(0);
     }
 
@@ -523,9 +524,13 @@ public class Interpreter
 		throws FileNotFoundException, IOException, EvalError 
 	{
 		File file = pathToFile( filename );
-		debug("Sourcing file: "+file);
-		Reader in = new BufferedReader( new FileReader(file) );
-		return eval( in, nameSpace, filename );
+		if ( Interpreter.DEBUG ) debug("Sourcing file: "+file);
+		Reader sourceIn = new BufferedReader( new FileReader(file) );
+		try {
+			return eval( sourceIn, nameSpace, filename );
+		} finally {
+			sourceIn.close();
+		}
 	}
 
 	/**
@@ -566,7 +571,7 @@ public class Interpreter
 		throws EvalError 
 	{
 		Object retVal = null;
-		debug("eval: nameSpace = "+nameSpace);
+		if ( Interpreter.DEBUG ) debug("eval: nameSpace = "+nameSpace);
 
 		/* 
 			Create non-interactive local interpreter for this namespace
@@ -612,7 +617,7 @@ public class Interpreter
 				/*
                 throw new EvalError(
 					"Sourced file: "+sourceFileInfo+" parser Error: " 
-					+ e.getMessage( DEBUG ), node );
+					+ e.getMessage( DEBUG ), node, callstack );
 				*/
 				if ( DEBUG )
 					// show extra "expecting..." info
@@ -622,32 +627,32 @@ public class Interpreter
 				e.setErrorSourceFile( sourceFileInfo );
 				throw e;
 
-            } catch(InterpreterError e) {
+            } catch ( InterpreterError e ) {
                 e.printStackTrace();
                 throw new EvalError(
 					"Sourced file: "+sourceFileInfo+" internal Error: " 
-					+ e.getMessage(), node);
-            } catch( TargetError e ) {
+					+ e.getMessage(), node, callstack);
+            } catch ( TargetError e ) {
 				// failsafe, set the Line as the origin of the error.
 				if ( e.getNode()==null )
 					e.setNode( node );
 				e.reThrow("Sourced file: "+sourceFileInfo);
-            } catch(EvalError e) {
-                if(DEBUG)
+            } catch ( EvalError e) {
+                if ( DEBUG)
                     e.printStackTrace();
 				// failsafe, set the Line as the origin of the error.
 				if ( e.getNode()==null )
 					e.setNode( node );
 				e.reThrow( "Sourced file: "+sourceFileInfo );
-            } catch(Exception e) {
+            } catch ( Exception e) {
                 e.printStackTrace();
                 throw new EvalError(
 					"Sourced file: "+sourceFileInfo+" unknown error: " 
-					+ e.getMessage(), node);
+					+ e.getMessage(), node, callstack);
             } catch(TokenMgrError e) {
                 throw new EvalError(
 					"Sourced file: "+sourceFileInfo+" Token Parsing Error: " 
-					+ e.getMessage(), node );
+					+ e.getMessage(), node, callstack );
             } finally {
                 localInterpreter.get_jjtree().reset();
 
@@ -673,7 +678,7 @@ public class Interpreter
 		Evaluate the string in this interpreter's global namespace.
 	*/
     public Object eval( String statement ) throws EvalError {
-		debug("eval(String): "+statement);
+		if ( Interpreter.DEBUG ) debug("eval(String): "+statement);
 		return eval(statement, globalNameSpace);
 	}
 
@@ -750,7 +755,7 @@ public class Interpreter
 	*/
     public final static void debug(String s)
     {
-        if(DEBUG)
+        if ( DEBUG )
             debug.println("// Debug: " + s);
     }
 
@@ -764,8 +769,12 @@ public class Interpreter
 		name may be any value. e.g. a variable or field
 	*/
     public Object get( String name ) throws EvalError {
-		Object ret = globalNameSpace.get( name, this );
-		return Primitive.unwrap( ret );
+		try {
+			Object ret = globalNameSpace.get( name, this );
+			return Primitive.unwrap( ret );
+		} catch ( UtilEvalError e ) { 
+			throw e.toEvalError( SimpleNode.JAVACODE, new CallStack() ); 
+		}
 	}
 
 	/**
@@ -791,9 +800,13 @@ public class Interpreter
 			value = Primitive.NULL;
 
 		CallStack callstack = new CallStack();
-		LHS lhs = globalNameSpace.getNameResolver( name ).toLHS( 
-			callstack, this );
-		lhs.assign( value );
+		try {
+			LHS lhs = globalNameSpace.getNameResolver( name ).toLHS( 
+				callstack, this );
+			lhs.assign( value );
+		} catch ( UtilEvalError e ) { 
+			throw e.toEvalError( SimpleNode.JAVACODE, callstack ); 
+		}
 	}
 
 	/**
@@ -831,61 +844,22 @@ public class Interpreter
 		throws EvalError 
 	{
 		CallStack callstack = new CallStack();
-		LHS lhs = globalNameSpace.getNameResolver( name ).toLHS( 
-			callstack, this );
+		LHS lhs;
+		try {
+			lhs = globalNameSpace.getNameResolver( name ).toLHS( 
+				callstack, this );
 
-		if ( lhs.type != LHS.VARIABLE )
-			throw new EvalError("Can't unset, not a variable: "+name);
+			if ( lhs.type != LHS.VARIABLE )
+				throw new EvalError("Can't unset, not a variable: "+name, 
+					SimpleNode.JAVACODE, new CallStack() );
 
-		// null means remove it
-		lhs.assign( null );
+			// null means remove it
+			lhs.assign( null );
+		} catch ( UtilEvalError e ) {
+			throw new EvalError( e.getMessage(), 
+				SimpleNode.JAVACODE, new CallStack() );
+		}
 	}
-
-
-	/**
-		@deprecated does not properly evaluate compound names
-	*/
-    public Object getVariable(String name)
-    {
-        Object obj = globalNameSpace.getVariable(name);
-		return Primitive.unwrap( obj );
-    }
-
-	/**
-		@deprecated does not properly evaluate compound names
-	*/
-    public void setVariable(String name, Object value)
-    {
-        try { globalNameSpace.setVariable(name, value); }
-        catch(EvalError e) { error(e.toString()); }
-    }
-
-	/**
-		@deprecated does not properly evaluate compound names
-	*/
-    public void setVariable(String name, int value)
-    {
-        try { globalNameSpace.setVariable(name, new Primitive(value)); }
-        catch(EvalError e) { error(e.toString()); }
-    }
-
-	/**
-		@deprecated does not properly evaluate compound names
-	*/
-    public void setVariable(String name, float value)
-    {
-        try { globalNameSpace.setVariable(name, new Primitive(value)); }
-        catch(EvalError e) { error(e.toString()); }
-    }
-
-	/**
-		@deprecated does not properly evaluate compound names
-	*/
-    public void setVariable(String name, boolean value)
-    {
-        try { globalNameSpace.setVariable(name, new Primitive(value)); }
-        catch(EvalError e) { error(e.toString()); }
-    }
 
 	// end primary set and get methods
 
@@ -941,7 +915,11 @@ public class Interpreter
 	*/
 	public Object getInterface( Class interf ) throws EvalError
 	{
-		return globalNameSpace.getThis( this ).getInterface( interf );
+		try {
+			return globalNameSpace.getThis( this ).getInterface( interf );
+		} catch ( UtilEvalError e ) {
+			throw e.toEvalError( SimpleNode.JAVACODE, new CallStack() );
+		}
 	}
 
 	/*	Methods for interacting with Parser */
@@ -968,7 +946,7 @@ public class Interpreter
 			source( rcfile, globalNameSpace );
 		} catch ( Exception e ) { 
 			// squeltch security exception, filenotfoundexception
-			debug("Could not find rc file: "+e);
+			if ( Interpreter.DEBUG ) debug("Could not find rc file: "+e);
 		}
 	}
 

@@ -52,7 +52,8 @@ class BSHCastExpression extends SimpleNode {
 		CallStack callstack, Interpreter interpreter ) throws EvalError
     {
 		NameSpace namespace = callstack.top();
-        Class toType = ((BSHType)jjtGetChild(0)).getType(namespace);
+        Class toType = ((BSHType)jjtGetChild(0)).getType( 
+			callstack, interpreter );
 		SimpleNode expression = (SimpleNode)jjtGetChild(1);
 
         // evaluate the expression
@@ -61,9 +62,8 @@ class BSHCastExpression extends SimpleNode {
 
 		try {
 			return castObject( fromValue, toType );
-		} catch ( EvalError e ) {
-			e.reThrow( this );
-			throw new InterpreterError("can't happen"); // help the compiler
+		} catch ( UtilEvalError e ) {
+			throw e.toEvalError( this, callstack  );
 		}
     }
 
@@ -76,7 +76,7 @@ class BSHCastExpression extends SimpleNode {
 		primitive types, e.g. Byte.TYPE
 	*/
 	public static Object castObject( Object fromValue, Class toType )
-		throws EvalError
+		throws UtilEvalError
 	{
         Class fromType = fromValue.getClass();
 
@@ -121,16 +121,16 @@ class BSHCastExpression extends SimpleNode {
 		be caught...
 		Node user should catch and add the node
 	*/
-    public static void castError(Class from, Class to) throws EvalError {
+    public static void castError(Class from, Class to) throws UtilEvalError {
 		castError( 
 			Reflect.normalizeClassName(from), Reflect.normalizeClassName(to) );
     }
 
-    public static void castError(String from, String to) throws EvalError 
+    public static void castError(String from, String to) throws UtilEvalError 
 	{
 		Exception cce = new ClassCastException("Illegal cast. Cannot cast " +
             from + " to " + to );
-		throw new TargetError( "Cast", cce );
+		throw new UtilTargetError( cce );
     }
 
 	/**
@@ -141,7 +141,7 @@ class BSHCastExpression extends SimpleNode {
 			void cannot be cast to anything
 	*/
 	public static Primitive castPrimitive( Primitive primValue, Class toType ) 
-		throws EvalError
+		throws UtilEvalError
 	{
 		// can't cast void to anything
 		if ( primValue == Primitive.VOID )
@@ -198,6 +198,6 @@ class BSHCastExpression extends SimpleNode {
 			return (Primitive)value;
 		} 
 
-		throw new EvalError("unknown type in cast");
+		throw new UtilEvalError("unknown type in cast");
 	}
 }

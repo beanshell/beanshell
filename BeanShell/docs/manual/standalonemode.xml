@@ -48,7 +48,7 @@ use.</em></li>
 <li><strong>trace</strong> - Setting trace to true turns on method tracing.  
 This mode prints each line before it is executed.  <em>Note that this currently 
 prints only top level lines as they are parsed and executed by the 
-interpreter.  trace skips over method exectutions (including bsh commands) 
+interpreter.  Trace skips over method executions (including bsh commands) 
 etc.  This mode is incomplete.  It should be considered experimental.</em>
 </li>
 </ul>

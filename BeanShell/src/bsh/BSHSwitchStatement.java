@@ -59,7 +59,7 @@ class BSHSwitchStatement
 
 		// get the first label
 		if ( child >= numchild )
-			throw new EvalError("Empty switch statement...");
+			throw new EvalError("Empty switch statement.", this, callstack );
 		label = ((BSHSwitchLabel)jjtGetChild(child++));
 
 		// while more labels or blocks and haven't hit return control

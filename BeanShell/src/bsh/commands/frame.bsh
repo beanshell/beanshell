@@ -1,5 +1,6 @@
 /**
-    Show component in a frame, centered and packed.  Handle disposal.
+    Show component in a frame, centered and packed, handling disposal with
+	the close button.
 	<p>
 
 	Display the component, centered and packed, in a Frame, JFrame, or 

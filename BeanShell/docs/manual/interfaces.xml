@@ -49,7 +49,7 @@ BeanShell to look for a corresponding scripted method with
 the same signature (name and argument types).  BeanShell then invokes the 
 method, passing along the arguments and passing back any return value.
 When BeanShell runs in the same Java VM as the rest of the code, you can
-freely pass "live" Java obects as arguments and return values, working
+freely pass "live" Java objects as arguments and return values, working
 with them dynamically in your scripts; the integration can be seamless.
 <p/>
 
@@ -212,14 +212,14 @@ and that is indeed the case.  You are free in BeanShell to script only the
 interface methods that you expect to be called.  The penalty for leaving out 
 a method that is actually invoked is a special run-time exception: 
 java.lang.reflect.UndeclaredThrowableException, which the caller will 
-recieve.  
+receive.  
 <p/>
 
 The UndeclaredThrowableException is an artifact of Java Proxy API that makes
 dynamic interfaces possible.  It says that an interface threw a checked
 exception type that was not prescribed by the method signature.  This is 
 a situation that cannot normally happen in compiled Java.  So the Java 
-reflection API handles it by wrapping the checked excpetion in this special
+reflection API handles it by wrapping the checked exception in this special
 unchecked (RuntimeException) type in order to throw it.  
 You can get the underlying
 error using the exception's getCause() method, which will, in this case, 

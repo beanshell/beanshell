@@ -49,7 +49,7 @@ class BSHReturnStatement extends SimpleNode implements ParserConstants
 		else
 			value = Primitive.VOID;
 
-		return new ReturnControl( kind, value );
+		return new ReturnControl( kind, value, this );
 	}
 }
 

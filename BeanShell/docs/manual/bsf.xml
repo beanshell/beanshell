@@ -3,7 +3,7 @@
 
 BSF is IBM's "Bean Scripting Framework".  It is generic framework that allows
 many scripting languages to be plugged into an application.  It shields
-the application from knowlege of how to invoke the scripting languages and
+the application from knowledge of how to invoke the scripting languages and
 their APIs, via adapter "engines". 
 <p/>
 
@@ -24,12 +24,51 @@ BSFManager.registerScriptingEngine(
     "beanshell", "bsh.util.BeanShellBSFEngine", extensions );
 </example>
 
-<tip>
-Ant 1.5 will add explicit support for BeanShell as a BSF scripting language.
-</tip>
 
 See <a href="http://oss.software.ibm.com/developerworks/projects/bsf">
 http://oss.software.ibm.com/developerworks/projects/bsf</a> for more 
 information about BSF.
+
+<h2>Ant</h2>
+
+Ant 1.5+ has explicit support for BeanShell as a BSF scripting language.
+The BeanShell JAR file includes the necessary BSF adapter.  You must
+simply specify language="beanshell" in your script tags.
+
+<h3>Installation</h3>
+
+To use BeanShell within Ant you must do two things:
+<ol>
+<li>Add the
+<a href="http://oss.software.ibm.com/developerworks/projects/bsf">
+BSF bsf.jar file</a>
+to ANT_HOME/lib or the classpath.</li>
+<li>Add the 
+<a href="http://www.beanshell.org/download.html">
+BeanShell bsh.jar file</a>
+to ANT_HOME/lib or the classpath.</li>
+</ol>
+<p/>
+
+You can then run scripts from a file, or in-line like so:
+<p/>
+
+<example><![CDATA[
+<project name="testbsh" default="runscript" basedir=".">
+    <target name="runscript">
+
+        <!-- Run script from a file -->
+        <script language="beanshell" src="myscript.bsh"/>
+
+        <!-- Run script in-line -->
+        <script language="beanshell">&lt;![CDATA[
+            for(int i=0; i<10; i++ )
+                print( "i="+i );
+        ]]&gt;</script>
+
+    </target>
+</project>
+]]></example>
+
 
 </section>

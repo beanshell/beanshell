@@ -1,9 +1,16 @@
 <section>
 <name filename="strictjava">Strict Java Mode</name>
 
-If you are using BeanShell as a teaching aid, or you are a student and 
-you don't want any potential confusing by using BeanShell's loose scripting 
-abilities, you can set Strict Java Mode with the setStrictJava() command.
+<em>Note: Strict Java Mode is new and currently breaks some BeanShell tools
+and APIs when activated.  The GUI desktop will not work with strict Java
+mode enabled.  Please see notes at the end of this page</em>
+<p/>
+
+If you are a Java teacher or a student learning the Java language and
+you would like to avoid any potential confusion relating to BeanShell's
+use of loose variable types, you can turn on Strict Java Mode.  Strict
+Java Mode is enabled with the the setStrictJava() command.
+
 When strict Java mode is enabled BeanShell will:
 <p/>
 
@@ -44,7 +51,7 @@ print( x ); // 5!
 In the example above you may have been expecting the reference to x to 
 increment the variable in the enclosing context, as if it were a method in
 a Java class.  However the penalty we pay for allowing the use of undeclared
-variables in BeanShell is that we always assume assignent is in the local
+variables in BeanShell is that we always assume assignment is in the local
 scope, unless qualified.  In practice, this situation doesn't come up as
 often as you'd think.  And we could easily fix it with the BeanShell 'super'
 reference like so:
@@ -78,7 +85,13 @@ System.out.println( x ); // 6!
 Strict Java Mode is relatively new.
 In the above example we switched to using System.out.println() instead
 of print() because the print() command and most other BeanShell commands
-have not yet been re-written to acomodate strict Java mode.
+have not yet been re-written to accommodate strict Java mode.
+<p/>
+
+For embedded use the Interpreter set() method will also fail in strict Java 
+mode because performing a set() is equivalent to setting an utyped variable.
+As a temporary workaround you may use eval() to "declare" your variable first,
+then set() to assign in the value.
 </note>
 
 </section>

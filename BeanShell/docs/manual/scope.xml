@@ -3,7 +3,7 @@
 
 Now that we've seen how methods can be nested and treated as objects, we
 can revisit the topic of variable scope and scope modifiers.
-BeanShell's first rule is to maintain Java compatability.  Where 
+BeanShell's first rule is to maintain Java compatibility.  Where 
 new features are added that go beyond standard Java syntax however, we 
 sometimes have to add new rules.  The ability to use loose, undeclared 
 variables as they are implemented in BeanShell can make for some situations 

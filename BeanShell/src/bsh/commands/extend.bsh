@@ -13,28 +13,27 @@
 	For example:
 	<p>
 
-	<pre>
+    <pre>
+    foo=object();
+    bar=extend(foo);
 
-		foo=object();
-		bar=extend(foo);
+    is equivalent to:
+      
+    foo() { 
+        bar() {
+            return this; 
+        }
+    }
 
-	is equivalent to:
-	  
-		foo() { 
-			bar() {
-				return this; 
-			}
-		}
+    foo=foo();
+    bar=foo.bar();
 
-		foo=foo();
-		bar=foo.bar();
-
-	and also:
-	 
-	   foo=object();
-	   bar=object();
-	   bar.namespace.bind( foo.namespace );
-	</pre>
+    and also:
+     
+    oo=object();
+    ar=object();
+    ar.namespace.bind( foo.namespace );
+    </pre>
 	<p>
 
 	The last example above is exactly what the extend() command does.

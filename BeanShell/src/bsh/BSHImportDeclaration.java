@@ -45,11 +45,14 @@ class BSHImportDeclaration extends SimpleNode
 		throws EvalError
 	{
 		if ( superImport )
-			NameSpace.doSuperImport();
+			try {
+				NameSpace.doSuperImport();
+			} catch ( UtilEvalError e ) {
+				throw e.toEvalError( this, callstack  );
+			}
 		else {
 			NameSpace namespace = callstack.top();
-			String name = 
-				((BSHAmbiguousName)jjtGetChild(0)).getName(namespace).value;
+			String name = ((BSHAmbiguousName)jjtGetChild(0)).text;
 
 			if ( importPackage )
 				namespace.importPackage(name);

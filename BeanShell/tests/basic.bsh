@@ -63,4 +63,12 @@ assert( isEvalError("String s1 = 5"));
 String s2;
 assert( isEvalError("s2 = 5"));
 
+// variable names take precendence over class names, as in Java
+assert( java.lang.System.out instanceof PrintStream );
+java.lang.System.out.println("ok");
+java = 5; // hide class namespace with var
+assert( isEvalError("java.lang.System.out instanceof PrintStream"));
+// caching of method resolution could mess this up
+assert( isEvalError("java.lang.System.out.println(\"ok\")") );
+
 complete();

@@ -1,7 +1,7 @@
 <section>
 <name filename="objects">Scripted Objects</name>
 
-The majority people who currently use BeanShell use it to write scripts that 
+The majority of people who currently use BeanShell use it to write scripts that 
 work with existing Java classes and APIs, or perform other kinds of dynamic 
 activities for their own applications at run-time without the aid of a 
 compiler.  Often this means writing relatively unstructured code -

@@ -8,7 +8,7 @@ accepts BeanShell scripts via the POST method, evaluates them capturing output
 <p/>
 
 BshServlet has a simple form based interface for interactive experimentation
-(analagous to the remote server mode).  But more generally you can send
+(analogous to the remote server mode).  But more generally you can send
 standalone BeanShell scripts from the command line to the BshServlet for
 evaluation using the bsh.Remote launcher.  bsh.Remote complements
 bsh.Interpreter and bsh.Console as a launch point for BeanShell.
@@ -149,8 +149,8 @@ For example:
 
 <example><![CDATA[ 
 // Server side script generates HTML response page
-bsh.httpServletRequest.setResponseType("text/html");
-out = bsh.httpServletRequest.getWriter();
+bsh.httpServletResponse.setContentType("text/html");
+out = bsh.httpServletResponse.getWriter();
 out.println("<html><body><h1>Hello World!</h1></body></html>");
 ]]></example>
 
@@ -168,7 +168,7 @@ The following parameters are recognized by BshServlet:
 <tr><td><strong>bsh.script</strong></td><td>The BeanShell Script</td></tr>
 <tr><td><strong>bsh.servlet.captureOutErr</strong></td><td>"true" - 
 capture standard out and standard error during the evaluation of the 
-script.  Note: this is inherintly non-thread safe.  All output from the
+script.  Note: this is inherently non-thread safe.  All output from the
 VM will be captured.
 </td></tr>
 <tr><td><strong>bsh.servlet.output</strong></td><td>"raw" - Do not generate

@@ -111,17 +111,19 @@ class BSHTryStatement extends SimpleNode
 				// Evaluation of the formal parameter simply resolves its
 				// type via the specified namespace.. it doesn't modify the
 				// namespace.
-				fp.eval( callstack.top() );
+				fp.eval( callstack, interpreter );
 
 				// If the param is typed check assignability
 				if ( fp.type != null ) 
 					try {
 						thrown = (Throwable)NameSpace.getAssignableForm(
 							thrown, fp.type);
-					} catch(EvalError e) {
-						/* Catch the mismatch and continue to try the next
+					} catch( UtilEvalError e ) {
+						/* 
+							Catch the mismatch and continue to try the next
 							Note: this is innefficient, should have an 
-							isAssignableFrom() that doesn't throw */
+							isAssignableFrom() that doesn't throw 
+						*/
 						continue;
 					}
 
@@ -137,11 +139,18 @@ class BSHTryStatement extends SimpleNode
 					new BlockNameSpace( enclosingNameSpace );
 
 				cbNameSpace.setInitMode(true); // set params in local scope
-				if ( fp.type == BSHFormalParameter.UNTYPED )
-					cbNameSpace.setVariable(fp.name, thrown );
-				else
-					cbNameSpace.setTypedVariable(
-						fp.name, fp.type, thrown,false);
+
+				try {
+					if ( fp.type == BSHFormalParameter.UNTYPED )
+						cbNameSpace.setVariable(fp.name, thrown );
+					else
+						cbNameSpace.setTypedVariable(
+							fp.name, fp.type, thrown,false);
+				} catch ( UtilEvalError e ) {
+					throw new InterpreterError(
+						"Unable to set var in catch block namespace." );
+				}
+
 				cbNameSpace.setInitMode(false); // normal mode
 
 				// put cbNameSpace on the top of the stack

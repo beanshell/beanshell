@@ -34,6 +34,8 @@
 
 package	bsh;
 
+import java.util.Vector;
+
 /**
     A specialized namespace	for Blocks, e.g. the body of a "for" statement.
 	The Block acts like a child namespace but only for typed variables 
@@ -64,7 +66,7 @@ class BlockNameSpace extends NameSpace
 		i.e. only allow typed var declaration to happen in this namespace.
 		Typed vars are handled in the ordinary way... local scope.
 	*/
-    public void	setVariable(String name, Object	o) throws EvalError {
+    public void	setVariable(String name, Object	o) throws UtilEvalError {
 		if ( weHaveVar( name ) || initMode ) 
 			super.setVariable( name, o );
 		else
@@ -113,6 +115,25 @@ class BlockNameSpace extends NameSpace
     public void	importPackage(String name) {
 		getParent().importPackage( name );
 	}
+
+	/**
+		The block namespace acts like part of the enclosing block for most
+		vars.  So we need to add our locals to the enclosing when someone
+		asks for the full list.
+	// We should do this for getMethodNames() and getMethods() as well.
+    public String [] getVariableNames() {
+		String [] v1=super.getVariableNames();
+		String [] v2 = getParent().getVariableNames();
+		Vector v = new Vector();
+		for(int i=0; i<v1.length; i++)
+			v.addElement( v1[i] );
+		for(int i=0; i<v2.length; i++)
+			v.addElement( v2[i] );
+		String [] sa = new String [ v.size() ];
+		v.copyInto( sa );
+		return sa;
+	}
+	*/
 
 }
 

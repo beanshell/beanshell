@@ -78,7 +78,7 @@ Note: As of BeanShell 1.1alpha new class files added to the classpath
 <h2>Reloading Classes</h2>
 
 BeanShell provides an easy to use mechanism for reloading classes from the 
-classpath.  It is possible in BeanShell to reload arbitary subsets of classes 
+classpath.  It is possible in BeanShell to reload arbitrary subsets of classes 
 down to a single class file.  However There are subtle issues to be understood 
 with respect to what it means to reload a class in the Java environment. 
 Please see the discussion of class loading detail below.  But in a nutshell,
@@ -119,7 +119,7 @@ reloadClasses("mypackage.*");
 </example>
 
 This will reload only the classes in the specified package.  The classes will
-be reloaded even if they are located in different places in the claspath (e.g.
+be reloaded even if they are located in different places in the classpath (e.g.
 if you have some of the package in one directory and some in another).
 <p/>
 
@@ -215,7 +215,7 @@ class reloading.
 <strong>Thriftiness</strong> - Abiding by the BeanShell thriftiness 
 proposition: no class loading code is exercised unless directed by a
 command.  BeanShell begins with no class loader and only adds class loading
-in layers as necessay to achieve desired effects.
+in layers as necessary to achieve desired effects.
 <p/>
 
 The following diagram illustrates the two layer class loading scheme:
@@ -228,7 +228,7 @@ The following diagram illustrates the two layer class loading scheme:
 A "base" class loader is used to handle course changes to the classpath 
 including added path.  Unless directed by setClassPath() the base loader will
 only add path and will not cover existing Java user class path.  This prevents
-unecessary class space changes for the existing classes.
+unnecessary class space changes for the existing classes.
 <p/>
 
 Packages of classes and individual classes are mapped in sets by class 

@@ -224,7 +224,7 @@ public class JConsole extends JScrollPane
 
 			case ( KeyEvent.VK_U ):	// clear line
 				if ( (e.getModifiers() & InputEvent.CTRL_MASK) > 0 ) {
-					replaceRange( "", cmdStart, text.getText().length());
+					replaceRange( "", cmdStart, textLength());
 					histLine = 0;
 					e.consume();
 				}
@@ -344,11 +344,11 @@ public class JConsole extends JScrollPane
 	}
 
 	private void resetCommandStart() {
-		cmdStart = text.getText().length();
+		cmdStart = textLength();
 	}
 
 	private	void append(String string) {
-		int slen = text.getText().length();
+		int slen = textLength();
 		text.select(slen, slen);
 	    text.replaceSelection(string);
     }
@@ -364,7 +364,7 @@ public class JConsole extends JScrollPane
 	private	void forceCaretMoveToEnd() {
 		if (text.getCaretPosition() < cmdStart)	{
 			// move caret first!
-			text.setCaretPosition(text.getText().length());
+			text.setCaretPosition(textLength());
 		}
 		text.repaint();
     }
@@ -396,7 +396,7 @@ public class JConsole extends JScrollPane
     private String getCmd() {
 		String s = "";
 		try {
-			s =	text.getText(cmdStart, text.getText().length() - cmdStart);
+			s =	text.getText(cmdStart, textLength() - cmdStart);
 		} catch	(BadLocationException e) {
 			// should not happen
 			System.out.println("Internal JConsole Error: "+e);
@@ -429,8 +429,8 @@ public class JConsole extends JScrollPane
 		else
 			showline = (String)history.elementAt( history.size() - histLine	);
 
-		replaceRange( showline,	cmdStart, text.getText().length() );
-		text.setCaretPosition(text.getText().length());
+		replaceRange( showline,	cmdStart, textLength() );
+		text.setCaretPosition(textLength());
 		text.repaint();
 	}
 
@@ -817,6 +817,8 @@ public class JConsole extends JScrollPane
 		else
 			setCursor( Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR) );
 	}
+
+	private int textLength() { return text.getDocument().getLength(); }
 
 }
 

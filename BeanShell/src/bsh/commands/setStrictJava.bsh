@@ -1,4 +1,5 @@
 /**
+	Enable or disable "Strict Java Mode".
 	When strict Java mode is enabled BeanShell will:
 	<p>
 
@@ -9,6 +10,14 @@
 	a java class.  e.g. if you can write a method called incrementFoo() that 
 	will do the expected thing without referring to "super.foo".
 	</ul>
+	<p/>
+
+	See "Strict Java Mode" for more details.
+	<p/>
+
+	<em>Note: Currently most standard BeanShell commands will not work in 
+	Strict Java mode simply because they have not been written with full
+	types, etc.
 */
 
 void setStrictJava( boolean val ) 

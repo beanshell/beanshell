@@ -3,7 +3,7 @@
 
 BeanShell is, foremost, a Java interpreter. So you probably already know 
 most of what you need to start scripting with BeanShell.  This 
-section describes specifically what portion of the Java langauge BeanShell 
+section describes specifically what portion of the Java language BeanShell 
 interprets and how BeanShell extends it or "loosens it" to be more 
 scripting-language-like.
 <p/>
@@ -203,7 +203,7 @@ h{"foo"} = "bar";          // Equivalent to: h.put("foo", "bar");
 </example>
 
 <em>
-This syntax will be refined and broadenend to cover general Java collections
+This syntax will be refined and broadened to cover general Java collections
 in an upcoming release.
 </em>
 

@@ -78,7 +78,7 @@ note that unlike the BeanShell desktop environment -
 All remote sessions share the same global scope.
 </strong>
 You are effectively working in the same interpreter instance for all 
-connections.  This is intended as a feature, as the primary usefullness of
+connections.  This is intended as a feature, as the primary usefulness of
 this mode is for debugging.  You can set variables and access components
 across many sessions.
 <p/>
@@ -104,7 +104,7 @@ Here we have set up the interpreter instance just as we would to do any
 other kind of scripting - passing in Java objects using set().  In this case
 we passed a general reference to our application using 'this', as well.
 We have turned on accessibility so that we can access private and protected
-members of our classes (usefull for debugging).  Finally we start the server
+members of our classes (useful for debugging).  Finally we start the server
 on the desired port.
 
 <h2>Telnet Access</h2>

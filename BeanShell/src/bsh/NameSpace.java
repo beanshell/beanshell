@@ -41,6 +41,9 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
 
+// TODO:: test effect of removing all caching from this class and relying on
+// name caching
+
 /**
     A namespace	in which methods and variables live.  This is package public 
 	because it is used in the implementation of some bsh commands.  However
@@ -57,7 +60,6 @@ import java.io.IOException;
 */
 /*
 	Thanks to Slava Pestov (of jEdit fame) for import caching enhancements.
-
 	Note: This class has gotten too big.  It should be broken down a bit.
 */
 public class NameSpace 
@@ -77,6 +79,14 @@ public class NameSpace
     private Hashtable importedClasses;
     private This thisReference;
     private Vector importedPackages;
+	/** Name resolver objects */
+    private Hashtable names;
+
+	/** 
+		This namespace is a method body namespace.  This is used for
+		printing stack traces in exceptions.  
+	*/
+	public boolean isMethod;
 
 	/** "import *;" operation has been performed */
 	transient private static boolean superImport;
@@ -113,7 +123,8 @@ public class NameSpace
 	SimpleNode callerInfoNode;
 	/**
 		Set the node associated with the creation of this namespace.
-		This is used in debugging.
+		This is used in debugging and to support the getInvocationLine()
+		and getInvocationText() methods.
 	*/
 	void setNode( SimpleNode node ) {
 		this.callerInfoNode= node;
@@ -126,7 +137,7 @@ public class NameSpace
 		Resolve name to an object through this namespace.
 	*/
 	public Object get( String name, Interpreter interpreter ) 
-		throws EvalError 
+		throws UtilEvalError 
 	{
 		CallStack callstack = new CallStack();
 		return getNameResolver( name ).toObject( callstack, interpreter );
@@ -140,10 +151,13 @@ public class NameSpace
 		this method outside of the bsh package and wish to set variables with
 		primitive values you will have to wrap them using bsh.Primitive.
 		@see bsh.Primitive
+		<p>
+		Setting a new variable (which didn't exist before) or removing
+		a variable causes a namespace change.
 
 		@param value a value of null will remove the variable definition.
 	*/
-    public void	setVariable(String name, Object	value) throws EvalError 
+    public void	setVariable(String name, Object	value) throws UtilEvalError 
 	{
 		if ( variables == null )
 			variables =	new Hashtable();
@@ -151,30 +165,34 @@ public class NameSpace
 		// hack... should factor this out...
 		if ( value == null ) {
 			variables.remove(name);
+			nameSpaceChanged();
 			return;
 		}
 
 		// Locate the variable definition if it exists
 		// if strictJava then recurse, else default local scope
 		boolean recurse = Interpreter.strictJava;
-		Object current = getVariableImpl( name, recurse );
+		Object orig = getVariableImpl( name, recurse );
 
 		// found a typed variable
-		if ( (current != null) && (current instanceof TypedVariable) )
+		if ( (orig != null) && (orig instanceof TypedVariable) )
 		{
 			try {
-				((TypedVariable)current).setValue(value);
-			} catch(EvalError e) {
-				throw new EvalError(
+				((TypedVariable)orig).setValue(value);
+			} catch ( UtilEvalError e ) {
+				throw new UtilEvalError(
 					"Typed variable: " + name + ": " + e.getMessage());
 			} 
 		} else
 			if ( Interpreter.strictJava )
-				throw new EvalError(
+				throw new UtilEvalError(
 					"(Strict Java mode) Assignment to undeclared variable: "
 					+name );
 			else
 				variables.put(name, value);
+
+		if ( orig == null )
+			nameSpaceChanged();
     }
 
 	/**
@@ -268,10 +286,7 @@ public class NameSpace
 	/**
 		A This object is a thin layer over a namespace, comprising a bsh object
 		context.  We create it here only if needed for the namespace.
-
-		Note: that This is factoried for different capabilities.  When we
-		add classpath modification we'll have to have a listener here to
-		uncache the This reference and allow it to be refactoried.
+		Are there any cases where we need to destroy this reference?
 	*/
     This getThis( Interpreter declaringInterpreter ) {
 
@@ -286,17 +301,6 @@ public class NameSpace
 	*/
 	public void prune() {
 		setParent( null );
-
-	/*
-	Do we need this?
-	If so, fix the loop... can get Vectors of methods as well as methods
-
-		if ( methods != null )
-			// Prune the methods of this namespace - detach the nodes
-			// from their parent nodes. 
-			for( Enumeration e=methods.elements(); e.hasMoreElements(); )
-				((BshMethod)e.nextElement()).method.prune();
-	*/
 	}
 
 	public void setParent( NameSpace parent ) {
@@ -382,7 +386,7 @@ public class NameSpace
     */
     public void	setTypedVariable(
 		String	name, Class type, Object value,	boolean	isFinal) 
-		throws EvalError 
+		throws UtilEvalError 
 	{
 		if (variables == null)
 			variables =	new Hashtable();
@@ -422,7 +426,7 @@ public class NameSpace
 			{
 				// if it had a different type throw error
 				if ( ((TypedVariable)existing).getType() != type )
-					throw new EvalError( "Typed variable: "+name
+					throw new UtilEvalError( "Typed variable: "+name
 						+" was previously declared with type: " 
 						+ ((TypedVariable)existing).getType() );
 				else {
@@ -470,6 +474,7 @@ public class NameSpace
 		this method outside of the bsh package you will have to be familiar
 		with BeanShell's use of the Primitive wrapper class.
 		@see bsh.Primitive
+		@return apparently the method or null
 	*/
     public BshMethod getMethod( String name, Class [] sig ) 
 	{
@@ -654,7 +659,8 @@ public class NameSpace
 		}
 
 		// Not found
-		Interpreter.debug("getClass(): " + name	+ " not	found in "+this);
+		if ( Interpreter.DEBUG ) 
+			Interpreter.debug("getClass(): " + name	+ " not	found in "+this);
 		return null;
     }
 
@@ -689,9 +695,9 @@ public class NameSpace
 				if ( Name.isCompound( fullname ) )
 					try {
 						clas = getNameResolver( fullname ).toClass();
-					} catch ( EvalError e ) { /* not a class */ }
+					} catch ( ClassNotFoundException e ) { /* not a class */ }
 				else 
-					Interpreter.debug(
+					if ( Interpreter.DEBUG ) Interpreter.debug(
 						"imported unpackaged name not found:" +fullname);
 
 				// If found cache the full name in BshClassManager
@@ -748,7 +754,7 @@ public class NameSpace
 
 	/**
 		Implements NameSource
-		@return all class and variable names in this and all parent
+		@return all variable and method names in this and all parent
 		namespaces
 	*/
 	public String [] getAllNames() 
@@ -793,7 +799,7 @@ public class NameSpace
 		This can take a while.
 	*/
 	public static void doSuperImport() 
-		throws EvalError
+		throws UtilEvalError
 	{
 		BshClassManager bcm = BshClassManager.getClassManager();
 		if ( bcm != null )
@@ -808,7 +814,7 @@ public class NameSpace
 		boolean	isFinal;
 
 		TypedVariable(Class type, Object value,	boolean	isFinal)
-			throws EvalError
+			throws UtilEvalError
 		{
 			this.type =	type;
 			if ( type == null )
@@ -820,10 +826,10 @@ public class NameSpace
 		/**
 			Set the value of the typed variable.
 		*/
-		void setValue(Object val) throws EvalError
+		void setValue(Object val) throws UtilEvalError
 		{
 			if ( isFinal && value != null )
-				throw new EvalError ("Final variable, can't assign");
+				throw new UtilEvalError ("Final variable, can't assign");
 
 			// do basic assignability check
 			val = getAssignableForm(val, type);
@@ -835,8 +841,8 @@ public class NameSpace
 				try {
 					val = BSHCastExpression.castPrimitive( 
 						(Primitive)val, type );
-				} catch ( EvalError e ) {
-					throw new InterpreterError("auto assignment cast failed");
+				} catch ( UtilEvalError e ) {
+					throw new InterpreterError("Auto assignment cast failed");
 				}
 
 			this.value= val;
@@ -856,7 +862,7 @@ public class NameSpace
 		@see #getAssignableForm( Object, Class )
 	*/
     public static Object checkAssignableFrom(Object rhs, Class lhsType)
-		throws EvalError
+		throws UtilEvalError
     {
 		return getAssignableForm( rhs, lhsType );
 	}
@@ -887,12 +893,12 @@ public class NameSpace
 		operations and method selection.
 		<p>
 
-		@return an assignable form of the RHS or throws EvalError
-		@throws EvalError on non assignable
+		@return an assignable form of the RHS or throws UtilEvalError
+		@throws UtilEvalError on non assignable
 		@see BSHCastExpression#castObject( java.lang.Object, java.lang.Class )
 	*/
     public static Object getAssignableForm( Object rhs, Class lhsType )
-		throws EvalError
+		throws UtilEvalError
     {
 	/*
 		Notes:
@@ -916,13 +922,13 @@ public class NameSpace
 			throw new InterpreterError("Null value in getAssignableForm.");
 
 		if(rhs == Primitive.VOID)
-			throw new EvalError( "Undefined variable or class name");
+			throw new UtilEvalError( "Undefined variable or class name");
 
 		if (rhs == Primitive.NULL)
 			if(!lhsType.isPrimitive())
 				return rhs;
 			else
-				throw new EvalError(
+				throw new UtilEvalError(
 					"Can't assign null to primitive type " + lhsType.getName());
 
 		Class rhsType;
@@ -1053,11 +1059,11 @@ public class NameSpace
 		return rhs;
     }
 
-    private static void	assignmentError(Class lhs, Class rhs) throws EvalError
+    private static void	assignmentError(Class lhs, Class rhs) throws UtilEvalError
     {
 		String lhsType = Reflect.normalizeClassName(lhs);
 		String rhsType = Reflect.normalizeClassName(rhs);
-		throw new EvalError ("Can't assign " + rhsType + " to "	+ lhsType);
+		throw new UtilEvalError ("Can't assign " + rhsType + " to "	+ lhsType);
     }
 
 	public String toString() {
@@ -1073,17 +1079,21 @@ public class NameSpace
 		Don't serialize non-serializable objects.
 	*/
     private synchronized void writeObject(java.io.ObjectOutputStream s)
-        throws IOException {
-
-		// do something here
+        throws IOException 
+	{
+		// clear name resolvers... don't know if this is necessary.
+		names = null;
+	
 		s.defaultWriteObject();
 	}
 
 	/**
 		Invoke a method in this namespace with the specified args and
 		interpreter reference.  The caller namespace is set to this namespace.
-		This is a convenience for users outside of this package.
+		This is a convenience for users outside of this package. It passes
+		a null callerInfo reference, which creates a new stack.
 		<p>
+
 		Note: this method is primarily intended for use internally.  If you use
 		this method outside of the bsh package and wish to use variables with
 		primitive values you will have to wrap them using bsh.Primitive.
@@ -1121,18 +1131,18 @@ public class NameSpace
 		// Look for method in the bsh object
         BshMethod meth = getMethod( methodName, Reflect.getTypes( args ) );
         if ( meth != null )
-           return meth.invokeDeclaredMethod( args, interpreter, callstack, callerInfo );
+           return meth.invoke( args, interpreter, callstack, callerInfo );
 
 		// Look for a default invoke() handler method
 		meth = getMethod( "invoke", new Class [] { null, null } );
 
 		// Call script "invoke( String methodName, Object [] args );
 		if ( meth != null )
-			return meth.invokeDeclaredMethod( 
-				new Object [] { methodName, args }, interpreter, callstack, callerInfo );
+			return meth.invoke( new Object [] { methodName, args }, 
+				interpreter, callstack, callerInfo );
 
 		throw new EvalError( "No locally declared method: " 
-			+ methodName + " in namespace: " + this );
+			+ methodName + " in namespace: " + this, callerInfo, callstack );
 	}
 
 	/**
@@ -1147,6 +1157,7 @@ public class NameSpace
 	*/
 	public void nameSpaceChanged() {
 		classCache = null;
+		names = null;
 	}
 
 	/**
@@ -1208,9 +1219,18 @@ public class NameSpace
 		(This would be called getName() if it weren't already used for the
 		simple name of the NameSpace)
 	*/
-	Name getNameResolver( String name ) {
-		// no caching yet
-		return new Name(this,name);
+	public Name getNameResolver( String ambigname ) 
+	{
+		if ( names == null )
+			names = new Hashtable();
+		Name name = (Name)names.get( ambigname );
+		if ( name == null ) {
+			name = new Name( this, ambigname );
+			names.put( ambigname, name );
+		} else {
+		}
+
+		return name;
 	}
 
 	public int getInvocationLine() {
@@ -1255,6 +1275,7 @@ public class NameSpace
 		if ( parent == null )
 			loadDefaultImports();	
     	classCache = null;
+		names = null;
 	}
 }
 

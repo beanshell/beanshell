@@ -114,7 +114,7 @@ class LHS implements ParserConstants, java.io.Serializable
 		this.index = index;
 	}
 
-	public Object getValue() throws EvalError
+	public Object getValue() throws UtilEvalError
 	{
 		if(type == VARIABLE)
 			return nameSpace.getVariable(varName);
@@ -123,7 +123,7 @@ class LHS implements ParserConstants, java.io.Serializable
 				return field.get(object);
 			}
 			catch(IllegalAccessException e2) {
-				throw new EvalError("Can't read field: " + field);
+				throw new UtilEvalError("Can't read field: " + field);
 			}
 		else if(type == PROPERTY)
 			try {
@@ -131,7 +131,7 @@ class LHS implements ParserConstants, java.io.Serializable
 			}
 			catch(ReflectError e) {
 				Interpreter.debug(e.getMessage());
-				throw new EvalError("No such property: " + propName);
+				throw new UtilEvalError("No such property: " + propName);
 			}
 		else if(type == INDEX)
 			try
@@ -140,13 +140,13 @@ class LHS implements ParserConstants, java.io.Serializable
 			}
 			catch(Exception e)
 			{
-				throw new EvalError("Array access: " + e);
+				throw new UtilEvalError("Array access: " + e);
 			}
 
 		throw new InterpreterError("LHS type");
 	}
 
-	public Object assign( Object val ) throws EvalError
+	public Object assign( Object val ) throws UtilEvalError
 	{
 		if ( type == VARIABLE )
 			nameSpace.setVariable(varName, val);
@@ -160,21 +160,21 @@ class LHS implements ParserConstants, java.io.Serializable
 				return val;
 			}
 			catch( NullPointerException e) {   
-    			throw new EvalError(
+    			throw new UtilEvalError(
 					"LHS ("+field.getName()+") not a static field.");
 			}     
    			catch( IllegalAccessException e2) {   
-				throw new EvalError(
+				throw new UtilEvalError(
 					"LHS ("+field.getName()+") can't access field.");
 			}     
 			catch( IllegalArgumentException e3) {
-				throw new EvalError(
+				throw new UtilEvalError(
 					"Argument type mismatch. "
 					+ (val == null ? "null" : val.getClass().getName())
 					+ " not assignable to field "+field.getName());
 			}
 
-		else if(type == PROPERTY)
+		else if ( type == PROPERTY )
 			if ( object instanceof Hashtable )
 				((Hashtable)object).put(propName, val);
 			else
@@ -183,15 +183,15 @@ class LHS implements ParserConstants, java.io.Serializable
 				}
 				catch(ReflectError e) {
 					Interpreter.debug("Assignment: " + e.getMessage());
-					throw new EvalError("No such property: " + propName);
+					throw new UtilEvalError("No such property: " + propName);
 				}
-		else if(type == INDEX)
+		else if ( type == INDEX )
 			try {
 				Reflect.setIndex(object, index, val);
-			} catch(TargetError e1) { // pass along target error
+			} catch ( UtilTargetError e1 ) { // pass along target error
 				throw e1;
-			} catch(Exception e) {
-				throw new EvalError("Assignment: " + e.getMessage());
+			} catch ( Exception e ) {
+				throw new UtilEvalError("Assignment: " + e.getMessage());
 			}
 
 		return val;

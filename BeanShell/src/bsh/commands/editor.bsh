@@ -1,5 +1,8 @@
 /**
-	Open a workspace editor.
+	Open a GUI editor from the command line or in the GUI desktop mode.
+	When run from the command line the editor is a simple standalone
+	frame.  When run inside the GUI desktop it is a workspace editor.
+	See workspaceEditor()
 */
 
 bsh.help.editor = "usage: editor()";
