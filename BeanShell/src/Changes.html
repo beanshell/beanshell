@@ -2,7 +2,7 @@
 <head><title>BeanShell - Change Log</title></head>
 <body bgcolor=#ffffff>
 
-<h2>Changes up to 1.2b3 </h2>
+<h2>Changes in 1.2b2 and 1.2b3 </h2>
 <pre>
 	- Fixed nasty bug in grammar, added test cases to expression.bsh
 	Note: this bug was preventing the latest version of bsh from being used
@@ -23,6 +23,8 @@
 		getErrorText(), and getErrorSourceFile()
 	- In interactive mode, the last uncaught exception is now available in
 		the variable $_e (like the $_ last result).
+	- Improved the way that imported class names are cached in namespaces,
+		reducing the number of caches created and improving performance.
 
 </pre>
 </h2>

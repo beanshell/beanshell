@@ -22,9 +22,8 @@ import ambiguous.pkg2.*;
 import ambiguous.pkg1.*;
 
 // before disambiguation
-// earlier imprort takes precedence
+// earlier import takes precedence
 assert( new Foo().pkg.equals("pkg1") );
-
 
 // Disambiguate with a class import
 // Without this in Java the above would be a compile time error.
