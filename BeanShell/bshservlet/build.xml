@@ -1,0 +1,74 @@
+<project name="bshservlet" default="all" basedir=".">
+
+<!-- Project Configuration -->
+
+	<property name="version" value="1.0"/>
+	<property name="src-dir" value="src"/>
+	<property name="build-dir" value="classes"/>
+	<property name="war-file" value="bshservlet.war"/>
+	<property name="war-file-wbsh" value="bshservlet-wbsh.war"/>
+
+	<!-- 
+		The name of the bsh jar file to include in the lib dir of the
+		"with bsh" version of the WAR file and the directory where it lives.
+	-->
+	<property name="bsh-jar" value="bsh-1.2b2.jar"/>
+	<property name="bsh-dir" value=".."/>
+	
+	<property name="deprecation" value="off"/>
+
+<!-- Begin Targets -->
+	<target name="all" depends="war,war-wbsh"/>
+
+	<target name="compile" depends="">
+		<mkdir dir="${build-dir}"/>
+		<javac 
+			srcdir="${src-dir}"
+			destdir="${build-dir}"
+			deprecation="${deprecation}"
+			optimize="off"
+			includes="**/*.java"
+		/>
+		<!-- install bsh commands -->
+		<copy todir="${build-dir}/bsh/commands">
+			<fileset dir="${src-dir}">
+				<include name="*.bsh"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="war" depends="compile">
+		<war warfile="${war-file}" webxml="web.xml">
+			<classes dir="${build-dir}" includes="**/*"/>
+			<fileset dir="root" includes="**/*"/>
+			<!--webinf dir="WEB-INF" includes="**/*" /-->
+		</war>
+	</target>
+
+	<target name="war-wbsh" depends="compile">
+		<war warfile="${war-file-wbsh}" webxml="web.xml">
+			<classes dir="${build-dir}" includes="**/*"/>
+			<fileset dir="root" includes="**/*"/>
+			<lib dir="${bsh-dir}" includes="${bsh-jar}"/>
+			<!--webinf dir="WEB-INF" includes="**/*" /-->
+		</war>
+	</target>
+
+	<target name="clean">
+		<delete quiet="true" includeEmptyDirs="true">
+			<!-- this is ridiculous, I have to repeat it to get all of the
+				subdirectories -->
+			<fileset dir="." includes="${build-dir}/**/*"/>
+			<fileset dir="." includes="${build-dir}/**/*"/>
+			<fileset dir="." includes="${build-dir}/**/*"/>
+			<fileset dir="." includes="${build-dir}/**/*"/>
+			<fileset dir="." includes="${build-dir}/**/*"/>
+			<fileset dir="." includes="${build-dir}/**/*"/>
+			<fileset dir="." includes="${build-dir}/**/*"/>
+			<fileset dir="." includes="${build-dir}"/>
+		</delete>
+		<delete file="${war-file}"/>
+		<delete file="${war-file-wbsh}"/>
+	</target>
+
+</project>
