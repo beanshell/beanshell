@@ -102,14 +102,6 @@ public class NameSpace
 		printing stack traces in exceptions.  
 	*/
 	boolean isMethod;
-	/**
-		Note that the namespace is a class body or instance namespace.
-		This is used to affect the behavior of static and 'this' references 
-		in classes.  This should probably be factored out into a subclass of
-		NameSpace
-	*/
-	boolean isClass;
-	boolean isClassInstance;
 
 	/**
 		Local class cache for classes resolved through this namespace using 
@@ -216,9 +208,6 @@ public class NameSpace
 	{
 		// if localscoping switch follow strictJava, else recurse
 		boolean recurse = Interpreter.LOCALSCOPING ? strictJava : true;
-		// class instance is top scope for loose vars
-		if ( isClassInstance ) 
-			recurse = false;
 		setVariable( name, value, strictJava, recurse );
 	}
 
@@ -291,7 +280,8 @@ public class NameSpace
 			// This modification makes default allocation local
 			NameSpace varScope = this;
 
-			varScope.variables.put( name, new Variable( value, null/*mods*/ ) );
+			varScope.variables.put( 
+				name, new Variable( name, value, null/*modifiers*/ ) );
 
 			// nameSpaceChanged() on new variable addition
 			nameSpaceChanged();
@@ -332,6 +322,10 @@ public class NameSpace
 	/**
 		Get the methods defined in this namespace.
 		(This does not show methods in parent namespaces).
+	*/
+	/*
+		This should probably be renamed getDeclaredMethod() and have
+		it return all methods in super
 	*/
 	public BshMethod [] getMethods() {
 		if ( methods == null )
@@ -529,20 +523,10 @@ public class NameSpace
 		throws UtilEvalError
 	{
 		Variable var = null;
-
 		if ( variables != null )
 			var	= (Variable)variables.get(name);
 
-		// If we are a class declaration space being asked for an instance
-		// variable throw an exception.
-		if ( isClass && var != null && !var.hasModifier("static") )
-			throw new UtilEvalError(
-				"Can't reach instance var: "+name
-					+" from static context: "+this);
-
-		// If we are a class instance ignore any static variables and allow
-		// them to be found in the static class space.
-		if ( isClassInstance && var != null && var.hasModifier("static") )
+		if ( !isVisible( var ) )
 			var = null;
 
 		// try parent
@@ -551,6 +535,15 @@ public class NameSpace
 
 		return var;
     }
+
+	/**
+		This is a hook to allow ClassNameSpace to add functionality here.
+	*/
+	protected boolean isVisible( Variable var )
+		throws UtilEvalError
+	{
+		return true;
+	}
 
 	/**
 		Unwrap a variable to its value.
@@ -597,11 +590,7 @@ public class NameSpace
 		String	name, Class type, Object value,	Modifiers modifiers )
 		throws UtilEvalError 
 	{
-		if ( !isClass && !isClassInstance 
-			&& modifiers!=null && modifiers.hasModifier("static") 
-		)
-			throw new UtilEvalError(
-				"Can't declare static variable outside of class: "+name );
+		checkVariableModifiers( name, modifiers );
 
 		if ( variables == null )
 			variables =	new Hashtable();
@@ -640,8 +629,20 @@ public class NameSpace
 		} 
 
 		// Add the new typed var
-		variables.put( name, new Variable( type, value, modifiers ) );
+		variables.put( name, new Variable( name, type, value, modifiers ) );
     }
+
+	/**
+		Dissallow static vars outside of a class
+		@param name is here just to allow the error message to use it
+	*/
+	protected void checkVariableModifiers( String name, Modifiers modifiers )
+		throws UtilEvalError
+	{
+		if ( modifiers!=null && modifiers.hasModifier("static") )
+			throw new UtilEvalError(
+				"Can't declare static variable outside of class: "+name );
+	}
 
 	/**
 		Note: this is primarily for internal use.
@@ -651,9 +652,7 @@ public class NameSpace
     public void	setMethod( String name, BshMethod method )
 		throws UtilEvalError
 	{
-		if ( !isClass && !isClassInstance && method.hasModifier("static") )
-			throw new UtilEvalError(
-				"Can't declare static method outside of class: "+name );
+		checkMethodModifiers( method );
 
 		if ( methods == null )
 			methods = new Hashtable();
@@ -671,6 +670,15 @@ public class NameSpace
 		} else // Vector
 			((Vector)m).addElement( method );
     }
+
+	protected void checkMethodModifiers( BshMethod method )
+		throws UtilEvalError
+	{
+		if ( method.hasModifier("static") )
+			throw new UtilEvalError(
+				"Can't declare static method outside of class: "
+				+method.getName() );
+	}
 
 	/**
 		Get the bsh method matching the specified signature declared in 
@@ -714,24 +722,8 @@ public class NameSpace
 				method = ma[match];
 		}
 
-		// Limit static. If we are a class def space being asked for an instance
-		// method throw an exception.
-		if ( isClass && method != null && !method.hasModifier("static") 
-			// Bit of a hack, allow us to see default constructor
-			&& !name.equals( BSHClassDeclaration.DEFCONSNAME )
-			// See regular constructors
-			&& !nsName.equals( name )
-		)
-			throw new UtilEvalError(
-				"Can't reach instance method: "+name
-				+" from static context: "+this);
-
-		// If we are a class instance ignore any static methods and allow
-		// them to be found in the static class space.
-		if ( isClassInstance && method != null 
-			&& method.hasModifier("static") 
-		)
-			method  = null;
+		if ( !isVisible( method ) )
+			method = null;
 
 		// try parent
 		if ( (method == null) && (parent != null) )
@@ -739,6 +731,16 @@ public class NameSpace
 
 		return method;
     }
+
+	/**
+		This is a hook to allow ClassNameSpace to add functionality to 
+		getMethod() 
+	*/
+	protected boolean isVisible( BshMethod method )
+		throws UtilEvalError
+	{
+		return true;
+	}
 
 	/**
 		Import a class name.
@@ -913,9 +915,6 @@ public class NameSpace
 		return meth;
 	}
 
-// debug
-//public static int cacheCount = 0;
-
 	/**
 		Helper that caches class.
 	*/
@@ -928,7 +927,6 @@ public class NameSpace
 		classCache.put(name, c);
 	}
 
-//public static long getClassImplTime = 0;
 	/**
 		Load a class through this namespace taking into account imports.
 		The class search will proceed through the parent namespaces if
@@ -939,10 +937,7 @@ public class NameSpace
     public Class getClass( String name)
 		throws UtilEvalError
     {
-//long l1 = System.currentTimeMillis();
 		Class c = getClassImpl(name);
-//long l2 = System.currentTimeMillis();
-//getClassImplTime += (l2-l1);
 		if ( c != null )
 			return c;
 		else
@@ -990,7 +985,7 @@ public class NameSpace
 		if ( unqualifiedName ) 
 		{
 			// Temporary workaround for scripted classes
-			c = getScriptedClass( name );
+			c = getTypeForScriptedClass( name );
 
 			// Try imported class
 			if ( c == null )
@@ -1021,11 +1016,11 @@ public class NameSpace
 	/**
 		Temporary workaround for scripted classes.  Return bsh.This class.
 	*/
-	private Class getScriptedClass( String name ) 
+	private Class getTypeForScriptedClass( String name ) 
 		throws UtilEvalError // probably shouldn't
 	{
 		Object obj = getVariable( name, true/*recurse*/ );
-		if ( obj instanceof This && ((This)obj).getNameSpace().isClass )
+		if ( ClassNameSpace.isScriptedClass( obj ) )
 			return This.class;
 
 		return null;
@@ -1386,10 +1381,7 @@ public class NameSpace
     }
 
 	public String toString() {
-		return
-			"NameSpace: " 
-			+(isClass?"Scripted Class ":"") 
-			+(isClassInstance?"Scripted Class Instance ":"") 
+		return "NameSpace: " 
 			+ ( nsName==null
 				? super.toString()
 				: nsName + " (" + super.toString() +")" );
@@ -1579,19 +1571,21 @@ public class NameSpace
     static class Variable implements java.io.Serializable 
 	{
 		/** A null type means an untyped variable */
+		String name;
 		Class type = null;
 		Object value;
 		Modifiers modifiers;
 
-		Variable( Object value, Modifiers modifiers )
+		Variable( String name, Object value, Modifiers modifiers )
 			throws UtilEvalError
 		{
-			this( null, value, modifiers );
+			this( name, null/*type*/, value, modifiers );
 		}
 
-		Variable( Class type, Object value, Modifiers modifiers )
+		Variable( String name, Class type, Object value, Modifiers modifiers )
 			throws UtilEvalError
 		{
+			this.name=name;
 			this.type =	type;
 			this.modifiers = modifiers;
 			setValue( value );
@@ -1638,7 +1632,7 @@ public class NameSpace
 		}
 
 		public String toString() { 
-			return "Variable type:"+type+", value:"+value;
+			return "Variable: "+name+", type:"+type+", value:"+value;
 		}
     }
 

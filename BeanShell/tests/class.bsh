@@ -11,6 +11,8 @@ class Foo
 	bsh.This instanceThis = this;
 	q=5; // loose vars act like instance vars
 
+	Foo() { } 
+
 	Foo( int c ) {
 		b=c;
 	}

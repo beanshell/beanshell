@@ -39,9 +39,13 @@ package bsh;
 class BSHClassDeclaration extends SimpleNode
 {
 	/**
-		Default constructor name.
+		The class instance initializer method name.
+		A BshMethod by this name is installed by the class delcaration into 
+		the scripted class and it is called to initialize instances of the
+		class.
 	*/
-	static final String DEFCONSNAME= "_bshinit";
+	static final String CLASSINITNAME = "_bshClassInit";
+
 	String name;
 	Modifiers modifiers;
 	int numInterfaces;
@@ -58,7 +62,7 @@ class BSHClassDeclaration extends SimpleNode
 		int child = 0;
 		NameSpace enclosingNameSpace = callstack.top();
 
-		NameSpace superNameSpace = null;
+		NameSpace superNameSpace;
 		if ( extend ) 
 		{
 			BSHAmbiguousName superNode = (BSHAmbiguousName)jjtGetChild(child++);
@@ -70,12 +74,14 @@ class BSHClassDeclaration extends SimpleNode
 					"BeanShell Scripted Classes cannot currently extend "
 					+"Java types.", this, callstack );
 
-			if ( superClass instanceof This 
-				&& ((This)superClass).getNameSpace().isClass 
-			)
+			if ( ClassNameSpace.isScriptedClass( superClass ) )
 				superNameSpace = ((This)superClass).getNameSpace();
+			else
+				throw new EvalError(
+					"Class cannot extend type: "
+						+superClass.getClass(), this, callstack );
 		}
-		if ( superNameSpace == null )
+		else
 			superNameSpace = enclosingNameSpace;
 
 		// Get interfaces
@@ -102,8 +108,7 @@ class BSHClassDeclaration extends SimpleNode
 		*/
 
 		NameSpace classStaticNameSpace = 
-			new NameSpace( superNameSpace, name );
-		classStaticNameSpace.isClass = true;
+			new ClassNameSpace( superNameSpace, name, ClassNameSpace.CLASS );
 
 		/*
 			Evaluate the block in the classStaticNameSpace
@@ -116,9 +121,9 @@ class BSHClassDeclaration extends SimpleNode
 
 		// Add the block as a default constructor method
 
-		BshMethod defaultConstructor =
+		BshMethod classInitializer =
 			new BshMethod( 
-				DEFCONSNAME, 
+				CLASSINITNAME, 
 				null /*returnType*/,
 				new String [0] /*argNames*/,
 				new Class [0] /*argTypes*/,
@@ -128,7 +133,7 @@ class BSHClassDeclaration extends SimpleNode
 			);
 
 		try {
-			classStaticNameSpace.setMethod( DEFCONSNAME, defaultConstructor );	
+			classStaticNameSpace.setMethod( CLASSINITNAME, classInitializer );	
 		} catch ( UtilEvalError e ) {
 			throw e.toEvalError(this, callstack);
 		}
