@@ -163,8 +163,8 @@ public class JConsole extends JScrollPane
 						cmdStart = text.getText().length();
 						text.setCaretPosition(cmdStart);
 					}
-					e.consume();
 				}
+				e.consume();
 				text.repaint();
 				break;
 
@@ -187,6 +187,7 @@ public class JConsole extends JScrollPane
 			case ( KeyEvent.VK_DELETE ):
 				if (text.getCaretPosition() <= cmdStart) {
 					e.consume();
+System.out.println("back beyond prompt");
 				}
 				break;
 
@@ -242,6 +243,14 @@ public class JConsole extends JScrollPane
 					}
 					e.consume();
 				}
+				break;
+
+			case ( KeyEvent.VK_TAB ):
+			    if (e.getID() == KeyEvent.KEY_RELEASED) {
+					String part = text.getText().substring( cmdStart );
+					System.out.println("TAB: " +part);
+				}
+				e.consume();
 				break;
 
 			default:

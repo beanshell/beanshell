@@ -8,6 +8,7 @@ import java.io.File;
 import bsh.ConsoleInterface;
 import bsh.StringUtil;
 import bsh.ClassPathException;
+import bsh.NameCompletionTable;
 
 /**
 	A BshClassPath encapsulates knowledge about a class path of URLs.
@@ -31,20 +32,21 @@ public class BshClassPath
 {
 	String name;
 
-	/** Set of classes in a package mapped by package name */
-	Map packageMap;
-
-	/** Map of source (URL or File dir) of every clas */
-	Map classSource;
-
-	/**  Do lazy initialization of the maps... */
-	boolean mapsInitialized;
-
 	/** The URL path components */
 	private List path;
-
 	/** Ordered list of components BshClassPaths */
 	private List compPaths;
+
+	/** Set of classes in a package mapped by package name */
+	private Map packageMap;
+	/** Map of source (URL or File dir) of every clas */
+	private Map classSource;
+	/**  The packageMap and classSource maps have been built. */
+	private boolean mapsInitialized;
+
+	private UnqualifiedNameTable unqNameTable;
+	private NameCompletionTable nameCompletionTable;
+	private boolean nameCompletionIncludesUnqNames;
 
 	// constructors
 
@@ -97,10 +99,10 @@ public class BshClassPath
 	}
 
 	/**
-		Return the set of classes in the specified package
+		Return the set of class names in the specified package
 		including all component paths.
 	*/
-	public Set getClassesForPackage( String pack ) {
+	synchronized public Set getClassesForPackage( String pack ) {
 		insureInitialized( null );
 		Set set = new HashSet();
 		Collection c = (Collection)packageMap.get( pack );
@@ -121,7 +123,7 @@ public class BshClassPath
 		Return the source of the specified class
 		which may lie in component path
 	*/
-	public ClassSource getClassSource( String className ) {
+	synchronized public ClassSource getClassSource( String className ) {
 		insureInitialized( null );
 		ClassSource cs = (ClassSource)classSource.get( className );
 		if ( cs == null && compPaths != null )
@@ -156,7 +158,7 @@ public class BshClassPath
 			implies action taken to guard against attack or
 			loss.
 	*/
-	public void insureInitialized( ConsoleInterface feedback ) {
+	synchronized public void insureInitialized( ConsoleInterface feedback ) {
 		if ( compPaths != null )
 			for (int i=0; i< compPaths.size(); i++)
 				((BshClassPath)compPaths.get(i)).insureInitialized( feedback );
@@ -201,8 +203,7 @@ public class BshClassPath
 	public String getClassNameByUnqName( String name ) 
 		throws ClassPathException
 	{
-		if ( unqNameTable == null )
-			buildUnqualifiedNameTable();
+		UnqualifiedNameTable unqNameTable = getUnqualifiedNameTable();
 
 		Object obj = unqNameTable.get( name );
 		if ( obj instanceof AmbiguousName )
@@ -212,9 +213,16 @@ public class BshClassPath
 		return (String)obj;
 	}
 
-	static UnqualifiedNameTable unqNameTable;
-	private void buildUnqualifiedNameTable() {
-		unqNameTable = new UnqualifiedNameTable();
+	UnqualifiedNameTable getUnqualifiedNameTable() {
+		if ( unqNameTable == null )
+			unqNameTable = buildUnqualifiedNameTable();
+		return unqNameTable;
+	}
+
+	private UnqualifiedNameTable buildUnqualifiedNameTable() 
+	{
+		insureInitialized(null);
+		UnqualifiedNameTable unqNameTable = new UnqualifiedNameTable();
 
 		// add component names
 		if ( compPaths != null )
@@ -229,9 +237,45 @@ public class BshClassPath
 		Iterator it = classSource.keySet().iterator();
 		while(it.hasNext()) 
 			unqNameTable.add( (String)it.next() );
+		
+		return unqNameTable;
 	}
 
-	void map( URL [] urls, ConsoleInterface feedback ) { 
+	public String [] completeClassName( String part, int max ) {
+		return getNameCompletionTable().completeName( part, max );
+	}
+
+	NameCompletionTable getNameCompletionTable() {
+		if ( nameCompletionTable == null )
+			nameCompletionTable = buildNameCompletionTable();
+		return nameCompletionTable;
+	}
+
+	/**
+		build the name completion table from all names in our packages
+		optionally including unqualified names
+	*/
+	private NameCompletionTable buildNameCompletionTable() 
+	{
+		insureInitialized(null);
+System.out.println("building name completion table...");
+		NameCompletionTable ncTable = new NameCompletionTable();
+
+		Iterator it = getPackagesSet().iterator();
+		while( it.hasNext() ) {
+			String pack = (String)it.next();
+			ncTable.addAll( 
+				removeInnerClassNames( getClassesForPackage( pack ) ) ); 
+		}
+
+		if ( nameCompletionIncludesUnqNames )
+			ncTable.addAll( getUnqualifiedNameTable().keySet() );
+
+System.out.println("done build...");
+		return ncTable;
+	}
+
+	synchronized void map( URL [] urls, ConsoleInterface feedback ) { 
 		for(int i=0; i< urls.length; i++)
 			try{
 				map( urls[i], feedback );
@@ -244,7 +288,9 @@ public class BshClassPath
 			}
 	}
 
-	void map( URL url, ConsoleInterface feedback ) throws IOException { 
+	synchronized void map( URL url, ConsoleInterface feedback ) 
+		throws IOException 
+	{ 
 		String name = url.getFile();
 		File f = new File( name );
 
@@ -296,13 +342,36 @@ public class BshClassPath
 			classSource.put( className, source );
 	}
 
-	private void reset() {
-		packageMap = new HashMap();
-		classSource = new HashMap();
-		mapsInitialized = false;
+	/**
+		Clear everything and reset the path to empty.
+	*/
+	synchronized private void reset() {
 		path = new ArrayList();
 		compPaths = null;
+		clearCachedStructures();
 	}
+
+	/**
+		Clear anything cached.  All will be reconstructed as necessary.
+	*/
+	synchronized private void clearCachedStructures() {
+		mapsInitialized = false;
+		packageMap = new HashMap();
+		classSource = new HashMap();
+		unqNameTable = null;
+		nameCompletionTable = null;
+	}
+
+	public void setNameCompletionIncludeUnqNames( boolean b ) {
+		// if the setting is changing clear the name table and allow rebuild
+		if ( nameCompletionIncludesUnqNames != b 
+				&& nameCompletionTable != null )
+			nameCompletionTable = null;
+
+		nameCompletionIncludesUnqNames = b;
+	}
+
+	// Begin Static stuff
 
 	static String [] traverseDirForClasses( File dir ) 
 		throws IOException	
@@ -411,11 +480,27 @@ public class BshClassPath
 		}
 		return new String [] { packn, classn };
 	}
+
+	/**
+		Return a new collection without any inner class names
+	*/
+	public static Collection removeInnerClassNames( Collection col ) {
+		List list = new ArrayList();
+		list.addAll(col);
+		Iterator it = list.iterator();
+		while(it.hasNext()) {
+			String name =(String)it.next();
+			if (name.indexOf("$") != -1 )
+				it.remove();
+		}
+		return list;
+	}
 	
 	/**
 		The user classpath from system property
 			java.class.path
 	*/
+
 	static URL [] userClassPathComp;
 	public static URL [] getUserClassPathComponents() 
 		throws ClassPathException
@@ -531,6 +616,7 @@ public class BshClassPath
 				}
 		}
 	}
+
 
 	public static class AmbiguousName {
 		List list = new ArrayList();
