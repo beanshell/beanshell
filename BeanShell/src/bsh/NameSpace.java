@@ -342,18 +342,25 @@ public class NameSpace
 		importedPackages.addElement(name);
     }
 
-    // This may be messed up....  if you import packages within a namespace
-    // they shadow all inherited ones.
+	/**
+		Get a list of all imported packages including parents.
+	*/
     public String[] getImportedPackages()
     {
-		if(importedPackages == null)
-			if(parent != null)
-			return parent.getImportedPackages();
-			else
-			return new String[] { };
+		Vector v = new Vector();
+		// add parent's
+		if ( parent != null ) {
+			String [] psa = parent.getImportedPackages();
+			for(int i=0; i<psa.length; i++)
+				v.addElement(psa[i]);
+		}
+		// add ours
+		if ( importedPackages != null )
+			for(int i=0; i< importedPackages.size(); i++)
+				v.addElement( importedPackages.elementAt(i) );
 
-		String[] packages = new	String[importedPackages.size()];
-		importedPackages.copyInto(packages);
+		String[] packages = new	String[ v.size() ];
+		v.copyInto(packages);
 		return packages;
     }
 
