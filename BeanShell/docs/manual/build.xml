@@ -6,16 +6,28 @@
 			http://www.easysw.com/htmldoc/ 
 		I tried many xhtml->fo stylesheets, but none seemed to work well.	
 
-	<property name="htmldoc" value="/home/niemeyp/pkg/htmldoc/bin/htmldoc"/>
-	-->
 	<property name="htmldoc" value="/pkg/htmldoc/bin/htmldoc"/>
+	-->
+	<property name="htmldoc" value="/home/niemeyp/pkg/htmldoc/bin/htmldoc"/>
 
 	<target name="manual">     
-		<!-- build it every time... later we can add an updtodate check -->
+		<!-- Build it every time... later we can add an updtodate check -->
 		<touch file="manual.xml"/>
+
+		<!-- Single page build -->
+		<!--
+		-->
 		<style style="xsl/manual.xsl" in="manual.xml" out="${bshmanual}.html">
 			<param name="imagedir" expression="${imagedir}"/>
 		</style>
+
+		<!-- multi-page build -->
+		<!--
+		<style style="xsl/manual.xsl" in="manual.xml" out="xsl.log">
+			<param name="imagedir" expression="${imagedir}"/>
+			<param name="multipage" expression="true"/>
+		</style>
+		-->
 	</target>   
 
 	<!-- Output a list of all images referenced by the manual -->
@@ -38,6 +50,7 @@
 		<delete quiet="true" file="${bshmanual}.html"/>
 		<delete quiet="true" file="${bshmanual}.pdf"/>
 		<delete quiet="true" file="imagelist.txt"/>
+		<delete quiet="true" file="xsl.log"/>
 	</target>   
 
 </project>

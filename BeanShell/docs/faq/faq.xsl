@@ -35,6 +35,7 @@
 	<html>
 	<head><title>BeanShell FAQ</title></head>
 	<body bgcolor="#ffffff">
+		<h1>BeanShell FAQ</h1>
 		<xsl:apply-templates/>
 	</body>
 	</html>
@@ -70,7 +71,12 @@
 	Table of contents
 -->
 <xsl:template match="head">
-	<h1>BeanShell FAQ</h1>
+	Authors:
+	<br/>
+	<xsl:for-each select="authors/author">
+		<xsl:value-of select="@name"/>(<xsl:value-of select="@email"/>)<br/>
+	</xsl:for-each>
+	<p/>
 	<ul>
 	<xsl:for-each select="/FAQ/body/category/entry">
 		<li>
