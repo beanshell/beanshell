@@ -24,20 +24,14 @@ import BshClassPath.DirClassSource;
 */
 public class BshClassManager
 {
-	// Singleton for now
-	private static BshClassManager manager = new BshClassManager();
-	public static BshClassManager getClassManager() {
-		return manager;
-	}
-	private BshClassManager() { 
-		reset();
-	}
-	
 	/**
-		The class path.  Initially this is the java user class path.
+		The classpath of the base loader.  Initially empty.
+		This grows as paths are added or is reset when the classpath 
+		is explicitly set.
 	*/
-	BshClassPath classPath;
+	BshClassPath baseClassPath;
 
+	// ClassPath Change listeners
 	Vector listeners = new Vector();
 
 	/**
@@ -52,6 +46,16 @@ public class BshClassManager
 		Map by classname of loaders to use for reloaded classes
 	*/
 	Map loaderMap;
+
+	// Singleton for now
+
+	private static BshClassManager manager = new BshClassManager();
+	public static BshClassManager getClassManager() {
+		return manager;
+	}
+	private BshClassManager() { 
+		reset();
+	}
 
 	public Class getClassForName( String name ) {
 		Class c = null;
@@ -115,7 +119,7 @@ public class BshClassManager
 		else {
 // opportunitty here for listener in classpath
 			baseLoader.addURL( path );
-			classPath.add( path );
+			baseClassPath.add( path );
 			classLoaderChanged();
 		}
 	}
@@ -125,8 +129,7 @@ public class BshClassManager
 	*/
 	public void reset()
 	{
-		//classPath = BshClassPath.getUserClassPath();
-		classPath = new BshClassPath();
+		baseClassPath = new BshClassPath();
 		baseLoader = null;
 		loaderMap = new HashMap();
 		classLoaderChanged();
@@ -139,7 +142,7 @@ public class BshClassManager
 	*/
 	public void setClassPath( URL [] cp ) {
 		reset();
-		classPath.add( cp );
+		baseClassPath.add( cp );
 		initBaseLoader();
 
 		// fire after change...  semantics are "has changed"
@@ -150,7 +153,7 @@ public class BshClassManager
 		init the base loader from the current classpath
 	*/
 	private void initBaseLoader() {
-		baseLoader = new BshClassLoader( classPath );
+		baseLoader = new BshClassLoader( baseClassPath );
 	}
 
 	// class reloading
@@ -174,13 +177,22 @@ public class BshClassManager
 
 		for (int i=0; i< classNames.length; i++) {
 			String name = classNames[i];
-			Object o = classPath.getClassSource( name );
+
+			// look in base loader class path 
+			Object o = baseClassPath.getClassSource( name );
+
+			// look in user class path 
+			if ( o == null )
+				o = BshClassPath.getUserClassPath().getClassSource( name );
+				
 			if ( o == null )
 				throw new ClassPathException("Nothing known about class: "
 					+name );
+
 			if ( ! (o instanceof DirClassSource) )
 				throw new ClassPathException("Cannot reload class: "+name+
 					" from source: "+o);
+
 			map.put( name, ((DirClassSource)o).getDir() );
 		}
 
@@ -203,7 +215,13 @@ public class BshClassManager
 		to unpackaged classes.
 	*/
 	public void reloadPackage( String pack ) throws ClassPathException {
-		Collection classes = classPath.getClassesForPackage( pack );
+		Collection classes = 
+			baseClassPath.getClassesForPackage( pack );
+
+		if ( classes == null )
+			classes = 
+				BshClassPath.getUserClassPath().getClassesForPackage( pack );
+
 		if ( classes == null )
 			throw new ClassPathException("No classes found for package: "+pack);
 
@@ -222,10 +240,11 @@ public class BshClassManager
 	// end reloading
 
 	/**
-	*/
+	which one?
 	public BshClassPath getClassPath() {
-		return classPath;
+		return baseClassPath;
 	}
+	*/
 
 	public static Class classForName( String name ) {
 		return getClassManager().getClassForName( name );
@@ -270,7 +289,7 @@ public class BshClassManager
 		i.println("baseLoader = "+baseLoader);
 		i.println("loaderMap= "+loaderMap);
 		i.println("----------------------- ");
-		i.println("ClassPath = "+classPath);
+		i.println("baseClassPath = "+baseClassPath);
 	}
 
 }

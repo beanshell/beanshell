@@ -109,6 +109,8 @@ public class BshClassPath
 	}
 
 	void map( URL url ) throws IOException { 
+		System.out.println("Mapping class path: "+url);
+
 		String name = url.getFile();
 		File f = new File( name );
 
@@ -141,7 +143,7 @@ public class BshClassPath
 			set = new HashSet();
 			packageMap.put( pack, set );
 		}
-		set.add( clas );
+		set.add( className );
 
 		// Add to classSource map
 		Object obj = classSource.get( className );
@@ -259,16 +261,12 @@ public class BshClassPath
 		return new String [] { packn, classn };
 	}
 	
-	static URL [] userClassPathComp;
 	/**
 		The user classpath from system property
 			java.class.path
 	*/
 	public static URL [] getUserClassPathComponents() 
 	{
-		if ( userClassPathComp != null )
-			return userClassPathComp;
-
 		String cp=System.getProperty("java.class.path");
 		String [] paths=StringUtil.split(cp, File.pathSeparator);
 
@@ -280,17 +278,37 @@ public class BshClassPath
 			throw new InterpreterError("can't parse class path: "+e);
 		}
 
-		userClassPathComp = urls;
 		return urls;
 	}
 
+	static BshClassPath userClassPath;
 	/**
-		Factory a new instance of BshClassPath initialized to the user path
+		A BshClassPath initialized to the user path
 		from java.class.path
 	*/
 	public static BshClassPath getUserClassPath() 
 	{
-		return new BshClassPath( getUserClassPathComponents() );
+		if ( userClassPath == null )
+			userClassPath = new BshClassPath( getUserClassPathComponents() );
+		return userClassPath;
+	}
+
+	static BshClassPath bootClassPath;
+	/**
+		Get the boot path including the lib/rt.jar if possible.
+	*/
+	public static BshClassPath getBootClassPath() 
+		throws ClassPathException
+	{
+		if ( bootClassPath == null )
+			try {
+				String rtjar = System.getProperty("java.home")+"/lib/rt.jar";
+				URL url = new File( rtjar ).toURL();
+				bootClassPath = new BshClassPath( new URL[] { url } );
+			} catch ( MalformedURLException e ) {
+				throw new ClassPathException(" can't find boot jar: "+e);
+			}
+		return bootClassPath;
 	}
 
 	public static class ClassSource { 

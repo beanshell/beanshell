@@ -5,9 +5,11 @@ bsh.help.reloadClasses=
 reloadClasses( item ) {
 	bcm = bsh.BshClassManager.getClassManager();
 
+	/*
 	if ( !bcm.getClassPath().isInitialized() )
 		print(
 		"Mapping the classpath for the first time.  This may take a moment...");
+	*/
 
 	if ( item instanceof String [] )
 		bcm.reloadClasses( item );
