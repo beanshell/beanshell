@@ -1,12 +1,38 @@
+/*****************************************************************************
+ *                                                                           *
+ *  This file is part of the BeanShell Java Scripting distribution.          *
+ *  Documentation and updates may be found at http://www.beanshell.org/      *
+ *                                                                           *
+ *  BeanShell is distributed under the terms of the LGPL:                    *
+ *  GNU Library Public License http://www.gnu.org/copyleft/lgpl.html         *
+ *                                                                           *
+ *  Patrick Niemeyer (pat@pat.net)                                           *
+ *  Author of Exploring Java, O'Reilly & Associates                          *
+ *  http://www.pat.net/~pat/                                                 *
+ *                                                                           *
+ *****************************************************************************/
+
 package bsh;
 import java.util.*;
 
 /**
 	The interface for name completion.
-	Also an inner utility class table
+
+	Table is an inner utility class that implements simple name completion
+	for collections.
 */
 public interface NameCompletion {
 
+	/**
+		Return an array containing a string element of the maximum 
+		unambiguous namespace completion or, if there is no common prefix, 
+		return the list of ambiguous names.
+		e.g. 
+			input: "java.l"
+			output: [ "java.lang." ]
+			input: "java.lang."
+			output: [ "java.lang.Thread", "java.lang.Integer", ... ]
+	*/
 	public String [] completeName( String part );
 
 
@@ -18,11 +44,6 @@ public interface NameCompletion {
 	*/
 	public static class Table extends ArrayList
 	{
-		/**
-			Return an array containing a string element of the maximum 
-			unambiguous namespace completion or, if there is no common prefix, 
-			return the list of ambiguous names.
-		*/
 		public String [] completeName( String part ) {
 			List found = new ArrayList();
 
