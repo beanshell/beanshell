@@ -93,7 +93,7 @@ public class EvalError extends Exception {
 	/**
 		Re-throw the eval error, specifying the node.
 		If a node already exists the argument node is ignored.
-		@see setNode()
+		@see #setNode( bsh.SimpleNode )
 	*/
 	public void reThrow( SimpleNode node ) 
 		throws EvalError 
@@ -104,7 +104,7 @@ public class EvalError extends Exception {
 	/**
 		Re-throw the eval error, prefixing msg to the message and specifying
 		the node.  If a node already exists the addNode is ignored.
-		@see setNode()
+		@see #setNode( bsh.SimpleNode )
 		<p>
 		@param msg may be null for no additional message.
 	*/

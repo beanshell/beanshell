@@ -56,7 +56,7 @@ import bsh.EvalError;
 	Is there a workaround for weak refs?  If so we could make this work
 	with 1.1 by supplying our own classloader code...
 
-	@see http://www.beanshell.org/manual/classloading.html for details
+	See "http://www.beanshell.org/manual/classloading.html" for details
 	on the bsh classloader architecture.
 
 	Bsh has a multi-tiered class loading architecture.  No class loader is

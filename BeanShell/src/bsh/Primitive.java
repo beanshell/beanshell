@@ -733,9 +733,8 @@ public class Primitive implements ParserConstants, java.io.Serializable
     }
 
 	/**
-		Are we a numeric type:
-		i.e. not boolean, null, or void
-		(but including char)
+		Determine if this primitive is a numeric type.
+		i.e. not boolean, null, or void (but including char)
 	*/
 	public boolean isNumber() {
 		return ( !(value instanceof Boolean) 

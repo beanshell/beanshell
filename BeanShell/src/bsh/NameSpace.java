@@ -313,7 +313,7 @@ public class NameSpace
 		Note: this method is primarily intended for use internally.  If you use
 		this method outside of the bsh package you will have to use 
 		Primitive.unwrap() to get primitive values.
-		@see Primitive.unwrap()
+		@see Primitive#unwrap( Object )
 
 		@return The variable value or Primitive.VOID if it is not defined.
 	*/
@@ -328,7 +328,7 @@ public class NameSpace
 		Note: this method is primarily intended for use internally.  If you use
 		this method outside of the bsh package you will have to use 
 		Primitive.unwrap() to get primitive values.
-		@see Primitive.unwrap()
+		@see Primitive#unwrap( Object )
 
 		@return The variable value or Primitive.VOID if it is not defined.
 	*/
@@ -440,8 +440,8 @@ public class NameSpace
 
 	/**
 		Note: this is primarily for internal use.
-		@see Interpreter.source()
-		@see Interpreter.eval()
+		@see Interpreter#source( String )
+		@see Interpreter#eval( String )
 	*/
     public void	setMethod(String name, BshMethod method) 
 	{
@@ -853,7 +853,7 @@ public class NameSpace
 
 	/**
 		@deprecated name changed.
-		@see getAssignableForm()
+		@see #getAssignableForm( Object, Class )
 	*/
     public static Object checkAssignableFrom(Object rhs, Class lhsType)
 		throws EvalError
@@ -862,12 +862,12 @@ public class NameSpace
 	}
 
 	/**
-		<p>
 		Determine if the RHS object can be assigned to the LHS type (as is,
-		through widening, promotion, etc. ) and if so, return the 
-		assignable form of the RHS.  Note that this is *not* a cast operation.
-		Only assignments which are always legal (upcasts, promotion) are 
-		passed.
+		through widening, promotion, etc) and if so, return the assignable 
+		form of the RHS.  
+	
+		Note that this is *not* a cast operation.  Only assignments which are 
+		always legal (upcasts, promotion) are passed.
 		<p>
 
 		In normal cases this functions as a simple check for assignability
@@ -887,10 +887,13 @@ public class NameSpace
 		operations and method selection.
 		<p>
 
-		@returns an assignable form of the RHS or throws EvalError
+		@return an assignable form of the RHS or throws EvalError
 		@throws EvalError on non assignable
-		@see BSHCastExpression.castObject();
+		@see BSHCastExpression#castObject( java.lang.Object, java.lang.Class )
 	*/
+    public static Object getAssignableForm( Object rhs, Class lhsType )
+		throws EvalError
+    {
 	/*
 		Notes:
 	
@@ -903,9 +906,6 @@ public class NameSpace
 			Primitive?
 			here?
 	*/
-    public static Object getAssignableForm( Object rhs, Class lhsType )
-		throws EvalError
-    {
 		Class originalType;
 
 		if ( lhsType == null )
@@ -1243,7 +1243,7 @@ public class NameSpace
 		Clear all variables, methods, and imports from this namespace.
 		If this namespace is the root, it will be reset to the default 
 		imports.
-		@see loadDefaultImports()
+		@see #loadDefaultImports()
 	*/
 	public void clear() 
 	{
