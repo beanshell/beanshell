@@ -632,13 +632,15 @@ class Name implements java.io.Serializable
 
     */
     public Object invokeMethod(
-		Interpreter interpreter, Object[] args, CallStack callstack)
+		Interpreter interpreter, Object[] args, CallStack callstack,
+		SimpleNode callerInfo
+	)
         throws EvalError, ReflectError, InvocationTargetException
     {
 		//Name name = this;
 
         if(!Name.isCompound(value))
-            return invokeLocalMethod(interpreter, args, callstack);
+            return invokeLocalMethod(interpreter, args, callstack, callerInfo);
 
         // find target object
         Name targetName = namespace.getNameResolver( Name.prefix(value));
@@ -648,7 +650,7 @@ class Name implements java.io.Serializable
 
 		if ( obj == Primitive.VOID ) 
 			throw new EvalError( "Attempt to invoke method: "+methodName
-					+"() on void: "+targetName);
+					+"() on undefined variable or class name: "+targetName);
 
         // if we've got an object, invoke the method
         if ( !(obj instanceof Name.ClassIdentifier) ) {
@@ -668,7 +670,8 @@ class Name implements java.io.Serializable
             }
 
             // found an object and it's not an undefined variable
-            return Reflect.invokeObjectMethod(interpreter, obj, methodName, args);
+            return Reflect.invokeObjectMethod(
+				interpreter, obj, methodName, args, callerInfo);
         }
 
         // try static method
@@ -683,7 +686,7 @@ class Name implements java.io.Serializable
     }
 
 	/**
-		Invoke a locally declared method: i.e. a bsh command.
+		Invoke a locally declared method or a bsh command.
 		If the method is not already declared in the namespace then try
 		to load it as a resource from the /bsh/commands path.
 	
@@ -698,7 +701,9 @@ class Name implements java.io.Serializable
 		invoked directly in scope and those invoked through object references.
 	*/
     public Object invokeLocalMethod( 
-		Interpreter interpreter, Object[] args, CallStack callstack )
+		Interpreter interpreter, Object[] args, CallStack callstack,
+		SimpleNode callerInfo
+	)
         throws EvalError, ReflectError, InvocationTargetException
     {
         Interpreter.debug("invoke local method: " + value);
@@ -706,7 +711,7 @@ class Name implements java.io.Serializable
         // Check for locally declared method
         BshMethod meth = toLocalMethod( args );
         if ( meth != null )
-            return meth.invokeDeclaredMethod( args, interpreter, callstack );
+            return meth.invokeDeclaredMethod( args, interpreter, callstack, callerInfo );
         else
             Interpreter.debug("no locally declared method: " + value);
 
@@ -730,7 +735,7 @@ class Name implements java.io.Serializable
             meth = toLocalMethod( args );
             if(meth != null)
                 return meth.invokeDeclaredMethod( 
-					args, interpreter, callstack );
+					args, interpreter, callstack, callerInfo );
             else
                 throw new EvalError("Loaded resource: " + commandName +
                     "had an error or did not contain the correct method");

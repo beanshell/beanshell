@@ -102,7 +102,7 @@ class BSHLHSPrimarySuffix extends SimpleNode
 			Object[] oa = ((BSHArguments)jjtGetChild(0)).getArguments(
 				callstack, interpreter);
 			try {
-				obj = Reflect.invokeObjectMethod(interpreter, obj, method, oa);
+				obj = Reflect.invokeObjectMethod(interpreter, obj, method, oa, this);
 			} catch ( EvalError ee ) {
 				// catch and re-throw to get line number right
 				throw new EvalError( ee.getMessage(), this );

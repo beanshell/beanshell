@@ -98,31 +98,18 @@ public class Interpreter
 		necessarily have an interpreter reference (e.g. tracing in utils).
 	*/
     public static boolean DEBUG, TRACE;
+	// This should be per instance
     static PrintStream debug;
-	static {
-	// apparently in some environments you can't catch the security exception
-	// at all...  e.g. as an applet in IE  ... will probably have to work
-	// around 
-		try {
-    		debug = System.err;
-    		DEBUG = Boolean.getBoolean("debug");
-    		TRACE = Boolean.getBoolean("trace");
-			String outfilename = System.getProperty("outfile");
-			if ( outfilename != null )
-				redirectOutputToFile( outfilename );
-		} catch ( SecurityException e ) { 
-			System.err.println("Could not init static:"+e);
-		} catch ( Exception e ) {
-			System.err.println("Could not init static(2):"+e);
-		} catch ( Throwable e ) { 
-			System.err.println("Could not init static(3):"+e);
-		}
+	static { 
+		staticInit();
 	}
 
 	/** Shared system object visible under bsh.system */
 	static This systemObject;
 
-	/** Instance data */
+	// end static stuff
+
+	/* Instance data */
 	Parser parser;
     NameSpace globalNameSpace;
     Reader in;
@@ -134,6 +121,8 @@ public class Interpreter
     private boolean 
 		evalOnly, 		// Interpreter has no input stream, use eval() only
 		interactive;	// Interpreter has a user, print prompts, etc.
+
+	/* End instance data */
 
 	/**
 		The main constructor.
@@ -570,6 +559,15 @@ public class Interpreter
 					if ( TRACE )
 						println( "// " +node.getText() );
 
+/*
+Should the interpreter ref be 'this' or the 
+local interpreter?  There are issues if we change it...
+be careful if we try to merge with the run() code above.
+if we change it to local commands will still work (because they are sourced,
+then executed in the main interpreter) but directly sourced code will see the
+sub-interpreter...  does this affect anything but the debug() command?
+I believe that is the only  state stored in interpreter currently.
+*/
                     retVal = node.eval( callstack, this );
 
 					// sanity check during development
@@ -891,5 +889,28 @@ public class Interpreter
 			System.err.println("Can't redirect output to file: "+filename );
 		}
 	}
+
+	static void staticInit() {
+	/* 
+		Apparently in some environments you can't catch the security exception
+		at all...  e.g. as an applet in IE  ... will probably have to work 
+		around 
+	*/
+		try {
+    		debug = System.err;
+    		DEBUG = Boolean.getBoolean("debug");
+    		TRACE = Boolean.getBoolean("trace");
+			String outfilename = System.getProperty("outfile");
+			if ( outfilename != null )
+				redirectOutputToFile( outfilename );
+		} catch ( SecurityException e ) { 
+			System.err.println("Could not init static:"+e);
+		} catch ( Exception e ) {
+			System.err.println("Could not init static(2):"+e);
+		} catch ( Throwable e ) { 
+			System.err.println("Could not init static(3):"+e);
+		}
+	}
+
 }
 

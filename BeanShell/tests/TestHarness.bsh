@@ -10,7 +10,11 @@ assert( boolean condition ) {
 	if ( condition )
 		print( "Test Passed..." );
 	else {
-		print( "Test FAILED!");
+		print( 
+			"Test FAILED: "
+			+"Line: "+ this.namespace.getInvocationLine()
+			+" : "+this.namespace.getInvocationText()
+		);
 		super.test_failed = true;
 	}
 }

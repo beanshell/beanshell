@@ -113,7 +113,7 @@ class XThis extends This {
 			if ( bmethod != null )
 				return Primitive.unwrap( 
 					bmethod.invokeDeclaredMethod( 
-					args, declaringInterpreter, callstack ) );
+					args, declaringInterpreter, callstack, null ) );
 
 			// Look for the default handler
 			bmethod = namespace.getMethod( "invoke", 
@@ -124,7 +124,7 @@ class XThis extends This {
 				return Primitive.unwrap( 
 					bmethod.invokeDeclaredMethod( 
 					new Object [] { method.getName(), args }, 
-					declaringInterpreter, callstack ) );
+					declaringInterpreter, callstack, null ) );
 
 			/*
 				implement the required part of the Object protocol:

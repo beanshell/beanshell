@@ -155,7 +155,9 @@ public class This implements java.io.Serializable, Runnable {
 	public Object invokeMethod( String name, Object [] args ) 
 		throws EvalError
 	{
-		return invokeMethod( name, args, declaringInterpreter );
+		// null callstack, one will be created for us in namespace.invokMethod
+		// null callerInfo is legal
+		return invokeMethod( name, args, declaringInterpreter, null, null );
 	}
 
 	/**
@@ -163,10 +165,12 @@ public class This implements java.io.Serializable, Runnable {
 		This is simply a convenience method.
 	*/
 	public Object invokeMethod( 
-		String name, Object [] args, Interpreter interpreter  ) 
+		String name, Object [] args, Interpreter interpreter, 
+			CallStack callstack, SimpleNode callerInfo  ) 
 		throws EvalError
 	{
-		return namespace.invokeMethod( name, args, interpreter );
+		return namespace.invokeMethod( 
+			name, args, interpreter, callstack, callerInfo );
 	}
 
 
