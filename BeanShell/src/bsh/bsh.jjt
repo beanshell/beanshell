@@ -370,6 +370,8 @@ public class Interpreter implements Runnable /*,Serializable*/
             catch(TargetError e)
             {
                 error("// Uncaught Exception: " + e.getTarget());
+                if(DEBUG)
+                    e.printStackTrace();
                 if(!interactive)
                     eof = true;
             }

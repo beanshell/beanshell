@@ -57,10 +57,10 @@ public class This implements java.io.Serializable, Runnable {
 		NameSpace namespace, Interpreter declaringInterpreter ) 
 	{
 		try {
-			if ( NameSpace.haveProxyMechanism() )
+			if ( Capabilities.haveProxyMechanism() )
 				return (This)Reflect.constructObject( "bsh.XThis",
 					new Object [] { namespace, declaringInterpreter } );
-			else if ( NameSpace.haveSwing() )
+			else if ( Capabilities.haveSwing() )
 				return (This)Reflect.constructObject( "bsh.JThis",
 					new Object [] { namespace, declaringInterpreter } );
 			else

@@ -23,6 +23,10 @@ import java.io.*;
 import java.awt.*;
 import java.lang.reflect.*;
 
+// For string related utils
+import bsh.BshClassManager;
+import bsh.StringUtil;
+
 /**
 	A simple class browser for the BeanShell desktop.
 */
@@ -45,62 +49,8 @@ public class ClassBrowser extends JSplitPane
 		super( VERTICAL_SPLIT, true );
 	}
 
-	String [] split( String s, String delim) {
-		Vector v = new Vector();
-		StringTokenizer st = new StringTokenizer(s, delim);
-		while ( st.hasMoreTokens() )
-			v.addElement( st.nextToken() );
-		String [] sa = new String [ v.size() ];
-		v.copyInto( sa );
-		return sa;
-	}
-
-	public static String [] bubbleSort( String [] in ) {
-		Vector v = new Vector();
-		for(int i=0; i<in.length; i++)
-			v.addElement(in[i]);
-
-		int n = v.size();
-		boolean swap = true;
-		while ( swap ) {
-			swap = false;
-			for(int i=0; i<(n-1); i++)
-				if ( ((String)v.elementAt(i)).compareTo(
-						((String)v.elementAt(i+1)) ) > 0 ) {
-					String tmp = (String)v.elementAt(i+1);
-					v.removeElementAt( i+1 );
-					v.insertElementAt( tmp, i );
-					swap = true;
-				}
-		}
-
-		String [] out = new String [ n ];
-		v.copyInto(out);
-		return out;
-	}
-
-	String [] splitClassname ( String classname ) {
-		classname=classname.replace('/', '.');
-		if ( classname.startsWith("class ") )
-			classname=classname.substring(6);
-		if ( classname.endsWith(".class") )
-			classname=classname.substring(0,classname.length()-6);
-
-		int i=classname.lastIndexOf(".");
-		String classn, packn;
-		if ( i == -1 )  {
-			// top level class
-			classn = classname;
-			packn="<unpackaged>";
-		} else {
-			packn = classname.substring(0,i);
-			classn = classname.substring(i+1);
-		}
-		return new String [] { packn, classn };
-	}
-
 	void addClass( String classname ) {
-		String [] sa = splitClassname( classname );
+		String [] sa = BshClassManager.splitClassname( classname );
 		String packn = sa[0];
 		String classn = sa[1];
 		
@@ -128,7 +78,7 @@ public class ClassBrowser extends JSplitPane
 	String [] toSortedList ( Vector v ) {
 		String [] sa = new String [v.size()];
 		v.copyInto(sa);
-		return bubbleSort(sa);
+		return StringUtil.bubbleSort(sa);
 	}
 
 	void setClist( String packagename ) {
@@ -231,7 +181,7 @@ public class ClassBrowser extends JSplitPane
 
 	public void init() {
 		String cp=System.getProperty("java.class.path");
-		String [] paths=split(cp, File.pathSeparator);
+		String [] paths=StringUtil.split(cp, File.pathSeparator);
 		for ( int i=0; i<paths.length; i++) {
 			String lcPath= paths[i].toLowerCase();
 			if ( lcPath.endsWith(".jar") || lcPath.endsWith(".zip") )
@@ -355,7 +305,7 @@ public class ClassBrowser extends JSplitPane
 
 	// fully qualified classname
 	public void driveToClass( String classname ) {
-		String [] sa = splitClassname( classname );
+		String [] sa = BshClassManager.splitClassname( classname );
 		String packn = sa[0];
 		String classn = sa[1];
 

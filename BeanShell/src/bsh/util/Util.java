@@ -24,11 +24,12 @@ import bsh.*;
 /**
 	Misc utilities for the bsh.util package.
 	Nothing in the core language (bsh package) should depend on this.
+	Note: that promise is currently broken... fix it.
 */
 public class Util {
 
 	public static ConsoleInterface makeConsole() {
-		if ( bsh.NameSpace.haveSwing() )
+		if ( bsh.Capabilities.haveSwing() )
 			return new JConsole();
 		else
 			return new AWTConsole();

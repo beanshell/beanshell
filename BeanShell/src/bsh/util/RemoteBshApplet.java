@@ -44,7 +44,7 @@ public class RemoteBshApplet extends Applet
 		}
 
 		Component console;
-		if ( bsh.NameSpace.haveSwing() )
+		if ( bsh.Capabilities.haveSwing() )
 			console = new javax.swing.JScrollPane(new JConsole(in, out));
 		else
 			console = new AWTConsole(in, out);

@@ -602,7 +602,7 @@ public class NameSpace
 			Bsh This objects may be able to use the proxy mechanism to 
 			become an LHS type.
 		*/
-		if ( haveProxyMechanism() && 
+		if ( Capabilities.haveProxyMechanism() && 
 			lhsType.isInterface() && ( rhs instanceof bsh.This ) ) 
 		{
 			return ((XThis)rhs).getInterface( lhsType );
@@ -679,27 +679,6 @@ public class NameSpace
 
 		// do something here
 		s.defaultWriteObject();
-	}
-
-	static boolean checkedForSwing, haveSwing;
-	public static boolean haveSwing() {
-
-		if ( checkedForSwing )
-			return haveSwing;
-
-		haveSwing = classExists( "javax.swing.JButton" );
-		checkedForSwing = true;
-		return ( haveSwing );
-	}
-
-	static boolean checkedForProxyMech, haveProxyMech;
-	public static boolean haveProxyMechanism() {
-		if ( checkedForProxyMech )
-			return haveProxyMech;
-
-		haveProxyMech = classExists( "java.lang.reflect.Proxy" );
-		checkedForProxyMech = true;
-		return haveProxyMech;
 	}
 
 	public static boolean classExists( String name ) {

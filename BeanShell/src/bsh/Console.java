@@ -33,7 +33,7 @@ public class Console  {
 		if ( !NameSpace.classExists( "bsh.util.Util" ) )
 			System.out.println("Can't find the BeanShell utilities...");
 
-		if ( NameSpace.haveSwing() ) {
+		if ( Capabilities.haveSwing() ) {
 			bsh.util.Util.startSplashScreen();
 			try {
 				new Interpreter().eval("desktop()");

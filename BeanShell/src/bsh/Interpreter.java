@@ -347,6 +347,8 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
             catch(TargetError e)
             {
                 error("// Uncaught Exception: " + e.getTarget());
+                if(DEBUG)
+                    e.printStackTrace();
                 if(!interactive)
                     eof = true;
             }
