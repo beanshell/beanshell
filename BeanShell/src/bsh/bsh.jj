@@ -35,8 +35,10 @@
 options {
     JAVA_UNICODE_ESCAPE=true;
     STATIC=false;                                                                                       
-	/*DEBUG_PARSER=true;*/
-	/* DEBUG_LOOKAHEAD=true;*/
+	/* Print grammar debugging info as we parse 
+	DEBUG_PARSER=true; */
+	/* Print detailed lookahead debugging info
+	DEBUG_LOOKAHEAD=true; */
 }
 
 PARSER_BEGIN(Parser)
@@ -832,7 +834,7 @@ void AmbiguousName()                :
 void Expression() :
 { }
 {
-  LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
+  LOOKAHEAD( LHSPrimaryExpression() AssignmentOperator() )
   Assignment()
 |
   ConditionalExpression()
@@ -1619,11 +1621,57 @@ void PrimarySuffix()                :
 */
 }
 
+
 /*
-    Note: I have gotten rid of LHSPrimaryPrefix because I believe the
-    only meaningful rule is the AmbiguousName.  I believe the only other
-    plausable rule was AllocationExpression...  don't see the point right now.
+	Begin LHS part of the grammar --
+
+	The reason this stuff is duplicated (e.g. LHSPrimaryPrefix and 
+	PrimaryPrefix) is that the whole grammar splits based on whether we 
+	are preparig to do an assignment or not.  This is an important issue 
+	to revisit in the future.
 */
+/**
+	The method invocation is here to force this to an object type in order 
+	to simplify the suffix processing.  
+*/
+void LHSPrimaryPrefix() : { }
+{/*@bgen(jjtree) #MethodInvocation(> 1) */
+  {
+    BSHMethodInvocation jjtn001 = new BSHMethodInvocation(JJTMETHODINVOCATION);
+    boolean jjtc001 = true;
+    jjtree.openNodeScope(jjtn001);
+    jjtreeOpenNodeScope(jjtn001);
+  }
+  try {
+/*@egen*/
+	/* 
+		Method invocation or simple ambiguous name.
+		(probably should just write this as two rules more clearly)
+	*/ 
+  ( AmbiguousName() [ Arguments() ]  )/*@bgen(jjtree)*/
+  } catch (Throwable jjte001) {
+    if (jjtc001) {
+      jjtree.clearNodeScope(jjtn001);
+      jjtc001 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte001 instanceof RuntimeException) {
+      throw (RuntimeException)jjte001;
+    }
+    if (jjte001 instanceof ParseException) {
+      throw (ParseException)jjte001;
+    }
+    throw (Error)jjte001;
+  } finally {
+    if (jjtc001) {
+      jjtree.closeNodeScope(jjtn001, jjtree.nodeArity() > 1);
+      jjtreeCloseNodeScope(jjtn001);
+    }
+  }
+/*@egen*/
+}
+
 void LHSPrimaryExpression()                       : {/*@bgen(jjtree) LHSPrimaryExpression */
   BSHLHSPrimaryExpression jjtn000 = new BSHLHSPrimaryExpression(JJTLHSPRIMARYEXPRESSION);
   boolean jjtc000 = true;
@@ -1633,7 +1681,7 @@ void LHSPrimaryExpression()                       : {/*@bgen(jjtree) LHSPrimaryE
 {/*@bgen(jjtree) LHSPrimaryExpression */
   try {
 /*@egen*/
-  AmbiguousName()  ( LHSPrimarySuffix( ) )*/*@bgen(jjtree)*/
+  LHSPrimaryPrefix() ( LHSPrimarySuffix( ) )*/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
@@ -1729,6 +1777,10 @@ void LHSPrimarySuffix()                   :
 /*@egen*/
 }
 
+/*
+	-- End LHS part of the grammar
+*/
+
 void Literal()          :
 {/*@bgen(jjtree) Literal */
     BSHLiteral jjtn000 = new BSHLiteral(JJTLITERAL);
@@ -1797,7 +1849,11 @@ void Literal()          :
                             jjtreeCloseNodeScope(jjtn000);
                           }
 /*@egen*/ {
-    jjtn000.charSetup( x.image.substring(1, x.image.length() - 1) );
+		try {
+    		jjtn000.charSetup( x.image.substring(1, x.image.length() - 1) );
+		} catch ( Exception e ) {
+			throw new ParseException("Error parsing character: "+x.image);
+		}
     }
 |
   x = <STRING_LITERAL>/*@bgen(jjtree)*/
@@ -1807,7 +1863,11 @@ void Literal()          :
                          jjtreeCloseNodeScope(jjtn000);
                        }
 /*@egen*/ {
-    jjtn000.stringSetup( x.image.substring(1, x.image.length() - 1) );
+		try {
+			jjtn000.stringSetup( x.image.substring(1, x.image.length() - 1) );
+		} catch ( Exception e ) {
+			throw new ParseException("Error parsing string: "+x.image);
+		}
     }
 |
   b = BooleanLiteral()/*@bgen(jjtree)*/

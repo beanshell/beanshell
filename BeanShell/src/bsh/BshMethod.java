@@ -46,7 +46,7 @@ class BshMethod implements java.io.Serializable
 {
 	public BSHMethodDeclaration method;
 	NameSpace declaringNameSpace;
-	Class [] argTypes;
+	private Class [] argTypes;
 
 	public BshMethod( 
 		BSHMethodDeclaration method, NameSpace declaringNameSpace ) 

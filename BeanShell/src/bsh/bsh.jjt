@@ -38,8 +38,10 @@ options {
     NODE_DEFAULT_VOID=true;
 	NODE_SCOPE_HOOK=true;
 	NODE_PREFIX="BSH";
-	/*DEBUG_PARSER=true;*/
-	/* DEBUG_LOOKAHEAD=true;*/
+	/* Print grammar debugging info as we parse 
+	DEBUG_PARSER=true; */
+	/* Print detailed lookahead debugging info
+	DEBUG_LOOKAHEAD=true; */
 }
 
 PARSER_BEGIN(Parser)
@@ -490,7 +492,7 @@ void AmbiguousName() #AmbiguousName :
 void Expression() :
 { }
 {
-  LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
+  LOOKAHEAD( LHSPrimaryExpression() AssignmentOperator() )
   Assignment()
 |
   ConditionalExpression()
@@ -749,14 +751,31 @@ void PrimarySuffix() #PrimarySuffix :
 */
 }
 
+
 /*
-    Note: I have gotten rid of LHSPrimaryPrefix because I believe the
-    only meaningful rule is the AmbiguousName.  I believe the only other
-    plausable rule was AllocationExpression...  don't see the point right now.
+	Begin LHS part of the grammar --
+
+	The reason this stuff is duplicated (e.g. LHSPrimaryPrefix and 
+	PrimaryPrefix) is that the whole grammar splits based on whether we 
+	are preparig to do an assignment or not.  This is an important issue 
+	to revisit in the future.
 */
+/**
+	The method invocation is here to force this to an object type in order 
+	to simplify the suffix processing.  
+*/
+void LHSPrimaryPrefix() : { }
+{
+	/* 
+		Method invocation or simple ambiguous name.
+		(probably should just write this as two rules more clearly)
+	*/ 
+  ( AmbiguousName() [ Arguments() ]  ) #MethodInvocation(>1)
+}
+
 void LHSPrimaryExpression() #LHSPrimaryExpression : { }
 {
-  AmbiguousName()  ( LHSPrimarySuffix( ) )*
+  LHSPrimaryPrefix() ( LHSPrimarySuffix( ) )*
 }
 
 void LHSPrimarySuffix() #LHSPrimarySuffix :
@@ -784,6 +803,10 @@ void LHSPrimarySuffix() #LHSPrimarySuffix :
         jjtThis.operation = BSHLHSPrimarySuffix.PROPERTY;
     }
 }
+
+/*
+	-- End LHS part of the grammar
+*/
 
 void Literal() #Literal :
 {
@@ -828,11 +851,19 @@ void Literal() #Literal :
   }
 |
   x = <CHARACTER_LITERAL> {
-    jjtThis.charSetup( x.image.substring(1, x.image.length() - 1) );
+		try {
+    		jjtThis.charSetup( x.image.substring(1, x.image.length() - 1) );
+		} catch ( Exception e ) {
+			throw new ParseException("Error parsing character: "+x.image);
+		}
     }
 |
   x = <STRING_LITERAL> {
-    jjtThis.stringSetup( x.image.substring(1, x.image.length() - 1) );
+		try {
+			jjtThis.stringSetup( x.image.substring(1, x.image.length() - 1) );
+		} catch ( Exception e ) {
+			throw new ParseException("Error parsing string: "+x.image);
+		}
     }
 |
   b = BooleanLiteral()  {

@@ -138,6 +138,11 @@
 
 	<!-- Jar target setup -->
 
+	<!--
+	<target name="superclean" description="Remove any generated files.">
+	</target>
+	-->
+
 	<target name="clean">
 		<!-- 
 			I'd like to remove the classes dir itself, but ant won't let

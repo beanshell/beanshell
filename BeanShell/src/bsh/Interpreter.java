@@ -526,15 +526,19 @@ public class Interpreter
 		Return value is the evaluated object (or corresponding primitive 
 		wrapper).
 
+		@param sourceFile is for information purposes only.  It is used to
+		display error messages (and in the future may be made available to
+		the script).
 		@throws EvalError on script problems
 		@throws TargetError on unhandled exceptions from the script
-
-Can't this be combined with run() ?
-run seems to have stuff in it for interactive vs. non-interactive...
-compare them side by side and see what they do differently, aside from the
-exception handling.
-
     */
+	/*
+	Can't this be combined with run() ?
+	run seems to have stuff in it for interactive vs. non-interactive...
+	compare them side by side and see what they do differently, aside from the
+	exception handling.
+	*/
+
     public Object eval( 
 		Reader in, NameSpace nameSpace, String sourceFile ) 
 		throws EvalError 

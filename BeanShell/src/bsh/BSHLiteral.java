@@ -100,8 +100,7 @@ class BSHLiteral extends SimpleNode
         value = new Primitive(new Character(ch));
     }
 
-    /* process string escapes - JLS 3.10.6 */
-    public void stringSetup(String str)
+    void stringSetup(String str)
     {
         StringBuffer buffer = new StringBuffer();
         for(int i = 0; i < str.length(); i++)

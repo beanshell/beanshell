@@ -51,15 +51,7 @@ import java.util.Vector;
 */
 public class CallStack /*implements java.io.Serializable*/
 {
-	private Vector stack = new Vector();
-
-	/*
-	public static CallStack fromJava() {
-		CallStack cs = new CallStack();
-		cs.push( NameSpace.JAVACODE );
-		return cs;
-	}
-	*/
+	private Vector stack = new Vector(2);
 
 	public void clear() {
 		stack.clear();
