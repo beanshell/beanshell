@@ -32,6 +32,7 @@
   <!ENTITY paths SYSTEM "paths.xml">
   <!ENTITY strictjava SYSTEM "strictjava.xml">
   <!ENTITY bsf SYSTEM "bsf.xml">
+  <!ENTITY contents SYSTEM "contents.xml">
 
   <!-- I can't figure out how to move this to the included bshcommands file -->
   <!ENTITY bshcommands-bshdoc SYSTEM "bshcommands-bshdoc.xml">
@@ -39,7 +40,7 @@
 
 <manual>
 	&title;
-	<tableofcontents/> <!-- Auto generated table of contents -->
+	&contents; <!-- Auto generated table of contents -->
 	&intro;
 	&quickstart;
 	&syntax;

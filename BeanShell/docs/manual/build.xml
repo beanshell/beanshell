@@ -22,12 +22,15 @@
 		</style>
 
 		<!-- multi-page build -->
+		<mkdir dir="html"/>
 		<!--
+		-->
 		<style style="xsl/manual.xsl" in="manual.xml" out="xsl.log">
 			<param name="imagedir" expression="${imagedir}"/>
 			<param name="multipage" expression="true"/>
+			<param name="pagesdir" expression="html"/>
 		</style>
-		-->
+		<copy file="html/contents.html" tofile="html/index.html"/>
 	</target>   
 
 	<!-- Output a list of all images referenced by the manual -->
@@ -51,6 +54,7 @@
 		<delete quiet="true" file="${bshmanual}.pdf"/>
 		<delete quiet="true" file="imagelist.txt"/>
 		<delete quiet="true" file="xsl.log"/>
+		<delete quiet="true" dir="html"/>
 	</target>   
 
 </project>

@@ -17,10 +17,11 @@
 -->
 <xsl:template name="anchorref">
 	<xsl:param name="anchorto"/>
+	<xsl:param name="anchortofile"/> <!-- default none -->
 	<xsl:param name="value"/>
 	<xsl:variable name="anchor" 
 		select="translate(normalize-space($anchorto), ' ', '_')"/>
-	<a href="#{$anchor}"><xsl:value-of select="$value"/></a>
+	<a href="{$anchortofile}#{$anchor}"><xsl:value-of select="$value"/></a>
 </xsl:template>
 
 </xsl:stylesheet>
