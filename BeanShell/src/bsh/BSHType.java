@@ -20,7 +20,7 @@ import java.lang.reflect.Array;
 class BSHType extends SimpleNode
 {
     private int arrayDims;
-    private Class type;
+    //private Class type;
 
     BSHType(int id) { super(id); }
 
@@ -30,8 +30,12 @@ class BSHType extends SimpleNode
     public Class getType(NameSpace namespace) throws EvalError
     {
         // return cached type if available
-        if(type != null)
-            return type;
+        //if(type != null)
+        //   return type;
+
+		// If we want to cache this as above we have to add a listener for
+		// the BshClassManager to let us know when types may have changed
+    	Class type;
 
         //  first node will either be PrimitiveType or AmbiguousName
         SimpleNode node = (SimpleNode)jjtGetChild(0);
