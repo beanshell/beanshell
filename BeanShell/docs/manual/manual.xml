@@ -15,7 +15,6 @@
   <!ENTITY specialvarsvalues SYSTEM "specialvarsvalues.xml">
   <!ENTITY classpath SYSTEM "classpath.xml">
   <!ENTITY desktop SYSTEM "desktop.xml">
-  <!ENTITY bshmodes SYSTEM "bshmodes.xml">
   <!ENTITY servermode SYSTEM "servermode.xml">
   <!ENTITY parser SYSTEM "parser.xml">
   <!ENTITY execscripts SYSTEM "execscripts.xml">
@@ -25,6 +24,9 @@
   <!ENTITY bshcommands SYSTEM "bshcommands.xml">
   <!ENTITY bshdoc SYSTEM "bshdoc.xml">
   <!ENTITY commands SYSTEM "commands.xml">
+  <!ENTITY standalonemode SYSTEM "standalonemode.xml">
+  <!ENTITY embeddedmode SYSTEM "embeddedmode.xml">
+  <!ENTITY servletmode SYSTEM "servletmode.xml">
 
   <!-- I can't figure out how to move this to the included bshcommands file -->
   <!ENTITY bshcommands-bshdoc SYSTEM "bshcommands-bshdoc.xml">
@@ -37,7 +39,6 @@
 	<!-- sections -->
 	&intro;
 	&quickstart;
-	&bshmodes;
 	&syntax;
 	&methods;
 	&objects;
@@ -46,7 +47,10 @@
 	&specialvarsvalues;
 	&commands;
 	&classpath;
+	&standalonemode;
+	&embeddedmode;
 	&servermode;
+	&servletmode;
 	&desktop;
 	&parser;
 	&execscripts;

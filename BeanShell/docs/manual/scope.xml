@@ -10,6 +10,8 @@ variables as they are implemented in BeanShell can make for some situations
 that look ambiguous with respect to Java.
 <p/>
 
+<h2>'this', 'super', and 'global'</h2>
+
 As we discussed in the "Syntax" section early on, variables references in 
 BeanShell default to the local scope, unless otherwise qualified.  
 This is a little different from some other scripting
@@ -54,7 +56,7 @@ The above example shows that the foo() method's 'this' reference is local
 (named 'foo') and that it's parent is the global scope; the same scope in
 which foo is defined.
 
-<h2>'global' and Global Scope</h2>
+<h3>'global'</h3>
 
 A third scope modifier, 'global', allows you to always refer to the top-most
 scope.  In the previous note you can see that the top level script context
