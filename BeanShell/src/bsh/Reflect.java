@@ -44,6 +44,12 @@ import java.util.Vector;
 
 	Note: More work to do in here to fix up the extended signature matching.
 	need to work in a search along with findMostSpecificSignature...
+	<p>
+
+	Note: there are lots of cases here where the Java reflection API makes
+	us catch exceptions (e.g. NoSuchFieldException) in order to do basic
+	searching.  This has to be inefficient...  I wish they would add a more
+	normal Java API for locating fields.
 */
 class Reflect {
 
@@ -224,10 +230,10 @@ class Reflect {
 			if ( Capabilities.haveAccessibility() )
 				return findAccessibleField( clas, fieldName );
 			else
-				// this one only finds public 
+				// this one only finds public (and in interfaces, etc.)
 				return clas.getField(fieldName);
         }
-        catch(NoSuchFieldException e)
+        catch( NoSuchFieldException e)
         {
 			// try declaredField
             throw new ReflectError("No such field: " + fieldName );
@@ -244,21 +250,35 @@ class Reflect {
 		distinction about the most derived is important.  Java doesn't normally
 		allow this kind of access (super won't show private variables) so 
 		there is no real syntax for specifying which class scope to use...
-
-		Need to improve this to handle interfaces.
 	*/
 	private static Field findAccessibleField( Class clas, String fieldName ) 
 		throws NoSuchFieldException
 	{
+		// Quick check catches public fields include those in interfaces
+		try {
+			return clas.getField(fieldName);
+		} catch ( NoSuchFieldException e ) { }
+
+		// Now, on with the hunt...
 		while ( clas != null )
 		{
 			try {
 				Field field = clas.getDeclaredField(fieldName);
 				if ( ReflectManager.RMSetAccessible( field ) )
 					return field;
-				// else fall through
-			}
-			catch(NoSuchFieldException e) { }
+
+			/*
+				// Try interfaces of class for the field (has to be public)
+				Class [] interfaces = clas.getInterfaces();
+				for(int i=0; i<interfaces.length;i++) {
+					try {
+						return interfaces[i].getField( fieldName );
+					} catch ( NoSuchFieldException e ) { }
+				}
+			*/
+				// Not found, fall through to next class
+
+			} catch(NoSuchFieldException e) { }
 
 			clas = clas.getSuperclass();
 		}

@@ -6,6 +6,7 @@
 	http://www.apache.org/
 
 	Ant questions -
+	(I think these are fixed in Ant 1.4)
 
 		- Why can't I nest filesets?  This seems like it would be so easy and
 		useful...
@@ -21,7 +22,7 @@
 
 <!-- Project Configuration -->
 
-	<property name="version" value="1.2b4"/>
+	<property name="version" value="1.2b5"/>
 	<property name="deprecation" value="off"/>
 
 	<!-- choose an alternate compiler -->
@@ -65,9 +66,9 @@
 	-->
 
 	<!-- Uncomment to build without making the servlet package 
-	-->
 	<property name="exclude-servlet" 
 		value="bsh/servlet/*"/>
+	-->
 
 	<!--  Add up all of the excludes -->
 	<!-- how do I add strings to break that line? -->
@@ -338,7 +339,7 @@
 	<target name="bshservlet-war" depends="compile" unless="exclude-servlet">
 		<war warfile="${bshservlet-war}" 
 			webxml="${src-dir}/bsh/servlet/example-web.xml">
-			<classes dir="${build-dir}" includes="bsh/servlet/**/*"/>
+			<!--classes dir="${build-dir}" includes="bsh/servlet/**/*"/-->
 			<fileset dir="${src-dir}/bsh/servlet/" includes="index.html"/>
 		</war>
 	</target>
@@ -346,7 +347,7 @@
 					depends="compile,jarall" unless="exclude-servlet">
 		<war warfile="${bshservlet-wbsh-war}" 
 			webxml="${src-dir}/bsh/servlet/example-web.xml">
-			<classes dir="${build-dir}" includes="bsh/servlet/**/*"/>
+			<!--classes dir="${build-dir}" includes="bsh/servlet/**/*"/-->
 			<fileset dir="${src-dir}/bsh/servlet/" includes="index.html"/>
 			<lib dir="." includes="${all-jar}"/>
 		</war>

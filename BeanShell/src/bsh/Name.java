@@ -344,10 +344,12 @@ class Name implements java.io.Serializable
 			Object obj = null;
 			// static field?
 			try {
-//System.err.println("Name call to getStaticField, class: "
-	//+clas+", field:"+field);
+				Interpreter.debug("Name call to getStaticField, class: " 
+					+clas+", field:"+field);
 				obj = Reflect.getStaticField(clas, field);
-			} catch(ReflectError e) { }
+			} catch( ReflectError e ) { 
+				Interpreter.debug("field reflect error: "+e);
+			}
 
 			// inner class?
 			if ( obj == null ) {
