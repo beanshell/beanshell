@@ -255,9 +255,14 @@ public class Interpreter
 	*/
 
 
+	/**
+		Attach the console thusly... ;)
+	*/
 	public void setConsole( ConsoleInterface console ) {
 		this.console = console;
 		setu( "bsh.console", console );
+		// offer the console name completion support
+		console.setNameCompletion( globalNameSpace );
 	}
 
 	// End constructors
@@ -550,6 +555,9 @@ public class Interpreter
     }
 
 	// ConsoleInterface
+	// The interpreter reflexively implements the console interface that it 
+	// uses.  Should clean this up by using an inner class to implement the
+	// console for us.
 
 	public Reader getIn() { return in; }
 	public PrintStream getOut() { return out; }
@@ -578,6 +586,9 @@ public class Interpreter
             out.flush();
         }
 	}
+
+	// Makes no sense for us
+	public void setNameCompletion( NameCompletion nc ) { }
 
 	// End ConsoleInterface
 

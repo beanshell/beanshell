@@ -8,7 +8,7 @@ import java.io.File;
 import bsh.ConsoleInterface;
 import bsh.StringUtil;
 import bsh.ClassPathException;
-import bsh.NameCompletionTable;
+import bsh.NameCompletion;
 
 /**
 	A BshClassPath encapsulates knowledge about a class path of URLs.
@@ -45,7 +45,7 @@ public class BshClassPath
 	private boolean mapsInitialized;
 
 	private UnqualifiedNameTable unqNameTable;
-	private NameCompletionTable nameCompletionTable;
+	private NameCompletion.Table nameCompletionTable;
 	private boolean nameCompletionIncludesUnqNames;
 
 	// constructors
@@ -163,8 +163,12 @@ public class BshClassPath
 			for (int i=0; i< compPaths.size(); i++)
 				((BshClassPath)compPaths.get(i)).insureInitialized( feedback );
 
-		if ( !mapsInitialized )
+		if ( !mapsInitialized ) {
+			if ( feedback == null )
+				System.out.println("Mapping : "+this);
+
 			map( (URL[])path.toArray( new URL[0] ), feedback );
+		}
 
 		mapsInitialized = true;
 	}
@@ -241,11 +245,11 @@ public class BshClassPath
 		return unqNameTable;
 	}
 
-	public String [] completeClassName( String part, int max ) {
-		return getNameCompletionTable().completeName( part, max );
+	public String [] completeClassName( String part ) {
+		return getNameCompletionTable().completeName( part );
 	}
 
-	NameCompletionTable getNameCompletionTable() {
+	NameCompletion.Table getNameCompletionTable() {
 		if ( nameCompletionTable == null )
 			nameCompletionTable = buildNameCompletionTable();
 		return nameCompletionTable;
@@ -255,11 +259,10 @@ public class BshClassPath
 		build the name completion table from all names in our packages
 		optionally including unqualified names
 	*/
-	private NameCompletionTable buildNameCompletionTable() 
+	private NameCompletion.Table buildNameCompletionTable() 
 	{
 		insureInitialized(null);
-System.out.println("building name completion table...");
-		NameCompletionTable ncTable = new NameCompletionTable();
+		NameCompletion.Table ncTable = new NameCompletion.Table();
 
 		Iterator it = getPackagesSet().iterator();
 		while( it.hasNext() ) {
@@ -271,7 +274,6 @@ System.out.println("building name completion table...");
 		if ( nameCompletionIncludesUnqNames )
 			ncTable.addAll( getUnqualifiedNameTable().keySet() );
 
-System.out.println("done build...");
 		return ncTable;
 	}
 

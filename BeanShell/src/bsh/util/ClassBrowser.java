@@ -199,7 +199,8 @@ public class ClassBrowser extends JSplitPane implements ListSelectionListener
 	public void init() throws ClassPathException 
 	{
 		classPath = BshClassManager.getClassManager().getClassPath();
-		classPath.insureInitialized( 
+		classPath.insureInitialized( null 
+			/*
 			// get feedback on mapping...
 			new ConsoleInterface() {
 				public Reader getIn() { return null; }
@@ -210,6 +211,7 @@ public class ClassBrowser extends JSplitPane implements ListSelectionListener
 				public void print( String s, Color color ) { print( s ); }
 				public void error( String s ) { print( s ); }
 			}
+			*/
 		);
 
 		Set pset = classPath.getPackagesSet();

@@ -33,7 +33,7 @@ import java.io.IOException;
 	compatible with JDK1.1 
 */
 public class NameSpace 
-	implements java.io.Serializable, BshClassManager.Listener
+	implements java.io.Serializable, BshClassManager.Listener, NameCompletion
 {
 	public String name; 
     private NameSpace parent;
@@ -320,12 +320,6 @@ public class NameSpace
 		if ((s == null) && (parent != null) )
 			return (String)parent.getImportedClass(name);
 
-		/*
-		// try super imported if available
-		if ( (s==null) && superImport )
-			s = BshClassManager.getClassManager().getClassNameByUnqName( name );
-		*/
-
 		return s;
     }
 
@@ -464,6 +458,41 @@ public class NameSpace
 	private Class classForName( String name ) 
 	{
 		return BshClassManager.classForName( name );
+	}
+
+//
+// Fix this... can't use List in the core
+//
+	Set getAllNames() {
+		Set all = new HashSet();
+		getAllNamesAux( all );
+		return all;
+	}
+	void getAllNamesAux( Set set ) {
+		set.addAll( variables.keySet() );
+		set.addAll( methods.keySet() );
+		if ( parent != null )
+			parent.getAllNamesAux( set );
+	}
+//
+
+	/**
+		We don't do any caching of the name completion table here becaues
+		the name space is so volatile.
+	*/
+	public String [] completeName( String part ) {
+		/*
+		NameCompletionTable nct = new NameCompletionTable();
+		nct.addAll( getAllNames() );
+		return nct.completeName( part );
+		*/
+		try {
+			return BshClassManager.getClassManager().getClassPath()
+				.completeClassName( part );
+		} catch ( ClassPathException e ) {
+			System.err.println("classpath exception in name compl:"+e);
+			return new String[0];
+		}
 	}
 	
 	/**

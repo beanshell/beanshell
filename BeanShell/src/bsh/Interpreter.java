@@ -232,9 +232,14 @@ public class Interpreter
 	*/
 
 
+        /**
+		Attach the console thusly... ;)
+	*/
         public void setConsole( ConsoleInterface console ) {
                 this.console = console;
                 setu( "bsh.console", console );
+                // offer the console name completion support
+                console.setNameCompletion( globalNameSpace );
         }
 
         // End constructors
@@ -527,6 +532,9 @@ public class Interpreter
     }
 
         // ConsoleInterface
+        // The interpreter reflexively implements the console interface that it 
+        // uses.  Should clean this up by using an inner class to implement the
+        // console for us.
 
         public Reader getIn() { return in; }
         public PrintStream getOut() { return out; }
@@ -555,6 +563,9 @@ public class Interpreter
             out.flush();
         }
         }
+
+        // Makes no sense for us
+        public void setNameCompletion( NameCompletion nc ) { }
 
         // End ConsoleInterface
 
@@ -4201,48 +4212,6 @@ void FormalParameter() #FormalParameter :
     return retval;
   }
 
-  final private boolean jj_3R_131() {
-    if (jj_scan_token(VOID)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
-  final private boolean jj_3R_48() {
-    if (jj_3R_28()) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
-  final private boolean jj_3R_76() {
-    if (jj_scan_token(DOUBLE)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
-  final private boolean jj_3R_130() {
-    if (jj_scan_token(NULL)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
-  final private boolean jj_3R_75() {
-    if (jj_scan_token(FLOAT)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
-  final private boolean jj_3R_74() {
-    if (jj_scan_token(LONG)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
-  final private boolean jj_3R_73() {
-    if (jj_scan_token(INT)) return true;
-    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
-    return false;
-  }
-
   final private boolean jj_3R_72() {
     if (jj_scan_token(SHORT)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
@@ -6095,6 +6064,48 @@ void FormalParameter() #FormalParameter :
     if (jj_3R_135()) jj_scanpos = xsp;
     else if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
     if (jj_scan_token(RPAREN)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
+  final private boolean jj_3R_131() {
+    if (jj_scan_token(VOID)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
+  final private boolean jj_3R_48() {
+    if (jj_3R_28()) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
+  final private boolean jj_3R_76() {
+    if (jj_scan_token(DOUBLE)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
+  final private boolean jj_3R_130() {
+    if (jj_scan_token(NULL)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
+  final private boolean jj_3R_75() {
+    if (jj_scan_token(FLOAT)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
+  final private boolean jj_3R_74() {
+    if (jj_scan_token(LONG)) return true;
+    if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
+    return false;
+  }
+
+  final private boolean jj_3R_73() {
+    if (jj_scan_token(INT)) return true;
     if (jj_la == 0 && jj_scanpos == jj_lastpos) return false;
     return false;
   }
