@@ -679,7 +679,7 @@ public class NameSpace
 		if ( importedPackages != null )
 			for(int i=importedPackages.size()-1; i>=0; i--)
 			{
-				String s = ((String)importedPackages.get(i)) + "." + name;
+				String s = ((String)importedPackages.elementAt(i)) + "." + name;
 				Class c=classForName(s);
 				if ( c != null )
 					return c;
