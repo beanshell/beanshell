@@ -216,7 +216,7 @@ public class BshMethod
 						+ method.name, callerInfo, callstack );
 				else
 					try {
-						localNameSpace.setVariable(
+						localNameSpace.setLocalVariable(
 							method.params.argNames[i], argValues[i],
 							interpreter.getStrictJava() );
 					} catch ( UtilEvalError e3 ) {

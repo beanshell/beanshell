@@ -244,11 +244,16 @@ class Reflect
 		This method also deals with the field style property access.
 		In the field does not exist we check for a property setter.
 	*/
-    static LHS getLHSObjectField(Object object, String fieldName)
+    static LHS getLHSObjectField( Object object, String fieldName )
         throws UtilEvalError, ReflectError
     {
 		if ( object instanceof This )
-			return new LHS(((This)object).namespace, fieldName );
+		{
+			// I guess this is when we pass it as an argument?
+			// Setting locally
+			boolean recurse = false; 
+			return new LHS( ((This)object).namespace, fieldName, recurse );
+		}
 
 		try {
 			Field f = getField(object.getClass(), fieldName);
@@ -1078,9 +1083,9 @@ System.out.println("findAcc: "
     }
 }
 
-
 /*
-Ok, I wrote this... should we use it?
+Ok, I wrote this... should we use it in lieu of the pair of methods?
+I guess not...
 
     private static Object findExtendedMethodOrConstructor(
 		String name, Object[] args, Object [] methodsOrConstructors )

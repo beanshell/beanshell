@@ -187,9 +187,19 @@ public class NameSpace
     public void	setVariable( String name, Object value, boolean strictJava ) 
 		throws UtilEvalError 
 	{
-		boolean recurse = strictJava;
-		//boolean recurse = true; // Trying 1.3 scoping change
+		// if oldscoping follow strictJava, else recurse
+		boolean recurse = Interpreter.OLDSCOPING ? strictJava : true;
 		setVariable( name, value, strictJava, recurse );
+	}
+
+	/**
+		Set a variable explicitly in the local scope.
+	*/
+    void setLocalVariable( 
+		String name, Object value, boolean strictJava ) 
+		throws UtilEvalError 
+	{
+		setVariable( name, value, strictJava, false/*recurse*/ );
 	}
 
 	/**
@@ -211,7 +221,7 @@ public class NameSpace
 		@param recurse determines whether we will search for the variable in
 		  our parent's scope before assigning locally.
 	*/
-    public void	setVariable( 
+    void setVariable( 
 		String name, Object value, boolean strictJava, boolean recurse ) 
 		throws UtilEvalError 
 	{
@@ -225,7 +235,7 @@ public class NameSpace
 		// Locate the variable definition if it exists.
 		Variable existing = getVariableImpl( name, recurse );
 
-		// Found an existing variable
+		// Found an existing variable here (or above if recurse allowed)
 		if ( existing != null )
 		{
 			try {
@@ -234,15 +244,18 @@ public class NameSpace
 				throw new UtilEvalError(
 					"Variable assignment: " + name + ": " + e.getMessage());
 			}
-		} else
-		// Non-existent.  
+		} else 
+		// No previous variable definition found here (or above if recurse)
 		{
 			if ( strictJava )
 				throw new UtilEvalError(
 					"(Strict Java mode) Assignment to undeclared variable: "
 					+name );
 
-			variables.put( name, new Variable( value, false ) );
+			// If recurse, set global untyped var, else set it here.	
+			NameSpace varScope = recurse ? getGlobal() : this;
+
+			varScope.variables.put( name, new Variable( value, false ) );
 
 			// nameSpaceChanged() on new variable addition
 			nameSpaceChanged();
@@ -482,7 +495,7 @@ public class NameSpace
 	}
 
     /**
-		Declare a variable and set its' initial value.
+		Declare a variable in the local scope and set its initial value.
 		Value may be null to indicate that we would like the default value 
 		for the variable type. (e.g.  0 for integer types, null for object 
 		types).  An existing typed variable may only be set to the same type.
@@ -530,7 +543,7 @@ public class NameSpace
 					return;
 				}
 			}
-			// Carefull here:
+			// Careful here:
 			// else fall through to override and install the new typed version
 		} 
 
@@ -889,68 +902,6 @@ public class NameSpace
 		getClassManager().doSuperImport();
 	}
 
-    static class Variable implements java.io.Serializable 
-	{
-		/** A null type means an untyped variable */
-		Class type = null;
-		Object value;
-		boolean	isFinal;
-
-		Variable( Object value, boolean isFinal )
-			throws UtilEvalError
-		{
-			this( null, value, isFinal );
-		}
-
-		Variable( Class type, Object value, boolean isFinal )
-			throws UtilEvalError
-		{
-			this.type =	type;
-			this.isFinal = isFinal;
-			setValue( value );
-		}
-
-		/**
-			Set the value of the typed variable.
-		*/
-		void setValue( Object val ) throws UtilEvalError
-		{
-			if ( isFinal && value != null )
-				throw new UtilEvalError ("Final variable, can't re-assign.");
-
-			if ( type != null )
-			{
-				// Do basic assignability check / conversion
-				val = getAssignableForm( val, type );
-				
-				/* 
-					If we are a numeric primitive type we want to convert to 
-					the actual numeric type of this variable.  Being 
-					assignable is  not good enough.
-				*/
-				if ( val instanceof Primitive && ((Primitive)val).isNumber() )
-					try {
-						val = BSHCastExpression.castPrimitive( 
-							(Primitive)val, type );
-					} catch ( UtilEvalError e ) {
-						throw new InterpreterError(
-							"Assignment auto cast failed");
-					}
-			}
-
-			this.value= val;
-		}
-
-		Object getValue() { return value; }
-
-		/** A type of null means loosely typed variable */
-		Class getType() { return type;	}
-
-		public String toString() { 
-			return "Variable type:"+type+", value:"+value;
-		}
-    }
-
 	/**
 		Determine if the RHS object can be assigned to the LHS type:
 		<p/>
@@ -1012,7 +963,8 @@ public class NameSpace
 		various places things are happening:
 			Reflect.isJavaAssignableFrom()
 			Primitive?
-			here?
+			here...
+		We should probably move all of that stuff to a common area.
 	*/
 		Class originalType;
 
@@ -1239,6 +1191,7 @@ public class NameSpace
 		Import standard packages.  Currently:
 		<pre>
 			importClass("bsh.EvalError");
+			importClass("bsh.Interpreter");
 			importPackage("javax.swing.event");
 			importPackage("javax.swing");
 			importPackage("java.awt.event");
@@ -1257,6 +1210,7 @@ public class NameSpace
 			ones later.
 		*/
 		importClass("bsh.EvalError");
+		importClass("bsh.Interpreter");
 		importPackage("javax.swing.event");
 		importPackage("javax.swing");
 		importPackage("java.awt.event");
@@ -1374,5 +1328,68 @@ System.out.println(
     	classCache = null;
 		names = null;
 	}
+
+    static class Variable implements java.io.Serializable 
+	{
+		/** A null type means an untyped variable */
+		Class type = null;
+		Object value;
+		boolean	isFinal;
+
+		Variable( Object value, boolean isFinal )
+			throws UtilEvalError
+		{
+			this( null, value, isFinal );
+		}
+
+		Variable( Class type, Object value, boolean isFinal )
+			throws UtilEvalError
+		{
+			this.type =	type;
+			this.isFinal = isFinal;
+			setValue( value );
+		}
+
+		/**
+			Set the value of the typed variable.
+		*/
+		void setValue( Object val ) throws UtilEvalError
+		{
+			if ( isFinal && value != null )
+				throw new UtilEvalError ("Final variable, can't re-assign.");
+
+			if ( type != null )
+			{
+				// Do basic assignability check / conversion
+				val = getAssignableForm( val, type );
+				
+				/* 
+					If we are a numeric primitive type we want to convert to 
+					the actual numeric type of this variable.  Being 
+					assignable is  not good enough.
+				*/
+				if ( val instanceof Primitive && ((Primitive)val).isNumber() )
+					try {
+						val = BSHCastExpression.castPrimitive( 
+							(Primitive)val, type );
+					} catch ( UtilEvalError e ) {
+						throw new InterpreterError(
+							"Assignment auto cast failed");
+					}
+			}
+
+			this.value= val;
+		}
+
+		Object getValue() { return value; }
+
+		/** A type of null means loosely typed variable */
+		Class getType() { return type;	}
+
+		public String toString() { 
+			return "Variable type:"+type+", value:"+value;
+		}
+    }
+
 }
 

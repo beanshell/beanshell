@@ -38,11 +38,11 @@ run( String filename, Object runArgument )
 	//
 	// Extend the root system object
 	// this is problematic...  probably need more here...
-	bsh=extend(global.bsh); 
-	bsh.help=extend(bsh.help);
+	this.bsh=extend(global.bsh); 
+	this.bsh.help=extend(bsh.help);
 
-	// save the classpath before prune
-	cp = this.caller.namespace.getClassManager()
+	// save the classpath before pruning
+	this.cp = this.caller.namespace.getClassManager()
 		.getClassPath().getUserClassPathComponents();
 
 	// Cut us off... make us the root (global) namespace for this command

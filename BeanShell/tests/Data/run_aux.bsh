@@ -1,10 +1,11 @@
 #!/bin/java bsh.Interpreter
 
-a=5;
+this.a=5;
 global.g = 6;
 cd("..");
 cwd=bsh.cwd;
 
-// copy to another var for no real reason
-ra = runArgument;
+// copy to another var 
+if ( runArgument != void )
+	ra = runArgument;
 

@@ -6,8 +6,8 @@ bsh.help.mv = "usage: mv( fromFile, toFile )";
 
 mv( String fromFile, String toFile ) 
 {
-    from = pathToFile( fromFile );
-    to = pathToFile( toFile );
+    this.from = pathToFile( fromFile );
+    this.to = pathToFile( toFile );
 	from.renameTo( to );
 }
 

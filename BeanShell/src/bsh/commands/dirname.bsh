@@ -17,11 +17,12 @@
 
 bsh.help.cd = "usage: dirname( path )";
 
-String dirname( String pathname ) {
-
+String dirname( String pathname ) 
+{
 	String dirName = ".";
 	// Normalize '/' to local file separator before work.
-	int i = pathname.replace('/', File.separatorChar ).lastIndexOf( File.separator );
+	int i = pathname.replace('/', File.separatorChar ).lastIndexOf( 
+		File.separator );
     if ( i != -1 )
 		dirName = pathname.substring(0, i);
 

@@ -224,6 +224,77 @@
 	- Refactored variable management a bit - all variables (both typed and
 	  untyped) are now wrapped in the wrapper NameSpace.Variable.  We could put
 	  a listener API on there if we wanted to "watch" variables.
+
+	- Implemented BeanShell 1.3 scoping changes and preserved backwards 
+	  compatability with the -Doldscoping=true switch.
+
+	  Variable assignments now search up the parent chain for the variable
+	  definition rather than defaulting to local scope.  Variable assignments
+	  will therefore find the nearest enclosing variable definition - as one
+	  would expect in Java.  Prior to BeanShell 1.3 this was only true when
+	  "strict Java" mode was enabled.
+	  
+	  So, for example, the following idiomatic things now work as expected:
+
+		  incrementX() { x=x+1; }
+		  x=1;
+		  incrementX();
+		  assert( x == 2 ); // true!
+
+		  setFlag() { flag=true; }
+		  setFlag();
+		  assert( flag == true ); // true!
+	  
+	  A typed variable declaration will define the variable as usual in Java.
+	  An untyped variable assignment - for which there is no definition in any
+	  enclosing scope - will end up as a global variable assignment. e.g.
+
+		  int x = 1; // parent scope
+
+		  foo() 
+		  {
+			// foo scope
+			x = 2; // x assigned in parent scope
+
+			int y = 1;
+			y = 2; // y assigned in foo scope
+
+			z = 99; // z has no enclosing scope, assigned global
+		  }
+
+	  An untyped variable can be made local in scope by assigning it with 
+	  the qualifier 'this' (as usual) or by using the new keyword 'var' to 
+	  explicitly declare it as an untyped variable.
+
+		  foo() 
+		  {
+			// secret1 and secret2 are local to foo()
+			this.secret1 = 42;
+			var secret2 = 42;
+		  }
+
+	  The qualifier 'super' may be used, as in Java, to begin the search for a
+	  variable definition in the parent scope.
+
+		  int y = 1; // parent scope
+		  foo() 
+		  {
+			int y = 2;
+			super.y = 3; // y assigned in parent scope
+		  }
+
+		  Object closures (scripted objects created by returning 'this' from a
+		  method) may be assigned variables as usual:
+
+		  foo() { return this; }
+		  foo=foo();
+		  foo.a=1;
+		  print( foo.a ); // 1
+		  print( a ); // ERROR 'a' undefined here
+	
+	  The old scoping rules have been preserved and can be switched on by
+	  setting the system property "oldscoping" to "true".
+	  See newscoping.bsh in the test suite for more examples.
 </pre>
 
 <h2>Changes in 1.2b8 </h2>

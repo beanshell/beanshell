@@ -7,14 +7,13 @@ bsh.help.cd = "usage: cd( path )";
 /*
 	Additions by Kevin Raulerson, http://www.spin.com.mx/~kevinr/
 */
-void cd( String pathname ) {
-
-    file = pathToFile( pathname );
+void cd( String pathname ) 
+{
+    this.file = pathToFile( pathname );
 
 	if ( file.exists() && file.isDirectory() )
 		bsh.cwd = file.getCanonicalPath();
 	else
         print( "No such directory: "+pathname);
-
 }
 

@@ -23,19 +23,19 @@ import bsh.ClassPathException;
 
 void reloadClasses( item ) 
 {
-	bcm = this.caller.namespace.getClassManager();
+	this.bcm = this.caller.namespace.getClassManager();
 
 	try {
 		if ( item instanceof String [] )
 			bcm.reloadClasses( item );
 		else {
-			name = item;
+			this.name = item;
 
 			if ( name.endsWith(".*" ) ) {
 				if ( name.equals(".*" ) )
-					pack = "<unpackaged>";
+					this.pack = "<unpackaged>";
 				else
-					pack = name.substring( 0, name.length()-2 );
+					this.pack = name.substring( 0, name.length()-2 );
 				
 				bcm.reloadPackage( pack );
 			} else

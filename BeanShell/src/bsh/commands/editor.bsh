@@ -8,17 +8,18 @@
 bsh.help.editor = "usage: editor()";
 import java.awt.*;
 
-editor() {
+editor() 
+{
 	if ( bsh.system.desktop != void ) {
 		return workspaceEditor( this.interpreter );
 	}
 
-	ta = new TextArea(15,40);
-	frame = new Frame("Editor");
+	this.ta = new TextArea(15,40);
+	this.frame = new Frame("Editor");
 	frame.add(ta, "Center");
 
-	p = new Panel();
-	b = new Button("Eval");
+	this.p = new Panel();
+	this.b = new Button("Eval");
 	b.addActionListener(this);
 	p.add(b);
 	b = new Button("Clear");
@@ -32,7 +33,8 @@ editor() {
 	frame.pack();
 	frame.show();
 
-	actionPerformed(e) {
+	actionPerformed(e) 
+	{
 		if ( e.getActionCommand().equals("Close") )
 			frame.dispose();
 		else if ( e.getActionCommand().equals("Clear") )

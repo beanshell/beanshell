@@ -82,9 +82,8 @@ import java.lang.reflect.InvocationTargetException;
 		for( caller=this.caller; caller != null; caller = caller.caller );
 
 	is prohibited by the restriction that you can only call .caller on a 
-	literal	this or caller reference.
-	The effect is that magic caller reference only works through the current 
-	'this' reference.
+	literal	this or caller reference.  The effect is that magic caller 
+	reference only works through the current 'this' reference.
 	The real explanation is that This referernces do not really know anything
 	about their depth on the call stack.  It might even be hard to define
 	such a thing...
@@ -106,23 +105,17 @@ class Name implements java.io.Serializable
 	// be reset by the reset() method where necessary
 
 	// For evaluation
-	private String evalName;		// text left to eval
+	/** Remaining text to evaluate */
+	private String evalName;
+	/** 
+		The last part of the name evaluated.  This is really only used for
+	 	this, caller, and super resolution.
+	*/
+	private String lastEvalName;
+	private static String FINISHED = null; // null evalname and we're finished
 	private Object evalBaseObject;	// base object for current eval
 
 	private int callstackDepth;		// number of times eval hit 'this.caller'
-	/** 
-		The last round consumed the literal 'this' reference (not super, 
-		global, or another This type var).  We use this flag to support magic
-		variables that can only be referenced through 'this.xxx', e.g.
-		this.interpreter and this.caller;
-	*/
-	private boolean literalThisReference;
-	/** 
-		The last round consume the literal 'caller' reference (not super, 
-		global, or another This type var).  This is used to limit references
-		to .caller to only after a literal 'this' or compound '.caller'.
-	*/
-	private boolean literalCallerReference;
 
 	//  
 	//  End mutable instance variables.
@@ -150,8 +143,6 @@ class Name implements java.io.Serializable
 		evalName = value;
 		evalBaseObject = null;
 		callstackDepth = 0;
-		literalThisReference=false;
-		literalCallerReference=false;
 	}
 
 	/**
@@ -215,6 +206,15 @@ class Name implements java.io.Serializable
 		return obj;
 	}
 
+	private Object completeRound( 
+		String lastEvalName, String nextEvalName, Object returnObject )
+	{
+		this.lastEvalName = lastEvalName;
+		this.evalName = nextEvalName;
+		this.evalBaseObject = returnObject;
+		return returnObject;
+	}
+
 	/**
 		Get next prefixed object field component
 	*/
@@ -234,10 +234,8 @@ class Name implements java.io.Serializable
 			Object obj = resolveThisFieldReference( 
 				callstack, namespace, interpreter, evalName, false );
 
-			if ( obj != Primitive.VOID ) {
-				evalName = null; // finished
-				return evalBaseObject = obj;  // convention
-			}
+			if ( obj != Primitive.VOID )
+				return completeRound( evalName, FINISHED, obj );
 		}
 
 		/*
@@ -268,8 +266,7 @@ class Name implements java.io.Serializable
 				if ( Interpreter.DEBUG ) 
 					Interpreter.debug( "resolved variable: " + varName + 
 					" in namespace: "+namespace);
-				evalName = suffix(evalName);
-				return evalBaseObject = obj;
+				return completeRound( varName, suffix(evalName), obj );
 			}
 		}
 
@@ -286,13 +283,20 @@ class Name implements java.io.Serializable
 			*/
 			Class clas = null;
 			int i = 1;
+			String className = null;
 			for(; i <= countParts(evalName); i++)
-				if ( (clas = namespace.getClass(prefix(evalName, i))) != null )
+			{
+				className = prefix(evalName, i);
+				if ( (clas = namespace.getClass(className)) != null )
 					break;
+			}
 		
-			if( clas != null )  {
-				evalName = suffix(evalName, countParts(evalName) - i);
-				return ( evalBaseObject = new ClassIdentifier(clas) );
+			if ( clas != null )  {
+				return completeRound(
+					className,
+					suffix( evalName, countParts(evalName)-i ),
+					new ClassIdentifier(clas) 
+				);
 			}
 			// not a class (or variable per above)
 			if ( Interpreter.DEBUG ) 
@@ -309,9 +313,8 @@ class Name implements java.io.Serializable
 			- If we are compound then we must fail at this point.
 		*/
 		if ( evalBaseObject == null ) {
-			if( !isCompound(evalName) ) {
-				evalName = null; // finished
-				return evalBaseObject = Primitive.VOID;  // convention
+			if ( !isCompound(evalName) ) {
+				return completeRound( evalName, FINISHED, Primitive.VOID );
 			} else
 				throw new UtilEvalError(
 					"Class or variable not found: " + evalName);
@@ -373,8 +376,7 @@ class Name implements java.io.Serializable
 				throw new UtilEvalError(
 					"No static field or inner class: " + field + " of " + clas);
 
-			evalName = suffix(evalName);
-			return (evalBaseObject = obj);
+			return completeRound( field, suffix(evalName), obj );
 		}
 
 		/*
@@ -395,8 +397,7 @@ class Name implements java.io.Serializable
 		if(field.equals("length") && evalBaseObject.getClass().isArray())
 		{
 			Object obj = new Primitive(Array.getLength(evalBaseObject));
-			evalName = suffix(evalName);
-			return (evalBaseObject = obj);
+			return completeRound( field, suffix(evalName), obj );
 		}
 
 		/* check for field on object */
@@ -404,8 +405,7 @@ class Name implements java.io.Serializable
 		try
 		{
 			Object obj = Reflect.getObjectField(evalBaseObject, field);
-			evalName = suffix(evalName);
-			return (evalBaseObject = obj);
+			return completeRound( field, suffix(evalName), obj );
 		}
 		catch(ReflectError e) { /* not a field */ }
 	
@@ -422,6 +422,7 @@ class Name implements java.io.Serializable
 		comprise the This context.  The callstack, if available allows for the
 		this.caller construct.  
 		Optionally interpret special "magic" field names: e.g. interpreter.
+		<p/>
 
 		@param callstack may be null, but this is only legitimate in special
 		cases where we are sure resolution will not involve this.caller.
@@ -438,20 +439,24 @@ class Name implements java.io.Serializable
 
 		if ( varName.equals("this") ) 
 		{
-			// Somewhat of a hack.  If the special fields are visible (we're
-			// operating relative to a 'this' type already) dissallow
-			// further .this references to prevent user from skipping to 
-			// things like super.this.caller
+			/*
+				Somewhat of a hack.  If the special fields are visible (we're
+				operating relative to a 'this' type already) dissallow further
+				.this references to prevent user from skipping to things like
+				super.this.caller
+			*/
 			if ( specialFieldsVisible )
 				throw new UtilEvalError("Redundant to call .this on This type");
 
-			// The following test handles the special case of BlockNameSpace
-			// scoped 'this' refs (see BlockNameSpace getThis()).  This might
-			// be more elegant in a subclass of Name.java (e.g. BlockName.java
-			// corresponding to BlockNameSpace.java)  but is only a couple of 
-			// lines.  Explanation: a simple non-compound name always resolves
-			// to the parent ns.  Therefore any compound resolution means we
-			// are resolving within the block namespace.
+			/* 
+				The following test handles the special case of BlockNameSpace
+				scoped 'this' refs (see BlockNameSpace getThis()).  This might
+				be more elegant in a subclass of Name.java (e.g. BlockName.java
+				corresponding to BlockNameSpace.java)  but is only a couple of
+				lines.  Explanation: a simple non-compound name always resolves
+				to the parent ns.  Therefore any compound resolution means we
+				are resolving within the block namespace.
+			*/
 			if ( thisNamespace instanceof BlockNameSpace 
 				&& isCompound(evalName) )
 			{
@@ -460,19 +465,21 @@ class Name implements java.io.Serializable
 			} else
 				obj = thisNamespace.getThis( interpreter );
 
-			literalThisReference = true;
 			// early return
 			return obj;
 		}
 
-		if ( obj == null ) {
+		if ( obj == null ) 
+		{
 			if ( varName.equals("super") )
 				obj = thisNamespace.getSuper().getThis( interpreter );
-			else if ( varName.equals("global") )
+			else 
+			if ( varName.equals("global") )
 				obj = thisNamespace.getGlobal().getThis( interpreter );
 		}
 
-		if ( obj == null && specialFieldsVisible ) {
+		if ( obj == null && specialFieldsVisible ) 
+		{
 			if (varName.equals("namespace"))
 				obj = thisNamespace;
 			else if (varName.equals("variables"))
@@ -480,7 +487,7 @@ class Name implements java.io.Serializable
 			else if (varName.equals("methods"))
 				obj = thisNamespace.getMethodNames();
 			else if ( varName.equals("interpreter") )
-				if ( literalThisReference )
+				if ( lastEvalName.equals("this") )
 					obj = interpreter;
 				else
 					throw new UtilEvalError(
@@ -489,7 +496,7 @@ class Name implements java.io.Serializable
 
 		if ( obj == null && specialFieldsVisible && varName.equals("caller") )
 		{
-			if ( literalThisReference || literalCallerReference ) 
+			if ( lastEvalName.equals("this") || lastEvalName.equals("caller") ) 
 			{
 				// get the previous context (see notes for this class)
 				if ( callstack == null )
@@ -501,7 +508,6 @@ class Name implements java.io.Serializable
 				throw new UtilEvalError(
 				"Can only call .caller on literal 'this' or literal '.caller'");
 
-			literalThisReference = true;
 			// early return
 			return obj;
 		}
@@ -509,7 +515,7 @@ class Name implements java.io.Serializable
 		if ( obj == null && specialFieldsVisible 
 			&& varName.equals("callstack") )
 		{
-			if ( literalThisReference ) 
+			if ( lastEvalName.equals("this") ) 
 			{
 				// get the previous context (see notes for this class)
 				if ( callstack == null )
@@ -544,10 +550,15 @@ class Name implements java.io.Serializable
 
 		reset();
 
-		/* Try straightforward class name first */
-		Class clas = namespace.getClass(evalName);
+		// "var" means untyped, return null class
+		if ( evalName.equals("var") && Interpreter.OLDSCOPING )
+			return asClass = null;
 
-		if ( clas == null ) {
+		/* Try straightforward class name first */
+		Class clas = namespace.getClass( evalName );
+
+		if ( clas == null ) 
+		{
 			/* 
 				Try toObject() which knows how to work through inner classes
 				and see what we end up with 
@@ -577,7 +588,7 @@ class Name implements java.io.Serializable
 		CallStack callstack, Interpreter interpreter )
 		throws UtilEvalError
 	{
-	// Need to clean this up to a single return statement
+		// Should clean this up to a single return statement
 
 		reset();
 
@@ -588,11 +599,12 @@ class Name implements java.io.Serializable
 
 		LHS lhs;
 
-		// variable
+		// variable.  e.g. x=5;
 		if ( !isCompound(evalName) ) 
 		{
-			//Interpreter.debug("returning simple var LHS...");
-			lhs = new LHS(namespace,evalName);
+			// Interpreter.debug("Simple var LHS...");
+			boolean recurse = !Interpreter.OLDSCOPING;
+			lhs = new LHS( namespace, evalName, recurse );
 			return lhs;
 		}
 
@@ -600,25 +612,37 @@ class Name implements java.io.Serializable
 		Object obj = null;
 		try
 		{
-			while(isCompound(evalName))
+			while( isCompound(evalName) )
 				obj = consumeNextObjectField( callstack, interpreter, false );
-		}
-		catch( UtilEvalError e )
-		{
+		} 
+		catch( UtilEvalError e ) {
 			throw new UtilEvalError("LHS evaluation: " + e);
 		}
 
 		if ( obj == null )
-			throw new InterpreterError("internal error 2893749283");
+			throw new InterpreterError("null in lhs resolution");
 
+		// e.g. this.x=5;  or someThisType.x=5;
 		if ( obj instanceof This )
 		{
 			Interpreter.debug("found This reference evaluating LHS");
-			lhs = new LHS(((This)obj).namespace, evalName);
+			/*
+				If this was a literal "super" reference then we allow recursion
+				in setting the variable to get the normal effect of finding the
+				nearest definition starting at the super scope.  On any other
+				resolution qualified by a 'this' type reference we want to set
+				the variable directly in that scope. e.g. this.x=5;  or 
+				someThisType.x=5;
+				
+				In the old scoping rules super didn't do this.
+			*/
+			boolean recurse = lastEvalName.equals("super") 
+				&& !Interpreter.OLDSCOPING;
+			lhs = new LHS( ((This)obj).namespace, evalName, recurse );
 			return lhs;
 		}
 
-		if(evalName != null)
+		if ( evalName != null )
 		{
 			try
 			{

@@ -17,8 +17,8 @@ bsh.help.frame = "usage: frame( Component component )";
 import java.awt.*;
 import bsh.Capabilities;
 
-frame( Component comp ) {
-
+frame( Component comp ) 
+{
 	// Ignore unhandled method invocations from listeners.
 	invoke( method, args ) { }
 
@@ -28,7 +28,7 @@ frame( Component comp ) {
 
 	// if the desktop is there make an internal frame
 	if ( bsh.system.desktop != void ) {
-		frame = bsh.system.desktop.makeInternalFrame("frame");
+		this.frame = bsh.system.desktop.makeInternalFrame("frame");
 		frame.setClosable(true);
 		frame.getContentPane().add( comp, "Center" );
     	frame.pack();  // must pack before adding to desktop?
@@ -36,10 +36,10 @@ frame( Component comp ) {
 	} else {
 		// make an external JFrame or Frame
 		if ( Capabilities.haveSwing() ) {
-			frame = new javax.swing.JFrame();
+			this.frame = new javax.swing.JFrame();
 			frame.getContentPane().add( comp, "Center" );
 		} else {
-			frame = new Frame();
+			this.frame = new Frame();
 			frame.add( comp, "Center" );
 		}
 

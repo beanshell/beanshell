@@ -87,7 +87,7 @@ class BSHType extends SimpleNode
 		throws EvalError
     {
         // return cached type if available
-		if (type != null)
+		if ( type != null )
 			return type;
 
         //  first node will either be PrimitiveType or AmbiguousName

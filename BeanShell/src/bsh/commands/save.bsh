@@ -4,8 +4,9 @@
 
 bsh.help.save = "usage: save( object, filename )";
 
-void save( Object obj, String filename ) {
-	file = pathToFile( filename );
+void save( Object obj, String filename ) 
+{
+	File file = pathToFile( filename );
 
 	if ( !(obj instanceof Serializable) ) {
 		print("Type "+obj.getClass()+" is not serializable");
@@ -19,8 +20,8 @@ void save( Object obj, String filename ) {
 		obj.namespace.prune();
 	}
 	
-	out = new FileOutputStream( file );
-	oout = new ObjectOutputStream(out);
+	OutputStream out = new FileOutputStream( file );
+	ObjectOutputStream oout = new ObjectOutputStream(out);
 	oout.writeObject( obj );
 	oout.close();
 

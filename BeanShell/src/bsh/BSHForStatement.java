@@ -88,18 +88,9 @@ class BSHForStatement extends SimpleNode implements ParserConstants
 		// method so that we can swap back the namespace.
 		callstack.swap( forNameSpace );
 
-		// If we wanted untyped variables in the for-init to be local, instead
-		// of having side effects in the parent context of the for-loop we
-		// could setInitMode() here to capture them and make them local.
-		///forNameSpace.setInitMode(true); 
-
         // Do the for init
         if ( hasForInit ) 
             forInit.eval( callstack, interpreter );
-
-		// If we had turned on init mode to capture untyped for-init vars 
-		// and make them local to the for-loop scope we would turn it off here
-		//forNameSpace.setInitMode(false); 
 
 		Object returnControl = Primitive.VOID;
         while(true)

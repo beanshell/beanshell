@@ -111,4 +111,12 @@ public class StringUtil {
 	}
 
 	*/
+
+	/**
+		Hack - The real method is in Reflect.java which is not public.
+	*/
+    public static String normalizeClassName( Class type )
+	{
+		return Reflect.normalizeClassName( type );
+	}
 }
