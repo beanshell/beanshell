@@ -289,7 +289,6 @@ public class Interpreter implements Runnable /*,Serializable*/
 		Run interactively.  (printing prompts, etc.)
 	*/
     public void run() {
-
         if(evalOnly)
             throw new RuntimeException("bsh Interpreter: No stream");
 
@@ -316,6 +315,7 @@ public class Interpreter implements Runnable /*,Serializable*/
                 Thread.yield();  // this helps a little
                 if(interactive)
                     print("bsh % ");
+
                 eof = Line();
 
                 if(jjtree.nodeArity() > 0)  // number of child nodes 
@@ -646,8 +646,9 @@ PARSER_END(Interpreter)
 
 SKIP : /* WHITE SPACE */
 { 
-	" " | "\t" | "\n" | "\r" | "\f" | 
-	< NONPRINTABLE: (["\u0000"-"\u0020", "\u0080"-"\u00ff"])+ >
+	" " | "\t" | "\r" | "\f"
+	| "\n" 
+	| < NONPRINTABLE: (["\u0000"-"\u0020", "\u0080"-"\u00ff"])+ >
 }
 
 SPECIAL_TOKEN : /* COMMENTS */

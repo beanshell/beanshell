@@ -2,9 +2,7 @@
 package bsh;
 import java.util.Vector;
 import java.io.*;
-/*  Daniel Leuck: Added stuff to support JConsole Color and images */
 import java.awt.Color;
-import bsh.util.JConsole;
 
 public class InterpreterTokenManager implements InterpreterConstants
 {
@@ -150,11 +148,11 @@ private final int jjMoveStringLiteralDfa0_0()
       case 9:
          return jjStartNfaWithStates_0(0, 2, 0);
       case 10:
-         return jjStartNfaWithStates_0(0, 3, 0);
-      case 12:
          return jjStartNfaWithStates_0(0, 5, 0);
-      case 13:
+      case 12:
          return jjStartNfaWithStates_0(0, 4, 0);
+      case 13:
+         return jjStartNfaWithStates_0(0, 3, 0);
       case 32:
          return jjStartNfaWithStates_0(0, 1, 0);
       case 33:
