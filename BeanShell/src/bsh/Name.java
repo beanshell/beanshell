@@ -448,7 +448,7 @@ class Name implements java.io.Serializable
 		same as the top of the stack?
 	*/
 	Object resolveThisFieldReference( 
-		CallStack callstack, NameSpace thisNamespace, Interpreter interpreter, 
+		CallStack callstack, NameSpace thisNameSpace, Interpreter interpreter, 
 		String varName, boolean specialFieldsVisible ) 
 		throws UtilEvalError
 	{
@@ -473,36 +473,55 @@ class Name implements java.io.Serializable
 				lines.  Explanation: a simple non-compound name always resolves
 				to the parent ns.  Therefore any compound resolution means we
 				are resolving within the block namespace.
-			*/
-			if ( thisNamespace instanceof BlockNameSpace 
-				&& isCompound(evalName) )
-			{
-				obj = ((BlockNameSpace)thisNamespace).getBlockThis( 
+			// This popping out of the block namespace predicated on evalName
+			// not being compound does not handle the case of this.namespace,
+			// this.caller magic fields.
+			This ths;
+			if ( thisNameSpace instanceof BlockNameSpace 
+				&& isCompound(evalName) 
+			)
+				ths = ((BlockNameSpace)thisNameSpace).getBlockThis( 
 					interpreter );
-			} else
-				obj = thisNamespace.getThis( interpreter );
+			else
+			*/
+			// Allow getThis() to work for BlockNameSpace
+			This ths = thisNameSpace.getThis( interpreter );
 
-			// early return
-			return obj;
+			thisNameSpace = ths.getNameSpace();
+
+			/*
+				The following test handles the case of a scripted class
+				method namespace.  This should really be in a subclass of
+				Name or NameSpace.  A reference to 'this' from inside a class
+				instance should refer to the enclosing class instance, as in
+				Java.
+			*/
+			if ( thisNameSpace.getParent() != null 
+				&& thisNameSpace.getParent().isClass 
+				&& !thisNameSpace.getParent().isStatic 
+			)
+				ths = thisNameSpace.getParent().getThis( interpreter );
+
+			return ths;
 		}
 
 		if ( obj == null ) 
 		{
 			if ( varName.equals("super") )
-				obj = thisNamespace.getSuper().getThis( interpreter );
+				obj = thisNameSpace.getSuper().getThis( interpreter );
 			else 
 			if ( varName.equals("global") )
-				obj = thisNamespace.getGlobal().getThis( interpreter );
+				obj = thisNameSpace.getGlobal().getThis( interpreter );
 		}
 
 		if ( obj == null && specialFieldsVisible ) 
 		{
 			if (varName.equals("namespace"))
-				obj = thisNamespace;
+				obj = thisNameSpace;
 			else if (varName.equals("variables"))
-				obj = thisNamespace.getVariableNames();
+				obj = thisNameSpace.getVariableNames();
 			else if (varName.equals("methods"))
-				obj = thisNamespace.getMethodNames();
+				obj = thisNameSpace.getMethodNames();
 			else if ( varName.equals("interpreter") )
 				if ( lastEvalName.equals("this") )
 					obj = interpreter;
@@ -546,7 +565,7 @@ class Name implements java.io.Serializable
 
 
 		if ( obj == null )
-			obj = thisNamespace.getVariable(varName);
+			obj = thisNameSpace.getVariable(varName);
 
 		return obj;
 	}
@@ -805,7 +824,13 @@ class Name implements java.io.Serializable
 		Class [] argTypes = Reflect.getTypes( args );
 
         // Check for existing method
-        BshMethod meth = namespace.getMethod( commandName, argTypes );
+        BshMethod meth = null;
+		try {
+			meth = namespace.getMethod( commandName, argTypes );
+		} catch ( UtilEvalError e ) {
+			throw e.toEvalError(
+				"Local method invocation", callerInfo, callstack );
+		}
 
 		// If defined, invoke it
         if ( meth != null )
@@ -828,8 +853,14 @@ class Name implements java.io.Serializable
 			// Look for a default invoke() handler method in the namespace
 			// Note: this code duplicates that in This.java... should it?
 			// Call on 'This' can never be a command
-			BshMethod invokeMethod = namespace.getMethod( 
-				"invoke", new Class [] { null, null } );
+			BshMethod invokeMethod = null;
+			try {
+				invokeMethod = namespace.getMethod( 
+					"invoke", new Class [] { null, null } );
+			} catch ( UtilEvalError e ) {
+				throw e.toEvalError(
+					"Local method invocation", callerInfo, callstack );
+			}
 
 			if ( invokeMethod != null )
 				return invokeMethod.invoke( 

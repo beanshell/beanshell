@@ -87,10 +87,8 @@ class BSHTypedVariableDeclaration extends SimpleNode
 				}
 
 				try {
-					boolean isFinal = 
-						modifiers != null && modifiers.hasModifier("final");
 					namespace.setTypedVariable( 
-						dec.name, type, value, isFinal );
+						dec.name, type, value, modifiers );
 				} catch ( UtilEvalError e ) { 
 					throw e.toEvalError( this, callstack ); 
 				}

@@ -149,9 +149,12 @@ class XThis extends This
 				otherwise callers from outside in Java will not see a the 
 				proxy object as equal to itself.
 			*/
-			if ( methodName.equals("equals" ) 
-				&& namespace.getMethod( 
-					"equals", new Class [] { Object.class } ) == null ) {
+			BshMethod equalsMethod = null;
+			try {
+				equalsMethod = namespace.getMethod( 
+					"equals", new Class [] { Object.class } );
+			} catch ( UtilEvalError e ) {/*leave null*/ }
+			if ( methodName.equals("equals" ) && equalsMethod == null ) {
 				Object obj = args[0];
 				return new Boolean( proxy == obj );
 			}
@@ -160,8 +163,13 @@ class XThis extends This
 				If toString() is not explicitly defined override the default 
 				to show the proxy interfaces.
 			*/
-			if ( methodName.equals("toString" ) 
-				&& namespace.getMethod( "toString", new Class [] { } ) == null)
+			BshMethod toStringMethod = null;
+			try {
+				toStringMethod = 
+					namespace.getMethod( "toString", new Class [] { } );
+			} catch ( UtilEvalError e ) {/*leave null*/ }
+
+			if ( methodName.equals("toString" ) && toStringMethod == null)
 			{
 				Class [] ints = proxy.getClass().getInterfaces();
 				// XThis.this refers to the enclosing class instance

@@ -550,18 +550,19 @@ Modifiers Modifiers( int context, boolean lookahead ) :
 
 
 /**
-	Push BSHBlock here
 */
 void ClassDeclaration() #ClassDeclaration :
 {
 	Modifiers mods;
 	Token t;
+	int numInterfaces;
 }
 {
 	mods = Modifiers( Modifiers.CLASS, false ) 
 	"class" t=<IDENTIFIER> 
-		[ "extends" AmbiguousName() ] 
-		[ "implements" NameList() ]
+		[ "extends" AmbiguousName() { jjtThis.extend = true; } ] 
+		[ "implements" numInterfaces=NameList() 
+			{ jjtThis.numInterfaces=numInterfaces; } ]
 		Block() {
 			jjtThis.modifiers = mods;
 			jjtThis.name = t.image;
