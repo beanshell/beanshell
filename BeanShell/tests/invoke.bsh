@@ -8,7 +8,9 @@ ignore() {
 	}
 
 	// Special case: direct invocation in scope is not handled
-	assert( isEvalError("nomethod()") );
+	// now we do allow it...
+	//assert( isEvalError("nomethod()") );
+	assert( !isEvalError("nomethod()") );
 
 	return this;
 }
@@ -29,6 +31,9 @@ invoke( method, args ) {
 assert( !isEvalError("donotignore().nomethod()") );
 
 // Special case: direct invocation in scope is not handled
-assert( isEvalError("nomethod()") );
+// now we do allow it
+//assert( isEvalError("nomethod()") );
+// Special case: direct invocation in scope is not handled
+assert( !isEvalError("nomethod()") );
 
 complete();

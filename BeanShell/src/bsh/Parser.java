@@ -111,6 +111,8 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
                                         return false;
                                 case SEMICOLON:
                                         return true;
+                                case EOF:
+                                        return false;
                         }
                 }
         }
@@ -120,21 +122,21 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
 
 		// Case 1 - primitive or void
 		[ void, boolean, char, ... ] foo() { }
+		byte [] foo() { }
 
 		// Case 2 - simple type name
 		Foo foo () { } 
-		//Foo obj.foo () { }  not currently supported
+		Foo [] foo () { } 
 
 		// Case 3 - compound type name
 		foo.Foo foo () { }
-		//foo.Foo obj.foo () { } not currently supported
+		foo.Foo [] foo () { }
 
 		// Case 4 - Parameterized return type?
 		// ??
 
 		// Case N - no type
 		foo () { }
-		//obj.foo () { }  not currently supported
 	*/
         /*
 		Note: it's important not to read ahead tokens (e.g. tok2) unless 
@@ -154,7 +156,9 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
                                 return true;
 
                 // Case 2
-                if ( tok1.kind == IDENTIFIER && (tok2=getToken(2)).kind == IDENTIFIER
+                if ( tok1.kind == IDENTIFIER && (tok2=getToken(2)).kind == LBRACKET )
+                        return true;
+                if ( tok1.kind == IDENTIFIER && tok2.kind == IDENTIFIER
                         && getToken(3).kind == LPAREN )
                         return true;
 
@@ -3691,26 +3695,6 @@ void VariableDeclaratorId() #VariableDeclaratorId :
     catch(LookaheadSuccess ls) { } return true;
   }
 
-  final private boolean jj_3R_140() {
-    if (jj_3R_148()) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_158()) { jj_scanpos = xsp; break; }
-    }
-    return false;
-  }
-
-  final private boolean jj_3R_78() {
-    if (jj_3R_111()) return true;
-    return false;
-  }
-
-  final private boolean jj_3R_77() {
-    if (jj_3R_110()) return true;
-    return false;
-  }
-
   final private boolean jj_3R_76() {
     if (jj_3R_109()) return true;
     return false;
@@ -5540,6 +5524,26 @@ void VariableDeclaratorId() #VariableDeclaratorId :
 
   final private boolean jj_3R_79() {
     if (jj_3R_112()) return true;
+    return false;
+  }
+
+  final private boolean jj_3R_140() {
+    if (jj_3R_148()) return true;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3R_158()) { jj_scanpos = xsp; break; }
+    }
+    return false;
+  }
+
+  final private boolean jj_3R_78() {
+    if (jj_3R_111()) return true;
+    return false;
+  }
+
+  final private boolean jj_3R_77() {
+    if (jj_3R_110()) return true;
     return false;
   }
 

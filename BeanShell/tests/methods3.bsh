@@ -1,4 +1,3 @@
-
 #!/bin/java bsh.Interpreter
 
 source("TestHarness.bsh");
@@ -16,9 +15,9 @@ void foo() throws Exception { }
 void foo() throws Exception, IllegalStateException { }
 foo();
 
-// BeanShell commands
-assert( isEvalError("testCommand(1)") );
-importCommands("/mypackage");
-assert( testCommand(1) == 1 );
+// various return types
+URL foo11() { }
+URL [] foo12() { }
+URL [][] foo13() { }
 
 complete();

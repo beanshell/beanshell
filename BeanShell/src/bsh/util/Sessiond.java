@@ -93,7 +93,7 @@ class SessiondConnection extends Thread
 			PrintStream out = new PrintStream(client.getOutputStream());
 			Interpreter i = new Interpreter( 
 				new InputStreamReader(in), out, out, true, globalNameSpace);
-			i.noExitOnEOF = true; // hack for us
+			i.setExitOnEOF( false ); // don't exit interp
 			i.run();
 		}
 		catch(IOException e) { System.out.println(e); }

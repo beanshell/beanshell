@@ -24,14 +24,17 @@ if ( r.test_failed == void || !r.test_failed
 
 time=System.currentTimeMillis();
 
-for( i=0; i<list.length; i++) {
+for( i=0; i<list.length; i++) 
+{
 	f=list[i];
 
 	if ( !f.endsWith(".bsh") 
 		|| f.equals("RunAllTests.bsh") 
 		|| f.equals("Fail.bsh") 
-		|| f.equals("TestHarness.bsh" ) ) {
-
+		|| f.equals("TestHarness.bsh" ) 
+		//|| f.equals("LastTest.bsh" ) 
+	) 
+	{
 		print("Skipping File: "+f);
 		continue;
 	}
@@ -64,7 +67,6 @@ for( i=0; i<list.length; i++) {
 		warnedTests = warnedTests + "\t" + f + "\n";
 	}
 }
-
 
 print("----------------------------------------");
 if ( failed  )

@@ -87,8 +87,12 @@ public class BshServlet extends HttpServlet
 		SimpleTemplate st = new SimpleTemplate( 
 			BshServlet.class.getResource("page.template") );
 		st.replace( "version", getBshVersion() );
-		st.replace( "servletURL", 
-			HttpUtils.getRequestURL( request ).toString() );
+
+		//String requestURI = HttpUtils.getRequestURL( request ).toString() 
+		// I was told this should work
+		String requestURI = request.getRequestURI();
+
+		st.replace( "servletURL", requestURI );
 		if ( script != null )
 			st.replace( "script", script );
 		else

@@ -172,7 +172,7 @@
 				<patternset refid="bshservlet-patternset"/>
 			</fileset>
 
-			// install bsh commands used in tests
+			<!-- install bsh commands used in tests -->
 			<fileset dir="${test-src-dir}">
 				<patternset>
 					<include name="**/*.bsh"/>

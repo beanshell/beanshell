@@ -61,13 +61,12 @@ import java.lang.reflect.Modifier;
 
 	Note: we may need some synchronization in here
 
-	Note on jdk1.2 dependency:
-	<p>
-
-	We are forced to use weak references in the full featured implementation
-	(bsh.classpath package) to accomodate all of the fleeting namespace 
-	listeners as they fall out of scope.  (NameSpaces must be informed if the 
-	class space changes so that they can un-cache names).  
+	Note on version dependency:  This base class is JDK 1.1 compatible,
+	however we are forced to use weak references in the full featured
+	implementation (the optional bsh.classpath package) to accomodate all of
+	the fleeting namespace listeners as they fall out of scope.  (NameSpaces
+	must be informed if the class space changes so that they can un-cache
+	names).  
 	<p>
 
 	Perhaps a simpler idea would be to have entities that reference cached
@@ -118,11 +117,9 @@ public class BshClassManager
 	*/
 	public static BshClassManager createClassManager() 
 	{
-//System.out.println("creating class manager");
-
 		BshClassManager manager;
 
-		// Do we have the necessary jdk1.2 packages?
+		// Do we have the necessary jdk1.2 packages and optional package?
 		if ( Capabilities.classExists("java.lang.ref.WeakReference") 
 			&& Capabilities.classExists("java.util.HashMap") 
 			&& Capabilities.classExists("bsh.classpath.ClassManagerImpl") 
@@ -200,6 +197,33 @@ public class BshClassManager
 		}
 
 		return c;
+	}
+
+	/**
+		Get a resource URL using the BeanShell classpath
+		@param path should be an absolute path
+	*/
+	public URL getResource( String path ) 
+	{
+		if ( externalClassLoader != null )
+		{
+			// classloader wants no leading slash
+			return externalClassLoader.getResource( path.substring(1) );
+		} else
+			return Interpreter.class.getResource( path );
+	}
+	/**
+		Get a resource stream using the BeanShell classpath
+		@param path should be an absolute path
+	*/
+	public InputStream getResourceAsStream( String path ) 
+	{
+		if ( externalClassLoader != null )
+		{
+			// classloader wants no leading slash
+			return externalClassLoader.getResourceAsStream( path.substring(1) );
+		} else
+			return Interpreter.class.getResourceAsStream( path );
 	}
 
 	/**

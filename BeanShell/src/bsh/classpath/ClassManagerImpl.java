@@ -76,6 +76,7 @@ import bsh.UtilEvalError;
 */
 public class ClassManagerImpl extends BshClassManager
 {
+	static final String BSH_PACKAGE = "bsh";
 	/**
 		The classpath of the base loader.  Initially empty.
 		This grows as paths are added or is reset when the classpath 
@@ -146,7 +147,8 @@ public class ClassManagerImpl extends BshClassManager
 			Interpreter.debug("Trying to load class: "+name);
 
 		ClassLoader overlayLoader = getLoaderForClass( name );
-		if ( overlayLoader != null ) {
+		if ( overlayLoader != null ) 
+		{
 			try {
 				c = overlayLoader.loadClass(name);
 			} catch ( Exception e ) {
@@ -161,8 +163,9 @@ public class ClassManagerImpl extends BshClassManager
 		}
 
 		if ( c == null )
+		{
 			// insure that core classes are always loaded from the same loader
-			if ( name.startsWith("bsh.") )
+			if ( name.startsWith( BSH_PACKAGE ) )
 				try {
 					c = Interpreter.class.getClassLoader().loadClass( name );
 				} catch ( ClassNotFoundException e ) {}
@@ -175,10 +178,13 @@ public class ClassManagerImpl extends BshClassManager
 				try {
 					c = plainClassForName( name );
 				} catch ( ClassNotFoundException e ) {}
+		}
 
 		// cache results
-		/* Note: plainClassForName already caches, so it will be redundant
-			in that case, however this process only happens once */
+		/* 
+			Note: plainClassForName already caches, so it will be redundant
+			in that case, however this process only happens once 
+		*/
 		cacheClassInfo( name, c );
 
 		return c;
@@ -188,8 +194,8 @@ public class ClassManagerImpl extends BshClassManager
 		Delegate for bottom level implementation of Class.forName().
 		This is here solely to provide for Java version specific features.
 		In this case - the Thread getContextClassLoader() which is required
-		to get bsh to see user classpath when it's installed in the lib/ext
-		directory.
+		to get bsh to see user classpath when it's installed in a web
+		application or in the jre/lib/ext directory.
 		@see BshClassManager.plainClassForName()
 	*/
 	public Class plainClassForName( String name )  
@@ -204,10 +210,39 @@ public class ClassManagerImpl extends BshClassManager
 			return super.plainClassForName( name );
 	}
 
+	/**
+		Get a resource URL using the BeanShell classpath
+		@param path should be an absolute path
+	*/
+	public URL getResource( String path ) 
+	{
+		URL url = null;
+		if ( baseLoader != null )
+			// classloader wants not leading slash
+			url = baseLoader.getResource( path.substring(1) );
+		if ( url == null )
+			url = super.getResource( path );
+		return url;
+	}
+
+	/**
+		Get a resource stream using the BeanShell classpath
+		@param path should be an absolute path
+	*/
+	public InputStream getResourceAsStream( String path ) 
+	{
+		InputStream in = null;
+		if ( baseLoader != null )
+			// classloader wants not leading slash
+			in = baseLoader.getResourceAsStream( path.substring(1) );
+		if ( in == null )
+			in = super.getResourceAsStream( path );
+		return in;
+	}
+
 	ClassLoader getLoaderForClass( String name ) {
 		return (ClassLoader)loaderMap.get( name );
 	}
-
 
 	// Classpath mutators
 
