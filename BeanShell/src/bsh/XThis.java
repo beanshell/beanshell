@@ -39,10 +39,10 @@ import java.lang.reflect.InvocationHandler;
 import java.io.*;
 
 /**
-	XThis.java extends This.java and adds support for the generalized 
-	interface proxy mechanism introduced in JDK1.3.  XThis allows bsh scripted 
-	objects to implement arbitrary interfaces (be arbitrary event listener 
-	types).
+	XThis is a dynamically loaded extension which extends This.java and adds 
+	support for the generalized interface proxy mechanism introduced in 
+	JDK1.3.  XThis allows bsh scripted objects to implement arbitrary 
+	interfaces (be arbitrary event listener types).
 
 	Note: This module relies on new features of JDK1.3 and will not compile
 	with JDK1.2 or lower.  For those environments simply do not compile this

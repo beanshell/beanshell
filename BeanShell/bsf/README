@@ -1,0 +1,10 @@
+
+This is the BeanShell adapter for IBM's Bean Scripting Famework.
+It is an implementation of the BSFEngine class, allowing BSF aware
+applications to use BeanShell as a scripting language.
+
+I believe this implementation is complete (with some hesitation about the
+the usefullness of the compileXXX() style methods - provided by the base
+utility class).
+
+@author Pat Niemeyer

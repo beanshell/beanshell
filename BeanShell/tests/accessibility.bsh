@@ -1,0 +1,24 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+setAccessibility(false);
+
+assert( isEvalError("a.get1()") );
+assert( isEvalError("a.field1") );
+
+setAccessibility(true);
+
+a=new AccessibilityTest();
+
+assert(a.get1()==1);
+assert(a.get2()==2);
+assert(a.get3()==3);
+assert(a.get4()==4);
+
+assert(a.field1==1);
+assert(a.field2==2);
+assert(a.field3==3);
+assert(a.field4==4);
+
+complete();

@@ -3,30 +3,32 @@ bsh.help.reloadClasses=
 	"usage: reloadClasses( String class | String package | String [] classes )";
 
 import bsh.BshClassManager;
+import bsh.ClassPathException;
 
 /**
 	Reload specified set of classes
 */
-reloadClasses( item ) {
+reloadClasses( item ) 
+{
 	bcm = BshClassManager.getClassManager();
 
 	try {
-	if ( item instanceof String [] )
-		bcm.reloadClasses( item );
-	else {
-		name = item;
+		if ( item instanceof String [] )
+			bcm.reloadClasses( item );
+		else {
+			name = item;
 
-		if ( name.endsWith(".*" ) ) {
-			if ( name.equals(".*" ) )
-				pack = "<unpackaged>";
-			else
-				pack = name.substring( 0, name.length()-2 );
-			
-			bcm.reloadPackage( pack );
-		} else
-			bcm.reloadClasses( new String[] { name } );
-	}
-	} catch ( bsh.ClassPathException e ) {
+			if ( name.endsWith(".*" ) ) {
+				if ( name.equals(".*" ) )
+					pack = "<unpackaged>";
+				else
+					pack = name.substring( 0, name.length()-2 );
+				
+				bcm.reloadPackage( pack );
+			} else
+				bcm.reloadClasses( new String[] { name } );
+		}
+	} catch ( ClassPathException e ) {
 		error( e.getMessage() );
 	}
 }
@@ -34,6 +36,7 @@ reloadClasses( item ) {
 /**
 	Reload all classes
 */
-reloadClasses() {
-	bsh.BshClassManager.getClassManager().reloadAllClasses();
+reloadClasses() 
+{
+	BshClassManager.getClassManager().reloadAllClasses();
 }

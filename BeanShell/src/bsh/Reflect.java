@@ -185,14 +185,6 @@ class Reflect {
     {
         try {
             Field f = getField(clas, fieldName);
-/*
-// experiment
-try {
-System.err.println("setting acessible: "+f);
-f.setAccessible(true);
-System.err.println("done setting acessible: "+f);
-} catch ( SecurityException e ) { }
-*/
 
             if ( f == null )
                 throw new ReflectError("internal: field not found:"+fieldName);
@@ -211,13 +203,20 @@ System.err.println("done setting acessible: "+f);
         }
     }
 
+	/**
+		All field lookup should come through here.
+		i.e. this method owns Class getField();
+	*/
     private static Field getField(Class clas, String fieldName)
         throws ReflectError
     {
         try
         {
-			// this one only finds public 
-            return clas.getField(fieldName);
+			if ( Capabilities.haveAccessibility() )
+				return findAccessibleField( clas, fieldName );
+			else
+				// this one only finds public 
+				return clas.getField(fieldName);
         }
         catch(NoSuchFieldException e)
         {
@@ -226,16 +225,29 @@ System.err.println("done setting acessible: "+f);
         }
     }
 
-/**
-move this to accessibility manager
-		Need to improve this to handle interfaces
-	private static Field findDeclaredField( Class clas, String fieldName ) 
+	/**
+		Used when accessibility capability is available to locate an occurrance
+		of the field in the most derived class or superclass and set its 
+		accessibility flag.
+		Note that this method is not needed in the simple non accessible
+		case because we don't have to hunt for fields.
+		Note that classes may declare overlapping private fields, so the 
+		distinction about the most derived is important.  Java doesn't normally
+		allow this kind of access (super won't show private variables) so 
+		there is no real syntax for specifying which class scope to use...
+
+		Need to improve this to handle interfaces.
+	*/
+	private static Field findAccessibleField( Class clas, String fieldName ) 
 		throws NoSuchFieldException
 	{
 		while ( clas != null )
 		{
 			try {
-				return clas.getDeclaredField(fieldName);
+				Field field = clas.getDeclaredField(fieldName);
+				if ( ReflectManager.RMSetAccessible( field ) )
+					return field;
+				// else fall through
 			}
 			catch(NoSuchFieldException e) { }
 
@@ -243,7 +255,6 @@ move this to accessibility manager
 		}
 		throw new NoSuchFieldException( fieldName );
 	}
-*/
 
     /**
         The full blown invoke method.  Everybody should come here.
@@ -389,17 +400,25 @@ move this to accessibility manager
 
 		classQ.addElement( clas );
 		Method found = null;
-		while ( classQ.size() > 0 ) {
+		while ( classQ.size() > 0 ) 
+		{
 			Class c = (Class)classQ.firstElement();
 			classQ.removeElementAt(0);
 
 			// Is this it?
-			// is the class public?
-			if ( Modifier.isPublic( c.getModifiers() ) ) {
+			// Is the class public or can we use accessibility?
+			if ( Modifier.isPublic( c.getModifiers() )
+				|| ( Capabilities.haveAccessibility() 
+					&& ReflectManager.RMSetAccessible( c ) ) )
+			{
 				try {
 					meth = c.getDeclaredMethod( name, types );
-					// is the method public?
-					if ( Modifier.isPublic( meth.getModifiers() ) ) {
+
+					// Is the method public or are we in accessibility mode?
+					if ( Modifier.isPublic( meth.getModifiers() )  
+						|| ( Capabilities.haveAccessibility() 
+							&& ReflectManager.RMSetAccessible( meth ) ) )
+					{
 						found = meth; // Yes, it is.
 						break;
 					}

@@ -31,95 +31,35 @@
  *                                                                           *
  *****************************************************************************/
 
-package bsh;
+package bsh.reflect;
 
-import java.util.Hashtable;
+import bsh.ReflectManager;
+import java.lang.reflect.AccessibleObject;
 
 /**
-	The map of extended features supported by the runtime in which we live.
-	<p>
+	This is the implementation of:
+	ReflectManager - a dynamically loaded extension that supports extended
+	reflection features supported by JDK1.2 and greater.
 
-	This class should be independent of all other bsh classes!
-	<p>
-
-	Note that tests for class existence here do *not* use the 
-	BshClassManager, as it may require other optional class files to be 
-	loaded.  
+	In particular it currently supports accessible method and field access 
+	supported by JDK1.2 and greater.
 */
-public class Capabilities 
+public class ReflectManagerImpl extends ReflectManager
 {
-	private static boolean accessibility = true;
-
-	public static boolean haveSwing() {
-		// classExists caches info for us
-		return classExists( "javax.swing.JButton" );
-	}
-
-	public static boolean canGenerateInterfaces() {
-		// classExists caches info for us
-		return classExists( "java.lang.reflect.Proxy" );
-	}
-
 	/**
-		If accessibility is enabled
-		determine if the accessibility mechanism exists and if we have
-		the optional bsh package to use it.
-		Note that even if both are true it does not necessarily mean that we 
-		have runtime permission to access the fields... Java security has
-	 	a say in it.
-		@see ReflectManager.java
+		Set a java.lang.reflect Field, Method, Constructor, or Array of
+		accessible objects to accessible mode.
+		If the object is not an AccessibleObject then do nothing.
+		@return true if the object was accessible or false if it was not.
 	*/
-	public static boolean haveAccessibility() 
+// Arrays incomplete... need to use the array setter
+	public boolean setAccessible( Object obj ) 
 	{
-		// classExists caches the tests for us
-		return ( accessibility 
-			&& classExists( "java.lang.reflect.AccessibleObject" )
-			&& classExists("bsh.reflect.ReflectManagerImpl") 
-		);
-	}
-
-	public static void setAccessibility( boolean b ) { accessibility = b; }
-
-	private static Hashtable classes = new Hashtable();
-	/**
-		Use direct Class.forName() to test for the existence of a class.
-		We should not use BshClassManager here because:
-			a) the systems using these tests would probably not load the
-			classes through it anyway.
-			b) bshclassmanager is heavy and touches other class files.  
-			this capabilities code must be light enough to be used by any
-			system including the remote applet.
-	*/
-	public static boolean classExists( String name ) 
-	{
-		Object c = classes.get( name );
-
-		if ( c == null ) {
-			try {
-				/*
-					Note: do *not* change this to 
-					BshClassManager.plainClassForName() or equivalent.
-					This class must not touch any other bsh classes.
-				*/
-				c = Class.forName( name );
-			} catch ( ClassNotFoundException e ) { }
-
-			if ( c != null )
-				classes.put(c,"unused");
-		}
-
-		return c != null;
-	}
-
-	/**
-		An attempt was made to use an unavailable capability supported by
-		an optional package.  The normal operation is to test before attempting
-		to use these packages... so this is runtime exception.
-	*/
-	public static class Unavailable extends RuntimeException 
-	{
-		public Unavailable(String s ){ super(s); }
+		if ( obj instanceof AccessibleObject ) {
+			((AccessibleObject)obj).setAccessible(true);
+			return true;
+		} else
+			return false;
 	}
 }
-
 
