@@ -16,9 +16,13 @@ assert( myMap.get("foo") instanceof Integer );
 assert( myMap.get("foo") == 42 );
 
 interpreter.eval("int bar = 43");
-
+// it's a primitive to bsh
+assert( interpreter.eval("bar.getClass() == bsh.Primitive.class") == true );
+// it's an Integer to the map
 assert( myMap.get("bar") instanceof Integer );
 assert( myMap.get("bar") == 43 );
+// check again
+assert( interpreter.eval("bar.getClass() == bsh.Primitive.class") == true );
 
 assert( interpreter.get("e1") == null );
 
@@ -35,6 +39,12 @@ myMap.put( "d1", new Double(49.9) );
 assert( interpreter.get("d1") instanceof Double );
 
 interpreter.eval("print(this.variables)");
+
+// set var in bsh then remove it in external map
+interpreter.eval("x1=42");
+assert( interpreter.get("x1") == 42 );
+myMap.remove("x1");
+assert( interpreter.get("x1") == null ); // interpreter maps VOID to null
 
 } else
 warning("No ExternalNameSpace to test...");
