@@ -1,6 +1,7 @@
 import javax.swing.*;
 import bsh.util.JConsole;
 import bsh.Interpreter;
+import java.awt.Component;
 
 desktop() {
 	// need a way to set things to void again

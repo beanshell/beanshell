@@ -326,13 +326,16 @@ public class NameSpace
     {
 		String s = null;
 
-		if ( s==null && importedClasses != null )
+		// try imported in our space
+		if ( importedClasses != null )
 			s =	(String)importedClasses.get(name);
 
+		// try imported in our parent's space
 		if ((s == null) && (parent != null) )
 			return (String)parent.getImportedClass(name);
 
-		if ( superImport )
+		// try super imported if available
+		if ( (s==null) && superImport )
 			s = BshClassManager.getClassManager().getClassNameByUnqName( name );
 
 		return s;
@@ -690,10 +693,17 @@ public class NameSpace
 	}
 
 	/**
-		re-evaluate the usefullness of this...
+		Re-evaluate the usefullness of this...
+		It's a lot faster than sourcing a start up script.  But that just
+		delays lazy stuff until first evaluation.
 	*/
     public void loadDefaultImports() throws IOException
     {
+
+		importPackage("java.lang");
+		importPackage("java.util");
+
+	/*
 		String res = "lib/defaultImports";
 		InputStream in = NameSpace.class.getResourceAsStream(res);
 		if(in == null)
@@ -703,12 +713,14 @@ public class NameSpace
 		String s;
 		try {
 			while((s = bin.readLine()) != null)
-			importClass(s);
+			importPackage(s);
 
 			bin.close();
 		} catch(IOException e) {
 			Interpreter.debug("failed to load default imports...");
 		}
+	*/
+
     }
 
 }
