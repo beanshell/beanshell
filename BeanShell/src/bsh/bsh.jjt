@@ -48,9 +48,11 @@ options {
 	NODE_SCOPE_HOOK=true;
 	NODE_PREFIX="BSH";
 	/* Print grammar debugging info as we parse 
-	DEBUG_PARSER=true; */
+	DEBUG_PARSER=true;
+	*/
 	/* Print detailed lookahead debugging info
-	DEBUG_LOOKAHEAD=true; */
+	DEBUG_LOOKAHEAD=true;
+	*/
 }
 
 PARSER_BEGIN(Parser)
@@ -101,11 +103,11 @@ SKIP : /* WHITE SPACE */
 SPECIAL_TOKEN : /* COMMENTS */
 {
 /*
-	Single line comments fail on the last line of a file with no terminating
-	linefeed.  I thought the <EOF> would fix that, but no...
-  <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* "<EOF>"|("\n"|"\r"|"\r\n")>
+	SINGLE_LINE_COMMENT includes a hack to accept SLC at the end of a file
+	with no terminanting linefeed.  This is actually illegal according to 
+	spec, but comes up often enough to warrant it... (especially in eval()).
 */
-  <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+  <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")? >
 | <HASH_BANG_COMMENT: "#!" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
 | <FORMAL_COMMENT: "/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
 | <MULTI_LINE_COMMENT: "/*" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
@@ -707,15 +709,13 @@ void CastLookahead() : { }
 void PostfixExpression() :
 { Token t = null; }
 {
- (
 // SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( LHSPrimaryExpression() ("++"|"--") )
   LHSPrimaryExpression()
-	  [ ( t="++" | t="--" ) { 
-		jjtThis.kind = t.kind; jjtThis.postfix = true; } #UnaryExpression(1) ]
+	  ( t="++" | t="--" ) { 
+		jjtThis.kind = t.kind; jjtThis.postfix = true; } #UnaryExpression(1)
 |
   PrimaryExpression()
- )
 }
 
 void CastExpression() #CastExpression :
@@ -729,11 +729,14 @@ void CastExpression() #CastExpression :
 
 void PrimaryExpression() #PrimaryExpression : { }
 {
- PrimaryPrefix() ( PrimarySuffix() )*
+  PrimaryPrefix() ( PrimarySuffix() )*
 }
 
-// The MethodInvocation node here simplifies the prefix/suffix parsing a bit
-//  by forcing the prefix to an object.
+void MethodInvocation() #MethodInvocation : { }
+{
+   AmbiguousName() Arguments() 
+}
+
 void PrimaryPrefix() : { }
 {
   Literal()
@@ -742,15 +745,24 @@ void PrimaryPrefix() : { }
 |
   AllocationExpression()
 |
-// SYNTACTIC_LOOKAHEAD
-  LOOKAHEAD( Type() "." "class" )
-  Type()
-|
-	/* 
-		Handle method invocation OR straight ambigous name...
-		(probably should just write this as two rules more clearly)
-	*/ 
-  ( AmbiguousName() [ Arguments() ]  ) #MethodInvocation(>1)
+  // Careful about the parens here... they are important
+  // lookahead must apply to the correct choice points
+(
+	/*
+		The MethodInvocation node here simplifies the prefix/suffix parsing a 
+		bit by forcing the prefix to an object...  That was the idea anyway... 
+		should probably just move it to the suffix
+	*/
+    // SYNTACTIC_LOOKAHEAD
+    LOOKAHEAD( MethodInvocation() ) MethodInvocation()
+  |
+    (
+      LOOKAHEAD( Type() "." "class" ) 
+      Type()
+    |
+	  AmbiguousName()
+	)
+)
 
 /*
 |
@@ -804,11 +816,11 @@ void PrimarySuffix() #PrimarySuffix :
 */
 void LHSPrimaryPrefix() : { }
 {
-	/* 
-		Method invocation or simple ambiguous name.
-		(probably should just write this as two rules more clearly)
-	*/ 
-  ( AmbiguousName() [ Arguments() ]  ) #MethodInvocation(>1)
+  // SYNTACTIC_LOOKAHEAD
+  LOOKAHEAD( MethodInvocation() )
+  MethodInvocation()
+|
+  AmbiguousName()
 }
 
 void LHSPrimaryExpression() #LHSPrimaryExpression : { }

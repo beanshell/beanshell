@@ -21,7 +21,7 @@
 
 <!-- Project Configuration -->
 
-	<property name="version" value="1.2beta1"/>
+	<property name="version" value="1.2b1-test"/>
 	<property name="deprecation" value="off"/>
 
 	<!-- choose an alternate compiler -->
@@ -60,9 +60,9 @@
 	-->
 
 	<!-- Uncomment to build without making the BSF adapter 
+	-->
 	<property name="exclude-bsf" 
 		value="bsh/util/BeanShellBSFEngine.java,TestBshBSF.java"/>
-	-->
 
 	<!--  Add up all of the excludes -->
 	<property name="excludes" 

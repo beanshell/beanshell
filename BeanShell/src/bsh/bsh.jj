@@ -45,9 +45,11 @@ options {
     JAVA_UNICODE_ESCAPE=true;
     STATIC=false;                                                                                       
 	/* Print grammar debugging info as we parse 
-	DEBUG_PARSER=true; */
+	DEBUG_PARSER=true;
+	*/
 	/* Print detailed lookahead debugging info
-	DEBUG_LOOKAHEAD=true; */
+	DEBUG_LOOKAHEAD=true;
+	*/
 }
 
 PARSER_BEGIN(Parser)
@@ -101,11 +103,11 @@ SKIP : /* WHITE SPACE */
 SPECIAL_TOKEN : /* COMMENTS */
 {
 /*
-	Single line comments fail on the last line of a file with no terminating
-	linefeed.  I thought the <EOF> would fix that, but no...
-  <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* "<EOF>"|("\n"|"\r"|"\r\n")>
+	SINGLE_LINE_COMMENT includes a hack to accept SLC at the end of a file
+	with no terminanting linefeed.  This is actually illegal according to 
+	spec, but comes up often enough to warrant it... (especially in eval()).
 */
-  <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+  <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")? >
 | <HASH_BANG_COMMENT: "#!" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
 | <FORMAL_COMMENT: "/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
 | <MULTI_LINE_COMMENT: "/*" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
@@ -1419,36 +1421,34 @@ void CastLookahead() : { }
 void PostfixExpression() :
 { Token t = null; }
 {
- (
 // SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( LHSPrimaryExpression() ("++"|"--") )
   LHSPrimaryExpression()
-	  [ ( t="++" | t="--" )/*@bgen(jjtree) #UnaryExpression( 1) */
-                                {
-                                  BSHUnaryExpression jjtn001 = new BSHUnaryExpression(JJTUNARYEXPRESSION);
-                                  boolean jjtc001 = true;
-                                  jjtree.openNodeScope(jjtn001);
-                                  jjtreeOpenNodeScope(jjtn001);
-                                }
-                                try {
+	  ( t="++" | t="--" )/*@bgen(jjtree) #UnaryExpression( 1) */
+                              {
+                                BSHUnaryExpression jjtn001 = new BSHUnaryExpression(JJTUNARYEXPRESSION);
+                                boolean jjtc001 = true;
+                                jjtree.openNodeScope(jjtn001);
+                                jjtreeOpenNodeScope(jjtn001);
+                              }
+                              try {
 /*@egen*//*@bgen(jjtree)*/
-                                {
-                                  jjtree.closeNodeScope(jjtn001,  1);
-                                  jjtc001 = false;
-                                  jjtreeCloseNodeScope(jjtn001);
-                                }
+                              {
+                                jjtree.closeNodeScope(jjtn001,  1);
+                                jjtc001 = false;
+                                jjtreeCloseNodeScope(jjtn001);
+                              }
 /*@egen*/ { 
 		jjtn001.kind = t.kind; jjtn001.postfix = true; }/*@bgen(jjtree)*/
-                                } finally {
-                                  if (jjtc001) {
-                                    jjtree.closeNodeScope(jjtn001,  1);
-                                    jjtreeCloseNodeScope(jjtn001);
-                                  }
+                              } finally {
+                                if (jjtc001) {
+                                  jjtree.closeNodeScope(jjtn001,  1);
+                                  jjtreeCloseNodeScope(jjtn001);
                                 }
-/*@egen*/ ]
+                              }
+/*@egen*/
 |
   PrimaryExpression()
- )
 }
 
 void CastExpression()                 :
@@ -1495,34 +1495,65 @@ void PrimaryExpression()                    : {/*@bgen(jjtree) PrimaryExpression
   jjtreeOpenNodeScope(jjtn000);
 /*@egen*/ }
 {/*@bgen(jjtree) PrimaryExpression */
- try {
+  try {
 /*@egen*/
- PrimaryPrefix() ( PrimarySuffix() )*/*@bgen(jjtree)*/
- } catch (Throwable jjte000) {
-   if (jjtc000) {
-     jjtree.clearNodeScope(jjtn000);
-     jjtc000 = false;
-   } else {
-     jjtree.popNode();
-   }
-   if (jjte000 instanceof RuntimeException) {
-     throw (RuntimeException)jjte000;
-   }
-   if (jjte000 instanceof ParseException) {
-     throw (ParseException)jjte000;
-   }
-   throw (Error)jjte000;
- } finally {
-   if (jjtc000) {
-     jjtree.closeNodeScope(jjtn000, true);
-     jjtreeCloseNodeScope(jjtn000);
-   }
- }
+  PrimaryPrefix() ( PrimarySuffix() )*/*@bgen(jjtree)*/
+  } catch (Throwable jjte000) {
+    if (jjtc000) {
+      jjtree.clearNodeScope(jjtn000);
+      jjtc000 = false;
+    } else {
+      jjtree.popNode();
+    }
+    if (jjte000 instanceof RuntimeException) {
+      throw (RuntimeException)jjte000;
+    }
+    if (jjte000 instanceof ParseException) {
+      throw (ParseException)jjte000;
+    }
+    throw (Error)jjte000;
+  } finally {
+    if (jjtc000) {
+      jjtree.closeNodeScope(jjtn000, true);
+      jjtreeCloseNodeScope(jjtn000);
+    }
+  }
 /*@egen*/
 }
 
-// The MethodInvocation node here simplifies the prefix/suffix parsing a bit
-//  by forcing the prefix to an object.
+void MethodInvocation()                   : {/*@bgen(jjtree) MethodInvocation */
+  BSHMethodInvocation jjtn000 = new BSHMethodInvocation(JJTMETHODINVOCATION);
+  boolean jjtc000 = true;
+  jjtree.openNodeScope(jjtn000);
+  jjtreeOpenNodeScope(jjtn000);
+/*@egen*/ }
+{/*@bgen(jjtree) MethodInvocation */
+   try {
+/*@egen*/
+   AmbiguousName() Arguments()/*@bgen(jjtree)*/
+   } catch (Throwable jjte000) {
+     if (jjtc000) {
+       jjtree.clearNodeScope(jjtn000);
+       jjtc000 = false;
+     } else {
+       jjtree.popNode();
+     }
+     if (jjte000 instanceof RuntimeException) {
+       throw (RuntimeException)jjte000;
+     }
+     if (jjte000 instanceof ParseException) {
+       throw (ParseException)jjte000;
+     }
+     throw (Error)jjte000;
+   } finally {
+     if (jjtc000) {
+       jjtree.closeNodeScope(jjtn000, true);
+       jjtreeCloseNodeScope(jjtn000);
+     }
+   }
+/*@egen*/ 
+}
+
 void PrimaryPrefix() : { }
 {
   Literal()
@@ -1531,44 +1562,24 @@ void PrimaryPrefix() : { }
 |
   AllocationExpression()
 |
-// SYNTACTIC_LOOKAHEAD
-  LOOKAHEAD( Type() "." "class" )
-  Type()
-|/*@bgen(jjtree) #MethodInvocation(> 1) */
-  {
-    BSHMethodInvocation jjtn001 = new BSHMethodInvocation(JJTMETHODINVOCATION);
-    boolean jjtc001 = true;
-    jjtree.openNodeScope(jjtn001);
-    jjtreeOpenNodeScope(jjtn001);
-  }
-  try {
-/*@egen*/
-	/* 
-		Handle method invocation OR straight ambigous name...
-		(probably should just write this as two rules more clearly)
-	*/ 
-  ( AmbiguousName() [ Arguments() ]  )/*@bgen(jjtree)*/
-  } catch (Throwable jjte001) {
-    if (jjtc001) {
-      jjtree.clearNodeScope(jjtn001);
-      jjtc001 = false;
-    } else {
-      jjtree.popNode();
-    }
-    if (jjte001 instanceof RuntimeException) {
-      throw (RuntimeException)jjte001;
-    }
-    if (jjte001 instanceof ParseException) {
-      throw (ParseException)jjte001;
-    }
-    throw (Error)jjte001;
-  } finally {
-    if (jjtc001) {
-      jjtree.closeNodeScope(jjtn001, jjtree.nodeArity() > 1);
-      jjtreeCloseNodeScope(jjtn001);
-    }
-  }
-/*@egen*/
+  // Careful about the parens here... they are important
+  // lookahead must apply to the correct choice points
+(
+	/*
+		The MethodInvocation node here simplifies the prefix/suffix parsing a 
+		bit by forcing the prefix to an object...  That was the idea anyway... 
+		should probably just move it to the suffix
+	*/
+    // SYNTACTIC_LOOKAHEAD
+    LOOKAHEAD( MethodInvocation() ) MethodInvocation()
+  |
+    (
+      LOOKAHEAD( Type() "." "class" ) 
+      Type()
+    |
+	  AmbiguousName()
+	)
+)
 
 /*
 |
@@ -1673,41 +1684,12 @@ void PrimarySuffix()                :
 	to simplify the suffix processing.  
 */
 void LHSPrimaryPrefix() : { }
-{/*@bgen(jjtree) #MethodInvocation(> 1) */
-  {
-    BSHMethodInvocation jjtn001 = new BSHMethodInvocation(JJTMETHODINVOCATION);
-    boolean jjtc001 = true;
-    jjtree.openNodeScope(jjtn001);
-    jjtreeOpenNodeScope(jjtn001);
-  }
-  try {
-/*@egen*/
-	/* 
-		Method invocation or simple ambiguous name.
-		(probably should just write this as two rules more clearly)
-	*/ 
-  ( AmbiguousName() [ Arguments() ]  )/*@bgen(jjtree)*/
-  } catch (Throwable jjte001) {
-    if (jjtc001) {
-      jjtree.clearNodeScope(jjtn001);
-      jjtc001 = false;
-    } else {
-      jjtree.popNode();
-    }
-    if (jjte001 instanceof RuntimeException) {
-      throw (RuntimeException)jjte001;
-    }
-    if (jjte001 instanceof ParseException) {
-      throw (ParseException)jjte001;
-    }
-    throw (Error)jjte001;
-  } finally {
-    if (jjtc001) {
-      jjtree.closeNodeScope(jjtn001, jjtree.nodeArity() > 1);
-      jjtreeCloseNodeScope(jjtn001);
-    }
-  }
-/*@egen*/
+{
+  // SYNTACTIC_LOOKAHEAD
+  LOOKAHEAD( MethodInvocation() )
+  MethodInvocation()
+|
+  AmbiguousName()
 }
 
 void LHSPrimaryExpression()                       : {/*@bgen(jjtree) LHSPrimaryExpression */
