@@ -186,6 +186,8 @@
 		<delete quiet="true" file="${commands-jar}"/>
 		<delete quiet="true" file="${reflect-jar}"/>
 		<delete quiet="true" file="${bsf-jar}"/>
+		<delete quiet="true" file="${bshservlet-wbsh-war}"/>
+		<delete quiet="true" file="${bshservlet-war}"/>
 	</target>
 
 	<!-- This doesn't work!  I can find no way to set up the dir before the
@@ -197,6 +199,7 @@
 	<fileset id="core-fileset" dir="${build-dir}">
 		<patternset>
 			<include name="bsh/*.class"/>
+<!-- something funny here...  Console ends up in jarall, but not Remote -->
 			<exclude name="bsh/Console.class"/>
 			<exclude name="bsh/Remote.class"/>
 		</patternset>
@@ -268,6 +271,13 @@
 			<fileset refid="commands-fileset"/>
 			<fileset refid="bsf-fileset"/>
 			<fileset refid="bshservlet-fileset"/>
+<!-- hack, see core-fileset -->
+			<fileset dir="${build-dir}">
+				<patternset>
+					<include name="bsh/Remote.class"/>
+					<include name="bsh/Console.class"/>
+				</patternset>
+			</fileset>
 		</jar>
 	</target>
 
