@@ -54,9 +54,25 @@ class BSHMethodInvocation extends SimpleNode
 		} catch (ReflectError e) {
 			throw new EvalError(
 				"Error in method invocation: " + e.getMessage(), this);
-		} catch (java.lang.reflect.InvocationTargetException e) {
-			throw new TargetError(
-				"Method invocation", e.getTargetException(), this, true );
+		} catch (java.lang.reflect.InvocationTargetException e) 
+		{
+			String msg = "Method Invocation "+name;
+			Throwable te = e.getTargetException();
+
+			/*
+				Try to squeltch the native code stack trace if the exception
+				was caused by a reflective call back into the bsh interpreter
+				(e.g. eval() or source()
+			*/
+			boolean isNative = true;
+			if ( te instanceof EvalError ) 
+				if ( te instanceof TargetError )
+					isNative = ((TargetError)te).inNativeCode();
+				else
+					isNative = false;
+			
+			throw new TargetError( msg, te, this, isNative );
+
 		} catch ( EvalError ee ) {
 			ee.reThrow( this );
 			throw new Error("should be unreachable...");

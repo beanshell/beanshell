@@ -47,7 +47,7 @@ package bsh;
 */
 class BshMethod implements java.io.Serializable 
 {
-	public BSHMethodDeclaration method;
+	BSHMethodDeclaration method;
 
 	/* 
 		I believe this is always the namespace in which the method is
@@ -60,7 +60,7 @@ class BshMethod implements java.io.Serializable
 
 	private Class [] argTypes;
 
-	public BshMethod( 
+	BshMethod( 
 		BSHMethodDeclaration method, NameSpace declaringNameSpace ) 
 	{
 		this.method = method;

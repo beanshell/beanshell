@@ -2,9 +2,9 @@
 bsh.help.javap= "usage: javap( value )";
 
 import bsh.Name;
-javap( Object o ) {
+javap( Object o ) 
+{
 	import java.lang.reflect.Modifier;
-
 
 	if ( o instanceof Name.ClassIdentifier )
 		clas = this.namespace.identifierToClass(o);
@@ -14,6 +14,8 @@ javap( Object o ) {
 		clas = o;
 	else 
 		clas = o.getClass();
+	
+	print( "Class "+clas+" extends " +clas.getSuperclass() );
 
 	methods=clas.getDeclaredMethods();
 	//print("------------- Methods ----------------");
