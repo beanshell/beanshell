@@ -39,9 +39,9 @@ package bsh;
 class BSHClassDeclaration extends SimpleNode
 {
 	String name;
-	// implements
-	// extends
 	Modifiers modifiers;
+	int numInterfaces;
+	boolean extend;
 
 	BSHClassDeclaration(int id) { super(id); }
 
@@ -50,13 +50,23 @@ class BSHClassDeclaration extends SimpleNode
 	public Object eval( CallStack callstack, Interpreter interpreter )
 		throws EvalError
 	{
-		BSHBlock block = (BSHBlock)jjtGetChild(0);
+		int child = 0;
 
-		// validate that the extends / implements names are class names
-	// need to differentiate extends/implements here...
-		for(int i=1; i< jjtGetNumChildren(); i++)
-			((BSHAmbiguousName)jjtGetChild(i)).toClass( 
-				callstack, interpreter );
+		if ( extend ) {
+			BSHAmbiguousName superNode = (BSHAmbiguousName)jjtGetChild(child++);
+			Class superClass = superNode.toClass( callstack, interpreter );
+		}
+
+		// Get interfaces
+		for( int i=0; i<numInterfaces; i++) {
+			jjtGetChild(child++);
+		}
+
+		BSHBlock block;
+		if ( child < jjtGetNumChildren() )
+			block = (BSHBlock)jjtGetChild(child);
+		else
+			block = new BSHBlock( ParserTreeConstants.JJTBLOCK );
 
 		NameSpace namespace = callstack.top();
 
@@ -66,7 +76,6 @@ class BSHClassDeclaration extends SimpleNode
 			the name of the class.
 		*/
 
-	// will need a new ClassNameSpace here
 		NameSpace classStaticNameSpace = 
 			new NameSpace( namespace, name );
 		classStaticNameSpace.isClass = true;

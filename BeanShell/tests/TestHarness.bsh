@@ -5,12 +5,10 @@ boolean test_completed=false;
 boolean test_warning=false;
 int test_flag = 0;
 
-assert( boolean condition ) {
-
-	if ( condition )
-	{
-		//print( "Test Passed..." );
-	} else {
+assert( boolean condition ) 
+{
+	if ( !condition )
+	{ 	
 		print( 
 			"Test FAILED: "
 			+"Line: "+ this.namespace.getInvocationLine()
@@ -21,7 +19,8 @@ assert( boolean condition ) {
 	}
 }
 
-isEvalError( String text ) {
+isEvalError( String text ) 
+{
 	boolean flag = false;
 	try {
 		// eval in the namespace of whomever sourced this file.

@@ -86,11 +86,13 @@ class JThis extends This implements
 	void event(String name, Object event)
 	{
 		CallStack callstack = new CallStack( namespace );
-		BshMethod method;
+		BshMethod method = null;
 
 		// handleEvent gets all events
-		method = namespace.getMethod( 
-			"handleEvent", new Class [] { null } );
+		try {
+			method = namespace.getMethod( 
+				"handleEvent", new Class [] { null } );
+		} catch ( UtilEvalError e ) {/*squeltch*/  }
 
 		if (method != null)
 			try {
@@ -102,7 +104,9 @@ class JThis extends This implements
 			}
 
 		// send to specific event handler
-		method = namespace.getMethod( name, new Class [] { null } );
+		try {
+			method = namespace.getMethod( name, new Class [] { null } );
+		} catch ( UtilEvalError e ) { /*squeltch*/ }
 		if (method != null)
 			try {
 				method.invoke( 
@@ -206,8 +210,12 @@ class JThis extends This implements
     public boolean imageUpdate(java.awt.Image img, int infoflags,
                                int x, int y, int width, int height) {
 
-		BshMethod method = namespace.getMethod( "imageUpdate",
-			new Class [] { null, null, null, null, null, null } );
+		BshMethod method = null;
+		try {
+			method = namespace.getMethod( "imageUpdate",
+				new Class [] { null, null, null, null, null, null } );
+		} catch ( UtilEvalError e ) {/*squeltch*/ }
+
 		if(method != null)
 			try {
 				CallStack callstack = new CallStack( namespace );

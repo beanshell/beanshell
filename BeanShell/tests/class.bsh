@@ -1,0 +1,94 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+assert( Foo == void );
+
+class Foo 
+{
+	static int a = 5;
+	int b;
+	bsh.This instanceThis = this;
+	q=5; // loose vars act like instance vars
+
+	Foo( int c ) {
+		b=c;
+	}
+
+	void method() { 
+		assert( a == 5 );
+		assert( q == 5 );
+		assert( this == instanceThis );
+		assert( this.namespace == instanceThis.namespace );
+
+		// block namespace
+		{
+			assert( this == instanceThis );
+			assert( this.namespace == instanceThis.namespace );
+		}
+	}
+
+	setQ(int a) { q=a; }
+
+	static void smethod() 
+	{
+		assert( a == 5 );
+
+		// can't see instance vars or methods from static
+		assert(isEvalError("print(q)"));
+		assert(isEvalError("print(b)"));
+		assert(isEvalError("method()"));
+
+		// static 'this' is method closure for now
+		assert( this.namespace.getName().equals("smethod") );
+	}
+}
+
+// static
+assert(Foo.a == 5);
+assert(isEvalError("print(Foo.b)"));
+Foo.smethod();
+assert(isEvalError("Foo.method()"));
+
+// instance
+foo = new Foo();
+assert( foo.b == 0 ); // uninitialized instance
+assert( foo.a == 5 ); // static
+foo.method(); // instance
+foo.smethod(); // static
+assert( foo.q == 5 ); // loose instance
+foo.setQ(6);
+if ( Interpreter.LOCALSCOPING ) // not sure if we should allow this
+	assert( foo.q == 5 );
+else
+	assert( foo.q == 6 );
+
+// non default constructors
+foo2 = new Foo(6);
+assert( foo2.b == 6 );
+assert( foo2.a == 5 );
+assert( foo2.q == 5 );
+
+class Bar extends java.lang.Object implements Runnable { }
+bar = new Bar();
+
+class Gee extends java.lang.Object { }
+class Gee2 implements Runnable { }
+class Gee3 extends java.lang.Object implements Runnable, ActionListener { }
+new Gee3();
+
+class Foo {
+	instanceThis = this;
+	method() 
+	{
+		assert( this == instanceThis );
+		bar() {
+			assert( this != instanceThis );
+			assert( this.namespace.getName().equals("bar") );
+		}
+		bar();
+	}
+}
+new Foo().method();
+
+complete();

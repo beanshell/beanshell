@@ -66,4 +66,11 @@ while( i < 5 ) {
 }
 assert( qz == void);
 
+if ( true ) {
+	assert( this == global );
+	if ( true ) {
+		assert( this == global );
+	}
+}
+
 complete();

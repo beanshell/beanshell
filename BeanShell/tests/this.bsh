@@ -13,15 +13,14 @@ this.booga();
 
 if ( true ) 
 {
-  assert( this.namespace instanceof bsh.BlockNameSpace );
+  assert( !(this.namespace instanceof bsh.BlockNameSpace) );
   BigDecimal c = new BigDecimal("1.0");
   print(c); 
-  print(this.c); 
-  assert( this.c == c );
+  assert( this.c == void ); 
   assert( this == ths );
   { // another block
   	assert( this == ths );
-	assert( this.c == c );
+	assert( this.c == void );
   }
   blockthis = this;
   assert( this == blockthis );
@@ -35,11 +34,10 @@ if ( true )
 } 
 
 {
-  assert( this.namespace instanceof bsh.BlockNameSpace );
+  assert( !(this.namespace instanceof bsh.BlockNameSpace) );
   BigDecimal c = new BigDecimal("1.0");
   print(c); 
-  print(this.c);
-  assert( this.c == c );
+  assert(this.c==void);
   assert( this == ths );
   blockthis = this;
   assert( this == blockthis );
@@ -60,10 +58,8 @@ void method1()
   {
   	 assert( this == mthis );
 	 BigDecimal finalCost1 = new BigDecimal("1.0");
-	 assert( finalCost1 == this.finalCost1 );
 	 print(finalCost1); 
 	 print(this);
-	 print(this.finalCost1); 
   }
 }
 

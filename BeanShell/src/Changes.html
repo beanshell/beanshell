@@ -23,6 +23,48 @@
 
 	  This means that you can use BeanShell scripts just like properties
 	  files for initialization parameters.
+
+	- Scripted Classes
+	  BeanShell now has Basic support for scripted classes. e.g.
+
+	  	class Foo {
+			static int a = 5;
+			int b = 6;
+			Foo( int c ) { }
+
+			void method() { }
+			static void anotherMethod() { }
+		}
+		foo = new Foo(42);
+
+	  Current Limitations:
+	  	1) extends and implement clauses are currently ignored
+		2) Scripted class types may only be used with new keyword and not yet
+		as general types.
+		
+	  Loose variables and methods are allowed in classes.
+
+	  	class Bar {
+			x = 6;
+			method() { x=7; }
+		}
+	
+	  As in Java, 'this' type references in methods directly in class scope 
+	  refer to the class instance.  However nested method closures are allowed 
+	  and the behavior of 'this' is as elsewhere in BeanShell.  e.g.
+
+	  	class Foo 
+		{
+			// this == Foo instance this
+			classMethod() 
+			{ 
+				// this == Foo instance this
+				closure() {
+					// this == closure method this
+				}
+			}
+	  	}
+
 </pre>
 
 <h2>Changes in 1.3 beta 1</h2>

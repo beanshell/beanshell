@@ -83,14 +83,65 @@ class BSHAllocationExpression extends SimpleNode
 
 		// Look for scripted class object
         Object obj = nameNode.toObject( callstack, interpreter, false );
+
 		if ( obj instanceof This && ((This)obj).namespace.isClass )
 		{
-			Class [] sig = Reflect.getTypes( args );
-			BshMethod constructor = 
-				((This)obj).namespace.getMethod( nameNode.text, sig );
+			NameSpace classNameSpace = ((This)obj).getNameSpace();
+			NameSpace instanceNameSpace = 
+				new NameSpace( classNameSpace, nameNode.text );
+			instanceNameSpace.isClass = true;
+
+			BshMethod defaultConstructor = null;
+			try {
+				defaultConstructor = 
+					classNameSpace.getMethod( nameNode.text, new Class[0] );
+			} catch ( UtilEvalError e ) { // shouldn't happen
+				throw e.toEvalError(
+					"Error getting default constructor", this, callstack );
+			}
+
+			BshMethod constructor = null;
+			if ( args.length > 0 ) 
+			{
+				Class [] sig = Reflect.getTypes( args );
+				try {
+					constructor = 
+						classNameSpace.getMethod( nameNode.text, sig );
+				} catch ( UtilEvalError e ) { // shouldn't happen
+					throw e.toEvalError(
+						"Error getting constructor", this, callstack );
+				}
+			}
+
+			callstack.push( instanceNameSpace );
+
+			// Call the default constructor first
+			if ( defaultConstructor != null )
+			{
+				try {
+					defaultConstructor.invoke( 
+						new Object[0], interpreter, callstack, this, 
+						true/*overrideNameSpace*/ );
+				} catch ( EvalError e ) {
+					e.reThrow("Exception in default constructor: "+e);
+				}
+			}
+			// Call the specific constructor if any
 			if ( constructor != null )
-				return constructor.invoke( 
-					args, interpreter, callstack, this, true/*asConstructor*/ );
+			{
+				try {
+					constructor.invoke( 
+						args, interpreter, callstack, this, 
+						true/*overrideNameSpace*/ );
+				} catch ( EvalError e ) {
+					e.reThrow("Exception in constructor: "+e);
+				}
+			}
+
+			callstack.pop();
+			
+			// return the initialized object
+			return instanceNameSpace.getThis( interpreter );
 		}
 
 		// Try regular class

@@ -99,7 +99,14 @@ public class NameSpace
 	boolean isMethod;
 	/**
 		Note that the namespace is a class body namespace.
-		This is used to affect the behavior of 'this' references in classes.
+		This is used to affect the behavior of static and 'this' references 
+		in classes.
+
+		This needs to be factored out into a subclass of NameSpace
+	*/
+	/*
+		isClass and isStatic - a class definition
+		isClass and !isStatic - a class instance
 	*/
 	boolean isClass;
 	boolean isStatic;
@@ -209,6 +216,9 @@ public class NameSpace
 	{
 		// if localscoping switch follow strictJava, else recurse
 		boolean recurse = Interpreter.LOCALSCOPING ? strictJava : true;
+		// class is top scope for loose vars
+		if ( isClass ) 
+			recurse = false;
 		setVariable( name, value, strictJava, recurse );
 	}
 
@@ -281,7 +291,7 @@ public class NameSpace
 			// This modification makes default allocation local
 			NameSpace varScope = this;
 
-			varScope.variables.put( name, new Variable( value, false ) );
+			varScope.variables.put( name, new Variable( value, null/*mods*/ ) );
 
 			// nameSpaceChanged() on new variable addition
 			nameSpaceChanged();
@@ -418,6 +428,7 @@ public class NameSpace
 	{
 		if ( thisReference == null )
 			thisReference = This.getThis( this, declaringInterpreter );
+
 		return thisReference;
     }
 
@@ -471,7 +482,9 @@ public class NameSpace
 
 		@return The variable value or Primitive.VOID if it is not defined.
 	*/
-    public Object getVariable( String name ) {
+    public Object getVariable( String name ) 
+		throws UtilEvalError
+	{
 		return getVariable( name, true );
 	}
 
@@ -487,7 +500,9 @@ public class NameSpace
 
 		@return The variable value or Primitive.VOID if it is not defined.
 	*/
-    public Object getVariable( String name, boolean recurse ) {
+    public Object getVariable( String name, boolean recurse ) 
+		throws UtilEvalError
+	{
 		Variable var = getVariableImpl( name, recurse );
 		return unwrapVariable( var );
     }
@@ -501,22 +516,28 @@ public class NameSpace
 		@return the Variable value or null if it is not defined
 	*/
     protected Variable getVariableImpl( String name, boolean recurse ) 
+		throws UtilEvalError
 	{
 		Variable var = null;
 
 		if ( variables != null )
 			var	= (Variable)variables.get(name);
 
+		// If we are a static class space being asked for an instance variable 
+		// throw an exception.
+		if ( isClass && isStatic && var != null && !var.hasModifier("static") )
+			throw new UtilEvalError(
+				"Can't reach instance var: "+name
+					+" from static context: "+this);
+
+		// If we are a class instance ignore any static variables and allow
+		// them to be found in the static class space.
+		if ( isClass && !isStatic && var != null && var.hasModifier("static") )
+			var = null;
+
+		// try parent
 		if ( recurse && (var == null) && (parent != null) )
 			var	= parent.getVariableImpl( name, recurse );
-
-	/*
-		// limit static
-		if ( isStatic && var != null 
-			&& !var.modifiers.hasModifier("static") 
-		)
-			return null;
-	*/
 
 		return var;
     }
@@ -529,6 +550,19 @@ public class NameSpace
 	protected Object unwrapVariable( Variable var ) 
 	{
 		return (var == null) ? Primitive.VOID :	var.getValue();
+	}
+
+	/**
+		@deprecated See #setTypedVariable( String, Class, Object, Modifiers )
+	*/
+    public void	setTypedVariable(
+		String	name, Class type, Object value,	boolean	isFinal )
+		throws UtilEvalError 
+	{
+		Modifiers modifiers = new Modifiers();
+		if ( isFinal )
+			modifiers.addModifier( Modifiers.FIELD, "final" );
+		setTypedVariable( name, type, value, modifiers );
 	}
 
     /**
@@ -549,7 +583,7 @@ public class NameSpace
 		@param value If value is null, you'll get the default value for the type
     */
     public void	setTypedVariable(
-		String	name, Class type, Object value,	boolean	isFinal )
+		String	name, Class type, Object value,	Modifiers modifiers )
 		throws UtilEvalError 
 	{
 		if ( variables == null )
@@ -589,7 +623,7 @@ public class NameSpace
 		} 
 
 		// Add the new typed var
-		variables.put( name, new Variable( type, value, isFinal) );
+		variables.put( name, new Variable( type, value, modifiers ) );
     }
 
 	/**
@@ -626,38 +660,8 @@ public class NameSpace
 		@see bsh.Primitive
 		@return the BshMethod or null if not found
 	*/
-	/*
     public BshMethod getMethod( String name, Class [] sig ) 
-	{
-		BshMethod method = null;
-
-		Object m = null;
-		if ( methods != null )
-			m = methods.get(name);
-
-		if ( m instanceof Vector ) 
-		{
-			Vector vm = (Vector)m;
-			BshMethod [] ma = new BshMethod[ vm.size() ];
-			vm.copyInto( ma );
-
-			Class [][] candidates = new Class[ ma.length ][];
-			for( int i=0; i< ma.length; i++ )
-				candidates[i] = ma[i].getArgumentTypes();
-
-			int match = Reflect.findMostSpecificSignature( sig, candidates );
-			if ( match != -1 )
-				method = ma[match];
-		} else
-			method = (BshMethod)m;
-			
-		if ((method == null) && (parent != null))
-			return parent.getMethod( name, sig );
-
-		return method;
-    }
-	*/
-    public BshMethod getMethod( String name, Class [] sig ) 
+		throws UtilEvalError
 	{
 		BshMethod method = null;
 
@@ -688,6 +692,25 @@ public class NameSpace
 				method = ma[match];
 		}
 
+		// Limit static. If we are a static space being asked for an instance
+		// var throw an exception.
+		if ( isClass && isStatic && method != null && 
+			!method.hasModifier("static") 
+			// Hack! Allow us to see constructors
+			&& (!isClass || !nsName.equals(name) )
+		)
+			throw new UtilEvalError(
+				"Can't reach instance method: "+name
+				+" from static context: "+this);
+
+		// If we are a class instance ignore any static methods and allow
+		// them to be found in the static class space.
+		if ( isClass && !isStatic && method != null 
+			&& method.hasModifier("static") 
+		)
+			method  = null;
+
+		// try parent
 		if ( (method == null) && (parent != null) )
 			return parent.getMethod( name, sig );
 
@@ -1324,7 +1347,7 @@ public class NameSpace
 		return
 			"NameSpace: " 
 			+(isClass?"Scripted Class ":"") 
-			+(isStatic?"":"Instance ") 
+			+(isClass&&!isStatic?"Instance ":"") 
 			+ ( nsName==null
 				? super.toString()
 				: nsName + " (" + super.toString() +")" );
@@ -1521,19 +1544,19 @@ System.out.println(
 		/** A null type means an untyped variable */
 		Class type = null;
 		Object value;
-		boolean	isFinal;
+		Modifiers modifiers;
 
-		Variable( Object value, boolean isFinal )
+		Variable( Object value, Modifiers modifiers )
 			throws UtilEvalError
 		{
-			this( null, value, isFinal );
+			this( null, value, modifiers );
 		}
 
-		Variable( Class type, Object value, boolean isFinal )
+		Variable( Class type, Object value, Modifiers modifiers )
 			throws UtilEvalError
 		{
 			this.type =	type;
-			this.isFinal = isFinal;
+			this.modifiers = modifiers;
 			setValue( value );
 		}
 
@@ -1542,7 +1565,7 @@ System.out.println(
 		*/
 		void setValue( Object val ) throws UtilEvalError
 		{
-			if ( isFinal && value != null )
+			if ( hasModifier("final") && value != null )
 				throw new UtilEvalError ("Final variable, can't re-assign.");
 
 			if ( type != null )
@@ -1572,6 +1595,10 @@ System.out.println(
 
 		/** A type of null means loosely typed variable */
 		Class getType() { return type;	}
+
+		public boolean hasModifier( String name ) {
+			return modifiers != null && modifiers.hasModifier(name);
+		}
 
 		public String toString() { 
 			return "Variable type:"+type+", value:"+value;

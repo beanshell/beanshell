@@ -104,7 +104,9 @@ class BlockNameSpace extends NameSpace
 	private boolean weHaveVar( String name ) 
 	{
 		// super.variables.containsKey( name ) not any faster, I checked
-		return super.getVariableImpl( name, false ) != null;
+		try {
+			return super.getVariableImpl( name, false ) != null;
+		} catch ( UtilEvalError e ) { return false; }
 	}
 
 	/**
@@ -132,6 +134,18 @@ class BlockNameSpace extends NameSpace
 	*/
     public NameSpace getSuper() {
 		return getParent().getSuper();
+	}
+
+	/**
+		This method recurses to find the nearest non-BlockNameSpace parent.
+	*/
+	public NameSpace getParent() 
+	{
+		NameSpace parent = super.getParent();
+		if ( parent instanceof BlockNameSpace )
+			return parent.getParent();
+		else
+			return parent;
 	}
 
 	/**

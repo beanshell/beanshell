@@ -181,13 +181,14 @@ public class BshMethod
 			of the stack (i.e. it will look for purposes of the method 
 			invocation like the method call occurred in the declaring 
 			(enclosing) namespace in which the method is defined).
-		@param asConstructor When true the method always returns a 'this' type
-			reference to the namespace it created.  This allows it to be used
-			as a constructor.  The original return type is ignored.
+		@param overrideNameSpace 
+			When true the method is executed in the namespace on the top of the
+			stack instead of creating its own local namespace.  This allows it
+			to be used in constructors.
 	*/
 	public Object invoke( 
 		Object[] argValues, Interpreter interpreter, CallStack callstack,
-			SimpleNode callerInfo, boolean asConstructor ) 
+			SimpleNode callerInfo, boolean overrideNameSpace ) 
 		throws EvalError 
 	{
 		// is this a syncrhonized method?
@@ -199,16 +200,16 @@ public class BshMethod
 			synchronized( lock ) {
 				return invokeImpl( 
 					argValues, interpreter, callstack, 
-					callerInfo, asConstructor );
+					callerInfo, overrideNameSpace );
 			}
 		} else
-			return invokeImpl( 
-				argValues, interpreter, callstack, callerInfo, asConstructor );
+			return invokeImpl( argValues, interpreter, callstack, callerInfo,
+				overrideNameSpace );
 	}
 
 	private Object invokeImpl( 
 		Object[] argValues, Interpreter interpreter, CallStack callstack,
-			SimpleNode callerInfo, boolean asConstructor ) 
+			SimpleNode callerInfo, boolean overrideNameSpace ) 
 		throws EvalError 
 	{
 		// If null callstack
@@ -241,13 +242,19 @@ public class BshMethod
 		}
 
 		// Make the local namespace for the method invocation
-		NameSpace localNameSpace = new NameSpace( 
-			declaringNameSpace, name );
-		localNameSpace.setNode( callerInfo );
-		if ( asConstructor )
-			localNameSpace.isClass = true;
+		NameSpace localNameSpace;
+		if ( overrideNameSpace )
+			localNameSpace = callstack.top();
 		else
-			localNameSpace.isMethod = true;
+		{
+			localNameSpace = new NameSpace( declaringNameSpace, name );
+			if ( hasModifier("static") )
+				localNameSpace.isStatic = true;
+		}
+
+		// should we do this for both cases above?
+		localNameSpace.setNode( callerInfo );
+		localNameSpace.isMethod = true;
 
 		// set the method parameters in the local namespace
 		for(int i=0; i<numArgs; i++)
@@ -295,18 +302,19 @@ public class BshMethod
 		}
 
 		// Push the new namespace on the call stack
-		callstack.push( localNameSpace );
+		if ( !overrideNameSpace )
+			callstack.push( localNameSpace );
+
 		// Invoke the block, overriding namespace with localNameSpace
 		Object ret = methodBody.eval( 
 			callstack, interpreter, true/*override*/ );
+
 		// save the callstack including the called method, just for error mess
 		CallStack returnStack = callstack.copy();
-		// pop back to caller namespace
-		callstack.pop();
 
-		// If we're serving as a constructor, return a 'this' ref.
-		if ( asConstructor )
-			return localNameSpace.getThis( interpreter );
+		// Get back to caller namespace
+		if ( !overrideNameSpace )
+			callstack.pop();
 
 		ReturnControl retControl = null;
 		if ( ret instanceof ReturnControl )
@@ -351,6 +359,10 @@ public class BshMethod
 		}
 
 		return ret;
+	}
+
+	public boolean hasModifier( String name ) {
+		return modifiers != null && modifiers.hasModifier(name);
 	}
 
 	public String toString() {
