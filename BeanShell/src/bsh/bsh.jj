@@ -664,14 +664,6 @@ void FormalParameters()                   :
 /*@egen*/
 }
 
-/*
-void FormalParameter() #FormalParameter :
-{ Token t; }
-{
-    // added [] to Type for bsh.  Removed [ final ] - is that legal?
-  [ LOOKAHEAD(2) Type() ] t=<IDENTIFIER> { jjtThis.name = t.image; }
-}
-*/
 void FormalParameter()                  :
 {/*@bgen(jjtree) FormalParameter */
   BSHFormalParameter jjtn000 = new BSHFormalParameter(JJTFORMALPARAMETER);

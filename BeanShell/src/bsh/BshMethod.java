@@ -170,7 +170,7 @@ public class BshMethod
 			// Set untyped variable
 			else  // untyped param
 			{
-				// checkAssignable would catch this for typed param
+				// getAssignable would catch this for typed param
 				if ( argValues[i] == Primitive.VOID)
 					throw new EvalError(
 						"Undefined variable or class name, parameter: " +

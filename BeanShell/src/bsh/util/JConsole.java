@@ -440,6 +440,7 @@ public class JConsole extends JScrollPane
 	{
 		// Patch to handle Unicode characters
 		// Submitted by Daniel Leuck
+/*
 		StringBuffer buf = new StringBuffer(); 
 		int lineLength = line.length(); 
 		for(int i=0; i<lineLength; i++) {  
@@ -448,7 +449,9 @@ public class JConsole extends JScrollPane
 				buf.append("\\u" + val);
 		} 
 		line = buf.toString();
+System.out.println("line = {"+line+"}");
 		// End unicode patch
+*/
 
 		if (outPipe == null )
 			print("Console internal	error: cannot output ...", Color.red);

@@ -41,9 +41,9 @@ package bsh;
  * mechanisms so long as you retain the public fields.
  */
  
-// Begin BeanShell Modification - extend EvalError
+// Begin BeanShell Modification - public, extend EvalError
 public class ParseException extends EvalError {
-// End BeanShell Modification - extend EvalError
+// End BeanShell Modification - public, extend EvalError
 
 	// Begin BeanShell Modification - sourceFile
 

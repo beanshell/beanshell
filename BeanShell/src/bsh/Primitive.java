@@ -116,31 +116,39 @@ public class Primitive implements ParserConstants, java.io.Serializable
             return value.toString();
     }
 
+	/**
+		Get the primitive TYPE class corresponding to this Primitive.
+	*/
     public Class getType()
     {
-        return getType(value);
+        return getPrimitiveType(value);
     }
 
-    private Class getType(Object o)
+	/**
+		Get the corresponding primitive TYPE class for the a wrapper.
+		@return the type of null if not a wrapper type 
+		(also for VOID and NULL type ??)
+	*/
+    private static Class getPrimitiveType( Object wrapper )
     {
-        if(o instanceof Boolean)
+        if(wrapper instanceof Boolean)
             return Boolean.TYPE;
-        else if(o instanceof Byte)
+        else if(wrapper instanceof Byte)
             return Byte.TYPE;
-        else if(o instanceof Short)
+        else if(wrapper instanceof Short)
             return Short.TYPE;
-        else if(o instanceof Character)
+        else if(wrapper instanceof Character)
             return Character.TYPE;
-        else if(o instanceof Integer)
+        else if(wrapper instanceof Integer)
             return Integer.TYPE;
-        else if(o instanceof Long)
+        else if(wrapper instanceof Long)
             return Long.TYPE;
-        else if(o instanceof Float)
+        else if(wrapper instanceof Float)
             return Float.TYPE;
-        else if(o instanceof Double)
+        else if(wrapper instanceof Double)
             return Double.TYPE;
 
-		// VOID and NULL return null as type?
+		// VOID, NULL return null as type?
         return null;
     }
 

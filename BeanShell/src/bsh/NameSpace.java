@@ -949,12 +949,12 @@ public class NameSpace
 	/**
 		@deprecated name changed.
 		@see #getAssignableForm( Object, Class )
-	*/
     public static Object checkAssignableFrom(Object rhs, Class lhsType)
 		throws UtilEvalError
     {
 		return getAssignableForm( rhs, lhsType );
 	}
+	*/
 
 	/**
 		Determine if the RHS object can be assigned to the LHS type (as is,
