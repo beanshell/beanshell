@@ -60,14 +60,24 @@ tree= new JTree( treeModel );
 tree.setRootVisible(false);
 //tree.setShowsRootHandles(false);
 
+/*
 // expand to second level by default
 e1=root.children();
-while( e1.hasNext() ) {
-	e2 = e1.children();
-	while( e2.hasNext() ) {
-		tp =  new TreePath( treeModel.getPathToRoot( e2.getNext() ) );
+while( e1.hasMoreElements() ) {
+	e2 = (e1.nextElement()).children();
+	while( e2.hasMoreElements() ) {
+		tp =  new TreePath( treeModel.getPathToRoot( e2.nextElement() ) );
+print("expanding: "+tp);
 		tree.expandPath( tp );
 	}
+}
+*/
+
+e1=root.children();
+while( e1.hasMoreElements() ) {
+	tp =  new TreePath( treeModel.getPathToRoot( e1.nextElement() ) );
+print("expanding: "+tp);
+	tree.expandPath( tp );
 }
 
 frame( tree );
