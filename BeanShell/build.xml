@@ -21,7 +21,7 @@
 
 <!-- Project Configuration -->
 
-	<property name="version" value="1.1a18"/>
+	<property name="version" value="1.2beta1"/>
 	<property name="deprecation" value="off"/>
 
 	<!-- choose an alternate compiler -->
@@ -34,6 +34,7 @@
 	<property name="test-src-dir" value="tests/classes" />
 	<property name="build-dir" value="classes" />
 	<property name="javadoc-dir" value="javadoc" />
+	<property name="bsf-src-dir" value="bsf/src" />
 
 	<property name="javacc-lib" 
 		value="/pkg/javacc/bin/lib/JavaCC.zip"/>
@@ -43,20 +44,29 @@
 	-->
 
 	<!-- 
-		Optional things you can't build under older versions of Java.
+		Optional things you can't build under older versions of Java
+		or which require optional packages.
 		I think we can automate this in ant... deal with it later.
 	-->
-	<property name="excludes-1.2" 
-		value="bsh/XThis.java,bsh/util/ClassBrowser.java"/>
-	<property name="excludes-1.1" 
-		value="bsh/JThis.java,bsh/classpath/*,bsh/util/*"/>
 
 	<!-- Uncomment to build under JDK1.2 without warnings 
-	<property name="excludes" value="${excludes-1.2}"/>
+	<property name="exclude-1.2" 
+		value="bsh/XThis.java,bsh/util/ClassBrowser.java"/>
 	-->
+
 	<!-- Uncomment to build under JDK1.1 without warnings 
-	<property name="excludes" value="${excludes-1.2},${excludes-1.1}"/>
+	<property name="exclude-1.1" 
+		value="bsh/JThis.java,bsh/classpath/*,bsh/util/*,bsh/reflect/*"/>
 	-->
+
+	<!-- Uncomment to build without making the BSF adapter 
+	<property name="exclude-bsf" 
+		value="bsh/util/BeanShellBSFEngine.java,TestBshBSF.java"/>
+	-->
+
+	<!--  Add up all of the excludes -->
+	<property name="excludes" 
+		value="${exclude-1.2},${exclude-1.1},${exclude-bsf}"/>
 
 	<property name="javadoc-jar" value="javadoc.zip"/>
 	<property name="core-jar" value="bsh-core-${version}.jar"/>
@@ -64,7 +74,9 @@
 	<property name="all-jar" value="bsh-${version}.jar"/>
 	<property name="commands-jar" value="bsh-commands-${version}.jar"/>
 	<property name="classpath-jar" value="bsh-classpath-${version}.jar"/>
+	<property name="reflect-jar" value="bsh-reflect-${version}.jar"/>
 	<property name="util-jar" value="bsh-util-${version}.jar"/>
+	<property name="bsf-jar" value="bsh-bsf-${version}.jar"/>
 
 
 <!-- Begin Targets -->
@@ -109,7 +121,7 @@
 	</target>
 
 	<target name="compile" depends="jjtree,javacc,builddir">
-		<javac srcdir="${src-dir}:${test-src-dir}"
+		<javac srcdir="${src-dir}:${test-src-dir}:${bsf-src-dir}"
 			destdir="${build-dir}"
 			deprecation="${deprecation}"
 			optimize="off"
@@ -130,7 +142,7 @@
 
 	<target name="javadoc" depends="compile">
 		<mkdir dir="${javadoc-dir}" />
-		<javadoc packagenames="bsh,bsh.util,bsh.classpath"
+		<javadoc packagenames="bsh,bsh.util,bsh.classpath,bsh.reflect"
 			 sourcepath="${src-dir}"
 			 destdir="${javadoc-dir}"
 			 author="true"
@@ -169,6 +181,8 @@
 		<delete quiet="true" file="${util-jar}"/>
 		<delete quiet="true" file="${classpath-jar}"/>
 		<delete quiet="true" file="${commands-jar}"/>
+		<delete quiet="true" file="${reflect-jar}"/>
+		<delete quiet="true" file="${bsf-jar}"/>
 	</target>
 
 	<!-- This doesn't work!  I can find no way to set up the dir before the
@@ -189,6 +203,18 @@
 		</patternset>
 	</fileset>
 
+	<fileset id="reflect-fileset" dir="${build-dir}">
+		<patternset>
+			<include name="bsh/reflect/*.class"/>
+		</patternset>
+	</fileset>
+
+	<fileset id="bsf-fileset" dir="${build-dir}">
+		<patternset>
+			<include name="bsh/util/BeanShellBSFEngine.class"/>
+		</patternset>
+	</fileset>
+
 	<fileset id="commands-fileset" dir="${build-dir}">
 		<patternset>
 			<include name="bsh/commands/*.class"/>
@@ -202,6 +228,7 @@
 	<fileset id="util-fileset" dir="${build-dir}">
 		<patternset>
 			<include name="bsh/util/*.class"/>
+			<exclude name="bsh/util/BeanShellBSFEngine.class"/>
 		</patternset>
 		<patternset id="util-lib-patternset">
 			<include name="bsh/util/lib/*"/>
@@ -223,8 +250,10 @@
 		<jar jarfile="${all-jar}" manifest="src/Manifest.console">
 			<fileset refid="core-fileset"/>
 			<fileset refid="classpath-fileset"/>
+			<fileset refid="reflect-fileset"/>
 			<fileset refid="util-fileset"/>
 			<fileset refid="commands-fileset"/>
+			<fileset refid="bsf-fileset"/>
 		</jar>
 	</target>
 
@@ -245,16 +274,30 @@
 
 	<!-- Make the rest of the nitty gritty dist jars -->
 	<target name="dist" depends="compile,jarcore,jarall,javadoc,jarsrc">
-		<delete file="${commands-jar}:${classpath-jar}:${util-jar}"/>
 
+		<delete file="${commands-jar}"/>
 		<jar jarfile="${commands-jar}">
 			<fileset refid="commands-fileset"/>
 		</jar>
+
+		<delete file="${classpath-jar}"/>
 		<jar jarfile="${classpath-jar}">
 			<fileset refid="classpath-fileset"/>
 		</jar>
+
+		<delete file="${reflect-jar}"/>
+		<jar jarfile="${reflect-jar}">
+			<fileset refid="reflect-fileset"/>
+		</jar>
+
+		<delete file="${util-jar}"/>
 		<jar jarfile="${util-jar}">
 			<fileset refid="util-fileset"/>
+		</jar>
+
+		<delete file="${bsf-jar}"/>
+		<jar jarfile="${bsf-jar}">
+			<fileset refid="bsf-fileset"/>
 		</jar>
 	</target>
 

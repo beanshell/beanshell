@@ -1,0 +1,8 @@
+
+import bsh.Capabilities;
+
+setAccessibility( boolean b ) 
+{
+	Capabilities.setAccessibility(b);
+}
+

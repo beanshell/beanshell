@@ -4,6 +4,20 @@
 
 <h2>Changes in 1.1alpha19</h2>
 <pre>
+	- Added support for accessibility - Using a dynamically loaded extension
+	(ReflectManager) bsh will use the accessibility API to allow access to
+	private/protected fields, methods and non-public classes.
+	- added the setAccessible() command to turn this behavior on/off
+	(on by default)
+	- added the bsh.reflect package and ReflectManager to support the above.
+	- Added support for IBM's Bean Scripting Framework (BSF). 
+	- Added a new jar with the BSF adapter class bsh.util.BeanShellBSFEngine.
+	This is also included in the full dist (it's small).
+</pre>
+</h2>
+
+<h2>Changes in 1.1alpha19</h2>
+<pre>
 	- Added a somewhat experimental "strict java" mode.  When activated with
 	setStrictJava(true) BeanShell will:
 		1) require typed variable declarations, method arguments and 

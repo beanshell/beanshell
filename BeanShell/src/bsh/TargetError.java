@@ -138,9 +138,21 @@ public class TargetError extends EvalError
 		reThrow( null, node );
 	}
 
-	public String printTargetError( Throwable t ) {
+	/**
+		Generate a printable string showing the wrapped target exception.
+		//If the exception is an InvocationTargetException further unwrap it.
+		If the proxy mechanism is available, allow the extended print to
+		check for UndeclaredThrowableException and print that embedded error.
+	*/
+	public String printTargetError( Throwable t ) 
+	{
 		String s = target.toString();
 
+	/*
+		if ( target instanceof InvocationTargetException )
+			s +=  ((InvocationTargetException)target).getTargetException();
+		else 
+	*/
 		if ( Capabilities.canGenerateInterfaces() )
 			s += "\n" + xPrintTargetError( t );
 
@@ -148,13 +160,16 @@ public class TargetError extends EvalError
 	}
 
 	/**
-		This indirection is used to print InvocationTargetExceptions when
-		the proxy mechanism is available.
+		Extended form of print target error.
+		This indirection is used to print UndeclaredThrowableExceptions 
+		which are possible when the proxy mechanism is available.
 
-		We are sheilded from compile problems by using a bsh script.
-		This is acceptable here because we're not in a critical path.
+		We are shielded from compile problems by using a bsh script.
+		This is acceptable here because we're not in a critical path...
+		Otherwise we'd need yet another dynamically loaded module just for this.
 	*/
-	public String xPrintTargetError( Throwable t ) {
+	public String xPrintTargetError( Throwable t ) 
+	{
 		String getTarget =
 			"import java.lang.reflect.UndeclaredThrowableException;"+
 			"if ( target instanceof UndeclaredThrowableException )"+

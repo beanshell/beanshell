@@ -39,15 +39,16 @@ import java.io.IOException;
 import java.io.*;
 
 /**
-	Manage all classloading in BeanShell.
-	Allows classpath extension and class file reloading.
+	BshClassManager manages all classloading in BeanShell.
+	It also supports a dynamically loaded extension (bsh.classpath package)
+	which allows classpath extension and class file reloading.
 
-	Currently relies on 1.2 for BshClassLoader and weak references.
-	Is there a workaround for weak refs?  If so we could make this work
-	with 1.1 by supplying our own classloader code...
+	Currently the extension relies on 1.2 for BshClassLoader and weak 
+	references.  
 
-	@see http://www.beanshell.org/manual/classloading.html for details
+	See http://www.beanshell.org/manual/classloading.html for details
 	on the bsh classloader architecture.
+	<p>
 
 	Bsh has a multi-tiered class loading architecture.  No class loader is
 	used unless/until the classpath is modified or a class is reloaded.
@@ -112,6 +113,8 @@ public abstract class BshClassManager
 		@return the BshClassManager singleton or null, indicating no
 		class manager is available.
 	*/
+// Note: this should probably throw Capabilities.Unavailable instead of
+// returning null
 	public static BshClassManager getClassManager() 
 	{
 		// Bootstrap the class manager if it exists

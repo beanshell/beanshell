@@ -123,7 +123,7 @@ class BSHPrimarySuffix extends SimpleNode
 		}
 		catch(InvocationTargetException e)
 		{
-			throw new TargetError(e, this);
+			throw new TargetError(e.getTargetException(), this);
 		}
 	}
 

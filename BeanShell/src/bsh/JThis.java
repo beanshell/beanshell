@@ -41,23 +41,23 @@ import java.io.*;
 import java.beans.*;
 
 /**
-	JThis extends This and adds explicit support for AWT and JFC events, etc.
-	This is a backwards compatability measure for JDK 1.2.  With 1.3+ there is 
-	a general reflection proxy mechanism that allows the base This to 
-	implement arbitrary interfaces.
+	JThis is a dynamically loaded extension which extends This and adds 
+	explicit support for AWT and JFC events, etc.  This is a backwards 
+	compatability measure for JDK 1.2.  With 1.3+ there is a general 
+	reflection proxy mechanism that allows the base This to implement 
+	arbitrary interfaces.
 
 	The NameSpace getThis() method will produce instances of JThis if 
 	the java version is prior to 1.3 and swing is available...  (e.g. 1.2
 	or 1.1 + swing installed)  
 
-	Users of 1.1 sans swing will have minimal interface support (just run()).
+	Users of 1.1 without swing will have minimal interface support (just run()).
 	
 	Bsh doesn't run on 1.02 and below because there is no reflection! 
 
 	Note: This module relies on features of Swing and will only compile
 	with JDK1.2 or JDK1.1 + the swing package.  For other environments simply 
 	do not compile this class.
-
 */
 class JThis extends This implements
 	// All core AWT listeners
