@@ -44,7 +44,8 @@ import java.io.IOException;
 	This holds a reference to the declaring interpreter for callbacks from
 	outside of bsh.
 */
-public class This implements java.io.Serializable, Runnable {
+public class This implements java.io.Serializable, Runnable 
+{
 	/**
 		The namespace that this This reference wraps.
 	*/
@@ -57,14 +58,6 @@ public class This implements java.io.Serializable, Runnable {
 		e.g. interface proxy or event call backs from outside of bsh.
 	*/
 	transient Interpreter declaringInterpreter;
-
-	/**
-		invokeMethod() here is generally used by outside code to callback
-		into the bsh interpreter. e.g. when we are acting as an interface
-		for a scripted listener, etc.  In this case there is no real call stack
-		so we make a default one starting with the special JAVACODE namespace
-		and our namespace as the next.
-	*/
 
 	/**
 		getThis() is a factory for bsh.This type references.  The capabilities
@@ -179,7 +172,8 @@ public class This implements java.io.Serializable, Runnable {
 	{
 		// null callstack, one will be created for us 
 		return invokeMethod( 
-			name, args, declaringInterpreter, null, SimpleNode.JAVACODE );
+			name, args, null/*declaringInterpreter*/, null, null, 
+			false/*declaredOnly*/ );
 	}
 
 	/**
@@ -198,9 +192,9 @@ public class This implements java.io.Serializable, Runnable {
 		last resort.
 		<p>
 
-		Note: the invoke() method will not catch the object method 
-		(toString, ...).  If you want to override them you have to script
-		them directly.
+		Note: The invoke() meta-method will not catch the Object protocol
+		methods (toString(), hashCode()...).  If you want to override them you 
+		have to script them directly.
 		<p>
 
 		@see bsh.This.invokeMethod( 
@@ -208,27 +202,57 @@ public class This implements java.io.Serializable, Runnable {
 			CallStack callstack, SimpleNode callerInfo )
 		@param if callStack is null a new CallStack will be created and
 			initialized with this namespace.
+		@param declaredOnly if true then only methods declared directly in the
+			namespace will be visible - no inherited or imported methods will
+			be visible.
 		@see bsh.Primitive
 	*/
+	/*
+		invokeMethod() here is generally used by outside code to callback
+		into the bsh interpreter. e.g. when we are acting as an interface
+		for a scripted listener, etc.  In this case there is no real call stack
+		so we make a default one starting with the special JAVACODE namespace
+		and our namespace as the next.
+	*/
 	public Object invokeMethod( 
-		String methodName, Object [] args, Interpreter interpreter, 
-			CallStack callstack, SimpleNode callerInfo  ) 
+		String methodName, Object [] args, 
+		Interpreter interpreter, CallStack callstack, SimpleNode callerInfo, 
+		boolean declaredOnly  ) 
 		throws EvalError
 	{
+		/*
+			Wrap nulls.
+			This is a bit of a cludge to address a deficiency in the class
+			generator whereby it does not wrap nulls on method delegate.  See
+			Class Generator.java.  If we fix that then we can remove this.
+			(just have to generate the code there.)
+		*/
+		if ( args != null )
+		{
+			Object [] oa = new Object [args.length];
+			for(int i=0; i<args.length; i++)
+				oa[i] = ( args[i] == null ? Primitive.NULL : args[i] );
+			args = oa;
+		}
+
+		if ( interpreter == null )
+			interpreter = declaringInterpreter;
 		if ( callstack == null )
 			callstack = new CallStack( namespace );
+		if ( callerInfo == null )
+			callerInfo = SimpleNode.JAVACODE;
 
 		// Find the bsh method
-		Class [] types = Reflect.getTypes( args );
+		Class [] types = Types.getTypes( args );
 		BshMethod bshMethod = null;
 		try {
-			bshMethod = namespace.getMethod( methodName, types );
+			bshMethod = namespace.getMethod( methodName, types, declaredOnly );
 		} catch ( UtilEvalError e ) {
+			// leave null
 		}
 
 		if ( bshMethod != null )
-			return bshMethod.invoke( 
-				args, interpreter, callstack, callerInfo );
+			return bshMethod.invoke( args, interpreter, callstack, callerInfo );
 
 		/*
 			No scripted method of that name.
@@ -272,7 +296,6 @@ public class This implements java.io.Serializable, Runnable {
 			callerInfo, callstack );
 	}
 
-
 	/**
 		Bind a This reference to a parent's namespace with the specified
 		declaring interpreter.  Also re-init the callstack.  It's necessary 
@@ -290,5 +313,28 @@ public class This implements java.io.Serializable, Runnable {
 		ths.namespace.setParent( namespace ); 
 		ths.declaringInterpreter = declaringInterpreter;
 	}
+
+	/**
+		Allow invocations of these method names on This type objects.
+		Don't give bsh.This a chance to override their behavior.
+		<p>
+
+		If the method is passed here the invocation will actually happen on
+		the bsh.This object via the regular reflective method invocation 
+		mechanism.  If not, then the method is evaluated by bsh.This itself
+		as a scripted method call.
+	*/
+	static boolean isExposedThisMethod( String name ) 
+	{
+		return 
+			name.equals("getClass") 
+			|| name.equals("invokeMethod")
+			|| name.equals("getInterface")
+			// These are necessary to let us test synchronization from scripts
+			|| name.equals("wait") 
+			|| name.equals("notify")
+			|| name.equals("notifyAll");
+	}
+
 }
 

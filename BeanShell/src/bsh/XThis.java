@@ -190,7 +190,9 @@ class XThis extends This
 				return sb.toString();
 			}
 
-			return Primitive.unwrap( invokeMethod( methodName, args ) );
+			Class [] paramTypes = method.getParameterTypes();
+			return Primitive.unwrap( 
+				invokeMethod( methodName, Primitive.wrap(args, paramTypes) ) );
 		}
 	};
 }

@@ -81,6 +81,11 @@ public class BshClassManager
 {
 	/** Identifier for no value item.  Use a hashtable as a Set. */
 	private static Object NOVALUE = new Object(); 
+	/** 
+		The interpreter which created the class manager 
+		This is used to load scripted classes from source files.
+	*/
+	private Interpreter declaringInterpreter;
 	
 	/**
 		An external classloader supplied by the setClassLoader() command.
@@ -108,6 +113,9 @@ public class BshClassManager
 	protected transient Hashtable resolvedObjectMethods = new Hashtable();
 	protected transient Hashtable resolvedStaticMethods = new Hashtable();
 
+	protected transient Hashtable definingClasses = new Hashtable();
+	protected transient Hashtable definingClassesBaseNames = new Hashtable();
+
 	/**
 		Create a new instance of the class manager.  
 		Class manager instnaces are now associated with the interpreter.
@@ -115,7 +123,7 @@ public class BshClassManager
 		@see bsh.Interpreter.getClassManager()
 		@see bsh.Interpreter.setClassLoader( ClassLoader )
 	*/
-	public static BshClassManager createClassManager() 
+	public static BshClassManager createClassManager( Interpreter interpreter ) 
 	{
 		BshClassManager manager;
 
@@ -135,6 +143,9 @@ public class BshClassManager
 		else 
 			manager = new BshClassManager();
 
+		if ( interpreter == null )
+			interpreter = new Interpreter();
+		manager.declaringInterpreter = interpreter;
 		return manager;
 	}
 
@@ -147,10 +158,44 @@ public class BshClassManager
 		and reloaded classes, etc.
 		@return the class or null
 	*/
-	public Class classForName( String name ) {
+	public Class classForName( String name ) 
+	{
+		if ( isClassBeingDefined( name ) )
+			throw new InterpreterError(
+				"Attempting to load class in the process of being defined: "
+				+name );
+
+		Class clas = null;
+		try {
+			clas = plainClassForName( name );
+		} catch ( ClassNotFoundException e ) { /*ignore*/ }
+
+		// try scripted class
+		if ( clas == null ) 
+			clas = loadSourceClass( name );
+
+		return clas;
+	}
+	
+	// Move me to classpath/ClassManagerImpl???
+	protected Class loadSourceClass( String name )
+	{
+		String fileName = "/"+name.replace('.','/')+".java";
+		InputStream in = getResourceAsStream( fileName );
+		if ( in == null )
+			return null;
+
+		try {
+			System.out.println("Loading class from source file: "+fileName);
+			declaringInterpreter.eval( new InputStreamReader(in) );
+		} catch ( EvalError e ) {
+			// ignore
+			System.err.println( e );
+		}
 		try {
 			return plainClassForName( name );
 		} catch ( ClassNotFoundException e ) {
+			System.err.println("Class not found in source file: "+name );
 			return null;
 		}
 	}
@@ -205,12 +250,16 @@ public class BshClassManager
 	*/
 	public URL getResource( String path ) 
 	{
+		URL url = null;
 		if ( externalClassLoader != null )
 		{
 			// classloader wants no leading slash
-			return externalClassLoader.getResource( path.substring(1) );
-		} else
-			return Interpreter.class.getResource( path );
+			url = externalClassLoader.getResource( path.substring(1) );
+		} 
+		if ( url == null )
+			url = Interpreter.class.getResource( path );
+
+		return url;
 	}
 	/**
 		Get a resource stream using the BeanShell classpath
@@ -218,12 +267,16 @@ public class BshClassManager
 	*/
 	public InputStream getResourceAsStream( String path ) 
 	{
+		InputStream in = null;
 		if ( externalClassLoader != null )
 		{
 			// classloader wants no leading slash
-			return externalClassLoader.getResourceAsStream( path.substring(1) );
-		} else
-			return Interpreter.class.getResourceAsStream( path );
+			in = externalClassLoader.getResourceAsStream( path.substring(1) );
+		} 
+		if ( in == null )
+			in = Interpreter.class.getResourceAsStream( path );
+
+		return in;
 	}
 
 	/**
@@ -247,13 +300,13 @@ public class BshClassManager
 		in the general case where either will do.
 	*/
 	public void cacheResolvedMethod( 
-		Class clas, Object [] args, Method method ) 
+		Class clas, Class [] types, Method method ) 
 	{
 		if ( Interpreter.DEBUG )
 			Interpreter.debug(
 				"cacheResolvedMethod putting: " + clas +" "+ method );
 		
-		SignatureKey sk = new SignatureKey( clas, method.getName(), args );
+		SignatureKey sk = new SignatureKey( clas, method.getName(), types );
 		if ( Modifier.isStatic( method.getModifiers() ) )
 			resolvedStaticMethods.put( sk, method );
 		else
@@ -265,10 +318,10 @@ public class BshClassManager
 		@param onlyStatic specifies that only a static method may be returned.
 		@return the Method or null
 	*/
-	public Method getResolvedMethod( 
-		Class clas, String methodName, Object [] args, boolean onlyStatic  ) 
+	protected Method getResolvedMethod( 
+		Class clas, String methodName, Class [] types, boolean onlyStatic  ) 
 	{
-		SignatureKey sk = new SignatureKey( clas, methodName, args );
+		SignatureKey sk = new SignatureKey( clas, methodName, types );
 
 		// Try static and then object, if allowed
 		// Note that the Java compiler should not allow both.
@@ -415,6 +468,88 @@ public class BshClassManager
 		pw.println("BshClassManager: no class manager."); 
 	}
 
+	/**
+		Flag the class name as being in the process of being defined.
+		The class manager will not attempt to load it.
+	*/
+	/*
+		Note: this implementation is temporary. We currently keep a flat
+		namespace of the base name of classes.  i.e. BeanShell cannot be in the
+		process of defining two classes in different packages with the same
+		base name.  To remove this limitation requires that we work through
+		namespace imports in an analogous (or using the same path) as regular
+		class import resolution.  This workaround should handle most cases 
+		so we'll try it for now.
+	*/
+	protected void definingClass( String className ) {
+		String baseName = Name.suffix(className,1);
+		int i = baseName.indexOf("$");
+		if ( i != -1 )
+			baseName = baseName.substring(i+1);
+		String cur = (String)definingClassesBaseNames.get( baseName );
+		if ( cur != null )
+			throw new InterpreterError("Defining class problem: "+className 
+				+": BeanShell cannot yet simultaneously define two or more "
+				+"dependant classes of the same name.  Attempt to define: "
+				+ className +" while defining: "+cur 
+			);
+		definingClasses.put( className, NOVALUE );
+		definingClassesBaseNames.put( baseName, className );
+	}
+
+	protected boolean isClassBeingDefined( String className ) {
+		return definingClasses.get( className ) != null;
+	}
+
+	/**
+		This method is a temporary workaround used with definingClass.
+		It is to be removed at some point.
+	*/
+	protected String getClassBeingDefined( String className ) {
+		String baseName = Name.suffix(className,1);
+		return (String)definingClassesBaseNames.get( baseName );
+	}
+
+	/**
+		Indicate that the specified class name has been defined and may be
+		loaded normally.
+	*/
+	protected void doneDefiningClass( String className ) {
+		String baseName = Name.suffix(className,1);
+		definingClasses.remove( className );
+		definingClassesBaseNames.remove( baseName );
+	}
+
+	/*
+		Issues to resolve here...
+		1) In which classloader should we define the class?
+		if there is a BshClassLoader should we define it there?
+		2) should we use reflection to set it in a non-bsh classloader
+		if there is one or should we always create a bsh classloader
+		(and expose its defineClass)?
+	*/
+	public Class defineClass( String name, byte [] code ) 
+	{
+		ClassLoader cl = this.getClass().getClassLoader();
+		Class clas;
+		try {
+			clas = (Class)Reflect.invokeObjectMethod( 
+				cl, "defineClass", 
+				new Object [] { 
+					name, code, 
+					new Primitive( (int)0 )/*offset*/, 
+					new Primitive( code.length )/*len*/ 
+				}, 
+				(Interpreter)null, (CallStack)null, (SimpleNode)null 
+			);
+		} catch ( Exception e ) {
+			e.printStackTrace();
+			throw new InterpreterError("Unable to define class: "+ e );
+		}
+		absoluteNonClasses.remove( name ); // may have been axed previously
+		return clas;
+	}
+
 	protected void classLoaderChanged() { }
 
 	/**
@@ -459,10 +594,10 @@ public class BshClassManager
 		String methodName;
 		int hashCode = 0;
 
-		SignatureKey( Class clas, String methodName, Object [] args ) {
+		SignatureKey( Class clas, String methodName, Class [] types ) {
 			this.clas = clas;
 			this.methodName = methodName;
-			this.types = Reflect.getTypes( args );
+			this.types = types;
 		}
 
 		public int hashCode() 

@@ -23,13 +23,13 @@
 
 <property name="file" value=""/>
 
-	<property name="version" value="1.3.0"/>
+	<property name="version" value="2.0b1"/>
 	<property name="deprecation" value="on"/>
 
 	<!-- choose an alternate compiler -->
 	<!-- 
-		<property name="build-compiler" value="modern"/> 
 		<property name="build-compiler" value="jikes"/> 
+		<property name="build-compiler" value="modern"/> 
 	-->
 
 	<property name="src-dir" value="src" />
@@ -39,6 +39,7 @@
 	<property name="test-src-dir" value="tests/classes" />
 	<property name="javadoc-dir" value="javadoc" />
 	<property name="bsf-src-dir" value="bsf/src" />
+	<property name="classgen-src-dir" value="asm/src" />
 
 	<!--
 		Let's just add the jar to the classpath from now on...
@@ -70,15 +71,24 @@
 		value="bsh/util/BeanShellBSFEngine.java,TestBshBSF.java"/>
 	-->
 
+	<!-- Uncomment to build without the ASM class generator code.
+	<property name="exclude-classgen" 
+		value="bsh/org/objectweb/asm/**,bsh/ClassGeneratorImpl.java,bsh/ClassGeneratorUtil.java,bsh/DelayedEvalBshMethod.java"/>
+	-->
+
 	<!-- Uncomment to build without making the servlet package 
 	<property name="exclude-servlet" 
 		value="bsh/servlet/*"/>
 	-->
 
+	<!-- Legacy excludes.  Comment this *out* to build these legacy items -->
+	<property name="legacy-excludes" 
+		value="bsh/JThis.java"/>
+
 	<!--  Add up all of the excludes -->
-	<!-- how do I add strings to break that line? -->
+	<!-- how do I add strings to break this long line? -->
 	<property name="excludes" 
-		value="${exclude-1.2},${exclude-1.1},${exclude-bsf},${exclude-servlet}"/>
+		value="${exclude-1.2},${exclude-1.1},${exclude-bsf},${exclude-servlet},${legacy-excludes},${exclude-classgen}"/>
 
 	<!-- JARs -->
 	<property name="javadoc-jar" value="${dist-dir}/javadoc.zip"/>
@@ -94,6 +104,7 @@
 		value="${dist-dir}/bsh-reflect-${version}.jar"/>
 	<property name="util-jar" value="${dist-dir}/bsh-util-${version}.jar"/>
 	<property name="bsf-jar" value="${dist-dir}/bsh-bsf-${version}.jar"/>
+	<property name="classgen-jar" value="${dist-dir}/bsh-classgen-${version}.jar"/>
 	<property name="bshservlet-wbsh-war" 
 		value="${dist-dir}/bshservlet-wbsh.war"/>
 	<property name="bshservlet-war" value="${dist-dir}/bshservlet.war"/>
@@ -149,7 +160,7 @@
 	<target name="compile" depends="jjtree,javacc,builddir">
 		<!-- exclude the ${excludes} as well as anything under a "bak" dir -->
 		<!--compiler="${build-compiler}"-->
-		<javac srcdir="${src-dir}:${test-src-dir}:${bsf-src-dir}"
+		<javac srcdir="${src-dir}:${test-src-dir}:${bsf-src-dir}:${classgen-src-dir}"
 			destdir="${build-dir}"
 			deprecation="${deprecation}"
 			optimize="on"
@@ -186,7 +197,7 @@
 	<target name="javadoc" depends="compile">
 		<mkdir dir="${javadoc-dir}" />
 		<javadoc packagenames="bsh,bsh.util,bsh.classpath,bsh.reflect"
-			 sourcepath="${src-dir}"
+			 sourcepath="${src-dir}:${classgen-src-dir}"
 			 destdir="${javadoc-dir}"
 			 author="true"
 			 version="true"
@@ -229,6 +240,7 @@
 		<delete quiet="true" file="${commands-jar}"/>
 		<delete quiet="true" file="${reflect-jar}"/>
 		<delete quiet="true" file="${bsf-jar}"/>
+		<delete quiet="true" file="${classgen-jar}"/>
 		<delete quiet="true" file="${bshservlet-wbsh-war}"/>
 		<delete quiet="true" file="${bshservlet-war}"/>
 		-->
@@ -257,7 +269,10 @@
 			<include name="bsh/*.class"/>
 <!-- something funny here...  Console ends up in jarall, but not Remote -->
 			<exclude name="bsh/Console.class"/>
-			<exclude name="bsh/Remote.class"/>
+			<exclude name="bsh/Remote*"/>
+			<exclude name="bsh/ClassGeneratorImpl*"/>
+			<exclude name="bsh/ClassGeneratorUtil*"/>
+			<exclude name="bsh/DelayedEvalBshMethod*"/>
 		</patternset>
 	</fileset>
 
@@ -282,6 +297,15 @@
 	<fileset id="bsf-fileset" dir="${build-dir}">
 		<patternset>
 			<include name="bsh/util/BeanShellBSFEngine.class"/>
+		</patternset>
+	</fileset>
+
+	<fileset id="classgen-fileset" dir="${build-dir}">
+		<patternset>
+			<include name="bsh/ClassGeneratorImpl*.class"/>
+			<include name="bsh/ClassGeneratorUtil*.class"/>
+			<include name="bsh/DelayedEvalBshMethod*.class"/>
+			<include name="bsh/org/objectweb/asm/**/*.class"/>
 		</patternset>
 	</fileset>
 
@@ -335,6 +359,7 @@
 			<fileset refid="util-fileset"/>
 			<fileset refid="commands-fileset"/>
 			<fileset refid="bsf-fileset"/>
+			<fileset refid="classgen-fileset"/>
 			<fileset refid="bshservlet-fileset"/>
 <!-- hack, see core-fileset -->
 			<fileset dir="${build-dir}">
@@ -353,6 +378,7 @@
 				<patternset>
 					<include name="BeanShell/**/*"/>
 					<exclude name="BeanShell/classes/**/*"/>
+					<exclude name="BeanShell/dist/**/*"/>
 					<exclude name="BeanShell/*javadoc*"/>
 					<exclude name="BeanShell/javadoc/**/*"/>
 					<!--exclude name="BeanShell/docs/**/*"/-->
@@ -394,6 +420,11 @@
 		<delete file="${bsf-jar}"/>
 		<jar jarfile="${bsf-jar}">
 			<fileset refid="bsf-fileset"/>
+		</jar>
+
+		<delete file="${classgen-jar}"/>
+		<jar jarfile="${classgen-jar}">
+			<fileset refid="classgen-fileset"/>
 		</jar>
 
 		<delete file="${javadoc-jar}"/>
@@ -463,6 +494,7 @@
 		<java classname="bsh.Interpreter" fork="true">
 			<classpath>
 				<pathelement location="${build-dir}"/>
+				<fileset refid="lib-fileset"/>
 			</classpath>
 			<arg value="${file}"/>
 		</java>

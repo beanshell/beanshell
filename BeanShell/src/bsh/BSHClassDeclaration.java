@@ -31,7 +31,6 @@
  *                                                                           *
  *****************************************************************************/
 
-
 package bsh;
 
 /**
@@ -41,16 +40,18 @@ class BSHClassDeclaration extends SimpleNode
 	/**
 		The class instance initializer method name.
 		A BshMethod by this name is installed by the class delcaration into 
-		the scripted class and it is called to initialize instances of the
-		class.
+		the static class body namespace.  
+		It is called once to initialize the static members of the class space 
+		and each time an instances is created to initialize the instance
+		members.
 	*/
 	static final String CLASSINITNAME = "_bshClassInit";
 
 	String name;
 	Modifiers modifiers;
 	int numInterfaces;
-	Class [] interfaces;
 	boolean extend;
+	boolean isInterface;
 
 	BSHClassDeclaration(int id) { super(id); }
 
@@ -60,32 +61,17 @@ class BSHClassDeclaration extends SimpleNode
 		throws EvalError
 	{
 		int child = 0;
-		NameSpace enclosingNameSpace = callstack.top();
 
-		NameSpace superNameSpace;
+		// resolve superclass if any
+		Class superClass = null;
 		if ( extend ) 
 		{
 			BSHAmbiguousName superNode = (BSHAmbiguousName)jjtGetChild(child++);
-			Object superClass = superNode.toObject( 
-				callstack, interpreter, false /*forceclass*/ );
-
-			if ( superClass instanceof ClassIdentifier )
-				throw new EvalError(
-					"BeanShell Scripted Classes cannot currently extend "
-					+"Java types.", this, callstack );
-
-			if ( ClassNameSpace.isScriptedClass( superClass ) )
-				superNameSpace = ((This)superClass).getNameSpace();
-			else
-				throw new EvalError(
-					"Class cannot extend type: "
-						+superClass.getClass(), this, callstack );
+			superClass = superNode.toClass( callstack, interpreter );
 		}
-		else
-			superNameSpace = enclosingNameSpace;
 
 		// Get interfaces
-		interfaces = new Class[numInterfaces];
+		Class [] interfaces = new Class[numInterfaces];
 		for( int i=0; i<numInterfaces; i++) {
 			BSHAmbiguousName node = (BSHAmbiguousName)jjtGetChild(child++);
 			interfaces[i] = node.toClass(callstack, interpreter);
@@ -96,58 +82,20 @@ class BSHClassDeclaration extends SimpleNode
 		}
 
 		BSHBlock block;
+		// Get the class body BSHBlock
 		if ( child < jjtGetNumChildren() )
 			block = (BSHBlock)jjtGetChild(child);
 		else
 			block = new BSHBlock( ParserTreeConstants.JJTBLOCK );
 
-		/*
-			Install this class in the enclosingNameSpace.
-			Make a scripted object representing the class and install it under
-			the name of the class.
-		*/
-
-		NameSpace classStaticNameSpace = 
-			new ClassNameSpace( superNameSpace, name, ClassNameSpace.CLASS );
-
-		/*
-			Evaluate the block in the classStaticNameSpace
-			push it onto the stack and then call the block eval with the
-			overrideNamespace option so that it uses ours.  Then pop it.
-		*/
-		callstack.push( classStaticNameSpace );
-		// evaluate the static portion of the block in it
-		block.eval( callstack, interpreter, true/*override*/ );
-
-		// Add the block as a default constructor method
-
-		BshMethod classInitializer =
-			new BshMethod( 
-				CLASSINITNAME, 
-				null /*returnType*/,
-				new String [0] /*argNames*/,
-				new Class [0] /*argTypes*/,
-				block,
-				classStaticNameSpace/*declaringNameSpace*/,
-				new Modifiers()
-			);
-
 		try {
-			classStaticNameSpace.setMethod( CLASSINITNAME, classInitializer );	
-		} catch ( UtilEvalError e ) {
-			throw e.toEvalError(this, callstack);
-		}
-		
-		callstack.pop();
-
-		try {
-			enclosingNameSpace.setVariable( 
-				name, classStaticNameSpace.getThis( interpreter), false );
+			return ClassGenerator.getClassGenerator().generateClass( 
+				name, modifiers, interfaces, superClass, block, isInterface,
+				callstack, interpreter );
 		} catch ( UtilEvalError e ) {
 			throw e.toEvalError( this, callstack );
 		}
 
-		return Primitive.VOID;
 	}
 
 	public String toString() {

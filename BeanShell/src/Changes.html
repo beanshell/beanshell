@@ -2,78 +2,88 @@
 <head><title>BeanShell - Change Log</title></head>
 <body bgcolor=#ffffff>
 
+<h2>Changes in 2.0 beta 1</h2>
+<pre>
+      - With release 2.0 BeanShell supports the full Java syntax.
+      You can now script Java classes that serve as real Java types.
+      Scripted classes may extend ordinary Java classes, abstract classes, and
+      implement interfaces as usual.  Constructors and methods invoked on the
+      scripted classes are delegated to the BeanShell interpreter.  This 
+      means that within scripted classes you may use the full power of 
+      BeanShell scripting including commands, loose types, and other BeanShell
+      Java extensions such as method closures if you wish.
+
+      BeanShell will now attempt to load classes from ".java" source files in 
+      the classpath if the compiled class is not found.
+
+      Current Limitations:
+
+        - In order to run a class file's main method with arguments from the
+          command line the class containing your main method must be the last
+          item in the file.  e.g. a .java file with the public class appearing
+          last.
+
+        - Static final fields (constants) in interfaces are currently broken.
+
+        - Non-static inner classes are currently implemented in a non-standard
+          way (using mix-ins) so mixing interpreted classes with their
+          pre-compiled inner classes will not work properly in all cases.
+
+        - Inner classes are not properly "imported" in some cases. e.g. Class A
+          contains one ormore inner classes.  Class B extends class A and
+          attempt to refer to those inner classes by their unqualified names.
+
+        - Static blocks in the class body are not yet implemented.
+
+        - If you have a source class at the wrong place in the classpath you
+          may get a non-fatal error when bsh attempts to load the class again.
+
+
+    - JDK 1.5 style static class imports.  
+      You can import the static methods and fields of a java Class into a
+      BeanShell namespace. e.g. 
+
+        static import java.lang.Math.*;
+        sqrt(4.0);
+
+    - Instance object imports (mix-ins) with the importObject() command. 
+      You can import the methods and fields of a Java object instance into
+      a BeanShell namespace.  e.g.
+
+        Map map = new HashMap();
+        importObject( map );
+        put("foo", "bar");
+        print( get("foo") ); // "bar"
+    
+</pre>
+
 <h2>Changes in 1.3 beta 2</h2>
 <pre>
-	- Rounded out reserved Java keywords.  Added: "strictfp", "implements", 
-	  "extends", "package", and the new Java 1.5 keyword "enum".  strictfp
-	  is now accepted as a modifier and ignored.  The rest are not supported
-	  (yet).
+    - Added reserved Java keywords.  Added: "strictfp", "implements", 
+      "extends", "package", and the new Java 1.5 keyword "enum".  strictfp
+      is now accepted as a modifier and ignored.  The rest are not supported
+      (yet).
 
-	- Properties style auto-allocation of variables.
+    - Properties style auto-allocation of variables.
 
-		 // foo is initially undefined
-		 foo.bar.gee = 42; 
-		 print( foo.bar.gee ); // 42
-		 print( foo.bar ); 'this' reference (XThis) to Bsh object: auto: bar
-		 print( foo ); 'this' reference (XThis) to Bsh object: auto: foo
+         // foo is initially undefined
+         foo.bar.gee = 42; 
+         print( foo.bar.gee ); // 42
+         print( foo.bar ); 'this' reference (XThis) to Bsh object: auto: bar
+         print( foo ); 'this' reference (XThis) to Bsh object: auto: foo
 
-	  When assigning to a compound name, undefined components being resolved
-	  relative to a scripted object (bsh 'this' type reference) will be
-	  auto-allocated as scripted objects.
+      When assigning to a compound name, undefined components being resolved
+      relative to a scripted object (bsh 'this' type reference) will be
+      auto-allocated as scripted objects.
 
-	  This means that you can use BeanShell scripts just like properties
-	  files for initialization parameters.
+      This means that you can use BeanShell scripts just like properties
+      files for initialization parameters.
 
-	- Scripted Classes
-	  BeanShell now has Basic support for scripted classes. e.g.
+    - BeanShell 'this' type references can now implement more than one
+      interface.  Use getInterface( Class[] ).
 
-	  	class Foo {
-			static int a = 5;
-			int b = 6;
-			Foo( int c ) { }
-
-			void method() { }
-			static void anotherMethod() { }
-		}
-		class Bar extends Foo { }
-		foo = new Foo(42);
-
-	  Current Limitations:
-	  	0) Scripted classes may only extend other scripted classes
-	  	1) implement clauses are currently ignored
-		2) All Scripted classes appear as type bsh.This - they are effectively
-		   the same type of object.  So, for example, the instanceof operator 
-		   does not properly distinguish between scripted class types.
-		3) Casts do not affect shadowed field visibility. e.g.
-		   ((Foo)bar).field will see field in the type Bar, not Foo (assuming
-		   it's in both).  However super.field references do work as in Java.
-		   
-	  Loose variables and methods are allowed in classes.
-
-	  	class Bar {
-			x = 6;
-			method() { x=7; }
-		}
-	
-	  As in Java, 'this' type references in methods directly in class scope 
-	  refer to the class instance.  However nested method closures are allowed 
-	  and the behavior of 'this' is as elsewhere in BeanShell.  e.g.
-
-	  	class Foo 
-		{
-			// this == Foo instance this
-			classMethod() 
-			{ 
-				// this == Foo instance this
-				closure() {
-					// this == closure method this
-				}
-			}
-	  	}
-
-	- BeanShell 'this' type references can now implement more than one
-	  interface.  Use getInterface( Class[] ).
-
+    - BshMethod getReturnType() now returns Void.TYPE for voids, rather than
+      the (incorrect) wrapper value Primitive.VOID.
 </pre>
 
 <h2>Changes in 1.3 beta 1</h2>
@@ -209,8 +219,8 @@
     - Removed deprecated overloaded NameSpace.getImportedClasses()
     
     - Moved Name.ClassIdentifier to bsh.ClassIdentifier top level class.
-	  ClassIdentifier allows scripted methods to accept plain class names as
-	  arguments.  e.g.  javap( java.lang.String );
+      ClassIdentifier allows scripted methods to accept plain class names as
+      arguments.  e.g.  javap( java.lang.String );
 
     - Enhanced error message for undefined argument to method - now prints the
       argument text instead of the method parameter name and position.
@@ -298,9 +308,9 @@
 
         Map map = new HashMap();
         map{"foo"} = "bar":
-	
-	  This is another feature of the new CollectionManager (1.1 compatability
-	  is preserved).
+    
+      This is another feature of the new CollectionManager (1.1 compatability
+      is preserved).
 
     - Fixed void initializer bug whereby a void value in an initializer was
       allowed.
@@ -425,75 +435,75 @@
         members without setAccessibility(true).  Error now shows non-public
         method and suggests turning on accessibility.
 
-	  - User defined command prompt in interactive mode.  The user may set the
-		value for the prompt string using the variable bsh.prompt or by
-		defining the scripted method (or command) getBshPrompt().  
+      - User defined command prompt in interactive mode.  The user may set the
+        value for the prompt string using the variable bsh.prompt or by
+        defining the scripted method (or command) getBshPrompt().  
 
-		If the command or method getBshPrompt() is defined it will be called to
-		get a string to display as the user prompt.  For example, one could
-		define the following method to place the current working directory into
-		their command prompt:
+        If the command or method getBshPrompt() is defined it will be called to
+        get a string to display as the user prompt.  For example, one could
+        define the following method to place the current working directory into
+        their command prompt:
 
-		    getBshPrompt() { return bsh.cwd + " % "; }
-	
-		The default getBshPrompt() command returns the value of the variable
-		bsh.prompt if it is defined or the string "bsh % " if not.  If the
-		getBshPrompt() method does not exist, throws an exception, or does not
-		return a String, a default prompt of "bsh % " will be used.
+            getBshPrompt() { return bsh.cwd + " % "; }
+    
+        The default getBshPrompt() command returns the value of the variable
+        bsh.prompt if it is defined or the string "bsh % " if not.  If the
+        getBshPrompt() method does not exist, throws an exception, or does not
+        return a String, a default prompt of "bsh % " will be used.
 
-	  - Fixed JConsole backspace through prompt bug.
+      - Fixed JConsole backspace through prompt bug.
 
-	  - User Command Path - You may now import BeanShell scripted or compiled
-		commands from any package path using the importCommands() method.
-		You may use either "/" path or "." package notation.  e.g. 
+      - User Command Path - You may now import BeanShell scripted or compiled
+        commands from any package path using the importCommands() method.
+        You may use either "/" path or "." package notation.  e.g. 
 
-			// equivalent
-			importCommands("/bsh/commands")
-			importCommands("bsh.commands")
-			importCommands("/mypackage/commands")
+            // equivalent
+            importCommands("/bsh/commands")
+            importCommands("bsh.commands")
+            importCommands("/mypackage/commands")
 
-		When searching for a command each path will be checked for first, a file
-		named 'command'.bsh and second a class file named 'command'.class.
+        When searching for a command each path will be checked for first, a file
+        named 'command'.bsh and second a class file named 'command'.class.
 
-		You may add to the BeanShell classpath using the addClassPath() or
-		setClassPath() commands and then import them as usual.
+        You may add to the BeanShell classpath using the addClassPath() or
+        setClassPath() commands and then import them as usual.
 
-			addClassPath("mycommands.jar");
-			importCommands("/mypackage/commands");
+            addClassPath("mycommands.jar");
+            importCommands("/mypackage/commands");
 
-		If a relative path style specifier is used then it is made into an
-		absolute path by prepending "/".  Later imports take precedence over
-		earlier ones.
+        If a relative path style specifier is used then it is made into an
+        absolute path by prepending "/".  Later imports take precedence over
+        earlier ones.
 
-		Imported commands are scoped just like imported clases.
+        Imported commands are scoped just like imported clases.
 
-		See news about the invoke() meta-method for information about how you
-		could implement your own, arbitrary command loading.
+        See news about the invoke() meta-method for information about how you
+        could implement your own, arbitrary command loading.
 
-	  - The getResource() command now utilizes the BeanShell classpath. i.e.
-		you can get resources from paths added with addClassPath(), etc.
+      - The getResource() command now utilizes the BeanShell classpath. i.e.
+        you can get resources from paths added with addClassPath(), etc.
 
-	  - The BshClassManager now contains the methods getResource() and
-		getResourceAsStream().
+      - The BshClassManager now contains the methods getResource() and
+        getResourceAsStream().
 
-  	  - The invoke() meta method is now allowed directly in scope, e.g.
+      - The invoke() meta method is now allowed directly in scope, e.g.
 
-			invoke( String methodName, Object [] arguments ) { ... }
+            invoke( String methodName, Object [] arguments ) { ... }
 
-			// invoke() will be called to handle noSuchMethod()
-			noSuchMethod("foo"); 
+            // invoke() will be called to handle noSuchMethod()
+            noSuchMethod("foo"); 
 
-		Previously invoke() was only allowed when called through a 'this' type
-		reference, e.g. a scripted interface.
+        Previously invoke() was only allowed when called through a 'this' type
+        reference, e.g. a scripted interface.
 
-		One could use this capability to implement arbitrary command loading
-		capabilites.  You would simply have to handle wrapping/ unwrapping
-		of primitive value argument and return types with bsh.Primitive.
+        One could use this capability to implement arbitrary command loading
+        capabilites.  You would simply have to handle wrapping/ unwrapping
+        of primitive value argument and return types with bsh.Primitive.
 
-	  - Fixed bug in bsh.util.Httpd causing class format errors
-	  - Changed BshServlet redirect to a relative path rather than absolute URL
+      - Fixed bug in bsh.util.Httpd causing class format errors
+      - Changed BshServlet redirect to a relative path rather than absolute URL
 
-	</pre>
+    </pre>
 
 <h2>Changes in 1.2b8 </h2>
 <pre>

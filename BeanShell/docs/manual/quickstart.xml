@@ -35,7 +35,7 @@ $JAVA_HOME/jre/lib/ext folder.  (OSX users: place the bsh.jar in
 Or add BeanShell to your classpath like this:
 
 <em>unix:</em>     export CLASSPATH=$CLASSPATH:bsh-xx.jar
-<em>windows:</em>  set classpath %classpath%;bsh-xx.jar
+<em>windows:</em>  set classpath=%classpath%;bsh-xx.jar
 </example>
 
 <tip>

@@ -47,4 +47,8 @@ i.set("s1","MY ");
 i.set("s2","STRING");
 assert( i.eval("!s1.equals(s2)") == true );
 
+f=new Fields();
+assert( f.x.getClass() == bsh.Primitive.class );
+assert( Fields.staticField.getClass() == bsh.Primitive.class );
+
 complete();

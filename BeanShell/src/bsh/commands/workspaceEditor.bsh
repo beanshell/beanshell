@@ -25,6 +25,7 @@ workspaceEditor(Interpreter parent, String name )
 	textarea.setWrapStyleWord(true);
 	textarea.setTabSize(4);
 	textarea.setMargin( new Insets(5,5,5,5) );
+	textarea.font=new Font("Monospaced", 0, 12);
 
 	// probably should overload desktop makeInternalFrame
 	this.frame = 
@@ -72,7 +73,7 @@ workspaceEditor(Interpreter parent, String name )
 	{
 		this.com = e.getActionCommand();
 		if ( com.equals("Close") )
-			frame.dispose();
+			frame.setClosed(true);
 		else if ( com.equals("New") )
 			textarea.setText("");
 		else if ( com.equals("Open") )

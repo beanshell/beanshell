@@ -40,16 +40,16 @@ assert( isEvalError("(int)null"));
 assert( isEvalError("(int)xyz"));
 assert( isEvalError("(Object)xyz"));
 
-// can't cast primitives to object types
-assert( isEvalError("(Object)5"));
-assert( isEvalError("(Object)'a'"));
+// casting primitives to object types used to be illegal
+// Now they get boxed
+//assert( isEvalError("(Object)5"));
+//assert( isEvalError("(Object)'a'"));
+// assert( isEvalError("(Object)true"));
 
 // boolean can be cast only in the trivial case
 (boolean)true;
 // can't cast boolean to other primitive type
 assert( isEvalError("(int)true"));
-// or object type
-assert( isEvalError("(Object)true"));
 
 // can't cast object to primitive type
 assert( isEvalError("(int)\"foo\""));

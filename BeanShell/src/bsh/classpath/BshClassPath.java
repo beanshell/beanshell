@@ -636,25 +636,47 @@ public class BshClassPath
 		throws ClassPathException
 	{
 		if ( bootClassPath == null )
-			try {
-				String rtjar = System.getProperty("java.home")+"/lib/rt.jar";
+		{
+			try 
+			{
+				//String rtjar = System.getProperty("java.home")+"/lib/rt.jar";
+				String rtjar = getRTJarPath();
 				URL url = new File( rtjar ).toURL();
 				bootClassPath = new BshClassPath( 
 					"Boot Class Path", new URL[] { url } );
 			} catch ( MalformedURLException e ) {
 				throw new ClassPathException(" can't find boot jar: "+e);
 			}
+		}
 		return bootClassPath;
+	}
+
+
+	private static String getRTJarPath()
+	{
+		String urlString =
+			Class.class.getResource("/java/lang/String.class").toExternalForm();
+
+		if ( !urlString.startsWith("jar:file:") )
+			return null;
+
+		int i = urlString.indexOf("!");
+		if ( i == -1 )
+			return null;
+
+		return urlString.substring( "jar:file:".length(), i );
 	}
 
 	public static class ClassSource { 
 		Object source;
 	}
+
 	public static class JarClassSource extends ClassSource { 
 		JarClassSource( URL url ) { source = url; }
 		public URL getURL() { return (URL)source; }
 		public String toString() { return "Jar: "+source; }
 	}
+
 	public static class DirClassSource extends ClassSource { 
 		DirClassSource( File dir ) { source = dir; }
 		public File getDir() { return (File)source; }

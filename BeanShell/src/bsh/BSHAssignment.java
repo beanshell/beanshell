@@ -85,9 +85,9 @@ class BSHAssignment extends SimpleNode implements ParserConstants
 				case ASSIGN:
 					return lhs.assign( rhs, strictJava );
 
-            case PLUSASSIGN:
-                return lhs.assign( 
-					operation(lhsValue, rhs, PLUS), strictJava );
+				case PLUSASSIGN:
+					return lhs.assign( 
+						operation(lhsValue, rhs, PLUS), strictJava );
 
 	            case MINUSASSIGN:
 					return lhs.assign( 

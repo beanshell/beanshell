@@ -9,7 +9,7 @@ import java.util.Hashtable;
 /*
 	Note: which of these things should be checked at parse time vs. run time?
 */
-class Modifiers implements java.io.Serializable
+public class Modifiers implements java.io.Serializable
 {
 	public static final int CLASS=0, METHOD=1, FIELD=2;
 	Hashtable modifiers;
@@ -21,7 +21,7 @@ class Modifiers implements java.io.Serializable
 	{
 		if ( modifiers == null )
 			modifiers = new Hashtable();
-		Object got = modifiers.put( name, this/*arbitrary flag*/ );
+		Object got = modifiers.put( name, Void.TYPE/*arbitrary flag*/ );
 		if ( got != null )
 			throw new IllegalStateException("Duplicate modifier: "+ name );
 
@@ -79,4 +79,10 @@ class Modifiers implements java.io.Serializable
 			throw new IllegalStateException(
 				context + " cannot be declared '"+modifier+"'");
 	}
+
+	public String toString()
+	{
+		return "Modifiers: "+modifiers;
+	}
+
 }

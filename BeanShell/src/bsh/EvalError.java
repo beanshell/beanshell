@@ -136,10 +136,13 @@ public class EvalError extends Exception
 			NameSpace ns = stack.pop();
 			SimpleNode node = ns.getNode();
 			if ( ns.isMethod )
-				trace = trace + "\nCalled from method: " + ns.getName()
-				+ " : at Line: "+ node.getLineNumber() 
-				+ " : in file: "+ node.getSourceFile()
-				+ " : "+node.getText();
+			{
+				trace = trace + "\nCalled from method: " + ns.getName();
+				if ( node != null )
+					trace += " : at Line: "+ node.getLineNumber() 
+						+ " : in file: "+ node.getSourceFile()
+						+ " : "+node.getText();
+			}
 		}
 
 		return trace;
@@ -155,8 +158,14 @@ public class EvalError extends Exception
 	/**
 		Prepend the message if it is non-null.
 	*/
-	protected void prependMessage( String s ) { 
-		if ( s != null )
+	protected void prependMessage( String s ) 
+	{ 
+		if ( s == null )
+			return;
+
+		if ( message == null )
+			message = s;
+		else
 			message = s + " : "+ message;
 	}
 

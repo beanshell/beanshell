@@ -28,9 +28,12 @@ assert( isEvalError("public private int bar21") );
 final int fin = 1;
 assert( isEvalError("fin=2") ); 
 
-// static not allowed outside of class
-assert( isEvalError("static int a") ); 
-assert( isEvalError("static int method() { }") ); 
+// static not allowed outside of class?
+// perhaps we'll just ignore it
+//assert( isEvalError("static int a") ); 
+//assert( isEvalError("static int method() { }") ); 
+static int a;
+static int method() { };
 
 // untyped can't have modifiers right now
 //final qbert=2;

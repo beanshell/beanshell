@@ -280,21 +280,21 @@ public class AWTConsole extends TextArea
 			}
 	}
 
-	public void println( String s ) {
-		print( s+"\n" );
+	public void println( Object o ) {
+		print( String.valueOf(o)+"\n" );
 	}
 
-	public void error( String s ) {
-		print( s, Color.red );
+	public void error( Object o ) {
+		print( o, Color.red );
 	}
 
 	// No color
-	public void print( String s, Color c ) {
-		print( "*** " + s);
+	public void print( Object o, Color c ) {
+		print( "*** " + String.valueOf(o));
 	}
 
-	synchronized public void print( String s ) {
-		append(s);
+	synchronized public void print( Object o ) {
+		append(String.valueOf(o));
 		textLength = getText().length(); // sync for safety
 	}
 

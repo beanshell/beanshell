@@ -41,6 +41,9 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Field;
+
 /**
     A namespace	in which methods, variables, and imports (class names) live.  
 	This is package public because it is used in the implementation of some 
@@ -78,13 +81,18 @@ public class NameSpace
 		namespace then this is the name of the method.  If it's a class or
 		class instance then it's the name of the class.
 	*/
-	public String nsName; 
+	private String nsName; 
     private NameSpace parent;
     private Hashtable variables;
     private Hashtable methods;
-    private Hashtable importedClasses;
+
+    protected Hashtable importedClasses;
     private Vector importedPackages;
     private Vector importedCommands;
+	private Vector importedObjects;
+	private Vector importedStatic;
+	private String packageName;
+
 	transient private BshClassManager classManager;
 
 	// See notes in getThis()
@@ -102,6 +110,42 @@ public class NameSpace
 		printing stack traces in exceptions.  
 	*/
 	boolean isMethod;
+	/**
+		Note that the namespace is a class body or class instance namespace.  
+		This is used for controlling static/object import precedence, etc.
+	*/
+	/*
+		Note: We will ll move this behavior out to a subclass of 
+		NameSpace, but we'll start here.
+	*/
+	boolean isClass;
+	Class classStatic;	
+	Object classInstance;
+
+	void setClassStatic( Class clas ) {
+		this.classStatic = clas;
+		importStatic( clas );
+	}
+	void setClassInstance( Object instance ) {
+		this.classInstance = instance;
+		importObject( instance );
+	}
+	Object getClassInstance()
+		throws UtilEvalError
+	{
+		if ( classInstance != null )
+			return classInstance;
+
+		if ( classStatic != null 
+			//|| ( getParent()!=null && getParent().classStatic != null ) 
+		)
+			throw new UtilEvalError(
+				"Can't refer to class instance from static context.");
+		else
+			throw new InterpreterError( 
+				"Can't resolve class instance 'this' in: "+this);
+	}
+
 
 	/**
 		Local class cache for classes resolved through this namespace using 
@@ -153,6 +197,12 @@ public class NameSpace
 	public void setName( String name ) {
 		this.nsName = name;
 	}
+
+	/**
+		The name of this namespace.  If the namespace is a method body
+		namespace then this is the name of the method.  If it's a class or
+		class instance then it's the name of the class.
+	*/
 	public String getName() {
 		return this.nsName;
 	}
@@ -262,7 +312,7 @@ public class NameSpace
 		if ( existing != null )
 		{
 			try {
-				existing.setValue( value );
+				existing.setValue( value, Variable.ASSIGNMENT );
 			} catch ( UtilEvalError e ) {
 				throw new UtilEvalError(
 					"Variable assignment: " + name + ": " + e.getMessage());
@@ -309,10 +359,11 @@ public class NameSpace
 	}
 
 	/**
-		Get the names of methods defined in this namespace.
-		(This does not show methods in parent namespaces).
+		Get the names of methods declared in this namespace.
+		(This does not include methods in parent namespaces).
 	*/
-	public String [] getMethodNames() {
+	public String [] getMethodNames() 
+	{
 		if ( methods == null )
 			return new String [0];
 		else
@@ -322,12 +373,10 @@ public class NameSpace
 	/**
 		Get the methods defined in this namespace.
 		(This does not show methods in parent namespaces).
+		Note: This will probably be renamed getDeclaredMethods()
 	*/
-	/*
-		This should probably be renamed getDeclaredMethod() and have
-		it return all methods in super
-	*/
-	public BshMethod [] getMethods() {
+	public BshMethod [] getMethods() 
+	{
 		if ( methods == null )
 			return new BshMethod [0];
 		else
@@ -344,7 +393,8 @@ public class NameSpace
 	}
 
 	/**
-		Support for friendly getMethods();
+		Flatten the vectors of overloaded methods to a single array.
+		@see #getMethods()
 	*/
     private BshMethod [] flattenMethodCollection( Enumeration e ) {
         Vector v = new Vector();
@@ -373,16 +423,15 @@ public class NameSpace
 	}
 
 	/**
-		Get the parent namespace or this namespace if we are the top.
-		Note: this method should probably return type bsh.This to be consistent
-		with getThis();
+		Get the parent namespace' This reference or this namespace' This
+		reference if we are the top.
 	*/
-    public NameSpace getSuper()
+    public This getSuper( Interpreter declaringInterpreter )
     {
-		if (parent != null)
-			return parent;
+		if ( parent != null )
+			return parent.getThis( declaringInterpreter );
 		else
-			return this;
+			return getThis( declaringInterpreter );
     }
 
 	/**
@@ -390,12 +439,12 @@ public class NameSpace
 		Note: this method should probably return type bsh.This to be consistent
 		with getThis();
 	*/
-    public NameSpace getGlobal()
+    public This getGlobal( Interpreter declaringInterpreter )
     {
 		if ( parent != null )
-			return parent.getGlobal();
+			return parent.getGlobal( declaringInterpreter );
 		else
-			return this;
+			return getThis( declaringInterpreter );
     }
 
 	
@@ -443,8 +492,11 @@ public class NameSpace
 		if ( parent != null && parent != JAVACODE )
 			return parent.getClassManager();
 
-		Interpreter.debug("No class manager namespace:" +this);
-		return null;
+System.out.println("experiment: creating class manager");
+		classManager = BshClassManager.createClassManager( null/*interp*/ );
+		
+		//Interpreter.debug("No class manager namespace:" +this);
+		return classManager;
 	}
 
 	void setClassManager( BshClassManager classManager ) {
@@ -462,7 +514,10 @@ public class NameSpace
 		// parent of class manager?
 
 		if ( this.classManager == null )
-			setClassManager( BshClassManager.createClassManager() );
+// XXX if we keep the createClassManager in getClassManager then we can axe
+// this?
+			setClassManager( 
+				BshClassManager.createClassManager( null/*interp*/ ) );
 
 		setParent( null );
 	}
@@ -523,11 +578,18 @@ public class NameSpace
 		throws UtilEvalError
 	{
 		Variable var = null;
-		if ( variables != null )
+
+		// Change import precedence if we are a class body/instance
+		// Get imported first.
+		if ( var == null && isClass )
+			var = getImportedVar( name );
+
+		if ( var == null && variables != null )
 			var	= (Variable)variables.get(name);
 
-		if ( !isVisible( var ) )
-			var = null;
+		// Change import precedence if we are a class body/instance
+		if ( var == null && !isClass )
+			var = getImportedVar( name );
 
 		// try parent
 		if ( recurse && (var == null) && (parent != null) )
@@ -535,14 +597,19 @@ public class NameSpace
 
 		return var;
     }
-
-	/**
-		This is a hook to allow ClassNameSpace to add functionality here.
+	
+	/*
+		Get variables declared in this namespace.
 	*/
-	protected boolean isVisible( Variable var )
-		throws UtilEvalError
+	public Variable [] getDeclaredVariables() 
 	{
-		return true;
+		if ( variables == null )
+			return new Variable[0];
+		Variable [] vars = new Variable [ variables.size() ];
+		int i=0;
+		for( Enumeration e = variables.elements(); e.hasMoreElements(); )
+			vars[i++] = (Variable)e.nextElement();
+		return vars;
 	}
 
 	/**
@@ -551,6 +618,7 @@ public class NameSpace
 			Primitive.VOID
 	*/
 	protected Object unwrapVariable( Variable var ) 
+		throws UtilEvalError
 	{
 		return (var == null) ? Primitive.VOID :	var.getValue();
 	}
@@ -575,7 +643,8 @@ public class NameSpace
 		types).  An existing typed variable may only be set to the same type.
 		If an untyped variable of the same name exists it will be overridden 
 		with the new typed var.
-		The set will perform a getAssignableForm() on the value if necessary.
+		The set will perform a Types.getAssignableForm() on the value if 
+		necessary.
 
 		<p>
 		Note: this method is primarily intended for use internally.  If you use
@@ -590,7 +659,7 @@ public class NameSpace
 		String	name, Class type, Object value,	Modifiers modifiers )
 		throws UtilEvalError 
 	{
-		checkVariableModifiers( name, modifiers );
+		//checkVariableModifiers( name, modifiers );
 
 		if ( variables == null )
 			variables =	new Hashtable();
@@ -598,10 +667,14 @@ public class NameSpace
 		// Setting a typed variable is always a local operation.
 		Variable existing = getVariableImpl( name, false/*recurse*/ );
 
+
 		// Null value is just a declaration
 		// Note: we might want to keep any existing value here instead of reset
+	/*
+	// Moved to Variable
 		if ( value == null )
 			value = Primitive.getDefaultValue( type );
+	*/
 
 		// does the variable already exist?
 		if ( existing != null ) 
@@ -620,7 +693,7 @@ public class NameSpace
 				} else 
 				{
 					// else set it and return
-					existing.setValue( value );
+					existing.setValue( value, Variable.DECLARATION );
 					return;
 				}
 			}
@@ -635,7 +708,6 @@ public class NameSpace
 	/**
 		Dissallow static vars outside of a class
 		@param name is here just to allow the error message to use it
-	*/
 	protected void checkVariableModifiers( String name, Modifiers modifiers )
 		throws UtilEvalError
 	{
@@ -643,6 +715,7 @@ public class NameSpace
 			throw new UtilEvalError(
 				"Can't declare static variable outside of class: "+name );
 	}
+	*/
 
 	/**
 		Note: this is primarily for internal use.
@@ -652,7 +725,7 @@ public class NameSpace
     public void	setMethod( String name, BshMethod method )
 		throws UtilEvalError
 	{
-		checkMethodModifiers( method );
+		//checkMethodModifiers( method );
 
 		if ( methods == null )
 			methods = new Hashtable();
@@ -671,13 +744,14 @@ public class NameSpace
 			((Vector)m).addElement( method );
     }
 
-	protected void checkMethodModifiers( BshMethod method )
+	/**
+		@see #getMethod( String, Class [], boolean )
+		@see #getMethod( String, Class [] )
+	*/
+    public BshMethod getMethod( String name, Class [] sig ) 
 		throws UtilEvalError
 	{
-		if ( method.hasModifier("static") )
-			throw new UtilEvalError(
-				"Can't declare static method outside of class: "
-				+method.getName() );
+		return getMethod( name, sig, false/*declaredOnly*/ );
 	}
 
 	/**
@@ -689,58 +763,60 @@ public class NameSpace
 		with BeanShell's use of the Primitive wrapper class.
 		@see bsh.Primitive
 		@return the BshMethod or null if not found
+		@param declaredOnly if true then only methods declared directly in this
+			namespace will be found and no inherited or imported methods will
+			be visible.
 	*/
-    public BshMethod getMethod( String name, Class [] sig ) 
+    public BshMethod getMethod( 
+		String name, Class [] sig, boolean declaredOnly ) 
 		throws UtilEvalError
 	{
 		BshMethod method = null;
 
+		// Change import precedence if we are a class body/instance
+		// Get import first.
+		if ( method == null && isClass && !declaredOnly )
+			method = getImportedMethod( name, sig );
+
 		Object m = null;
-		if ( methods != null )
+		if ( method == null && methods != null )
+		{
 			m = methods.get(name);
 
-		// m contains either BshMethod or Vector of BshMethod
-		if ( m != null ) 
-		{
-			// unwrap 
-			BshMethod [] ma;
-			if ( m instanceof Vector ) 
+			// m contains either BshMethod or Vector of BshMethod
+			if ( m != null ) 
 			{
-				Vector vm = (Vector)m;
-				ma = new BshMethod[ vm.size() ];
-				vm.copyInto( ma );
-			} else
-				ma = new BshMethod[] { (BshMethod)m };
+				// unwrap 
+				BshMethod [] ma;
+				if ( m instanceof Vector ) 
+				{
+					Vector vm = (Vector)m;
+					ma = new BshMethod[ vm.size() ];
+					vm.copyInto( ma );
+				} else
+					ma = new BshMethod[] { (BshMethod)m };
 
-			// Apply most specific signature matching
-			Class [][] candidates = new Class[ ma.length ][];
-			for( int i=0; i< ma.length; i++ )
-				candidates[i] = ma[i].getArgumentTypes();
+				// Apply most specific signature matching
+				Class [][] candidates = new Class[ ma.length ][];
+				for( int i=0; i< ma.length; i++ )
+					candidates[i] = ma[i].getParameterTypes();
 
-			int match = Reflect.findMostSpecificSignature( sig, candidates );
-			if ( match != -1 )
-				method = ma[match];
+				int match = 
+					Reflect.findMostSpecificSignature( sig, candidates );
+				if ( match != -1 )
+					method = ma[match];
+			}
 		}
 
-		if ( !isVisible( method ) )
-			method = null;
-
+		if ( method == null && !isClass && !declaredOnly )
+			method = getImportedMethod( name, sig );
+		
 		// try parent
-		if ( (method == null) && (parent != null) )
+		if ( !declaredOnly && (method == null) && (parent != null) )
 			return parent.getMethod( name, sig );
 
 		return method;
     }
-
-	/**
-		This is a hook to allow ClassNameSpace to add functionality to 
-		getMethod() 
-	*/
-	protected boolean isVisible( BshMethod method )
-		throws UtilEvalError
-	{
-		return true;
-	}
 
 	/**
 		Import a class name.
@@ -875,6 +951,65 @@ public class NameSpace
 			return null;
 	}
 
+	protected BshMethod getImportedMethod( String name, Class [] sig ) 
+		throws UtilEvalError
+	{
+		// Try object imports
+		if ( importedObjects != null )
+		for(int i=0; i<importedObjects.size(); i++)
+		{
+			Object object = importedObjects.elementAt(i);
+			Class clas = object.getClass();
+			Method method = Reflect.resolveJavaMethod( 
+				getClassManager(), clas, name, sig, false/*onlyStatic*/ );
+			if ( method != null )
+				return new BshMethod( method, object );
+		}
+
+		// Try static imports
+		if ( importedStatic!= null )
+		for(int i=0; i<importedStatic.size(); i++)
+		{
+			Class clas = (Class)importedStatic.elementAt(i);
+			Method method = Reflect.resolveJavaMethod( 
+				getClassManager(), clas, name, sig, true/*onlyStatic*/ );
+			if ( method != null )
+				return new BshMethod( method, null/*object*/ );
+		}
+
+		return null;
+	}
+
+	protected Variable getImportedVar( String name ) 
+		throws UtilEvalError
+	{
+		// Try object imports
+		if ( importedObjects != null )
+		for(int i=0; i<importedObjects.size(); i++)
+		{
+			Object object = importedObjects.elementAt(i);
+			Class clas = object.getClass();
+			Field field = Reflect.resolveJavaField( 
+				clas, name, false/*onlyStatic*/ );
+			if ( field != null )
+				return new Variable( 
+					name, field.getType(), new LHS( object, field ) );
+		}
+
+		// Try static imports
+		if ( importedStatic!= null )
+		for(int i=0; i<importedStatic.size(); i++)
+		{
+			Class clas = (Class)importedStatic.elementAt(i);
+			Field field = Reflect.resolveJavaField( 
+				clas, name, true/*onlyStatic*/ );
+			if ( field != null )
+				return new Variable( name, field.getType(), new LHS( field ) );
+		}
+
+		return null;
+	}
+
 	/**
 		Load a command script from the input stream and find the BshMethod in
 		the target namespace.
@@ -918,7 +1053,7 @@ public class NameSpace
 	/**
 		Helper that caches class.
 	*/
-	private void cacheClass( String name, Class c ) {
+	void cacheClass( String name, Class c ) {
 		if ( classCache == null ) {
 			classCache = new Hashtable();
 			//cacheCount++; // debug
@@ -934,7 +1069,7 @@ public class NameSpace
 
 		@return null if not found.
 	*/
-    public Class getClass( String name)
+    public Class getClass( String name )
 		throws UtilEvalError
     {
 		Class c = getClassImpl(name);
@@ -984,9 +1119,6 @@ public class NameSpace
 		// Unqualified name check imported
 		if ( unqualifiedName ) 
 		{
-			// Temporary workaround for scripted classes
-			c = getTypeForScriptedClass( name );
-
 			// Try imported class
 			if ( c == null )
 				c = getImportedClassImpl( name );
@@ -1014,19 +1146,6 @@ public class NameSpace
     }
 
 	/**
-		Temporary workaround for scripted classes.  Return bsh.This class.
-	*/
-	private Class getTypeForScriptedClass( String name ) 
-		throws UtilEvalError // probably shouldn't
-	{
-		Object obj = getVariable( name, true/*recurse*/ );
-		if ( ClassNameSpace.isScriptedClass( obj ) )
-			return This.class;
-
-		return null;
-	}
-
-	/**
 		Try to make the name into an imported class.
 		This method takes into account only imports (class or package)
 		found directly in this NameSpace (no parent chain).
@@ -1038,6 +1157,9 @@ public class NameSpace
 		String fullname = null;
 		if ( importedClasses != null )
 			fullname = (String)importedClasses.get(name);
+		
+		// not sure if we should really recurse here for explicitly imported
+		// class in parent...  
 
 		if ( fullname != null ) 
 		{
@@ -1164,227 +1286,16 @@ public class NameSpace
 		getClassManager().doSuperImport();
 	}
 
-	/**
-		Determine if the RHS object can be assigned to the LHS type:
-		<p/>
-
-		1) As in a legal Java assignment (as determined by 
-		Reflect.isJavaAssignable()) through widening or promotion 
-		<p/>
-
-		2) Via special BeanShell extensions like interface generation or 
-		(gag) numeric-style promotion of primitive wrappers 
-		(e.g. Short to Integer).
-		<p/>
-
-		If the assignment is legal in BeanShell return the assignable form of 
-		the RHS.  
-		<p/>
-		
-		This method is used in many places throughout bsh including assignment
-		operations and method selection.
-		<p/>
-
-		In normal cases this functions as a simple check for assignability
-		and the value is returned unchanged.  e.g. a String is assignable to
-		an Object, but no conversion is necessary.  Similarly an int is 
-		assignable to a long, so no conversion is done. 
-		In this sense assignability is in terms of what the Java reflection API
-		will allow since the reflection api will do widening conversions in the 
-		case of sets on fields and arrays. (CLARIFY: what about method args?)
-		<p>
-
-		The primary purpose of the "returning the assignable form"
-		abstraction is to allow non-standard Java assignment conversions. e.g.
-		wrapper conversion for boxing and unboxing.  Some of this will be
-		considered standard in Java 1.5.
-		<p>
-
-		@param lhsType lhsType is a real Java class type or Java primitive TYPE
-
-		@param  rhs is a value, bsh.Primitive wrapper, or Primitive.NULL.
-		If it is a Primitive wrapper it will be unwrapped and compared using 
-		Reflect.isJavaAssignableFrom().  If it is Primtive.VOID an error will
-		occur.
-
-		@return an assignable form of the rhs, usually the original rhs if
-		assignable.  If the rhs was a Primitive and it was assignable the
-		Primitive will be returned.  If the Primitive needed to be auto-boxed
-		to a wrapper type, the wrapper type will be returned.
-
-		@throws UtilEvalError if the assignment cannot be made legally
-		@throws UtilEvalError on rhs of Primitive.VOID (void assignment)
-
-		@see BSHCastExpression#castObject( java.lang.Object, java.lang.Class )
-	*/
-    public static Object getAssignableForm( Object rhs, Class lhsType )
-		throws UtilEvalError
-    {
-	/*
-		This is very confusing in general...  need to simplify and clarify the
-		various places things are happening:
-			Reflect.isJavaAssignableFrom()
-			Primitive?
-			here...
-		We should probably move all of that stuff to a common area.
-	*/
-		Class originalType;
-
-		if ( lhsType == null || rhs == null )
-			throw new InterpreterError(
-				"Null value in getAssignableForm: "+lhsType+", "+rhs );
-
-		if ( rhs == Primitive.VOID)
-			throw new UtilEvalError( "Undefined variable or class name");
-
-		// Null is assignable to reference types
-		if ( rhs == Primitive.NULL )
-			if ( !lhsType.isPrimitive() )
-				return rhs;
-			else
-				throw new UtilEvalError(
-					"Can't assign null to primitive type " + lhsType.getName());
-
-		Class rhsType;
-
-		if ( rhs instanceof Primitive ) 
-		{
-			// Set the rhsType to the Java primitive TYPE
-			rhsType = originalType = ((Primitive)rhs).getType();
-
-			// If lhsType is an object type (non primitive) try to get the rhs
-			// into an object type if applicable, else we have primitive to 
-			// primitive, fall through to test
-			if ( !lhsType.isPrimitive() ) 
-			{
-				/* 
-					If the lhs is a primitive wrapper type or Object, get the 
-					rhs as its wrapper value so it will be tested for 
-					assignability below.  If lhs is not a wrapper type or 
-					Object, we cannot assign a Primitive to it.
-				*/
-				if ( lhsType == Boolean.class 
-					|| lhsType == Character.class 
-					|| Number.class.isAssignableFrom(lhsType) 
-					|| lhsType == Object.class )
-				{
-					// get the value as its wrapper
-					rhs	= ((Primitive)rhs).getValue();
-					// type is now the wrapper class type
-					rhsType = rhs.getClass();
-				}
-				else
-					assignmentError(lhsType, originalType);
-			}
-		} else 
-		{
-			// Set the rhs type
-			rhsType = originalType = rhs.getClass();
-
-			// Check for primitive/non-primitive mismatch
-			if ( lhsType.isPrimitive() ) 
-			{
-				// Attempt unwrapping wrapper class for assignment 
-				// to a primitive
-
-				if (rhsType == Boolean.class)
-				{
-					rhs	= new Primitive((Boolean)rhs);
-					rhsType = Boolean.TYPE;
-				}
-				else if (rhsType == Character.class)
-				{
-					rhs	= new Primitive((Character)rhs);
-					rhsType = Character.TYPE;
-				}
-				else if (Number.class.isAssignableFrom(rhsType))
-				{
-					rhs	= new Primitive((Number)rhs);
-					rhsType = ((Primitive)rhs).getType();
-				}
-				else
-					assignmentError( lhsType, originalType );
-			}
-		}
-
-		// This handles both class types and primitive .TYPE types
-		if ( Reflect.isJavaAssignableFrom( lhsType, rhsType ) )
-			return rhs;
-
-		/* 
-			Begin: support for numeric style promotion of wrapper types.  
-
-			Attempt conversions as defined in JLS 5.1.2
-			except perform them on the primitive wrapper objects.
-			Do we really need this??
-		*/
-		if (lhsType == Short.class) {
-			if(rhsType == Byte.class)
-				return new Short(((Number)rhs).shortValue());
-		}
-		if (lhsType == Integer.class) {
-			if(rhsType == Byte.class || rhsType == Short.class)
-				return new Integer(((Number)rhs).intValue());
-
-			if(rhsType == Character.class)
-				return new Integer(((Number)rhs).intValue());
-		}
-		if (lhsType == Long.class) {
-			if(rhsType == Byte.class || rhsType == Short.class ||
-				rhsType == Integer.class)
-				return new Long(((Number)rhs).longValue());
-
-			if(rhsType == Character.class)
-				return new Long(((Number)rhs).longValue());
-		}
-		if (lhsType == Float.class) {
-			if(rhsType == Byte.class || rhsType == Short.class ||
-				rhsType == Integer.class ||	rhsType	== Long.class)
-				return new Float(((Number)rhs).floatValue());
-
-			if(rhsType == Character.class)
-				return new Float(((Number)rhs).floatValue());
-		}
-		if (lhsType == Double.class) {
-			if(rhsType == Byte.class || rhsType == Short.class ||
-				rhsType == Integer.class ||	rhsType	== Long.class ||
-				rhsType == Float.class)
-				return new Double(((Number)rhs).doubleValue());
-
-			if(rhsType == Character.class)
-				return new Double(((Number)rhs).doubleValue());
-		}
-
-		// End: support for numeric style promotion of wrapper types.  
-
-		/*
-			Bsh This objects may be able to use the proxy mechanism to 
-			become an LHS type.
-		*/
-		if ( Capabilities.canGenerateInterfaces() && 
-			lhsType.isInterface() && ( rhs instanceof bsh.This ) ) 
-		{
-			return ((bsh.This)rhs).getInterface( lhsType );
-		}
-
-		assignmentError(lhsType, originalType);
-
-		return rhs;
-    }
-
-    private static void	assignmentError(Class lhs, Class rhs) 
-		throws UtilEvalError
-    {
-		String lhsType = Reflect.normalizeClassName(lhs);
-		String rhsType = Reflect.normalizeClassName(rhs);
-		throw new UtilEvalError ("Can't assign " + rhsType + " to "	+ lhsType);
-    }
 
 	public String toString() {
 		return "NameSpace: " 
 			+ ( nsName==null
 				? super.toString()
-				: nsName + " (" + super.toString() +")" );
+				: nsName + " (" + super.toString() +")" )
+			+ ( isClass ? " (isClass) " : "" )
+			+ ( isMethod ? " (method) " : "" )
+			+ ( classStatic != null ? " (class static) " : "" )
+			+ ( classInstance != null ? " (class instance) " : "" );
 	}
 
 	/*
@@ -1408,13 +1319,14 @@ public class NameSpace
 
 		@see bsh.This.invokeMethod( 
 			String methodName, Object [] args, Interpreter interpreter, 
-			CallStack callstack, SimpleNode callerInfo )
+			CallStack callstack, SimpleNode callerInfo, boolean )
 	*/
 	public Object invokeMethod( 
 		String methodName, Object [] args, Interpreter interpreter ) 
 		throws EvalError
 	{
-		return invokeMethod( methodName, args, interpreter, null, null );
+		return invokeMethod( 
+			methodName, args, interpreter, null, null );
 	}
 
 	/**
@@ -1430,7 +1342,8 @@ public class NameSpace
 		throws EvalError
 	{
 		return getThis( interpreter ).invokeMethod( 
-			methodName, args, interpreter, callstack, callerInfo);
+			methodName, args, interpreter, callstack, callerInfo,
+			false/*declaredOnly*/ );
 	}
 
 	/**
@@ -1562,79 +1475,73 @@ public class NameSpace
 		methods = null;
 		importedClasses = null;
 		importedPackages = null;
+		importedCommands = null;
+		importedObjects = null;
 		if ( parent == null )
 			loadDefaultImports();	
     	classCache = null;
 		names = null;
 	}
 
-    static class Variable implements java.io.Serializable 
+	/**
+		Import a compiled Java object's methods and variables into this 
+		namespace.  When no scripted method / command or variable is found
+		locally in this namespace method / fields of the object will be
+		checked.  Objects are checked in the order of import with later imports
+		taking precedence.
+		<p/>
+	*/
+	/*
+		Note: this impor pattern is becoming common... could factor it out into
+		an importedObject Vector class.
+	*/
+	public void importObject( Object obj ) 
 	{
-		/** A null type means an untyped variable */
-		String name;
-		Class type = null;
-		Object value;
-		Modifiers modifiers;
+		if ( importedObjects == null )
+			importedObjects = new Vector();
 
-		Variable( String name, Object value, Modifiers modifiers )
-			throws UtilEvalError
-		{
-			this( name, null/*type*/, value, modifiers );
-		}
+		// If it exists, remove it and add it at the end (avoid memory leak)
+		if ( importedObjects.contains( obj ) )
+			importedObjects.remove( obj );
 
-		Variable( String name, Class type, Object value, Modifiers modifiers )
-			throws UtilEvalError
-		{
-			this.name=name;
-			this.type =	type;
-			this.modifiers = modifiers;
-			setValue( value );
-		}
+		importedObjects.addElement( obj );
+		nameSpaceChanged();
 
-		/**
-			Set the value of the typed variable.
-		*/
-		void setValue( Object val ) throws UtilEvalError
-		{
-			if ( hasModifier("final") && value != null )
-				throw new UtilEvalError ("Final variable, can't re-assign.");
+	}
 
-			if ( type != null )
-			{
-				// Do basic assignability check / conversion
-				val = getAssignableForm( val, type );
-				
-				/* 
-					If we are a numeric primitive type we want to convert to 
-					the actual numeric type of this variable.  Being 
-					assignable is  not good enough.
-				*/
-				if ( val instanceof Primitive && ((Primitive)val).isNumber() )
-					try {
-						val = BSHCastExpression.castPrimitive( 
-							(Primitive)val, type );
-					} catch ( UtilEvalError e ) {
-						throw new InterpreterError(
-							"Assignment auto cast failed");
-					}
-			}
+	/**
+	*/
+	public void importStatic( Class clas ) 
+	{
+		if ( importedStatic == null )
+			importedStatic = new Vector();
 
-			this.value= val;
-		}
+		// If it exists, remove it and add it at the end (avoid memory leak)
+		if ( importedStatic.contains( clas ) )
+			importedStatic.remove( clas );
 
-		Object getValue() { return value; }
+		importedStatic.addElement( clas );
+		nameSpaceChanged();
+	}
 
-		/** A type of null means loosely typed variable */
-		Class getType() { return type;	}
+	/**
+		Set the package name for classes defined in this namespace.
+		Subsequent sets override the package.
+	*/
+	void setPackage( String packageName ) 
+	{
+		this.packageName = packageName;
+	}
 
-		public boolean hasModifier( String name ) {
-			return modifiers != null && modifiers.hasModifier(name);
-		}
+	String getPackage() 
+	{
+		if ( packageName != null )
+			return packageName;
 
-		public String toString() { 
-			return "Variable: "+name+", type:"+type+", value:"+value;
-		}
-    }
-
+		if ( parent != null )
+			return parent.getPackage();
+		
+		return null;
+	}
 }
 

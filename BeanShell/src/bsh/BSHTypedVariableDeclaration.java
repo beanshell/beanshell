@@ -31,7 +31,6 @@
  *                                                                           *
  *****************************************************************************/
 
-
 package bsh;
 
 class BSHTypedVariableDeclaration extends SimpleNode
@@ -40,51 +39,49 @@ class BSHTypedVariableDeclaration extends SimpleNode
 	
     BSHTypedVariableDeclaration(int id) { super(id); }
 
+	private BSHType getTypeNode() {
+		return ((BSHType)jjtGetChild(0));
+	}
+
+	Class evalType( CallStack callstack, Interpreter interpreter )
+		throws EvalError
+	{
+		BSHType typeNode = getTypeNode();
+		return typeNode.getType( callstack, interpreter );
+	}
+
+	BSHVariableDeclarator [] getDeclarators() 
+	{
+		int n = jjtGetNumChildren();
+		int start=1;
+		BSHVariableDeclarator [] bvda = new BSHVariableDeclarator[ n-start ];
+		for (int i = start; i < n; i++)
+		{
+			bvda[i-start] = (BSHVariableDeclarator)jjtGetChild(i);
+		}
+		return bvda;
+	}
+
 	/**
 		evaluate the type and one or more variable declarators, e.g.:
 			int a, b=5, c;
-
 	*/
     public Object eval( CallStack callstack, Interpreter interpreter)  
 		throws EvalError
     {
 		try {
 			NameSpace namespace = callstack.top();
-			BSHType typeNode = ((BSHType)jjtGetChild(0));
+			BSHType typeNode = getTypeNode();
 			Class type = typeNode.getType( callstack, interpreter );
 
-			int n = jjtGetNumChildren();
-			for (int i = 1; i < n; i++)
+			BSHVariableDeclarator [] bvda = getDeclarators();
+			for (int i = 0; i < bvda.length; i++)
 			{
-				BSHVariableDeclarator dec = 
-					(BSHVariableDeclarator)jjtGetChild(i);
+				BSHVariableDeclarator dec = bvda[i];
 
 				// Type node is passed down the chain for array initializers
 				// which need it under some circumstances
 				Object value = dec.eval( typeNode, callstack, interpreter);
-
-				// simple declaration with no value, e.g. int a;
-				if ( value == null ) 
-				{
-					// Leave the value as null.
-					// This will prompt defaulting in setTypedVariable
-				}
-				else 
-				// true null value being assigned
-				if ( value == Primitive.NULL ) {
-					// leave as Primitive.NULL
-				}
-				else
-				// allow specific numeric conversions on declaration
-				if ( canCastToDeclaredType( value, type ) )
-					try {
-						value = BSHCastExpression.castObject( value, type );
-					} catch ( UtilEvalError e ) { 
-						throw e.toEvalError( this, callstack  ); 
-					}
-				else {
-					// leave value alone
-				}
 
 				try {
 					namespace.setTypedVariable( 
@@ -92,7 +89,6 @@ class BSHTypedVariableDeclaration extends SimpleNode
 				} catch ( UtilEvalError e ) { 
 					throw e.toEvalError( this, callstack ); 
 				}
-			
 			}
 		} catch ( EvalError e ) {
 			e.reThrow( "Typed variable declaration" );
@@ -101,34 +97,10 @@ class BSHTypedVariableDeclaration extends SimpleNode
         return Primitive.VOID;
     }
 
-	/**
-		Determine if a cast would be legitimate in order to handle the 
-		special cases where a numeric declared var is assigned a type larger 
-		than it can handle. (JLS cite??)
-
-			byte b = 5;
-			byte b1 = 5*10;
-
-		Normally the above would be int types.
-	*/
-	/*
-		Note: in theory this probably shouldn't be considered a cast, but 
-		should be taken into account during literal and expression evaluation
-		where the result type is guided by the context.  However this is much
-		simpler to deal with and there is no other use for the other that I'm
-		aware of.
-	*/
-	boolean canCastToDeclaredType( Object value, Class toType ) {
-		if ( !(value instanceof Primitive) )
-			return false;
-		Class fromType = ((Primitive)value).getType();
-		
-		if ( (toType==Byte.TYPE || toType==Short.TYPE || toType==Character.TYPE)
-			&& fromType == Integer.TYPE 
-		)
-			return true;
-		else
-			return false;
+	public String getTypeDescriptor( 
+		CallStack callstack, Interpreter interpreter, String defaultPackage ) 
+	{ 
+		return getTypeNode().getTypeDescriptor( 
+			callstack, interpreter, defaultPackage );
 	}
-
 }

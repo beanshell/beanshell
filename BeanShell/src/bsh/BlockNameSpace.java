@@ -54,7 +54,7 @@ class BlockNameSpace extends NameSpace
     public BlockNameSpace( NameSpace parent ) 
 		throws EvalError
 	{
-		super( parent, parent.nsName + "/BlockNameSpace" );
+		super( parent, parent.getName()+ "/BlockNameSpace" );
     }
 
 	/**
@@ -130,20 +130,23 @@ class BlockNameSpace extends NameSpace
 	//
 
 	/**
-		super is our parent's super
-	*/
-    public NameSpace getSuper() {
-		return getParent().getSuper();
-	}
-
-	/**
 		This method recurses to find the nearest non-BlockNameSpace parent.
-	*/
+
 	public NameSpace getParent() 
 	{
 		NameSpace parent = super.getParent();
 		if ( parent instanceof BlockNameSpace )
 			return parent.getParent();
+		else
+			return parent;
+	}
+*/
+	/** do we need this? */
+	private NameSpace getNonBlockParent() 
+	{
+		NameSpace parent = super.getParent();
+		if ( parent instanceof BlockNameSpace )
+			return ((BlockNameSpace)parent).getNonBlockParent();
 		else
 			return parent;
 	}
@@ -156,7 +159,14 @@ class BlockNameSpace extends NameSpace
 		@see #getBlockThis( Interpreter )
 	*/
     This getThis( Interpreter declaringInterpreter ) {
-		return getParent().getThis( declaringInterpreter );
+		return getNonBlockParent().getThis( declaringInterpreter );
+	}
+
+	/**
+		super is our parent's super
+	*/
+    public This getSuper( Interpreter declaringInterpreter ) {
+		return getNonBlockParent().getSuper( declaringInterpreter );
 	}
 
 	/**

@@ -40,13 +40,27 @@ class BSHReturnType extends SimpleNode
 
 	BSHReturnType(int id) { super(id); }
 
-	public Object getReturnType( 
+	BSHType getTypeNode() { 
+		return (BSHType)jjtGetChild(0);
+	}
+
+	public String getTypeDescriptor( 
+		CallStack callstack, Interpreter interpreter, String defaultPackage ) 
+	{
+		if ( isVoid )
+			return "V";
+		else
+			return getTypeNode().getTypeDescriptor( 
+				callstack, interpreter, defaultPackage );
+	}
+
+	public Class evalReturnType( 
 		CallStack callstack, Interpreter interpreter ) throws EvalError
 	{
-		if(isVoid)
-			return Primitive.VOID;
+		if ( isVoid )
+			return Void.TYPE;
 		else
-			return ((BSHType)jjtGetChild(0)).getType( callstack, interpreter );
+			return getTypeNode().getType( callstack, interpreter );
 	}
 }
 
