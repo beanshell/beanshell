@@ -16,14 +16,14 @@ assert( foo.length == 2 );
 assert( foo[0].length == 2 );
 assert( foo[0][0].length == 2 );
 
-//ia = new int [5][];
-
 assert( ia[2][2] == 5 && ia[2][3] != 5 );
 
+// Some tests with null
 oa = new Object [] { "foo", "bar", null };
 assert( oa instanceof Object [] );
 oa = new Object [] { null, "foo", "bar" };
 assert( oa instanceof Object [] );
+x = new String[] {null, "foo"};
 
 Object[] test = new Object[] { new Long(2000), "MyDisk", new Double(21.4) }; 
 assert( test.length == 3);
@@ -32,7 +32,6 @@ assert( test[2] instanceof Double );
 Object[] test2 = new Object[] { 
 	(Object)new Long(2000), (Object)"MyDisk", (Object)new Double(21.4) }; 
 
-x = new String[] {null, "foo"};
 
 assert( isEvalError("a=new int[] { 2, new Object() }") );
 
@@ -64,7 +63,45 @@ String [][][] sa3 = new String [][][] {
 
 assert( sa3[1][0][2].equals("flag") );
 
-//String [] sa5  = { "foo", "bar"  };
+Object [][] o= new Object [][] { 
+	new Object [] {"me",new Integer(5),new Byte((byte)3)}, 
+	new Object [] {"you",new Integer(6),new Byte((byte)2)} }; 
+
+// initializers which rely on the declared type of the variable!
+// This is quite a coup! ;);)
+
+String [] d1xa = { "foo", "bar" };
+String [][] d2xa  = { d1xa, d1xa };
+
+// will not work in assignment of course
+// d2xa  = { d1xa, d1xa };
+
+// Wow!  I am so happy ;)
+String [][][] sa99 = 
+		{ { { "foo", null }, { "f", "f", } }, { { "foo", "bar", "flag" } } };
+assert( sa99[1][0][2].equals("flag") );
+
+// a few more
+long [] la = { 1L, 2, (byte)3 };
+float [] fa =  { 1L, 2, (byte)3, (float)3.3, 3.3f };
+double [] da = { 1L, 2, (byte)3, 3.3, 3.3f, 3.3d };
+assert( da[1] == 2.0d );
+assert( da[1] == 2.0 );
+
+// partial initialization not implemented yet
+// e.g. int [][] ia = new int [1][];
+
+// Some stuff submitted in the original bug report... thought I'd throw it in.
+Object[] oo = { new Object(), new Object() };
+oo = new Object[] { new Object(), new Object() };
+oo = new Object[][] { { new Object() }, { new Object() } };
+oo = new Object[][] { new Object[] { new Object() }, new Object[] { new Object() } };
+oo = new Object[] { 0, 1 };
+oo = new Object[] { "a", "b"};
+oo = new Object[] { 0, "a" };
+oo = new Object[] { new Integer(0), new String("a") };
+oo = new Object[] { (Object) new Integer(0), (Object) new String("a") };
+ov = new Vector();
+ov.add(0); ov.add("a"); oo = ov.toArray();
 
 complete();
-

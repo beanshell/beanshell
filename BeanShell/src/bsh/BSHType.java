@@ -39,7 +39,22 @@ import java.lang.reflect.Array;
 class BSHType extends SimpleNode 
 	implements BshClassManager.Listener
 {
+	/**
+		baseType is used during evaluation of full type and retained for the
+		case where we are an array type.
+		In the case where we are not an array this will be the same as type.
+	*/
+	private Class baseType;
+	/** 
+		If we are an array type this will be non zero and indicate the 
+		dimensionality of the array.  e.g. 2 for String[][];
+	*/
     private int arrayDims;
+
+	/** 
+		Internal cache of the fully expressed type. 
+		i.e. primtive, class, or array.  Cleared on classloader change.
+	*/
     private Class type;
 
     BSHType(int id) { 
@@ -47,7 +62,13 @@ class BSHType extends SimpleNode
 		BshClassManager.getClassManager().addListener(this);
 	}
 
-    public void addArrayDimension() { arrayDims++; }
+	/**
+		Used by the grammar to indicate dimensions of array types 
+		during parsing.
+	*/
+    public void addArrayDimension() { 
+		arrayDims++; 
+	}
 
     /**
 		 Returns a class for the type
@@ -62,7 +83,6 @@ class BSHType extends SimpleNode
         //  first node will either be PrimitiveType or AmbiguousName
         SimpleNode node = (SimpleNode)jjtGetChild(0);
 
-        Class baseType;
         if(node instanceof BSHPrimitiveType)
             baseType = ((BSHPrimitiveType)node).getType();
         else 
@@ -84,7 +104,24 @@ class BSHType extends SimpleNode
         return type;
     }
 
+	/**
+		baseType is used during evaluation of full type and retained for the
+		case where we are an array type.
+		In the case where we are not an array this will be the same as type.
+	*/
+	public Class getBaseType() {
+		return baseType;
+	}
+	/** 
+		If we are an array type this will be non zero and indicate the 
+		dimensionality of the array.  e.g. 2 for String[][];
+	*/
+	public int getArrayDims() {
+		return arrayDims;
+	}
+
 	public void classLoaderChanged() {
 		type = null;
+		baseType = null;
 	}
 }

@@ -110,9 +110,9 @@ public class NameSpace
 		return new Name( this, name ).toObject( callstack, interpreter );
 	}
 
-    public void	setVariable(String name, Object	o) throws EvalError {
-
-		if(variables ==	null)
+    public void	setVariable(String name, Object	o) throws EvalError 
+	{
+		if ( variables == null )
 			variables =	new Hashtable();
 
 		if ( o == null )
@@ -259,21 +259,16 @@ public class NameSpace
     }
 
     /**
-	 	If value is null, you'll get the default value for the type
+		@param value If value is null, you'll get the default value for the type
     */
     public void	setTypedVariable(
 		String	name, Class type, Object value,	boolean	isFinal) 
 		throws EvalError 
 	{
-
-		if(variables ==	null)
+		if (variables == null)
 			variables =	new Hashtable();
 
-		if(variables.containsKey(name))
-			// if this throws an error,	the var	was defined differently
-			setVariable(name, value);
-
-		if(value == null)
+		if (value == null)
 		{
 			// initialize variable to appropriate default value	- JLS 4.5.4
 			if(type.isPrimitive())
@@ -296,9 +291,21 @@ public class NameSpace
 				value = new	Primitive(0.0d);
 			}
 			else
-			value =	Primitive.NULL;
+				value =	Primitive.NULL;
 		}
 
+		// if the variable already exists with a different type, throw error
+		if ( variables.containsKey(name) ) {
+			Object existing = getVariableImpl( name, false );
+			if ( existing instanceof TypedVariable 
+				&& ((TypedVariable)existing).getType() != type 
+			)
+				throw new EvalError( "Typed variable: "+name
+					+" was previously declared with type: " 
+					+ ((TypedVariable)existing).getType() );
+		}
+
+		// add the typed var
 		variables.put(name, new	TypedVariable(type, value, isFinal));
     }
 
@@ -599,15 +606,15 @@ public class NameSpace
 
 		void setValue(Object val) throws EvalError
 		{
-			if(isFinal)
-			throw new EvalError ("Final variable, can't assign");
+			if (isFinal)
+				throw new EvalError ("Final variable, can't assign");
 
 			val	= getAssignableForm(val, type); // throws error on failure
 			value = val;
 		}
 
 		Object getValue() { return value; }
-		Object getType() { return type;	}
+		Class getType() { return type;	}
     }
 
 	/**
@@ -672,7 +679,6 @@ public class NameSpace
 			else
 				throw new EvalError(
 					"Can't assign null to primitive type " + lhsType.getName());
-
 
 		Class rhsType;
 
@@ -806,8 +812,7 @@ public class NameSpace
 			"NameSpace: "
 			+ ( name==null
 				? super.toString()
-				: name + " (" + super.toString() +")" ) 
-			/*+ ( debugInfo == null ? "" : " - " +debugInfo )*/;
+				: name + " (" + super.toString() +")" );
 	}
 
 	/*

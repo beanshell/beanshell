@@ -37,15 +37,21 @@ package bsh;
 class BSHTypedVariableDeclaration extends SimpleNode
 {
     public boolean isFinal;
-
+	
     BSHTypedVariableDeclaration(int id) { super(id); }
 
+	/**
+		evaluate the type and one or more variable declarators, e.g.:
+			int a, b=5, c;
+
+	*/
     public Object eval( CallStack callstack, Interpreter interpreter)  
 		throws EvalError
     {
 		try {
 			NameSpace namespace = callstack.top();
-			Class type = ((BSHType)jjtGetChild(0)).getType( namespace );
+			BSHType typeNode = ((BSHType)jjtGetChild(0));
+			Class type = typeNode.getType( namespace );
 
 			int n = jjtGetNumChildren();
 			for (int i = 1; i < n; i++)
@@ -53,11 +59,20 @@ class BSHTypedVariableDeclaration extends SimpleNode
 				BSHVariableDeclarator dec = 
 					(BSHVariableDeclarator)jjtGetChild(i);
 
-				dec.eval( callstack, interpreter);
-				Object value = dec.initValue;
+				// Type node is passed down the chain for array initializers
+				// which need it under some circumstances
+				Object value = dec.eval( typeNode, callstack, interpreter);
 
-				if (value != null)
-					value = NameSpace.getAssignableForm( value, type);
+				if ( value == Primitive.VOID ) 
+					value = null;
+				else 
+				if ( value == Primitive.NULL ) {
+					// leave as Primitive.NULL
+				}
+				else
+					// this getAssignableForm may be redundant
+					value = NameSpace.getAssignableForm( value, type );
+
 				namespace.setTypedVariable( dec.name, type, value, isFinal );
 			}
 		} catch ( EvalError e ) {

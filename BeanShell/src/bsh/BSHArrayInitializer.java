@@ -40,10 +40,10 @@ class BSHArrayInitializer extends SimpleNode
 {
     BSHArrayInitializer(int id) { super(id); }
 
-    public Object eval(CallStack callstack, Interpreter interpreter)  
+    public Object eval( CallStack callstack, Interpreter interpreter )
 		throws EvalError 
 	{
-		throw new InterpreterError("array initializer, no base type");
+		throw new EvalError( "Array initializer has no base type.");
 	}
 
 	/**

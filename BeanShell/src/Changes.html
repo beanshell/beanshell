@@ -4,7 +4,13 @@
 
 <h2>Changes in 1.1alpha12</h2>
 <pre>
-	- Fixed additional bugs in multi-dimensional array initializers.
+	- Tightened up re-declaration of typed variables...  You can only redeclare
+		a typed var with the same type, else you can an error.  Previously
+		there was odd behavior where you could redeclare with an assignable
+		type.
+	- Fixed bugs in casting
+	- Fixed the remainng known bugs in array initializers.  They should now
+	work precisely as they do in Java.  See the test case for examples.
 </pre>
 <h2>Changes in 1.1alpha11</h2>
 <pre>

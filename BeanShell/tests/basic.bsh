@@ -45,4 +45,10 @@ foo() {
 }
 assert(foo==5);
 
+// Can re-declare typed vars with the same type
+int a=5;
+int a=6;
+// but not a different type
+assert(isEvalError("Object a=\"foo\""));
+
 complete();

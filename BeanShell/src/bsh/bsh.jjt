@@ -1042,10 +1042,9 @@ void ForInit() :
 }
 
 /**
-	Declared a typed variable.  The type node is saved and passed through
-	to the RHS VariableDeclarator noes for the special case of untyped array 
-	initializers. 
-	e.g.  int [] ia = { 1, 2 };
+	Declared a typed variable.
+	Untyped variables are not declared per-se but are handled by the part
+	of the grammar that deals with assignments.
 */
 void TypedVariableDeclaration() #TypedVariableDeclaration :
 { 

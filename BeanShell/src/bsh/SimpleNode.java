@@ -34,7 +34,7 @@
 
 package bsh;
 /*
-	Note: great care (and lots of typing) must be taken to insure that the
+	Note: great care (and lots of typing) were taken to insure that the
 	namespace and interpreter references are passed on the stack and not 
 	(as they were erroneously before) installed in instance variables...
 	Each of these node objects must be re-entrable to allow for recursive 
@@ -55,8 +55,7 @@ class SimpleNode implements Node {
 	protected int id;
 	Token firstToken, lastToken;
 
-	public SimpleNode(int i)
-	{
+	public SimpleNode(int i) {
 		id = i;
 	}
 
@@ -68,46 +67,41 @@ class SimpleNode implements Node {
 
 	public void jjtAddChild(Node n, int i)
 	{
-		if(children == null)
-		{
+		if (children == null)
 			children = new Node[i + 1];
-		}
 		else
-		{
-			if(i >= children.length)
+			if (i >= children.length)
 			{
 				Node c[] = new Node[i + 1];
 				System.arraycopy(children, 0, c, 0, children.length);
 				children = c;
 			}
-		}
 
 		children[i] = n;
 	}
 
-	public Node jjtGetChild(int i) { return children[i]; }
+	public Node jjtGetChild(int i) { 
+		return children[i]; 
+	}
 
-	public int jjtGetNumChildren()
-	{
+	public int jjtGetNumChildren() {
 		return (children == null) ? 0 : children.length;
 	}
 
-/*
-	You can override these two methods in subclasses of SimpleNode to
-	customize the way the node appears when the tree is dumped.  If
-	your output uses more than one line you should override
-	toString(String), otherwise overriding toString() is probably all
-	you need to do.
-*/
-
+	/*
+		You can override these two methods in subclasses of SimpleNode to
+		customize the way the node appears when the tree is dumped.  If
+		your output uses more than one line you should override
+		toString(String), otherwise overriding toString() is probably all
+		you need to do.
+	*/
 	public String toString() { return ParserTreeConstants.jjtNodeName[id]; }
 	public String toString(String prefix) { return prefix + toString(); }
 
-/*
-	Override this method if you want to customize how the node dumps
-	out its children.
-*/
-
+	/*
+		Override this method if you want to customize how the node dumps
+		out its children.
+	*/
 	public void dump(String prefix)
 	{
 		System.out.println(toString(prefix));
