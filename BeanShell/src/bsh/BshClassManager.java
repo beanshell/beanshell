@@ -96,13 +96,11 @@ public abstract class BshClassManager
 		if ( !checkedForManager && manager == null )
 			try {
 				Class bcm = plainClassForName("bsh.classpath.ClassManagerImpl");
-				if ( bcm == null )
-					System.err.println("No class manager available.");
-				else
-					manager = (BshClassManager)bcm.newInstance();
+				manager = (BshClassManager)bcm.newInstance();
+			} catch ( ClassNotFoundException e ) {
+				System.err.println("No class manager available.");
 			} catch ( Exception e ) {
 				System.err.println("Error loading classmanager: "+e);
-e.printStackTrace(System.err);
 			} finally {
 				checkedForManager = true;
 			}
@@ -184,10 +182,10 @@ e.printStackTrace(System.err);
 
 	// end static methods
 
-	public static interface Listener {
+	public static interface Listener 
+	{
 		public void classLoaderChanged();
 	}
-
 
 	// Begin interface methods
 
