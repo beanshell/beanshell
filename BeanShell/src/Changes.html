@@ -295,6 +295,11 @@
 	  The old scoping rules have been preserved and can be switched on by
 	  setting the system property "oldscoping" to "true".
 	  See newscoping.bsh in the test suite for more examples.
+
+	  - Fixed bug in evaluation of operator-assignments with postfix in the
+		RHS.  (Java behavior seems strange to me.) e.g.
+			i=1; i+=i++; // should be 2 apparently
+			i=1; i+=i++ + i++; // should be 4 apparently
 </pre>
 
 <h2>Changes in 1.2b8 </h2>

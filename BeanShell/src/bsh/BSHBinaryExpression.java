@@ -134,14 +134,16 @@ class BSHBinaryExpression extends SimpleNode
 					throw e.toEvalError( this, callstack  );
 				}
         }
-
-		/*
-			Do we have a mixture of primitive values and non-primitives ?  
-			(primitiveValue = not null, not void)
-			god, this is getting ugly...
-		*/
 	/*
-	Removing this restriction for now...
+	Doing the following makes it hard to use untyped vars...
+	e.g. if ( arg == null ) ...what if arg is a primitive?
+	The answer is that we should test only if the var is typed...?
+	need to get that info here...
+
+		else
+		{
+		// Do we have a mixture of primitive values and non-primitives ?  
+		// (primitiveValue = not null, not void)
 
 		int primCount = 0;
 		if ( isPrimitiveValue( lhs ) )
@@ -152,15 +154,18 @@ class BSHBinaryExpression extends SimpleNode
 		if ( primCount > 1 )
 			// both primitive types, should have been handled above
 			throw new InterpreterError("should not be here");
-		else if ( primCount == 1 )
+		else 
+		if ( primCount == 1 )
 			// mixture of one and the other
-			throw new EvalError( "Invalid use of primitive and non-primitive"
-				+" values in binary operation.");
+			throw new EvalError("Operator: '" + tokenImage[kind]
+				+"' inappropriate for object / primitive combination.", 
+				this, callstack );
+
 		// else fall through to handle both non-primitive types
 
 		// end check for primitive and non-primitive mix 
+		}
 	*/
-
 
 		/*
 			Treat lhs and rhs as arbitrary objects and do the operation.
@@ -196,7 +201,6 @@ class BSHBinaryExpression extends SimpleNode
                     "' inappropriate for objects", this, callstack );
         }
     }
-
 
 	/*
 		object is a non-null and non-void Primitive type

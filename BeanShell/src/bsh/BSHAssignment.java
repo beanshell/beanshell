@@ -55,6 +55,17 @@ class BSHAssignment extends SimpleNode implements ParserConstants
         if ( lhs == null )
             throw new InterpreterError( "Error, null LHS" );
 
+		// For operator-assign operations save the lhs value before evaluating
+		// the rhs.  This is correct Java behavior for postfix operations
+		// e.g. i=1; i+=i++; // should be 2 not 3
+		Object lhsValue = null;
+		if ( operator != ASSIGN ) // assign doesn't need the pre-value
+			try {
+				lhsValue = lhs.getValue();
+			} catch ( UtilEvalError e ) {
+				throw e.toEvalError( this, callstack );
+			}
+
         Object rhs = ((SimpleNode)jjtGetChild(1)).eval(callstack, interpreter);
         if ( rhs == Primitive.VOID )
             throw new EvalError("Void assignment.", this, callstack );
@@ -67,52 +78,52 @@ class BSHAssignment extends SimpleNode implements ParserConstants
 
             case PLUSASSIGN:
                 return lhs.assign( 
-					operation(lhs.getValue(), rhs, PLUS), strictJava );
+					operation(lhsValue, rhs, PLUS), strictJava );
 
 	            case MINUSASSIGN:
 					return lhs.assign( 
-						operation(lhs.getValue(), rhs, MINUS), strictJava );
+						operation(lhsValue, rhs, MINUS), strictJava );
 
 				case STARASSIGN:
 					return lhs.assign( 
-						operation(lhs.getValue(), rhs, STAR), strictJava );
+						operation(lhsValue, rhs, STAR), strictJava );
 
 	            case SLASHASSIGN:
 					return lhs.assign( 
-						operation(lhs.getValue(), rhs, SLASH), strictJava );
+						operation(lhsValue, rhs, SLASH), strictJava );
 
 	            case ANDASSIGN:
 				case ANDASSIGNX:
 					return lhs.assign( 
-						operation(lhs.getValue(), rhs, BIT_AND), strictJava );
+						operation(lhsValue, rhs, BIT_AND), strictJava );
 
 	            case ORASSIGN:
 	            case ORASSIGNX:
 	                return lhs.assign( 
-						operation(lhs.getValue(), rhs, BIT_OR), strictJava );
+						operation(lhsValue, rhs, BIT_OR), strictJava );
 
 	            case XORASSIGN:
 	                return lhs.assign( 
-						operation(lhs.getValue(), rhs, XOR), strictJava );
+						operation(lhsValue, rhs, XOR), strictJava );
 
 	            case MODASSIGN:
 	                return lhs.assign( 
-						operation(lhs.getValue(), rhs, MOD), strictJava );
+						operation(lhsValue, rhs, MOD), strictJava );
 
 	            case LSHIFTASSIGN:
 	            case LSHIFTASSIGNX:
 	                return lhs.assign( 
-						operation(lhs.getValue(), rhs, LSHIFT), strictJava );
+						operation(lhsValue, rhs, LSHIFT), strictJava );
 
 	            case RSIGNEDSHIFTASSIGN:
 	            case RSIGNEDSHIFTASSIGNX:
 	                return lhs.assign( 
-					operation(lhs.getValue(), rhs, RSIGNEDSHIFT ), strictJava );
+					operation(lhsValue, rhs, RSIGNEDSHIFT ), strictJava );
 
 	            case RUNSIGNEDSHIFTASSIGN:
 	            case RUNSIGNEDSHIFTASSIGNX:
 	                return lhs.assign( 
-						operation(lhs.getValue(), rhs, RUNSIGNEDSHIFT), 
+						operation(lhsValue, rhs, RUNSIGNEDSHIFT), 
 						strictJava );
 
 				default:

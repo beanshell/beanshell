@@ -3,7 +3,7 @@
 source("TestHarness.bsh");
 
 // everything in here is for testing the new scoping rules
-if ( Interpreter.OLDSCOPING )
+if ( Interpreter.LOCALSCOPING )
 {
 	complete();
 	return; // note: return from source() doesn't exit caller
@@ -86,8 +86,12 @@ assert( pat == void );
 // blocks work
 for(ii=0; ii<3; ii++)
 {
+	if ( ii == 0 ) flag();
+	if ( ii == 1 ) flag();
+	if ( ii == 2 ) flag();
 	this.ix=1;
 }
+assert( flag() == 3 );
 assert(ii==3);
 assert(ix==1);
 

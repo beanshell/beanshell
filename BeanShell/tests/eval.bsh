@@ -23,7 +23,7 @@ assert( flag() == 1 );
 /**
 	Make sure eval's side effects happen in the correct namespace
 */
-if ( Interpreter.OLDSCOPING )
+if ( Interpreter.LOCALSCOPING )
 {
 a=6;
 b=6; // sanity check

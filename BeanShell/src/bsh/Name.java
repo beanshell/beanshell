@@ -551,7 +551,7 @@ class Name implements java.io.Serializable
 		reset();
 
 		// "var" means untyped, return null class
-		if ( evalName.equals("var") && !Interpreter.OLDSCOPING )
+		if ( evalName.equals("var") && !Interpreter.LOCALSCOPING )
 			return asClass = null;
 
 		/* Try straightforward class name first */
@@ -603,7 +603,7 @@ class Name implements java.io.Serializable
 		if ( !isCompound(evalName) ) 
 		{
 			// Interpreter.debug("Simple var LHS...");
-			boolean recurse = !Interpreter.OLDSCOPING;
+			boolean recurse = !Interpreter.LOCALSCOPING;
 			lhs = new LHS( namespace, evalName, recurse );
 			return lhs;
 		}
@@ -637,7 +637,7 @@ class Name implements java.io.Serializable
 				In the old scoping rules super didn't do this.
 			*/
 			boolean recurse = lastEvalName.equals("super") 
-				&& !Interpreter.OLDSCOPING;
+				&& !Interpreter.LOCALSCOPING;
 			lhs = new LHS( ((This)obj).namespace, evalName, recurse );
 			return lhs;
 		}
@@ -748,8 +748,10 @@ class Name implements java.io.Serializable
                 // should avoid calling methods on primitive, as we do
                 // in Name (can't treat primitive like an object message)
                 // but the hole is useful right now.
-                interpreter.error("Attempt to access method on primitive..." +
-                    " allowing bsh.Primitive to peek through for debugging");
+				if ( Interpreter.DEBUG )
+                	interpreter.debug(
+					"Attempt to access method on primitive..." 
+					+ " allowing bsh.Primitive to peek through for debugging");
             }
 
             // found an object and it's not an undefined variable

@@ -102,7 +102,7 @@ public class Interpreter
 		reference in some way to determine the scope of the command that 
 		turns it on or off.
 	*/
-    public static boolean DEBUG, TRACE, OLDSCOPING;
+    public static boolean DEBUG, TRACE, LOCALSCOPING;
 
 	// This should be per instance
     transient static PrintStream debug;
@@ -1096,7 +1096,7 @@ public class Interpreter
     		debug = System.err;
     		DEBUG = Boolean.getBoolean("debug");
     		TRACE = Boolean.getBoolean("trace");
-    		OLDSCOPING = Boolean.getBoolean("oldscoping");
+    		LOCALSCOPING = Boolean.getBoolean("localscoping");
 			String outfilename = System.getProperty("outfile");
 			if ( outfilename != null )
 				redirectOutputToFile( outfilename );

@@ -2,7 +2,7 @@
 
 source("TestHarness.bsh");
 
-if ( Interpreter.OLDSCOPING )
+if ( Interpreter.LOCALSCOPING )
 {
 foo() {
 	a =1;
