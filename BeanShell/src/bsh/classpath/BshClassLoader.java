@@ -1,8 +1,9 @@
-package bsh;
+package bsh.classpath;
 
 import java.net.*;
 import java.util.*;
 import java.io.*;
+import bsh.BshClassManager;
 
 /**
 	One of the things BshClassLoader does is to address a deficiency in

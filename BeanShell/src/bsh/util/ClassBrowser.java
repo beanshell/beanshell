@@ -24,7 +24,7 @@ import java.awt.*;
 import java.lang.reflect.*;
 
 // For string related utils
-import bsh.BshClassPath;
+import bsh.classpath.BshClassPath;
 import bsh.StringUtil;
 
 /**

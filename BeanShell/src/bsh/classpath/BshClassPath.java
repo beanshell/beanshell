@@ -1,10 +1,12 @@
-package bsh;
+package bsh.classpath;
 
 import java.util.*;
 import java.util.zip.*;
 import java.io.*;
 import java.net.*;
 import java.io.File;
+import bsh.Interpreter;
+import bsh.StringUtil;
 
 /**
 	A BshClassPath encapsulates knowledge about a class path of URLs.
@@ -363,7 +365,8 @@ public class BshClassPath
 			java.class.path
 	*/
 	static URL [] userClassPathComp;
-	private static URL [] getUserClassPathComponents() 
+	public static URL [] getUserClassPathComponents() 
+		throws ClassPathException
 	{
 		if ( userClassPathComp != null )
 			return userClassPathComp;
@@ -376,7 +379,7 @@ public class BshClassPath
 			for ( int i=0; i<paths.length; i++)
 				urls[i] = new File( paths[i] ).toURL();
 		} catch ( MalformedURLException e ) {
-			throw new InterpreterError("can't parse class path: "+e);
+			throw new ClassPathException("can't parse class path: "+e);
 		}
 
 		userClassPathComp = urls;
@@ -389,6 +392,7 @@ public class BshClassPath
 		from java.class.path
 	*/
 	public static BshClassPath getUserClassPath() 
+		throws ClassPathException
 	{
 		if ( userClassPath == null )
 			userClassPath = new BshClassPath( 

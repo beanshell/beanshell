@@ -1,4 +1,4 @@
-package bsh;
+package bsh.classpath;
 
 import java.io.*;
 import java.io.File;

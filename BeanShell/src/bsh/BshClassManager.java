@@ -4,7 +4,8 @@ import java.net.*;
 import java.util.*;
 import java.lang.ref.WeakReference;
 import java.io.IOException;
-import BshClassPath.DirClassSource;
+import bsh.classpath.*;
+import bsh.classpath.BshClassPath.DirClassSource;
 import java.io.*;
 
 /**
@@ -131,11 +132,11 @@ public class BshClassManager
 		return ( classForName( name ) != null );
 	}
 
-	protected ClassLoader getBaseLoader() {
+	public ClassLoader getBaseLoader() {
 		return baseLoader;
 	}
 
-	protected Class loadSystemClass( String name ) 
+	public Class loadSystemClass( String name ) 
 		throws ClassNotFoundException 
 	{
 		try {
@@ -199,7 +200,8 @@ public class BshClassManager
 
 		No point in including the boot class path (can't reload thos).
 	*/
-	public void reloadAllClasses() {
+	public void reloadAllClasses() throws ClassPathException 
+	{
 		BshClassPath bcp = new BshClassPath("temp");
 		bcp.addComponent( baseClassPath );
 		bcp.addComponent( BshClassPath.getUserClassPath() );
@@ -319,7 +321,9 @@ public class BshClassManager
 	/**
 		Get the full blown classpath.
 	*/
-	public BshClassPath getClassPath() {
+	public BshClassPath getClassPath() 
+		throws ClassPathException
+	{
 		if ( fullClassPath != null )
 			return fullClassPath;
 	
