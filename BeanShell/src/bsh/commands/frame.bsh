@@ -3,6 +3,8 @@
 */
 bsh.help.frame = "usage: frame( Component component )";
  
+import java.awt.*;
+
 frame( Component comp ) {
 
 	// Ignore unhandled method invocations from listeners.
@@ -15,6 +17,7 @@ frame( Component comp ) {
 	// if the desktop is there make an internal frame
 	if ( bsh.system.desktop != void ) {
 		frame = bsh.system.desktop.makeInternalFrame("frame");
+		frame.setClosable(true);
 		frame.getContentPane().add( comp, "Center" );
 		bsh.system.desktop.addInternalFrame( frame );
 		return frame;

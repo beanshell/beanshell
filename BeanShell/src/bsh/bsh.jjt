@@ -107,8 +107,30 @@ public class Interpreter implements Runnable /*,Serializable*/
 
             // The classes which are imported by default
             globalNameSpace.loadDefaultImports();
+
+	
+			// Source startup script from jar?
+			// If we are a top level interpreter
+
+// too expensive for now, don't do it
+			/*
+			if ( namespace == null ) 
+			{
+
+// create a getResource or sourceResouce method somewhere and combine
+// with the thing in Name that loads commands
+
+				String res = "lib/startup.bsh";
+				InputStream rin = Interpreter.class.getResourceAsStream(res);
+				if ( rin == null )
+					throw new IOException("couldn't load resource: " + res);
+// even more expensive
+				eval( new InputStreamReader(rin), globalNameSpace, res );
+			}
+			*/
+
         } catch(Exception e) {
-            error("Couldn't load interpreter resources...");
+            error("Couldn't load interpreter resources: " + e);
         }
 
 		/* 
