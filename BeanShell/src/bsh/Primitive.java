@@ -685,5 +685,11 @@ public class Primitive implements InterpreterConstants, java.io.Serializable
             throw new EvalError("Primitive not a number");
     }
 
+	public boolean equals( Object obj ) {
+		if ( obj instanceof Primitive )
+			return ((Primitive)obj).value.equals( this.value );
+		else
+			return obj.equals( this.value );
+	}
 
 }
