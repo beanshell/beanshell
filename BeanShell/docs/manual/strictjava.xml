@@ -1,0 +1,84 @@
+<section>
+<name>Strict Java Mode</name>
+
+If you are using BeanShell as a teaching aid, or you are a student and 
+you don't want any potential confusing by using BeanShell's loose scripting 
+abilities, you can set Strict Java Mode with the setStrictJava() command.
+When strict Java mode is enabled BeanShell will:
+<p/>
+
+<ol>
+<li>Require typed variable declarations, method arguments and return types.</li>
+<li>Modify the scoping of variables to look for the variable declaration 
+in the parent namespace where appropriate, as in a java method inside a 
+java class.</li>
+</ol>
+
+For example:
+<example>
+setStrictJava(true);
+
+int a = 5;
+
+foo=42; // Error! Undeclared variable 'foo'.
+
+bar() { .. } // Error! No declared return type.
+</example>
+
+Turning on strict Java mode can clear up the one potential ambiguity with 
+standard Java: where auto-allocation of local variables makes local variable 
+assignment look like a reference to a variable in an enclosing scope.
+
+<example>
+// A common BeanShell "gotcha"!
+
+incrementX() {
+    x = x + 1; // Really a local assignment
+}
+
+x = 5;
+incrementX();
+print( x ); // 5!
+</example>
+
+In the example above you may have been expecting the reference to x to 
+increment the variable in the enclosing context, as if it were a method in
+a Java class.  However the penalty we pay for allowing the use of undeclared
+variables in BeanShell is that we always assume assignent is in the local
+scope, unless qualified.  In practice, this situation doesn't come up as
+often as you'd think.  And we could easily fix it with the BeanShell 'super'
+reference like so:
+
+<example>
+incrementX() {
+    super.x = x + 1; // refer to parent scope explicitly
+}
+</example>
+
+However this is unsatisfying if you are more interested in standard Java
+syntax than in accomplishing silly scripting tasks.  Turning on Strict
+Java mode solves the problem by forcing you to declare your types and 
+disambiguating the reference.
+
+<example>
+// Strict Java Mode
+
+setStrictJava(true);
+
+void incrementX() {
+    x = x + 1;
+}
+
+int x = 5;  // Must declare variables before use
+incrementX();
+System.out.println( x ); // 6!
+</example>
+
+<note>
+Strict Java Mode is relatively new.
+In the above example we switched to using System.out.println() instead
+of print() because the print() command and most other BeanShell commands
+have not yet been re-written to acomodate strict Java mode.
+</note>
+
+</section>

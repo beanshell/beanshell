@@ -15,7 +15,7 @@
   <!ENTITY specialvarsvalues SYSTEM "specialvarsvalues.xml">
   <!ENTITY classpath SYSTEM "classpath.xml">
   <!ENTITY desktop SYSTEM "desktop.xml">
-  <!ENTITY servermode SYSTEM "servermode.xml">
+  <!ENTITY remotemode SYSTEM "remotemode.xml">
   <!ENTITY parser SYSTEM "parser.xml">
   <!ENTITY execscripts SYSTEM "execscripts.xml">
   <!ENTITY reflectivestyle SYSTEM "reflectivestyle.xml">
@@ -30,6 +30,7 @@
   <!ENTITY appletmode SYSTEM "appletmode.xml">
   <!ENTITY jconsole SYSTEM "jconsole.xml">
   <!ENTITY paths SYSTEM "paths.xml">
+  <!ENTITY strictjava SYSTEM "strictjava.xml">
 
   <!-- I can't figure out how to move this to the included bshcommands file -->
   <!ENTITY bshcommands-bshdoc SYSTEM "bshcommands-bshdoc.xml">
@@ -48,10 +49,11 @@
 	&specialvarsvalues;
 	&commands; <!-- Section about important commands and adding commands -->
 	&paths;
+	&strictjava;
 	&classpath;
 	&standalonemode;
 	&embeddedmode;
-	&servermode;
+	&remotemode;
 	&servletmode;
 	&appletmode;
 	&desktop;

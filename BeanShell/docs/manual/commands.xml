@@ -1,19 +1,239 @@
 <section>
 <name>BeanShell Commands</name>
 
+BeanShell commands take the form of pre-defined methods such as print().
+BeanShell Commands are are mostly composed of BeanShell scripts, supplied 
+in the JAR file.  We'll talk about adding your own commands to the classpath
+a bit later.  
+<p/>
+
+<h2>Commands Overview</h2>
+
+This is a high level overview of the BeanShell command set.
+You can find documentation for all BeanShell commands in the "BeanShell
+Commands Documentation" section of this manual.  See also the "BshDoc" 
+section which covers javadoc style documenation of BeanShell script files.
+<p/>
+
+<h3>Interpreter Modes</h3>
+
+The following commands affect general modes of operation of the interpreter.
+
+<table border="1" cellpadding="5">
+<tr><td>exit()</td><td>
+Exit the interpreter.  (Also Control-D).
+</td></tr>
+<tr><td>show()</td><td>
+Turn on "show" mode which prints the result of every
+evaluation that is not of void type.
+</td></tr>
+<tr><td>setAccessibility()</td><td>
+Turn on access to private and protected members of Java classes.
+</td></tr>
+<tr><td>server()</td><td>
+Launch the remote access mode, allowing remote access
+to the interpreter from a web browser or telnet client.
+</td></tr>
+<tr><td>debug()</td><td>
+Turns on debug mode.  Note: this is very verbose, 
+unstructured output and is primarily of interest to developers.
+</td></tr>
+<tr><td>setStrictJava()</td><td>
+Turn on "strict Java" mode which enforces Java
+compatability by dissallowing loose types and undeclared variables.
+</td></tr>
+</table>
+
+<p/><h3>Output</h3>
+
+The following commands are used for output:
+
+<table border="1" cellpadding="5">
+<tr><td>print(), error()</td><td>
+Print output to standard out or standard error.  print() always goes to the
+console, whereas System.out may or may not be captured by a GUI console
+or servlet.
+</td></tr>
+<tr><td>frame()</td><td>
+Display the AWT or Swing component in a Frame
+</td></tr>
+</table>
+
+<p/><h3>Source and Evaluation</h3>
+
+The following commands are used for evaluation or to run external scripts or
+applications:
+
+<table border="1" cellpadding="5">
+<tr><td>eval()</td><td>
+Evaluate a string as if it were typed in the current scope.
+</td></tr>
+<tr><td>source()</td><td>
+Source an external file into the current interpreter
+</td></tr>
+<tr><td>run(), bg()</td><td>
+Run an external file in a subordinate interpreter or in a background
+thread in a subordinate interpreter.
+</td></tr>
+<tr><td>exec()</td><td>
+Run a native executable in the host OS
+</td></tr>
+</table>
+
+<p/><h3>Utilities</h3>
+
+The following commands are useful utilities:
+
+<table border="1" cellpadding="5">
+<tr><td>javap()</td><td>
+Print the methods and fields of an object, similar to the output of javap
+</td></tr>
+<tr><td>which()</td><td>
+Like the Unix 'which' command for executables.  Map the classpath and 
+determine the location of the specified class.
+</td></tr>
+<tr><td>load(), save()</td><td> load a serializable object from a file
+or save one to a file.  Special handling is provided for certain objects.
+</td></tr>
+<tr><td>object()</td><td>
+Create an "emtpy" object context to hold variables; analagous to a Map.
+</td></tr>
+</table>
+
+<p/><h3>Variables and Scope</h3>
+
+The following commands affect the current scope:
+
+<table border="1" cellpadding="5">
+<tr><td>clear()</td><td>Clear all variables, methods and imports from
+the current scope.
+</td></tr>
+<tr><td>unset()</td><td>Remove a variable from the current scope.
+(Return it to the "undefined" state).
+</td></tr>
+<tr><td>setNameSpace()</td><td>
+Set the current namespace to a specified scope.  Effectively bind the 
+current scope to a new parent scope.
+</td></tr>
+</table>
+
+<p/><h3>Classpath</h3>
+
+The following commands manipulate or access the classpath:
+
+<table border="1" cellpadding="5">
+<tr><td>addClassPath(), setClassPath(), getClassPath()</td><td>
+Modify the BeanShell classpath.
+</td></tr>
+<tr><td>reloadClasses()</td><td>
+Reload a class or group of classes.
+</td></tr>
+<tr><td>getClass()</td><td>
+Load a class explicitly taking into account the BeanShell classpath.
+</td></tr>
+<tr><td>getResource()</td><td>
+Get a resource from the classpath.
+</td></tr>
+</table>
+
+<p/><h3>Files and Directories</h3>
+
+The following commands work with files, directories, and the working
+directory:
+
+<table border="1" cellpadding="5">
+<tr><td>cd(), pwd(), dir(), rm(), mv(), cat()</td><td>
+Unix Style file commands.
+</td></tr>
+<tr><td>pathToFile()</td><td>
+Translate a relative path to an absolute path taking into account
+the BeanShell current working directory.
+</td></tr>
+</table>
+
+<p/><h3>Desktop and Class Browser</h3>
+
+The following commands work with GUI tools:
+
+<table border="1" cellpadding="5">
+<tr><td>classBrowser(), browseClass()</td><td>
+Open a class browser window or browse a specific class or object.
+</td></tr>
+<tr><td>desktop()</td><td>
+Launch the BeanShell GUI desktop.
+</td></tr>
+<tr><td>setNameCompletion()</td><td>
+Turn on or off name completion in the GUI console.
+</td></tr>
+</table>
+
+<note>
+The dir() command is written in Java; primarily as a demonstration of how
+to do this when desired.
+</note>
+
 <h2>Adding Commands to BeanShell</h2>
 <p/>
 
-Adding to the set of "prefab" commands supplied with bsh can be about as easy as
-writing any other bsh methods.  You simply have to place your bsh scripts
-in a bsh/commands/ directory in the classpath (or inside the JAR file).
-<p/>
-You can also implement bsh commands directly in Java as .class files which 
-are dynamically loaded when needed.    The dir() commands are an example
-of a bsh command that is implemented in Java.  (I did this originaly for 
-speed).
-<p/>
-<em>More info coming</em>
+Adding to the set of "prefab" commands supplied with BeanShell is as easy as 
+writing any other BeanShell methods.  You simply have to place your 
+script into a file named with the same name as the command and place the
+file in the classpath under a bsh/commands/ path.  The command files can
+be anywhere in the classpath - in your own directories or in a JAR file.
 <p/>
 
+For example, let's make a helloworld() command:
+
+<example>
+// File: helloworld.bsh
+helloworld() { 
+    print("Hello World!");
+}
+</example>
+
+If we place helloworld.bsh in the classpath under the path bsh/commands/
+we can now use helloworld() just like any other BeanShell command.
+<p/>
+
+BeanShell command scripts can contain any number of overloaded forms of the
+method, e.g.:
+
+<example>
+// File: helloworld.bsh
+helloworld() { print("Hello World!"); }
+helloworld( String msg ) { print(msg); }
+</example>
+
+You can also implement BeanShell commands directly in Java as compiled class 
+files which are dynamically loaded when needed.   The dir() command is an 
+example of a BeanShell command that is implemented in Java.   See it for
+an example.
+<p/>
+
+<h2>Commands Scope</h2>
+
+BeanShell commands are always sourced into the 'global' scope.
+A useful feature of BeanShell for command writers is the 'this.caller'
+reference, which allows you to create side effects in the caller's scope.
+For example:
+
+<example>
+// File: setvar.bsh
+fooSetter() {
+    this.caller.foo=42;
+}
+</example>
+
+The above command has the effect that after running it the variable 'foo'
+will be set in the current scope. e.g.:
+
+<example>
+fooSetter();
+print( foo ); // 42
+</example>
+
+It would not have been correct in this example for the command to refer 
+to 'super', as that would simply always point to the global scope.
+
 </section>
+
