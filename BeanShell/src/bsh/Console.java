@@ -30,12 +30,8 @@ public class Console  {
 
 	public static void main( String args[] ) {
 
-		try {
-			Class.forName("bsh.util.Util");
-		} catch (Exception e ) {
+		if ( !NameSpace.classExists( "bsh.util.Util" ) )
 			System.out.println("Can't find the BeanShell utilities...");
-			return;
-		}
 
 		if ( NameSpace.haveSwing() ) {
 			bsh.util.Util.startSplashScreen();

@@ -1,7 +1,7 @@
 
 makeWorkspace( String name ) {
 
-	if ( bsh.desktop == void ) {
+	if ( bsh.system.desktop == void ) {
 		print("No desktop...");
 		return;
 	}
@@ -11,11 +11,10 @@ makeWorkspace( String name ) {
 
 	interpreter = new bsh.Interpreter( console );
 
-	// give the new interpreter a reference to the desktop
-	ibsh = interpreter.getVariable("bsh");
-	ibsh.desktop = bsh.desktop;
+	// for convenience and backwards compatability
+	interpreter.set( "bsh.desktop",  bsh.system.desktop );
 
-	frame = bsh.desktop.makeInternalFrame( name );
+	frame = bsh.system.desktop.makeInternalFrame( name );
 
 	actionPerformed( e ) {
 		com = e.getActionCommand();
@@ -44,7 +43,7 @@ makeWorkspace( String name ) {
 	menu.add(mi);
 	menubar.add(menu);
 
-	menu = bsh.desktop.makeFontMenu( console );
+	menu = bsh.system.desktop.makeFontMenu( console );
 	menubar.add(menu);
 
 	frame.setMenuBar(menubar);
@@ -56,10 +55,10 @@ makeWorkspace( String name ) {
 
 	frame.setBounds(5,5,600,300);
 	// cascade windows?
-	//off=bsh.desktop.windowCount*10;
+	//off=bsh.system.desktop.windowCount*10;
 	//frame.setLocation( off, off );
 	//frame.validate();
-	bsh.desktop.addInternalFrame( frame	);
+	bsh.system.desktop.addInternalFrame( frame	);
 	frame.toFront();
 	frame.setSelected(true);
 

@@ -1,7 +1,7 @@
 
 workspaceEditor( bsh.Interpreter parent, String name ) {
 
-	if ( bsh.desktop == void ) {
+	if ( bsh.system.desktop == void ) {
 		print("This only works with the bsh desktop...");
 		return;
 	}
@@ -18,7 +18,7 @@ workspaceEditor( bsh.Interpreter parent, String name ) {
 	open() {
 		chooser = new JFileChooser();
 		chooser.setCurrentDirectory( pathToFile(bsh.cwd) );
-		returnVal = chooser.showOpenDialog( bsh.desktop.pane );
+		returnVal = chooser.showOpenDialog( bsh.system.desktop.pane );
 		if(returnVal == JFileChooser.APPROVE_OPTION) {
 			file = chooser.getSelectedFile();
 			reader=new FileReader( file );
@@ -31,7 +31,7 @@ workspaceEditor( bsh.Interpreter parent, String name ) {
 	save() {
 		chooser = new JFileChooser();
 		chooser.setCurrentDirectory( pathToFile(bsh.cwd) );
-		returnVal = chooser.showSaveDialog( bsh.desktop.pane );
+		returnVal = chooser.showSaveDialog( bsh.system.desktop.pane );
 		if(returnVal == JFileChooser.APPROVE_OPTION) {
 			file = chooser.getSelectedFile();
 			writer=new FileWriter( file );
@@ -90,13 +90,13 @@ workspaceEditor( bsh.Interpreter parent, String name ) {
 	menu.add(mi);
 	menubar.add(menu);
 
-	menu = bsh.desktop.makeFontMenu( textarea );
+	menu = bsh.system.desktop.makeFontMenu( textarea );
 	menubar.add(menu);
 
 	frame.setMenuBar( menubar );
 
 	frame.pack();
-	bsh.desktop.pane.add( frame );
+	bsh.system.desktop.pane.add( frame );
 	frame.toFront();
 	return frame;
 }

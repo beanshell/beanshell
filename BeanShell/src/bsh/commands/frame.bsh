@@ -13,10 +13,10 @@ frame( Component comp ) {
     }
 
 	// if the desktop is there make an internal frame
-	if ( bsh.desktop != void ) {
-		frame = bsh.desktop.makeInternalFrame("frame");
+	if ( bsh.system.desktop != void ) {
+		frame = bsh.system.desktop.makeInternalFrame("frame");
 		frame.getContentPane().add( comp, "Center" );
-		bsh.desktop.addInternalFrame( frame );
+		bsh.system.desktop.addInternalFrame( frame );
 		return frame;
 	}
 

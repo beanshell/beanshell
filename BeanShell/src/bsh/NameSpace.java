@@ -393,20 +393,26 @@ public class NameSpace implements java.io.Serializable
 		return null;
     }
 
-	static Class classForName( String name ) {
+	/**
+		This is the central location for loading classes by name.
+		Caching and various strategies are implmented through here.
+		@returns class or null
+	*/
+	public static Class classForName( String name ) 
+	{
 		if ( absoluteNonClasses.get(name) != null )
 			return null;
 
-	    try{
-			Class c	=(Class)absoluteClassCache.get(name);
-			if(c !=	null)
-				return c;
+		Class c	=(Class)absoluteClassCache.get(name);
+		if (c != null)
+			return c;
 
+	    try {
 			c = Class.forName(name);
+			// succeeded 
 			absoluteClassCache.put(name, c);
 			return c;
-	    }
-	    catch ( Exception e ) {
+	    } catch ( Exception e ) {
 			absoluteNonClasses.put(name, "unused");
 	    } catch ( NoClassDefFoundError e2 ) {
 			/*
@@ -677,15 +683,7 @@ public class NameSpace implements java.io.Serializable
 		return haveProxyMech;
 	}
 
-	static boolean classExists( String name ) {
-		/*
-		Class c = null;
-		try { 
-			c = Class.forName( name ); 
-		} catch ( Exception e ) { }
-		return ( c != null );
-		*/
-
+	public static boolean classExists( String name ) {
 		return ( classForName( name ) != null );
 	}
 

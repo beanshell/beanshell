@@ -1,0 +1,11 @@
+
+dir=$1
+if [ ! "$1" ]; then
+	echo "usage";
+	exit;
+fi
+
+tarfile="${dir}-src.tar"
+tar cvf $tarfile $dir/bsh $dir/tests
+gzip $tarfile
+
