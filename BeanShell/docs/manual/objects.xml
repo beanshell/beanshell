@@ -12,13 +12,13 @@ normally only be visible within the scope of and for the lifetime of a
 particular method invocation:
 
 <example>
-    foo() {
-        bar = 42;
-        print( bar );
-    }   
+foo() {
+	bar = 42;
+	print( bar );
+}   
 
-    foo();  // prints 42
-    print( bar ); // Error, var is undefined here 
+foo();  // prints 42
+print( bar ); // Error, var is undefined here 
 </example>
 
 However, in BeanShell you can "hang on" to this scope after
@@ -28,13 +28,13 @@ you can continue to refer to variables defined within the method, using
 the standard Java "." notation:
 
 <example>
-    foo() {
-        bar = 42;
-        return this;
-    }
+foo() {
+	bar = 42;
+	return this;
+}
 
-    obj = foo();
-    print( obj.bar ); // 42
+obj = foo();
+print( obj.bar ); // 42
 </example>
 
 In the above, the value returned by the foo() method is effectively
@@ -42,11 +42,11 @@ an instance of a "foo" object.
 In this case foo is really just acting like a structure,  but bsh methods
 are also allowed to contain their own methods:
 <example>
-    foo() {
-        bar() {
-            ...
-        }
-    }
+foo() {
+	bar() {
+		...
+	}
+}
 </example>
 Method may define any number of local methods in this way, to an arbitrary 
 depth.
@@ -59,19 +59,19 @@ And we can invoke local methods of objects through an appropriate 'this'
 reference for that object:
 
 <example>
-    foo() {
-        int a = 42;
-        bar() {
-            print("The bar is open!");
-        }
-        
-        bar();
-        return this;
-    }
+foo() {
+	int a = 42;
+	bar() {
+		print("The bar is open!");
+	}
+	
+	bar();
+	return this;
+}
 
-    obj = foo();     // prints "the bar is open!"
-    print ( obj.a )  // 42
-    obj.bar();       // prints "the bar is open!"
+obj = foo();     // prints "the bar is open!"
+print ( obj.a )  // 42
+obj.bar();       // prints "the bar is open!"
 </example>
 
 

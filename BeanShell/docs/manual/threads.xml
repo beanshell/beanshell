@@ -6,15 +6,15 @@ java.lang.Runnable interface, so you can declare a "run()" method in your bsh
 objects and make it the target of a Thread.
 
 <example>
-    foo() {
-        run() {
-            // do work...
-        }
-        return this;
-    }
-    
-    foo = foo();
-    new Thread( foo ).start();
+foo() {
+	run() {
+		// do work...
+	}
+	return this;
+}
+
+foo = foo();
+new Thread( foo ).start();
 </example>
 <p/>
 

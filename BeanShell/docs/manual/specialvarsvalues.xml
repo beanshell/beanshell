@@ -17,31 +17,27 @@ See also <a href="#this">BOGUSLINKthis, super, and global</a>.
 </ul>
 <p/>
 
-<heading>
-Undefined variables
-</heading>
+<h2>Undefined variables</h2>
 <p/>
 You can test to see if a variable is "undefined" with the value "void", e.g.:
 <example>
-    if ( foobar == void )
-        // undefined
+if ( foobar == void )
+	// undefined
 </example>
 <p/>
 You can return a defined variable to the undefined state using the unset()
 command:
 
 <example>
-	a == void;  // true
-	a=5;
-	unset("a"); // note the quotes
-	a == void;  // true
+a == void;  // true
+a=5;
+unset("a"); // note the quotes
+a == void;  // true
 </example>
 
 <p/>
 
-<heading>
-Special features of 'This' type references
-</heading>
+<h2>Special features of 'This' type references</h2>
 <p/>
 'This' type references have four special "magic" members:  
 <ul>

@@ -3,14 +3,14 @@
 
 You can define define methods in bsh, just as they would appear in Java:
 <example>
-    int addTwoNumbers( int a, int b ) {
-        return a + b;
-    }
+int addTwoNumbers( int a, int b ) {
+	return a + b;
+}
 </example>
 
 and use them immediately as you would any bsh command:
 <example>
-    sum = addTwoNumbers( 5, 7 );
+sum = addTwoNumbers( 5, 7 );
 </example>
 
 Just as bsh variables may be dynamically typed, bsh methods may have 
@@ -18,20 +18,20 @@ dynamic argument and return types.  We could, for example, have declared
 our method like so:
 
 <example>
-    add( a, b ) {
-        return a + b;
-    }
+add( a, b ) {
+	return a + b;
+}
 </example>
 
 In this case, bsh would dynamically determine the types when the method is
 called and "do the right thing":
 
 <example>
-    foo = add(1, 2);
-    print( foo ); // 3
+foo = add(1, 2);
+print( foo ); // 3
 
-    foo = add("Oh", " baby");
-    print( foo ); // Oh baby
+foo = add("Oh", " baby");
+print( foo ); // Oh baby
 </example>
 
 In the first case Java performed arithmetic addition on the integers 1 and 2.
@@ -69,15 +69,15 @@ with the values 'this', 'super', and 'global' to refer to, respectively,
 the current scope, the calling method's scope, or the global scope.
 
 <example>
-    a = 42;
-    foo() {
-        a = 97;
-        print( a );
-        print( this.a );
-        print( super.a );
-    }
+a = 42;
+foo() {
+	a = 97;
+	print( a );
+	print( this.a );
+	print( super.a );
+}
 
-    foo();  // prints 97, 97, 42
+foo();  // prints 97, 97, 42
 </example>
 
 In the case above, 'global' and 'super' both refer to the top level scope.

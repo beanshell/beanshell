@@ -6,7 +6,7 @@
 	<table width="70%" border="1" cellpadding="5">
 	<tr><td bgcolor="#eeeebb">
 	<strong>Note:</strong>
-	<br CLEAR="ALL"/><br CLEAR="ALL"/>
+	<br CLEAR="ALL"/>
 		<xsl:value-of select="."/>
 	</td></tr>
 	</table>

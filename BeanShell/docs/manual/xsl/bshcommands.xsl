@@ -68,6 +68,7 @@
 	<xsl:template match="BshDoc">
 		<xsl:call-template name="doIndex"/>	
 		<p/>
+		<xsl:comment>PAGE BREAK</xsl:comment>
 		<xsl:apply-templates select="File">
 			<xsl:sort select="Name" order="ascending"/>
 		</xsl:apply-templates>
