@@ -2,32 +2,32 @@
 
 source("TestHarness.bsh");
 
-class Foo {
+class Foo44 {
 	int a=5;
 }
 
-class Bar {
+class Bar44 {
 	int b=5;
-	Bar() {
+	Bar44() {
 		b=6; // change value
 	}
 }
 
-class Gee {
+class Gee44 {
 	int c=5;
-	Gee( int x ) {
+	Gee44( int x ) {
 		c=x;
 	}
 }
 
-foo=new Foo();
+foo=new Foo44();
 assert(foo.a==5);
 
-bar=new Bar();
+bar=new Bar44();
 assert(bar.b==6);
 
-assert(isEvalError("new Gee()")); // no default const
-gee=new Gee(42);
+assert(isEvalError("new Gee44()")); // no default const
+gee=new Gee44(42);
 assert(gee.c==42);
 
 complete();

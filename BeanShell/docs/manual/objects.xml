@@ -134,7 +134,7 @@ foo() {
 // Construct the foo object
 fooObject = foo();     // prints "the bar is open!"
 // Print a variable of the foo object
-print ( fooObject.a )  // 42
+print ( fooObject.a );  // 42
 // Invoke a method on the foo object
 fooObject.bar();       // prints "the bar is open!"
 </example>

@@ -8,6 +8,7 @@ source("TestHarness.bsh");
 */
 
 m=new MethodSelection();
+// repetition here to check for obscure old bug
 assert( m.staticVsDynamic1( new Object() ) == Object.class );
 assert( m.staticVsDynamic1( new Object() ) == Object.class );
 assert( m.staticVsDynamic1( new String() ) == String.class );
@@ -15,8 +16,9 @@ assert( m.staticVsDynamic1( new String() ) == String.class );
 
 assert( MethodSelection.staticVsDynamic1( new Object() ) == Object.class );
 assert( MethodSelection.staticVsDynamic1( new Object() ) == Object.class );
-assert( MethodSelection.staticVsDynamic1( new String() ) == Object.class );
-assert( MethodSelection.staticVsDynamic1( new String() ) == Object.class );
+// the best match is the static String form... javac would error on this
+// rather than select the overloaded form, so so will we...
+assert( isEvalError("MethodSelection.staticVsDynamic1( new String() )"  ) );
 
 al=new ArrayList();
 al.add("foo");

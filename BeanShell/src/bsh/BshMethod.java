@@ -33,6 +33,9 @@
 
 package bsh;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
+
 /**
 	This represents an instance of a bsh method declaration in a particular
 	namespace.  This is a thin wrapper around the BSHMethodDeclaration
@@ -49,14 +52,13 @@ package bsh;
 	be cleared when the classloader changes.
 */
 public class BshMethod 
-	implements /*bsh.Reflect.MethodInvoker,*/ java.io.Serializable 
+	implements java.io.Serializable 
 {
 	/* 
-		I believe this is always the namespace in which the method is
-		defined...  It is a back-reference for the node, which needs to
-		execute under this namespace.
-		So it is not necessary to declare this transient, because we can
-		only be saved as part of our namespace anyway... (currently).
+		This is the namespace in which the method is set.
+		It is a back-reference for the node, which needs to execute under this 
+		namespace.  It is not necessary to declare this transient, because 
+		we can only be saved as part of our namespace anyway... (currently).
 	*/
 	NameSpace declaringNameSpace;
 
@@ -64,45 +66,56 @@ public class BshMethod
 
 	Modifiers modifiers;
 	private String name;
-	private Object returnType;
+	private Class creturnType;
 
 	// Arguments
-	private String [] argNames;
+	private String [] paramNames;
 	private int numArgs;
-	private Class [] argTypes;
+	private Class [] cparamTypes;
 
-	// The method body
-	private BSHBlock methodBody;
+	// Scripted method body
+	BSHBlock methodBody;
+	// Java Method
+	private Method javaMethod;
+	private Object javaObject;
 
 	// End method components
 
-	BshMethod( BSHMethodDeclaration method, 
+	BshMethod( 
+		BSHMethodDeclaration method, 
 		NameSpace declaringNameSpace, Modifiers modifiers ) 
 	{
-		this.declaringNameSpace = declaringNameSpace;
-		this.modifiers = modifiers;
-		this.name = method.name;
-		this.returnType = method.returnType;
-		this.argNames = method.params.argNames;
-		this.numArgs = method.params.numArgs;
-		this.argTypes = method.params.argTypes;
-		this.methodBody = method.block;
+		this( method.name, method.returnType, method.paramsNode.getParamNames(),
+			method.paramsNode.paramTypes, method.blockNode, declaringNameSpace,
+			modifiers );
 	}
 
 	BshMethod( 
-		String name, Object returnType, String [] argNames,
-		Class [] argTypes, BSHBlock methodBody, 
+		String name, Class returnType, String [] paramNames,
+		Class [] paramTypes, BSHBlock methodBody, 
 		NameSpace declaringNameSpace, Modifiers modifiers
 	) {
 		this.name = name;
-		this.returnType = returnType;
-		this.argNames = argNames;
-		this.numArgs = argNames.length;
-		this.argTypes = argTypes;
+		this.creturnType = returnType;
+		this.paramNames = paramNames;
+		if ( paramNames != null )
+			this.numArgs = paramNames.length;
+		this.cparamTypes = paramTypes;
 		this.methodBody = methodBody;
 		this.declaringNameSpace = declaringNameSpace;
 		this.modifiers = modifiers;
 	}
+
+	BshMethod( Method method, Object object )
+	{
+		this( method.getName(), method.getReturnType(), null/*paramNames*/,
+			method.getParameterTypes(), null/*method.block*/, 
+			null/*declaringNameSpace*/, null/*modifiers*/ );
+
+		this.javaMethod = method;
+		this.javaObject = object;
+	}
+
 
 	/**
 		Get the argument types of this method.
@@ -113,20 +126,21 @@ public class BshMethod
 		Note: bshmethod needs to re-evaluate arg types here
 		This is broken.
 	*/
-	public Class [] getArgumentTypes() { return argTypes; }
+	public Class [] getParameterTypes() { return cparamTypes; }
+	public String [] getParameterNames() { return paramNames; }
 
 	/**
 		Get the return type of the method.
 		@return Returns null for a loosely typed return value, 
-			Primitive.VOID for a void return type, or the Class of the type.
+			Void.TYPE for a void return type, or the Class of the type.
 	*/
 	/*
 		Note: bshmethod needs to re-evaluate the method return type here.
 		This is broken.
 	*/
-	public Object getReturnType() { return returnType; }
+	public Class getReturnType() { return creturnType; }
 
-	Modifiers getModifiers() { return modifiers; }
+	public Modifiers getModifiers() { return modifiers; }
 
 	public String getName() { return name; }
 
@@ -149,13 +163,13 @@ public class BshMethod
 		Note: this form of invoke() uses a null Node for the caller and a null
 		node for the CallStack.  This method is for scripts performing 
 		relective style access to scripted methods.
-	*/
 	public Object invoke( 
 		Object[] argValues, Interpreter interpreter, CallStack callstack ) 
 		throws EvalError 
 	{
 		return invoke( argValues, interpreter, callstack, null, false );
 	}
+	*/
 
 	public Object invoke( 
 		Object[] argValues, Interpreter interpreter, CallStack callstack,
@@ -186,18 +200,44 @@ public class BshMethod
 			stack instead of creating its own local namespace.  This allows it
 			to be used in constructors.
 	*/
-	public Object invoke( 
+	Object invoke( 
 		Object[] argValues, Interpreter interpreter, CallStack callstack,
 			SimpleNode callerInfo, boolean overrideNameSpace ) 
 		throws EvalError 
 	{
+		if ( javaMethod != null )
+			try {
+				return Reflect.invokeOnMethod( 
+					javaMethod, javaObject, argValues ); 
+			} catch ( ReflectError e ) {
+				throw new EvalError(
+					"Error invoking Java method: "+e, callerInfo, callstack );
+			} catch ( InvocationTargetException e2 ) {
+				throw new TargetError( 
+					"Exception invoking imported object method.", 
+					e2, callerInfo, callstack, true/*isNative*/ );
+			}
+
 		// is this a syncrhonized method?
 		if ( modifiers != null && modifiers.hasModifier("synchronized") )
 		{
 			// The lock is our declaring namespace's This reference
-			// (the method's 'super')
-			Object lock = declaringNameSpace.getThis(interpreter); // ???
-			synchronized( lock ) {
+			// (the method's 'super').  Or in the case of a class it's the
+			// class instance.
+			Object lock;
+			if ( declaringNameSpace.isClass )
+			{
+				try {
+					lock = declaringNameSpace.getClassInstance();
+				} catch ( UtilEvalError e ) {
+					throw new InterpreterError(
+						"Can't get class instance for synchronized method.");
+				}
+			} else
+				lock = declaringNameSpace.getThis(interpreter); // ???
+
+			synchronized( lock ) 
+			{
 				return invokeImpl( 
 					argValues, interpreter, callstack, 
 					callerInfo, overrideNameSpace );
@@ -212,6 +252,9 @@ public class BshMethod
 			SimpleNode callerInfo, boolean overrideNameSpace ) 
 		throws EvalError 
 	{
+		Class returnType = getReturnType();
+		Class [] paramTypes = getParameterTypes();
+
 		// If null callstack
 		if ( callstack == null )
 			callstack = new CallStack( declaringNameSpace );
@@ -257,22 +300,22 @@ public class BshMethod
 		for(int i=0; i<numArgs; i++)
 		{
 			// Set typed variable
-			if ( argTypes[i] != null ) 
+			if ( paramTypes[i] != null ) 
 			{
 				try {
-					argValues[i] = NameSpace.getAssignableForm(
-						argValues[i], argTypes[i] );
+					argValues[i] = Types.getAssignableForm(
+						argValues[i], paramTypes[i] );
 				}
 				catch( UtilEvalError e) {
 					throw new EvalError(
 						"Invalid argument: " 
-						+ "`"+argNames[i]+"'" + " for method: " 
+						+ "`"+paramNames[i]+"'" + " for method: " 
 						+ name + " : " + 
 						e.getMessage(), callerInfo, callstack );
 				}
 				try {
-					localNameSpace.setTypedVariable( argNames[i], 
-						argTypes[i], argValues[i], null/*modifiers*/);
+					localNameSpace.setTypedVariable( paramNames[i], 
+						paramTypes[i], argValues[i], null/*modifiers*/);
 				} catch ( UtilEvalError e2 ) {
 					throw e2.toEvalError( "Typed method parameter assignment", 
 						callerInfo, callstack  );
@@ -285,12 +328,12 @@ public class BshMethod
 				if ( argValues[i] == Primitive.VOID)
 					throw new EvalError(
 						"Undefined variable or class name, parameter: " +
-						argNames[i] + " to method: " 
+						paramNames[i] + " to method: " 
 						+ name, callerInfo, callstack );
 				else
 					try {
 						localNameSpace.setLocalVariable(
-							argNames[i], argValues[i],
+							paramNames[i], argValues[i],
 							interpreter.getStrictJava() );
 					} catch ( UtilEvalError e3 ) {
 						throw e3.toEvalError( callerInfo, callstack );
@@ -323,12 +366,12 @@ public class BshMethod
 				ret = ((ReturnControl)ret).value;
 			else 
 				// retControl.returnPoint is the Node of the return statement
-				throw new EvalError("continue or break in method body", 
+				throw new EvalError("'continue' or 'break' in method body", 
 					retControl.returnPoint, returnStack );
 
 			// Check for explicit return of value from void method type.
 			// retControl.returnPoint is the Node of the return statement
-			if ( returnType == Primitive.VOID && ret != Primitive.VOID )
+			if ( returnType == Void.TYPE && ret != Primitive.VOID )
 				throw new EvalError( "Cannot return value from void method", 
 				retControl.returnPoint, returnStack);
 		}
@@ -336,12 +379,12 @@ public class BshMethod
 		if ( returnType != null )
 		{
 			// If return type void, return void as the value.
-			if ( returnType == Primitive.VOID )
+			if ( returnType == Void.TYPE )
 				return Primitive.VOID;
 
 			// return type is a class
 			try {
-				ret = NameSpace.getAssignableForm( ret, (Class)returnType );
+				ret = Types.getAssignableForm( ret, (Class)returnType );
 			} catch( UtilEvalError e ) 
 			{
 				// Point to return statement point if we had one.
@@ -364,6 +407,7 @@ public class BshMethod
 
 	public String toString() {
 		return "Scripted Method: "
-			+ StringUtil.methodString( name, getArgumentTypes() ); 
+			+ StringUtil.methodString( name, getParameterTypes() ); 
 	}
+
 }

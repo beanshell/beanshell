@@ -158,9 +158,9 @@ throw new Error("namespace lhs");
 
 		if (type == FIELD)
 			try {
-				return field.get(object);
-			}
-			catch(IllegalAccessException e2) {
+				Object o = field.get( object );
+				return Primitive.wrap( o, field.getType() );
+			} catch(IllegalAccessException e2) {
 				throw new UtilEvalError("Can't read field: " + field);
 			}
 
@@ -201,10 +201,12 @@ throw new Error("namespace lhs");
 		if ( type == FIELD )
 		{
 			try {
-				if(val instanceof Primitive)
-					val = ((Primitive)val).getValue();
+				Object fieldVal = val instanceof Primitive ?  
+					((Primitive)val).getValue() : val;
 
-				field.set(object, val);
+				// This should probably be in Reflect.java
+				ReflectManager.RMSetAccessible( field );
+				field.set( object, fieldVal );
 				return val;
 			}
 			catch( NullPointerException e) {   
@@ -213,12 +215,15 @@ throw new Error("namespace lhs");
 			}     
    			catch( IllegalAccessException e2) {   
 				throw new UtilEvalError(
-					"LHS ("+field.getName()+") can't access field.");
+					"LHS ("+field.getName()+") can't access field: "+e2);
 			}     
-			catch( IllegalArgumentException e3) {
+			catch( IllegalArgumentException e3) 
+			{
+				String type = val instanceof Primitive ?
+					((Primitive)val).getType().getName()
+					: val.getClass().getName();
 				throw new UtilEvalError(
-					"Argument type mismatch. "
-					+ (val == null ? "null" : val.getClass().getName())
+					"Argument type mismatch. " + (val == null ? "null" : type )
 					+ " not assignable to field "+field.getName());
 			}
 		}
@@ -255,6 +260,11 @@ throw new Error("namespace lhs");
 		return val;
 	}
 
-	public String toString() { return "LHS"; }
+	public String toString() { 
+		return "LHS: "
+			+((field!=null)? "field = "+field.toString():"")
+			+(varName!=null ? " varName = "+varName: "")
+			+(nameSpace!=null ? " nameSpace = "+nameSpace.toString(): "");
+	}
 }
 

@@ -61,14 +61,17 @@ public class Util
 		This could live in the desktop script.
 		However we'd like to get it on the screen as quickly as possible.
 	*/
-	public static void startSplashScreen() {
+	public static void startSplashScreen() 
+	{
+		int width=275,height=148;
 		Window win=new Window( new Frame() );
         win.pack();
         BshCanvas can=new BshCanvas();
-        can.setSize( 351, 144 ); // why is this necessary?
+        can.setSize( width, height ); // why is this necessary?
         Toolkit tk=Toolkit.getDefaultToolkit();
         Dimension dim=tk.getScreenSize();
-        win.setBounds( dim.width/2-351/2, dim.height/2-144/2, 351, 144 );
+        win.setBounds( 
+			dim.width/2-width/2, dim.height/2-height/2, width, height );
         win.add("Center", can);
         Image img=tk.getImage( 
 			Interpreter.class.getResource("/bsh/util/lib/splash.gif") );

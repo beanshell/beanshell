@@ -60,6 +60,7 @@ class BSHAmbiguousName extends SimpleNode
 				getName( callstack.top() ).toObject( 
 					callstack, interpreter, forceClass );
 		} catch ( UtilEvalError e ) {
+//e.printStackTrace();
 			throw e.toEvalError( this, callstack );
 		}
     }

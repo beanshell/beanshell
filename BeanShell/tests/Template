@@ -2,8 +2,6 @@
 
 source("TestHarness.bsh");
 
-// insert your code here
-// assert( condition );
 
 complete();
 

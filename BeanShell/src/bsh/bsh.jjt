@@ -181,59 +181,6 @@ public class Parser
 	}
 
 	/**
-		Lookahead to determine whether a method has a return type.
-
-		// Case 1 - primitive or void
-		[ void, boolean, char, ... ] foo() { }
-		byte [] foo() { }
-
-		// Case 2 - simple type name
-		Foo foo () { } 
-		Foo [] foo () { } 
-
-		// Case 3 - compound type name
-		foo.Foo foo () { }
-		foo.Foo [] foo () { }
-
-		// Case 4 - Parameterized return type?
-		// ??
-
-		// Case N - no type
-		foo () { }
-	*/
-	/*
-		Note: it's important not to read ahead tokens (e.g. tok2) unless 
-		previous ones match.  We're used in lookaheads and if we have to wait
-		for tokens that couldn't match it messes up interactivity on the
-		command line.
-	*/
-	boolean methodHasReturnType() 
-	{
-		Token tok1 = getToken(1), tok2=null;
-
-		// Case 1
-		if ( tok1.kind == VOID || tok1.kind == BOOLEAN || tok1.kind == CHAR
-			|| tok1.kind == BYTE || tok1.kind == SHORT || tok1.kind == INT
-			|| tok1.kind == LONG || tok1.kind == FLOAT || tok1.kind == DOUBLE
-		)
-				return true;
-
-		// Case 2
-		if ( tok1.kind == IDENTIFIER && (tok2=getToken(2)).kind == LBRACKET )
-			return true;
-		if ( tok1.kind == IDENTIFIER && tok2.kind == IDENTIFIER 
-			&& getToken(3).kind == LPAREN )
-			return true;
-
-		// Case 3
-		if ( tok1.kind == IDENTIFIER && tok2.kind == DOT )
-			return true;
-
-		// Case N
-		return false;
-	}
-
-	/**
 		Generate a ParseException with the specified message, pointing to the
 		current token.
 		The auto-generated Parser.generateParseException() method does not
@@ -554,19 +501,21 @@ Modifiers Modifiers( int context, boolean lookahead ) :
 void ClassDeclaration() #ClassDeclaration :
 {
 	Modifiers mods;
-	Token t;
+	Token name;
 	int numInterfaces;
 }
 {
 	mods = Modifiers( Modifiers.CLASS, false ) 
-	"class" t=<IDENTIFIER> 
-		[ "extends" AmbiguousName() { jjtThis.extend = true; } ] 
-		[ "implements" numInterfaces=NameList() 
-			{ jjtThis.numInterfaces=numInterfaces; } ]
-		Block() {
-			jjtThis.modifiers = mods;
-			jjtThis.name = t.image;
-		}
+	( "class" | "interface" { jjtThis.isInterface=true; } ) 
+	name=<IDENTIFIER> 
+	[ "extends" AmbiguousName() { jjtThis.extend = true; } ] 
+	[ "implements" numInterfaces=NameList() 
+		{ jjtThis.numInterfaces=numInterfaces; } ]
+	Block() 
+	{
+		jjtThis.modifiers = mods;
+		jjtThis.name = name.image;
+	}
 }
 
 void MethodDeclaration() #MethodDeclaration :
@@ -577,45 +526,36 @@ void MethodDeclaration() #MethodDeclaration :
 }
 {
 	mods = Modifiers( Modifiers.METHOD, false ) { jjtThis.modifiers = mods; }
-    [ LOOKAHEAD( { methodHasReturnType() } ) ReturnType() ]
+(
+	LOOKAHEAD( <IDENTIFIER> "(" )
 	t = <IDENTIFIER> { jjtThis.name = t.image; }
+|
+    ReturnType() 
+	t = <IDENTIFIER> { jjtThis.name = t.image; }
+)
     FormalParameters() 
 	[ "throws" count=NameList() { jjtThis.numThrows=count; } ] 
-	Block()
+	( Block() | ";" )
 }
 
-/**
-	It's tempting to collapse this to one like like so:
-
-      [ LOOKAHEAD( { methodHasReturnType() } ) ReturnType() ]
-      <IDENTIFIER> FormalParameters() "{"
-
-	However this doesn't work because nested lookaheads are not evaluated
-	during lookahead!
-	http://www.engr.mun.ca/~theo/JavaCC-FAQ/javacc-faq.htm#tth_sEc4.9
-*/
-void MethodDeclarationLookahead() : { }
+void PackageDeclaration () #PackageDeclaration:
+{ }
 {
-	Modifiers( Modifiers.METHOD, true )
-  (
-    LOOKAHEAD( { methodHasReturnType() }  ) ReturnType() 
-	<IDENTIFIER> FormalParameters() [ "throws" NameList() ] "{"
-|
-	<IDENTIFIER> FormalParameters() [ "throws" NameList() ] "{"
-  )
+	"package" AmbiguousName()
 }
 
 void ImportDeclaration() #ImportDeclaration :
 {
-    Token t = null;
+    Token s = null;
+	Token t = null;
 }
 {
-  LOOKAHEAD( 2 )
-
-  "import" AmbiguousName() [ t = "." "*" ] ";" {
-    if ( t != null )
-        jjtThis.importPackage = true;
-    }
+  LOOKAHEAD( 3 )
+  [ s = "static" ] "import" AmbiguousName() [ t = "." "*" ] ";" 
+  {
+		if ( s != null ) jjtThis.staticImport = true;
+		if ( t != null ) jjtThis.importPackage = true;
+  }
   |
 	// bsh super import statement
   "import" "*" ";" {
@@ -626,7 +566,6 @@ void ImportDeclaration() #ImportDeclaration :
 void VariableDeclarator() #VariableDeclarator :
 { 
 	Token t; 
-	Modifiers mods; 
 }
 {
 	t=<IDENTIFIER> [ "=" VariableInitializer() ] 
@@ -636,8 +575,7 @@ void VariableDeclarator() #VariableDeclarator :
 }
 
 /*
-Can get rid of this if we ignore postfix array dimensions in declarations.
-I don't like them and I don't want to deal with them right now.
+this originally handled postfix array dimensions...
 
 void VariableDeclaratorId() #VariableDeclaratorId :
 { Token t; }
@@ -706,7 +644,7 @@ void ReturnType() #ReturnType :
 
 void PrimitiveType() #PrimitiveType :
 { } {
-"boolean" { jjtThis.type = Boolean.TYPE; }
+  "boolean" { jjtThis.type = Boolean.TYPE; }
 | "char" { jjtThis.type =  Character.TYPE; }
 | "byte" { jjtThis.type =  Byte.TYPE; }
 | "short" { jjtThis.type =  Short.TYPE; }
@@ -1034,11 +972,12 @@ void Literal() #Literal :
 
         // This really should be Long.decode, but there isn't one. As a result,
         // hex and octal literals ending in 'l' or 'L' don't work.
-        jjtThis.value = new Primitive( new Long( literal ) );
+        jjtThis.value = new Primitive( new Long( literal ).longValue() );
     }
     else
 		try {
-        	jjtThis.value = new Primitive( Integer.decode( literal ) );
+        	jjtThis.value = new Primitive( 
+				Integer.decode( literal ).intValue() );
 		} catch ( NumberFormatException e ) {
 			throw createParseException(
 				"Error or number too big for integer type: "+ literal );
@@ -1052,14 +991,14 @@ void Literal() #Literal :
     if(ch == 'f' || ch == 'F')
     {
         literal = literal.substring(0,literal.length()-1);
-        jjtThis.value = new Primitive( new Float( literal ) );
+        jjtThis.value = new Primitive( new Float( literal ).floatValue() );
     }
     else
     {
         if(ch == 'd' || ch == 'D')
             literal = literal.substring(0,literal.length()-1);
 
-        jjtThis.value = new Primitive( new Double( literal ) );
+        jjtThis.value = new Primitive( new Double( literal ).doubleValue() );
     }
   }
 |
@@ -1080,7 +1019,7 @@ void Literal() #Literal :
     }
 |
   b = BooleanLiteral()  {
-    jjtThis.value = new Primitive( new Boolean(b) ); }
+    jjtThis.value = new Primitive( b ); }
 |
   NullLiteral() {
     jjtThis.value = Primitive.NULL; 
@@ -1209,12 +1148,18 @@ void BlockStatement() :
 {
 }
 {
-  // SYNTACTIC_LOOKAHEAD
-  LOOKAHEAD( Modifiers( Modifiers.FIELD, true ) "class" )
+  LOOKAHEAD( Modifiers( Modifiers.FIELD, true ) ( "class" | "interface" ) )
   ClassDeclaration() 
 |
-  // SYNTACTIC_LOOKAHEAD
-  LOOKAHEAD( MethodDeclarationLookahead() ) MethodDeclaration()
+  LOOKAHEAD ( Modifiers( Modifiers.METHOD, true ) 
+		ReturnType() <IDENTIFIER> "(" 
+  )
+  	MethodDeclaration()
+|
+  LOOKAHEAD ( Modifiers( Modifiers.METHOD, true ) 
+		<IDENTIFIER> FormalParameters() [ "throws" NameList() ] "{" 
+  )
+  	MethodDeclaration()
 |
   // SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( Modifiers( Modifiers.FIELD, true ) Type() <IDENTIFIER> )
@@ -1225,6 +1170,9 @@ void BlockStatement() :
 |  
   // Allow BeanShell imports in any block
   ImportDeclaration()
+|
+  // Allow BeanShell package declarations in any block
+  PackageDeclaration()
 |
   FormalComment()
 }

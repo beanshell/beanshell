@@ -34,14 +34,41 @@
 
 package bsh;
 
+import java.util.Hashtable;
+
 /**
     Wrapper for primitive types in Bsh.  This is package public because it 
 	is used in the implementation of some bsh commands.
 
     See the note in LHS.java about wrapping objects.
 */
-public class Primitive implements ParserConstants, java.io.Serializable
+/*
+	Note: this class is final because we may test == Primitive.class in places.
+	If we need to change that search for those tests.
+*/
+public final class Primitive implements ParserConstants, java.io.Serializable
 {
+	static Hashtable primitiveToWrapper = new Hashtable();
+	static Hashtable wrapperToPrimitive = new Hashtable();
+	static {
+		primitiveToWrapper.put( Boolean.TYPE, Boolean.class );
+		primitiveToWrapper.put( Byte.TYPE, Byte.class );
+		primitiveToWrapper.put( Short.TYPE, Short.class );
+		primitiveToWrapper.put( Character.TYPE, Character.class );
+		primitiveToWrapper.put( Integer.TYPE, Integer.class );
+		primitiveToWrapper.put( Long.TYPE, Long.class );
+		primitiveToWrapper.put( Float.TYPE, Float.class );
+		primitiveToWrapper.put( Double.TYPE, Double.class );
+		wrapperToPrimitive.put( Boolean.class, Boolean.TYPE );
+		wrapperToPrimitive.put( Byte.class, Byte.TYPE );
+		wrapperToPrimitive.put( Short.class, Short.TYPE );
+		wrapperToPrimitive.put( Character.class, Character.TYPE );
+		wrapperToPrimitive.put( Integer.class, Integer.TYPE );
+		wrapperToPrimitive.put( Long.class, Long.TYPE );
+		wrapperToPrimitive.put( Float.class, Float.TYPE );
+		wrapperToPrimitive.put( Double.class, Double.TYPE );
+	}
+
     /** The primitive value stored in its java.lang wrapper class */
     private Object value;
 
@@ -67,25 +94,20 @@ public class Primitive implements ParserConstants, java.io.Serializable
     public static final Primitive VOID = new Primitive(Special.VOID_TYPE);
 
     // private to prevent invocation with param that isn't a primitive-wrapper
-    private Primitive(Object value)
+    public Primitive( Object value )
     {
-        if(value == null)
+        if ( value == null )
             throw new InterpreterError(
 				"Use Primitve.NULL instead of Primitive(null)");
 
+		if ( value != Special.NULL_VALUE 
+			&& value != Special.VOID_TYPE &&
+			!isWrapperType( value.getClass() ) 
+		)
+            throw new InterpreterError( "Not a wrapper type: "+value);
+
         this.value = value;
     }
-
-    public Primitive(Number number) { this((Object)number); }
-
-    public Primitive(Boolean value) { this((Object)value); }
-    public Primitive(Byte value) { this((Object)value); }
-    public Primitive(Short value) { this((Object)value); }
-    public Primitive(Character value) { this((Object)value); }
-    public Primitive(Integer value) { this((Object)value); }
-    public Primitive(Long value) { this((Object)value); }
-    public Primitive(Float value) { this((Object)value); }
-    public Primitive(Double value) { this((Object)value); }
 
     public Primitive(boolean value) { this(new Boolean(value)); }
     public Primitive(byte value) { this(new Byte(value)); }
@@ -121,7 +143,7 @@ public class Primitive implements ParserConstants, java.io.Serializable
     }
 
 	/**
-		Get the corresponding primitive TYPE class for the Primitive
+		Get the corresponding Java primitive TYPE class for this Primitive.
 		@return the primitive TYPE class type of the value or Void.TYPE for
 		Primitive.VOID or null value for type of Primitive.NULL
 	*/
@@ -135,24 +157,7 @@ public class Primitive implements ParserConstants, java.io.Serializable
 		if ( this == Primitive.NULL )
 			return null;
 
-        if ( value instanceof Boolean )
-            return Boolean.TYPE;
-        else if(value instanceof Byte)
-            return Byte.TYPE;
-        else if(value instanceof Short)
-            return Short.TYPE;
-        else if(value instanceof Character)
-            return Character.TYPE;
-        else if(value instanceof Integer)
-            return Integer.TYPE;
-        else if(value instanceof Long)
-            return Long.TYPE;
-        else if(value instanceof Float)
-            return Float.TYPE;
-        else if(value instanceof Double)
-            return Double.TYPE;
-
-		throw new InterpreterError("uknown prim: "+ this );
+		return unboxType( value.getClass() );
     }
 
 	/**
@@ -226,7 +231,6 @@ public class Primitive implements ParserConstants, java.io.Serializable
         else
             throw new UtilEvalError("Invalid types in binary operator" );
 	}
-
 
     static Boolean booleanBinaryOperation(Boolean B1, Boolean B2, int kind)
         throws UtilEvalError
@@ -327,7 +331,8 @@ public class Primitive implements ParserConstants, java.io.Serializable
                 return new Long(lhs ^ rhs);
 
             default:
-                throw new InterpreterError("Unimplemented binary long operator");
+                throw new InterpreterError(
+					"Unimplemented binary long operator");
         }
     }
 
@@ -403,7 +408,8 @@ public class Primitive implements ParserConstants, java.io.Serializable
                 return new Integer(lhs ^ rhs);
 
             default:
-                throw new InterpreterError("Unimplemented binary integer operator");
+                throw new InterpreterError(
+					"Unimplemented binary integer operator");
         }
     }
 
@@ -465,7 +471,8 @@ public class Primitive implements ParserConstants, java.io.Serializable
                 throw new UtilEvalError("Can't shift doubles");
 
             default:
-                throw new InterpreterError("Unimplemented binary double operator");
+                throw new InterpreterError(
+					"Unimplemented binary double operator");
         }
     }
     // returns Object covering both Long and Boolean return types
@@ -526,22 +533,22 @@ public class Primitive implements ParserConstants, java.io.Serializable
                 throw new UtilEvalError("Can't shift floats ");
 
             default:
-                throw new InterpreterError("Unimplemented binary float operator");
+                throw new InterpreterError(
+					"Unimplemented binary float operator");
         }
     }
 
 	/**
 		Promote primitive wrapper type to to Integer wrapper type
-		Can we use the castPrimitive() (in BSHCastExpression) for this?
 	*/
-    static Object promoteToInteger(Object primitive)
+    static Object promoteToInteger(Object wrapper )
     {
-        if(primitive instanceof Character)
-            return new Integer(((Character)primitive).charValue());
-        else if((primitive instanceof Byte) || (primitive instanceof Short))
-            return new Integer(((Number)primitive).intValue());
+        if(wrapper instanceof Character)
+            return new Integer(((Character)wrapper).charValue());
+        else if((wrapper instanceof Byte) || (wrapper instanceof Short))
+            return new Integer(((Number)wrapper).intValue());
 
-        return primitive;
+        return wrapper;
     }
 
 	/**
@@ -637,7 +644,6 @@ public class Primitive implements ParserConstants, java.io.Serializable
         {
             case BANG:
                 return !operand;
-
             default:
                 throw new UtilEvalError("Operator inappropriate for boolean");
         }
@@ -651,19 +657,14 @@ public class Primitive implements ParserConstants, java.io.Serializable
         {
             case PLUS:
                 return operand;
-
             case MINUS:
                 return -operand;
-
             case TILDE:
                 return ~operand;
-
             case INCR:
                 return operand + 1;
-
             case DECR:
                 return operand - 1;
-
             default:
                 throw new InterpreterError("bad integer unaryOperation");
         }
@@ -677,19 +678,14 @@ public class Primitive implements ParserConstants, java.io.Serializable
         {
             case PLUS:
                 return operand;
-
             case MINUS:
                 return -operand;
-
             case TILDE:
                 return ~operand;
-
             case INCR:
                 return operand + 1;
-
             case DECR:
                 return operand - 1;
-
             default:
                 throw new InterpreterError("bad long unaryOperation");
         }
@@ -703,10 +699,8 @@ public class Primitive implements ParserConstants, java.io.Serializable
         {
             case PLUS:
                 return operand;
-
             case MINUS:
                 return -operand;
-
             default:
                 throw new InterpreterError("bad float unaryOperation");
         }
@@ -720,10 +714,8 @@ public class Primitive implements ParserConstants, java.io.Serializable
         {
             case PLUS:
                 return operand;
-
             case MINUS:
                 return -operand;
-
             default:
                 throw new InterpreterError("bad double unaryOperation");
         }
@@ -791,7 +783,8 @@ public class Primitive implements ParserConstants, java.io.Serializable
 
 	/**
 		Unwrap primitive values and map voids to nulls.
-		Normal (non Primitive) types remain unchanged.
+		Non Primitive types remain unchanged.
+
 		@param obj object type which may be bsh.Primitive
 		@return corresponding "normal" Java type, "unwrapping" 
 			any bsh.Primitive types to their wrapper types.
@@ -809,34 +802,267 @@ public class Primitive implements ParserConstants, java.io.Serializable
             return obj;
 	}
 
+    /*
+        Unwrap Primitive wrappers to their java.lang wrapper values.
+		e.g. Primitive(42) becomes Integer(42)
+		@see #unwrap( Object )
+    */
+    public static Object [] unwrap( Object[] args )
+    {
+		Object [] oa = new Object[ args.length ];
+        for(int i=0; i<args.length; i++)
+            oa[i] = unwrap( args[i] );
+		return oa;
+    }
+
+    /*
+    */
+    public static Object [] wrap( Object[] args, Class [] paramTypes )
+    {
+		if ( args == null )
+			return null;
+
+		Object [] oa = new Object[ args.length ];
+        for(int i=0; i<args.length; i++)
+            oa[i] = wrap( args[i], paramTypes[i] );
+		return oa;
+    }
+
+	/**
+		Wrap primitive values (as indicated by type param) and nulls in the 
+		Primitive class.  Values not primitive or null are left unchanged.
+		Primitive values are represented by their wrapped values in param value.
+		<p/>
+		The value null is mapped to Primitive.NULL.
+		Any value specified with type Void.TYPE is mapped to Primitive.VOID.
+	*/
+    public static Object wrap(
+		Object value, Class type )
+    {
+        if ( type == Void.TYPE )
+            return Primitive.VOID;
+
+        if ( value == null )
+            return Primitive.NULL;
+
+		if ( type.isPrimitive() )
+			return new Primitive( value );
+
+		return value;
+    }
+
+
 	/**
 		Get the appropriate default value per JLS 4.5.4
 	*/
 	public static Primitive getDefaultValue( Class type )
 	{
-		if ( type != null && type.isPrimitive() )
-		{
-			if ( type == Boolean.TYPE )
-				return new Primitive(Boolean.FALSE);
-			if (type ==	Byte.TYPE)
-				return new	Primitive((byte)0);
-			if (type ==	Short.TYPE)
-				return new Primitive((short)0);
-			if (type ==	Character.TYPE)
-				return new Primitive((char)0);
-			if (type ==	Integer.TYPE)
-				return new Primitive((int)0);
-			if (type ==	Long.TYPE)
-				return new Primitive(0L);
-			if (type ==	Float.TYPE)
-				return new Primitive(0.0f);
-			if (type ==	Double.TYPE)
-				return new Primitive(0.0d);
-
-			throw new InterpreterError("unknown prim");
-		}
-		else
+		if ( type == null || !type.isPrimitive() )
 			return Primitive.NULL;
+		if ( type == Boolean.TYPE )
+			return new Primitive( false );
+
+		// non boolean primitive, get appropriate flavor of zero
+		try {
+			return new Primitive((int)0).castToType( type, Types.CAST );
+		} catch ( UtilEvalError e ) {
+			throw new InterpreterError( "bad cast" );
+		}
+	}
+
+	/**
+		Get the corresponding java.lang wrapper class for the primitive TYPE
+		class.
+		e.g.  Integer.TYPE -> Integer.class
+	*/
+	public static Class boxType( Class primitiveType )
+	{
+		Class c = (Class)primitiveToWrapper.get( primitiveType );
+		if ( c != null )
+			return c;
+		throw new InterpreterError( 
+			"Not a primitive type: "+ primitiveType );
+	}
+
+	/**
+		Get the corresponding primitive TYPE class for the java.lang wrapper
+		class type.
+		e.g.  Integer.class -> Integer.TYPE
+	*/
+	public static Class unboxType( Class wrapperType )
+	{
+		Class c = (Class)wrapperToPrimitive.get( wrapperType );
+		if ( c != null )
+			return c;
+		throw new InterpreterError( 
+			"Not a primitive wrapper type: "+wrapperType );
+	}
+
+	/**
+		Cast this bsh.Primitive value to a new bsh.Primitive value
+		This is usually a numeric type cast.  Other cases include:
+			A boolean can be cast to boolen
+			null can be cast to any object type and remains null
+			Attempting to cast a void causes an exception
+		@param toType is the java object or primitive TYPE class
+	*/
+	public Primitive castToType( Class toType, int operation ) 
+		throws UtilEvalError
+	{
+		return castPrimitive( 
+			toType, getType()/*fromType*/, this/*fromValue*/, 
+			false/*checkOnly*/, operation );
+	}
+
+	/**
+		@param toType is the java primitive TYPE type of the primitive to be
+		cast to.
+		@param fromType is the java primitive TYPE type of the primitive to be
+		cast.  fromType should be null to indicate that the fromValue was null
+		or void.
+		@param fromValue is, optionally, the value to be converted.  If
+		checkOnly is true fromValue must be null.  If checkOnly is false,
+		fromValue must be non-null (Primitive.NULL is of course valid).
+	*/
+	static Primitive castPrimitive( 
+		Class toType, Class fromType, Primitive fromValue, 
+		boolean checkOnly, int operation ) 
+		throws UtilEvalError
+	{
+		/*
+			Lots of preconditions checked here...
+			Once things are running smoothly we might comment these out
+			(That's what assertions are for).
+		*/
+		if ( checkOnly && fromValue != null )
+			throw new InterpreterError("bad cast param 1");
+		if ( !checkOnly && fromValue == null )
+			throw new InterpreterError("bad cast param 2");
+		if ( fromType != null && !fromType.isPrimitive() )
+			throw new InterpreterError("bad fromType:" +fromType);
+		if ( fromValue == Primitive.NULL && fromType != null )
+			throw new InterpreterError("inconsistent args 1");
+		if ( fromValue == Primitive.VOID && fromType != Void.TYPE )
+			throw new InterpreterError("inconsistent args 2");
+
+		// can't cast void to anything
+		if ( fromType == Void.TYPE )
+			if ( checkOnly )
+				return Types.INVALID_CAST;
+			else
+				throw Types.castError( Reflect.normalizeClassName(toType), 
+					"void value", operation );
+
+		// unwrap, etc.
+		Object value = null; 
+		if ( fromValue != null )
+			value = fromValue.getValue();
+
+		if ( toType.isPrimitive() )
+		{
+			// Trying to cast null to primitive type?
+			if ( fromType == null )
+				if ( checkOnly )
+					return Types.INVALID_CAST;
+				else
+					throw Types.castError(
+						"primitive type:" + toType, "Null value", operation );
+
+			// fall through
+		} else
+		{
+			// Trying to cast primitive to an object type
+			// Primitive.NULL can be cast to any object type
+			if ( fromType == null )
+				return checkOnly ? Types.VALID_CAST : 
+					Primitive.NULL;
+
+			if ( checkOnly )
+				return Types.INVALID_CAST;
+			else
+				throw Types.castError(
+						"object type:" + toType, "primitive value", operation);
+		}
+
+		// can only cast boolean to boolean
+		if ( fromType == Boolean.TYPE )
+		{
+			if ( toType != Boolean.TYPE )
+				if ( checkOnly )
+					return Types.INVALID_CAST;
+				else
+					throw Types.castError( toType, fromType, operation );
+
+			return checkOnly ? Types.VALID_CAST :
+				fromValue;
+		}
+
+		// Do numeric cast
+
+		// Only allow legal Java assignment unless we're a CAST operation
+		if ( operation == Types.ASSIGNMENT 
+			&& !Types.isJavaAssignable( toType, fromType ) 
+		) {
+			if ( checkOnly )
+				return Types.INVALID_CAST;
+			else
+				throw Types.castError( toType, fromType, operation );
+		}
+
+		return checkOnly ? Types.VALID_CAST :
+			new Primitive( castWrapper(toType, value) );
+	}
+
+	public static boolean isWrapperType( Class type )
+	{
+		return wrapperToPrimitive.get( type ) != null;
+	}
+
+	/**
+		Cast a primitive value represented by its java.lang wrapper type to the
+		specified java.lang wrapper type.  e.g.  Byte(5) to Integer(5) or
+		Integer(5) to Byte(5) 
+		@param toType is the java TYPE type
+		@param value is the value in java.lang wrapper.
+		value may not be null.
+	*/
+	static Object castWrapper( 
+		Class toType, Object value ) 
+	{
+		if ( !toType.isPrimitive() )
+			throw new InterpreterError("invalid type in castWrapper: "+toType);
+		if ( value == null )
+			throw new InterpreterError("null value in castWrapper, guard");
+		if ( value instanceof Boolean && toType != Boolean.TYPE )
+			throw new InterpreterError("bad wrapper cast of boolean");
+
+		Class fromType = value.getClass();
+
+		// first promote char to Number type to avoid duplicating code
+		if ( value instanceof Character )
+			value = new Integer(((Character)value).charValue());
+
+		if ( !(value instanceof Number) )
+			throw new InterpreterError("bad type in cast");
+
+		Number number = (Number)value;
+
+		if (toType == Byte.TYPE)
+			return new Byte(number.byteValue());
+		if (toType == Short.TYPE)
+			return new Short(number.shortValue());
+		if (toType == Character.TYPE)
+			return new Character((char)number.intValue());
+		if (toType == Integer.TYPE)
+			return new Integer(number.intValue());
+		if (toType == Long.TYPE)
+			return new Long(number.longValue());
+		if (toType == Float.TYPE)
+			return new Float(number.floatValue());
+		if (toType == Double.TYPE)
+			return new Double(number.doubleValue());
+
+		throw new InterpreterError("error in wrapper cast");
 	}
 
 }

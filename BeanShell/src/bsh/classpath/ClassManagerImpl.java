@@ -180,6 +180,9 @@ public class ClassManagerImpl extends BshClassManager
 				} catch ( ClassNotFoundException e ) {}
 		}
 
+		if ( c == null )
+			c = loadSourceClass( name );
+
 		// cache results
 		/* 
 			Note: plainClassForName already caches, so it will be redundant
@@ -218,7 +221,7 @@ public class ClassManagerImpl extends BshClassManager
 	{
 		URL url = null;
 		if ( baseLoader != null )
-			// classloader wants not leading slash
+			// classloader wants no leading slash
 			url = baseLoader.getResource( path.substring(1) );
 		if ( url == null )
 			url = super.getResource( path );
@@ -233,10 +236,14 @@ public class ClassManagerImpl extends BshClassManager
 	{
 		InputStream in = null;
 		if ( baseLoader != null )
-			// classloader wants not leading slash
+		{
+			// classloader wants no leading slash
 			in = baseLoader.getResourceAsStream( path.substring(1) );
+		}
 		if ( in == null )
+		{
 			in = super.getResourceAsStream( path );
+		}
 		return in;
 	}
 
@@ -476,6 +483,12 @@ public class ClassManagerImpl extends BshClassManager
 	public ClassLoader getBaseLoader() {
 		return baseLoader;
 	}
+
+	/**
+		Get the BeanShell classloader.
+	public ClassLoader getClassLoader() {
+	}
+	*/
 
 	/**
 		Clear global class cache and notify namespaces to clear their 

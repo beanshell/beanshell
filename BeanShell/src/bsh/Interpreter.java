@@ -35,6 +35,8 @@ package bsh;
 
 import java.util.Vector;
 import java.io.*;
+import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 
 /**
 	The BeanShell script interpreter.
@@ -93,7 +95,7 @@ public class Interpreter
 {
 	/* --- Begin static members --- */
 
-	public static final String VERSION = "1.3.0";
+	public static final String VERSION = "2.0b1";
 	/*
 		Debug utils are static so that they are reachable by code that doesn't
 		necessarily have an interpreter reference (e.g. tracing in utils).
@@ -178,9 +180,9 @@ public class Interpreter
 			setStrictJava( parent.getStrictJava() );
 		this.sourceFileInfo = sourceFileInfo;
 
+		BshClassManager bcm = BshClassManager.createClassManager( this );
 		if ( namespace == null )
-        	this.globalNameSpace = new NameSpace( 
-				BshClassManager.createClassManager(), "global");
+        	this.globalNameSpace = new NameSpace( bcm, "global");
 		else
 			this.globalNameSpace = namespace;
 
@@ -264,7 +266,6 @@ public class Interpreter
 	private void initRootSystemObject() 
 	{
 		BshClassManager bcm = getClassManager();
-//System.out.println("init root bcm ="+bcm);
 		// bsh
 		setu("bsh", new NameSpace( bcm, "Bsh Object" ).getThis( this ) );
 
@@ -351,7 +352,20 @@ public class Interpreter
             Interpreter interpreter = new Interpreter();
 			interpreter.setu( "bsh.args", bshArgs );
 			try {
-				interpreter.source( filename, interpreter.globalNameSpace );
+				Object result = 
+					interpreter.source( filename, interpreter.globalNameSpace );
+				if ( result instanceof Class )
+					try {
+						invokeMain( (Class)result, bshArgs );
+					} catch ( Exception e ) 
+					{
+						Object o = e;
+						if ( e instanceof InvocationTargetException )
+							o = ((InvocationTargetException)e)
+								.getTargetException();
+						System.err.println(
+							"Class: "+result+" main method threw exception:"+o);
+					}
 			} catch ( FileNotFoundException e ) {
 				System.out.println("File not found: "+e);
 			} catch ( TargetError e ) {
@@ -363,7 +377,8 @@ public class Interpreter
 			} catch ( IOException e ) {
 				System.out.println("I/O Error: "+e);
 			}
-        } else {
+        } else 
+		{
 			// Workaround for JDK bug 4071281, where system.in.available() 
 			// returns too large a value. This bug has been fixed in JDK 1.2.
 			InputStream src;
@@ -385,6 +400,16 @@ public class Interpreter
         	interpreter.run();
         }
     }
+
+	public static void invokeMain( Class clas, String [] args ) 
+		throws Exception
+	{
+    	Method main = Reflect.resolveJavaMethod(
+			null/*BshClassManager*/, clas, "main", 
+			new Class [] { String [].class }, true/*onlyStatic*/ );
+		if ( main != null )
+			main.invoke( null, new Object [] { args } );
+	}
 
 	/**
 		Run interactively.  (printing prompts, etc.)
@@ -723,11 +748,11 @@ public class Interpreter
 		associated with this interpreter. On the GUI console this will appear 
 		in red, etc.
 	*/
-    public final void error(String s) {
+    public final void error( Object o ) {
 		if ( console != null )
-				console.error( "// Error: " + s +"\n" );
+				console.error( "// Error: " + o +"\n" );
 		else {
-			err.println("// Error: " + s);
+			err.println("// Error: " + o );
 			err.flush();
 		}
     }
@@ -755,18 +780,17 @@ public class Interpreter
 	*/
 	public PrintStream getErr() { return err; }
 
-    public final void println(String s)
+    public final void println( Object o )
     {
-        //print(s + "\n");
-        print( s + systemLineSeparator );
+        print( String.valueOf(o) + systemLineSeparator );
     }
 
-    public final void print(String s)
+    public final void print( Object o )
     {
 		if (console != null) {
-            console.print(s);
+            console.print(o);
         } else {
-            out.print(s);
+            out.print(o);
             out.flush();
         }
     }
@@ -1045,14 +1069,6 @@ public class Interpreter
 		return getNameSpace().getClassManager();
 	}
 	
-	/**
-		Set the class manager.
-	public setClassManager( BshClassManager manager ) 
-	{
-		this.classManager = manager;
-	}
-	*/
-
 	/**
 		Set strict Java mode on or off.  
 		This mode attempts to make BeanShell syntax behave as Java

@@ -308,7 +308,7 @@ public class JConsole extends JScrollPane
 		}
 	}
 
-	void doCommandCompletion( String part ) {
+	private void doCommandCompletion( String part ) {
 		if ( nameCompletion == null )
 			return;
 
@@ -373,7 +373,7 @@ public class JConsole extends JScrollPane
 	    text.replaceSelection(string);
     }
 
-    String replaceRange(Object s, int start, int	end) {
+    private String replaceRange(Object s, int start, int	end) {
 		String st = s.toString();
 		text.select(start, end);
 	    text.replaceSelection(st);
@@ -434,6 +434,7 @@ public class JConsole extends JScrollPane
 			showHistoryLine();
 		}
 	}
+	
 	private	void historyDown() {
 		if ( histLine == 0 )
 			return;
@@ -483,35 +484,31 @@ public class JConsole extends JScrollPane
 		//text.repaint();
 	}
 
-	public void println(String string) {
-	    print( string + "\n" );
+	public void println(Object o) {
+	    print( String.valueOf(o) + "\n" );
 		text.repaint();
 	}
 
-	public synchronized void print(String string) {
-	    append( (string==null) ? "null" : string );
-		resetCommandStart();
-		text.setCaretPosition(cmdStart);
+	public void print(final Object o) {
+		invokeAndWait(new Runnable() {
+			public void run() {
+				append(String.valueOf(o));
+				resetCommandStart();
+				text.setCaretPosition(cmdStart);
+			}
+		});
 	}
 
 	/**
 	  * Prints "\\n" (i.e. newline)
 	  */
-
 	public void println() {
 	    print("\n");
 		text.repaint();
 	}
 
-	public void error( String s ) {
-	    print( s, Color.red );
-	}
-
-	public void println(Object object) {
-	    // ugly but	fast
-		print(new StringBuffer(
-		    String.valueOf(object)).append("\n"));
-		text.repaint();
+	public void error( Object o ) {
+	    print( o, Color.red );
 	}
 
 	public void println(Icon icon) {
@@ -520,88 +517,18 @@ public class JConsole extends JScrollPane
 		text.repaint();
 	}
 
-	/**
-	  * Prints all primitive integer values
-	  * (i.e. byte,	short, int, and	long)
-	public void println(long l) {
-		println(String.valueOf(l));
-	}
-	  */
-
-	/**
-	  * Prints the primitive type "double"
-	public void println(double d) {
-		println(String.valueOf(d));
-	}
-	  */
-
-	/**
-	  * Prints the primitive type "float"
-	  * (needed because of float->double
-	  * coercion weirdness)
-	public void println(float f) {
-		println(String.valueOf(f));
-	}
-	  */
-
-	/*
-	public void println(boolean b) {
-		println((b ? "true" : "false"));
-	}
-
-	public void println(char c) {
-		println(String.valueOf(c));
-	}
-	*/
-
-	public synchronized void print(Object object) {
-	    append(String.valueOf(object));
-		resetCommandStart();
-		text.setCaretPosition(cmdStart);
-	}
-
-	public synchronized void print(Icon icon) {
+	public void print(final Icon icon) {
 	    if (icon==null) 
 			return;
 
-		text.insertIcon(icon);
-		resetCommandStart();
-		text.setCaretPosition(cmdStart);
+		invokeAndWait(new Runnable() {
+			public void run() {
+				text.insertIcon(icon);
+				resetCommandStart();
+				text.setCaretPosition(cmdStart);
+			}
+		});			
 	}
-
-	/**
-	  * Prints all primitive integer values
-	  * (i.e. byte,	short, int, and	long)
-	public void print(long l) {
-		print(String.valueOf(l));
-	}
-	  */
-
-	/**
-	  * Prints the primitive type "double"
-	public void print(double d) {
-	print(String.valueOf(d));
-	}
-	  */
-
-	/**
-	  * Prints the primitive type "float"
-	  * (needed because of float->double
-	  * coercion weirdness)
-	public void print(float	f) {
-		print(String.valueOf(f));
-	}
-	  */
-
-	/*
-	public void print(boolean b) {
-		print(b	? "true" : "false");
-	}
-
-	public void print(char c) {
-		print(String.valueOf(c));
-	}
-	*/
 
 	public void print(Object s, Font font) {
 		print(s, font, null);
@@ -609,59 +536,62 @@ public class JConsole extends JScrollPane
 
 	public void print(Object s, Color color) {
 		print(s, null, color);
-    }
-	public void print(String s, Color color) {
-		print(s, null, color);
+	}
+
+	public void print(final Object o, final Font font, final Color color) {
+		invokeAndWait(new Runnable() {
+			public void run() {
+				AttributeSet old = getStyle();
+				setStyle(font, color);
+				append(String.valueOf(o));
+				resetCommandStart();
+				text.setCaretPosition(cmdStart);
+				setStyle(old, true);
+			}
+		});	
     }
 
-	public synchronized void print(Object s, Font font, Color color) {
-	    AttributeSet old = getStyle();
-
-	    setStyle(font, color);
-		print(s);
-		setStyle(old, true);
-    }
-
-	public synchronized void print(
+	public void print(
 	    Object s,
 	    String fontFamilyName,
 	    int	size,
 	    Color color
 	    ) {
-	    AttributeSet old = getStyle();
-
-	    setStyle(fontFamilyName, size, color);
-		print(s);
-		setStyle(old, true);
+			
+	    print(s,fontFamilyName,size,color,false,false,false);
     }
 
-	public synchronized void print(
-	    Object s,
-	    String fontFamilyName,
-	    int	size,
-	    Color color,
-	    boolean bold,
-	    boolean italic,
-	    boolean underline
+	public void print(
+	    final Object o,
+	    final String fontFamilyName,
+	    final int	size,
+	    final Color color,
+	    final boolean bold,
+	    final  boolean italic,
+	    final boolean underline
 	    ) 
 	{
-
-	    AttributeSet old = getStyle();
-
-	    setStyle(fontFamilyName, size, color, bold,	italic,	underline);
-		print(s);
-		setStyle(old, true);
+		invokeAndWait(new Runnable() {
+			public void run() {
+				AttributeSet old = getStyle();
+				setStyle(fontFamilyName, size, color, bold,	italic,	underline);
+				append(String.valueOf(o));
+				resetCommandStart();
+				text.setCaretPosition(cmdStart);
+				setStyle(old, true);
+			}
+		});			
     }
 
-    public AttributeSet	setStyle(Font font) {
+    private AttributeSet setStyle(Font font) {
 	    return setStyle(font, null);
     }
 
-    public AttributeSet	setStyle(Color color) {
+    private AttributeSet setStyle(Color color) {
 	    return setStyle(null, color);
     }
 
-    public AttributeSet	setStyle( Font font, Color color) 
+    private AttributeSet setStyle( Font font, Color color) 
 	{
 	    if (font!=null)
 			return setStyle( font.getFamily(), font.getSize(), color, 
@@ -671,7 +601,7 @@ public class JConsole extends JScrollPane
 			return setStyle(null,-1,color);
     }
 
-    public synchronized	AttributeSet setStyle (
+    private AttributeSet setStyle (
 	    String fontFamilyName, int	size, Color color) 
 	{
 		MutableAttributeSet attr = new SimpleAttributeSet();
@@ -687,7 +617,7 @@ public class JConsole extends JScrollPane
 		return getStyle();
     }
 
-    public synchronized	AttributeSet setStyle(
+    private AttributeSet setStyle(
 	    String fontFamilyName,
 	    int	size,
 	    Color color,
@@ -712,15 +642,15 @@ public class JConsole extends JScrollPane
 		return getStyle();
     }
 
-    public void	setStyle(AttributeSet attributes) {
+    private void setStyle(AttributeSet attributes) {
 		setStyle(attributes, false);
     }
 
-    public void	setStyle(AttributeSet attributes, boolean overWrite) {
+    private void setStyle(AttributeSet attributes, boolean overWrite) {
 		text.setCharacterAttributes(attributes,	overWrite);
     }
 
-    public AttributeSet	getStyle() {
+    private AttributeSet getStyle() {
 		return text.getCharacterAttributes();
     }
 
@@ -796,6 +726,21 @@ public class JConsole extends JScrollPane
 		}
     }
 
+	/**
+	 * If not in the event thread run via SwingUtilities.invokeAndWait()
+	 */
+	private void invokeAndWait(Runnable run) {
+		if(!SwingUtilities.isEventDispatchThread()) {
+			try {
+				SwingUtilities.invokeAndWait(run);
+			} catch(Exception e) {
+				// shouldn't happen
+				e.printStackTrace();
+			}
+		} else {
+			run.run();
+		}
+	}
 
 	/**
 		The overridden read method in this class will not throw "Broken pipe"

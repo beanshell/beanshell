@@ -1,6 +1,9 @@
 <section>
 <name filename="servletmode">BshServlet and Servlet Mode Scripting</name>
 
+<img src="servletmode.gif"/>
+<br CLEAR="ALL"/>
+
 BshServlet is a simple servlet that can be used to evaluate BeanShell
 scripts inside of an application server or servlet container.  BshServlet
 accepts BeanShell scripts via the POST method, evaluates them capturing output

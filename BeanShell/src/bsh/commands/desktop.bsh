@@ -161,7 +161,7 @@ desktop()
 
 	pane.addMouseListener( this );
 
-	this.frame=new JFrame("BeanShell Desktop 1.0");
+	this.frame=new JFrame("BeanShell Desktop 1.1");
 	
 	stage.add(pane);
 	stage.add(taskBar, BorderLayout.SOUTH);

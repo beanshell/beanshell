@@ -38,6 +38,7 @@ import java.util.zip.*;
 import javax.swing.*;
 import javax.swing.tree.*;
 import javax.swing.event.*;
+import javax.swing.border.*;
 import java.io.*;
 import java.awt.*;
 import java.lang.reflect.*;
@@ -64,26 +65,36 @@ public class ClassBrowser extends JSplitPane
 	// GUI
 	JFrame frame;
 	JInternalFrame iframe;
-	JList classlist, mlist, conslist;
+	JList classlist, conslist, mlist, fieldlist;
 	PackageTree ptree;
 	JTextArea methodLine;
 	JTree tree;
 	// For JList models
 	String [] packagesList;
 	String [] classesList;
-	Method [] methodList;
 	Constructor [] consList;
+	Method [] methodList;
+	Field [] fieldList;
 
 	String selectedPackage;
 	Class selectedClass;
 
+	private static final Color LIGHT_BLUE = new Color(245,245,255);
+	
 	public ClassBrowser() {
-		this( BshClassManager.createClassManager() );
+		this( BshClassManager.createClassManager( null/*interpreter*/ ) );
 	}
 
 	public ClassBrowser( BshClassManager classManager ) {
 		super( VERTICAL_SPLIT, true );
 		this.classManager = classManager;
+		
+		setBorder(null);
+		javax.swing.plaf.SplitPaneUI ui = getUI();
+		if(ui instanceof javax.swing.plaf.basic.BasicSplitPaneUI) {
+			((javax.swing.plaf.basic.BasicSplitPaneUI)ui).getDivider()
+				.setBorder(null);
+		}	
 	}
 
 	String [] toSortedStrings ( Collection c ) {
@@ -113,15 +124,6 @@ public class ClassBrowser extends JSplitPane
 		//setMlist( (String)classlist.getModel().getElementAt(0) );
 	}
 
-	String [] parseMethods( Method [] methods ) {
-		String [] sa = new String [ methods.length ] ;
-		for(int i=0; i< sa.length; i++)
-			sa[i] = StringUtil.methodString( 
-				methods[i].getName(), methods[i].getParameterTypes() );
-		//return bubbleSort(sa);
-		return sa;
-	}
-
 	String [] parseConstructors( Constructor [] constructors ) {
 		String [] sa = new String [ constructors.length ] ;
 		for(int i=0; i< sa.length; i++) {
@@ -131,8 +133,26 @@ public class ClassBrowser extends JSplitPane
 		}
 		//return bubbleSort(sa);
 		return sa;
+	}	
+	
+	String [] parseMethods( Method [] methods ) {
+		String [] sa = new String [ methods.length ] ;
+		for(int i=0; i< sa.length; i++)
+			sa[i] = StringUtil.methodString( 
+				methods[i].getName(), methods[i].getParameterTypes() );
+		//return bubbleSort(sa);
+		return sa;
 	}
 
+	String [] parseFields( Field[] fields ) {
+		String [] sa = new String [ fields.length ] ;
+		for(int i=0; i< sa.length; i++) {
+			Field f = fields[i];
+			sa[i] = f.getName();
+		}
+		return sa;
+	}
+	
 	Constructor [] getPublicConstructors( Constructor [] constructors ) {
 		Vector v = new Vector();
 		for(int i=0; i< constructors.length; i++)
@@ -143,6 +163,7 @@ public class ClassBrowser extends JSplitPane
 		v.copyInto( ca );
 		return ca;
 	}
+	
 	Method [] getPublicMethods( Method [] methods ) {
 		Vector v = new Vector();
 		for(int i=0; i< methods.length; i++)
@@ -153,7 +174,28 @@ public class ClassBrowser extends JSplitPane
 		v.copyInto( ma );
 		return ma;
 	}
+	
+	Field[] getPublicFields( Field [] fields ) {
+		Vector v = new Vector();
+		for(int i=0; i< fields.length; i++)
+			if ( Modifier.isPublic(fields[i].getModifiers()) )
+				v.addElement( fields[i] );
 
+		Field [] fa = new Field [ v.size() ];
+		v.copyInto( fa );
+		return fa;		
+	}
+
+	void setConslist( Class clas ) {
+		if ( clas == null ) {
+			conslist.setListData( new Object [] { } );
+			return;
+		}
+
+		consList = getPublicConstructors( clas.getDeclaredConstructors() );
+		conslist.setListData( parseConstructors(consList) );
+	}	
+	
 	void setMlist( String classname ) 
 	{
 		if ( classname == null ) 
@@ -182,19 +224,21 @@ public class ClassBrowser extends JSplitPane
 		}
 		methodList = getPublicMethods( selectedClass.getDeclaredMethods() );
 		mlist.setListData( parseMethods(methodList) );
+		
 		setClassTree( selectedClass );
 		setConslist( selectedClass );
+		setFieldList( selectedClass );
 	}
-
-	void setConslist( Class clas ) {
+	
+	void setFieldList( Class clas ) {
 		if ( clas == null ) {
-			conslist.setListData( new Object [] { } );
+			fieldlist.setListData( new Object [] { } );
 			return;
 		}
 
-		consList = getPublicConstructors( clas.getDeclaredConstructors() );
-		conslist.setListData( parseConstructors(consList) );
-	}
+		fieldList = getPublicFields(clas.getDeclaredFields());
+		fieldlist.setListData( parseFields(fieldList) );
+	}		
 
 	void setMethodLine( Object method ) {
 		methodLine.setText( method==null ? "" : method.toString() );
@@ -275,35 +319,48 @@ public class ClassBrowser extends JSplitPane
 		} );
 
 		classlist=new JList();
+		classlist.setBackground(LIGHT_BLUE);
 		classlist.addListSelectionListener(this);
 
+		conslist = new JList();
+		conslist.addListSelectionListener(this);		
+		
 		mlist = new JList();
+		mlist.setBackground(LIGHT_BLUE);
 		mlist.addListSelectionListener(this);
 
-		conslist = new JList();
-		conslist.addListSelectionListener(this);
+		fieldlist = new JList();
+		fieldlist.addListSelectionListener(this);
 
-		JSplitPane methodspane = new JSplitPane(
+		JSplitPane methodConsPane = splitPane(
 			JSplitPane.VERTICAL_SPLIT, true, 
-			labeledPane(new JScrollPane(mlist), "Methods"),
-			labeledPane(new JScrollPane(conslist), "Constructors"));
-
-		JSplitPane sp = new JSplitPane( 
+			labeledPane(new JScrollPane(conslist), "Constructors"),
+			labeledPane(new JScrollPane(mlist), "Methods")
+			);
+		
+		JSplitPane rightPane = splitPane(JSplitPane.VERTICAL_SPLIT, true,
+			methodConsPane,
+			labeledPane(new JScrollPane(fieldlist), "Fields")
+			);
+			
+		JSplitPane sp = splitPane( 
 			JSplitPane.HORIZONTAL_SPLIT, true, 
 			labeledPane(new JScrollPane(classlist), "Classes"),
-			methodspane );
-		sp = new JSplitPane( 
+			rightPane );
+		sp = splitPane( 
 			JSplitPane.HORIZONTAL_SPLIT, true, 
 				labeledPane(new JScrollPane(ptree), "Packages"), sp);
 
 		JPanel bottompanel = new JPanel( new BorderLayout() );
 		methodLine = new JTextArea(1,60);
+		methodLine.setBackground(LIGHT_BLUE);
 		methodLine.setEditable(false);
 		methodLine.setLineWrap(true);
 		methodLine.setWrapStyleWord(true);
 		methodLine.setFont( new Font("Monospaced", Font.BOLD, 14) );
 		methodLine.setMargin( new Insets(5,5,5,5) );
-		methodLine.setBorder( BorderFactory.createRaisedBevelBorder() );
+		methodLine.setBorder( new MatteBorder(1,0,1,0,
+			LIGHT_BLUE.darker().darker()) );
 		bottompanel.add("North", methodLine);
 		JPanel p = new JPanel( new BorderLayout() );
 
@@ -324,6 +381,22 @@ public class ClassBrowser extends JSplitPane
 		
 		setTopComponent( sp );
 		setBottomComponent( bottompanel );
+	}
+	
+	private JSplitPane splitPane(
+		int orientation,
+		boolean redraw,
+		JComponent c1,
+		JComponent c2
+	) {
+		JSplitPane sp = new JSplitPane(orientation, redraw, c1, c2);
+		sp.setBorder(null);
+		javax.swing.plaf.SplitPaneUI ui = sp.getUI();
+		if(ui instanceof javax.swing.plaf.basic.BasicSplitPaneUI) {
+			((javax.swing.plaf.basic.BasicSplitPaneUI)ui).getDivider()
+				.setBorder(null);
+		}
+		return sp;
 	}
 
 	public static void main( String [] args ) 
@@ -387,6 +460,15 @@ public class ClassBrowser extends JSplitPane
 				setMethodLine( null );
 			else
 				setMethodLine( consList[i] );
+		}
+		else
+		if ( e.getSource() == fieldlist ) 
+		{
+			int i = fieldlist.getSelectedIndex();
+			if ( i == -1 )
+				setMethodLine( null );
+			else
+				setMethodLine( fieldList[i] );
 		} 
 	}
 
@@ -429,7 +511,7 @@ public class ClassBrowser extends JSplitPane
 			setPackages( packages );
 
 			setRootVisible(false);
-			setShowsRootHandles(false);
+			setShowsRootHandles(true);
 			setExpandsSelectedPaths(true);
 
 			// open top level paths

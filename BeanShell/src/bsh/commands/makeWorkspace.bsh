@@ -48,11 +48,22 @@ makeWorkspace( String name )
 
 	this.frame = bsh.system.desktop.makeInternalFrame( name );
 	frame.frameIcon=bsh.system.icons.workspace;
-	frame.setDefaultCloseOperation( frame.DO_NOTHING_ON_CLOSE );
 	
+	/*
+		Notes: Careful not to print anything before returning sys io...
+		console is now gone.
+	*/
 	internalFrameClosing( e ) {
-		close();
+		if ( haveSysIO )
+			returnSysIO();
 	}
+	internalFrameActivated(ife) {}
+	internalFrameDeactivated(ife) {}
+	internalFrameClosed(ife) {}
+	internalFrameOpened(ife) {}
+	internalFrameIconified(ife) {}
+	internalFrameDeiconified(ife) {}	
+	
 	frame.addInternalFrameListener(this);
 
 	actionPerformed( e ) 
@@ -63,25 +74,8 @@ makeWorkspace( String name )
 		else if ( com.equals("Capture System in/out/err") )
 			captureSysIO();
 		else if	( com.equals("Close") )	{
-			close();
+			frame.setClosed(true);
 		}
-	}
-	
-	internalFrameActivated(ife) {}
-	internalFrameDeactivated(ife) {}
-	internalFrameClosed(ife) {}
-	internalFrameOpened(ife) {}
-	internalFrameIconified(ife) {}
-	internalFrameDeiconified(ife) {}
-	
-	/*
-		Notes: Careful not to print anything before returning sys io...
-		console is now gone.
-	*/
-	close() {
-		frame.dispose();
-		if ( haveSysIO )
-			returnSysIO();
 	}
 
 	this.menubar = new JMenuBar();

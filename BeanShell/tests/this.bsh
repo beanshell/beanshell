@@ -13,15 +13,19 @@ this.booga();
 
 if ( true ) 
 {
+print("here1");
   assert( !(this.namespace instanceof bsh.BlockNameSpace) );
   BigDecimal c = new BigDecimal("1.0");
+print("here2");
   print(c); 
+print("here3");
   assert( this.c == void ); 
   assert( this == ths );
   { // another block
   	assert( this == ths );
 	assert( this.c == void );
   }
+print("here4");
   blockthis = this;
   assert( this == blockthis );
   assert( blockthis == ths );

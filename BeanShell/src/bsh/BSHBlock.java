@@ -73,16 +73,19 @@ class BSHBlock extends SimpleNode
 		if ( isSynchronized ) // Do the actual synchronization
 			synchronized( syncValue )
 			{
-				ret = evalBlock( callstack, interpreter, overrideNamespace );
+				ret = evalBlock( 
+					callstack, interpreter, overrideNamespace, null/*filter*/);
 			}
 		else
-				ret = evalBlock( callstack, interpreter, overrideNamespace );
+				ret = evalBlock( 
+					callstack, interpreter, overrideNamespace, null/*filter*/ );
 
 		return ret;
 	}
 
-	Object evalBlock( CallStack callstack, Interpreter interpreter, 
-		boolean overrideNamespace ) 
+	Object evalBlock( 
+		CallStack callstack, Interpreter interpreter, 
+		boolean overrideNamespace, NodeFilter nodeFilter ) 
 		throws EvalError
 	{	
 		Object ret = Primitive.VOID;
@@ -100,13 +103,34 @@ class BSHBlock extends SimpleNode
 		int numChildren = jjtGetNumChildren();
 
 		try {
+			/*
+				Evaluate block in two passes: 
+				First do class declarations then do everything else.
+			*/
 			for(int i=startChild; i<numChildren; i++)
 			{
 				SimpleNode node = ((SimpleNode)jjtGetChild(i));
+
+				if ( nodeFilter != null && !nodeFilter.isVisible( node ) )
+					continue;
+
+				if ( node instanceof BSHClassDeclaration )
+					node.eval( callstack, interpreter );
+			}
+			for(int i=startChild; i<numChildren; i++)
+			{
+				SimpleNode node = ((SimpleNode)jjtGetChild(i));
+				if ( node instanceof BSHClassDeclaration )
+					continue;
+
+				// filter nodes
+				if ( nodeFilter != null && !nodeFilter.isVisible( node ) )
+					continue;
+
 				ret = node.eval( callstack, interpreter );
 
-				// some statement or embedded block evaluated a return statement
-				if (ret instanceof ReturnControl)
+				// statement or embedded block evaluated a return statement
+				if ( ret instanceof ReturnControl )
 					break;
 			}
 		} finally {
@@ -116,5 +140,10 @@ class BSHBlock extends SimpleNode
 		}
 		return ret;
 	}
+
+	public interface NodeFilter {
+		public boolean isVisible( SimpleNode node );
+	}
+
 }
 

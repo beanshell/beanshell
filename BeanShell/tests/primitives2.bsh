@@ -8,12 +8,14 @@ check(a, val, java.lang.Class cl) {
 	assert( a.getValue() == val );
 }
 
-print("Promotion tests");
-print("Should be integer:");
+// Promotion tests
+
+// Should be integer
 check(5, 5, Integer.class);
 check(5+5, 10, Integer.class);
 check(5/2, 2, Integer.class);
-print("Should be double:");
+
+// Should be double
 check(4.0, 4.0, Double.class);
 check(5.0+5.0, 10.0, Double.class);
 check(1+1.0, 2.0, Double.class);

@@ -38,6 +38,7 @@ import java.lang.reflect.Array;
 import java.util.Hashtable;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
 	What's in a name?  I'll tell you...
@@ -210,6 +211,8 @@ class Name implements java.io.Serializable
 	private Object completeRound( 
 		String lastEvalName, String nextEvalName, Object returnObject )
 	{
+		if ( returnObject == null )
+			throw new InterpreterError("lastEvalName = "+lastEvalName);
 		this.lastEvalName = lastEvalName;
 		this.evalName = nextEvalName;
 		this.evalBaseObject = returnObject;
@@ -373,6 +376,26 @@ class Name implements java.io.Serializable
 			Class clas = ((ClassIdentifier)evalBaseObject).getTargetClass();
 			String field = prefix(evalName, 1);
 
+			// Class qualified 'this' reference from inner class.
+			// e.g. 'MyOuterClass.this'
+			if ( field.equals("this") )
+			{
+				// find the enclosing class instance space of the class name
+				NameSpace ns = namespace;
+				while ( ns != null )
+				{
+					// getClassInstance() throws exception if not there
+					if ( ns.classInstance != null 
+						&& ns.classInstance.getClass() == clas 
+					)
+						return completeRound( 
+							field, suffix(evalName), ns.classInstance );
+					ns=ns.getParent();
+				}
+				throw new UtilEvalError(
+					"Can't find enclosing 'this' instance of class: "+clas);
+			}
+
 			Object obj = null;
 			// static field?
 			try {
@@ -395,7 +418,8 @@ class Name implements java.io.Serializable
 
 			if ( obj == null )
 				throw new UtilEvalError(
-					"No static field or inner class: " + field + " of " + clas);
+					"No static field or inner class: " 
+					+ field + " of " + clas );
 
 			return completeRound( field, suffix(evalName), obj );
 		}
@@ -454,8 +478,6 @@ class Name implements java.io.Serializable
 		String varName, boolean specialFieldsVisible ) 
 		throws UtilEvalError
 	{
-		Object obj = null;
-
 		if ( varName.equals("this") ) 
 		{
 			/*
@@ -469,25 +491,21 @@ class Name implements java.io.Serializable
 
 			// Allow getThis() to work through BlockNameSpace to the method
 			// namespace
+	// XXX re-eval this... do we need it?
 			This ths = thisNameSpace.getThis( interpreter );
 			thisNameSpace= ths.getNameSpace();
+			Object result = ths;
 
-			/*
-				The following test handles the case of a scripted method in a
-				scripted class instance namespace.  This should really be in a
-				subclass of Name or NameSpace.  A reference to 'this' from
-				inside a method in a class instance should refer to the
-				enclosing class instance, as in Java.
-			*/
-			if ( thisNameSpace.isMethod 
-				&& thisNameSpace.getParent() != null 
-				&& thisNameSpace.getParent() instanceof ClassNameSpace
-				&& ((ClassNameSpace)(thisNameSpace.getParent()))
-					.isClassInstance()
-			)
-				ths = thisNameSpace.getParent().getThis( interpreter );
+			NameSpace classNameSpace = getClassNameSpace( thisNameSpace );
+			if ( classNameSpace != null )
+			{
+				if ( isCompound( evalName ) )
+					result = classNameSpace.getThis( interpreter );
+				else
+					result = classNameSpace.getClassInstance();
+			}
 
-			return ths;
+			return result;
 		}
 
 		/*
@@ -498,31 +516,30 @@ class Name implements java.io.Serializable
 		if ( varName.equals("super") ) 
 		{
 			//if ( specialFieldsVisible )
-				//throw new UtilEvalError("Redundant to call .this on This type");
+			//throw new UtilEvalError("Redundant to call .this on This type");
 
 			// Allow getSuper() to through BlockNameSpace to the method's super
-			This ths = thisNameSpace.getSuper().getThis(interpreter);
+			This ths = thisNameSpace.getSuper( interpreter );
 			thisNameSpace = ths.getNameSpace();
 			// super is now the closure's super or class instance
 
+	// XXXX re-evaluate this
+	// can getSuper work by itself now?
 			// If we're a class instance and the parent is also a class instance
 			// then super means our parent.
 			if ( 
-				thisNameSpace instanceof ClassNameSpace
-				&& ((ClassNameSpace)thisNameSpace).isClassInstance()
-
-				&& thisNameSpace.getParent() != null 
-				&& thisNameSpace.getParent() instanceof ClassNameSpace
-				&& ((ClassNameSpace)(thisNameSpace.getParent()))
-					.isClassInstance()
+				thisNameSpace.getParent() != null 
+				&& thisNameSpace.getParent().isClass
 			)
 				ths = thisNameSpace.getParent().getThis( interpreter );
 
 			return ths;
 		}
 
+		Object obj = null;
+
 		if ( varName.equals("global") )
-			obj = thisNameSpace.getGlobal().getThis( interpreter );
+			obj = thisNameSpace.getGlobal( interpreter );
 
 		if ( obj == null && specialFieldsVisible ) 
 		{
@@ -577,7 +594,31 @@ class Name implements java.io.Serializable
 		if ( obj == null )
 			obj = thisNameSpace.getVariable(varName);
 
+		if ( obj == null )
+			throw new InterpreterError("null this field ref:"+varName);
+
 		return obj;
+	}
+
+	/**
+		@return the enclosing class body namespace or null if not in a class.
+	*/
+	static NameSpace getClassNameSpace( NameSpace thisNameSpace ) 
+	{
+		NameSpace classNameSpace = null;
+		// is a class instance
+		//if ( thisNameSpace.classInstance != null )
+		if ( thisNameSpace.isClass )
+			return thisNameSpace;
+
+		if ( thisNameSpace.isMethod 
+			&& thisNameSpace.getParent() != null 
+			//&& thisNameSpace.getParent().classInstance != null
+			&& thisNameSpace.getParent().isClass
+		)
+			return thisNameSpace.getParent();
+
+		return null;
 	}
 
 	/**
@@ -641,6 +682,9 @@ class Name implements java.io.Serializable
 		// Simple (non-compound) variable assignment e.g. x=5;
 		if ( !isCompound(evalName) ) 
 		{
+			if ( evalName.equals("this") )
+				throw new UtilEvalError("Can't assign to 'this'." );
+
 			// Interpreter.debug("Simple var LHS...");
 			lhs = new LHS( namespace, evalName, false/*bubble up if allowed*/);
 			return lhs;
@@ -650,17 +694,19 @@ class Name implements java.io.Serializable
 		Object obj = null;
 		try {
 			while( evalName != null && isCompound( evalName ) )
+			{
 				obj = consumeNextObjectField( callstack, interpreter, 
 					false/*forcclass*/, true/*autoallocthis*/ );
+			}
 		} 
 		catch( UtilEvalError e ) {
-			throw new UtilEvalError("LHS evaluation: " + e);
+			throw new UtilEvalError( "LHS evaluation: " + e.getMessage() );
 		}
 
-		//if ( obj instanceof ClassIdentifier )
 		// Finished eval and its a class.
 		if ( evalName == null && obj instanceof ClassIdentifier )
 			throw new UtilEvalError("Can't assign to class: " + value );
+
 		if ( obj == null )
 			throw new UtilEvalError("Error in LHS: " + value );
 
@@ -743,7 +789,8 @@ class Name implements java.io.Serializable
         throws UtilEvalError, EvalError, ReflectError, InvocationTargetException
     {
         String methodName = Name.suffix(value, 1);
-		BshClassManager bcm = callstack.top().getClassManager();
+		BshClassManager bcm = interpreter.getClassManager();
+		NameSpace namespace = callstack.top();
 
 		// Optimization - If classOfStaticMethod is set then we have already 
 		// been here and determined that this is a static method invocation.
@@ -764,9 +811,22 @@ class Name implements java.io.Serializable
 		// for BlockNameSpace case.  They currently work via the direct name
 		// e.g. methodName().
 
-        // Find target object or class identifier
-        Name targetName = namespace.getNameResolver( Name.prefix(value));
+        String prefix = Name.prefix(value);
 
+		// Superclass method invocation? (e.g. super.foo())
+		if ( prefix.equals("super") && Name.countParts(value) == 2 )
+		{
+			NameSpace classNameSpace = getClassNameSpace( namespace );
+			if ( classNameSpace != null )
+			{
+				Object instance = classNameSpace.getClassInstance();
+				return ClassGenerator.getClassGenerator()
+					.invokeSuperclassMethod( bcm, instance, methodName, args );
+			}
+		}
+
+        // Find target object or class identifier
+        Name targetName = namespace.getNameResolver( prefix );
         Object obj = targetName.toObject( callstack, interpreter );
 
 		if ( obj == Primitive.VOID ) 
@@ -818,7 +878,13 @@ class Name implements java.io.Serializable
 	/**
 		Invoke a locally declared method or a bsh command.
 		If the method is not already declared in the namespace then try
-		to load it as a resource from the /bsh/commands path.
+		to load it as a resource from the imported command path (e.g.
+		/bsh/commands)
+	*/
+	/*
+		Note: the bsh command code should probably not be here...  we need to
+		scope it by the namespace that imported the command... so it probably
+		needs to be integrated into NameSpace.
 	*/
     private Object invokeLocalMethod( 
 		Interpreter interpreter, Object[] args, CallStack callstack,
@@ -833,7 +899,7 @@ class Name implements java.io.Serializable
 				"invokeLocalMethod: interpreter = null");
 
 		String commandName = value;
-		Class [] argTypes = Reflect.getTypes( args );
+		Class [] argTypes = Types.getTypes( args );
 
         // Check for existing method
         BshMethod meth = null;
@@ -849,6 +915,8 @@ class Name implements java.io.Serializable
 			return meth.invoke( args, interpreter, callstack, callerInfo );
 
 		BshClassManager bcm = interpreter.getClassManager();
+
+		// Look for a BeanShell command
 
 		Object commandObject;
 		try {

@@ -31,25 +31,62 @@
  *                                                                           *
  *****************************************************************************/
 
-
 package bsh;
 
-/**
-	For loose type parameters the argTypes are null.
-*/
 class BSHFormalParameters extends SimpleNode
 {
+	private String [] paramNames;
+	/**
+		For loose type parameters the paramTypes are null.
+	*/
+	// unsafe caching of types
+	Class [] paramTypes;
 	int numArgs;
-
-// I'm not sure doing this is thread safe...
-//Will we be hit by different threads...  I think the namespace is the declaring
-//one... so it would be the same...
-// caching of the method structure happens in BshMethod, so it's not necessary
-//here...
-	String[] argNames;
-	Class[] argTypes;
+	String [] typeDescriptors;
 
 	BSHFormalParameters(int id) { super(id); }
+
+	void insureParsed() 
+	{
+		if ( paramNames != null )
+			return;
+
+		this.numArgs = jjtGetNumChildren();
+		String [] paramNames = new String[numArgs];
+
+		for(int i=0; i<numArgs; i++)
+		{
+			BSHFormalParameter param = (BSHFormalParameter)jjtGetChild(i);
+			paramNames[i] = param.name;
+		}
+
+		this.paramNames = paramNames;
+	}
+
+	public String [] getParamNames() { 
+		insureParsed();
+		return paramNames;
+	}
+
+	public String [] getTypeDescriptors( 
+		CallStack callstack, Interpreter interpreter, String defaultPackage )
+	{
+		if ( typeDescriptors != null )
+			return typeDescriptors;
+
+		insureParsed();
+		String [] typeDesc = new String[numArgs];
+
+		for(int i=0; i<numArgs; i++)
+		{
+			BSHFormalParameter param = (BSHFormalParameter)jjtGetChild(i);
+			typeDesc[i] = param.getTypeDescriptor( 
+				callstack, interpreter, defaultPackage );
+		}
+
+		this.typeDescriptors = typeDesc;
+		return typeDesc;
+	}
 
 	/**
 		Evaluate the types.  
@@ -58,20 +95,21 @@ class BSHFormalParameters extends SimpleNode
 	public Object eval( CallStack callstack, Interpreter interpreter )  
 		throws EvalError
 	{
-		numArgs = jjtGetNumChildren();
+		if ( paramTypes != null )
+			return paramTypes;
 
-		argNames = new String[numArgs];
-		argTypes = new Class[numArgs];
+		insureParsed();
+		Class [] paramTypes = new Class[numArgs];
 
 		for(int i=0; i<numArgs; i++)
 		{
 			BSHFormalParameter param = (BSHFormalParameter)jjtGetChild(i);
-			param.eval( callstack, interpreter );
-			argNames[i] = param.name;
-			argTypes[i] = param.type;
+			paramTypes[i] = (Class)param.eval( callstack, interpreter );
 		}
 
-		return Primitive.VOID;
+		this.paramTypes = paramTypes;
+
+		return paramTypes;
 	}
 }
 

@@ -112,8 +112,8 @@ class BSHArrayInitializer extends SimpleNode
 				// don't deal with object types here... unless above
 				if ( baseType.isPrimitive() )
 					try {
-						primValue = BSHCastExpression.castPrimitive( 
-							primValue, baseType );
+						primValue = primValue.castToType( 
+							baseType, Types.CAST );
 					} catch ( UtilEvalError e ) {
 					e.printStackTrace();
 						Interpreter.debug("error:"+e);
@@ -145,8 +145,6 @@ class BSHArrayInitializer extends SimpleNode
 		Class baseType, Object initializer, int argNum, CallStack callstack ) 
 		throws EvalError
 	{
-		String lhsType = Reflect.normalizeClassName(baseType);
-
 		String rhsType;
 		if (initializer instanceof Primitive)
 			rhsType = 

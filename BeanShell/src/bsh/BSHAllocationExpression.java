@@ -43,7 +43,8 @@ import java.lang.reflect.InvocationTargetException;
 class BSHAllocationExpression extends SimpleNode
 {
     BSHAllocationExpression(int id) { super(id); }
-
+	private static int innerClassCount = 0;
+	
     public Object eval( CallStack callstack, Interpreter interpreter) 
 		throws EvalError
     {
@@ -85,14 +86,6 @@ class BSHAllocationExpression extends SimpleNode
         Object obj = nameNode.toObject( 
 			callstack, interpreter, false/* force class*/ );
 
-		// Is it a scripted class object?
-		if ( ClassNameSpace.isScriptedClass( obj ) )
-		{
-			ClassNameSpace cns = (ClassNameSpace)((This)obj).getNameSpace();
-			return cns.constructClassInstance( 
-				args, interpreter, callstack, this );
-		}
-
 		// Try regular class
 
         obj = nameNode.toObject( 
@@ -102,15 +95,21 @@ class BSHAllocationExpression extends SimpleNode
 		if ( obj instanceof ClassIdentifier )
         	type = ((ClassIdentifier)obj).getTargetClass();
 		else
-			throw new EvalError( "Can't new: "+obj, this, callstack );
+			throw new EvalError( 
+				"Unknown class: "+nameNode.text, this, callstack );
 
 		// Is an inner class style object allocation
 		boolean hasBody = jjtGetNumChildren() > 2;
 
-		if ( hasBody ) {
+		if ( hasBody ) 
+		{
         	BSHBlock body = (BSHBlock)jjtGetChild(2);
-			return constructWithBody( 
-				type, args, body, callstack, interpreter );
+			if ( type.isInterface() )
+				return constructWithInterfaceBody( 
+					type, args, body, callstack, interpreter );
+			else
+				return constructWithClassBody( 
+					type, args, body, callstack, interpreter );
 		} else
 			return constructObject( type, args, callstack );
     }
@@ -119,8 +118,9 @@ class BSHAllocationExpression extends SimpleNode
 		Class type, Object[] args, CallStack callstack ) 
 		throws EvalError
 	{
+		Object obj;
         try {
-            return Reflect.constructObject( type, args );
+            obj = Reflect.constructObject( type, args );
         } catch ( ReflectError e) {
             throw new EvalError(
 				"Constructor error: " + e.getMessage(), this, callstack );
@@ -132,24 +132,82 @@ class BSHAllocationExpression extends SimpleNode
 				"Object constructor", e.getTargetException(), 
 				this, callstack, true);
         }
+
+		String className = type.getName();
+		// Is it an inner class?
+		if ( className.indexOf("$") == -1 )
+			return obj;
+
+		// Temporary hack to support inner classes 
+		// If the obj is a non-static inner class then import the context...
+		// This is not a sufficient emulation of inner classes.
+		// Replace this later...
+
+		// work through to class 'this'
+		This ths = callstack.top().getThis( null );
+		NameSpace instanceNameSpace = 
+			Name.getClassNameSpace( ths.getNameSpace() );
+		
+		// Change the parent (which was the class static) to the class instance
+		// We really need to check if we're a static inner class here first...
+		// but for some reason Java won't show the static modifier on our
+		// fake inner classes...  could generate a flag field.
+		if ( instanceNameSpace != null 
+			&& className.startsWith( instanceNameSpace.getName() +"$") 
+		)
+		{
+			try {
+				ClassGenerator.getClassGenerator().setInstanceNameSpaceParent(
+					obj, className, instanceNameSpace );
+			} catch ( UtilEvalError e ) {
+				throw e.toEvalError( this, callstack );
+			}
+		}
+
+		return obj;
 	}
 
-	private Object constructWithBody( 
+	private Object constructWithClassBody( 
+		Class type, Object[] args, BSHBlock block,
+		CallStack callstack, Interpreter interpreter ) 
+		throws EvalError
+	{
+		String name = callstack.top().getName() + "$" + (++innerClassCount);
+		Modifiers modifiers = new Modifiers();
+		modifiers.addModifier( Modifiers.CLASS, "public" );
+		Class clas;
+		try {
+			clas = ClassGenerator.getClassGenerator() .generateClass( 
+				name, modifiers, null/*interfaces*/, type/*superClass*/, 
+				block, false/*isInterface*/, callstack, interpreter );
+		} catch ( UtilEvalError e ) {
+			throw e.toEvalError( this, callstack );
+		}
+		try {
+			return Reflect.constructObject( clas, args );
+		} catch ( Exception e ) {
+			if ( e instanceof InvocationTargetException )
+				e = (Exception)((InvocationTargetException)e)
+					.getTargetException();
+			throw new EvalError(
+				"Error constructing inner class instance: "+e, this, callstack
+			);
+		}
+	}
+
+	private Object constructWithInterfaceBody( 
 		Class type, Object[] args, BSHBlock body,
 		CallStack callstack, Interpreter interpreter ) 
 		throws EvalError
 	{
-		if ( ! type.isInterface() )
-			throw new EvalError(
-				"BeanShell cannot extend class types: "+ type, this, callstack);
-
 		NameSpace namespace = callstack.top();
-// Maybe we should swap in local namespace for the top?
-// who is the caller?
-		NameSpace local = new NameSpace(namespace, "anonymous block object");
+		NameSpace local = new NameSpace(namespace, "AnonymousBlock");
 		callstack.push(local);
-		body.eval( callstack, interpreter, true );
+		body.eval( callstack, interpreter, true/*overrideNamespace*/ );
 		callstack.pop();
+		// statical import fields from the interface so that code inside
+		// can refer to the fields directly (e.g. HEIGHT)
+		local.importStatic( type );
 		try {
 			return local.getThis(interpreter).getInterface( type );
 		} catch ( UtilEvalError e ) {

@@ -41,15 +41,13 @@ import java.util.Vector;
     All of the reflection API code lies here.  It is in the form
 	of static utilities.  Maybe this belongs in LHS.java or a generic object 
 	wrapper class.
-
-	Note: More work to do in here to fix up the extended signature matching.
-	need to work in a search along with findMostSpecificSignature...
-	<p>
-
-	Note: there are lots of cases here where the Java reflection API makes
-	us catch exceptions (e.g. NoSuchFieldException) in order to do basic
-	searching.  This has to be inefficient...  I wish they would add a more
-	normal Java API for locating fields.
+*/
+/*
+	Note: This class is messy.  The method and field resolution need to be
+	rewritten.  Various methods in here catch NoSuchMethod or NoSuchField
+	exceptions during their searches.  These should be rewritten to avoid
+	having to catch the exceptions.  Method lookups are now cached at a high 
+	level so they are less important, however the logic is messy.
 */
 class Reflect 
 {
@@ -64,18 +62,20 @@ class Reflect
 		throws ReflectError, EvalError, InvocationTargetException
 	{
 		// Bsh scripted object
-		if ( object instanceof This && !passThisMethod( methodName) ) 
+		if ( object instanceof This && !This.isExposedThisMethod( methodName) ) 
 			return ((This)object).invokeMethod( 
-				methodName, args, interpreter, callstack, callerInfo );
+				methodName, args, interpreter, callstack, callerInfo,
+				false/*delcaredOnly*/ );
 		else 
 		// Java object
 		{ 
 			// find the java method
 			try {
-				BshClassManager bcm = callstack.top().getClassManager();
+				BshClassManager bcm = 
+					interpreter == null ? null : interpreter.getClassManager();
 				Class clas = object.getClass();
 
-				Method method = resolveJavaMethod( 
+				Method method = resolveExpectedJavaMethod( 
 					bcm, clas, object, methodName, args, false );
 
 				return invokeOnMethod( method, object, args );
@@ -95,17 +95,22 @@ class Reflect
         throws ReflectError, UtilEvalError, InvocationTargetException
     {
         Interpreter.debug("invoke static Method");
-        Method method = resolveJavaMethod( 
+        Method method = resolveExpectedJavaMethod( 
 			bcm, clas, null, methodName, args, true );
 		return invokeOnMethod( method, null, args );
     }
 
 	/**
+		Invoke the Java method on the specified object.
+		@param args may be null
 	*/
-	private static Object invokeOnMethod( 
+	static Object invokeOnMethod( 
 		Method method, Object object, Object[] args ) 
 		throws ReflectError, InvocationTargetException
 	{
+		if ( args == null )
+			args = new Object[0];
+
 		if ( Interpreter.DEBUG ) 
 		{
 			Interpreter.debug("Invoking method (entry): "
@@ -121,14 +126,14 @@ class Reflect
 		Class [] types = method.getParameterTypes();
 		try {
 			for (int i=0; i<args.length; i++)
-				tmpArgs[i] = NameSpace.getAssignableForm( args[i], types[i] );
+				tmpArgs[i] = Types.getAssignableForm( args[i], types[i] );
 		} catch ( UtilEvalError e ) {
 			throw new InterpreterError(
 				"illegal argument type in method invocation: "+e );
 		}
 
 		// unwrap any primitives
-		tmpArgs = unwrapPrimitives( tmpArgs );
+		tmpArgs = Primitive.unwrap( tmpArgs );
 
 		if ( Interpreter.DEBUG ) 
 		{
@@ -140,42 +145,19 @@ class Reflect
 					+" type = "+tmpArgs[i].getClass() );
 		}
 
-		try 
-		{
+		try {
 			Object returnValue = method.invoke( object, tmpArgs );
 			if ( returnValue == null )
 				returnValue = Primitive.NULL;
 			Class returnType = method.getReturnType();
 
-			return wrapPrimitive( returnValue, returnType );
+			return Primitive.wrap( returnValue, returnType );
 		} catch( IllegalAccessException e ) {
 			throw new ReflectError( "Cannot access method " 
 				+ StringUtil.methodString(
 					method.getName(), method.getParameterTypes() ) 
 				+ " in '" + method.getDeclaringClass() + "' :" + e );
 		}
-	}
-
-	/**
-		Allow invocations of these method names on This type objects.
-		Don't give bsh.This a chance to override their behavior.
-		<p>
-
-		If the method is passed here the invocation will actually happen on
-		the bsh.This object via the regular reflective method invocation 
-		mechanism.  If not, then the method is evaluated by bsh.This itself
-		as a scripted method call.
-	*/
-	private static boolean passThisMethod( String name ) 
-	{
-		return 
-			name.equals("getClass") 
-			|| name.equals("invokeMethod")
-			|| name.equals("getInterface")
-			// These are necessary to let us test synchronization from scripts
-			|| name.equals("wait") 
-			|| name.equals("notify")
-			|| name.equals("notifyAll");
 	}
 
     public static Object getIndex(Object array, int index)
@@ -185,7 +167,7 @@ class Reflect
 			Interpreter.debug("getIndex: "+array+", index="+index);
         try {
             Object val = Array.get(array, index);
-            return wrapPrimitive(val, array.getClass().getComponentType());
+            return Primitive.wrap( val, array.getClass().getComponentType() );
         }
         catch( ArrayIndexOutOfBoundsException  e1 ) {
 			throw new UtilTargetError( e1 );
@@ -214,9 +196,11 @@ class Reflect
     public static Object getStaticField(Class clas, String fieldName)
         throws UtilEvalError, ReflectError
     {
-        return getFieldValue(clas, null, fieldName);
+        return getFieldValue( clas, null, fieldName, true/*onlystatic*/);
     }
 
+	/**
+	*/
     public static Object getObjectField( Object object, String fieldName )
         throws UtilEvalError, ReflectError
     {
@@ -224,7 +208,8 @@ class Reflect
 			return ((This)object).namespace.getVariable( fieldName );
 		else {
 			try {
-				return getFieldValue(object.getClass(), object, fieldName);
+				return getFieldValue(
+					object.getClass(), object, fieldName, false/*onlystatic*/);
 			} catch ( ReflectError e ) {
 				// no field, try property acces
 
@@ -239,7 +224,8 @@ class Reflect
     static LHS getLHSStaticField(Class clas, String fieldName)
         throws UtilEvalError, ReflectError
     {
-        Field f = getField(clas, fieldName);
+        Field f = resolveExpectedJavaField( 
+			clas, fieldName, true/*onlystatic*/);
         return new LHS(f);
     }
 
@@ -261,11 +247,12 @@ class Reflect
 		}
 
 		try {
-			Field f = getField(object.getClass(), fieldName);
+			Field f = resolveExpectedJavaField( 
+				object.getClass(), fieldName, false/*onlyStatic*/ );
 			return new LHS(object, f);
-		} catch ( ReflectError e ) {
+		} catch ( ReflectError e ) 
+		{
 			// not a field, try property access
-
 			if ( hasObjectPropertySetter( object.getClass(), fieldName ) )
 				return new LHS( object, fieldName );
 			else
@@ -274,49 +261,75 @@ class Reflect
     }
 
     private static Object getFieldValue(
-		Class clas, Object object, String fieldName) 
+		Class clas, Object object, String fieldName, boolean onlyStatic ) 
 		throws UtilEvalError, ReflectError
     {
         try {
-            Field f = getField(clas, fieldName);
-
-            if ( f == null )
-                throw new ReflectError("internal: field not found:"+fieldName);
+            Field f = resolveExpectedJavaField( clas, fieldName, onlyStatic );
 
             Object value = f.get(object);
             Class returnType = f.getType();
-            return wrapPrimitive(value, returnType);
+            return Primitive.wrap( value, returnType );
 
-        }
-        catch(NullPointerException e) {
+        } catch( NullPointerException e ) { // shouldn't happen
             throw new ReflectError(
 				"???" + fieldName + " is not a static field.");
-        }
-        catch(IllegalAccessException e) {
+        } catch(IllegalAccessException e) {
             throw new ReflectError("Can't access field: " + fieldName);
         }
     }
 
 	/**
-		All field lookup should come through here.
-		i.e. this method owns Class getField();
 	*/
-    private static Field getField(Class clas, String fieldName)
+	/*
+		Note: this method and resolveExpectedJavaField should be rewritten
+		to invert this logic so that no exceptions need to be caught
+		unecessarily.  This is just a temporary impl.
+		@return the field or null if not found
+	*/
+    protected static Field resolveJavaField( 
+		Class clas, String fieldName, boolean onlyStatic )
+        throws UtilEvalError
+    {
+		try {
+			return resolveExpectedJavaField( clas, fieldName, onlyStatic );
+		} catch ( ReflectError e ) { 
+			return null;
+		}
+	}
+
+	/**
+		@throws ReflectError if the field is not found.
+	*/
+	/*
+		Note: this should really just throw NoSuchFieldException... need
+		to change related signatures and code.
+	*/
+    protected static Field resolveExpectedJavaField( 
+		Class clas, String fieldName, boolean onlyStatic
+	)
         throws UtilEvalError, ReflectError
     {
-        try
-        {
+		Field f;
+        try {
 			if ( Capabilities.haveAccessibility() )
-				return findAccessibleField( clas, fieldName );
+				f = findAccessibleField( clas, fieldName );
 			else
 				// this one only finds public (and in interfaces, etc.)
-				return clas.getField(fieldName);
+				f = clas.getField(fieldName);
         }
         catch( NoSuchFieldException e)
         {
 			// try declaredField
             throw new ReflectError("No such field: " + fieldName );
         }
+
+		if ( onlyStatic && !Modifier.isStatic( f.getModifiers() ) )
+			throw new UtilEvalError(
+				"Can't reach instance field: "+fieldName
+				+" from static context: "+clas.getName() );
+
+		return f;
     }
 
 	/**
@@ -329,32 +342,34 @@ class Reflect
 		distinction about the most derived is important.  Java doesn't normally
 		allow this kind of access (super won't show private variables) so 
 		there is no real syntax for specifying which class scope to use...
+
+		@return the Field or throws NoSuchFieldException
+		@throws NoSuchFieldException if the field is not found
+	*/
+	/*
+		This method should be rewritten to use getFields() and avoid catching
+		exceptions during the search.
 	*/
 	private static Field findAccessibleField( Class clas, String fieldName ) 
 		throws UtilEvalError, NoSuchFieldException
 	{
+		Field field;
+
 		// Quick check catches public fields include those in interfaces
 		try {
-			return clas.getField(fieldName);
+			field = clas.getField(fieldName);
+			ReflectManager.RMSetAccessible( field );
+			return field;
 		} catch ( NoSuchFieldException e ) { }
 
 		// Now, on with the hunt...
 		while ( clas != null )
 		{
 			try {
-				Field field = clas.getDeclaredField(fieldName);
-				if ( ReflectManager.RMSetAccessible( field ) )
-					return field;
+				field = clas.getDeclaredField(fieldName);
+				ReflectManager.RMSetAccessible( field );
+				return field;
 
-			/*
-				// Try interfaces of class for the field (has to be public)
-				Class [] interfaces = clas.getInterfaces();
-				for(int i=0; i<interfaces.length;i++) {
-					try {
-						return interfaces[i].getField( fieldName );
-					} catch ( NoSuchFieldException e ) { }
-				}
-			*/
 				// Not found, fall through to next class
 
 			} catch(NoSuchFieldException e) { }
@@ -364,134 +379,158 @@ class Reflect
 		throw new NoSuchFieldException( fieldName );
 	}
 
+	/**
+		This method expects a non-null method from resolveJavaMethod().
+		If the method is not found it throws a descriptive ReflectError.
+	*/
+    protected static Method resolveExpectedJavaMethod(
+		BshClassManager bcm, Class clas, Object object, 
+		String name, Object[] args, boolean onlyStatic )
+        throws ReflectError, UtilEvalError
+    {
+		Method method = resolveJavaMethod( 
+			bcm, clas, object, name, args, onlyStatic );
+
+		if ( method != null )
+			return method;
+
+		Class [] types = Types.getTypes(args);
+		throw new ReflectError(
+			( onlyStatic ? "Static method " : "Method " )
+			+ StringUtil.methodString(name, types) + 
+			" not found in class'" + clas.getName() + "'");
+	}
+
     /**
-        The full blown resolver method.  Everybody should come here.
-		The method may be static or dynamic unless onlyStatic is set
-		(in which case object may be null).
+        The full blown resolver method.  All other method invocation methods
+		delegate to this.  The method may be static or dynamic unless
+		onlyStatic is set (in which case object may be null).
+		If onlyStatic is set the only static methods will be located.
+		<p/>
+		This method performs Java method caching internally.
 
 		@param onlyStatic 
 			The method located must be static, the object param may be null.
-		@throws ReflectError if method is not found
+		@return the method or null if no matching method was found.
+		@deprecated
 	*/
 	/*
-		Note: Method invocation could probably be speeded up if we eliminated
-		the throwing of exceptions in the search for the proper method.
-		After 1.3 we are caching method resolution anyway... shouldn't matter
-		much.
-    */
-    static Method resolveJavaMethod (
+		Note: object is only used here for precondition... get rid of it?
+	*/
+    protected static Method resolveJavaMethod(
 		BshClassManager bcm, Class clas, Object object, 
-		String name, Object[] args, boolean onlyStatic
-	)
-        throws ReflectError, UtilEvalError
+		String name, Object[] args, boolean onlyStatic )
+        throws UtilEvalError
     {
-		Method method = null;
-
-		if ( bcm == null ) 
-			Interpreter.debug("resolveJavaMethod UNOPTIMIZED lookup");
-		else
-		{
-			method = bcm.getResolvedMethod( clas, name, args, onlyStatic );
-			if ( method != null )
-				return method;
-		}
-
-		// This should probably be handled higher up
+		// Why is object in the args?
 		if ( object == Primitive.NULL )
 			throw new UtilTargetError( new NullPointerException(
 				"Attempt to invoke method " +name+" on null value" ) );
 
-        Class [] types = getTypes(args);
+        Class [] types = Types.getTypes(args);
+		return resolveJavaMethod( bcm, clas, name, types, onlyStatic );
+	}
 
-		// this was unecessary and counterproductive
-        //args=unwrapPrimitives(args);
+	/*
+		Notes:
 
-		// First try for an accessible version of the exact match.
+		This is broken.  It finds public but less specific methods over
+		non-public but more specific ones.
+
+		findMostSpecficMethod() needs to be rewritten to eliminate 
+		findAccessibleMethod.  We should implement the findMostSpecificMethod 
+		that uses the publicOnly flag.  FindMostSpecificMethod should also
+		operate in two passes to give standard Java assignable matches priority
+		over extended bsh type matches.
+	*/
+    protected static Method resolveJavaMethod(
+		BshClassManager bcm, Class clas, String name, 
+		Class [] types, boolean onlyStatic )
+        throws UtilEvalError
+    {
+		if ( clas == null )
+			throw new InterpreterError("null class");
+
+		Method method = null;
+		if ( bcm == null ) 
+			Interpreter.debug("resolveJavaMethod UNOPTIMIZED lookup");
+		else {
+			method = bcm.getResolvedMethod( clas, name, types, onlyStatic );
+			if ( method != null )
+				return method;
+		}
 
 		if ( Interpreter.DEBUG )
 			Interpreter.debug( "Searching for method: "+
 				StringUtil.methodString(name, types)
 					+ " in '" + clas.getName() + "'" );
 
-// Why do we do this?  Won't the overloaded resolution below find it
-// just as well -- try to merge these next 
-
+		/*
+			First try for an accessible version of the exact match.
+			This first lookup seems redundant with below, but is apparently
+			needed.  This whole thing is messy.
+		*/
 		try {
-			method  = findAccessibleMethod(clas, name, types, onlyStatic);
+			method  = findAccessibleMethod( clas, name, types );
 		} catch ( SecurityException e ) { }
 
-		if ( Interpreter.DEBUG && method != null )
-			Interpreter.debug("findAccessibleMethod found: "+ method );
-
-		// Look for an overloaded / standard Java assignable match
+		// If not found and there are arguments to match -
+		// Look for an overloaded assignable match
 		// (First find the method, then find accessible version of it)
-		if ( method == null ) 
+		if ( method == null && types.length > 0 ) 
 		{
-			// If no args stop here, can't do better than exact match above
-			if ( types.length == 0 )
-				throw new ReflectError(
-					"No args "+ ( onlyStatic ? "static " : "" )
-					+"method " + StringUtil.methodString(name, types) + 
-					" not found in class'" + clas.getName() + "'");
-
-			Method [] methods = clas.getMethods();
-			if ( onlyStatic )
-				methods = retainStaticMethods( methods );
-
-			method = findMostSpecificMethod( name, types, methods );
-
-			if ( Interpreter.DEBUG && method != null )
-				Interpreter.debug("findMostSpecificMethod found: "+ method );
-
-			// try to find an extended method
-			if ( method == null )
+			// Gather all of the methods of class and parents
+			Vector mv = new Vector();
+			Class c = clas;
+			while( c != null )
 			{
-				method = findExtendedMethod( name, args, methods );
-
-				if ( Interpreter.DEBUG && method != null )
-					Interpreter.debug("findExtendedMethod found: "+ method );
+				Method [] m = c.getDeclaredMethods();
+				for(int i=0; i<m.length; i++)
+					mv.add( m[i] );
+				c = c.getSuperclass();
 			}
+			Method [] methods = new Method [mv.size()];
+			mv.copyInto( methods );
 
-			// If we found an assignable or extended method, make sure we have 
-			// an accessible version of it
+			boolean publicOnly = !Capabilities.haveAccessibility();
+			method = findMostSpecificMethod( name, types, methods, publicOnly );
+
+			if ( method != null && !Modifier.isPublic( method.getModifiers() ) )
+			{
+				try {
+					ReflectManager.RMSetAccessible( method );
+				} catch ( UtilEvalError e ) { /*ignore*/ }
+			}
+/*
+			// If found a method, make sure we have accessible version of it
 			if ( method != null ) 
 			{
 				try {
-					method = findAccessibleMethod( clas, method.getName(), 
-						method.getParameterTypes(), onlyStatic);
-				} catch ( SecurityException e ) { }
+					method = findAccessibleMethod( 
+						clas, method.getName(), method.getParameterTypes() );
+				} catch ( SecurityException e ) { /leave null/ }
 				if ( Interpreter.DEBUG && method == null )
 					Interpreter.debug(
 						"had a method, but it wasn't accessible");
 			}
+	*/
+
 		}
 
-		// If we didn't find anything throw error
-		if ( method == null )
-			throw new ReflectError(
-				( onlyStatic ? "Static method " : "Method " )
-				+ StringUtil.methodString(name, types) + 
-				" not found in class'" + clas.getName() + "'");
+		if ( method != null 
+			&& onlyStatic && !Modifier.isStatic( method.getModifiers() ) 
+		)
+			throw new UtilEvalError(
+				"Cannot reach instance method: "
+				+ StringUtil.methodString(
+					method.getName(), method.getParameterTypes() )
+				+ " from static context: "+ clas.getName() );
 
 		// Succeeded.  Cache the resolved method.
-		if ( bcm != null )
-			bcm.cacheResolvedMethod( clas, args, method );
+		if ( method != null && bcm != null )
+			bcm.cacheResolvedMethod( clas, types, method );
 
 		return method;
-	}
-
-	/**
-		Return only the static methods
-	*/
-	private static Method [] retainStaticMethods( Method [] methods ) {
-		Vector v = new Vector();
-		for(int i=0; i<methods.length; i++)
-			if ( Modifier.isStatic( methods[i].getModifiers() ) )
-				v.addElement( methods[i] );
-
-		Method [] ma = new Method [ v.size() ];
-		v.copyInto( ma );
-		return ma;
 	}
 
 	/**
@@ -507,8 +546,12 @@ class Reflect
 		@param onlyStatic the method located must be static.
 		@return null on not found
 	*/
+	/*
+		Notes: See notes on findMostSpecificMethod.
+		This method should be rolled into findMostSpecificMethod.
+	*/
 	static Method findAccessibleMethod( 
-		Class clas, String name, Class [] types, boolean onlyStatic ) 
+		Class clas, String name, Class [] types ) 
 		throws UtilEvalError
 	{
 		Method meth = null;
@@ -564,96 +607,17 @@ class Reflect
 				classQ.addElement((Object)intfs[i]);
 		}
 
-		/* 
-			If we found one and it satisfies onlyStatic return it
-			
-			Note: I don't believe it is necessary to check for the static
-			condition in the above search because the Java compiler will not
-			let dynamic and static methods hide/override one another.  So
-			we simply check what is found, if any, at the end.
-		*/
-		if ( found != null &&
-			( !onlyStatic || Modifier.isStatic( found.getModifiers() ) ) )
+		if ( found != null )
 			return found;
 
-		/*
-			Not sure if this the best place to do this...
-		*/
 		if ( inaccessibleVersion != null )
 			throw new UtilEvalError("Found non-public method: "
 				+inaccessibleVersion
 				+".  Use setAccessibility(true) to enable access to "
 				+" private and protected members of classes." );
 		
-		return null;
+		return null; 
 	}
-
-    private static Object wrapPrimitive(
-		Object value, Class returnType) throws ReflectError
-    {
-        if(value == null)
-            return Primitive.NULL;
-
-        if(returnType == Void.TYPE)
-            return Primitive.VOID;
-
-        else
-            if(returnType.isPrimitive())
-            {
-                if(value instanceof Number)
-                    return new Primitive((Number)value);
-                if(value instanceof Boolean)
-                    return new Primitive((Boolean)value);
-                if(value instanceof Character)
-                    return new Primitive((Character)value);
-
-                throw new ReflectError("Something bad happened");
-            }
-            else
-                return value;
-    }
-
-    public static Class[] getTypes( Object[] args )
-    {
-        if ( args == null )
-            return new Class[0];
-
-        Class[] types = new Class[ args.length ];
-
-        for( int i=0; i<args.length; i++ )
-        {
-			if ( args[i] == null )
-				types[i] = null;
-            else if ( args[i] instanceof Primitive )
-                types[i] = ((Primitive)args[i]).getType();
-            else
-                types[i] = args[i].getClass();
-        }
-
-        return types;
-    }
-
-    /*
-        Unwrap Primitive wrappers to their java.lang wrapper values.
-		e.g. Primitive(42) becomes Integer(42)
-    */
-    private static Object [] unwrapPrimitives( Object[] args )
-    {
-		Object [] oa = new Object[ args.length ];
-        for(int i=0; i<args.length; i++)
-            oa[i] = Primitive.unwrap( args[i] );
-		return oa;
-    }
-
-	/*
-    private static Object unwrapPrimitive( Object arg )
-    {
-        if ( arg instanceof Primitive )
-            return((Primitive)arg).getValue();
-        else
-            return arg;
-    }
-	*/
 
 	/**
 		Primary object constructor
@@ -668,13 +632,11 @@ class Reflect
 				"Can't create instance of an interface: "+clas);
 
         Object obj = null;
-        Class[] types = getTypes(args);
-		// this wasn't necessary until we invoke it, moved...
-        //args=unwrapPrimitives(args);
+        Class[] types = Types.getTypes(args);
         Constructor con = null;
 
 		/* 
-			Find an appropriate constructor
+			Find an appropriate constructor.
 			use declared here to see package and private as well
 			(there are no inherited constructors to worry about) 
 		*/
@@ -684,26 +646,32 @@ class Reflect
 		con = findMostSpecificConstructor(types, constructors);
 
 		if ( con == null )
+		{
 			if ( types.length == 0 )
 				throw new ReflectError(
 					"Can't find default constructor for: "+clas);
 			else
-				con = findExtendedConstructor(args, constructors);
+				throw new ReflectError(
+					"Can't find constructor: " 
+					+ StringUtil.methodString( clas.getName(), types )
+					+" in class: "+ clas.getName() );
+		}
 
-		if ( con == null )
-			throw new ReflectError(
-				"Can't find constructor: " 
-				+ StringUtil.methodString( clas.getName(), types )
-				+" in class: "+ clas.getName() );;
+		if ( !Modifier.isPublic( con.getModifiers() )
+			&& Capabilities.haveAccessibility() )
+			try {
+				ReflectManager.RMSetAccessible( con );
+			} catch ( UtilEvalError e ) { /*ignore*/ }
 
+        args=Primitive.unwrap( args );
         try {
-        	args=unwrapPrimitives( args );
             obj = con.newInstance( args );
         } catch(InstantiationException e) {
             throw new ReflectError("the class is abstract ");
         } catch(IllegalAccessException e) {
             throw new ReflectError(
-				"we don't have permission to create an instance");
+				"We don't have permission to create an instance."
+				+"Use setAccessibility(true) to enable access." );
         } catch(IllegalArgumentException e) {
             throw new ReflectError("the number of arguments was wrong");
         } 
@@ -717,16 +685,32 @@ class Reflect
         Implement JLS 15.11.2 for method resolution
 		@return null on no match
     */
+	/*
+		Notes:
+
+		This is broken.  It finds public but less specific methods over
+		non-public but more specific ones.
+
+		This method needs to be rewritten to eliminate findAccessibleMethod.
+		We should implement the findMostSpecificMethod that uses the publicOnly
+		flag.  FindMostSpecificMethod should also operate in two passes to give
+		standard Java assignable matches priority over extended bsh type
+		matches.
+	*/
     static Method findMostSpecificMethod(
-		String name, Class[] idealMatch, Method[] methods )
+		String name, Class[] idealMatch, Method[] methods,
+		boolean publicOnly )
     {
 		// Pull out the method signatures with matching names
 		Vector sigs = new Vector();
 		Vector meths = new Vector();
 		for(int i=0; i<methods.length; i++)
 		{
+			if ( publicOnly && !Modifier.isPublic( methods[i].getModifiers() ) )
+				continue;
+
 			// method matches name 
-			if ( methods[i].getName().equals( name )  ) 
+			if ( methods[i].getName().equals( name ) ) 
 			{
 				meths.addElement( methods[i] );
 				sigs.addElement( methods[i].getParameterTypes() );
@@ -751,87 +735,23 @@ class Reflect
     static Constructor findMostSpecificConstructor(
 		Class[] idealMatch, Constructor[] constructors)
     {
-		// We don't have to worry about the name of our constructors
-
-		Class [][] candidates = new Class [ constructors.length ] [];
-		for(int i=0; i< candidates.length; i++ )
-			candidates[i] = constructors[i].getParameterTypes();
-
-		int match = findMostSpecificSignature( idealMatch, candidates );
+		int match = 
+			findMostSpecificConstructorIndex( idealMatch, constructors );
 		if ( match == -1 )
 			return null;
 		else
 			return constructors[ match ];
     }
 
-	/**
-		findExtendedMethod uses the NameSpace.getAssignableForm() method to 
-		determine compatability of arguments.  This allows special (non
-		standard Java) bsh widening operations.  
-		
-		Note that this method examines the *arguments* themselves not the types.
-
-		@param args the arguments
-		@return null on not found
-	*/
-	/*
-		Note: shouldn't we use something analagous to findMostSpecificSignature
-		on a result set, rather than choosing the first one we find?
-		(findMostSpecificSignature doesn't know about extended types).
-	*/ 
-    static Method findExtendedMethod(
-		String name, Object[] args, Method[] methods )
+    static int findMostSpecificConstructorIndex(
+		Class[] idealMatch, Constructor[] constructors)
     {
-        for(int i = 0; i < methods.length; i++) 
-		{
-            Method currentMethod = methods[i];
-			Class[] parameterTypes = currentMethod.getParameterTypes();
-            if ( name.equals( currentMethod.getName() ) 
-					&& argsAssignable( parameterTypes, args ) ) 
-				return currentMethod;
-        }
+		Class [][] candidates = new Class [ constructors.length ] [];
+		for(int i=0; i< candidates.length; i++ )
+			candidates[i] = constructors[i].getParameterTypes();
 
-        return null;
+		return findMostSpecificSignature( idealMatch, candidates );
     }
-
-	/**
-		This uses the NameSpace.getAssignableForm() method to determine
-		compatability of args.  This allows special (non standard Java) bsh 
-		widening operations...
-	*/
-    static Constructor findExtendedConstructor(
-		Object[] args, Constructor[] constructors )
-    {
-        for(int i = 0; i < constructors.length; i++) 
-		{
-            Constructor currentConstructor = constructors[i];
-            Class[] parameterTypes = currentConstructor.getParameterTypes();
-            if ( argsAssignable( parameterTypes, args ) ) 
-				return currentConstructor;
-        }
-
-        return null;
-    }
-
-	/**
-		Arguments are assignable as defined by NameSpace.getAssignableForm()
-		which takes into account special bsh conversions such as XThis and (ug)
-		primitive wrapper promotion.
-	*/
-	private static boolean argsAssignable( Class [] parameters, Object [] args )
-	{
-		if ( parameters.length != args.length )
-			return false;
-
-		try {
-			for(int j = 0; j < parameters.length; j++)
-				NameSpace.getAssignableForm( args[j], parameters[j]);
-		} catch ( UtilEvalError e ) {
-			return false;
-		}
-		return true;
-	}
-
 
 	/**
         Implement JLS 15.11.2
@@ -852,123 +772,20 @@ class Reflect
 				or targetMatch is more specific than the best match, make it 
 				the new best match.
             */
-			if ( isSignatureAssignable(idealMatch, targetMatch ) &&
+			if ( Types.isSignatureAssignable(idealMatch, targetMatch ) &&
 				((bestMatch == null) ||
-					isSignatureAssignable( targetMatch, bestMatch )))
+					Types.isSignatureAssignable( targetMatch, bestMatch )))
 			{
 				bestMatch = targetMatch;
 				bestMatchIndex = i;
 			}
 		}
 
-		if ( bestMatch != null ) {
-			/*
-			if ( Interpreter.DEBUG ) 
-				Interpreter.debug("best match: " 
-				+ StringUtil.methodString("args",bestMatch));
-			*/
-				
+		if ( bestMatch != null )
 			return bestMatchIndex;
-		}
-		else {
-			Interpreter.debug("no match found");
+		else
 			return -1;
-		}
 	}
-
-	/**
-		Is the 'from' signature (argument types) assignable to the 'to' 
-		signature (candidate method types) using isJavaAssignableFrom()?
-		This method handles the special case of null values in 'to' types 
-		indicating a loose type and matching anything.
-	*/
-    private static boolean isSignatureAssignable( Class[] from, Class[] to )
-    {
-        if ( from.length != to.length )
-            return false;
-
-        for(int i=0; i<from.length; i++)
-        {
-			// Null 'to' type indicates loose type.  Match anything.
-			if ( to[i] == null )
-				continue;
-
-            if ( !isJavaAssignableFrom( to[i], from[i] ) )
-                return false;
-        }
-
-        return true;
-    }
-
-    /**
-		Is a standard Java assignment legal from the rhs type to the lhs type
-		in a normal assignment?
-		<p/>
-		For Java primitive TYPE classes this method takes primitive promotion
-		into account.  The ordinary Class.isAssignableFrom() does not take 
-		primitive promotion conversions into account.  Note that Java allows
-		additional assignments without a cast in combination with variable
-		declarations.  Those are handled elsewhere (maybe should be here with a
-		flag?)
-		<p/>
-		This class accepts a null rhs type indicating that the rhs was the
-		value Primitive.NULL and allows it to be assigned to any object lhs
-		type (non primitive)
-		<p/>
-
-		Note that the getAssignableForm() method in NameSpace is the primary
-		bsh method for checking assignability.  It adds additional bsh
-		conversions, etc. (need to clarify what)
-
-		@param lhs assigning from rhs to lhs
-		@param rhs assigning from rhs to lhs
-	*/
-    static boolean isJavaAssignableFrom( Class lhs, Class rhs )
-    {
-		// null 'from' type corresponds to type of Primitive.NULL
-		// assign to any object type
-		if ( rhs == null ) 
-			return !lhs.isPrimitive();
-
-		if ( lhs.isPrimitive() && rhs.isPrimitive() )
-		{
-			if ( lhs == rhs )
-				return true;
-
-			// handle primitive widening conversions - JLS 5.1.2
-			if ( (rhs == Byte.TYPE) && 
-				(lhs == Short.TYPE || lhs == Integer.TYPE ||
-                lhs == Long.TYPE || lhs == Float.TYPE || lhs == Double.TYPE))
-                    return true;
-
-            if ( (rhs == Short.TYPE) && 
-				(lhs == Integer.TYPE || lhs == Long.TYPE ||
-                lhs == Float.TYPE || lhs == Double.TYPE))
-                    return true;
-
-            if ((rhs == Character.TYPE) && 
-				(lhs == Integer.TYPE || lhs == Long.TYPE ||
-                lhs == Float.TYPE || lhs == Double.TYPE))
-                    return true;
-
-            if ((rhs == Integer.TYPE) && 
-				(lhs == Long.TYPE || lhs == Float.TYPE ||
-                lhs == Double.TYPE))
-                    return true;
-
-            if ((rhs == Long.TYPE) && 
-				(lhs == Float.TYPE || lhs == Double.TYPE))
-                return true;
-
-            if ((rhs == Float.TYPE) && (lhs == Double.TYPE))
-                return true;
-        }
-        else
-            if ( lhs.isAssignableFrom(rhs) )
-                return true;
-
-        return false;
-    }
 
 	private static String accessorName( String getorset, String propName ) {
         return getorset 
@@ -1020,7 +837,7 @@ class Reflect
 		Exception e1=null, e2=null;
 		try {
 			String accessorName = accessorName( "get", propName );
-			method = resolveJavaMethod( 
+			method = resolveExpectedJavaMethod( 
 				null/*bcm*/, obj.getClass(), obj, accessorName, args, false );
 		} catch ( Exception e ) { 
 			e1 = e;
@@ -1028,7 +845,8 @@ class Reflect
 		if ( method == null )
 			try {
 				String accessorName = accessorName( "is", propName );
-				method = resolveJavaMethod( null/*bcm*/, obj.getClass(), obj, 
+				method = resolveExpectedJavaMethod( 
+					null/*bcm*/, obj.getClass(), obj, 
 					accessorName, args, false );
 				if ( method.getReturnType() != Boolean.TYPE )
 					method = null;
@@ -1058,7 +876,7 @@ class Reflect
 
         Interpreter.debug("property access: ");
         try {
-			Method method = resolveJavaMethod( 
+			Method method = resolveExpectedJavaMethod( 
 				null/*bcm*/, obj.getClass(), obj, accessorName, args, false );
 			invokeOnMethod( method, obj, args );
         }
@@ -1070,22 +888,22 @@ class Reflect
     }
 
     /** 
-		This method is meant to convert a JVM-array class name to the correct
-    	'fully-qualified name' for the array class - JLS 6.7
+		Return a more human readable version of the type name.
+		Specifically, array types are returned with postfix "[]" dimensions.
+		e.g. return "int []" for integer array instead of "class [I" as
+		would be returned by Class getName() in that case.
 	*/
     public static String normalizeClassName(Class type)
     {
-        if(!type.isArray())
+        if ( !type.isArray() )
             return type.getName();
 
         StringBuffer className = new StringBuffer();
-        try
-        {
-            className.append(getArrayBaseType(type).getName());
+        try {
+            className.append( getArrayBaseType(type).getName() +" ");
             for(int i = 0; i < getArrayDimensions(type); i++)
                 className.append("[]");
-        }
-        catch(Exception e) { }
+        } catch( ReflectError e ) { /*shouldn't happen*/ }
 
         return className.toString();
     }
@@ -1096,10 +914,10 @@ class Reflect
 	*/
     public static int getArrayDimensions(Class arrayClass)
     {
-        if(!arrayClass.isArray())
+        if ( !arrayClass.isArray() )
             return 0;
 
-        return arrayClass.getName().lastIndexOf('[') + 1;
+        return arrayClass.getName().lastIndexOf('[') + 1;  // why so cute?
     }
 
     /**
@@ -1109,7 +927,7 @@ class Reflect
 	*/
     public static Class getArrayBaseType(Class arrayClass) throws ReflectError
     {
-        if(!arrayClass.isArray())
+        if ( !arrayClass.isArray() )
             throw new ReflectError("The class is not an array.");
 
 		return arrayClass.getComponentType();
@@ -1145,39 +963,6 @@ class Reflect
 			throw new UtilEvalError("Error invoking compiled command: "+e );
 		}
 	}
+
 }
-
-/*
-Ok, I wrote this... should we use it in lieu of the pair of methods?
-I guess not...
-
-    private static Object findExtendedMethodOrConstructor(
-		String name, Object[] args, Object [] methodsOrConstructors )
-    {
-        for(int i = 0; i < methodsOrConstructors.length; i++) 
-		{
-            Object currentMethodOrConstructor = methodsOrConstructors[i];
-			Class[] parameterTypes = 
-				getParameterTypes( currentMethodOrConstructor );
-
-			if ( currentMethodOrConstructor instanceof Method
-				&& !name.equals(
-					((Method)currentMethodOrConstructor).getName() ) )
-				continue;
-
-            if ( argsAssignable( parameterTypes, args ) )
-				return currentMethodOrConstructor;
-        }
-
-        return null;
-    }
-
-	private static Class [] getParameterTypes( Object methodOrConstructor )
-	{
-		if ( methodOrConstructor instanceof Method )
-			return ((Method)methodOrConstructor).getParameterTypes();
-		else
-			return ((Constructor)methodOrConstructor).getParameterTypes();
-	}
-*/
 
