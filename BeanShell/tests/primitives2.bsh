@@ -24,7 +24,10 @@ check((long)5, 5, Long.class);
 check('5', '5', Character.class);
 check((float)5.0, 5.0, Float.class );
 
-
 // have to jump through hoops to get a double here...
+//??
+
+// check basic assignability
+
 
 complete();

@@ -11,7 +11,37 @@ assert( oa.length == 0 );
 int [][] ia = new int [5][4];
 ia[2][2] = 5;
 
+//ia = new int [5][];
+
 assert( ia[2][2] == 5 && ia[2][3] != 5 );
+
+oa = new Object [] { "foo", "bar", null };
+assert( oa instanceof Object [] );
+oa = new Object [] { null, "foo", "bar" };
+assert( oa instanceof Object [] );
+
+Object[] test = new Object[] { new Long(2000), "MyDisk", new Double(21.4) }; 
+assert( test.length == 3);
+assert( test[2] instanceof Double );
+
+Object[] test2 = new Object[] { 
+	(Object)new Long(2000), (Object)"MyDisk", (Object)new Double(21.4) }; 
+
+x = new String[] {null, "foo"};
+
+assert( isEvalError("a=new int[] { 2, new Object() }") );
+
+// promotion
+long [] la = new long [] { 1L, 2, (byte)3 };
+float [] fa = new float [] { 1L, 2, (byte)3, (float)3.3, 3.3f };
+double [] da = new double [] { 1L, 2, (byte)3, 3.3, 3.3f, 3.3d };
+assert( da[1] == 2.0d );
+assert( da[1] == 2.0 );
+
+// double check that declared types don't matter
+la2 = new long [] { 1L, 2, (byte)3 };
+fa2 = new float [] { 1L, 2, (byte)3, (float)3.3, 3.3f };
+da2 = new double [] { 1L, 2, (byte)3, 3.3, 3.3f, 3.3d };
 
 complete();
 

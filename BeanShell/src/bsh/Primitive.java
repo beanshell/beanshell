@@ -59,7 +59,7 @@ public class Primitive implements ParserConstants, java.io.Serializable
     */
     public static final Primitive NULL = new Primitive(Special.NULL_VALUE);
 
-    /*
+    /**
         VOID means "no type".
         Strictly speaking, this makes no sense here.  But for practical
         reasons we'll consider the lack of a type to be a special value.
@@ -70,7 +70,8 @@ public class Primitive implements ParserConstants, java.io.Serializable
     private Primitive(Object value)
     {
         if(value == null)
-            throw new InterpreterError("Use Primitve.NULL instead of Primitive(null)");
+            throw new InterpreterError(
+				"Use Primitve.NULL instead of Primitive(null)");
 
         this.value = value;
     }

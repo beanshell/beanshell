@@ -505,7 +505,8 @@ void ArrayInitializer()                   :
 {/*@bgen(jjtree) ArrayInitializer */
   try {
 /*@egen*/
-  "{" [ VariableInitializer() ( LOOKAHEAD(2) "," VariableInitializer() )* ] [ "," ] "}"/*@bgen(jjtree)*/
+  "{" [ VariableInitializer() 
+		( LOOKAHEAD(2) "," VariableInitializer() )* ] [ "," ] "}"/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
@@ -1808,7 +1809,8 @@ void Literal()          :
                   jjtreeCloseNodeScope(jjtn000);
                 }
 /*@egen*/ {
-    jjtn000.value = Primitive.NULL; }
+    jjtn000.value = Primitive.NULL; 
+}
 |
  VoidLiteral()/*@bgen(jjtree)*/
                {

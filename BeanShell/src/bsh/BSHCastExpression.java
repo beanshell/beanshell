@@ -38,7 +38,8 @@ package bsh;
 	Implement casts.
 
 	I think it should be possible to simplify some of the code here by
-	using the NameSpace.checkAssignable() method, but I haven't looked into it.
+	using the NameSpace.getAssignableForm() method, but I haven't looked 
+	into it.
 */
 class BSHCastExpression extends SimpleNode {
 

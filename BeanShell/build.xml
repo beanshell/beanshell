@@ -19,7 +19,7 @@
 
 <!-- Project Configuration -->
 
-	<property name="version" value="1.1a10"/>
+	<property name="version" value="1.1a11"/>
 	<property name="deprecation" value="off"/>
 
 	<!-- choose an alternate compiler -->
@@ -183,6 +183,7 @@
 	<fileset id="util-fileset" dir="${build-dir}">
 		<patternset>
 			<include name="bsh/util/*.class"/>
+			<exclude name="bsh/util/AWTConsole*"/>
 		</patternset>
 		<patternset id="util-lib-patternset">
 			<include name="bsh/util/lib/*"/>

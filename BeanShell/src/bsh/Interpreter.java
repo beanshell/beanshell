@@ -92,7 +92,7 @@ import java.awt.Color;
 public class Interpreter 
 	implements Runnable, ConsoleInterface /*,Serializable*/ 
 {
-	public static final String VERSION = "1.1a10";
+	public static final String VERSION = "1.1al1";
 	/* 
 		Debug utils are static so that they are reachable by code that doesn't
 		necessarily have an interpreter reference (e.g. tracing in utils).
@@ -100,13 +100,22 @@ public class Interpreter
     public static boolean DEBUG;
     static PrintStream debug;
 	static {
+	// apparently in some environments you can't catch the security exception
+	// at all...  e.g. as an applet in IE  ... will probably have to work
+	// around 
 		try {
     		debug = System.err;
     		DEBUG = Boolean.getBoolean("debug");
 			String outfilename = System.getProperty("outfile");
 			if ( outfilename != null )
 				redirectOutputToFile( outfilename );
-		} catch ( SecurityException e ) { }
+		} catch ( SecurityException e ) { 
+			System.err.println("Could not init static:"+e);
+		} catch ( Exception e ) {
+			System.err.println("Could not init static(2):"+e);
+		} catch ( Throwable e ) { 
+			System.err.println("Could not init static(3):"+e);
+		}
 	}
 
 	/** Shared system object visible under bsh.system */
@@ -326,7 +335,7 @@ public class Interpreter
 			} catch ( FileNotFoundException e ) {
 				System.out.println("File not found: "+e);
 			} catch ( EvalError e ) {
-				System.out.println("Error in file: "+e);
+				System.out.println("Evaluation Error: "+e);
 			} catch ( IOException e ) {
 				System.out.println("I/O Error: "+e);
 			}
@@ -436,7 +445,6 @@ public class Interpreter
             }
             catch(TargetError e)
             {
-                //error("// Uncaught Exception: " + e.getTarget());
                 error("// Uncaught Exception: " + e );
                 if(DEBUG)
                     e.printStackTrace();
@@ -445,9 +453,10 @@ public class Interpreter
             }
             catch (EvalError e)
             {
-				String err = 
-					( !interactive ? e.getLocation() : "" ) + e.getMessage();
-                error( err );
+				if ( interactive )
+					error( e.toString() );
+				else
+					error( e.getMessage() );
                 if(DEBUG)
                     e.printStackTrace();
                 if(!interactive)
@@ -462,14 +471,7 @@ public class Interpreter
             }
             catch(TokenMgrError e)
             {
-				/*
-				if ( tokenMgrErrors++ > 25 ) {
-					error("Too many token mgr errors, stopping.");
-					eof=true;
-					return;
-				}
-				*/
-                error("Error parsing input: " + e);
+				error("Error parsing input: " + e);
 
 				/*
 					We get stuck in infinite loops here when unicode escapes
@@ -554,14 +556,13 @@ exception handling.
         boolean eof = false;
         while(!eof)
         {
+			SimpleNode node = null;
             try
             {
                 eof = localInterpreter.Line();
-                if(localInterpreter.get_jjtree().nodeArity() > 0)
+                if (localInterpreter.get_jjtree().nodeArity() > 0)
                 {
-                    SimpleNode node = 
-						(SimpleNode)localInterpreter.get_jjtree().rootNode();
-
+                    node = (SimpleNode)localInterpreter.get_jjtree().rootNode();
                     retVal = node.eval( callstack, this );
 
 					// sanity check during development
@@ -577,30 +578,35 @@ exception handling.
             } catch(ParseException e) {
                 throw new EvalError(
 					"Sourced file: "+sourceFile+" parser Error: " 
-					+ e.getMessage( DEBUG ) );
+					+ e.getMessage( DEBUG ), node );
             } catch(InterpreterError e) {
                 e.printStackTrace();
                 throw new EvalError(
 					"Sourced file: "+sourceFile+" internal Error: " 
-					+ e.getMessage());
+					+ e.getMessage(), node);
             } catch( TargetError e ) {
                 if(DEBUG)
                     e.printStackTrace();
+				// failsafe, set the Line as the origin of the error.
+				if ( !e.hasNode() )
+					e.setNode( node );
 				e.reThrow("Sourced file: "+sourceFile);
             } catch(EvalError e) {
                 if(DEBUG)
                     e.printStackTrace();
-                throw new EvalError( e.getLocation() + 
-					"sourced file: "+sourceFile+"\n"+ e.toString() );
+				// failsafe, set the Line as the origin of the error.
+				if ( !e.hasNode() )
+					e.setNode( node );
+				e.reThrow( "Sourced file: "+sourceFile );
             } catch(Exception e) {
                 e.printStackTrace();
                 throw new EvalError(
 					"Sourced file: "+sourceFile+" unknown error: " 
-					+ e.getMessage());
+					+ e.getMessage(), node);
             } catch(TokenMgrError e) {
                 throw new EvalError(
 					"Sourced file: "+sourceFile+" Token Parsing Error: " 
-					+ e.getMessage() );
+					+ e.getMessage(), node );
             } finally {
                 localInterpreter.get_jjtree().reset();
 				callstack.clear();
