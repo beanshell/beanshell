@@ -168,28 +168,6 @@ class XThis extends This
 		}
 	};
 
-	/**
-		For serialization.
-		Note: this is copied from superclass... 
-		It must be private, but we can probably add an accessor to allow
-		us to call the super method explicitly.
-		Just testing to see if this is causing a problem.
-	*/
-    private synchronized void writeObject(ObjectOutputStream s)
-        throws IOException {
-
-		// Temporarily prune the namespace.
-
-		NameSpace parent = namespace.getParent();
-		// Bind would set the interpreter, but it's possible that the parent
-		// is null (it's the root).  So save it...
-		Interpreter interpreter = declaringInterpreter;
-		namespace.prune();
-		s.defaultWriteObject();
-		// put it back
-		namespace.setParent( parent );
-		declaringInterpreter = interpreter;
-	}
 }
 
 

@@ -89,7 +89,7 @@ import java.io.*;
 	See the BeanShell User's Manual for more information.
 */
 public class Interpreter 
-	implements Runnable, ConsoleInterface /*,Serializable*/ 
+	implements Runnable, ConsoleInterface,Serializable
 {
 	/* --- Begin static stuff --- */
 
@@ -105,7 +105,7 @@ public class Interpreter
     public static boolean DEBUG, TRACE;
 
 	// This should be per instance
-    static PrintStream debug;
+    transient static PrintStream debug;
 	static { 
 		staticInit();
 	}
@@ -120,11 +120,11 @@ public class Interpreter
 
 	/* --- Instance data --- */
 
-	Parser parser;
+	transient Parser parser;
     NameSpace globalNameSpace;
-    Reader in;
-    PrintStream out;
-    PrintStream err;
+    transient Reader in;
+    transient PrintStream out;
+    transient PrintStream err;
     ConsoleInterface console; 
 
 	/** If this interpeter is a child of another, the parent */
