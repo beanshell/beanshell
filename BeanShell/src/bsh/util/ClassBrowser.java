@@ -232,13 +232,15 @@ public class ClassBrowser extends JSplitPane
 	public void init() {
 		String cp=System.getProperty("java.class.path");
 		String [] paths=split(cp, File.pathSeparator);
-		for ( int i=0; i<paths.length; i++)
-			if ( paths[i].endsWith(".jar") || paths[i].endsWith(".zip") )
+		for ( int i=0; i<paths.length; i++) {
+			String lcPath= paths[i].toLowerCase();
+			if ( lcPath.endsWith(".jar") || lcPath.endsWith(".zip") )
 			try {
 				System.out.println("Adding classes: "+paths[i]);
 				addJar( paths[i] );
 			} catch ( IOException e ) { 
 			}
+		}
 
 		// do we have the core classes?
 		// try some standard locations
