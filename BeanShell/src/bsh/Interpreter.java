@@ -91,7 +91,7 @@ import java.io.*;
 public class Interpreter 
 	implements Runnable, ConsoleInterface,Serializable
 {
-	/* --- Begin static stuff --- */
+	/* --- Begin static members --- */
 
 	public static final String VERSION = "1.3a";
 	/* 
@@ -106,17 +106,18 @@ public class Interpreter
 
 	// This should be per instance
     transient static PrintStream debug;
+
 	static { 
 		staticInit();
 	}
 
 	/** Shared system object visible under bsh.system */
-	static This systemObject;
+	static This sharedObject;
 
 	/** Strict Java mode */
 	public static boolean strictJava = false;
 
-	/* --- end static stuff --- */
+	/* --- End static members --- */
 
 	/* --- Instance data --- */
 
@@ -135,7 +136,7 @@ public class Interpreter
 
 	/** 
 		Specify whether we override exit on EOF as normally done in 
-		iteractive mode.  (This is used by Sessiond)
+		iteractive mode.  (e.g. as used by Sessiond)
 	*/
 	public boolean noExitOnEOF;
 
@@ -153,7 +154,8 @@ public class Interpreter
 		root namespace will be set to the one provided.  If it is null a new 
 		one will be created for it.
 		@param parent The parent interpreter if this interpreter is a child 
-			of another.  May be null.
+			of another.  May be null.  Children share a BshClassManager with
+			their parent instance.
 		@param sourceFileInfo An informative string holding the filename 
 		or other description of the source from which this interpreter is
 		reading... used for debugging.  May be null.
@@ -174,7 +176,8 @@ public class Interpreter
 		this.sourceFileInfo = sourceFileInfo;
 
 		if ( namespace == null )
-        	this.globalNameSpace = new NameSpace("global");
+        	this.globalNameSpace = new NameSpace( 
+				BshClassManager.createClassManager(), "global");
 		else
 			this.globalNameSpace = namespace;
 
@@ -257,19 +260,22 @@ public class Interpreter
 
 	private void initRootSystemObject() 
 	{
+		BshClassManager bcm = getClassManager();
+System.out.println("init root bcm ="+bcm);
 		// bsh
-		setu("bsh", new NameSpace( "Bsh Object" ).getThis( this ) );
+		setu("bsh", new NameSpace( bcm, "Bsh Object" ).getThis( this ) );
 
-		// init the static shared systemObject if it's not there yet
-		if ( systemObject == null )
-			systemObject = new NameSpace( 
-				"Bsh System Object" ).getThis( this );
+		// init the static shared sharedObject if it's not there yet
+		if ( sharedObject == null )
+			sharedObject = new NameSpace( 
+				bcm, "Bsh Shared System Object" ).getThis( this );
 		// bsh.system
-		setu( "bsh.system", systemObject );
+		setu( "bsh.system", sharedObject );
+		setu( "bsh.shared", sharedObject ); // alias
 
 		// bsh.help
 		This helpText = new NameSpace( 
-			"Bsh Command Help Text" ).getThis( this );
+			bcm, "Bsh Command Help Text" ).getThis( this );
 		setu( "bsh.help", helpText );
 
 		// bsh.cwd
@@ -400,8 +406,7 @@ public class Interpreter
         boolean eof = false;
 
 		// init the callstack.  
-		CallStack callstack = new CallStack();
-		callstack.push( globalNameSpace );
+		CallStack callstack = new CallStack( globalNameSpace );
 
         while(!eof)
         {
@@ -582,8 +587,7 @@ public class Interpreter
 			new Interpreter( 
 				in, out, err, false, nameSpace, this, sourceFileInfo  );
 
-		CallStack callstack = new CallStack();
-		callstack.push( nameSpace );
+		CallStack callstack = new CallStack( nameSpace );
 
         boolean eof = false;
         while(!eof)
@@ -969,6 +973,8 @@ public class Interpreter
 			file = new File( cwd + File.separator + fileName );
 		}
 
+		// The canonical file name is also absolute.
+		// No need for getAbsolutePath() here...
 		return new File( file.getCanonicalPath() );
 	}
 
@@ -1003,10 +1009,29 @@ public class Interpreter
 		@see BshClassManager#setClassLoader( ClassLoader )
 	*/
 	public void setClassLoader( ClassLoader externalCL ) {
-		BshClassManager.setClassLoader( externalCL );
+		getClassManager().setClassLoader( externalCL );
 	}
 
-	static void staticInit() {
+	/**
+		Get the class manager associated with this interpreter
+		(the BshClassManager of this interpreter's global namespace).
+		This is primarily a convenience method.
+	*/
+	public BshClassManager getClassManager() 
+	{
+		return getNameSpace().getClassManager();
+	}
+	
+	/**
+		Set the class manager.
+	public setClassManager( BshClassManager manager ) 
+	{
+		this.classManager = manager;
+	}
+	*/
+
+	static void staticInit() 
+	{
 	/* 
 		Apparently in some environments you can't catch the security exception
 		at all...  e.g. as an applet in IE  ... will probably have to work 
@@ -1043,23 +1068,19 @@ public class Interpreter
 			return "<unknown source>";
 	}
 
+	/**
+		Get the parent Interpreter of this interpreter, if any.
+		Currently this relationship implies the following:
+			1) Parent and child share a BshClassManager
+			2) Children indicate the parent's source file information in error
+			reporting.
+		When created as part of a source() / eval() the child also shares
+		the parent's namespace.  But that is not necessary in general.
+	*/
 	public Interpreter getParent() {
 		return parent;
 	}
 
-	/**
-		Get the class manager for this interpreter.
-	*/
-	public BshClassManager getClassManager() 
-	{
-		// In 1.3 migrating to per Interpreter class management.
-		// this is just a stepping stone...
-		// This won't work in 1.1 or without the optional classpath package
-		// need to change pattern to use default manager in that case.
-		// (remove all the static methods)
-		return BshClassManager.getClassManager();
-	}
-	
 	public void setOut( PrintStream out ) {
 		this.out = out;
 	}

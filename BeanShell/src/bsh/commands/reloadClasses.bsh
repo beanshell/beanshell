@@ -19,12 +19,11 @@
 bsh.help.reloadClasses= 
 	"usage: reloadClasses( String class | String package | String [] classes )";
 
-import bsh.BshClassManager;
 import bsh.ClassPathException;
 
 void reloadClasses( item ) 
 {
-	bcm = BshClassManager.getClassManager();
+	bcm = this.caller.namespace.getClassManager();
 
 	try {
 		if ( item instanceof String [] )
@@ -52,5 +51,5 @@ void reloadClasses( item )
 */
 void reloadClasses() 
 {
-	BshClassManager.getClassManager().reloadAllClasses();
+	this.caller.namespace.getClassManager().reloadAllClasses();
 }

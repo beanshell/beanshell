@@ -85,6 +85,7 @@ public class ClassManagerImpl extends BshClassManager
 		setClassPath())
 	*/
 	private BshClassPath baseClassPath;
+	private boolean superImport;
 
 	/**
 		This is the full blown classpath including baseClassPath (extensions),
@@ -127,7 +128,7 @@ public class ClassManagerImpl extends BshClassManager
 	/**
 		@return the class or null
 	*/
-	public Class getClassForName( String name ) 
+	public Class classForName( String name ) 
 	{
 		// check cache 
 		Class c = (Class)absoluteClassCache.get(name);
@@ -178,7 +179,7 @@ public class ClassManagerImpl extends BshClassManager
 		// cache results
 		/* Note: plainClassForName already caches, so it will be redundant
 			in that case, however this process only happens once */
-		BshClassManager.cacheClassInfo( name, c );
+		cacheClassInfo( name, c );
 
 		return c;
 	}
@@ -191,7 +192,7 @@ public class ClassManagerImpl extends BshClassManager
 		directory.
 		@see BshClassManager.plainClassForName()
 	*/
-	public Class getPlainClassForName( String name )  
+	public Class plainClassForName( String name )  
 		throws ClassNotFoundException
 	{
 		// Requires JDK 1.2+
@@ -200,14 +201,10 @@ public class ClassManagerImpl extends BshClassManager
 		if ( contextClassLoader != null )
 			return Class.forName( name, true, contextClassLoader );
 		else
-			return Class.forName( name );
+			return super.plainClassForName( name );
 	}
 
-	public ClassLoader getBaseLoader() {
-		return baseLoader;
-	}
-
-	public ClassLoader getLoaderForClass( String name ) {
+	ClassLoader getLoaderForClass( String name ) {
 		return (ClassLoader)loaderMap.get( name );
 	}
 
@@ -230,14 +227,15 @@ public class ClassManagerImpl extends BshClassManager
 	}
 
 	/**
-		Clear all loaders and start over.  No class loading.
+		Clear all classloading behavior and class caches and reset to 
+		initial state.
 	*/
 	public void reset()
 	{
 		baseClassPath = new BshClassPath("baseClassPath");
 		baseLoader = null;
 		loaderMap = new HashMap();
-		classLoaderChanged();
+		classLoaderChanged(); // calls clearCaches() for us.
 	}
 
 	/**
@@ -269,7 +267,7 @@ public class ClassManagerImpl extends BshClassManager
 		init the baseLoader from the baseClassPath
 	*/
 	private void initBaseLoader() {
-		baseLoader = new BshClassLoader( baseClassPath );
+		baseLoader = new BshClassLoader( this, baseClassPath );
 	}
 
 	// class reloading
@@ -319,7 +317,7 @@ public class ClassManagerImpl extends BshClassManager
 		}
 
 		// Create classloader for the set of classes
-		ClassLoader cl = new DiscreteFilesClassLoader( map );
+		ClassLoader cl = new DiscreteFilesClassLoader( this, map );
 
 		// map those classes the loader in the overlay map
 		Iterator it = map.keySet().iterator();
@@ -391,6 +389,8 @@ public class ClassManagerImpl extends BshClassManager
 	public void doSuperImport() 
 		throws UtilEvalError
 	{
+		// Should we prevent it from happening twice?
+
 		try {
 			getClassPath().insureInitialized();
 			// prime the lookup table
@@ -402,7 +402,11 @@ public class ClassManagerImpl extends BshClassManager
 		} catch ( ClassPathException e ) {
 			throw new UtilEvalError("Error importing classpath "+ e );
 		}
+
+		superImport = true;
 	}
+
+	protected boolean hasSuperImport() { return superImport; }
 
 	/**
 		Return the name or null if none is found,
@@ -432,6 +436,10 @@ public class ClassManagerImpl extends BshClassManager
 
 	public void removeListener( Listener l ) {
 		throw new Error("unimplemented");
+	}
+
+	public ClassLoader getBaseLoader() {
+		return baseLoader;
 	}
 
 	/**

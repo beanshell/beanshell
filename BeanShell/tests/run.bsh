@@ -22,5 +22,12 @@ r = run("Data/run_aux.bsh", arg);
 // run_aux copies runArgument to ra for no reason
 assert( r.ra.foo == 1 );
 
+// test that classloading doesn't affect us
+r=run("Data/run_aux2.bsh");
+assert( r.c == 5 );
+assert( isEvalError("new AddClass()") );
+// should show no class loading...
+//this.namespace.getClassManager().dump( new PrintWriter(System.out,true));
+
 complete();
 

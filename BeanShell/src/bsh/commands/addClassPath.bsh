@@ -25,6 +25,6 @@ addClassPath( path ) {
 	else
 		url = pathToFile( path ).toURL();
 
-	BshClassManager.getClassManager().addClassPath( url );
+	this.caller.namespace.getClassManager().addClassPath( url );
 }
 

@@ -64,7 +64,10 @@ public class NameSpace
 	NameSource
 {
 	public static final NameSpace JAVACODE = 
-		new NameSpace("Called from compiled Java code");
+		new NameSpace((BshClassManager)null, "Called from compiled Java code.");
+	static {
+		JAVACODE.isMethod = true;
+	}
 
 	// Begin instance data
 	// Note: if we add something here we should reset it in the clear() method.
@@ -75,18 +78,23 @@ public class NameSpace
     private Hashtable methods;
     private Hashtable importedClasses;
     private Vector importedPackages;
+	transient private BshClassManager classManager;
+
+	// See notes in getThis()
     private This thisReference;
+
 	/** Name resolver objects */
     private Hashtable names;
 
+	/** The node associated with the creation of this namespace.
+		This is used support getInvocationLine() and getInvocationText(). */
+	SimpleNode callerInfoNode;
+
 	/** 
-		This namespace is a method body namespace.  This is used for
+		Note that the namespace is a method body namespace.  This is used for
 		printing stack traces in exceptions.  
 	*/
 	public boolean isMethod;
-
-	/** "import *;" operation has been performed */
-	transient private static boolean superImport;
 
 	/**
 		Local class cache for classes resolved through this namespace using 
@@ -98,17 +106,42 @@ public class NameSpace
 
 	// End instance data
 
-    public NameSpace( String name ) { 
-		this( null, name );
+	// Begin constructors
+
+	/**
+		@parent the parent namespace of this namespace.  Child namespaces
+		inherit all variables and methods of their parent and can (of course)
+		override / shadow them.
+	*/
+    public NameSpace( NameSpace parent, String name ) 
+	{
+		// Note: in this case parent must have a class manager.
+		this( parent, null, name );
 	}
 
-    public NameSpace( NameSpace parent, String name ) {
+    public NameSpace( BshClassManager classManager, String name ) 
+	{
+		this( null, classManager, name );
+	}
+
+    public NameSpace( 
+		NameSpace parent, BshClassManager classManager, String name ) 
+	{
+		// We might want to do this here rather than explicitly in Interpreter
+		// for global (see also prune())
+		//if ( classManager == null && (parent == null ) )
+			// create our own class manager?
+
 		setName(name);
 		setParent(parent);
+		setClassManager( classManager );
 
 		// Register for notification of classloader change
-		BshClassManager.addCMListener(this);
+		if ( classManager != null )
+			classManager.addListener(this);
     }
+
+	// End constructors
 
 	public void setName( String name ) {
 		this.name = name;
@@ -117,7 +150,6 @@ public class NameSpace
 		return this.name;
 	}
 
-	SimpleNode callerInfoNode;
 	/**
 		Set the node associated with the creation of this namespace.
 		This is used in debugging and to support the getInvocationLine()
@@ -126,6 +158,7 @@ public class NameSpace
 	void setNode( SimpleNode node ) {
 		this.callerInfoNode= node;
 	}
+
 	SimpleNode getNode() {
 		return this.callerInfoNode;
 	}
@@ -136,7 +169,7 @@ public class NameSpace
 	public Object get( String name, Interpreter interpreter ) 
 		throws UtilEvalError 
 	{
-		CallStack callstack = new CallStack();
+		CallStack callstack = new CallStack( this );
 		return getNameResolver( name ).toObject( callstack, interpreter );
 	}
 
@@ -315,14 +348,40 @@ public class NameSpace
 		return thisReference;
     }
 
+	public BshClassManager getClassManager() 
+	{
+		if ( classManager != null )
+			return classManager;
+		if ( parent != null && parent != JAVACODE )
+			return parent.getClassManager();
+
+		System.out.println("No class manager:" +this.getName());
+		return null;
+		//throw new InterpreterError("No class manager:" +this.getName());
+	}
+
+	void setClassManager( BshClassManager classManager ) {
+		this.classManager = classManager;
+	}
+
 	/**
 		Used for serialization
 	*/
-	public void prune() {
+	public void prune() 
+	{
+		// Cut off from parent, we must have our own class manager.
+		// Can't do this in the run() command (needs to resolve stuff)
+		// Should we do it by default when we create a namespace will no
+		// parent of class manager?
+
+		if ( this.classManager == null )
+			setClassManager( BshClassManager.createClassManager() );
+
 		setParent( null );
 	}
 
-	public void setParent( NameSpace parent ) {
+	public void setParent( NameSpace parent ) 
+	{
 		this.parent = parent;
 
 		// If we are disconnected from root we need to handle the def imports
@@ -612,7 +671,7 @@ public class NameSpace
 		@return null if not found.
 	*/
     public Class getClass( String name)
-		throws ClassPathException
+		throws UtilEvalError
     {
 		Class c = getClassImpl(name);
 		if ( c != null )
@@ -636,14 +695,14 @@ public class NameSpace
 		<p>
 
 		This method implements caching of unqualified names (normally imports).
-		Qualified names are cached by BshClassManager.
+		Qualified names are cached by the BshClassManager.
 		Unqualified absolute class names (e.g. unpackaged Foo) are cached too
 		so that we don't go searching through the imports for them each time.
 
 		@return null if not found.
 	*/
     private Class getClassImpl( String name )
-		throws ClassPathException
+		throws UtilEvalError
     {
 		// Unqualified (simple, non-compound) name
 		boolean unqualifiedName = !Name.isCompound(name);
@@ -689,7 +748,7 @@ public class NameSpace
 		found directly in this NameSpace (no parent chain).
 	*/
     private Class getImportedClassImpl( String name )
-		throws ClassPathException
+		throws UtilEvalError
     {
 		// Try explicitly imported class, e.g. import foo.Bar;
 		String fullname = null;
@@ -709,7 +768,7 @@ public class NameSpace
 			{
 				// Imported full name wasn't found as an absolute class
 				// If it is compound, try to resolve to an inner class.  
-				// (maybe this should happen BshClassManager?)
+				// (maybe this should happen in the BshClassManager?)
 
 				if ( Name.isCompound( fullname ) )
 					try {
@@ -719,10 +778,10 @@ public class NameSpace
 					if ( Interpreter.DEBUG ) Interpreter.debug(
 						"imported unpackaged name not found:" +fullname);
 
-				// If found cache the full name in BshClassManager
+				// If found cache the full name in the BshClassManager
 				if ( clas != null ) {
 					// (should we cache info in not a class case too?)
-					BshClassManager.cacheClassInfo( fullname, clas );
+					getClassManager().cacheClassInfo( fullname, clas );
 					return clas;
 				}
 			} else
@@ -747,20 +806,18 @@ public class NameSpace
 					return c;
 			}
 
+		BshClassManager bcm = getClassManager();
 		/*
-			Try super imported if available
+			Try super import if available
 			Note: we do this last to allow explicitly imported classes
 			and packages to take priority.  This method will also throw an
 			error indicating ambiguity if it exists...
 		*/
-		if ( superImport ) 
+		if ( bcm.hasSuperImport() ) 
 		{
-			BshClassManager bcm = BshClassManager.getClassManager();
-			if ( bcm != null ) {
-				String s = bcm.getClassNameByUnqName( name );
-				if ( s != null )
-					return classForName( s );
-			}
+			String s = bcm.getClassNameByUnqName( name );
+			if ( s != null )
+				return classForName( s );
 		}
 
 		return null;
@@ -768,7 +825,7 @@ public class NameSpace
 
 	private Class classForName( String name ) 
 	{
-		return BshClassManager.classForName( name );
+		return getClassManager().classForName( name );
 	}
 
 	/**
@@ -817,13 +874,10 @@ public class NameSpace
 		Perform "import *;" causing the entire classpath to be mapped.
 		This can take a while.
 	*/
-	public static void doSuperImport() 
+	public void doSuperImport() 
 		throws UtilEvalError
 	{
-		BshClassManager bcm = BshClassManager.getClassManager();
-		if ( bcm != null )
-			bcm.doSuperImport();
-		superImport = true;
+		getClassManager().doSuperImport();
 	}
 
     static class TypedVariable implements java.io.Serializable 
@@ -1278,7 +1332,6 @@ public class NameSpace
 		methods = null;
 		importedClasses = null;
 		importedPackages = null;
-		superImport = false;
 		if ( parent == null )
 			loadDefaultImports();	
     	classCache = null;

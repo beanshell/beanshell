@@ -87,18 +87,20 @@ public class This implements java.io.Serializable, Runnable {
 		NameSpace namespace, Interpreter declaringInterpreter ) 
 	{
 		try {
+			Class c;
 			if ( Capabilities.canGenerateInterfaces() )
-				return (This)Reflect.constructObject( "bsh.XThis",
-					new Object [] { namespace, declaringInterpreter } );
+				c = Class.forName( "bsh.XThis" );
 			else if ( Capabilities.haveSwing() )
-				return (This)Reflect.constructObject( "bsh.JThis",
-					new Object [] { namespace, declaringInterpreter } );
+				c = Class.forName( "bsh.JThis" );
 			else
 				return new This( namespace, declaringInterpreter );
 
+			return (This)Reflect.constructObject( c,
+				new Object [] { namespace, declaringInterpreter } );
+
 		} catch ( Exception e ) {
 			throw new InterpreterError("internal error 1 in This: "+e);
-		} 
+		}
     }
 
 	/**

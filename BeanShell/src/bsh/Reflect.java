@@ -74,16 +74,15 @@ class Reflect
 			try {
 				// Check to see if we've resolve this method before
 				Class clas = object.getClass();
-				Method method = BshClassManager.getResolvedMethod(
-					clas, methodName, args );
+				BshClassManager bcm = callstack.top().getClassManager();
+				Method method = bcm.getResolvedMethod( clas, methodName, args );
 
 				if ( method == null )
 					method = resolveJavaMethod( 
 						clas, object, methodName, args, false );
 
 				// Succeeded.  Cache the resolved method.
-				BshClassManager.cacheResolvedMethod(
-					clas, methodName, args, method );
+				bcm.cacheResolvedMethod( clas, methodName, args, method );
 
 				return invokeOnMethod( method, object, args );
 			} catch ( UtilEvalError e ) {
@@ -173,13 +172,13 @@ class Reflect
     }
 
     public static Object getStaticField(Class clas, String fieldName)
-        throws ReflectError
+        throws UtilEvalError, ReflectError
     {
         return getFieldValue(clas, null, fieldName);
     }
 
     public static Object getObjectField(Object object, String fieldName)
-        throws ReflectError
+        throws UtilEvalError, ReflectError
     {
 		if ( object instanceof This )
 			return ((This)object).namespace.getVariable( fieldName );
@@ -198,7 +197,7 @@ class Reflect
     }
 
     static LHS getLHSStaticField(Class clas, String fieldName)
-        throws ReflectError
+        throws UtilEvalError, ReflectError
     {
         Field f = getField(clas, fieldName);
         return new LHS(f);
@@ -211,7 +210,7 @@ class Reflect
 		In the field does not exist we check for a property setter.
 	*/
     static LHS getLHSObjectField(Object object, String fieldName)
-        throws ReflectError
+        throws UtilEvalError, ReflectError
     {
 		if ( object instanceof This )
 			return new LHS(((This)object).namespace, fieldName );
@@ -230,7 +229,8 @@ class Reflect
     }
 
     private static Object getFieldValue(
-		Class clas, Object object, String fieldName) throws ReflectError
+		Class clas, Object object, String fieldName) 
+		throws UtilEvalError, ReflectError
     {
         try {
             Field f = getField(clas, fieldName);
@@ -257,7 +257,7 @@ class Reflect
 		i.e. this method owns Class getField();
 	*/
     private static Field getField(Class clas, String fieldName)
-        throws ReflectError
+        throws UtilEvalError, ReflectError
     {
         try
         {
@@ -286,7 +286,7 @@ class Reflect
 		there is no real syntax for specifying which class scope to use...
 	*/
 	private static Field findAccessibleField( Class clas, String fieldName ) 
-		throws NoSuchFieldException
+		throws UtilEvalError, NoSuchFieldException
 	{
 		// Quick check catches public fields include those in interfaces
 		try {
@@ -447,6 +447,7 @@ class Reflect
 	*/
 	static Method findAccessibleMethod( 
 		Class clas, String name, Class [] types, boolean onlyStatic ) 
+		throws UtilEvalError
 	{
 		Method meth = null;
 		Vector classQ = new Vector();
@@ -597,7 +598,8 @@ System.out.println("findAcc: "
             return arg;
     }
 
-    static Object constructObject(String clas, Object[] args)
+	/*
+    static Object constructObject( String clas, Object[] args )
         throws ReflectError, InvocationTargetException
     {
 		Class c = BshClassManager.classForName( clas );
@@ -606,6 +608,7 @@ System.out.println("findAcc: "
 
 		return constructObject( c, args );
 	}
+	*/
 
 	/**
 		Primary object constructor

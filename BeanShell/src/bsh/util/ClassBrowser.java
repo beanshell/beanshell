@@ -59,6 +59,7 @@ public class ClassBrowser extends JSplitPane
 	implements ListSelectionListener, ClassPathListener
 {
 	BshClassPath classPath;
+	BshClassManager classManager;
 
 	// GUI
 	JFrame frame;
@@ -77,7 +78,12 @@ public class ClassBrowser extends JSplitPane
 	Class selectedClass;
 
 	public ClassBrowser() {
+		this( BshClassManager.createClassManager() );
+	}
+
+	public ClassBrowser( BshClassManager classManager ) {
 		super( VERTICAL_SPLIT, true );
+		this.classManager = classManager;
 	}
 
 	String [] toSortedStrings ( Collection c ) {
@@ -158,7 +164,7 @@ public class ClassBrowser extends JSplitPane
 
 		Class clas;
 		try {
-			selectedClass = BshClassManager.classForName( 
+			selectedClass = classManager.classForName( 
 				selectedPackage + "." + classname );
 		} catch ( Exception e ) { 
 			System.out.println(e);
@@ -219,13 +225,9 @@ public class ClassBrowser extends JSplitPane
 
 	public void init() throws ClassPathException 
 	{
-		BshClassManager bcm = BshClassManager.getClassManager();
-		if ( bcm == null )
-			throw new ClassPathException("No Class Manager...");
-
 		// Currently we have to cast because BshClassPath is not known by
 		// the core.
-		classPath = ((ClassManagerImpl)bcm).getClassPath();
+		classPath = ((ClassManagerImpl)classManager).getClassPath();
 
 	// maybe add MappingFeedbackListener here... or let desktop if it has
 	/*

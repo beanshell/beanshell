@@ -564,8 +564,12 @@ public class BshClassPath
 		URL [] urls = new URL[ paths.length ];
 		try {
 			for ( int i=0; i<paths.length; i++)
-				urls[i] = new File( paths[i] ).toURL();
-		} catch ( MalformedURLException e ) {
+				// We take care to get the canonical path first.
+				// Java deals with relative paths for it's bootstrap loader
+				// but JARClassLoader doesn't.
+				urls[i] = new File( 
+					new File(paths[i]).getCanonicalPath() ).toURL();
+		} catch ( IOException e ) {
 			throw new ClassPathException("can't parse class path: "+e);
 		}
 

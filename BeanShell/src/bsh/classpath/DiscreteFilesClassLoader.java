@@ -37,6 +37,7 @@ import java.io.*;
 import java.io.File;
 import java.util.*;
 import java.awt.*;
+import bsh.BshClassManager;
 
 public class DiscreteFilesClassLoader extends BshClassLoader {
 	/**
@@ -44,7 +45,8 @@ public class DiscreteFilesClassLoader extends BshClassLoader {
 	*/
 	ClassSourceMap map;
 
-	public static class ClassSourceMap extends HashMap {
+	public static class ClassSourceMap extends HashMap 
+	{
 		public void put( String name, File baseDir ) {
 			super.put( name, baseDir );
 		}
@@ -53,17 +55,12 @@ public class DiscreteFilesClassLoader extends BshClassLoader {
 		}
 	}
 	
-	public DiscreteFilesClassLoader( ClassSourceMap map ) { 
+	public DiscreteFilesClassLoader( 
+		BshClassManager classManager, ClassSourceMap map ) 
+	{
+		super( classManager );
 		this.map = map;
 	}
-
-	/*
-	public DiscreteFilesClassLoader( ClassSourceMap map, ClassLoader parent ) 
-	{ 
-		super( parent );
-		this.map = map;
-	}
-	*/
 
 	/**
 	*/

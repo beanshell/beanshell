@@ -58,10 +58,7 @@ class BSHType extends SimpleNode
 
 		Technically, this is not correct.  We would need to clear it on
 		any change in the namespace in which we are embedded (e.g. to reflect
-		new imports or variable shadowing, etc.)  With the Name caching
-		improvements in 1.3 it should be fast enough to simply re-resolve
-		the type to a class each time... should test this.  Leaving it for
-		now as it's not a common problem.
+		new imports or variable shadowing, etc.)  
 
 		To summarize:  I believe if you declare a typed var in a namespace
 		and then cause the type to change (e.g. by a subsequent import)
@@ -73,7 +70,6 @@ class BSHType extends SimpleNode
 
     BSHType(int id) { 
 		super(id); 
-		BshClassManager.addCMListener(this);
 	}
 
 	/**
@@ -116,6 +112,10 @@ class BSHType extends SimpleNode
             }
         } else
             type = baseType;
+
+		// hack... sticking to first interpreter that resolves this
+		// see comments on type instance variable
+		interpreter.getClassManager().addListener(this);
 
         return type;
     }

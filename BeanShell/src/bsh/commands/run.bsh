@@ -1,17 +1,19 @@
 /**
-	Run a command in its own in its own private global namespace and interpeter
-	context.  (kind of like the unix "chroot" for the namespace)
+	Run a command in its own in its own private global namespace, with its
+	own class manager and interpeter context.  (kind of like unix "chroot" for 
+	a namespace).
 	The root bsh system object is extended (with the extend() command) and 
-	made visible here, so that system info is effectively inherited.
-	Because the root bsh object is extended it is effectively read / copy
-	on write...  e.g. you can change directories in the child context, do
-	imports, etc. and it will not affect the calling context.
+	made visible here, so that general system info (e.g. current working
+	directory) is effectively inherited.  Because the root bsh object is 
+	extended it is effectively read / copy on write...  e.g. you can change 
+	directories in the child context, do imports, etc. and it will not affect 
+	the calling context.
 	<p>
 
 	run() is like source() except that it runs the command in a new, 
 	subordinate and prune()'d namespace.  So it's like "running" a command 
-	instead of "sourcing" it.  Returns the object context in which the command
-	was run.
+	instead of "sourcing" it.  run() teturns the object context in which the 
+	command was run.
 	<p>
 
 	Returns the context so that you can gather results.
@@ -39,8 +41,17 @@ run( String filename, Object runArgument )
 	bsh=extend(global.bsh); 
 	bsh.help=extend(bsh.help);
 
-	// cut us off... make us the root (global) namespace for this command
+	// save the classpath before prune
+	cp = this.caller.namespace.getClassManager()
+		.getClassPath().getUserClassPathComponents();
+
+	// Cut us off... make us the root (global) namespace for this command
+	// Prune() will also create a new class manager for us.
 	this.namespace.prune();
+
+	// Inherit user classpath 
+	this.namespace.getClassManager().setClassPath( cp );
+
 	this.interpreter.source( filename, this.namespace );
 	return this;
 }

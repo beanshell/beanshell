@@ -98,7 +98,7 @@ public class Capabilities
 			try {
 				/*
 					Note: do *not* change this to 
-					BshClassManager.plainClassForName() or equivalent.
+					BshClassManager plainClassForName() or equivalent.
 					This class must not touch any other bsh classes.
 				*/
 				c = Class.forName( name );
@@ -116,7 +116,7 @@ public class Capabilities
 		an optional package.  The normal operation is to test before attempting
 		to use these packages... so this is runtime exception.
 	*/
-	public static class Unavailable extends RuntimeException 
+	public static class Unavailable extends UtilEvalError
 	{
 		public Unavailable(String s ){ super(s); }
 	}
