@@ -21,6 +21,8 @@ import java.awt.Color;
 /**
 	The capabilities of a GUI console for BeanShell.
 	Stream I/O and optimized print for output.
+
+	A simple console may ignore some of these.
 */
 public interface ConsoleInterface {
 	public Reader getIn();
@@ -30,4 +32,5 @@ public interface ConsoleInterface {
 	public void print( String s );
 	public void print( String s, Color color );
 	public void error( String s );
+	public void setNameCompletion( NameCompletion nc );
 }

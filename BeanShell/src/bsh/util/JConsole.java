@@ -28,10 +28,7 @@ import javax.swing.text.*;
 import javax.swing.*;
 
 import bsh.ConsoleInterface;
-import bsh.Interpreter;
-import bsh.NameSpace;
-import bsh.ConsoleInterface;
-
+import bsh.NameCompletion;
 
 /**
 	A JFC/Swing based console for the BeanShell desktop.
@@ -70,30 +67,38 @@ public class JConsole extends JScrollPane
     private JTextPane text;
     private DefaultStyledDocument doc;
 
+	NameCompletion nameCompletion;
+
 	// hack to prevent key repeat for some reason?
     private boolean gotUp = true;
 
-	public JConsole(InputStream cin, OutputStream cout) {
+	public JConsole() {
+		this(null, null);
+	}
+
+	public JConsole( InputStream cin, OutputStream cout )  
+	{
 		super();
-		Font font = new	Font("Monospaced",Font.PLAIN,14);
 
-		// special TextPane which catches for cut and paste, both L&F keys and
+		// Special TextPane which catches for cut and paste, both L&F keys and
 		// programmatic	behaviour
-		text = new JTextPane(doc=new DefaultStyledDocument()) {
-			public void	cut() {
-				if (text.getCaretPosition() < cmdStart)	{
-					super.copy();
-				} else {
-					super.cut();
+		text = new JTextPane( doc=new DefaultStyledDocument() ) 
+			{
+				public void	cut() {
+					if (text.getCaretPosition() < cmdStart)	{
+						super.copy();
+					} else {
+						super.cut();
+					}
 				}
-			}
 
-			public void	paste()	{
-				forceCaretMoveToEnd();
-				super.paste();
-			}
-		};
+				public void	paste()	{
+					forceCaretMoveToEnd();
+					super.paste();
+				}
+			};
 
+		Font font = new	Font("Monospaced",Font.PLAIN,14);
 		text.setText("");
 		text.setFont( font );
 		text.setMargin(	new Insets(7,5,7,5) );
@@ -133,10 +138,6 @@ public class JConsole extends JScrollPane
 		new Thread( this ).start();
 
 		requestFocus();
-	}
-
-	public JConsole() {
-		this(null, null);
 	}
 
 	public void keyPressed(	KeyEvent e ) {
@@ -186,8 +187,8 @@ public class JConsole extends JScrollPane
 			case ( KeyEvent.VK_BACK_SPACE ):
 			case ( KeyEvent.VK_DELETE ):
 				if (text.getCaretPosition() <= cmdStart) {
+// Why isn't this working? JDK1.3 ignores this consume...
 					e.consume();
-System.out.println("back beyond prompt");
 				}
 				break;
 
@@ -248,7 +249,7 @@ System.out.println("back beyond prompt");
 			case ( KeyEvent.VK_TAB ):
 			    if (e.getID() == KeyEvent.KEY_RELEASED) {
 					String part = text.getText().substring( cmdStart );
-					System.out.println("TAB: " +part);
+					doCommandCompletion( part );
 				}
 				e.consume();
 				break;
@@ -264,6 +265,42 @@ System.out.println("back beyond prompt");
 				}
 				break;
 		}
+	}
+
+	void doCommandCompletion( String part ) {
+		if ( nameCompletion == null )
+			return;
+
+		int i=part.length()-1;
+
+		// Character.isJavaIdentifierPart()  How convenient for us!! 
+		while ( 
+			i >= 0 && 
+				( Character.isJavaIdentifierPart(part.charAt(i)) 
+				|| part.charAt(i) == '.' )
+		) 
+			i--;
+
+		part = part.substring(i+1);
+
+		if ( part.length() < 2 )  // reasonable completion length
+			return;
+
+System.out.println("completing part: "+part);
+
+		String [] complete = nameCompletion.completeName(part);
+		if ( complete.length == 0 )
+			return;
+
+		if ( complete.length == 1 ) {
+			String append = complete[0].substring(part.length());
+			append( append );
+		}
+
+		// show ambig
+for(int i2=0; i2<complete.length; i2++)
+	System.out.println(complete[i2]);
+
 	}
 
 	private	void append(String string) {
@@ -724,6 +761,10 @@ System.out.println("back beyond prompt");
 			closed = true;
 			super.close();
 		}
+	}
+
+	public void setNameCompletion( NameCompletion nc ) {
+		this.nameCompletion = nc;
 	}
 
 }

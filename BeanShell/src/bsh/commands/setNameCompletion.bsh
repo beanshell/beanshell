@@ -1,0 +1,12 @@
+
+bsh.help.setNameCompletion= "usage: setNameCompletion( boolean )";
+
+/**
+	Allow users to turn off name completion.
+*/
+setNameCompletion( bool ) {
+	if ( bool == false )
+		if ( bsh.console != void )
+			bsh.console.setNameCompletion( null );
+}
+
