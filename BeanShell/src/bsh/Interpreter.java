@@ -96,6 +96,10 @@ public class Interpreter
 	/* 
 		Debug utils are static so that they are reachable by code that doesn't
 		necessarily have an interpreter reference (e.g. tracing in utils).
+		In the future we may want to allow debug/trace to be turned on on
+		a per interpreter basis, in which case we'll need to use the parent 
+		reference in some way to determine the scope of the command that 
+		turns it on or off...
 	*/
     public static boolean DEBUG, TRACE;
 	// This should be per instance
@@ -110,14 +114,18 @@ public class Interpreter
 	// end static stuff
 
 	/* Instance data */
+
 	Parser parser;
     NameSpace globalNameSpace;
     Reader in;
     PrintStream out;
     PrintStream err;
     ConsoleInterface console; 
+	/** If this interpeter is a child of another, the parent */
+	Interpreter parent;
+	/** The name of the file or other source that this interpreter is reading */
+	String sourceFileInfo;
 
-	// Can these be combined?
     private boolean 
 		evalOnly, 		// Interpreter has no input stream, use eval() only
 		interactive;	// Interpreter has a user, print prompts, etc.
@@ -128,12 +136,19 @@ public class Interpreter
 		The main constructor.
 		All constructors should now pass through here.
 
-		If namespace is non-null then this interpreter's root 
-		will be made a child of the specified namespace. 
+		@param namespace If namespace is non-null then this interpreter's 
+		root namespace will be set to the one provided.  If it is null a new 
+		one will be created for it.
+		@param parent The parent interpreter if this interpreter is a child 
+			of another.  May be null.
+		@param sourceFileInfo An informative string holding the filename 
+		or other description of the source from which this interpreter is
+		reading... used for debugging.  May be null.
 	*/
     public Interpreter(
 		Reader in, PrintStream out, PrintStream err, 
-		boolean interactive, NameSpace namespace)
+		boolean interactive, NameSpace namespace,
+		Interpreter parent, String sourceFileInfo )
     {
 		parser = new Parser( in );
 		long t1=System.currentTimeMillis();
@@ -141,7 +156,9 @@ public class Interpreter
         this.out = out;
         this.err = err;
         this.interactive = interactive;
-		debug = err;  // correct?
+		debug = err;
+		this.parent = parent;
+		this.sourceFileInfo = sourceFileInfo;
 
 		if ( namespace == null )
         	this.globalNameSpace = new NameSpace("global");
@@ -163,6 +180,13 @@ public class Interpreter
 		long t2=System.currentTimeMillis();
 		Interpreter.debug("Time to initialize interpreter: "+(t2-t1));
     }
+
+    public Interpreter(
+		Reader in, PrintStream out, PrintStream err, 
+		boolean interactive, NameSpace namespace)
+    {
+		this( in, out, err, interactive, namespace, null, null );
+	}
 
     public Interpreter(
 		Reader in, PrintStream out, PrintStream err, boolean interactive)
@@ -200,27 +224,6 @@ public class Interpreter
         evalOnly = true;
 		setu( "bsh.evalOnly", new Primitive(true) );
     }
-
-	/**
-		Create an interpreter and source the specified resource file.
-		Note:
-		Resource files of course are located relative to the classpath 
-		and may be stored in separate files or inside of JAR files.
-		'resource' is relative to the bsh package unless you specify an
-		absolute "/xxx" path.
-		
-		@throws EvalError since it does a source.
-    public Interpreter( String resource )
-		throws EvalError
-    {
-		this();
-		InputStream in = getClass().getResourceAsStream( resource );
-		if ( in == null )
-			throw new EvalError("Script not found: "+resource);
-		in = new BufferedInputStream( in );
-		eval( new InputStreamReader(in), globalNameSpace, resource );
-    }
-	*/
 
 	// End constructors
 
@@ -366,7 +369,8 @@ public class Interpreter
 			try { 
 				eval("printBanner();"); 
 			} catch ( EvalError e ) {
-				println("BeanShell "+VERSION+" - by Pat Niemeyer (pat@pat.net)");
+				println(
+					"BeanShell "+VERSION+" - by Pat Niemeyer (pat@pat.net)");
 			}
 
         boolean eof = false;
@@ -484,6 +488,8 @@ public class Interpreter
 			System.exit(0);
     }
 
+	// begin source and eval
+
 	/**
 		Read text from fileName and eval it.
 	*/
@@ -513,12 +519,15 @@ public class Interpreter
 		Return value is the evaluated object (or corresponding primitive 
 		wrapper).
 
-		@param sourceFile is for information purposes only.  It is used to
+		@param sourceFileInfo is for information purposes only.  It is used to
 		display error messages (and in the future may be made available to
 		the script).
 		@throws EvalError on script problems
 		@throws TargetError on unhandled exceptions from the script
     */
+	/*
+		Note: we need a form of eval that passes the callstack through...
+	*/
 	/*
 	Can't this be combined with run() ?
 	run seems to have stuff in it for interactive vs. non-interactive...
@@ -527,7 +536,7 @@ public class Interpreter
 	*/
 
     public Object eval( 
-		Reader in, NameSpace nameSpace, String sourceFile ) 
+		Reader in, NameSpace nameSpace, String sourceFileInfo ) 
 		throws EvalError 
 	{
 		Object retVal = null;
@@ -539,10 +548,12 @@ public class Interpreter
 			this interpreter.
 		*/
         Interpreter localInterpreter = 
-			new Interpreter( in, out, err, false, nameSpace );
+			new Interpreter( 
+				in, out, err, false, nameSpace, this, sourceFileInfo  );
 
 		CallStack callstack = new CallStack();
-		callstack.push( new NameSpace("Evaluation global for: "+sourceFile) );
+		callstack.push( 
+			new NameSpace("Evaluation global for: "+sourceFileInfo) );
 		callstack.push( nameSpace );
 
         boolean eof = false;
@@ -559,16 +570,7 @@ public class Interpreter
 					if ( TRACE )
 						println( "// " +node.getText() );
 
-/*
-Should the interpreter ref be 'this' or the 
-local interpreter?  There are issues if we change it...
-be careful if we try to merge with the run() code above.
-if we change it to local commands will still work (because they are sourced,
-then executed in the main interpreter) but directly sourced code will see the
-sub-interpreter...  does this affect anything but the debug() command?
-I believe that is the only  state stored in interpreter currently.
-*/
-                    retVal = node.eval( callstack, this );
+                    retVal = node.eval( callstack, localInterpreter );
 
 					// sanity check during development
 					if ( callstack.depth() > 2 )
@@ -582,12 +584,12 @@ I believe that is the only  state stored in interpreter currently.
                 }
             } catch(ParseException e) {
                 throw new EvalError(
-					"Sourced file: "+sourceFile+" parser Error: " 
+					"Sourced file: "+sourceFileInfo+" parser Error: " 
 					+ e.getMessage( DEBUG ), node );
             } catch(InterpreterError e) {
                 e.printStackTrace();
                 throw new EvalError(
-					"Sourced file: "+sourceFile+" internal Error: " 
+					"Sourced file: "+sourceFileInfo+" internal Error: " 
 					+ e.getMessage(), node);
             } catch( TargetError e ) {
                 if(DEBUG)
@@ -595,22 +597,22 @@ I believe that is the only  state stored in interpreter currently.
 				// failsafe, set the Line as the origin of the error.
 				if ( !e.hasNode() )
 					e.setNode( node );
-				e.reThrow("Sourced file: "+sourceFile);
+				e.reThrow("Sourced file: "+sourceFileInfo);
             } catch(EvalError e) {
                 if(DEBUG)
                     e.printStackTrace();
 				// failsafe, set the Line as the origin of the error.
 				if ( !e.hasNode() )
 					e.setNode( node );
-				e.reThrow( "Sourced file: "+sourceFile );
+				e.reThrow( "Sourced file: "+sourceFileInfo );
             } catch(Exception e) {
                 e.printStackTrace();
                 throw new EvalError(
-					"Sourced file: "+sourceFile+" unknown error: " 
+					"Sourced file: "+sourceFileInfo+" unknown error: " 
 					+ e.getMessage(), node);
             } catch(TokenMgrError e) {
                 throw new EvalError(
-					"Sourced file: "+sourceFile+" Token Parsing Error: " 
+					"Sourced file: "+sourceFileInfo+" Token Parsing Error: " 
 					+ e.getMessage(), node );
             } finally {
                 localInterpreter.get_jjtree().reset();
@@ -646,6 +648,8 @@ I believe that is the only  state stored in interpreter currently.
         return eval( 
 			new StringReader(s), nameSpace, "<Inline eval of: "+s+" >" );
     }
+
+	// end source and eval
 
 	/**
 		Print an error message in a standard format on the output stream
@@ -910,6 +914,17 @@ I believe that is the only  state stored in interpreter currently.
 		} catch ( Throwable e ) { 
 			System.err.println("Could not init static(3):"+e);
 		}
+	}
+
+	public String getSourceFileInfo() { 
+		if ( sourceFileInfo != null )
+			return sourceFileInfo;
+		else
+			return "<unknown>";
+	}
+
+	public Interpreter getParent() {
+		return parent;
 	}
 
 }

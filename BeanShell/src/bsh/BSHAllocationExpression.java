@@ -124,7 +124,7 @@ class BSHAllocationExpression extends SimpleNode
 // who is the caller?
 		NameSpace local = new NameSpace(namespace, "anonymous block object");
 		callstack.push(local);
-		body.eval( callstack, interpreter );
+		body.eval( callstack, interpreter, true );
 		callstack.pop();
 		return local.getThis(interpreter).getInterface( type );
 	}

@@ -41,11 +41,23 @@ package bsh;
 	The issue is that when a method is located in a subordinate namespace or
 	invoked from an arbitrary namespace it must nontheless execute with its
 	'super' as the context in which it was declared.
+
+	i.e.
+	The local method context is a child namespace of the declaring namespace.
 */
 class BshMethod implements java.io.Serializable 
 {
 	public BSHMethodDeclaration method;
+
+	/* 
+		I believe this is always the namespace in which the method is
+		defined...  It is a back-reference for the node, which needs to
+		execute under this namespace.
+		So it is not necessary to declare this transient, because we can
+		only be saved as part of our namespace anyway... (currently).
+	*/
 	NameSpace declaringNameSpace;
+
 	private Class [] argTypes;
 
 	public BshMethod( 
@@ -104,6 +116,7 @@ class BshMethod implements java.io.Serializable
 		if ( argValues.length != method.params.numArgs ) {
 			// look for help string
 			try {
+// should check for null here
 				String help = 
 					(String)declaringNameSpace.get(
 					"bsh.help."+method.name, interpreter );
@@ -157,7 +170,7 @@ class BshMethod implements java.io.Serializable
 		// Push the new namespace on the call stack
 		callstack.push( localNameSpace );
 		// Invoke the method
-		Object ret = method.block.eval( callstack, interpreter );
+		Object ret = method.block.eval( callstack, interpreter, true );
 		// pop back to caller namespace
 		callstack.pop();
 

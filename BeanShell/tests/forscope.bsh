@@ -4,17 +4,25 @@ source("TestHarness.bsh");
 
 a=5;
 i=99;
+int q2=99;
+assert( q2 == 99 );
 for(int i=1; i<3; i++) {
 	a=9;
 	q=2;
+
+	// slightly deviant behavior here...  java wouldn't allow the re-declaration
 	int q2=3;
+	assert( q2 == 3 );
 
 	i2 = i;
 }
-assert(a==9);
 assert(i==99);
 assert(q==2);
-assert(q2==3);
+
+// typed and untyped vars effectively have different scope 
+assert(a==9);
+assert(q2==99);
+
 assert(i2 == 2);
 
 // multiple inits

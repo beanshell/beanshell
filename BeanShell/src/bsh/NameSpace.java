@@ -228,12 +228,16 @@ public class NameSpace
 	public void prune() {
 		parent = null;
 
+	/*
+	Do we need this?
+	If so, fix the loop... can get Vectors of methods as well as methods
+
 		if ( methods != null )
 			// Prune the methods of this namespace - detach the nodes
 			// from their parent nodes. 
-			// Is this correct?
 			for( Enumeration e=methods.elements(); e.hasMoreElements(); )
 				((BshMethod)e.nextElement()).method.prune();
+	*/
 	}
 
 	public void setParent( NameSpace parent ) {

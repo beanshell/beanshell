@@ -2,6 +2,20 @@
 <head><title>BeanShell - Change Log</title></head>
 <body bgcolor=#ffffff>
 
+<h2>Changes in 1.1alpha14</h2>
+<pre>
+	- Fixed general block scoping bugs.  Things should act like Java now.
+	typed vars declared within blocks does not leak out.  e.g. { int i=2; } 
+	- Added getSourceFileInfo() command to return the name of the file or
+	source from which the current interpreter is reading.  
+	(uses this.interpreter.getSourceFileInfo())
+	- Added a parent ref to the interpreter for future use by the child
+	eval interpreters.
+	- Added new form of source() command that takes a URL.
+	- Tenatively added new feature to get the text of a method invocation 
+	from within the method body...  may be useful along with this.caller.
+	See namespace.getInovcationText() namespace.getInvocationLine().
+</pre>
 <h2>Changes in 1.1alpha13</h2>
 <pre>
 	- Removed core bsh package dependencies on 1.2.  bsh will now compile and

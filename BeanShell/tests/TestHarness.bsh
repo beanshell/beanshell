@@ -14,6 +14,7 @@ assert( boolean condition ) {
 			"Test FAILED: "
 			+"Line: "+ this.namespace.getInvocationLine()
 			+" : "+this.namespace.getInvocationText()
+			+" : while evaluating file: "+getSourceFileInfo()
 		);
 		super.test_failed = true;
 	}

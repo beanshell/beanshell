@@ -37,11 +37,6 @@ package bsh;
 /**
 	Implementation of the for(;;) statement.
 */
-/*
-	Note: there is some manipulation of the call stack in here to preserve
-	the validity of this.caller even when new subordinate namespaces are 
-	made for the for-init and for-body.
-*/
 class BSHForStatement extends SimpleNode implements ParserConstants
 {
     public boolean hasForInit;
@@ -70,38 +65,38 @@ class BSHForStatement extends SimpleNode implements ParserConstants
         if(i < jjtGetNumChildren()) // should normally be
             statement = ((SimpleNode)jjtGetChild(i));
 
-		NameSpace forInitNameSpace = null;
-		// save the parent namespace, we're going to do some swapping
 		NameSpace enclosingNameSpace= callstack.top();
+		BlockNameSpace forNameSpace = new BlockNameSpace( enclosingNameSpace );
+
+		/*
+			Note: some interesting things are going on here.
+
+			1) We swap instead of push...  The primary mode of operation acts 
+			like we are in the enclosing namespace...  (super must be 
+			preserved, etc.)
+
+			2) We do *not* call the body block eval with the namespace override
+			We allow it to create a second subordinate BlockNameSpace child
+			of the forNameSpace.  Variable propogation still works through
+			the chain, but the block's child cleans the state between iteration.
+			(which is correct Java behavior... see forscope4.bsh)
+		*/
+		callstack.swap( forNameSpace );
+
+		// Note: it's important that there is only one exit point from this
+		// method so that we can swap back the namespace.
 
         // Do the for init
-        if ( hasForInit ) {
-			forInitNameSpace = 
-				new NameSpace( enclosingNameSpace, "ForInitNameSpace" );
-
-			// swap in the forInitSpace so that this.caller stays meaningful
-			NameSpace tmp = callstack.swap( forInitNameSpace );
+        if ( hasForInit ) 
             forInit.eval( callstack, interpreter );
-			callstack.swap( tmp );  // put it back
-		} 
-
-		// the forInitNameSpace may be null if there is no forInit
-		NameSpace forBodyNameSpace = new ForBodyNameSpace(
-			enclosingNameSpace, forInitNameSpace );
 
 		Object returnControl = Primitive.VOID;
         while(true)
         {
-			/*
-            if ( hasExpression && !BSHIfStatement.evaluateCondition(
-				expression, forBodyNameSpace, interpreter) )
-                break;
-			*/
-            if ( hasExpression ) {
-				NameSpace tmp = callstack.swap( forBodyNameSpace );
+            if ( hasExpression ) 
+			{
 				boolean cond = BSHIfStatement.evaluateCondition(
 					expression, callstack, interpreter );
-				callstack.swap( tmp );  // put it back
 
 				if ( !cond ) 
 					break;
@@ -110,10 +105,8 @@ class BSHForStatement extends SimpleNode implements ParserConstants
             boolean breakout = false; // switch eats a multi-level break here?
             if ( statement != null ) // not empty statement
             {
-				// swap in the forBodyNameSpace so this.caller stays meaningful
-				NameSpace tmp = callstack.swap( forBodyNameSpace );
+				// do *not* invoke special override for block... (see above)
                 Object ret = statement.eval( callstack, interpreter );
-				callstack.swap( tmp );  // put it back
 
                 if (ret instanceof ReturnControl)
                 {
@@ -122,7 +115,7 @@ class BSHForStatement extends SimpleNode implements ParserConstants
                         case RETURN:
 							returnControl = ret;
 							breakout = true;
-                            return ret;
+                            break;
 
                         case CONTINUE:
                             break;
@@ -133,17 +126,15 @@ class BSHForStatement extends SimpleNode implements ParserConstants
                     }
                 }
             }
-            if(breakout)
+
+            if ( breakout )
                 break;
 
-            if ( hasForUpdate ) {
-				// swap in the forBodyNameSpace so this.caller stays meaningful
-				NameSpace tmp = callstack.swap( forBodyNameSpace );
+            if ( hasForUpdate )
                 forUpdate.eval( callstack, interpreter );
-				callstack.swap( tmp );  // put it back
-			}
         }
 
+		callstack.swap( enclosingNameSpace );  // put it back
         return returnControl;
     }
 

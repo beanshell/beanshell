@@ -52,8 +52,8 @@ assert( isEvalError("null instanceof void") );
 /*
 	Uncomment these if we start enforcing operations on primitive/non-prim
 */
-/*
 
+/*
 	// can't compare void with primitive
 	assert( isEvalError("5 != void") );
 	assert( isEvalError("void != 5") );
@@ -73,7 +73,6 @@ assert( isEvalError("null instanceof void") );
 	assert( isEvalError("true == 5") );
 	assert( isEvalError("true != 5") );
 	assert( isEvalError("5 != false") );
-
 */
 
 complete();
