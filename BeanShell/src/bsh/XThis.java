@@ -16,17 +16,23 @@
 package bsh;
 
 import java.lang.reflect.*;
+import java.lang.reflect.InvocationHandler;
 import java.io.*;
 
 /**
-	XThis extends This and adds support for the generalized interface proxy
-	mechanism introduced in JDK1.3.  XThis allows bsh scripted objects to
-	implement arbitrary interfaces (be arbitrary event listener types).
+	XThis.java extends This.java and adds support for the generalized 
+	interface proxy mechanism introduced in JDK1.3.  XThis allows bsh scripted 
+	objects to implement arbitrary interfaces (be arbitrary event listener 
+	types).
+
+	Note: This module relies on new features of JDK1.3 and will not compile
+	with JDK1.2 or lower.  For those environments simply do not compile this
+	class.
 
 	Eventually XThis should become simply This, but for backward compatability
 	we will maintain This without requiring support for the proxy mechanism.
 
-	Note: XThis stands for "eXtended This" (I had to call it something).
+	XThis stands for "eXtended This" (I had to call it something).
 	
 	@see JThis	 See also JThis with explicit JFC support for compatability.
 	@see This	

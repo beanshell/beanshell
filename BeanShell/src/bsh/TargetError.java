@@ -17,7 +17,10 @@ package bsh;
 
 import java.lang.reflect.InvocationTargetException;
 
-// can we support this?
+/*
+	We can't support this here... need to factory an extended class
+	(like XThis) to coexist under older JDK.
+*/
 import java.lang.reflect.UndeclaredThrowableException;
 
 /**

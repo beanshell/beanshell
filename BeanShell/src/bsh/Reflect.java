@@ -32,7 +32,8 @@ package bsh;
 import java.lang.reflect.*;
 import java.io.*;
 import java.util.Vector;
-import Name.ClassIdentifier;
+
+// import Name.ClassIdentifier;  // does not work with 1.2.2?
 
 /**
     All of the reflection API code lies here.  Most of it is in the form
@@ -77,7 +78,7 @@ class Reflect {
 			throw new EvalError("Method invocation on void: "+name);
 
         // if we've got an object, invoke the method
-        if ( !(obj instanceof ClassIdentifier) ) {
+        if ( !(obj instanceof Name.ClassIdentifier) ) {
 
             if (obj instanceof Primitive) {
 
@@ -99,7 +100,7 @@ class Reflect {
         // try static method
         Interpreter.debug("invokeMethod: trying static - " + targetName);
 
-        Class clas = ((ClassIdentifier)obj).getTargetClass();
+        Class clas = ((Name.ClassIdentifier)obj).getTargetClass();
         if (clas != null)
             return invokeStaticMethod(clas, methodName, args);
 

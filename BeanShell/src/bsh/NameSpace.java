@@ -21,7 +21,8 @@ import java.io.InputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
-import Name.ClassIdentifier;
+
+// import Name.ClassIdentifier;   // Doesn't work under 1.2.2 ?
 
 /**
     A namespace	in which methods and variables live.  This is package public 
@@ -352,7 +353,7 @@ public class NameSpace implements java.io.Serializable
 					// use null here for interp... we only care if it resolve
 					// to a class
 					Object obj = new Name(namespace, fullname).toObject( null );
-					Class clas = ((ClassIdentifier)obj).getTargetClass();
+					Class clas = ((Name.ClassIdentifier)obj).getTargetClass();
 					absoluteClassCache.put(fullname, clas);
 					return clas;
 				} catch ( Exception e ) {
