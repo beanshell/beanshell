@@ -42,6 +42,9 @@ import java.net.ServerSocket;
 	A very simple httpd that supports the remote server mode.
 	Files are loaded relative to the classpath (as resources).
 
+	Warning: this is not secure!  This server can probably be duped into 
+	serving any file on your system!  Beware!
+
 	Note: at some point this should be recast as a beanshell script.
 */
 public class Httpd extends Thread
@@ -89,7 +92,6 @@ class HttpdConnection extends Thread
 
 	public void run()
 	{
-//		System.out.println("new http connection");
 		try
 		{
 			in = new BufferedReader( new InputStreamReader(
@@ -98,7 +100,6 @@ class HttpdConnection extends Thread
 			pout = new PrintStream(out);
 
 			String request = in.readLine();
-//			System.out.println( "Request: " + request );
 
 			if(request.toLowerCase().indexOf("http/1.") != -1)
 			{
@@ -134,11 +135,17 @@ class HttpdConnection extends Thread
 		}
 	}
 
-	private void serveFile(String file) throws FileNotFoundException, IOException
+	private void serveFile(String file) 
+		throws FileNotFoundException, IOException
 	{
-		if(file.equals("/"))
-			file = "/bsh/util/lib/remote.html";
-/*
+		// Do some mappings
+		if ( file.equals("/") )
+			file = "/remote/remote.html";
+
+		if ( file.startsWith("/remote/") )
+			file = "/bsh/util/lib/" + file.substring(8);
+
+	/*
 		if(file.startsWith("/"))
 			file = file.substring(1);
 		if(file.endsWith("/") || file.equals(""))
@@ -149,7 +156,7 @@ class HttpdConnection extends Thread
 			error(403, "Forbidden");
 			return;
 		}
-*/
+	*/
 
 		// don't send java packages over... (e.g. swing)
 		if ( file.startsWith("/java" ) )
@@ -163,7 +170,8 @@ class HttpdConnection extends Thread
 			}
 	}
 
-	private void sendFileData(String file) throws IOException, FileNotFoundException
+	private void sendFileData(String file) 
+		throws IOException, FileNotFoundException
 	{
 		/*
 			Why aren't resources being found when this runs on Win95?
@@ -171,27 +179,30 @@ class HttpdConnection extends Thread
 		InputStream fis = getClass().getResourceAsStream(file);
 		if(fis == null)
 			throw new FileNotFoundException(file);
-
 		byte[] data = new byte[fis.available()];
-		fis.read(data);
 
 		if(isHttp1)
 		{
 			pout.println("HTTP/1.0 200 Document follows");
-			if(file.endsWith(".gif"))
+			if ( file.endsWith(".gif") )
 				pout.println("Content-type: image/gif");
 			else 
-				pout.println("Content-type: text/html");
-/*
-			else if(file.endsWith(".html") || file.endsWith(".htm"))
-				pout.println("Content-Type: text/html");
-			else
-				pout.println("Content-Type: application/octet-stream");
-*/
+				if( file.endsWith(".html") || file.endsWith(".htm") )
+					pout.println("Content-Type: text/html");
+				else
+					pout.println("Content-Type: application/octet-stream");
+
 			pout.println("Content-length: " + data.length + "\n");
 		}
-		out.write(data);
-		out.flush();
+
+		int bytesread =	0;
+		// Never, ever trust available()
+		do {
+			bytesread = fis.read(data);
+			if (bytesread > 0)
+				pout.write( data, 0, bytesread );
+		} while( bytesread != -1 );
+		pout.flush();
 	}
 
 	private void error(int num, String s)
