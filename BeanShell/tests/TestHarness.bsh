@@ -18,7 +18,8 @@ assert( boolean condition ) {
 isEvalError( String text ) {
 	flag = false;
 	try {
-		eval(text);
+		// eval(text, super.namespace ); doesn't exist yet
+		this.interpreter.eval(text, super.namespace );
 	} catch ( bsh.EvalError e ) {
 		flag = true;
 	}

@@ -28,6 +28,13 @@ for( i=0; i<list.length; i++) {
 		r.test_failed = true;
 	}
 
+	if ( r.test_failed == void )
+		r.test_failed = true;
+	if ( r.test_completed == void )
+		r.test_completed = false;
+	if ( r.test_warning == void )
+		r.test_warning = false;
+
 	if ( r.test_failed || !r.test_completed ) {
 		print("Test: "+f+" FAILED!");
 

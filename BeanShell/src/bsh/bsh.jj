@@ -35,6 +35,8 @@
 options {
     JAVA_UNICODE_ESCAPE=true;
     STATIC=false;                                                                                       
+	/*DEBUG_PARSER=true;*/
+	/* DEBUG_LOOKAHEAD=true;*/
 }
 
 PARSER_BEGIN(Interpreter)
@@ -1029,14 +1031,12 @@ boolean Line() :
 {}
 {
   (
-   LOOKAHEAD( 3 )
-   /* 
-      The order here is important: Expression must be first.
-      else it will match on a minimal expression in...
-   */
-   Expression() ";"
-|  BlockStatement()
-  )  { 
+   LOOKAHEAD( Expression() ";" )
+   Expression() ";" 
+|
+   BlockStatement()
+  )
+	{ 
 		return false; 
 	}
   | <EOF> { 
@@ -2213,6 +2213,10 @@ void PrimaryPrefix() : { }
   }
   try {
 /*@egen*/
+	/* 
+	Handle method invocation OR straight ambigous name...
+	couldn't we just write this as two rules more clearly? 
+	*/ 
   ( AmbiguousName() [ Arguments() ]  )/*@bgen(jjtree)*/
   } catch (Throwable jjte001) {
     if (jjtc001) {
@@ -2788,6 +2792,9 @@ void BlockStatement() :
   TypedVariableDeclaration() ";"
 |
   Statement()
+
+/* end */
+
 |  
   // Allow BeanShell imports in any block
   ImportDeclaration()
