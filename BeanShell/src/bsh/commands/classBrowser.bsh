@@ -10,6 +10,18 @@ classBrowser() {
 	else
 		frame = new javax.swing.JFrame("BeanShell Class Browser");
 
+	frame.setClosable( true );
+
+	// Ignore unhandled method invocations from listeners.
+	invoke( method, args ) { }
+	internalFrameClosing( e ) {
+		//frame.dispose();
+
+		// really need foo=void;...  
+		bsh.classbrowser = null;
+	}
+	frame.addInternalFrameListener(this);
+
 	bsh.classbrowser.setFrame( frame );
 	frame.getContentPane().add("Center", bsh.classbrowser);
 	frame.pack();

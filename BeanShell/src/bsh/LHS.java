@@ -25,9 +25,12 @@ import java.util.Hashtable;
 	Because of the way things started, the grammar splits on whether
 	something is an LHS or not...  The alternative would be to wrap all
 	objects in bsh, rather than just carrying types that might be used in
-	an assignment.  Wrapping all objects, say, in a nice bsh.Object type,
-	would also provide a nice place to put all the reflection stuff, which
-	is now static in bsh.Reflect
+	an assignment.  Wrapping all objects, say, in a generalized BshObject 
+	type, would also provide a nice place to put all the reflection stuff, 
+	which is now static in bsh.Reflect
+
+	Note: moving some stuff from Reflect to a BshObject, but not going
+	as far as the above yet...
 */
 class LHS implements InterpreterConstants, java.io.Serializable
 {
@@ -95,7 +98,7 @@ class LHS implements InterpreterConstants, java.io.Serializable
 		this.index = index;
 	}
 
-	Object getValue() throws EvalError
+	public Object getValue() throws EvalError
 	{
 		if(type == VARIABLE)
 			return nameSpace.getVariable(varName);
