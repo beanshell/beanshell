@@ -63,8 +63,8 @@ because it conflicts with the current package name for BeanShell (also bsh).
 This means that if you wish to work with BeanShell classes explicitly from
 BeanShell scripts (e.g. bsh.Interpreter) you must first import them, e.g.:
 <pre>
-	import bsh.Interpreter;
-	i=new Interpreter();
+    import bsh.Interpreter;
+    i=new Interpreter();
 </pre>
 </note>
 
@@ -97,7 +97,7 @@ See "Advanced Topics".</li>
 </ul>
 <p/>
 
-These magic references are primarily used by BeanShell commands.   For example,
+These magic references are primarily used by BeanShell commands. 
 <p/>
 
 <h2>Undefined Variables</h2>
@@ -107,11 +107,10 @@ You can test to see if a variable is defined using the special value
 
 <example>
 if ( foobar == void )
-	// undefined
+    // undefined
 </example>
 
-You can "undefine" a variabel - return it to the undefined state using the 
-unset() command:
+You can return a variable to the undefined state using the unset() command:
 
 <example>
 a == void;  // true
@@ -119,8 +118,5 @@ a=5;
 unset("a"); // note the quotes
 a == void;  // true
 </example>
-
-<p/>
-
 
 </section>

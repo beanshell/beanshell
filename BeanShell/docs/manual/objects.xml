@@ -5,27 +5,26 @@ The majority people who currently use BeanShell use it to write scripts that
 work with existing Java classes and APIs, or perform other kinds of dynamic 
 activities for their own applications at run-time without the aid of a 
 compiler.  Often this means writing relatively unstructured code -
-for example, a sequence of method invocations or loops - all contained in a 
+for example, a sequence of method invocations or loops, all contained in a 
 single script file or eval() statement. 
-But in the previous section we saw that BeanShell
-is also capable of scripting methods, just like Java.  Creating methods and
-new BeanShell commands (which are just methods in their own files) is the 
+In the previous section we saw that BeanShell is also capable of scripting 
+methods, just like Java.  Creating methods and new BeanShell commands 
+(which are just methods in their own files) is the 
 natural progression of organizing your scripts into re-usable and 
 maintainable components.
 <p/>
 
-Beyond methods and structured programming lies, of course, the full breadth of
-object oriented programming.  In Java, of course, objects are the products
-of classes.  While BeanShell is almost entirely compatible with standard 
-Java syntax for statements, expressions, and methods you can't yet script
-new Java classes within BeanShell.
-Instead, in BeanShell you can script objects as "method closures", similar to 
-the way it is done in Perl 5.x, JavaScript, and other object-capable 
+Beyond methods and structured programming lie, of course, objects and the 
+full breadth of object oriented programming.  In Java objects are the products
+of classes.  While BeanShell is compatible with standard Java syntax for 
+statements, expressions, and methods, you can't yet script new Java classes 
+within BeanShell.
+Instead, BeanShell allows you to script objects as "method closures", 
+similar to the way it is done in Perl 5.x, JavaScript, and other object-capable 
 scripting languages.  This style of scripting objects (which we'll describe 
-in detail shortly) is simple and flows very naturally from the use of 
-scripting methods to the power of encapsulated objects.  The syntax, 
-as you'll see, is a straightforward extension of the standard Java concept of 
-referring to an object via a 'this' reference.
+momentarily) is simple and flows very naturally from the style of scripting 
+methods.  The syntax, as you'll see, is a straightforward extension of the 
+standard Java concept of referring to an object with a 'this' reference.
 <p/>
 
 <note>
@@ -41,13 +40,7 @@ to the enclosing object using the special variable 'this'.  For example:
 </pre>
 
 In the example above, the getObject() method of MyClass returns a reference
-to its own instance of the MyClass object, using 'this'.  The 'this'
-reference can also be used to qualify variables and method names to make
-them refer to the enclosing object. e.g.
-<pre>
-    ...
-    this.foo = 42;
-</pre>
+to its own object instance (an instance of the MyClass object) using 'this'.
 </note>
 
 <h2>The 'this' reference</h2>
