@@ -322,7 +322,7 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
             }
             catch(ParseException e)
             {
-                error("Parser Error: " + e.getMessage());
+                error("Parser Error: " + e.getMessage(DEBUG));
                 if(DEBUG)
                     e.printStackTrace();
                 if(!interactive)
@@ -445,7 +445,7 @@ public class Interpreter implements/*@bgen(jjtree)*/ InterpreterTreeConstants,Ru
             } catch(ParseException e) {
                 throw new EvalError(
                                         "Sourced file: "+sourceFile+" parser Error: "
-                                        + e.getMessage() );
+                                        + e.getMessage( DEBUG ) );
             } catch(InterpreterError e) {
                 e.printStackTrace();
                 throw new EvalError(
