@@ -8,6 +8,6 @@ addClassPath( path ) {
 	else
 		url = pathToFile( path ).toURL();
 
-	bsh.BshClassManager.getClassManager().addClassPath( url );
+	bsh.BshClassManager.getClassManager().addClassPath( url, this.interpreter );
 }
 

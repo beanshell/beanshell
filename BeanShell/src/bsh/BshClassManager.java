@@ -158,13 +158,15 @@ public class BshClassManager
 
 	/**
 	*/
-	public void addClassPath( URL path ) throws IOException {
+	public void addClassPath( URL path, Interpreter feedback ) 
+		throws IOException 
+	{
 		if ( baseLoader == null )
 			setClassPath( new URL [] { path } );
 		else {
 // opportunitty here for listener in classpath
 			baseLoader.addURL( path );
-			baseClassPath.add( path );
+			baseClassPath.add( path, feedback );
 			classLoaderChanged();
 		}
 	}
@@ -174,7 +176,7 @@ public class BshClassManager
 	*/
 	public void reset()
 	{
-		baseClassPath = new BshClassPath();
+		baseClassPath = new BshClassPath("baseClassPath");
 		baseLoader = null;
 		loaderMap = new HashMap();
 		classLoaderChanged();
@@ -187,6 +189,7 @@ public class BshClassManager
 	public void setClassPath( URL [] cp ) {
 		baseClassPath.setPath( cp );
 		initBaseLoader();
+		loaderMap = new HashMap();
 		classLoaderChanged();
 	}
 
@@ -197,9 +200,9 @@ public class BshClassManager
 		No point in including the boot class path (can't reload thos).
 	*/
 	public void reloadAllClasses() {
-		BshClassPath bcp = new BshClassPath();
-		bcp.add( baseClassPath );
-		bcp.add( BshClassPath.getUserClassPath() );
+		BshClassPath bcp = new BshClassPath("temp");
+		bcp.addComponent( baseClassPath );
+		bcp.addComponent( BshClassPath.getUserClassPath() );
 		setClassPath( bcp.getPathComponents() );
 	}
 
@@ -216,8 +219,11 @@ public class BshClassManager
 		Reloading classes means creating a new classloader and using it
 		whenever we are asked for classes in the appropriate space.
 		For this we use a DiscreteFilesClassLoader
+
+		If interpreter is non-null it will be used to provide feedback on
+		mapping of the classpath where necessary.
 	*/
-	public void reloadClasses( String [] classNames ) 
+	public void reloadClasses( String [] classNames, Interpreter feedback ) 
 		throws ClassPathException
 	{
 		// validate that it is a class here?
@@ -233,11 +239,18 @@ public class BshClassManager
 			String name = classNames[i];
 
 			// look in baseLoader class path 
+			if ( feedback != null )
+				baseClassPath.insureInitialized( feedback );
 			Object o = baseClassPath.getClassSource( name );
 
 			// look in user class path 
-			if ( o == null )
+			if ( o == null ) {
+				if ( feedback != null )
+					BshClassPath.getUserClassPath().insureInitialized( 
+						feedback );
+
 				o = BshClassPath.getUserClassPath().getClassSource( name );
+			}
 
 			// No point in checking boot class path, can't reload those.
 			// else we could have used fullClassPath above.
@@ -270,8 +283,13 @@ public class BshClassManager
 
 		The special package name "<unpackaged>" can be used to refer 
 		to unpackaged classes.
+
+		If interpreter is non-null it will be used to provide feedback on
+		mapping of the classpath where necessary.
 	*/
-	public void reloadPackage( String pack ) throws ClassPathException {
+	public void reloadPackage( String pack, Interpreter feedback ) 
+		throws ClassPathException 
+	{
 		Collection classes = 
 			baseClassPath.getClassesForPackage( pack );
 
@@ -284,7 +302,7 @@ public class BshClassManager
 		if ( classes == null )
 			throw new ClassPathException("No classes found for package: "+pack);
 
-		reloadClasses( (String[])classes.toArray( new String[0] ) );
+		reloadClasses( (String[])classes.toArray( new String[0] ), feedback );
 	}
 
 	/**
@@ -305,14 +323,14 @@ public class BshClassManager
 		if ( fullClassPath != null )
 			return fullClassPath;
 	
-		fullClassPath = new BshClassPath();
-		fullClassPath.add( BshClassPath.getUserClassPath() );
+		fullClassPath = new BshClassPath("BeanShell Full Class Path");
+		fullClassPath.addComponent( BshClassPath.getUserClassPath() );
 		try {
-			fullClassPath.add( BshClassPath.getBootClassPath() );
+			fullClassPath.addComponent( BshClassPath.getBootClassPath() );
 		} catch ( ClassPathException e ) { 
 			System.err.println("Warning: can't get boot class path");
 		}
-		fullClassPath.add( baseClassPath );
+		fullClassPath.addComponent( baseClassPath );
 
 		return fullClassPath;
 	}

@@ -8,14 +8,9 @@ bsh.help.reloadClasses=
 reloadClasses( item ) {
 	bcm = bsh.BshClassManager.getClassManager();
 
-	/*
-	if ( !bcm.getClassPath().isInitialized() )
-		print(
-		"Mapping the classpath for the first time.  This may take a moment...");
-	*/
-
+	try {
 	if ( item instanceof String [] )
-		bcm.reloadClasses( item );
+		bcm.reloadClasses( item, this.interpreter );
 	else {
 		name = item;
 
@@ -25,9 +20,12 @@ reloadClasses( item ) {
 			else
 				pack = name.substring( 0, name.length()-2 );
 			
-			bcm.reloadPackage( pack );
+			bcm.reloadPackage( pack, this.interpreter );
 		} else
-			bcm.reloadClasses( new String[] { name } );
+			bcm.reloadClasses( new String[] { name }, this.interpreter );
+	}
+	} catch ( bsh.ClassPathException e ) {
+		error( e.getMessage() );
 	}
 }
 
