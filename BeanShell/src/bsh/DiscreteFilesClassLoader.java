@@ -26,7 +26,10 @@ public class DiscreteFilesClassLoader extends BshClassLoader {
 		this.map = map;
 	}
 
+	/**
+	*/
 	public Class findClass( String name ) throws ClassNotFoundException {
+		// Load it if it's one of our classes
 		File base = map.get( name );
 		if ( base != null )
 			return loadClassFromFile( base, name );
