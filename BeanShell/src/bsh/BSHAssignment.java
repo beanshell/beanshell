@@ -66,7 +66,16 @@ class BSHAssignment extends SimpleNode implements ParserConstants
 				throw e.toEvalError( this, callstack );
 			}
 
-        Object rhs = ((SimpleNode)jjtGetChild(1)).eval(callstack, interpreter);
+        SimpleNode rhsNode = (SimpleNode)jjtGetChild(1);
+
+        Object rhs;
+		
+		// implement "blocks" foo = { };
+		// if ( rhsNode instanceof BSHBlock )
+		//    rsh =
+		// else
+        rhs = rhsNode.eval(callstack, interpreter);
+
         if ( rhs == Primitive.VOID )
             throw new EvalError("Void assignment.", this, callstack );
 

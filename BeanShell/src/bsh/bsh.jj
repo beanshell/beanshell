@@ -155,8 +155,8 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/
 	}
 
 	/**
-		Lookahead for the enhanced for statement.  Expect "for" "(" and then 
-		see whether we hit ":" or a ";" before the ")"
+		Lookahead for the enhanced for statement.  
+		Expect "for" "(" and then see whether we hit ":" or a ";" first.
 	*/
 	boolean isRegularForStatement() 
 	{
@@ -171,8 +171,6 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/
 			tok = getToken(curTok++);
 			switch (tok.kind) {
 				case COLON:
-					return false;
-				case RPAREN:
 					return false;
 				case SEMICOLON:
 					return true;
@@ -293,6 +291,8 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < DO: "do" >
 | < DOUBLE: "double" >
 | < ELSE: "else" >
+| < ENUM: "enum" >
+| < EXTENDS: "extends" >
 | < FALSE: "false" >
 | < FINAL: "final" >
 | < FINALLY: "finally" >
@@ -300,6 +300,7 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < FOR: "for" >
 | < GOTO: "goto" >
 | < IF: "if" >
+| < IMPLEMENTS: "implements" >
 | < IMPORT: "import" >
 | < INSTANCEOF: "instanceof" >
 | < INT: "int" >
@@ -308,12 +309,14 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < NATIVE: "native" >
 | < NEW: "new" >
 | < NULL: "null" >
+| < PACKAGE: "package" >
 | < PRIVATE: "private" >
 | < PROTECTED: "protected" >
 | < PUBLIC: "public" >
 | < RETURN: "return" >
 | < SHORT: "short" >
 | < STATIC: "static" >
+| < STRICTFP : "strictfp" >
 | < SWITCH: "switch" >
 | < SYNCHRONIZED: "synchronized" >
 | < TRANSIENT: "transient" >
@@ -515,6 +518,12 @@ boolean Line() :
  * THE JAVA LANGUAGE GRAMMAR STARTS HERE *
  *****************************************/
 
+/*
+	Gather modifiers for a class, method, or field.
+	I lookahead is true then we are being called as part of a lookahead and we
+	should not enforce any rules.  Otherwise we validate based on context
+	(field, method, class)
+*/
 Modifiers Modifiers( int context, boolean lookahead ) : 
 {
 	Modifiers mods = null;
@@ -524,6 +533,7 @@ Modifiers Modifiers( int context, boolean lookahead ) :
 	( 
 		"private" |	"protected" | "public" | "synchronized" | "final"
 		| "native" | "transient" | "volatile" |	"abstract" | "static" 
+		| "strictfp"
 	) {
 		if ( !lookahead )
 			try {
@@ -536,6 +546,60 @@ Modifiers Modifiers( int context, boolean lookahead ) :
   )* {
   	return mods;
   }
+}
+
+
+/**
+	Push BSHBlock here
+*/
+void ClassDeclaration()                   :
+{/*@bgen(jjtree) ClassDeclaration */
+        BSHClassDeclaration jjtn000 = new BSHClassDeclaration(JJTCLASSDECLARATION);
+        boolean jjtc000 = true;
+        jjtree.openNodeScope(jjtn000);
+        jjtreeOpenNodeScope(jjtn000);
+/*@egen*/
+	Modifiers mods;
+	Token t;
+}
+{/*@bgen(jjtree) ClassDeclaration */
+        try {
+/*@egen*/
+	mods = Modifiers( Modifiers.CLASS, false ) 
+	"class" t=<IDENTIFIER> 
+		[ "extends" AmbiguousName() ] 
+		[ "implements" NameList() ]
+		Block()/*@bgen(jjtree)*/
+                        {
+                          jjtree.closeNodeScope(jjtn000, true);
+                          jjtc000 = false;
+                          jjtreeCloseNodeScope(jjtn000);
+                        }
+/*@egen*/ {
+			jjtn000.modifiers = mods;
+			jjtn000.name = t.image;
+		}/*@bgen(jjtree)*/
+        } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            throw (RuntimeException)jjte000;
+          }
+          if (jjte000 instanceof ParseException) {
+            throw (ParseException)jjte000;
+          }
+          throw (Error)jjte000;
+        } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+            jjtreeCloseNodeScope(jjtn000);
+          }
+        }
+/*@egen*/
 }
 
 void MethodDeclaration()                    :
@@ -1079,11 +1143,11 @@ void Assignment()             :
 {/*@bgen(jjtree) Assignment */
   try {
 /*@egen*/
-  PrimaryExpression()
-  op = AssignmentOperator() {
-    jjtn000.operator = op;
-  }
-  Expression()/*@bgen(jjtree)*/
+  PrimaryExpression() 
+  	op = AssignmentOperator() { jjtn000.operator = op; } 
+	// Add this for blocks, e.g. foo = { };
+	//( Expression() | Block() )
+	Expression()/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
@@ -2229,6 +2293,10 @@ void BlockStatement() :
 {
 }
 {
+  // SYNTACTIC_LOOKAHEAD
+  LOOKAHEAD( Modifiers( Modifiers.FIELD, true ) "class" )
+  ClassDeclaration() 
+|
   // SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( MethodDeclarationLookahead() ) MethodDeclaration()
 |

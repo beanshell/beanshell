@@ -155,8 +155,8 @@ public class Parser
 	}
 
 	/**
-		Lookahead for the enhanced for statement.  Expect "for" "(" and then 
-		see whether we hit ":" or a ";" before the ")"
+		Lookahead for the enhanced for statement.  
+		Expect "for" "(" and then see whether we hit ":" or a ";" first.
 	*/
 	boolean isRegularForStatement() 
 	{
@@ -171,8 +171,6 @@ public class Parser
 			tok = getToken(curTok++);
 			switch (tok.kind) {
 				case COLON:
-					return false;
-				case RPAREN:
 					return false;
 				case SEMICOLON:
 					return true;
@@ -293,6 +291,8 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < DO: "do" >
 | < DOUBLE: "double" >
 | < ELSE: "else" >
+| < ENUM: "enum" >
+| < EXTENDS: "extends" >
 | < FALSE: "false" >
 | < FINAL: "final" >
 | < FINALLY: "finally" >
@@ -300,6 +300,7 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < FOR: "for" >
 | < GOTO: "goto" >
 | < IF: "if" >
+| < IMPLEMENTS: "implements" >
 | < IMPORT: "import" >
 | < INSTANCEOF: "instanceof" >
 | < INT: "int" >
@@ -308,12 +309,14 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 | < NATIVE: "native" >
 | < NEW: "new" >
 | < NULL: "null" >
+| < PACKAGE: "package" >
 | < PRIVATE: "private" >
 | < PROTECTED: "protected" >
 | < PUBLIC: "public" >
 | < RETURN: "return" >
 | < SHORT: "short" >
 | < STATIC: "static" >
+| < STRICTFP : "strictfp" >
 | < SWITCH: "switch" >
 | < SYNCHRONIZED: "synchronized" >
 | < TRANSIENT: "transient" >
@@ -515,6 +518,12 @@ boolean Line() :
  * THE JAVA LANGUAGE GRAMMAR STARTS HERE *
  *****************************************/
 
+/*
+	Gather modifiers for a class, method, or field.
+	I lookahead is true then we are being called as part of a lookahead and we
+	should not enforce any rules.  Otherwise we validate based on context
+	(field, method, class)
+*/
 Modifiers Modifiers( int context, boolean lookahead ) : 
 {
 	Modifiers mods = null;
@@ -524,6 +533,7 @@ Modifiers Modifiers( int context, boolean lookahead ) :
 	( 
 		"private" |	"protected" | "public" | "synchronized" | "final"
 		| "native" | "transient" | "volatile" |	"abstract" | "static" 
+		| "strictfp"
 	) {
 		if ( !lookahead )
 			try {
@@ -536,6 +546,26 @@ Modifiers Modifiers( int context, boolean lookahead ) :
   )* {
   	return mods;
   }
+}
+
+
+/**
+	Push BSHBlock here
+*/
+void ClassDeclaration() #ClassDeclaration :
+{
+	Modifiers mods;
+	Token t;
+}
+{
+	mods = Modifiers( Modifiers.CLASS, false ) 
+	"class" t=<IDENTIFIER> 
+		[ "extends" AmbiguousName() ] 
+		[ "implements" NameList() ]
+		Block() {
+			jjtThis.modifiers = mods;
+			jjtThis.name = t.image;
+		}
 }
 
 void MethodDeclaration() #MethodDeclaration :
@@ -730,11 +760,11 @@ void Expression() :
 void Assignment() #Assignment :
 { int op ; }
 {
-  PrimaryExpression()
-  op = AssignmentOperator() {
-    jjtThis.operator = op;
-  }
-  Expression()
+  PrimaryExpression() 
+  	op = AssignmentOperator() { jjtThis.operator = op; } 
+	// Add this for blocks, e.g. foo = { };
+	//( Expression() | Block() )
+	Expression()
 }
 
 int AssignmentOperator() :
@@ -1178,6 +1208,10 @@ void BlockStatement() :
 {
 }
 {
+  // SYNTACTIC_LOOKAHEAD
+  LOOKAHEAD( Modifiers( Modifiers.FIELD, true ) "class" )
+  ClassDeclaration() 
+|
   // SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( MethodDeclarationLookahead() ) MethodDeclaration()
 |

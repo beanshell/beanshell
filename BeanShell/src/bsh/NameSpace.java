@@ -96,7 +96,13 @@ public class NameSpace
 		Note that the namespace is a method body namespace.  This is used for
 		printing stack traces in exceptions.  
 	*/
-	public boolean isMethod;
+	boolean isMethod;
+	/**
+		Note that the namespace is a class body namespace.
+		This is used to affect the behavior of 'this' references in classes.
+	*/
+	boolean isClass;
+	boolean isStatic;
 
 	/**
 		Local class cache for classes resolved through this namespace using 
@@ -489,6 +495,9 @@ public class NameSpace
 	/**
 		Locate a variable and return the Variable object with optional 
 		recursion through parent name spaces.
+		<p/>
+		If this namespace is static, return only static variables.
+
 		@return the Variable value or null if it is not defined
 	*/
     protected Variable getVariableImpl( String name, boolean recurse ) 
@@ -500,6 +509,14 @@ public class NameSpace
 
 		if ( recurse && (var == null) && (parent != null) )
 			var	= parent.getVariableImpl( name, recurse );
+
+	/*
+		// limit static
+		if ( isStatic && var != null 
+			&& !var.modifiers.hasModifier("static") 
+		)
+			return null;
+	*/
 
 		return var;
     }
@@ -538,26 +555,30 @@ public class NameSpace
 		if ( variables == null )
 			variables =	new Hashtable();
 
-		if ( value == null )
-			value = Primitive.getDefaultValue( type );
-
 		// Setting a typed variable is always a local operation.
 		Variable existing = getVariableImpl( name, false/*recurse*/ );
+
+		// Null value is just a declaration
+		// Note: we might want to keep any existing value here instead of reset
+		if ( value == null )
+			value = Primitive.getDefaultValue( type );
 
 		// does the variable already exist?
 		if ( existing != null ) 
 		{
-			// is it typed?
+			// Is it typed?
 			if ( existing.getType() != null ) 
 			{
 				// If it had a different type throw error.
 				// This allows declaring the same var again, but not with
 				// a different (even if assignable) type.
 				if ( existing.getType() != type )
+				{
 					throw new UtilEvalError( "Typed variable: "+name
 						+" was previously declared with type: " 
 						+ existing.getType() );
-				else {
+				} else 
+				{
 					// else set it and return
 					existing.setValue( value );
 					return;
@@ -1301,7 +1322,9 @@ public class NameSpace
 
 	public String toString() {
 		return
-			"NameSpace: "
+			"NameSpace: " 
+			+(isClass?"Scripted Class ":"") 
+			+(isStatic?"":"Instance ") 
 			+ ( nsName==null
 				? super.toString()
 				: nsName + " (" + super.toString() +")" );

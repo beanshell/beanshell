@@ -134,7 +134,7 @@ public class This implements java.io.Serializable, Runnable {
 	}
 
 	public String toString() {
-		return "'this' reference to Bsh object: " + namespace.nsName;
+		return "'this' reference to Bsh object: " + namespace;
 	}
 
 	public void run() {

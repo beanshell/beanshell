@@ -49,17 +49,13 @@ class BSHMethodDeclaration extends SimpleNode
 	String name;
 	BSHFormalParameters params;
 	BSHBlock block;
-
 	// Unsafe caching of type here.
 	Object returnType; 	// null (none), Primitive.VOID, or a Class
 
 	Modifiers modifiers;
 	int numThrows = 0;
 
-	BSHMethodDeclaration(int id)
-	{
-		super(id);
-	}
+	BSHMethodDeclaration(int id) { super(id); }
 
 	/**
 		Evaluate the declaration of the method.  That is, determine the
@@ -68,60 +64,8 @@ class BSHMethodDeclaration extends SimpleNode
 	public Object eval( CallStack callstack, Interpreter interpreter )
 		throws EvalError
 	{
-		NameSpace namespace = callstack.top();
-
 		if ( block == null ) 
-		{
-			// We will allow methods to be re-written.
-			/*  
-			if( namespace has method )
-				throw new EvalError(
-				"Method: " + name + " already defined in scope", this);
-			*/
-
-			Object firstNode = jjtGetChild(0);
-			int firstThrows = 1;
-			if ( firstNode instanceof BSHReturnType )
-			{
-				returnType = ((BSHReturnType)firstNode).getReturnType( 
-					callstack, interpreter );
-				params = (BSHFormalParameters)jjtGetChild(1);
-				block = (BSHBlock)jjtGetChild(2+numThrows); // skip throws
-				++firstThrows;
-			}
-			else
-			{
-				params = (BSHFormalParameters)jjtGetChild(0);
-				block = (BSHBlock)jjtGetChild(1+numThrows); // skip throws
-			}
-			
-			// validate that the throws names are class names
-			for(int i=firstThrows; i<numThrows+firstThrows; i++)
-				((BSHAmbiguousName)jjtGetChild(i)).toClass( 
-					callstack, interpreter );
-
-			params.eval( callstack, interpreter );
-
-			// if strictJava mode, check for loose parameters and return type
-			if ( interpreter.getStrictJava() )
-			{
-				for(int i=0; i<params.argTypes.length; i++)
-					if ( params.argTypes[i] == null )
-						// Warning: Null callstack here.  Don't think we need
-						// a stack trace to indicate how we sourced the method.
-						throw new EvalError(
-					"(Strict Java Mode) Undeclared argument type, parameter: " +
-						params.argNames[i] + " in method: " 
-						+ name, this, null );
-
-				if ( returnType == null )
-					// Warning: Null callstack here.  Don't think we need
-					// a stack trace to indicate how we sourced the method.
-					throw new EvalError(
-					"(Strict Java Mode) Undeclared return type for method: "
-						+ name, this, null );
-			}
-		}
+			evalNodes( callstack, interpreter );
 
 		// Install an *instance* of this method in the namespace.
 		// See notes in BshMethod 
@@ -131,11 +75,65 @@ class BSHMethodDeclaration extends SimpleNode
 // so that we can re-eval params, etc. when classloader changes
 // look into this
 
-		namespace = callstack.top(); // don't think we need this
+		NameSpace namespace = callstack.top();
 		BshMethod bshMethod = new BshMethod( this, namespace, modifiers );
 		namespace.setMethod( name, bshMethod );
 
 		return Primitive.VOID;
+	}
+
+	private void evalNodes( CallStack callstack, Interpreter interpreter ) 
+		throws EvalError
+	{
+		// We will allow methods to be re-written.
+		/*  
+		if( namespace has method )
+			throw new EvalError(
+			"Method: " + name + " already defined in scope", this);
+		*/
+
+		Object firstNode = jjtGetChild(0);
+		int firstThrows = 1;
+		if ( firstNode instanceof BSHReturnType )
+		{
+			returnType = ((BSHReturnType)firstNode).getReturnType( 
+				callstack, interpreter );
+			params = (BSHFormalParameters)jjtGetChild(1);
+			block = (BSHBlock)jjtGetChild(2+numThrows); // skip throws
+			++firstThrows;
+		}
+		else
+		{
+			params = (BSHFormalParameters)jjtGetChild(0);
+			block = (BSHBlock)jjtGetChild(1+numThrows); // skip throws
+		}
+		
+		// validate that the throws names are class names
+		for(int i=firstThrows; i<numThrows+firstThrows; i++)
+			((BSHAmbiguousName)jjtGetChild(i)).toClass( 
+				callstack, interpreter );
+
+		params.eval( callstack, interpreter );
+
+		// if strictJava mode, check for loose parameters and return type
+		if ( interpreter.getStrictJava() )
+		{
+			for(int i=0; i<params.argTypes.length; i++)
+				if ( params.argTypes[i] == null )
+					// Warning: Null callstack here.  Don't think we need
+					// a stack trace to indicate how we sourced the method.
+					throw new EvalError(
+				"(Strict Java Mode) Undeclared argument type, parameter: " +
+					params.argNames[i] + " in method: " 
+					+ name, this, null );
+
+			if ( returnType == null )
+				// Warning: Null callstack here.  Don't think we need
+				// a stack trace to indicate how we sourced the method.
+				throw new EvalError(
+				"(Strict Java Mode) Undeclared return type for method: "
+					+ name, this, null );
+		}
 	}
 
 	public String toString() {

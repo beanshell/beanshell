@@ -76,12 +76,32 @@ class BSHAllocationExpression extends SimpleNode
 		throws EvalError
     {
 		NameSpace namespace = callstack.top();
-        Class type = nameNode.toClass( callstack, interpreter );
 
-        Object[] args = argumentsNode.getArguments(callstack, interpreter);
+        Object[] args = argumentsNode.getArguments( callstack, interpreter );
         if ( args == null)
-            throw new EvalError( "Trying to perform new operation on a class?",
-				this, callstack );
+            throw new EvalError( "Null args in new.", this, callstack );
+
+		// Look for scripted class object
+        Object obj = nameNode.toObject( callstack, interpreter, false );
+		if ( obj instanceof This && ((This)obj).namespace.isClass )
+		{
+			Class [] sig = Reflect.getTypes( args );
+			BshMethod constructor = 
+				((This)obj).namespace.getMethod( nameNode.text, sig );
+			if ( constructor != null )
+				return constructor.invoke( 
+					args, interpreter, callstack, this, true/*asConstructor*/ );
+		}
+
+		// Try regular class
+
+        obj = nameNode.toObject( callstack, interpreter, true );
+
+        Class type = null;
+		if ( obj instanceof ClassIdentifier )
+        	type = ((ClassIdentifier)obj).getTargetClass();
+		else
+			throw new EvalError( "Can't new: "+obj, this, callstack );
 
 		// Is an inner class style object allocation
 		boolean hasBody = jjtGetNumChildren() > 2;

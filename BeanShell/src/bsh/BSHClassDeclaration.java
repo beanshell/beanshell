@@ -34,73 +34,80 @@
 
 package bsh;
 
-class BSHAmbiguousName extends SimpleNode
+/**
+*/
+class BSHClassDeclaration extends SimpleNode
 {
-    public String text;
+	String name;
+	// implements
+	// extends
+	Modifiers modifiers;
 
-    BSHAmbiguousName(int id) { super(id); }
-	
-    public Name getName( NameSpace namespace )
-    {
-        return namespace.getNameResolver( text );
-    }
+	BSHClassDeclaration(int id) { super(id); }
 
-    public Object toObject( CallStack callstack, Interpreter interpreter ) 
-		throws EvalError
-    {
-		return toObject( callstack, interpreter, false );
-    }
-
-    Object toObject( 
-		CallStack callstack, Interpreter interpreter, boolean forceClass ) 
-		throws EvalError
-    {
-		try {
-        	return 
-				getName( callstack.top() ).toObject( 
-					callstack, interpreter, forceClass );
-		} catch ( UtilEvalError e ) {
-			throw e.toEvalError( this, callstack );
-		}
-    }
-
-    public Class toClass( CallStack callstack, Interpreter interpreter ) 
-		throws EvalError
-    {
-		try {
-        	return getName( callstack.top() ).toClass();
-		} catch ( ClassNotFoundException e ) {
-			throw new EvalError( e.getMessage(), this, callstack );
-		} catch ( UtilEvalError e2 ) {
-			// ClassPathException is a type of UtilEvalError
-			throw e2.toEvalError( this, callstack );
-		}
-    }
-
-    public LHS toLHS( CallStack callstack, Interpreter interpreter)
-		throws EvalError
-    {
-		try {
-			return getName( callstack.top() ).toLHS( callstack, interpreter );
-		} catch ( UtilEvalError e ) {
-			throw e.toEvalError( this, callstack );
-		}
-    }
-
-	/*
-		The interpretation of an ambiguous name is context sensitive.
-		We disallow a generic eval( ).
+	/**
 	*/
-    public Object eval( CallStack callstack, Interpreter interpreter ) 
+	public Object eval( CallStack callstack, Interpreter interpreter )
 		throws EvalError
-    {
-		throw new InterpreterError( 
-			"Don't know how to eval an ambiguous name!"
-			+"  Use toObject() if you want an object." );
-    }
+	{
+		BSHBlock block = (BSHBlock)jjtGetChild(0);
+
+		// validate that the extends / implements names are class names
+	// need to differentiate extends/implements here...
+		for(int i=1; i< jjtGetNumChildren(); i++)
+			((BSHAmbiguousName)jjtGetChild(i)).toClass( 
+				callstack, interpreter );
+
+		NameSpace namespace = callstack.top();
+
+		/*
+			Install this class in the namespace.
+			Make a scripted object representing the class and install it under
+			the name of the class.
+		*/
+
+	// will need a new ClassNameSpace here
+		NameSpace classStaticNameSpace = 
+			new NameSpace( namespace, name );
+		classStaticNameSpace.isClass = true;
+		classStaticNameSpace.isStatic = true;
+
+		/*
+			Evaluate the block in the classStaticNameSpace
+			push it onto the stack and then call the block eval with the
+			overrideNamespace option so that it uses ours.  Then pop it.
+		*/
+		callstack.push( classStaticNameSpace );
+		// evaluate the static portion of the block in it
+		block.eval( callstack, interpreter, true/*override*/ );
+
+		// Add the block as a default constructor method
+
+		BshMethod defaultConstructor =
+			new BshMethod( name, 
+				null /*returnType*/,
+				new String [0] /*argNames*/,
+				new Class [0] /*argTypes*/,
+				block,
+				classStaticNameSpace/*declaringNameSpace*/,
+				new Modifiers()
+			);
+
+		classStaticNameSpace.setMethod( name, defaultConstructor );	
+		
+		callstack.pop();
+
+		try {
+			namespace.setVariable( 
+				name, classStaticNameSpace.getThis( interpreter), false );
+		} catch ( UtilEvalError e ) {
+			throw e.toEvalError( this, callstack );
+		}
+
+		return Primitive.VOID;
+	}
 
 	public String toString() {
-		return "AmbigousName: "+text;
+		return "ClassDeclaration: "+name;
 	}
 }
-
