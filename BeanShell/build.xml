@@ -2,20 +2,13 @@
 	Ant build file for BeanShell
 	http://www.beanshell.org/
 
-	Uses Ant 1.3
+	Uses Ant 1.6
 	http://www.apache.org/
 
-	Ant issues - I've been told these are fixed in Ant 1.4.
+	Ant issues - 
 
 		- Why can't I nest filesets?  This seems like it would be so easy and
 		useful...
-
-		- Why does a fileset cause an error if the target directory does not
-		exist...  This seems wrong, the set should be empty.  And we can't 
-		control the order of evaluation by wrapping the fileset in a target
-		because they won't accept them... e.g. I can't make a target that sets
-		up the build dir!  It has to be done manually the first time (or put
-		in the jar file). There must be a way to fix this...
 -->
 <project name="beanshell" default="compile" basedir=".">
 
@@ -36,19 +29,13 @@
 	<property name="build-dir" value="classes" />
 	<property name="lib-dir" value="lib" />
 	<property name="dist-dir" value="dist" />
-	<property name="test-src-dir" value="tests/classes" />
+	<property name="test-src-dir" value="tests/src" />
 	<property name="javadoc-dir" value="javadoc" />
 	<property name="bsf-src-dir" value="bsf/src" />
 	<property name="classgen-src-dir" value="asm/src" />
 
-	<!--
-		Let's just add the jar to the classpath from now on...
-
 	<property name="javacc-lib" 
-		value="/pkg/javacc/bin/lib/JavaCC.zip"/>
-	<property name="javacc-lib" 
-		value="/home/niemeyp/pkg/javacc/bin/lib/JavaCC.zip"/>
-	-->
+		value="${lib-dir}/javacc.jar"/>
 
 	<!-- 
 		Optional things you can't build under older versions of Java
@@ -67,9 +54,9 @@
 	-->
 
 	<!-- Uncomment to build without making the BSF adapter 
+	-->
 	<property name="exclude-bsf" 
 		value="bsh/util/BeanShellBSFEngine.java,TestBshBSF.java"/>
-	-->
 
 	<!-- Uncomment to build without the ASM class generator code.
 	<property name="exclude-classgen" 
@@ -85,8 +72,8 @@
 	<property name="excludes-legacy" 
 		value="bsh/JThis.java"/>
 
-	<!-- Arbitrary excludes.  Comment this *out* to build these experimental or
-	other items which we've decided not to build right now. -->
+	<!-- Arbitrary excludes.  Comment this out to build these experimental or
+		other items which we've decided not to build right now. -->
 	<property name="excludes-arbitrary" 
 		value="bsh/ExternalNameSpace.java"/>
 
@@ -96,9 +83,9 @@
 		value="${exclude-1.2},${exclude-1.1},${exclude-bsf},${exclude-servlet},${excludes-legacy},${exclude-classgen},${excludes-arbitrary}"/>
 
 	<!-- JARs -->
-	<property name="javadoc-jar" value="${dist-dir}/javadoc.zip"/>
+	<property name="javadoc-zip" value="${dist-dir}/bsh-${version}-javadoc.zip"/>
 	<property name="core-jar" value="${dist-dir}/bsh-core-${version}.jar"/>
-	<property name="src-jar" value="${dist-dir}/bsh-${version}-src.jar"/>
+	<property name="src-zip" value="${dist-dir}/bsh-${version}-src.zip"/>
 	<property name="all-jar-name" value="bsh-${version}.jar"/>
 	<property name="all-jar" value="${dist-dir}/${all-jar-name}"/>
 	<property name="commands-jar" 
@@ -154,7 +141,7 @@
 		<java classname="javacc"
 			fork="yes"
 			failonerror="yes" >
-			<!-- classpath="${javacc-lib}" -->
+			classpath="${javacc-lib}"
 			<arg line="-OUTPUT_DIRECTORY=${src-dir}/bsh ${src-dir}/bsh/bsh.jj"/>
 			<classpath>
 				<fileset refid="lib-fileset"/>
@@ -196,6 +183,9 @@
 				</patternset>
 			</fileset>
 		</copy>
+		<tstamp>
+			<format property="DATE" pattern="yyyy-MM-dd hh:mm:ss" />
+		</tstamp>
 	</target>
 
 
@@ -207,9 +197,9 @@
 			 author="true"
 			 version="true"
 			 use="true"
-			 windowtitle="BeanShell"
-			 doctitle="&lt;h1&gt;BeanShell&lt;h1&gt;"
-			 bottom="&lt;em&gt;&#169; 2000 pat@pat.net :-)&lt;/em&gt;"
+			 windowtitle="BeanShell ${version}"
+			 doctitle="&lt;h1&gt;BeanShell ${version}&lt;h1&gt;"
+			 bottom="&lt;em&gt;&#169; 2000-2005 pat@pat.net :-)&lt;/em&gt;"
 		/>
 	</target>
 
@@ -221,17 +211,7 @@
 	-->
 
 	<target name="clean">
-		<!-- 
-			I'd like to remove the classes dir itself, but ant won't let
-			me.  The filset targets above will error out if the dir doesn't
-			exists... even before they are ever referenced.
-
-			I think maybe this has been fixed in Ant 1.4... need to check.
-		-->
-		<delete quiet="true" includeEmptyDirs="true">
-			<fileset dir="${build-dir}" includes="**/*"/>
-		</delete>
-
+		<delete quiet="true" dir="${build-dir}"/>
 		<delete quiet="true" dir="${javadoc-dir}"/>
 		<delete quiet="true" dir="${dist-dir}"/>
 
@@ -257,8 +237,6 @@
 
 	<target name="builddir">
 		<mkdir dir="${build-dir}" />
-		<!-- hack, make sure it's there for fileset -->
-		<mkdir dir="${lib-dir}" />
 	</target>
 
 	<!-- Begin: Filesets -->
@@ -349,14 +327,30 @@
 
 	<target name="jarcore" depends="compile,_distdir">
 		<delete file="${core-jar}"/>
-		<jar jarfile="${core-jar}" manifest="src/Manifest.interp">
+		<jar jarfile="${core-jar}">
+			<manifest>
+				<attribute name="Main-Class" value="bsh.Interpreter" />
+				<attribute name="Specification-Title" value="BeanShell core" />
+				<attribute name="Specification-Version" value="${version}" />
+				<attribute name="Specification-Vendor" value="http://www.beanshell.org/" />
+				<attribute name="Implementation-Version" value="${version} ${DATE}" />
+				<attribute name="Implementation-Vendor" value="Pat Niemeyer (pat@pat.net)" />
+			</manifest>
 			<fileset refid="core-fileset"/>
 		</jar>
 	</target>
 
 	<target name="jarall" depends="compile,_distdir">
 		<delete file="${all-jar}"/>
-		<jar jarfile="${all-jar}" manifest="src/Manifest.console">
+		<jar jarfile="${all-jar}">
+			<manifest>
+				<attribute name="Main-Class" value="bsh.Console" />
+				<attribute name="Specification-Title" value="BeanShell" />
+				<attribute name="Specification-Version" value="${version}" />
+				<attribute name="Specification-Vendor" value="http://www.beanshell.org/" />
+				<attribute name="Implementation-Version" value="${version} ${DATE}" />
+				<attribute name="Implementation-Vendor" value="Pat Niemeyer (pat@pat.net)" />
+			</manifest>
 			<fileset refid="core-fileset"/>
 			<fileset refid="classpath-fileset"/>
 			<fileset refid="reflect-fileset"/>
@@ -376,64 +370,81 @@
 		</jar>
 	</target>
 
-	<target name="jarsrc" depends="_distdir">
-		<delete file="${src-jar}"/>
-		<jar jarfile="${src-jar}">
-			<fileset dir="${basedir}/..">
-				<patternset>
-					<include name="BeanShell/**/*"/>
-					<exclude name="BeanShell/classes/**/*"/>
-					<exclude name="BeanShell/dist/**/*"/>
-					<exclude name="BeanShell/*javadoc*"/>
-					<exclude name="BeanShell/javadoc/**/*"/>
-					<!--exclude name="BeanShell/docs/**/*"/-->
-					<exclude name="**/CVS"/>
-					<exclude name="**/*.jar"/>
-					<exclude name="**/*.war"/>
-				</patternset>
-			</fileset>
-		</jar>
+	<target name="zipsrc" depends="_distdir">
+		<delete file="${src-zip}"/>
+		<zip zipfile="${src-zip}">
+			<zipfileset dir="." prefix="BeanShell-${version}">
+				<exclude name="classes*"/>
+				<exclude name="classes/**/*"/>
+				<exclude name="dist*"/>
+				<exclude name="dist/**/*"/>
+				<exclude name="*javadoc*"/>
+				<exclude name="javadoc/**/*"/>
+				<!--exclude name="docs/**/*"/-->
+				<exclude name="**/CVS"/>
+			</zipfileset>
+		</zip>
 	</target>
 
 	<target name="_distdir">
 		<mkdir dir="${dist-dir}" />
 	</target>
 
+	<target name="jarfileset">
+		<delete file="${target-jar}"/>
+		<jar jarfile="${target-jar}">
+			<manifest>
+				<attribute name="Specification-Title" value="${specification-title}" />
+				<attribute name="Specification-Version" value="${version}" />
+				<attribute name="Specification-Vendor" value="http://www.beanshell.org/" />
+				<attribute name="Implementation-Version" value="${version} ${DATE}" />
+				<attribute name="Implementation-Vendor" value="Pat Niemeyer (pat@pat.net)" />
+			</manifest>
+			<fileset refid="${fileset}"/>
+		</jar>
+	</target>
+	
 	<!-- Make all of the dist jars -->
-	<target name="dist" depends="_distdir,compile,jarcore,jarall,javadoc,jarsrc,bshservlet-war,bshservlet-wbsh-war,bshdoc">
+	<target name="dist" depends="_distdir,compile,jarcore,jarall,javadoc,zipsrc,bshservlet-war,bshservlet-wbsh-war,bshdoc">
 
-		<delete file="${commands-jar}"/>
-		<jar jarfile="${commands-jar}">
-			<fileset refid="commands-fileset"/>
-		</jar>
+		<antcall target="jarfileset">
+			<param name="target-jar" value="${commands-jar}"/>
+			<param name="specification-title" value="BeanShell commands"/>
+			<param name="fileset" value="commands-fileset"/>
+		</antcall>
 
-		<delete file="${classpath-jar}"/>
-		<jar jarfile="${classpath-jar}">
-			<fileset refid="classpath-fileset"/>
-		</jar>
+		<antcall target="jarfileset">
+			<param name="target-jar" value="${classpath-jar}"/>
+			<param name="specification-title" value="BeanShell classpath"/>
+			<param name="fileset" value="classpath-fileset"/>
+		</antcall>
 
-		<delete file="${reflect-jar}"/>
-		<jar jarfile="${reflect-jar}">
-			<fileset refid="reflect-fileset"/>
-		</jar>
+		<antcall target="jarfileset">
+			<param name="target-jar" value="${reflect-jar}"/>
+			<param name="specification-title" value="BeanShell reflect"/>
+			<param name="fileset" value="reflect-fileset"/>
+		</antcall>
 
-		<delete file="${util-jar}"/>
-		<jar jarfile="${util-jar}">
-			<fileset refid="util-fileset"/>
-		</jar>
+		<antcall target="jarfileset">
+			<param name="target-jar" value="${util-jar}"/>
+			<param name="specification-title" value="BeanShell util"/>
+			<param name="fileset" value="util-fileset"/>
+		</antcall>
 
-		<delete file="${bsf-jar}"/>
-		<jar jarfile="${bsf-jar}">
-			<fileset refid="bsf-fileset"/>
-		</jar>
+		<antcall target="jarfileset">
+			<param name="target-jar" value="${bsf-jar}"/>
+			<param name="specification-title" value="BeanShell bsf"/>
+			<param name="fileset" value="bsf-fileset"/>
+		</antcall>
 
-		<delete file="${classgen-jar}"/>
-		<jar jarfile="${classgen-jar}">
-			<fileset refid="classgen-fileset"/>
-		</jar>
+		<antcall target="jarfileset">
+			<param name="target-jar" value="${classgen-jar}"/>
+			<param name="specification-title" value="BeanShell classgen"/>
+			<param name="fileset" value="classgen-fileset"/>
+		</antcall>
 
-		<delete file="${javadoc-jar}"/>
-		<jar jarfile="${javadoc-jar}" basedir="${javadoc-dir}"/>
+		<delete file="${javadoc-zip}"/>
+		<zip zipfile="${javadoc-zip}" basedir="${javadoc-dir}"/>
 
 		<!-- Build the documentation -->
 		<!-- Don't build the documentation right now.
@@ -445,6 +456,13 @@
 	<target name="bshservlet-war" depends="compile" unless="exclude-servlet">
 		<war warfile="${bshservlet-war}" 
 			webxml="${src-dir}/bsh/servlet/example-web.xml">
+			<manifest>
+				<attribute name="Specification-Title" value="BeanShell webapp" />
+				<attribute name="Specification-Version" value="${version}" />
+				<attribute name="Specification-Vendor" value="http://www.beanshell.org/" />
+				<attribute name="Implementation-Version" value="${version} ${DATE}" />
+				<attribute name="Implementation-Vendor" value="Pat Niemeyer (pat@pat.net)" />
+			</manifest>
 			<!--classes dir="${build-dir}" includes="bsh/servlet/**/*"/-->
 			<fileset dir="${src-dir}/bsh/servlet/" includes="index.html"/>
 		</war>
@@ -453,6 +471,13 @@
 					depends="compile,jarall" unless="exclude-servlet">
 		<war warfile="${bshservlet-wbsh-war}" 
 			webxml="${src-dir}/bsh/servlet/example-web.xml">
+			<manifest>
+				<attribute name="Specification-Title" value="BeanShell webapp" />
+				<attribute name="Specification-Version" value="${version}" />
+				<attribute name="Specification-Vendor" value="http://www.beanshell.org/" />
+				<attribute name="Implementation-Version" value="${version} ${DATE}" />
+				<attribute name="Implementation-Vendor" value="Pat Niemeyer (pat@pat.net)" />
+			</manifest>
 			<!--classes dir="${build-dir}" includes="bsh/servlet/**/*"/-->
 			<fileset dir="${src-dir}/bsh/servlet/" includes="index.html"/>
 			<lib dir="${dist-dir}" includes="${all-jar-name}"/>
@@ -510,7 +535,7 @@
 	-->
 	<target name="test">
 		<antcall target="bsh">
-			<param name="file" value="tests/RunAllTests.bsh"/>
+			<param name="file" value="tests/test-scripts/RunAllTests.bsh"/>
 		</antcall>
 	</target>
 

@@ -2,8 +2,8 @@
 Running the Test Scripts
 ------------------------
 
-Before running the test suite be sure to compile the java clases in the 
-classes directory and any subdirs and add this to your classpath.
+Before running the test suite be sure to compile the java classes in the 
+src directory and any subdirs and add this to your classpath.
 
 Then run the RunAllTests.bsh script:
 
@@ -42,9 +42,10 @@ Data/
 	the test scripts.
 
 Interactive/
-	Scripts which must be run interactively to test.
+	Ad-hoc scripts / apps which currently must be run interactively to test.
+	The goal will be to move all of this into automated tests.
 
-classes/
+src/
 	Java classes used by the scripts. e.g. to test calling into particular
 	Java structures and packaging.
 

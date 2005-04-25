@@ -707,7 +707,17 @@ public class ClassGeneratorUtil implements Constants
 			cv.visitIntInsn(SIPUSH, i);
 			if ( isPrimitive( param ) ) 
 			{
-				int opcode = ILOAD;
+                int opcode;
+                if (param.equals("F")) {
+                    opcode = FLOAD;
+                } else if (param.equals("D")) {
+                    opcode = DLOAD;
+                } else if (param.equals("J")) {
+                    opcode = LLOAD;
+                } else {
+                    opcode = ILOAD;
+                }
+
 				String type = "bsh/Primitive";
 				cv.visitTypeInsn( NEW, type );
 				cv.visitInsn(DUP);
