@@ -134,6 +134,6 @@ class BSHLiteral extends SimpleNode
             buffer.append(ch);
         }
 
-        value = buffer.toString();
+        value = buffer.toString().intern();
     }
 }

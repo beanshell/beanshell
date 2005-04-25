@@ -87,7 +87,7 @@ speaking a different dialect from their brothers the application languages.
 
 BeanShell is a new kind of scripting language.  BeanShell begins with 
 the standard Java language and bridges it into the scripting domain in a 
-natural way, but allowing the developer to relaxing types where appropriate.
+natural way, allowing the developer to relax types where appropriate.
 It is possible to write BeanShell scripts that look exactly like Java 
 method code.  But it's also possible to write scripts that look more like
 a traditional scripting language, while still maintaining the framework

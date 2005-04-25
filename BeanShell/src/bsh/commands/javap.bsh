@@ -43,18 +43,18 @@ javap( Object o )
 	
 	print( "Class "+clas+" extends " +clas.getSuperclass() );
 
-	methods=clas.getDeclaredMethods();
+	this.dmethods=clas.getDeclaredMethods();
 	//print("------------- Methods ----------------");
-	for(int i=0; i<methods.length; i++) {
-		m = methods[i];
+	for(int i=0; i<dmethods.length; i++) {
+		this.m = dmethods[i];
 		if ( Modifier.isPublic( m.getModifiers() ) )
 			print( m );
 	}
 
 	//print("------------- Fields ----------------");
-	fields=clas.getDeclaredFields();
+	this.fields=clas.getDeclaredFields();
 	for(int i=0; i<fields.length; i++) {
-		f = fields[i];
+		this.f = fields[i];
 		if ( Modifier.isPublic( f.getModifiers() ) )
 			print( f );
 	}

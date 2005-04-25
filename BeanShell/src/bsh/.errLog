@@ -1,0 +1,18 @@
+Searching for build.xml ...
+Buildfile: C:\cygwin\home\niemeyp\pat\bsh1.3\BeanShell\build.xml
+
+checkjjt:
+
+jjtree:
+
+checkjj:
+
+javacc:
+
+builddir:
+
+compile:
+    [javac] Compiling 1 source file to C:\cygwin\home\niemeyp\pat\bsh1.3\BeanShell\classes
+
+BUILD SUCCESSFUL
+Total time: 6 seconds
