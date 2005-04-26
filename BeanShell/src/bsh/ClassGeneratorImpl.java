@@ -298,7 +298,7 @@ public class ClassGeneratorImpl extends ClassGenerator
 		Method superMethod = Reflect.resolveJavaMethod(
 			bcm, clas, superName, Types.getTypes(args), false/*onlyStatic*/ );
 		if ( superMethod != null )
-			return Reflect.invokeOnMethod( 
+			return Reflect.invokeMethod(
 				superMethod, instance, args );
 
 		// No super method, try to invoke regular method
@@ -307,7 +307,7 @@ public class ClassGeneratorImpl extends ClassGenerator
 		superMethod = Reflect.resolveExpectedJavaMethod(
 			bcm, superClass, instance, methodName, args, 
 			false/*onlyStatic*/ );
-		return Reflect.invokeOnMethod( superMethod, instance, args );
+		return Reflect.invokeMethod( superMethod, instance, args );
 	}
 
 }

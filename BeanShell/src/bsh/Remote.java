@@ -31,18 +31,20 @@
  *                                                                           *
  *****************************************************************************/
 
-
 package bsh;
 
 import java.io.*;
 import java.net.*;
 import java.text.*;
 /**
-	Remote executor class.
+	Remote executor class. Posts a script from the command line to a BshServlet
+ 	or embedded  interpreter using (respectively) HTTP or the bsh telnet
+	service. Output is printed to stdout and a numeric return value is scraped
+	from the result.
 */
-public class Remote {
-
-    public static void main( String args[] ) 
+public class Remote
+{
+    public static void main( String args[] )
 		throws Exception
 	{
 		if ( args.length < 2 ) {
@@ -52,15 +54,15 @@ public class Remote {
 		}
 		String url = args[0];
 		String text = getFile(args[1]);
-		int ret = eval( url, text, null );
+		int ret = eval( url, text );
 		System.exit( ret );
 		}
 
 	/**
-		Evaluate text in the interpreter at url, capturing output into
-		output and returning a possible integer return value.
+		Evaluate text in the interpreter at url, returning a possible integer
+	 	return value.
 	*/
-	public static int eval( String url, String text, StringBuffer output )
+	public static int eval( String url, String text )
 		throws IOException
 	{
 		String returnValue = null;
@@ -132,15 +134,26 @@ public class Remote {
 		outPipe.write( line.getBytes() );
 		outPipe.flush();
     }
-    
 
-	static String doHttp( String postURL, String text ) 
+
+	/*
+		TODO: this is not unicode friendly, nor is getFile()
+		The output is urlencoded 8859_1 text.
+		should probably be urlencoded UTF-8... how does the servlet determine
+		the encoded charset?  I guess we're supposed to add a ";charset" clause
+		to the content type?
+	*/
+	static String doHttp( String postURL, String text )
 	{
 		String returnValue = null;
 		StringBuffer sb = new StringBuffer();
 		sb.append( "bsh.client=Remote" );
 		sb.append( "&bsh.script=" );
-		sb.append( URLEncoder.encode( text ) );
+		try {
+			sb.append( URLEncoder.encode( text, "8859_1" ) );
+		} catch ( UnsupportedEncodingException e ) {
+			e.printStackTrace();
+		}
 		String formData = sb.toString(  );
 
 		try {
@@ -164,7 +177,7 @@ public class Remote {
 
 		  returnValue = urlcon.getHeaderField("Bsh-Return");
 
-		  BufferedReader bin = new BufferedReader( 
+		  BufferedReader bin = new BufferedReader(
 			new InputStreamReader( urlcon.getInputStream() ) );
 		  String line;
 		  while ( (line=bin.readLine()) != null )
@@ -181,8 +194,11 @@ public class Remote {
 		return returnValue;
 	}
 
-	static String getFile( String name ) 
-		throws FileNotFoundException, IOException 
+	/*
+		Note: assumes default character encoding
+	*/
+	static String getFile( String name )
+		throws FileNotFoundException, IOException
 	{
 		StringBuffer sb = new StringBuffer();
 		BufferedReader bin = new BufferedReader( new FileReader( name ) );

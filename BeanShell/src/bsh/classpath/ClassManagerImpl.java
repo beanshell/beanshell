@@ -93,12 +93,12 @@ public class ClassManagerImpl extends BshClassManager
 		This is the full blown classpath including baseClassPath (extensions),
 		user path, and java bootstrap path (rt.jar)
 
-		This is lazily constructed and further (and more importantly) lazily 
-		intialized in components because mapping the full path could be 
+		This is lazily constructed and further (and more importantly) lazily
+		intialized in components because mapping the full path could be
 		expensive.
 
 		The full class path is a composite of:
-			baseClassPath (user extension) : userClassPath : bootClassPath 
+			baseClassPath (user extension) : userClassPath : bootClassPath
 		in that order.
 	*/
 	private BshClassPath fullClassPath;
@@ -123,39 +123,39 @@ public class ClassManagerImpl extends BshClassManager
 	/**
 		Used by BshClassManager singleton constructor
 	*/
-	public ClassManagerImpl() { 
+	public ClassManagerImpl() {
 		reset();
 	}
 
 	/**
 		@return the class or null
 	*/
-	public Class classForName( String name ) 
+	public Class classForName( String name )
 	{
-		// check cache 
+		// check cache
 		Class c = (Class)absoluteClassCache.get(name);
 		if (c != null )
 			return c;
 
 		if ( absoluteNonClasses.get(name)!=null ) {
-			if ( Interpreter.DEBUG ) 
+			if ( Interpreter.DEBUG )
 				Interpreter.debug("absoluteNonClass list hit: "+name);
 			return null;
 		}
 
 		// Try to load the class
-		if ( Interpreter.DEBUG ) 
+		if ( Interpreter.DEBUG )
 			Interpreter.debug("Trying to load class: "+name);
 
 		ClassLoader overlayLoader = getLoaderForClass( name );
-		if ( overlayLoader != null ) 
+		if ( overlayLoader != null )
 		{
 			try {
 				c = overlayLoader.loadClass(name);
 			} catch ( Exception e ) {
 			// used to squeltch this... changed for 1.3
-			// see BshClassManager 
-			} catch ( NoClassDefFoundError e2 ) { 
+			// see BshClassManager
+			} catch ( NoClassDefFoundError e2 ) {
 				throw noClassDefFound( name, e2 );
 			}
 
@@ -185,9 +185,9 @@ public class ClassManagerImpl extends BshClassManager
 			c = loadSourceClass( name );
 
 		// cache results
-		/* 
+		/*
 			Note: plainClassForName already caches, so it will be redundant
-			in that case, however this process only happens once 
+			in that case, however this process only happens once
 		*/
 		cacheClassInfo( name, c );
 
@@ -195,23 +195,39 @@ public class ClassManagerImpl extends BshClassManager
 	}
 
 	/**
-		Delegate for bottom level implementation of Class.forName().
-		This is here solely to provide for Java version specific features.
-		In this case - the Thread getContextClassLoader() which is required
-		to get bsh to see user classpath when it's installed in a web
-		application or in the jre/lib/ext directory.
-		@see BshClassManager.plainClassForName()
+		This method delegates to the standard Java Class.forName().
+		It is here solely to provide for Java version specific / environment
+		specific features.
+	 	<p/>
+
+		Here we utilize the Thread getContextClassLoader() which
+		is required to get bsh to see user classpath when it's installed in a
+		web application or in the jre/lib/ext directory.
+	 	<p/>
+
+	 	The context classloader was added in JDK 1.2, so technically this is an
+	 	impl specific feature (which is why it's here).  However if/when we
+	 	move to a higher minimum supported version in the core this can move to
+	 	the base class.
+		@see BshClassManager#plainClassForName( String )
 	*/
-	public Class plainClassForName( String name )  
+	// TODO: implement new classloading scheme:
+	// 1) user classloader
+	// and/or? still deciding...
+	// 2) context classloader
+	// 3) default classloader
+	// don't forget to cache, etc... (look at super)
+	public Class plainClassForName( String name )
 		throws ClassNotFoundException
 	{
 		// Requires JDK 1.2+
 		ClassLoader contextClassLoader = 
 			Thread.currentThread().getContextClassLoader();
 		if ( contextClassLoader != null )
+		try {
 			return Class.forName( name, true, contextClassLoader );
-		else
-			return super.plainClassForName( name );
+		} catch ( ClassNotFoundException e ) { }
+		return super.plainClassForName( name );
 	}
 
 	/**

@@ -120,13 +120,15 @@ class BSHTryStatement extends SimpleNode
 				// If the param is typed check assignability
 				if ( fp.type != null ) 
 					try {
-						thrown = (Throwable)Types.getAssignableForm(
-							thrown, fp.type);
+						thrown = (Throwable)Types.castObject(
+							thrown/*rsh*/, fp.type/*lhsType*/, Types.ASSIGNMENT );
 					} catch( UtilEvalError e ) {
-						/* 
+						/*
 							Catch the mismatch and continue to try the next
-							Note: this is innefficient, should have an 
-							isAssignableFrom() that doesn't throw 
+							Note: this is innefficient, should have an
+							isAssignableFrom() that doesn't throw
+							// TODO: we do now have a way to test assignment
+							// 	in castObject(), use it?
 						*/
 						continue;
 					}
@@ -147,9 +149,12 @@ class BSHTryStatement extends SimpleNode
 						// set an untyped variable directly in the block
 						cbNameSpace.setBlockVariable( fp.name, thrown );
 					else
+					{
 						// set a typed variable (directly in the block)
+						Modifiers modifiers = new Modifiers();
 						cbNameSpace.setTypedVariable(
-							fp.name, fp.type, thrown, false);
+							fp.name, fp.type, thrown, new Modifiers()/*none*/ );
+					}
 				} catch ( UtilEvalError e ) {
 					throw new InterpreterError(
 						"Unable to set var in catch block namespace." );

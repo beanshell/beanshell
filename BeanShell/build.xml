@@ -35,7 +35,7 @@
 	<property name="classgen-src-dir" value="asm/src" />
 
 	<property name="javacc-lib" 
-		value="${lib-dir}/javacc.jar"/>
+		value="${lib-dir}/javacc-3.2.jar"/>
 
 	<!-- 
 		Optional things you can't build under older versions of Java
@@ -140,8 +140,8 @@
 	<target name="javacc" unless="javacc.notRequired" depends="checkjj">
 		<java classname="javacc"
 			fork="yes"
-			failonerror="yes" >
-			classpath="${javacc-lib}"
+			failonerror="yes"
+			classpath="${javacc-lib}">
 			<arg line="-OUTPUT_DIRECTORY=${src-dir}/bsh ${src-dir}/bsh/bsh.jj"/>
 			<classpath>
 				<fileset refid="lib-fileset"/>
