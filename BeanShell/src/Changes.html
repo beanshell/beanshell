@@ -2,6 +2,16 @@
 <head><title>BeanShell - Change Log</title></head>
 <body bgcolor=#ffffff>
 
+<h2>Changes in 2.0 beta 4</h2>
+<pre>
+	- Source compiles under JDK 1.5
+	- Cleaned up a number of deprecated method usages.
+	- The classloader (plainClassForName()) will now fall back to the app
+	classloader (Class.forName()) if it fails to find a class in the context
+	classloader.  (Previously, if the context classloader was available it
+	would try it and then give up.)
+</pre>
+
 <h2>Changes in 2.0 beta 3</h2>
 <pre>
 	String literals are now interned, as per JSL ch3 10.5.

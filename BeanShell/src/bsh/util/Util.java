@@ -80,7 +80,7 @@ public class Util
         try { mt.waitForAll(); } catch ( Exception e ) { }
         Graphics gr=can.getBufferedGraphics();
         gr.drawImage(img, 0, 0, can);
-        win.show();
+        win.setVisible(true);
         win.toFront();
 		splashScreen = win;
 	}

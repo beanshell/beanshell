@@ -75,7 +75,8 @@ public class BshMethod
 
 	// Scripted method body
 	BSHBlock methodBody;
-	// Java Method
+
+	// Java Method, for a BshObject that delegates to a real Java method
 	private Method javaMethod;
 	private Object javaObject;
 
@@ -106,6 +107,10 @@ public class BshMethod
 		this.modifiers = modifiers;
 	}
 
+	/*
+		Create a BshMethod that delegates to a real Java method upon invocation.
+		This is used to represent imported object methods.
+	*/
 	BshMethod( Method method, Object object )
 	{
 		this( method.getName(), method.getReturnType(), null/*paramNames*/,
@@ -207,7 +212,7 @@ public class BshMethod
 	{
 		if ( javaMethod != null )
 			try {
-				return Reflect.invokeOnMethod( 
+				return Reflect.invokeMethod(
 					javaMethod, javaObject, argValues ); 
 			} catch ( ReflectError e ) {
 				throw new EvalError(
@@ -303,8 +308,9 @@ public class BshMethod
 			if ( paramTypes[i] != null ) 
 			{
 				try {
-					argValues[i] = Types.getAssignableForm(
-						argValues[i], paramTypes[i] );
+					argValues[i] =
+						//Types.getAssignableForm( argValues[i], paramTypes[i] );
+						Types.castObject( argValues[i], paramTypes[i], Types.ASSIGNMENT );
 				}
 				catch( UtilEvalError e) {
 					throw new EvalError(
@@ -384,8 +390,10 @@ public class BshMethod
 
 			// return type is a class
 			try {
-				ret = Types.getAssignableForm( ret, (Class)returnType );
-			} catch( UtilEvalError e ) 
+				ret =
+					// Types.getAssignableForm( ret, (Class)returnType );
+					Types.castObject( ret, returnType, Types.ASSIGNMENT );
+			} catch( UtilEvalError e )
 			{
 				// Point to return statement point if we had one.
 				// (else it was implicit return? What's the case here?)

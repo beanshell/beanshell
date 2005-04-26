@@ -190,7 +190,8 @@ class BSHPrimarySuffix extends SimpleNode
 				((SimpleNode)callerInfo.jjtGetChild(0)).eval( 
 					callstack, interpreter );
 			if ( !(indexVal instanceof Primitive) )
-				indexVal = Types.getAssignableForm( indexVal, Integer.TYPE);
+				indexVal = Types.castObject(
+					indexVal, Integer.TYPE, Types.ASSIGNMENT );
 			index = ((Primitive)indexVal).intValue();
 		} catch( UtilEvalError e ) {
 			Interpreter.debug("doIndex: "+e);

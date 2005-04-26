@@ -21,8 +21,9 @@ public class Modifiers implements java.io.Serializable
 	{
 		if ( modifiers == null )
 			modifiers = new Hashtable();
-		Object got = modifiers.put( name, Void.TYPE/*arbitrary flag*/ );
-		if ( got != null )
+
+		Object existing = modifiers.put( name, Void.TYPE/*arbitrary flag*/ );
+		if ( existing != null )
 			throw new IllegalStateException("Duplicate modifier: "+ name );
 
 		int count = 0;

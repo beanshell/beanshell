@@ -38,11 +38,18 @@ package bsh;
 */
 class Types 
 {
+	/*
+		Type conversion identifiers.  An ASSIGNMENT allows conversions that would
+		normally happen on assignment.  A CAST performs numeric conversions to smaller
+		types (as in an explicit Java cast) and things allowed only in variable and array
+		declarations (e.g. byte b = 42;)
+	*/
 	static final int CAST=0, ASSIGNMENT=1;
+
 	/**
 		Special value that indicates by identity that the result of a cast
 		operation was a valid cast.  This is used by castObject() and
-		castPrimitive() in the checkOnly mode of operation.  This value is a 
+		castPrimitive() in the checkOnly mode of operation.  This value is a
 		Primitive type so that it can be returned by castPrimitive.
 	*/
 	static Primitive VALID_CAST = new Primitive(1);
@@ -61,7 +68,7 @@ class Types
         {
 			if ( args[i] == null )
 				types[i] = null;
-            else 
+            else
 			if ( args[i] instanceof Primitive )
                 types[i] = ((Primitive)args[i]).getType();
             else
@@ -84,9 +91,9 @@ class Types
 	}
 
 	/**
-		Is the 'from' signature (argument types) assignable to the 'to' 
+		Is the 'from' signature (argument types) assignable to the 'to'
 		signature (candidate method types) using isJavaAssignable()?
-		This method handles the special case of null values in 'to' types 
+		This method handles the special case of null values in 'to' types
 		indicating a loose type and matching anything.
 	*/
 	/*
@@ -109,7 +116,7 @@ class Types
 		in a normal assignment (i.e. without any cast)?
 		<p/>
 		For Java primitive TYPE classes this method takes primitive promotion
-		into account.  The ordinary Class.isAssignableFrom() does not take 
+		into account.  The ordinary Class.isAssignableFrom() does not take
 		primitive promotion conversions into account.  Note that Java allows
 		additional assignments without a cast in combination with variable
 		declarations.  Those are handled elsewhere (maybe should be here with a
@@ -120,8 +127,8 @@ class Types
 		type (non primitive)
 		<p/>
 
-		Note that the getAssignableForm() method is the primary bsh method for 
-		checking assignability.  It adds additional bsh conversions, etc. 
+		Note that the getAssignableForm() method is the primary bsh method for
+		checking assignability.  It adds additional bsh conversions, etc.
 
 		@see #isBshAssignable( Class, Class )
 		@param lhs assigning from rhs to lhs
@@ -131,7 +138,7 @@ class Types
     {
 		// null 'from' type corresponds to type of Primitive.NULL
 		// assign to any object type
-		if ( rhs == null ) 
+		if ( rhs == null )
 			return !lhs.isPrimitive();
 
 		if ( lhs.isPrimitive() && rhs.isPrimitive() )
@@ -140,27 +147,27 @@ class Types
 				return true;
 
 			// handle primitive widening conversions - JLS 5.1.2
-			if ( (rhs == Byte.TYPE) && 
+			if ( (rhs == Byte.TYPE) &&
 				(lhs == Short.TYPE || lhs == Integer.TYPE ||
                 lhs == Long.TYPE || lhs == Float.TYPE || lhs == Double.TYPE))
                     return true;
 
-            if ( (rhs == Short.TYPE) && 
+            if ( (rhs == Short.TYPE) &&
 				(lhs == Integer.TYPE || lhs == Long.TYPE ||
                 lhs == Float.TYPE || lhs == Double.TYPE))
                     return true;
 
-            if ((rhs == Character.TYPE) && 
+            if ((rhs == Character.TYPE) &&
 				(lhs == Integer.TYPE || lhs == Long.TYPE ||
                 lhs == Float.TYPE || lhs == Double.TYPE))
                     return true;
 
-            if ((rhs == Integer.TYPE) && 
+            if ((rhs == Integer.TYPE) &&
 				(lhs == Long.TYPE || lhs == Float.TYPE ||
                 lhs == Double.TYPE))
                     return true;
 
-            if ((rhs == Long.TYPE) && 
+            if ((rhs == Long.TYPE) &&
 				(lhs == Float.TYPE || lhs == Double.TYPE))
                 return true;
 
@@ -188,8 +195,8 @@ class Types
 
 	/**
 		Attempt to cast an object instance to a new type.
-		This method can handle fromValue Primitive types (representing 
-		primitive casts) as well as fromValue object casts requiring interface 
+		This method can handle fromValue Primitive types (representing
+		primitive casts) as well as fromValue object casts requiring interface
 		generation, etc.
 
 		@param toType the class type of the cast result, which may include
@@ -200,28 +207,28 @@ class Types
 
 		@see #isBshAssignable( Class, Class )
 	*/
-	public static Object castObject( 
-		Object fromValue, Class toType, int operation ) 
+	public static Object castObject(
+		Object fromValue, Class toType, int operation )
 		throws UtilEvalError
 	{
 		if ( fromValue == null )
 			throw new InterpreterError("null fromValue");
 
-		Class fromType = 
-			fromValue instanceof Primitive ? 
-				((Primitive)fromValue).getType() 
+		Class fromType =
+			fromValue instanceof Primitive ?
+				((Primitive)fromValue).getType()
 				: fromValue.getClass();
 
-		return castObject( 
+		return castObject(
 			toType, fromType, fromValue, operation, false/*checkonly*/ );
 	}
 
 	static boolean isBshAssignable( Class toType, Class fromType )
 	{
 		try {
-			return castObject( 
-				toType, fromType, null/*fromValue*/, 
-				ASSIGNMENT, true/*checkOnly*/ 
+			return castObject(
+				toType, fromType, null/*fromValue*/,
+				ASSIGNMENT, true/*checkOnly*/
 			) == VALID_CAST;
 		} catch ( UtilEvalError e ) {
 			// This should not happen with checkOnly true
@@ -229,8 +236,16 @@ class Types
 		}
 	}
 
-	/*
+	/**
 		Perform a cast, cast check, or assignability check.
+		<p/>
+	 	A CAST is stronger than an ASSIGNMENT operation in that it will attempt to
+	 	perform primtive operations that cast to a smaller type. e.g. (byte)myLong;
+	 	These are used in explicit primitive casts, primitive delclarations and
+	 	array declarations. I don't believe there are any object conversions which are
+	 	different between  ASSIGNMENT and CAST (e.g. scripted object to interface proxy
+	 	is done on assignment as well as cast).
+	 	<p/>
 
 		@param toType the class type of the cast result, which may include
 			primitive types, e.g. Byte.TYPE.  toType may be null to indicate a
@@ -238,8 +253,7 @@ class Types
 
 		@param fromType is the class type of the value to be cast including
 			java primitive TYPE classes for primitives.
-			fromType should be null to indicate that the fromValue is or would
-			be Primitive.NULL
+			If fromValue is (or would be) Primitive.NULL then fromType should be null.
 
 		@param fromValue an Object or bsh.Primitive primitive value (including
 			Primitive.NULL or Primitive.VOID )
@@ -252,7 +266,7 @@ class Types
 		@throws UtilEvalError on invalid assignment (when operation is
 			assignment ).
 
-		@throws UtilTargetError wrapping ClassCastException on cast error 
+		@throws UtilTargetError wrapping ClassCastException on cast error
 			(when operation is cast)
 
 		@param operation is Types.CAST or Types.ASSIGNMENT

@@ -409,7 +409,7 @@ public class ClassBrowser extends JSplitPane
 		f.getContentPane().add( "Center", cb );
 		cb.setFrame( f );
 		f.pack();
-		f.show();
+		f.setVisible(true);
 	}
 
 	public void setFrame( JFrame frame ) {

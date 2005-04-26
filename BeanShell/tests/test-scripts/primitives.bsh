@@ -120,8 +120,6 @@ dw1=s1;
 dw1=i1;
 dw1=l1;
 
-complete();
-
 double d123=3.0;
 float f123=3.0;
 d123=f123;
@@ -131,3 +129,4 @@ assert(isEvalError("f123=d123"));
 assert(isEvalError("d123=true"));
 assert(isEvalError("d123=null"));
 
+complete();

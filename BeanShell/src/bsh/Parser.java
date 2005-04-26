@@ -3584,187 +3584,187 @@ void VariableDeclaratorId() #VariableDeclaratorId :
   final private boolean jj_2_1(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_1(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_2(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_2(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_3(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_3(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_4(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_4(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_5(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_5(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_6(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_6(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_7(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_7(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_8(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_8(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_9(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_9(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_10(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_10(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_11(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_11(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_12(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_12(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_13(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_13(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_14(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_14(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_15(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_15(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_16(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_16(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_17(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_17(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_18(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_18(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_19(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_19(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_20(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_20(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_21(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_21(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_22(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_22(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_23(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_23(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_24(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_24(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_25(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_25(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_26(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_26(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_27(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_27(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_28(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_28(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_29(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_29(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_30(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_30(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_2_31(int xla) {
     jj_la = xla; jj_lastpos = jj_scanpos = token;
     try { return !jj_3_31(); }
-    catch(LookaheadSuccess ls) { } return true;
+    catch(LookaheadSuccess ls) { return true; }
   }
 
   final private boolean jj_3R_46() {

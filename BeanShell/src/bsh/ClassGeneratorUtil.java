@@ -34,6 +34,8 @@
 package bsh;
 
 import bsh.org.objectweb.asm.*;
+import bsh.org.objectweb.asm.Type;
+
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -169,9 +171,6 @@ public class ClassGeneratorUtil implements Constants
 
 	/**
 		Generate the class bytecode for this class.
-
-		@param className should be a path style name, e.g. 
-			"TestClass" or "mypackage/TestClass"
 	*/
 	public byte [] generateClass() 
 	{
@@ -260,7 +259,7 @@ public class ClassGeneratorUtil implements Constants
 				superClass, methods[i].getName(), 
 				methods[i].getParamTypeDescriptors() ) ;
 			if ( !isStatic && overridden )
-				generateSuperDelegateMethod( superClass, superClassName,
+				generateSuperDelegateMethod( superClassName,
 					methods[i].getName(), returnType,
 					methods[i].getParamTypeDescriptors(), modifiers, cw );
 		}
@@ -588,9 +587,8 @@ public class ClassGeneratorUtil implements Constants
 		normally does not allow).
 	*/
 	// Maybe combine this with generateMethod()
-	static void generateSuperDelegateMethod( 
-		Class superClass, String superClassName, String methodName, 
-		String returnType, String [] paramTypes, int modifiers, ClassWriter cw) 
+	static void generateSuperDelegateMethod( String superClassName, String methodName,
+											 String returnType, String[] paramTypes, int modifiers, ClassWriter cw )
 	{
 		String [] exceptions = null;
 
@@ -689,10 +687,10 @@ public class ClassGeneratorUtil implements Constants
 		corresponding to the "new Object[] { new bsh.Primitive(i), s }" 
 		expression.
 
+	 	@author Eric Bruneton
+	 	@author Pat Niemeyer
 		@param cv the code visitor to be used to generate the bytecode.
 		@param isStatic the enclosing methods is static
-		@author Eric Bruneton
-		@author Pat Niemeyer
 	*/
 	public static void generateParameterReifierCode (
 		String [] paramTypes, boolean isStatic, final CodeVisitor cv )
@@ -744,7 +742,6 @@ public class ClassGeneratorUtil implements Constants
 		method "int m (int i, String s)", this code is the bytecode
 		corresponding to the "((Integer)...).intValue()" expression.
 	   
-		@param m a method object.
 		@param cv the code visitor to be used to generate the bytecode.
 		@author Eric Bruneton
 		@author Pat Niemeyer
@@ -808,7 +805,7 @@ public class ClassGeneratorUtil implements Constants
 		contains the actual arguments to the alternate constructor and also the
 		index of that constructor for the constructor switch.
 
-		@param args the arguments to the constructor.  These are necessary in
+		@param consArgs the arguments to the constructor.  These are necessary in
 		the evaluation of the alt constructor args.  e.g. Foo(a) { super(a); }
 		@return the ConstructorArgs object containing a constructor selector
 			and evaluated arguments for the alternate constructor
@@ -1105,7 +1102,7 @@ public class ClassGeneratorUtil implements Constants
 		A ConstructorArgs object holds evaluated arguments for a constructor
 		call as well as the index of a possible alternate selector to invoke.
 		This object is used by the constructor switch.
-		@see #generateConstructor( int , String [] , int , ClassWriter ) 
+	 	@see #generateConstructor( int , String [] , int , ClassWriter )
 	*/
 	public static class ConstructorArgs
 	{
