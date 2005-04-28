@@ -96,11 +96,15 @@ public class MethodSelection {
 		return Void.TYPE;
 	}
 
+	/*
+		If we try to invoke an instance method through a static context
+		javac will error... rather than take the widening match.
+		See methodselection2.bsh 
+	*/
 	public static Class staticVsDynamic1( Object obj ) {
 		System.out.println("Object");
 		return Object.class;
 	}
-
 	public Class staticVsDynamic1( String obj ) {
 		System.out.println("String");
 		return String.class;

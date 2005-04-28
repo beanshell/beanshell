@@ -233,7 +233,7 @@ class Reflect
 
 		try {
 			Field f = resolveExpectedJavaField( 
-				object.getClass(), fieldName, false/*onlyStatic*/ );
+				object.getClass(), fieldName, false/*staticOnly*/ );
 			return new LHS(object, f);
 		} catch ( ReflectError e ) 
 		{
@@ -246,11 +246,11 @@ class Reflect
     }
 
     private static Object getFieldValue(
-		Class clas, Object object, String fieldName, boolean onlyStatic ) 
+		Class clas, Object object, String fieldName, boolean staticOnly )
 		throws UtilEvalError, ReflectError
     {
         try {
-            Field f = resolveExpectedJavaField( clas, fieldName, onlyStatic );
+            Field f = resolveExpectedJavaField( clas, fieldName, staticOnly );
 
             Object value = f.get(object);
             Class returnType = f.getType();
@@ -273,11 +273,11 @@ class Reflect
 		@return the field or null if not found
 	*/
     protected static Field resolveJavaField( 
-		Class clas, String fieldName, boolean onlyStatic )
+		Class clas, String fieldName, boolean staticOnly )
         throws UtilEvalError
     {
 		try {
-			return resolveExpectedJavaField( clas, fieldName, onlyStatic );
+			return resolveExpectedJavaField( clas, fieldName, staticOnly );
 		} catch ( ReflectError e ) { 
 			return null;
 		}
@@ -291,7 +291,7 @@ class Reflect
 		to change related signatures and code.
 	*/
     protected static Field resolveExpectedJavaField( 
-		Class clas, String fieldName, boolean onlyStatic
+		Class clas, String fieldName, boolean staticOnly
 	)
         throws UtilEvalError, ReflectError
     {
@@ -309,7 +309,7 @@ class Reflect
             throw new ReflectError("No such field: " + fieldName );
         }
 
-		if ( onlyStatic && !Modifier.isStatic( f.getModifiers() ) )
+		if ( staticOnly && !Modifier.isStatic( f.getModifiers() ) )
 			throw new UtilEvalError(
 				"Can't reach instance field: "+fieldName
 				+" from static context: "+clas.getName() );
@@ -370,7 +370,7 @@ class Reflect
 	*/
     protected static Method resolveExpectedJavaMethod(
 		BshClassManager bcm, Class clas, Object object, 
-		String name, Object[] args, boolean onlyStatic )
+		String name, Object[] args, boolean staticOnly )
         throws ReflectError, UtilEvalError
     {
 		if ( object == Primitive.NULL )
@@ -378,11 +378,11 @@ class Reflect
 				"Attempt to invoke method " +name+" on null value" ) );
 
 		Class [] types = Types.getTypes(args);
-		Method method = resolveJavaMethod( bcm, clas, name, types, onlyStatic );
+		Method method = resolveJavaMethod( bcm, clas, name, types, staticOnly );
 
 		if ( method == null )
 			throw new ReflectError(
-				( onlyStatic ? "Static method " : "Method " )
+				( staticOnly ? "Static method " : "Method " )
 				+ StringUtil.methodString(name, types) +
 				" not found in class'" + clas.getName() + "'");
 
@@ -392,206 +392,182 @@ class Reflect
     /**
         The full blown resolver method.  All other method invocation methods
 		delegate to this.  The method may be static or dynamic unless
-		onlyStatic is set (in which case object may be null).
-		If onlyStatic is set the only static methods will be located.
+		staticOnly is set (in which case object may be null).
+		If staticOnly is set then only static methods will be located.
 		<p/>
-		This method performs Java method caching internally.
 
-		@param onlyStatic 
+		This method performs caching (caches discovered methods through the
+	 	class manager and utilizes cached methods.)
+	 	<p/>
+
+	 	This method determines whether to attempt to use non-public methods
+	 	based on Capabilities.haveAccessibility() and will set the accessibilty
+	 	flag on the method as necessary.
+	 	<p/>
+
+		If, when directed to find a static method, this method locates a more 
+		specific matching instance method it will throw a descriptive exception 
+		analogous to the error that the Java compiler would produce.
+		Note: as of 2.0.x this is a problem because there is no way to work
+		around this with a cast. 
+		<p/>
+
+		@param staticOnly
 			The method located must be static, the object param may be null.
 		@return the method or null if no matching method was found.
 	*/
-	/*
-		Notes:
-
-		This is broken.  It finds public but less specific methods over
-		non-public but more specific ones.
-
-		findMostSpecficMethod() needs to be rewritten to eliminate
-		findAccessibleMethod.  We should implement the findMostSpecificMethod
-		that uses the publicOnly flag.  FindMostSpecificMethod should also
-		operate in two passes to give standard Java assignable matches priority
-		over extended bsh type matches.
-	*/
     protected static Method resolveJavaMethod(
 		BshClassManager bcm, Class clas, String name, 
-		Class [] types, boolean onlyStatic )
-        throws UtilEvalError
+		Class [] types, boolean staticOnly )
+		throws UtilEvalError
     {
 		if ( clas == null )
 			throw new InterpreterError("null class");
 
-		// Lookup cached method
+		// Lookup previously cached method
 		Method method = null;
 		if ( bcm == null ) 
 			Interpreter.debug("resolveJavaMethod UNOPTIMIZED lookup");
-		else {
-			method = bcm.getResolvedMethod( clas, name, types, onlyStatic );
-			if ( method != null )
-				return method;
+		else
+			method = bcm.getResolvedMethod( clas, name, types, staticOnly );
+
+		if ( method == null )
+		{
+			boolean publicOnly = !Capabilities.haveAccessibility();
+			method = findOverloadedMethod( clas, name, types, publicOnly );
+
+			checkFoundStaticMethod( method, staticOnly, clas );
+
+			// This is the first time we've seen this method, set accessibility
+			// Note: even if it's a public method, we may have found it in a
+			// non-public class
+			if ( method != null && !publicOnly ) {
+				try {
+					ReflectManager.RMSetAccessible( method );
+				} catch ( UtilEvalError e ) { /*ignore*/ }
+			}
+
+			// If succeeded cache the resolved method.
+			if ( method != null && bcm != null )
+				bcm.cacheResolvedMethod( clas, types, method );
 		}
-
-		logSearchForMethod1( name, types, clas );
-
-		// First try for an accessible version of the exact match.
-		// This first lookup seems redundant with below, but is apparently
-		// needed.  This whole thing is messy.
-		try {
-			method  = findAccessibleMethod( clas, name, types );
-		} catch ( SecurityException e ) { }
-
-		// If not found and there are arguments to match -
-		// Look for an overloaded assignable match
-		if ( method == null && types.length > 0 )
-			method = findOverloadedMethod( clas, name, types );
-
-		// If we're looking for a static method make sure method is static
-		checkFoundStaticMethod( method, onlyStatic, clas );
-
-		// If succeeded cache the resolved method.
-		if ( method != null && bcm != null )
-			bcm.cacheResolvedMethod( clas, types, method );
 
 		return method;
 	}
 
 	/**
-		@return the method or null for not found
-	*/
+		Get the candidate methods by searching the class and interface graph
+	 	of baseClass and resolve the most specific.
+	 	@return the method or null for not found
+	 */
 	private static Method findOverloadedMethod(
-		Class clas, String name, Class[] types )
-	{
-		// (First find the method, then find accessible version of it)
-		// Gather all of the methods of class and parents
-		Vector mv = new Vector();
-		Class c = clas;
-		while( c != null )
-		{
-			Method [] m = c.getDeclaredMethods();
-			for(int i=0; i<m.length; i++)
-				mv.add( m[i] );
-			c = c.getSuperclass();
-		}
-		Method [] methods = new Method [mv.size()];
-		mv.copyInto( methods );
-
-		boolean publicOnly = !Capabilities.haveAccessibility();
-		Method method = findMostSpecificMethod( name, types, methods, publicOnly );
-
-		if ( method != null && !Modifier.isPublic( method.getModifiers() ) )
-		{
-			try {
-				ReflectManager.RMSetAccessible( method );
-			} catch ( UtilEvalError e ) { /*ignore*/ }
-		}
-		return method;
-	}
-
-	private static void logSearchForMethod1( String name, Class[] types, Class clas )
+		Class baseClass, String methodName, Class[] types, boolean publicOnly )
 	{
 		if ( Interpreter.DEBUG )
 			Interpreter.debug( "Searching for method: "+
-				StringUtil.methodString(name, types)
-					+ " in '" + clas.getName() + "'" );
-	}
+				StringUtil.methodString(methodName, types)
+				+ " in '" + baseClass.getName() + "'" );
 
-	private static void checkFoundStaticMethod( Method method, boolean onlyStatic, Class clas )
-		throws UtilEvalError
-	{
-		// We're looking for a static method but found an instance method
-		if ( method != null
-			&& onlyStatic && !Modifier.isStatic( method.getModifiers() )
-		)
-			throw new UtilEvalError(
-				"Cannot reach instance method: "
-				+ StringUtil.methodString(
-					method.getName(), method.getParameterTypes() )
-				+ " from static context: "+ clas.getName() );
+		Method [] methods = getCandidateMethods(
+			baseClass, methodName, types.length, publicOnly );
+
+		if ( Interpreter.DEBUG )
+			Interpreter.debug("Looking for most specific method: "+methodName);
+		Method method = findMostSpecificMethod( types, methods );
+
+		return method;
 	}
 
 	/**
-		Locate a version of the method with the exact signature specified 
-		that is accessible via a public interface or through a public 
-		superclass or - if accessibility is on - through any interface or
-		superclass.
+		Climb the class and interface inheritence graph of the type and collect
+		all methods matching the specified name and criterion.  If publicOnly
+		is true then only public methods in *public* classes or interfaces will
+		be returned.  In the normal (non-accessible) case this addresses the
+		problem that arises when a package private class or private inner class
+		implements a public interface or derives from a public type.
+	 	<p/>
 
-		In the normal (non-accessible) case this also addresses the problem that
-		arises when a package private class or private inner class implements a 
-		public interface or derives from a public type.
-
-		@return null on not found
+	 	This method primarily just delegates to gatherMethodsRecursive()
+	 	@see #gatherMethodsRecursive(
+			Class, String, int, boolean, java.util.Vector)
 	*/
-	/*
-		Notes: See notes on findMostSpecificMethod.
-		This method should be rolled into findMostSpecificMethod.
-	*/
-	static Method findAccessibleMethod(
-		Class clas, String name, Class [] types ) 
-		throws UtilEvalError
+	static Method[] getCandidateMethods(
+		Class baseClass, String methodName, int numArgs,
+		boolean publicOnly )
 	{
-		Method meth = null;
-		Method inaccessibleVersion = null;
-		Vector classQ = new Vector();
+		Vector  candidates = gatherMethodsRecursive(
+			baseClass, methodName, numArgs, publicOnly, null/*candidates*/);
 
-		classQ.addElement( clas );
-		Method found = null;
-		while ( classQ.size() > 0 ) 
+		// return the methods in an array
+		Method [] ma = new Method[ candidates.size() ];
+		candidates.copyInto( ma );
+		return ma;
+	}
+
+	/**
+		Accumulate all methods, optionally including non-public methods,
+	 	class and interface, in the inheritence tree of baseClass.
+
+		This method is analogous to Class getMethods() which returns all public
+		methods in the inheritence tree.
+
+		In the normal (non-accessible) case this also addresses the problem
+		that arises when a package private class or private inner class
+		implements a public interface or derives from a public type.  In other
+		words, sometimes we'll find public methods that we can't use directly
+		and we have to find the same public method in a parent class or
+		interface.
+
+		@return the candidate methods vector
+	*/
+	private static Vector gatherMethodsRecursive(
+		Class baseClass, String methodName, int numArgs,
+		boolean publicOnly, Vector candidates )
+	{
+		if ( candidates == null )
+			candidates = new Vector();
+
+		// Add methods of the current class to the vector.
+		// In public case be careful to only add methods from a public class
+		// and to use getMethods() instead of getDeclaredMethods()
+		// (This addresses secure environments)
+		if ( publicOnly ) {
+			if ( isPublic(baseClass) )
+				addCandidates( baseClass.getMethods(),
+					methodName, numArgs, publicOnly, candidates );
+		} else
+			addCandidates( baseClass.getDeclaredMethods(),
+				methodName, numArgs, publicOnly, candidates );
+
+		// Does the class or interface implement interfaces?
+		Class [] intfs = baseClass.getInterfaces();
+		for( int i=0; i< intfs.length; i++ )
+			gatherMethodsRecursive(  intfs[i],
+				methodName, numArgs, publicOnly, candidates );
+
+		// Do we have a superclass? (interfaces don't, etc.)
+		Class superclass = baseClass.getSuperclass();
+		if ( superclass != null )
+			gatherMethodsRecursive( superclass,
+				methodName, numArgs, publicOnly, candidates );
+
+		return candidates;
+	}
+
+	private static Vector addCandidates(
+		Method [] methods, String methodName,
+		int numArgs, boolean publicOnly, Vector candidates  )
+	{
+		for ( int i = 0; i < methods.length; i++ )
 		{
-			Class c = (Class)classQ.firstElement();
-			classQ.removeElementAt(0);
-
-			// Is this it?
-			// Is the class public or can we use accessibility?
-			if ( Modifier.isPublic( c.getModifiers() )
-				|| ( Capabilities.haveAccessibility() ) )
-			{
-				try 
-				{
-					meth = c.getDeclaredMethod( name, types );
-
-					// Is the method public or are we in accessibility mode?
-					if ( ( Modifier.isPublic( meth.getModifiers() )
-						&& Modifier.isPublic( c.getModifiers() ) )
-						|| ( Capabilities.haveAccessibility() 
-							&& ReflectManager.RMSetAccessible( meth ) ) )
-					{
-						found = meth; // Yes, it is.
-						break;
-					}
-					else
-					{
-						// Found at least one matching method but couldn't use
-						inaccessibleVersion = meth;
-					}
-				} catch ( NoSuchMethodException e ) { 
-					// ignore and move on
-				}
-			}
-			// No, it is not.
-			
-			// Is this a class?
-			if ( !c.isInterface() ) {
-				Class superclass = c.getSuperclass();
-				if ( superclass != null )
-					classQ.addElement((Object)superclass);
-			}
-
-			// search all of its interfaces breadth first
-			Class [] intfs = c.getInterfaces();
-			for( int i=0; i< intfs.length; i++ )
-				classQ.addElement((Object)intfs[i]);
+			Method m = methods[i];
+			if (  m.getName().equals( methodName )
+				&& ( m.getParameterTypes().length == numArgs )
+				&& ( !publicOnly || isPublic( m ) )
+			)
+				candidates.add( m );
 		}
-
-		if ( found != null )
-			return found;
-
-		if ( inaccessibleVersion != null )
-			throw new UtilEvalError("Found non-public method: "
-				+inaccessibleVersion
-				+".  Use setAccessibility(true) to enable access to "
-				+" private and protected members of classes." );
-		
-		return null; 
+		return candidates;
 	}
 
 	/**
@@ -610,13 +586,13 @@ class Reflect
         Class[] types = Types.getTypes(args);
         Constructor con = null;
 
-		/* 
+		/*
 			Find an appropriate constructor.
 			use declared here to see package and private as well
-			(there are no inherited constructors to worry about) 
+			(there are no inherited constructors to worry about)
 		*/
 		Constructor[] constructors = clas.getDeclaredConstructors();
-		if ( Interpreter.DEBUG ) 
+		if ( Interpreter.DEBUG )
 			Interpreter.debug("Looking for most specific constructor: "+clas);
 		con = findMostSpecificConstructor(types, constructors);
 
@@ -627,7 +603,7 @@ class Reflect
 					"Can't find default constructor for: "+clas);
 			else
 				throw new ReflectError(
-					"Can't find constructor: " 
+					"Can't find constructor: "
 					+ StringUtil.methodString( clas.getName(), types )
 					+" in class: "+ clas.getName() );
 		}
@@ -649,68 +625,22 @@ class Reflect
 				+"Use setAccessibility(true) to enable access." );
         } catch(IllegalArgumentException e) {
             throw new ReflectError("the number of arguments was wrong");
-        } 
+        }
 		if (obj == null)
             throw new ReflectError("couldn't construct the object");
 
         return obj;
     }
 
-    /**
-        Implement JLS 15.11.2 for method resolution
-		@return null on no match
-    */
-	/*
-		Notes:
-
-		This is broken.  It finds public but less specific methods over
-		non-public but more specific ones.
-
-		This method needs to be rewritten to eliminate findAccessibleMethod.
-		We should implement the findMostSpecificMethod that uses the publicOnly
-		flag.  FindMostSpecificMethod should also operate in two passes to give
-		standard Java assignable matches priority over extended bsh type
-		matches.
-	*/
-    static Method findMostSpecificMethod(
-		String name, Class[] idealMatch, Method[] methods,
-		boolean publicOnly )
-    {
-		// Pull out the method signatures with matching names, visibility
-		Vector sigs = new Vector();
-		Vector meths = new Vector();
-		for(int i=0; i<methods.length; i++)
-		{
-			if ( publicOnly && !Modifier.isPublic( methods[i].getModifiers() ) )
-				continue;
-
-			// method matches name 
-			if ( methods[i].getName().equals( name ) ) 
-			{
-				meths.addElement( methods[i] );
-				sigs.addElement( methods[i].getParameterTypes() );
-			}
-		}
-
-		Class [][] candidates = new Class [ sigs.size() ][];
-		sigs.copyInto( candidates );
-
-		if ( Interpreter.DEBUG ) 
-			Interpreter.debug("Looking for most specific method: "+name);
-		int match = findMostSpecificSignature( idealMatch, candidates );
-		if ( match == -1 )
-			return null;
-		else
-			return (Method)meths.elementAt( match );
-    }
-
     /*
         This method should parallel findMostSpecificMethod()
+		The only reason it can't be combined is that Method and Constructor
+		don't have a common interface for their signatures
     */
     static Constructor findMostSpecificConstructor(
 		Class[] idealMatch, Constructor[] constructors)
     {
-		int match = 
+		int match =
 			findMostSpecificConstructorIndex( idealMatch, constructors );
 		if ( match == -1 )
 			return null;
@@ -729,9 +659,35 @@ class Reflect
     }
 
 	/**
+		Find the best match for signature idealMatch.
+		It is assumed that the methods array holds only valid candidates
+		(e.g. method name and number of args already matched).
+		This method currently does not take into account Java 5 covariant
+		return types... which I think will require that we find the most
+		derived return type of otherwise identical best matches.
+
+
+	 	@see #findMostSpecificSignature(Class[], Class[][])
+		@param methods the set of candidate method which differ only in the
+	 		types of their arguments.
+	*/
+	static Method findMostSpecificMethod(
+		Class[] idealMatch, Method[] methods )
+	{
+		// copy signatures into array for findMostSpecificMethod()
+		Class [][] candidateSigs = new Class [ methods.length ][];
+		for(int i=0; i<methods.length; i++)
+			candidateSigs[i] = methods[i].getParameterTypes();
+
+		int match = findMostSpecificSignature( idealMatch, candidateSigs );
+		return match == -1 ? null : methods[match];
+	}
+
+	/**
         Implement JLS 15.11.2
-		Return the index of the most specific arguments match or -1 if no	
+		Return the index of the most specific arguments match or -1 if no
 		match is found.
+	 	@return the index of the most specific candidate
 	*/
 	static int findMostSpecificSignature(
 		Class [] idealMatch, Class [][] candidates )
@@ -743,8 +699,8 @@ class Reflect
 			Class[] targetMatch = candidates[i];
 
             /*
-                If idealMatch fits targetMatch and this is the first match 
-				or targetMatch is more specific than the best match, make it 
+                If idealMatch fits targetMatch and this is the first match
+				or targetMatch is more specific than the best match, make it
 				the new best match.
             */
 			if ( Types.isSignatureAssignable(idealMatch, targetMatch ) &&
@@ -763,13 +719,13 @@ class Reflect
 	}
 
 	private static String accessorName( String getorset, String propName ) {
-        return getorset 
-			+ String.valueOf(Character.toUpperCase(propName.charAt(0))) 
+        return getorset
+			+ String.valueOf(Character.toUpperCase(propName.charAt(0)))
 			+ propName.substring(1);
 	}
 
-    public static boolean hasObjectPropertyGetter( 
-		Class clas, String propName ) 
+    public static boolean hasObjectPropertyGetter(
+		Class clas, String propName )
 	{
 		String getterName = accessorName("get", propName );
 		try {
@@ -785,8 +741,8 @@ class Reflect
 		}
 	}
 
-    public static boolean hasObjectPropertySetter( 
-		Class clas, String propName ) 
+    public static boolean hasObjectPropertySetter(
+		Class clas, String propName )
 	{
 		String setterName = accessorName("set", propName );
 		Method [] methods = clas.getMethods();
@@ -811,20 +767,20 @@ class Reflect
 		Exception e1=null, e2=null;
 		try {
 			String accessorName = accessorName( "get", propName );
-			method = resolveExpectedJavaMethod( 
+			method = resolveExpectedJavaMethod(
 				null/*bcm*/, obj.getClass(), obj, accessorName, args, false );
-		} catch ( Exception e ) { 
+		} catch ( Exception e ) {
 			e1 = e;
 		}
 		if ( method == null )
 			try {
 				String accessorName = accessorName( "is", propName );
-				method = resolveExpectedJavaMethod( 
-					null/*bcm*/, obj.getClass(), obj, 
+				method = resolveExpectedJavaMethod(
+					null/*bcm*/, obj.getClass(), obj,
 					accessorName, args, false );
 				if ( method.getReturnType() != Boolean.TYPE )
 					method = null;
-			} catch ( Exception e ) { 
+			} catch ( Exception e ) {
 				e2 = e;
 			}
 		if ( method == null )
@@ -850,7 +806,7 @@ class Reflect
 
         Interpreter.debug("property access: ");
         try {
-			Method method = resolveExpectedJavaMethod( 
+			Method method = resolveExpectedJavaMethod(
 				null/*bcm*/, obj.getClass(), obj, accessorName, args, false );
 			invokeMethod( method, obj, args );
         }
@@ -861,7 +817,7 @@ class Reflect
         }
     }
 
-    /** 
+    /**
 		Return a more human readable version of the type name.
 		Specifically, array types are returned with postfix "[]" dimensions.
 		e.g. return "int []" for integer array instead of "class [I" as
@@ -916,8 +872,8 @@ class Reflect
 		This method adds the arguments and invokes the static method, returning
 		the result.
 	*/
-	public static Object invokeCompiledCommand( 
-		Class commandClass, Object [] args, Interpreter interpreter, 
+	public static Object invokeCompiledCommand(
+		Class commandClass, Object [] args, Interpreter interpreter,
 		CallStack callstack )
 		throws UtilEvalError
 	{
@@ -928,7 +884,7 @@ class Reflect
         System.arraycopy( args, 0, invokeArgs, 2, args.length );
 		BshClassManager bcm = interpreter.getClassManager();
 		try {
-        	return Reflect.invokeStaticMethod( 
+        	return Reflect.invokeStaticMethod(
 				bcm, commandClass, "invoke", invokeArgs );
 		} catch ( InvocationTargetException e ) {
 			throw new UtilEvalError(
@@ -948,6 +904,29 @@ class Reflect
 					"args["+i+"] = "+args[i]
 					+" type = "+args[i].getClass() );
 		}
+	}
+
+	private static void checkFoundStaticMethod(
+		Method method, boolean staticOnly, Class clas )
+		throws UtilEvalError
+	{
+		// We're looking for a static method but found an instance method
+		if ( method != null && staticOnly && !isStatic( method ) )
+			throw new UtilEvalError(
+				"Cannot reach instance method: "
+				+ StringUtil.methodString(
+					method.getName(), method.getParameterTypes() )
+				+ " from static context: "+ clas.getName() );
+	}
+
+	private static boolean isPublic( Class c ) {
+		return Modifier.isPublic( c.getModifiers() );
+	}
+	private static boolean isPublic( Method m ) {
+		return Modifier.isPublic( m.getModifiers() );
+	}
+	private static boolean isStatic( Method m ) {
+		return Modifier.isStatic( m.getModifiers() );
 	}
 }
 

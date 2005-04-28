@@ -10,6 +10,11 @@
 	classloader (Class.forName()) if it fails to find a class in the context
 	classloader.  (Previously, if the context classloader was available it
 	would try it and then give up.)
+	- Method selection code was completely rewritten.  This should correct a
+	number of problems where inaccessible methods are selected and
+	also correct the issue of security problems in applets and other secure
+	environments.  Method selection should no longer call getDeclaredMethods() 
+	unless accessibility is explicitly turned on.
 </pre>
 
 <h2>Changes in 2.0 beta 3</h2>
