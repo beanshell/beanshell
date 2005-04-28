@@ -2,6 +2,8 @@
 
 source("TestHarness.bsh");
 
+import bsh.*;
+
 /**
 	Make sure that overloaded method resolution knows whether it's looking
 	for a static only or a dynamic/static method
@@ -16,6 +18,7 @@ assert( m.staticVsDynamic1( new String() ) == String.class );
 
 assert( MethodSelection.staticVsDynamic1( new Object() ) == Object.class );
 assert( MethodSelection.staticVsDynamic1( new Object() ) == Object.class );
+
 // the best match is the static String form... javac would error on this
 // rather than select the overloaded form, so so will we...
 assert( isEvalError("MethodSelection.staticVsDynamic1( new String() )"  ) );
@@ -38,6 +41,20 @@ try {
 	// as long as it's not an InterpreterError or worse
 }
 
+// should add our own test, but for now try a real situation...
+if ( Capabilities.classExists("java.util.Map") )
+{
+	map = new HashMap();
+	umap = Collections.unmodifiableMap( map);
+	try {
+		umap.put("foo", "bar");
+	} catch ( UnsupportedOperationException e ) {
+		flag();
+	}
+	assert( flag() == 1 );
+}
+else
+	warning("Can't test method selection on package private impl...");
 
 complete();
 

@@ -35,7 +35,7 @@
 	<property name="classgen-src-dir" value="asm/src" />
 
 	<property name="javacc-lib" 
-		value="${lib-dir}/javacc-3.2.jar"/>
+		value="${lib-dir}/javacc.jar"/>
 
 	<!-- 
 		Optional things you can't build under older versions of Java
@@ -73,9 +73,10 @@
 		value="bsh/JThis.java"/>
 
 	<!-- Arbitrary excludes.  Comment this out to build these experimental or
-		other items which we've decided not to build right now. -->
+		other items which we've decided not to build right now. 
 	<property name="excludes-arbitrary" 
 		value="bsh/ExternalNameSpace.java"/>
+	-->
 
 	<!--  Add up all of the excludes -->
 	<!-- how do I add strings to break this long line? -->
