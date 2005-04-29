@@ -56,5 +56,13 @@ if ( Capabilities.classExists("java.util.Map") )
 else
 	warning("Can't test method selection on package private impl...");
 
+/*
+	Can we see a concrete public method in a package-private abstract 
+	base class?  The method is *not* be overridden in the public concrete
+	class... 
+*/
+mpc=new mypackage.Concrete();
+mpc.visible(); // the method visible() can be reached
+
 complete();
 
