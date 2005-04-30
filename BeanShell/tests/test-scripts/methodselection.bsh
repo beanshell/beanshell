@@ -21,8 +21,9 @@ assert( m.get_dynamic( "foo" ) == String.class );
 assert( m.get_dynamic( new Object() ) == Object.class );
 assert( m.get_dynamic() == Void.TYPE );
 
-// bsh should recognize a java compatible match over a bsh extension match
-// should be Integer.class not primitive Integer.TYPE (both available)
+// bsh should recognize a less specific java compatible match over an
+// extended (autoboxed, BeanShell specific, etc.) match 
+// Should be Integer.class not primitive Integer.TYPE (both available) 
 assert( m.get_dynamic( new Integer(4) ) == Integer.class );
 
 // test constructor selection

@@ -57,7 +57,7 @@ import java.util.Hashtable;
 	@see JThis	 See also JThis with explicit JFC support for compatability.
 	@see This	
 */
-class XThis extends This 
+public class XThis extends This 
 	{
 	/**
 		A cache of proxy interface handlers.
@@ -67,7 +67,7 @@ class XThis extends This
 
 	InvocationHandler invocationHandler = new Handler();
 
-	XThis( NameSpace namespace, Interpreter declaringInterp ) { 
+	public XThis( NameSpace namespace, Interpreter declaringInterp ) { 
 		super( namespace, declaringInterp ); 
 	}
 

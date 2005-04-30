@@ -574,6 +574,11 @@ class Reflect
 		Primary object constructor
 		This method is simpler than those that must resolve general method
 		invocation because constructors are not inherited.
+	 <p/>
+	 This method determines whether to attempt to use non-public constructors
+	 based on Capabilities.haveAccessibility() and will set the accessibilty
+	 flag on the method as necessary.
+	 <p/>
 	*/
     static Object constructObject( Class clas, Object[] args )
         throws ReflectError, InvocationTargetException
@@ -586,30 +591,19 @@ class Reflect
         Class[] types = Types.getTypes(args);
         Constructor con = null;
 
-		/*
-			Find an appropriate constructor.
-			use declared here to see package and private as well
-			(there are no inherited constructors to worry about)
-		*/
-		Constructor[] constructors = clas.getDeclaredConstructors();
+		// Find the constructor.
+		// (there are no inherited constructors to worry about)
+		Constructor[] constructors =
+			Capabilities.haveAccessibility() ?
+				clas.getDeclaredConstructors() : clas.getConstructors() ;
+
 		if ( Interpreter.DEBUG )
 			Interpreter.debug("Looking for most specific constructor: "+clas);
 		con = findMostSpecificConstructor(types, constructors);
-
 		if ( con == null )
-		{
-			if ( types.length == 0 )
-				throw new ReflectError(
-					"Can't find default constructor for: "+clas);
-			else
-				throw new ReflectError(
-					"Can't find constructor: "
-					+ StringUtil.methodString( clas.getName(), types )
-					+" in class: "+ clas.getName() );
-		}
+			throw cantFindConstructor( clas, types );
 
-		if ( !Modifier.isPublic( con.getModifiers() )
-			&& Capabilities.haveAccessibility() )
+		if ( !isPublic( con ) )
 			try {
 				ReflectManager.RMSetAccessible( con );
 			} catch ( UtilEvalError e ) { /*ignore*/ }
@@ -618,16 +612,16 @@ class Reflect
         try {
             obj = con.newInstance( args );
         } catch(InstantiationException e) {
-            throw new ReflectError("the class is abstract ");
+            throw new ReflectError("The class "+clas+" is abstract ");
         } catch(IllegalAccessException e) {
             throw new ReflectError(
 				"We don't have permission to create an instance."
 				+"Use setAccessibility(true) to enable access." );
         } catch(IllegalArgumentException e) {
-            throw new ReflectError("the number of arguments was wrong");
+            throw new ReflectError("The number of arguments was wrong");
         }
 		if (obj == null)
-            throw new ReflectError("couldn't construct the object");
+            throw new ReflectError("Couldn't construct the object");
 
         return obj;
     }
@@ -640,12 +634,8 @@ class Reflect
     static Constructor findMostSpecificConstructor(
 		Class[] idealMatch, Constructor[] constructors)
     {
-		int match =
-			findMostSpecificConstructorIndex( idealMatch, constructors );
-		if ( match == -1 )
-			return null;
-		else
-			return constructors[ match ];
+		int match = findMostSpecificConstructorIndex(idealMatch, constructors );
+		return ( match == -1 ) ? null : constructors[ match ];
     }
 
     static int findMostSpecificConstructorIndex(
@@ -665,7 +655,6 @@ class Reflect
 		This method currently does not take into account Java 5 covariant
 		return types... which I think will require that we find the most
 		derived return type of otherwise identical best matches.
-
 
 	 	@see #findMostSpecificSignature(Class[], Class[][])
 		@param methods the set of candidate method which differ only in the
@@ -687,6 +676,9 @@ class Reflect
         Implement JLS 15.11.2
 		Return the index of the most specific arguments match or -1 if no
 		match is found.
+		This method exists to factor out this common functionality from the
+		search for methods and constructors (which unfortunately don't share
+		a common interface for signature info).
 	 	@return the index of the most specific candidate
 	*/
 	static int findMostSpecificSignature(
@@ -894,7 +886,8 @@ class Reflect
 		}
 	}
 
-	private static void logInvokeMethod( String msg, Method method, Object[] args )
+	private static void logInvokeMethod( 
+		String msg, Method method, Object[] args )
 	{
 		if ( Interpreter.DEBUG )
 		{
@@ -919,11 +912,27 @@ class Reflect
 				+ " from static context: "+ clas.getName() );
 	}
 
+	private static ReflectError cantFindConstructor(
+		Class clas, Class [] types )
+	{
+		if ( types.length == 0 )
+			return new ReflectError(
+				"Can't find default constructor for: "+clas);
+		else
+			return new ReflectError(
+				"Can't find constructor: "
+					+ StringUtil.methodString( clas.getName(), types )
+					+" in class: "+ clas.getName() );
+	}
+
 	private static boolean isPublic( Class c ) {
 		return Modifier.isPublic( c.getModifiers() );
 	}
 	private static boolean isPublic( Method m ) {
 		return Modifier.isPublic( m.getModifiers() );
+	}
+	private static boolean isPublic( Constructor c ) {
+		return Modifier.isPublic( c.getModifiers() );
 	}
 	private static boolean isStatic( Method m ) {
 		return Modifier.isStatic( m.getModifiers() );
