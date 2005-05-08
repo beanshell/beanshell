@@ -8,13 +8,14 @@ supports a number of pre-defined system variables, "magic" values, and methods.
 <em>Special Values</em>
 <p/>
 <ul>
-<li><strong>$_</strong> - The value of the last expression evaluated.  The
-strange construct for this is drawn from Perl, but the idea exists in many
-scripting languages.  It is useful for getting back 
-the last result when you are working interactively.  
+<li><strong>$_</strong> - In interactive mode only, the value of the last
+expression evaluated.  The strange construct for this is drawn from Perl,
+ but the idea exists in many scripting languages.  It is useful for getting
+ back  the last result when you are working on the command line.
 </li>
 
-<li><strong>$_e</strong> - The last uncaught exception object thrown.  
+<li><strong>$_e</strong> - In interactive mode only, the last uncaught
+exception object thrown.  
 This is useful in interactive use for retrieving the last exception to inspect
 it for details.
 </li>
