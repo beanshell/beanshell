@@ -119,7 +119,7 @@ public class Interpreter
 
 	/** 
 		Strict Java mode 
-		@see setStrictJava( boolean )
+		@see #setStrictJava( boolean )
 	*/
 	private boolean strictJava = false;
 
@@ -146,6 +146,9 @@ public class Interpreter
     protected boolean 
 		evalOnly, 		// Interpreter has no input stream, use eval() only
 		interactive;	// Interpreter has a user, print prompts, etc.
+
+	/** Control the verbose printing of results for the show() command. */
+	private boolean showResults;
 
 	/* --- End instance data --- */
 
@@ -466,12 +469,11 @@ public class Interpreter
 
                     if(ret instanceof ReturnControl)
                         ret = ((ReturnControl)ret).value;
-                    if(ret != Primitive.VOID)
+
+                    if( ret != Primitive.VOID )
                     {
                         setu("$_", ret);
-                        Object show = getu("bsh.show");
-                        if(show instanceof Boolean &&
-                            ((Boolean)show).booleanValue() == true)
+						if ( showResults )
                             println("<" + ret + ">");
                     }
                 }
@@ -649,6 +651,9 @@ public class Interpreter
                         retVal = ((ReturnControl)retVal).value;
 						break; // non-interactive, return control now
 					}
+
+					if ( showResults && retVal != Primitive.VOID )
+						println("<" + retVal + ">");
                 }
             } catch(ParseException e) {
 				/*
@@ -1138,6 +1143,7 @@ public class Interpreter
 			1) Parent and child share a BshClassManager
 			2) Children indicate the parent's source file information in error
 			reporting.
+	 		3) Children inherit the show() verbose printing of arguments
 		When created as part of a source() / eval() the child also shares
 		the parent's namespace.  But that is not necessary in general.
 	*/
@@ -1199,6 +1205,27 @@ public class Interpreter
 	*/
 	public void setExitOnEOF( boolean value ) {
 		exitOnEOF = value; // ug
+	}
+
+	/**
+		Turn on/off the verbose printing of results as for the show()
+		 command.
+	 	If this interpreter has a parent the call is delegated.
+	 	See the BeanShell show() command.
+	*/
+	public void setShowResults( boolean showResults ) {
+		if ( parent != null )
+			parent.setShowResults( showResults );
+		else
+			this.showResults = showResults;
+	}
+	/**
+	 Show on/off verbose printing status for the show() command.
+	 See the BeanShell show() command.
+	 If this interpreter has a parent the call is delegated.
+	 */
+	public boolean getShowResults()  {
+		return parent != null ? parent.getShowResults() : showResults;
 	}
 }
 

@@ -48,6 +48,7 @@ import java.util.Hashtable;
 */
 public final class Primitive implements ParserConstants, java.io.Serializable
 {
+	/*
 	static Hashtable primitiveToWrapper = new Hashtable();
 	static Hashtable wrapperToPrimitive = new Hashtable();
 	static {
@@ -67,6 +68,26 @@ public final class Primitive implements ParserConstants, java.io.Serializable
 		wrapperToPrimitive.put( Long.class, Long.TYPE );
 		wrapperToPrimitive.put( Float.class, Float.TYPE );
 		wrapperToPrimitive.put( Double.class, Double.TYPE );
+	}
+	*/
+	static Hashtable wrapperMap = new Hashtable();
+	static {
+		wrapperMap.put( Boolean.TYPE, Boolean.class );
+		wrapperMap.put( Byte.TYPE, Byte.class );
+		wrapperMap.put( Short.TYPE, Short.class );
+		wrapperMap.put( Character.TYPE, Character.class );
+		wrapperMap.put( Integer.TYPE, Integer.class );
+		wrapperMap.put( Long.TYPE, Long.class );
+		wrapperMap.put( Float.TYPE, Float.class );
+		wrapperMap.put( Double.TYPE, Double.class );
+		wrapperMap.put( Boolean.class, Boolean.TYPE );
+		wrapperMap.put( Byte.class, Byte.TYPE );
+		wrapperMap.put( Short.class, Short.TYPE );
+		wrapperMap.put( Character.class, Character.TYPE );
+		wrapperMap.put( Integer.class, Integer.TYPE );
+		wrapperMap.put( Long.class, Long.TYPE );
+		wrapperMap.put( Float.class, Float.TYPE );
+		wrapperMap.put( Double.class, Double.TYPE );
 	}
 
     /** The primitive value stored in its java.lang wrapper class */
@@ -119,7 +140,7 @@ public final class Primitive implements ParserConstants, java.io.Serializable
     public Primitive(double value) { this(new Double(value)); }
 
 	/**
-    	Return the primitive value stored in its java.lang wrapper class 
+    	Return the primitive value stored in its java.lang wrapper class
 	*/
     public Object getValue()
     {
@@ -165,7 +186,7 @@ public final class Primitive implements ParserConstants, java.io.Serializable
 		If both original args were Primitives return a Primitive result
 		else it was mixed (wrapper/primitive) return the wrapper type.
 		The exception is for boolean operations where we will return the 
-		primitive type eithe way.
+		primitive type either way.
 	*/
     public static Object binaryOperation(
 		Object obj1, Object obj2, int kind)
@@ -233,7 +254,6 @@ public final class Primitive implements ParserConstants, java.io.Serializable
 	}
 
     static Boolean booleanBinaryOperation(Boolean B1, Boolean B2, int kind)
-        throws UtilEvalError
     {
         boolean lhs = B1.booleanValue();
         boolean rhs = B2.booleanValue();
@@ -877,7 +897,7 @@ public final class Primitive implements ParserConstants, java.io.Serializable
 	*/
 	public static Class boxType( Class primitiveType )
 	{
-		Class c = (Class)primitiveToWrapper.get( primitiveType );
+		Class c = (Class)wrapperMap.get( primitiveType );
 		if ( c != null )
 			return c;
 		throw new InterpreterError( 
@@ -891,7 +911,7 @@ public final class Primitive implements ParserConstants, java.io.Serializable
 	*/
 	public static Class unboxType( Class wrapperType )
 	{
-		Class c = (Class)wrapperToPrimitive.get( wrapperType );
+		Class c = (Class)wrapperMap.get( wrapperType );
 		if ( c != null )
 			return c;
 		throw new InterpreterError( 
@@ -914,12 +934,19 @@ public final class Primitive implements ParserConstants, java.io.Serializable
 			false/*checkOnly*/, operation );
 	}
 
-	/**
-		@param toType is the java primitive TYPE type of the primitive to be
-		cast to.
+	/*
+		Cast or check a cast of a primitive type to another type.
+		Normally both types are primitive (e.g. numeric), but a null value
+		(no type) may be cast to any type.
+		<p/>
+
+		@param toType is the target type of the cast.  It is normally a
+		java primitive TYPE, but in the case of a null cast can be any object
+		type.
+
 		@param fromType is the java primitive TYPE type of the primitive to be
-		cast.  fromType should be null to indicate that the fromValue was null
-		or void.
+		cast or null, to indicate that the fromValue was null or void.
+
 		@param fromValue is, optionally, the value to be converted.  If
 		checkOnly is true fromValue must be null.  If checkOnly is false,
 		fromValue must be non-null (Primitive.NULL is of course valid).
@@ -953,7 +980,7 @@ public final class Primitive implements ParserConstants, java.io.Serializable
 				throw Types.castError( Reflect.normalizeClassName(toType), 
 					"void value", operation );
 
-		// unwrap, etc.
+		// unwrap Primitive fromValue to its wrapper value, etc.
 		Object value = null; 
 		if ( fromValue != null )
 			value = fromValue.getValue();
@@ -1015,7 +1042,7 @@ public final class Primitive implements ParserConstants, java.io.Serializable
 
 	public static boolean isWrapperType( Class type )
 	{
-		return wrapperToPrimitive.get( type ) != null;
+		return wrapperMap.get( type ) != null && !type.isPrimitive();
 	}
 
 	/**
@@ -1035,8 +1062,6 @@ public final class Primitive implements ParserConstants, java.io.Serializable
 			throw new InterpreterError("null value in castWrapper, guard");
 		if ( value instanceof Boolean && toType != Boolean.TYPE )
 			throw new InterpreterError("bad wrapper cast of boolean");
-
-		Class fromType = value.getClass();
 
 		// first promote char to Number type to avoid duplicating code
 		if ( value instanceof Character )

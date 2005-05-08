@@ -93,22 +93,9 @@ class BSHArrayInitializer extends SimpleNode
 			if ( currentInitializer instanceof Primitive )
 			{
 				Primitive primValue = (Primitive)currentInitializer;
-				/*
-				TODO:
-					to get cast and boxing working e.g.
-					e.g. Byte [] ia = { 1, 2 }
 
-					If the baseType is a wrapper type then we need to get the 
-					primitive TYPE class for the base type here in order for 
-					the cast to allow it... Then boxing will happen naturally in
-					the Array.set().
-					e.g. Integer [] ia = { 1, 2 }
-				*/
-				/*
-				if ( Primitive.isWrapperType( baseType ) )
-					baseType = Primitive.getPrimitiveTypeForType( baseType );
-				*/
-
+				// TODO: need to add isJavaCastable() test for strictJava
+				// (as opposed to isJavaAssignable())
 				// don't deal with object types here... unless above
 				if ( baseType.isPrimitive() )
 					try {

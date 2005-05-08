@@ -80,7 +80,7 @@ class BSHBinaryExpression extends SimpleNode
 					return new Primitive(false);
 
 			// General case - performe the instanceof based on assignability
-            boolean ret = Types.isJavaAssignable( rhs, lhs.getClass() );
+            boolean ret = Types.isJavaBaseAssignable( rhs, lhs.getClass() );
             return new Primitive(ret);
         }
 

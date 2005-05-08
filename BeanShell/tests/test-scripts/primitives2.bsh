@@ -32,4 +32,6 @@ v.add(1);
 v.add(2);
 v.add(3);
 
+Byte [] ia = { 1, 2 };
+
 complete();

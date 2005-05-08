@@ -695,9 +695,9 @@ class Reflect
 				or targetMatch is more specific than the best match, make it
 				the new best match.
             */
-			if ( Types.isSignatureAssignable(idealMatch, targetMatch ) &&
+			if ( isSignatureAssignable(idealMatch, targetMatch ) &&
 				((bestMatch == null) ||
-					Types.isSignatureAssignable( targetMatch, bestMatch )))
+					isSignatureAssignable( targetMatch, bestMatch )))
 			{
 				bestMatch = targetMatch;
 				bestMatchIndex = i;
@@ -708,6 +708,27 @@ class Reflect
 			return bestMatchIndex;
 		else
 			return -1;
+	}
+
+	/**
+	 Is the 'from' signature (argument types) assignable to the 'to'
+	 signature (candidate method types) using isJavaAssignable()?
+	 This method handles the special case of null values in 'to' types
+	 indicating a loose type and matching anything.
+	 */
+	/*
+	Should check for strict java here and use isJavaAssignable() instead
+	*/
+	static boolean isSignatureAssignable( Class[] from, Class[] to )
+	{
+		if ( from.length != to.length )
+			return false;
+
+		for(int i=0; i<from.length; i++)
+			if ( !Types.isBshAssignable( to[i], from[i] ) )
+				return false;
+
+		return true;
 	}
 
 	private static String accessorName( String getorset, String propName ) {
