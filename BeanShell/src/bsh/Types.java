@@ -49,6 +49,16 @@ class Types
 		declarations (e.g. byte b = 42;)
 	*/
 	static final int CAST=0, ASSIGNMENT=1;
+	
+	static final int 
+		JAVA_BASE_ASSIGNABLE = 1,
+		JAVA_BOX_TYPES_ASSIGABLE = 2,
+		JAVA_VARARGS_ASSIGNABLE = 3,
+		BSH_ASSIGNABLE = 4;
+
+	static final int
+		FIRST_ROUND_ASSIGNABLE = JAVA_BASE_ASSIGNABLE,
+		LAST_ROUND_ASSIGNABLE = BSH_ASSIGNABLE;
 
 	/**
 		Special value that indicates by identity that the result of a cast
@@ -84,30 +94,48 @@ class Types
     }
 
 	/**
-	 Determine the assignability of the types, returning a specificity
-	 indicator which can be used to rank cases where two or more different
-	 kinds of assignment conversions would be possible.
-	 This includes the cases of:
-	 1) normal Java assignment
-	 2) Java 5 boxing/unboxing assignment.
-
-	 Later this should probably include:
-	 3) BeanShell specific extensions.
-	 and should also obey strictJava() rules
-
-	 @return a positive integer indicating the ranking of assignability.
-	 Smaller numbers indiciate greater specificity. e.g. 1 beats 2.
-	 A return value of -1 indicates no assignability (not assignable).
+	 Is the 'from' signature (argument types) assignable to the 'to'
+	 signature (candidate method types)
+	 This method handles the special case of null values in 'to' types
+	 indicating a loose type and matching anything.
 	 */
-	static int getAssignability( Class lhsType, Class rhsType )
+	/* Should check for strict java here and limit to isJavaAssignable() */
+	static boolean isSignatureAssignable( Class[] from, Class[] to, int round )
 	{
-		if ( isJavaBaseAssignable( lhsType, rhsType ) ) return 1;
-		if ( isJavaBoxTypesAssignable( lhsType, rhsType ) ) return 2;
-		return -1;
+		if ( round != JAVA_VARARGS_ASSIGNABLE && from.length != to.length )
+			return false;
+
+		switch ( round )
+		{
+			case JAVA_BASE_ASSIGNABLE:
+				for( int i=0; i<from.length; i++ )
+					if ( !isJavaBaseAssignable( to[i], from[i] ) )
+						return false;
+				return true;
+			case JAVA_BOX_TYPES_ASSIGABLE:
+				for( int i=0; i<from.length; i++ )
+					if ( !isJavaBoxTypesAssignable( to[i], from[i] ) )
+						return false;
+				return true;
+			case JAVA_VARARGS_ASSIGNABLE:
+				return isSignatureVarargsAssignable( from, to );
+			case BSH_ASSIGNABLE:
+				for( int i=0; i<from.length; i++ )
+					if ( !isBshAssignable( to[i], from[i] ) )
+						return false;
+				return true;
+			default:
+				throw new InterpreterError("bad case");
+		}
 	}
 
+	private static boolean isSignatureVarargsAssignable(
+		Class[] from, Class[] to )
+	{
+		return false;
+	}
 
-    /**
+	/**
 		Test if a conversion of the rhsType type to the lhsType type is legal via
 	 standard Java assignment conversion rules (i.e. without a cast).
 	 The rules include Java 5 autoboxing/unboxing.
@@ -140,11 +168,22 @@ class Types
 	/**
 		Is the assignment legal via original Java (up to version 1.4)
 		assignment rules, not including auto-boxing/unboxing.
+	 @param rhsType may be null to indicate primitive null value
 	*/
 	static boolean isJavaBaseAssignable( Class lhsType, Class rhsType )
 	{
-		// null 'from' type corresponds to type of Primitive.NULL
-		// assign to any object type
+		/*
+			Assignment to loose type, defer to bsh extensions
+			Note: we could shortcut this here:
+			if ( lhsType == null ) return true;
+			rather than forcing another round.  It's not strictly a Java issue,
+			so does it belong here?
+		*/
+		if ( lhsType == null )
+			return false;
+
+		// null rhs type corresponds to type of Primitive.NULL
+		// assignable to any object type
 		if ( rhsType == null )
 			return !lhsType.isPrimitive();
 
@@ -195,10 +234,29 @@ class Types
 	static boolean isJavaBoxTypesAssignable(
 		Class lhsType, Class rhsType )
 	{
+		// Assignment to loose type... defer to bsh extensions
+		if ( lhsType == null )
+			return false;
+
+		// prim can be boxed and assigned to Object
+		if ( lhsType == Object.class )
+			return true;
+
+		// prim numeric type can be boxed and assigned to number
+		if ( lhsType == Number.class
+			&& rhsType != Character.TYPE
+			&& rhsType != Boolean.TYPE
+		)
+			return true;
+
+		// General case prim type to wrapper or vice versa.
 		// I don't know if this is faster than a flat list of 'if's like above.
 		// wrapperMap maps both prim to wrapper and wrapper to prim types,
 		// so this test is symmetric
-		return Primitive.wrapperMap.get( lhsType ) == rhsType;
+		if ( Primitive.wrapperMap.get( lhsType ) == rhsType )
+			return true;
+
+		return false;
 	}
 
 	/**

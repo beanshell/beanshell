@@ -32,6 +32,9 @@ v.add(1);
 v.add(2);
 v.add(3);
 
-Byte [] ia = { 1, 2 };
+// test boxing/unboxing in array initializer
+// this works in javac
+Byte [] bwa = { 1, 2 };
+byte [] ba = { new Byte(1), new Byte(2) };
 
 complete();
