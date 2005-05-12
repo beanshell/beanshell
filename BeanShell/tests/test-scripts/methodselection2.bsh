@@ -60,9 +60,12 @@ else
 	Can we see a concrete public method in a package-private abstract 
 	base class?  The method is *not* be overridden in the public concrete
 	class... 
+	This seems to be a Java core reflection deficiency... There appears to
+	be no wy to access such a method.
 */
 mpc=new mypackage.Concrete();
-mpc.visible(); // the method visible() can be reached
+if ( isEvalError("mpc.visible()") )
+	warning("Java Reflection bug: can't access package private abstract public method");
 
 complete();
 
