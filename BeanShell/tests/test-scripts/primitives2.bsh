@@ -33,8 +33,10 @@ v.add(2);
 v.add(3);
 
 // test boxing/unboxing in array initializer
-// this works in javac
+// this works in java 5
 Byte [] bwa = { 1, 2 };
-byte [] ba = { new Byte(1), new Byte(2) };
+byte [] ba1 = { new Byte((byte)1), new Byte((byte)2) };
+byte [] ba2 = { 1, 2 };
+byte [] ba2 = { 1L, 2L };
 
 complete();
