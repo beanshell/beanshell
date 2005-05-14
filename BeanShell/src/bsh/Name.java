@@ -605,7 +605,6 @@ class Name implements java.io.Serializable
 	*/
 	static NameSpace getClassNameSpace( NameSpace thisNameSpace ) 
 	{
-		NameSpace classNameSpace = null;
 		// is a class instance
 		//if ( thisNameSpace.classInstance != null )
 		if ( thisNameSpace.isClass )
@@ -816,7 +815,10 @@ class Name implements java.io.Serializable
 		// Superclass method invocation? (e.g. super.foo())
 		if ( prefix.equals("super") && Name.countParts(value) == 2 )
 		{
-			NameSpace classNameSpace = getClassNameSpace( namespace );
+			// Allow getThis() to work through block namespaces first
+			This ths = namespace.getThis( interpreter );
+			NameSpace thisNameSpace = ths.getNameSpace();
+			NameSpace classNameSpace = getClassNameSpace( thisNameSpace );
 			if ( classNameSpace != null )
 			{
 				Object instance = classNameSpace.getClassInstance();
