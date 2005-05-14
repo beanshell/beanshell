@@ -4,13 +4,85 @@
 
 bsh.help.load = "usage: load(filename)";
 
-Object load( String filename ) 
+setAccessibility(true);
+
+import bsh.BshClassManager;
+import java.io.*;
+import java.lang.reflect.Proxy;
+
+
+import bsh.Capabilities;
+
+if ( Capabilities.classExists("bsh.ClassGeneratorImpl") )
+{
+public class BshObjectInputStream extends ObjectInputStream
+{
+	BshClassManager bcm;
+
+	public BshObjectInputStream1( BshClassManager bcm, InputStream in)
+        throws IOException, StreamCorruptedException
+    {
+		super(in);
+		this.bcm = bcm;
+    }
+
+	// bug!!!! try block is supressing super behavior
+	// remove me after fixed
+	private superresolveClass( clas ) {
+		return super.resolveClass( clas );
+	}
+
+    protected Class resolveClass( ObjectStreamClass clas )
+        throws IOException, ClassNotFoundException
+    {
+//        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+//        return Class.forName( clas.getName(), false, loader );
+		System.out.println( clas.getName() );
+		Class c = null;
+		try {
+			// bug!!!! try block is supressing super behavior
+			// revert to super.resolveClass() after fixed
+			c = superresolveClass( clas );
+		} catch ( ClassNotFoundException e ) { }
+		if ( c != null )
+			return c;
+		c = bcm.classForName( clas.getName() );
+		if ( c != null )
+			return c;
+		throw new ClassNotFoundException( "bcm not found: "+clas.getName() );
+	}
+
+	protected Class resolveProxyClass( java.lang.String[] interfaces )
+        throws IOException, ClassNotFoundException
+    {
+		System.out.println( "resolveProxyClass" );
+		return super.resolveProxyClass( interfaces );
+
+//        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+//
+//        Class[] classes = new Class[interfaces.length];
+//
+//        for (int i = 0; i < interfaces.length; i++)
+//            classes[i] = Class.forName(interfaces[i], false, loader);
+//
+//        try {
+//            return Proxy.getProxyClass(loader, classes);
+//        } catch (IllegalArgumentException e) {
+//            throw new ClassNotFoundException("Proxy class not found", e);
+//        }
+    }
+}
+}
+
+Object load( String filename )
 {
 	this.file = pathToFile( filename );
 
 	Object obj;
 	FileInputStream in = new FileInputStream( file );
-	ObjectInputStream oin = new ObjectInputStream(in);
+	javap( BshObjectInputStream );
+	ObjectInputStream oin =
+		new BshObjectInputStream1( this.namespace.getClassManager(), in );
 	obj = oin.readObject();
 	oin.close();
 
