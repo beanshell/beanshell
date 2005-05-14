@@ -13,6 +13,9 @@ class Super2 extends Base
 
 	public String baseMethod2( int i ) {
 		assert( super.baseMethod2().equals("baseMethod2") );
+		try {
+			assert( super.baseMethod2().equals("baseMethod2") );
+		} catch ( Exception e ) { }
 		return "child2";
 	}
 
