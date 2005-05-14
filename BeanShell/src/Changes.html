@@ -12,6 +12,7 @@
 	classloader (Class.forName()) if it fails to find a class in the context
 	classloader.  (Previously, if the context classloader was available it
 	would try it and then give up.)
+	// TODO is this finished?
 
 	- Method selection code has been completely rewritten.  
 	This should correct a number of problems where inaccessible methods are
@@ -40,6 +41,12 @@
 	
 	The bsh.show variable is gone and has been replaced with a property
 	on the interpreter, which follows the parent interpreter relationship.
+
+	- Fixed bug in super.method() resolution inside nested blocks.
+
+	- Added workaround for load() command to use the BshClassManager for
+		deserializing classes.
+
 </pre>
 
 <h2>Changes in 2.0 beta 3</h2>
