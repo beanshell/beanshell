@@ -10,7 +10,6 @@ import bsh.BshClassManager;
 import java.io.*;
 import java.lang.reflect.Proxy;
 
-
 import bsh.Capabilities;
 
 if ( Capabilities.classExists("bsh.ClassGeneratorImpl") )
@@ -19,30 +18,21 @@ public class BshObjectInputStream extends ObjectInputStream
 {
 	BshClassManager bcm;
 
-	public BshObjectInputStream1( BshClassManager bcm, InputStream in)
+	public BshObjectInputStream( BshClassManager bcm, InputStream in)
         throws IOException, StreamCorruptedException
     {
 		super(in);
 		this.bcm = bcm;
     }
 
-	// bug!!!! try block is supressing super behavior
-	// remove me after fixed
-	private superresolveClass( clas ) {
-		return super.resolveClass( clas );
-	}
-
     protected Class resolveClass( ObjectStreamClass clas )
         throws IOException, ClassNotFoundException
     {
 //        ClassLoader loader = Thread.currentThread().getContextClassLoader();
 //        return Class.forName( clas.getName(), false, loader );
-		System.out.println( clas.getName() );
 		Class c = null;
 		try {
-			// bug!!!! try block is supressing super behavior
-			// revert to super.resolveClass() after fixed
-			c = superresolveClass( clas );
+			c = super.resolveClass( clas );
 		} catch ( ClassNotFoundException e ) { }
 		if ( c != null )
 			return c;
@@ -52,10 +42,10 @@ public class BshObjectInputStream extends ObjectInputStream
 		throw new ClassNotFoundException( "bcm not found: "+clas.getName() );
 	}
 
+/*
 	protected Class resolveProxyClass( java.lang.String[] interfaces )
         throws IOException, ClassNotFoundException
     {
-		System.out.println( "resolveProxyClass" );
 		return super.resolveProxyClass( interfaces );
 
 //        ClassLoader loader = Thread.currentThread().getContextClassLoader();
@@ -71,6 +61,7 @@ public class BshObjectInputStream extends ObjectInputStream
 //            throw new ClassNotFoundException("Proxy class not found", e);
 //        }
     }
+*/
 }
 }
 
@@ -81,8 +72,11 @@ Object load( String filename )
 	Object obj;
 	FileInputStream in = new FileInputStream( file );
 	javap( BshObjectInputStream );
-	ObjectInputStream oin =
-		new BshObjectInputStream1( this.namespace.getClassManager(), in );
+	ObjectInputStream oin;
+	if ( BshObjectInputStream != void )
+		oin = new BshObjectInputStream( this.namespace.getClassManager(), in );
+	else
+		oin = new ObjectInputStream( in );
 	obj = oin.readObject();
 	oin.close();
 
