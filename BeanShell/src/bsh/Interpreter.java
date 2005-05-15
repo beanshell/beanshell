@@ -1043,8 +1043,12 @@ public class Interpreter
 	}
 
 	/**
-		Set an external class loader to be used for all basic class loading
-		in BeanShell.  
+		Set an external class loader to be used as the base classloader
+		for BeanShell.  The base classloader is used for all classloading 
+		unless/until the addClasspath()/setClasspath()/reloadClasses()  
+		commands are called to modify the interpreter's classpath.  At that 
+		time the new paths /updated paths are added on top of the base 
+		classloader.
 		<p>
 
 		BeanShell will use this at the same point it would otherwise use the 
