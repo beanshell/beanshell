@@ -62,7 +62,8 @@ import bsh.UtilEvalError;
 	on the bsh classloader architecture.
 
 	Bsh has a multi-tiered class loading architecture.  No class loader is
-	used unless/until the classpath is modified or a class is reloaded.
+	created unless/until a class is generated, the classpath is modified, 
+	or a class is reloaded.
 
 	Note: we may need some synchronization in here
 
@@ -74,7 +75,22 @@ import bsh.UtilEvalError;
 	thought that a way around this would be to implement BeanShell's own 
 	garbage collector...  Then I came to my senses and said - screw it, 
 	class re-loading will require 1.2.
+
+	---------------------
+
+	Classloading precedence:
+
+	in-script evaluated class (scripted class)
+	in-script added / modified classpath
+
+	optionally, external classloader
+	optionally, thread context classloader
+
+	plain Class.forName()
+	source class (.java file in classpath)
+
 	</pre>
+
 */
 public class ClassManagerImpl extends BshClassManager
 {
@@ -132,21 +148,22 @@ public class ClassManagerImpl extends BshClassManager
 	*/
 	public Class classForName( String name )
 	{
-		// check cache
+		// check positive cache
 		Class c = (Class)absoluteClassCache.get(name);
 		if (c != null )
 			return c;
 
+		// check negative cache
 		if ( absoluteNonClasses.get(name)!=null ) {
 			if ( Interpreter.DEBUG )
 				Interpreter.debug("absoluteNonClass list hit: "+name);
 			return null;
 		}
 
-		// Try to load the class
 		if ( Interpreter.DEBUG )
 			Interpreter.debug("Trying to load class: "+name);
 
+		// Check explicitly mapped (reloaded) class...
 		ClassLoader overlayLoader = getLoaderForClass( name );
 		if ( overlayLoader != null )
 		{
@@ -163,71 +180,61 @@ public class ClassManagerImpl extends BshClassManager
 			// throw an error?
 		}
 
-		if ( c == null )
-		{
-			// insure that core classes are always loaded from the same loader
+		// insure that core classes are loaded from the same loader
+		if ( c == null ) {
 			if ( name.startsWith( BSH_PACKAGE ) )
 				try {
 					c = Interpreter.class.getClassLoader().loadClass( name );
 				} catch ( ClassNotFoundException e ) {}
-			// If there is a base loader use it
-			else if ( baseLoader != null )
+		}
+
+		// Check classpath extension / reloaded classes
+		if ( c == null ) {
+			if ( baseLoader != null )
 				try {
 					c = baseLoader.loadClass( name );
 				} catch ( ClassNotFoundException e ) {}
-			else
+		}
+
+		// Optionally try external classloader
+		if ( c == null ) {
+			if ( externalClassLoader != null )
 				try {
-					c = plainClassForName( name );
+					c = externalClassLoader.loadClass( name );
 				} catch ( ClassNotFoundException e ) {}
 		}
 
+		// Optionally try context classloader
+		// Note that this might be a security violation
+		// is catching the SecurityException sufficient for all environments?
+		// or do we need a way to turn this off completely?
+		if ( c ==  null )
+		{
+			try {
+				ClassLoader contextClassLoader = 
+					Thread.currentThread().getContextClassLoader();
+				if ( contextClassLoader != null )
+					c = Class.forName( name, true, contextClassLoader );
+			} catch ( ClassNotFoundException e ) { // fall through
+			} catch ( SecurityException e ) { } // fall through
+		}
+
+		// try plain class forName()
+		if ( c == null )
+			try {
+				c = plainClassForName( name );
+			} catch ( ClassNotFoundException e ) {}
+
+		// Try scripted class
 		if ( c == null )
 			c = loadSourceClass( name );
 
-		// cache results
-		/*
-			Note: plainClassForName already caches, so it will be redundant
-			in that case, however this process only happens once
-		*/
+		// Cache result (or null for not found)
+		// Note: plainClassForName already caches, so it will be redundant
+		// in that case, however this process only happens once
 		cacheClassInfo( name, c );
 
 		return c;
-	}
-
-	/**
-		This method delegates to the standard Java Class.forName().
-		It is here solely to provide for Java version specific / environment
-		specific features.
-	 	<p/>
-
-		Here we utilize the Thread getContextClassLoader() which
-		is required to get bsh to see user classpath when it's installed in a
-		web application or in the jre/lib/ext directory.
-	 	<p/>
-
-	 	The context classloader was added in JDK 1.2, so technically this is an
-	 	impl specific feature (which is why it's here).  However if/when we
-	 	move to a higher minimum supported version in the core this can move to
-	 	the base class.
-		@see BshClassManager#plainClassForName( String )
-	*/
-	// TODO: implement new classloading scheme:
-	// 1) user classloader
-	// and/or? still deciding...
-	// 2) context classloader
-	// 3) default classloader
-	// don't forget to cache, etc... (look at super)
-	public Class plainClassForName( String name )
-		throws ClassNotFoundException
-	{
-		// Requires JDK 1.2+
-		ClassLoader contextClassLoader = 
-			Thread.currentThread().getContextClassLoader();
-		if ( contextClassLoader != null )
-		try {
-			return Class.forName( name, true, contextClassLoader );
-		} catch ( ClassNotFoundException e ) { }
-		return super.plainClassForName( name );
 	}
 
 	/**

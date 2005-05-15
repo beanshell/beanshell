@@ -90,7 +90,7 @@ public class BshClassManager
 	/**
 		An external classloader supplied by the setClassLoader() command.
 	*/
-	private ClassLoader externalClassLoader;
+	protected ClassLoader externalClassLoader;
 
 	/**
 		Global cache for things we know are classes.
@@ -156,6 +156,9 @@ public class BshClassManager
 	/**
 		Load the specified class by name, taking into account added classpath
 		and reloaded classes, etc.
+		Note: Again, this is just a trivial implementation. 
+		See bsh.classpath.ClassManagerImpl for the fully functional class
+		management package.
 		@return the class or null
 	*/
 	public Class classForName( String name ) 
