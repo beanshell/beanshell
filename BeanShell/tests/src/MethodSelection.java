@@ -118,4 +118,8 @@ public class MethodSelection {
 		new MethodSelection().staticVsDynamic1( new Object() );
 
 	}
+
+	private String foo( Integer x ) { return "private"; }
+	public String foo( String x ) { return "public"; }
+
 }

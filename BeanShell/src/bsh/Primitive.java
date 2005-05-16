@@ -1060,8 +1060,13 @@ public final class Primitive implements ParserConstants, java.io.Serializable
 			throw new InterpreterError("invalid type in castWrapper: "+toType);
 		if ( value == null )
 			throw new InterpreterError("null value in castWrapper, guard");
-		if ( value instanceof Boolean && toType != Boolean.TYPE )
-			throw new InterpreterError("bad wrapper cast of boolean");
+		if ( value instanceof Boolean )
+		{
+			if ( toType != Boolean.TYPE )
+				throw new InterpreterError("bad wrapper cast of boolean");
+			else
+				return value;
+		}
 
 		// first promote char to Number type to avoid duplicating code
 		if ( value instanceof Character )
