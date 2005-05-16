@@ -116,6 +116,11 @@ assert(b.field3==3);
 assert(b.field4==4);
 */
 
+m=new MethodSelection();
+assert(m.foo("foo").equals("public"));
+assert(m.foo(2).equals("private"));
+assert(m.foo(null).equals("public"));
+
 setAccessibility(false);
 
 complete();
