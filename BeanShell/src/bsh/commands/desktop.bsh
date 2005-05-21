@@ -36,13 +36,15 @@ desktop()
 		new ImageIcon(getResource("/bsh/util/lib/script.gif"));
 	bsh.system.icons.eye=
 		new ImageIcon(getResource("/bsh/util/lib/eye.jpg"));		
-		
-	bsh.system.fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().
-		getAvailableFontFamilyNames();		
-		
+
+	// disallowed by applet security ?
+	//bsh.system.fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().
+		//getAvailableFontFamilyNames();
+
 	JPanel stage=new JPanel(new BorderLayout());
 	JPanel taskBar=new JPanel(new FlowLayout(FlowLayout.LEFT, 1, 1));
-	taskBar.setBorder(new MatteBorder(1,0,0,0, taskBar.background.darker()));
+	//taskBar.setBorder(new MatteBorder(1,0,0,0, taskBar.background.darker()));
+	taskBar.setBorder( new MatteBorder(1,0,0,0, taskBar.background) );
 	ButtonGroup taskBarButtonGroup = new ButtonGroup();
 	
 	// Ignore unhandled method invocations from listeners.
@@ -104,8 +106,7 @@ desktop()
 		frame.addInternalFrameListener(iframeListener);
 		JToggleButton button = new JToggleButton(frame.title, frame.frameIcon);
 		taskBarButtonGroup.add(button);
-		button.border=new CompoundBorder((Border)thinBorder(),
-			new EmptyBorder(2,2,2,3));
+		//button.border=new CompoundBorder((Border)thinBorder(), new EmptyBorder(2,2,2,3));
 		button.addActionListener(taskBarButtonListener);
 		taskBar.add(button);
 		taskBar.validate();

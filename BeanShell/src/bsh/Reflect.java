@@ -178,7 +178,7 @@ class Reflect
         }
     }
 
-    public static Object getStaticField(Class clas, String fieldName)
+    public static Object getStaticFieldValue(Class clas, String fieldName)
         throws UtilEvalError, ReflectError
     {
         return getFieldValue( clas, null, fieldName, true/*onlystatic*/);
@@ -186,7 +186,7 @@ class Reflect
 
 	/**
 	*/
-    public static Object getObjectField( Object object, String fieldName )
+    public static Object getObjectFieldValue( Object object, String fieldName )
         throws UtilEvalError, ReflectError
     {
 		if ( object instanceof This )
@@ -264,8 +264,6 @@ class Reflect
         }
     }
 
-	/**
-	*/
 	/*
 		Note: this method and resolveExpectedJavaField should be rewritten
 		to invert this logic so that no exceptions need to be caught
@@ -295,26 +293,24 @@ class Reflect
 	)
         throws UtilEvalError, ReflectError
     {
-		Field f;
+		Field field;
         try {
 			if ( Capabilities.haveAccessibility() )
-				f = findAccessibleField( clas, fieldName );
+				field = findAccessibleField( clas, fieldName );
 			else
-				// this one only finds public (and in interfaces, etc.)
-				f = clas.getField(fieldName);
+				// Class getField() finds only public (and in interfaces, etc.)
+				field = clas.getField(fieldName);
         }
-        catch( NoSuchFieldException e)
-        {
-			// try declaredField
+        catch( NoSuchFieldException e) {
             throw new ReflectError("No such field: " + fieldName );
         }
 
-		if ( staticOnly && !Modifier.isStatic( f.getModifiers() ) )
+		if ( staticOnly && !Modifier.isStatic( field.getModifiers() ) )
 			throw new UtilEvalError(
 				"Can't reach instance field: "+fieldName
 				+" from static context: "+clas.getName() );
 
-		return f;
+		return field;
     }
 
 	/**

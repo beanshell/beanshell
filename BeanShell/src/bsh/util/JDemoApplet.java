@@ -26,11 +26,27 @@ public class JDemoApplet extends JApplet
 {
 	public void init()
 	{
-		getContentPane().setLayout(new BorderLayout());
-		ConsoleInterface console = new JConsole();
-		getContentPane().add("Center", (Component)console);
-		Interpreter interpreter = new Interpreter( console );
-		new Thread(interpreter).start();
+		String type = getParameter("type");
+		if ( type != null && type.equals("desktop") )
+			// start the desktop
+			try {
+				new Interpreter().eval( "desktop()" );
+			} catch ( TargetError te ) {
+				te.printStackTrace();
+				System.out.println( te.getTarget() );
+				te.getTarget().printStackTrace();
+			} catch ( EvalError evalError ) {
+				System.out.println( evalError );
+				evalError.printStackTrace();
+			}
+		else
+		{
+			getContentPane().setLayout(new BorderLayout());
+			JConsole console = new JConsole();
+			getContentPane().add("Center", console);
+			Interpreter interpreter = new Interpreter( console );
+			new Thread(interpreter).start();
+		}
 	}
 }
 

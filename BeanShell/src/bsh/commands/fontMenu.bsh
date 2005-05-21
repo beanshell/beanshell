@@ -64,10 +64,13 @@ fontMenu(component) {
 	fontMenu.addSeparator();
 	
 	actionPerformed(ae) {
+		if ( bsh.system.fonts != void )
+		{
 		String family = (String)JOptionPane.showInputDialog(component,
 			"Select a font", "Fonts", JOptionPane.QUESTION_MESSAGE,
 				null, bsh.system.fonts, component.font.family);
 		setFont(component, family, -1, -1);
+		}
 	}
 	
 	fontMenu.add(new JMenuItem("More...")).addActionListener(this);

@@ -160,7 +160,7 @@ class BSHPrimarySuffix extends SimpleNode
 				if ( toLHS )
 					return Reflect.getLHSObjectField(obj, field);
 				else
-					return Reflect.getObjectField( obj, field );
+					return Reflect.getObjectFieldValue( obj, field );
 
 			// Method invocation
 			// (LHS or non LHS evaluation can both encounter method calls)

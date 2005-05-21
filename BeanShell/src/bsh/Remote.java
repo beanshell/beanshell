@@ -149,11 +149,15 @@ public class Remote
 		StringBuffer sb = new StringBuffer();
 		sb.append( "bsh.client=Remote" );
 		sb.append( "&bsh.script=" );
+		sb.append( URLEncoder.encode( text ) );
+		/*
+		// This requires Java 1.3
 		try {
 			sb.append( URLEncoder.encode( text, "8859_1" ) );
 		} catch ( UnsupportedEncodingException e ) {
 			e.printStackTrace();
 		}
+		*/
 		String formData = sb.toString(  );
 
 		try {
