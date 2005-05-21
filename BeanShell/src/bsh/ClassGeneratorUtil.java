@@ -1038,7 +1038,7 @@ public class ClassGeneratorUtil implements Constants
 	static This getClassStaticThis( Class clas, String className )
 	{
 		try {
-			return (This)Reflect.getStaticField( 
+			return (This)Reflect.getStaticFieldValue(
 				clas, BSHSTATIC + className );
 		} catch ( Exception e ) {
 			throw new InterpreterError("Unable to get class static space: "+e);
@@ -1053,7 +1053,7 @@ public class ClassGeneratorUtil implements Constants
 	static This getClassInstanceThis( Object instance, String className )
 	{
 		try {
-			Object o = Reflect.getObjectField( instance, BSHTHIS+className );
+			Object o = Reflect.getObjectFieldValue( instance, BSHTHIS+className );
 			return (This)Primitive.unwrap(o); // unwrap Primitive.Null to null
 		} catch ( Exception e ) {
 			throw new InterpreterError(

@@ -59,10 +59,10 @@ public class ClassGeneratorImpl extends ClassGenerator
 	{
 		// Scripting classes currently requires accessibility
 		// This can be eliminated with a bit more work.
-		Capabilities.setAccessibility( true );	
-		if ( !Capabilities.haveAccessibility() )
-			throw new InterpreterError(
-				"Defining classes currently requires reflect Accessibility.");
+		//Capabilities.setAccessibility( true );
+		//if ( !Capabilities.haveAccessibility() )
+			//throw new InterpreterError(
+				//"Defining classes currently requires reflect Accessibility.");
 
 		NameSpace enclosingNameSpace = callstack.top();
 		String packageName = enclosingNameSpace.getPackage();
@@ -154,7 +154,6 @@ public class ClassGeneratorImpl extends ClassGenerator
 		BSHBlock body, CallStack callstack, Interpreter interpreter, 
 		String defaultPackage 
 	) 
-		throws EvalError
 	{
 		List vars = new ArrayList();
 		for( int child=0; child<body.jjtGetNumChildren(); child++ )
