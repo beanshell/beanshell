@@ -26,6 +26,10 @@ public class JDemoApplet extends JApplet
 {
 	public void init()
 	{
+		String debug = getParameter("debug");
+		if ( debug != null && debug.equals("true") )
+			Interpreter.DEBUG=true;
+
 		String type = getParameter("type");
 		if ( type != null && type.equals("desktop") )
 			// start the desktop

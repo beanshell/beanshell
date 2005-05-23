@@ -30,7 +30,8 @@ makeWorkspace( String name )
 	// provide name completion for console, name source is global namespace
 	// move this into JConsole?
 
-/*
+	// Access to read classpath is protected 
+	try {
 	this.nct = new NameCompletionTable();
 	nct.add( interpreter.getNameSpace() );
 	try {
@@ -44,7 +45,7 @@ makeWorkspace( String name )
 	}
 	console.setNameCompletion( nct );
 	// end setup name completion
-*/
+	} catch ( SecurityException e ) { }
 
 	// for convenience and backwards compatability
 	interpreter.set( "bsh.desktop",  bsh.system.desktop );

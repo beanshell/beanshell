@@ -71,14 +71,32 @@ public class Capabilities
 	*/
 	public static boolean haveAccessibility() 
 	{
-		// classExists caches the tests for us
-		return ( accessibility 
-			&& classExists( "java.lang.reflect.AccessibleObject" )
-			&& classExists("bsh.reflect.ReflectManagerImpl") 
-		);
+		return accessibility;
 	}
 
-	public static void setAccessibility( boolean b ) { accessibility = b; }
+	public static void setAccessibility( boolean b ) 
+		throws Unavailable
+	{ 
+		if ( b == false )
+		{
+			accessibility = false;
+			return;
+		}
+
+		if ( !classExists( "java.lang.reflect.AccessibleObject" )
+			|| !classExists("bsh.reflect.ReflectManagerImpl")  
+		)
+			throw new Unavailable( "Accessibility unavailable" );
+
+		// test basic access
+		try {
+			String.class.getDeclaredMethods();
+		} catch ( SecurityException e ) {
+			throw new Unavailable("Accessibility unavailable: "+e);
+		}
+
+		accessibility = true; 
+	}
 
 	private static Hashtable classes = new Hashtable();
 	/**

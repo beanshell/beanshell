@@ -59,10 +59,14 @@ public class ClassGeneratorImpl extends ClassGenerator
 	{
 		// Scripting classes currently requires accessibility
 		// This can be eliminated with a bit more work.
-		//Capabilities.setAccessibility( true );
-		//if ( !Capabilities.haveAccessibility() )
-			//throw new InterpreterError(
-				//"Defining classes currently requires reflect Accessibility.");
+		try {
+			Capabilities.setAccessibility( true );
+		} catch ( Capabilities.Unavailable e )
+		{
+			throw new EvalError( 
+				"Defining classes currently requires reflective Accessibility.",
+				block, callstack );
+		}
 
 		NameSpace enclosingNameSpace = callstack.top();
 		String packageName = enclosingNameSpace.getPackage();

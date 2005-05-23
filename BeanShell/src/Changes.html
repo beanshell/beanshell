@@ -6,8 +6,6 @@
 <pre>
 	- Source compiles under JDK 1.5
 
-	- Cleaned up a number of deprecated method usages.
-
 	- Better defined classloading precendence:
 
 		in-script evaluated class (scripted class)
@@ -19,13 +17,17 @@
 		plain Class.forName()
 		source class (.java file in classpath)
 
-
-	- Method selection code has been completely rewritten.  
+	- Method selection code has been rewritten to move towards Java 5 rules.
 	This should correct a number of problems where inaccessible methods are
-	selected and also correct the issue of security problems in applets and
-	other secure environments.  Method selection should no longer call
-	getDeclaredMethods() unless accessibility is explicitly activated.
-	The same is true for constructors and fields.
+	selected and also correct security problems in applets and other secure
+	environments.  Method selection should no longer call getDeclaredMethods()
+	unless accessibility is explicitly activated.  The same is true for
+	constructors and fields.
+
+	- Updated applet demos (http://beanshell.org/demo).  JConsole and desktop
+	now run in untrusted environment, with limitations.  Applets cannot
+	create classloaders, so BeanShell cannot script classes in the unsigned
+	environment.  These demos are very rough and need some work. 
 
 	- The show() command now works in both interactive and non-interactive
 	modes.  This means that for experimentation, instead of doing things like:
@@ -46,12 +48,15 @@
 	results.
 	
 	The bsh.show variable is gone and has been replaced with a property
-	on the interpreter, which follows the parent interpreter relationship.
+	on the interpreter.
 
 	- Fixed bug in super.method() resolution inside nested blocks.
 
 	- Added workaround for load() command to use the BshClassManager for
 		deserializing classes.
+	
+	- Fixed some cases where SecurityException could not be caught by scripts
+	  and handled.
 
 </pre>
 
