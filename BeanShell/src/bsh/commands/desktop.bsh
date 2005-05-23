@@ -37,14 +37,23 @@ desktop()
 	bsh.system.icons.eye=
 		new ImageIcon(getResource("/bsh/util/lib/eye.jpg"));		
 
-	// disallowed by applet security ?
-	//bsh.system.fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().
-		//getAvailableFontFamilyNames();
+	// Disallowed by applet security 
+	try {
+		bsh.system.fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().
+			getAvailableFontFamilyNames();
+	} catch ( SecurityException se ) { }
 
 	JPanel stage=new JPanel(new BorderLayout());
 	JPanel taskBar=new JPanel(new FlowLayout(FlowLayout.LEFT, 1, 1));
-	//taskBar.setBorder(new MatteBorder(1,0,0,0, taskBar.background.darker()));
-	taskBar.setBorder( new MatteBorder(1,0,0,0, taskBar.background) );
+
+	// For some insane reason, access to the JPanel background color object 
+	// is protected on the Mac
+	borderColor = taskBar.background;
+	try {
+		borderColor = taskBar.background.darker();
+	} catch ( SecurityException e ) { }
+	taskBar.setBorder( new MatteBorder(1,0,0,0, borderColor) );
+
 	ButtonGroup taskBarButtonGroup = new ButtonGroup();
 	
 	// Ignore unhandled method invocations from listeners.
@@ -106,7 +115,14 @@ desktop()
 		frame.addInternalFrameListener(iframeListener);
 		JToggleButton button = new JToggleButton(frame.title, frame.frameIcon);
 		taskBarButtonGroup.add(button);
-		//button.border=new CompoundBorder((Border)thinBorder(), new EmptyBorder(2,2,2,3));
+
+		// For some insane rason access to some of the color objects is 
+		// protected on the Mac
+		try {
+		button.border=
+			new CompoundBorder((Border)thinBorder(), new EmptyBorder(2,2,2,3));
+		} catch ( SecurityException e ) { }
+
 		button.addActionListener(taskBarButtonListener);
 		taskBar.add(button);
 		taskBar.validate();

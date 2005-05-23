@@ -171,6 +171,7 @@ public class Interpreter
 		boolean interactive, NameSpace namespace,
 		Interpreter parent, String sourceFileInfo )
     {
+		//System.out.println("New Interpreter: "+this +", sourcefile = "+sourceFileInfo );
 		parser = new Parser( in );
 		long t1=System.currentTimeMillis();
         this.in = in;
@@ -353,6 +354,7 @@ public class Interpreter
 				bshArgs = new String [0];
 
             Interpreter interpreter = new Interpreter();
+			//System.out.println("run i = "+interpreter);
 			interpreter.setu( "bsh.args", bshArgs );
 			try {
 				Object result = 
@@ -652,7 +654,8 @@ public class Interpreter
 						break; // non-interactive, return control now
 					}
 
-					if ( showResults && retVal != Primitive.VOID )
+					if ( localInterpreter.showResults 
+						&& retVal != Primitive.VOID )
 						println("<" + retVal + ">");
                 }
             } catch(ParseException e) {
@@ -1147,7 +1150,6 @@ public class Interpreter
 			1) Parent and child share a BshClassManager
 			2) Children indicate the parent's source file information in error
 			reporting.
-	 		3) Children inherit the show() verbose printing of arguments
 		When created as part of a source() / eval() the child also shares
 		the parent's namespace.  But that is not necessary in general.
 	*/
@@ -1218,10 +1220,7 @@ public class Interpreter
 	 	See the BeanShell show() command.
 	*/
 	public void setShowResults( boolean showResults ) {
-		if ( parent != null )
-			parent.setShowResults( showResults );
-		else
-			this.showResults = showResults;
+		this.showResults = showResults;
 	}
 	/**
 	 Show on/off verbose printing status for the show() command.
@@ -1229,7 +1228,7 @@ public class Interpreter
 	 If this interpreter has a parent the call is delegated.
 	 */
 	public boolean getShowResults()  {
-		return parent != null ? parent.getShowResults() : showResults;
+		return showResults;
 	}
 }
 

@@ -303,7 +303,11 @@ class Reflect
         }
         catch( NoSuchFieldException e) {
             throw new ReflectError("No such field: " + fieldName );
-        }
+		} catch ( SecurityException e ) {
+			throw new UtilTargetError( 
+			"Security Exception while searching fields of: "+clas,
+			e );
+		}
 
 		if ( staticOnly && !Modifier.isStatic( field.getModifiers() ) )
 			throw new UtilEvalError(
@@ -430,7 +434,14 @@ class Reflect
 		if ( method == null )
 		{
 			boolean publicOnly = !Capabilities.haveAccessibility();
-			method = findOverloadedMethod( clas, name, types, publicOnly );
+			// Searching for the method may, itself be a priviledged action
+			try {
+				method = findOverloadedMethod( clas, name, types, publicOnly );
+			} catch ( SecurityException e ) {
+				throw new UtilTargetError( 
+				"Security Exception while searching methods of: "+clas,
+				e );
+			}
 
 			checkFoundStaticMethod( method, staticOnly, clas );
 

@@ -166,8 +166,38 @@ class BSHPrimarySuffix extends SimpleNode
 			// (LHS or non LHS evaluation can both encounter method calls)
 			Object[] oa = ((BSHArguments)jjtGetChild(0)).getArguments(
 				callstack, interpreter);
-			return Reflect.invokeObjectMethod( 
-				obj, field, oa, interpreter, callstack, this );
+
+		// TODO:
+		// Note: this try/catch block is copied from BSHMethodInvocation
+		// we need to factor out this common functionality and make sure
+		// we handle all cases ... (e.g. property style access, etc.)
+		// maybe move this to Reflect ?
+			try {
+				return Reflect.invokeObjectMethod( 
+					obj, field, oa, interpreter, callstack, this );
+			} catch ( ReflectError e ) {
+				throw new EvalError(
+					"Error in method invocation: " + e.getMessage(), 
+					this, callstack );
+			} catch ( InvocationTargetException e ) 
+			{
+				String msg = "Method Invocation "+field;
+				Throwable te = e.getTargetException();
+
+				/*
+					Try to squeltch the native code stack trace if the exception
+					was caused by a reflective call back into the bsh interpreter
+					(e.g. eval() or source()
+				*/
+				boolean isNative = true;
+				if ( te instanceof EvalError ) 
+					if ( te instanceof TargetError )
+						isNative = ((TargetError)te).inNativeCode();
+					else
+						isNative = false;
+				
+				throw new TargetError( msg, te, this, callstack, isNative );
+			} 
 
 		} catch ( UtilEvalError e ) {
 			throw e.toEvalError( this, callstack );
