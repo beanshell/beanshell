@@ -51,9 +51,6 @@ options {
 	DEBUG_LOOKAHEAD=true;
 	*/
 
-	// Not sure exactly what this does
-	ERROR_REPORTING=false;
-
 	// This breaks something for interactive use on the command line,
 	// but may be useful in non-interactive use.
 	//CACHE_TOKENS=true;
