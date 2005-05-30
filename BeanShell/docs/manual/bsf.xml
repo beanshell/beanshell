@@ -53,7 +53,7 @@ simply specify language="beanshell" in your script tags.
 To use BeanShell within Ant you must do two things:
 <ol>
 <li>Add the
-<a href="http://oss.software.ibm.com/developerworks/projects/bsf">
+<a href="http://jakarta.apache.org/bsf/">
 BSF bsf.jar file</a>
 to ANT_HOME/lib or the classpath.</li>
 <li>Add the 
