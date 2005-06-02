@@ -149,7 +149,9 @@ public class ClassGeneratorUtil implements Constants
 		List methodsl = new ArrayList();
 		String classBaseName = getBaseName( className ); // for inner classes
 		for( int i=0; i< bshmethods.length; i++ )
-			if ( bshmethods[i].getName().equals( classBaseName ) )
+			if ( bshmethods[i].getName().equals( classBaseName ) 
+				&& bshmethods[i].getReturnType() == Void.TYPE
+			)
 				consl.add( bshmethods[i] );
 			else
 				methodsl.add( bshmethods[i] );
@@ -1010,6 +1012,10 @@ public class ClassGeneratorUtil implements Constants
 			// Find the constructor (now in the instance namespace)
 			BshMethod constructor = instanceNameSpace.getMethod( 
 				constructorName, sig, true/*declaredOnly*/ );
+
+			// differentiate a constructor from a badly named method
+			if ( constructor.getReturnType() != Void.TYPE )
+				constructor = null;
 
 			// if args, we must have constructor
 			if ( args.length > 0 && constructor == null )
