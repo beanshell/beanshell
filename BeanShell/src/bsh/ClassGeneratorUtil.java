@@ -184,7 +184,7 @@ public class ClassGeneratorUtil implements Constants
 			interfaceNames[i]=Type.getInternalName( interfaces[i] );
 
 		String sourceFile = "BeanShell Generated via ASM (www.objectweb.org)";
-		ClassWriter cw = new ClassWriter(false);
+		ClassWriter cw = new ClassWriter(true);
 		cw.visit( classMods, fqClassName, superClassName, 
 			interfaceNames, sourceFile );
 
@@ -378,8 +378,8 @@ public class ClassGeneratorUtil implements Constants
 		// Generate code to return the value
 		generateReturnCode( returnType, cv );
 
-		// Need to calculate this... just fudging here for now.
-		cv.visitMaxs( 20, 20 );
+		// values here are ignored, computed automatically by ClassWriter
+		cv.visitMaxs( 0, 0 );
 	}
 
 	/**
@@ -425,8 +425,8 @@ public class ClassGeneratorUtil implements Constants
 
 		cv.visitInsn( RETURN );
 
-		// Need to calculate this... just fudging here for now.
-		cv.visitMaxs( 20, 20 );
+		// values here are ignored, computed automatically by ClassWriter
+		cv.visitMaxs( 0, 0 );
 	}
 
 	/**
