@@ -39,6 +39,7 @@ import bsh.org.objectweb.asm.Type;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.*;
 
 /**
 	ClassGeneratorUtil utilizes the ASM (www.objectweb.org) bytecode generator 
@@ -928,10 +929,12 @@ public class ClassGeneratorUtil implements Constants
 	
 	/**
 		Initialize an instance of the class.
-		This method is called from the generated class constructor to evaluate
-		the instance initializer and scripted constructor in the instance
-		namespace.
+		This method is called from the **generated class** constructor to 
+		evaluate the instance initializer and scripted constructor in the 
+		instance namespace.
 	*/
+	// TODO: Refactor this method... to long and ungainly.
+	// Why both instance and className here?  There must have been a reason.
 	public static void initInstance( 
 		Object instance, String className, Object [] args )
 	{
@@ -944,7 +947,7 @@ public class ClassGeneratorUtil implements Constants
 		// (the case if using a this() alternate constuctor)
 		This instanceThis = getClassInstanceThis( instance, className );
 
-// XXX clean up this conditional
+// TODO: clean up this conditional
 		if ( instanceThis == null )
 		{
 			// Create the instance 'This' namespace, set it on the object
@@ -953,6 +956,21 @@ public class ClassGeneratorUtil implements Constants
 			// Get the static This reference from the proto-instance
 			This classStaticThis = 
 				getClassStaticThis( instance.getClass(), className );
+
+			// If the class is "cold" (detached with no live interpreter static
+			// This reference) try to start a new interpreter and source the
+			// script backing it.
+			if ( classStaticThis == null )
+			{
+				startInterpreterForClass( instance.getClass() );
+				// The class should now be initialized with its ref, try again
+				classStaticThis = 
+					getClassStaticThis( instance.getClass(), className );
+			}
+
+			if ( classStaticThis == null )
+				throw new InterpreterError("Failed to init class: "+className);
+
 			interpreter = classStaticThis.declaringInterpreter;
 
 			// Get the instance initializer block from the static This 
@@ -1139,5 +1157,38 @@ public class ClassGeneratorUtil implements Constants
 		public double getDouble() { return ((Double)next()).doubleValue(); }
 		public float getFloat() { return ((Float)next()).floatValue(); }
 		public Object getObject() { return next(); }
+	}
+
+	/**
+		Attempt to load a script named for the class: e.g. Foo.class Foo.bsh.
+		The script is expected to (at minimum) initialize the class body.
+		That is, it should contain the scripted class definition.
+
+		This method relies on the fact that the ClassGenerator generateClass()
+		method will detect that the generated class already exists and 
+		initialize it rather than recreating it.
+	*/
+	public static void startInterpreterForClass( Class clas ) 
+	{
+System.out.println("starting interpreter for class: "+clas);
+		String baseName = Name.suffix( clas.getName(), 1 );
+		String resName = baseName+".bsh";
+		Reader in = new InputStreamReader( 
+			clas.getResourceAsStream( resName ) );
+
+		if ( in == null )
+			throw new InterpreterError(
+				"Script for BeanShell class file not found: " +resName );
+
+		Interpreter bsh = new Interpreter();
+		try {
+			bsh.eval( in, bsh.getNameSpace(), resName );
+		} catch ( TargetError e ) {
+			System.out.println("Script threw exception: "+e);
+			if ( e.inNativeCode() )
+				e.printStackTrace( System.err );
+		} catch ( EvalError e ) {
+			System.out.println("Evaluation Error: "+e);
+		}
 	}
 }

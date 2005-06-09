@@ -172,14 +172,17 @@ class BSHAllocationExpression extends SimpleNode
 		CallStack callstack, Interpreter interpreter ) 
 		throws EvalError
 	{
+		throw new InterpreterError("constructWithClassBody unimplemented");
+
+/*
 		String name = callstack.top().getName() + "$" + (++innerClassCount);
 		Modifiers modifiers = new Modifiers();
 		modifiers.addModifier( Modifiers.CLASS, "public" );
 		Class clas;
 		try {
 			clas = ClassGenerator.getClassGenerator() .generateClass( 
-				name, modifiers, null/*interfaces*/, type/*superClass*/, 
-				block, false/*isInterface*/, callstack, interpreter );
+				name, modifiers, null/interfaces/, type/superClass/, 
+				innerClassBlock, false/isInterface/, callstack, interpreter );
 		} catch ( UtilEvalError e ) {
 			throw e.toEvalError( this, callstack );
 		}
@@ -189,10 +192,13 @@ class BSHAllocationExpression extends SimpleNode
 			if ( e instanceof InvocationTargetException )
 				e = (Exception)((InvocationTargetException)e)
 					.getTargetException();
+			if ( Interpreter.DEBUG )
+				e.printStackTrace();
 			throw new EvalError(
 				"Error constructing inner class instance: "+e, this, callstack
 			);
 		}
+*/
 	}
 
 	private Object constructWithInterfaceBody( 

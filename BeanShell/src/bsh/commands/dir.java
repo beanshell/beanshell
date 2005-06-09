@@ -39,7 +39,9 @@ public class dir
 		Interpreter env, CallStack callstack, String dir ) 
 	{
 		File file;
+		String path;
 		try {
+			path = env.pathToFile( dir ).getAbsolutePath();
 			file =  env.pathToFile( dir );
 		} catch (IOException e ) {
 			env.println("error reading path: "+e);
@@ -58,7 +60,7 @@ public class dir
 		files = StringUtil.bubbleSort(files);
 
 		for( int i=0; i< files.length; i++ ) {
-			File f = new File( dir + File.separator + files[i] );
+			File f = new File( path + File.separator + files[i] );
 			StringBuffer sb = new StringBuffer();
 			sb.append( f.canRead() ? "r": "-" );
 			sb.append( f.canWrite() ? "w": "-" );
