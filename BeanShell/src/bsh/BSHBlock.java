@@ -78,7 +78,7 @@ class BSHBlock extends SimpleNode
 			}
 		else
 				ret = evalBlock( 
-					callstack, interpreter, overrideNamespace, null/*filter*/ );
+					callstack, interpreter, overrideNamespace, null/*filter*/);
 
 		return ret;
 	}

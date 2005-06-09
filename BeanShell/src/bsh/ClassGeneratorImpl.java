@@ -6,6 +6,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
+	This class is an implementation of the ClassGenerator interface which
+	contains generally bsh related code.  The actual bytecode generation is
+	done by ClassGeneratorUtil.
 	
 	@author Pat Niemeyer (pat@pat.net)
 */
@@ -74,6 +77,7 @@ public class ClassGeneratorImpl extends ClassGenerator
 			( enclosingNameSpace.getName()+"$"+name ) : name;
 		String fqClassName = 
 			packageName == null ? className : packageName + "." + className;
+		String bshStaticFieldName = ClassGeneratorUtil.BSHSTATIC+className;
 
 		BshClassManager bcm = interpreter.getClassManager();
 		// Race condition here...
@@ -98,23 +102,40 @@ public class ClassGeneratorImpl extends ClassGenerator
 		DelayedEvalBshMethod [] methods =
 			getDeclaredMethods( block, callstack, interpreter, packageName );
 
-		ClassGeneratorUtil classGenerator = new ClassGeneratorUtil( 
-			modifiers, className, packageName, superClass, interfaces, 
-			variables, methods, classStaticNameSpace, isInterface );
-		byte [] code = classGenerator.generateClass();
-
-		// if debug, write out the class file to debugClasses directory
-		String dir = System.getProperty("debugClasses");
-		if ( dir != null )
+		// Check for existing class (saved class file)
+		Class genClass = bcm.classForName( fqClassName );
+		boolean isGenClass = false;
+		if ( genClass != null )
 		try {
-			FileOutputStream out= 
-				new FileOutputStream( dir+"/"+className+".class" );
-			out.write(code);
-			out.close();
-		} catch ( IOException e ) { }
+			isGenClass = Reflect.resolveJavaField(
+				genClass, bshStaticFieldName, true/*staticOnly*/ ) != null;
+		} catch ( Exception e ) { /*ignore*/ } // TODO: make more specific 
 
-		// Define the new class in the classloader
-		Class genClass = bcm.defineClass( fqClassName, code );
+		// If the class doesn't exist or isn't a bsh generated class
+		// then generate it
+		if ( genClass == null || !isGenClass )
+		{
+	System.out.println("generating class: "+fqClassName );
+			ClassGeneratorUtil classGenerator = new ClassGeneratorUtil( 
+				modifiers, className, packageName, superClass, interfaces, 
+				variables, methods, classStaticNameSpace, isInterface );
+			byte [] code = classGenerator.generateClass();
+
+			// if debug, write out the class file to debugClasses directory
+			String dir = System.getProperty("debugClasses");
+			if ( dir != null )
+			try {
+				FileOutputStream out= 
+					new FileOutputStream( dir+"/"+className+".class" );
+				out.write(code);
+				out.close();
+			} catch ( IOException e ) { }
+
+			// Define the new class in the classloader
+			genClass = bcm.defineClass( fqClassName, code );
+		}
+	else
+	System.out.println("gen class exists: "+fqClassName );
 
 		// import the unq name into parent
 		enclosingNameSpace.importClass( fqClassName.replace('$','.') );
@@ -140,7 +161,6 @@ public class ClassGeneratorImpl extends ClassGenerator
 		if ( !genClass.isInterface() )
 		{
 		// Set the static bsh This callback 
-		String bshStaticFieldName = ClassGeneratorUtil.BSHSTATIC+className;
 		try {
 			LHS lhs = Reflect.getLHSStaticField( genClass, bshStaticFieldName );
 			lhs.assign( 

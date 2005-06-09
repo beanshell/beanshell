@@ -16,7 +16,7 @@
 
 <property name="file" value=""/>
 
-	<property name="version" value="2.0b4"/>
+	<property name="version" value="2.0b5"/>
 	<property name="deprecation" value="on"/>
 
 	<!-- choose an alternate compiler -->
@@ -153,11 +153,12 @@
 	<target name="compile" depends="jjtree,javacc,builddir">
 		<!-- exclude the ${excludes} as well as anything under a "bak" dir -->
 		<!--compiler="${build-compiler}"-->
+		<echo>Debug ON!</echo>
 		<javac srcdir="${src-dir}:${test-src-dir}:${bsf-src-dir}:${classgen-src-dir}"
 			destdir="${build-dir}"
 			deprecation="${deprecation}"
 			optimize="on"
-			debug="off"
+			debug="on"
 			includes="**/*.java"
 			excludes="${excludes},**/bak/**"
 		>
