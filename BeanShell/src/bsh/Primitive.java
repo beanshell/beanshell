@@ -125,7 +125,7 @@ public final class Primitive implements ParserConstants, java.io.Serializable
 			&& value != Special.VOID_TYPE &&
 			!isWrapperType( value.getClass() ) 
 		)
-            throw new InterpreterError( "Not a wrapper type: "+value);
+            throw new InterpreterError( "Not a wrapper type: "+value.getClass());
 
         this.value = value;
     }
@@ -865,7 +865,7 @@ public final class Primitive implements ParserConstants, java.io.Serializable
         if ( value == null )
             return Primitive.NULL;
 
-		if ( type.isPrimitive() )
+		if ( type.isPrimitive() && isWrapperType( value.getClass() ) )
 			return new Primitive( value );
 
 		return value;

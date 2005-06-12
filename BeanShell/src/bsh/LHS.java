@@ -74,19 +74,6 @@ class LHS implements ParserConstants, java.io.Serializable
 	Object object;
 	int index;
 
-/**
-		Variable LHS constructor.
-*/
-	LHS( NameSpace nameSpace, String varName )
-	{
-throw new Error("namespace lhs");
-/*
-		type = VARIABLE;
-		this.varName = varName;
-		this.nameSpace = nameSpace;
-*/
-	}
-
 	/**
 		@param localVar if true the variable is set directly in the This
 		reference's local scope.  If false recursion to look for the variable
@@ -165,13 +152,20 @@ throw new Error("namespace lhs");
 			}
 
 		if ( type == PROPERTY )
-			try {
-				return Reflect.getObjectProperty(object, propName);
-			}
-			catch(ReflectError e) {
-				Interpreter.debug(e.getMessage());
-				throw new UtilEvalError("No such property: " + propName);
-			}
+		{
+			// return the raw type here... we don't know what it's supposed
+			// to be...
+			CollectionManager cm = CollectionManager.getCollectionManager();
+			if ( cm.isMap( object ) )
+				return cm.getFromMap( object/*map*/, propName );
+			else
+				try {
+					return Reflect.getObjectProperty(object, propName);
+				} catch(ReflectError e) {
+					Interpreter.debug(e.getMessage());
+					throw new UtilEvalError("No such property: " + propName);
+				}
+		}
 
 		if ( type == INDEX )
 			try {
@@ -201,12 +195,9 @@ throw new Error("namespace lhs");
 		if ( type == FIELD )
 		{
 			try {
-				Object fieldVal = val instanceof Primitive ?  
-					((Primitive)val).getValue() : val;
-
 				// This should probably be in Reflect.java
 				ReflectManager.RMSetAccessible( field );
-				field.set( object, fieldVal );
+				field.set( object, Primitive.unwrap(val));
 				return val;
 			}
 			catch( NullPointerException e) {   
@@ -230,13 +221,9 @@ throw new Error("namespace lhs");
 		else 
 		if ( type == PROPERTY )
 		{
-			/*
-			if ( object instanceof Hashtable )
-				((Hashtable)object).put(propName, val);
-			*/
 			CollectionManager cm = CollectionManager.getCollectionManager();
 			if ( cm.isMap( object ) )
-				cm.putInMap( object/*map*/, propName, val );
+				cm.putInMap( object/*map*/, propName, Primitive.unwrap(val) );
 			else
 				try {
 					Reflect.setObjectProperty(object, propName, val);

@@ -36,4 +36,10 @@ assert( isEvalError("Fields.nonExistent=42") );
 Fields.propTest = 42;
 assert( Fields.propTest == 42 );
 
+map = new HashMap();
+map{"foo"}=5;
+assert(map{"foo"} == 5 );
+// items put into the map get unwrapped
+assert( map{"foo"}.getClass() == Integer.class );
+
 complete();

@@ -2,6 +2,28 @@
 <head><title>BeanShell - Change Log</title></head>
 <body bgcolor=#ffffff>
 
+<h2>Changes in 2.0 beta 5</h2>
+<pre>
+	- Added JSR223 javax.script adapter engine implementation in a new
+	bsh.engine package.  This implementation of the spec supports pluggable 
+	ScriptContext.  Please see the TestBshScriptEngine.java file (and the spec)
+	for a starting point on how to use this.
+
+	BeanShell maintains all of its info on variables (type, modifiers,
+	etc.) and all of its internal state for a given ScriptContext via a
+	BeanShell NameSpace embedded in the context.  This  allows us to be
+	completely pluggable with respect to the spec, but still keep the full 
+	interpreter state between evaluations.
+
+	- Added a new class, ExternalNameSpace to the distribution.  This is a
+	BeanShell namespace that knows how to externalize its variables to a
+	standard Map.  
+	This class is, of necessity, dependant on JDK1.2+, however there is no
+	dependency in the core on this class, so you can exclude it in the usual
+	way.
+
+</pre>
+
 <h2>Changes in 2.0 beta 4</h2>
 <pre>
 	- Source compiles under JDK 1.5

@@ -110,12 +110,13 @@ public class NameSpace
 		printing stack traces in exceptions.  
 	*/
 	boolean isMethod;
+
 	/**
 		Note that the namespace is a class body or class instance namespace.  
 		This is used for controlling static/object import precedence, etc.
 	*/
 	/*
-		Note: We will ll move this behavior out to a subclass of 
+		Note: We can move this class related behavior out to a subclass of 
 		NameSpace, but we'll start here.
 	*/
 	boolean isClass;
@@ -331,11 +332,32 @@ public class NameSpace
 			NameSpace varScope = this;
 
 			varScope.variables.put( 
-				name, new Variable( name, value, null/*modifiers*/ ) );
+				name, createVariable( name, value, null/*modifiers*/ ) );
 
 			// nameSpaceChanged() on new variable addition
 			nameSpaceChanged();
     	}
+	}
+
+	protected Variable createVariable(
+		String name, Object value, Modifiers mods )
+		throws UtilEvalError
+	{
+		return createVariable( name, null/*type*/, value, mods );
+	}
+
+	protected Variable createVariable(
+		String name, Class type, Object value, Modifiers mods )
+		throws UtilEvalError
+	{
+		return new Variable( name, type, value, mods );
+	}
+
+	protected Variable createVariable(
+		String name, Class type, LHS lhs )
+		throws UtilEvalError
+	{
+		return new Variable( name, type, lhs );
 	}
 
 	/**
@@ -480,7 +502,7 @@ public class NameSpace
 		over child interpreters and going to the parent for the declaring 
 		interpreter, so we'd be sure to get the top interpreter.
 	*/
-    This getThis( Interpreter declaringInterpreter ) 
+    public This getThis( Interpreter declaringInterpreter )
 	{
 		if ( thisReference == null )
 			thisReference = This.getThis( this, declaringInterpreter );
@@ -495,7 +517,7 @@ public class NameSpace
 		if ( parent != null && parent != JAVACODE )
 			return parent.getClassManager();
 
-System.out.println("experiment: creating class manager");
+//System.out.println("experiment: creating class manager");
 		classManager = BshClassManager.createClassManager( null/*interp*/ );
 		
 		//Interpreter.debug("No class manager namespace:" +this);
@@ -670,14 +692,8 @@ System.out.println("experiment: creating class manager");
 		// Setting a typed variable is always a local operation.
 		Variable existing = getVariableImpl( name, false/*recurse*/ );
 
-
 		// Null value is just a declaration
 		// Note: we might want to keep any existing value here instead of reset
-	/*
-	// Moved to Variable
-		if ( value == null )
-			value = Primitive.getDefaultValue( type );
-	*/
 
 		// does the variable already exist?
 		if ( existing != null ) 
@@ -705,7 +721,7 @@ System.out.println("experiment: creating class manager");
 		} 
 
 		// Add the new typed var
-		variables.put( name, new Variable( name, type, value, modifiers ) );
+		variables.put( name, createVariable( name, type, value, modifiers ) );
     }
 
 	/**
@@ -995,7 +1011,7 @@ System.out.println("experiment: creating class manager");
 			Field field = Reflect.resolveJavaField( 
 				clas, name, false/*onlyStatic*/ );
 			if ( field != null )
-				return new Variable( 
+				return createVariable(
 					name, field.getType(), new LHS( object, field ) );
 		}
 
@@ -1007,7 +1023,7 @@ System.out.println("experiment: creating class manager");
 			Field field = Reflect.resolveJavaField( 
 				clas, name, true/*onlyStatic*/ );
 			if ( field != null )
-				return new Variable( name, field.getType(), new LHS( field ) );
+				return createVariable( name, field.getType(), new LHS( field ) );
 		}
 
 		return null;

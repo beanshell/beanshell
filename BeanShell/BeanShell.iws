@@ -115,6 +115,8 @@
         <option name="LOG_MESSAGE" value="" />
       </breakpoint>
     </breakpoint_any>
+    <breakpoint_rules />
+    <ui_properties />
   </component>
   <component name="ErrorTreeViewConfiguration">
     <option name="IS_AUTOSCROLL_TO_SOURCE" value="false" />
@@ -135,61 +137,21 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="load.bsh" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/bsh/commands/load.bsh">
+      <file leaf-file-name="BshScriptEngine.java" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/engine/src/bsh/util/BshScriptEngine.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="25" column="22" selection-start="549" selection-end="549" vertical-scroll-proportion="0.33913043">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ClassGenerator.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/bsh/ClassGenerator.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="9" column="4" selection-start="180" selection-end="180" vertical-scroll-proportion="0.22028986">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ClassGeneratorImpl.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/bsh/ClassGeneratorImpl.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="103" column="25" selection-start="3453" selection-end="3453" vertical-scroll-proportion="0.6144928">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="classser.bsh" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/tests/test-scripts/classser.bsh">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="2" column="28" selection-start="56" selection-end="56" vertical-scroll-proportion="0.055072464">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="classsuper2.bsh" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/tests/test-scripts/classsuper2.bsh">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="7" column="0" selection-start="146" selection-end="146" vertical-scroll-proportion="0.19275363">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Beans.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="jar://C:/Program Files/Java/jdk1.5.0_01/src.zip!/java/beans/Beans.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="484" column="4" selection-start="16123" selection-end="16123" vertical-scroll-proportion="0.9437037">
+            <state line="0" column="12" selection-start="12" selection-end="12" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
     </leaf>
+  </component>
+  <component name="FindManager">
+    <FindUsagesManager>
+      <setting name="OPEN_NEW_TAB" value="false" />
+    </FindUsagesManager>
   </component>
   <component name="HierarchyBrowserManager">
     <option name="IS_AUTOSCROLL_TO_SOURCE" value="false" />
@@ -214,7 +176,7 @@
   </component>
   <component name="ModuleEditorState">
     <option name="LAST_EDITED_MODULE_NAME" value="BeanShell" />
-    <option name="LAST_EDITED_TAB_NAME" value="Paths" />
+    <option name="LAST_EDITED_TAB_NAME" value="Libraries (Classpath)" />
   </component>
   <component name="NamedScopeManager" />
   <component name="PackagesPane">
@@ -226,20 +188,6 @@
       <PATH_ELEMENT>
         <option name="myItemId" value="BeanShell" />
         <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
-      </PATH_ELEMENT>
-    </PATH>
-    <PATH>
-      <PATH_ELEMENT>
-        <option name="myItemId" value="BeanShell.ipr" />
-        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
-      </PATH_ELEMENT>
-      <PATH_ELEMENT>
-        <option name="myItemId" value="BeanShell" />
-        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
-      </PATH_ELEMENT>
-      <PATH_ELEMENT>
-        <option name="myItemId" value="bsh" />
-        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
       </PATH_ELEMENT>
     </PATH>
   </component>
@@ -309,7 +257,7 @@
         <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
       </PATH_ELEMENT>
       <PATH_ELEMENT>
-        <option name="myItemId" value="tests" />
+        <option name="myItemId" value="src" />
         <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
       </PATH_ELEMENT>
     </PATH>
@@ -330,6 +278,80 @@
         <option name="myItemId" value="src" />
         <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
       </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="bsh" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+    </PATH>
+    <PATH>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="BeanShell.ipr" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="BeanShell" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="BeanShell" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="engine" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+    </PATH>
+    <PATH>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="BeanShell.ipr" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="BeanShell" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="BeanShell" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="engine" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="src" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+    </PATH>
+    <PATH>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="BeanShell.ipr" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="BeanShell" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="BeanShell" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="engine" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="src" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="bsh" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="util" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
     </PATH>
   </component>
   <component name="ProjectReloadState">
@@ -337,11 +359,11 @@
   </component>
   <component name="ProjectView">
     <navigator currentView="ProjectPane" splitterProportion="0.5">
-      <flattenPackages PackagesPane="true" ProjectPane="true" />
+      <flattenPackages PackagesPane="true" ProjectPane="false" />
       <showMembers ProjectPane="false" />
       <showModules />
       <showLibraryContents />
-      <hideEmptyPackages PackagesPane="false" />
+      <hideEmptyPackages PackagesPane="false" ProjectPane="false" />
       <abbreviatePackageNames />
       <showStructure PackagesPane="false" ProjectPane="false" />
       <autoscrollToSource />
@@ -355,12 +377,15 @@
     <property name="GoToClass.includeLibraries" value="false" />
     <property name="MemberChooser.showClasses" value="true" />
     <property name="MemberChooser.sorted" value="false" />
+    <property name="RunManagerConfig.compileBeforeRunning" value="true" />
     <property name="GoToFile.includeJavaFiles" value="false" />
     <property name="GoToClass.toSaveIncludeLibraries" value="false" />
+    <property name="RunManagerConfig.showSettingsBeforeRunnig" value="true" />
   </component>
   <component name="ReadonlyStatusHandler">
     <option name="SHOW_DIALOG" value="true" />
   </component>
+  <component name="RecentsManager" />
   <component name="Regex">
     <option name="pos1" value="218" />
     <option name="pos2" value="218" />
@@ -374,12 +399,24 @@
   <component name="RestoreUpdateTree" />
   <component name="RunManager">
     <activeType name="Application" />
-    <configuration selected="false" default="true" type="Application" factoryName="Application">
-      <option name="MAIN_CLASS_NAME" />
-      <option name="VM_PARAMETERS" />
-      <option name="PROGRAM_PARAMETERS" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <tempConfiguration selected="true" default="false" name="TestBshScriptEngine" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="TestBshScriptEngine" />
+      <option name="VM_PARAMETERS" value="" />
+      <option name="PROGRAM_PARAMETERS" value="" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+      <module name="BeanShell" />
+      <RunnerSettings RunnerId="Run" />
+      <ConfigurationWrapper RunnerId="Run" />
+    </tempConfiguration>
+    <configuration selected="false" default="true" type="Applet" factoryName="Applet">
       <module name="" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="HTML_FILE_NAME" />
+      <option name="HTML_USED" value="false" />
+      <option name="WIDTH" value="400" />
+      <option name="HEIGHT" value="300" />
+      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
+      <option name="VM_PARAMETERS" />
     </configuration>
     <configuration selected="false" default="true" type="Remote" factoryName="Remote">
       <option name="USE_SOCKET_TRANSPORT" value="true" />
@@ -387,6 +424,13 @@
       <option name="SHMEM_ADDRESS" value="javadebug" />
       <option name="HOST" value="localhost" />
       <option name="PORT" value="5005" />
+    </configuration>
+    <configuration selected="false" default="true" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" />
+      <option name="VM_PARAMETERS" />
+      <option name="PROGRAM_PARAMETERS" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <module name="" />
     </configuration>
     <configuration selected="false" default="true" type="JUnit" factoryName="JUnit">
       <module name="" />
@@ -402,21 +446,11 @@
         <value defaultName="wholeProject" />
       </option>
     </configuration>
-    <configuration selected="false" default="true" type="Applet" factoryName="Applet">
-      <module name="" />
-      <option name="MAIN_CLASS_NAME" />
-      <option name="HTML_FILE_NAME" />
-      <option name="HTML_USED" value="false" />
-      <option name="WIDTH" value="400" />
-      <option name="HEIGHT" value="300" />
-      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
-      <option name="VM_PARAMETERS" />
-    </configuration>
-    <configuration selected="true" default="false" name="Test" type="Application" factoryName="Application">
+    <configuration selected="false" default="false" name="Test" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="Test" />
-      <option name="VM_PARAMETERS" />
-      <option name="PROGRAM_PARAMETERS" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="VM_PARAMETERS" value="" />
+      <option name="PROGRAM_PARAMETERS" value="" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
       <module name="BeanShell" />
       <RunnerSettings RunnerId="Run" />
       <ConfigurationWrapper RunnerId="Run" />
@@ -473,6 +507,9 @@
     <option name="USE_AUTHOR_FIELD" value="true" />
     <option name="AUTHOR" value="" />
     <option name="LOCATION" value="" />
+    <option name="USER_NAME" value="" />
+    <option name="USE_PROJECT_SETTINGS" value="true" />
+    <option name="USE_ALTERNATE_LOCATION" value="false" />
   </component>
   <component name="SvnConfiguration">
     <option name="USER" value="pat" />
@@ -483,32 +520,34 @@
   <component name="TodoView" selected-index="0">
     <todo-panel id="selected-file">
       <are-packages-shown value="false" />
+      <are-modules-shown value="false" />
       <flatten-packages value="false" />
       <is-autoscroll-to-source value="true" />
     </todo-panel>
     <todo-panel id="all">
       <are-packages-shown value="true" />
+      <are-modules-shown value="false" />
       <flatten-packages value="false" />
       <is-autoscroll-to-source value="true" />
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-1279" y="-2" width="1278" height="800" extended-state="0" />
+    <frame x="-1281" y="-3" width="1277" height="802" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="IG Telemetry" active="false" anchor="bottom" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.33" order="8" />
       <window_info id="CVS" active="false" anchor="bottom" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.33" order="8" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.33" order="7" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="docked" type="docked" visible="true" weight="0.19983687" order="0" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.32918397" order="1" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="docked" type="docked" visible="true" weight="0.2155102" order="0" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="sliding" type="sliding" visible="false" weight="0.6473029" order="1" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.25" order="1" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="sliding" type="sliding" visible="false" weight="0.79944676" order="8" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="sliding" type="sliding" visible="false" weight="0.8" order="8" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.4" order="6" />
       <window_info id="Module Dependencies" active="false" anchor="right" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.33" order="3" />
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.33" order="8" />
       <window_info id="Favorites" active="false" anchor="right" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.32952693" order="3" />
-      <window_info id="Ant Build" active="false" anchor="right" auto_hide="true" internal_type="docked" type="docked" visible="false" weight="0.19086461" order="1" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="sliding" type="sliding" visible="false" weight="0.6445367" order="2" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="true" internal_type="docked" type="docked" visible="false" weight="0.18857142" order="1" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="sliding" type="sliding" visible="false" weight="0.8772414" order="2" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.25" order="2" />
       <window_info id="File View" active="false" anchor="right" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.33" order="3" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.4" order="4" />
@@ -607,109 +646,95 @@
     </buildFile>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/tests/test-scripts/array1.bsh">
+    <entry file="file://$PROJECT_DIR$/src/bsh/LHS.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="0" selection-start="230" selection-end="230" vertical-scroll-proportion="0.41304347">
+        <state line="183" column="22" selection-start="5910" selection-end="5910" vertical-scroll-proportion="0.33333334">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tests/test-scripts/primitives2.bsh">
+    <entry file="file://$PROJECT_DIR$/src/bsh/NameSpace.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="27" column="0" selection-start="637" selection-end="637" vertical-scroll-proportion="0.74347824">
+        <state line="360" column="4" selection-start="11817" selection-end="11817" vertical-scroll-proportion="0.76339287">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/bsh/UtilEvalError.java">
+    <entry file="file://$PROJECT_DIR$/src/bsh/Variable.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="75" column="4" selection-start="3889" selection-end="3889" vertical-scroll-proportion="0.3115942">
+        <state line="43" column="4" selection-start="939" selection-end="939" vertical-scroll-proportion="0.40625">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/bsh/Primitive.java">
+    <entry file="file://$PROJECT_DIR$/src/bsh/ExternalNameSpace.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="822" column="4" selection-start="25467" selection-end="25467" vertical-scroll-proportion="0.8072464">
+        <state line="157" column="4" selection-start="4870" selection-end="4870" vertical-scroll-proportion="0.57589287">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/bsh/BSHArrayInitializer.java">
+    <entry file="file://$PROJECT_DIR$/src/bsh/Interpreter.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="99" column="33" selection-start="4860" selection-end="4860" vertical-scroll-proportion="0.44927537">
+        <state line="53" column="49" selection-start="3025" selection-end="3025" vertical-scroll-proportion="0.02891933">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/bsh/Types.java">
+    <entry file="jar://C:/Program Files/Java/jdk1.5.0_03/src.zip!/java/io/Writer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="244" column="8" selection-start="9023" selection-end="9023" vertical-scroll-proportion="0.44347826">
+        <state line="202" column="5" selection-start="5916" selection-end="5916" vertical-scroll-proportion="0.02827381">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tests/test-scripts/externalNameSpace.bsh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="12" column="26" selection-start="309" selection-end="309" vertical-scroll-proportion="0.027456647">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/engine/src/bsh/util/ScriptContextEngineView.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="133" column="0" selection-start="4680" selection-end="4680" vertical-scroll-proportion="0.027456647">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/bsh/ClassGeneratorUtil.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="1156" column="26" selection-start="38032" selection-end="38032" vertical-scroll-proportion="0.028064992">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/engine/src/TestBshScriptEngine.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="23" column="24" selection-start="620" selection-end="620" vertical-scroll-proportion="0.63150287">
           <folding>
-            <element signature="docComment;class#Types#0" expanded="false" />
-            <element signature="docComment;field#VALID_CAST#0;class#Types#0" expanded="false" />
-            <element signature="docComment;method#getTypes#0;class#Types#0" expanded="false" />
-            <element signature="method#getTypes#0;class#Types#0" expanded="false" />
-            <element signature="docComment;method#isJavaAssignable#0;class#Types#0" expanded="false" />
-            <element signature="docComment;method#isJavaBaseAssignable#0;class#Types#0" expanded="false" />
-            <element signature="method#isJavaBaseAssignable#0;class#Types#0" expanded="false" />
-            <element signature="docComment;method#isJavaBoxTypesAssignable#0;class#Types#0" expanded="false" />
+            <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="jar://C:/Program Files/Java/jdk1.5.0_01/src.zip!/java/lang/reflect/Array.java">
+    <entry file="file://$PROJECT_DIR$/engine/javax-src/javax/script/ScriptEngine.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="80" column="25" selection-start="2941" selection-end="2941" vertical-scroll-proportion="0.1362963">
+        <state line="33" column="17" selection-start="1214" selection-end="1214" vertical-scroll-proportion="0.3323486">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tests/test-scripts/arraydims.bsh">
+    <entry file="jar://$PROJECT_DIR$/lib/javaxscript.jar!/javax/script/ScriptEngine.class">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="51" column="0" selection-start="1468" selection-end="1468" vertical-scroll-proportion="0.77481484">
+        <state line="5" column="17" selection-start="154" selection-end="154" vertical-scroll-proportion="0.11225997">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="jar://C:/Program Files/Java/jdk1.5.0_01/src.zip!/java/beans/Beans.java">
+    <entry file="file://$PROJECT_DIR$/engine/src/bsh/util/BshScriptEngine.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="484" column="4" selection-start="16123" selection-end="16123" vertical-scroll-proportion="0.9437037">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/bsh/ClassGenerator.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="9" column="4" selection-start="180" selection-end="180" vertical-scroll-proportion="0.22028986">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/bsh/ClassGeneratorImpl.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="103" column="25" selection-start="3453" selection-end="3453" vertical-scroll-proportion="0.6144928">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tests/test-scripts/classsuper2.bsh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="7" column="0" selection-start="146" selection-end="146" vertical-scroll-proportion="0.19275363">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tests/test-scripts/classser.bsh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="2" column="28" selection-start="56" selection-end="56" vertical-scroll-proportion="0.055072464">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/bsh/commands/load.bsh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="25" column="22" selection-start="549" selection-end="549" vertical-scroll-proportion="0.33913043">
+        <state line="0" column="12" selection-start="12" selection-end="12" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>

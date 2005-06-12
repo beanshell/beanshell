@@ -119,6 +119,7 @@ assert(b.field4==4);
 m=new MethodSelection();
 assert(m.foo("foo").equals("public"));
 assert(m.foo(2).equals("private"));
+warning("this test runs on sparc but fails on windows... Nail this down.");
 assert(m.foo(null).equals("public"));
 
 setAccessibility(false);

@@ -17,15 +17,30 @@ import java.util.*;
 	shadow any previously defined variables in the scope. 
 	<p/>
 
-	Note: this class is inherentely dependent on Java 1.2, however it is not
-	used directly by the core as other than type NameSpace, so no dependency is
-	introduced.
+	Note: this class is inherentely dependent on Java 1.2 (for Map), however
+	it is not used directly by the core as other than type NameSpace, so no
+	dependency is introduced.
 */
 /*
-	Implementation notes:  bsh methods are not currently expored to the
+	Implementation notes:
+
+	It would seem that we should have been accomplished this by overriding the
+	getImportedVar() method of NameSpace, which behaves in a similar way
+	for fields of classes and objects.  However we need more control here to
+	be able to bump up the precedence and remove items that have been removed
+	via the map.  So we override getVariableImp().  We should reevaluate this
+	at some point.  All of NameSpace is a mess.
+
+	The primary abstraction here is that we override createVariable() to
+	create LHS Variables bound to the map for this namespace.
+
+	Methods:
+
+	bsh methods are not currently exported to the
 	external namespace.  All that would be required to add this is to override
 	setMethod() and provide a friendlier view than vector (currently used) for
 	overloaded forms (perhaps a map by method SignatureKey).
+
 */
 public class ExternalNameSpace extends NameSpace
 {
@@ -71,16 +86,6 @@ public class ExternalNameSpace extends NameSpace
 
 	/**
 	*/
-    void setVariable( 
-		String name, Object value, boolean strictJava, boolean recurse ) 
-		throws UtilEvalError 
-	{
-		super.setVariable( name, value, strictJava, recurse );
-		putExternalMap( name, value );
-	}
-
-	/**
-	*/
 	public void unsetVariable( String name )
 	{
 		super.unsetVariable( name );
@@ -91,7 +96,7 @@ public class ExternalNameSpace extends NameSpace
 	*/
 	public String [] getVariableNames() 
 	{
-		// union of the names in the internal namespace and external map
+		// union of the names in the enclosing namespace and external map
 		Set nameSet = new HashSet();
 		String [] nsNames = super.getVariableNames();
 		nameSet.addAll( Arrays.asList( nsNames ) );
@@ -102,18 +107,23 @@ public class ExternalNameSpace extends NameSpace
 	/**
 	*/
 	/*
-		Notes: This implmenetation of getVariableImpl handles the following
+		Notes: This implementation of getVariableImpl handles the following
 		cases:
 		1) var in map not in local scope - var was added through map
 		2) var in map and in local scope - var was added through namespace
 		3) var not in map but in local scope - var was removed via map
 		4) var not in map and not in local scope - non-existent var
+
+		Note: It would seem that we could simply override getImportedVar()
+		in NameSpace, rather than this higher level method.  However we need
+		more control here to change the import precedence and remove variables
+		if they are removed via the extenal map.
 	*/
-    protected Variable getVariableImpl( String name, boolean recurse ) 
+		protected Variable getVariableImpl( String name, boolean recurse )
 		throws UtilEvalError
 	{
 		// check the external map for the variable name
-		Object value = externalMap.get( name );
+		Object value =  externalMap.get( name );
 
 		Variable var;
 		if ( value == null ) 
@@ -132,69 +142,29 @@ public class ExternalNameSpace extends NameSpace
 			Variable localVar = super.getVariableImpl( name, false );
 
 			// If not in local scope then it was added via the external map,
-			// we'll wrap it and pass it along.  Else we'll use the local
-			// version.
+			// we'll wrap it and pass it along.  Else we'll use the one we
+			// found.
 			if ( localVar == null ) 
-				var = new Variable( name, (Class)null, value, (Modifiers)null );
+				var = createVariable( name, null/*type*/, value, null/*mods*/ );
 			else
 				var = localVar;
 		}
 
 		return var;
     }
-	
-	/**
-	*/
-	/*
-		Note: the meaning of getDeclaredVariables() is not entirely clear, but
-		the name (and current usage in class generation support) suggests that
-		untyped variables should not be inclueded.  Therefore we do not
-		currently have to add the external names here.
-	*/
-	public Variable [] getDeclaredVariables() 
-	{
-		return super.getDeclaredVariables();
-	}
 
-    /**
-    */
-    public void	setTypedVariable(
-		String	name, Class type, Object value,	Modifiers modifiers )
-		throws UtilEvalError 
+	public Variable createVariable(
+		String name, Class type, Object value, Modifiers mods )
 	{
-		super.setTypedVariable( name, type, value, modifiers );
-		putExternalMap( name, value );
-    }
-
-	/*
-		Note: we could override this method to allow bsh methods to appear in
-		the external map.
-	*/
-    public void	setMethod( String name, BshMethod method )
-		throws UtilEvalError
-	{
-		super.setMethod( name, method );
-    }
-
-	/*
-		Note: kind of far-fetched, but... we could override this method to
-		allow bsh methods to be inserted into this namespace via the map.
-	*/
-    public BshMethod getMethod( 
-		String name, Class [] sig, boolean declaredOnly ) 
-		throws UtilEvalError
-	{
-		return super.getMethod( name, sig, declaredOnly );
-    }
-
-
-	/*
-		Note: this method should be overridden to add the names from the
-		external map, as is done in getVariableNames();
-	*/
-	protected void getAllNamesAux( Vector vec ) 
-	{
-		super.getAllNamesAux( vec );
+		LHS lhs = new LHS( externalMap, name );
+		// Is this race condition worth worrying about?
+		// value will appear in map before it's really in the interpreter
+		try {
+			lhs.assign( value, false/*strict*/ );
+		} catch ( UtilEvalError e) {
+			throw new InterpreterError( e.toString() );
+		}
+		return new Variable( name, type, lhs );
 	}
 
 	/**
@@ -207,28 +177,5 @@ public class ExternalNameSpace extends NameSpace
 		externalMap.clear();
 	}
 
-	/**
-		Place an unwrapped value in the external map.
-		BeanShell primitive types are represented by their object wrappers, so
-		it is not possible to differentiate between wrapper types and primitive
-		types via the external Map.
-	*/
-	protected void putExternalMap( String name, Object value ) 
-	{
-		if ( value instanceof Variable )
-			try {
-				value = unwrapVariable( (Variable)value );
-			} catch ( UtilEvalError ute ) {
-				// There should be no case for this.  unwrapVariable throws
-				// UtilEvalError in some cases where it holds an LHS or array
-				// index.
-				throw new InterpreterError("unexpected UtilEvalError");
-			}
-
-		if ( value instanceof Primitive )
-			value = Primitive.unwrap( (Primitive)value );
-
-		externalMap.put( name, value );
-	}
 }
 
