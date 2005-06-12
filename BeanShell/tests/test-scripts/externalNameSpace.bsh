@@ -11,9 +11,29 @@ ens = new ExternalNameSpace( interpreter.getNameSpace(), "Test", myMap );
 interpreter.setNameSpace( ens );
 
 interpreter.eval("foo=42");
-
 assert( myMap.get("foo") instanceof Integer );
 assert( myMap.get("foo") == 42 );
+
+// primitives get mapped back to prims inside the interpreter
+interpreter.eval("int fooint=42");
+assert( interpreter.eval("fooint.getClass()") == bsh.Primitive.class );
+assert( myMap.get("fooint") instanceof Integer );
+
+interpreter.eval("Integer fooInt=42");
+assert( interpreter.eval("fooInt.getClass()") == Integer.class );
+assert( myMap.get("fooint") instanceof Integer );
+
+// make sure vars propogate from child namespace properly
+interpreter.eval("run() { if (foo!=42) throw new RuntimeException(); foo=55; }");
+interpreter.eval("run()");
+assert( interpreter.eval("foo") == 55 );
+assert( myMap.get("foo") == 55 );
+
+interpreter.eval("flag=true");
+assert( myMap.get("flag") instanceof Boolean );
+assert( myMap.get("flag").booleanValue() == true );
+interpreter.eval("flag=false");
+assert( myMap.get("flag").booleanValue() == false );
 
 interpreter.eval("int bar = 43");
 // it's a primitive to bsh

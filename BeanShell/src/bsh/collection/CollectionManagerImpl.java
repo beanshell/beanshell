@@ -68,6 +68,10 @@ public class CollectionManagerImpl extends bsh.CollectionManager
 		// Hashtable implements Map
 		return ((Map)map).get(key);
 	}
+
+	/*
+	  	Place the raw value into the map... should be unwrapped.
+	 */
 	public Object putInMap( Object map, Object key, Object value ) 
 	{
 		// Hashtable implements Map

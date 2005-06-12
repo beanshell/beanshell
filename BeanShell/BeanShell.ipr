@@ -189,7 +189,7 @@
       <module fileurl="file://$PROJECT_DIR$/BeanShell.iml" filepath="$PROJECT_DIR$/BeanShell.iml" />
     </modules>
   </component>
-  <component name="ProjectRootManager" version="2" assert-keyword="false" jdk-15="false" project-jdk-name="java version &quot;1.5&quot;" />
+  <component name="ProjectRootManager" version="2" assert-keyword="true" jdk-15="true" project-jdk-name="java version &quot;1.5&quot;" />
   <component name="RmicSettings">
     <option name="IS_EANABLED" value="false" />
     <option name="DEBUGGING_INFO" value="true" />
@@ -197,10 +197,23 @@
     <option name="GENERATE_IIOP_STUBS" value="false" />
     <option name="ADDITIONAL_OPTIONS_STRING" value="" />
   </component>
-  <component name="libraryTable" />
+  <component name="libraryTable">
+    <library name="bshlibs">
+      <CLASSES>
+        <root url="jar://$PROJECT_DIR$/lib/bsf.jar!/" />
+        <root url="jar://$PROJECT_DIR$/lib/servlet.jar!/" />
+        <root url="jar://$PROJECT_DIR$/lib/javaxscript.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES>
+        <root url="file://$PROJECT_DIR$/engine/javax-src" />
+      </SOURCES>
+    </library>
+  </component>
   <component name="uidesigner-configuration">
     <option name="INSTRUMENT_CLASSES" value="true" />
     <option name="COPY_FORMS_RUNTIME_TO_OUTPUT" value="true" />
   </component>
+  <UsedPathMacros />
 </project>
 

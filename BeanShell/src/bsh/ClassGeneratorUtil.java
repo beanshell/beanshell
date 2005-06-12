@@ -150,12 +150,16 @@ public class ClassGeneratorUtil implements Constants
 		List methodsl = new ArrayList();
 		String classBaseName = getBaseName( className ); // for inner classes
 		for( int i=0; i< bshmethods.length; i++ )
-			if ( bshmethods[i].getName().equals( classBaseName ) 
-				&& bshmethods[i].getReturnType() == Void.TYPE
+		{
+			BshMethod bm = bshmethods[i];
+	//System.out.println("method ="+bm.getName()+", type="+bm.getReturnType());
+			if ( bm.getName().equals( classBaseName )
+				&& bm.getReturnType() == null
 			)
-				consl.add( bshmethods[i] );
+				consl.add( bm );
 			else
-				methodsl.add( bshmethods[i] );
+				methodsl.add( bm );
+		}
 
 		this.constructors = (DelayedEvalBshMethod [])consl.toArray( 
 			new DelayedEvalBshMethod[0] );
@@ -933,7 +937,7 @@ public class ClassGeneratorUtil implements Constants
 		evaluate the instance initializer and scripted constructor in the 
 		instance namespace.
 	*/
-	// TODO: Refactor this method... to long and ungainly.
+	// TODO: Refactor this method... too long and ungainly.
 	// Why both instance and className here?  There must have been a reason.
 	public static void initInstance( 
 		Object instance, String className, Object [] args )
@@ -960,6 +964,7 @@ public class ClassGeneratorUtil implements Constants
 			// If the class is "cold" (detached with no live interpreter static
 			// This reference) try to start a new interpreter and source the
 			// script backing it.
+			/*
 			if ( classStaticThis == null )
 			{
 				startInterpreterForClass( instance.getClass() );
@@ -967,6 +972,7 @@ public class ClassGeneratorUtil implements Constants
 				classStaticThis = 
 					getClassStaticThis( instance.getClass(), className );
 			}
+			*/
 
 			if ( classStaticThis == null )
 				throw new InterpreterError("Failed to init class: "+className);
@@ -1031,8 +1037,12 @@ public class ClassGeneratorUtil implements Constants
 			BshMethod constructor = instanceNameSpace.getMethod( 
 				constructorName, sig, true/*declaredOnly*/ );
 
+//System.out.println("constructor: "+constructor );
+//if ( constructor != null )
+//	System.out.println("constructor return type: "+constructor.getReturnType() );
+
 			// differentiate a constructor from a badly named method
-			if ( constructor.getReturnType() != Void.TYPE )
+			if ( constructor != null  && constructor.getReturnType() != null  )
 				constructor = null;
 
 			// if args, we must have constructor
@@ -1045,6 +1055,8 @@ public class ClassGeneratorUtil implements Constants
 				constructor.invoke( args, interpreter, callstack,
 					null/*callerInfo*/, false/*overrideNameSpace*/ ) ;
 		} catch ( Exception e ) {
+			if ( Interpreter.DEBUG )
+				e.printStackTrace();
 			if ( e instanceof TargetError )
 				e =(Exception)((TargetError)e).getTarget();
 			if ( e instanceof InvocationTargetException )

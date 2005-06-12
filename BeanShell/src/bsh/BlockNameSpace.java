@@ -158,7 +158,7 @@ class BlockNameSpace extends NameSpace
 		"if" statement). 
 		@see #getBlockThis( Interpreter )
 	*/
-    This getThis( Interpreter declaringInterpreter ) {
+    public This getThis( Interpreter declaringInterpreter ) {
 		return getNonBlockParent().getThis( declaringInterpreter );
 	}
 

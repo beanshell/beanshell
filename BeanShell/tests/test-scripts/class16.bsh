@@ -1,0 +1,17 @@
+source("TestHarness.bsh");
+
+flag=false;
+
+class MyClass extends Thread 
+{
+	static boolean sflag=false;
+	public void run() { sflag=true; flag=true; print("howdy"); }
+}
+
+assert( MyClass.sflag == false );
+assert( flag == false );
+new MyClass().start();
+assert( MyClass.sflag == true );
+assert( flag == true );
+
+complete();
