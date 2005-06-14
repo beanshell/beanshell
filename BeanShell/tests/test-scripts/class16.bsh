@@ -5,12 +5,17 @@ flag=false;
 class MyClass extends Thread 
 {
 	static boolean sflag=false;
-	public void run() { sflag=true; flag=true; print("howdy"); }
+	public void run() { 
+		print("enter run flag="+flag); 
+		sflag=true; flag=true; 
+	}
 }
 
 assert( MyClass.sflag == false );
 assert( flag == false );
+
 new MyClass().start();
+
 assert( MyClass.sflag == true );
 assert( flag == true );
 

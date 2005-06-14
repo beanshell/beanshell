@@ -7,7 +7,7 @@ import bsh.*;
 import static javax.script.ScriptContext.*;
 
 /*
-	Notes:
+	Notes
 	This engine supports open-ended pluggable scriptcontexts
 */
 public class BshScriptEngine extends AbstractScriptEngine
