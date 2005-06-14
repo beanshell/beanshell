@@ -50,8 +50,10 @@ public class ClassGeneratorImpl extends ClassGenerator
 	}
 
 	/**
-		Parse the BSHBlock for for the class definition and generate the class
-		using ClassGenerator.
+		If necessary, parse the BSHBlock for for the class definition and
+		generate the class using ClassGeneratorUtil.
+		This method also initializes the static block namespace and sets it
+		in the class.
 	*/
 	public static Class generateClassImpl( 
 		String name, Modifiers modifiers, 
@@ -103,25 +105,15 @@ public class ClassGeneratorImpl extends ClassGenerator
 			getDeclaredMethods( block, callstack, interpreter, packageName );
 
 		// Check for existing class (saved class file)
-		//Class genClass = getExistingGeneratedClass( bcm, fqClassName, bshStaticFieldName );
-		Class genClass = null;
+		Class genClass =
+			getExistingGeneratedClass( bcm, fqClassName, bshStaticFieldName );
 
 		// If the class doesn't exist or isn't a bsh generated class
 		// then generate it
 		if ( genClass == null )
-		{
-			Interpreter.debug("generating class: "+fqClassName );
-			ClassGeneratorUtil classGenerator = new ClassGeneratorUtil(
-				modifiers, className, packageName, superClass, interfaces,
-				variables, methods, classStaticNameSpace, isInterface );
-			byte [] code = classGenerator.generateClass();
-
-			// if debug, write out the class file to debugClasses directory
-			debugClasses( className, code );
-
-			// Define the new class in the classloader
-			genClass = bcm.defineClass( fqClassName, code );
-		}
+			genClass = defineClass( fqClassName, modifiers, className,
+				packageName, superClass, interfaces, variables, methods,
+				classStaticNameSpace, isInterface, bcm );
 		else
 			Interpreter.debug("Found existing generated class: "+fqClassName );
 
@@ -147,7 +139,37 @@ public class ClassGeneratorImpl extends ClassGenerator
 		callstack.pop();
 
 		if ( !genClass.isInterface() )
-		{
+			installStaticBlock( genClass, bshStaticFieldName,
+				classStaticNameSpace, interpreter );
+
+		bcm.doneDefiningClass( fqClassName );
+		return genClass;
+	}
+
+	private static Class defineClass(
+		String fqClassName, Modifiers modifiers, String className,
+		String packageName, Class superClass, Class[] interfaces,
+		Variable[] variables, DelayedEvalBshMethod[] methods,
+		NameSpace classStaticNameSpace, boolean isInterface,
+		BshClassManager bcm )
+	{
+		Interpreter.debug("generating class: "+fqClassName );
+		ClassGeneratorUtil classGenerator = new ClassGeneratorUtil(
+			modifiers, className, packageName, superClass, interfaces,
+			variables, methods, classStaticNameSpace, isInterface );
+		byte [] code = classGenerator.generateClass();
+
+		// if debug, write out the class file to debugClasses directory
+		debugClasses( className, code );
+
+		// Define the new class in the classloader
+		return bcm.defineClass( fqClassName, code );
+	}
+
+	private static void installStaticBlock(
+		Class genClass, String bshStaticFieldName,
+		NameSpace classStaticNameSpace, Interpreter interpreter )
+	{
 		// Set the static bsh This callback
 		try {
 			LHS lhs = Reflect.getLHSStaticField( genClass, bshStaticFieldName );
@@ -156,10 +178,6 @@ public class ClassGeneratorImpl extends ClassGenerator
 		} catch ( Exception e ) {
 			throw new InterpreterError("Error in class gen setup: "+e );
 		}
-		}
-
-		bcm.doneDefiningClass( fqClassName );
-		return genClass;
 	}
 
 	private static void debugClasses( String className, byte[] code )
@@ -214,7 +232,6 @@ public class ClassGeneratorImpl extends ClassGenerator
 		BSHBlock body, CallStack callstack, Interpreter interpreter,
 		String defaultPackage 
 	)
-		throws EvalError
 	{
 		List methods = new ArrayList();
 		for( int child=0; child<body.jjtGetNumChildren(); child++ )
@@ -338,8 +355,7 @@ public class ClassGeneratorImpl extends ClassGenerator
 		The class must be one we generated.
 	 */
 	private static Class getExistingGeneratedClass(
-		BshClassManager bcm, String fqClassName, String bshStaticFieldName
-	)
+		BshClassManager bcm, String fqClassName, String bshStaticFieldName )
 	{
 		Class genClass = bcm.classForName( fqClassName );
 

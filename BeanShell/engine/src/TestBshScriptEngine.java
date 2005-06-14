@@ -1,6 +1,7 @@
+
+import java.io.*;
 import javax.script.*;
 import static javax.script.ScriptContext.*;
-import java.io.*;
 
 public class TestBshScriptEngine
 {
