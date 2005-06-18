@@ -463,13 +463,19 @@ public class JConsole extends JScrollPane
 		// Submitted by Daniel Leuck
 		StringBuffer buf = new StringBuffer(); 
 		int lineLength = line.length(); 
-		for(int i=0; i<lineLength; i++) {  
-				String val = Integer.toString(line.charAt(i), 16); 
-				val=ZEROS.substring(0,4-val.length()) + val;
-				buf.append("\\u" + val);
+		for(int i=0; i<lineLength; i++) {
+				char c = line.charAt(i);
+				if(c>127) {
+					String val = Integer.toString(c, 16); 
+					val=ZEROS.substring(0,4-val.length()) + val;
+					buf.append("\\u" + val);
+				} else {
+					buf.append(c);
+				}
 		} 
 		line = buf.toString();
 		// End unicode patch
+
 
 		if (outPipe == null )
 			print("Console internal	error: cannot output ...", Color.red);
