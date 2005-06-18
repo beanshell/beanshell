@@ -49,10 +49,7 @@ public class CollectionManagerImpl extends bsh.CollectionManager
 	public BshIterator getBshIterator( Object obj ) 
 		throws IllegalArgumentException
 	{
-		if ( obj instanceof Collection || obj instanceof Iterator )
-			return new CollectionIterator( obj ); 
-		else
-			return new bsh.CollectionManager.BasicBshIterator( obj ); 
+		return new CollectionIterator( obj ); 
 	}
 
 	public boolean isMap( Object obj ) 
