@@ -35,7 +35,8 @@ package bsh;
 
 import java.util.*;
 
-public class StringUtil {
+public class StringUtil
+{
 
 	public static String [] split( String s, String delim) {
 		Vector v = new Vector();

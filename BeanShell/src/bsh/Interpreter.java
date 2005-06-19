@@ -636,6 +636,14 @@ public class Interpreter
                 if (localInterpreter.get_jjtree().nodeArity() > 0)
                 {
                     node = (SimpleNode)localInterpreter.get_jjtree().rootNode();
+					// quick filter for when we're running as a compiler only
+					if ( getSaveClasses()
+						&& !(node instanceof BSHClassDeclaration)
+						&& !(node instanceof BSHImportDeclaration )
+						&& !(node instanceof BSHPackageDeclaration )
+					)
+						continue;
+
 					// nodes remember from where they were sourced
 					node.setSourceFile( sourceFileInfo );
 
@@ -1230,6 +1238,14 @@ public class Interpreter
 	 */
 	public boolean getShowResults()  {
 		return showResults;
+	}
+
+	public static String getSaveClassesDir() {
+		return System.getProperty("saveClasses");
+	}
+
+	public static boolean getSaveClasses()  {
+		return getSaveClassesDir() != null;
 	}
 }
 

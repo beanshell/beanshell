@@ -4,10 +4,61 @@
 
 <h2>Changes in 2.0 beta 5</h2>
 <pre>
-	- Added JSR223 javax.script adapter engine implementation in a new
-	bsh.engine package.  This implementation of the spec supports pluggable 
-	ScriptContext.  Please see the TestBshScriptEngine.java file (and the spec)
-	for a starting point on how to use this.
+	- Persistent Scriptable Classes! (Experimental Feature)
+
+	Using the system property -DsaveClasses=<savedir> you can instruct
+	BeanShell to write out persistent class files for class definitions found 
+	in the script.  In this mode BeanShell will not execute code, but will
+	generate and store a class files for each class definition it finds.
+	These classes are the same as the ordinary runtime generated delegate
+	classes used internally by BeanShell but additionally have static 
+	initializer code that allows them to bootstrap an instance of the BeanShell
+	interpreter to execute their scripted body if the class is used from
+	an external application. 
+
+	Currently we are using a simple convention whereby a class "Foo.class"
+	expects to find its associated scripted class definition in a file
+	"Foo.bsh" in the same location as the class file.  Each stored class
+	must have a corresponding script definition.  The scripts itself may 
+	contain any amount of BeanShell code beyond the class definition 
+	and may refer to other scripted classes or saved classes.  However each
+	saved class will currently initialize its own interpreter instance.
+
+	So, for example, to create a class for the following scripted class
+	definition:
+	
+		class Foo {
+			Foo() { print("I'm being constructed!"); }
+		}
+
+	you could place the script into a file "Foo.bsh" in the current directory
+	and execute:
+
+		java -DsaveClasses=. bsh.Interpreter Foo.bsh
+
+	This will create the class Foo.class.  The Foo class may be used like any
+	ordinary Java class and invoked from ordinary Java code.  Upon being
+	loaded it will automatically create a BeanShell interpreter instance
+	to load and execute its corresponding Foo.bsh script file.  The script
+	is expected to correspond to the scructure of the class: to initialize
+	static instance members and implement all static and instancee methods
+	required by the class.  Beyond that, the script is free to change and
+	include additional script body outside the scripted class definition.
+
+	For example, we might later change the Foo.bsh script to the following:
+
+		welcomeMessage = "Hello World!";
+
+		class Foo {
+			Foo() { print( "I'm being constructed: "+ welcomeMessage ); }
+		}
+
+	- Added JSR223 javax.script adapter engine implementation in a new 
+	bsh.engine package.  
+
+	This implementation of the spec supports pluggable ScriptContext.  Please 
+	see the TestBshScriptEngine.java file (and the spec) for a starting point 
+	on how to use this.
 
 	BeanShell maintains all of its info on variables (type, modifiers,
 	etc.) and all of its internal state for a given ScriptContext via a
@@ -15,12 +66,12 @@
 	completely pluggable with respect to the spec, but still keep the full 
 	interpreter state between evaluations.
 
-	- Added a new class, ExternalNameSpace to the distribution.  This is a
-	BeanShell namespace that knows how to externalize its variables to a
-	standard Map.  
-	This class is, of necessity, dependant on JDK1.2+, however there is no
-	dependency in the core on this class, so you can exclude it in the usual
-	way.
+	- Added a new class, ExternalNameSpace to the distribution.  
+
+	This is a BeanShell namespace that knows how to externalize its variables 
+	to a standard Map.  This class is, of necessity, dependant on JDK1.2+, 
+	however there is no dependency in the core on this class, so you can 
+	exclude it in the usual way.
 
 </pre>
 

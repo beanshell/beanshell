@@ -225,7 +225,7 @@ public class ClassManagerImpl extends BshClassManager
 				c = plainClassForName( name );
 			} catch ( ClassNotFoundException e ) {}
 
-		// Try scripted class
+		// Try .java source file
 		if ( c == null )
 			c = loadSourceClass( name );
 
@@ -355,7 +355,8 @@ public class ClassManagerImpl extends BshClassManager
 		DiscreteFilesClassLoader.ClassSourceMap map = 
 			new DiscreteFilesClassLoader.ClassSourceMap();
 
-		for (int i=0; i< classNames.length; i++) {
+		for (int i=0; i< classNames.length; i++)
+		{
 			String name = classNames[i];
 
 			// look in baseLoader class path 
@@ -527,6 +528,7 @@ public class ClassManagerImpl extends BshClassManager
 	*/
 	public Class defineClass( String name, byte [] code ) 
 	{
+//System.out.println( "defineClass: "+name );
 		baseClassPath.setClassSource( name, new GeneratedClassSource( code ) );
 		try {
 			reloadClasses( new String [] { name } );

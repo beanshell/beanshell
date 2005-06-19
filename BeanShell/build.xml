@@ -193,8 +193,6 @@
 					<include name="**/*.bsh"/>
 				</patternset>
 			</fileset>
-
-
 		</copy>
 
 		<!-- Install the javax.script engine factory config -->
@@ -204,7 +202,6 @@
 			<format property="DATE" pattern="yyyy-MM-dd hh:mm:ss" />
 		</tstamp>
 	</target>
-
 
 	<target name="javadoc" depends="compile">
 		<mkdir dir="${javadoc-dir}" />

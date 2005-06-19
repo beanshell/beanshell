@@ -116,6 +116,9 @@ public class BshClassManager
 	protected transient Hashtable definingClasses = new Hashtable();
 	protected transient Hashtable definingClassesBaseNames = new Hashtable();
 
+	/** @see #associateClass( Class ) */
+	protected transient Hashtable associatedClasses = new Hashtable();
+
 	/**
 		Create a new instance of the class manager.  
 		Class manager instnaces are now associated with the interpreter.
@@ -294,6 +297,30 @@ public class BshClassManager
 			absoluteClassCache.put( name, value );
 		else
 			absoluteNonClasses.put( name, NOVALUE );
+	}
+
+	/**
+	 * Associate a persistent generated class implementation with this
+	 * interpreter.  An associated class will be used in lieu of generating
+	 * bytecode when a scripted class of the same name is encountered.
+	 * When such a class is defined in the script it will cause the associated
+	 * existing class implementation to be initialized (with the static
+	 * initializer field).  This is utilized by the persistent class generator
+	 * to allow a generated class to bootstrap an interpreter and rendesvous
+	 * with its implementation script.
+	 *
+	 * Class associations currently last for the life of the class manager.
+	 */
+	public void associateClass( Class clas )
+	{
+		// TODO should check to make sure it's a generated class here
+		// just need to add a method to classgenerator API to test it
+		associatedClasses.put( clas.getName(), clas );
+	}
+
+	public Class getAssociatedClass( String name )
+	{
+		return (Class)associatedClasses.get( name );
 	}
 
 	/**
