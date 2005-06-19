@@ -53,6 +53,26 @@
 			Foo() { print( "I'm being constructed: "+ welcomeMessage ); }
 		}
 
+	Here's another example showing loose code in the script:
+
+		//  Begin script Foo.bsh
+
+		class Foo {
+			public static void main( String [] args ) { }
+		}
+
+		message = "Hey";
+		message += " you!";
+		num = 2 * 2;
+		message += " The answer is: "+num; 
+
+		// end script Foo.bsh
+	
+	now we have a script that can be launched like any other Java class
+	via 'java Foo'.  The loose script body is run upon class initialization.
+	Moving that text into the class body would cause it to be run on class
+	construction (instance creation... along with any constructor).
+
 	- Added JSR223 javax.script adapter engine implementation in a new 
 	bsh.engine package.  
 

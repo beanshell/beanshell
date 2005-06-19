@@ -202,7 +202,6 @@ public class ClassGeneratorUtil implements Constants
 	*/
 	public byte [] generateClass( boolean generateInitCode )
 	{
-System.out.println( "generating class bytecode: " +fqClassName );
 		// Force the class public for now...
 		int classMods = getASMModifiers( classModifiers ) | ACC_PUBLIC;
 		if ( isInterface )
@@ -1135,7 +1134,6 @@ System.out.println( "generating class bytecode: " +fqClassName );
 	*/
 	public static void initStatic( Class genClass )
 	{
-System.out.println( "initStatic genClass = " + genClass );
 		startInterpreterForClass( genClass );
 	}
 

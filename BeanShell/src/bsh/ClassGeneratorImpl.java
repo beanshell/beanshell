@@ -76,8 +76,6 @@ public class ClassGeneratorImpl extends ClassGenerator
 
 		NameSpace enclosingNameSpace = callstack.top();
 		String packageName = enclosingNameSpace.getPackage();
-System.out.println( enclosingNameSpace );
-System.out.println( packageName );
 		String className =  enclosingNameSpace.isClass ?
 			( enclosingNameSpace.getName()+"$"+name ) : name;
 		String fqClassName =
