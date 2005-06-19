@@ -62,6 +62,7 @@ public class ClassGeneratorImpl extends ClassGenerator
 	)
 		throws EvalError
 	{
+//		System.out.println( "generateClassImpl" );
 		// Scripting classes currently requires accessibility
 		// This can be eliminated with a bit more work.
 		try {
@@ -75,6 +76,8 @@ public class ClassGeneratorImpl extends ClassGenerator
 
 		NameSpace enclosingNameSpace = callstack.top();
 		String packageName = enclosingNameSpace.getPackage();
+System.out.println( enclosingNameSpace );
+System.out.println( packageName );
 		String className =  enclosingNameSpace.isClass ?
 			( enclosingNameSpace.getName()+"$"+name ) : name;
 		String fqClassName =
@@ -104,66 +107,63 @@ public class ClassGeneratorImpl extends ClassGenerator
 		DelayedEvalBshMethod [] methods =
 			getDeclaredMethods( block, callstack, interpreter, packageName );
 
+		// Create the class generator, which encapsulates all knowledge of the
+		// structure of the class
+		ClassGeneratorUtil classGenerator =  new ClassGeneratorUtil(
+			modifiers, className, packageName, superClass, interfaces,
+			variables, methods, isInterface );
+
 		// Check for existing class (saved class file)
-		Class genClass =
-			getExistingGeneratedClass( bcm, fqClassName, bshStaticFieldName );
+		Class clas = bcm.getAssociatedClass( fqClassName );
 
-		// If the class doesn't exist or isn't a bsh generated class
-		// then generate it
-		if ( genClass == null )
-			genClass = defineClass( fqClassName, modifiers, className,
-				packageName, superClass, interfaces, variables, methods,
-				classStaticNameSpace, isInterface, bcm );
-		else
-			Interpreter.debug("Found existing generated class: "+fqClassName );
+		// If the class isn't there then generate it.
+		// Else just let it be initialized below.
+		if ( clas == null )
+		{
+			// generate bytecode, optionally with static init hooks to
+			// bootstrap the interpreter
+			byte [] code = classGenerator.generateClass(
+				Interpreter.getSaveClasses()/*init code*/ );
 
-		// import the unq name into parent
-		enclosingNameSpace.importClass( fqClassName.replace('$','.') );
-
-		try {
-			classStaticNameSpace.setLocalVariable(
-				ClassGeneratorUtil.BSHINIT, block, false/*strictJava*/ );
-		} catch ( UtilEvalError e ) {
-			throw new InterpreterError("unable to init static: "+e );
+			if ( Interpreter.getSaveClasses() )
+				saveClasses( className, code );
+			else
+				clas = bcm.defineClass( fqClassName, code );
 		}
 
-		// Give the static space its class static import
-		// important to do this after all classes are defined
-		classStaticNameSpace.setClassStatic( genClass );
+		// If we're just saving clases then don't actually execute the static
+		// code for the class here.
+		if ( !Interpreter.getSaveClasses() )
+		{
+			// Let the class generator install hooks relating to the structure of
+			// the class into the class static namespace.  e.g. the constructor
+			// array.  This is necessary whether we are generating code or just
+			// reinitializing a previously generated class.
+			classGenerator.initStaticNameSpace(
+				classStaticNameSpace, block/*instance initializer*/ );
 
-		// evaluate the static portion of the block in the static space
-		block.evalBlock(
-			callstack, interpreter, true/*override*/,
-			ClassNodeFilter.CLASSSTATIC );
+			// import the unqualified class name into parent namespace
+			enclosingNameSpace.importClass( fqClassName.replace('$','.') );
 
+			// Give the static space its class static import
+			// important to do this after all classes are defined
+			classStaticNameSpace.setClassStatic( clas );
+
+			// evaluate the static portion of the block in the static space
+			block.evalBlock(
+				callstack, interpreter, true/*override*/,
+				ClassNodeFilter.CLASSSTATIC );
+
+			if ( !clas.isInterface() )
+				installStaticBlock( clas, bshStaticFieldName,
+					classStaticNameSpace, interpreter );
+		}
+
+// changed order of ths and previous thing
 		callstack.pop();
 
-		if ( !genClass.isInterface() )
-			installStaticBlock( genClass, bshStaticFieldName,
-				classStaticNameSpace, interpreter );
-
 		bcm.doneDefiningClass( fqClassName );
-		return genClass;
-	}
-
-	private static Class defineClass(
-		String fqClassName, Modifiers modifiers, String className,
-		String packageName, Class superClass, Class[] interfaces,
-		Variable[] variables, DelayedEvalBshMethod[] methods,
-		NameSpace classStaticNameSpace, boolean isInterface,
-		BshClassManager bcm )
-	{
-		Interpreter.debug("generating class: "+fqClassName );
-		ClassGeneratorUtil classGenerator = new ClassGeneratorUtil(
-			modifiers, className, packageName, superClass, interfaces,
-			variables, methods, classStaticNameSpace, isInterface );
-		byte [] code = classGenerator.generateClass();
-
-		// if debug, write out the class file to debugClasses directory
-		debugClasses( className, code );
-
-		// Define the new class in the classloader
-		return bcm.defineClass( fqClassName, code );
+		return clas;
 	}
 
 	private static void installStaticBlock(
@@ -180,16 +180,18 @@ public class ClassGeneratorImpl extends ClassGenerator
 		}
 	}
 
-	private static void debugClasses( String className, byte[] code )
+	private static void saveClasses( String className, byte[] code )
 	{
-		String dir = System.getProperty("debugClasses");
+		String dir = Interpreter.getSaveClassesDir();
 		if ( dir != null )
 		try {
 			FileOutputStream out=
 				new FileOutputStream( dir+"/"+className+".class" );
 			out.write(code);
 			out.close();
-		} catch ( IOException e ) { }
+		} catch ( IOException e ) {
+			e.printStackTrace();
+		}
 	}
 
 	static Variable [] getDeclaredVariables( 
@@ -353,19 +355,26 @@ public class ClassGeneratorImpl extends ClassGenerator
 	/*
 		Check for an existing generated bsh class and return it or null.
 		The class must be one we generated.
-	 */
 	private static Class getExistingGeneratedClass(
 		BshClassManager bcm, String fqClassName, String bshStaticFieldName )
 	{
+//System.out.println( "get existing generated class" );
 		Class genClass = bcm.classForName( fqClassName );
 
 		boolean isGenClass = false;
 		if ( genClass != null )
+		{
 			try {
 				isGenClass = Reflect.resolveJavaField(
-					genClass, bshStaticFieldName, true/*staticOnly*/ ) != null;
-			} catch ( Exception e ) { /*ignore*/ } // TODO: make more specific
+					genClass, bshStaticFieldName, true/staticOnly/ ) != null;
+			} catch ( Exception e ) { /ignore/ } // TODO: make more specific
+		}
+
+//if ( isGenClass )
+//System.out.println( "Found existing generated class: " + fqClassName );
 
 		return isGenClass ? genClass : null;
 	}
+		*/
+
 }

@@ -137,37 +137,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="ClassGeneratorUtil.java" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="ClassGeneratorUtil.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/bsh/ClassGeneratorUtil.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="189" column="0" selection-start="7871" selection-end="7871" vertical-scroll-proportion="0.9450867">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="NameSpace.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/bsh/NameSpace.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="568" column="18" selection-start="17853" selection-end="17853" vertical-scroll-proportion="0.33236995">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="BSHClassDeclaration.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/bsh/BSHClassDeclaration.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="65" column="31" selection-start="3282" selection-end="3282" vertical-scroll-proportion="0.027456647">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ClassGenerator.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/bsh/ClassGenerator.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="28" column="0" selection-start="592" selection-end="592" vertical-scroll-proportion="0.23699422">
+            <state line="1126" column="6" selection-start="37486" selection-end="37486" vertical-scroll-proportion="0.6430636">
               <folding />
             </state>
           </provider>
@@ -176,16 +149,25 @@
       <file leaf-file-name="ClassGeneratorImpl.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/bsh/ClassGeneratorImpl.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="156" column="48" selection-start="5192" selection-end="5192" vertical-scroll-proportion="0.5520231">
+            <state line="80" column="55" selection-start="2558" selection-end="2558" vertical-scroll-proportion="0.58815026">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="A.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/asmteststaticinit/A.java">
+      <file leaf-file-name="NameSpace.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/bsh/NameSpace.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="4" column="0" selection-start="99" selection-end="99" vertical-scroll-proportion="0.10982659">
+            <state line="1558" column="0" selection-start="44692" selection-end="44692" vertical-scroll-proportion="0.75289017">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Interpreter.java" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/bsh/Interpreter.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="638" column="67" selection-start="20538" selection-end="20538" vertical-scroll-proportion="0.26878613">
               <folding />
             </state>
           </provider>
@@ -302,6 +284,46 @@
         <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
       </PATH_ELEMENT>
       <PATH_ELEMENT>
+        <option name="myItemId" value="tests" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+    </PATH>
+    <PATH>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="BeanShell.ipr" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="BeanShell" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="BeanShell" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="tests" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="test-scripts" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+    </PATH>
+    <PATH>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="BeanShell.ipr" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="BeanShell" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="BeanShell" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
         <option name="myItemId" value="src" />
         <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
       </PATH_ELEMENT>
@@ -342,7 +364,15 @@
         <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
       </PATH_ELEMENT>
       <PATH_ELEMENT>
-        <option name="myItemId" value="engine" />
+        <option name="myItemId" value="src" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="bsh" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="classpath" />
         <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
       </PATH_ELEMENT>
     </PATH>
@@ -360,7 +390,45 @@
         <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
       </PATH_ELEMENT>
       <PATH_ELEMENT>
-        <option name="myItemId" value="asmteststaticinit" />
+        <option name="myItemId" value="asm" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+    </PATH>
+    <PATH>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="BeanShell.ipr" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="BeanShell" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="BeanShell" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="asm" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="src" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="bsh" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="org" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="objectweb" />
+        <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+      </PATH_ELEMENT>
+      <PATH_ELEMENT>
+        <option name="myItemId" value="asm" />
         <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
       </PATH_ELEMENT>
     </PATH>
@@ -416,7 +484,13 @@
       <option name="PROGRAM_PARAMETERS" value="" />
       <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
       <module name="BeanShell" />
+      <RunnerSettings RunnerId="Debug">
+        <option name="DEBUG_PORT" value="1340" />
+        <option name="TRANSPORT" value="0" />
+        <option name="LOCAL" value="false" />
+      </RunnerSettings>
       <RunnerSettings RunnerId="Run" />
+      <ConfigurationWrapper RunnerId="Debug" />
       <ConfigurationWrapper RunnerId="Run" />
     </tempConfiguration>
     <configuration selected="false" default="true" type="Remote" factoryName="Remote">
@@ -496,15 +570,15 @@
   <component name="StructuralSearchPlugin">
     <searchConfiguration name="user defined" text="class $Class$ { &#10;  $ReturnType$ $MethodName$($ParameterType$ $Parameter$);&#10;}" recursive="false" caseInsensitive="false" history="1">
       <constraint name="MethodName" regexp=".*enumeration.*" maxCount="2147483647" />
-      <constraint name="Class" />
       <constraint name="ParameterType" minCount="0" maxCount="2147483647" />
+      <constraint name="Class" />
       <constraint name="Parameter" minCount="0" maxCount="2147483647" />
       <constraint name="ReturnType" maxCount="2147483647" />
     </searchConfiguration>
     <searchConfiguration name="methods of the class" text="class $Class$ { &#10;  $ReturnType$ $MethodName$($ParameterType$ $Parameter$);&#10;}" recursive="false" caseInsensitive="false" history="1">
       <constraint name="MethodName" regexp=".*ector.*" maxCount="2147483647" />
-      <constraint name="ParameterType" minCount="0" maxCount="2147483647" />
       <constraint name="Class" />
+      <constraint name="ParameterType" minCount="0" maxCount="2147483647" />
       <constraint name="Parameter" minCount="0" maxCount="2147483647" />
       <constraint name="ReturnType" maxCount="2147483647" />
     </searchConfiguration>
@@ -549,7 +623,7 @@
       <window_info id="IG Telemetry" active="false" anchor="bottom" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.33" order="8" />
       <window_info id="CVS" active="false" anchor="bottom" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.33" order="8" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.33" order="7" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="docked" type="docked" visible="true" weight="0.24081632" order="0" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="sliding" type="sliding" visible="false" weight="0.3046875" order="0" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="sliding" type="sliding" visible="false" weight="0.6473029" order="1" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.25" order="1" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="sliding" type="sliding" visible="false" weight="0.8" order="8" />
@@ -557,11 +631,11 @@
       <window_info id="Module Dependencies" active="false" anchor="right" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.33" order="3" />
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.33" order="8" />
       <window_info id="Favorites" active="false" anchor="right" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.32952693" order="3" />
-      <window_info id="Ant Build" active="false" anchor="right" auto_hide="true" internal_type="docked" type="docked" visible="false" weight="0.18857142" order="1" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="true" internal_type="docked" type="docked" visible="false" weight="0.18775511" order="1" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="sliding" type="sliding" visible="false" weight="0.8772414" order="2" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.25" order="2" />
       <window_info id="File View" active="false" anchor="right" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.33" order="3" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.4" order="4" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="sliding" type="sliding" visible="false" weight="0.9834197" order="4" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="sliding" type="sliding" visible="false" weight="0.4" order="0" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.33" order="8" />
       <window_info id="SQL" active="false" anchor="bottom" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.33" order="8" />
@@ -657,109 +731,107 @@
     </buildFile>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/bsh/ExternalNameSpace.java">
+    <entry file="file://$PROJECT_DIR$/asm/src/bsh/org/objectweb/asm/CodeVisitor.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="157" column="4" selection-start="4870" selection-end="4870" vertical-scroll-proportion="0.57589287">
+        <state line="37" column="16" selection-start="1632" selection-end="1632" vertical-scroll-proportion="0.19219653">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/bsh/Interpreter.java">
+    <entry file="file://$PROJECT_DIR$/src/bsh/BSHType.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="53" column="49" selection-start="3025" selection-end="3025" vertical-scroll-proportion="0.02891933">
+        <state line="103" column="39" selection-start="4537" selection-end="4537" vertical-scroll-proportion="0.027456647">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="jar://C:/Program Files/Java/jdk1.5.0_03/src.zip!/java/io/Writer.java">
+    <entry file="file://$PROJECT_DIR$/src/bsh/classpath/BshClassPath.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="202" column="5" selection-start="5916" selection-end="5916" vertical-scroll-proportion="0.02827381">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tests/test-scripts/externalNameSpace.bsh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="12" column="26" selection-start="309" selection-end="309" vertical-scroll-proportion="0.027456647">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/engine/javax-src/javax/script/ScriptEngine.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="33" column="17" selection-start="1214" selection-end="1214" vertical-scroll-proportion="0.3323486">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$PROJECT_DIR$/lib/javaxscript.jar!/javax/script/ScriptEngine.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="5" column="17" selection-start="154" selection-end="154" vertical-scroll-proportion="0.11225997">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/engine/src/TestBshScriptEngine.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="0" selection-start="428" selection-end="428" vertical-scroll-proportion="0.42097488">
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/engine/README.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="13" column="0" selection-start="230" selection-end="230" vertical-scroll-proportion="0.36484492">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/engine/src/bsh/engine/BshScriptEngine.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="11" column="0" selection-start="211" selection-end="211" vertical-scroll-proportion="0.19645494">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/bsh/ClassGenerator.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="28" column="0" selection-start="592" selection-end="592" vertical-scroll-proportion="0.23699422">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/asmteststaticinit/A.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="4" column="0" selection-start="99" selection-end="99" vertical-scroll-proportion="0.10982659">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/bsh/NameSpace.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="568" column="18" selection-start="17853" selection-end="17853" vertical-scroll-proportion="0.33236995">
+        <state line="147" column="13" selection-start="5319" selection-end="5319" vertical-scroll-proportion="0.97321427">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/bsh/BSHClassDeclaration.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="65" column="31" selection-start="3282" selection-end="3282" vertical-scroll-proportion="0.027456647">
+        <state line="91" column="54" selection-start="4067" selection-end="4067" vertical-scroll-proportion="0.74553573">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/bsh/ClassGeneratorImpl.java">
+    <entry file="file://$PROJECT_DIR$/tests/test-scripts/interface.bsh">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="156" column="48" selection-start="5192" selection-end="5192" vertical-scroll-proportion="0.5520231">
+        <state line="8" column="23" selection-start="156" selection-end="156" vertical-scroll-proportion="0.22619048">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/bsh/classpath/DiscreteFilesClassLoader.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="49" column="46" selection-start="3077" selection-end="3077" vertical-scroll-proportion="0.2933526">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/bsh/classpath/BshClassLoader.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="110" column="16" selection-start="4632" selection-end="4632" vertical-scroll-proportion="0.7586705">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/bsh/BSHBlock.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="143" column="0" selection-start="5347" selection-end="5347" vertical-scroll-proportion="0.77890176">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/bsh/BshClassManager.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="328" column="38" selection-start="11607" selection-end="11607" vertical-scroll-proportion="0.3684971">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/bsh/ClassGenerator.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="42" column="4" selection-start="1138" selection-end="1138" vertical-scroll-proportion="0.61416185">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/bsh/classpath/ClassManagerImpl.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="531" column="23" selection-start="15920" selection-end="15920" vertical-scroll-proportion="0.3598266">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/bsh/ClassGeneratorUtil.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="189" column="0" selection-start="7871" selection-end="7871" vertical-scroll-proportion="0.9450867">
+        <state line="1126" column="6" selection-start="37486" selection-end="37486" vertical-scroll-proportion="0.6430636">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/bsh/ClassGeneratorImpl.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="80" column="55" selection-start="2558" selection-end="2558" vertical-scroll-proportion="0.58815026">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/bsh/NameSpace.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="1558" column="0" selection-start="44692" selection-end="44692" vertical-scroll-proportion="0.75289017">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/bsh/Interpreter.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="638" column="67" selection-start="20538" selection-end="20538" vertical-scroll-proportion="0.26878613">
           <folding />
         </state>
       </provider>

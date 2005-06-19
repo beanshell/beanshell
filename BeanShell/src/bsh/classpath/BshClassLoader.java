@@ -140,9 +140,6 @@ public class BshClassLoader extends URLClassLoader
 		// Should we try to load the class ourselves or delegate?
 		// look for overlay loader
 
-		// Deal with this cast somehow... maybe have this class use 
-		// ClassManagerImpl type directly.
-		// Don't add the method to BshClassManager... it's really an impl thing
 		ClassLoader cl = bcm.getLoaderForClass( name );
 
 		Class c;
