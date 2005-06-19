@@ -95,7 +95,6 @@ class BSHClassDeclaration extends SimpleNode
 		} catch ( UtilEvalError e ) {
 			throw e.toEvalError( this, callstack );
 		}
-
 	}
 
 	public String toString() {

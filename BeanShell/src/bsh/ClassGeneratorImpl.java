@@ -62,7 +62,6 @@ public class ClassGeneratorImpl extends ClassGenerator
 	)
 		throws EvalError
 	{
-//		System.out.println( "generateClassImpl" );
 		// Scripting classes currently requires accessibility
 		// This can be eliminated with a bit more work.
 		try {
@@ -157,7 +156,6 @@ public class ClassGeneratorImpl extends ClassGenerator
 					classStaticNameSpace, interpreter );
 		}
 
-// changed order of ths and previous thing
 		callstack.pop();
 
 		bcm.doneDefiningClass( fqClassName );
@@ -349,30 +347,5 @@ public class ClassGeneratorImpl extends ClassGenerator
 			false/*onlyStatic*/ );
 		return Reflect.invokeMethod( superMethod, instance, args );
 	}
-
-	/*
-		Check for an existing generated bsh class and return it or null.
-		The class must be one we generated.
-	private static Class getExistingGeneratedClass(
-		BshClassManager bcm, String fqClassName, String bshStaticFieldName )
-	{
-//System.out.println( "get existing generated class" );
-		Class genClass = bcm.classForName( fqClassName );
-
-		boolean isGenClass = false;
-		if ( genClass != null )
-		{
-			try {
-				isGenClass = Reflect.resolveJavaField(
-					genClass, bshStaticFieldName, true/staticOnly/ ) != null;
-			} catch ( Exception e ) { /ignore/ } // TODO: make more specific
-		}
-
-//if ( isGenClass )
-//System.out.println( "Found existing generated class: " + fqClassName );
-
-		return isGenClass ? genClass : null;
-	}
-		*/
 
 }

@@ -71,6 +71,10 @@ import java.io.*;
 	reflection does not normally allow).
 	<p>
 
+	TODO: We have hooks for generating static initializer code, now used
+	to save persistent class stubs.  This must be extended to accomodate
+	general static initializer blocks.
+
 	@author Pat Niemeyer
 */
 /*
@@ -893,7 +897,6 @@ public class ClassGeneratorUtil implements Constants
 		try {
 			Object cons =
 				classStaticThis.getNameSpace().getVariable( BSHCONSTRUCTORS );
-//			System.out.println( "cons=" + cons );
 			if ( cons == Primitive.VOID )
 				throw new InterpreterError(
 					"Unable to find constructors array in class" );
@@ -1260,8 +1263,6 @@ public class ClassGeneratorUtil implements Constants
 	*/
 	public static void startInterpreterForClass( Class genClass )
 	{
-//System.out.println("starting interpreter for class: "+genClass );
-
 		String fqClassName = genClass.getName();
 		String baseName = Name.suffix( fqClassName, 1 );
 		String resName = baseName+".bsh";
