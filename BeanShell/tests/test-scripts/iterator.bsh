@@ -3,6 +3,7 @@
 source("TestHarness.bsh");
 
 import bsh.CollectionManager;
+import bsh.Capabilities;
 cm = CollectionManager.getCollectionManager();
 
 iterator = cm.getBshIterator( "ffoo" );
@@ -46,7 +47,27 @@ if ( cm instanceof bsh.collection.CollectionManagerImpl )
 		flag();
 	}
 	assert( flag() == 10 );
+
+	// test Java 5 Iterable
+	if ( Capabilities.classExists("java.lang.Iterable") )
+	{
+		list=new ArrayList();
+		list.add("foo");
+		list.add("bar");
+
+		iterable = new Iterable() {
+			Iterator iterator() {
+				return list.iterator();
+			}
+		};
+
+		for( i : iterable )
+			flag();
+
+		assert( flag() == 13 );
+	} 
+
 } else
-	print("No collections to test");
+	warning("No collections to test");
 
 complete();
