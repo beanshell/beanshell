@@ -54,6 +54,18 @@ options {
 	DEBUG_LOOKAHEAD=true;
 	*/
 
+	/*
+		There are weird issues related to this flag.
+		The default value, true, creates line level error detail in the parse
+		exceptions.  However it gives us strange LookaheadSuccess Errors thrown
+		on some syntax errors.
+		http://groups-beta.google.com/group/comp.compilers.tools.javacc/browse_thread/thread/14d3471883f8794f/ecf7b1d81151839c?q=Parser$LookaheadSuccess&rnum=1&hl=en#ecf7b1d81151839c
+		I have manually hacked the Parser.java to catch LookaheadSuccess in
+		the jj_rescan_token() method...  The bug report indicates that this
+		is fixed, apparently in some post javacc 3.2 version.
+	*/
+	//ERROR_REPORTING=false;
+
 	// This breaks something for interactive use on the command line,
 	// but may be useful in non-interactive use.
 	//CACHE_TOKENS=true;
@@ -548,7 +560,7 @@ void ImportDeclaration() #ImportDeclaration :
 }
 {
   LOOKAHEAD( 3 )
-  [ s = "static" ] "import" AmbiguousName() [ t = "." "*" ] ";" 
+  "import" [ s = "static" ] AmbiguousName() [ t = "." "*" ] ";"
   {
 		if ( s != null ) jjtThis.staticImport = true;
 		if ( t != null ) jjtThis.importPackage = true;
