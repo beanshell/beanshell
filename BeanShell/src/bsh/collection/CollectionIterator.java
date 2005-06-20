@@ -3,6 +3,7 @@ package bsh.collection;
 import bsh.Capabilities;
 import bsh.CollectionManager;
 import bsh.UtilTargetError;
+import bsh.InterpreterError;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
@@ -102,9 +103,10 @@ public class CollectionIterator implements bsh.BshIterator
 				try {
 					Method m = c.getMethod("iterator", new Class[0]);
 					it = (Iterator)m.invoke(iterateOverMe, new Object[0]);
-				} catch( Exception e ) {
-					throw new RuntimeException("Unexpected problem calling " +
-						"\"iterator()\" on instance of java.lang.Iterable.", e);
+				} catch( Exception e ) 
+				{
+					throw new InterpreterError("Unexpected problem calling " +
+						"\"iterator()\" on instance of java.lang.Iterable."+ e);
 				}
 			}
 		} catch( ClassNotFoundException cnfe ) {
