@@ -533,7 +533,7 @@ void ClassDeclaration()                   :
           jjtc000 = false;
           jjtreeCloseNodeScope(jjtn000);
         }
-/*@egen*/ 
+/*@egen*/
 	{
 		jjtn000.modifiers = mods;
 		jjtn000.name = name.image;
@@ -567,8 +567,8 @@ void MethodDeclaration()                    :
         boolean jjtc000 = true;
         jjtree.openNodeScope(jjtn000);
         jjtreeOpenNodeScope(jjtn000);
-/*@egen*/ 
-	Token t = null; 
+/*@egen*/
+	Token t = null;
 	Modifiers mods;
 	int count;
 }
@@ -580,11 +580,11 @@ void MethodDeclaration()                    :
 	LOOKAHEAD( <IDENTIFIER> "(" )
 	t = <IDENTIFIER> { jjtn000.name = t.image; }
 |
-    ReturnType() 
+    ReturnType()
 	t = <IDENTIFIER> { jjtn000.name = t.image; }
 )
-    FormalParameters() 
-	[ "throws" count=NameList() { jjtn000.numThrows=count; } ] 
+    FormalParameters()
+	[ "throws" count=NameList() { jjtn000.numThrows=count; } ]
 	( Block() | ";" )/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
@@ -708,8 +708,8 @@ void VariableDeclarator()                     :
         boolean jjtc000 = true;
         jjtree.openNodeScope(jjtn000);
         jjtreeOpenNodeScope(jjtn000);
-/*@egen*/ 
-	Token t; 
+/*@egen*/
+	Token t;
 }
 {/*@bgen(jjtree) VariableDeclarator */
         try {
@@ -720,8 +720,8 @@ void VariableDeclarator()                     :
           jjtc000 = false;
           jjtreeCloseNodeScope(jjtn000);
         }
-/*@egen*/ 
-	{ 
+/*@egen*/
+	{
   		jjtn000.name = t.image;
 	}/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
@@ -776,7 +776,7 @@ void ArrayInitializer()                   :
 {/*@bgen(jjtree) ArrayInitializer */
   try {
 /*@egen*/
-  "{" [ VariableInitializer() 
+  "{" [ VariableInitializer()
 		( LOOKAHEAD(2) "," VariableInitializer() )* ] [ "," ] "}"/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
@@ -898,12 +898,12 @@ void Type()       :
 {/*@bgen(jjtree) Type */
   try {
 /*@egen*/
-	/* 
+	/*
 		The embedded lookahead is (was?) necessary to disambiguate for
 		PrimaryPrefix.  ( )* is a choice point.  It took me a while to
 		figure out where to put that.  This stuff is annoying.
 	*/
-  ( PrimitiveType() | AmbiguousName() ) 
+  ( PrimitiveType() | AmbiguousName() )
 	( LOOKAHEAD(2) "[" "]" { jjtn000.addArrayDimension(); } )*/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
@@ -925,7 +925,7 @@ void Type()       :
       jjtreeCloseNodeScope(jjtn000);
     }
   }
-/*@egen*/ 
+/*@egen*/
 }
 
 /*
@@ -1064,8 +1064,8 @@ void AmbiguousName()                :
 {/*@bgen(jjtree) AmbiguousName */
   try {
 /*@egen*/
-  t = <IDENTIFIER> { 
-  	s = new StringBuffer(t.image); 
+  t = <IDENTIFIER> {
+  	s = new StringBuffer(t.image);
   }
   ( LOOKAHEAD(2) "." t = <IDENTIFIER> { s.append("."+t.image); } )*/*@bgen(jjtree)*/
                                                                     {
@@ -1073,8 +1073,8 @@ void AmbiguousName()                :
                                                                       jjtc000 = false;
                                                                       jjtreeCloseNodeScope(jjtn000);
                                                                     }
-/*@egen*/ { 
-  	jjtn000.text = s.toString(); 
+/*@egen*/ {
+  	jjtn000.text = s.toString();
   }/*@bgen(jjtree)*/
   } finally {
     if (jjtc000) {
@@ -1119,8 +1119,8 @@ void Assignment()             :
 {/*@bgen(jjtree) Assignment */
   try {
 /*@egen*/
-  PrimaryExpression() 
-  	op = AssignmentOperator() { jjtn000.operator = op; } 
+  PrimaryExpression()
+  	op = AssignmentOperator() { jjtn000.operator = op; }
 	// Add this for blocks, e.g. foo = { };
 	//( Expression() | Block() )
 	Expression()/*@bgen(jjtree)*/
@@ -1159,7 +1159,7 @@ int AssignmentOperator() :
     }
 }
 
-void ConditionalExpression() : 
+void ConditionalExpression() :
 { }
 {
   ConditionalOrExpression() [ "?" Expression() ":"/*@bgen(jjtree) #TernaryExpression( 3) */
@@ -1672,7 +1672,7 @@ void PostfixExpression() :
                                 jjtc001 = false;
                                 jjtreeCloseNodeScope(jjtn001);
                               }
-/*@egen*/ { 
+/*@egen*/ {
 		jjtn001.kind = t.kind; jjtn001.postfix = true; }/*@bgen(jjtree)*/
                               } finally {
                                 if (jjtc001) {
@@ -1785,7 +1785,7 @@ void MethodInvocation()                   : {/*@bgen(jjtree) MethodInvocation */
        jjtreeCloseNodeScope(jjtn000);
      }
    }
-/*@egen*/ 
+/*@egen*/
 }
 
 void PrimaryPrefix() : { }
@@ -1797,10 +1797,10 @@ void PrimaryPrefix() : { }
   AllocationExpression()
 |
   // SYNTACTIC_LOOKAHEAD
-  LOOKAHEAD( MethodInvocation() ) 
+  LOOKAHEAD( MethodInvocation() )
 	MethodInvocation()
 |
-  LOOKAHEAD( Type() "." "class" ) 
+  LOOKAHEAD( Type() "." "class" )
 	Type()
 |
   AmbiguousName()
@@ -1929,7 +1929,7 @@ void Literal()          :
     }
     else
 		try {
-        	jjtn000.value = new Primitive( 
+        	jjtn000.value = new Primitive(
 				Integer.decode( literal ).intValue() );
 		} catch ( NumberFormatException e ) {
 			throw createParseException(
@@ -2005,7 +2005,7 @@ void Literal()          :
                   jjtreeCloseNodeScope(jjtn000);
                 }
 /*@egen*/ {
-    jjtn000.value = Primitive.NULL; 
+    jjtn000.value = Primitive.NULL;
 }
 |
  VoidLiteral()/*@bgen(jjtree)*/
@@ -2114,10 +2114,10 @@ void AllocationExpression()                       :
   LOOKAHEAD(2)
   "new" PrimitiveType() ArrayDimensions()
 |
-  "new" AmbiguousName() 
-	( 
-		ArrayDimensions() 
-	| 
+  "new" AmbiguousName()
+	(
+		ArrayDimensions()
+	|
 		// SYNTACTIC_LOOKAHEAD
 		Arguments() [ LOOKAHEAD(2) Block() ]
 	)/*@bgen(jjtree)*/
@@ -2234,35 +2234,52 @@ void LabeledStatement() :
 
 void Block()        :
 {/*@bgen(jjtree) Block */
-  BSHBlock jjtn000 = new BSHBlock(JJTBLOCK);
-  boolean jjtc000 = true;
-  jjtree.openNodeScope(jjtn000);
-  jjtreeOpenNodeScope(jjtn000);
-/*@egen*/}
-{/*@bgen(jjtree) Block */
-  try {
+        BSHBlock jjtn000 = new BSHBlock(JJTBLOCK);
+        boolean jjtc000 = true;
+        jjtree.openNodeScope(jjtn000);
+        jjtreeOpenNodeScope(jjtn000);
 /*@egen*/
-  "{" ( BlockStatement() )* "}"/*@bgen(jjtree)*/
-  } catch (Throwable jjte000) {
-    if (jjtc000) {
-      jjtree.clearNodeScope(jjtn000);
-      jjtc000 = false;
-    } else {
-      jjtree.popNode();
-    }
-    if (jjte000 instanceof RuntimeException) {
-      throw (RuntimeException)jjte000;
-    }
-    if (jjte000 instanceof ParseException) {
-      throw (ParseException)jjte000;
-    }
-    throw (Error)jjte000;
-  } finally {
-    if (jjtc000) {
-      jjtree.closeNodeScope(jjtn000, true);
-      jjtreeCloseNodeScope(jjtn000);
-    }
-  }
+	Token s = null;
+}
+{/*@bgen(jjtree) Block */
+        try {
+/*@egen*/
+/*
+	Doing "static" blocks here means that we'll have to throw runtime
+	exceptions if it's not used in an appropriate place.
+	Is it worth moving the grammar around to make this a static parse time
+	check?  (Sreeni? ;) )
+*/
+	[ s = "static" ] "{" ( BlockStatement() )* "}"/*@bgen(jjtree)*/
+        {
+          jjtree.closeNodeScope(jjtn000, true);
+          jjtc000 = false;
+          jjtreeCloseNodeScope(jjtn000);
+        }
+/*@egen*/
+	{
+		if ( s != null ) jjtn000.isStatic = true;
+	}/*@bgen(jjtree)*/
+        } catch (Throwable jjte000) {
+          if (jjtc000) {
+            jjtree.clearNodeScope(jjtn000);
+            jjtc000 = false;
+          } else {
+            jjtree.popNode();
+          }
+          if (jjte000 instanceof RuntimeException) {
+            throw (RuntimeException)jjte000;
+          }
+          if (jjte000 instanceof ParseException) {
+            throw (ParseException)jjte000;
+          }
+          throw (Error)jjte000;
+        } finally {
+          if (jjtc000) {
+            jjtree.closeNodeScope(jjtn000, true);
+            jjtreeCloseNodeScope(jjtn000);
+          }
+        }
 /*@egen*/
 }
 
