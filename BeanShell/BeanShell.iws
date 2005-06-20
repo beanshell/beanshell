@@ -136,44 +136,7 @@
     <option name="myCurrentFavoritesList" value="BeanShell" />
   </component>
   <component name="FileEditorManager">
-    <leaf>
-      <file leaf-file-name="ClassGeneratorUtil.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/bsh/ClassGeneratorUtil.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="1126" column="6" selection-start="37486" selection-end="37486" vertical-scroll-proportion="0.6430636">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ClassGeneratorImpl.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/bsh/ClassGeneratorImpl.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="80" column="55" selection-start="2558" selection-end="2558" vertical-scroll-proportion="0.58815026">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="NameSpace.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/bsh/NameSpace.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="1558" column="0" selection-start="44692" selection-end="44692" vertical-scroll-proportion="0.75289017">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Interpreter.java" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/bsh/Interpreter.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="638" column="67" selection-start="20538" selection-end="20538" vertical-scroll-proportion="0.26878613">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
+    <leaf />
   </component>
   <component name="FindManager">
     <FindUsagesManager>
@@ -484,21 +447,38 @@
       <option name="PROGRAM_PARAMETERS" value="" />
       <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
       <module name="BeanShell" />
+      <RunnerSettings RunnerId="Run" />
       <RunnerSettings RunnerId="Debug">
         <option name="DEBUG_PORT" value="1340" />
         <option name="TRANSPORT" value="0" />
         <option name="LOCAL" value="false" />
       </RunnerSettings>
-      <RunnerSettings RunnerId="Run" />
-      <ConfigurationWrapper RunnerId="Debug" />
       <ConfigurationWrapper RunnerId="Run" />
+      <ConfigurationWrapper RunnerId="Debug" />
     </tempConfiguration>
+    <configuration selected="false" default="true" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" />
+      <option name="VM_PARAMETERS" />
+      <option name="PROGRAM_PARAMETERS" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <module name="" />
+    </configuration>
     <configuration selected="false" default="true" type="Remote" factoryName="Remote">
       <option name="USE_SOCKET_TRANSPORT" value="true" />
       <option name="SERVER_MODE" value="false" />
       <option name="SHMEM_ADDRESS" value="javadebug" />
       <option name="HOST" value="localhost" />
       <option name="PORT" value="5005" />
+    </configuration>
+    <configuration selected="false" default="true" type="Applet" factoryName="Applet">
+      <module name="" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="HTML_FILE_NAME" />
+      <option name="HTML_USED" value="false" />
+      <option name="WIDTH" value="400" />
+      <option name="HEIGHT" value="300" />
+      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
+      <option name="VM_PARAMETERS" />
     </configuration>
     <configuration selected="false" default="true" type="JUnit" factoryName="JUnit">
       <module name="" />
@@ -513,23 +493,6 @@
       <option name="TEST_SEARCH_SCOPE">
         <value defaultName="wholeProject" />
       </option>
-    </configuration>
-    <configuration selected="false" default="true" type="Application" factoryName="Application">
-      <option name="MAIN_CLASS_NAME" />
-      <option name="VM_PARAMETERS" />
-      <option name="PROGRAM_PARAMETERS" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <module name="" />
-    </configuration>
-    <configuration selected="false" default="true" type="Applet" factoryName="Applet">
-      <module name="" />
-      <option name="MAIN_CLASS_NAME" />
-      <option name="HTML_FILE_NAME" />
-      <option name="HTML_USED" value="false" />
-      <option name="WIDTH" value="400" />
-      <option name="HEIGHT" value="300" />
-      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
-      <option name="VM_PARAMETERS" />
     </configuration>
     <configuration selected="false" default="false" name="Test" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="Test" />
@@ -570,15 +533,15 @@
   <component name="StructuralSearchPlugin">
     <searchConfiguration name="user defined" text="class $Class$ { &#10;  $ReturnType$ $MethodName$($ParameterType$ $Parameter$);&#10;}" recursive="false" caseInsensitive="false" history="1">
       <constraint name="MethodName" regexp=".*enumeration.*" maxCount="2147483647" />
-      <constraint name="ParameterType" minCount="0" maxCount="2147483647" />
       <constraint name="Class" />
+      <constraint name="ParameterType" minCount="0" maxCount="2147483647" />
       <constraint name="Parameter" minCount="0" maxCount="2147483647" />
       <constraint name="ReturnType" maxCount="2147483647" />
     </searchConfiguration>
     <searchConfiguration name="methods of the class" text="class $Class$ { &#10;  $ReturnType$ $MethodName$($ParameterType$ $Parameter$);&#10;}" recursive="false" caseInsensitive="false" history="1">
       <constraint name="MethodName" regexp=".*ector.*" maxCount="2147483647" />
-      <constraint name="Class" />
       <constraint name="ParameterType" minCount="0" maxCount="2147483647" />
+      <constraint name="Class" />
       <constraint name="Parameter" minCount="0" maxCount="2147483647" />
       <constraint name="ReturnType" maxCount="2147483647" />
     </searchConfiguration>
@@ -617,7 +580,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-1281" y="-3" width="1277" height="802" extended-state="0" />
+    <frame x="-1281" y="-3" width="1277" height="802" extended-state="1" />
     <editor active="true" />
     <layout>
       <window_info id="IG Telemetry" active="false" anchor="bottom" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.33" order="8" />
@@ -731,20 +694,6 @@
     </buildFile>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/asm/src/bsh/org/objectweb/asm/CodeVisitor.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="37" column="16" selection-start="1632" selection-end="1632" vertical-scroll-proportion="0.19219653">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/bsh/BSHType.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="103" column="39" selection-start="4537" selection-end="4537" vertical-scroll-proportion="0.027456647">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/bsh/classpath/BshClassPath.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="147" column="13" selection-start="5319" selection-end="5319" vertical-scroll-proportion="0.97321427">
@@ -808,31 +757,47 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/bsh/ClassGeneratorUtil.java">
+    <entry file="file://$PROJECT_DIR$/src/bsh/NameSpace.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="1126" column="6" selection-start="37486" selection-end="37486" vertical-scroll-proportion="0.6430636">
+        <state line="1558" column="0" selection-start="44692" selection-end="44692" vertical-scroll-proportion="0.61560696">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/bsh/ClassGeneratorImpl.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="80" column="55" selection-start="2558" selection-end="2558" vertical-scroll-proportion="0.58815026">
+        <state line="80" column="55" selection-start="2558" selection-end="2558" vertical-scroll-proportion="0.027456647">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/bsh/NameSpace.java">
+    <entry file="file://$PROJECT_DIR$/src/bsh/ClassGeneratorUtil.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="1558" column="0" selection-start="44692" selection-end="44692" vertical-scroll-proportion="0.75289017">
+        <state line="1150" column="45" selection-start="38262" selection-end="38262" vertical-scroll-proportion="0.43930635">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/bsh/bsh.jjt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="65" column="0" selection-start="3656" selection-end="3656" vertical-scroll-proportion="0.77548003">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/bsh/Interpreter.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="638" column="67" selection-start="20538" selection-end="20538" vertical-scroll-proportion="0.26878613">
+        <state line="174" column="8" selection-start="7258" selection-end="7258" vertical-scroll-proportion="0.21965317">
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/bsh/Parser.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="6138" column="17" selection-start="161565" selection-end="161565" vertical-scroll-proportion="0.7193501">
+          <folding>
+            <marker date="1119239550000" expanded="true" signature="161565:161569" placeholder="{...}" />
+          </folding>
         </state>
       </provider>
     </entry>

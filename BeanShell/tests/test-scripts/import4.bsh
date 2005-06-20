@@ -23,7 +23,7 @@ assert( indexOf("99") == 6 );
 
 // Static imports
 
-static import java.lang.Math.*;
+import static java.lang.Math.*;
 // equivalent to
 //this.namespace.importStatic( java.lang.Math.class );
 
@@ -38,7 +38,7 @@ assert( PI > 3.0 && PI < 4.0 );
 
 Fields.staticField2 = 42;
 
-static import Fields.*;
+import static Fields.*;
 
 assert( staticField2 == 42 );
 staticField2 = 43;
