@@ -318,7 +318,7 @@ public class ClassGeneratorImpl extends ClassGenerator
 
 			// need to add static block here
 			if ( node instanceof BSHBlock)
-				return false;
+				return ((BSHBlock)node).isStatic;
 
 			return false;
 		}

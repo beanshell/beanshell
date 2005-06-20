@@ -520,7 +520,7 @@ void ClassDeclaration() #ClassDeclaration :
 	[ "extends" AmbiguousName() { jjtThis.extend = true; } ] 
 	[ "implements" numInterfaces=NameList() 
 		{ jjtThis.numInterfaces=numInterfaces; } ]
-	Block() 
+	Block()
 	{
 		jjtThis.modifiers = mods;
 		jjtThis.name = name.image;
@@ -528,8 +528,8 @@ void ClassDeclaration() #ClassDeclaration :
 }
 
 void MethodDeclaration() #MethodDeclaration :
-{ 
-	Token t = null; 
+{
+	Token t = null;
 	Modifiers mods;
 	int count;
 }
@@ -539,11 +539,11 @@ void MethodDeclaration() #MethodDeclaration :
 	LOOKAHEAD( <IDENTIFIER> "(" )
 	t = <IDENTIFIER> { jjtThis.name = t.image; }
 |
-    ReturnType() 
+    ReturnType()
 	t = <IDENTIFIER> { jjtThis.name = t.image; }
 )
-    FormalParameters() 
-	[ "throws" count=NameList() { jjtThis.numThrows=count; } ] 
+    FormalParameters()
+	[ "throws" count=NameList() { jjtThis.numThrows=count; } ]
 	( Block() | ";" )
 }
 
@@ -573,12 +573,12 @@ void ImportDeclaration() #ImportDeclaration :
 }
 
 void VariableDeclarator() #VariableDeclarator :
-{ 
-	Token t; 
+{
+	Token t;
 }
 {
-	t=<IDENTIFIER> [ "=" VariableInitializer() ] 
-	{ 
+	t=<IDENTIFIER> [ "=" VariableInitializer() ]
+	{
   		jjtThis.name = t.image;
 	}
 }
@@ -605,7 +605,7 @@ void VariableInitializer() :
 void ArrayInitializer() #ArrayInitializer :
 {}
 {
-  "{" [ VariableInitializer() 
+  "{" [ VariableInitializer()
 		( LOOKAHEAD(2) "," VariableInitializer() )* ] [ "," ] "}"
 }
 
@@ -631,13 +631,13 @@ void FormalParameter() #FormalParameter :
 void Type() #Type :
 { }
 {
-	/* 
+	/*
 		The embedded lookahead is (was?) necessary to disambiguate for
 		PrimaryPrefix.  ( )* is a choice point.  It took me a while to
 		figure out where to put that.  This stuff is annoying.
 	*/
-  ( PrimitiveType() | AmbiguousName() ) 
-	( LOOKAHEAD(2) "[" "]" { jjtThis.addArrayDimension(); } )* 
+  ( PrimitiveType() | AmbiguousName() )
+	( LOOKAHEAD(2) "[" "]" { jjtThis.addArrayDimension(); } )*
 }
 
 /*
@@ -673,11 +673,11 @@ void AmbiguousName() #AmbiguousName :
     StringBuffer s;
 }
 {
-  t = <IDENTIFIER> { 
-  	s = new StringBuffer(t.image); 
+  t = <IDENTIFIER> {
+  	s = new StringBuffer(t.image);
   }
-  ( LOOKAHEAD(2) "." t = <IDENTIFIER> { s.append("."+t.image); } )* { 
-  	jjtThis.text = s.toString(); 
+  ( LOOKAHEAD(2) "." t = <IDENTIFIER> { s.append("."+t.image); } )* {
+  	jjtThis.text = s.toString();
   }
 }
 
@@ -708,8 +708,8 @@ void Expression() :
 void Assignment() #Assignment :
 { int op ; }
 {
-  PrimaryExpression() 
-  	op = AssignmentOperator() { jjtThis.operator = op; } 
+  PrimaryExpression()
+  	op = AssignmentOperator() { jjtThis.operator = op; }
 	// Add this for blocks, e.g. foo = { };
 	//( Expression() | Block() )
 	Expression()
@@ -727,10 +727,10 @@ int AssignmentOperator() :
     }
 }
 
-void ConditionalExpression() : 
+void ConditionalExpression() :
 { }
 {
-  ConditionalOrExpression() [ "?" Expression() ":" ConditionalExpression() 
+  ConditionalOrExpression() [ "?" Expression() ":" ConditionalExpression()
 	#TernaryExpression(3) ]
 }
 
@@ -884,7 +884,7 @@ void PostfixExpression() :
 // SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( PrimaryExpression() ("++"|"--") )
   PrimaryExpression()
-	  ( t="++" | t="--" ) { 
+	  ( t="++" | t="--" ) {
 		jjtThis.kind = t.kind; jjtThis.postfix = true; } #UnaryExpression(1)
 |
   PrimaryExpression()
@@ -906,7 +906,7 @@ void PrimaryExpression() #PrimaryExpression : { }
 
 void MethodInvocation() #MethodInvocation : { }
 {
-   AmbiguousName() Arguments() 
+   AmbiguousName() Arguments()
 }
 
 void PrimaryPrefix() : { }
@@ -918,10 +918,10 @@ void PrimaryPrefix() : { }
   AllocationExpression()
 |
   // SYNTACTIC_LOOKAHEAD
-  LOOKAHEAD( MethodInvocation() ) 
+  LOOKAHEAD( MethodInvocation() )
 	MethodInvocation()
 |
-  LOOKAHEAD( Type() "." "class" ) 
+  LOOKAHEAD( Type() "." "class" )
 	Type()
 |
   AmbiguousName()
@@ -985,7 +985,7 @@ void Literal() #Literal :
     }
     else
 		try {
-        	jjtThis.value = new Primitive( 
+        	jjtThis.value = new Primitive(
 				Integer.decode( literal ).intValue() );
 		} catch ( NumberFormatException e ) {
 			throw createParseException(
@@ -1031,7 +1031,7 @@ void Literal() #Literal :
     jjtThis.value = new Primitive( b ); }
 |
   NullLiteral() {
-    jjtThis.value = Primitive.NULL; 
+    jjtThis.value = Primitive.NULL;
 }
 |
  VoidLiteral() {
@@ -1078,10 +1078,10 @@ void AllocationExpression() #AllocationExpression :
   LOOKAHEAD(2)
   "new" PrimitiveType() ArrayDimensions()
 |
-  "new" AmbiguousName() 
-	( 
-		ArrayDimensions() 
-	| 
+  "new" AmbiguousName()
+	(
+		ArrayDimensions()
+	|
 		// SYNTACTIC_LOOKAHEAD
 		Arguments() [ LOOKAHEAD(2) Block() ]
 	)
@@ -1148,9 +1148,20 @@ void LabeledStatement() :
 }
 
 void Block() #Block :
-{}
 {
-  "{" ( BlockStatement() )* "}"
+	Token s = null;
+}
+{
+/*
+	Doing "static" blocks here means that we'll have to throw runtime
+	exceptions if it's not used in an appropriate place.
+	Is it worth moving the grammar around to make this a static parse time
+	check?  (Sreeni? ;) )
+*/
+	[ s = "static" ] "{" ( BlockStatement() )* "}"
+	{
+		if ( s != null ) jjtThis.isStatic = true;
+	}
 }
 
 void BlockStatement() :

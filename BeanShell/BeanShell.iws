@@ -136,7 +136,35 @@
     <option name="myCurrentFavoritesList" value="BeanShell" />
   </component>
   <component name="FileEditorManager">
-    <leaf />
+    <leaf>
+      <file leaf-file-name="BSHBlock.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/bsh/BSHBlock.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="130" column="41" selection-start="5076" selection-end="5076" vertical-scroll-proportion="0.42341042">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="bsh.jjt" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/bsh/bsh.jjt">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="1159" column="1" selection-start="26601" selection-end="26601" vertical-scroll-proportion="0.30871493">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ClassGeneratorImpl.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/bsh/ClassGeneratorImpl.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="321" column="0" selection-start="9980" selection-end="9980" vertical-scroll-proportion="0.80780345">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
   </component>
   <component name="FindManager">
     <FindUsagesManager>
@@ -580,7 +608,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-1281" y="-3" width="1277" height="802" extended-state="1" />
+    <frame x="-1281" y="-3" width="1277" height="802" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="IG Telemetry" active="false" anchor="bottom" auto_hide="false" internal_type="docked" type="docked" visible="false" weight="0.33" order="8" />
@@ -729,13 +757,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/bsh/BSHBlock.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="143" column="0" selection-start="5347" selection-end="5347" vertical-scroll-proportion="0.77890176">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/bsh/BshClassManager.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="328" column="38" selection-start="11607" selection-end="11607" vertical-scroll-proportion="0.3684971">
@@ -764,23 +785,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/bsh/ClassGeneratorImpl.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="80" column="55" selection-start="2558" selection-end="2558" vertical-scroll-proportion="0.027456647">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/bsh/ClassGeneratorUtil.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="1150" column="45" selection-start="38262" selection-end="38262" vertical-scroll-proportion="0.43930635">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/bsh/bsh.jjt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="65" column="0" selection-start="3656" selection-end="3656" vertical-scroll-proportion="0.77548003">
           <folding />
         </state>
       </provider>
@@ -796,8 +803,29 @@
       <provider selected="true" editor-type-id="text-editor">
         <state line="6138" column="17" selection-start="161565" selection-end="161565" vertical-scroll-proportion="0.7193501">
           <folding>
-            <marker date="1119239550000" expanded="true" signature="161565:161569" placeholder="{...}" />
+            <marker date="1119241020000" expanded="true" signature="162139:162143" placeholder="{...}" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/bsh/ClassGeneratorImpl.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="321" column="0" selection-start="9980" selection-end="9980" vertical-scroll-proportion="0.80780345">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/bsh/BSHBlock.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="130" column="41" selection-start="5076" selection-end="5076" vertical-scroll-proportion="0.42341042">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/bsh/bsh.jjt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="1159" column="1" selection-start="26601" selection-end="26601" vertical-scroll-proportion="0.30871493">
+          <folding />
         </state>
       </provider>
     </entry>
