@@ -978,10 +978,8 @@ void Literal() #Literal :
     if(ch == 'l' || ch == 'L')
     {
         literal = literal.substring(0,literal.length()-1);
-
-        // This really should be Long.decode, but there isn't one. As a result,
-        // hex and octal literals ending in 'l' or 'L' don't work.
-        jjtThis.value = new Primitive( new Long( literal ).longValue() );
+        jjtThis.value = new Primitive( Long.decode(literal).longValue() );
+        
     }
     else
 		try {
