@@ -1026,7 +1026,7 @@ void Literal() #Literal :
     }
 |
   b = BooleanLiteral()  {
-    jjtThis.value = new Primitive( b ); }
+    jjtThis.value = b ? Primitive.TRUE : Primitive.FALSE; }
 |
   NullLiteral() {
     jjtThis.value = Primitive.NULL;
