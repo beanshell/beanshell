@@ -1922,9 +1922,6 @@ void Literal()          :
     if(ch == 'l' || ch == 'L')
     {
         literal = literal.substring(0,literal.length()-1);
-
-        // This really should be Long.decode, but there isn't one. As a result,
-        // hex and octal literals ending in 'l' or 'L' don't work.
         jjtn000.value = new Primitive( Long.decode(literal).longValue() );
         
     }
@@ -1997,7 +1994,7 @@ void Literal()          :
                           jjtreeCloseNodeScope(jjtn000);
                         }
 /*@egen*/  {
-    jjtn000.value = new Primitive( b ); }
+    jjtn000.value = b ? Primitive.TRUE : Primitive.FALSE; }
 |
   NullLiteral()/*@bgen(jjtree)*/
                 {
