@@ -165,7 +165,7 @@ public class XThis extends This
 			} catch ( UtilEvalError e ) {/*leave null*/ }
 			if ( methodName.equals("equals" ) && equalsMethod == null ) {
 				Object obj = args[0];
-				return new Boolean( proxy == obj );
+				return proxy == obj ? Boolean.TRUE : Boolean.FALSE;
 			}
 
 			/*
