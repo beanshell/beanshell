@@ -249,7 +249,7 @@ public class Interpreter
 		this( new StringReader(""), 
 			System.out, System.err, false, null );
         evalOnly = true;
-		setu( "bsh.evalOnly", new Primitive(true) );
+		setu( "bsh.evalOnly", Primitive.TRUE );
     }
 
 	// End constructors
@@ -295,9 +295,9 @@ public class Interpreter
 		}
 
 		// bsh.interactive
-		setu( "bsh.interactive", new Primitive(interactive) );
+		setu( "bsh.interactive", interactive ? Primitive.TRUE : Primitive.FALSE );
 		// bsh.evalOnly
-		setu( "bsh.evalOnly", new Primitive(evalOnly) );
+		setu( "bsh.evalOnly", evalOnly ? Primitive.TRUE : Primitive.FALSE );
 	}
 
 	/**
@@ -902,7 +902,7 @@ public class Interpreter
         set(name, new Primitive(value));
 	}
     public void set(String name, boolean value) throws EvalError {
-        set(name, new Primitive(value));
+        set(name, value ? Primitive.TRUE : Primitive.FALSE);
 	}
 
 	/**
