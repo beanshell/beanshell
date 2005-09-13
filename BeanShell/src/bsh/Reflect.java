@@ -197,14 +197,7 @@ class Reflect
     {
 		if ( object instanceof This ) {
 			This t = (This)object;
-			
-			Object varValue = t.namespace.getVariable( fieldName );
-			
-			if(varValue.equals(Primitive.VOID)) {
-				return getThisPropertyValue(t, fieldName);
-			} else {
-				return varValue;
-			}	
+			return t.namespace.getVariableOrProperty(fieldName, null);
 		} else {
 			try {
 				return getFieldValue(
@@ -219,34 +212,6 @@ class Reflect
 			}
 		}
     }
-
-    /**
-     * Get a property from a scripted object or Primitive.VOID if no such
-     * property exists.
-     */
-    private static Object getThisPropertyValue(This t, String propName)
-    	throws UtilEvalError {
-    	
-    	String accessorName = accessorName( "get", propName );
-    	Class[] classArray = new Class[0];
-    	
-    	BshMethod m = t.namespace.getMethod(accessorName, classArray);
-    	
-    	try {
-	    	if(m!=null)
-	    		return m.invoke((Object[])null, t.declaringInterpreter);
-	    	
-	    	accessorName = accessorName( "is", propName );
-	    	m = t.namespace.getMethod(accessorName, classArray);
-	    	if(m!=null)
-	    		return m.invoke((Object[])null, t.declaringInterpreter);
-	    	
-	    	return Primitive.VOID;
-    	} catch(EvalError ee) {
-    		throw new UtilEvalError("'This' property accessor threw exception: "
-    				+ ee.getMessage() );
-    	}
-	}
 
 	static LHS getLHSStaticField(Class clas, String fieldName)
         throws UtilEvalError, ReflectError
@@ -778,7 +743,7 @@ class Reflect
 		return -1;
 	}
 
-	private static String accessorName( String getorset, String propName ) {
+	static String accessorName( String getorset, String propName ) {
         return getorset
 			+ String.valueOf(Character.toUpperCase(propName.charAt(0)))
 			+ propName.substring(1);

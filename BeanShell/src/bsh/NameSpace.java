@@ -338,6 +338,128 @@ public class NameSpace
 			nameSpaceChanged();
     	}
 	}
+    
+    ////////////////////////////////////////////////////////////////////////////
+    
+	/**
+		<p>
+		Sets a variable or property.  See "setVariable" for rules regarding
+		scoping.
+		</p>
+		
+		<p>
+		We first check for the existence of the variable.  If it exists, we set 
+		it.
+		If the variable does not exist we look for a property.  If the  property
+		exists and is writable we set it.
+		Finally, if neither the variable or the property exist, we create a new
+		variable.
+		</p>
+	
+		@param strictJava specifies whether strict java rules are applied.
+	*/
+	public void	setVariableOrProperty( String name, Object value, boolean strictJava ) 
+		throws UtilEvalError 
+	{
+		// if localscoping switch follow strictJava, else recurse
+		boolean recurse = Interpreter.LOCALSCOPING ? strictJava : true;
+		setVariableOrProperty( name, value, strictJava, recurse );
+	}
+	
+	/**
+		Set a variable or property explicitly in the local scope.
+		
+		<p>
+		Sets a variable or property.  See "setLocalVariable" for rules regarding
+		scoping.
+		</p>
+		
+		<p>
+		We first check for the existence of the variable.  If it exists, we set 
+		it.
+		If the variable does not exist we look for a property.  If the  property
+		exists and is writable we set it.
+		Finally, if neither the variable or the property exist, we create a new
+		variable.
+		</p>		
+	*/
+	void setLocalVariableOrProperty( 
+		String name, Object value, boolean strictJava ) 
+		throws UtilEvalError 
+	{
+		setVariableOrProperty( name, value, strictJava, false/*recurse*/ );
+	}
+	
+	/**
+		Set the value of a the variable or property 'name' through this
+		namespace.
+	
+		<p>
+		Sets a variable or property.  See "setVariableOrProperty" for rules 
+		regarding scope.
+		</p>
+		
+		<p>
+		We first check for the existence of the variable.  If it exists, we set 
+		it.
+		If the variable does not exist we look for a property.  If the  property
+		exists and is writable we set it.
+		Finally, if neither the variable or the property exist, we create a new
+		variable.
+		</p>	
+	
+		@param strictJava specifies whether strict java rules are applied.
+		@param recurse determines whether we will search for the variable in
+		  our parent's scope before assigning locally.
+	*/
+	void setVariableOrProperty( 
+		String name, Object value, boolean strictJava, boolean recurse ) 
+		throws UtilEvalError 
+	{
+		if ( variables == null )
+			variables =	new Hashtable();
+
+		// primitives should have been wrapped
+		if ( value == null )
+			throw new InterpreterError("null variable value");
+
+		// Locate the variable definition if it exists.
+		Variable existing = getVariableImpl( name, recurse );
+
+		// Found an existing variable here (or above if recurse allowed)
+		if ( existing != null )
+		{
+			try {
+				existing.setValue( value, Variable.ASSIGNMENT );
+			} catch ( UtilEvalError e ) {
+				throw new UtilEvalError(
+					"Variable assignment: " + name + ": " + e.getMessage());
+			}
+		} else 
+		// No previous variable definition found here (or above if recurse)
+		{
+			if ( strictJava )
+				throw new UtilEvalError(
+					"(Strict Java mode) Assignment to undeclared variable: "
+					+name );
+
+			boolean setProp = attemptSetPropertyValue(name, value,
+					null);
+			if(setProp)
+				return;
+			
+			// If recurse, set global untyped var, else set it here.	
+			//NameSpace varScope = recurse ? getGlobal() : this;
+			// This modification makes default allocation local
+			NameSpace varScope = this;
+
+			varScope.variables.put( 
+				name, createVariable( name, value, null/*modifiers*/ ) );
+
+			// nameSpaceChanged() on new variable addition
+			nameSpaceChanged();
+    	}
+	}
 
 	protected Variable createVariable(
 		String name, Object value, Modifiers mods )
@@ -555,6 +677,26 @@ public class NameSpace
 		if ( parent == null )
 			loadDefaultImports();
 	}
+	
+	/**
+		<p>
+		Get the specified variable or property in this namespace or a parent
+		namespace.
+		</p>
+	
+		<p>
+		We first search for a variable name, and then a property.
+		</p>
+	
+		@return The variable or property value or Primitive.VOID if neither is
+			defined.
+	*/
+	public Object getVariableOrProperty( String name, Interpreter interp ) 
+		throws UtilEvalError
+	{
+		Object val = getVariable( name, true );
+		return (val==Primitive.VOID) ? getPropertyValue(name, interp) : val;
+	}		
 
 	/**
 		Get the specified variable in this namespace or a parent namespace.
@@ -1562,5 +1704,64 @@ public class NameSpace
 		
 		return null;
 	}
+	
+    /**
+     * If a writable property exists for the given name, set it and return true,
+     * otherwise do nothing and return false.
+     */
+    boolean attemptSetPropertyValue(String propName,
+    		Object value, Interpreter interp)
+    	throws UtilEvalError {
+    	
+    	String accessorName = Reflect.accessorName( "set", propName );
+    	Class[] classArray = new Class[] {value==null ? null : value.getClass()};
+    	
+    	BshMethod m = getMethod(accessorName, classArray);
+    	
+    	if(m!=null) {
+	    	try {  
+	    		invokeMethod(accessorName, new Object[] {value},
+	    				interp);
+	    		// m.invoke(new Object[] {value}, interp);
+	    		return true;	
+	    	} catch(EvalError ee) {
+	    		throw new UtilEvalError(
+	    			"'This' property accessor threw exception: " +
+	    			ee.getMessage());
+	    	}
+    	}
+    	
+    	return false;
+	}
+    
+    /**
+     * Get a property from a scripted object or Primitive.VOID if no such
+     * property exists.
+     * @throws UtilEvalError 
+     * @throws UtilEvalError 
+     */
+    Object getPropertyValue(String propName, Interpreter interp)
+    	throws UtilEvalError {
+    	
+    	String accessorName = Reflect.accessorName( "get", propName );
+    	Class[] classArray = new Class[0];
+    	
+    	BshMethod m = getMethod(accessorName, classArray);
+    	
+    	try {
+	    	if(m!=null)
+	    		return m.invoke((Object[])null, interp);
+	    	
+	    	accessorName = Reflect.accessorName( "is", propName );
+	    	m = getMethod(accessorName, classArray);
+	    	if(m!=null)
+	    		return m.invoke((Object[])null, interp);
+	    	
+	    	return Primitive.VOID;
+    	} catch(EvalError ee) {
+    		throw new UtilEvalError("'This' property accessor threw exception: "
+    				+ ee.getMessage() );
+    	}
+	}   
 }
 
