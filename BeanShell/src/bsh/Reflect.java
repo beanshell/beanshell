@@ -37,10 +37,13 @@ import java.lang.reflect.*;
 import java.util.Vector;
 
 /**
-	All of the reflection API code lies here.  It is in the form of static
-	utilities.  Maybe this belongs in LHS.java or a generic object
-	wrapper class.
-*/
+ * All of the reflection API code lies here.  It is in the form of static
+ * utilities.  Maybe this belongs in LHS.java or a generic object
+ * wrapper class.
+ * 
+ * @author Pat Niemeyer
+ * @author Daniel Leuck
+ */
 /*
 	Note: This class is messy.  The method and field resolution need to be
 	rewritten.  Various methods in here catch NoSuchMethod or NoSuchField
@@ -185,13 +188,24 @@ class Reflect
     }
 
 	/**
-	*/
+	 * Check for a field with the given name in a java object or scripted object
+	 * if the field exists fetch the value, if not check for a property value.
+	 * If neither is found return Primitive.VOID. 
+	 */
     public static Object getObjectFieldValue( Object object, String fieldName )
         throws UtilEvalError, ReflectError
     {
-		if ( object instanceof This )
-			return ((This)object).namespace.getVariable( fieldName );
-		else {
+		if ( object instanceof This ) {
+			This t = (This)object;
+			
+			Object varValue = t.namespace.getVariable( fieldName );
+			
+			if(varValue.equals(Primitive.VOID)) {
+				return getThisPropertyValue(t, fieldName);
+			} else {
+				return varValue;
+			}	
+		} else {
 			try {
 				return getFieldValue(
 					object.getClass(), object, fieldName, false/*onlystatic*/);
@@ -206,7 +220,35 @@ class Reflect
 		}
     }
 
-    static LHS getLHSStaticField(Class clas, String fieldName)
+    /**
+     * Get a property from a scripted object or Primitive.VOID if no such
+     * property exists.
+     */
+    private static Object getThisPropertyValue(This t, String propName)
+    	throws UtilEvalError {
+    	
+    	String accessorName = accessorName( "get", propName );
+    	Class[] classArray = new Class[0];
+    	
+    	BshMethod m = t.namespace.getMethod(accessorName, classArray);
+    	
+    	try {
+	    	if(m!=null)
+	    		return t.invokeMethod(accessorName, null);
+	    	
+	    	accessorName = accessorName( "is", propName );
+	    	m = t.namespace.getMethod(accessorName, classArray);
+	    	if(m!=null)
+	    		return t.invokeMethod(accessorName, null);
+	    	
+	    	return Primitive.VOID;
+    	} catch(EvalError ee) {
+    		throw new UtilEvalError("'This' property accessor threw exception: "
+    				+ ee.getMessage() );
+    	}
+	}
+
+	static LHS getLHSStaticField(Class clas, String fieldName)
         throws UtilEvalError, ReflectError
     {
         Field f = resolveExpectedJavaField( 
@@ -818,7 +860,7 @@ class Reflect
     public static void setObjectProperty(
 		Object obj, String propName, Object value)
         throws ReflectError, UtilEvalError
-    {
+    {    	
         String accessorName = accessorName( "set", propName );
         Object[] args = new Object[] { value };
 
