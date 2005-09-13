@@ -234,12 +234,12 @@ class Reflect
     	
     	try {
 	    	if(m!=null)
-	    		return t.invokeMethod(accessorName, null);
+	    		return m.invoke((Object[])null, t.declaringInterpreter);
 	    	
 	    	accessorName = accessorName( "is", propName );
 	    	m = t.namespace.getMethod(accessorName, classArray);
 	    	if(m!=null)
-	    		return t.invokeMethod(accessorName, null);
+	    		return m.invoke((Object[])null, t.declaringInterpreter);
 	    	
 	    	return Primitive.VOID;
     	} catch(EvalError ee) {
