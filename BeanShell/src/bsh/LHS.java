@@ -141,7 +141,8 @@ class LHS implements ParserConstants, java.io.Serializable
 	public Object getValue() throws UtilEvalError
 	{
 		if ( type == VARIABLE )
-			return nameSpace.getVariable( varName );
+			return nameSpace.getVariableOrProperty( varName, null );
+			// return nameSpace.getVariable( varName );
 
 		if (type == FIELD)
 			try {
@@ -188,9 +189,9 @@ class LHS implements ParserConstants, java.io.Serializable
 		{
 			// Set the variable in namespace according to localVar flag
 			if ( localVar )
-				nameSpace.setLocalVariable( varName, val, strictJava );
+				nameSpace.setLocalVariableOrProperty( varName, val, strictJava );
 			else
-				nameSpace.setVariable( varName, val, strictJava );
+				nameSpace.setVariableOrProperty( varName, val, strictJava );
 		} else 
 		if ( type == FIELD )
 		{
