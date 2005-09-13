@@ -1714,6 +1714,7 @@ public class NameSpace
     	throws UtilEvalError {
     	
     	String accessorName = Reflect.accessorName( "set", propName );
+    	
     	Class[] classArray = new Class[] {value==null ? null : value.getClass()};
     	
     	BshMethod m = getMethod(accessorName, classArray);
