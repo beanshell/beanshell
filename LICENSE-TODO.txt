@@ -1,9 +1,9 @@
 
-We have the asm bytecode generated bundled under the LGPL
+We have the ASM bytecode generated bundled under the LGPL. Need to address that.
 
-bsf - check these, probably public domain
+BSF - check these, probably public domain.
 
-engine - the jsr223 engine, some files licensed as public domain, some need to be removed (sun javax stuff)
+engine - the jsr223 engine, some files need to be removed (sun javax stuff)
 
 Deal with docs and build files, READMEs?
 
