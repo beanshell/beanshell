@@ -1,5 +1,5 @@
 
-We have the ASM bytecode generated bundled under the LGPL. Need to address that.
+ASM bytecode package in under a 3-clause BSD license (OK).
 
 BSF - check these, probably public domain.
 
