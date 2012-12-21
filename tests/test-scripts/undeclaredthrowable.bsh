@@ -5,16 +5,16 @@ source("TestHarness.bsh");
 import bsh.*;
 if ( Capabilities.canGenerateInterfaces() ) 
 {
-	i=new Interpreter();
-	r=i.eval(
-		"return new Runnable() {"
-		+"void run() { throw new EvalError(\"foo\"); } }");
-	try {
-		r.run();
-	} catch ( e ) {
-		super.ue=e;
-		assert( e instanceof java.lang.reflect.UndeclaredThrowableException );
-	}
+    i=new Interpreter();
+    r=i.eval(
+        "return new Runnable() {"
+        +"void run() { throw new EvalError(\"foo\"); } }");
+    try {
+        r.run();
+    } catch ( e ) {
+        super.ue=e;
+        assert( e instanceof java.lang.reflect.UndeclaredThrowableException );
+    }
 } 
 
 /*

@@ -30,29 +30,29 @@ import java.io.*;
 import java.util.Vector;
 
 /**
-	This is the BeanShell parser.  It is used internally by the Interpreter
-	class (which is probably what you are looking for).  The parser knows
-	only how to parse the structure of the language, it does not understand
-	names, commands, etc.
-	<p>
-	You can use the Parser from the command line to do basic structural 
-	validation of BeanShell files without actually executing them. e.g.
-	<code><pre>
-		java bsh.Parser [ -p ] file [ file ] [ ... ]
-	</pre></code>
-	<p>
-	The -p option causes the abstract syntax to be printed.
-	<p>
+    This is the BeanShell parser.  It is used internally by the Interpreter
+    class (which is probably what you are looking for).  The parser knows
+    only how to parse the structure of the language, it does not understand
+    names, commands, etc.
+    <p>
+    You can use the Parser from the command line to do basic structural 
+    validation of BeanShell files without actually executing them. e.g.
+    <code><pre>
+        java bsh.Parser [ -p ] file [ file ] [ ... ]
+    </pre></code>
+    <p>
+    The -p option causes the abstract syntax to be printed.
+    <p>
 
-	From code you'd use the Parser like this:
-	<p
-	<code><pre>
-		Parser parser = new Parser(in);
-		while( !(eof=parser.Line()) ) {
-			SimpleNode node = parser.popNode();
-			// use the node, etc. (See bsh.BSH* classes)
-		}
-	</pre></code>
+    From code you'd use the Parser like this:
+    <p
+    <code><pre>
+        Parser parser = new Parser(in);
+        while( !(eof=parser.Line()) ) {
+            SimpleNode node = parser.popNode();
+            // use the node, etc. (See bsh.BSH* classes)
+        }
+    </pre></code>
 */
 public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConstants {/*@bgen(jjtree)*/
   protected JJTParserState jjtree = new JJTParserState();boolean retainComments = false;
@@ -70,8 +70,8 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
         }
 
         /**
-		Re-initialize the input stream and token source.
-	*/
+        Re-initialize the input stream and token source.
+    */
         void reInitInput( Reader in ) {
                 ReInit(in);
         }
@@ -85,10 +85,10 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
         }
 
         /**
-		Explicitly re-initialize just the token reader.
-		This seems to be necessary to avoid certain looping errors when
-		reading bogus input.  See Interpreter.
-	*/
+        Explicitly re-initialize just the token reader.
+        This seems to be necessary to avoid certain looping errors when
+        reading bogus input.  See Interpreter.
+    */
         void reInitTokenInput( Reader in ) {
                 jj_input_stream.ReInit( in,
                         jj_input_stream.getEndLine(),
@@ -115,9 +115,9 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
         }
 
         /**
-		Lookahead for the enhanced for statement.  
-		Expect "for" "(" and then see whether we hit ":" or a ";" first.
-	*/
+        Lookahead for the enhanced for statement.  
+        Expect "for" "(" and then see whether we hit ":" or a ";" first.
+    */
         boolean isRegularForStatement()
         {
                 int curTok = 1;
@@ -141,11 +141,11 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
         }
 
         /**
-		Generate a ParseException with the specified message, pointing to the
-		current token.
-		The auto-generated Parser.generateParseException() method does not
-		provide line number info, therefore we do this.
-	*/
+        Generate a ParseException with the specified message, pointing to the
+        current token.
+        The auto-generated Parser.generateParseException() method does not
+        provide line number info, therefore we do this.
+    */
         ParseException createParseException( String message )
         {
                 Token errortok = token;
@@ -156,8 +156,8 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
         }
 
 /*
-	Thanks to Sreenivasa Viswanadha for suggesting how to get rid of expensive
-	lookahead here.
+    Thanks to Sreenivasa Viswanadha for suggesting how to get rid of expensive
+    lookahead here.
 */
   final public boolean Line() throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -184,10 +184,10 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
  *****************************************/
 
 /*
-	Gather modifiers for a class, method, or field.
-	I lookahead is true then we are being called as part of a lookahead and we
-	should not enforce any rules.  Otherwise we validate based on context
-	(field, method, class)
+    Gather modifiers for a class, method, or field.
+    I lookahead is true then we are being called as part of a lookahead and we
+    should not enforce any rules.  Otherwise we validate based on context
+    (field, method, class)
 */
   final public Modifiers Modifiers(int context, boolean lookahead) throws ParseException {
         Modifiers mods = null;
@@ -808,7 +808,7 @@ void VariableDeclaratorId() #VariableDeclaratorId :
   }
 
 /*
-	Type, name and expression syntax follows.
+    Type, name and expression syntax follows.
 */
   final public void Type() throws ParseException {
  /*@bgen(jjtree) Type */
@@ -870,7 +870,7 @@ void VariableDeclaratorId() #VariableDeclaratorId :
   }
 
 /*
-	Originally called ResultType in the grammar
+    Originally called ResultType in the grammar
 */
   final public void ReturnType() throws ParseException {
  /*@bgen(jjtree) ReturnType */
@@ -3047,8 +3047,8 @@ void VariableDeclaratorId() #VariableDeclaratorId :
   }
 
 /*
-	Do statement is just a While statement with a special hook to execute
-	at least once.
+    Do statement is just a While statement with a special hook to execute
+    at least once.
 */
   final public void DoStatement() throws ParseException {
  /*@bgen(jjtree) WhileStatement */
@@ -3236,10 +3236,10 @@ void VariableDeclaratorId() #VariableDeclaratorId :
   }
 
 /*
-	The new JDK1.5 enhanced for statement.
-	e.g. for( int a : arrayOfInts ) { }
-	We also support loose typing of the iterator var for BeanShell
-	e.g. for( a : arrayOfInts ) { }
+    The new JDK1.5 enhanced for statement.
+    e.g. for( int a : arrayOfInts ) { }
+    We also support loose typing of the iterator var for BeanShell
+    e.g. for( a : arrayOfInts ) { }
 */
   final public void EnhancedForStatement() throws ParseException {
  /*@bgen(jjtree) EnhancedForStatement */
@@ -3346,9 +3346,9 @@ void VariableDeclaratorId() #VariableDeclaratorId :
   }
 
 /**
-	Declared a typed variable.
-	Untyped variables are not declared per-se but are handled by the part
-	of the grammar that deals with assignments.
+    Declared a typed variable.
+    Untyped variables are not declared per-se but are handled by the part
+    of the grammar that deals with assignments.
 */
   final public void TypedVariableDeclaration() throws ParseException {
  /*@bgen(jjtree) TypedVariableDeclaration */

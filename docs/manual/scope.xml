@@ -107,7 +107,7 @@ synchronized ( this ) { }     // synchronized block
 synchronized int foo () { }   // synchronized method foo()
 synchronized int bar () { }   // synchronized method bar()
 int gee() {
-	synchronized( super ) { }  // synchronized blockinside gee() 
+    synchronized( super ) { }  // synchronized blockinside gee() 
 }
 </example>
 

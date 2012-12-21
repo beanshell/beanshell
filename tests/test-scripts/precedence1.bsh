@@ -3,7 +3,7 @@
 source("TestHarness.bsh");
 
 /**
-	The following works in Java
+    The following works in Java
 */
 
 // simple names
