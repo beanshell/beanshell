@@ -3,15 +3,15 @@
 source("TestHarness.bsh");
 
 /*
-	Test local block scope of import
+    Test local block scope of import
 */
 
 // mypackage is not imported
 assert( this.namespace.getClass("MyClass") == null );
 
 foo() {
-	import mypackage.*;
-	assert( this.namespace.getClass("MyClass") != null );
+    import mypackage.*;
+    assert( this.namespace.getClass("MyClass") != null );
 }
 
 foo();
@@ -24,8 +24,8 @@ assert( this.namespace.getClass("MyClass") == null );
 
 assert( this.namespace.getClass("MyClass") == null );
 {
-	import mypackage.*;
-	assert( this.namespace.getClass("MyClass") != null );
+    import mypackage.*;
+    assert( this.namespace.getClass("MyClass") != null );
 }
 
 // mypackage is now imported

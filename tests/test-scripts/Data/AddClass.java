@@ -1,7 +1,7 @@
 /**
-	@author Pat Niemeyer
+    @author Pat Niemeyer
 */
 public class AddClass
 {
-	public int getFive() { return 5; }
+    public int getFive() { return 5; }
 }

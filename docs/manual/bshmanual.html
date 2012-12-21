@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="manual.xsl"?>
 <html><head><title>BeanShell User's Manual</title></head><body bgcolor="#ffffff">
-	<table border="1" width="100%" height="100%">
+    <table border="1" width="100%" height="100%">
 <tr><td>
 <table width="100%" height="100%">
 <tr><td height="70%" align="center">
@@ -17,9 +17,9 @@
 </table>
 <!-- PAGE BREAK -->
 
-	<h1><a name="Table_of_Contents">Table of Contents</a></h1>
-	
-	<ul><li><a href="#Table_of_Contents">Table of Contents</a></li><li><a href="#Introduction">Introduction</a></li><ul><li><a href="#Scripting_vs._Application_Languages">Scripting vs. Application Languages</a></li><li><a href="#Tearing_Down_the_Barriers">Tearing Down the Barriers</a></li><li><a href="#History">History</a></li><li><a href="#Conclusion">Conclusion</a></li></ul><li><a href="#Quick_Start">Quick Start</a></li><ul><li><a href="#Download_and_Run_BeanShell">
+    <h1><a name="Table_of_Contents">Table of Contents</a></h1>
+    
+    <ul><li><a href="#Table_of_Contents">Table of Contents</a></li><li><a href="#Introduction">Introduction</a></li><ul><li><a href="#Scripting_vs._Application_Languages">Scripting vs. Application Languages</a></li><li><a href="#Tearing_Down_the_Barriers">Tearing Down the Barriers</a></li><li><a href="#History">History</a></li><li><a href="#Conclusion">Conclusion</a></li></ul><li><a href="#Quick_Start">Quick Start</a></li><ul><li><a href="#Download_and_Run_BeanShell">
 Download and Run BeanShell
 </a></li><li><a href="#The_BeanShell_GUI">
 The BeanShell GUI
@@ -35,7 +35,7 @@ Scripted Objects
 <hr/><!--PAGE BREAK-->
 
  <!-- Auto generated table of contents -->
-	<h1><a name="Introduction">Introduction</a></h1>
+    <h1><a name="Introduction">Introduction</a></h1>
 
 
 This document is about BeanShell. 
@@ -198,7 +198,7 @@ on it and I welcome all comments and suggestions.
 
 <hr/><!--PAGE BREAK-->
 
-	<h1><a name="Quick_Start">Quick Start</a></h1>
+    <h1><a name="Quick_Start">Quick Start</a></h1>
 
 
 Welcome to BeanShell.
@@ -510,7 +510,7 @@ more useful information.  http://www.beanshell.org/
 <hr/><!--PAGE BREAK-->
 
 
-	<h1><a name="Basic_Syntax">Basic Syntax</a></h1>
+    <h1><a name="Basic_Syntax">Basic Syntax</a></h1>
 
 
 BeanShell is, foremost, a Java interpreter. So you probably already know 
@@ -771,18 +771,18 @@ to use this feature).
 List foo = getSomeList();
 
 for ( untypedElement : foo ) 
-	print( untypedElement ); 
+    print( untypedElement ); 
 
 for ( Object typedElement: foo ) 
-	print( typedElement );
+    print( typedElement );
 
 int [] array = new int [] { 1, 2, 3 };
 
 for( i : array ) 
-	print(i);
+    print(i);
 
 for( char c : "a string" )
-	print( c ); 
+    print( c ); 
 </pre></td></tr></table></center><p/>
 
 Supported iterable types include all the obvious things.  
@@ -808,11 +808,11 @@ dateobj = new Date();
 
 switch( dateobj ) 
 {
-	case newYears:
-		break;
-	case christmas:
-		break;
-	default:
+    case newYears:
+        break;
+    case christmas:
+        break;
+    default:
 }
 </pre></td></tr></table></center><p/>
 
@@ -957,7 +957,7 @@ to make it easier to embed BeanShell scripts inside other kinds of documents
 
 <hr/><!--PAGE BREAK-->
 
-	<h1><a name="Scripted_Methods">Scripted Methods</a></h1>
+    <h1><a name="Scripted_Methods">Scripted Methods</a></h1>
 
 
 You can define define methods in BeanShell, just as they would appear in Java:
@@ -1049,8 +1049,8 @@ anotherMethod() { ... }
 
 foo() {
     print( a );
-	a = a+1;
-	anotherMethod();
+    a = a+1;
+    anotherMethod();
 }
 
 // invoke foo()
@@ -1076,9 +1076,9 @@ it defaults to the local scope:
 a = 1;
 
 foo() {
-	a = a + 1; // a is defined in parent scope
-	b = 3;     // undefined, defaults local scope
-	int c = 4; // declared local scope
+    a = a + 1; // a is defined in parent scope
+    b = 3;     // undefined, defaults local scope
+    int c = 4; // declared local scope
 }
 
 // invoke foo()
@@ -1123,7 +1123,7 @@ If you wish to, you can explicitly declare an untyped variable
 
 <p/><center><table border="1" cellpadding="5" width="100%"><tr><td bgcolor="#dfdfdc"><pre>
 foo() {
-	var a = 1;
+    var a = 1;
 }
 foo();
 print( a ); // ERROR! a is undefined!
@@ -1138,7 +1138,7 @@ variable assignment and make it local.
 
 <p/><center><table border="1" cellpadding="5" width="100%"><tr><td bgcolor="#dfdfdc"><pre>
 foo() {
-	this.a = 1;
+    this.a = 1;
 }
 foo();
 print( a ); // ERROR! a is undefined!
@@ -1184,7 +1184,7 @@ in scripting Objects in BeanShell.
 
 <hr/><!--PAGE BREAK-->
 
-	<h1><a name="Scripted_Objects">Scripted Objects</a></h1>
+    <h1><a name="Scripted_Objects">Scripted Objects</a></h1>
 
 
 Many people who use BeanShell use it to write scripts that 
@@ -1332,13 +1332,13 @@ For example:
 <p/><center><table border="1" cellpadding="5" width="100%"><tr><td bgcolor="#dfdfdc"><pre>
 foo() {
 
-	bar() { }
+    bar() { }
 
-	if ( true ) {
-		bar2() { }
-	}
+    if ( true ) {
+        bar2() { }
+    }
 
-	return this;
+    return this;
 }
 </pre></td></tr></table></center><p/>
 
@@ -1353,7 +1353,7 @@ go into more depth about how to work with scripted methods and objects.
 
 <hr/><!--PAGE BREAK-->
 
-	<h1><a name="Scope_Modifiers">Scope Modifiers</a></h1>
+    <h1><a name="Scope_Modifiers">Scope Modifiers</a></h1>
 
 
 Now that we've seen how methods can be nested and treated as objects, we
@@ -1462,14 +1462,14 @@ synchronized ( this ) { }     // synchronized block
 synchronized int foo () { }   // synchronized method foo()
 synchronized int bar () { }   // synchronized method bar()
 int gee() {
-	synchronized( super ) { }  // synchronized blockinside gee() 
+    synchronized( super ) { }  // synchronized blockinside gee() 
 }
 </pre></td></tr></table></center><p/>
 
 <hr/><!--PAGE BREAK-->
 
 
-	<h1><a name="Scripting_Interfaces">Scripting Interfaces</a></h1>
+    <h1><a name="Scripting_Interfaces">Scripting Interfaces</a></h1>
 
 
 One of the most powerful features of BeanShell is the ability to script 
@@ -1811,7 +1811,7 @@ Runnable, statically.
 
 <hr/><!--PAGE BREAK-->
 
-	<h1><a name="Special_Variables_and_Values">Special Variables and Values</a></h1>
+    <h1><a name="Special_Variables_and_Values">Special Variables and Values</a></h1>
 
 
 In addition to the scope modifiers: 'this', 'super', 'global', BeanShell
@@ -1945,7 +1945,7 @@ define the following method to place the current working directory into
 their command prompt:
 
 <p/><center><table border="1" cellpadding="5" width="100%"><tr><td bgcolor="#dfdfdc"><pre>
-	getBshPrompt() { return bsh.cwd + " % "; }
+    getBshPrompt() { return bsh.cwd + " % "; }
 </pre></td></tr></table></center><p/>
 
 The default getBshPrompt() command returns the value of the variable
@@ -1956,7 +1956,7 @@ not return a String, a default prompt of "bsh % " will be used.
 
 <hr/><!--PAGE BREAK-->
 
-	<h1><a name="BeanShell_Commands">BeanShell Commands</a></h1>
+    <h1><a name="BeanShell_Commands">BeanShell Commands</a></h1>
 
 
 BeanShell commands appear to the user as pre-defined methods such as 
@@ -2153,7 +2153,7 @@ to do this when desired.
 <hr/><!--PAGE BREAK-->
 
 
-	<h1><a name="Adding_BeanShell_Commands">Adding BeanShell Commands</a></h1>
+    <h1><a name="Adding_BeanShell_Commands">Adding BeanShell Commands</a></h1>
 
 
 BeanShell Commands are scripted methods or compiled Java classes which are 
@@ -2232,10 +2232,10 @@ command method, e.g.:
 <p/><center><table border="1" cellpadding="5" width="100%"><tr><td bgcolor="#dfdfdc"><pre>
 // File: helloWorld.bsh
 helloWorld() { 
-	print("Hello World!"); 
+    print("Hello World!"); 
 }
 helloWorld( String msg ) { 
-	print("Hello World: "+msg); 
+    print("Hello World: "+msg); 
 }
 </pre></td></tr></table></center><p/>
 
@@ -2264,19 +2264,19 @@ invoke() methods for the dir() and dir(path) commands.
 
 <p/><center><table border="1" cellpadding="5" width="100%"><tr><td bgcolor="#dfdfdc"><pre>
 /**
-	Implement dir() command.
+    Implement dir() command.
 */
 public static void invoke( Interpreter env, CallStack callstack ) 
 {
-	String dir = ".";
-	invoke( env, callstack, dir );
+    String dir = ".";
+    invoke( env, callstack, dir );
 }
 
 /**
-	Implement dir( String directory ) command.
+    Implement dir( String directory ) command.
 */
 public static void invoke( 
-	Interpreter env, CallStack callstack, String dir ) 
+    Interpreter env, CallStack callstack, String dir ) 
 {
 ...
 }
@@ -2292,7 +2292,7 @@ example:
 
 <p/><center><table border="1" cellpadding="5" width="100%"><tr><td bgcolor="#dfdfdc"><pre>
 invoke( String methodName, Object [] arguments ) { 
-	print("You invoked the method: "+ methodName );
+    print("You invoked the method: "+ methodName );
 }
 
 // invoke() will be called to handle noSuchMethod()
@@ -2406,7 +2406,7 @@ The eval() command is implemented simply as:
 
 <p/><center><table border="1" cellpadding="5" width="100%"><tr><td bgcolor="#dfdfdc"><pre>
 eval( String text ) {
-	this.interpreter.eval( text, this.caller.namespace );
+    this.interpreter.eval( text, this.caller.namespace );
 }
 </pre></td></tr></table></center><p/>
 
@@ -2439,10 +2439,10 @@ commands to do this in the future).
 
 <p/><center><table border="1" cellpadding="5" width="100%"><tr><td bgcolor="#dfdfdc"><pre>
 myCommand() {
-	// "Step into" the caller's namespace.
-	setNameSpace( this.caller.namespace );
+    // "Step into" the caller's namespace.
+    setNameSpace( this.caller.namespace );
 
-	// work as if we were in the caller's namespace.
+    // work as if we were in the caller's namespace.
 }
 </pre></td></tr></table></center><p/>
 
@@ -2564,7 +2564,7 @@ Name.identifierToClass() method.  Here is an example of how to work
 with all of the above, converting the argument to a class type:
 
 <p/><center><table border="1" cellpadding="5" width="100%"><tr><td bgcolor="#dfdfdc"><pre>
-	import bsh.ClassIdentifier;
+    import bsh.ClassIdentifier;
 
     if ( o instanceof ClassIdentifier )
         clas = this.namespace.identifierToClass(o);
@@ -2600,15 +2600,15 @@ over Enumeration, arrays, Vector, String, StringBuffer and
 cm = CollectionManager.getCollectionManager();
 if ( cm.isBshIterable( myObject ) ) 
 {
-	BshIterator iterator = cm.getBshIterator( myObject );
-	while ( iterator.hasNext() )
-		i = iterator.next();
+    BshIterator iterator = cm.getBshIterator( myObject );
+    while ( iterator.hasNext() )
+        i = iterator.next();
 }
 </pre></td></tr></table></center><p/>
 
 <hr/><!--PAGE BREAK-->
 
-	<h1><a name="Strict_Java_Mode">Strict Java Mode</a></h1>
+    <h1><a name="Strict_Java_Mode">Strict Java Mode</a></h1>
 
 
 <em>Note: Strict Java Mode is new and currently breaks some BeanShell tools
@@ -2639,7 +2639,7 @@ bar() { .. } // Error! No declared return type.
 
 <hr/><!--PAGE BREAK-->
 
-	<h1><a name="Class_Loading_and_Class_Path_Management">Class Loading and Class Path Management</a></h1>
+    <h1><a name="Class_Loading_and_Class_Path_Management">Class Loading and Class Path Management</a></h1>
 
 
 BeanShell is capable of some very fine grained and sophisticated class 
@@ -2893,7 +2893,7 @@ considered an expensive operation.
 
 <hr/><!--PAGE BREAK-->
 
-	<h1><a name="Modes_of_Operation">Modes of Operation</a></h1>
+    <h1><a name="Modes_of_Operation">Modes of Operation</a></h1>
 
 
 There are currently five basic modes of operation for running BeanShell:
@@ -3056,7 +3056,7 @@ C:\Winnt\Profiles\&lt;username&gt;\.bshrc
 <hr/><!--PAGE BREAK-->
 
 
-	<h1><a name="Embedding_BeanShell_in_Your_Application">Embedding BeanShell in Your Application</a></h1>
+    <h1><a name="Embedding_BeanShell_in_Your_Application">Embedding BeanShell in Your Application</a></h1>
 
 
 <img src="../images/embeddedmode.gif"/>
@@ -3507,7 +3507,7 @@ load() binds the object to the current scope.
 <hr/><!--PAGE BREAK-->
 
 
-	<h1><a name="Remote_Server_Mode">Remote Server Mode</a></h1>
+    <h1><a name="Remote_Server_Mode">Remote Server Mode</a></h1>
 
 
 <img src="../images/remotemode.gif"/>
@@ -3640,7 +3640,7 @@ BeanShell will simply detect the end of streams.
 <hr/><!--PAGE BREAK-->
 
 
-	<h1><a name="BshServlet_and_Servlet_Mode_Scripting">BshServlet and Servlet Mode Scripting</a></h1>
+    <h1><a name="BshServlet_and_Servlet_Mode_Scripting">BshServlet and Servlet Mode Scripting</a></h1>
 
 
 BshServlet is a simple servlet that can be used to evaluate BeanShell
@@ -3824,7 +3824,7 @@ be encoded for transport back to the client.</td></tr>
 
 <hr/><!--PAGE BREAK-->
 
-	<h1><a name="The_BeanShell_Demo_Applet">The BeanShell Demo Applet</a></h1>
+    <h1><a name="The_BeanShell_Demo_Applet">The BeanShell Demo Applet</a></h1>
 
 
 <img src="../images/appletmode.gif"/>
@@ -3878,7 +3878,7 @@ BeanShell Demo with Swing Console - Signed Applet</a>
 
 <hr/><!--PAGE BREAK-->
 
-	<h1><a name="BeanShell_Desktop">BeanShell Desktop</a></h1>
+    <h1><a name="BeanShell_Desktop">BeanShell Desktop</a></h1>
 
 
 <img src="../images/splash1.jpg"/>
@@ -3911,7 +3911,7 @@ cut &amp; paste, and variable and class name completion.
 
 <hr/><!--PAGE BREAK-->
 
-	<h1><a name="BshDoc_-_Javadoc_Style_Documentation">BshDoc - Javadoc Style Documentation</a></h1>
+    <h1><a name="BshDoc_-_Javadoc_Style_Documentation">BshDoc - Javadoc Style Documentation</a></h1>
 
 
 <em>BshDoc requires JDK1.4 and BeanShell 1.2b6 or greater to run</em>
@@ -4057,7 +4057,7 @@ to learn how to use the parser API.
 
 <hr/><!--PAGE BREAK-->
 
-	<h1><a name="The_BeanShell_Parser">The BeanShell Parser</a></h1>
+    <h1><a name="The_BeanShell_Parser">The BeanShell Parser</a></h1>
 
 
 This BeanShell parser class bsh.Parser is used internally by the BeanShell
@@ -4174,7 +4174,7 @@ Use setAccessibility(true) to access them.</em>
 <hr/><!--PAGE BREAK-->
 
 
-	<h1><a name="Using_JConsole">Using JConsole</a></h1>
+    <h1><a name="Using_JConsole">Using JConsole</a></h1>
 
 
 <img src="../images/colorconsole.jpg"/>
@@ -4258,7 +4258,7 @@ remote access from generic web browsers using only Java 1.1.
 
 <hr/><!--PAGE BREAK-->
 
-	<h1><a name="Reflective_Style_Access_to_Scripted_Methods">Reflective Style Access to Scripted Methods</a></h1>
+    <h1><a name="Reflective_Style_Access_to_Scripted_Methods">Reflective Style Access to Scripted Methods</a></h1>
 
 
 The following examples show how to work with BeanShell methods dynamically 
@@ -4422,7 +4422,7 @@ them dynamically.
 <hr/><!--PAGE BREAK-->
 
 
-	<h1><a name="Executable_scripts_under_Unix">Executable scripts under Unix</a></h1>
+    <h1><a name="Executable_scripts_under_Unix">Executable scripts under Unix</a></h1>
 
 
 You can use BeanShell for writing scripts as you would any other shell 
@@ -4467,7 +4467,7 @@ work out-of-the-box.
 
 <hr/><!--PAGE BREAK-->
 
-	<h1><a name="BSF_Bean_Scripting_Framework">BSF Bean Scripting Framework</a></h1>
+    <h1><a name="BSF_Bean_Scripting_Framework">BSF Bean Scripting Framework</a></h1>
 
 
 BSF is the Apache "Bean Scripting Framework".  
@@ -4555,7 +4555,7 @@ You can then run scripts from a file, or in-line like so:
 
 <hr/><!--PAGE BREAK-->
 
-	<h1><a name="Learning_More">Learning More</a></h1>
+    <h1><a name="Learning_More">Learning More</a></h1>
 
 
 BeanShell is a simple tool but one with rapidly evolving capabilities.  To learn
@@ -4623,7 +4623,7 @@ it please let us know!
 
 <hr/><!--PAGE BREAK-->
 
-	<h1><a name="Credit_and_Acknowledgments">Credit and Acknowledgments</a></h1>
+    <h1><a name="Credit_and_Acknowledgments">Credit and Acknowledgments</a></h1>
 
 
 Many people have contributed substantially to BeanShell over the years.
@@ -4674,8 +4674,8 @@ terms of use described above.
 
 <hr/><!--PAGE BREAK-->
 
-	<h1><a name="BeanShell_Commands_Documentation">BeanShell Commands Documentation</a></h1>
-	
+    <h1><a name="BeanShell_Commands_Documentation">BeanShell Commands Documentation</a></h1>
+    
 
 The following documentation was generated automatically by 'BshDoc' from 
 Javadoc style comments in the BeanShell command script files.  See "BshDoc"
@@ -4700,57 +4700,57 @@ for more information.
 <br CLEAR="ALL"/></td></tr><tr><td width="20%"><strong><a href="#setFont">setFont</a></strong></td><td>Font setFont ( Component comp , String family , int style , int size ) <br CLEAR="ALL"/>Font setFont ( Component comp , int size ) <br CLEAR="ALL"/></td></tr><tr><td width="20%"><strong><a href="#setNameCompletion">setNameCompletion</a></strong></td><td>void setNameCompletion ( boolean bool ) <br CLEAR="ALL"/></td></tr><tr><td width="20%"><strong><a href="#setNameSpace">setNameSpace</a></strong></td><td>setNameSpace ( ns ) <br CLEAR="ALL"/></td></tr><tr><td width="20%"><strong><a href="#setStrictJava">setStrictJava</a></strong></td><td>void setStrictJava ( boolean val ) <br CLEAR="ALL"/></td></tr><tr><td width="20%"><strong><a href="#show">show</a></strong></td><td>show ( ) <br CLEAR="ALL"/></td></tr><tr><td width="20%"><strong><a href="#source">source</a></strong></td><td>Object source ( String filename ) <br CLEAR="ALL"/>Object source ( URL url ) <br CLEAR="ALL"/></td></tr><tr><td width="20%"><strong><a href="#sourceRelative">sourceRelative</a></strong></td><td>sourceRelative ( String file ) <br CLEAR="ALL"/></td></tr><tr><td width="20%"><strong><a href="#thinBorder">thinBorder</a></strong></td><td>public thinBorder ( ) <br CLEAR="ALL"/>public thinBorder ( Color lightColor , Color darkColor ) <br CLEAR="ALL"/>public thinBorder ( Color lightColor , Color darkColor , boolean rollOver ) <br CLEAR="ALL"/></td></tr><tr><td width="20%"><strong><a href="#unset">unset</a></strong></td><td>void unset ( String name ) <br CLEAR="ALL"/></td></tr><tr><td width="20%"><strong><a href="#which">which</a></strong></td><td>which( classIdentifier | string | class )
 <br CLEAR="ALL"/></td></tr><tr><td width="20%"><strong><a href="#workspaceEditor">workspaceEditor</a></strong></td><td>workspaceEditor ( Interpreter parent , String name ) <br CLEAR="ALL"/></td></tr></table><p/><!--PAGE BREAK--><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="addClassPath"><strong><font size="+2">addClassPath</font></strong></a><br CLEAR="ALL"/><font size="+1">void addClassPath( string | URL )
 <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Add the specified directory or JAR file to the class path.
-	e.g.
-	<p>
-	<pre>
+    Add the specified directory or JAR file to the class path.
+    e.g.
+    <p>
+    <pre>
     addClassPath( "/home/pat/java/classes" );
     addClassPath( "/home/pat/java/mystuff.jar" );
     addClassPath( new URL("http://myserver/~pat/somebeans.jar") );
-	</pre>
-	<p>
-	See <a href="classpath.html">Class Path Management</a>
+    </pre>
+    <p>
+    See <a href="classpath.html">Class Path Management</a>
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="bg"><strong><font size="+2">bg</font></strong></a><br CLEAR="ALL"/><font size="+1">Thread bg( String filename )
 <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Source a command in its own thread in the caller's namespace
-	<p>
+    Source a command in its own thread in the caller's namespace
+    <p>
 
-	This is like run() except that it runs the command in its own thread.  
-	Returns the Thread object control.
+    This is like run() except that it runs the command in its own thread.  
+    Returns the Thread object control.
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="bind"><strong><font size="+2">bind</font></strong></a><br CLEAR="ALL"/><font size="+1">bind ( bsh .This ths , bsh .NameSpace namespace ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Bind a bsh object into a particular namespace and interpreter
+    Bind a bsh object into a particular namespace and interpreter
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="browseClass"><strong><font size="+2">browseClass</font></strong></a><br CLEAR="ALL"/><font size="+1">void browseClass( String | Object | Class )
 <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Open the class browser to view the specified class.  
-	If the argument is a string it is considered to be a class name.  
-	If the argument is an object, the class of the object is used.  
-	If the arg is a class, the class is used.
-	<p>
+    Open the class browser to view the specified class.  
+    If the argument is a string it is considered to be a class name.  
+    If the argument is an object, the class of the object is used.  
+    If the arg is a class, the class is used.
+    <p>
 
-	Note: To browse the String class you can't supply a String.
-	You'd have to do:  browseClass( String.class );
-	<p>
+    Note: To browse the String class you can't supply a String.
+    You'd have to do:  browseClass( String.class );
+    <p>
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="cat"><strong><font size="+2">cat</font></strong></a><br CLEAR="ALL"/><font size="+1">cat ( String filename ) <br CLEAR="ALL"/>cat ( URL url ) <br CLEAR="ALL"/>cat ( InputStream ins ) <br CLEAR="ALL"/>cat ( Reader reader ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Print the contents of filename, url, or stream (like Unix cat)
+    Print the contents of filename, url, or stream (like Unix cat)
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="cd"><strong><font size="+2">cd</font></strong></a><br CLEAR="ALL"/><font size="+1">void cd ( String pathname ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Change working directory for dir(), etc. commands (like Unix cd)
+    Change working directory for dir(), etc. commands (like Unix cd)
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="classBrowser"><strong><font size="+2">classBrowser</font></strong></a><br CLEAR="ALL"/><font size="+1">classBrowser ( ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Open the class browser.
+    Open the class browser.
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="clear"><strong><font size="+2">clear</font></strong></a><br CLEAR="ALL"/><font size="+1">clear ( ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Clear all variables, methods, and imports from this namespace.
-	If this namespace is the root, it will be reset to the default 
-	imports.
-	See NameSpace.clear();
+    Clear all variables, methods, and imports from this namespace.
+    If this namespace is the root, it will be reset to the default 
+    imports.
+    See NameSpace.clear();
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="cp"><strong><font size="+2">cp</font></strong></a><br CLEAR="ALL"/><font size="+1">cp ( String fromFile , String toFile ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Copy a file (like Unix cp).
+    Copy a file (like Unix cp).
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="debug"><strong><font size="+2">debug</font></strong></a><br CLEAR="ALL"/><font size="+1">debug ( ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Toggle on and off debug mode. 
-	Debug output is verbose and generally useful only for developers.
+    Toggle on and off debug mode. 
+    Debug output is verbose and generally useful only for developers.
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="desktop"><strong><font size="+2">desktop</font></strong></a><br CLEAR="ALL"/><font size="+1">desktop ( ) <br CLEAR="ALL"/></font></td></tr><tr><td>
  * Start the BeanShell GUI desktop in a JFrame.  A starter workspace is created
@@ -4762,54 +4762,54 @@ for more information.
  * @author Daniel Leuck
  
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="dirname"><strong><font size="+2">dirname</font></strong></a><br CLEAR="ALL"/><font size="+1">String dirname ( String pathname ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Return directory portion of path based on the system default file separator.
-	Note: you should probably use pathToFile() to localize the path relative
-	to BeanShell's working directory and then file.getAbsolutePath() to get
-	back to a system localized string.
-	<p>
-	
-	Example: to change to the directory that contains the script we're 
-	currently executing:
+    Return directory portion of path based on the system default file separator.
+    Note: you should probably use pathToFile() to localize the path relative
+    to BeanShell's working directory and then file.getAbsolutePath() to get
+    back to a system localized string.
+    <p>
+    
+    Example: to change to the directory that contains the script we're 
+    currently executing:
 
-	<pre>
-	// Change to the directory containing this script
-	path=pathToFile( getSourceFileInfo() ).getAbsolutePath();
-	cd( dirname( path ) );
-	</pre>
+    <pre>
+    // Change to the directory containing this script
+    path=pathToFile( getSourceFileInfo() ).getAbsolutePath();
+    cd( dirname( path ) );
+    </pre>
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="editor"><strong><font size="+2">editor</font></strong></a><br CLEAR="ALL"/><font size="+1">editor ( ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Open a GUI editor from the command line or in the GUI desktop mode.
-	When run from the command line the editor is a simple standalone
-	frame.  When run inside the GUI desktop it is a workspace editor.
-	See workspaceEditor()
+    Open a GUI editor from the command line or in the GUI desktop mode.
+    When run from the command line the editor is a simple standalone
+    frame.  When run inside the GUI desktop it is a workspace editor.
+    See workspaceEditor()
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="error"><strong><font size="+2">error</font></strong></a><br CLEAR="ALL"/><font size="+1">void error ( item ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Print the item as an error.  
-	In the GUI console the text will show up in (something like) red, 
-	else it will be printed to standard error.
+    Print the item as an error.  
+    In the GUI console the text will show up in (something like) red, 
+    else it will be printed to standard error.
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="eval"><strong><font size="+2">eval</font></strong></a><br CLEAR="ALL"/><font size="+1">Object eval ( String expression ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Evaluate the string in the current interpreter (see source()).
-	Returns the result of the evaluation or null.
-	<p>
+    Evaluate the string in the current interpreter (see source()).
+    Returns the result of the evaluation or null.
+    <p>
 
-	Evaluate a string as if it were written directly in the current scope, 
-	with side effects in the current scope.
-	<p>
-	e.g.
+    Evaluate a string as if it were written directly in the current scope, 
+    with side effects in the current scope.
+    <p>
+    e.g.
     <code><pre>
     a=5;
     eval("b=a*2");
     print(b); // 10
     </pre></code>
-	<p>
+    <p>
 
-	eval() acts just like invoked text except that any exceptions generated
-	by the code are captured in a bsh.EvalError.  This includes ParseException
-	for syntactic errors and TargetError for exceptions thrown by the evaluated
-	code.
-	<p>
-	e.g.
+    eval() acts just like invoked text except that any exceptions generated
+    by the code are captured in a bsh.EvalError.  This includes ParseException
+    for syntactic errors and TargetError for exceptions thrown by the evaluated
+    code.
+    <p>
+    e.g.
     <pre>
     try {
         eval("foo>>><>M>JK$LJLK$");
@@ -4824,10 +4824,10 @@ for more information.
         print( e.getTarget() )  // prints ClassCastException
     }
     </pre>
-	<p>
-	
-	If you want eval() to throw target exceptions directly, without wrapping
-	them, you can simply redefine own eval like so:
+    <p>
+    
+    If you want eval() to throw target exceptions directly, without wrapping
+    them, you can simply redefine own eval like so:
 
     <pre>
     myEval( String expression ) {
@@ -4838,44 +4838,44 @@ for more information.
         }
     }
     </pre>
-	<p/>
+    <p/>
 
-	Here is a cute example of how to use eval to implement a dynamic cast.  
-	i.e. to cast a script to an arbitrary type by name at run-time where the
-	type is not known when you are writing the script.  In this case the type
-	is in the variable interfaceType.
-	<pre>
+    Here is a cute example of how to use eval to implement a dynamic cast.  
+    i.e. to cast a script to an arbitrary type by name at run-time where the
+    type is not known when you are writing the script.  In this case the type
+    is in the variable interfaceType.
+    <pre>
     reference = eval( "("+interfaceType+")this" );
-	</pre>
+    </pre>
 
-	<p>
-	Returns the value of the expression.
-	<p>
-	Throws bsh.EvalError on error
-	<p>
+    <p>
+    Returns the value of the expression.
+    <p>
+    Throws bsh.EvalError on error
+    <p>
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="exec"><strong><font size="+2">exec</font></strong></a><br CLEAR="ALL"/><font size="+1">exec ( String arg ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Start an external application using the Java Runtime exec() method.
-	Display any output to the standard BeanShell output using print().
+    Start an external application using the Java Runtime exec() method.
+    Display any output to the standard BeanShell output using print().
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="exit"><strong><font size="+2">exit</font></strong></a><br CLEAR="ALL"/><font size="+1">exit ( ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Conditionally exit the virtual machine.
-	Call System.exit(0) unless bsh.system.shutdownOnExit == false.
+    Conditionally exit the virtual machine.
+    Call System.exit(0) unless bsh.system.shutdownOnExit == false.
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="extend"><strong><font size="+2">extend</font></strong></a><br CLEAR="ALL"/><font size="+1">This extend( This object )
 <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Return a new object that is a child of the specified object.
-	<strong>
-	Note: this command will likely change along with a better inheritance 
-	mechanism for bsh in a future release.</strong>
-	<p>
+    Return a new object that is a child of the specified object.
+    <strong>
+    Note: this command will likely change along with a better inheritance 
+    mechanism for bsh in a future release.</strong>
+    <p>
 
-	extend() is like the object() command, which
-	creates a new bsh scripted object, except that the namespace of
-	the new object is a child of the parent object. 
-	<p>
+    extend() is like the object() command, which
+    creates a new bsh scripted object, except that the namespace of
+    the new object is a child of the parent object. 
+    <p>
 
-	For example:
-	<p>
+    For example:
+    <p>
 
     <pre>
     foo=object();
@@ -4898,10 +4898,10 @@ for more information.
     ar=object();
     ar.namespace.bind( foo.namespace );
     </pre>
-	<p>
+    <p>
 
-	The last example above is exactly what the extend() command does.
-	In each case the bar object inherits variables from foo in the usual way.
+    The last example above is exactly what the extend() command does.
+    In each case the bar object inherits variables from foo in the usual way.
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="fontMenu"><strong><font size="+2">fontMenu</font></strong></a><br CLEAR="ALL"/><font size="+1">fontMenu ( component ) <br CLEAR="ALL"/></font></td></tr><tr><td>
  * Creates a font menu for use with the workspace and workspace editors
  *
@@ -4913,98 +4913,98 @@ for more information.
 
 <br CLEAR="ALL"/></font></td></tr><tr><td>
     Show component in a frame, centered and packed, handling disposal with
-	the close button.
-	<p>
+    the close button.
+    <p>
 
-	Display the component, centered and packed, in a Frame, JFrame, or 
-	JInternalFrame.  Returns the frame.  If the GUI desktop is running then a 
-	JInternaFrame will be used and automatically added to the desktop.  
-	Otherwise if Swing is available a top level JFrame will be created.  
-	Otherwise a plain AWT Frame will be created.
+    Display the component, centered and packed, in a Frame, JFrame, or 
+    JInternalFrame.  Returns the frame.  If the GUI desktop is running then a 
+    JInternaFrame will be used and automatically added to the desktop.  
+    Otherwise if Swing is available a top level JFrame will be created.  
+    Otherwise a plain AWT Frame will be created.
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="getBshPrompt"><strong><font size="+2">getBshPrompt</font></strong></a><br CLEAR="ALL"/><font size="+1">String getBshPrompt ( ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Get the value to display for the bsh interactive prompt.
-	This command checks for the variable bsh.prompt and uses it if set.
-	else returns "bsh % "
-	<p/>
-	Remember that you can override bsh commands simply by defining the method
-	in your namespace. e.g. the following method displays the current working
-	directory in your prompt:
-	<p/>
-	<pre>
-	String getBshPrompt() {
-		return bsh.cwd + " % ";
-	}
-	</pre>
+    Get the value to display for the bsh interactive prompt.
+    This command checks for the variable bsh.prompt and uses it if set.
+    else returns "bsh % "
+    <p/>
+    Remember that you can override bsh commands simply by defining the method
+    in your namespace. e.g. the following method displays the current working
+    directory in your prompt:
+    <p/>
+    <pre>
+    String getBshPrompt() {
+        return bsh.cwd + " % ";
+    }
+    </pre>
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="getClass"><strong><font size="+2">getClass</font></strong></a><br CLEAR="ALL"/><font size="+1">Class getClass ( String name ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Get a class through the current namespace utilizing the current imports,
-	extended classloader, etc.
-	<p>
+    Get a class through the current namespace utilizing the current imports,
+    extended classloader, etc.
+    <p>
 
-	This is equivalent to the standard Class.forName() method for class loading,
-	however it takes advantage of the BeanShell class manager so that added 
-	classpath will be taken into account.  You can also use Class.forName(), 
-	however if you have modified the classpath or reloaded classes from within 
-	your script the modifications will only appear if you use the getClass() 
-	command.
+    This is equivalent to the standard Class.forName() method for class loading,
+    however it takes advantage of the BeanShell class manager so that added 
+    classpath will be taken into account.  You can also use Class.forName(), 
+    however if you have modified the classpath or reloaded classes from within 
+    your script the modifications will only appear if you use the getClass() 
+    command.
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="getClassPath"><strong><font size="+2">getClassPath</font></strong></a><br CLEAR="ALL"/><font size="+1">URL [ ] getClassPath ( ) <br CLEAR="ALL"/></font></td></tr><tr><td>
     Get the current classpath including all user path, extended path, and the
     bootstrap JAR file if possible.
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="getResource"><strong><font size="+2">getResource</font></strong></a><br CLEAR="ALL"/><font size="+1">URL getResource ( String path ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Get a resource from the BeanShell classpath.
-	This method takes into account modification to the BeanShell class path via
-	addClassPath() and setClassPath();
+    Get a resource from the BeanShell classpath.
+    This method takes into account modification to the BeanShell class path via
+    addClassPath() and setClassPath();
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="getSourceFileInfo"><strong><font size="+2">getSourceFileInfo</font></strong></a><br CLEAR="ALL"/><font size="+1">getSourceFileInfo ( ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Return the name of the file or source from which the current interpreter
-	is reading.  Note that if you use this within a method, the result will
-	not be the file from which the method was sourced, but will be the file 
-	that the caller of the method is reading.   Methods are sourced once but
-	can be called many times... Each time the interpreter may be associated
-	with a different file and it is that calling interpreter that you are
-	asking for information.
-	<p>
+    Return the name of the file or source from which the current interpreter
+    is reading.  Note that if you use this within a method, the result will
+    not be the file from which the method was sourced, but will be the file 
+    that the caller of the method is reading.   Methods are sourced once but
+    can be called many times... Each time the interpreter may be associated
+    with a different file and it is that calling interpreter that you are
+    asking for information.
+    <p>
 
-	Note: although it may seems like this command would always return the
-	getSourceFileInfo.bsh file, it does not since it is being executed after
-	sourcing by the caller's interpreter.
-	If one wanted to know the file from which a bsh method was sourced one
-	would have to either capture that info when the file was sourced (by
-	saving the state of the getSourceFileInfo() in a variable outside of
-	the method or more generally we could add the info to the BshMethod class
-	so that bsh methods remember from what source they were created...
+    Note: although it may seems like this command would always return the
+    getSourceFileInfo.bsh file, it does not since it is being executed after
+    sourcing by the caller's interpreter.
+    If one wanted to know the file from which a bsh method was sourced one
+    would have to either capture that info when the file was sourced (by
+    saving the state of the getSourceFileInfo() in a variable outside of
+    the method or more generally we could add the info to the BshMethod class
+    so that bsh methods remember from what source they were created...
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="importCommands"><strong><font size="+2">importCommands</font></strong></a><br CLEAR="ALL"/><font size="+1">void importCommands( resource path | package name )
 <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Import scripted or compiled BeanShell commands in the following package
-	in the classpath.  You may use either "/" path or "." package notation.
-	e.g. 
-	<pre>
-		// equivalent
-		importCommands("/bsh/commands")
-		importCommands("bsh.commands")
-	<pre>
+    Import scripted or compiled BeanShell commands in the following package
+    in the classpath.  You may use either "/" path or "." package notation.
+    e.g. 
+    <pre>
+        // equivalent
+        importCommands("/bsh/commands")
+        importCommands("bsh.commands")
+    <pre>
 
-	When searching for a command each path will be checked for first, a file
-	named 'command'.bsh and second a class file named 'command'.class.
-	<p/>
+    When searching for a command each path will be checked for first, a file
+    named 'command'.bsh and second a class file named 'command'.class.
+    <p/>
 
-	You may add to the BeanShell classpath using the addClassPath() or
-	setClassPath() commands and then import them as usual.
-	<pre>
-		addClassPath("mycommands.jar");
-		importCommands("/mypackage/commands");
-	</pre>
-	<p/>
+    You may add to the BeanShell classpath using the addClassPath() or
+    setClassPath() commands and then import them as usual.
+    <pre>
+        addClassPath("mycommands.jar");
+        importCommands("/mypackage/commands");
+    </pre>
+    <p/>
 
-	If a relative path style specifier is used then it is made into an absolute
-	path by prepending "/".  Later imports take precedence over earlier ones.
-	<p/>
+    If a relative path style specifier is used then it is made into an absolute
+    path by prepending "/".  Later imports take precedence over earlier ones.
+    <p/>
 
-	Imported commands are scoped just like imported clases.
-	<p/>
+    Imported commands are scoped just like imported clases.
+    <p/>
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="importObject"><strong><font size="+2">importObject</font></strong></a><br CLEAR="ALL"/><font size="+1">void importObject( Object object )
 <br CLEAR="ALL"/></font></td></tr><tr><td>
     Import an instance object into this namespace
@@ -5020,24 +5020,24 @@ for more information.
     </pre>
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="javap"><strong><font size="+2">javap</font></strong></a><br CLEAR="ALL"/><font size="+1">void javap( String | Object | Class | ClassIdentifier )
 <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Print the public fields and methods of the specified class (output similar 
-	to the JDK javap command).
-	<p/>
-	If the argument is a string it is considered to be a class name.  If the
-	argument is an object, the class of the object is used.  If the arg is a
-	class, the class is used.  If the argument is a class identifier, the class
-	identified by the class identifier will be used. e.g.  If the argument is
-	the empty string an error will be printed.
-	<p/>
-	<pre>
-	// equivalent
-	javap( java.util.Date ); // class identifier
-	javap( java.util.Date.class ); // class
-	javap( "java.util.Date" ); // String name of class
-	javap( new java.util.Date() ); // instance of class
-	</pre>
+    Print the public fields and methods of the specified class (output similar 
+    to the JDK javap command).
+    <p/>
+    If the argument is a string it is considered to be a class name.  If the
+    argument is an object, the class of the object is used.  If the arg is a
+    class, the class is used.  If the argument is a class identifier, the class
+    identified by the class identifier will be used. e.g.  If the argument is
+    the empty string an error will be printed.
+    <p/>
+    <pre>
+    // equivalent
+    javap( java.util.Date ); // class identifier
+    javap( java.util.Date.class ); // class
+    javap( "java.util.Date" ); // String name of class
+    javap( new java.util.Date() ); // instance of class
+    </pre>
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="load"><strong><font size="+2">load</font></strong></a><br CLEAR="ALL"/><font size="+1">Object load ( String filename ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Load a serialized Java object from filename.  Returns the object.
+    Load a serialized Java object from filename.  Returns the object.
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="makeWorkspace"><strong><font size="+2">makeWorkspace</font></strong></a><br CLEAR="ALL"/><font size="+1">makeWorkspace ( String name ) <br CLEAR="ALL"/></font></td></tr><tr><td>
  * Creates a JConsole in a JInternalFrame and adds it to the desktop 
@@ -5049,121 +5049,121 @@ for more information.
  * @author Daniel Leuck (bug fixes)
  
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="mv"><strong><font size="+2">mv</font></strong></a><br CLEAR="ALL"/><font size="+1">mv ( String fromFile , String toFile ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Rename a file (like Unix mv).
+    Rename a file (like Unix mv).
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="object"><strong><font size="+2">object</font></strong></a><br CLEAR="ALL"/><font size="+1">This object()
 <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Return an "empty" BeanShell object context which can be used to hold 
-	data items.  e.g. 
-	<p>
-	<pre>
+    Return an "empty" BeanShell object context which can be used to hold 
+    data items.  e.g. 
+    <p>
+    <pre>
     myStuff = object();
     myStuff.foo = 42;
     myStuff.bar = "blah";
-	</pre>
+    </pre>
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="pathToFile"><strong><font size="+2">pathToFile</font></strong></a><br CLEAR="ALL"/><font size="+1">File pathToFile ( String filename ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Create a File object corresponding to the specified file path name, taking
-	into account the bsh current working directory (bsh.cwd)
+    Create a File object corresponding to the specified file path name, taking
+    into account the bsh current working directory (bsh.cwd)
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="print"><strong><font size="+2">print</font></strong></a><br CLEAR="ALL"/><font size="+1">void print ( arg ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Print the string value of the argument, which may be of any type.
-	If beanshell is running interactively, the output will always go to the 
-	command line, otherwise it will go to System.out.
-	<p>
+    Print the string value of the argument, which may be of any type.
+    If beanshell is running interactively, the output will always go to the 
+    command line, otherwise it will go to System.out.
+    <p>
 
-	Most often the printed value of an object will simply be the Java 
-	toString() of the object.  However if the argument is an array the contents 
-	of the array will be (recursively) listed in a verbose way.
-	<p>
+    Most often the printed value of an object will simply be the Java 
+    toString() of the object.  However if the argument is an array the contents 
+    of the array will be (recursively) listed in a verbose way.
+    <p>
 
-	Note that you are always free to use System.out.println() 
-	instead of print().
+    Note that you are always free to use System.out.println() 
+    instead of print().
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="printBanner"><strong><font size="+2">printBanner</font></strong></a><br CLEAR="ALL"/><font size="+1">printBanner ( ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Print the BeanShell banner (version and author line) - GUI or non GUI.
+    Print the BeanShell banner (version and author line) - GUI or non GUI.
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="pwd"><strong><font size="+2">pwd</font></strong></a><br CLEAR="ALL"/><font size="+1">pwd ( ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Print the BeanShell working directory.  This is the cwd obeyed by all the 
-	unix-like bsh commands.
+    Print the BeanShell working directory.  This is the cwd obeyed by all the 
+    unix-like bsh commands.
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="reloadClasses"><strong><font size="+2">reloadClasses</font></strong></a><br CLEAR="ALL"/><font size="+1">void reloadClasses( [ package name ] )
 <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Reload the specified class, package name, or all classes if no name is 
-	given.  e.g.
-	<p>
+    Reload the specified class, package name, or all classes if no name is 
+    given.  e.g.
+    <p>
 
-	<pre>
+    <pre>
     reloadClasses();
     reloadClasses("mypackage.*");
     reloadClasses(".*")  // reload unpackaged classes
     reloadClasses("mypackage.MyClass") 
-	</pre>
-	<p>
+    </pre>
+    <p>
 
-	See "Class Path Management"
+    See "Class Path Management"
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="rm"><strong><font size="+2">rm</font></strong></a><br CLEAR="ALL"/><font size="+1">boolean rm ( String pathname ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Remove a file (like Unix rm).
+    Remove a file (like Unix rm).
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="run"><strong><font size="+2">run</font></strong></a><br CLEAR="ALL"/><font size="+1">run ( String filename , Object runArgument ) <br CLEAR="ALL"/>run ( String filename ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Run a command in its own in its own private global namespace, with its
-	own class manager and interpeter context.  (kind of like unix "chroot" for 
-	a namespace).
-	The root bsh system object is extended (with the extend() command) and 
-	made visible here, so that general system info (e.g. current working
-	directory) is effectively inherited.  Because the root bsh object is 
-	extended it is effectively read only / copy on write...  
-	e.g. you can change directories in the child context, do imports, change
-	the classpath, etc. and it will not affect the calling context.
-	<p>
+    Run a command in its own in its own private global namespace, with its
+    own class manager and interpeter context.  (kind of like unix "chroot" for 
+    a namespace).
+    The root bsh system object is extended (with the extend() command) and 
+    made visible here, so that general system info (e.g. current working
+    directory) is effectively inherited.  Because the root bsh object is 
+    extended it is effectively read only / copy on write...  
+    e.g. you can change directories in the child context, do imports, change
+    the classpath, etc. and it will not affect the calling context.
+    <p>
 
-	run() is like source() except that it runs the command in a new, 
-	subordinate and prune()'d namespace.  So it's like "running" a command 
-	instead of "sourcing" it.  run() teturns the object context in which the 
-	command was run.
-	<p>
+    run() is like source() except that it runs the command in a new, 
+    subordinate and prune()'d namespace.  So it's like "running" a command 
+    instead of "sourcing" it.  run() teturns the object context in which the 
+    command was run.
+    <p>
 
-	Returns the object context so that you can gather results.
-	<p>
-	Parameter runArgument an argument passed to the child context under the
-		name runArgument.  e.g. you might pass in the calling This context
-		from which to draw variables, etc.
-	<p>
+    Returns the object context so that you can gather results.
+    <p>
+    Parameter runArgument an argument passed to the child context under the
+        name runArgument.  e.g. you might pass in the calling This context
+        from which to draw variables, etc.
+    <p>
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="save"><strong><font size="+2">save</font></strong></a><br CLEAR="ALL"/><font size="+1">void save ( Object obj , String filename ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Save a serializable Java object to filename. 
+    Save a serializable Java object to filename. 
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="server"><strong><font size="+2">server</font></strong></a><br CLEAR="ALL"/><font size="+1">void server ( int port ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Create a remote BeanShell listener service attached to 
-	the current interpreter, listening on the specified port.
+    Create a remote BeanShell listener service attached to 
+    the current interpreter, listening on the specified port.
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="setAccessibility"><strong><font size="+2">setAccessibility</font></strong></a><br CLEAR="ALL"/><font size="+1">setAccessibility ( boolean b ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Setting accessibility on enables to private and other non-public
-	fields and method.
+    Setting accessibility on enables to private and other non-public
+    fields and method.
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="setClassPath"><strong><font size="+2">setClassPath</font></strong></a><br CLEAR="ALL"/><font size="+1">void setClassPath( URL [] )
 <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Change the classpath to the specified array of directories and/or archives.
-	<p>
-	See "Class Path Management" for details.
+    Change the classpath to the specified array of directories and/or archives.
+    <p>
+    See "Class Path Management" for details.
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="setFont"><strong><font size="+2">setFont</font></strong></a><br CLEAR="ALL"/><font size="+1">Font setFont ( Component comp , String family , int style , int size ) <br CLEAR="ALL"/>Font setFont ( Component comp , int size ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Change the point size of the font on the specified component, to ptsize.
-	This is just a convenience for playing with GUI components.
+    Change the point size of the font on the specified component, to ptsize.
+    This is just a convenience for playing with GUI components.
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="setNameCompletion"><strong><font size="+2">setNameCompletion</font></strong></a><br CLEAR="ALL"/><font size="+1">void setNameCompletion ( boolean bool ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Allow users to turn off name completion.
-	<p>
-	Turn name completion in the GUI console on or off.
-	Name competion is on by default.  Explicitly setting it to true however can
-	be used to prompt bsh to read the classpath and provide immediate feedback.
-	(Otherwise this may happen behind the scenes the first time name completion
-	is attempted).  Setting it to false will disable name completion.
+    Allow users to turn off name completion.
+    <p>
+    Turn name completion in the GUI console on or off.
+    Name competion is on by default.  Explicitly setting it to true however can
+    be used to prompt bsh to read the classpath and provide immediate feedback.
+    (Otherwise this may happen behind the scenes the first time name completion
+    is attempted).  Setting it to false will disable name completion.
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="setNameSpace"><strong><font size="+2">setNameSpace</font></strong></a><br CLEAR="ALL"/><font size="+1">setNameSpace ( ns ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Set the namespace (context) of the current scope.
-	<p/>
+    Set the namespace (context) of the current scope.
+    <p/>
 
-	The following example illustrates swapping the current namespace.
-	<p/>
+    The following example illustrates swapping the current namespace.
+    <p/>
 
-	<pre>
+    <pre>
     fooState = object(); 
     barState = object(); 
     
@@ -5183,53 +5183,53 @@ for more information.
     print(this.namespace);
     print(a); // 6
     </pre>
-	<p/>
+    <p/>
 
-	You could use this to creates the effect of a static namespace for a
-	method by explicitly setting the namespace upon entry.
-	<p/>
+    You could use this to creates the effect of a static namespace for a
+    method by explicitly setting the namespace upon entry.
+    <p/>
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="setStrictJava"><strong><font size="+2">setStrictJava</font></strong></a><br CLEAR="ALL"/><font size="+1">void setStrictJava ( boolean val ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Enable or disable "Strict Java Mode".
-	When strict Java mode is enabled BeanShell will:
-	<p>
+    Enable or disable "Strict Java Mode".
+    When strict Java mode is enabled BeanShell will:
+    <p>
 
-	<ol>
-	<li>Require typed variable declarations, method arguments and return types.
-	<li>Modify the scoping of variables to look for the variable
-	declaration first in the parent namespace, as in a java method inside 
-	a java class.  e.g. if you can write a method called incrementFoo() that 
-	will do the expected thing without referring to "super.foo".
-	</ul>
-	<p/>
+    <ol>
+    <li>Require typed variable declarations, method arguments and return types.
+    <li>Modify the scoping of variables to look for the variable
+    declaration first in the parent namespace, as in a java method inside 
+    a java class.  e.g. if you can write a method called incrementFoo() that 
+    will do the expected thing without referring to "super.foo".
+    </ul>
+    <p/>
 
-	See "Strict Java Mode" for more details.
-	<p/>
+    See "Strict Java Mode" for more details.
+    <p/>
 
-	<em>Note: Currently most standard BeanShell commands will not work in 
-	Strict Java mode simply because they have not been written with full
-	types, etc.
+    <em>Note: Currently most standard BeanShell commands will not work in 
+    Strict Java mode simply because they have not been written with full
+    types, etc.
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="show"><strong><font size="+2">show</font></strong></a><br CLEAR="ALL"/><font size="+1">show ( ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Toggle on or off displaying the results of expressions (off by default).
-	When show mode is on bsh will print() the value returned by each expression 
-	you type on the command line.
+    Toggle on or off displaying the results of expressions (off by default).
+    When show mode is on bsh will print() the value returned by each expression 
+    you type on the command line.
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="source"><strong><font size="+2">source</font></strong></a><br CLEAR="ALL"/><font size="+1">Object source ( String filename ) <br CLEAR="ALL"/>Object source ( URL url ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Read filename into the interpreter and evaluate it in the current
-	namespace.  Like the Bourne Shell "." command.
-	This command acts exactly like the eval() command but reads from a file 
-	or URL source.
+    Read filename into the interpreter and evaluate it in the current
+    namespace.  Like the Bourne Shell "." command.
+    This command acts exactly like the eval() command but reads from a file 
+    or URL source.
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="sourceRelative"><strong><font size="+2">sourceRelative</font></strong></a><br CLEAR="ALL"/><font size="+1">sourceRelative ( String file ) <br CLEAR="ALL"/></font></td></tr><tr><td>
     Source a file relative to the callering script's directory.
-	<p/>
+    <p/>
 
     e.g. scripts A running in dir A sources script B in dir B.
-	Script B can use this command to load additional scripts (data, etc.)
-	relative to its own location (dir B) without having to explicitly know 
-	its "home" directory (B).
-	<p/>
-	Note: this only works for files currently.
+    Script B can use this command to load additional scripts (data, etc.)
+    relative to its own location (dir B) without having to explicitly know 
+    its "home" directory (B).
+    <p/>
+    Note: this only works for files currently.
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="thinBorder"><strong><font size="+2">thinBorder</font></strong></a><br CLEAR="ALL"/><font size="+1">public thinBorder ( ) <br CLEAR="ALL"/>public thinBorder ( Color lightColor , Color darkColor ) <br CLEAR="ALL"/>public thinBorder ( Color lightColor , Color darkColor , boolean rollOver ) <br CLEAR="ALL"/></font></td></tr><tr><td> 
  * A one pixel wide bevel border.  This border works for buttons (with optional
  * rollover) and other components
@@ -5237,34 +5237,34 @@ for more information.
  * @author Daniel Leuck
  
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="unset"><strong><font size="+2">unset</font></strong></a><br CLEAR="ALL"/><font size="+1">void unset ( String name ) <br CLEAR="ALL"/></font></td></tr><tr><td>
-	"Undefine" the variable specifed by 'name' (So that it tests == void).
-	<p>
-	<em>Note: there will be a better way to do this in the future.  This is 
-	currently equivalent to doing namespace.setVariable(name, null);</em>
+    "Undefine" the variable specifed by 'name' (So that it tests == void).
+    <p>
+    <em>Note: there will be a better way to do this in the future.  This is 
+    currently equivalent to doing namespace.setVariable(name, null);</em>
 
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="which"><strong><font size="+2">which</font></strong></a><br CLEAR="ALL"/><font size="+1">which( classIdentifier | string | class )
 <br CLEAR="ALL"/></font></td></tr><tr><td>
-	Use classpath mapping to determine the source of the specified class
-	file.  (Like the Unix which command for executables).
-	<p/>
+    Use classpath mapping to determine the source of the specified class
+    file.  (Like the Unix which command for executables).
+    <p/>
 
     This command maps the entire classpath and prints all of the occurrences
     of the class.  If you just want to find the first occurrence in the
     classpath (the one that will be used by Java) you can also get it by
     printing the URL of the resource. e.g.:
-	<p/>
+    <p/>
 
     <pre>
         print( getResource("/com/foo/MyClass.class") );
-		// Same as...
+        // Same as...
         // System.out.println(
         //    getClass().getResourceAsStream("/com/foo/MyClass.class" ) );
     </pre>
-	<p/>
+    <p/>
 
-	Note: This is all a lie! This command is broken and only reports the
-	currently first occurence! To be fixed!
-	<p/>
+    Note: This is all a lie! This command is broken and only reports the
+    currently first occurence! To be fixed!
+    <p/>
 </td></tr></table><table width="100%" border="0" cellpadding="5"><tr><td bgcolor="#cccccc"><a name="workspaceEditor"><strong><font size="+2">workspaceEditor</font></strong></a><br CLEAR="ALL"/><font size="+1">workspaceEditor ( Interpreter parent , String name ) <br CLEAR="ALL"/></font></td></tr><tr><td>
  * Make a new workspaceEditor associated with a workspace and place it on the
  * desktop.

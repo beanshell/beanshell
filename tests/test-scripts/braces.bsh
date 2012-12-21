@@ -5,7 +5,7 @@ source("TestHarness.bsh");
 a=5;
 b=5;
 { 
-	b=6;
+    b=6;
 };
 assert( b==6 );
 

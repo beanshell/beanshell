@@ -3,8 +3,8 @@
 source("TestHarness.bsh");
 
 failb() {
-	fail();
-	return false;
+    fail();
+    return false;
 }
 
 // fail() should not be evaluated here

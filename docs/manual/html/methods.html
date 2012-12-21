@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <html><head><title>Scripted Methods</title></head><body bgcolor="ffffff"><table cellspacing="10"><tr><td align="center"><a href="http://www.beanshell.org/"><img src="../images/homebutton.gif"/><br/>Home</a></td><td><a href="syntax.html#Basic_Syntax"><img src="../images/backbutton.gif"/><br/>Back
-			</a></td><td align="center"><a href="contents.html"><img src="../images/upbutton.gif"/><br/>Contents</a></td><td align="center"><a href="objects.html#Scripted_Objects"><img src="../images/forwardbutton.gif"/><br/>Next
-			</a></td></tr></table><h1>Scripted Methods</h1>
+            </a></td><td align="center"><a href="contents.html"><img src="../images/upbutton.gif"/><br/>Contents</a></td><td align="center"><a href="objects.html#Scripted_Objects"><img src="../images/forwardbutton.gif"/><br/>Next
+            </a></td></tr></table><h1>Scripted Methods</h1>
 
 
 You can define define methods in BeanShell, just as they would appear in Java:
@@ -93,8 +93,8 @@ anotherMethod() { ... }
 
 foo() {
     print( a );
-	a = a+1;
-	anotherMethod();
+    a = a+1;
+    anotherMethod();
 }
 
 // invoke foo()
@@ -120,9 +120,9 @@ it defaults to the local scope:
 a = 1;
 
 foo() {
-	a = a + 1; // a is defined in parent scope
-	b = 3;     // undefined, defaults local scope
-	int c = 4; // declared local scope
+    a = a + 1; // a is defined in parent scope
+    b = 3;     // undefined, defaults local scope
+    int c = 4; // declared local scope
 }
 
 // invoke foo()
@@ -167,7 +167,7 @@ If you wish to, you can explicitly declare an untyped variable
 
 <p/><center><table border="1" cellpadding="5" width="100%"><tr><td bgcolor="#dfdfdc"><pre>
 foo() {
-	var a = 1;
+    var a = 1;
 }
 foo();
 print( a ); // ERROR! a is undefined!
@@ -182,7 +182,7 @@ variable assignment and make it local.
 
 <p/><center><table border="1" cellpadding="5" width="100%"><tr><td bgcolor="#dfdfdc"><pre>
 foo() {
-	this.a = 1;
+    this.a = 1;
 }
 foo();
 print( a ); // ERROR! a is undefined!
@@ -227,5 +227,5 @@ in scripting Objects in BeanShell.
 <p CLEAR="ALL"/>
 
 <table cellspacing="10"><tr><td align="center"><a href="http://www.beanshell.org/"><img src="../images/homebutton.gif"/><br/>Home</a></td><td><a href="syntax.html#Basic_Syntax"><img src="../images/backbutton.gif"/><br/>Back
-			</a></td><td align="center"><a href="contents.html"><img src="../images/upbutton.gif"/><br/>Contents</a></td><td align="center"><a href="objects.html#Scripted_Objects"><img src="../images/forwardbutton.gif"/><br/>Next
-			</a></td></tr></table></body></html>
+            </a></td><td align="center"><a href="contents.html"><img src="../images/upbutton.gif"/><br/>Contents</a></td><td align="center"><a href="objects.html#Scripted_Objects"><img src="../images/forwardbutton.gif"/><br/>Next
+            </a></td></tr></table></body></html>

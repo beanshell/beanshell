@@ -5,25 +5,25 @@ source("TestHarness.bsh");
 // foo can never be reached because foo( Object ) is more specific
 // primitives are boxed for it.
 foo( a ) { 
-	return 1;
+    return 1;
 }
 foo( a, b ) { 
-	return 2;
+    return 2;
 }
 foo( String a ) { 
-	return 3;
+    return 3;
 }
 foo( Object o ) {
-	return 4;
+    return 4;
 }
 foo( Object o, String o2 ) {
-	return 5;
+    return 5;
 }
 foo( String o, String o2 ) {
-	return 6;
+    return 6;
 }
 foo() {
-	return 7;
+    return 7;
 }
 
 assert( foo("qbert") == 3 );

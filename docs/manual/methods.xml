@@ -90,8 +90,8 @@ anotherMethod() { ... }
 
 foo() {
     print( a );
-	a = a+1;
-	anotherMethod();
+    a = a+1;
+    anotherMethod();
 }
 
 // invoke foo()
@@ -117,9 +117,9 @@ it defaults to the local scope:
 a = 1;
 
 foo() {
-	a = a + 1; // a is defined in parent scope
-	b = 3;     // undefined, defaults local scope
-	int c = 4; // declared local scope
+    a = a + 1; // a is defined in parent scope
+    b = 3;     // undefined, defaults local scope
+    int c = 4; // declared local scope
 }
 
 // invoke foo()
@@ -164,7 +164,7 @@ If you wish to, you can explicitly declare an untyped variable
 
 <example>
 foo() {
-	var a = 1;
+    var a = 1;
 }
 foo();
 print( a ); // ERROR! a is undefined!
@@ -179,7 +179,7 @@ variable assignment and make it local.
 
 <example>
 foo() {
-	this.a = 1;
+    this.a = 1;
 }
 foo();
 print( a ); // ERROR! a is undefined!
