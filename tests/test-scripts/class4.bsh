@@ -3,21 +3,21 @@
 source("TestHarness.bsh");
 
 class Foo44 {
-	int a=5;
+    int a=5;
 }
 
 class Bar44 {
-	int b=5;
-	Bar44() {
-		b=6; // change value
-	}
+    int b=5;
+    Bar44() {
+        b=6; // change value
+    }
 }
 
 class Gee44 {
-	int c=5;
-	Gee44( int x ) {
-		c=x;
-	}
+    int c=5;
+    Gee44( int x ) {
+        c=x;
+    }
 }
 
 foo=new Foo44();

@@ -3,8 +3,8 @@
 source("TestHarness.bsh");
 
 foo( arg ) {
-	this.a=arg;
-	return this;
+    this.a=arg;
+    return this;
 }
 
 f1=foo(1);

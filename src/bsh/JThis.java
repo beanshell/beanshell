@@ -35,83 +35,83 @@ import java.io.*;
 import java.beans.*;
 
 /**
-	JThis is a dynamically loaded extension which extends This and adds 
-	explicit support for AWT and JFC events, etc.  This is a backwards 
-	compatability measure for JDK 1.2.  With 1.3+ there is a general 
-	reflection proxy mechanism that allows the base This to implement 
-	arbitrary interfaces.
+    JThis is a dynamically loaded extension which extends This and adds 
+    explicit support for AWT and JFC events, etc.  This is a backwards 
+    compatability measure for JDK 1.2.  With 1.3+ there is a general 
+    reflection proxy mechanism that allows the base This to implement 
+    arbitrary interfaces.
 
-	The NameSpace getThis() method will produce instances of JThis if 
-	the java version is prior to 1.3 and swing is available...  (e.g. 1.2
-	or 1.1 + swing installed)  
+    The NameSpace getThis() method will produce instances of JThis if 
+    the java version is prior to 1.3 and swing is available...  (e.g. 1.2
+    or 1.1 + swing installed)  
 
-	Users of 1.1 without swing will have minimal interface support (just run()).
-	
-	Bsh doesn't run on 1.02 and below because there is no reflection! 
+    Users of 1.1 without swing will have minimal interface support (just run()).
+    
+    Bsh doesn't run on 1.02 and below because there is no reflection! 
 
-	Note: This module relies on features of Swing and will only compile
-	with JDK1.2 or JDK1.1 + the swing package.  For other environments simply 
-	do not compile this class.
+    Note: This module relies on features of Swing and will only compile
+    with JDK1.2 or JDK1.1 + the swing package.  For other environments simply 
+    do not compile this class.
 */
 class JThis extends This implements
-	// All core AWT listeners
-	ActionListener, AdjustmentListener, ComponentListener,
-	ContainerListener, FocusListener, ItemListener, KeyListener,
-	MouseListener, MouseMotionListener, TextListener, WindowListener,
-	PropertyChangeListener, 
-	// All listeners in javax.swing.event as of Swing 1.1
-	AncestorListener, CaretListener, CellEditorListener, ChangeListener,
-	DocumentListener, HyperlinkListener, 
-	InternalFrameListener, ListDataListener, ListSelectionListener, 
-	MenuDragMouseListener, MenuKeyListener, MenuListener, MouseInputListener, 
-	PopupMenuListener, TableColumnModelListener, TableModelListener, 
-	TreeExpansionListener, TreeModelListener, TreeSelectionListener, 
-	TreeWillExpandListener, UndoableEditListener
+    // All core AWT listeners
+    ActionListener, AdjustmentListener, ComponentListener,
+    ContainerListener, FocusListener, ItemListener, KeyListener,
+    MouseListener, MouseMotionListener, TextListener, WindowListener,
+    PropertyChangeListener, 
+    // All listeners in javax.swing.event as of Swing 1.1
+    AncestorListener, CaretListener, CellEditorListener, ChangeListener,
+    DocumentListener, HyperlinkListener, 
+    InternalFrameListener, ListDataListener, ListSelectionListener, 
+    MenuDragMouseListener, MenuKeyListener, MenuListener, MouseInputListener, 
+    PopupMenuListener, TableColumnModelListener, TableModelListener, 
+    TreeExpansionListener, TreeModelListener, TreeSelectionListener, 
+    TreeWillExpandListener, UndoableEditListener
 {
 
-	JThis( NameSpace namespace, Interpreter declaringInterp ) { 
-		super( namespace, declaringInterp );
-	}
+    JThis( NameSpace namespace, Interpreter declaringInterp ) { 
+        super( namespace, declaringInterp );
+    }
 
-	public String toString() {
-		return "'this' reference (JThis) to Bsh object: " + namespace.getName();
-	}
+    public String toString() {
+        return "'this' reference (JThis) to Bsh object: " + namespace.getName();
+    }
 
-	void event(String name, Object event)
-	{
-		CallStack callstack = new CallStack( namespace );
-		BshMethod method = null;
+    void event(String name, Object event)
+    {
+        CallStack callstack = new CallStack( namespace );
+        BshMethod method = null;
 
-		// handleEvent gets all events
-		try {
-			method = namespace.getMethod( 
-				"handleEvent", new Class [] { null } );
-		} catch ( UtilEvalError e ) {/*squeltch*/  }
+        // handleEvent gets all events
+        try {
+            method = namespace.getMethod( 
+                "handleEvent", new Class [] { null } );
+        } catch ( UtilEvalError e ) {/*squeltch*/  }
 
-		if (method != null)
-			try {
-				method.invoke( 
-					new Object[] { event }, declaringInterpreter, callstack, null );
-			} catch(EvalError e) {
-				declaringInterpreter.error(
-					"local event hander method invocation error:" + e );
-			}
+        if (method != null)
+            try {
+                method.invoke( 
+                    new Object[] { event }, declaringInterpreter, callstack, null );
+            } catch(EvalError e) {
+                declaringInterpreter.error(
+                    "local event hander method invocation error:" + e );
+            }
 
-		// send to specific event handler
-		try {
-			method = namespace.getMethod( name, new Class [] { null } );
-		} catch ( UtilEvalError e ) { /*squeltch*/ }
-		if (method != null)
-			try {
-				method.invoke( 
-					new Object[] { event }, declaringInterpreter, callstack, null );
-			} catch(EvalError e) {
-				declaringInterpreter.error(
-					"local event hander method invocation error:" + e );
-			}
-	}
+        // send to specific event handler
+        try {
+            method = namespace.getMethod( name, new Class [] { null } );
+        } catch ( UtilEvalError e ) { /*squeltch*/ }
+        if (method != null)
+            try {
+                method.invoke( 
+                    new Object[] { event }, declaringInterpreter, callstack, null );
+            } catch(EvalError e) {
+                declaringInterpreter.error(
+                    "local event hander method invocation error:" + e );
+            }
+    }
 
-	// Listener interfaces
+    // Listener interfaces
 
     public void ancestorAdded(AncestorEvent e) { event("ancestorAdded", e); }
     public void ancestorRemoved(AncestorEvent e) { event("ancestorRemoved", e); }
@@ -134,7 +134,7 @@ class JThis extends This implements
     public void intervalAdded(ListDataEvent e) { event("intervalAdded", e); }
     public void intervalRemoved(ListDataEvent e) { event("intervalRemoved", e); }
     public void contentsChanged(ListDataEvent e) { event("contentsChanged", e); }
-  	public void valueChanged(ListSelectionEvent e) { event("valueChanged", e); }
+      public void valueChanged(ListSelectionEvent e) { event("valueChanged", e); }
     public void menuDragMouseEntered(MenuDragMouseEvent e) { event("menuDragMouseEntered", e); }
     public void menuDragMouseExited(MenuDragMouseEvent e) { event("menuDragMouseExited", e); }
     public void menuDragMouseDragged(MenuDragMouseEvent e) { event("menuDragMouseDragged", e); }
@@ -165,67 +165,67 @@ class JThis extends This implements
     public void treeWillCollapse(TreeExpansionEvent e) { event("treeWillCollapse", e); }
     public void undoableEditHappened(UndoableEditEvent e) { event("undoableEditHappened", e); }
 
-	// Listener interfaces
-	public void actionPerformed(ActionEvent e) { event("actionPerformed", e); }
-	public void adjustmentValueChanged(AdjustmentEvent e) { event("adjustmentValueChanged", e); }
-	public void componentResized(ComponentEvent e) { event("componentResized", e); }
-	public void componentMoved(ComponentEvent e) { event("componentMoved", e); }
-	public void componentShown(ComponentEvent e) { event("componentShown", e); }
-	public void componentHidden(ComponentEvent e) { event("componentHidden", e); }
-	public void componentAdded(ContainerEvent e) { event("componentAdded", e); }
-	public void componentRemoved(ContainerEvent e) { event("componentRemoved", e); }
-	public void focusGained(FocusEvent e) { event("focusGained", e); }
-	public void focusLost(FocusEvent e) { event("focusLost", e); }
-	public void itemStateChanged(ItemEvent e) { event("itemStateChanged", e); }
-	public void keyTyped(KeyEvent e) { event("keyTyped", e); }
-	public void keyPressed(KeyEvent e) { event("keyPressed", e); }
-	public void keyReleased(KeyEvent e) { event("keyReleased", e); }
-	public void mouseClicked(MouseEvent e) { event("mouseClicked", e); }
-	public void mousePressed(MouseEvent e) { event("mousePressed", e); }
-	public void mouseReleased(MouseEvent e) { event("mouseReleased", e); }
-	public void mouseEntered(MouseEvent e) { event("mouseEntered", e); }
-	public void mouseExited(MouseEvent e) { event("mouseExited", e); }
-	public void mouseDragged(MouseEvent e) { event("mouseDragged", e); }
-	public void mouseMoved(MouseEvent e) { event("mouseMoved", e); }
-	public void textValueChanged(TextEvent e) { event("textValueChanged", e); }
-	public void windowOpened(WindowEvent e) { event("windowOpened", e); }
-	public void windowClosing(WindowEvent e) { event("windowClosing", e); }
-	public void windowClosed(WindowEvent e) { event("windowClosed", e); }
-	public void windowIconified(WindowEvent e) { event("windowIconified", e); }
-	public void windowDeiconified(WindowEvent e) { event("windowDeiconified", e); }
-	public void windowActivated(WindowEvent e) { event("windowActivated", e); }
-	public void windowDeactivated(WindowEvent e) { event("windowDeactivated", e); }
+    // Listener interfaces
+    public void actionPerformed(ActionEvent e) { event("actionPerformed", e); }
+    public void adjustmentValueChanged(AdjustmentEvent e) { event("adjustmentValueChanged", e); }
+    public void componentResized(ComponentEvent e) { event("componentResized", e); }
+    public void componentMoved(ComponentEvent e) { event("componentMoved", e); }
+    public void componentShown(ComponentEvent e) { event("componentShown", e); }
+    public void componentHidden(ComponentEvent e) { event("componentHidden", e); }
+    public void componentAdded(ContainerEvent e) { event("componentAdded", e); }
+    public void componentRemoved(ContainerEvent e) { event("componentRemoved", e); }
+    public void focusGained(FocusEvent e) { event("focusGained", e); }
+    public void focusLost(FocusEvent e) { event("focusLost", e); }
+    public void itemStateChanged(ItemEvent e) { event("itemStateChanged", e); }
+    public void keyTyped(KeyEvent e) { event("keyTyped", e); }
+    public void keyPressed(KeyEvent e) { event("keyPressed", e); }
+    public void keyReleased(KeyEvent e) { event("keyReleased", e); }
+    public void mouseClicked(MouseEvent e) { event("mouseClicked", e); }
+    public void mousePressed(MouseEvent e) { event("mousePressed", e); }
+    public void mouseReleased(MouseEvent e) { event("mouseReleased", e); }
+    public void mouseEntered(MouseEvent e) { event("mouseEntered", e); }
+    public void mouseExited(MouseEvent e) { event("mouseExited", e); }
+    public void mouseDragged(MouseEvent e) { event("mouseDragged", e); }
+    public void mouseMoved(MouseEvent e) { event("mouseMoved", e); }
+    public void textValueChanged(TextEvent e) { event("textValueChanged", e); }
+    public void windowOpened(WindowEvent e) { event("windowOpened", e); }
+    public void windowClosing(WindowEvent e) { event("windowClosing", e); }
+    public void windowClosed(WindowEvent e) { event("windowClosed", e); }
+    public void windowIconified(WindowEvent e) { event("windowIconified", e); }
+    public void windowDeiconified(WindowEvent e) { event("windowDeiconified", e); }
+    public void windowActivated(WindowEvent e) { event("windowActivated", e); }
+    public void windowDeactivated(WindowEvent e) { event("windowDeactivated", e); }
 
-	public void propertyChange(PropertyChangeEvent e) { 
-		event("propertyChange", e ); }
+    public void propertyChange(PropertyChangeEvent e) { 
+        event("propertyChange", e ); }
     public void vetoableChange(PropertyChangeEvent e) {
-		event("vetoableChange", e ); }
+        event("vetoableChange", e ); }
 
     public boolean imageUpdate(java.awt.Image img, int infoflags,
                                int x, int y, int width, int height) {
 
-		BshMethod method = null;
-		try {
-			method = namespace.getMethod( "imageUpdate",
-				new Class [] { null, null, null, null, null, null } );
-		} catch ( UtilEvalError e ) {/*squeltch*/ }
+        BshMethod method = null;
+        try {
+            method = namespace.getMethod( "imageUpdate",
+                new Class [] { null, null, null, null, null, null } );
+        } catch ( UtilEvalError e ) {/*squeltch*/ }
 
-		if(method != null)
-			try {
-				CallStack callstack = new CallStack( namespace );
-				method.invoke( 
-					new Object[] { 
-						img, new Primitive(infoflags), new Primitive(x), 
-						new Primitive(y), new Primitive(width), 
-						new Primitive(height) }, 
-					declaringInterpreter, callstack, null
-				);
-			} catch(EvalError e) {
-				declaringInterpreter.error(
-					"local event handler imageUpdate: method invocation error:" + e );
-			}
-		return true;
-	}
+        if(method != null)
+            try {
+                CallStack callstack = new CallStack( namespace );
+                method.invoke( 
+                    new Object[] { 
+                        img, new Primitive(infoflags), new Primitive(x), 
+                        new Primitive(y), new Primitive(width), 
+                        new Primitive(height) }, 
+                    declaringInterpreter, callstack, null
+                );
+            } catch(EvalError e) {
+                declaringInterpreter.error(
+                    "local event handler imageUpdate: method invocation error:" + e );
+            }
+        return true;
+    }
 
 }
 

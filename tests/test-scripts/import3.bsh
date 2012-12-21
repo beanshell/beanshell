@@ -5,12 +5,12 @@
 source("TestHarness.bsh");
 
 /**
-	Test import precedence rules.  Disambiguate with a class import.
-	Several cases here, should probably make more test classes.
-	Tried them here once...
+    Test import precedence rules.  Disambiguate with a class import.
+    Several cases here, should probably make more test classes.
+    Tried them here once...
 
-	Without the disambiguating class import in Java this would cause a compile 
-	time error.  In bsh the *later* import takes precedence...
+    Without the disambiguating class import in Java this would cause a compile 
+    time error.  In bsh the *later* import takes precedence...
 */
 
 // works
