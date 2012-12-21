@@ -7,9 +7,9 @@ source("TestHarness.bsh");
 
 
 foo() {
-	if ( true ) {
-		assert(false);
-	}
+    if ( true ) {
+        assert(false);
+    }
 }
 foo();
 

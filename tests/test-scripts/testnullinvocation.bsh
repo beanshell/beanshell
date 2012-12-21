@@ -6,41 +6,41 @@ source("TestHarness.bsh");
 // null var
 n=null;
 try {
-	n.foo();
+    n.foo();
 } catch ( NullPointerException e ) {
-	print(e);
-	flag();
+    print(e);
+    flag();
 }
 
 // null scripted method return
 returnNull() {
-	return null;
+    return null;
 }
 
 try {
-	returnNull().foo();
+    returnNull().foo();
 } catch ( NullPointerException e ) {
-	print(e);
-	flag();
+    print(e);
+    flag();
 }
 
 // null java method return
 map=new HashMap();
 try {
-	map.get("foo").length();
+    map.get("foo").length();
 } catch ( NullPointerException e ) {
-	print(e);
-	flag();
+    print(e);
+    flag();
 }
 
 String [] strings = { null, null };
 s=strings[0];
 assert( s == null );
 try {
-	s.foo();
+    s.foo();
 } catch ( NullPointerException e ) {
-	print(e);
-	flag();
+    print(e);
+    flag();
 }
 
 assert( flag() == 4 );

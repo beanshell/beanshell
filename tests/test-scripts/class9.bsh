@@ -4,17 +4,17 @@ source("TestHarness.bsh");
 
 class Foo88
 {
-	Foo88 foo;
+    Foo88 foo;
 
-	Foo88() { 
-		this.foo = this;
-	}
+    Foo88() { 
+        this.foo = this;
+    }
 
-	Foo88 get() { return this; }
+    Foo88 get() { return this; }
 
-	void blah( Foo88 f ) {
-		assert( f instanceof Foo88 );
-	}
+    void blah( Foo88 f ) {
+        assert( f instanceof Foo88 );
+    }
 }
 
 f=new Foo88();

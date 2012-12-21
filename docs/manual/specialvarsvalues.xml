@@ -133,7 +133,7 @@ define the following method to place the current working directory into
 their command prompt:
 
 <example>
-	getBshPrompt() { return bsh.cwd + " % "; }
+    getBshPrompt() { return bsh.cwd + " % "; }
 </example>
 
 The default getBshPrompt() command returns the value of the variable
