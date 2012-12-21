@@ -5,9 +5,9 @@ source("TestHarness.bsh");
 // Runnable is implemented by This and does not require the proxy mechansim
 
 r=new Runnable() {
-	run() {
-		flag();
-	}
+    run() {
+        flag();
+    }
 };
 
 r.run();

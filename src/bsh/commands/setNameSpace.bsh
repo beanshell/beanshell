@@ -1,11 +1,11 @@
 /**
-	Set the namespace (context) of the current scope.
-	<p/>
+    Set the namespace (context) of the current scope.
+    <p/>
 
-	The following example illustrates swapping the current namespace.
-	<p/>
+    The following example illustrates swapping the current namespace.
+    <p/>
 
-	<pre>
+    <pre>
     fooState = object(); 
     barState = object(); 
     
@@ -25,19 +25,19 @@
     print(this.namespace);
     print(a); // 6
     </pre>
-	<p/>
+    <p/>
 
-	You could use this to creates the effect of a static namespace for a
-	method by explicitly setting the namespace upon entry.
-	<p/>
+    You could use this to creates the effect of a static namespace for a
+    method by explicitly setting the namespace upon entry.
+    <p/>
 */
 
 bsh.help.setNameSpace =
-	"usage: setNameSpace( bsh.NameSpace )";
+    "usage: setNameSpace( bsh.NameSpace )";
 
 setNameSpace( ns ) 
 {
-	// Set the namespace at depth one (our caller) to the specified namespace.
-	this.callstack.set( 1, ns );
+    // Set the namespace at depth one (our caller) to the specified namespace.
+    this.callstack.set( 1, ns );
 }
 

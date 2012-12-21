@@ -3,13 +3,13 @@
 source("TestHarness.bsh");
 
 do {
-	flag();
+    flag();
 } while( false );
 
 assert( flag() == 1 );
 
 while( false ) {
-	fail();
+    fail();
 }
 
 complete();
