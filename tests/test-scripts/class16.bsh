@@ -1,8 +1,8 @@
 source("TestHarness.bsh");
 
 /*
-    This test case looks at binding of classes to their loose environment.
-    visibility of vars in enclosing the scope of the class.
+	This test case looks at binding of classes to their loose environment.
+	visibility of vars in enclosing the scope of the class.
 */
 
 flag=false;
@@ -11,18 +11,18 @@ outerMethod() { print("outerMethod"); return 42; }
 
 class MyClass16 extends Thread 
 {
-    static boolean sflag=false;
-    static int sint = 1;
-    public void run() 
+	static boolean sflag=false;
+	static int sint = 1;
+	public void run() 
 { 
-        assert( outerMethod() == 42 );
-        print("enter run flag="+flag); 
-        sflag=true; flag=true; 
-        assert( sint == 1 );
-        sint=2;
-        assert( sint == 2 );
-        assert( MyClass16.sint == 2 );
-    }
+		assert( outerMethod() == 42 );
+		print("enter run flag="+flag); 
+		sflag=true; flag=true; 
+		assert( sint == 1 );
+		sint=2;
+		assert( sint == 2 );
+		assert( MyClass16.sint == 2 );
+	}
 }
 
 assert( MyClass16.sflag == false );

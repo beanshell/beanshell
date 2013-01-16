@@ -22,8 +22,8 @@ print("here3");
   assert( this.c == void ); 
   assert( this == ths );
   { // another block
-      assert( this == ths );
-    assert( this.c == void );
+  	assert( this == ths );
+	assert( this.c == void );
   }
 print("here4");
   blockthis = this;
@@ -60,10 +60,10 @@ void method1()
   boolean condition1=true;
   if (condition1) 
   {
-       assert( this == mthis );
-     BigDecimal finalCost1 = new BigDecimal("1.0");
-     print(finalCost1); 
-     print(this);
+  	 assert( this == mthis );
+	 BigDecimal finalCost1 = new BigDecimal("1.0");
+	 print(finalCost1); 
+	 print(this);
   }
 }
 

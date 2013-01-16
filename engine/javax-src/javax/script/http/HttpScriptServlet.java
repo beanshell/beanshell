@@ -83,7 +83,7 @@ public abstract class  HttpScriptServlet extends GenericServlet {
            
             HttpServletRequest httpreq = (HttpServletRequest)req;
             HttpServletResponse httpres = (HttpServletResponse)res;
-        Writer httpwriter =  httpres.getWriter();
+	    Writer httpwriter =  httpres.getWriter();
             
             HttpScriptContext ctxt = getContext( httpreq, httpres);
             
@@ -171,7 +171,7 @@ public abstract class  HttpScriptServlet extends GenericServlet {
                 
                 
                 httpwriter.flush();
-        reader.close();
+		reader.close();
                 
             } catch (ScriptException e) {
                 httpres.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

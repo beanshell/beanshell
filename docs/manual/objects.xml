@@ -146,13 +146,13 @@ For example:
 <example>
 foo() {
 
-    bar() { }
+	bar() { }
 
-    if ( true ) {
-        bar2() { }
-    }
+	if ( true ) {
+		bar2() { }
+	}
 
-    return this;
+	return this;
 }
 </example>
 
