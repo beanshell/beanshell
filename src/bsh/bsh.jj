@@ -33,39 +33,39 @@
  *****************************************************************************/
 
 /*
-    Notes:
-    There is probably a lot of room for improvement in here.
-    All of the syntactic lookaheads have been commented with:
-        SYNTACTIC_LOOKAHEAD
-    These are probably expensive and we may want to start weeding them out
-    where possible.
+	Notes:
+	There is probably a lot of room for improvement in here.
+	All of the syntactic lookaheads have been commented with:
+		SYNTACTIC_LOOKAHEAD
+	These are probably expensive and we may want to start weeding them out
+	where possible.
 */
 
 options {
     JAVA_UNICODE_ESCAPE=true;
     STATIC=false;                                                                                       
-    /* Print grammar debugging info as we parse 
-    DEBUG_PARSER=true;
-    */
-    /* Print detailed lookahead debugging info
-    DEBUG_LOOKAHEAD=true;
-    */
+	/* Print grammar debugging info as we parse 
+	DEBUG_PARSER=true;
+	*/
+	/* Print detailed lookahead debugging info
+	DEBUG_LOOKAHEAD=true;
+	*/
 
-    /*
-        There are weird issues related to this flag.
-        The default value, true, creates line level error detail in the parse
-        exceptions.  However it gives us strange LookaheadSuccess Errors thrown
-        on some syntax errors.
-        http://groups-beta.google.com/group/comp.compilers.tools.javacc/browse_thread/thread/14d3471883f8794f/ecf7b1d81151839c?q=Parser$LookaheadSuccess&rnum=1&hl=en#ecf7b1d81151839c
-        I have manually hacked the Parser.java to catch LookaheadSuccess in
-        the jj_rescan_token() method...  The bug report indicates that this
-        is fixed, apparently in some post javacc 3.2 version.
-    */
-    //ERROR_REPORTING=false;
+	/*
+		There are weird issues related to this flag.
+		The default value, true, creates line level error detail in the parse
+		exceptions.  However it gives us strange LookaheadSuccess Errors thrown
+		on some syntax errors.
+		http://groups-beta.google.com/group/comp.compilers.tools.javacc/browse_thread/thread/14d3471883f8794f/ecf7b1d81151839c?q=Parser$LookaheadSuccess&rnum=1&hl=en#ecf7b1d81151839c
+		I have manually hacked the Parser.java to catch LookaheadSuccess in
+		the jj_rescan_token() method...  The bug report indicates that this
+		is fixed, apparently in some post javacc 3.2 version.
+	*/
+	//ERROR_REPORTING=false;
 
-    // This breaks something for interactive use on the command line,
-    // but may be useful in non-interactive use.
-    //CACHE_TOKENS=true;
+	// This breaks something for interactive use on the command line,
+	// but may be useful in non-interactive use.
+	//CACHE_TOKENS=true;
 }
 
 PARSER_BEGIN(Parser)
@@ -75,151 +75,151 @@ import java.io.*;
 import java.util.Vector;
 
 /**
-    This is the BeanShell parser.  It is used internally by the Interpreter
-    class (which is probably what you are looking for).  The parser knows
-    only how to parse the structure of the language, it does not understand
-    names, commands, etc.
-    <p>
-    You can use the Parser from the command line to do basic structural 
-    validation of BeanShell files without actually executing them. e.g.
-    <code><pre>
-        java bsh.Parser [ -p ] file [ file ] [ ... ]
-    </pre></code>
-    <p>
-    The -p option causes the abstract syntax to be printed.
-    <p>
+	This is the BeanShell parser.  It is used internally by the Interpreter
+	class (which is probably what you are looking for).  The parser knows
+	only how to parse the structure of the language, it does not understand
+	names, commands, etc.
+	<p>
+	You can use the Parser from the command line to do basic structural 
+	validation of BeanShell files without actually executing them. e.g.
+	<code><pre>
+		java bsh.Parser [ -p ] file [ file ] [ ... ]
+	</pre></code>
+	<p>
+	The -p option causes the abstract syntax to be printed.
+	<p>
 
-    From code you'd use the Parser like this:
-    <p
-    <code><pre>
-        Parser parser = new Parser(in);
-        while( !(eof=parser.Line()) ) {
-            SimpleNode node = parser.popNode();
-            // use the node, etc. (See bsh.BSH* classes)
-        }
-    </pre></code>
+	From code you'd use the Parser like this:
+	<p
+	<code><pre>
+		Parser parser = new Parser(in);
+		while( !(eof=parser.Line()) ) {
+			SimpleNode node = parser.popNode();
+			// use the node, etc. (See bsh.BSH* classes)
+		}
+	</pre></code>
 */
 public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants/*@egen*/ 
 {/*@bgen(jjtree)*/
   protected JJTParserState jjtree = new JJTParserState();
 
 /*@egen*/ 
-    boolean retainComments = false;
-    
-    public void setRetainComments( boolean b ) {
-        retainComments = b;
-    }
+	boolean retainComments = false;
+	
+	public void setRetainComments( boolean b ) {
+		retainComments = b;
+	}
 
-    void jjtreeOpenNodeScope(Node n) {
-        ((SimpleNode)n).firstToken = getToken(1);
-    }
+	void jjtreeOpenNodeScope(Node n) {
+		((SimpleNode)n).firstToken = getToken(1);
+	}
 
-    void jjtreeCloseNodeScope(Node n) {
-        ((SimpleNode)n).lastToken = getToken(0);
-    }
+	void jjtreeCloseNodeScope(Node n) {
+		((SimpleNode)n).lastToken = getToken(0);
+	}
 
-    /**
-        Re-initialize the input stream and token source.
-    */
-    void reInitInput( Reader in ) {
-        ReInit(in);
-    }
+	/**
+		Re-initialize the input stream and token source.
+	*/
+	void reInitInput( Reader in ) {
+		ReInit(in);
+	}
 
-    public SimpleNode popNode() 
-    {
-        if ( jjtree.nodeArity() > 0)  // number of child nodes 
-            return (SimpleNode)jjtree.popNode();
-        else
-            return null;
-    }
+	public SimpleNode popNode() 
+	{
+		if ( jjtree.nodeArity() > 0)  // number of child nodes 
+			return (SimpleNode)jjtree.popNode();
+		else
+			return null;
+	}
 
-    /**
-        Explicitly re-initialize just the token reader.
-        This seems to be necessary to avoid certain looping errors when
-        reading bogus input.  See Interpreter.
-    */
-    void reInitTokenInput( Reader in ) {
-        jj_input_stream.ReInit( in, 
-            jj_input_stream.getEndLine(), 
-            jj_input_stream.getEndColumn() );
-    }
+	/**
+		Explicitly re-initialize just the token reader.
+		This seems to be necessary to avoid certain looping errors when
+		reading bogus input.  See Interpreter.
+	*/
+	void reInitTokenInput( Reader in ) {
+		jj_input_stream.ReInit( in, 
+			jj_input_stream.getEndLine(), 
+			jj_input_stream.getEndColumn() );
+	}
 
-    public static void main( String [] args ) 
-        throws IOException, ParseException
-    {
-        boolean print = false;
-        int i=0;
-        if ( args[0].equals("-p") ) {
-            i++;
-            print=true;
-        }
-        for(; i< args.length; i++) {
-            Reader in = new FileReader(args[i]);
-            Parser parser = new Parser(in);
-            parser.setRetainComments(true);
-            while( !parser.Line()/*eof*/ )
-                if ( print )
-                    System.out.println( parser.popNode() );
-        }
-    }
+	public static void main( String [] args ) 
+		throws IOException, ParseException
+	{
+		boolean print = false;
+		int i=0;
+		if ( args[0].equals("-p") ) {
+			i++;
+			print=true;
+		}
+		for(; i< args.length; i++) {
+			Reader in = new FileReader(args[i]);
+			Parser parser = new Parser(in);
+			parser.setRetainComments(true);
+			while( !parser.Line()/*eof*/ )
+				if ( print )
+					System.out.println( parser.popNode() );
+		}
+	}
 
-    /**
-        Lookahead for the enhanced for statement.  
-        Expect "for" "(" and then see whether we hit ":" or a ";" first.
-    */
-    boolean isRegularForStatement() 
-    {
-        int curTok = 1;
-        Token tok;
-        tok = getToken(curTok++);
-        if ( tok.kind != FOR ) return false;
-        tok = getToken(curTok++);
-        if ( tok.kind != LPAREN ) return false;
-        while (true) 
-        {
-            tok = getToken(curTok++);
-            switch (tok.kind) {
-                case COLON:
-                    return false;
-                case SEMICOLON:
-                    return true;
-                case EOF: 
-                    return false;
-            }
-        }
-    }
+	/**
+		Lookahead for the enhanced for statement.  
+		Expect "for" "(" and then see whether we hit ":" or a ";" first.
+	*/
+	boolean isRegularForStatement() 
+	{
+		int curTok = 1;
+		Token tok;
+		tok = getToken(curTok++);
+		if ( tok.kind != FOR ) return false;
+		tok = getToken(curTok++);
+		if ( tok.kind != LPAREN ) return false;
+		while (true) 
+		{
+			tok = getToken(curTok++);
+			switch (tok.kind) {
+				case COLON:
+					return false;
+				case SEMICOLON:
+					return true;
+				case EOF: 
+					return false;
+			}
+		}
+	}
 
-    /**
-        Generate a ParseException with the specified message, pointing to the
-        current token.
-        The auto-generated Parser.generateParseException() method does not
-        provide line number info, therefore we do this.
-    */
-    ParseException createParseException( String message )
-    {
-        Token errortok = token;
-        int line = errortok.beginLine, column = errortok.beginColumn;
-        String mess = (errortok.kind == 0) ? tokenImage[0] : errortok.image;
-        return new ParseException( "Parse error at line " + line 
-            + ", column " + column + " : " + message );
-    }
+	/**
+		Generate a ParseException with the specified message, pointing to the
+		current token.
+		The auto-generated Parser.generateParseException() method does not
+		provide line number info, therefore we do this.
+	*/
+	ParseException createParseException( String message )
+	{
+		Token errortok = token;
+		int line = errortok.beginLine, column = errortok.beginColumn;
+		String mess = (errortok.kind == 0) ? tokenImage[0] : errortok.image;
+		return new ParseException( "Parse error at line " + line 
+			+ ", column " + column + " : " + message );
+	}
 }
 
 PARSER_END(Parser)
 
 SKIP : /* WHITE SPACE */
 { 
-    " " | "\t" | "\r" | "\f"
-    | "\n" 
-    | < NONPRINTABLE: (["\u0000"-" ", "\u0080"-"\u00ff"])+ >
+	" " | "\t" | "\r" | "\f"
+	| "\n" 
+	| < NONPRINTABLE: (["\u0000"-" ", "\u0080"-"\u00ff"])+ >
 }
 
 SPECIAL_TOKEN : /* COMMENTS */
 {
 /*
-    SINGLE_LINE_COMMENT includes a hack to accept SLC at the end of a file
-    with no terminanting linefeed.  This is actually illegal according to 
-    spec, but comes up often enough to warrant it... (especially in eval()).
+	SINGLE_LINE_COMMENT includes a hack to accept SLC at the end of a file
+	with no terminanting linefeed.  This is actually illegal according to 
+	spec, but comes up often enough to warrant it... (especially in eval()).
 */
   <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")? >
 
@@ -228,7 +228,7 @@ SPECIAL_TOKEN : /* COMMENTS */
  /* Moved FORMAL_COMMENT to a real token.  Modified MULTI_LINE_COMMENT to not 
     catch formal comments (require no star after star) */
 | <MULTI_LINE_COMMENT: 
-    "/*" (~["*"])+ "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+	"/*" (~["*"])+ "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
 }
 
 TOKEN : /* RESERVED WORDS AND LITERALS */
@@ -335,8 +335,8 @@ TOKEN : /* LITERALS */
   >
 |
    < FORMAL_COMMENT: 
-        "/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/"
-    >
+		"/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/"
+	>
 }
 
 TOKEN : /* IDENTIFIERS */
@@ -454,19 +454,19 @@ TOKEN : /* OPERATORS */
 
 
 /*
-    Thanks to Sreenivasa Viswanadha for suggesting how to get rid of expensive
-    lookahead here.
+	Thanks to Sreenivasa Viswanadha for suggesting how to get rid of expensive
+	lookahead here.
 */
 boolean Line() :
 {}
 {
   <EOF> { 
-    Interpreter.debug("End of File!"); 
-    return true; 
+	Interpreter.debug("End of File!"); 
+	return true; 
   }
 |
   BlockStatement() {
-    return false; 
+	return false; 
   }
 }
 
@@ -475,32 +475,32 @@ boolean Line() :
  *****************************************/
 
 /*
-    Gather modifiers for a class, method, or field.
-    I lookahead is true then we are being called as part of a lookahead and we
-    should not enforce any rules.  Otherwise we validate based on context
-    (field, method, class)
+	Gather modifiers for a class, method, or field.
+	I lookahead is true then we are being called as part of a lookahead and we
+	should not enforce any rules.  Otherwise we validate based on context
+	(field, method, class)
 */
 Modifiers Modifiers( int context, boolean lookahead ) : 
 {
-    Modifiers mods = null;
+	Modifiers mods = null;
 }
 {
   (
-    ( 
-        "private" |    "protected" | "public" | "synchronized" | "final"
-        | "native" | "transient" | "volatile" |    "abstract" | "static" 
-        | "strictfp"
-    ) {
-        if ( !lookahead )
-            try {
-                if ( mods == null ) mods = new Modifiers(); 
-                mods.addModifier( context, getToken(0).image );
-            } catch ( IllegalStateException e ) { 
-                throw createParseException( e.getMessage() );
-            }
-    }
+	( 
+		"private" |	"protected" | "public" | "synchronized" | "final"
+		| "native" | "transient" | "volatile" |	"abstract" | "static" 
+		| "strictfp"
+	) {
+		if ( !lookahead )
+			try {
+				if ( mods == null ) mods = new Modifiers(); 
+				mods.addModifier( context, getToken(0).image );
+			} catch ( IllegalStateException e ) { 
+				throw createParseException( e.getMessage() );
+			}
+	}
   )* {
-      return mods;
+  	return mods;
   }
 }
 
@@ -514,30 +514,30 @@ void ClassDeclaration()                   :
         jjtree.openNodeScope(jjtn000);
         jjtreeOpenNodeScope(jjtn000);
 /*@egen*/
-    Modifiers mods;
-    Token name;
-    int numInterfaces;
+	Modifiers mods;
+	Token name;
+	int numInterfaces;
 }
 {/*@bgen(jjtree) ClassDeclaration */
         try {
 /*@egen*/
-    mods = Modifiers( Modifiers.CLASS, false ) 
-    ( "class" | "interface" { jjtn000.isInterface=true; } ) 
-    name=<IDENTIFIER> 
-    [ "extends" AmbiguousName() { jjtn000.extend = true; } ] 
-    [ "implements" numInterfaces=NameList() 
-        { jjtn000.numInterfaces=numInterfaces; } ]
-    Block()/*@bgen(jjtree)*/
+	mods = Modifiers( Modifiers.CLASS, false ) 
+	( "class" | "interface" { jjtn000.isInterface=true; } ) 
+	name=<IDENTIFIER> 
+	[ "extends" AmbiguousName() { jjtn000.extend = true; } ] 
+	[ "implements" numInterfaces=NameList() 
+		{ jjtn000.numInterfaces=numInterfaces; } ]
+	Block()/*@bgen(jjtree)*/
         {
           jjtree.closeNodeScope(jjtn000, true);
           jjtc000 = false;
           jjtreeCloseNodeScope(jjtn000);
         }
 /*@egen*/
-    {
-        jjtn000.modifiers = mods;
-        jjtn000.name = name.image;
-    }/*@bgen(jjtree)*/
+	{
+		jjtn000.modifiers = mods;
+		jjtn000.name = name.image;
+	}/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -568,24 +568,24 @@ void MethodDeclaration()                    :
         jjtree.openNodeScope(jjtn000);
         jjtreeOpenNodeScope(jjtn000);
 /*@egen*/
-    Token t = null;
-    Modifiers mods;
-    int count;
+	Token t = null;
+	Modifiers mods;
+	int count;
 }
 {/*@bgen(jjtree) MethodDeclaration */
         try {
 /*@egen*/
-    mods = Modifiers( Modifiers.METHOD, false ) { jjtn000.modifiers = mods; }
+	mods = Modifiers( Modifiers.METHOD, false ) { jjtn000.modifiers = mods; }
 (
-    LOOKAHEAD( <IDENTIFIER> "(" )
-    t = <IDENTIFIER> { jjtn000.name = t.image; }
+	LOOKAHEAD( <IDENTIFIER> "(" )
+	t = <IDENTIFIER> { jjtn000.name = t.image; }
 |
     ReturnType()
-    t = <IDENTIFIER> { jjtn000.name = t.image; }
+	t = <IDENTIFIER> { jjtn000.name = t.image; }
 )
     FormalParameters()
-    [ "throws" count=NameList() { jjtn000.numThrows=count; } ]
-    ( Block() | ";" )/*@bgen(jjtree)*/
+	[ "throws" count=NameList() { jjtn000.numThrows=count; } ]
+	( Block() | ";" )/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -619,7 +619,7 @@ void PackageDeclaration ()                    :
 {/*@bgen(jjtree) PackageDeclaration */
         try {
 /*@egen*/
-    "package" AmbiguousName()/*@bgen(jjtree)*/
+	"package" AmbiguousName()/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -651,7 +651,7 @@ void ImportDeclaration()                    :
     jjtreeOpenNodeScope(jjtn000);
 /*@egen*/
     Token s = null;
-    Token t = null;
+	Token t = null;
 }
 {/*@bgen(jjtree) ImportDeclaration */
   try {
@@ -665,11 +665,11 @@ void ImportDeclaration()                    :
   }
 /*@egen*/
   {
-        if ( s != null ) jjtn000.staticImport = true;
-        if ( t != null ) jjtn000.importPackage = true;
+		if ( s != null ) jjtn000.staticImport = true;
+		if ( t != null ) jjtn000.importPackage = true;
   }
   |
-    // bsh super import statement
+	// bsh super import statement
   "import" "*" ";"/*@bgen(jjtree)*/
                    {
                      jjtree.closeNodeScope(jjtn000, true);
@@ -677,8 +677,8 @@ void ImportDeclaration()                    :
                      jjtreeCloseNodeScope(jjtn000);
                    }
 /*@egen*/ {
-        jjtn000.superImport = true;
-    }/*@bgen(jjtree)*/
+		jjtn000.superImport = true;
+	}/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
@@ -709,21 +709,21 @@ void VariableDeclarator()                     :
         jjtree.openNodeScope(jjtn000);
         jjtreeOpenNodeScope(jjtn000);
 /*@egen*/
-    Token t;
+	Token t;
 }
 {/*@bgen(jjtree) VariableDeclarator */
         try {
 /*@egen*/
-    t=<IDENTIFIER> [ "=" VariableInitializer() ]/*@bgen(jjtree)*/
+	t=<IDENTIFIER> [ "=" VariableInitializer() ]/*@bgen(jjtree)*/
         {
           jjtree.closeNodeScope(jjtn000, true);
           jjtc000 = false;
           jjtreeCloseNodeScope(jjtn000);
         }
 /*@egen*/
-    {
-          jjtn000.name = t.image;
-    }/*@bgen(jjtree)*/
+	{
+  		jjtn000.name = t.image;
+	}/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -777,7 +777,7 @@ void ArrayInitializer()                   :
   try {
 /*@egen*/
   "{" [ VariableInitializer()
-        ( LOOKAHEAD(2) "," VariableInitializer() )* ] [ "," ] "}"/*@bgen(jjtree)*/
+		( LOOKAHEAD(2) "," VariableInitializer() )* ] [ "," ] "}"/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
@@ -886,7 +886,7 @@ void FormalParameter()                  :
 
 
 /*
-    Type, name and expression syntax follows.
+	Type, name and expression syntax follows.
 */
 void Type()       :
 {/*@bgen(jjtree) Type */
@@ -898,13 +898,13 @@ void Type()       :
 {/*@bgen(jjtree) Type */
   try {
 /*@egen*/
-    /*
-        The embedded lookahead is (was?) necessary to disambiguate for
-        PrimaryPrefix.  ( )* is a choice point.  It took me a while to
-        figure out where to put that.  This stuff is annoying.
-    */
+	/*
+		The embedded lookahead is (was?) necessary to disambiguate for
+		PrimaryPrefix.  ( )* is a choice point.  It took me a while to
+		figure out where to put that.  This stuff is annoying.
+	*/
   ( PrimitiveType() | AmbiguousName() )
-    ( LOOKAHEAD(2) "[" "]" { jjtn000.addArrayDimension(); } )*/*@bgen(jjtree)*/
+	( LOOKAHEAD(2) "[" "]" { jjtn000.addArrayDimension(); } )*/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
@@ -929,7 +929,7 @@ void Type()       :
 }
 
 /*
-    Originally called ResultType in the grammar
+	Originally called ResultType in the grammar
 */
 void ReturnType()             :
 {/*@bgen(jjtree) ReturnType */
@@ -1049,8 +1049,8 @@ void PrimitiveType()                :
 
 void AmbiguousName()                :
 /*
-    A lookahead of 2 is required below since "Name" can be followed by a ".*"
-    when used in the context of an "ImportDeclaration".
+	A lookahead of 2 is required below since "Name" can be followed by a ".*"
+	when used in the context of an "ImportDeclaration".
 */
 {/*@bgen(jjtree) AmbiguousName */
     BSHAmbiguousName jjtn000 = new BSHAmbiguousName(JJTAMBIGUOUSNAME);
@@ -1065,7 +1065,7 @@ void AmbiguousName()                :
   try {
 /*@egen*/
   t = <IDENTIFIER> {
-      s = new StringBuffer(t.image);
+  	s = new StringBuffer(t.image);
   }
   ( LOOKAHEAD(2) "." t = <IDENTIFIER> { s.append("."+t.image); } )*/*@bgen(jjtree)*/
                                                                     {
@@ -1074,7 +1074,7 @@ void AmbiguousName()                :
                                                                       jjtreeCloseNodeScope(jjtn000);
                                                                     }
 /*@egen*/ {
-      jjtn000.text = s.toString();
+  	jjtn000.text = s.toString();
   }/*@bgen(jjtree)*/
   } finally {
     if (jjtc000) {
@@ -1098,11 +1098,11 @@ int NameList() :
 void Expression() :
 { }
 {
-    /**
-        SYNTACTIC_LOOKAHEAD
-        Note: the original grammar was cheating here and we've fixed that,
-        but at the expense of another syntactic lookahead.
-    */
+	/**
+		SYNTACTIC_LOOKAHEAD
+		Note: the original grammar was cheating here and we've fixed that,
+		but at the expense of another syntactic lookahead.
+	*/
   LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
   Assignment()
 |
@@ -1120,10 +1120,10 @@ void Assignment()             :
   try {
 /*@egen*/
   PrimaryExpression()
-      op = AssignmentOperator() { jjtn000.operator = op; }
-    // Add this for blocks, e.g. foo = { };
-    //( Expression() | Block() )
-    Expression()/*@bgen(jjtree)*/
+  	op = AssignmentOperator() { jjtn000.operator = op; }
+	// Add this for blocks, e.g. foo = { };
+	//( Expression() | Block() )
+	Expression()/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
@@ -1635,7 +1635,7 @@ void UnaryExpressionNotPlusMinus() :
     }
 /*@egen*/
 |
-    // SYNTACTIC_LOOKAHEAD
+	// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( CastLookahead() ) CastExpression()
 |
   PostfixExpression()
@@ -1658,7 +1658,7 @@ void PostfixExpression() :
 // SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( PrimaryExpression() ("++"|"--") )
   PrimaryExpression()
-      ( t="++" | t="--" )/*@bgen(jjtree) #UnaryExpression( 1) */
+	  ( t="++" | t="--" )/*@bgen(jjtree) #UnaryExpression( 1) */
                               {
                                 BSHUnaryExpression jjtn001 = new BSHUnaryExpression(JJTUNARYEXPRESSION);
                                 boolean jjtc001 = true;
@@ -1673,7 +1673,7 @@ void PostfixExpression() :
                                 jjtreeCloseNodeScope(jjtn001);
                               }
 /*@egen*/ {
-        jjtn001.kind = t.kind; jjtn001.postfix = true; }/*@bgen(jjtree)*/
+		jjtn001.kind = t.kind; jjtn001.postfix = true; }/*@bgen(jjtree)*/
                               } finally {
                                 if (jjtc001) {
                                   jjtree.closeNodeScope(jjtn001,  1);
@@ -1798,10 +1798,10 @@ void PrimaryPrefix() : { }
 |
   // SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( MethodInvocation() )
-    MethodInvocation()
+	MethodInvocation()
 |
   LOOKAHEAD( Type() "." "class" )
-    Type()
+	Type()
 |
   AmbiguousName()
 
@@ -1926,13 +1926,13 @@ void Literal()          :
         
     }
     else
-        try {
-            jjtn000.value = new Primitive(
-                Integer.decode( literal ).intValue() );
-        } catch ( NumberFormatException e ) {
-            throw createParseException(
-                "Error or number too big for integer type: "+ literal );
-        }
+		try {
+        	jjtn000.value = new Primitive(
+				Integer.decode( literal ).intValue() );
+		} catch ( NumberFormatException e ) {
+			throw createParseException(
+				"Error or number too big for integer type: "+ literal );
+		}
   }
 |
   x = <FLOATING_POINT_LITERAL>/*@bgen(jjtree)*/
@@ -1966,11 +1966,11 @@ void Literal()          :
                             jjtreeCloseNodeScope(jjtn000);
                           }
 /*@egen*/ {
-        try {
-            jjtn000.charSetup( x.image.substring(1, x.image.length() - 1) );
-        } catch ( Exception e ) {
-            throw createParseException("Error parsing character: "+x.image);
-        }
+		try {
+    		jjtn000.charSetup( x.image.substring(1, x.image.length() - 1) );
+		} catch ( Exception e ) {
+			throw createParseException("Error parsing character: "+x.image);
+		}
     }
 |
   x = <STRING_LITERAL>/*@bgen(jjtree)*/
@@ -1980,11 +1980,11 @@ void Literal()          :
                          jjtreeCloseNodeScope(jjtn000);
                        }
 /*@egen*/ {
-        try {
-            jjtn000.stringSetup( x.image.substring(1, x.image.length() - 1) );
-        } catch ( Exception e ) {
-            throw createParseException("Error parsing string: "+x.image);
-        }
+		try {
+			jjtn000.stringSetup( x.image.substring(1, x.image.length() - 1) );
+		} catch ( Exception e ) {
+			throw createParseException("Error parsing string: "+x.image);
+		}
     }
 |
   b = BooleanLiteral()/*@bgen(jjtree)*/
@@ -2113,12 +2113,12 @@ void AllocationExpression()                       :
   "new" PrimitiveType() ArrayDimensions()
 |
   "new" AmbiguousName()
-    (
-        ArrayDimensions()
-    |
-        // SYNTACTIC_LOOKAHEAD
-        Arguments() [ LOOKAHEAD(2) Block() ]
-    )/*@bgen(jjtree)*/
+	(
+		ArrayDimensions()
+	|
+		// SYNTACTIC_LOOKAHEAD
+		Arguments() [ LOOKAHEAD(2) Block() ]
+	)/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
@@ -2152,12 +2152,12 @@ void ArrayDimensions()                  :
 {/*@bgen(jjtree) ArrayDimensions */
   try {
 /*@egen*/
-    // e.g. int [4][3][][];
+	// e.g. int [4][3][][];
   LOOKAHEAD(2)
   ( LOOKAHEAD(2) "[" Expression() "]" { jjtn000.addDefinedDimension(); } )+
   ( LOOKAHEAD(2) "[" "]" { jjtn000.addUndefinedDimension(); } )*
 |
-    // e.g. int [][] { {1,2}, {3,4} };
+	// e.g. int [][] { {1,2}, {3,4} };
   ( "[" "]" { jjtn000.addUndefinedDimension(); } )+ ArrayInitializer()/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
@@ -2237,27 +2237,27 @@ void Block()        :
         jjtree.openNodeScope(jjtn000);
         jjtreeOpenNodeScope(jjtn000);
 /*@egen*/
-    Token s = null;
+	Token s = null;
 }
 {/*@bgen(jjtree) Block */
         try {
 /*@egen*/
 /*
-    Doing "static" blocks here means that we'll have to throw runtime
-    exceptions if it's not used in an appropriate place.
-    Is it worth moving the grammar around to make this a static parse time
-    check?  (Sreeni? ;) )
+	Doing "static" blocks here means that we'll have to throw runtime
+	exceptions if it's not used in an appropriate place.
+	Is it worth moving the grammar around to make this a static parse time
+	check?  (Sreeni? ;) )
 */
-    [ s = "static" ] "{" ( BlockStatement() )* "}"/*@bgen(jjtree)*/
+	[ s = "static" ] "{" ( BlockStatement() )* "}"/*@bgen(jjtree)*/
         {
           jjtree.closeNodeScope(jjtn000, true);
           jjtc000 = false;
           jjtreeCloseNodeScope(jjtn000);
         }
 /*@egen*/
-    {
-        if ( s != null ) jjtn000.isStatic = true;
-    }/*@bgen(jjtree)*/
+	{
+		if ( s != null ) jjtn000.isStatic = true;
+	}/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -2289,14 +2289,14 @@ void BlockStatement() :
   ClassDeclaration() 
 |
   LOOKAHEAD ( Modifiers( Modifiers.METHOD, true ) 
-        ReturnType() <IDENTIFIER> "(" 
+		ReturnType() <IDENTIFIER> "(" 
   )
-      MethodDeclaration()
+  	MethodDeclaration()
 |
   LOOKAHEAD ( Modifiers( Modifiers.METHOD, true ) 
-        <IDENTIFIER> FormalParameters() [ "throws" NameList() ] "{" 
+		<IDENTIFIER> FormalParameters() [ "throws" NameList() ] "{" 
   )
-      MethodDeclaration()
+  	MethodDeclaration()
 |
   // SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( Modifiers( Modifiers.FIELD, true ) Type() <IDENTIFIER> )
@@ -2321,20 +2321,20 @@ void FormalComment()                                  :
         jjtree.openNodeScope(jjtn000);
         jjtreeOpenNodeScope(jjtn000);
 /*@egen*/
-    Token t;
+	Token t;
 }
 {/*@bgen(jjtree) #FormalComment( retainComments) */
         try {
 /*@egen*/
-    t=<FORMAL_COMMENT>/*@bgen(jjtree)*/
+	t=<FORMAL_COMMENT>/*@bgen(jjtree)*/
                             {
                               jjtree.closeNodeScope(jjtn000,  retainComments);
                               jjtc000 = false;
                               jjtreeCloseNodeScope(jjtn000);
                             }
 /*@egen*/  {
-        jjtn000.text=t.image;
-    }/*@bgen(jjtree)*/
+		jjtn000.text=t.image;
+	}/*@bgen(jjtree)*/
         } finally {
           if (jjtc000) {
             jjtree.closeNodeScope(jjtn000,  retainComments);
@@ -2354,26 +2354,26 @@ void StatementExpression() :
 { }
 {
   /*
-    This is looser than normal Java to simplify the grammar.  This allows
-    us to type arbitrary expressions on the command line, e.g. "1+1;"
-    We should turn this off in the implementation in strict java mode.
+	This is looser than normal Java to simplify the grammar.  This allows
+	us to type arbitrary expressions on the command line, e.g. "1+1;"
+	We should turn this off in the implementation in strict java mode.
   */
   Expression()
 /*
-    // This was the original Java grammar. 
+	// This was the original Java grammar. 
 
-    //  Original comment:
-    //  The last expansion of this production accepts more than the legal
-    //  Java expansions for StatementExpression.
-      PreIncrementExpression()
-    |
-      PreDecrementExpression()
-    |
-      // SYNTACTIC_LOOKAHEAD
-      LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
-      Assignment() { }
-    |
-      PostfixExpression()
+	//  Original comment:
+	//  The last expansion of this production accepts more than the legal
+	//  Java expansions for StatementExpression.
+	  PreIncrementExpression()
+	|
+	  PreDecrementExpression()
+	|
+	  // SYNTACTIC_LOOKAHEAD
+	  LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
+	  Assignment() { }
+	|
+	  PostfixExpression()
 */
 
 }
@@ -2530,8 +2530,8 @@ void WhileStatement()                 :
 }
 
 /*
-    Do statement is just a While statement with a special hook to execute
-    at least once.
+	Do statement is just a While statement with a special hook to execute
+	at least once.
 */
 void DoStatement()                 :
 {/*@bgen(jjtree) WhileStatement */
@@ -2550,7 +2550,7 @@ void DoStatement()                 :
           jjtreeCloseNodeScope(jjtn000);
         }
 /*@egen*/ 
-    { jjtn000.isDoStatement=true;  }/*@bgen(jjtree)*/
+	{ jjtn000.isDoStatement=true;  }/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);
@@ -2612,10 +2612,10 @@ void ForStatement()               :
 }
 
 /*
-    The new JDK1.5 enhanced for statement.
-    e.g. for( int a : arrayOfInts ) { }
-    We also support loose typing of the iterator var for BeanShell
-    e.g. for( a : arrayOfInts ) { }
+	The new JDK1.5 enhanced for statement.
+	e.g. for( int a : arrayOfInts ) { }
+	We also support loose typing of the iterator var for BeanShell
+	e.g. for( a : arrayOfInts ) { }
 */
 void EnhancedForStatement()                       :
 {/*@bgen(jjtree) EnhancedForStatement */
@@ -2679,9 +2679,9 @@ void ForInit() :
 }
 
 /**
-    Declared a typed variable.
-    Untyped variables are not declared per-se but are handled by the part
-    of the grammar that deals with assignments.
+	Declared a typed variable.
+	Untyped variables are not declared per-se but are handled by the part
+	of the grammar that deals with assignments.
 */
 void TypedVariableDeclaration()                           :
 {/*@bgen(jjtree) TypedVariableDeclaration */
@@ -2690,21 +2690,21 @@ void TypedVariableDeclaration()                           :
         jjtree.openNodeScope(jjtn000);
         jjtreeOpenNodeScope(jjtn000);
 /*@egen*/ 
-    Token t = null; 
-    Modifiers mods;
+	Token t = null; 
+	Modifiers mods;
 }
 {/*@bgen(jjtree) TypedVariableDeclaration */
         try {
 /*@egen*/
-    mods = Modifiers( Modifiers.FIELD, false )
-      Type() VariableDeclarator() ( "," VariableDeclarator() )*/*@bgen(jjtree)*/
+	mods = Modifiers( Modifiers.FIELD, false )
+  	Type() VariableDeclarator() ( "," VariableDeclarator() )*/*@bgen(jjtree)*/
         {
           jjtree.closeNodeScope(jjtn000, true);
           jjtc000 = false;
           jjtreeCloseNodeScope(jjtn000);
         }
 /*@egen*/  
-    {
+	{
         jjtn000.modifiers = mods;
     }/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
@@ -2880,7 +2880,7 @@ void SynchronizedStatement()        :
                                                 jjtreeCloseNodeScope(jjtn000);
                                               }
 /*@egen*/ {
-          jjtn000.isSynchronized=true;
+  		jjtn000.isSynchronized=true;
   }/*@bgen(jjtree)*/
   } catch (Throwable jjte000) {
     if (jjtc000) {
@@ -2941,8 +2941,8 @@ void ThrowStatement()                 :
 
 void TryStatement()              :
 /*
-    Semantic check required here to make sure that at least one
-    finally/catch is present.  (You can have a try with finally and no catch).
+	Semantic check required here to make sure that at least one
+	finally/catch is present.  (You can have a try with finally and no catch).
  */
 {/*@bgen(jjtree) TryStatement */
   BSHTryStatement jjtn000 = new BSHTryStatement(JJTTRYSTATEMENT);
@@ -2953,18 +2953,18 @@ void TryStatement()              :
 {/*@bgen(jjtree) TryStatement */
         try {
 /*@egen*/
-    "try" Block()
-    ( "catch" "(" FormalParameter() ")" Block() { closed = true; } )*
-    [ "finally" Block() { closed = true; } ]/*@bgen(jjtree)*/
+	"try" Block()
+	( "catch" "(" FormalParameter() ")" Block() { closed = true; } )*
+	[ "finally" Block() { closed = true; } ]/*@bgen(jjtree)*/
         {
           jjtree.closeNodeScope(jjtn000, true);
           jjtc000 = false;
           jjtreeCloseNodeScope(jjtn000);
         }
 /*@egen*/
-    {     
-        if ( !closed ) throw generateParseException();
-    }/*@bgen(jjtree)*/
+	{ 	
+		if ( !closed ) throw generateParseException();
+	}/*@bgen(jjtree)*/
         } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);

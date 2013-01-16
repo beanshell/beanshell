@@ -3,7 +3,7 @@
 source("TestHarness.bsh");
 
 /**
-    I'm just taking a shotgun approach here... we need better tests.
+	I'm just taking a shotgun approach here... we need better tests.
 */
 
 a=5;
@@ -50,29 +50,29 @@ assert( isEvalError("new Object() instanceof void") );
 assert( isEvalError("null instanceof void") );
 
 /*
-    Uncomment these if we start enforcing operations on primitive/non-prim
+	Uncomment these if we start enforcing operations on primitive/non-prim
 */
 
 /*
-    // can't compare void with primitive
-    assert( isEvalError("5 != void") );
-    assert( isEvalError("void != 5") );
-    assert( isEvalError("true != void") );
-    assert( isEvalError("void != true") );
-    assert( isEvalError("void != false") );
+	// can't compare void with primitive
+	assert( isEvalError("5 != void") );
+	assert( isEvalError("void != 5") );
+	assert( isEvalError("true != void") );
+	assert( isEvalError("void != true") );
+	assert( isEvalError("void != false") );
 
-    // can't compare boolean to anything but boolean
-    assert( isEvalError("true != null") );
-    assert( isEvalError("null != false") );
-    assert( isEvalError("null != true") );
-    assert( isEvalError("true == null") );
-    assert( isEvalError("null == true") );
-    assert( isEvalError("true == new Object()") );
-    assert( isEvalError("true != new Object()") );
-    assert( isEvalError("new Object() != false") );
-    assert( isEvalError("true == 5") );
-    assert( isEvalError("true != 5") );
-    assert( isEvalError("5 != false") );
+	// can't compare boolean to anything but boolean
+	assert( isEvalError("true != null") );
+	assert( isEvalError("null != false") );
+	assert( isEvalError("null != true") );
+	assert( isEvalError("true == null") );
+	assert( isEvalError("null == true") );
+	assert( isEvalError("true == new Object()") );
+	assert( isEvalError("true != new Object()") );
+	assert( isEvalError("new Object() != false") );
+	assert( isEvalError("true == 5") );
+	assert( isEvalError("true != 5") );
+	assert( isEvalError("5 != false") );
 */
 
 complete();

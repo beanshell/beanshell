@@ -30,7 +30,7 @@ assert( test.length == 3);
 assert( test[2] instanceof Double );
 
 Object[] test2 = new Object[] { 
-    (Object)new Long(2000), (Object)"MyDisk", (Object)new Double(21.4) }; 
+	(Object)new Long(2000), (Object)"MyDisk", (Object)new Double(21.4) }; 
 
 
 assert( isEvalError("a=new int[] { 2, new Object() }") );
@@ -55,17 +55,17 @@ String [][] d2sa  = new String [][] { d1sa, d1sa };
 String [][] sa2 = new String [][] { new String [] { "foo" }, new String [] { "foo", "bar" } };
 
 String [][][] sa3 = new String [][][] { 
-        new String [][] { 
-            new String [] { "foo" }, new String [] { "f", "f", } },
-        new String [][] { 
-            new String [] { "foo", "bar", "flag" } } 
-    };
+		new String [][] { 
+			new String [] { "foo" }, new String [] { "f", "f", } },
+		new String [][] { 
+			new String [] { "foo", "bar", "flag" } } 
+	};
 
 assert( sa3[1][0][2].equals("flag") );
 
 Object [][] o= new Object [][] { 
-    new Object [] {"me",new Integer(5),new Byte((byte)3)}, 
-    new Object [] {"you",new Integer(6),new Byte((byte)2)} }; 
+	new Object [] {"me",new Integer(5),new Byte((byte)3)}, 
+	new Object [] {"you",new Integer(6),new Byte((byte)2)} }; 
 
 // initializers which rely on the declared type of the variable!
 // This is quite a coup! ;);)
@@ -78,7 +78,7 @@ String [][] d2xa  = { d1xa, d1xa };
 
 // Wow!  I am so happy ;)
 String [][][] sa99 = 
-        { { { "foo", null }, { "f", "f", } }, { { "foo", "bar", "flag" } } };
+		{ { { "foo", null }, { "f", "f", } }, { { "foo", "bar", "flag" } } };
 assert( sa99[1][0][2].equals("flag") );
 
 // a few more

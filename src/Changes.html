@@ -4,180 +4,180 @@
 
 <h2>Changes in 2.0 beta 5</h2>
 <pre>
-    - Persistent Scriptable Classes! (Experimental Feature)
+	- Persistent Scriptable Classes! (Experimental Feature)
 
-    Using the system property -DsaveClasses=<savedir> you can instruct
-    BeanShell to write out persistent class files for class definitions found 
-    in the script.  In this mode BeanShell will not execute code, but will
-    generate and store a class files for each class definition it finds.
-    These classes are the same as the ordinary runtime generated delegate
-    classes used internally by BeanShell but additionally have static 
-    initializer code that allows them to bootstrap an instance of the BeanShell
-    interpreter to execute their scripted body if the class is used from
-    an external application. 
+	Using the system property -DsaveClasses=<savedir> you can instruct
+	BeanShell to write out persistent class files for class definitions found 
+	in the script.  In this mode BeanShell will not execute code, but will
+	generate and store a class files for each class definition it finds.
+	These classes are the same as the ordinary runtime generated delegate
+	classes used internally by BeanShell but additionally have static 
+	initializer code that allows them to bootstrap an instance of the BeanShell
+	interpreter to execute their scripted body if the class is used from
+	an external application. 
 
-    Currently we are using a simple convention whereby a class "Foo.class"
-    expects to find its associated scripted class definition in a file
-    "Foo.bsh" in the same location as the class file.  Each stored class
-    must have a corresponding script definition.  The scripts itself may 
-    contain any amount of BeanShell code beyond the class definition 
-    and may refer to other scripted classes or saved classes.  However each
-    saved class will currently initialize its own interpreter instance.
+	Currently we are using a simple convention whereby a class "Foo.class"
+	expects to find its associated scripted class definition in a file
+	"Foo.bsh" in the same location as the class file.  Each stored class
+	must have a corresponding script definition.  The scripts itself may 
+	contain any amount of BeanShell code beyond the class definition 
+	and may refer to other scripted classes or saved classes.  However each
+	saved class will currently initialize its own interpreter instance.
 
-    So, for example, to create a class for the following scripted class
-    definition:
-    
-        class Foo {
-            Foo() { print("I'm being constructed!"); }
-        }
+	So, for example, to create a class for the following scripted class
+	definition:
+	
+		class Foo {
+			Foo() { print("I'm being constructed!"); }
+		}
 
-    you could place the script into a file "Foo.bsh" in the current directory
-    and execute:
+	you could place the script into a file "Foo.bsh" in the current directory
+	and execute:
 
-        java -DsaveClasses=. bsh.Interpreter Foo.bsh
+		java -DsaveClasses=. bsh.Interpreter Foo.bsh
 
-    This will create the class Foo.class.  The Foo class may be used like any
-    ordinary Java class and invoked from ordinary Java code.  Upon being
-    loaded it will automatically create a BeanShell interpreter instance
-    to load and execute its corresponding Foo.bsh script file.  The script
-    is expected to correspond to the scructure of the class: to initialize
-    static instance members and implement all static and instancee methods
-    required by the class.  Beyond that, the script is free to change and
-    include additional script body outside the scripted class definition.
+	This will create the class Foo.class.  The Foo class may be used like any
+	ordinary Java class and invoked from ordinary Java code.  Upon being
+	loaded it will automatically create a BeanShell interpreter instance
+	to load and execute its corresponding Foo.bsh script file.  The script
+	is expected to correspond to the scructure of the class: to initialize
+	static instance members and implement all static and instancee methods
+	required by the class.  Beyond that, the script is free to change and
+	include additional script body outside the scripted class definition.
 
-    For example, we might later change the Foo.bsh script to the following:
+	For example, we might later change the Foo.bsh script to the following:
 
-        welcomeMessage = "Hello World!";
+		welcomeMessage = "Hello World!";
 
-        class Foo {
-            Foo() { print( "I'm being constructed: "+ welcomeMessage ); }
-        }
+		class Foo {
+			Foo() { print( "I'm being constructed: "+ welcomeMessage ); }
+		}
 
-    Here's another example showing loose code in the script:
+	Here's another example showing loose code in the script:
 
-        //  Begin script Foo.bsh
+		//  Begin script Foo.bsh
 
-        class Foo {
-            public static void main( String [] args ) { }
-        }
+		class Foo {
+			public static void main( String [] args ) { }
+		}
 
-        message = "Hey";
-        message += " you!";
-        num = 2 * 2;
-        message += " The answer is: "+num; 
+		message = "Hey";
+		message += " you!";
+		num = 2 * 2;
+		message += " The answer is: "+num; 
 
-        // end script Foo.bsh
-    
-    now we have a script that can be launched like any other Java class
-    via 'java Foo'.  The loose script body is run upon class initialization.
-    Moving that text into the class body would cause it to be run on class
-    construction (instance creation... along with any constructor).
+		// end script Foo.bsh
+	
+	now we have a script that can be launched like any other Java class
+	via 'java Foo'.  The loose script body is run upon class initialization.
+	Moving that text into the class body would cause it to be run on class
+	construction (instance creation... along with any constructor).
 
-    - Added JSR223 javax.script adapter engine implementation in a new 
-    bsh.engine package.  
+	- Added JSR223 javax.script adapter engine implementation in a new 
+	bsh.engine package.  
 
-    This implementation of the spec supports pluggable ScriptContext.  Please 
-    see the TestBshScriptEngine.java file (and the spec) for a starting point 
-    on how to use this.
+	This implementation of the spec supports pluggable ScriptContext.  Please 
+	see the TestBshScriptEngine.java file (and the spec) for a starting point 
+	on how to use this.
 
-    BeanShell maintains all of its info on variables (type, modifiers,
-    etc.) and all of its internal state for a given ScriptContext via a
-    BeanShell NameSpace embedded in the context.  This  allows us to be
-    completely pluggable with respect to the spec, but still keep the full 
-    interpreter state between evaluations.
+	BeanShell maintains all of its info on variables (type, modifiers,
+	etc.) and all of its internal state for a given ScriptContext via a
+	BeanShell NameSpace embedded in the context.  This  allows us to be
+	completely pluggable with respect to the spec, but still keep the full 
+	interpreter state between evaluations.
 
-    - Added a new class, ExternalNameSpace to the distribution.  
+	- Added a new class, ExternalNameSpace to the distribution.  
 
-    This is a BeanShell namespace that knows how to externalize its variables 
-    to a standard Map.  This class is, of necessity, dependant on JDK1.2+, 
-    however there is no dependency in the core on this class, so you can 
-    exclude it in the usual way.
+	This is a BeanShell namespace that knows how to externalize its variables 
+	to a standard Map.  This class is, of necessity, dependant on JDK1.2+, 
+	however there is no dependency in the core on this class, so you can 
+	exclude it in the usual way.
 
-    - Fixed static import syntax.  It's now the same as Java 5:
+	- Fixed static import syntax.  It's now the same as Java 5:
 
-        import static Foo.*;
+		import static Foo.*;
 
-    (previously was "static import ..." )
+	(previously was "static import ..." )
 
-    - Static blocks in scripted classes are now working.
-    Added test case.
+	- Static blocks in scripted classes are now working.
+	Added test case.
 
 </pre>
 
 <h2>Changes in 2.0 beta 4</h2>
 <pre>
-    - Source compiles under JDK 1.5
+	- Source compiles under JDK 1.5
 
-    - Better defined classloading precedence:
+	- Better defined classloading precedence:
 
-        in-script evaluated class (scripted class)
-        in-script added / modified classpath
+		in-script evaluated class (scripted class)
+		in-script added / modified classpath
 
-        optionally, external classloader
-        optionally, thread context classloader
+		optionally, external classloader
+		optionally, thread context classloader
 
-        plain Class.forName()
-        source class (.java file in classpath)
+		plain Class.forName()
+		source class (.java file in classpath)
 
-    - Method selection code has been rewritten to move towards Java 5 rules.
-    This should correct a number of problems where inaccessible methods are
-    selected and also correct security problems in applets and other secure
-    environments.  Method selection should no longer call getDeclaredMethods()
-    unless accessibility is explicitly activated.  The same is true for
-    constructors and fields.
+	- Method selection code has been rewritten to move towards Java 5 rules.
+	This should correct a number of problems where inaccessible methods are
+	selected and also correct security problems in applets and other secure
+	environments.  Method selection should no longer call getDeclaredMethods()
+	unless accessibility is explicitly activated.  The same is true for
+	constructors and fields.
 
-    - Updated applet demos (http://beanshell.org/demo).  JConsole and desktop
-    now run in untrusted environment, with limitations.  Applets cannot
-    create classloaders, so BeanShell cannot script classes in the unsigned
-    environment.  These demos are very rough and need some work. 
+	- Updated applet demos (http://beanshell.org/demo).  JConsole and desktop
+	now run in untrusted environment, with limitations.  Applets cannot
+	create classloaders, so BeanShell cannot script classes in the unsigned
+	environment.  These demos are very rough and need some work. 
 
-    - The show() command now works in both interactive and non-interactive
-    modes.  This means that for experimentation, instead of doing things like:
-    
-        print( myObject instanceof Blah );
-        print( myObject.getFoo() );
-        print( myObject.somethingElse() );
-    
-    You can simply do:
+	- The show() command now works in both interactive and non-interactive
+	modes.  This means that for experimentation, instead of doing things like:
+	
+		print( myObject instanceof Blah );
+		print( myObject.getFoo() );
+		print( myObject.somethingElse() );
+	
+	You can simply do:
 
-        show();
-        myObject instanceof Blah;
-        myObject.getFoo();
-        myObject.somethingElse();
-    
-    This can be combined with the trace property -Dtrace=true (currently a
-    static, interpreter wide flag) to display line by line execution and
-    results.
-    
-    The bsh.show variable is gone and has been replaced with a property
-    on the interpreter.
+		show();
+		myObject instanceof Blah;
+		myObject.getFoo();
+		myObject.somethingElse();
+	
+	This can be combined with the trace property -Dtrace=true (currently a
+	static, interpreter wide flag) to display line by line execution and
+	results.
+	
+	The bsh.show variable is gone and has been replaced with a property
+	on the interpreter.
 
-    - Fixed bug in super.method() resolution inside nested blocks.
+	- Fixed bug in super.method() resolution inside nested blocks.
 
-    - Added workaround for load() command to use the BshClassManager for
-        deserializing classes.
-    
-    - Fixed some cases where SecurityException could not be caught by scripts
-      and handled.
+	- Added workaround for load() command to use the BshClassManager for
+		deserializing classes.
+	
+	- Fixed some cases where SecurityException could not be caught by scripts
+	  and handled.
 
 </pre>
 
 <h2>Changes in 2.0 beta 3</h2>
 <pre>
-    String literals are now interned, as per JSL ch3 10.5.
+	String literals are now interned, as per JSL ch3 10.5.
 </pre>
 
 <h2>Changes in 2.0 beta 2</h2>
 <pre>
-    Added code to address the class redefinition problem.  BeanShell will now
-    use the bsh classloader to allow the classes to be reloaded as necessary.
+	Added code to address the class redefinition problem.  BeanShell will now
+	use the bsh classloader to allow the classes to be reloaded as necessary.
 
-    <p/>
-    Note: this only affects users who are utilizing the new BeanShell 2.0+
-    features to script classes and interfaces using the standard Java
-    class/interface syntax.  There is no problem with scripting interfaces
-    using bsh objects or the anonymous inner class style syntax that has always
-    been supported.
+	<p/>
+	Note: this only affects users who are utilizing the new BeanShell 2.0+
+	features to script classes and interfaces using the standard Java
+	class/interface syntax.  There is no problem with scripting interfaces
+	using bsh objects or the anonymous inner class style syntax that has always
+	been supported.
 
 </pre>
 
