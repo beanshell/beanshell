@@ -4,66 +4,66 @@ source("TestHarness.bsh");
 
 class Foo33 
 {
-    static int a = 5;
-    int b;
-    int b2=42;
-    Object fooThis = this;
-    int q=5;
+	static int a = 5;
+	int b;
+	int b2=42;
+	Object fooThis = this;
+	int q=5;
 
-    // Leave this as default level accessibility...
-    // prompts some important accessibility issues.
-    // maybe make a clear standalone case for that... TODO.
-    Foo33() { } // Foo33 needs a default constructor for Bar33()
+	// Leave this as default level accessibility...
+	// prompts some important accessibility issues.
+	// maybe make a clear standalone case for that... TODO.
+	Foo33() { } // Foo33 needs a default constructor for Bar33()
 
-    Foo33( int c ) {
-        b=c;
-    }
+	Foo33( int c ) {
+		b=c;
+	}
 
-    void method() { 
-        assert( a == 5 );
-        assert( q == 5 || q==6/*after setQ()*/);
-        assert( this == fooThis );
+	void method() { 
+		assert( a == 5 );
+		assert( q == 5 || q==6/*after setQ()*/);
+		assert( this == fooThis );
 
-        // block namespace
-        {
-            assert( this == fooThis );
-        }
-    }
+		// block namespace
+		{
+			assert( this == fooThis );
+		}
+	}
 
-    setQ(int a) { q=a; }
+	setQ(int a) { q=a; }
 
-    static void smethod() 
-    {
-        assert( a == 5 );
+	static void smethod() 
+	{
+		assert( a == 5 );
 
-        // can't see instance vars or methods from static
-        assert(isEvalError("print(q)"));
-        assert(isEvalError("print(b)"));
-        assert(isEvalError("method()"));
-    }
+		// can't see instance vars or methods from static
+		assert(isEvalError("print(q)"));
+		assert(isEvalError("print(b)"));
+		assert(isEvalError("method()"));
+	}
 
-    method2() { 
-        return "foo"; 
-    }
+	method2() { 
+		return "foo"; 
+	}
 }
 
 class Bar33 extends Foo33 { 
-    int b2=99; // override
-    Object barThis = this;
+	int b2=99; // override
+	Object barThis = this;
 
-    barMethod() {
-        assert( b2 == 99 );
-        assert( this.b2 == 99 );
+	barMethod() {
+		assert( b2 == 99 );
+		assert( this.b2 == 99 );
 assert(false);
 //assert( super.b2 == 42 );
-        method();
-        smethod();
-        assert( this == barThis );
-        assert( method2().equals("bar") );
-        assert( _bshSupermethod2().equals("foo") );
-        assert( super.method2().equals("foo") );
-    }
-    method2() { return "bar"; }
+		method();
+		smethod();
+		assert( this == barThis );
+		assert( method2().equals("bar") );
+		assert( _bshSupermethod2().equals("foo") );
+		assert( super.method2().equals("foo") );
+	}
+	method2() { return "bar"; }
 }
 
 // static
@@ -83,9 +83,9 @@ bar.method(); // instance
 bar.smethod(); // static
 bar.setQ(6);
 if ( Interpreter.LOCALSCOPING ) // not sure if we should allow this
-    assert( bar.q == 5 );
+	assert( bar.q == 5 );
 else
-    assert( bar.q == 6 );
+	assert( bar.q == 6 );
 
 // non default constructors
 assert(isEvalError("new Bar33(6)"));
@@ -118,9 +118,9 @@ gee.smethod(); // static
 assert( gee.q == 5 ); // loose instance
 gee.setQ(6);
 if ( Interpreter.LOCALSCOPING ) // not sure if we should allow this
-    assert( gee.q == 5 );
+	assert( gee.q == 5 );
 else
-    assert( gee.q == 6 );
+	assert( gee.q == 6 );
 
 assert( bar.method2().equals("bar") );
 assert( gee.method2().equals("bar") );

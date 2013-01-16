@@ -14,7 +14,7 @@ int ifield = 22;
 switch( ifield )
 {
 case 22:
-    flag();
+	flag();
 default:
 } 
 
@@ -22,7 +22,7 @@ long lfield =22;
 switch( lfield )
 {
 case 22:
-    flag();
+	flag();
 default:
 } 
 
@@ -30,7 +30,7 @@ iw = new Integer(22);
 switch( iw )
 {
 case 22:
-    flag();
+	flag();
 default:
 } 
 
@@ -38,7 +38,7 @@ float f = 22.0f;
 switch( f )
 {
 case 22:
-    flag();
+	flag();
 default:
 } 
 
@@ -46,7 +46,7 @@ bw = new Byte((byte)22);
 switch( bw )
 {
 case 22:
-    flag();
+	flag();
 default:
 } 
 
@@ -54,14 +54,14 @@ short sfield = 22;
 switch( sfield )
 {
 case 22:
-    flag();
+	flag();
 default:
 } 
 
 switch( Fields.shortTwentyTwo )
 {
 case 22:
-    flag();
+	flag();
 default:
 } 
 
@@ -69,7 +69,7 @@ byte bfield = 22;
 switch( bfield )
 {
 case 22:
-    flag();
+	flag();
 default:
 } 
 
@@ -80,12 +80,12 @@ barobj=object();
 switch( fooobj ) 
 {
 case barobj:
-    print("barobj");
-    assert(false);
+	print("barobj");
+	assert(false);
 
 case fooobj:
-    flag();
-    print("fooobj");
+	flag();
+	print("fooobj");
 
 default:
 }
@@ -95,12 +95,12 @@ dateobj2 = new Date(42);
 switch( dateobj ) 
 {
 case dateobj2:
-    flag();
-    print("date1");
+	flag();
+	print("date1");
 
 case dateobj:
-    flag();
-    print("date2");
+	flag();
+	print("date2");
 
 default:
 }

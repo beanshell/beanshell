@@ -7,7 +7,7 @@ bsh.help.getClassPath= "usage: getClassPath()";
 import bsh.BshClassManager;
 
 URL [] getClassPath() {
-    this.cp = this.caller.namespace.getClassManager().getClassPath();
-    return cp.getPathComponents();
+	this.cp = this.caller.namespace.getClassManager().getClassPath();
+	return cp.getPathComponents();
 }
 

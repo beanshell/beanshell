@@ -7,14 +7,14 @@ i=99;
 int q2=99;
 assert( q2 == 99 );
 for(int i=1; i<3; i++) {
-    a=9;
-    q=2;
+	a=9;
+	q=2;
 
-    // slightly deviant behavior here...  java wouldn't allow the re-declaration
-    int q2=3;
-    assert( q2 == 3 );
+	// slightly deviant behavior here...  java wouldn't allow the re-declaration
+	int q2=3;
+	assert( q2 == 3 );
 
-    i2 = i;
+	i2 = i;
 }
 assert(i==99);
 assert(q==2);
@@ -27,13 +27,13 @@ assert(i2 == 2);
 
 // multiple inits
 for(x=0, a=2, y="foo"; x<3; x++) {
-    print(x+", "+y);
+	print(x+", "+y);
 }
 
 // Can't declare var again already declared in forinit
 assert( 
-    isEvalError(
-        "for (int foo=1, int bar=2; foo < 3; foo++ ) { int bar = 3; }" ) 
+	isEvalError(
+		"for (int foo=1, int bar=2; foo < 3; foo++ ) { int bar = 3; }" ) 
 );
 
 complete();

@@ -2,43 +2,43 @@
 source("TestHarness.bsh");
 
 if ( true )
-    assert(true);
+	assert(true);
 else 
-    assert(false);
+	assert(false);
 
 if ( false )
-    assert(false);
+	assert(false);
 else 
-    assert(true);
+	assert(true);
 
 if ( true ) assert(true); else assert(false);
 
 if ( true ) {
-    System.out.println("foo...");
-    System.out.println("bar...");
-    assert(true);
+	System.out.println("foo...");
+	System.out.println("bar...");
+	assert(true);
 } else {
-    assert(false);
+	assert(false);
 }
 
 // scoping
 if ( true ) {
-    a=5;
+	a=5;
 } else {
-    a=2;
+	a=2;
 }
 assert(a==5);
 
 if ( true )
-    if ( true )
-        if ( true )
-            flag();
-        else
-            fail();
-    else
-        fail();
+	if ( true )
+		if ( true )
+			flag();
+		else
+			fail();
+	else
+		fail();
 else
-    fail();
+	fail();
 
 assert(flag()==1);
 

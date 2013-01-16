@@ -17,7 +17,7 @@ assert( this.namespace.getClass("MyClass") != null );
 // Is this correct behavior or broken?
 result = run("Data/import_aux2.bsh");
 if ( !result.myClassVisible ) {
-    //warning("Child run()s do not inherit their parent's imports");
+	//warning("Child run()s do not inherit their parent's imports");
 }
 
 // Subsequent sourcing of course should see the previous imports

@@ -73,16 +73,16 @@ public class SimpleHttpScriptContext extends SimpleScriptContext
     }
     
     public java.io.Reader getScriptSource() {
-    //we may be included from another page.  The call to request.getRequestURI()
-     //returns the URI for the original request
-    String requestURI = (String)request.getAttribute("javax.servlet.include.request_uri");
-    if (requestURI == null || requestURI.equals("")) {
-        
-            requestURI = request.getRequestURI();
-    }
+	//we may be included from another page.  The call to request.getRequestURI()
+ 	//returns the URI for the original request
+	String requestURI = (String)request.getAttribute("javax.servlet.include.request_uri");
+	if (requestURI == null || requestURI.equals("")) {
+		
+        	requestURI = request.getRequestURI();
+	}
 
         String resourcePath = 
-        requestURI.substring(request.getContextPath().length());
+		requestURI.substring(request.getContextPath().length());
         try {
             if (docRoot != null) {
                 String separator = 
@@ -110,25 +110,25 @@ public class SimpleHttpScriptContext extends SimpleScriptContext
    
 
     private void includeOnNewThread(final String path, final ServletContext context)  {
-    try {
-         Runnable r =     
-             new Runnable() {
-                public void run() {
-                    try {
-                        context.getRequestDispatcher(path).include(request, response);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    } 
-                }
-            };
+	try {
+	 	Runnable r = 	
+			 new Runnable() {
+				public void run() {
+					try {
+						context.getRequestDispatcher(path).include(request, response);
+					} catch (Exception e) {
+						e.printStackTrace();
+					} 
+				}
+			};
 
-        Thread t = new Thread(r);
-        t.start();
-        t.join();
-        
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
+		Thread t = new Thread(r);
+		t.start();
+		t.join();
+		
+	} catch (Exception e) {
+		e.printStackTrace();
+	}
     }
 
     public void include(String relativePath) throws ServletException, IOException {
@@ -136,11 +136,11 @@ public class SimpleHttpScriptContext extends SimpleScriptContext
         String uri = ((HttpServletRequest) request).getServletPath();
         String baseURI = uri.substring(0, uri.lastIndexOf('/'));
         String path = baseURI + '/'+ relativePath;
-    
-    
+	
+	
         context.getRequestDispatcher(path).include(request, response);
-    
-    //includeOnNewThread(path, context);
+	
+	//includeOnNewThread(path, context);
     }
     
     public void initialize(javax.servlet.Servlet servlet, 
@@ -303,7 +303,7 @@ public class SimpleHttpScriptContext extends SimpleScriptContext
        //outer page fails when it trys to call getWriter.  ServletAPI allow wrapper to be used in
        //which case the IllegalStateException is not thrown.  Need to research what this breaks. 
        public javax.servlet.ServletOutputStream getOutputStream() throws java.io.IOException {
-        return super.getOutputStream();
+		return super.getOutputStream();
        }
     }
 
