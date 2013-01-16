@@ -1,5 +1,5 @@
 /**
-    Rename a file (like Unix mv).
+	Rename a file (like Unix mv).
 */
 
 bsh.help.mv = "usage: mv( fromFile, toFile )";
@@ -8,6 +8,6 @@ mv( String fromFile, String toFile )
 {
     this.from = pathToFile( fromFile );
     this.to = pathToFile( toFile );
-    from.renameTo( to );
+	from.renameTo( to );
 }
 

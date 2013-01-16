@@ -4,13 +4,13 @@ source("TestHarness.bsh");
 
 object().x=5;
 foo() {
-    bar() { 
-        return this; 
-    }
-    bar2() {
-        return foo();
-    }
-    return this;
+	bar() { 
+		return this; 
+	}
+	bar2() {
+		return foo();
+	}
+	return this;
 }
 
 foo().x=5;

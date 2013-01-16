@@ -1,16 +1,16 @@
 /**
     Source a file relative to the callering script's directory.
-    <p/>
+	<p/>
 
     e.g. scripts A running in dir A sources script B in dir B.
-    Script B can use this command to load additional scripts (data, etc.)
-    relative to its own location (dir B) without having to explicitly know 
-    its "home" directory (B).
-    <p/>
-    Note: this only works for files currently.
+	Script B can use this command to load additional scripts (data, etc.)
+	relative to its own location (dir B) without having to explicitly know 
+	its "home" directory (B).
+	<p/>
+	Note: this only works for files currently.
 
     @since bsh1.3
-    @see source( file | URL );
+	@see source( file | URL );
 */
 sourceRelative( String file )
 {

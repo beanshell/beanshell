@@ -2,9 +2,9 @@
 source("TestHarness.bsh");
 
 t=new Thread() {
-    public void run() {
-        flag();
-    }
+	public void run() {
+		flag();
+	}
 };
 t.start();
 t.join();

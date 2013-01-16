@@ -5,18 +5,18 @@ source("TestHarness.bsh");
 booga=37;
 
 foo( arg ) {
-    goo=booga;
-    run() {
-        print("hello");
-        return 42;
-    }
-    getBooga() {
-        return booga;
-    }
-    getArg() {
-        return arg;
-    }
-    return this;
+	goo=booga;
+	run() {
+		print("hello");
+		return 42;
+	}
+	getBooga() {
+		return booga;
+	}
+	getArg() {
+		return arg;
+	}
+	return this;
 }
 
 f=foo( 5 );

@@ -8,8 +8,8 @@ assert( Fields.getFields().x == 5 );
 assert( Fields.getFields().getFields2().x == 5 );
 
 foo() {
-    x=5;
-    return this;
+	x=5;
+	return this;
 }
 
 f=foo();

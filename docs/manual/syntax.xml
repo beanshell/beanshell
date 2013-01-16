@@ -259,18 +259,18 @@ to use this feature).
 List foo = getSomeList();
 
 for ( untypedElement : foo ) 
-    print( untypedElement ); 
+	print( untypedElement ); 
 
 for ( Object typedElement: foo ) 
-    print( typedElement );
+	print( typedElement );
 
 int [] array = new int [] { 1, 2, 3 };
 
 for( i : array ) 
-    print(i);
+	print(i);
 
 for( char c : "a string" )
-    print( c ); 
+	print( c ); 
 </example>
 
 Supported iterable types include all the obvious things.  
@@ -296,11 +296,11 @@ dateobj = new Date();
 
 switch( dateobj ) 
 {
-    case newYears:
-        break;
-    case christmas:
-        break;
-    default:
+	case newYears:
+		break;
+	case christmas:
+		break;
+	default:
 }
 </example>
 

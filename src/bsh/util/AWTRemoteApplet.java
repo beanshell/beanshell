@@ -34,31 +34,31 @@ import java.io.*;
 import java.net.*;
 
 /**
-    A lightweight console applet for remote display of a Beanshell session.
+	A lightweight console applet for remote display of a Beanshell session.
 */
 public class AWTRemoteApplet extends Applet
 {
-    OutputStream out;
-    InputStream in;
+	OutputStream out;
+	InputStream in;
 
-    public void init() 
-    {
-        setLayout(new BorderLayout());
+	public void init() 
+	{
+		setLayout(new BorderLayout());
 
-        try {
-            URL base = getDocumentBase();
+		try {
+			URL base = getDocumentBase();
 
-            // connect to session server on port (httpd + 1)
-            Socket s = new Socket(base.getHost(), base.getPort() + 1);
-            out = s.getOutputStream();
-            in = s.getInputStream();
-        } catch(IOException e) {
-            add("Center", new Label("Remote Connection Failed", Label.CENTER));
-            return;
-        }
+			// connect to session server on port (httpd + 1)
+			Socket s = new Socket(base.getHost(), base.getPort() + 1);
+			out = s.getOutputStream();
+			in = s.getInputStream();
+		} catch(IOException e) {
+			add("Center", new Label("Remote Connection Failed", Label.CENTER));
+			return;
+		}
 
-        Component console = new AWTConsole(in, out);
-        add("Center", console);
-    }
+		Component console = new AWTConsole(in, out);
+		add("Center", console);
+	}
 }
 

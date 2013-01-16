@@ -3,17 +3,17 @@
 source("TestHarness.bsh");
 
 foo() {
-    return 42;
-    return 52;
+	return 42;
+	return 52;
 }
 
 bar() {
-    42;
+	42;
 }
 
 gee() {
-    return;
-    assert(false);
+	return;
+	assert(false);
 }
 
 assert( foo() == 42 );

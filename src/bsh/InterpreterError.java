@@ -29,13 +29,13 @@
 package bsh;
 
 /**
-    An internal error in the interpreter has occurred.
+	An internal error in the interpreter has occurred.
 */
 public class InterpreterError extends RuntimeException
 {
-    public InterpreterError(String s)
-    {
-        super(s);
-    }
+	public InterpreterError(String s)
+	{
+		super(s);
+	}
 }
 
