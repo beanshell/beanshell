@@ -40,9 +40,9 @@ assert( goober123423 == void );
 // unset scope works
 foo=5;
 foo() {
-    foo=6;
-    unset("foo");
-    assert(foo==void);
+	foo=6;
+	unset("foo");
+	assert(foo==void);
 }
 assert(foo==5);
 

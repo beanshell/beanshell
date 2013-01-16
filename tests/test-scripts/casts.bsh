@@ -18,9 +18,9 @@ assert( isEvalError( "i=(Integer)\"foo\";") );
 try {
   i=(Integer)"foo";
 } catch ( ArithmeticException e0 ) {
-    assert(false); // just checking
+	assert(false); // just checking
 } catch ( ClassCastException e ) {
-    flag();
+	flag();
 }
 
 assert(flag()==1);

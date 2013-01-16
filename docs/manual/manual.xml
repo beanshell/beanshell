@@ -39,35 +39,35 @@
 ]>
 
 <manual>
-    &title;
-    &contents; <!-- Auto generated table of contents -->
-    &intro;
-    &quickstart;
-    &syntax;
-    &methods;
-    &objects;
-    &scope;
-    &interfaces;
-    &specialvarsvalues;
-    &commands;
-    &usercommands;
-    &strictjava;
-    &classpath;
-    &standalonemode;
-    &embeddedmode;
-    &remotemode;
-    &servletmode;
-    &appletmode;
-    &desktop;
-    &bshdoc;
-    &parser;
-    &jconsole;
-    &reflectivestyle;
-    &execscripts;
-    &bsf;
-    &more;
-    &credit;
-    &bshcommands; <!-- bshdoc auto generated bsh commands documentation -->
+	&title;
+	&contents; <!-- Auto generated table of contents -->
+	&intro;
+	&quickstart;
+	&syntax;
+	&methods;
+	&objects;
+	&scope;
+	&interfaces;
+	&specialvarsvalues;
+	&commands;
+	&usercommands;
+	&strictjava;
+	&classpath;
+	&standalonemode;
+	&embeddedmode;
+	&remotemode;
+	&servletmode;
+	&appletmode;
+	&desktop;
+	&bshdoc;
+	&parser;
+	&jconsole;
+	&reflectivestyle;
+	&execscripts;
+	&bsf;
+	&more;
+	&credit;
+	&bshcommands; <!-- bshdoc auto generated bsh commands documentation -->
 </manual>
 
 

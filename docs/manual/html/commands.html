@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <html><head><title>Adding BeanShell Commands</title></head><body bgcolor="ffffff"><table cellspacing="10"><tr><td align="center"><a href="http://www.beanshell.org/"><img src="../images/homebutton.gif"/><br/>Home</a></td><td><a href="commands.html#BeanShell_Commands"><img src="../images/backbutton.gif"/><br/>Back
-            </a></td><td align="center"><a href="contents.html"><img src="../images/upbutton.gif"/><br/>Contents</a></td><td align="center"><a href="strictjava.html#Strict_Java_Mode"><img src="../images/forwardbutton.gif"/><br/>Next
-            </a></td></tr></table><h1>Adding BeanShell Commands</h1>
+			</a></td><td align="center"><a href="contents.html"><img src="../images/upbutton.gif"/><br/>Contents</a></td><td align="center"><a href="strictjava.html#Strict_Java_Mode"><img src="../images/forwardbutton.gif"/><br/>Next
+			</a></td></tr></table><h1>Adding BeanShell Commands</h1>
 
 
 BeanShell Commands are scripted methods or compiled Java classes which are 
@@ -80,10 +80,10 @@ command method, e.g.:
 <p/><center><table border="1" cellpadding="5" width="100%"><tr><td bgcolor="#dfdfdc"><pre>
 // File: helloWorld.bsh
 helloWorld() { 
-    print("Hello World!"); 
+	print("Hello World!"); 
 }
 helloWorld( String msg ) { 
-    print("Hello World: "+msg); 
+	print("Hello World: "+msg); 
 }
 </pre></td></tr></table></center><p/>
 
@@ -112,19 +112,19 @@ invoke() methods for the dir() and dir(path) commands.
 
 <p/><center><table border="1" cellpadding="5" width="100%"><tr><td bgcolor="#dfdfdc"><pre>
 /**
-    Implement dir() command.
+	Implement dir() command.
 */
 public static void invoke( Interpreter env, CallStack callstack ) 
 {
-    String dir = ".";
-    invoke( env, callstack, dir );
+	String dir = ".";
+	invoke( env, callstack, dir );
 }
 
 /**
-    Implement dir( String directory ) command.
+	Implement dir( String directory ) command.
 */
 public static void invoke( 
-    Interpreter env, CallStack callstack, String dir ) 
+	Interpreter env, CallStack callstack, String dir ) 
 {
 ...
 }
@@ -140,7 +140,7 @@ example:
 
 <p/><center><table border="1" cellpadding="5" width="100%"><tr><td bgcolor="#dfdfdc"><pre>
 invoke( String methodName, Object [] arguments ) { 
-    print("You invoked the method: "+ methodName );
+	print("You invoked the method: "+ methodName );
 }
 
 // invoke() will be called to handle noSuchMethod()
@@ -254,7 +254,7 @@ The eval() command is implemented simply as:
 
 <p/><center><table border="1" cellpadding="5" width="100%"><tr><td bgcolor="#dfdfdc"><pre>
 eval( String text ) {
-    this.interpreter.eval( text, this.caller.namespace );
+	this.interpreter.eval( text, this.caller.namespace );
 }
 </pre></td></tr></table></center><p/>
 
@@ -287,10 +287,10 @@ commands to do this in the future).
 
 <p/><center><table border="1" cellpadding="5" width="100%"><tr><td bgcolor="#dfdfdc"><pre>
 myCommand() {
-    // "Step into" the caller's namespace.
-    setNameSpace( this.caller.namespace );
+	// "Step into" the caller's namespace.
+	setNameSpace( this.caller.namespace );
 
-    // work as if we were in the caller's namespace.
+	// work as if we were in the caller's namespace.
 }
 </pre></td></tr></table></center><p/>
 
@@ -412,7 +412,7 @@ Name.identifierToClass() method.  Here is an example of how to work
 with all of the above, converting the argument to a class type:
 
 <p/><center><table border="1" cellpadding="5" width="100%"><tr><td bgcolor="#dfdfdc"><pre>
-    import bsh.ClassIdentifier;
+	import bsh.ClassIdentifier;
 
     if ( o instanceof ClassIdentifier )
         clas = this.namespace.identifierToClass(o);
@@ -448,12 +448,12 @@ over Enumeration, arrays, Vector, String, StringBuffer and
 cm = CollectionManager.getCollectionManager();
 if ( cm.isBshIterable( myObject ) ) 
 {
-    BshIterator iterator = cm.getBshIterator( myObject );
-    while ( iterator.hasNext() )
-        i = iterator.next();
+	BshIterator iterator = cm.getBshIterator( myObject );
+	while ( iterator.hasNext() )
+		i = iterator.next();
 }
 </pre></td></tr></table></center><p/>
 
 <table cellspacing="10"><tr><td align="center"><a href="http://www.beanshell.org/"><img src="../images/homebutton.gif"/><br/>Home</a></td><td><a href="commands.html#BeanShell_Commands"><img src="../images/backbutton.gif"/><br/>Back
-            </a></td><td align="center"><a href="contents.html"><img src="../images/upbutton.gif"/><br/>Contents</a></td><td align="center"><a href="strictjava.html#Strict_Java_Mode"><img src="../images/forwardbutton.gif"/><br/>Next
-            </a></td></tr></table></body></html>
+			</a></td><td align="center"><a href="contents.html"><img src="../images/upbutton.gif"/><br/>Contents</a></td><td align="center"><a href="strictjava.html#Strict_Java_Mode"><img src="../images/forwardbutton.gif"/><br/>Next
+			</a></td></tr></table></body></html>
