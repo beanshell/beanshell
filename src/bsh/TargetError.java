@@ -43,9 +43,8 @@ import java.io.PrintStream;
 	from the eval() or interpreter.eval() method it may be caught and unwrapped
 	to determine what exception was thrown.
 */
-public class TargetError extends EvalError 
+public class TargetError extends EvalError
 {
-	Throwable target;
 	boolean inNativeCode;
 
 	public TargetError(
@@ -53,7 +52,7 @@ public class TargetError extends EvalError
 		boolean inNativeCode )
 	{
 		super( msg, node, callstack );
-		target = t;
+	    initCause(t);
 		this.inNativeCode = inNativeCode;
 	}
 
@@ -65,6 +64,7 @@ public class TargetError extends EvalError
 	public Throwable getTarget()
 	{
 		// check for easy mistake
+        final Throwable target = getCause();
 		if(target instanceof InvocationTargetException)
 			return((InvocationTargetException)target).getTargetException();
 		else
@@ -75,7 +75,7 @@ public class TargetError extends EvalError
 	{
 		return super.toString() 
 			+ "\nTarget exception: " + 
-			printTargetError( target );
+			printTargetError( getCause() );
 	}
 
     public void printStackTrace() { 
@@ -91,7 +91,7 @@ public class TargetError extends EvalError
 			super.printStackTrace( out );
 			out.println("--- Target Stack Trace ---");
 		}
-		target.printStackTrace( out );
+		getCause().printStackTrace(out);
 	}
 
 	/**
@@ -101,7 +101,7 @@ public class TargetError extends EvalError
 	*/
 	public String printTargetError( Throwable t ) 
 	{
-		String s = target.toString();
+		String s = getCause().toString();
 
 		if ( Capabilities.canGenerateInterfaces() )
 			s += "\n" + xPrintTargetError( t );
