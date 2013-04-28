@@ -28,7 +28,6 @@
 
 package bsh;
 
-import java.io.IOException;
 
 /**
 	'This' is the type of bsh scripted objects.
@@ -191,10 +190,8 @@ public class This implements java.io.Serializable, Runnable
 		have to script them directly.
 		<p>
 
-		@see bsh.This.invokeMethod( 
-			String methodName, Object [] args, Interpreter interpreter, 
-			CallStack callstack, SimpleNode callerInfo )
-		@param if callStack is null a new CallStack will be created and
+		@see bsh.This#invokeMethod(String, Object[], Interpreter, CallStack, SimpleNode, boolean)
+		@param callstack if callStack is null a new CallStack will be created and
 			initialized with this namespace.
 		@param declaredOnly if true then only methods declared directly in the
 			namespace will be visible - no inherited or imported methods will
@@ -221,15 +218,17 @@ public class This implements java.io.Serializable, Runnable
 			Class Generator.java.  If we fix that then we can remove this.
 			(just have to generate the code there.)
 		*/
-		if ( args != null )
-		{
-			Object [] oa = new Object [args.length];
-			for(int i=0; i<args.length; i++)
-				oa[i] = ( args[i] == null ? Primitive.NULL : args[i] );
-			args = oa;
-		}
+        if (args == null) {
+            args = new Object[0];
+        } else {
+            Object[] oa = new Object[args.length];
+            for (int i = 0; i < args.length; i++) {
+                oa[i] = (args[i] == null ? Primitive.NULL : args[i]);
+            }
+            args = oa;
+        }
 
-		if ( interpreter == null )
+        if ( interpreter == null )
 			interpreter = declaringInterpreter;
 		if ( callstack == null )
 			callstack = new CallStack( namespace );
