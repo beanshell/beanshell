@@ -11,6 +11,7 @@ import java.lang.ref.WeakReference;
 import java.util.concurrent.Callable;
 
 import static bsh.TestUtil.eval;
+import static org.junit.Assert.assertEquals;
 
 /**
  * todo:<p>
@@ -141,12 +142,11 @@ public class SourceForgeIssuesTest {
 
 
     /**
-     * <a href="http://sourceforge.net/tracker/?func=detail&aid=1796035&group_id=4075&atid=104075">Sourceforge issue "Grammar error when defining arrays" - ID: 1796035</a>.
+     * <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1897015&group_id=4075&atid=1950677">Sourceforge issue "parsing number 0xff000000 fails" - ID: 1950677</a>.
      */
     @Test
-    public void sourceforge_issue() throws Exception {
-        Assert.assertEquals("A", eval("import " + getClass().getName() + "; return " + getClass().getSimpleName() + ".A.staticMethod();"));
-        Assert.assertEquals("B", eval("import " + getClass().getName() + "; return " + getClass().getSimpleName() + ".B.staticMethod();"));
+    public void sourceforge_issue_1950677() throws Exception {
+        assertEquals(0xff000000, eval("return 0xff000000;"));
     }
 
 
