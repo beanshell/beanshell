@@ -228,6 +228,8 @@
 		<delete quiet="true" dir="${build-dir}"/>
 		<delete quiet="true" dir="${javadoc-dir}"/>
 		<delete quiet="true" dir="${dist-dir}"/>
+		<!-- clear the junit reports: -->
+		<delete quiet="true" dir="${junit-reports}" />
 
 		<!-- Moved to dist dir
 		<delete quiet="true" file="${javadoc-jar}"/>
@@ -563,7 +565,87 @@
 	</target>
 
 	<!-- 
-		Run the test suite.
+		  Set up some properties for use with the testing framework
+	-->
+
+	<property name="junit.jar" value="${lib-dir}/testing/junit-4.8.2.jar"/>
+	
+	<!-- JUnit source files. -->
+	<property name="junit-test-src-dir" value="tests/junitTests/src" />
+	
+	<!-- Directory to store the junit reports in.  Deleted on a clean. -->
+	<property name="junit-reports" value="tests/junit-reports" />
+	
+	<!-- Set up a classpath for use when testing the project: -->
+	<path id="test-classpath">
+	  <pathelement location="${build-dir}"/>
+	  <pathelement location="${junit.jar}"/>
+	  <fileset refid="lib-fileset"/>
+	</path>
+	
+	<target name="build-junit-tests"
+			  depends="compile" >
+	  <!-- description="Builds the JUnit Test suite."> -->
+	  <javac srcdir="${junit-test-src-dir}"
+				destdir="${build-dir}"
+				debug="on"
+				debuglevel="lines,vars,source"
+			  >
+		 <classpath>
+			<path refid="test-classpath"/>
+		 </classpath>
+	  </javac>
+	</target>
+	
+	<target name="junit-tests" depends="build-junit-tests">
+	  <!-- description="Runs the JUnit test suite."> -->
+	  
+	  <mkdir dir="${junit-reports}" />
+	  
+	  <junit printsummary="yes" haltonfailure="no" fork="yes">
+         <sysproperty key="skip_known_issues" value=""/>
+		 <classpath>
+			<path refid="test-classpath"/>
+		 </classpath>
+		 
+		 <assertions enableSystemAssertions="true"/>
+
+		 <formatter type="brief" usefile="true"/>
+
+		 <batchtest todir="${junit-reports}">
+			<fileset dir="${junit-test-src-dir}">
+			  <include name="**/*Test.java"/>
+			</fileset>
+		 </batchtest>
+	  </junit>
+	</target>
+
+
+	<target name="junit-tests-all" depends="build-junit-tests">
+	  <!-- description="Runs the JUnit test suite."> -->
+
+	  <mkdir dir="${junit-reports}" />
+
+	  <junit printsummary="yes" haltonfailure="no" fork="yes">
+		 <classpath>
+			<path refid="test-classpath"/>
+		 </classpath>
+
+		 <assertions enableSystemAssertions="true"/>
+
+		 <formatter type="brief" usefile="true"/>
+
+		 <batchtest todir="${junit-reports}">
+			<fileset dir="${junit-test-src-dir}">
+			  <include name="**/*Test.java"/>
+			</fileset>
+		 </batchtest>
+	  </junit>
+	</target>
+
+
+	<!-- 
+		Run the script-based test suite.
 	-->
 	<target name="test">
 		<antcall target="bsh">
