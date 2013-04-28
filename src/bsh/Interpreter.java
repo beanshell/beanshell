@@ -27,10 +27,22 @@
 
 package bsh;
 
-import java.util.Vector;
-import java.io.*;
-import java.lang.reflect.Method;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.PrintStream;
+import java.io.Reader;
+import java.io.Serializable;
+import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
 	The BeanShell script interpreter.
@@ -698,9 +710,12 @@ public class Interpreter
 					"Sourced file: "+sourceFileInfo+" unknown error: " 
 					+ e.getMessage(), node, callstack);
             } catch(TokenMgrError e) {
-                throw new EvalError(
-					"Sourced file: "+sourceFileInfo+" Token Parsing Error: " 
-					+ e.getMessage(), node, callstack );
+                final EvalError evalError = new EvalError(
+                        "Sourced file: " + sourceFileInfo + " Token Parsing Error: " + e.getMessage(),
+                        node,
+                        callstack);
+                evalError.initCause(e);
+                throw evalError;
             } finally {
                 localInterpreter.get_jjtree().reset();
 
