@@ -79,16 +79,20 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
         Object returnControl = Primitive.VOID;
         while (iterator.hasNext()) {
             try {
+                Object value = iterator.next();
+                if (value == null) {
+                    value = Primitive.NULL;
+                }
                 if (elementType != null) {
-                    eachNameSpace.setTypedVariable(varName/*name*/, elementType/*type*/, iterator.next()/*value*/, new Modifiers()/*none*/);
+                    eachNameSpace.setTypedVariable(varName/*name*/, elementType/*type*/, value/*value*/, new Modifiers()/*none*/);
                 } else {
-                    eachNameSpace.setVariable(varName, iterator.next(), false);
+                    eachNameSpace.setVariable(varName, value, false);
                 }
             } catch (UtilEvalError e) {
                 throw e.toEvalError("for loop iterator variable:" + varName, this, callstack);
             }
             boolean breakout = false; // switch eats a multi-level break here?
-            if (statement != null) { 
+            if (statement != null) {
                 // not empty statement
                 Object ret = statement.eval(callstack, interpreter);
                 if (ret instanceof ReturnControl) {
