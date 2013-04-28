@@ -914,20 +914,17 @@ class Reflect
 		}
 	}
 
-	private static void logInvokeMethod( 
-		String msg, Method method, Object[] args )
-	{
-		if ( Interpreter.DEBUG )
-		{
-			Interpreter.debug( msg +method+" with args:" );
-			for(int i=0; i<args.length; i++)
-				Interpreter.debug(
-					"args["+i+"] = "+args[i]
-					+" type = "+args[i].getClass() );
-		}
-	}
+    private static void logInvokeMethod(String msg, Method method, Object[] args) {
+        if (Interpreter.DEBUG) {
+            Interpreter.debug(msg + method + " with args:");
+            for (int i = 0; i < args.length; i++) {
+                final Object arg = args[i];
+                Interpreter.debug("args[" + i + "] = " + arg + " type = " + (arg == null ? "<unknown>" : arg.getClass()));
+            }
+        }
+    }
 
-	private static void checkFoundStaticMethod(
+    private static void checkFoundStaticMethod(
 		Method method, boolean staticOnly, Class clas )
 		throws UtilEvalError
 	{
