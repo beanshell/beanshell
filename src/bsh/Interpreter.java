@@ -687,10 +687,9 @@ public class Interpreter
 				throw e;
 
             } catch ( InterpreterError e ) {
-                e.printStackTrace();
-                throw new EvalError(
-					"Sourced file: "+sourceFileInfo+" internal Error: " 
-					+ e.getMessage(), node, callstack);
+                final EvalError evalError = new EvalError("Sourced file: " + sourceFileInfo + " internal Error: " + e.getMessage(), node, callstack);
+                evalError.initCause(e);
+                throw evalError;
             } catch ( TargetError e ) {
 				// failsafe, set the Line as the origin of the error.
 				if ( e.getNode()==null )
@@ -704,16 +703,11 @@ public class Interpreter
 					e.setNode( node );
 				e.reThrow( "Sourced file: "+sourceFileInfo );
             } catch ( Exception e) {
-                if ( DEBUG)
-                	e.printStackTrace();
-                throw new EvalError(
-					"Sourced file: "+sourceFileInfo+" unknown error: " 
-					+ e.getMessage(), node, callstack);
+                final EvalError evalError = new EvalError("Sourced file: " + sourceFileInfo + " unknown error: " + e.getMessage(), node, callstack);
+                evalError.initCause(e);
+                throw evalError;
             } catch(TokenMgrError e) {
-                final EvalError evalError = new EvalError(
-                        "Sourced file: " + sourceFileInfo + " Token Parsing Error: " + e.getMessage(),
-                        node,
-                        callstack);
+                final EvalError evalError = new EvalError("Sourced file: " + sourceFileInfo + " Token Parsing Error: " + e.getMessage(), node, callstack);
                 evalError.initCause(e);
                 throw evalError;
             } finally {
