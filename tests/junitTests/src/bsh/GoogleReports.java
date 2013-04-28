@@ -23,53 +23,132 @@ public class GoogleReports {
             }
         } while (false);
         assertEquals(1, loopCount);
-        loopCount = (Integer) eval(
-                "int loopCount = 0;",
-                "do{", "	loopCount++;",
-                "	if (loopCount > 100) break;",
-                "	if (true) continue;",
-                "} while (false);",
-                "return loopCount");
+        loopCount = (Integer) eval("int loopCount = 0;", "do{", "	loopCount++;", "	if (loopCount > 100) break;", "	if (true) continue;", "} while (false);", "return loopCount");
         assertEquals(1, loopCount);
-        loopCount = (Integer) eval(
-                "int loopCount = 0;",
-                "while (loopCount < 1) {",
-                "	loopCount++;",
-                "	if (loopCount > 100) return loopCount;",
-                "	if (true) continue;", "}",
-                "return loopCount");
+        loopCount = (Integer) eval("int loopCount = 0;", "while (loopCount < 1) {", "	loopCount++;", "	if (loopCount > 100) return loopCount;", "	if (true) continue;", "}", "return loopCount");
         assertEquals(1, loopCount);
         assertEquals(Boolean.TRUE, eval("while(true) { break; return false; } return true;"));
         assertEquals(Boolean.TRUE, eval("do { break; return false; } while(true); return true;"));
-        loopCount = (Integer) eval(
-                "int loopCount = 0;",
-                "while (++loopCount < 2);",
-                "return loopCount");
+        loopCount = (Integer) eval("int loopCount = 0;", "while (++loopCount < 2);", "return loopCount");
         assertEquals(2, loopCount);
-        loopCount = (Integer) eval(
-                "int loopCount = 0;",
-                "do { } while (++loopCount < 2);",
-                "return loopCount");
+        loopCount = (Integer) eval("int loopCount = 0;", "do { } while (++loopCount < 2);", "return loopCount");
         assertEquals(2, loopCount);
     }
 
 
     /**
-     * <a href="http://code.google.com/p/beanshell2/issues/detail?id=60">issue#60</a>
-     @Test public void issue_60() throws Exception {
-     final String script =
-     "String foo = null;" +
-     "if (foo != null && foo.length() > 0) return \"not empty\";" +
-     "return \"empty\";";
-     final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-     scriptEngineManager.registerEngineName("beanshell", new BshScriptEngineFactory());
-     final ScriptEngine engine = scriptEngineManager.getEngineByName("beanshell");
-     assertNotNull(engine);
-     Object result;
-     result = engine.eval(script);
-     assertEquals("empty", result);
-     result = eval(script);
-     assertEquals("empty", result);
-     }
+     * <a href="http://code.google.com/p/beanshell2/issues/detail?id=6">issue#60</a>
      */
+    @Test
+    public void accessibility_issue_a() throws Exception {
+        final Interpreter interpreter = new Interpreter();
+        interpreter.set("x", this);
+        Capabilities.setAccessibility(true);
+        assertEquals("private-Integer", interpreter.eval("return x.issue6(new Integer(9));"));
+        Capabilities.setAccessibility(false);
+        assertEquals("public-Number", interpreter.eval("return x.issue6(new Integer(9));"));
+    }
+
+
+    /**
+     * <a href="http://code.google.com/p/beanshell2/issues/detail?id=6">issue#60</a>
+     */
+    @Test
+    public void accessibility_issue_b() throws Exception {
+        final Interpreter interpreter = new Interpreter();
+        interpreter.set("x", this);
+        assertEquals("public-Number", interpreter.eval("return x.issue6(new Integer(9));"));
+        Capabilities.setAccessibility(true);
+        assertEquals("private-Integer", interpreter.eval("return x.issue6(new Integer(9));"));
+    }
+
+
+    /**
+     * <a href="http://code.google.com/p/beanshell2/issues/detail?id=10">issue#10</a>
+     */
+    @Test(expected = ParseException.class)
+    public void parse_error() throws Exception {
+        eval("\1;");
+    }
+
+
+    /**
+     * <a href="http://code.google.com/p/beanshell2/issues/detail?id=11">issue#11</a>
+     */
+    @Test
+    public void return_in_try_block_does_not_return() throws Exception {
+        assertEquals(
+                "in try block",
+                eval(
+                    /*1*/ "try {",
+                    /*2*/ "   return \"in try block\";",
+                    /*3*/ "} finally {}" +
+                    /*4*/ "return \"after try block\";"));
+    }
+
+
+    /**
+     * <a href="http://code.google.com/p/beanshell2/issues/detail?id=12">issue#12</a>
+     */
+    @Test
+    public void override_method() throws Exception {
+        assertEquals(
+                "changed",
+                eval(
+                    /*1*/ "foo() { return \"original\";}",
+                    /*2*/ "foo() { return \"changed\";}",
+                    /*3*/ "return foo();"));
+
+    }
+
+
+    /**
+     * <a href="http://code.google.com/p/beanshell2/issues/detail?id=32">issue#32</a>
+     */
+    @Test
+    public void binary_operator_or() throws Exception {
+        assertEquals(true, eval("return true | true"));
+        assertEquals(true, eval("return true | false"));
+        assertEquals(true, eval("return false | true"));
+        assertEquals(false, eval("return false | false"));
+    }
+
+
+    /**
+     * <a href="http://code.google.com/p/beanshell2/issues/detail?id=32">issue#32</a>
+     */
+    @Test
+    public void binary_operator_and() throws Exception {
+        assertEquals(true, eval("return true & true"));
+        assertEquals(false, eval("return true & false"));
+        assertEquals(false, eval("return false & true"));
+        assertEquals(false, eval("return false & false"));
+    }
+
+
+
+    /**
+     * <a href="http://code.google.com/p/beanshell2/issues/detail?id=32">issue#32</a>
+     */
+    @Test
+    public void binary_operator_xor() throws Exception {
+        assertEquals(false, eval("return true ^ true"));
+        assertEquals(true, eval("return true ^ false"));
+        assertEquals(true, eval("return false ^ true"));
+        assertEquals(false, eval("return false ^ false"));
+    }
+
+
+    /*
+    * helpers
+    */
+    private static String issue6(Integer ignored) {
+        return "private-Integer";
+    }
+
+
+    public static String issue6(Number ignored) {
+        return "public-Number";
+    }
+
 }
