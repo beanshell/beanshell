@@ -44,7 +44,7 @@
 		more object oriented and structured / regular alternative to Perl. 
 		(Although the use of formatting for code blocking offends my C
 		sensibilities ;) ). Python may be the best choice for a full blown
-		scripting language. However it is signifigantly heavier than BeanShell
+		scripting language. However it is significantly heavier than BeanShell
 		for use as a scripting extension language and it does require that
 		programmers learn yet another language (albeit a good one). 
 		<br/>
