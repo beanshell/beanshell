@@ -18,7 +18,7 @@
 	<p/>
 
 	Note: This is all a lie! This command is broken and only reports the
-	currently first occurence! To be fixed!
+	currently first occurrence! To be fixed!
 	<p/>
 
 	@method which( classIdentifier | string | class )

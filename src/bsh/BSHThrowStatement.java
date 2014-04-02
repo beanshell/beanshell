@@ -43,7 +43,7 @@ class BSHThrowStatement extends SimpleNode
 			throw new EvalError("Expression in 'throw' must be Exception type",
 				this, callstack );
 
-		// wrap the exception in a TargetException to propogate it up
+		// wrap the exception in a TargetException to propagate it up
 		throw new TargetError( (Exception)obj, this, callstack );
 	}
 }

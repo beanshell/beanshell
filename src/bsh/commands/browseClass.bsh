@@ -26,7 +26,7 @@ browseClass( Object o )
 	else 
 		classname = o.getClass().getName();
 
-	// really need a way to unset and more poweful testing...
+	// really need a way to unset and more powerful testing...
 	if ( bsh.system.desktop == void 
 			|| bsh.system.desktop.classbrowser == void 
 			|| bsh.system.desktop.classbrowser == null ) 
