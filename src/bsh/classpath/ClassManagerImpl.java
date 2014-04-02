@@ -63,7 +63,7 @@ import bsh.UtilEvalError;
 
 	Note on jdk1.2 dependency:
 
-	We are forced to use weak references here to accomodate all of the 
+	We are forced to use weak references here to accommodate all of the 
 	fleeting namespace listeners.  (NameSpaces must be informed if the class 
 	space changes so that they can un-cache names).  I had the interesting 
 	thought that a way around this would be to implement BeanShell's own 

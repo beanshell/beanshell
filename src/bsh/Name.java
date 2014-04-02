@@ -454,7 +454,7 @@ class Name implements java.io.Serializable
 	/**
 		Resolve a variable relative to a This reference.
 
-		This is the general variable resolution method, accomodating special
+		This is the general variable resolution method, accommodating special
 		fields from the This context.  Together the namespace and interpreter
 		comprise the This context.  The callstack, if available allows for the
 		this.caller construct.  

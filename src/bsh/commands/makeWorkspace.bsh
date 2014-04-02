@@ -47,7 +47,7 @@ makeWorkspace( String name )
 	// end setup name completion
 	} catch ( SecurityException e ) { }
 
-	// for convenience and backwards compatability
+	// for convenience and backwards compatibility
 	interpreter.set( "bsh.desktop",  bsh.system.desktop );
 
 	this.frame = bsh.system.desktop.makeInternalFrame( name );
