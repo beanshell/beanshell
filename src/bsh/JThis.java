@@ -37,7 +37,7 @@ import java.beans.*;
 /**
 	JThis is a dynamically loaded extension which extends This and adds 
 	explicit support for AWT and JFC events, etc.  This is a backwards 
-	compatability measure for JDK 1.2.  With 1.3+ there is a general 
+	compatibility measure for JDK 1.2.  With 1.3+ there is a general 
 	reflection proxy mechanism that allows the base This to implement 
 	arbitrary interfaces.
 

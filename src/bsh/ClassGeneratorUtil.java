@@ -66,7 +66,7 @@ import java.io.*;
 	<p>
 
 	TODO: We have hooks for generating static initializer code, now used
-	to save persistent class stubs.  This must be extended to accomodate
+	to save persistent class stubs.  This must be extended to accommodate
 	general static initializer blocks.
 
 	@author Pat Niemeyer

@@ -319,7 +319,7 @@ class Reflect
     }
 
 	/**
-		Used when accessibility capability is available to locate an occurrance
+		Used when accessibility capability is available to locate an occurrence
 		of the field in the most derived class or superclass and set its 
 		accessibility flag.
 		Note that this method is not needed in the simple non accessible
@@ -487,7 +487,7 @@ class Reflect
 	}
 
 	/**
-		Climb the class and interface inheritence graph of the type and collect
+		Climb the class and interface inheritance graph of the type and collect
 		all methods matching the specified name and criterion.  If publicOnly
 		is true then only public methods in *public* classes or interfaces will
 		be returned.  In the normal (non-accessible) case this addresses the
@@ -514,10 +514,10 @@ class Reflect
 
 	/**
 		Accumulate all methods, optionally including non-public methods,
-	 	class and interface, in the inheritence tree of baseClass.
+	 	class and interface, in the inheritance tree of baseClass.
 
 		This method is analogous to Class getMethods() which returns all public
-		methods in the inheritence tree.
+		methods in the inheritance tree.
 
 		In the normal (non-accessible) case this also addresses the problem
 		that arises when a package private class or private inner class

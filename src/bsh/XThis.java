@@ -43,12 +43,12 @@ import java.util.Hashtable;
 	with JDK1.2 or lower.  For those environments simply do not compile this
 	class.
 
-	Eventually XThis should become simply This, but for backward compatability
+	Eventually XThis should become simply This, but for backward compatibility
 	we will maintain This without requiring support for the proxy mechanism.
 
 	XThis stands for "eXtended This" (I had to call it something).
 	
-	@see JThis	 See also JThis with explicit JFC support for compatability.
+	@see JThis	 See also JThis with explicit JFC support for compatibility.
 	@see This	
 */
 public class XThis extends This 
