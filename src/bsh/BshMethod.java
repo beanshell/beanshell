@@ -37,7 +37,7 @@ import java.lang.reflect.InvocationTargetException;
 	<p>
 
 	When a method is located in a subordinate namespace or invoked from an 
-	arbitrary namespace it must nontheless execute with its 'super' as the 
+	arbitrary namespace it must nonetheless execute with its 'super' as the 
 	context in which it was declared.
 	<p/>
 */
@@ -368,7 +368,7 @@ public class BshMethod
 		{
 			retControl = (ReturnControl)ret;
 
-			// Method body can only use 'return' statment type return control.
+			// Method body can only use 'return' statement type return control.
 			if ( retControl.kind == retControl.RETURN )
 				ret = ((ReturnControl)ret).value;
 			else 
