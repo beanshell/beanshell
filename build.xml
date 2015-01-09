@@ -168,6 +168,8 @@
 			deprecation="${deprecation}"
 			optimize="on"
 			debug="on"
+      source="1.5"
+      target="1.5"
 			includes="**/*.java"
 			excludes="${excludes},**/bak/**"
 		>
@@ -210,6 +212,7 @@
 			 destdir="${javadoc-dir}"
 			 author="true"
 			 version="true"
+       source="1.5"
 			 use="true"
 			 windowtitle="BeanShell ${version}"
 			 doctitle="&lt;h1&gt;BeanShell ${version}&lt;h1&gt;"
