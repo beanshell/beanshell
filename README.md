@@ -52,3 +52,52 @@ BeanShell is small and embeddable, so you can call BeanShell from your Java appl
 - Expression evaluator for scientific, financial apps and rules engines - evaluate complex expressions with conditions and loops.
 - Remote debugging - Embed a live, remotely accessible shell / command line in your application with just a few lines of code.
 - Use BeanShell declaratively to replace properties files and replace startup config files with real scripts that perform complex initialization and setup with the full Java syntax at their disposal. 
+
+## License
+
+BeanShell is licensed under the 
+[Apache License, version 2.0](http://www.apache.org/licenses/LICENSE-2.0). See [LICENSE](LICENSE) for details, and the [NOTICE](NOTICE) file for required attributions.
+
+Earlier versions of BeanShell were distributed under 
+GNU Lesser General Public License (LGPL) and Sun Public License (SPL).
+
+## Download
+
+### Source code
+
+The source code releases can be downloaded from [Bintray](https://bintray.com/beanshell/Beanshell/bsh/view#files).
+
+Latest source code:
+
+- [bsh-2.0b5-src.zip](https://bintray.com/artifact/download/beanshell/Beanshell/bsh-2.0b5-src.zip)
+
+### Maven
+
+Beanshell releases are published to [Maven Central](http://central.maven.org/maven2/org/apache-extras/beanshell/bsh/). To use Beanshell with Maven, add to to your `pom.xml`: 
+
+```xml
+    <dependencies>
+       <dependency>
+         <groupId>org.apache-extras.beanshell</groupId>
+         <artifactId>bsh</artifactId>
+         <version>2.0b5</version>
+       </dependency>
+    </dependencies>
+```
+
+
+### JAR binary
+
+You can also download the `bsh.jar` binary from Bintray. 
+
+- [bsh-2.05b.jar](https://bintray.com/artifact/download/beanshell/Beanshell/org/apache-extras/beanshell/bsh/2.0b5/bsh-2.0b5.jar)
+
+To execute the Beanshell user interface, either double-click the JAR file, or run it with: 
+
+    java -jar bsh-2.0b5.jar 
+
+You will need [Java](http://java.com/) 5 or later installed.
+
+
+## Contribute
+
