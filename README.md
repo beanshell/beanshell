@@ -15,43 +15,6 @@ You can use BeanShell interactively for Java experimentation and debugging as we
 
 BeanShell is small and embeddable, so you can call BeanShell from your Java applications to execute Java code dynamically at run-time or to provide extensibility in your applications. Alternatively, you can use standalone BeanShell scripts to manipulate Java applications; working with Java objects and APIs dynamically. Since BeanShell is written in Java and runs in the same VM as your application, you can freely pass references to "live" objects into scripts and return them as results.
 
-### Summary of features
-
- - Dynamic execution of the full Java syntax, Java code fragments, as well as loosely typed Java and additional scripting conveniences.
- - Transparent access to all Java objects and APIs.
- - Runs in four modes: Command Line, Console, Applet, Remote Session Server.
- - Can work in security constrained environments without a classloader or bytecode generation for most features.
- - The interpreter is small ~150K jar file.
- - Pure Java.
- - It's Free!! 
-
-### Java evaluation features
-
-- Evaluate full Java source classes dynamically as well as isolated Java methods, statements, and expressions. 
-
-### Scripting features
-
-- Optionally typed variables.
-- Scripted methods with optionally typed arguments and return values
-- Scripted objects (method closures)
-- Scripted interfaces and event handlers.
-- Convenience syntax for working with JavaBean? properties, hashtables, and primitive wrapper types.
-- Auto-allocation of variables to emulate Java properties files.
-- Extensible set of utility and shell-like commands
-- Dynamic classpath management including find grained class reloading
-- Dynamic command loading and user command path
-- Sophisticated namespace and callstack management
-- Detailed error reporting 
-
-### BeanShell Uses
-
-- Interactive Java - try out object features, APIs and GUI widgets - "hands on".
-- Scripting extension for applications - Allow your applications to be extended via scripts in an intuitive and simple way.
-- Macro Languages - Generate scripts as macros and execute them live in your VM easily.
-- Education - Teach Java in a hands-on, live environment
-- Expression evaluator for scientific, financial apps and rules engines - evaluate complex expressions with conditions and loops.
-- Remote debugging - Embed a live, remotely accessible shell / command line in your application with just a few lines of code.
-- Use BeanShell declaratively to replace properties files and replace startup config files with real scripts that perform complex initialization and setup with the full Java syntax at their disposal. 
 
 ## License
 
@@ -101,3 +64,51 @@ You will need [Java](http://java.com/) 5 or later installed.
 
 ## Contribute
 
+You are encouraged to raise a Github [Pull Request](https://github.com/beanshell/beanshell/pulls) with any suggested improvements and fixes!
+
+You can also raise an [issue](https://github.com/beanshell/beanshell/issues) for any questions or bugs. Remember, your stacktrace might be particularly useful for others!
+
+
+## Documentation
+
+For full documentation, see the [BeanShell user manual](https://cdn.rawgit.com/beanshell/beanshell/2.0b5/docs/manual/html/index.html)
+and the [FAQ](https://cdn.rawgit.com/beanshell/beanshell/2.0b5/docs/faq/faq.html) for frequently
+asked questions.
+
+### Summary of features
+
+ - Dynamic execution of the full Java syntax, Java code fragments, as well as loosely typed Java and additional scripting conveniences.
+ - Transparent access to all Java objects and APIs.
+ - Runs in four modes: Command Line, Console, Applet, Remote Session Server.
+ - Can work in security constrained environments without a classloader or bytecode generation for most features.
+ - The interpreter is small ~150K jar file.
+ - Pure Java.
+ - It's Free!! 
+
+### Java evaluation features
+
+- Evaluate full Java source classes dynamically as well as isolated Java methods, statements, and expressions. 
+
+### Scripting features
+
+- Optionally typed variables.
+- Scripted methods with optionally typed arguments and return values
+- Scripted objects (method closures)
+- Scripted interfaces and event handlers.
+- Convenience syntax for working with JavaBean? properties, hashtables, and primitive wrapper types.
+- Auto-allocation of variables to emulate Java properties files.
+- Extensible set of utility and shell-like commands
+- Dynamic classpath management including find grained class reloading
+- Dynamic command loading and user command path
+- Sophisticated namespace and callstack management
+- Detailed error reporting 
+
+### BeanShell Uses
+
+- Interactive Java - try out object features, APIs and GUI widgets - "hands on".
+- Scripting extension for applications - Allow your applications to be extended via scripts in an intuitive and simple way.
+- Macro Languages - Generate scripts as macros and execute them live in your VM easily.
+- Education - Teach Java in a hands-on, live environment
+- Expression evaluator for scientific, financial apps and rules engines - evaluate complex expressions with conditions and loops.
+- Remote debugging - Embed a live, remotely accessible shell / command line in your application with just a few lines of code.
+- Use BeanShell declaratively to replace properties files and replace startup config files with real scripts that perform complex initialization and setup with the full Java syntax at their disposal. 
