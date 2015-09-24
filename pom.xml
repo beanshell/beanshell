@@ -30,7 +30,7 @@
 
   <groupId>org.apache-extras.beanshell</groupId>
   <artifactId>bsh</artifactId>
-  <version>2.0b5</version>
+  <version>2.1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>BeanShell</name>
@@ -40,7 +40,7 @@
     scripting conveniences such as loose types, commands, and method closures
     like those in Perl and JavaScript. 
   </description>
-  <url>https://code.google.com/a/apache-extras.org/p/beanshell/</url>
+  <url>https://github.com/beanshell/beanshell/</url>
   <licenses>
     <license>
       <name>Apache License, Version 2.0</name>
@@ -55,13 +55,14 @@
   </properties>
 
   <scm>
-    <connection>scm:svn:http://svn.codespot.com/a/apache-extras.org/beanshell/tags/2.0b5</connection>
-    <developerConnection>scm:svn:https://svn.codespot.com/a/apache-extras.org/beanshell/tags/2.0b5</developerConnection>
-    <url>https://code.google.com/a/apache-extras.org/p/beanshell/source/browse/tags/2.0b5</url>
+    <connection>scm:git:git://github.com/beanshell/beanshell.git</connection>
+    <developerConnection>scm:git:git@github.com:beanshell/beanshell.git</developerConnection>
+    <url>https://github.com/beanshell/beanshell/</url>
+    <tag>HEAD</tag>
   </scm>
   <developers>
     <!-- Current maintainers according to 
-         https://code.google.com/a/apache-extras.org/p/beanshell/people/list     
+         https://github.com/beanshell/
     -->
     <developer>
       <name>Patrick Niemeyer</name>
@@ -108,8 +109,8 @@
   </developers>
 
   <issueManagement>
-    <system>Google Code</system>
-    <url>https://code.google.com/a/apache-extras.org/p/beanshell/issues/list</url>
+    <system>GitHub</system>
+    <url>https://github.com/beanshell/beanshell/issues</url>
   </issueManagement>
 
   <distributionManagement>
