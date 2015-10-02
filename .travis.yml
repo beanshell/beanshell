@@ -1,5 +1,5 @@
 language: java
-script: ant
+script: ant test
 jdk:
   - oraclejdk8
   - oraclejdk7
