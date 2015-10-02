@@ -168,7 +168,6 @@
 			deprecation="${deprecation}"
 			optimize="on"
 			debug="on"
-      source="1.5"
       target="1.5"
 			includes="**/*.java"
 			excludes="${excludes},**/bak/**"
