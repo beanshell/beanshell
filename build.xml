@@ -16,7 +16,7 @@
 
 <property name="file" value=""/>
 
-	<property name="version" value="2.1.0-SNAPSHOT"/>
+	<property name="version" value="2.0b6"/>
 	<property name="deprecation" value="on"/>
 
 	<!-- choose an alternate compiler -->

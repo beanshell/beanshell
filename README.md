@@ -28,11 +28,11 @@ GNU Lesser General Public License (LGPL) and Sun Public License (SPL).
 
 ### Source code
 
-The source code releases can be downloaded from [Bintray](https://bintray.com/beanshell/Beanshell/bsh/view#files).
+The source code releases can be downloaded from [Bintray](https://bintray.com/beanshell/Beanshell/bsh/view#files) or [GitHub](https://github.com/beanshell/beanshell/releases)....
 
 Latest source code:
 
-- [bsh-2.0b5-src.zip](https://bintray.com/artifact/download/beanshell/Beanshell/bsh-2.0b5-src.zip)
+- [bsh-2.0b6-src.zip](https://bintray.com/artifact/download/beanshell/Beanshell/bsh-2.0b6-src.zip)
 
 ### Maven
 
@@ -43,7 +43,7 @@ Beanshell releases are published to [Maven Central](http://central.maven.org/mav
        <dependency>
          <groupId>org.apache-extras.beanshell</groupId>
          <artifactId>bsh</artifactId>
-         <version>2.0b5</version>
+         <version>2.0b6</version>
        </dependency>
     </dependencies>
 ```
@@ -53,11 +53,11 @@ Beanshell releases are published to [Maven Central](http://central.maven.org/mav
 
 You can also download the `bsh.jar` binary from Bintray. 
 
-- [bsh-2.05b.jar](https://bintray.com/artifact/download/beanshell/Beanshell/org/apache-extras/beanshell/bsh/2.0b5/bsh-2.0b5.jar)
+- [bsh-2.0b6.jar](https://bintray.com/artifact/download/beanshell/Beanshell/org/apache-extras/beanshell/bsh/2.0b6/bsh-2.0b6.jar)
 
 To execute the Beanshell user interface, either double-click the JAR file, or run it with: 
 
-    java -jar bsh-2.0b5.jar 
+    java -jar bsh-2.0b6.jar 
 
 You will need [Java](http://java.com/) 5 or later installed.
 
@@ -71,8 +71,8 @@ You can also raise an [issue](https://github.com/beanshell/beanshell/issues) for
 
 ## Documentation
 
-For full documentation, see the [BeanShell user manual](https://cdn.rawgit.com/beanshell/beanshell/2.0b5/docs/manual/html/index.html)
-and the [FAQ](https://cdn.rawgit.com/beanshell/beanshell/2.0b5/docs/faq/faq.html) for frequently
+For full documentation, see the [BeanShell user manual](https://cdn.rawgit.com/beanshell/beanshell/2.0b6/docs/manual/html/index.html)
+and the [FAQ](https://cdn.rawgit.com/beanshell/beanshell/2.0b6/docs/faq/faq.html) for frequently
 asked questions.
 
 ### Summary of features
