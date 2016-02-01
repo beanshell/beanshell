@@ -18,14 +18,16 @@ import bsh.TargetError;
 import bsh.Primitive;
 
 /**
-	This is the BeanShell adapter for IBM's Bean Scripting Famework.
+	This is the BeanShell adapter for Apache Bean Scripting Framework 2.x.
+        <p>
 	It is an implementation of the BSFEngine class, allowing BSF aware
 	applications to use BeanShell as a scripting language.
 	<p>
-
 	I believe this implementation is complete (with some hesitation about the
 	the usefullness of the compileXXX() style methods - provided by the base
 	utility class).
+
+	See http://www.beanshell.org/manual/bsf.html for some more info.
 	<p/>
 
 	@author Pat Niemeyer
