@@ -58,4 +58,20 @@ public class BshSerializationTest {
         final Interpreter deserInterpreter = TestUtil.serDeser(originalInterpreter);
         Assert.assertTrue((Boolean) deserInterpreter.eval("myNull == null"));
     }
+
+
+    /**
+     * Tests that a declared method can be serialized (but not exploited)
+     *
+     * @throws Exception in case of failure
+     */
+    @Test
+    public void testMethodSerialization() throws Exception {
+        final Interpreter origInterpreter = new Interpreter();
+        origInterpreter.eval("int method() { return 1337; }");
+        Assert.assertEquals(1337, origInterpreter.eval("method()"));
+        final Interpreter deserInterpreter = TestUtil.serDeser(origInterpreter);
+        Assert.assertEquals(1337, deserInterpreter.eval("method()"));
+    }
+
 }
