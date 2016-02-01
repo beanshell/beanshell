@@ -94,6 +94,8 @@
 	<property name="javadoc-zip" value="${dist-dir}/bsh-${version}-javadoc.zip"/>
 	<property name="core-jar" value="${dist-dir}/bsh-core-${version}.jar"/>
 	<property name="src-zip" value="${dist-dir}/bsh-${version}-src.zip"/>
+	<property name="src-jar" value="${dist-dir}/bsh-${version}-sources.jar"/>
+	<property name="pom" value="${dist-dir}/bsh-${version}.pom"/>
 	<property name="all-jar-name" value="bsh-${version}.jar"/>
 	<property name="all-jar" value="${dist-dir}/${all-jar-name}"/>
 	<property name="commands-jar" 
@@ -415,6 +417,20 @@
 			</zipfileset>
 		</zip>
 	</target>
+	<target name="jarsrc" depends="_distdir">
+		<delete file="${src-jar}"/>
+		<zip zipfile="${src-jar}">
+			<zipfileset dir="src" prefix="">
+				<include name="**/*.java"/>
+				<exclude name="**/CVS"/>
+				<exclude name="**/.svn"/>
+			</zipfileset>
+		</zip>
+	</target>
+	<target name="pom" depends="_distdir">
+		<delete file="${pom}"/>
+		<copy file="pom.xml" tofile="${pom}" />
+	</target>
 
 	<target name="_distdir">
 		<mkdir dir="${dist-dir}" />
@@ -435,7 +451,7 @@
 	</target>
 	
 	<!-- Make all of the dist jars -->
-	<target name="dist" depends="_distdir,compile,jarcore,jarall,javadoc,zipsrc,bshservlet-war,bshservlet-wbsh-war,bshdoc">
+	<target name="dist" depends="_distdir,compile,jarcore,jarall,javadoc,zipsrc,jarsrc,pom,bshservlet-war,bshservlet-wbsh-war,bshdoc">
 
 		<antcall target="jarfileset">
 			<param name="target-jar" value="${commands-jar}"/>
@@ -481,6 +497,13 @@
 
 		<delete file="${javadoc-zip}"/>
 		<zip zipfile="${javadoc-zip}" basedir="${javadoc-dir}"/>
+                <checksum fileext=".sha1" algorithm="SHA" forceoverwrite="true">
+                   <fileset dir="${dist-dir}">
+                     <include name="*.zip" />
+                     <include name="*.jar" />
+                     <include name="*.pom" />
+                   </fileset>
+                </checksum>
 
 		<!-- Build the documentation -->
 		<!-- Don't build the documentation right now.
