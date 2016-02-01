@@ -69,10 +69,6 @@ public class XThis extends This
 		return "'this' reference (XThis) to Bsh object: " + namespace;
 	}
 
-	private Object readResolve() throws ObjectStreamException {
-		throw new NotSerializableException("Deserializing XThis not supported");
-	}
-
 	/**
 		Get dynamic proxy for interface, caching those it creates.
 	*/
