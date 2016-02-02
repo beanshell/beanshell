@@ -50,7 +50,7 @@ public class OldScriptsTest {
 
     public static junit.framework.Test suite() throws Exception {
         final TestSuite suite = new TestSuite();
-        final File baseDir = new File("tests/test-scripts");
+        final File baseDir = new File("src/test/resources/test-scripts");
         try {
             new TestBshScript(new File(baseDir, "Fail.bsh")).runTest();
             Assert.fail("Fail.bsh should fail!");
