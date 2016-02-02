@@ -32,7 +32,7 @@ public class Class13Test {
     @Test
     @Category(KnownIssue.class)
     public void run_script_class13() throws Exception {
-        new OldScriptsTest.TestBshScript(new File("tests/test-scripts/class13.bsh")).runTest();
+        new OldScriptsTest.TestBshScript(new File("src/test/resources/test-scripts/class13.bsh")).runTest();
     }
 
 }
