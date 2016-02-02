@@ -131,7 +131,13 @@
                                         <execution>
                                                 <id>javacc</id>
                                                 <goals>
-                                                        <goal>jjtree-javacc</goal>
+                                                        <!-- jjtree disabled due to manual changes 
+                                                             in the previously generated bsh.jj :-
+							<goal>jjtree-javacc</goal>-->
+							<!-- disabled due to manual changes in the
+                                                             generated files in src/main/java
+                                                        <goal>javacc</goal>
+                                                        -->
                                                 </goals>
                                         </execution>
                                 </executions>
