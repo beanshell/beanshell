@@ -61,6 +61,10 @@ To execute the Beanshell user interface, either double-click the JAR file, or ru
 
 You will need [Java](http://java.com/) 5 or later installed.
 
+## Build
+
+    mvn clean install -DskipTests
+
 
 ## Contribute
 
