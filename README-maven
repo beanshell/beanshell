@@ -1,0 +1,22 @@
+Notes on maven restructuring
+
+I am using maven 3.2.5, but any recent version should work.
+
+To build the jar and run it do
+
+mvn clean package
+java -jar assembly/target/bsh-2.1.0-SNAPSHOT.jar
+
+Things to be done
+- Test servlet
+- Update servlet dependency
+- Get javacc to work and then ignore the generated files
+- Make all the doc building work
+- Get the tests to work
+- figure out the bsf.jar dependency and try to depend on something hosted
+  somewhere
+- same witht the asm module, can we depend on something already there and use
+  the maven shade plugin to rename packages?
+- figure out what javax-src in engine is about
+- go through the build.xml to see if I missed anything
+- determine if modules can be collapsed

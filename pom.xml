@@ -29,11 +29,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.apache-extras.beanshell</groupId>
-  <artifactId>bsh</artifactId>
+  <artifactId>bsh-parent</artifactId>
   <version>2.1.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
 
-  <name>BeanShell</name>
+  <name>BeanShell Parent</name>
   <description>BeanShell is a small, free, embeddable Java source interpreter
     with object scripting language features, written in Java. BeanShell
     dynamically executes standard Java syntax and extends it with common
@@ -52,6 +52,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <beanshell.parent.dir>${basedir}</beanshell.parent.dir>
   </properties>
 
   <scm>
@@ -121,7 +122,53 @@
     </repository>
   </distributionManagement>
 
+  <modules>
+    <module>asm</module>
+    <module>core</module>
+    <module>bsf</module>
+    <module>engine</module>
+    <module>assembly</module>
+  </modules>
+  
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache-extras.beanshell</groupId>
+        <artifactId>bsh-asm</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache-extras.beanshell</groupId>
+        <artifactId>bsh-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache-extras.beanshell</groupId>
+        <artifactId>bsh-bsf</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache-extras.beanshell</groupId>
+        <artifactId>bsh-engine</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache-extras.beanshell</groupId>
+        <artifactId>bsh-assembly</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
+    <!-- from old lib dir
+    bsf.jar = bsf-2.3.0.jar
+    javacc.jar = javacc 3.2
+    servlet.jar = 2.3
+    junit = 4.8.2
+    javaxscript.jar = isn't this just the java version?
+    -->
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
