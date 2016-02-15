@@ -3,3 +3,11 @@ dist
 javadoc
 docs/manual/bshcommands-bshdoc.xml
 target
+
+nb-configuration.xml
+nbproject
+nbactions.xml
+
+BeanShell.iml
+BeanShell.ipr
+BeanShell.iws
