@@ -87,6 +87,10 @@ You will need [Java](http://java.com/) 5 or later installed.
 
 **Note**: There is a race-condition bug #4 that sometimes prevent the GUI from starting on Java 8.
 
+## Build
+
+    mvn clean install -DskipTests
+
 
 ## Contribute
 
