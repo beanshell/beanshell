@@ -97,9 +97,8 @@ You can also raise an [issue](https://github.com/beanshell/beanshell/issues) for
 
 ## Documentation
 
-For full documentation, see the [BeanShell wiki](https://github.com/beanshell/beanshell/wiki) (recently moved from the
-[user manual](https://cdn.rawgit.com/beanshell/beanshell/2.0b6/docs/manual/html/index.html))
-and the [FAQ](https://cdn.rawgit.com/beanshell/beanshell/2.0b6/docs/faq/faq.html) for frequently
+For full documentation, see the [BeanShell wiki](https://github.com/beanshell/beanshell/wiki) 
+and the [FAQ](https://github.com/beanshell/beanshell/wiki/FAQ) for frequently
 asked questions.
 
 ### Summary of features
