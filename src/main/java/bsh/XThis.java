@@ -118,6 +118,10 @@ public class XThis extends This
 	*/
 	class Handler implements InvocationHandler
 	{
+		private Object readResolve() throws ObjectStreamException {
+			throw new NotSerializableException();
+		}
+
 		public Object invoke( Object proxy, Method method, Object[] args )
 			throws Throwable
 		{
