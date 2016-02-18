@@ -65,24 +65,28 @@
              https://github.com/beanshell/
         -->
         <developer>
+            <id>patniemeyer</id>
             <name>Patrick Niemeyer</name>
             <email>patniemeyer@gmail.com</email>
             <organization>Apache Extras</organization>
             <organizationUrl>http://www.apache-extras.org/</organizationUrl>
         </developer>
         <developer>
+            <id>dleuck</id>
             <name>Daniel Leuck</name>
             <email>dan@ikayzo.com</email>
             <organization>Apache Extras</organization>
             <organizationUrl>http://www.apache-extras.org/</organizationUrl>
         </developer>
         <developer>
+            <id>simonetripodi</id>
             <name>Simone Tripodi</name>
             <email>simonetripodi@apache.org</email>
             <organization>Apache Extras</organization>
             <organizationUrl>http://www.apache-extras.org/</organizationUrl>
         </developer>
         <developer>
+            <id>pgiffuni</id>
             <name>Pedro Giffuni</name>
             <email>pfg@apache.org</email>
             <organization>Apache Extras</organization>
@@ -95,14 +99,23 @@
             <organizationUrl>http://www.apache-extras.org/</organizationUrl>
         </developer>
         <developer>
+            <id>stain</id>
             <name>Stian Soiland-Reyes</name>
             <email>stain@apache.org</email>
             <organization>Apache Extras</organization>
             <organizationUrl>http://www.apache-extras.org/</organizationUrl>
         </developer>
         <developer>
+            <id>alaninmcr</id>
             <name>Alan R Williams</name>
             <email>alaninmcr@apache.org</email>
+            <organization>Apache Extras</organization>
+            <organizationUrl>http://www.apache-extras.org/</organizationUrl>
+        </developer>
+        <developer>
+	    <id>mjwall</id>
+            <name>Michael Wall</name>
+            <email>mjwall@gmail.com</email>
             <organization>Apache Extras</organization>
             <organizationUrl>http://www.apache-extras.org/</organizationUrl>
         </developer>
