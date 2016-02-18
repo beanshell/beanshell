@@ -1,10 +1,12 @@
 # BeanShell
 
-## Moved from apache-extras.org
+## 2016-02-18 Security update
 
-On 2015-09-23, the BeanShell repository moved from https://code.google.com/a/apache-extras.org/p/beanshell/ to its new home on https://github.com/beanshell/beanshell/ as Google Code has been discontinued.
-
-BeanShell had previously moved to Apache Extras from http://beanshell.org/, which remains available for older versions.
+A security vulnerability has been identified in BeanShell that could be
+exploited for remote code execution in applications that has
+BeanShell on its classpath. The vulnerability has been
+fixed in the security update [BeanShell 2.0b6](https://github.com/beanshell/bean
+shell/releases/tag/2.0b6). This is a **recommended update** for all BeanShell users.
 
 
 ## Introduction
@@ -28,11 +30,13 @@ GNU Lesser General Public License (LGPL) and Sun Public License (SPL).
 
 ### Source code
 
-The source code releases can be downloaded from [Bintray](https://bintray.com/beanshell/Beanshell/bsh/view#files) or [GitHub](https://github.com/beanshell/beanshell/releases)....
+The source code releases can be downloaded from [GitHub releases](https://github.com/beanshell/beanshell/releases)
+or [Bintray](https://bintray.com/beanshell/Beanshell/bsh/view).
 
-Latest source code:
+Latest release: 
 
-- [bsh-2.0b6-src.zip](https://bintray.com/artifact/download/beanshell/Beanshell/bsh-2.0b6-src.zip)
+ - [BeanShell 2.0b6](https://github.com/beanshell/beanshell/releases/tag/2.0b6) - [bsh-2.0b6-src.zip](http://dl.bintray.com/beanshell/Beanshell/org/apache-extras/beanshell/bsh/2.0b6/bsh-2.0b6-src.zip)
+
 
 ### Maven
 
@@ -48,22 +52,40 @@ Beanshell releases are published to [Maven Central](http://central.maven.org/mav
     </dependencies>
 ```
 
+Alternatively you can use 
+[our BinTray Maven repository](http://dl.bintray.com/beanshell/Beanshell) or
+[JCenter](http://jcenter.bintray.com/org/apache-extras/beanshell/bsh/2.0b6/):
+
+```xml
+<!-- just beanshell -->
+<repository>
+  <id>bintray-beanshell-Beanshell</id>
+  <name>bintray</name>
+  <url>http://dl.bintray.com/beanshell/Beanshell</url>
+  <snapshots><enabled>false</enabled></snapshots>
+</repository>
+<!-- or use JCenter -->
+<repository>
+  <id>central</id>
+  <name>bintray</name>
+  <url>http://jcenter.bintray.com</url>
+  <snapshots><enabled>false</enabled></snapshots>
+</repository>
+```
 
 ### JAR binary
 
 You can also download the `bsh.jar` binary from Bintray. 
 
-- [bsh-2.0b6.jar](https://bintray.com/artifact/download/beanshell/Beanshell/org/apache-extras/beanshell/bsh/2.0b6/bsh-2.0b6.jar)
+- [bsh-2.06b.jar](https://bintray.com/artifact/download/beanshell/Beanshell/org/apache-extras/beanshell/bsh/2.0b6/bsh-2.0b6.jar)
 
-To execute the Beanshell user interface, either double-click the JAR file, or run it with: 
+If you want to execute the Beanshell [User Interface](https://github.com/beanshell/beanshell/wiki/Desktop), either double-click the JAR file, or run it with: 
 
     java -jar bsh-2.0b6.jar 
 
-You will need [Java](http://java.com/) 5 or later installed.
+You will need [Java](http://java.com/) 5 or later installed. 
 
-## Build
-
-    mvn clean install -DskipTests
+**Note**: There is a race-condition bug #4 that sometimes prevent the GUI from starting on Java 8.
 
 
 ## Contribute
@@ -75,7 +97,8 @@ You can also raise an [issue](https://github.com/beanshell/beanshell/issues) for
 
 ## Documentation
 
-For full documentation, see the [BeanShell user manual](https://cdn.rawgit.com/beanshell/beanshell/2.0b6/docs/manual/html/index.html)
+For full documentation, see the [BeanShell wiki](https://github.com/beanshell/beanshell/wiki) (recently moved from the
+[user manual](https://cdn.rawgit.com/beanshell/beanshell/2.0b6/docs/manual/html/index.html))
 and the [FAQ](https://cdn.rawgit.com/beanshell/beanshell/2.0b6/docs/faq/faq.html) for frequently
 asked questions.
 
@@ -85,7 +108,7 @@ asked questions.
  - Transparent access to all Java objects and APIs.
  - Runs in four modes: Command Line, Console, Applet, Remote Session Server.
  - Can work in security constrained environments without a classloader or bytecode generation for most features.
- - The interpreter is small ~150K jar file.
+ - The interpreter is small, ~400K jar file.
  - Pure Java.
  - It's Free!! 
 
@@ -116,3 +139,32 @@ asked questions.
 - Expression evaluator for scientific, financial apps and rules engines - evaluate complex expressions with conditions and loops.
 - Remote debugging - Embed a live, remotely accessible shell / command line in your application with just a few lines of code.
 - Use BeanShell declaratively to replace properties files and replace startup config files with real scripts that perform complex initialization and setup with the full Java syntax at their disposal. 
+
+# History
+
+## 2000: beanshell.org
+
+BeanShell was originally maintained by Patrick Niemeyer at http://beanshell.org/ - distributed as 
+BeanShell (2.0b4 and earlier) were distributed under 
+GNU Lesser General Public License (LGPL) and Sun Public License (SPL).
+
+## 2012: Move to apache-extras.org
+
+BeanShell was [proposed as an incubator project](https://wiki.apache.org/incubator/BeanShellProposal) to
+move to [Apache Software Foundation](http://www.apache.org/). In preparation for this, the codebase
+for BeanShell 2.0b4 was donated to ASF by a code grant, and the license changed to 
+[Apache License, version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+
+The source code was moved to http://apache-extras.org/ - a project home hosted by Google Code, that was only informerly associated with Apache Software Foundation. Many of the BeanShell committers were Apache committers, and thus Apache Extras seemed a natural home.
+
+However the project did not to move into the [Apache incubator](http://incubator.apache.org/), and remained at apache-extras.org as an independent project.
+
+In March 2015 Google announced it would discontinue Google Code, which provided the hosting for Apache Extras.
+
+## 2015: Moved to github.com
+
+On 2015-09-23, the BeanShell repository moved from https://code.google.com/a/apache-extras.org/p/beanshell/ to its new home on https://github.com/beanshell/beanshell/ as Google Code has been discontinued.
+
+The project adapted an open collaboraive approach using [GitHub pull requests](https://github.com/beanshell/beanshell/pulls) and has since grown its committer base beyond the original Apache Extra team.
+
+http://beanshell.org/ remains available for older versions.
