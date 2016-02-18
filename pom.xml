@@ -31,7 +31,7 @@
     <groupId>org.apache-extras.beanshell</groupId>
     <artifactId>bsh</artifactId>
     <version>2.1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <packaging>bundle</packaging>
 
     <name>BeanShell</name>
     <description>BeanShell is a small, free, embeddable Java source interpreter
@@ -166,6 +166,12 @@
                     </archive>
                 </configuration>
             </plugin>
+		<plugin>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>maven-bundle-plugin</artifactId>
+			<version>3.0.1</version>
+			<extensions>true</extensions>
+		</plugin>
         </plugins>
     </build>
 
