@@ -4,7 +4,7 @@
 
 **Note**: A _security vulnerability_ has been identified in BeanShell that could be
 exploited for _remote code execution_ in applications that has
-BeanShell on its classpath. The vulnerability has been
+BeanShell on its classpath (CVE-2016-2510). The vulnerability has been
 fixed in the security update [BeanShell 2.0b6](https://github.com/beanshell/beanshell/releases/tag/2.0b6). 
 This is a **recommended update** for all BeanShell users.
 
