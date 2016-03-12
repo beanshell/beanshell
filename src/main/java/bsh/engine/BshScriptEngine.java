@@ -229,6 +229,12 @@ public class BshScriptEngine extends AbstractScriptEngine
 		}
 	}
 
+	public Object invoke( Object thiz, String name, Object... args )
+	throws ScriptException, NoSuchMethodException
+	{
+		return invokeMethod( thiz, name, args );
+	}
+
 	/**
 	 * Same as invoke(Object, String, Object...) with <code>null</code> as the
 	 * first argument.  Used to call top-level procedures defined in scripts.
@@ -247,6 +253,12 @@ public class BshScriptEngine extends AbstractScriptEngine
 		throws ScriptException, NoSuchMethodException
 	{
 		return invokeMethod( getGlobal(), name, args );
+	}
+
+	public Object invoke( String name, Object... args )
+		throws ScriptException, NoSuchMethodException
+	{
+		return invokeFunction( name, args );
 	}
 
     /**

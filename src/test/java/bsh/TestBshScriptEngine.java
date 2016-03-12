@@ -3,11 +3,12 @@ package bsh;
 import java.io.*;
 import javax.script.*;
 import static javax.script.ScriptContext.*;
+import java.lang.reflect.*;
 
 public class TestBshScriptEngine
 {
 	public static void main( String [] args )
-		throws ScriptException, NoSuchMethodException, IOException
+		throws ScriptException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, IOException
 	{
 		ScriptEngineManager manager =
 			new ScriptEngineManager( bsh.Interpreter.class.getClassLoader() );
@@ -40,11 +41,23 @@ public class TestBshScriptEngine
 		assertTrue( engine.get("bar").equals("gee") );
 		assertTrue( engine.eval("bar").equals("gee") );
 
+		// use reflection to pick available method
+		Method invokeMe = null;
+		try {
+			invokeMe = Invocable.class.getMethod( "invokeFunction", String.class, Object[].class );
+		} catch ( Exception e ) { }
+		if (invokeMe == null)
+		{
+			try {
+				invokeMe = Invocable.class.getMethod( "invoke", String.class, Object[].class );
+			} catch ( Exception e ) { }
+		}
+
 		// install and invoke a method
 		engine.eval("foo() { return foo+1; }");
 		// invoke a method
 		Invocable invocable = (Invocable) engine;
-		int foo = (Integer)invocable.invokeFunction( "foo" );
+		int foo = (Integer)invokeMe.invoke( invocable, "foo", (Object) new Object[]{} );
 		assertTrue( foo == 43 );
 
 		// get interface
@@ -59,7 +72,7 @@ public class TestBshScriptEngine
 		engine.eval(
 			"flag2=false; myObj() { run() { flag2=true; } return this; }");
 		assertTrue( (Boolean)engine.get("flag2") == false );
-		Object scriptedObject = invocable.invokeFunction("myObj");
+		Object scriptedObject = invokeMe.invoke( invocable, "myObj", (Object) new Object[]{} );
 		assertTrue( scriptedObject instanceof bsh.This );
 		runnable =
 			(Runnable)invocable.getInterface( scriptedObject, Runnable.class );
