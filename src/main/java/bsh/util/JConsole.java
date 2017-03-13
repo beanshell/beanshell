@@ -90,7 +90,12 @@ public class JConsole extends JScrollPane
 	public JConsole() {
 		this(null, null);
 	}
-
+    public void addHistory(String s) {
+        history.addElement( s );
+    }
+    public Vector<String> getHistory() {
+        return history;
+    }
 	public JConsole( InputStream cin, OutputStream cout )  
 	{
 		super();
