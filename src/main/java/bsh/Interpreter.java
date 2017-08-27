@@ -192,7 +192,7 @@ public class Interpreter
 
 		BshClassManager bcm = BshClassManager.createClassManager( this );
 		if ( namespace == null )
-        	this.globalNameSpace = new NameSpace( bcm, "global");
+        	this.globalNameSpace = new NameSpace( null, bcm, "global");
 		else
 			this.globalNameSpace = namespace;
 
@@ -277,18 +277,18 @@ public class Interpreter
 	{
 		BshClassManager bcm = getClassManager();
 		// bsh
-		setu("bsh", new NameSpace( bcm, "Bsh Object" ).getThis( this ) );
+		setu("bsh", new NameSpace(null, bcm, "Bsh Object" ).getThis( this ) );
 
 		// init the static shared sharedObject if it's not there yet
 		if ( sharedObject == null )
-			sharedObject = new NameSpace( 
+			sharedObject = new NameSpace(null, 
 				bcm, "Bsh Shared System Object" ).getThis( this );
 		// bsh.system
 		setu( "bsh.system", sharedObject );
 		setu( "bsh.shared", sharedObject ); // alias
 
 		// bsh.help
-		This helpText = new NameSpace( 
+		This helpText = new NameSpace(null,
 			bcm, "Bsh Command Help Text" ).getThis( this );
 		setu( "bsh.help", helpText );
 
