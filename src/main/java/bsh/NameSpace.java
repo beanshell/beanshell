@@ -61,8 +61,9 @@ public class NameSpace
 	implements java.io.Serializable, BshClassManager.Listener, 
 	NameSource
 {
-	public static final NameSpace JAVACODE = 
-		new NameSpace((BshClassManager)null, "Called from compiled Java code.");
+	public static final NameSpace JAVACODE =
+			// (BshClassManager)
+		new NameSpace(null, null, "Called from compiled Java code.");
 	static {
 		JAVACODE.isMethod = true;
 	}
@@ -165,10 +166,10 @@ public class NameSpace
 		this( parent, null, name );
 	}
 
-    public NameSpace( BshClassManager classManager, String name ) 
-	{
-		this( null, classManager, name );
-	}
+//    public NameSpace( BshClassManager classManager, String name )
+//	{
+//		this( null, classManager, name );
+//	}
 
     public NameSpace( 
 		NameSpace parent, BshClassManager classManager, String name ) 
