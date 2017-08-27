@@ -1,3 +1,10 @@
+/.metadata/
+.recommenders
+.gitignore
+.classpath
+.settings
+.project
+
 classes
 dist
 javadoc
