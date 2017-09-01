@@ -20,7 +20,7 @@
 
 package bsh;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class CallStackTest {
@@ -39,3 +39,4 @@ public class CallStackTest {
         Assert.assertEquals("test", stack.top().get("test", null));
     }
 }
+//

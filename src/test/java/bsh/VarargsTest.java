@@ -35,7 +35,8 @@ public class VarargsTest {
         interpreter.set("helper", new ClassWithVarargMethods());
         @SuppressWarnings({"unchecked"})
         final List<Object> list = (List<Object>) interpreter.eval("helper.list(1,2,3)");
-        Assert.assertEquals(Arrays.<Object>asList(1, 2, 3), list);
+        // An array initializer may be specified in a declaration, or as part of an array creation expression.
+        Assert.assertEquals(Arrays.asList(new Object[] {1, 2, 3}), list);
     }
 
 
