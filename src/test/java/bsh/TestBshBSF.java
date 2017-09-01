@@ -1,4 +1,4 @@
-package bsf;
+package bsh;
 import org.apache.bsf.*;
 import java.util.Vector;
 
