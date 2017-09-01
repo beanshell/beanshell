@@ -61,8 +61,9 @@ public class NameSpace
 	implements java.io.Serializable, BshClassManager.Listener, 
 	NameSource
 {
-	public static final NameSpace JAVACODE = 
-		new NameSpace((BshClassManager)null, "Called from compiled Java code.");
+	public static final NameSpace JAVACODE =
+			// (BshClassManager)
+		new NameSpace(null, null, "Called from compiled Java code.");
 	static {
 		JAVACODE.isMethod = true;
 	}
@@ -77,7 +78,7 @@ public class NameSpace
 	*/
 	private String nsName; 
     private NameSpace parent;
-    private Hashtable variables;
+    private Hashtable<String, Variable> variables;
     private Hashtable methods;
 
     protected Hashtable importedClasses;
@@ -165,10 +166,10 @@ public class NameSpace
 		this( parent, null, name );
 	}
 
-    public NameSpace( BshClassManager classManager, String name ) 
-	{
-		this( null, classManager, name );
-	}
+//    public NameSpace( BshClassManager classManager, String name )
+//	{
+//		this( null, classManager, name );
+//	}
 
     public NameSpace( 
 		NameSpace parent, BshClassManager classManager, String name ) 
@@ -257,15 +258,15 @@ public class NameSpace
 	}
 
 	/**
-		Set a variable explicitly in the local scope.
+	Set a variable explicitly in the local scope.
 	*/
-    void setLocalVariable( 
-		String name, Object value, boolean strictJava ) 
-		throws UtilEvalError 
+	public Variable setLocalVariable(
+		String name, Object value, boolean strictJava )
+		throws UtilEvalError
 	{
-		setVariable( name, value, strictJava, false/*recurse*/ );
+		return setVariable( name, value, strictJava, false/*recurse*/ );
 	}
-
+	
 	/**
 		Set the value of a the variable 'name' through this namespace.
 		The variable may be an existing or non-existing variable.
@@ -289,9 +290,9 @@ public class NameSpace
 		@param recurse determines whether we will search for the variable in
 		  our parent's scope before assigning locally.
 	*/
-    void setVariable( 
-		String name, Object value, boolean strictJava, boolean recurse ) 
-		throws UtilEvalError 
+	Variable setVariable(
+		String name, Object value, boolean strictJava, boolean recurse )
+		throws UtilEvalError
 	{
 		if ( variables == null )
 			variables =	new Hashtable();
@@ -312,7 +313,8 @@ public class NameSpace
 				throw new UtilEvalError(
 					"Variable assignment: " + name + ": " + e.getMessage());
 			}
-		} else 
+			return existing;
+		} else
 		// No previous variable definition found here (or above if recurse)
 		{
 			if ( strictJava )
@@ -323,14 +325,15 @@ public class NameSpace
 			// If recurse, set global untyped var, else set it here.	
 			//NameSpace varScope = recurse ? getGlobal() : this;
 			// This modification makes default allocation local
-			NameSpace varScope = this;
-
-			varScope.variables.put( 
-				name, createVariable( name, value, null/*modifiers*/ ) );
-
+			//NameSpace varScope = this;
+			Variable var = createVariable( name, value, null/*modifiers*/ );
+			this.variables.put(
+				name, var );
+	
 			// nameSpaceChanged() on new variable addition
 			nameSpaceChanged();
-    	}
+			return var;
+		}
 	}
     
     ////////////////////////////////////////////////////////////////////////////
