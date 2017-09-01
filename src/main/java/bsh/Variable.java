@@ -88,23 +88,24 @@ public class Variable implements java.io.Serializable
 		if ( hasModifier("final") && this.value != null )
 			throw new UtilEvalError ("Final variable, can't re-assign.");
 
-		if ( value == null )
-			value = Primitive.getDefaultValue( type );
+		this.value = value;
+
+		if ( this.value == null )
+			this.value = Primitive.getDefaultValue( type );
 
 		if ( lhs != null )
 		{
-			lhs.assign( Primitive.unwrap(value), false/*strictjava*/ );
+			this.value = lhs.assign( Primitive.unwrap(value), false/*strictjava*/ );
 			return;
 		}
 
 		// TODO: should add isJavaCastable() test for strictJava
 		// (as opposed to isJavaAssignable())
 		if ( type != null )
-			value = Types.castObject( value, type, 
+			this.value = Types.castObject( value, type,
 				context == DECLARATION ? Types.CAST : Types.ASSIGNMENT
 			);
 
-		this.value= value;
 	}
 
 	/*

@@ -66,16 +66,16 @@ class BlockNameSpace extends NameSpace
 		removed, but it cannot.  When recurse is false we still need to set the
 		variable in our parent, not here.
 	*/
-    public void	setVariable( 
-		String name, Object value, boolean strictJava, boolean recurse ) 
-		throws UtilEvalError 
+    public Variable	setVariable(
+		String name, Object value, boolean strictJava, boolean recurse )
+		throws UtilEvalError
 	{
-		if ( weHaveVar( name ) ) 
+		if ( weHaveVar( name ) )
 			// set the var here in the block namespace
-			super.setVariable( name, value, strictJava, false );
+			return super.setVariable( name, value, strictJava, false );
 		else
 			// set the var in the enclosing (parent) namespace
-			getParent().setVariable( name, value, strictJava, recurse );
+			return getParent().setVariable( name, value, strictJava, recurse );
     }
 
 	/**
