@@ -1,4 +1,4 @@
-# BeanShell
+# BeanShell [![Build Status](https://travis-ci.org/beanshell/beanshell.svg?branch=maven)](https://travis-ci.org/beanshell/beanshell)
 
 ## 2016-02-18 Security update
 
