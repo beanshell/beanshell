@@ -2,12 +2,12 @@
 source("TestHarness.bsh");
 
 class TestReturn {
-	boolean getBoolean() { return true; }
-	byte getByte() { return (byte)1; }
-	long getLong() { return 42l; }
-	float getFloat() { return 1.0f; }
-	double getDouble() { return 4.2d; }
-	Double getD() { return new Double(4.2d); }
+    boolean getBoolean() { return true; }
+    byte getByte() { return (byte)1; }
+    long getLong() { return 42l; }
+    float getFloat() { return 1.0f; }
+    double getDouble() { return 4.2d; }
+    Double getD() { return new Double(4.2d); }
 }
 
 tr= new TestReturn();

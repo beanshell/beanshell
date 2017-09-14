@@ -33,12 +33,12 @@ class BSHIfStatement extends SimpleNode
     BSHIfStatement(int id) { super(id); }
 
     public Object eval(CallStack callstack, Interpreter interpreter)
-		throws EvalError
+        throws EvalError
     {
         Object ret = null;
 
         if( evaluateCondition(
-			(SimpleNode)jjtGetChild(0), callstack, interpreter ) )
+            (SimpleNode)jjtGetChild(0), callstack, interpreter ) )
             ret = ((SimpleNode)jjtGetChild(1)).eval(callstack, interpreter);
         else
             if(jjtGetNumChildren() > 2)
@@ -51,22 +51,22 @@ class BSHIfStatement extends SimpleNode
     }
 
     public static boolean evaluateCondition(
-		SimpleNode condExp, CallStack callstack, Interpreter interpreter)
-		throws EvalError
+        SimpleNode condExp, CallStack callstack, Interpreter interpreter)
+        throws EvalError
     {
         Object obj = condExp.eval(callstack, interpreter);
         if(obj instanceof Primitive) {
-			if ( obj == Primitive.VOID )
-				throw new EvalError("Condition evaluates to void type",
-					condExp, callstack );
+            if ( obj == Primitive.VOID )
+                throw new EvalError("Condition evaluates to void type",
+                    condExp, callstack );
             obj = ((Primitive)obj).getValue();
-		}
+        }
 
         if(obj instanceof Boolean)
             return ((Boolean)obj).booleanValue();
         else
             throw new EvalError(
-				"Condition must evaluate to a Boolean or boolean.",
-				condExp, callstack );
+                "Condition must evaluate to a Boolean or boolean.",
+                condExp, callstack );
     }
 }

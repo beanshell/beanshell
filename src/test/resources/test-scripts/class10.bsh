@@ -2,19 +2,19 @@ source("TestHarness.bsh");
 
 class Foo10
 {
-	Bar10 myBar;
+    Bar10 myBar;
 
-	// random instance stuff
-	assert( this instanceof Foo10 );
-	assert( Foo10.Bar10 instanceof bsh.ClassIdentifier );
-	assert( Bar10 instanceof bsh.ClassIdentifier );
+    // random instance stuff
+    assert( this instanceof Foo10 );
+    assert( Foo10.Bar10 instanceof bsh.ClassIdentifier );
+    assert( Bar10 instanceof bsh.ClassIdentifier );
 
-	static class Bar10 { }
+    static class Bar10 { }
 
-	void go() {
-		myBar = new Bar10();
-		assert( myBar instanceof Bar10 );
-	}
+    void go() {
+        myBar = new Bar10();
+        assert( myBar instanceof Bar10 );
+    }
 }
 
 
