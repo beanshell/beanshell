@@ -41,16 +41,16 @@ So, for example, to create a class for the following scripted class
 definition:
 
 ```java
-	class Foo {
-		Foo() { print("I'm being constructed!"); }
-	}
+    class Foo {
+        Foo() { print("I'm being constructed!"); }
+    }
 ```
 
 you could place the script into a file "Foo.bsh" in the current directory
 and execute:
 
 ```sh
-	java -DsaveClasses=. bsh.Interpreter Foo.bsh
+    java -DsaveClasses=. bsh.Interpreter Foo.bsh
 ```
 
 This will create the class Foo.class.  The Foo class may be used like any
@@ -65,28 +65,28 @@ include additional script body outside the scripted class definition.
 For example, we might later change the Foo.bsh script to the following:
 
 ```java
-	welcomeMessage = "Hello World!";
+    welcomeMessage = "Hello World!";
 
-	class Foo {
-		Foo() { print( "I'm being constructed: "+ welcomeMessage ); }
-	}
+    class Foo {
+        Foo() { print( "I'm being constructed: "+ welcomeMessage ); }
+    }
 ```
 
 Here's another example showing loose code in the script:
 
 ```java
-	//  Begin script Foo.bsh
+    //  Begin script Foo.bsh
 
-	class Foo {
-		public static void main( String [] args ) { }
-	}
+    class Foo {
+        public static void main( String [] args ) { }
+    }
 
-	message = "Hey";
-	message += " you!";
-	num = 2 * 2;
-	message += " The answer is: "+num;
+    message = "Hey";
+    message += " you!";
+    num = 2 * 2;
+    message += " The answer is: "+num;
 
-	// end script Foo.bsh
+    // end script Foo.bsh
 ```
 
 now we have a script that can be launched like any other Java class
@@ -117,7 +117,7 @@ exclude it in the usual way.
 - Fixed static import syntax.  It's now the same as Java 5:
 
 ```java
-	import static Foo.*;
+    import static Foo.*;
 ```
 
 (previously was `static import ...`` )
@@ -133,14 +133,14 @@ Added test case.
 
 - Better defined classloading precedence:
 
-	in-script evaluated class (scripted class)
-	in-script added / modified classpath
+    in-script evaluated class (scripted class)
+    in-script added / modified classpath
 
-	optionally, external classloader
-	optionally, thread context classloader
+    optionally, external classloader
+    optionally, thread context classloader
 
-	plain Class.forName()
-	source class (.java file in classpath)
+    plain Class.forName()
+    source class (.java file in classpath)
 
 - Method selection code has been rewritten to move towards Java 5 rules.
 This should correct a number of problems where inaccessible methods are
@@ -161,28 +161,28 @@ print( myObject instanceof Blah );
 print( myObject.getFoo() );
 print( myObject.somethingElse() );
 ```
-	.. now you can simply do:
+    .. now you can simply do:
 ```java
-		show();
-		myObject instanceof Blah;
-		myObject.getFoo();
-		myObject.somethingElse();
-		```
+        show();
+        myObject instanceof Blah;
+        myObject.getFoo();
+        myObject.somethingElse();
+        ```
 
-	This can be combined with the trace property -Dtrace=true (currently a
-	static, interpreter wide flag) to display line by line execution and
-	results.
+    This can be combined with the trace property -Dtrace=true (currently a
+    static, interpreter wide flag) to display line by line execution and
+    results.
 
-	The bsh.show variable is gone and has been replaced with a property
-	on the interpreter.
+    The bsh.show variable is gone and has been replaced with a property
+    on the interpreter.
 
-	- Fixed bug in super.method() resolution inside nested blocks.
+    - Fixed bug in super.method() resolution inside nested blocks.
 
-	- Added workaround for load() command to use the BshClassManager for
-		deserializing classes.
+    - Added workaround for load() command to use the BshClassManager for
+        deserializing classes.
 
-	- Fixed some cases where SecurityException could not be caught by scripts
-	  and handled.
+    - Fixed some cases where SecurityException could not be caught by scripts
+      and handled.
 ```
 
 ## Changes in 2.0 beta 3

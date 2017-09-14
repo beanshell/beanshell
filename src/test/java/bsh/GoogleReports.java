@@ -43,9 +43,9 @@ public class GoogleReports {
             }
         } while (false);
         assertEquals(1, loopCount);
-        loopCount = (Integer) eval("int loopCount = 0;", "do{", "	loopCount++;", "	if (loopCount > 100) break;", "	if (true) continue;", "} while (false);", "return loopCount");
+        loopCount = (Integer) eval("int loopCount = 0;", "do{", "   loopCount++;", "    if (loopCount > 100) break;", " if (true) continue;", "} while (false);", "return loopCount");
         assertEquals(1, loopCount);
-        loopCount = (Integer) eval("int loopCount = 0;", "while (loopCount < 1) {", "	loopCount++;", "	if (loopCount > 100) return loopCount;", "	if (true) continue;", "}", "return loopCount");
+        loopCount = (Integer) eval("int loopCount = 0;", "while (loopCount < 1) {", "   loopCount++;", "    if (loopCount > 100) return loopCount;", "  if (true) continue;", "}", "return loopCount");
         assertEquals(1, loopCount);
         assertEquals(Boolean.TRUE, eval("while(true) { break; return false; } return true;"));
         assertEquals(Boolean.TRUE, eval("do { break; return false; } while(true); return true;"));
