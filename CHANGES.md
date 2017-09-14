@@ -238,7 +238,7 @@ Current Limitations:
   may get a non-fatal error when bsh attempts to load the class again.
 
 
-- JDK 1.5 style static class imports.  
+- JDK 1.5 style static class imports.
 You can import the static methods and fields of a java Class into a
 BeanShell namespace. e.g.
 
@@ -292,8 +292,8 @@ print( get("foo") ); // "bar"
 
 - Class management Changes - class management is now on a per-Interpreter
     (per-global namespace) basis.  Multiple interpreter instances do not
-    any longer by default share classpath or cached class information.  
-    (This will help in application server deployments).  
+    any longer by default share classpath or cached class information.
+    (This will help in application server deployments).
     Added the method: Interpreter getClassManager()
     %% some minor incompatible changes in NameSpace.java api.
     The NameSpace constructor now requires a BshClassManager instance.
@@ -322,13 +322,13 @@ print( get("foo") ); // "bar"
     for a set of arguments, that method is cached based on the class,
     argument types, and method name.  In the test case of a loop simply
     calling a Java method on an object or class this results in about a
-    40% speedup.  
+    40% speedup.
 
 - Consolidated bsh scripted method dispatching code into This.java.
 
 - All scripted objects now implement the standard object protocol of
     toString(), hashcode() and equals().  Scripted object behavior is now
-    more consistent.  
+    more consistent.
     %% One minor incompatible change: the invoke() meta-method no longer
     intercepts toString(), hashcode() or equals().  If you wish to
     override these you must script them directly in the object.
@@ -340,7 +340,7 @@ print( get("foo") ); // "bar"
     toEvalError( node, callstack ) to rethrow these as necessary.
 
 - Added script stack trace to error messages (e.g. method a() called
-    method b(), etc.).  EvalError and TargeError now require callstack.  
+    method b(), etc.).  EvalError and TargeError now require callstack.
     Added getScriptStackTrace() method to EvalError API.  toString()
     prints the script stack trace by default.
 
@@ -427,7 +427,7 @@ loaded when the missing class was encountered.
 - Enhanced error message for undefined argument to method - now prints the
   argument text instead of the method parameter name and position.
 
-- Clarified the scoping of closures and blocks and fixed related bugs.  
+- Clarified the scoping of closures and blocks and fixed related bugs.
   This should now work as expected.  A 'this' reference always refers to
   the nearest enclosing method or the root scope.  This is true even when
   the expression returning or assigning the 'this' reference is inside one
@@ -594,7 +594,7 @@ loaded when the missing class was encountered.
   See newscoping.bsh in the test suite for more examples.
 
   Note: There is exactly *one* line of code in NameSpace.java that looks
-  at the Interpreter.LOCALSCOPING flag to determine what to do.  
+  at the Interpreter.LOCALSCOPING flag to determine what to do.
   Everything else happens naturally.  So there should be no fear that we
   are accumulating legacy baggage.  On the contrary, BeanShell refactoring
   is making it more powerful and simpler.
@@ -640,7 +640,7 @@ loaded when the missing class was encountered.
 
   - User defined command prompt in interactive mode.  The user may set the
     value for the prompt string using the variable bsh.prompt or by
-    defining the scripted method (or command) getBshPrompt().  
+    defining the scripted method (or command) getBshPrompt().
 
     If the command or method getBshPrompt() is defined it will be called to
     get a string to display as the user prompt.  For example, one could
@@ -715,7 +715,7 @@ loaded when the missing class was encountered.
     experimental) and is replaced by the instance method Interpreter
     setStrictJava().  Interpreter set() methods now work (untyped
     assignments using Interpreter set() is allowed and existing untyped
-    variables can be assigned in scripts in either mode).  
+    variables can be assigned in scripts in either mode).
     +Added a test case.
     Most bsh commands still fail in strict Java mode for simple reasons.
     These will be cleaned up in a future release.
@@ -819,9 +819,9 @@ loaded when the missing class was encountered.
         ((ActionListener)this == (ActionListener)this) is now true.
     - cat() command will now print files, urls, streams, and readers
     - Exceptions in native (compiled) user classes will now print with
-        both the BeanShell script trace and native Java stack trace.  
+        both the BeanShell script trace and native Java stack trace.
         Exceptions generated directly from scripts continue to show only the
-        script trace (as that is all that is meaningful).  
+        script trace (as that is all that is meaningful).
     - ParseException is now a subtype of EvalError... previously these were
         caught and the contents were moved to an EvalError.  This means that
         now the ParseEx implements the contract as far as getErrorLineNumber(),
@@ -904,7 +904,7 @@ loaded when the missing class was encountered.
     - Fixed general block scoping bugs.  Things should act like Java now.
     typed vars declared within blocks does not leak out.  e.g. { int i=2; }
     - Added getSourceFileInfo() command to return the name of the file or
-    source from which the current interpreter is reading.  
+    source from which the current interpreter is reading.
     (uses this.interpreter.getSourceFileInfo())
     - Added a parent ref to the interpreter for future use by the child
     eval interpreters.
@@ -1117,7 +1117,7 @@ a proxy interface at run time.  No code generation is necessary!
     where the method signature calls for an interface an automatic cast to
     the appropriate interface type will be attempted.
     <li>Added a magic method invoke(method,args) which can be used to
-    handle method invocations on undefined interface methods in bsh objects.  
+    handle method invocations on undefined interface methods in bsh objects.
     This takes the place of "dummy" adapters; allowing a script to ignore one
     or more methods of an interface that it is implementing.
     <em>Note: one special case - direct invocations within scope
@@ -1129,7 +1129,7 @@ Bsh will source the file "user.home"/.bshrc upon startup.
 This defaults to C:\Windows under win98 and $HOME under Unix.
 (can the home be set with an env var under Win?  "home" doesn't seem to do it).
 
-<li>Added arguments to file invocation on command line.  
+<li>Added arguments to file invocation on command line.
 e.g.
 <pre>
     java bsh.Interpreter MyClass foo bar
@@ -1154,7 +1154,7 @@ script or through code called by the script are thrown as TargetErrors (a
 subclass of EvalError) which can also be caught and examined.
 
 
-<li>Improved error reporting in many areas.  
+<li>Improved error reporting in many areas.
 Fixed really annoying error reporting bug that squelched target error
 info in sourced files (and commands).
 
@@ -1182,7 +1182,7 @@ a general browse() method for the upcoming object inspector.
 internal frame when desktop is active.  Frame will now do the correct thing
 whether the desktop is up or not.
 
-<li>Rebuilt the distribution with JavaCC / JJTree version 1.1.  
+<li>Rebuilt the distribution with JavaCC / JJTree version 1.1.
 Haven't notice any difference yet.
 
 <li>Fixed the 'for' scoping bug - See docs on for scoping for clarification.

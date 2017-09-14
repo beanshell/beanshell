@@ -32,7 +32,7 @@ package bsh;
 	Implement casts.
 
 	I think it should be possible to simplify some of the code here by
-	using the Types.getAssignableForm() method, but I haven't looked 
+	using the Types.getAssignableForm() method, but I haven't looked
 	into it.
 */
 class BSHCastExpression extends SimpleNode {
@@ -46,7 +46,7 @@ class BSHCastExpression extends SimpleNode {
 		CallStack callstack, Interpreter interpreter ) throws EvalError
     {
 		NameSpace namespace = callstack.top();
-        Class toType = ((BSHType)jjtGetChild(0)).getType( 
+        Class toType = ((BSHType)jjtGetChild(0)).getType(
 			callstack, interpreter );
 		SimpleNode expression = (SimpleNode)jjtGetChild(1);
 

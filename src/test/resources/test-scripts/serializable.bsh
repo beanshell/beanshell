@@ -4,11 +4,11 @@ source("TestHarness.bsh");
 
 o=object();
 o.foo="bar";
-try { 
-	save(o, "o.ser"); 
-} catch ( Exception e ) { 
+try {
+	save(o, "o.ser");
+} catch ( Exception e ) {
 	fail();
-	e.printStackTrace(); 
+	e.printStackTrace();
 }
 
 o2=load("o.ser");

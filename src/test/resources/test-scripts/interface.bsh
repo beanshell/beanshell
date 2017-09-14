@@ -37,7 +37,7 @@ if ( Capabilities.canGenerateInterfaces() ) {
 		boolean getPrimitiveBool() { return false; }
 		Object getNull() { return null; }
 	};
-		
+
 	// validate that the scripted interface works from the script
 	String s = si1.getString();
 	Integer i2 = si1.getInteger();
@@ -78,9 +78,9 @@ if ( Capabilities.canGenerateInterfaces() ) {
 	this1 = this.getInterface( Interface.class );
 	this2 = this.getInterface( Interface.class );
 	assert( this1 == this2 );
-	this1 = this.getInterface( 
+	this1 = this.getInterface(
 		new Class[] { Interface.class, java.util.EventListener.class } );
-	this2 = this.getInterface( 
+	this2 = this.getInterface(
 		new Class[] { Interface.class, java.util.EventListener.class } );
 	assert( this1 == this2 );
 

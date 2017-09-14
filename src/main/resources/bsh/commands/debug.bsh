@@ -1,5 +1,5 @@
 /**
-	Toggle on and off debug mode. 
+	Toggle on and off debug mode.
 	Debug output is verbose and generally useful only for developers.
 */
 

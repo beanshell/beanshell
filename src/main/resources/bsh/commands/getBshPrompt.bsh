@@ -14,7 +14,7 @@
 	</pre>
 */
 
-String getBshPrompt() 
+String getBshPrompt()
 {
 	if ( bsh != void && bsh.prompt != void )
 		return bsh.prompt;

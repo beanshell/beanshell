@@ -6,7 +6,7 @@ class Foo88
 {
 	Foo88 foo;
 
-	Foo88() { 
+	Foo88() {
 		this.foo = this;
 	}
 

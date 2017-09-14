@@ -1,5 +1,5 @@
 /**
-	Reload the specified class, package name, or all classes if no name is 
+	Reload the specified class, package name, or all classes if no name is
 	given.  e.g.
 	<p>
 
@@ -7,7 +7,7 @@
     reloadClasses();
     reloadClasses("mypackage.*");
     reloadClasses(".*")  // reload unpackaged classes
-    reloadClasses("mypackage.MyClass") 
+    reloadClasses("mypackage.MyClass")
 	</pre>
 	<p>
 
@@ -16,12 +16,12 @@
 	@method void reloadClasses( [ package name ] )
 */
 
-bsh.help.reloadClasses= 
+bsh.help.reloadClasses=
 	"usage: reloadClasses( String class | String package | String [] classes )";
 
 import bsh.ClassPathException;
 
-void reloadClasses( item ) 
+void reloadClasses( item )
 {
 	this.bcm = this.caller.namespace.getClassManager();
 
@@ -36,7 +36,7 @@ void reloadClasses( item )
 					this.pack = "<unpackaged>";
 				else
 					this.pack = name.substring( 0, name.length()-2 );
-				
+
 				bcm.reloadPackage( pack );
 			} else
 				bcm.reloadClasses( new String[] { name } );
@@ -49,7 +49,7 @@ void reloadClasses( item )
 /**
 	Reload all classes
 */
-void reloadClasses() 
+void reloadClasses()
 {
 	this.caller.namespace.getClassManager().reloadAllClasses();
 }

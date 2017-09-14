@@ -24,7 +24,7 @@ public class BshScriptEngine extends AbstractScriptEngine
 		this( null );
 	}
 
-	public BshScriptEngine( BshScriptEngineFactory factory ) 
+	public BshScriptEngine( BshScriptEngineFactory factory )
 	{
 		this.factory = factory;
 		getInterpreter(); // go ahead and prime the interpreter now

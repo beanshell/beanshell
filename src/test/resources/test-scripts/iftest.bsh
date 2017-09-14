@@ -3,12 +3,12 @@ source("TestHarness.bsh");
 
 if ( true )
 	assert(true);
-else 
+else
 	assert(false);
 
 if ( false )
 	assert(false);
-else 
+else
 	assert(true);
 
 if ( true ) assert(true); else assert(false);

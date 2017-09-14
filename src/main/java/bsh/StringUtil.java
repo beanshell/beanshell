@@ -82,7 +82,7 @@ public class StringUtil
         for( int i=0; i<types.length; i++ )
         {
             Class c = types[i];
-            sb.append( ( (c == null) ? "null" : c.getName() ) 
+            sb.append( ( (c == null) ? "null" : c.getName() )
 				+ ( i < (types.length-1) ? ", " : " " ) );
         }
         sb.append(")");
@@ -92,8 +92,8 @@ public class StringUtil
 	/**
 		Split a filename into dirName, baseName
 		@return String [] { dirName, baseName }
-    public String [] splitFileName( String fileName ) 
-	{ 
+    public String [] splitFileName( String fileName )
+	{
 		String dirName, baseName;
 		int i = fileName.lastIndexOf( File.separator );
 		if ( i != -1 ) {

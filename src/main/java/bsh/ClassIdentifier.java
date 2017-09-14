@@ -27,7 +27,7 @@
 
 package bsh;
 
-public class ClassIdentifier 
+public class ClassIdentifier
 {
 	Class clas;
 

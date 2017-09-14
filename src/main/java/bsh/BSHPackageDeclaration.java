@@ -28,7 +28,7 @@
 
 package bsh;
 
-public class BSHPackageDeclaration extends SimpleNode 
+public class BSHPackageDeclaration extends SimpleNode
 {
 
   public BSHPackageDeclaration(int id) {

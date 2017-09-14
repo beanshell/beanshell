@@ -21,7 +21,7 @@ java.lang.Integer;
 assert( java.lang.Integer.MAX_VALUE > 1 );
 
 // allowed to hide it for resolution of static content
-int java = 5; 
+int java = 5;
 assert( isEvalError("java.lang.Integer.valueOf(\"5\") ") );
 assert( isEvalError("java.lang.Integer.MAX_VALUE > 1") );
 

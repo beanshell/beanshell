@@ -4,13 +4,13 @@ source("TestHarness.bsh");
 
 // foo can never be reached because foo( Object ) is more specific
 // primitives are boxed for it.
-foo( a ) { 
+foo( a ) {
 	return 1;
 }
-foo( a, b ) { 
+foo( a, b ) {
 	return 2;
 }
-foo( String a ) { 
+foo( String a ) {
 	return 3;
 }
 foo( Object o ) {

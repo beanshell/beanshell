@@ -20,7 +20,7 @@ assert( ti1 instanceof TestImpl1 );
 
 /*
 class TestImpl implements TestInt1 {
-	void go() { 
+	void go() {
 	}
 }
 */

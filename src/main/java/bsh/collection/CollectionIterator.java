@@ -60,9 +60,9 @@ public class CollectionIterator implements bsh.BshIterator
 	 * supported (i.e. iterable) type.
 	 *
 	 * @throws java.lang.NullPointerException If the argument is null
-	 */	
+	 */
 	public CollectionIterator( Object iterateOverMe ) {
-		iterator = createIterator( iterateOverMe );	
+		iterator = createIterator( iterateOverMe );
 	}
 
 	/**
@@ -80,9 +80,9 @@ public class CollectionIterator implements bsh.BshIterator
 	 * @throws java.lang.NullPointerException If the argument is null
 	 */
 	protected Iterator createIterator( Object iterateOverMe )
-		throws java.lang.IllegalArgumentException 
+		throws java.lang.IllegalArgumentException
 	{
-		
+
 		if ( iterateOverMe == null )
 			throw new NullPointerException("Object arguments passed to " +
 				"the CollectionIterator constructor cannot be null.");
@@ -90,21 +90,21 @@ public class CollectionIterator implements bsh.BshIterator
 		if ( iterateOverMe instanceof Iterator )
 			return (Iterator)iterateOverMe;
 
-		if ( iterateOverMe instanceof Collection ) 
+		if ( iterateOverMe instanceof Collection )
 			return ((Collection)iterateOverMe).iterator();
-		
+
 		Iterator it = getIteratorForIterable( iterateOverMe );
 		if ( it != null )
 			return it;
-		
+
 		final CollectionManager.BasicBshIterator bbi = new
 			CollectionManager.BasicBshIterator(iterateOverMe);
 
 		return new Iterator() {
-			public boolean hasNext() { return bbi.hasNext(); } 
+			public boolean hasNext() { return bbi.hasNext(); }
 			public Object next() { return bbi.next(); }
 			public void remove() {
-				throw new UnsupportedOperationException( 
+				throw new UnsupportedOperationException(
 					"remove() is not supported");
 			}
 		};
@@ -118,17 +118,17 @@ public class CollectionIterator implements bsh.BshIterator
 		@return the Iterator or null if the object is not an Iterable.
 		@author Daniel Leuck
 	*/
-	Iterator getIteratorForIterable( Object iterateOverMe ) 
+	Iterator getIteratorForIterable( Object iterateOverMe )
 	{
 		Iterator it = null;
 		try {
 			Class c = Class.forName("java.lang.Iterable");
-			if ( c.isInstance(iterateOverMe) ) 
+			if ( c.isInstance(iterateOverMe) )
 			{
 				try {
 					Method m = c.getMethod("iterator", new Class[0]);
 					it = (Iterator)m.invoke(iterateOverMe, new Object[0]);
-				} catch( Exception e ) 
+				} catch( Exception e )
 				{
 					throw new InterpreterError("Unexpected problem calling " +
 						"\"iterator()\" on instance of java.lang.Iterable."+ e);
@@ -136,7 +136,7 @@ public class CollectionIterator implements bsh.BshIterator
 			}
 		} catch( ClassNotFoundException cnfe ) {
 			// we are pre-Java 5 and should continue without an exception
-		} 
+		}
 		return it;
 	}
 
@@ -144,18 +144,18 @@ public class CollectionIterator implements bsh.BshIterator
 	 * Fetch the next object in the iteration
 	 *
 	 * @return The next object
-	 */	
+	 */
 	public Object next() {
 		return iterator.next();
 	}
-	
+
 	/**
 	 * Returns true if and only if there are more objects available
 	 * via the <code>next()</code> method
 	 *
 	 * @return The next object
-	 */	
+	 */
 	public boolean hasNext() {
-		return iterator.hasNext();	
+		return iterator.hasNext();
 	}
 }
