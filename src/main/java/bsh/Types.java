@@ -66,19 +66,19 @@ class Types
     /**
         Get the Java types of the arguments.
     */
-    public static Class[] getTypes( Object[] args )
+    public static Class[] getTypes(Object[] args)
     {
-        if ( args == null )
+        if (args == null)
             return new Class[0];
 
         Class[] types = new Class[ args.length ];
 
-        for( int i=0; i<args.length; i++ )
+        for(int i=0; i<args.length; i++)
         {
-            if ( args[i] == null )
+            if (args[i] == null)
                 types[i] = null;
             else
-            if ( args[i] instanceof Primitive )
+            if (args[i] instanceof Primitive)
                 types[i] = ((Primitive)args[i]).getType();
             else
                 types[i] = args[i].getClass();
@@ -94,28 +94,28 @@ class Types
      indicating a loose type and matching anything.
      */
     /* Should check for strict java here and limit to isJavaAssignable() */
-    static boolean isSignatureAssignable( Class[] from, Class[] to, int round )
+    static boolean isSignatureAssignable(Class[] from, Class[] to, int round)
     {
-        if ( round != JAVA_VARARGS_ASSIGNABLE && from.length != to.length )
+        if (round != JAVA_VARARGS_ASSIGNABLE && from.length != to.length)
             return false;
 
-        switch ( round )
+        switch (round)
         {
             case JAVA_BASE_ASSIGNABLE:
-                for( int i=0; i<from.length; i++ )
-                    if ( !isJavaBaseAssignable( to[i], from[i] ) )
+                for(int i=0; i<from.length; i++)
+                    if (!isJavaBaseAssignable(to[i], from[i]))
                         return false;
                 return true;
             case JAVA_BOX_TYPES_ASSIGABLE:
-                for( int i=0; i<from.length; i++ )
-                    if ( !isJavaBoxTypesAssignable( to[i], from[i] ) )
+                for(int i=0; i<from.length; i++)
+                    if (!isJavaBoxTypesAssignable(to[i], from[i]))
                         return false;
                 return true;
             case JAVA_VARARGS_ASSIGNABLE:
-                return isSignatureVarargsAssignable( from, to );
+                return isSignatureVarargsAssignable(from, to);
             case BSH_ASSIGNABLE:
-                for( int i=0; i<from.length; i++ )
-                    if ( !isBshAssignable( to[i], from[i] ) )
+                for(int i=0; i<from.length; i++)
+                    if (!isBshAssignable(to[i], from[i]))
                         return false;
                 return true;
             default:
@@ -140,7 +140,7 @@ class Types
     }
 
     private static boolean isSignatureVarargsAssignable(
-        Class[] from, Class[] to )
+        Class[] from, Class[] to)
     {
         return false;
     }
@@ -166,13 +166,13 @@ class Types
         Note that the getAssignableForm() method is the primary bsh method for
         checking assignability.  It adds additional bsh conversions, etc.
 
-        @see #isBshAssignable( Class, Class )
+        @see #isBshAssignable(Class, Class)
         @param lhsType assigning from rhsType to lhsType
         @param rhsType assigning from rhsType to lhsType
     */
-    static boolean isJavaAssignable( Class lhsType, Class rhsType ) {
-        return isJavaBaseAssignable( lhsType, rhsType )
-            || isJavaBoxTypesAssignable( lhsType, rhsType );
+    static boolean isJavaAssignable(Class lhsType, Class rhsType) {
+        return isJavaBaseAssignable(lhsType, rhsType)
+            || isJavaBoxTypesAssignable(lhsType, rhsType);
     }
 
     /**
@@ -180,36 +180,36 @@ class Types
         assignment rules, not including auto-boxing/unboxing.
      @param rhsType may be null to indicate primitive null value
     */
-    static boolean isJavaBaseAssignable( Class lhsType, Class rhsType )
+    static boolean isJavaBaseAssignable(Class lhsType, Class rhsType)
     {
         /*
             Assignment to loose type, defer to bsh extensions
             Note: we could shortcut this here:
-            if ( lhsType == null ) return true;
+            if (lhsType == null) return true;
             rather than forcing another round.  It's not strictly a Java issue,
             so does it belong here?
         */
-        if ( lhsType == null )
+        if (lhsType == null)
             return false;
 
         // null rhs type corresponds to type of Primitive.NULL
         // assignable to any object type
-        if ( rhsType == null )
+        if (rhsType == null)
             return !lhsType.isPrimitive();
 
-        if ( lhsType.isPrimitive() && rhsType.isPrimitive() )
+        if (lhsType.isPrimitive() && rhsType.isPrimitive())
         {
-            if ( lhsType == rhsType )
+            if (lhsType == rhsType)
                 return true;
 
             // handle primitive widening conversions - JLS 5.1.2
-            if ( (rhsType == Byte.TYPE) &&
+            if ((rhsType == Byte.TYPE) &&
                 (lhsType == Short.TYPE || lhsType == Integer.TYPE
                 || lhsType == Long.TYPE || lhsType == Float.TYPE
                 || lhsType == Double.TYPE))
                     return true;
 
-            if ( (rhsType == Short.TYPE) &&
+            if ((rhsType == Short.TYPE) &&
                 (lhsType == Integer.TYPE || lhsType == Long.TYPE ||
                 lhsType == Float.TYPE || lhsType == Double.TYPE))
                     return true;
@@ -232,7 +232,7 @@ class Types
                 return true;
         }
         else
-            if ( lhsType.isAssignableFrom(rhsType) )
+            if (lhsType.isAssignableFrom(rhsType))
                 return true;
 
         return false;
@@ -242,28 +242,28 @@ class Types
         Determine if the type is assignable via Java boxing/unboxing rules.
     */
     static boolean isJavaBoxTypesAssignable(
-        Class lhsType, Class rhsType )
+        Class lhsType, Class rhsType)
     {
         // Assignment to loose type... defer to bsh extensions
-        if ( lhsType == null )
+        if (lhsType == null)
             return false;
 
         // prim can be boxed and assigned to Object
-        if ( lhsType == Object.class )
+        if (lhsType == Object.class)
             return true;
 
         // prim numeric type can be boxed and assigned to number
-        if ( lhsType == Number.class
+        if (lhsType == Number.class
             && rhsType != Character.TYPE
             && rhsType != Boolean.TYPE
-        )
+       )
             return true;
 
         // General case prim type to wrapper or vice versa.
         // I don't know if this is faster than a flat list of 'if's like above.
         // wrapperMap maps both prim to wrapper and wrapper to prim types,
         // so this test is symmetric
-        if ( Primitive.wrapperMap.get( lhsType ) == rhsType )
+        if (Primitive.wrapperMap.get(lhsType) == rhsType)
             return true;
 
         return false;
@@ -273,14 +273,14 @@ class Types
      Test if a type can be converted to another type via BeanShell
      extended syntax rules (a superset of Java conversion rules).
      */
-    static boolean isBshAssignable( Class toType, Class fromType )
+    static boolean isBshAssignable(Class toType, Class fromType)
     {
         try {
             return castObject(
                 toType, fromType, null/*fromValue*/,
                 ASSIGNMENT, true/*checkOnly*/
-            ) == VALID_CAST;
-        } catch ( UtilEvalError e ) {
+           ) == VALID_CAST;
+        } catch (UtilEvalError e) {
             // This should not happen with checkOnly true
             throw new InterpreterError("err in cast check: "+e);
         }
@@ -301,15 +301,15 @@ class Types
         primitive types, e.g. Byte.TYPE
 
         @param fromValue an Object or bsh.Primitive primitive value (including
-            Primitive.NULL or Primitive.VOID )
+            Primitive.NULL or Primitive.VOID)
 
-        @see #isBshAssignable( Class, Class )
+        @see #isBshAssignable(Class, Class)
     */
     public static Object castObject(
-        Object fromValue, Class toType, int operation )
+        Object fromValue, Class toType, int operation)
         throws UtilEvalError
     {
-        if ( fromValue == null )
+        if (fromValue == null)
             throw new InterpreterError("null fromValue");
 
         Class fromType =
@@ -318,7 +318,7 @@ class Types
                 : fromValue.getClass();
 
         return castObject(
-            toType, fromType, fromValue, operation, false/*checkonly*/ );
+            toType, fromType, fromValue, operation, false/*checkonly*/);
     }
 
     /**
@@ -361,7 +361,7 @@ class Types
             If fromValue is (or would be) Primitive.NULL then fromType should be null.
 
         @param fromValue an Object or bsh.Primitive primitive value (including
-            Primitive.NULL or Primitive.VOID )
+            Primitive.NULL or Primitive.VOID)
 
         @param checkOnly If checkOnly is true then fromValue must be null.
             FromType is checked for the cast to toType...
@@ -369,7 +369,7 @@ class Types
             (Primitive.NULL is ok) and the actual cast is performed.
 
         @throws UtilEvalError on invalid assignment (when operation is
-            assignment ).
+            assignment).
 
         @throws UtilTargetError wrapping ClassCastException on cast error
             (when operation is cast)
@@ -384,7 +384,7 @@ class Types
     */
     private static Object castObject(
         Class toType, Class fromType, Object fromValue,
-        int operation, boolean checkOnly )
+        int operation, boolean checkOnly)
         throws UtilEvalError
     {
         /*
@@ -392,60 +392,60 @@ class Types
             Once things are running smoothly we might comment these out
             (That's what assertions are for).
         */
-        if ( checkOnly && fromValue != null )
+        if (checkOnly && fromValue != null)
             throw new InterpreterError("bad cast params 1");
-        if ( !checkOnly && fromValue == null )
+        if (!checkOnly && fromValue == null)
             throw new InterpreterError("bad cast params 2");
-        if ( fromType == Primitive.class )
+        if (fromType == Primitive.class)
             throw new InterpreterError("bad from Type, need to unwrap");
-        if ( fromValue == Primitive.NULL && fromType != null )
+        if (fromValue == Primitive.NULL && fromType != null)
             throw new InterpreterError("inconsistent args 1");
-        if ( fromValue == Primitive.VOID && fromType != Void.TYPE )
+        if (fromValue == Primitive.VOID && fromType != Void.TYPE)
             throw new InterpreterError("inconsistent args 2");
-        if ( toType == Void.TYPE )
+        if (toType == Void.TYPE)
             throw new InterpreterError("loose toType should be null");
 
         // assignment to loose type, void type, or exactly same type
-        if ( toType == null || toType == fromType )
+        if (toType == null || toType == fromType)
             return checkOnly ? VALID_CAST :
                 fromValue;
 
         // Casting to primitive type
-        if ( toType.isPrimitive() )
+        if (toType.isPrimitive())
         {
-            if ( fromType == Void.TYPE || fromType == null
-                || fromType.isPrimitive() )
+            if (fromType == Void.TYPE || fromType == null
+                || fromType.isPrimitive())
             {
                 // Both primitives, do primitive cast
                 return Primitive.castPrimitive(
                     toType, fromType, (Primitive)fromValue,
-                    checkOnly, operation );
+                    checkOnly, operation);
             } else
             {
-                if ( Primitive.isWrapperType( fromType ) )
+                if (Primitive.isWrapperType(fromType))
                 {
                     // wrapper to primitive
                     // Convert value to Primitive and check/cast it.
 
                     //Object r = checkOnly ? VALID_CAST :
-                    Class unboxedFromType = Primitive.unboxType( fromType );
+                    Class unboxedFromType = Primitive.unboxType(fromType);
                     Primitive primFromValue;
-                    if ( checkOnly )
+                    if (checkOnly)
                         primFromValue = null; // must be null in checkOnly
                     else
                         primFromValue = (Primitive)Primitive.wrap(
-                            fromValue, unboxedFromType );
+                            fromValue, unboxedFromType);
 
                     return Primitive.castPrimitive(
                         toType, unboxedFromType, primFromValue,
-                        checkOnly, operation );
+                        checkOnly, operation);
                 } else
                 {
                     // Cannot cast from arbitrary object to primitive
-                    if ( checkOnly )
+                    if (checkOnly)
                         return INVALID_CAST;
                     else
-                        throw castError( toType, fromType, operation );
+                        throw castError(toType, fromType, operation);
                 }
             }
         }
@@ -453,23 +453,23 @@ class Types
         // Else, casting to reference type
 
         // Casting from primitive or void (to reference type)
-        if ( fromType == Void.TYPE || fromType == null
-            || fromType.isPrimitive() )
+        if (fromType == Void.TYPE || fromType == null
+            || fromType.isPrimitive())
         {
             // cast from primitive to wrapper type
-            if ( Primitive.isWrapperType( toType )
-                && fromType != Void.TYPE && fromType != null )
+            if (Primitive.isWrapperType(toType)
+                && fromType != Void.TYPE && fromType != null)
             {
                 // primitive to wrapper type
                 return checkOnly ? VALID_CAST :
                     Primitive.castWrapper(
                         Primitive.unboxType(toType),
-                        ((Primitive)fromValue).getValue() );
+                        ((Primitive)fromValue).getValue());
             }
 
             // Primitive (not null or void) to Object.class type
-            if ( toType == Object.class
-                && fromType != Void.TYPE && fromType != null )
+            if (toType == Object.class
+                && fromType != Void.TYPE && fromType != null)
             {
                 // box it
                 return checkOnly ? VALID_CAST :
@@ -480,37 +480,37 @@ class Types
             // Allow Primitive.castToType() to handle it as well as cases of
             // Primitive.NULL and Primitive.VOID
             return Primitive.castPrimitive(
-                toType, fromType, (Primitive)fromValue, checkOnly, operation );
+                toType, fromType, (Primitive)fromValue, checkOnly, operation);
         }
 
         // If type already assignable no cast necessary
         // We do this last to allow various errors above to be caught.
         // e.g cast Primitive.Void to Object would pass this
-        if ( toType.isAssignableFrom( fromType ) )
+        if (toType.isAssignableFrom(fromType))
             return checkOnly ? VALID_CAST :
                 fromValue;
 
         // Can we use the proxy mechanism to cast a bsh.This to
         // the correct interface?
-        if ( toType.isInterface()
-            && bsh.This.class.isAssignableFrom( fromType )
+        if (toType.isInterface()
+            && bsh.This.class.isAssignableFrom(fromType)
             && Capabilities.canGenerateInterfaces()
-        )
+       )
             return checkOnly ? VALID_CAST :
-                ((bsh.This)fromValue).getInterface( toType );
+                ((bsh.This)fromValue).getInterface(toType);
 
         // Both numeric wrapper types?
         // Try numeric style promotion wrapper cast
-        if ( Primitive.isWrapperType( toType )
-            && Primitive.isWrapperType( fromType )
-        )
+        if (Primitive.isWrapperType(toType)
+            && Primitive.isWrapperType(fromType)
+       )
             return checkOnly ? VALID_CAST :
-                Primitive.castWrapper( toType, fromValue );
+                Primitive.castWrapper(toType, fromValue);
 
-        if ( checkOnly )
+        if (checkOnly)
             return INVALID_CAST;
         else
-            throw castError( toType, fromType , operation  );
+            throw castError(toType, fromType , operation );
     }
 
     /**
@@ -518,23 +518,23 @@ class Types
         describing an illegal assignment or illegal cast, respectively.
     */
     static UtilEvalError castError(
-        Class lhsType, Class rhsType, int operation   )
+        Class lhsType, Class rhsType, int operation  )
     {
         return castError(
             Reflect.normalizeClassName(lhsType),
-            Reflect.normalizeClassName(rhsType), operation  );
+            Reflect.normalizeClassName(rhsType), operation );
     }
 
     static UtilEvalError castError(
-        String lhs, String rhs, int operation   )
+        String lhs, String rhs, int operation  )
     {
-        if ( operation == ASSIGNMENT )
+        if (operation == ASSIGNMENT)
             return new UtilEvalError (
-                "Can't assign " + rhs + " to "+ lhs );
+                "Can't assign " + rhs + " to "+ lhs);
 
         Exception cce = new ClassCastException(
-            "Cannot cast " + rhs + " to " + lhs );
-        return new UtilTargetError( cce );
+            "Cannot cast " + rhs + " to " + lhs);
+        return new UtilTargetError(cce);
     }
 
 }

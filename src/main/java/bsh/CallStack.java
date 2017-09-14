@@ -59,16 +59,16 @@ public class CallStack
 
     public CallStack() { }
 
-    public CallStack( NameSpace namespace ) {
-        push( namespace );
+    public CallStack(NameSpace namespace) {
+        push(namespace);
     }
 
     public void clear() {
         stack.removeAllElements();
     }
 
-    public void push( NameSpace ns ) {
-        stack.insertElementAt( ns, 0 );
+    public void push(NameSpace ns) {
+        stack.insertElementAt(ns, 0);
     }
 
     public NameSpace top() {
@@ -79,7 +79,7 @@ public class CallStack
         zero based.
     */
     public NameSpace get(int depth) {
-        if ( depth >= depth() )
+        if (depth >= depth())
             return NameSpace.JAVACODE;
         else
             return (NameSpace)(stack.elementAt(depth));
@@ -90,11 +90,11 @@ public class CallStack
         zero based.
     */
     public void set(int depth, NameSpace ns) {
-        stack.setElementAt(ns, depth );
+        stack.setElementAt(ns, depth);
     }
 
     public NameSpace pop() {
-        if ( depth() < 1 )
+        if (depth() < 1)
             throw new InterpreterError("pop on empty CallStack");
         NameSpace top = top();
         stack.removeElementAt(0);
@@ -105,9 +105,9 @@ public class CallStack
         Swap in the value as the new top of the stack and return the old
         value.
     */
-    public NameSpace swap( NameSpace newTop ) {
+    public NameSpace swap(NameSpace newTop) {
         NameSpace oldTop = (NameSpace)(stack.elementAt(0));
-        stack.setElementAt( newTop, 0 );
+        stack.setElementAt(newTop, 0);
         return oldTop;
     }
 
@@ -117,7 +117,7 @@ public class CallStack
 
     public NameSpace [] toArray() {
         NameSpace [] nsa = new NameSpace [ depth() ];
-        stack.copyInto( nsa );
+        stack.copyInto(nsa);
         return nsa;
     }
 

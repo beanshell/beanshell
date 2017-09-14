@@ -42,24 +42,24 @@ public class Modifiers implements java.io.Serializable
     /**
         @param context is METHOD or FIELD
     */
-    public void addModifier( int context, String name )
+    public void addModifier(int context, String name)
     {
-        if ( modifiers == null )
+        if (modifiers == null)
             modifiers = new Hashtable();
 
-        Object existing = modifiers.put( name, Void.TYPE/*arbitrary flag*/ );
-        if ( existing != null )
-            throw new IllegalStateException("Duplicate modifier: "+ name );
+        Object existing = modifiers.put(name, Void.TYPE/*arbitrary flag*/);
+        if (existing != null)
+            throw new IllegalStateException("Duplicate modifier: "+ name);
 
         int count = 0;
-        if ( hasModifier("private") ) ++count;
-        if ( hasModifier("protected") ) ++count;
-        if ( hasModifier("public") ) ++count;
-        if ( count > 1 )
+        if (hasModifier("private")) ++count;
+        if (hasModifier("protected")) ++count;
+        if (hasModifier("public")) ++count;
+        if (count > 1)
             throw new IllegalStateException(
-                "public/private/protected cannot be used in combination." );
+                "public/private/protected cannot be used in combination.");
 
-        switch( context )
+        switch(context)
         {
         case CLASS:
             validateForClass();
@@ -73,9 +73,9 @@ public class Modifiers implements java.io.Serializable
         }
     }
 
-    public boolean hasModifier( String name )
+    public boolean hasModifier(String name)
     {
-        if ( modifiers == null )
+        if (modifiers == null)
             modifiers = new Hashtable();
         return modifiers.get(name) != null;
     }
@@ -99,9 +99,9 @@ public class Modifiers implements java.io.Serializable
         insureNo("synchronized", "Class");
     }
 
-    private void insureNo( String modifier, String context )
+    private void insureNo(String modifier, String context)
     {
-        if ( hasModifier( modifier ) )
+        if (hasModifier(modifier))
             throw new IllegalStateException(
                 context + " cannot be declared '"+modifier+"'");
     }

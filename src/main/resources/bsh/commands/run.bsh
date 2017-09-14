@@ -29,9 +29,9 @@
         from which to draw variables, etc.
 */
 
-bsh.help.run= "usage: Thread run( filename )";
+bsh.help.run= "usage: Thread run(filename)";
 
-run( String filename, Object runArgument )
+run(String filename, Object runArgument)
 {
     // Our local namespace is going to be the new root (global)
     // make local copies of the system stuff.
@@ -50,12 +50,12 @@ run( String filename, Object runArgument )
     this.namespace.prune();
 
     // Inherit user classpath
-    this.namespace.getClassManager().setClassPath( cp );
+    this.namespace.getClassManager().setClassPath(cp);
 
-    this.interpreter.source( filename, this.namespace );
+    this.interpreter.source(filename, this.namespace);
     return this;
 }
 
-run( String filename ) {
-    run( filename, null );
+run(String filename) {
+    run(filename, null);
 }

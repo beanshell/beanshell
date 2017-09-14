@@ -33,11 +33,11 @@
 */
 
 bsh.help.setNameSpace =
-    "usage: setNameSpace( bsh.NameSpace )";
+    "usage: setNameSpace(bsh.NameSpace)";
 
-setNameSpace( ns )
+setNameSpace(ns)
 {
     // Set the namespace at depth one (our caller) to the specified namespace.
-    this.callstack.set( 1, ns );
+    this.callstack.set(1, ns);
 }
 

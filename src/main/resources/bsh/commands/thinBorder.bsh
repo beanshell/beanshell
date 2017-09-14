@@ -61,7 +61,7 @@ public thinBorder(Color lightColor, Color darkColor, boolean rollOver)
         } else {
             drawBorder(g, x, y, width, height, light, dark);
         }
-    } catch ( SecurityException e ) { }
+    } catch (SecurityException e) { }
     }
 
     /**

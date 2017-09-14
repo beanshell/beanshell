@@ -7,5 +7,5 @@
     We haven't imported mypackage.* so we should not see MyClass
 */
 
-myClassVisible = ( this.namespace.getClass("MyClass") != null );
+myClassVisible = (this.namespace.getClass("MyClass") != null);
 

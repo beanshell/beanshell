@@ -1546,7 +1546,7 @@ public class CodeWriter implements CodeVisitor {
           newCode.put4(j);
           j = readInt(b, u) - j + 1; u += 4;
           newCode.put4(readInt(b, u - 4));
-          for ( ; j > 0; --j) {
+          for (; j > 0; --j) {
             label = v + readInt(b, u); u += 4;
             newOffset = getNewOffset(allIndexes, allSizes, v, label);
             newCode.put4(newOffset);
@@ -1567,7 +1567,7 @@ public class CodeWriter implements CodeVisitor {
           newCode.put4(newOffset);
           j = readInt(b, u); u += 4;
           newCode.put4(j);
-          for ( ; j > 0; --j) {
+          for (; j > 0; --j) {
             newCode.put4(readInt(b, u)); u += 4;
             label = v + readInt(b, u); u += 4;
             newOffset = getNewOffset(allIndexes, allSizes, v, label);

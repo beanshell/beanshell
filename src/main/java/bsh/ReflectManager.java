@@ -47,13 +47,13 @@ public abstract class ReflectManager
     public static ReflectManager getReflectManager()
         throws Unavailable
     {
-        if ( rfm == null )
+        if (rfm == null)
         {
             Class clas;
             try {
-                clas = Class.forName( "bsh.reflect.ReflectManagerImpl" );
+                clas = Class.forName("bsh.reflect.ReflectManagerImpl");
                 rfm = (ReflectManager)clas.newInstance();
-            } catch ( Exception e ) {
+            } catch (Exception e) {
                 throw new Unavailable("Reflect Manager unavailable: "+e);
             }
         }
@@ -66,10 +66,10 @@ public abstract class ReflectManager
         Convenience method to invoke the reflect manager.
         @throws Unavailable
     */
-    public static boolean RMSetAccessible( Object obj )
+    public static boolean RMSetAccessible(Object obj)
         throws Unavailable
     {
-        return getReflectManager().setAccessible( obj );
+        return getReflectManager().setAccessible(obj);
     }
 
     /**
@@ -77,6 +77,6 @@ public abstract class ReflectManager
         accessible objects to accessible mode.
         @return true if the object was accessible or false if it was not.
     */
-    public abstract boolean setAccessible( Object o );
+    public abstract boolean setAccessible(Object o);
 }
 

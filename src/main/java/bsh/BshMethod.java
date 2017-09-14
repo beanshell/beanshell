@@ -78,22 +78,22 @@ public class BshMethod
 
     BshMethod(
         BSHMethodDeclaration method,
-        NameSpace declaringNameSpace, Modifiers modifiers )
+        NameSpace declaringNameSpace, Modifiers modifiers)
     {
-        this( method.name, method.returnType, method.paramsNode.getParamNames(),
+        this(method.name, method.returnType, method.paramsNode.getParamNames(),
             method.paramsNode.paramTypes, method.blockNode, declaringNameSpace,
-            modifiers );
+            modifiers);
     }
 
     BshMethod(
         String name, Class returnType, String [] paramNames,
         Class [] paramTypes, BSHBlock methodBody,
         NameSpace declaringNameSpace, Modifiers modifiers
-    ) {
+   ) {
         this.name = name;
         this.creturnType = returnType;
         this.paramNames = paramNames;
-        if ( paramNames != null )
+        if (paramNames != null)
             this.numArgs = paramNames.length;
         this.cparamTypes = paramTypes;
         this.methodBody = methodBody;
@@ -105,11 +105,11 @@ public class BshMethod
         Create a BshMethod that delegates to a real Java method upon invocation.
         This is used to represent imported object methods.
     */
-    BshMethod( Method method, Object object )
+    BshMethod(Method method, Object object)
     {
-        this( method.getName(), method.getReturnType(), null/*paramNames*/,
+        this(method.getName(), method.getReturnType(), null/*paramNames*/,
             method.getParameterTypes(), null/*method.block*/,
-            null/*declaringNameSpace*/, null/*modifiers*/ );
+            null/*declaringNameSpace*/, null/*modifiers*/);
 
         this.javaMethod = method;
         this.javaObject = object;
@@ -149,10 +149,10 @@ public class BshMethod
         intended to be used in reflective style access to bsh scripts.
     */
     public Object invoke(
-        Object[] argValues, Interpreter interpreter )
+        Object[] argValues, Interpreter interpreter)
         throws EvalError
     {
-        return invoke( argValues, interpreter, null, null, false );
+        return invoke(argValues, interpreter, null, null, false);
     }
 
     /**
@@ -174,10 +174,10 @@ public class BshMethod
     */
     public Object invoke(
         Object[] argValues, Interpreter interpreter, CallStack callstack,
-            SimpleNode callerInfo )
+            SimpleNode callerInfo)
         throws EvalError
     {
-        return invoke( argValues, interpreter, callstack, callerInfo, false );
+        return invoke(argValues, interpreter, callstack, callerInfo, false);
     }
 
     /**
@@ -203,73 +203,73 @@ public class BshMethod
     */
     Object invoke(
         Object[] argValues, Interpreter interpreter, CallStack callstack,
-            SimpleNode callerInfo, boolean overrideNameSpace )
+            SimpleNode callerInfo, boolean overrideNameSpace)
         throws EvalError
     {
-        if ( argValues != null )
+        if (argValues != null)
             for (int i=0; i<argValues.length; i++)
-                if ( argValues[i] == null )
+                if (argValues[i] == null)
                     throw new Error("HERE!");
 
-        if ( javaMethod != null )
+        if (javaMethod != null)
             try {
                 return Reflect.invokeMethod(
-                    javaMethod, javaObject, argValues );
-            } catch ( ReflectError e ) {
+                    javaMethod, javaObject, argValues);
+            } catch (ReflectError e) {
                 throw new EvalError(
-                    "Error invoking Java method: "+e, callerInfo, callstack );
-            } catch ( InvocationTargetException e2 ) {
+                    "Error invoking Java method: "+e, callerInfo, callstack);
+            } catch (InvocationTargetException e2) {
                 throw new TargetError(
                     "Exception invoking imported object method.",
-                    e2, callerInfo, callstack, true/*isNative*/ );
+                    e2, callerInfo, callstack, true/*isNative*/);
             }
 
         // is this a syncrhonized method?
-        if ( modifiers != null && modifiers.hasModifier("synchronized") )
+        if (modifiers != null && modifiers.hasModifier("synchronized"))
         {
             // The lock is our declaring namespace's This reference
             // (the method's 'super').  Or in the case of a class it's the
             // class instance.
             Object lock;
-            if ( declaringNameSpace.isClass )
+            if (declaringNameSpace.isClass)
             {
                 try {
                     lock = declaringNameSpace.getClassInstance();
-                } catch ( UtilEvalError e ) {
+                } catch (UtilEvalError e) {
                     throw new InterpreterError(
                         "Can't get class instance for synchronized method.");
                 }
             } else
                 lock = declaringNameSpace.getThis(interpreter); // ???
 
-            synchronized( lock )
+            synchronized(lock)
             {
                 return invokeImpl(
                     argValues, interpreter, callstack,
-                    callerInfo, overrideNameSpace );
+                    callerInfo, overrideNameSpace);
             }
         } else
-            return invokeImpl( argValues, interpreter, callstack, callerInfo,
-                overrideNameSpace );
+            return invokeImpl(argValues, interpreter, callstack, callerInfo,
+                overrideNameSpace);
     }
 
     private Object invokeImpl(
         Object[] argValues, Interpreter interpreter, CallStack callstack,
-            SimpleNode callerInfo, boolean overrideNameSpace )
+            SimpleNode callerInfo, boolean overrideNameSpace)
         throws EvalError
     {
         Class returnType = getReturnType();
         Class [] paramTypes = getParameterTypes();
 
         // If null callstack
-        if ( callstack == null )
-            callstack = new CallStack( declaringNameSpace );
+        if (callstack == null)
+            callstack = new CallStack(declaringNameSpace);
 
-        if ( argValues == null )
+        if (argValues == null)
             argValues = new Object [] { };
 
         // Cardinality (number of args) mismatch
-        if ( argValues.length != numArgs )
+        if (argValues.length != numArgs)
         {
         /*
             // look for help string
@@ -277,146 +277,146 @@ public class BshMethod
                 // should check for null namespace here
                 String help =
                     (String)declaringNameSpace.get(
-                    "bsh.help."+name, interpreter );
+                    "bsh.help."+name, interpreter);
 
                 interpreter.println(help);
                 return Primitive.VOID;
-            } catch ( Exception e ) {
+            } catch (Exception e) {
                 throw eval error
             }
         */
             throw new EvalError(
                 "Wrong number of arguments for local method: "
-                + name, callerInfo, callstack );
+                + name, callerInfo, callstack);
         }
 
         // Make the local namespace for the method invocation
         NameSpace localNameSpace;
-        if ( overrideNameSpace )
+        if (overrideNameSpace)
             localNameSpace = callstack.top();
         else
         {
-            localNameSpace = new NameSpace( declaringNameSpace, name );
+            localNameSpace = new NameSpace(declaringNameSpace, name);
             localNameSpace.isMethod = true;
         }
         // should we do this for both cases above?
-        localNameSpace.setNode( callerInfo );
+        localNameSpace.setNode(callerInfo);
 
         // set the method parameters in the local namespace
         for(int i=0; i<numArgs; i++)
         {
             // Set typed variable
-            if ( paramTypes[i] != null )
+            if (paramTypes[i] != null)
             {
                 try {
                     argValues[i] =
-                        //Types.getAssignableForm( argValues[i], paramTypes[i] );
-                        Types.castObject( argValues[i], paramTypes[i], Types.ASSIGNMENT );
+                        //Types.getAssignableForm(argValues[i], paramTypes[i]);
+                        Types.castObject(argValues[i], paramTypes[i], Types.ASSIGNMENT);
                 }
-                catch( UtilEvalError e) {
+                catch(UtilEvalError e) {
                     throw new EvalError(
                         "Invalid argument: "
                         + "`"+paramNames[i]+"'" + " for method: "
                         + name + " : " +
-                        e.getMessage(), callerInfo, callstack );
+                        e.getMessage(), callerInfo, callstack);
                 }
                 try {
-                    localNameSpace.setTypedVariable( paramNames[i],
+                    localNameSpace.setTypedVariable(paramNames[i],
                         paramTypes[i], argValues[i], null/*modifiers*/);
-                } catch ( UtilEvalError e2 ) {
-                    throw e2.toEvalError( "Typed method parameter assignment",
-                        callerInfo, callstack  );
+                } catch (UtilEvalError e2) {
+                    throw e2.toEvalError("Typed method parameter assignment",
+                        callerInfo, callstack );
                 }
             }
             // Set untyped variable
             else  // untyped param
             {
                 // getAssignable would catch this for typed param
-                if ( argValues[i] == Primitive.VOID)
+                if (argValues[i] == Primitive.VOID)
                     throw new EvalError(
                         "Undefined variable or class name, parameter: " +
                         paramNames[i] + " to method: "
-                        + name, callerInfo, callstack );
+                        + name, callerInfo, callstack);
                 else
                     try {
                         localNameSpace.setLocalVariable(
                             paramNames[i], argValues[i],
-                            interpreter.getStrictJava() );
-                    } catch ( UtilEvalError e3 ) {
-                        throw e3.toEvalError( callerInfo, callstack );
+                            interpreter.getStrictJava());
+                    } catch (UtilEvalError e3) {
+                        throw e3.toEvalError(callerInfo, callstack);
                     }
             }
         }
 
         // Push the new namespace on the call stack
-        if ( !overrideNameSpace )
-            callstack.push( localNameSpace );
+        if (!overrideNameSpace)
+            callstack.push(localNameSpace);
 
         // Invoke the block, overriding namespace with localNameSpace
         Object ret = methodBody.eval(
-            callstack, interpreter, true/*override*/ );
+            callstack, interpreter, true/*override*/);
 
         // save the callstack including the called method, just for error mess
         CallStack returnStack = callstack.copy();
 
         // Get back to caller namespace
-        if ( !overrideNameSpace )
+        if (!overrideNameSpace)
             callstack.pop();
 
         ReturnControl retControl = null;
-        if ( ret instanceof ReturnControl )
+        if (ret instanceof ReturnControl)
         {
             retControl = (ReturnControl)ret;
 
             // Method body can only use 'return' statement type return control.
-            if ( retControl.kind == retControl.RETURN )
+            if (retControl.kind == retControl.RETURN)
                 ret = ((ReturnControl)ret).value;
             else
                 // retControl.returnPoint is the Node of the return statement
                 throw new EvalError("'continue' or 'break' in method body",
-                    retControl.returnPoint, returnStack );
+                    retControl.returnPoint, returnStack);
 
             // Check for explicit return of value from void method type.
             // retControl.returnPoint is the Node of the return statement
-            if ( returnType == Void.TYPE && ret != Primitive.VOID )
-                throw new EvalError( "Cannot return value from void method",
+            if (returnType == Void.TYPE && ret != Primitive.VOID)
+                throw new EvalError("Cannot return value from void method",
                 retControl.returnPoint, returnStack);
         }
 
-        if ( returnType != null )
+        if (returnType != null)
         {
             // If return type void, return void as the value.
-            if ( returnType == Void.TYPE )
+            if (returnType == Void.TYPE)
                 return Primitive.VOID;
 
             // return type is a class
             try {
                 ret =
-                    // Types.getAssignableForm( ret, (Class)returnType );
-                    Types.castObject( ret, returnType, Types.ASSIGNMENT );
-            } catch( UtilEvalError e )
+                    // Types.getAssignableForm(ret, (Class)returnType);
+                    Types.castObject(ret, returnType, Types.ASSIGNMENT);
+            } catch(UtilEvalError e)
             {
                 // Point to return statement point if we had one.
                 // (else it was implicit return? What's the case here?)
                 SimpleNode node = callerInfo;
-                if ( retControl != null )
+                if (retControl != null)
                     node = retControl.returnPoint;
                 throw e.toEvalError(
                     "Incorrect type returned from method: "
-                    + name + e.getMessage(), node, callstack );
+                    + name + e.getMessage(), node, callstack);
             }
         }
 
         return ret;
     }
 
-    public boolean hasModifier( String name ) {
+    public boolean hasModifier(String name) {
         return modifiers != null && modifiers.hasModifier(name);
     }
 
     public String toString() {
         return "Scripted Method: "
-            + StringUtil.methodString( name, getParameterTypes() );
+            + StringUtil.methodString(name, getParameterTypes());
     }
 
 }

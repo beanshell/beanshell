@@ -36,33 +36,33 @@ class BSHImportDeclaration extends SimpleNode
 
     BSHImportDeclaration(int id) { super(id); }
 
-    public Object eval( CallStack callstack, Interpreter interpreter)
+    public Object eval(CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
         NameSpace namespace = callstack.top();
-        if ( superImport )
+        if (superImport)
             try {
                 namespace.doSuperImport();
-            } catch ( UtilEvalError e ) {
-                throw e.toEvalError( this, callstack  );
+            } catch (UtilEvalError e) {
+                throw e.toEvalError(this, callstack );
             }
         else
         {
-            if ( staticImport )
+            if (staticImport)
             {
-                if ( importPackage )
+                if (importPackage)
                 {
                     Class clas = ((BSHAmbiguousName)jjtGetChild(0)).toClass(
-                        callstack, interpreter );
-                    namespace.importStatic( clas );
+                        callstack, interpreter);
+                    namespace.importStatic(clas);
                 } else
                     throw new EvalError(
                         "static field imports not supported yet",
-                        this, callstack );
+                        this, callstack);
             } else
             {
                 String name = ((BSHAmbiguousName)jjtGetChild(0)).text;
-                if ( importPackage )
+                if (importPackage)
                     namespace.importPackage(name);
                 else
                     namespace.importClass(name);

@@ -47,19 +47,19 @@ public class CollectionManager
 
     public synchronized static CollectionManager getCollectionManager()
     {
-        if ( manager == null
-            && Capabilities.classExists("java.util.Collection") )
+        if (manager == null
+            && Capabilities.classExists("java.util.Collection"))
         {
             Class clas;
             try {
-                clas = Class.forName( "bsh.collection.CollectionManagerImpl" );
+                clas = Class.forName("bsh.collection.CollectionManagerImpl");
                 manager = (CollectionManager)clas.newInstance();
-            } catch ( Exception e ) {
+            } catch (Exception e) {
                 Interpreter.debug("unable to load CollectionManagerImpl: "+e);
             }
         }
 
-        if ( manager == null )
+        if (manager == null)
             manager = new CollectionManager(); // default impl
 
         return manager;
@@ -67,32 +67,32 @@ public class CollectionManager
 
     /**
     */
-    public boolean isBshIterable( Object obj )
+    public boolean isBshIterable(Object obj)
     {
         // This could be smarter...
         try {
-            getBshIterator( obj );
+            getBshIterator(obj);
             return true;
-        } catch( IllegalArgumentException e ) {
+        } catch(IllegalArgumentException e) {
             return false;
         }
     }
 
-    public BshIterator getBshIterator( Object obj )
+    public BshIterator getBshIterator(Object obj)
         throws IllegalArgumentException
     {
-        return new BasicBshIterator( obj );
+        return new BasicBshIterator(obj);
     }
 
-    public boolean isMap( Object obj ) {
+    public boolean isMap(Object obj) {
         return obj instanceof Hashtable;
     }
 
-    public Object getFromMap( Object map, Object key ) {
+    public Object getFromMap(Object map, Object key) {
         return ((Hashtable)map).get(key);
     }
 
-    public Object putInMap( Object map, Object key, Object value )
+    public Object putInMap(Object map, Object key, Object value)
     {
         return ((Hashtable)map).put(key, value);
     }
@@ -137,7 +137,7 @@ public class CollectionManager
          *
          * @throws java.lang.NullPointerException If the argument is null
          */
-        protected Enumeration createEnumeration( Object iterateOverMe )
+        protected Enumeration createEnumeration(Object iterateOverMe)
         {
             if(iterateOverMe==null)
                 throw new NullPointerException("Object arguments passed to " +

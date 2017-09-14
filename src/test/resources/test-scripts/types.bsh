@@ -2,9 +2,9 @@
 
 source("TestHarness.bsh");
 
-assert( java.lang.String instanceof bsh.ClassIdentifier );
+assert(java.lang.String instanceof bsh.ClassIdentifier);
 o=java.lang.String;
-assert( o instanceof bsh.ClassIdentifier );
+assert(o instanceof bsh.ClassIdentifier);
 
 complete();
 

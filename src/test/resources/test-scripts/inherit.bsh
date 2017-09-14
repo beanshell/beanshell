@@ -139,7 +139,7 @@ z.x();
 
 assert("If we made it this far, then we're OK.".length() == 38);
 
-} catch ( Exception e) {
+} catch (Exception e) {
     error("Caught exception: "+e);
     assert(false);
 }

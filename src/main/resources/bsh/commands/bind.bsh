@@ -4,7 +4,7 @@
 import bsh.This;
 import bsh.NameSpace;
 
-bind( bsh.This ths, bsh.NameSpace namespace ) {
-    This.bind( ths, namespace, this.interpreter );
+bind(bsh.This ths, bsh.NameSpace namespace) {
+    This.bind(ths, namespace, this.interpreter);
 }
 

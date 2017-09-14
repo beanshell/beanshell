@@ -45,10 +45,10 @@ package bsh;
 */
 class BlockNameSpace extends NameSpace
 {
-    public BlockNameSpace( NameSpace parent )
+    public BlockNameSpace(NameSpace parent)
         throws EvalError
     {
-        super( parent, parent.getName()+ "/BlockNameSpace" );
+        super(parent, parent.getName()+ "/BlockNameSpace");
     }
 
     /**
@@ -67,15 +67,15 @@ class BlockNameSpace extends NameSpace
         variable in our parent, not here.
     */
     public Variable setVariable(
-        String name, Object value, boolean strictJava, boolean recurse )
+        String name, Object value, boolean strictJava, boolean recurse)
         throws UtilEvalError
     {
-        if ( weHaveVar( name ) )
+        if (weHaveVar(name))
             // set the var here in the block namespace
-            return super.setVariable( name, value, strictJava, false );
+            return super.setVariable(name, value, strictJava, false);
         else
             // set the var in the enclosing (parent) namespace
-            return getParent().setVariable( name, value, strictJava, recurse );
+            return getParent().setVariable(name, value, strictJava, recurse);
     }
 
     /**
@@ -84,10 +84,10 @@ class BlockNameSpace extends NameSpace
         Typed variables are naturally set locally.
         This is used in try/catch block argument.
     */
-    public void setBlockVariable( String name, Object value )
+    public void setBlockVariable(String name, Object value)
         throws UtilEvalError
     {
-        super.setVariable( name, value, false/*strict?*/, false );
+        super.setVariable(name, value, false/*strict?*/, false);
     }
 
     /**
@@ -95,27 +95,27 @@ class BlockNameSpace extends NameSpace
         it block local scope or an untyped var was explicitly set here via
         setBlockVariable().
     */
-    private boolean weHaveVar( String name )
+    private boolean weHaveVar(String name)
     {
-        // super.variables.containsKey( name ) not any faster, I checked
+        // super.variables.containsKey(name) not any faster, I checked
         try {
-            return super.getVariableImpl( name, false ) != null;
-        } catch ( UtilEvalError e ) { return false; }
+            return super.getVariableImpl(name, false) != null;
+        } catch (UtilEvalError e) { return false; }
     }
 
 /**
         Get the actual BlockNameSpace 'this' reference.
         <p/>
-        Normally a 'this' reference to a BlockNameSpace (e.g. if () { } )
+        Normally a 'this' reference to a BlockNameSpace (e.g. if () { })
         resolves to the parent namespace (e.g. the namespace containing the
         "if" statement).  However when code inside the BlockNameSpace needs to
         resolve things relative to 'this' we must use the actual block's 'this'
         reference.  Name.java is smart enough to handle this using
         getBlockThis().
-        @see #getThis( Interpreter )
-    This getBlockThis( Interpreter declaringInterpreter )
+        @see #getThis(Interpreter)
+    This getBlockThis(Interpreter declaringInterpreter)
     {
-        return super.getThis( declaringInterpreter );
+        return super.getThis(declaringInterpreter);
     }
 */
 
@@ -129,7 +129,7 @@ class BlockNameSpace extends NameSpace
     public NameSpace getParent()
     {
         NameSpace parent = super.getParent();
-        if ( parent instanceof BlockNameSpace )
+        if (parent instanceof BlockNameSpace)
             return parent.getParent();
         else
             return parent;
@@ -139,7 +139,7 @@ class BlockNameSpace extends NameSpace
     private NameSpace getNonBlockParent()
     {
         NameSpace parent = super.getParent();
-        if ( parent instanceof BlockNameSpace )
+        if (parent instanceof BlockNameSpace)
             return ((BlockNameSpace)parent).getNonBlockParent();
         else
             return parent;
@@ -147,40 +147,40 @@ class BlockNameSpace extends NameSpace
 
     /**
         Get a 'this' reference is our parent's 'this' for the object closure.
-        e.g. Normally a 'this' reference to a BlockNameSpace (e.g. if () { } )
+        e.g. Normally a 'this' reference to a BlockNameSpace (e.g. if () { })
         resolves to the parent namespace (e.g. the namespace containing the
         "if" statement).
-        @see #getBlockThis( Interpreter )
+        @see #getBlockThis(Interpreter)
     */
-    public This getThis( Interpreter declaringInterpreter ) {
-        return getNonBlockParent().getThis( declaringInterpreter );
+    public This getThis(Interpreter declaringInterpreter) {
+        return getNonBlockParent().getThis(declaringInterpreter);
     }
 
     /**
         super is our parent's super
     */
-    public This getSuper( Interpreter declaringInterpreter ) {
-        return getNonBlockParent().getSuper( declaringInterpreter );
+    public This getSuper(Interpreter declaringInterpreter) {
+        return getNonBlockParent().getSuper(declaringInterpreter);
     }
 
     /**
         delegate import to our parent
     */
     public void importClass(String name) {
-        getParent().importClass( name );
+        getParent().importClass(name);
     }
 
     /**
         delegate import to our parent
     */
     public void importPackage(String name) {
-        getParent().importPackage( name );
+        getParent().importPackage(name);
     }
 
     public void setMethod(String name, BshMethod method)
         throws UtilEvalError
     {
-        getParent().setMethod( name, method );
+        getParent().setMethod(name, method);
     }
 }
 

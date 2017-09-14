@@ -73,16 +73,16 @@ public class ExternalNameSpace extends NameSpace
 
     public ExternalNameSpace()
     {
-        this( null, "External Map Namespace", null );
+        this(null, "External Map Namespace", null);
     }
 
     /**
     */
-    public ExternalNameSpace( NameSpace parent, String name, Map externalMap )
+    public ExternalNameSpace(NameSpace parent, String name, Map externalMap)
     {
-        super( parent, name );
+        super(parent, name);
 
-        if ( externalMap == null )
+        if (externalMap == null)
             externalMap = new HashMap();
 
         this.externalMap = externalMap;
@@ -100,7 +100,7 @@ public class ExternalNameSpace extends NameSpace
         map values are retained in the external map, but are removed from the
         BeanShell namespace.
     */
-    public void setMap( Map map )
+    public void setMap(Map map)
     {
         // Detach any existing namespace to preserve it, then clear this
         // namespace and set the new one
@@ -111,10 +111,10 @@ public class ExternalNameSpace extends NameSpace
 
     /**
     */
-    public void unsetVariable( String name )
+    public void unsetVariable(String name)
     {
-        super.unsetVariable( name );
-        externalMap.remove( name );
+        super.unsetVariable(name);
+        externalMap.remove(name);
     }
 
     /**
@@ -124,9 +124,9 @@ public class ExternalNameSpace extends NameSpace
         // union of the names in the enclosing namespace and external map
         Set nameSet = new HashSet();
         String [] nsNames = super.getVariableNames();
-        nameSet.addAll( Arrays.asList( nsNames ) );
-        nameSet.addAll( externalMap.keySet() );
-        return (String [])nameSet.toArray( new String[0] );
+        nameSet.addAll(Arrays.asList(nsNames));
+        nameSet.addAll(externalMap.keySet());
+        return (String [])nameSet.toArray(new String[0]);
     }
 
     /**
@@ -144,33 +144,33 @@ public class ExternalNameSpace extends NameSpace
         more control here to change the import precedence and remove variables
         if they are removed via the extenal map.
     */
-        protected Variable getVariableImpl( String name, boolean recurse )
+        protected Variable getVariableImpl(String name, boolean recurse)
         throws UtilEvalError
     {
         // check the external map for the variable name
-        Object value =  externalMap.get( name );
+        Object value =  externalMap.get(name);
 
         Variable var;
-        if ( value == null )
+        if (value == null)
         {
             // The var is not in external map and it should therefore not be
             // found in local scope (it may have been removed via the map).
             // Clear it prophalactically.
-            super.unsetVariable( name );
+            super.unsetVariable(name);
 
             // Search parent for var if applicable.
-            var = super.getVariableImpl( name, recurse );
+            var = super.getVariableImpl(name, recurse);
         } else
         {
             // Var in external map may be found in local scope with type and
             // modifier info.
-            Variable localVar = super.getVariableImpl( name, false );
+            Variable localVar = super.getVariableImpl(name, false);
 
             // If not in local scope then it was added via the external map,
             // we'll wrap it and pass it along.  Else we'll use the one we
             // found.
-            if ( localVar == null )
-                var = createVariable( name, null/*type*/, value, null/*mods*/ );
+            if (localVar == null)
+                var = createVariable(name, null/*type*/, value, null/*mods*/);
             else
                 var = localVar;
         }
@@ -179,17 +179,17 @@ public class ExternalNameSpace extends NameSpace
     }
 
     public Variable createVariable(
-        String name, Class type, Object value, Modifiers mods )
+        String name, Class type, Object value, Modifiers mods)
     {
-        LHS lhs = new LHS( externalMap, name );
+        LHS lhs = new LHS(externalMap, name);
         // Is this race condition worth worrying about?
         // value will appear in map before it's really in the interpreter
         try {
-            lhs.assign( value, false/*strict*/ );
-        } catch ( UtilEvalError e) {
-            throw new InterpreterError( e.toString() );
+            lhs.assign(value, false/*strict*/);
+        } catch (UtilEvalError e) {
+            throw new InterpreterError(e.toString());
         }
-        return new Variable( name, type, lhs );
+        return new Variable(name, type, lhs);
     }
 
     /**

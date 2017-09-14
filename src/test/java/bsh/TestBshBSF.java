@@ -4,7 +4,7 @@ import java.util.Vector;
 
 public class TestBshBSF
 {
-    public static void main( String [] args )
+    public static void main(String [] args)
         throws BSFException
     {
         BSFManager mgr = new BSFManager();
@@ -12,7 +12,7 @@ public class TestBshBSF
         // register beanshell with the BSF framework
         String [] extensions = { "bsh" };
         mgr.registerScriptingEngine(
-            "beanshell", "bsh.util.BeanShellBSFEngine", extensions );
+            "beanshell", "bsh.util.BeanShellBSFEngine", extensions);
 
         mgr.declareBean("foo", "fooString", String.class);
         mgr.declareBean("bar", "barString", String.class);
@@ -21,9 +21,9 @@ public class TestBshBSF
         BSFEngine beanshellEngine = mgr.loadScriptingEngine("beanshell");
 
         String script = "foo + bar + bsf.lookupBean(\"gee\")";
-        Object result = beanshellEngine.eval( "Test eval...", -1, -1, script );
+        Object result = beanshellEngine.eval("Test eval...", -1, -1, script);
 
-        assertTrue( result.equals("fooStringbarStringgeeString" ) );
+        assertTrue(result.equals("fooStringbarStringgeeString"));
 
         // test apply()
         Vector names = new Vector();
@@ -34,24 +34,24 @@ public class TestBshBSF
         script = "name + name";
 
         result = beanshellEngine.apply(
-            "source string...", -1, -1, script, names, vals );
+            "source string...", -1, -1, script, names, vals);
 
-        assertTrue( result.equals("PatPat" ) );
+        assertTrue(result.equals("PatPat"));
 
-        result = beanshellEngine.eval( "Test eval...", -1, -1, "name" );
+        result = beanshellEngine.eval("Test eval...", -1, -1, "name");
 
         // name should not be set
-        assertTrue( result == null );
+        assertTrue(result == null);
 
         // Verify the primitives are unwrapped
-        result = beanshellEngine.eval( "Test eval...", -1, -1, "1+1");
+        result = beanshellEngine.eval("Test eval...", -1, -1, "1+1");
 
-        assertTrue( result instanceof Integer
-            && ((Integer)result).intValue() == 2 );
+        assertTrue(result instanceof Integer
+            && ((Integer)result).intValue() == 2);
     }
 
-    static void assertTrue( boolean cond ) {
-        if ( cond )
+    static void assertTrue(boolean cond) {
+        if (cond)
             System.out.println("Passed...");
         else
             throw new Error("assert failed...");

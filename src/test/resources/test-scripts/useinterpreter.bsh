@@ -13,16 +13,16 @@ source("TestHarness.bsh");
 i=new Interpreter();
 try {
     i.eval("foo()");
-} catch ( EvalError e ) {
+} catch (EvalError e) {
     flag();
 }
 
 // eval with undefined argument: bar
 i=new Interpreter();
 try {
-    i.eval("foo( arg ) { print(arg); }");
-    i.eval("foo( bar ); ");
-} catch ( EvalError e ) {
+    i.eval("foo(arg) { print(arg); }");
+    i.eval("foo(bar); ");
+} catch (EvalError e) {
     flag();
 }
 

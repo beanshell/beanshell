@@ -1,19 +1,19 @@
 #!/bin/java bsh.Interpreter
 source("TestHarness.bsh");
 
-if ( true )
+if (true)
     assert(true);
 else
     assert(false);
 
-if ( false )
+if (false)
     assert(false);
 else
     assert(true);
 
-if ( true ) assert(true); else assert(false);
+if (true) assert(true); else assert(false);
 
-if ( true ) {
+if (true) {
     System.out.println("foo...");
     System.out.println("bar...");
     assert(true);
@@ -22,16 +22,16 @@ if ( true ) {
 }
 
 // scoping
-if ( true ) {
+if (true) {
     a=5;
 } else {
     a=2;
 }
 assert(a==5);
 
-if ( true )
-    if ( true )
-        if ( true )
+if (true)
+    if (true)
+        if (true)
             flag();
         else
             fail();

@@ -37,24 +37,24 @@ public class BeanShellBSFEngine extends BSFEngineImpl
     Interpreter interpreter;
     boolean installedApplyMethod;
 
-    public void initialize ( BSFManager mgr, String lang, Vector declaredBeans)
+    public void initialize (BSFManager mgr, String lang, Vector declaredBeans)
     throws BSFException
     {
-        super.initialize( mgr, lang, declaredBeans );
+        super.initialize(mgr, lang, declaredBeans);
 
         interpreter = new Interpreter();
 
         // declare the bsf manager for callbacks, etc.
         try {
-            interpreter.set( "bsf", mgr );
-        } catch ( EvalError e ) {
+            interpreter.set("bsf", mgr);
+        } catch (EvalError e) {
             throw new BSFException("bsh internal error: "+e.toString());
         }
 
         for(int i=0; i<declaredBeans.size(); i++)
         {
             BSFDeclaredBean bean = (BSFDeclaredBean)declaredBeans.get(i);
-            declareBean( bean );
+            declareBean(bean);
         }
     }
 
@@ -69,36 +69,36 @@ public class BeanShellBSFEngine extends BSFEngineImpl
         interpreter.
         @param object may be null for the global namespace.
     */
-    public Object call( Object object, String name, Object[] args )
+    public Object call(Object object, String name, Object[] args)
         throws BSFException
     {
         /*
             If object is null use the interpreter's global scope.
         */
-        if ( object == null )
+        if (object == null)
             try {
                 object = interpreter.get("global");
-            } catch ( EvalError e ) {
+            } catch (EvalError e) {
                 throw new BSFException("bsh internal error: "+e.toString());
             }
 
-        if ( object instanceof bsh.This )
+        if (object instanceof bsh.This)
             try
             {
-                Object value = ((bsh.This)object).invokeMethod( name, args );
-                return Primitive.unwrap( value );
-            } catch ( InterpreterError e )
+                Object value = ((bsh.This)object).invokeMethod(name, args);
+                return Primitive.unwrap(value);
+            } catch (InterpreterError e)
             {
                 throw new BSFException(
-                    "BeanShell interpreter internal error: "+e );
-            } catch ( TargetError e2 )
+                    "BeanShell interpreter internal error: "+e);
+            } catch (TargetError e2)
             {
                 throw new BSFException(
                     "The application script threw an exception: "
-                    + e2.getTarget() );
-            } catch ( EvalError e3 )
+                    + e2.getTarget());
+            } catch (EvalError e3)
             {
-                throw new BSFException( "BeanShell script error: "+e3 );
+                throw new BSFException("BeanShell script error: "+e3);
             }
         else
             throw new BSFException(
@@ -114,7 +114,7 @@ public class BeanShellBSFEngine extends BSFEngineImpl
         then I'd have to escape quotes, etc.
     */
     final static String bsfApplyMethod =
-        "_bsfApply( _bsfNames, _bsfArgs, _bsfText ) {"
+        "_bsfApply(_bsfNames, _bsfArgs, _bsfText) {"
             +"for(i=0;i<_bsfNames.length;i++)"
                 +"this.namespace.setVariable(_bsfNames[i], _bsfArgs[i],false);"
             +"return this.interpreter.eval(_bsfText, this.namespace);"
@@ -131,12 +131,12 @@ public class BeanShellBSFEngine extends BSFEngineImpl
     */
     public Object apply (
         String source, int lineNo, int columnNo, Object funcBody,
-        Vector namesVec, Vector argsVec )
+        Vector namesVec, Vector argsVec)
        throws BSFException
     {
-        if ( namesVec.size() != argsVec.size() )
+        if (namesVec.size() != argsVec.size())
             throw new BSFException("number of params/names mismatch");
-        if ( !(funcBody instanceof String) )
+        if (!(funcBody instanceof String))
             throw new BSFException("apply: functino body must be a string");
 
         String [] names = new String [ namesVec.size() ];
@@ -146,33 +146,33 @@ public class BeanShellBSFEngine extends BSFEngineImpl
 
         try
         {
-            if ( !installedApplyMethod )
+            if (!installedApplyMethod)
             {
-                interpreter.eval( bsfApplyMethod );
+                interpreter.eval(bsfApplyMethod);
                 installedApplyMethod = true;
             }
 
             bsh.This global = (bsh.This)interpreter.get("global");
             Object value = global.invokeMethod(
-                "_bsfApply", new Object [] { names, args, (String)funcBody } );
-            return Primitive.unwrap( value );
+                "_bsfApply", new Object [] { names, args, (String)funcBody });
+            return Primitive.unwrap(value);
 
-        } catch ( InterpreterError e )
+        } catch (InterpreterError e)
         {
             throw new BSFException(
                 "BeanShell interpreter internal error: "+e
-                + sourceInfo(source,lineNo,columnNo) );
-        } catch ( TargetError e2 )
+                + sourceInfo(source,lineNo,columnNo));
+        } catch (TargetError e2)
         {
             throw new BSFException(
                 "The application script threw an exception: "
                 + e2.getTarget()
-                + sourceInfo(source,lineNo,columnNo) );
-        } catch ( EvalError e3 )
+                + sourceInfo(source,lineNo,columnNo));
+        } catch (EvalError e3)
         {
             throw new BSFException(
                 "BeanShell script error: "+e3
-                + sourceInfo(source,lineNo,columnNo) );
+                + sourceInfo(source,lineNo,columnNo));
         }
     }
 
@@ -180,27 +180,27 @@ public class BeanShellBSFEngine extends BSFEngineImpl
         String source, int lineNo, int columnNo, Object expr)
         throws BSFException
     {
-        if ( ! (expr instanceof String) )
+        if (! (expr instanceof String))
             throw new BSFException("BeanShell expression must be a string");
 
         try {
-            return interpreter.eval( ((String)expr) );
-        } catch ( InterpreterError e )
+            return interpreter.eval(((String)expr));
+        } catch (InterpreterError e)
         {
             throw new BSFException(
                 "BeanShell interpreter internal error: "+e
-                + sourceInfo(source,lineNo,columnNo) );
-        } catch ( TargetError e2 )
+                + sourceInfo(source,lineNo,columnNo));
+        } catch (TargetError e2)
         {
             throw new BSFException(
                 "The application script threw an exception: "
                 + e2.getTarget()
-                + sourceInfo(source,lineNo,columnNo) );
-        } catch ( EvalError e3 )
+                + sourceInfo(source,lineNo,columnNo));
+        } catch (EvalError e3)
         {
             throw new BSFException(
                 "BeanShell script error: "+e3
-                + sourceInfo(source,lineNo,columnNo) );
+                + sourceInfo(source,lineNo,columnNo));
         }
     }
 
@@ -208,7 +208,7 @@ public class BeanShellBSFEngine extends BSFEngineImpl
     public void exec (String source, int lineNo, int columnNo, Object script)
         throws BSFException
     {
-        eval( source, lineNo, columnNo, script );
+        eval(source, lineNo, columnNo, script);
     }
 
 
@@ -242,10 +242,10 @@ public class BeanShellBSFEngine extends BSFEngineImpl
         throws BSFException
     {
         try {
-            interpreter.set( bean.name, bean.bean);
-        } catch ( EvalError e ) {
-            throw new BSFException( "error declaring bean: "+bean.name
-            +" : "+e.toString() );
+            interpreter.set(bean.name, bean.bean);
+        } catch (EvalError e) {
+            throw new BSFException("error declaring bean: "+bean.name
+            +" : "+e.toString());
         }
     }
 
@@ -253,8 +253,8 @@ public class BeanShellBSFEngine extends BSFEngineImpl
         throws BSFException
     {
         try {
-            interpreter.unset( bean.name );
-        } catch ( EvalError e ) {
+            interpreter.unset(bean.name);
+        } catch (EvalError e) {
             throw new BSFException("bsh internal error: "+e.toString());
         }
     }
@@ -262,7 +262,7 @@ public class BeanShellBSFEngine extends BSFEngineImpl
     public void terminate () { }
 
 
-    private String sourceInfo( String source, int lineNo, int columnNo )
+    private String sourceInfo(String source, int lineNo, int columnNo)
     {
         return  " BSF info: "+source+" at line: "+lineNo +" column: columnNo";
     }

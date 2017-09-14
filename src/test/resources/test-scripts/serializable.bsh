@@ -6,7 +6,7 @@ o=object();
 o.foo="bar";
 try {
     save(o, "o.ser");
-} catch ( Exception e ) {
+} catch (Exception e) {
     fail();
     e.printStackTrace();
 }
@@ -15,7 +15,7 @@ o2=load("o.ser");
 print(o2);
 print(o2.foo);
 
-assert( o2.foo.equals("bar") );
+assert(o2.foo.equals("bar"));
 
 rm("o.ser");
 

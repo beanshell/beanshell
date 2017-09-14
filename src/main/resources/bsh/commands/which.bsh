@@ -10,10 +10,10 @@
     <p/>
 
     <pre>
-        print( getResource("/com/foo/MyClass.class") );
+        print(getResource("/com/foo/MyClass.class"));
         // Same as...
         // System.out.println(
-        //    getClass().getResourceAsStream("/com/foo/MyClass.class" ) );
+        //    getClass().getResourceAsStream("/com/foo/MyClass.class"));
     </pre>
     <p/>
 
@@ -21,24 +21,24 @@
     currently first occurrence! To be fixed!
     <p/>
 
-    @method which( classIdentifier | string | class )
+    @method which(classIdentifier | string | class)
 */
 
-bsh.help.which= "usage: which( classIdentifier | string | class )";
+bsh.help.which= "usage: which(classIdentifier | string | class)";
 
 import bsh.ClassIdentifier;
 
-which( clas )
+which(clas)
 {
     // make the class into a name
     Class clas;
-    if ( clas instanceof ClassIdentifier )
-        clas = this.namespace.identifierToClass( clas );
-    if ( clas instanceof Class )
+    if (clas instanceof ClassIdentifier)
+        clas = this.namespace.identifierToClass(clas);
+    if (clas instanceof Class)
         clas = clas.getName();
     String className = clas;
 
     cp = this.caller.namespace.getClassManager().getClassPath();
-    print ( cp.getClassSource( className ) );
+    print (cp.getClassSource(className));
 }
 

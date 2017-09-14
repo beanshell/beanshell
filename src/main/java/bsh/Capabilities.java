@@ -46,12 +46,12 @@ public class Capabilities
 
     public static boolean haveSwing() {
         // classExists caches info for us
-        return classExists( "javax.swing.JButton" );
+        return classExists("javax.swing.JButton");
     }
 
     public static boolean canGenerateInterfaces() {
         // classExists caches info for us
-        return classExists( "java.lang.reflect.Proxy" );
+        return classExists("java.lang.reflect.Proxy");
     }
 
     /**
@@ -68,24 +68,24 @@ public class Capabilities
         return accessibility;
     }
 
-    public static void setAccessibility( boolean b )
+    public static void setAccessibility(boolean b)
         throws Unavailable
     {
-        if ( b == false )
+        if (b == false)
         {
             accessibility = false;
             return;
         }
 
-        if ( !classExists( "java.lang.reflect.AccessibleObject" )
+        if (!classExists("java.lang.reflect.AccessibleObject")
             || !classExists("bsh.reflect.ReflectManagerImpl")
-        )
-            throw new Unavailable( "Accessibility unavailable" );
+       )
+            throw new Unavailable("Accessibility unavailable");
 
         // test basic access
         try {
             String.class.getDeclaredMethods();
-        } catch ( SecurityException e ) {
+        } catch (SecurityException e) {
             throw new Unavailable("Accessibility unavailable: "+e);
         }
 
@@ -102,21 +102,21 @@ public class Capabilities
             this capabilities code must be light enough to be used by any
             system **including the remote applet**.
     */
-    public static boolean classExists( String name )
+    public static boolean classExists(String name)
     {
-        Object c = classes.get( name );
+        Object c = classes.get(name);
 
-        if ( c == null ) {
+        if (c == null) {
             try {
                 /*
                     Note: do *not* change this to
                     BshClassManager plainClassForName() or equivalent.
                     This class must not touch any other bsh classes.
                 */
-                c = Class.forName( name );
-            } catch ( ClassNotFoundException e ) { }
+                c = Class.forName(name);
+            } catch (ClassNotFoundException e) { }
 
-            if ( c != null )
+            if (c != null)
                 classes.put(c,"unused");
         }
 
@@ -130,7 +130,7 @@ public class Capabilities
     */
     public static class Unavailable extends UtilEvalError
     {
-        public Unavailable(String s ){ super(s); }
+        public Unavailable(String s){ super(s); }
     }
 }
 

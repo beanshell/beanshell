@@ -11,7 +11,7 @@ class Bar66 extends Foo66
 }
 
 new Bar66();
-assert( initFoo66 == true );
-assert( initBar66 == true );
+assert(initFoo66 == true);
+assert(initBar66 == true);
 
 complete();

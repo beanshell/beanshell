@@ -5,12 +5,12 @@
     currently equivalent to doing namespace.setVariable(name, null);</em>
 */
 
-bsh.help.unset = "usage: unset( name )";
+bsh.help.unset = "usage: unset(name)";
 
-void unset( String name )
+void unset(String name)
 {
-    if ( arg == null ) // ???
+    if (arg == null) // ???
         return;
 
-    this.caller.namespace.unsetVariable( name );
+    this.caller.namespace.unsetVariable(name);
 }

@@ -6,7 +6,7 @@
  * @author Daniel Leuck
  */
 fontMenu(component) {
-    if ( bsh.system.desktop == void ) {
+    if (bsh.system.desktop == void) {
         print("fontMenu() only works with the bsh desktop...");
         return;
     }
@@ -64,7 +64,7 @@ fontMenu(component) {
     fontMenu.addSeparator();
 
     actionPerformed(ae) {
-        if ( bsh.system.fonts != void )
+        if (bsh.system.fonts != void)
         {
         String family = (String)JOptionPane.showInputDialog(component,
             "Select a font", "Fonts", JOptionPane.QUESTION_MESSAGE,

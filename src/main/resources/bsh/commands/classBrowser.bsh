@@ -5,12 +5,12 @@ import bsh.util.ClassBrowser;
 
 classBrowser()
 {
-    this.inDesktop = ( bsh.system.desktop != void );
+    this.inDesktop = (bsh.system.desktop != void);
 
-    this.browser = new ClassBrowser( this.interpreter.getClassManager() );
+    this.browser = new ClassBrowser(this.interpreter.getClassManager());
     browser.init();
 
-    if ( inDesktop ) {
+    if (inDesktop) {
         this.frame =
             bsh.system.desktop.makeInternalFrame("BeanShell Class Browser");
         frame.frameIcon = bsh.system.icons.eye;
@@ -21,23 +21,23 @@ classBrowser()
     }
 
     // Ignore unhandled method invocations from listeners.
-    invoke( name, args ) {
-        if ( !name.startsWith("internalFrame") )
+    invoke(name, args) {
+        if (!name.startsWith("internalFrame"))
             throw new Error("method: "+name);
     }
-    internalFrameClosing( e ) {
+    internalFrameClosing(e) {
         // really need foo=void;...
         bsh.system.desktop.classbrowser = null;
     }
 
-    if ( inDesktop )
+    if (inDesktop)
         frame.addInternalFrameListener(this);
 
-    browser.setFrame( frame );
+    browser.setFrame(frame);
     frame.getContentPane().add("Center", browser);
     frame.pack();
 
-    if ( inDesktop )
+    if (inDesktop)
         bsh.system.desktop.addInternalFrame(frame);
 
     frame.show();

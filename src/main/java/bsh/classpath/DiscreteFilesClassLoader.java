@@ -50,36 +50,36 @@ public class DiscreteFilesClassLoader extends BshClassLoader
 
     public static class ClassSourceMap extends HashMap
     {
-        public void put( String name, ClassSource source ) {
-            super.put( name, source );
+        public void put(String name, ClassSource source) {
+            super.put(name, source);
         }
-        public ClassSource get( String name ) {
-            return (ClassSource)super.get( name );
+        public ClassSource get(String name) {
+            return (ClassSource)super.get(name);
         }
     }
 
     public DiscreteFilesClassLoader(
-        BshClassManager classManager, ClassSourceMap map )
+        BshClassManager classManager, ClassSourceMap map)
     {
-        super( classManager );
+        super(classManager);
         this.map = map;
     }
 
     /**
     */
-    public Class findClass( String name ) throws ClassNotFoundException
+    public Class findClass(String name) throws ClassNotFoundException
     {
         // Load it if it's one of our classes
-        ClassSource source = map.get( name );
+        ClassSource source = map.get(name);
 
-        if ( source != null )
+        if (source != null)
         {
-            byte [] code = source.getCode( name );
-            return defineClass( name, code, 0, code.length );
+            byte [] code = source.getCode(name);
+            return defineClass(name, code, 0, code.length);
         } else
             // Let superclass BshClassLoader (URLClassLoader) findClass try
             // to find the class...
-            return super.findClass( name );
+            return super.findClass(name);
     }
 
     public String toString() {

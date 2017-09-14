@@ -14,16 +14,16 @@ assert(a==42);
 
 try {
     b=eval("bogus()");
-} catch ( bsh.EvalError e ) {
+} catch (bsh.EvalError e) {
     flag();
 }
 
-assert( flag() == 1 );
+assert(flag() == 1);
 
 /**
     Make sure eval's side effects happen in the correct namespace
 */
-if ( Interpreter.LOCALSCOPING )
+if (Interpreter.LOCALSCOPING)
 {
 a=6;
 b=6; // sanity check

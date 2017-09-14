@@ -12,7 +12,7 @@ r=new Runnable() {
 
 r.run();
 
-assert( flag() == 1 );
+assert(flag() == 1);
 
 complete();
 

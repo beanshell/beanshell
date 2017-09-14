@@ -9,7 +9,7 @@ Vector proc(Vector midic) {
         for(int i = 0; i < midic.size(); i++)
         {
             for (int j = i; j < midic.size() - i; j++) {
-                resultat.addElement( ""+j );
+                resultat.addElement(""+j);
             }
         }
         return resultat;
@@ -19,10 +19,10 @@ v = new Vector();
 v.addElement("foo");
 v.addElement("foo");
 v.addElement("foo");
-v2 = proc( v );
+v2 = proc(v);
 
 // had to add something to assert...
-assert( v2.elementAt(3).equals("1") );
+assert(v2.elementAt(3).equals("1"));
 
 /**
     Nested for loops caused a bug in one rev

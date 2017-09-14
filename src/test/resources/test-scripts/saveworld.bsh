@@ -15,10 +15,10 @@ source("TestHarness.bsh");
     This is crashing the Console right now because it tries to serialize
     the desktop (through bsh.desktop).  Why does it crash?
 */
-if ( bsh.desktop == void ) {
+if (bsh.desktop == void) {
     try {
         save(this, "world.ser");
-    } catch ( Exception e ) {
+    } catch (Exception e) {
         e.printStackTrace();
         assert(false);
     }

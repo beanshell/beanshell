@@ -60,7 +60,7 @@ class BSHForStatement extends SimpleNode implements ParserConstants
             statement = ((SimpleNode)jjtGetChild(i));
 
         NameSpace enclosingNameSpace= callstack.top();
-        BlockNameSpace forNameSpace = new BlockNameSpace( enclosingNameSpace );
+        BlockNameSpace forNameSpace = new BlockNameSpace(enclosingNameSpace);
 
         /*
             Note: some interesting things are going on here.
@@ -80,29 +80,29 @@ class BSHForStatement extends SimpleNode implements ParserConstants
         // put forNameSpace it on the top of the stack
         // Note: it's important that there is only one exit point from this
         // method so that we can swap back the namespace.
-        callstack.swap( forNameSpace );
+        callstack.swap(forNameSpace);
 
         // Do the for init
-        if ( hasForInit )
-            forInit.eval( callstack, interpreter );
+        if (hasForInit)
+            forInit.eval(callstack, interpreter);
 
         Object returnControl = Primitive.VOID;
         while(true)
         {
-            if ( hasExpression )
+            if (hasExpression)
             {
                 boolean cond = BSHIfStatement.evaluateCondition(
-                    expression, callstack, interpreter );
+                    expression, callstack, interpreter);
 
-                if ( !cond )
+                if (!cond)
                     break;
             }
 
             boolean breakout = false; // switch eats a multi-level break here?
-            if ( statement != null ) // not empty statement
+            if (statement != null) // not empty statement
             {
                 // do *not* invoke special override for block... (see above)
-                Object ret = statement.eval( callstack, interpreter );
+                Object ret = statement.eval(callstack, interpreter);
 
                 if (ret instanceof ReturnControl)
                 {
@@ -123,14 +123,14 @@ class BSHForStatement extends SimpleNode implements ParserConstants
                 }
             }
 
-            if ( breakout )
+            if (breakout)
                 break;
 
-            if ( hasForUpdate )
-                forUpdate.eval( callstack, interpreter );
+            if (hasForUpdate)
+                forUpdate.eval(callstack, interpreter);
         }
 
-        callstack.swap( enclosingNameSpace );  // put it back
+        callstack.swap(enclosingNameSpace);  // put it back
         return returnControl;
     }
 

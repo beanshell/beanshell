@@ -5,9 +5,9 @@ public class Base
     public int i;
 
     public Base() { }
-    public Base( String s ) { this.s = s; }
-    public Base( int i ) { this.i = i; }
-    public Base( String s, int i ) {
+    public Base(String s) { this.s = s; }
+    public Base(int i) { this.i = i; }
+    public Base(String s, int i) {
         this.s = s;
         this.i = i;
     }

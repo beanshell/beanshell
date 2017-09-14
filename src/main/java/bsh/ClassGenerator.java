@@ -35,12 +35,12 @@ public abstract class ClassGenerator
     public static ClassGenerator getClassGenerator()
         throws UtilEvalError
     {
-        if ( cg == null )
+        if (cg == null)
         {
             try {
-                Class clas = Class.forName( "bsh.ClassGeneratorImpl" );
+                Class clas = Class.forName("bsh.ClassGeneratorImpl");
                 cg = (ClassGenerator)clas.newInstance();
-            } catch ( Exception e ) {
+            } catch (Exception e) {
                 throw new Unavailable("ClassGenerator unavailable: "+e);
             }
         }
@@ -55,7 +55,7 @@ public abstract class ClassGenerator
         String name, Modifiers modifiers,
         Class [] interfaces, Class superClass, BSHBlock block,
         boolean isInterface, CallStack callstack, Interpreter interpreter
-    )
+   )
         throws EvalError;
 
     /**
@@ -65,7 +65,7 @@ public abstract class ClassGenerator
     */
     public abstract Object invokeSuperclassMethod(
         BshClassManager bcm, Object instance, String methodName, Object [] args
-    )
+   )
         throws UtilEvalError, ReflectError, InvocationTargetException;
 
     /**
@@ -74,6 +74,6 @@ public abstract class ClassGenerator
         Note: This method will likely be removed in the future.
     */
     public abstract void setInstanceNameSpaceParent(
-        Object instance, String className, NameSpace parent );
+        Object instance, String className, NameSpace parent);
 
 }

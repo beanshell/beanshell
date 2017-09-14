@@ -4,11 +4,11 @@ source("TestHarness.bsh");
 
 do {
     flag();
-} while( false );
+} while(false);
 
-assert( flag() == 1 );
+assert(flag() == 1);
 
-while( false ) {
+while(false) {
     fail();
 }
 

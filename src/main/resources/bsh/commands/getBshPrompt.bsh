@@ -16,7 +16,7 @@
 
 String getBshPrompt()
 {
-    if ( bsh != void && bsh.prompt != void )
+    if (bsh != void && bsh.prompt != void)
         return bsh.prompt;
     else
         return "bsh % ";

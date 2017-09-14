@@ -4,11 +4,11 @@
     addClassPath() and setClassPath();
 */
 
-bsh.help.getResource = "usage: getResource( String name )";
+bsh.help.getResource = "usage: getResource(String name)";
 
 import bsh.Interpreter;
 
-URL getResource( String path )
+URL getResource(String path)
 {
-    return this.interpreter.getClassManager().getResource( path );
+    return this.interpreter.getClassManager().getResource(path);
 }

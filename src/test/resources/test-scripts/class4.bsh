@@ -15,7 +15,7 @@ class Bar44 {
 
 class Gee44 {
     int c=5;
-    Gee44( int x ) {
+    Gee44(int x) {
         c=x;
     }
 }

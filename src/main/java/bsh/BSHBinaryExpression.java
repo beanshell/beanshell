@@ -40,7 +40,7 @@ class BSHBinaryExpression extends SimpleNode
 
     BSHBinaryExpression(int id) { super(id); }
 
-    public Object eval( CallStack callstack, Interpreter interpreter)
+    public Object eval(CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
         Object lhs = ((SimpleNode)jjtGetChild(0)).eval(callstack, interpreter);
@@ -51,15 +51,15 @@ class BSHBinaryExpression extends SimpleNode
         if (kind == INSTANCEOF)
         {
             // null object ref is not instance of any type
-            if ( lhs == Primitive.NULL )
+            if (lhs == Primitive.NULL)
                 return Primitive.FALSE;
 
             Class rhs = ((BSHType)jjtGetChild(1)).getType(
-                callstack, interpreter );
+                callstack, interpreter);
         /*
             // primitive (number or void) cannot be tested for instanceof
             if (lhs instanceof Primitive)
-                throw new EvalError("Cannot be instance of primitive type." );
+                throw new EvalError("Cannot be instance of primitive type.");
         */
             /*
                 Primitive (number or void) is not normally an instanceof
@@ -67,14 +67,14 @@ class BSHBinaryExpression extends SimpleNode
                 bsh.Primitive class.
                 i.e. (5 instanceof bsh.Primitive) will be true
             */
-            if ( lhs instanceof Primitive )
-                if ( rhs == bsh.Primitive.class )
+            if (lhs instanceof Primitive)
+                if (rhs == bsh.Primitive.class)
                     return Primitive.TRUE;
                 else
                     return Primitive.FALSE;
 
             // General case - performe the instanceof based on assignability
-            boolean ret = Types.isJavaBaseAssignable( rhs, lhs.getClass() );
+            boolean ret = Types.isJavaBaseAssignable(rhs, lhs.getClass());
             return new Primitive(ret);
         }
 
@@ -86,24 +86,24 @@ class BSHBinaryExpression extends SimpleNode
             Look ahead and short circuit evaluation of the rhs if:
                 we're a boolean AND and the lhs is false.
         */
-        if ( kind == BOOL_AND || kind == BOOL_ANDX ) {
+        if (kind == BOOL_AND || kind == BOOL_ANDX) {
             Object obj = lhs;
-            if ( isPrimitiveValue(lhs) )
+            if (isPrimitiveValue(lhs))
                 obj = ((Primitive)lhs).getValue();
-            if ( obj instanceof Boolean &&
-                ( ((Boolean)obj).booleanValue() == false ) )
+            if (obj instanceof Boolean &&
+                (((Boolean)obj).booleanValue() == false))
                 return Primitive.FALSE;
         }
         /*
             Look ahead and short circuit evaluation of the rhs if:
                 we're a boolean AND and the lhs is false.
         */
-        if ( kind == BOOL_OR || kind == BOOL_ORX ) {
+        if (kind == BOOL_OR || kind == BOOL_ORX) {
             Object obj = lhs;
-            if ( isPrimitiveValue(lhs) )
+            if (isPrimitiveValue(lhs))
                 obj = ((Primitive)lhs).getValue();
-            if ( obj instanceof Boolean &&
-                ( ((Boolean)obj).booleanValue() == true ) )
+            if (obj instanceof Boolean &&
+                (((Boolean)obj).booleanValue() == true))
                 return Primitive.TRUE;
         }
 
@@ -113,16 +113,16 @@ class BSHBinaryExpression extends SimpleNode
             Are both the lhs and rhs either wrappers or primitive values?
             do binary op
         */
-        boolean isLhsWrapper = isWrapper( lhs );
+        boolean isLhsWrapper = isWrapper(lhs);
         Object rhs = ((SimpleNode)jjtGetChild(1)).eval(callstack, interpreter);
-        boolean isRhsWrapper = isWrapper( rhs );
+        boolean isRhsWrapper = isWrapper(rhs);
         if (
-            ( isLhsWrapper || isPrimitiveValue( lhs ) )
-            && ( isRhsWrapper || isPrimitiveValue( rhs ) )
-        )
+            (isLhsWrapper || isPrimitiveValue(lhs))
+            && (isRhsWrapper || isPrimitiveValue(rhs))
+       )
         {
             // Special case for EQ on two wrapper objects
-            if ( (isLhsWrapper && isRhsWrapper && kind == EQ))
+            if ((isLhsWrapper && isRhsWrapper && kind == EQ))
             {
                 /*
                     Don't auto-unwrap wrappers (preserve identity semantics)
@@ -131,13 +131,13 @@ class BSHBinaryExpression extends SimpleNode
             } else
                 try {
                     return Primitive.binaryOperation(lhs, rhs, kind);
-                } catch ( UtilEvalError e ) {
-                    throw e.toEvalError( this, callstack  );
+                } catch (UtilEvalError e) {
+                    throw e.toEvalError(this, callstack );
                 }
         }
     /*
     Doing the following makes it hard to use untyped vars...
-    e.g. if ( arg == null ) ...what if arg is a primitive?
+    e.g. if (arg == null) ...what if arg is a primitive?
     The answer is that we should test only if the var is typed...?
     need to get that info here...
 
@@ -147,20 +147,20 @@ class BSHBinaryExpression extends SimpleNode
         // (primitiveValue = not null, not void)
 
         int primCount = 0;
-        if ( isPrimitiveValue( lhs ) )
+        if (isPrimitiveValue(lhs))
             ++primCount;
-        if ( isPrimitiveValue( rhs ) )
+        if (isPrimitiveValue(rhs))
             ++primCount;
 
-        if ( primCount > 1 )
+        if (primCount > 1)
             // both primitive types, should have been handled above
             throw new InterpreterError("should not be here");
         else
-        if ( primCount == 1 )
+        if (primCount == 1)
             // mixture of one and the other
             throw new EvalError("Operator: '" + tokenImage[kind]
                 +"' inappropriate for object / primitive combination.",
-                this, callstack );
+                this, callstack);
 
         // else fall through to handle both non-primitive types
 
@@ -189,33 +189,33 @@ class BSHBinaryExpression extends SimpleNode
 
             default:
                 if(lhs instanceof Primitive || rhs instanceof Primitive)
-                    if ( lhs == Primitive.VOID || rhs == Primitive.VOID )
+                    if (lhs == Primitive.VOID || rhs == Primitive.VOID)
                         throw new EvalError(
                 "illegal use of undefined variable, class, or 'void' literal",
-                            this, callstack );
+                            this, callstack);
                     else
-                    if ( lhs == Primitive.NULL || rhs == Primitive.NULL )
+                    if (lhs == Primitive.NULL || rhs == Primitive.NULL)
                         throw new EvalError(
                 "illegal use of null value or 'null' literal", this, callstack);
 
                 throw new EvalError("Operator: '" + tokenImage[kind] +
-                    "' inappropriate for objects", this, callstack );
+                    "' inappropriate for objects", this, callstack);
         }
     }
 
     /*
         object is a non-null and non-void Primitive type
     */
-    private boolean isPrimitiveValue( Object obj ) {
-        return ( (obj instanceof Primitive)
-            && (obj != Primitive.VOID) && (obj != Primitive.NULL) );
+    private boolean isPrimitiveValue(Object obj) {
+        return ((obj instanceof Primitive)
+            && (obj != Primitive.VOID) && (obj != Primitive.NULL));
     }
 
     /*
         object is a java.lang wrapper for boolean, char, or number type
     */
-    private boolean isWrapper( Object obj ) {
-        return ( obj instanceof Boolean ||
-            obj instanceof Character || obj instanceof Number );
+    private boolean isWrapper(Object obj) {
+        return (obj instanceof Boolean ||
+            obj instanceof Character || obj instanceof Number);
     }
 }

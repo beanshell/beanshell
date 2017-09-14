@@ -36,25 +36,25 @@ assert(i==5);
 zz=5;
 for(i=0; i<5; i++) {
     int zz;
-    if ( true )
+    if (true)
         zz=3;
-    assert( zz == 3 );
+    assert(zz == 3);
 }
 assert(zz==5);
 
 // loops shouldn't keep state of vars defined within them
 for(i=0; i<3; i++) {
-    assert( q == void );
+    assert(q == void);
     int q=99;
-    assert( q == 99 );
+    assert(q == 99);
 }
 
 // but typed init vars should still work
 for(int i2=0; i2<3; i2++) {
-    assert( q == void );
+    assert(q == void);
     int q=99;
-    assert( q == 99 );
+    assert(q == 99);
 }
-assert( i2 == void );
+assert(i2 == void);
 
 complete();

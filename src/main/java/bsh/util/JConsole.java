@@ -91,13 +91,13 @@ public class JConsole extends JScrollPane
         this(null, null);
     }
 
-    public JConsole( InputStream cin, OutputStream cout )
+    public JConsole(InputStream cin, OutputStream cout)
     {
         super();
 
         // Special TextPane which catches for cut and paste, both L&F keys and
         // programmatic behaviour
-        text = new JTextPane( doc=new DefaultStyledDocument() )
+        text = new JTextPane(doc=new DefaultStyledDocument())
             {
                 public void cut() {
                     if (text.getCaretPosition() < cmdStart) {
@@ -115,8 +115,8 @@ public class JConsole extends JScrollPane
 
         Font font = new Font("Monospaced",Font.PLAIN,14);
         text.setText("");
-        text.setFont( font );
-        text.setMargin( new Insets(7,5,7,5) );
+        text.setFont(font);
+        text.setMargin(new Insets(7,5,7,5));
         text.addKeyListener(this);
         setViewportView(text);
 
@@ -132,25 +132,25 @@ public class JConsole extends JScrollPane
         UIManager.addPropertyChangeListener(this);
 
         outPipe = cout;
-        if ( outPipe == null ) {
+        if (outPipe == null) {
             outPipe = new PipedOutputStream();
             try {
                 in = new PipedInputStream((PipedOutputStream)outPipe);
-            } catch ( IOException e ) {
+            } catch (IOException e) {
                 print("Console internal error (1)...", Color.red);
             }
         }
 
         inPipe = cin;
-        if ( inPipe == null ) {
+        if (inPipe == null) {
             PipedOutputStream pout = new PipedOutputStream();
-            out = new PrintStream( pout );
+            out = new PrintStream(pout);
             try {
                 inPipe = new BlockingPipedInputStream(pout);
-            } catch ( IOException e ) { print("Console internal error: "+e); }
+            } catch (IOException e) { print("Console internal error: "+e); }
         }
         // Start the inpipe watcher
-        new Thread( this ).start();
+        new Thread(this).start();
 
         requestFocus();
     }
@@ -161,24 +161,24 @@ public class JConsole extends JScrollPane
         text.requestFocus();
     }
 
-    public void keyPressed( KeyEvent e ) {
-        type( e );
+    public void keyPressed(KeyEvent e) {
+        type(e);
         gotUp=false;
     }
 
     public void keyTyped(KeyEvent e) {
-        type( e );
+        type(e);
     }
 
     public void keyReleased(KeyEvent e) {
         gotUp=true;
-        type( e );
+        type(e);
     }
 
-    private synchronized void type( KeyEvent e ) {
-        switch ( e.getKeyCode() )
+    private synchronized void type(KeyEvent e) {
+        switch (e.getKeyCode())
         {
-            case ( KeyEvent.VK_ENTER ):
+            case (KeyEvent.VK_ENTER):
                 if (e.getID() == KeyEvent.KEY_PRESSED) {
                     if (gotUp) {
                         enter();
@@ -190,23 +190,23 @@ public class JConsole extends JScrollPane
                 text.repaint();
                 break;
 
-            case ( KeyEvent.VK_UP ):
+            case (KeyEvent.VK_UP):
                 if (e.getID() == KeyEvent.KEY_PRESSED) {
                     historyUp();
                 }
                 e.consume();
                 break;
 
-            case ( KeyEvent.VK_DOWN ):
+            case (KeyEvent.VK_DOWN):
                 if (e.getID() == KeyEvent.KEY_PRESSED) {
                     historyDown();
                 }
                 e.consume();
                 break;
 
-            case ( KeyEvent.VK_LEFT ):
-            case ( KeyEvent.VK_BACK_SPACE ):
-            case ( KeyEvent.VK_DELETE ):
+            case (KeyEvent.VK_LEFT):
+            case (KeyEvent.VK_BACK_SPACE):
+            case (KeyEvent.VK_DELETE):
                 if (text.getCaretPosition() <= cmdStart) {
                     // This doesn't work for backspace.
                     // See default case for workaround
@@ -214,53 +214,53 @@ public class JConsole extends JScrollPane
                 }
                 break;
 
-            case ( KeyEvent.VK_RIGHT ):
+            case (KeyEvent.VK_RIGHT):
                 forceCaretMoveToStart();
                 break;
 
-            case ( KeyEvent.VK_HOME ):
+            case (KeyEvent.VK_HOME):
                 text.setCaretPosition(cmdStart);
                 e.consume();
                 break;
 
-            case ( KeyEvent.VK_U ): // clear line
-                if ( (e.getModifiers() & InputEvent.CTRL_MASK) > 0 ) {
-                    replaceRange( "", cmdStart, textLength());
+            case (KeyEvent.VK_U): // clear line
+                if ((e.getModifiers() & InputEvent.CTRL_MASK) > 0) {
+                    replaceRange("", cmdStart, textLength());
                     histLine = 0;
                     e.consume();
                 }
                 break;
 
-            case ( KeyEvent.VK_ALT ):
-            case ( KeyEvent.VK_CAPS_LOCK ):
-            case ( KeyEvent.VK_CONTROL ):
-            case ( KeyEvent.VK_META ):
-            case ( KeyEvent.VK_SHIFT ):
-            case ( KeyEvent.VK_PRINTSCREEN ):
-            case ( KeyEvent.VK_SCROLL_LOCK ):
-            case ( KeyEvent.VK_PAUSE ):
-            case ( KeyEvent.VK_INSERT ):
-            case ( KeyEvent.VK_F1):
-            case ( KeyEvent.VK_F2):
-            case ( KeyEvent.VK_F3):
-            case ( KeyEvent.VK_F4):
-            case ( KeyEvent.VK_F5):
-            case ( KeyEvent.VK_F6):
-            case ( KeyEvent.VK_F7):
-            case ( KeyEvent.VK_F8):
-            case ( KeyEvent.VK_F9):
-            case ( KeyEvent.VK_F10):
-            case ( KeyEvent.VK_F11):
-            case ( KeyEvent.VK_F12):
-            case ( KeyEvent.VK_ESCAPE ):
+            case (KeyEvent.VK_ALT):
+            case (KeyEvent.VK_CAPS_LOCK):
+            case (KeyEvent.VK_CONTROL):
+            case (KeyEvent.VK_META):
+            case (KeyEvent.VK_SHIFT):
+            case (KeyEvent.VK_PRINTSCREEN):
+            case (KeyEvent.VK_SCROLL_LOCK):
+            case (KeyEvent.VK_PAUSE):
+            case (KeyEvent.VK_INSERT):
+            case (KeyEvent.VK_F1):
+            case (KeyEvent.VK_F2):
+            case (KeyEvent.VK_F3):
+            case (KeyEvent.VK_F4):
+            case (KeyEvent.VK_F5):
+            case (KeyEvent.VK_F6):
+            case (KeyEvent.VK_F7):
+            case (KeyEvent.VK_F8):
+            case (KeyEvent.VK_F9):
+            case (KeyEvent.VK_F10):
+            case (KeyEvent.VK_F11):
+            case (KeyEvent.VK_F12):
+            case (KeyEvent.VK_ESCAPE):
 
             // only modifier pressed
             break;
 
             // Control-C
-            case ( KeyEvent.VK_C ):
+            case (KeyEvent.VK_C):
                 if (text.getSelectedText() == null) {
-                    if (( (e.getModifiers() & InputEvent.CTRL_MASK) > 0 )
+                    if (((e.getModifiers() & InputEvent.CTRL_MASK) > 0)
                     && (e.getID() == KeyEvent.KEY_PRESSED)) {
                         append("^C");
                     }
@@ -268,10 +268,10 @@ public class JConsole extends JScrollPane
                 }
                 break;
 
-            case ( KeyEvent.VK_TAB ):
+            case (KeyEvent.VK_TAB):
                 if (e.getID() == KeyEvent.KEY_RELEASED) {
-                    String part = text.getText().substring( cmdStart );
-                    doCommandCompletion( part );
+                    String part = text.getText().substring(cmdStart);
+                    doCommandCompletion(part);
                 }
                 e.consume();
                 break;
@@ -280,7 +280,7 @@ public class JConsole extends JScrollPane
                 if (
                     (e.getModifiers() &
                     (InputEvent.CTRL_MASK
-                    | InputEvent.ALT_MASK | InputEvent.META_MASK)) == 0 )
+                    | InputEvent.ALT_MASK | InputEvent.META_MASK)) == 0)
                 {
                     // plain character
                     forceCaretMoveToEnd();
@@ -302,8 +302,8 @@ public class JConsole extends JScrollPane
         }
     }
 
-    private void doCommandCompletion( String part ) {
-        if ( nameCompletion == null )
+    private void doCommandCompletion(String part) {
+        if (nameCompletion == null)
             return;
 
         int i=part.length()-1;
@@ -311,50 +311,50 @@ public class JConsole extends JScrollPane
         // Character.isJavaIdentifierPart()  How convenient for us!!
         while (
             i >= 0 &&
-                ( Character.isJavaIdentifierPart(part.charAt(i))
-                || part.charAt(i) == '.' )
-        )
+                (Character.isJavaIdentifierPart(part.charAt(i))
+                || part.charAt(i) == '.')
+       )
             i--;
 
         part = part.substring(i+1);
 
-        if ( part.length() < 2 )  // reasonable completion length
+        if (part.length() < 2)  // reasonable completion length
             return;
 
         //System.out.println("completing part: "+part);
 
         // no completion
         String [] complete = nameCompletion.completeName(part);
-        if ( complete.length == 0 ) {
+        if (complete.length == 0) {
             java.awt.Toolkit.getDefaultToolkit().beep();
             return;
         }
 
         // Found one completion (possibly what we already have)
-        if ( complete.length == 1 && !complete.equals(part) ) {
+        if (complete.length == 1 && !complete.equals(part)) {
             String append = complete[0].substring(part.length());
-            append( append );
+            append(append);
             return;
         }
 
         // Found ambiguous, show (some of) them
 
         String line = text.getText();
-        String command = line.substring( cmdStart );
+        String command = line.substring(cmdStart);
         // Find prompt
         for(i=cmdStart; line.charAt(i) != '\n' && i > 0; i--);
-        String prompt = line.substring( i+1, cmdStart );
+        String prompt = line.substring(i+1, cmdStart);
 
         // Show ambiguous
         StringBuffer sb = new StringBuffer("\n");
-        for( i=0; i<complete.length && i<SHOW_AMBIG_MAX; i++)
-            sb.append( complete[i] +"\n" );
-        if ( i == SHOW_AMBIG_MAX )
+        for(i=0; i<complete.length && i<SHOW_AMBIG_MAX; i++)
+            sb.append(complete[i] +"\n");
+        if (i == SHOW_AMBIG_MAX)
             sb.append("...\n");
 
-        print( sb, Color.gray );
-        print( prompt ); // print resets command start
-        append( command ); // append does not reset command start
+        print(sb, Color.gray);
+        print(prompt); // print resets command start
+        append(command); // append does not reset command start
     }
 
     private void resetCommandStart() {
@@ -394,16 +394,16 @@ public class JConsole extends JScrollPane
     private void enter() {
         String s = getCmd();
 
-        if ( s.length() == 0 )  // special hack for empty return!
+        if (s.length() == 0)  // special hack for empty return!
             s = ";\n";
         else {
-            history.addElement( s );
+            history.addElement(s);
             s = s +"\n";
         }
 
         append("\n");
         histLine = 0;
-        acceptLine( s );
+        acceptLine(s);
         text.repaint();
     }
 
@@ -419,18 +419,18 @@ public class JConsole extends JScrollPane
     }
 
     private void historyUp() {
-        if ( history.size() == 0 )
+        if (history.size() == 0)
             return;
-        if ( histLine == 0 )  // save current line
+        if (histLine == 0)  // save current line
             startedLine = getCmd();
-        if ( histLine < history.size() ) {
+        if (histLine < history.size()) {
             histLine++;
             showHistoryLine();
         }
     }
 
     private void historyDown() {
-        if ( histLine == 0 )
+        if (histLine == 0)
             return;
 
         histLine--;
@@ -439,19 +439,19 @@ public class JConsole extends JScrollPane
 
     private void showHistoryLine() {
         String showline;
-        if ( histLine == 0 )
+        if (histLine == 0)
             showline = startedLine;
         else
-            showline = (String)history.elementAt( history.size() - histLine );
+            showline = (String)history.elementAt(history.size() - histLine);
 
-        replaceRange( showline, cmdStart, textLength() );
+        replaceRange(showline, cmdStart, textLength());
         text.setCaretPosition(textLength());
         text.repaint();
     }
 
     String ZEROS = "000";
 
-    private void acceptLine( String line )
+    private void acceptLine(String line)
     {
         // Patch to handle Unicode characters
         // Submitted by Daniel Leuck
@@ -471,13 +471,13 @@ public class JConsole extends JScrollPane
         // End unicode patch
 
 
-        if (outPipe == null )
+        if (outPipe == null)
             print("Console internal error: cannot output ...", Color.red);
         else
             try {
-                outPipe.write( line.getBytes() );
+                outPipe.write(line.getBytes());
                 outPipe.flush();
-            } catch ( IOException e ) {
+            } catch (IOException e) {
                 outPipe = null;
                 throw new RuntimeException("Console pipe broken...");
             }
@@ -485,7 +485,7 @@ public class JConsole extends JScrollPane
     }
 
     public void println(Object o) {
-        print( String.valueOf(o) + "\n" );
+        print(String.valueOf(o) + "\n");
         text.repaint();
     }
 
@@ -507,8 +507,8 @@ public class JConsole extends JScrollPane
         text.repaint();
     }
 
-    public void error( Object o ) {
-        print( o, Color.red );
+    public void error(Object o) {
+        print(o, Color.red);
     }
 
     public void println(Icon icon) {
@@ -556,7 +556,7 @@ public class JConsole extends JScrollPane
         String fontFamilyName,
         int size,
         Color color
-        ) {
+       ) {
 
         print(s,fontFamilyName,size,color,false,false,false);
     }
@@ -569,7 +569,7 @@ public class JConsole extends JScrollPane
         final boolean bold,
         final  boolean italic,
         final boolean underline
-        )
+       )
     {
         invokeAndWait(new Runnable() {
             public void run() {
@@ -591,12 +591,12 @@ public class JConsole extends JScrollPane
         return setStyle(null, color);
     }
 
-    private AttributeSet setStyle( Font font, Color color)
+    private AttributeSet setStyle(Font font, Color color)
     {
         if (font!=null)
-            return setStyle( font.getFamily(), font.getSize(), color,
+            return setStyle(font.getFamily(), font.getSize(), color,
                 font.isBold(), font.isItalic(),
-                StyleConstants.isUnderline(getStyle()) );
+                StyleConstants.isUnderline(getStyle()));
         else
             return setStyle(null,-1,color);
     }
@@ -624,7 +624,7 @@ public class JConsole extends JScrollPane
         boolean bold,
         boolean italic,
         boolean underline
-        )
+       )
     {
         MutableAttributeSet attr = new SimpleAttributeSet();
         if (color!=null)
@@ -654,18 +654,18 @@ public class JConsole extends JScrollPane
         return text.getCharacterAttributes();
     }
 
-    public void setFont( Font font ) {
-        super.setFont( font );
+    public void setFont(Font font) {
+        super.setFont(font);
 
-        if ( text != null )
-            text.setFont( font );
+        if (text != null)
+            text.setFont(font);
     }
 
     private void inPipeWatcher() throws IOException {
         byte [] ba = new byte [256]; // arbitrary blocking factor
         int read;
-        while ( (read = inPipe.read(ba)) != -1 ) {
-            print( new String(ba, 0, read) );
+        while ((read = inPipe.read(ba)) != -1) {
+            print(new String(ba, 0, read));
             //text.repaint();
         }
 
@@ -675,7 +675,7 @@ public class JConsole extends JScrollPane
     public void run() {
         try {
             inPipeWatcher();
-        } catch ( IOException e ) {
+        } catch (IOException e) {
             print("Console: I/O Error: "+e+"\n", Color.red);
         }
     }
@@ -756,20 +756,20 @@ public class JConsole extends JScrollPane
     public static class BlockingPipedInputStream extends PipedInputStream
     {
         boolean closed;
-        public BlockingPipedInputStream( PipedOutputStream pout )
+        public BlockingPipedInputStream(PipedOutputStream pout)
             throws IOException
         {
             super(pout);
         }
         public synchronized int read() throws IOException {
-            if ( closed )
+            if (closed)
                 throw new IOException("stream closed");
 
             while (super.in < 0) {  // While no data */
                 notifyAll();    // Notify any writers to wake up
                 try {
                     wait(750);
-                } catch ( InterruptedException e ) {
+                } catch (InterruptedException e) {
                     throw new InterruptedIOException();
                 }
             }
@@ -787,15 +787,15 @@ public class JConsole extends JScrollPane
         }
     }
 
-    public void setNameCompletion( NameCompletion nc ) {
+    public void setNameCompletion(NameCompletion nc) {
         this.nameCompletion = nc;
     }
 
-    public void setWaitFeedback( boolean on ) {
-        if ( on )
-            setCursor( Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) );
+    public void setWaitFeedback(boolean on) {
+        if (on)
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         else
-            setCursor( Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR) );
+            setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
     }
 
     private int textLength() { return text.getDocument().getLength(); }

@@ -47,7 +47,7 @@ public class Sessiond extends Thread
     /*
     public static void main(String argv[]) throws IOException
     {
-        new Sessiond( Integer.parseInt(argv[0])).start();
+        new Sessiond(Integer.parseInt(argv[0])).start();
     }
     */
 
@@ -87,7 +87,7 @@ class SessiondConnection extends Thread
             PrintStream out = new PrintStream(client.getOutputStream());
             Interpreter i = new Interpreter(
                 new InputStreamReader(in), out, out, true, globalNameSpace);
-            i.setExitOnEOF( false ); // don't exit interp
+            i.setExitOnEOF(false); // don't exit interp
             i.run();
         }
         catch(IOException e) { System.out.println(e); }

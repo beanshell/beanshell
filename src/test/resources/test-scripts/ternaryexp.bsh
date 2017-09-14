@@ -2,10 +2,10 @@
 
 source("TestHarness.bsh");
 
-assert( ( true ? 1 : 2 ) == 1 );
-assert( ( false ? 1 : 2 ) == 2 );
+assert((true ? 1 : 2) == 1);
+assert((false ? 1 : 2) == 2);
 
-assert( ( true ? "foo" : new Integer(1) ) instanceof String );
-assert( ( false ? "foo" : new Integer(1) ) instanceof Integer );
+assert((true ? "foo" : new Integer(1)) instanceof String);
+assert((false ? "foo" : new Integer(1)) instanceof Integer);
 
 complete();

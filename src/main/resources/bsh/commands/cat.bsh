@@ -2,44 +2,44 @@
     Print the contents of filename, url, or stream (like Unix cat)
 */
 
-bsh.help.cat = "usage: cat( filename )";
+bsh.help.cat = "usage: cat(filename)";
 
 /**
     cat comment
 */
-cat( String filename )
+cat(String filename)
 {
-    this.file = pathToFile( filename );
+    this.file = pathToFile(filename);
 
-    if ( !file.exists() || !file.canRead() ) {
-        print( "Can't read " + file );
+    if (!file.exists() || !file.canRead()) {
+        print("Can't read " + file);
         return;
     }
 
-    cat( new FileReader( file ) );
+    cat(new FileReader(file));
 }
 
 /**
     cat comment
 */
-cat( URL url )
+cat(URL url)
 {
-    cat( url.openStream() );
+    cat(url.openStream());
 }
 
-cat( InputStream ins )
+cat(InputStream ins)
 {
-    this.bin = new BufferedReader( new InputStreamReader( ins ) );
-    cat( bin );
+    this.bin = new BufferedReader(new InputStreamReader(ins));
+    cat(bin);
 }
 
-cat( Reader reader )
+cat(Reader reader)
 {
     try {
-        this.bin = new BufferedReader( reader );
-        while ( (this.line=bin.readLine() ) != null )
-            print( line );
-    } catch ( Exception e ) {
-        print( "Error reading stream:"+ e);
+        this.bin = new BufferedReader(reader);
+        while ((this.line=bin.readLine()) != null)
+            print(line);
+    } catch (Exception e) {
+        print("Error reading stream:"+ e);
     }
 }

@@ -4,22 +4,22 @@ source("TestHarness.bsh");
 
 f=(float)5;
 
-assert( ((int)0.5) == 0 );
+assert(((int)0.5) == 0);
 
 a=0.3;
-assert( ((int)a) == 0 );
+assert(((int)a) == 0);
 
 d=(double)+1;
 
 // cast error should be changed to throw classcastexception which could
 // be caught
-assert( isEvalError( "i=(Integer)\"foo\";") );
+assert(isEvalError("i=(Integer)\"foo\";"));
 
 try {
   i=(Integer)"foo";
-} catch ( ArithmeticException e0 ) {
+} catch (ArithmeticException e0) {
     assert(false); // just checking
-} catch ( ClassCastException e ) {
+} catch (ClassCastException e) {
     flag();
 }
 
@@ -34,26 +34,26 @@ String s2 = (String)null;
 int x = (int)'a';
 
 // can't cast null to primitive type
-assert( isEvalError("(int)null"));
+assert(isEvalError("(int)null"));
 
 // can't cast void to anything
-assert( isEvalError("(int)xyz"));
-assert( isEvalError("(Object)xyz"));
+assert(isEvalError("(int)xyz"));
+assert(isEvalError("(Object)xyz"));
 
 // casting primitives to object types used to be illegal
 // Now they get boxed
-//assert( isEvalError("(Object)5"));
-//assert( isEvalError("(Object)'a'"));
-// assert( isEvalError("(Object)true"));
+//assert(isEvalError("(Object)5"));
+//assert(isEvalError("(Object)'a'"));
+// assert(isEvalError("(Object)true"));
 
 // boolean can be cast only in the trivial case
 (boolean)true;
 // can't cast boolean to other primitive type
-assert( isEvalError("(int)true"));
+assert(isEvalError("(int)true"));
 
 // can't cast object to primitive type
-assert( isEvalError("(int)\"foo\""));
-assert( isEvalError("(boolean)\"foo\""));
+assert(isEvalError("(int)\"foo\""));
+assert(isEvalError("(boolean)\"foo\""));
 
 complete();
 

@@ -47,11 +47,11 @@ public class EvalError extends Exception
 
     CallStack callstack;
 
-    public EvalError( String s, SimpleNode node, CallStack callstack ) {
+    public EvalError(String s, SimpleNode node, CallStack callstack) {
         setMessage(s);
         this.node = node;
         // freeze the callstack for the stack trace.
-        if ( callstack != null )
+        if (callstack != null)
             this.callstack = callstack.copy();
     }
 
@@ -61,7 +61,7 @@ public class EvalError extends Exception
     public String toString()
     {
         String trace;
-        if ( node != null )
+        if (node != null)
             trace = " : at Line: "+ node.getLineNumber()
                 + " : in file: "+ node.getSourceFile()
                 + " : "+node.getText();
@@ -69,7 +69,7 @@ public class EvalError extends Exception
             // Users should not normally see this.
             trace = ": <at unknown location>";
 
-        if ( callstack != null )
+        if (callstack != null)
             trace = trace +"\n" + getScriptStackTrace();
 
         return getMessage() + trace;
@@ -78,10 +78,10 @@ public class EvalError extends Exception
     /**
         Re-throw the error, prepending the specified message.
     */
-    public void reThrow( String msg )
+    public void reThrow(String msg)
         throws EvalError
     {
-        prependMessage( msg );
+        prependMessage(msg);
         throw this;
     }
 
@@ -93,26 +93,26 @@ public class EvalError extends Exception
         return node;
     }
 
-    void setNode( SimpleNode node ) {
+    void setNode(SimpleNode node) {
         this.node = node;
     }
 
     public String getErrorText() {
-        if ( node != null )
+        if (node != null)
             return node.getText() ;
         else
             return "<unknown error>";
     }
 
     public int getErrorLineNumber() {
-        if ( node != null )
+        if (node != null)
             return node.getLineNumber() ;
         else
             return -1;
     }
 
     public String getErrorSourceFile() {
-        if ( node != null )
+        if (node != null)
             return node.getSourceFile() ;
         else
             return "<unknown file>";
@@ -120,19 +120,19 @@ public class EvalError extends Exception
 
     public String getScriptStackTrace()
     {
-        if ( callstack == null )
+        if (callstack == null)
             return "<Unknown>";
 
         String trace = "";
         CallStack stack = callstack.copy();
-        while ( stack.depth() > 0 )
+        while (stack.depth() > 0)
         {
             NameSpace ns = stack.pop();
             SimpleNode node = ns.getNode();
-            if ( ns.isMethod )
+            if (ns.isMethod)
             {
                 trace = trace + "\nCalled from method: " + ns.getName();
-                if ( node != null )
+                if (node != null)
                     trace += " : at Line: "+ node.getLineNumber()
                         + " : in file: "+ node.getSourceFile()
                         + " : "+node.getText();
@@ -147,17 +147,17 @@ public class EvalError extends Exception
     */
     public String getMessage() { return message; }
 
-    public void setMessage( String s ) { message = s; }
+    public void setMessage(String s) { message = s; }
 
     /**
         Prepend the message if it is non-null.
     */
-    protected void prependMessage( String s )
+    protected void prependMessage(String s)
     {
-        if ( s == null )
+        if (s == null)
             return;
 
-        if ( message == null )
+        if (message == null)
             message = s;
         else
             message = s + " : "+ message;

@@ -3,6 +3,6 @@
     unix-like bsh commands.
 */
 pwd() {
-    print( bsh.cwd );
+    print(bsh.cwd);
 }
 

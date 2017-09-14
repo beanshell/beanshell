@@ -40,7 +40,7 @@ import java.io.*;
 */
 class CommandLineReader extends FilterReader {
 
-    public CommandLineReader( Reader in ) {
+    public CommandLineReader(Reader in) {
         super(in);
     }
 
@@ -54,16 +54,16 @@ class CommandLineReader extends FilterReader {
     public int read() throws IOException {
         int b;
 
-        if ( state == sentSemi ) {
+        if (state == sentSemi) {
             state = lastCharNL;
             return '\n';
         }
 
         // skip CR
-        while ( (b = in.read()) == '\r' );
+        while ((b = in.read()) == '\r');
 
-        if ( b == '\n' )
-            if ( state == lastCharNL ) {
+        if (b == '\n')
+            if (state == lastCharNL) {
                 b = ';';
                 state = sentSemi;
             } else
@@ -82,7 +82,7 @@ class CommandLineReader extends FilterReader {
     public int read(char buff[], int off, int len) throws IOException
     {
         int b = read();
-        if ( b == -1 )
+        if (b == -1)
             return -1;  // EOF, not zero read apparently
         else {
             buff[off]=(char)b;
@@ -91,10 +91,10 @@ class CommandLineReader extends FilterReader {
     }
 
     // Test it
-    public static void main( String [] args ) throws Exception {
-        Reader in = new CommandLineReader( new InputStreamReader(System.in) );
-        while ( true )
-            System.out.println( in.read() );
+    public static void main(String [] args) throws Exception {
+        Reader in = new CommandLineReader(new InputStreamReader(System.in));
+        while (true)
+            System.out.println(in.read());
 
     }
 }

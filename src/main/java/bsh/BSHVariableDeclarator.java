@@ -60,7 +60,7 @@ class BSHVariableDeclarator extends SimpleNode
         // null value means no value
         Object value = null;
 
-        if ( jjtGetNumChildren() > 0 )
+        if (jjtGetNumChildren() > 0)
         {
             SimpleNode initializer = (SimpleNode)jjtGetChild(0);
 
@@ -70,18 +70,18 @@ class BSHVariableDeclarator extends SimpleNode
                 (This allows array initializer to handle the problem...
                 allowing for future enhancements in loosening types there).
             */
-            if ( (typeNode != null)
+            if ((typeNode != null)
                 && initializer instanceof BSHArrayInitializer
-            )
+           )
                 value = ((BSHArrayInitializer)initializer).eval(
                     typeNode.getBaseType(), typeNode.getArrayDims(),
                     callstack, interpreter);
             else
-                value = initializer.eval( callstack, interpreter);
+                value = initializer.eval(callstack, interpreter);
         }
 
-        if ( value == Primitive.VOID )
-            throw new EvalError("Void initializer.", this, callstack );
+        if (value == Primitive.VOID)
+            throw new EvalError("Void initializer.", this, callstack);
 
         return value;
     }

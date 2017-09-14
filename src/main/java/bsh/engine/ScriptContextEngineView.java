@@ -22,7 +22,7 @@ public class ScriptContextEngineView implements Map<String,Object>
 {
     ScriptContext context;
 
-    public ScriptContextEngineView( ScriptContext context )
+    public ScriptContextEngineView(ScriptContext context)
     {
         this.context = context;
     }
@@ -58,10 +58,10 @@ public class ScriptContextEngineView implements Map<String,Object>
      * not permit <tt>null</tt> keys (optional).
      */
     // Why isn't the compiler allowing this?
-    //public boolean containsKey( String key )
-    public boolean containsKey( Object key )
+    //public boolean containsKey(String key)
+    public boolean containsKey(Object key)
     {
-        return context.getAttribute( (String)key ) != null;
+        return context.getAttribute((String)key) != null;
     }
 
     /**
@@ -82,10 +82,10 @@ public class ScriptContextEngineView implements Map<String,Object>
      * @throws NullPointerException if the value is <tt>null</tt> and this map does
      * not permit <tt>null</tt> values (optional).
      */
-    public boolean containsValue( Object value )
+    public boolean containsValue(Object value)
     {
         Set values = totalValueSet();
-        return values.contains( value );
+        return values.contains(value);
     }
 
     /**
@@ -104,9 +104,9 @@ public class ScriptContextEngineView implements Map<String,Object>
      * not permit <tt>null</tt> keys (optional).
      * @see #containsKey(Object)
      */
-    public Object get( Object key )
+    public Object get(Object key)
     {
-        return context.getAttribute( (String)key );
+        return context.getAttribute((String)key);
     }
 
     /**
@@ -129,11 +129,11 @@ public class ScriptContextEngineView implements Map<String,Object>
      * @throws NullPointerException if this map does not permit <tt>null</tt> keys
      * or values, and the specified key or value is <tt>null</tt>.
      */
-    public Object put( String key, Object value )
+    public Object put(String key, Object value)
     {
         Object oldValue =
-            context.getAttribute( key, ENGINE_SCOPE );
-        context.setAttribute( key, value, ENGINE_SCOPE );
+            context.getAttribute(key, ENGINE_SCOPE);
+        context.setAttribute(key, value, ENGINE_SCOPE);
         return oldValue;
     }
 
@@ -153,9 +153,9 @@ public class ScriptContextEngineView implements Map<String,Object>
      * this map does not permit <tt>null</tt> keys or values, and the specified map
      * contains <tt>null</tt> keys or values.
      */
-    public void putAll( Map<? extends String, ? extends Object> t )
+    public void putAll(Map<? extends String, ? extends Object> t)
     {
-        context.getBindings( ENGINE_SCOPE ).putAll( t );
+        context.getBindings(ENGINE_SCOPE).putAll(t);
     }
 
     /**
@@ -181,14 +181,14 @@ public class ScriptContextEngineView implements Map<String,Object>
      * supported by this map.
      */
     // Why is the compiler complaining about this?
-    //public Object remove( String key )
-    public Object remove( Object okey )
+    //public Object remove(String key)
+    public Object remove(Object okey)
     {
         // This shouldn't be necessary... we don't map Objects, Strings.
         String key = (String)okey;
         Object oldValue =
-            context.getAttribute( key, ENGINE_SCOPE );
-        context.removeAttribute( key, ENGINE_SCOPE );
+            context.getAttribute(key, ENGINE_SCOPE);
+        context.removeAttribute(key, ENGINE_SCOPE);
         return oldValue;
     }
 
@@ -199,7 +199,7 @@ public class ScriptContextEngineView implements Map<String,Object>
      */
     public void clear()
     {
-        context.getBindings( ENGINE_SCOPE ).clear();
+        context.getBindings(ENGINE_SCOPE).clear();
     }
 
     /**
@@ -249,8 +249,8 @@ public class ScriptContextEngineView implements Map<String,Object>
     {
         Set keys = new HashSet();
         List<Integer> scopes = context.getScopes();
-        for ( int i : scopes ) {
-            keys.addAll( context.getBindings( i ).keySet() );
+        for (int i : scopes) {
+            keys.addAll(context.getBindings(i).keySet());
         }
         return Collections.unmodifiableSet(keys);
     }
@@ -258,8 +258,8 @@ public class ScriptContextEngineView implements Map<String,Object>
     {
         Set values = new HashSet();
         List<Integer> scopes = context.getScopes();
-        for ( int i : scopes ) {
-            values.addAll( context.getBindings( i ).values() );
+        for (int i : scopes) {
+            values.addAll(context.getBindings(i).values());
         }
         return Collections.unmodifiableSet(values);
     }

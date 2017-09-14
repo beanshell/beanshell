@@ -16,22 +16,22 @@ import bsh.util.JConsole;
 */
 printBanner()
 {
-    if ( bsh.console != void
+    if (bsh.console != void
         && Capabilities.haveSwing()
-        && (bsh.console instanceof JConsole) )
+        && (bsh.console instanceof JConsole))
     {
 
         this.jconsole = bsh.console;
         jconsole.println(
-            new ImageIcon( getResource("/bsh/util/lib/small_bean_shell.gif")) );
+            new ImageIcon(getResource("/bsh/util/lib/small_bean_shell.gif")));
         jconsole.print(
             Interpreter.VERSION + " - by Pat Niemeyer (pat@pat.net)",
             new Font("SansSerif", Font.BOLD, 12),
-            new Color(20,100,20) );
+            new Color(20,100,20));
         jconsole.println();
 
     } else
-        print( "BeanShell "
+        print("BeanShell "
             + Interpreter.VERSION +" - by Pat Niemeyer (pat@pat.net)");
 
 }

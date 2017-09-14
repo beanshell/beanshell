@@ -59,9 +59,9 @@ public class DelayedEvalBshMethod extends BshMethod
         BSHBlock methodBody,
         NameSpace declaringNameSpace, Modifiers modifiers,
         CallStack callstack, Interpreter interpreter
-    ) {
-        super( name, null/*returnType*/, paramNames, null/*paramTypes*/,
-            methodBody, declaringNameSpace, modifiers );
+   ) {
+        super(name, null/*returnType*/, paramNames, null/*paramTypes*/,
+            methodBody, declaringNameSpace, modifiers);
 
         this.returnTypeDescriptor = returnTypeDescriptor;
         this.returnTypeNode = returnTypeNode;
@@ -75,13 +75,13 @@ public class DelayedEvalBshMethod extends BshMethod
 
     public Class getReturnType()
     {
-        if ( returnTypeNode == null )
+        if (returnTypeNode == null)
             return null;
 
         // BSHType will cache the type for us
         try {
-            return returnTypeNode.evalReturnType( callstack, interpreter );
-        } catch ( EvalError e ) {
+            return returnTypeNode.evalReturnType(callstack, interpreter);
+        } catch (EvalError e) {
             throw new InterpreterError("can't eval return type: "+e);
         }
     }
@@ -92,8 +92,8 @@ public class DelayedEvalBshMethod extends BshMethod
     {
         // BSHFormalParameters will cache the type for us
         try {
-            return (Class [])paramTypesNode.eval( callstack, interpreter );
-        } catch ( EvalError e ) {
+            return (Class [])paramTypesNode.eval(callstack, interpreter);
+        } catch (EvalError e) {
             throw new InterpreterError("can't eval param types: "+e);
         }
     }

@@ -16,8 +16,8 @@ gee() {
     assert(false);
 }
 
-assert( foo() == 42 );
-assert( bar() == 42 );
+assert(foo() == 42);
+assert(bar() == 42);
 
 eval("a=5; return; a=6");
 assert(a==5);

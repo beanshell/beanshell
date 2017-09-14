@@ -95,116 +95,116 @@ public class AWTConsole extends TextArea
     private Vector history = new Vector();
     private int histLine = 0;
 
-    public AWTConsole( int rows, int cols, InputStream cin, OutputStream cout ) {
+    public AWTConsole(int rows, int cols, InputStream cin, OutputStream cout) {
         super(rows, cols);
-        setFont( new Font("Monospaced",Font.PLAIN,14) );
+        setFont(new Font("Monospaced",Font.PLAIN,14));
         setEditable(false);
-        addKeyListener ( this );
+        addKeyListener (this);
 
         outPipe = cout;
-        if ( outPipe == null ) {
+        if (outPipe == null) {
             outPipe = new PipedOutputStream();
             try {
                 in = new PipedInputStream((PipedOutputStream)outPipe);
-            } catch ( IOException e ) {
+            } catch (IOException e) {
                 print("Console internal error...");
             }
         }
 
         // start the inpipe watcher
         inPipe = cin;
-        new Thread( this ).start();
+        new Thread(this).start();
 
         requestFocus();
     }
 
-    public void keyPressed( KeyEvent e ) {
-        type( e.getKeyCode(), e.getKeyChar(), e.getModifiers() );
+    public void keyPressed(KeyEvent e) {
+        type(e.getKeyCode(), e.getKeyChar(), e.getModifiers());
         e.consume();
     }
 
     public AWTConsole() {
         this(12, 80, null, null);
     }
-    public AWTConsole( InputStream in, OutputStream out ) {
+    public AWTConsole(InputStream in, OutputStream out) {
         this(12, 80, in, out);
     }
 
-    public void type(int code, char ch, int modifiers ) {
-        switch ( code ) {
-            case ( KeyEvent.VK_BACK_SPACE ):
+    public void type(int code, char ch, int modifiers) {
+        switch (code) {
+            case (KeyEvent.VK_BACK_SPACE):
                 if (line.length() > 0) {
-                    line.setLength( line.length() - 1 );
-                    replaceRange( "", textLength-1, textLength );
+                    line.setLength(line.length() - 1);
+                    replaceRange("", textLength-1, textLength);
                     textLength--;
                 }
                 break;
-            case ( KeyEvent.VK_ENTER ):
+            case (KeyEvent.VK_ENTER):
                 enter();
                 break;
-            case ( KeyEvent.VK_U ):
-                if ( (modifiers & InputEvent.CTRL_MASK) > 0 ) {
+            case (KeyEvent.VK_U):
+                if ((modifiers & InputEvent.CTRL_MASK) > 0) {
                     int len = line.length();
-                    replaceRange( "", textLength-len, textLength );
-                    line.setLength( 0 );
+                    replaceRange("", textLength-len, textLength);
+                    line.setLength(0);
                     histLine = 0;
                     textLength = getText().length();
                 } else
-                    doChar( ch );
+                    doChar(ch);
                 break;
-            case ( KeyEvent.VK_UP ):
+            case (KeyEvent.VK_UP):
                 historyUp();
                 break;
-            case ( KeyEvent.VK_DOWN ):
+            case (KeyEvent.VK_DOWN):
                 historyDown();
                 break;
-            case ( KeyEvent.VK_TAB ):
+            case (KeyEvent.VK_TAB):
                 line.append("    ");
                 append("    ");
                 textLength +=4;
                 break;
 /*
-            case ( KeyEvent.VK_LEFT ):
+            case (KeyEvent.VK_LEFT):
                 if (line.length() > 0) {
                 break;
 */
             // Control-C
-            case ( KeyEvent.VK_C ):
-                if ( (modifiers & InputEvent.CTRL_MASK) > 0 ) {
+            case (KeyEvent.VK_C):
+                if ((modifiers & InputEvent.CTRL_MASK) > 0) {
                     line.append("^C");
                     append("^C");
                     textLength += 2;
                 } else
-                    doChar( ch );
+                    doChar(ch);
                 break;
             default:
-                doChar( ch );
+                doChar(ch);
         }
     }
 
-    private void doChar( char ch ) {
-        if ( (ch >= ' ') && (ch <= '~') ) {
-            line.append( ch );
-            append( String.valueOf(ch) );
+    private void doChar(char ch) {
+        if ((ch >= ' ') && (ch <= '~')) {
+            line.append(ch);
+            append(String.valueOf(ch));
             textLength++;
         }
     }
 
     private void enter() {
         String s;
-        if ( line.length() == 0 )  // special hack for empty return!
+        if (line.length() == 0)  // special hack for empty return!
             s = ";\n";
         else {
             s = line +"\n";
-            history.addElement( line.toString() );
+            history.addElement(line.toString());
         }
-        line.setLength( 0 );
+        line.setLength(0);
         histLine = 0;
         append("\n");
         textLength = getText().length(); // sync for safety
-        acceptLine( s );
+        acceptLine(s);
 
-        setCaretPosition( textLength );
+        setCaretPosition(textLength);
     }
 
     /*
@@ -213,9 +213,9 @@ public class AWTConsole extends TextArea
         let us set us set a caret position greater than the text length.
         Great.  What a piece of crap.
     */
-    public void setCaretPosition( int pos ) {
+    public void setCaretPosition(int pos) {
         ((java.awt.peer.TextComponentPeer)getPeer()).setCaretPosition(
-            pos + countNLs() );
+            pos + countNLs());
     }
 
     /*
@@ -226,23 +226,23 @@ public class AWTConsole extends TextArea
         String s = getText();
         int c = 0;
         for(int i=0; i< s.length(); i++)
-            if ( s.charAt(i) == '\n' )
+            if (s.charAt(i) == '\n')
                 c++;
         return c;
     }
 
     private void historyUp() {
-        if ( history.size() == 0 )
+        if (history.size() == 0)
             return;
-        if ( histLine == 0 )  // save current line
+        if (histLine == 0)  // save current line
             startedLine = line.toString();
-        if ( histLine < history.size() ) {
+        if (histLine < history.size()) {
             histLine++;
             showHistoryLine();
         }
     }
     private void historyDown() {
-        if ( histLine == 0 )
+        if (histLine == 0)
             return;
 
         histLine--;
@@ -251,57 +251,57 @@ public class AWTConsole extends TextArea
 
     private void showHistoryLine() {
         String showline;
-        if ( histLine == 0 )
+        if (histLine == 0)
             showline = startedLine;
         else
-            showline = (String)history.elementAt( history.size() - histLine );
+            showline = (String)history.elementAt(history.size() - histLine);
 
-        replaceRange( showline, textLength-line.length(), textLength );
+        replaceRange(showline, textLength-line.length(), textLength);
         line = new StringBuffer(showline);
         textLength = getText().length();
     }
 
-    private void acceptLine( String line ) {
-        if (outPipe == null )
+    private void acceptLine(String line) {
+        if (outPipe == null)
             print("Console internal error...");
         else
             try {
-                outPipe.write( line.getBytes() );
+                outPipe.write(line.getBytes());
                 outPipe.flush();
-            } catch ( IOException e ) {
+            } catch (IOException e) {
                 outPipe = null;
                 throw new RuntimeException("Console pipe broken...");
             }
     }
 
-    public void println( Object o ) {
-        print( String.valueOf(o)+"\n" );
+    public void println(Object o) {
+        print(String.valueOf(o)+"\n");
     }
 
-    public void error( Object o ) {
-        print( o, Color.red );
+    public void error(Object o) {
+        print(o, Color.red);
     }
 
     // No color
-    public void print( Object o, Color c ) {
-        print( "*** " + String.valueOf(o));
+    public void print(Object o, Color c) {
+        print("*** " + String.valueOf(o));
     }
 
-    synchronized public void print( Object o ) {
+    synchronized public void print(Object o) {
         append(String.valueOf(o));
         textLength = getText().length(); // sync for safety
     }
 
     private void inPipeWatcher() throws IOException {
-        if ( inPipe == null ) {
+        if (inPipe == null) {
             PipedOutputStream pout = new PipedOutputStream();
-            out = new PrintStream( pout );
+            out = new PrintStream(pout);
             inPipe = new PipedInputStream(pout);
         }
         byte [] ba = new byte [256]; // arbitrary blocking factor
         int read;
-        while ( (read = inPipe.read(ba)) != -1 )
-            print( new String(ba, 0, read) );
+        while ((read = inPipe.read(ba)) != -1)
+            print(new String(ba, 0, read));
 
         println("Console: Input closed...");
     }
@@ -309,24 +309,24 @@ public class AWTConsole extends TextArea
     public void run() {
         try {
             inPipeWatcher();
-        } catch ( IOException e ) {
+        } catch (IOException e) {
             println("Console: I/O Error...");
         }
     }
 
-    public static void main( String args[] ) {
+    public static void main(String args[]) {
         AWTConsole console = new AWTConsole();
         final Frame f = new Frame("Bsh Console");
         f.add(console, "Center");
         f.pack();
         f.setVisible(true);
-        f.addWindowListener( new WindowAdapter() {
-            public void windowClosing( WindowEvent e ) {
+        f.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
                 f.dispose();
             }
-        } );
+        });
 
-        Interpreter interpreter = new Interpreter( console );
+        Interpreter interpreter = new Interpreter(console);
         interpreter.run();
     }
 

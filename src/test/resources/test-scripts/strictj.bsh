@@ -4,14 +4,14 @@ import bsh.Interpreter;
 // Various commands aren't strictJava safe yet, so this has some trouble.
 // Everything was working when tested.
 /*
-setStrictJava( false );
+setStrictJava(false);
 strictx=5;
 
-setStrictJava( true );
+setStrictJava(true);
 int stricty1=5;
-assert( isEvalError("stricty2=5;") );
+assert(isEvalError("stricty2=5;"));
 
-setStrictJava( false );
+setStrictJava(false);
 stricty2=5;
 */
 
@@ -35,12 +35,12 @@ loosei.eval("q=5");
 
 stricti.eval("int q2=5");
 // error, untyped assignment
-assert( isEvalError("stricti.eval(\"q=5\")") );
+assert(isEvalError("stricti.eval(\"q=5\")"));
 // error, untyped method arg
-assert( isEvalError("stricti.eval(\"int foo(a) {} \")") );
+assert(isEvalError("stricti.eval(\"int foo(a) {} \")"));
 // error, untyped return
-assert( isEvalError("stricti.eval(\"foo(int a) {} \")") );
+assert(isEvalError("stricti.eval(\"foo(int a) {} \")"));
 // error, untyped catch block
-assert( isEvalError("stricti.eval(\"try{throw new Exception();}catch(e){}\")"));
+assert(isEvalError("stricti.eval(\"try{throw new Exception();}catch(e){}\")"));
 
 complete();

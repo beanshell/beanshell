@@ -15,9 +15,9 @@ import bsh.ClassPathException;
 import bsh.util.JConsole;
 import bsh.util.NameCompletionTable;
 
-makeWorkspace( String name )
+makeWorkspace(String name)
 {
-    if ( bsh.system.desktop == void ) {
+    if (bsh.system.desktop == void) {
         print("No desktop...");
         return;
     }
@@ -25,7 +25,7 @@ makeWorkspace( String name )
     this.console = new JConsole();
     this.name="Bsh Workspace: "+name;
 
-    this.interpreter = new Interpreter( console );
+    this.interpreter = new Interpreter(console);
 
     // provide name completion for console, name source is global namespace
     // move this into JConsole?
@@ -33,32 +33,32 @@ makeWorkspace( String name )
     // Access to read classpath is protected
     try {
     this.nct = new NameCompletionTable();
-    nct.add( interpreter.getNameSpace() );
+    nct.add(interpreter.getNameSpace());
     try {
         this.bcm = this.caller.namespace.getClassManager();
-        if ( bcm != null ) {
+        if (bcm != null) {
             classNamesSource = bcm.getClassPath();
-            nct.add( classNamesSource );
+            nct.add(classNamesSource);
         }
-    } catch ( ClassPathException e ) {
+    } catch (ClassPathException e) {
         error("classpath exception in name compl:"+e);
     }
-    console.setNameCompletion( nct );
+    console.setNameCompletion(nct);
     // end setup name completion
-    } catch ( SecurityException e ) { }
+    } catch (SecurityException e) { }
 
     // for convenience and backwards compatibility
-    interpreter.set( "bsh.desktop",  bsh.system.desktop );
+    interpreter.set("bsh.desktop",  bsh.system.desktop);
 
-    this.frame = bsh.system.desktop.makeInternalFrame( name );
+    this.frame = bsh.system.desktop.makeInternalFrame(name);
     frame.frameIcon=bsh.system.icons.workspace;
 
     /*
         Notes: Careful not to print anything before returning sys io...
         console is now gone.
     */
-    internalFrameClosing( e ) {
-        if ( haveSysIO )
+    internalFrameClosing(e) {
+        if (haveSysIO)
             returnSysIO();
     }
     internalFrameActivated(ife) {}
@@ -70,14 +70,14 @@ makeWorkspace( String name )
 
     frame.addInternalFrameListener(this);
 
-    actionPerformed( e )
+    actionPerformed(e)
     {
         this.com = e.getActionCommand();
-        if ( com.equals("Workspace Editor") )
-            workspaceEditor( interpreter, name );
-        else if ( com.equals("Capture System in/out/err") )
+        if (com.equals("Workspace Editor"))
+            workspaceEditor(interpreter, name);
+        else if (com.equals("Capture System in/out/err"))
             captureSysIO();
-        else if ( com.equals("Close") ) {
+        else if (com.equals("Close")) {
             frame.setClosed(true);
         }
     }
@@ -102,15 +102,15 @@ makeWorkspace( String name )
 
     frame.getContentPane().add("Center", console);
     //frame.pack();
-    this.thread = new Thread( interpreter );
+    this.thread = new Thread(interpreter);
     thread.start();
 
     frame.setBounds(5,5,600,300);
     // cascade windows?
     //off=bsh.system.desktop.windowCount*10;
-    //frame.setLocation( off, off );
+    //frame.setLocation(off, off);
     //frame.validate();
-    bsh.system.desktop.addInternalFrame( frame  );
+    bsh.system.desktop.addInternalFrame(frame );
     frame.toFront();
     frame.setSelected(true);
 
@@ -121,16 +121,16 @@ makeWorkspace( String name )
 
     captureSysIO() {
         super.haveSysIO = true; // old scoping rules
-        System.setIn( console.getInputStream() );
-        System.setOut( console.getOut() );
-        System.setErr( console.getErr() );
+        System.setIn(console.getInputStream());
+        System.setOut(console.getOut());
+        System.setErr(console.getErr());
     }
 
     returnSysIO() {
         super.haveSysIO = false; // old scoping rules
-        System.setIn( sysIn );
-        System.setOut( sysOut );
-        System.setErr( sysErr );
+        System.setIn(sysIn);
+        System.setOut(sysOut);
+        System.setErr(sysErr);
     }
 
     return this;

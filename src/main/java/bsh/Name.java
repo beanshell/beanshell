@@ -74,7 +74,7 @@ import java.lang.reflect.Method;
     the equivalent using successive calls:
 
         // does *not* work
-        for( caller=this.caller; caller != null; caller = caller.caller );
+        for(caller=this.caller; caller != null; caller = caller.caller);
 
     is prohibited by the restriction that you can only call .caller on a
     literal this or caller reference.  The effect is that magic caller
@@ -146,7 +146,7 @@ class Name implements java.io.Serializable
         @see NameSpace getNameResolver().
     */
     // I wish I could make this "friendly" to only NameSpace
-    Name( NameSpace namespace, String s )
+    Name(NameSpace namespace, String s)
     {
         this.namespace = namespace;
         value = s;
@@ -173,10 +173,10 @@ class Name implements java.io.Serializable
         "this.caller" magic field.
         "this.callstack" magic field.
     */
-    public Object toObject( CallStack callstack, Interpreter interpreter )
+    public Object toObject(CallStack callstack, Interpreter interpreter)
         throws UtilEvalError
     {
-        return toObject( callstack, interpreter, false );
+        return toObject(callstack, interpreter, false);
     }
 
     /**
@@ -186,26 +186,26 @@ class Name implements java.io.Serializable
         that we want a class; where in general the var path may be taken.
     */
     synchronized public Object toObject(
-        CallStack callstack, Interpreter interpreter, boolean forceClass )
+        CallStack callstack, Interpreter interpreter, boolean forceClass)
         throws UtilEvalError
     {
         reset();
 
         Object obj = null;
-        while( evalName != null )
+        while(evalName != null)
             obj = consumeNextObjectField(
-                callstack, interpreter, forceClass, false/*autoalloc*/  );
+                callstack, interpreter, forceClass, false/*autoalloc*/ );
 
-        if ( obj == null )
+        if (obj == null)
             throw new InterpreterError("null value in toObject()");
 
         return obj;
     }
 
     private Object completeRound(
-        String lastEvalName, String nextEvalName, Object returnObject )
+        String lastEvalName, String nextEvalName, Object returnObject)
     {
-        if ( returnObject == null )
+        if (returnObject == null)
             throw new InterpreterError("lastEvalName = "+lastEvalName);
         this.lastEvalName = lastEvalName;
         this.evalName = nextEvalName;
@@ -221,7 +221,7 @@ class Name implements java.io.Serializable
     */
     private Object consumeNextObjectField(
         CallStack callstack, Interpreter interpreter,
-        boolean forceClass, boolean autoAllocateThis )
+        boolean forceClass, boolean autoAllocateThis)
         throws UtilEvalError
     {
         /*
@@ -230,14 +230,14 @@ class Name implements java.io.Serializable
             vs. imported class names (at least in the simple case - see
             tests/precedence1.bsh).  It should also speed things up a bit.
         */
-        if ( (evalBaseObject == null && !isCompound(evalName) )
-            && !forceClass )
+        if ((evalBaseObject == null && !isCompound(evalName))
+            && !forceClass)
         {
             Object obj = resolveThisFieldReference(
-                callstack, namespace, interpreter, evalName, false );
+                callstack, namespace, interpreter, evalName, false);
 
-            if ( obj != Primitive.VOID )
-                return completeRound( evalName, FINISHED, obj );
+            if (obj != Primitive.VOID)
+                return completeRound(evalName, FINISHED, obj);
         }
 
         /*
@@ -246,31 +246,31 @@ class Name implements java.io.Serializable
             or we're evaluating relative to a This type reference check.
         */
         String varName = prefix(evalName, 1);
-        if ( ( evalBaseObject == null || evalBaseObject instanceof This  )
-            && !forceClass )
+        if ((evalBaseObject == null || evalBaseObject instanceof This )
+            && !forceClass)
         {
-            if ( Interpreter.DEBUG )
+            if (Interpreter.DEBUG)
                 Interpreter.debug("trying to resolve variable: " + varName);
 
             Object obj;
             // switch namespace and special var visibility
-            if ( evalBaseObject == null ) {
+            if (evalBaseObject == null) {
                 obj = resolveThisFieldReference(
-                    callstack, namespace, interpreter, varName, false );
+                    callstack, namespace, interpreter, varName, false);
             } else {
                 obj = resolveThisFieldReference(
                     callstack, ((This)evalBaseObject).namespace,
-                    interpreter, varName, true );
+                    interpreter, varName, true);
             }
 
-            if ( obj != Primitive.VOID )
+            if (obj != Primitive.VOID)
             {
                 // Resolved the variable
-                if ( Interpreter.DEBUG )
-                    Interpreter.debug( "resolved variable: " + varName +
+                if (Interpreter.DEBUG)
+                    Interpreter.debug("resolved variable: " + varName +
                     " in namespace: "+namespace);
 
-                return completeRound( varName, suffix(evalName), obj );
+                return completeRound(varName, suffix(evalName), obj);
             }
         }
 
@@ -278,10 +278,10 @@ class Name implements java.io.Serializable
             Is it a class name?
             If we're just starting eval of name try to make it, else fail.
         */
-        if ( evalBaseObject == null )
+        if (evalBaseObject == null)
         {
-            if ( Interpreter.DEBUG )
-                Interpreter.debug( "trying class: " + evalName);
+            if (Interpreter.DEBUG)
+                Interpreter.debug("trying class: " + evalName);
 
             /*
                 Keep adding parts until we have a class
@@ -292,34 +292,34 @@ class Name implements java.io.Serializable
             for(; i <= countParts(evalName); i++)
             {
                 className = prefix(evalName, i);
-                if ( (clas = namespace.getClass(className)) != null )
+                if ((clas = namespace.getClass(className)) != null)
                     break;
             }
 
-            if ( clas != null )  {
+            if (clas != null)  {
                 return completeRound(
                     className,
-                    suffix( evalName, countParts(evalName)-i ),
+                    suffix(evalName, countParts(evalName)-i),
                     new ClassIdentifier(clas)
-                );
+               );
             }
             // not a class (or variable per above)
-            if ( Interpreter.DEBUG )
-                Interpreter.debug( "not a class, trying var prefix "+evalName );
+            if (Interpreter.DEBUG)
+                Interpreter.debug("not a class, trying var prefix "+evalName);
         }
 
         // No variable or class found in 'this' type ref.
         // if autoAllocateThis then create one; a child 'this'.
-        if ( ( evalBaseObject == null || evalBaseObject instanceof This  )
-            && !forceClass && autoAllocateThis )
+        if ((evalBaseObject == null || evalBaseObject instanceof This )
+            && !forceClass && autoAllocateThis)
         {
             NameSpace targetNameSpace =
-                ( evalBaseObject == null ) ?
+                (evalBaseObject == null) ?
                     namespace : ((This)evalBaseObject).namespace;
             Object obj = new NameSpace(
-                targetNameSpace, "auto: "+varName ).getThis( interpreter );
-            targetNameSpace.setVariable( varName, obj, false, evalBaseObject == null );
-            return completeRound( varName, suffix(evalName), obj );
+                targetNameSpace, "auto: "+varName).getThis(interpreter);
+            targetNameSpace.setVariable(varName, obj, false, evalBaseObject == null);
+            return completeRound(varName, suffix(evalName), obj);
         }
 
         /*
@@ -330,9 +330,9 @@ class Name implements java.io.Serializable
             reference.
             - If we are compound then we must fail at this point.
         */
-        if ( evalBaseObject == null ) {
-            if ( !isCompound(evalName) ) {
-                return completeRound( evalName, FINISHED, Primitive.VOID );
+        if (evalBaseObject == null) {
+            if (!isCompound(evalName)) {
+                return completeRound(evalName, FINISHED, Primitive.VOID);
             } else
                 throw new UtilEvalError(
                     "Class or variable not found: " + evalName);
@@ -349,15 +349,15 @@ class Name implements java.io.Serializable
             Do some basic validity checks.
         */
 
-        if ( evalBaseObject == Primitive.NULL) // previous round produced null
-            throw new UtilTargetError( new NullPointerException(
-                "Null Pointer while evaluating: " +value ) );
+        if (evalBaseObject == Primitive.NULL) // previous round produced null
+            throw new UtilTargetError(new NullPointerException(
+                "Null Pointer while evaluating: " +value));
 
-        if ( evalBaseObject == Primitive.VOID) // previous round produced void
+        if (evalBaseObject == Primitive.VOID) // previous round produced void
             throw new UtilEvalError(
                 "Undefined variable or class name while evaluating: "+value);
 
-        if ( evalBaseObject instanceof Primitive)
+        if (evalBaseObject instanceof Primitive)
             throw new UtilEvalError("Can't treat primitive like an object. "+
             "Error while evaluating: "+value);
 
@@ -365,25 +365,25 @@ class Name implements java.io.Serializable
             Resolve relative to a class type
             static field, inner class, ?
         */
-        if ( evalBaseObject instanceof ClassIdentifier )
+        if (evalBaseObject instanceof ClassIdentifier)
         {
             Class clas = ((ClassIdentifier)evalBaseObject).getTargetClass();
             String field = prefix(evalName, 1);
 
             // Class qualified 'this' reference from inner class.
             // e.g. 'MyOuterClass.this'
-            if ( field.equals("this") )
+            if (field.equals("this"))
             {
                 // find the enclosing class instance space of the class name
                 NameSpace ns = namespace;
-                while ( ns != null )
+                while (ns != null)
                 {
                     // getClassInstance() throws exception if not there
-                    if ( ns.classInstance != null
+                    if (ns.classInstance != null
                         && ns.classInstance.getClass() == clas
-                    )
+                   )
                         return completeRound(
-                            field, suffix(evalName), ns.classInstance );
+                            field, suffix(evalName), ns.classInstance);
                     ns=ns.getParent();
                 }
                 throw new UtilEvalError(
@@ -393,38 +393,38 @@ class Name implements java.io.Serializable
             Object obj = null;
             // static field?
             try {
-                if ( Interpreter.DEBUG )
+                if (Interpreter.DEBUG)
                     Interpreter.debug("Name call to getStaticFieldValue, class: "
                         +clas+", field:"+field);
                 obj = Reflect.getStaticFieldValue(clas, field);
-            } catch( ReflectError e ) {
-                if ( Interpreter.DEBUG )
+            } catch(ReflectError e) {
+                if (Interpreter.DEBUG)
                     Interpreter.debug("field reflect error: "+e);
             }
 
             // inner class?
-            if ( obj == null ) {
+            if (obj == null) {
                 String iclass = clas.getName()+"$"+field;
-                Class c = namespace.getClass( iclass );
-                if ( c != null )
+                Class c = namespace.getClass(iclass);
+                if (c != null)
                     obj = new ClassIdentifier(c);
             }
 
-            if ( obj == null )
+            if (obj == null)
                 throw new UtilEvalError(
                     "No static field or inner class: "
-                    + field + " of " + clas );
+                    + field + " of " + clas);
 
-            return completeRound( field, suffix(evalName), obj );
+            return completeRound(field, suffix(evalName), obj);
         }
 
         /*
             If we've fallen through here we are no longer resolving to
             a class type.
         */
-        if ( forceClass )
+        if (forceClass)
             throw new UtilEvalError(
-                value +" does not resolve to a class name." );
+                value +" does not resolve to a class name.");
 
         /*
             Some kind of field access?
@@ -433,17 +433,17 @@ class Name implements java.io.Serializable
         String field = prefix(evalName, 1);
 
         // length access on array?
-        if ( field.equals("length") && evalBaseObject.getClass().isArray() )
+        if (field.equals("length") && evalBaseObject.getClass().isArray())
         {
             Object obj = new Primitive(Array.getLength(evalBaseObject));
-            return completeRound( field, suffix(evalName), obj );
+            return completeRound(field, suffix(evalName), obj);
         }
 
         // Check for field on object
         // Note: could eliminate throwing the exception somehow
         try {
             Object obj = Reflect.getObjectFieldValue(evalBaseObject, field);
-            return completeRound( field, suffix(evalName), obj );
+            return completeRound(field, suffix(evalName), obj);
         } catch(ReflectError e) { /* not a field */ }
 
         // if we get here we have failed
@@ -469,10 +469,10 @@ class Name implements java.io.Serializable
     */
     Object resolveThisFieldReference(
         CallStack callstack, NameSpace thisNameSpace, Interpreter interpreter,
-        String varName, boolean specialFieldsVisible )
+        String varName, boolean specialFieldsVisible)
         throws UtilEvalError
     {
-        if ( varName.equals("this") )
+        if (varName.equals("this"))
         {
             /*
                 Somewhat of a hack.  If the special fields are visible (we're
@@ -480,21 +480,21 @@ class Name implements java.io.Serializable
                 .this references to prevent user from skipping to things like
                 super.this.caller
             */
-            if ( specialFieldsVisible )
+            if (specialFieldsVisible)
                 throw new UtilEvalError("Redundant to call .this on This type");
 
             // Allow getThis() to work through BlockNameSpace to the method
             // namespace
     // XXX re-eval this... do we need it?
-            This ths = thisNameSpace.getThis( interpreter );
+            This ths = thisNameSpace.getThis(interpreter);
             thisNameSpace= ths.getNameSpace();
             Object result = ths;
 
-            NameSpace classNameSpace = getClassNameSpace( thisNameSpace );
-            if ( classNameSpace != null )
+            NameSpace classNameSpace = getClassNameSpace(thisNameSpace);
+            if (classNameSpace != null)
             {
-                if ( isCompound( evalName ) )
-                    result = classNameSpace.getThis( interpreter );
+                if (isCompound(evalName))
+                    result = classNameSpace.getThis(interpreter);
                 else
                     result = classNameSpace.getClassInstance();
             }
@@ -507,13 +507,13 @@ class Name implements java.io.Serializable
             If we're in an enclsing class instance and have a superclass
             instance our super is the superclass instance.
         */
-        if ( varName.equals("super") )
+        if (varName.equals("super"))
         {
-            //if ( specialFieldsVisible )
+            //if (specialFieldsVisible)
             //throw new UtilEvalError("Redundant to call .this on This type");
 
             // Allow getSuper() to through BlockNameSpace to the method's super
-            This ths = thisNameSpace.getSuper( interpreter );
+            This ths = thisNameSpace.getSuper(interpreter);
             thisNameSpace = ths.getNameSpace();
             // super is now the closure's super or class instance
 
@@ -524,18 +524,18 @@ class Name implements java.io.Serializable
             if (
                 thisNameSpace.getParent() != null
                 && thisNameSpace.getParent().isClass
-            )
-                ths = thisNameSpace.getParent().getThis( interpreter );
+           )
+                ths = thisNameSpace.getParent().getThis(interpreter);
 
             return ths;
         }
 
         Object obj = null;
 
-        if ( varName.equals("global") )
-            obj = thisNameSpace.getGlobal( interpreter );
+        if (varName.equals("global"))
+            obj = thisNameSpace.getGlobal(interpreter);
 
-        if ( obj == null && specialFieldsVisible )
+        if (obj == null && specialFieldsVisible)
         {
             if (varName.equals("namespace"))
                 obj = thisNameSpace;
@@ -543,23 +543,23 @@ class Name implements java.io.Serializable
                 obj = thisNameSpace.getVariableNames();
             else if (varName.equals("methods"))
                 obj = thisNameSpace.getMethodNames();
-            else if ( varName.equals("interpreter") )
-                if ( lastEvalName.equals("this") )
+            else if (varName.equals("interpreter"))
+                if (lastEvalName.equals("this"))
                     obj = interpreter;
                 else
                     throw new UtilEvalError(
                         "Can only call .interpreter on literal 'this'");
         }
 
-        if ( obj == null && specialFieldsVisible && varName.equals("caller") )
+        if (obj == null && specialFieldsVisible && varName.equals("caller"))
         {
-            if ( lastEvalName.equals("this") || lastEvalName.equals("caller") )
+            if (lastEvalName.equals("this") || lastEvalName.equals("caller"))
             {
                 // get the previous context (see notes for this class)
-                if ( callstack == null )
+                if (callstack == null)
                     throw new InterpreterError("no callstack");
-                obj = callstack.get( ++callstackDepth ).getThis(
-                    interpreter );
+                obj = callstack.get(++callstackDepth).getThis(
+                    interpreter);
             }
             else
                 throw new UtilEvalError(
@@ -569,13 +569,13 @@ class Name implements java.io.Serializable
             return obj;
         }
 
-        if ( obj == null && specialFieldsVisible
-            && varName.equals("callstack") )
+        if (obj == null && specialFieldsVisible
+            && varName.equals("callstack"))
         {
-            if ( lastEvalName.equals("this") )
+            if (lastEvalName.equals("this"))
             {
                 // get the previous context (see notes for this class)
-                if ( callstack == null )
+                if (callstack == null)
                     throw new InterpreterError("no callstack");
                 obj = callstack;
             }
@@ -585,10 +585,10 @@ class Name implements java.io.Serializable
         }
 
 
-        if ( obj == null )
+        if (obj == null)
             obj = thisNameSpace.getVariable(varName, evalBaseObject == null);
 
-        if ( obj == null )
+        if (obj == null)
             throw new InterpreterError("null this field ref:"+varName);
 
         return obj;
@@ -597,18 +597,18 @@ class Name implements java.io.Serializable
     /**
         @return the enclosing class body namespace or null if not in a class.
     */
-    static NameSpace getClassNameSpace( NameSpace thisNameSpace )
+    static NameSpace getClassNameSpace(NameSpace thisNameSpace)
     {
         // is a class instance
-        //if ( thisNameSpace.classInstance != null )
-        if ( thisNameSpace.isClass )
+        //if (thisNameSpace.classInstance != null)
+        if (thisNameSpace.isClass)
             return thisNameSpace;
 
-        if ( thisNameSpace.isMethod
+        if (thisNameSpace.isMethod
             && thisNameSpace.getParent() != null
             //&& thisNameSpace.getParent().classInstance != null
             && thisNameSpace.getParent().isClass
-        )
+       )
             return thisNameSpace.getParent();
 
         return null;
@@ -625,19 +625,19 @@ class Name implements java.io.Serializable
     synchronized public Class toClass()
         throws ClassNotFoundException, UtilEvalError
     {
-        if ( asClass != null )
+        if (asClass != null)
             return asClass;
 
         reset();
 
         // "var" means untyped, return null class
-        if ( evalName.equals("var") )
+        if (evalName.equals("var"))
             return asClass = null;
 
         /* Try straightforward class name first */
-        Class clas = namespace.getClass( evalName );
+        Class clas = namespace.getClass(evalName);
 
-        if ( clas == null )
+        if (clas == null)
         {
             /*
                 Try toObject() which knows how to work through inner classes
@@ -647,14 +647,14 @@ class Name implements java.io.Serializable
             try {
                 // Null interpreter and callstack references.
                 // class only resolution should not require them.
-                obj = toObject( null, null, true );
-            } catch ( UtilEvalError  e ) { }; // couldn't resolve it
+                obj = toObject(null, null, true);
+            } catch (UtilEvalError  e) { }; // couldn't resolve it
 
-            if ( obj instanceof ClassIdentifier )
+            if (obj instanceof ClassIdentifier)
                 clas = ((ClassIdentifier)obj).getTargetClass();
         }
 
-        if ( clas == null )
+        if (clas == null)
             throw new ClassNotFoundException(
                 "Class: " + value+ " not found in namespace");
 
@@ -665,7 +665,7 @@ class Name implements java.io.Serializable
     /*
     */
     synchronized public LHS toLHS(
-        CallStack callstack, Interpreter interpreter )
+        CallStack callstack, Interpreter interpreter)
         throws UtilEvalError
     {
         // Should clean this up to a single return statement
@@ -673,38 +673,38 @@ class Name implements java.io.Serializable
         LHS lhs;
 
         // Simple (non-compound) variable assignment e.g. x=5;
-        if ( !isCompound(evalName) )
+        if (!isCompound(evalName))
         {
-            if ( evalName.equals("this") )
-                throw new UtilEvalError("Can't assign to 'this'." );
+            if (evalName.equals("this"))
+                throw new UtilEvalError("Can't assign to 'this'.");
 
             // Interpreter.debug("Simple var LHS...");
-            lhs = new LHS( namespace, evalName, false/*bubble up if allowed*/);
+            lhs = new LHS(namespace, evalName, false/*bubble up if allowed*/);
             return lhs;
         }
 
         // Field e.g. foo.bar=5;
         Object obj = null;
         try {
-            while( evalName != null && isCompound( evalName ) )
+            while(evalName != null && isCompound(evalName))
             {
-                obj = consumeNextObjectField( callstack, interpreter,
-                    false/*forcclass*/, true/*autoallocthis*/ );
+                obj = consumeNextObjectField(callstack, interpreter,
+                    false/*forcclass*/, true/*autoallocthis*/);
             }
         }
-        catch( UtilEvalError e ) {
-            throw new UtilEvalError( "LHS evaluation: " + e.getMessage() );
+        catch(UtilEvalError e) {
+            throw new UtilEvalError("LHS evaluation: " + e.getMessage());
         }
 
         // Finished eval and its a class.
-        if ( evalName == null && obj instanceof ClassIdentifier )
-            throw new UtilEvalError("Can't assign to class: " + value );
+        if (evalName == null && obj instanceof ClassIdentifier)
+            throw new UtilEvalError("Can't assign to class: " + value);
 
-        if ( obj == null )
-            throw new UtilEvalError("Error in LHS: " + value );
+        if (obj == null)
+            throw new UtilEvalError("Error in LHS: " + value);
 
         // e.g. this.x=5;  or someThisType.x=5;
-        if ( obj instanceof This )
+        if (obj instanceof This)
         {
             // dissallow assignment to magic fields
             if (
@@ -712,9 +712,9 @@ class Name implements java.io.Serializable
                 || evalName.equals("variables")
                 || evalName.equals("methods")
                 || evalName.equals("caller")
-            )
+           )
                 throw new UtilEvalError(
-                    "Can't assign to special variable: "+evalName );
+                    "Can't assign to special variable: "+evalName);
 
             Interpreter.debug("found This reference evaluating LHS");
             /*
@@ -728,13 +728,13 @@ class Name implements java.io.Serializable
                 In the old scoping rules super didn't do this.
             */
             boolean localVar = !lastEvalName.equals("super");
-            return new LHS( ((This)obj).namespace, evalName, localVar );
+            return new LHS(((This)obj).namespace, evalName, localVar);
         }
 
-        if ( evalName != null )
+        if (evalName != null)
         {
             try {
-                if ( obj instanceof ClassIdentifier )
+                if (obj instanceof ClassIdentifier)
                 {
                     Class clas = ((ClassIdentifier)obj).getTargetClass();
                     lhs = Reflect.getLHSStaticField(clas, evalName);
@@ -757,7 +757,7 @@ class Name implements java.io.Serializable
         <p>
 
         Name contains a wholely unqualfied messy name; resolve it to
-        ( object | static prefix ) + method name and invoke.
+        (object | static prefix) + method name and invoke.
         <p>
 
         The interpreter is necessary to support 'this.interpreter' references
@@ -778,7 +778,7 @@ class Name implements java.io.Serializable
     public Object invokeMethod(
         Interpreter interpreter, Object[] args, CallStack callstack,
         SimpleNode callerInfo
-    )
+   )
         throws UtilEvalError, EvalError, ReflectError, InvocationTargetException
     {
         String methodName = Name.suffix(value, 1);
@@ -788,15 +788,15 @@ class Name implements java.io.Serializable
         // Optimization - If classOfStaticMethod is set then we have already
         // been here and determined that this is a static method invocation.
         // Note: maybe factor this out with path below... clean up.
-        if ( classOfStaticMethod != null )
+        if (classOfStaticMethod != null)
         {
             return Reflect.invokeStaticMethod(
-                bcm, classOfStaticMethod, methodName, args );
+                bcm, classOfStaticMethod, methodName, args);
         }
 
-        if ( !Name.isCompound(value) )
+        if (!Name.isCompound(value))
             return invokeLocalMethod(
-                interpreter, args, callstack, callerInfo );
+                interpreter, args, callstack, callerInfo);
 
         // Note: if we want methods declared inside blocks to be accessible via
         // this.methodname() inside the block we could handle it here as a
@@ -807,42 +807,42 @@ class Name implements java.io.Serializable
         String prefix = Name.prefix(value);
 
         // Superclass method invocation? (e.g. super.foo())
-        if ( prefix.equals("super") && Name.countParts(value) == 2 )
+        if (prefix.equals("super") && Name.countParts(value) == 2)
         {
             // Allow getThis() to work through block namespaces first
-            This ths = namespace.getThis( interpreter );
+            This ths = namespace.getThis(interpreter);
             NameSpace thisNameSpace = ths.getNameSpace();
-            NameSpace classNameSpace = getClassNameSpace( thisNameSpace );
-            if ( classNameSpace != null )
+            NameSpace classNameSpace = getClassNameSpace(thisNameSpace);
+            if (classNameSpace != null)
             {
                 Object instance = classNameSpace.getClassInstance();
                 return ClassGenerator.getClassGenerator()
-                    .invokeSuperclassMethod( bcm, instance, methodName, args );
+                    .invokeSuperclassMethod(bcm, instance, methodName, args);
             }
         }
 
         // Find target object or class identifier
-        Name targetName = namespace.getNameResolver( prefix );
-        Object obj = targetName.toObject( callstack, interpreter );
+        Name targetName = namespace.getNameResolver(prefix);
+        Object obj = targetName.toObject(callstack, interpreter);
 
-        if ( obj == Primitive.VOID )
-            throw new UtilEvalError( "Attempt to resolve method: "+methodName
+        if (obj == Primitive.VOID)
+            throw new UtilEvalError("Attempt to resolve method: "+methodName
                     +"() on undefined variable or class name: "+targetName);
 
         // if we've got an object, resolve the method
-        if ( !(obj instanceof ClassIdentifier) ) {
+        if (!(obj instanceof ClassIdentifier)) {
 
             if (obj instanceof Primitive) {
 
                 if (obj == Primitive.NULL)
-                    throw new UtilTargetError( new NullPointerException(
-                        "Null Pointer in Method Invocation" ) );
+                    throw new UtilTargetError(new NullPointerException(
+                        "Null Pointer in Method Invocation"));
 
                 // some other primitive
                 // should avoid calling methods on primitive, as we do
                 // in Name (can't treat primitive like an object message)
                 // but the hole is useful right now.
-                if ( Interpreter.DEBUG )
+                if (Interpreter.DEBUG)
                     interpreter.debug(
                     "Attempt to access method on primitive..."
                     + " allowing bsh.Primitive to peek through for debugging");
@@ -850,13 +850,13 @@ class Name implements java.io.Serializable
 
             // found an object and it's not an undefined variable
             return Reflect.invokeObjectMethod(
-                obj, methodName, args, interpreter, callstack, callerInfo );
+                obj, methodName, args, interpreter, callstack, callerInfo);
         }
 
         // It's a class
 
         // try static method
-        if ( Interpreter.DEBUG )
+        if (Interpreter.DEBUG)
             Interpreter.debug("invokeMethod: trying static - " + targetName);
 
         Class clas = ((ClassIdentifier)obj).getTargetClass();
@@ -864,8 +864,8 @@ class Name implements java.io.Serializable
         // cache the fact that this is a static method invocation on this class
         classOfStaticMethod = clas;
 
-        if ( clas != null )
-            return Reflect.invokeStaticMethod( bcm, clas, methodName, args );
+        if (clas != null)
+            return Reflect.invokeStaticMethod(bcm, clas, methodName, args);
 
         // return null; ???
         throw new UtilEvalError("invokeMethod: unknown target: " + targetName);
@@ -885,30 +885,30 @@ class Name implements java.io.Serializable
     private Object invokeLocalMethod(
         Interpreter interpreter, Object[] args, CallStack callstack,
         SimpleNode callerInfo
-    )
+   )
         throws EvalError/*, ReflectError, InvocationTargetException*/
     {
-        if ( Interpreter.DEBUG )
-            Interpreter.debug( "invokeLocalMethod: " + value );
-        if ( interpreter == null )
+        if (Interpreter.DEBUG)
+            Interpreter.debug("invokeLocalMethod: " + value);
+        if (interpreter == null)
             throw new InterpreterError(
                 "invokeLocalMethod: interpreter = null");
 
         String commandName = value;
-        Class [] argTypes = Types.getTypes( args );
+        Class [] argTypes = Types.getTypes(args);
 
         // Check for existing method
         BshMethod meth = null;
         try {
-            meth = namespace.getMethod( commandName, argTypes );
-        } catch ( UtilEvalError e ) {
+            meth = namespace.getMethod(commandName, argTypes);
+        } catch (UtilEvalError e) {
             throw e.toEvalError(
-                "Local method invocation", callerInfo, callstack );
+                "Local method invocation", callerInfo, callstack);
         }
 
         // If defined, invoke it
-        if ( meth != null )
-            return meth.invoke( args, interpreter, callstack, callerInfo );
+        if (meth != null)
+            return meth.invoke(args, interpreter, callstack, callerInfo);
 
         BshClassManager bcm = interpreter.getClassManager();
 
@@ -917,14 +917,14 @@ class Name implements java.io.Serializable
         Object commandObject;
         try {
             commandObject = namespace.getCommand(
-                commandName, argTypes, interpreter );
-        } catch ( UtilEvalError e ) {
+                commandName, argTypes, interpreter);
+        } catch (UtilEvalError e) {
             throw e.toEvalError("Error loading command: ",
-                callerInfo, callstack );
+                callerInfo, callstack);
         }
 
         // should try to print usage here if nothing found
-        if ( commandObject == null )
+        if (commandObject == null)
         {
             // Look for a default invoke() handler method in the namespace
             // Note: this code duplicates that in This.java... should it?
@@ -932,57 +932,57 @@ class Name implements java.io.Serializable
             BshMethod invokeMethod = null;
             try {
                 invokeMethod = namespace.getMethod(
-                    "invoke", new Class [] { null, null } );
-            } catch ( UtilEvalError e ) {
+                    "invoke", new Class [] { null, null });
+            } catch (UtilEvalError e) {
                 throw e.toEvalError(
-                    "Local method invocation", callerInfo, callstack );
+                    "Local method invocation", callerInfo, callstack);
             }
 
-            if ( invokeMethod != null )
+            if (invokeMethod != null)
                 return invokeMethod.invoke(
                     new Object [] { commandName, args },
-                    interpreter, callstack, callerInfo );
+                    interpreter, callstack, callerInfo);
 
-            throw new EvalError( "Command not found: "
-                +StringUtil.methodString( commandName, argTypes ),
-                callerInfo, callstack );
+            throw new EvalError("Command not found: "
+                +StringUtil.methodString(commandName, argTypes),
+                callerInfo, callstack);
         }
 
-        if ( commandObject instanceof BshMethod )
+        if (commandObject instanceof BshMethod)
             return ((BshMethod)commandObject).invoke(
-                args, interpreter, callstack, callerInfo );
+                args, interpreter, callstack, callerInfo);
 
-        if ( commandObject instanceof Class )
+        if (commandObject instanceof Class)
             try {
                 return Reflect.invokeCompiledCommand(
-                    ((Class)commandObject), args, interpreter, callstack );
-            } catch ( UtilEvalError e ) {
+                    ((Class)commandObject), args, interpreter, callstack);
+            } catch (UtilEvalError e) {
                 throw e.toEvalError("Error invoking compiled command: ",
-                callerInfo, callstack );
+                callerInfo, callstack);
             }
 
         throw new InterpreterError("invalid command type");
     }
 
 /*
-    private String getHelp( String name )
+    private String getHelp(String name)
         throws UtilEvalError
     {
         try {
             // should check for null namespace here
-            return get( "bsh.help."+name, null/interpreter/ );
-        } catch ( Exception e ) {
+            return get("bsh.help."+name, null/interpreter/);
+        } catch (Exception e) {
             return "usage: "+name;
         }
     }
 
-    private String getHelp( Class commandClass )
+    private String getHelp(Class commandClass)
         throws UtilEvalError
     {
         try {
             return (String)Reflect.invokeStaticMethod(
-                null/bcm/, commandClass, "usage", null );
-        } catch( Exception e )
+                null/bcm/, commandClass, "usage", null);
+        } catch(Exception e)
             return "usage: "+name;
         }
     }
@@ -1019,14 +1019,14 @@ class Name implements java.io.Serializable
 
     static String prefix(String value, int parts)
     {
-        if (parts < 1 )
+        if (parts < 1)
             return null;
 
         int count = 0;
         int index = -1;
 
-        while( ((index = value.indexOf('.', index + 1)) != -1)
-            && (++count < parts) )
+        while(((index = value.indexOf('.', index + 1)) != -1)
+            && (++count < parts))
         { ; }
 
         return (index == -1) ? value : value.substring(0, index);
@@ -1048,8 +1048,8 @@ class Name implements java.io.Serializable
         int count = 0;
         int index = value.length() + 1;
 
-        while ( ((index = value.lastIndexOf('.', index - 1)) != -1)
-            && (++count < parts) );
+        while (((index = value.lastIndexOf('.', index - 1)) != -1)
+            && (++count < parts));
 
         return (index == -1) ? value : value.substring(index + 1);
     }

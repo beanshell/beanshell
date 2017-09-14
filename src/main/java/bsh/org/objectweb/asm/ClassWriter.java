@@ -931,8 +931,8 @@ public class ClassWriter implements ClassVisitor {
       Item newMap[] = new Item[newCapacity];
       threshold = (int)(newCapacity * 0.75);
       table = newMap;
-      for (int j = oldCapacity; j-- > 0; ) {
-        for (Item old = oldMap[j]; old != null; ) {
+      for (int j = oldCapacity; j-- > 0;) {
+        for (Item old = oldMap[j]; old != null;) {
           Item e = old;
           old = old.next;
           int index = (e.hashCode & 0x7FFFFFFF) % newCapacity;

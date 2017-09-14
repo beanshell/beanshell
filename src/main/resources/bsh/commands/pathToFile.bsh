@@ -3,8 +3,8 @@
     into account the bsh current working directory (bsh.cwd)
 */
 
-bsh.help.pathToFile = "usage: File pathToFile( String )";
+bsh.help.pathToFile = "usage: File pathToFile(String)";
 
-File pathToFile( String filename ) {
-    return this.interpreter.pathToFile( filename );
+File pathToFile(String filename) {
+    return this.interpreter.pathToFile(filename);
 }

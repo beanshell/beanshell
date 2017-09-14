@@ -44,29 +44,29 @@ public class BshClassLoader extends URLClassLoader
     /**
         @param bases URLs JARClassLoader seems to require absolute paths
     */
-    public BshClassLoader( BshClassManager classManager, URL [] bases ) {
-        super( bases );
+    public BshClassLoader(BshClassManager classManager, URL [] bases) {
+        super(bases);
         this.classManager = classManager;
     }
 
     /**
         @param bases URLs JARClassLoader seems to require absolute paths
     */
-    public BshClassLoader( BshClassManager classManager, BshClassPath bcp ) {
-        this( classManager, bcp.getPathComponents() );
+    public BshClassLoader(BshClassManager classManager, BshClassPath bcp) {
+        this(classManager, bcp.getPathComponents());
     }
 
     /**
         For use by children
         @param bases URLs JARClassLoader seems to require absolute paths
     */
-    protected BshClassLoader( BshClassManager classManager ) {
-        this( classManager, new URL [] { } );
+    protected BshClassLoader(BshClassManager classManager) {
+        this(classManager, new URL [] { });
     }
 
     // public version of addURL
-    public void addURL( URL url ) {
-        super.addURL( url );
+    public void addURL(URL url) {
+        super.addURL(url);
     }
 
     /**
@@ -87,29 +87,29 @@ public class BshClassLoader extends URLClassLoader
             The VM will not allow a class to be loaded twice.
         */
         c = findLoadedClass(name);
-        if ( c != null )
+        if (c != null)
             return c;
 
 // This is copied from ClassManagerImpl
 // We should refactor this somehow if it sticks around
-        if ( name.startsWith( ClassManagerImpl.BSH_PACKAGE ) )
+        if (name.startsWith(ClassManagerImpl.BSH_PACKAGE))
             try {
-                return bsh.Interpreter.class.getClassLoader().loadClass( name );
-            } catch ( ClassNotFoundException e ) {}
+                return bsh.Interpreter.class.getClassLoader().loadClass(name);
+            } catch (ClassNotFoundException e) {}
 
         /*
             Try to find the class using our classloading mechanism.
             Note: I wish we didn't have to catch the exception here... slow
         */
         try {
-            c = findClass( name );
-        } catch ( ClassNotFoundException e ) { }
+            c = findClass(name);
+        } catch (ClassNotFoundException e) { }
 
-        if ( c == null )
+        if (c == null)
             throw new ClassNotFoundException("here in loaClass");
 
-        if ( resolve )
-            resolveClass( c );
+        if (resolve)
+            resolveClass(c);
 
         return c;
     }
@@ -123,7 +123,7 @@ public class BshClassLoader extends URLClassLoader
         Try system ???
     */
     // add some caching for not found classes?
-    protected Class findClass( String name )
+    protected Class findClass(String name)
         throws ClassNotFoundException
     {
         // Deal with this cast somehow... maybe have this class use
@@ -134,39 +134,39 @@ public class BshClassLoader extends URLClassLoader
         // Should we try to load the class ourselves or delegate?
         // look for overlay loader
 
-        ClassLoader cl = bcm.getLoaderForClass( name );
+        ClassLoader cl = bcm.getLoaderForClass(name);
 
         Class c;
 
         // If there is a designated loader and it's not us delegate to it
-        if ( cl != null && cl != this )
+        if (cl != null && cl != this)
             try {
-                return cl.loadClass( name );
-            } catch ( ClassNotFoundException e ) {
+                return cl.loadClass(name);
+            } catch (ClassNotFoundException e) {
                 throw new ClassNotFoundException(
-                    "Designated loader could not find class: "+e );
+                    "Designated loader could not find class: "+e);
             }
 
         // Let URLClassLoader try any paths it may have
-        if ( getURLs().length > 0 )
+        if (getURLs().length > 0)
             try {
                 return super.findClass(name);
-            } catch ( ClassNotFoundException e ) {
+            } catch (ClassNotFoundException e) {
                 //System.out.println(
-                //  "base loader here caught class not found: "+name );
+                //  "base loader here caught class not found: "+name);
             }
 
 
         // If there is a baseLoader and it's not us delegate to it
         cl = bcm.getBaseLoader();
 
-        if ( cl != null && cl != this )
+        if (cl != null && cl != this)
             try {
-                return cl.loadClass( name );
-            } catch ( ClassNotFoundException e ) { }
+                return cl.loadClass(name);
+            } catch (ClassNotFoundException e) { }
 
         // Try system loader
-        return bcm.plainClassForName( name );
+        return bcm.plainClassForName(name);
     }
 
     /*

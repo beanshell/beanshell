@@ -74,7 +74,7 @@ class LHS implements ParserConstants, java.io.Serializable
         definition in parent's scope is allowed. (e.g. the default case for
         undefined vars going to global).
     */
-    LHS( NameSpace nameSpace, String varName, boolean localVar )
+    LHS(NameSpace nameSpace, String varName, boolean localVar)
     {
         type = VARIABLE;
         this.localVar = localVar;
@@ -86,7 +86,7 @@ class LHS implements ParserConstants, java.io.Serializable
         Static field LHS Constructor.
         This simply calls Object field constructor with null object.
     */
-    LHS( Field field )
+    LHS(Field field)
     {
         type = FIELD;
         this.object = null;
@@ -96,9 +96,9 @@ class LHS implements ParserConstants, java.io.Serializable
     /**
         Object field LHS Constructor.
     */
-    LHS( Object object, Field field )
+    LHS(Object object, Field field)
     {
-        if ( object == null)
+        if (object == null)
             throw new NullPointerException("constructed empty LHS");
 
         type = FIELD;
@@ -109,7 +109,7 @@ class LHS implements ParserConstants, java.io.Serializable
     /**
         Object property LHS Constructor.
     */
-    LHS( Object object, String propName )
+    LHS(Object object, String propName)
     {
         if(object == null)
             throw new NullPointerException("constructed empty LHS");
@@ -122,7 +122,7 @@ class LHS implements ParserConstants, java.io.Serializable
     /**
         Array index LHS Constructor.
     */
-    LHS( Object array, int index )
+    LHS(Object array, int index)
     {
         if(array == null)
             throw new NullPointerException("constructed empty LHS");
@@ -134,25 +134,25 @@ class LHS implements ParserConstants, java.io.Serializable
 
     public Object getValue() throws UtilEvalError
     {
-        if ( type == VARIABLE )
-            return nameSpace.getVariableOrProperty( varName, null );
-            // return nameSpace.getVariable( varName );
+        if (type == VARIABLE)
+            return nameSpace.getVariableOrProperty(varName, null);
+            // return nameSpace.getVariable(varName);
 
         if (type == FIELD)
             try {
-                Object o = field.get( object );
-                return Primitive.wrap( o, field.getType() );
+                Object o = field.get(object);
+                return Primitive.wrap(o, field.getType());
             } catch(IllegalAccessException e2) {
                 throw new UtilEvalError("Can't read field: " + field);
             }
 
-        if ( type == PROPERTY )
+        if (type == PROPERTY)
         {
             // return the raw type here... we don't know what it's supposed
             // to be...
             CollectionManager cm = CollectionManager.getCollectionManager();
-            if ( cm.isMap( object ) )
-                return cm.getFromMap( object/*map*/, propName );
+            if (cm.isMap(object))
+                return cm.getFromMap(object/*map*/, propName);
             else
                 try {
                     return Reflect.getObjectProperty(object, propName);
@@ -162,7 +162,7 @@ class LHS implements ParserConstants, java.io.Serializable
                 }
         }
 
-        if ( type == INDEX )
+        if (type == INDEX)
             try {
                 return Reflect.getIndex(object, index);
             }
@@ -176,49 +176,49 @@ class LHS implements ParserConstants, java.io.Serializable
     /**
         Assign a value to the LHS.
     */
-    public Object assign( Object val, boolean strictJava )
+    public Object assign(Object val, boolean strictJava)
         throws UtilEvalError
     {
-        if ( type == VARIABLE )
+        if (type == VARIABLE)
         {
             // Set the variable in namespace according to localVar flag
-            if ( localVar )
-                nameSpace.setLocalVariableOrProperty( varName, val, strictJava );
+            if (localVar)
+                nameSpace.setLocalVariableOrProperty(varName, val, strictJava);
             else
-                nameSpace.setVariableOrProperty( varName, val, strictJava );
+                nameSpace.setVariableOrProperty(varName, val, strictJava);
         } else
-        if ( type == FIELD )
+        if (type == FIELD)
         {
             try {
                 // This should probably be in Reflect.java
-                ReflectManager.RMSetAccessible( field );
-                field.set( object, Primitive.unwrap(val));
+                ReflectManager.RMSetAccessible(field);
+                field.set(object, Primitive.unwrap(val));
                 return val;
             }
-            catch( NullPointerException e) {
+            catch(NullPointerException e) {
                 throw new UtilEvalError(
                     "LHS ("+field.getName()+") not a static field.");
             }
-            catch( IllegalAccessException e2) {
+            catch(IllegalAccessException e2) {
                 throw new UtilEvalError(
                     "LHS ("+field.getName()+") can't access field: "+e2);
             }
-            catch( IllegalArgumentException e3)
+            catch(IllegalArgumentException e3)
             {
                 String type = val instanceof Primitive ?
                     ((Primitive)val).getType().getName()
                     : val.getClass().getName();
                 throw new UtilEvalError(
-                    "Argument type mismatch. " + (val == null ? "null" : type )
+                    "Argument type mismatch. " + (val == null ? "null" : type)
                     + " not assignable to field "+field.getName());
             }
         }
         else
-        if ( type == PROPERTY )
+        if (type == PROPERTY)
         {
             CollectionManager cm = CollectionManager.getCollectionManager();
-            if ( cm.isMap( object ) )
-                cm.putInMap( object/*map*/, propName, Primitive.unwrap(val) );
+            if (cm.isMap(object))
+                cm.putInMap(object/*map*/, propName, Primitive.unwrap(val));
             else
                 try {
                     Reflect.setObjectProperty(object, propName, val);
@@ -228,12 +228,12 @@ class LHS implements ParserConstants, java.io.Serializable
                     throw new UtilEvalError("No such property: " + propName);
                 }
         } else
-        if ( type == INDEX )
+        if (type == INDEX)
             try {
                 Reflect.setIndex(object, index, val);
-            } catch ( UtilTargetError e1 ) { // pass along target error
+            } catch (UtilTargetError e1) { // pass along target error
                 throw e1;
-            } catch ( Exception e ) {
+            } catch (Exception e) {
                 throw new UtilEvalError("Assignment: " + e.getMessage());
             }
         else

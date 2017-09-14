@@ -7,17 +7,17 @@
     @throws bsh.EvalError or bsh.TargetError on errors in the sourced script.
 */
 
-bsh.help.source = "usage: source( filename | URL )";
+bsh.help.source = "usage: source(filename | URL)";
 
-Object source( String filename ) {
+Object source(String filename) {
     // source with filename preserves file name in error messages
-    return this.interpreter.source( filename, this.caller.namespace );
+    return this.interpreter.source(filename, this.caller.namespace);
 }
 
-Object source( URL url ) {
+Object source(URL url) {
     return this.interpreter.eval(
         new InputStreamReader(url.openStream()), this.caller.namespace,
         "URL: "+url.toString()
-    );
+   );
 }
 

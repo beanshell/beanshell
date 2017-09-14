@@ -7,15 +7,15 @@ source("TestHarness.bsh");
 class Super2 extends Base
 {
     public void go() {
-        assert( baseMethod().equals("baseMethod") );
-        assert( super.baseMethod().equals("baseMethod") );
+        assert(baseMethod().equals("baseMethod"));
+        assert(super.baseMethod().equals("baseMethod"));
     }
 
-    public String baseMethod2( int i ) {
-        assert( super.baseMethod2().equals("baseMethod2") );
+    public String baseMethod2(int i) {
+        assert(super.baseMethod2().equals("baseMethod2"));
         try {
-            assert( super.baseMethod2().equals("baseMethod2") );
-        } catch ( Exception e ) { }
+            assert(super.baseMethod2().equals("baseMethod2"));
+        } catch (Exception e) { }
         return "child2";
     }
 
@@ -28,6 +28,6 @@ class Super2 extends Base
 s=new Super2();
 s.go();
 s.baseMethod2(4);
-assert( s.baseMethod3().equals("child3") );
+assert(s.baseMethod3().equals("child3"));
 
 complete();

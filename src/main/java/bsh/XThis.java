@@ -61,8 +61,8 @@ public class XThis extends This
 
     transient InvocationHandler invocationHandler = new Handler();
 
-    public XThis( NameSpace namespace, Interpreter declaringInterp ) {
-        super( namespace, declaringInterp );
+    public XThis(NameSpace namespace, Interpreter declaringInterp) {
+        super(namespace, declaringInterp);
     }
 
     public String toString() {
@@ -72,17 +72,17 @@ public class XThis extends This
     /**
         Get dynamic proxy for interface, caching those it creates.
     */
-    public Object getInterface( Class clas )
+    public Object getInterface(Class clas)
     {
-        return getInterface( new Class[] { clas } );
+        return getInterface(new Class[] { clas });
     }
 
     /**
         Get dynamic proxy for interface, caching those it creates.
     */
-    public Object getInterface( Class [] ca )
+    public Object getInterface(Class [] ca)
     {
-        if ( interfaces == null )
+        if (interfaces == null)
             interfaces = new Hashtable();
 
         // Make a hash of the interface hashcodes in order to cache them
@@ -91,14 +91,14 @@ public class XThis extends This
             hash *= ca[i].hashCode() + 3;
         Object hashKey = new Integer(hash);
 
-        Object interf = interfaces.get( hashKey );
+        Object interf = interfaces.get(hashKey);
 
-        if ( interf == null )
+        if (interf == null)
         {
             ClassLoader classLoader = ca[0].getClassLoader(); // ?
             interf = Proxy.newProxyInstance(
-                classLoader, ca, invocationHandler );
-            interfaces.put( hashKey, interf );
+                classLoader, ca, invocationHandler);
+            interfaces.put(hashKey, interf);
         }
 
         return interf;
@@ -122,31 +122,31 @@ public class XThis extends This
             throw new NotSerializableException();
         }
 
-        public Object invoke( Object proxy, Method method, Object[] args )
+        public Object invoke(Object proxy, Method method, Object[] args)
             throws Throwable
         {
             try {
-                return invokeImpl( proxy, method, args );
-            } catch ( TargetError te ) {
+                return invokeImpl(proxy, method, args);
+            } catch (TargetError te) {
                 // Unwrap target exception.  If the interface declares that
                 // it throws the ex it will be delivered.  If not it will be
                 // wrapped in an UndeclaredThrowable
                 throw te.getTarget();
-            } catch ( EvalError ee ) {
+            } catch (EvalError ee) {
                 // Ease debugging...
                 // XThis.this refers to the enclosing class instance
-                if ( Interpreter.DEBUG )
-                    Interpreter.debug( "EvalError in scripted interface: "
-                    + XThis.this.toString() + ": "+ ee );
+                if (Interpreter.DEBUG)
+                    Interpreter.debug("EvalError in scripted interface: "
+                    + XThis.this.toString() + ": "+ ee);
                 throw ee;
             }
         }
 
-        public Object invokeImpl( Object proxy, Method method, Object[] args )
+        public Object invokeImpl(Object proxy, Method method, Object[] args)
             throws EvalError
         {
             String methodName = method.getName();
-            CallStack callstack = new CallStack( namespace );
+            CallStack callstack = new CallStack(namespace);
 
             /*
                 If equals() is not explicitly defined we must override the
@@ -159,9 +159,9 @@ public class XThis extends This
             BshMethod equalsMethod = null;
             try {
                 equalsMethod = namespace.getMethod(
-                    "equals", new Class [] { Object.class } );
-            } catch ( UtilEvalError e ) {/*leave null*/ }
-            if ( methodName.equals("equals" ) && equalsMethod == null ) {
+                    "equals", new Class [] { Object.class });
+            } catch (UtilEvalError e) {/*leave null*/ }
+            if (methodName.equals("equals") && equalsMethod == null) {
                 Object obj = args[0];
                 return proxy == obj ? Boolean.TRUE : Boolean.FALSE;
             }
@@ -173,24 +173,24 @@ public class XThis extends This
             BshMethod toStringMethod = null;
             try {
                 toStringMethod =
-                    namespace.getMethod( "toString", new Class [] { } );
-            } catch ( UtilEvalError e ) {/*leave null*/ }
+                    namespace.getMethod("toString", new Class [] { });
+            } catch (UtilEvalError e) {/*leave null*/ }
 
-            if ( methodName.equals("toString" ) && toStringMethod == null)
+            if (methodName.equals("toString") && toStringMethod == null)
             {
                 Class [] ints = proxy.getClass().getInterfaces();
                 // XThis.this refers to the enclosing class instance
                 StringBuffer sb = new StringBuffer(
-                    XThis.this.toString() + "\nimplements:" );
+                    XThis.this.toString() + "\nimplements:");
                 for(int i=0; i<ints.length; i++)
-                    sb.append( " "+ ints[i].getName()
-                        + ((ints.length > 1)?",":"") );
+                    sb.append(" "+ ints[i].getName()
+                        + ((ints.length > 1)?",":""));
                 return sb.toString();
             }
 
             Class [] paramTypes = method.getParameterTypes();
             return Primitive.unwrap(
-                invokeMethod( methodName, Primitive.wrap(args, paramTypes) ) );
+                invokeMethod(methodName, Primitive.wrap(args, paramTypes)));
         }
     };
 }

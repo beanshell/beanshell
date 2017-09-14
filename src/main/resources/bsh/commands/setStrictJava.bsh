@@ -20,8 +20,8 @@
     types, etc.
 */
 
-void setStrictJava( boolean val )
+void setStrictJava(boolean val)
 {
-    this.interpreter.setStrictJava( val );
+    this.interpreter.setStrictJava(val);
 }
 

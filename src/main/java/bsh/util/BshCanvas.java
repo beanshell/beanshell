@@ -47,21 +47,21 @@ public class BshCanvas extends JComponent {
 
     public BshCanvas () { }
 
-    public BshCanvas ( This ths ) {
+    public BshCanvas (This ths) {
         this.ths = ths;
     }
 
-    public void paintComponent( Graphics g ) {
+    public void paintComponent(Graphics g) {
         // copy buffered image
-        if ( imageBuffer != null )
+        if (imageBuffer != null)
             g.drawImage(imageBuffer, 0,0, this);
 
         // Delegate call to scripted paint() method
-        if ( ths != null ) {
+        if (ths != null) {
             try {
-                ths.invokeMethod( "paint", new Object[] { g } );
+                ths.invokeMethod("paint", new Object[] { g });
             } catch(EvalError e) {
-                if ( Interpreter.DEBUG ) Interpreter.debug(
+                if (Interpreter.DEBUG) Interpreter.debug(
                     "BshCanvas: method invocation error:" + e);
             }
         }
@@ -72,14 +72,14 @@ public class BshCanvas extends JComponent {
     */
     public Graphics getBufferedGraphics() {
         Dimension dim = getSize();
-        imageBuffer = createImage( dim.width, dim.height );
+        imageBuffer = createImage(dim.width, dim.height);
         return imageBuffer.getGraphics();
     }
 
-    public void setBounds( int x, int y, int width, int height ) {
-        setPreferredSize( new Dimension(width, height) );
-        setMinimumSize( new Dimension(width, height) );
-        super.setBounds( x, y, width, height );
+    public void setBounds(int x, int y, int width, int height) {
+        setPreferredSize(new Dimension(width, height));
+        setMinimumSize(new Dimension(width, height));
+        super.setBounds(x, y, width, height);
     }
 
 }

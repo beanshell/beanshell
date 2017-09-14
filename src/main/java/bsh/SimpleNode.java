@@ -46,7 +46,7 @@ package bsh;
 class SimpleNode implements Node
 {
     public static SimpleNode JAVACODE =
-        new SimpleNode( -1 ) {
+        new SimpleNode(-1) {
             public String getSourceFile() {
                 return "<Called from Java Code>";
             }
@@ -97,7 +97,7 @@ class SimpleNode implements Node
     public Node jjtGetChild(int i) {
         return children[i];
     }
-    public SimpleNode getChild( int i ) {
+    public SimpleNode getChild(int i) {
         return (SimpleNode)jjtGetChild(i);
     }
 
@@ -143,24 +143,24 @@ class SimpleNode implements Node
         (see BSHMethodDeclaration)
     */
     public void prune() {
-        jjtSetParent( null );
+        jjtSetParent(null);
     }
 
     /**
         This is the general signature for evaluation of a node.
     */
-    public Object eval( CallStack callstack, Interpreter interpreter )
+    public Object eval(CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
         throw new InterpreterError(
-            "Unimplemented or inappropriate for " + getClass().getName() );
+            "Unimplemented or inappropriate for " + getClass().getName());
     }
 
     /**
         Set the name of the source file (or more generally source) of
         the text from which this node was parsed.
     */
-    public void setSourceFile( String sourceFile ) {
+    public void setSourceFile(String sourceFile) {
         this.sourceFile = sourceFile;
     }
 
@@ -172,8 +172,8 @@ class SimpleNode implements Node
         is unknown.
     */
     public String getSourceFile() {
-        if ( sourceFile == null )
-            if ( parent != null )
+        if (sourceFile == null)
+            if (parent != null)
                 return ((SimpleNode)parent).getSourceFile();
             else
                 return "<unknown file>";
@@ -202,12 +202,12 @@ class SimpleNode implements Node
     {
         StringBuffer text = new StringBuffer();
         Token t = firstToken;
-        while ( t!=null ) {
+        while (t!=null) {
             text.append(t.image);
-            if ( !t.image.equals(".") )
+            if (!t.image.equals("."))
                 text.append(" ");
-            if ( t==lastToken ||
-                t.image.equals("{") || t.image.equals(";") )
+            if (t==lastToken ||
+                t.image.equals("{") || t.image.equals(";"))
                 break;
             t=t.next;
         }

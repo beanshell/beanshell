@@ -3,7 +3,7 @@
 source("TestHarness.bsh");
 
 lock =new Object();
-synchronized( lock )
+synchronized(lock)
 {
     flag();
     // wait() and notify() would fail if we weren't sync'd on lock

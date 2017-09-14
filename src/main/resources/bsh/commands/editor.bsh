@@ -10,8 +10,8 @@ import java.awt.*;
 
 editor()
 {
-    if ( bsh.system.desktop != void ) {
-        return workspaceEditor( this.interpreter );
+    if (bsh.system.desktop != void) {
+        return workspaceEditor(this.interpreter);
     }
 
     this.ta = new TextArea(15,40);
@@ -35,12 +35,12 @@ editor()
 
     actionPerformed(e)
     {
-        if ( e.getActionCommand().equals("Close") )
+        if (e.getActionCommand().equals("Close"))
             frame.dispose();
-        else if ( e.getActionCommand().equals("Clear") )
+        else if (e.getActionCommand().equals("Clear"))
             ta.setText("");
         else
-            this.interpreter.eval( ta.getText() );
+            this.interpreter.eval(ta.getText());
     }
 
     print("Editor started...");

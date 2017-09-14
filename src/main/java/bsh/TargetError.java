@@ -49,14 +49,14 @@ public class TargetError extends EvalError
 
     public TargetError(
         String msg, Throwable t, SimpleNode node, CallStack callstack,
-        boolean inNativeCode )
+        boolean inNativeCode)
     {
-        super( msg, node, callstack );
+        super(msg, node, callstack);
         initCause(t);
         this.inNativeCode = inNativeCode;
     }
 
-    public TargetError( Throwable t, SimpleNode node, CallStack callstack )
+    public TargetError(Throwable t, SimpleNode node, CallStack callstack)
     {
         this("TargetError", t, node, callstack, false);
     }
@@ -75,20 +75,20 @@ public class TargetError extends EvalError
     {
         return super.toString()
             + "\nTarget exception: " +
-            printTargetError( getCause() );
+            printTargetError(getCause());
     }
 
     public void printStackTrace() {
-        printStackTrace( false, System.err );
+        printStackTrace(false, System.err);
     }
 
-    public void printStackTrace( PrintStream out ) {
-        printStackTrace( false, out );
+    public void printStackTrace(PrintStream out) {
+        printStackTrace(false, out);
     }
 
-    public void printStackTrace( boolean debug, PrintStream out ) {
-        if ( debug ) {
-            super.printStackTrace( out );
+    public void printStackTrace(boolean debug, PrintStream out) {
+        if (debug) {
+            super.printStackTrace(out);
             out.println("--- Target Stack Trace ---");
         }
         getCause().printStackTrace(out);
@@ -99,12 +99,12 @@ public class TargetError extends EvalError
         If the proxy mechanism is available, allow the extended print to
         check for UndeclaredThrowableException and print that embedded error.
     */
-    public String printTargetError( Throwable t )
+    public String printTargetError(Throwable t)
     {
         String s = getCause().toString();
 
-        if ( Capabilities.canGenerateInterfaces() )
-            s += "\n" + xPrintTargetError( t );
+        if (Capabilities.canGenerateInterfaces())
+            s += "\n" + xPrintTargetError(t);
 
         return s;
     }
@@ -118,12 +118,12 @@ public class TargetError extends EvalError
         This is acceptable here because we're not in a critical path...
         Otherwise we'd need yet another dynamically loaded module just for this.
     */
-    public String xPrintTargetError( Throwable t )
+    public String xPrintTargetError(Throwable t)
     {
         String getTarget =
             "import java.lang.reflect.UndeclaredThrowableException;"+
             "String result=\"\";"+
-            "while ( target instanceof UndeclaredThrowableException ) {"+
+            "while (target instanceof UndeclaredThrowableException) {"+
             "   target=target.getUndeclaredThrowable(); " +
             "   result+=\"Nested: \"+target.toString();" +
             "}"+
@@ -131,9 +131,9 @@ public class TargetError extends EvalError
         Interpreter i = new Interpreter();
         try {
             i.set("target", t);
-            return (String)i.eval( getTarget );
-        } catch ( EvalError e ) {
-            throw new InterpreterError("xprintarget: "+e.toString() );
+            return (String)i.eval(getTarget);
+        } catch (EvalError e) {
+            throw new InterpreterError("xprintarget: "+e.toString());
         }
     }
 

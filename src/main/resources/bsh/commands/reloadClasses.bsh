@@ -13,36 +13,36 @@
 
     See "Class Path Management"
 
-    @method void reloadClasses( [ package name ] )
+    @method void reloadClasses([ package name ])
 */
 
 bsh.help.reloadClasses=
-    "usage: reloadClasses( String class | String package | String [] classes )";
+    "usage: reloadClasses(String class | String package | String [] classes)";
 
 import bsh.ClassPathException;
 
-void reloadClasses( item )
+void reloadClasses(item)
 {
     this.bcm = this.caller.namespace.getClassManager();
 
     try {
-        if ( item instanceof String [] )
-            bcm.reloadClasses( item );
+        if (item instanceof String [])
+            bcm.reloadClasses(item);
         else {
             this.name = item;
 
-            if ( name.endsWith(".*" ) ) {
-                if ( name.equals(".*" ) )
+            if (name.endsWith(".*")) {
+                if (name.equals(".*"))
                     this.pack = "<unpackaged>";
                 else
-                    this.pack = name.substring( 0, name.length()-2 );
+                    this.pack = name.substring(0, name.length()-2);
 
-                bcm.reloadPackage( pack );
+                bcm.reloadPackage(pack);
             } else
-                bcm.reloadClasses( new String[] { name } );
+                bcm.reloadClasses(new String[] { name });
         }
-    } catch ( ClassPathException e ) {
-        error( e.getMessage() );
+    } catch (ClassPathException e) {
+        error(e.getMessage());
     }
 }
 

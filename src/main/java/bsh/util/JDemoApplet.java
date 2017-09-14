@@ -40,20 +40,20 @@ public class JDemoApplet extends JApplet
     public void init()
     {
         String debug = getParameter("debug");
-        if ( debug != null && debug.equals("true") )
+        if (debug != null && debug.equals("true"))
             Interpreter.DEBUG=true;
 
         String type = getParameter("type");
-        if ( type != null && type.equals("desktop") )
+        if (type != null && type.equals("desktop"))
             // start the desktop
             try {
-                new Interpreter().eval( "desktop()" );
-            } catch ( TargetError te ) {
+                new Interpreter().eval("desktop()");
+            } catch (TargetError te) {
                 te.printStackTrace();
-                System.out.println( te.getTarget() );
+                System.out.println(te.getTarget());
                 te.getTarget().printStackTrace();
-            } catch ( EvalError evalError ) {
-                System.out.println( evalError );
+            } catch (EvalError evalError) {
+                System.out.println(evalError);
                 evalError.printStackTrace();
             }
         else
@@ -61,7 +61,7 @@ public class JDemoApplet extends JApplet
             getContentPane().setLayout(new BorderLayout());
             JConsole console = new JConsole();
             getContentPane().add("Center", console);
-            Interpreter interpreter = new Interpreter( console );
+            Interpreter interpreter = new Interpreter(console);
             new Thread(interpreter).start();
         }
     }

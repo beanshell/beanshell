@@ -5,30 +5,30 @@ source("TestHarness.bsh");
 import java.math.BigDecimal;
 
 ths = this;
-assert( !(this.namespace instanceof bsh.BlockNameSpace) );
+assert(!(this.namespace instanceof bsh.BlockNameSpace));
 
 booga() { print("booga"); }
 booga();
 this.booga();
 
-if ( true )
+if (true)
 {
 print("here1");
-  assert( !(this.namespace instanceof bsh.BlockNameSpace) );
+  assert(!(this.namespace instanceof bsh.BlockNameSpace));
   BigDecimal c = new BigDecimal("1.0");
 print("here2");
   print(c);
 print("here3");
-  assert( this.c == void );
-  assert( this == ths );
+  assert(this.c == void);
+  assert(this == ths);
   { // another block
-    assert( this == ths );
-    assert( this.c == void );
+    assert(this == ths);
+    assert(this.c == void);
   }
 print("here4");
   blockthis = this;
-  assert( this == blockthis );
-  assert( blockthis == ths );
+  assert(this == blockthis);
+  assert(blockthis == ths);
   this.foo=5;
   assert(foo==5);
   assert(this.foo==5);
@@ -38,29 +38,29 @@ print("here4");
 }
 
 {
-  assert( !(this.namespace instanceof bsh.BlockNameSpace) );
+  assert(!(this.namespace instanceof bsh.BlockNameSpace));
   BigDecimal c = new BigDecimal("1.0");
   print(c);
   assert(this.c==void);
-  assert( this == ths );
+  assert(this == ths);
   blockthis = this;
-  assert( this == blockthis );
-  assert( blockthis == ths );
+  assert(this == blockthis);
+  assert(blockthis == ths);
 }
 
 void method1()
 {
-  assert( !(this.namespace instanceof bsh.BlockNameSpace) );
-  assert ( super == ths );
+  assert(!(this.namespace instanceof bsh.BlockNameSpace));
+  assert (super == ths);
   BigDecimal cost = new BigDecimal("1.0");
-  assert(cost == this.cost );
-  assert( this.cost == cost );
+  assert(cost == this.cost);
+  assert(this.cost == cost);
   mthis = this;
 
   boolean condition1=true;
   if (condition1)
   {
-     assert( this == mthis );
+     assert(this == mthis);
      BigDecimal finalCost1 = new BigDecimal("1.0");
      print(finalCost1);
      print(this);
@@ -68,10 +68,10 @@ void method1()
 }
 
 // dissallow assignment to magic members
-assert( isEvalError("this.namespace=5") );
-assert( isEvalError("this.caller=5") );
-assert( isEvalError("this.variables=5") );
-assert( isEvalError("this.methods=5") );
+assert(isEvalError("this.namespace=5"));
+assert(isEvalError("this.caller=5"));
+assert(isEvalError("this.variables=5"));
+assert(isEvalError("this.methods=5"));
 
 method1();
 

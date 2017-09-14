@@ -46,6 +46,6 @@ public interface NameCompletion
 
         Note: Alternatively, make a NameCompletionResult object someday...
     */
-    public String [] completeName( String part );
+    public String [] completeName(String part);
 
 }

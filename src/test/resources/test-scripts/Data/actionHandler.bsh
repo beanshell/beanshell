@@ -1,6 +1,6 @@
 import java.awt.event.ActionListener;
 
-actionPerformed( e ) {
+actionPerformed(e) {
     print("Action!");
 }
 

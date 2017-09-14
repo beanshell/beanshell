@@ -37,7 +37,7 @@ class BSHTryStatement extends SimpleNode
         super(id);
     }
 
-    public Object eval( CallStack callstack, Interpreter interpreter)
+    public Object eval(CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
         BSHBlock tryBlock = ((BSHBlock)jjtGetChild(0));
@@ -79,15 +79,15 @@ class BSHTryStatement extends SimpleNode
         try {
             ret = tryBlock.eval(callstack, interpreter);
         }
-        catch( TargetError e ) {
+        catch(TargetError e) {
             target = e;
             String stackInfo = "Bsh Stack: ";
-            while ( callstack.depth() > callstackDepth )
+            while (callstack.depth() > callstackDepth)
                 stackInfo += "\t" + callstack.pop() +"\n";
         }
 
         // unwrap the target error
-        if ( target != null )
+        if (target != null)
             thrown = target.getTarget();
 
 
@@ -105,18 +105,18 @@ class BSHTryStatement extends SimpleNode
                 // Evaluation of the formal parameter simply resolves its
                 // type via the specified namespace.. it doesn't modify the
                 // namespace.
-                fp.eval( callstack, interpreter );
+                fp.eval(callstack, interpreter);
 
-                if ( fp.type == null && interpreter.getStrictJava() )
+                if (fp.type == null && interpreter.getStrictJava())
                     throw new EvalError(
-                        "(Strict Java) Untyped catch block", this, callstack );
+                        "(Strict Java) Untyped catch block", this, callstack);
 
                 // If the param is typed check assignability
-                if ( fp.type != null )
+                if (fp.type != null)
                     try {
                         thrown = (Throwable)Types.castObject(
-                            thrown/*rsh*/, fp.type/*lhsType*/, Types.ASSIGNMENT );
-                    } catch( UtilEvalError e ) {
+                            thrown/*rsh*/, fp.type/*lhsType*/, Types.ASSIGNMENT);
+                    } catch(UtilEvalError e) {
                         /*
                             Catch the mismatch and continue to try the next
                             Note: this is innefficient, should have an
@@ -136,31 +136,31 @@ class BSHTryStatement extends SimpleNode
 
                 NameSpace enclosingNameSpace = callstack.top();
                 BlockNameSpace cbNameSpace =
-                    new BlockNameSpace( enclosingNameSpace );
+                    new BlockNameSpace(enclosingNameSpace);
 
                 try {
-                    if ( fp.type == BSHFormalParameter.UNTYPED )
+                    if (fp.type == BSHFormalParameter.UNTYPED)
                         // set an untyped variable directly in the block
-                        cbNameSpace.setBlockVariable( fp.name, thrown );
+                        cbNameSpace.setBlockVariable(fp.name, thrown);
                     else
                     {
                         // set a typed variable (directly in the block)
                         Modifiers modifiers = new Modifiers();
                         cbNameSpace.setTypedVariable(
-                            fp.name, fp.type, thrown, new Modifiers()/*none*/ );
+                            fp.name, fp.type, thrown, new Modifiers()/*none*/);
                     }
-                } catch ( UtilEvalError e ) {
+                } catch (UtilEvalError e) {
                     throw new InterpreterError(
-                        "Unable to set var in catch block namespace." );
+                        "Unable to set var in catch block namespace.");
                 }
 
                 // put cbNameSpace on the top of the stack
-                callstack.swap( cbNameSpace );
+                callstack.swap(cbNameSpace);
                 try {
-                    ret = cb.eval( callstack, interpreter );
+                    ret = cb.eval(callstack, interpreter);
                 } finally {
                     // put it back
-                    callstack.swap( enclosingNameSpace );
+                    callstack.swap(enclosingNameSpace);
                 }
 
                 target = null;  // handled target

@@ -12,7 +12,7 @@ a=new Accessibility2();
 
 setAccessibility(false);
 
-assert( Fields.propTest == 22 );
+assert(Fields.propTest == 22);
 assert(Accessibility2.sfield4==4);
 
 /*
@@ -27,8 +27,8 @@ assert(Accessibility2.sfield4==4);
 
 javax.swing.JInternalFrame.DO_NOTHING_ON_CLOSE;
 
-assert( isEvalError("a.get1()") );
-assert( isEvalError("a.field1") );
+assert(isEvalError("a.get1()"));
+assert(isEvalError("a.field1"));
 
 //
 // With accessibility

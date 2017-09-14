@@ -8,14 +8,14 @@
     is attempted).  Setting it to false will disable name completion.
 */
 
-bsh.help.setNameCompletion= "usage: setNameCompletion( boolean )";
+bsh.help.setNameCompletion= "usage: setNameCompletion(boolean)";
 
 /**
 */
-void setNameCompletion( boolean bool )
+void setNameCompletion(boolean bool)
 {
-    if ( bool == false )
-        if ( bsh.console != void )
-            bsh.console.setNameCompletion( null );
+    if (bool == false)
+        if (bsh.console != void)
+            bsh.console.setNameCompletion(null);
 }
 

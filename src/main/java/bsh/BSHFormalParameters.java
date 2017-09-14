@@ -42,7 +42,7 @@ class BSHFormalParameters extends SimpleNode
 
     void insureParsed()
     {
-        if ( paramNames != null )
+        if (paramNames != null)
             return;
 
         this.numArgs = jjtGetNumChildren();
@@ -63,9 +63,9 @@ class BSHFormalParameters extends SimpleNode
     }
 
     public String [] getTypeDescriptors(
-        CallStack callstack, Interpreter interpreter, String defaultPackage )
+        CallStack callstack, Interpreter interpreter, String defaultPackage)
     {
-        if ( typeDescriptors != null )
+        if (typeDescriptors != null)
             return typeDescriptors;
 
         insureParsed();
@@ -75,7 +75,7 @@ class BSHFormalParameters extends SimpleNode
         {
             BSHFormalParameter param = (BSHFormalParameter)jjtGetChild(i);
             typeDesc[i] = param.getTypeDescriptor(
-                callstack, interpreter, defaultPackage );
+                callstack, interpreter, defaultPackage);
         }
 
         this.typeDescriptors = typeDesc;
@@ -86,10 +86,10 @@ class BSHFormalParameters extends SimpleNode
         Evaluate the types.
         Note that type resolution does not require the interpreter instance.
     */
-    public Object eval( CallStack callstack, Interpreter interpreter )
+    public Object eval(CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
-        if ( paramTypes != null )
+        if (paramTypes != null)
             return paramTypes;
 
         insureParsed();
@@ -98,7 +98,7 @@ class BSHFormalParameters extends SimpleNode
         for(int i=0; i<numArgs; i++)
         {
             BSHFormalParameter param = (BSHFormalParameter)jjtGetChild(i);
-            paramTypes[i] = (Class)param.eval( callstack, interpreter );
+            paramTypes[i] = (Class)param.eval(callstack, interpreter);
         }
 
         this.paramTypes = paramTypes;

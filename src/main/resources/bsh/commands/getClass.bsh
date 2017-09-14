@@ -10,9 +10,9 @@
     your script the modifications will only appear if you use the getClass()
     command.
 */
-bsh.help.getClass= "usage: getClass( String name )";
+bsh.help.getClass= "usage: getClass(String name)";
 
-Class getClass( String name ) {
-    return this.caller.namespace.getClass( name );
+Class getClass(String name) {
+    return this.caller.namespace.getClass(name);
 }
 

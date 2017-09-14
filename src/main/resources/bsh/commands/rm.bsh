@@ -2,17 +2,17 @@
     Remove a file (like Unix rm).
 */
 
-bsh.help.rm = "usage: cd( path )";
+bsh.help.rm = "usage: cd(path)";
 
-boolean rm( String pathname )
+boolean rm(String pathname)
 {
-    this.file = pathToFile( pathname );
+    this.file = pathToFile(pathname);
 
-    if ( file == null )
+    if (file == null)
         throw new java.io.FileNotFoundException("pathname");
 
-    if ( file.isDirectory() ) {
-        print( pathname + "is a directory" );
+    if (file.isDirectory()) {
+        print(pathname + "is a directory");
         return;
     }
 

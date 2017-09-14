@@ -2,12 +2,12 @@ source("TestHarness.bsh");
 
 class MyHashMap extends HashMap
 {
-    public Object get( Object obj ) {
+    public Object get(Object obj) {
         return "getMyHashMap";
     }
 
-    public Object get2( Object obj ) {
-        //return _bshSuperget( obj );
+    public Object get2(Object obj) {
+        //return _bshSuperget(obj);
         return super.get(obj);
     }
 
@@ -17,19 +17,19 @@ class MyHashMap extends HashMap
     }
 
     static go() {
-        assert( isEvalError("super.clear()") );
+        assert(isEvalError("super.clear()"));
     }
 
-    public void test( int a ) { }
+    public void test(int a) { }
 }
 
 map=new MyHashMap();
 map.put("foo", "bar");
 
-assert( map.get("foo").equals("getMyHashMap") );
-assert( map.get2("foo").equals("bar") );
+assert(map.get("foo").equals("getMyHashMap"));
+assert(map.get2("foo").equals("bar"));
 map.clear();
-assert( map.get2("foo") == null );
+assert(map.get2("foo") == null);
 
 MyHashMap.go();
 

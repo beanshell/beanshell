@@ -2,7 +2,7 @@
 
 source("TestHarness.bsh");
 
-foo( arg ) {
+foo(arg) {
     this.a=arg;
     return this;
 }

@@ -88,13 +88,13 @@ class HttpdConnection extends Thread
     {
         try
         {
-            in = new BufferedReader( new InputStreamReader(
-                client.getInputStream() ) );
+            in = new BufferedReader(new InputStreamReader(
+                client.getInputStream()));
             out = client.getOutputStream();
             pout = new PrintStream(out);
 
             String request = in.readLine();
-            if ( request == null )
+            if (request == null)
                 error(400, "Empty Request");
 
             if(request.toLowerCase().indexOf("http/1.") != -1)
@@ -135,10 +135,10 @@ class HttpdConnection extends Thread
         throws FileNotFoundException, IOException
     {
         // Do some mappings
-        if ( file.equals("/") )
+        if (file.equals("/"))
             file = "/remote/remote.html";
 
-        if ( file.startsWith("/remote/") )
+        if (file.startsWith("/remote/"))
             file = "/bsh/util/lib/" + file.substring(8);
 
     /*
@@ -155,7 +155,7 @@ class HttpdConnection extends Thread
     */
 
         // don't send java packages over... (e.g. swing)
-        if ( file.startsWith("/java" ) )
+        if (file.startsWith("/java"))
             error(404, "Object Not Found");
         else
             try {
@@ -181,12 +181,12 @@ class HttpdConnection extends Thread
         {
             pout.println("HTTP/1.0 200 Document follows");
 
-            pout.println("Content-length: " + data.length );
+            pout.println("Content-length: " + data.length);
 
-            if ( file.endsWith(".gif") )
+            if (file.endsWith(".gif"))
                 pout.println("Content-type: image/gif");
             else
-                if( file.endsWith(".html") || file.endsWith(".htm") )
+                if(file.endsWith(".html") || file.endsWith(".htm"))
                     pout.println("Content-Type: text/html");
                 else
                     pout.println("Content-Type: application/octet-stream");
@@ -199,8 +199,8 @@ class HttpdConnection extends Thread
         do {
             bytesread = fis.read(data);
             if (bytesread > 0)
-                pout.write( data, 0, bytesread );
-        } while( bytesread != -1 );
+                pout.write(data, 0, bytesread);
+        } while(bytesread != -1);
         pout.flush();
     }
 

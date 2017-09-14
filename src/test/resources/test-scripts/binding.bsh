@@ -12,18 +12,18 @@ source("TestHarness.bsh");
 foo() {
     foocontext = this;
 
-    calledOutsideFoo( caller ) {
-        assert( super == foocontext );
-        assert( super != caller );
+    calledOutsideFoo(caller) {
+        assert(super == foocontext);
+        assert(super != caller);
     }
 
     return this;
 }
 
-foo().calledOutsideFoo( this );
+foo().calledOutsideFoo(this);
 
 helper() {
-    foo().calledOutsideFoo( this );
+    foo().calledOutsideFoo(this);
 }
 
 helper();
@@ -35,10 +35,10 @@ helper();
 baseContext = this;
 
 x=5;
-bar( caller ) {
-    assert( super == baseContext );
-    assert( super != caller );
-    assert( super.x == 5 );
+bar(caller) {
+    assert(super == baseContext);
+    assert(super != caller);
+    assert(super.x == 5);
 }
 
 caller() {

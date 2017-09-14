@@ -140,34 +140,34 @@ public class ClassManagerImpl extends BshClassManager
     /**
         @return the class or null
     */
-    public Class classForName( String name )
+    public Class classForName(String name)
     {
         // check positive cache
         Class c = (Class)absoluteClassCache.get(name);
-        if (c != null )
+        if (c != null)
             return c;
 
         // check negative cache
-        if ( absoluteNonClasses.get(name)!=null ) {
-            if ( Interpreter.DEBUG )
+        if (absoluteNonClasses.get(name)!=null) {
+            if (Interpreter.DEBUG)
                 Interpreter.debug("absoluteNonClass list hit: "+name);
             return null;
         }
 
-        if ( Interpreter.DEBUG )
+        if (Interpreter.DEBUG)
             Interpreter.debug("Trying to load class: "+name);
 
         // Check explicitly mapped (reloaded) class...
-        ClassLoader overlayLoader = getLoaderForClass( name );
-        if ( overlayLoader != null )
+        ClassLoader overlayLoader = getLoaderForClass(name);
+        if (overlayLoader != null)
         {
             try {
                 c = overlayLoader.loadClass(name);
-            } catch ( Exception e ) {
+            } catch (Exception e) {
             // used to squeltch this... changed for 1.3
             // see BshClassManager
-            } catch ( NoClassDefFoundError e2 ) {
-                throw noClassDefFound( name, e2 );
+            } catch (NoClassDefFoundError e2) {
+                throw noClassDefFound(name, e2);
             }
 
             // Should be there since it was explicitly mapped
@@ -175,58 +175,58 @@ public class ClassManagerImpl extends BshClassManager
         }
 
         // insure that core classes are loaded from the same loader
-        if ( c == null ) {
-            if ( name.startsWith( BSH_PACKAGE ) )
+        if (c == null) {
+            if (name.startsWith(BSH_PACKAGE))
                 try {
-                    c = Interpreter.class.getClassLoader().loadClass( name );
-                } catch ( ClassNotFoundException e ) {}
+                    c = Interpreter.class.getClassLoader().loadClass(name);
+                } catch (ClassNotFoundException e) {}
         }
 
         // Check classpath extension / reloaded classes
-        if ( c == null ) {
-            if ( baseLoader != null )
+        if (c == null) {
+            if (baseLoader != null)
                 try {
-                    c = baseLoader.loadClass( name );
-                } catch ( ClassNotFoundException e ) {}
+                    c = baseLoader.loadClass(name);
+                } catch (ClassNotFoundException e) {}
         }
 
         // Optionally try external classloader
-        if ( c == null ) {
-            if ( externalClassLoader != null )
+        if (c == null) {
+            if (externalClassLoader != null)
                 try {
-                    c = externalClassLoader.loadClass( name );
-                } catch ( ClassNotFoundException e ) {}
+                    c = externalClassLoader.loadClass(name);
+                } catch (ClassNotFoundException e) {}
         }
 
         // Optionally try context classloader
         // Note that this might be a security violation
         // is catching the SecurityException sufficient for all environments?
         // or do we need a way to turn this off completely?
-        if ( c ==  null )
+        if (c ==  null)
         {
             try {
                 ClassLoader contextClassLoader =
                     Thread.currentThread().getContextClassLoader();
-                if ( contextClassLoader != null )
-                    c = Class.forName( name, true, contextClassLoader );
-            } catch ( ClassNotFoundException e ) { // fall through
-            } catch ( SecurityException e ) { } // fall through
+                if (contextClassLoader != null)
+                    c = Class.forName(name, true, contextClassLoader);
+            } catch (ClassNotFoundException e) { // fall through
+            } catch (SecurityException e) { } // fall through
         }
 
         // try plain class forName()
-        if ( c == null )
+        if (c == null)
             try {
-                c = plainClassForName( name );
-            } catch ( ClassNotFoundException e ) {}
+                c = plainClassForName(name);
+            } catch (ClassNotFoundException e) {}
 
         // Try .java source file
-        if ( c == null )
-            c = loadSourceClass( name );
+        if (c == null)
+            c = loadSourceClass(name);
 
         // Cache result (or null for not found)
         // Note: plainClassForName already caches, so it will be redundant
         // in that case, however this process only happens once
-        cacheClassInfo( name, c );
+        cacheClassInfo(name, c);
 
         return c;
     }
@@ -235,14 +235,14 @@ public class ClassManagerImpl extends BshClassManager
         Get a resource URL using the BeanShell classpath
         @param path should be an absolute path
     */
-    public URL getResource( String path )
+    public URL getResource(String path)
     {
         URL url = null;
-        if ( baseLoader != null )
+        if (baseLoader != null)
             // classloader wants no leading slash
-            url = baseLoader.getResource( path.substring(1) );
-        if ( url == null )
-            url = super.getResource( path );
+            url = baseLoader.getResource(path.substring(1));
+        if (url == null)
+            url = super.getResource(path);
         return url;
     }
 
@@ -250,38 +250,38 @@ public class ClassManagerImpl extends BshClassManager
         Get a resource stream using the BeanShell classpath
         @param path should be an absolute path
     */
-    public InputStream getResourceAsStream( String path )
+    public InputStream getResourceAsStream(String path)
     {
         InputStream in = null;
-        if ( baseLoader != null )
+        if (baseLoader != null)
         {
             // classloader wants no leading slash
-            in = baseLoader.getResourceAsStream( path.substring(1) );
+            in = baseLoader.getResourceAsStream(path.substring(1));
         }
-        if ( in == null )
+        if (in == null)
         {
-            in = super.getResourceAsStream( path );
+            in = super.getResourceAsStream(path);
         }
         return in;
     }
 
-    ClassLoader getLoaderForClass( String name ) {
-        return (ClassLoader)loaderMap.get( name );
+    ClassLoader getLoaderForClass(String name) {
+        return (ClassLoader)loaderMap.get(name);
     }
 
     // Classpath mutators
 
     /**
     */
-    public void addClassPath( URL path )
+    public void addClassPath(URL path)
         throws IOException
     {
-        if ( baseLoader == null )
-            setClassPath( new URL [] { path } );
+        if (baseLoader == null)
+            setClassPath(new URL [] { path });
         else {
             // opportunity here for listener in classpath
-            baseLoader.addURL( path );
-            baseClassPath.add( path );
+            baseLoader.addURL(path);
+            baseClassPath.add(path);
             classLoaderChanged();
         }
     }
@@ -302,8 +302,8 @@ public class ClassManagerImpl extends BshClassManager
         Set a new base classpath and create a new base classloader.
         This means all types change.
     */
-    public void setClassPath( URL [] cp ) {
-        baseClassPath.setPath( cp );
+    public void setClassPath(URL [] cp) {
+        baseClassPath.setPath(cp);
         initBaseLoader();
         loaderMap = new HashMap();
         classLoaderChanged();
@@ -318,16 +318,16 @@ public class ClassManagerImpl extends BshClassManager
     public void reloadAllClasses() throws ClassPathException
     {
         BshClassPath bcp = new BshClassPath("temp");
-        bcp.addComponent( baseClassPath );
-        bcp.addComponent( BshClassPath.getUserClassPath() );
-        setClassPath( bcp.getPathComponents() );
+        bcp.addComponent(baseClassPath);
+        bcp.addComponent(BshClassPath.getUserClassPath());
+        setClassPath(bcp.getPathComponents());
     }
 
     /**
         init the baseLoader from the baseClassPath
     */
     private void initBaseLoader() {
-        baseLoader = new BshClassLoader( this, baseClassPath );
+        baseLoader = new BshClassLoader(this, baseClassPath);
     }
 
     // class reloading
@@ -337,13 +337,13 @@ public class ClassManagerImpl extends BshClassManager
         whenever we are asked for classes in the appropriate space.
         For this we use a DiscreteFilesClassLoader
     */
-    public void reloadClasses( String [] classNames )
+    public void reloadClasses(String [] classNames)
         throws ClassPathException
     {
         // validate that it is a class here?
 
         // init base class loader if there is none...
-        if ( baseLoader == null )
+        if (baseLoader == null)
             initBaseLoader();
 
         DiscreteFilesClassLoader.ClassSourceMap map =
@@ -354,39 +354,39 @@ public class ClassManagerImpl extends BshClassManager
             String name = classNames[i];
 
             // look in baseLoader class path
-            ClassSource classSource = baseClassPath.getClassSource( name );
+            ClassSource classSource = baseClassPath.getClassSource(name);
 
             // look in user class path
-            if ( classSource == null ) {
+            if (classSource == null) {
                 BshClassPath.getUserClassPath().insureInitialized();
                 classSource = BshClassPath.getUserClassPath().getClassSource(
-                    name );
+                    name);
             }
 
             // No point in checking boot class path, can't reload those.
             // else we could have used fullClassPath above.
 
-            if ( classSource == null )
+            if (classSource == null)
                 throw new ClassPathException("Nothing known about class: "
-                    +name );
+                    +name);
 
             // JarClassSource is not working... just need to implement it's
             // getCode() method or, if we decide to, allow the BshClassManager
             // to handle it... since it is a URLClassLoader and can handle JARs
-            if ( classSource instanceof JarClassSource )
+            if (classSource instanceof JarClassSource)
                 throw new ClassPathException("Cannot reload class: "+name+
-                    " from source: "+ classSource );
+                    " from source: "+ classSource);
 
-            map.put( name, classSource );
+            map.put(name, classSource);
         }
 
         // Create classloader for the set of classes
-        ClassLoader cl = new DiscreteFilesClassLoader( this, map );
+        ClassLoader cl = new DiscreteFilesClassLoader(this, map);
 
         // map those classes the loader in the overlay map
         Iterator it = map.keySet().iterator();
-        while ( it.hasNext() )
-            loaderMap.put( (String)it.next(), cl );
+        while (it.hasNext())
+            loaderMap.put((String)it.next(), cl);
 
         classLoaderChanged();
     }
@@ -397,29 +397,29 @@ public class ClassManagerImpl extends BshClassManager
         The special package name "<unpackaged>" can be used to refer
         to unpackaged classes.
     */
-    public void reloadPackage( String pack )
+    public void reloadPackage(String pack)
         throws ClassPathException
     {
         Collection classes =
-            baseClassPath.getClassesForPackage( pack );
+            baseClassPath.getClassesForPackage(pack);
 
-        if ( classes == null )
+        if (classes == null)
             classes =
-                BshClassPath.getUserClassPath().getClassesForPackage( pack );
+                BshClassPath.getUserClassPath().getClassesForPackage(pack);
 
         // no point in checking boot class path, can't reload those
 
-        if ( classes == null )
+        if (classes == null)
             throw new ClassPathException("No classes found for package: "+pack);
 
-        reloadClasses( (String[])classes.toArray( new String[0] ) );
+        reloadClasses((String[])classes.toArray(new String[0]));
     }
 
     /**
         Unimplemented
         For this we'd have to store a map by location as well as name...
 
-    public void reloadPathComponent( URL pc ) throws ClassPathException {
+    public void reloadPathComponent(URL pc) throws ClassPathException {
         throw new ClassPathException("Unimplemented!");
     }
     */
@@ -431,17 +431,17 @@ public class ClassManagerImpl extends BshClassManager
     */
     public BshClassPath getClassPath() throws ClassPathException
     {
-        if ( fullClassPath != null )
+        if (fullClassPath != null)
             return fullClassPath;
 
         fullClassPath = new BshClassPath("BeanShell Full Class Path");
-        fullClassPath.addComponent( BshClassPath.getUserClassPath() );
+        fullClassPath.addComponent(BshClassPath.getUserClassPath());
         try {
-            fullClassPath.addComponent( BshClassPath.getBootClassPath() );
-        } catch ( ClassPathException e ) {
+            fullClassPath.addComponent(BshClassPath.getBootClassPath());
+        } catch (ClassPathException e) {
             System.err.println("Warning: can't get boot class path");
         }
-        fullClassPath.addComponent( baseClassPath );
+        fullClassPath.addComponent(baseClassPath);
 
         return fullClassPath;
     }
@@ -458,13 +458,13 @@ public class ClassManagerImpl extends BshClassManager
         try {
             getClassPath().insureInitialized();
             // prime the lookup table
-            getClassNameByUnqName( "" ) ;
+            getClassNameByUnqName("") ;
 
             // always true now
             //getClassPath().setNameCompletionIncludeUnqNames(true);
 
-        } catch ( ClassPathException e ) {
-            throw new UtilEvalError("Error importing classpath "+ e );
+        } catch (ClassPathException e) {
+            throw new UtilEvalError("Error importing classpath "+ e);
         }
 
         superImport = true;
@@ -476,29 +476,29 @@ public class ClassManagerImpl extends BshClassManager
         Return the name or null if none is found,
         Throw an ClassPathException containing detail if name is ambigous.
     */
-    public String getClassNameByUnqName( String name )
+    public String getClassNameByUnqName(String name)
         throws ClassPathException
     {
-        return getClassPath().getClassNameByUnqName( name );
+        return getClassPath().getClassNameByUnqName(name);
     }
 
-    public void addListener( Listener l ) {
-        listeners.addElement( new WeakReference( l, refQueue) );
+    public void addListener(Listener l) {
+        listeners.addElement(new WeakReference(l, refQueue));
 
         // clean up old listeners
         Reference deadref;
-        while ( (deadref = refQueue.poll()) != null ) {
-            boolean ok = listeners.removeElement( deadref );
-            if ( ok ) {
+        while ((deadref = refQueue.poll()) != null) {
+            boolean ok = listeners.removeElement(deadref);
+            if (ok) {
                 //System.err.println("cleaned up weak ref: "+deadref);
             } else {
-                if ( Interpreter.DEBUG ) Interpreter.debug(
+                if (Interpreter.DEBUG) Interpreter.debug(
                     "tried to remove non-existent weak ref: "+deadref);
             }
         }
     }
 
-    public void removeListener( Listener l ) {
+    public void removeListener(Listener l) {
         throw new Error("unimplemented");
     }
 
@@ -520,16 +520,16 @@ public class ClassManagerImpl extends BshClassManager
 
         @exception ClassPathException can be thrown by reloadClasses
     */
-    public Class defineClass( String name, byte [] code )
+    public Class defineClass(String name, byte [] code)
     {
-//System.out.println( "defineClass: "+name );
-        baseClassPath.setClassSource( name, new GeneratedClassSource( code ) );
+//System.out.println("defineClass: "+name);
+        baseClassPath.setClassSource(name, new GeneratedClassSource(code));
         try {
-            reloadClasses( new String [] { name } );
-        } catch ( ClassPathException e ) {
+            reloadClasses(new String [] { name });
+        } catch (ClassPathException e) {
             throw new bsh.InterpreterError("defineClass: "+e);
         }
-        return classForName( name );
+        return classForName(name);
     }
 
     /**
@@ -545,20 +545,20 @@ public class ClassManagerImpl extends BshClassManager
         clearCaches();
 
         Vector toRemove = new Vector(); // safely remove
-        for ( Enumeration e = listeners.elements(); e.hasMoreElements(); )
+        for (Enumeration e = listeners.elements(); e.hasMoreElements();)
         {
             WeakReference wr = (WeakReference)e.nextElement();
             Listener l = (Listener)wr.get();
-            if ( l == null )  // garbage collected
-              toRemove.add( wr );
+            if (l == null)  // garbage collected
+              toRemove.add(wr);
             else
               l.classLoaderChanged();
         }
-        for( Enumeration e = toRemove.elements(); e.hasMoreElements(); )
-            listeners.removeElement( e.nextElement() );
+        for(Enumeration e = toRemove.elements(); e.hasMoreElements();)
+            listeners.removeElement(e.nextElement());
     }
 
-    public void dump( PrintWriter i )
+    public void dump(PrintWriter i)
     {
         i.println("Bsh Class Manager Dump: ");
         i.println("----------------------- ");

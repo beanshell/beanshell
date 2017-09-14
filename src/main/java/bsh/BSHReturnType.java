@@ -39,22 +39,22 @@ class BSHReturnType extends SimpleNode
     }
 
     public String getTypeDescriptor(
-        CallStack callstack, Interpreter interpreter, String defaultPackage )
+        CallStack callstack, Interpreter interpreter, String defaultPackage)
     {
-        if ( isVoid )
+        if (isVoid)
             return "V";
         else
             return getTypeNode().getTypeDescriptor(
-                callstack, interpreter, defaultPackage );
+                callstack, interpreter, defaultPackage);
     }
 
     public Class evalReturnType(
-        CallStack callstack, Interpreter interpreter ) throws EvalError
+        CallStack callstack, Interpreter interpreter) throws EvalError
     {
-        if ( isVoid )
+        if (isVoid)
             return Void.TYPE;
         else
-            return getTypeNode().getType( callstack, interpreter );
+            return getTypeNode().getType(callstack, interpreter);
     }
 }
 

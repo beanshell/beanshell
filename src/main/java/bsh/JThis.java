@@ -69,8 +69,8 @@ class JThis extends This implements
     TreeWillExpandListener, UndoableEditListener
 {
 
-    JThis( NameSpace namespace, Interpreter declaringInterp ) {
-        super( namespace, declaringInterp );
+    JThis(NameSpace namespace, Interpreter declaringInterp) {
+        super(namespace, declaringInterp);
     }
 
     public String toString() {
@@ -79,35 +79,35 @@ class JThis extends This implements
 
     void event(String name, Object event)
     {
-        CallStack callstack = new CallStack( namespace );
+        CallStack callstack = new CallStack(namespace);
         BshMethod method = null;
 
         // handleEvent gets all events
         try {
             method = namespace.getMethod(
-                "handleEvent", new Class [] { null } );
-        } catch ( UtilEvalError e ) {/*squeltch*/  }
+                "handleEvent", new Class [] { null });
+        } catch (UtilEvalError e) {/*squeltch*/  }
 
         if (method != null)
             try {
                 method.invoke(
-                    new Object[] { event }, declaringInterpreter, callstack, null );
+                    new Object[] { event }, declaringInterpreter, callstack, null);
             } catch(EvalError e) {
                 declaringInterpreter.error(
-                    "local event hander method invocation error:" + e );
+                    "local event hander method invocation error:" + e);
             }
 
         // send to specific event handler
         try {
-            method = namespace.getMethod( name, new Class [] { null } );
-        } catch ( UtilEvalError e ) { /*squeltch*/ }
+            method = namespace.getMethod(name, new Class [] { null });
+        } catch (UtilEvalError e) { /*squeltch*/ }
         if (method != null)
             try {
                 method.invoke(
-                    new Object[] { event }, declaringInterpreter, callstack, null );
+                    new Object[] { event }, declaringInterpreter, callstack, null);
             } catch(EvalError e) {
                 declaringInterpreter.error(
-                    "local event hander method invocation error:" + e );
+                    "local event hander method invocation error:" + e);
             }
     }
 
@@ -197,32 +197,32 @@ class JThis extends This implements
     public void windowDeactivated(WindowEvent e) { event("windowDeactivated", e); }
 
     public void propertyChange(PropertyChangeEvent e) {
-        event("propertyChange", e ); }
+        event("propertyChange", e); }
     public void vetoableChange(PropertyChangeEvent e) {
-        event("vetoableChange", e ); }
+        event("vetoableChange", e); }
 
     public boolean imageUpdate(java.awt.Image img, int infoflags,
                                int x, int y, int width, int height) {
 
         BshMethod method = null;
         try {
-            method = namespace.getMethod( "imageUpdate",
-                new Class [] { null, null, null, null, null, null } );
-        } catch ( UtilEvalError e ) {/*squeltch*/ }
+            method = namespace.getMethod("imageUpdate",
+                new Class [] { null, null, null, null, null, null });
+        } catch (UtilEvalError e) {/*squeltch*/ }
 
         if(method != null)
             try {
-                CallStack callstack = new CallStack( namespace );
+                CallStack callstack = new CallStack(namespace);
                 method.invoke(
                     new Object[] {
                         img, new Primitive(infoflags), new Primitive(x),
                         new Primitive(y), new Primitive(width),
                         new Primitive(height) },
                     declaringInterpreter, callstack, null
-                );
+               );
             } catch(EvalError e) {
                 declaringInterpreter.error(
-                    "local event handler imageUpdate: method invocation error:" + e );
+                    "local event handler imageUpdate: method invocation error:" + e);
             }
         return true;
     }

@@ -110,7 +110,7 @@ public class BshClassManager
     protected transient Hashtable definingClasses = new Hashtable();
     protected transient Hashtable definingClassesBaseNames = new Hashtable();
 
-    /** @see #associateClass( Class ) */
+    /** @see #associateClass(Class) */
     protected transient Hashtable associatedClasses = new Hashtable();
 
     /**
@@ -118,36 +118,36 @@ public class BshClassManager
         Class manager instnaces are now associated with the interpreter.
 
         @see bsh.Interpreter.getClassManager()
-        @see bsh.Interpreter.setClassLoader( ClassLoader )
+        @see bsh.Interpreter.setClassLoader(ClassLoader)
     */
-    public static BshClassManager createClassManager( Interpreter interpreter )
+    public static BshClassManager createClassManager(Interpreter interpreter)
     {
         BshClassManager manager;
 
         // Do we have the necessary jdk1.2 packages and optional package?
-        if ( Capabilities.classExists("java.lang.ref.WeakReference")
+        if (Capabilities.classExists("java.lang.ref.WeakReference")
             && Capabilities.classExists("java.util.HashMap")
             && Capabilities.classExists("bsh.classpath.ClassManagerImpl")
-        )
+       )
             try {
                 // Try to load the module
                 // don't refer to it directly here or we're dependent upon it
-                Class clas = Class.forName( "bsh.classpath.ClassManagerImpl" );
+                Class clas = Class.forName("bsh.classpath.ClassManagerImpl");
                 manager = (BshClassManager)clas.newInstance();
-            } catch ( Exception e ) {
+            } catch (Exception e) {
                 throw new InterpreterError("Error loading classmanager: "+e);
             }
         else
             manager = new BshClassManager();
 
-        if ( interpreter == null )
+        if (interpreter == null)
             interpreter = new Interpreter();
         manager.declaringInterpreter = interpreter;
         return manager;
     }
 
-    public boolean classExists( String name ) {
-        return ( classForName( name ) != null );
+    public boolean classExists(String name) {
+        return (classForName(name) != null);
     }
 
     /**
@@ -158,44 +158,44 @@ public class BshClassManager
         management package.
         @return the class or null
     */
-    public Class classForName( String name )
+    public Class classForName(String name)
     {
-        if ( isClassBeingDefined( name ) )
+        if (isClassBeingDefined(name))
             throw new InterpreterError(
                 "Attempting to load class in the process of being defined: "
-                +name );
+                +name);
 
         Class clas = null;
         try {
-            clas = plainClassForName( name );
-        } catch ( ClassNotFoundException e ) { /*ignore*/ }
+            clas = plainClassForName(name);
+        } catch (ClassNotFoundException e) { /*ignore*/ }
 
         // try scripted class
-        if ( clas == null )
-            clas = loadSourceClass( name );
+        if (clas == null)
+            clas = loadSourceClass(name);
 
         return clas;
     }
 
     // Move me to classpath/ClassManagerImpl???
-    protected Class loadSourceClass( String name )
+    protected Class loadSourceClass(String name)
     {
         String fileName = "/"+name.replace('.','/')+".java";
-        InputStream in = getResourceAsStream( fileName );
-        if ( in == null )
+        InputStream in = getResourceAsStream(fileName);
+        if (in == null)
             return null;
 
         try {
             System.out.println("Loading class from source file: "+fileName);
-            declaringInterpreter.eval( new InputStreamReader(in) );
-        } catch ( EvalError e ) {
+            declaringInterpreter.eval(new InputStreamReader(in));
+        } catch (EvalError e) {
             // ignore
-            System.err.println( e );
+            System.err.println(e);
         }
         try {
-            return plainClassForName( name );
-        } catch ( ClassNotFoundException e ) {
-            System.err.println("Class not found in source file: "+name );
+            return plainClassForName(name);
+        } catch (ClassNotFoundException e) {
+            System.err.println("Class not found in source file: "+name);
             return null;
         }
     }
@@ -211,21 +211,21 @@ public class BshClassManager
         central point for monitoring and handling certain Java version
         dependent bugs, etc.
 
-        @see #classForName( String )
+        @see #classForName(String)
         @return the class
     */
-    public Class plainClassForName( String name )
+    public Class plainClassForName(String name)
         throws ClassNotFoundException
     {
         Class c = null;
 
         try {
-            if ( externalClassLoader != null )
-                c = externalClassLoader.loadClass( name );
+            if (externalClassLoader != null)
+                c = externalClassLoader.loadClass(name);
             else
-                c = Class.forName( name );
+                c = Class.forName(name);
 
-            cacheClassInfo( name, c );
+            cacheClassInfo(name, c);
 
         /*
             Original note: Jdk under Win is throwing these to
@@ -237,8 +237,8 @@ public class BshClassManager
             and this was never a valid solution.  If there are legacy VMs that
             have problems we can include a more specific test for them here.
         */
-        } catch ( NoClassDefFoundError e ) {
-            throw noClassDefFound( name, e );
+        } catch (NoClassDefFoundError e) {
+            throw noClassDefFound(name, e);
         }
 
         return c;
@@ -248,16 +248,16 @@ public class BshClassManager
         Get a resource URL using the BeanShell classpath
         @param path should be an absolute path
     */
-    public URL getResource( String path )
+    public URL getResource(String path)
     {
         URL url = null;
-        if ( externalClassLoader != null )
+        if (externalClassLoader != null)
         {
             // classloader wants no leading slash
-            url = externalClassLoader.getResource( path.substring(1) );
+            url = externalClassLoader.getResource(path.substring(1));
         }
-        if ( url == null )
-            url = Interpreter.class.getResource( path );
+        if (url == null)
+            url = Interpreter.class.getResource(path);
 
         return url;
     }
@@ -265,16 +265,16 @@ public class BshClassManager
         Get a resource stream using the BeanShell classpath
         @param path should be an absolute path
     */
-    public InputStream getResourceAsStream( String path )
+    public InputStream getResourceAsStream(String path)
     {
         InputStream in = null;
-        if ( externalClassLoader != null )
+        if (externalClassLoader != null)
         {
             // classloader wants no leading slash
-            in = externalClassLoader.getResourceAsStream( path.substring(1) );
+            in = externalClassLoader.getResourceAsStream(path.substring(1));
         }
-        if ( in == null )
-            in = Interpreter.class.getResourceAsStream( path );
+        if (in == null)
+            in = Interpreter.class.getResourceAsStream(path);
 
         return in;
     }
@@ -286,11 +286,11 @@ public class BshClassManager
             if value is null, set the flag that it is *not* a class to
             speed later resolution
     */
-    public void cacheClassInfo( String name, Class value ) {
-        if ( value != null )
-            absoluteClassCache.put( name, value );
+    public void cacheClassInfo(String name, Class value) {
+        if (value != null)
+            absoluteClassCache.put(name, value);
         else
-            absoluteNonClasses.put( name, NOVALUE );
+            absoluteNonClasses.put(name, NOVALUE);
     }
 
     /**
@@ -305,16 +305,16 @@ public class BshClassManager
      *
      * Class associations currently last for the life of the class manager.
      */
-    public void associateClass( Class clas )
+    public void associateClass(Class clas)
     {
         // TODO should check to make sure it's a generated class here
         // just need to add a method to classgenerator API to test it
-        associatedClasses.put( clas.getName(), clas );
+        associatedClasses.put(clas.getName(), clas);
     }
 
-    public Class getAssociatedClass( String name )
+    public Class getAssociatedClass(String name)
     {
-        return (Class)associatedClasses.get( name );
+        return (Class)associatedClasses.get(name);
     }
 
     /**
@@ -324,17 +324,17 @@ public class BshClassManager
         in the general case where either will do.
     */
     public void cacheResolvedMethod(
-        Class clas, Class [] types, Method method )
+        Class clas, Class [] types, Method method)
     {
-        if ( Interpreter.DEBUG )
+        if (Interpreter.DEBUG)
             Interpreter.debug(
-                "cacheResolvedMethod putting: " + clas +" "+ method );
+                "cacheResolvedMethod putting: " + clas +" "+ method);
 
-        SignatureKey sk = new SignatureKey( clas, method.getName(), types );
-        if ( Modifier.isStatic( method.getModifiers() ) )
-            resolvedStaticMethods.put( sk, method );
+        SignatureKey sk = new SignatureKey(clas, method.getName(), types);
+        if (Modifier.isStatic(method.getModifiers()))
+            resolvedStaticMethods.put(sk, method);
         else
-            resolvedObjectMethods.put( sk, method );
+            resolvedObjectMethods.put(sk, method);
     }
 
     /**
@@ -343,24 +343,24 @@ public class BshClassManager
         @return the Method or null
     */
     protected Method getResolvedMethod(
-        Class clas, String methodName, Class [] types, boolean onlyStatic  )
+        Class clas, String methodName, Class [] types, boolean onlyStatic )
     {
-        SignatureKey sk = new SignatureKey( clas, methodName, types );
+        SignatureKey sk = new SignatureKey(clas, methodName, types);
 
         // Try static and then object, if allowed
         // Note that the Java compiler should not allow both.
-        Method method = (Method)resolvedStaticMethods.get( sk );
-        if ( method == null && !onlyStatic)
-            method = (Method)resolvedObjectMethods.get( sk );
+        Method method = (Method)resolvedStaticMethods.get(sk);
+        if (method == null && !onlyStatic)
+            method = (Method)resolvedObjectMethods.get(sk);
 
-        if ( Interpreter.DEBUG )
+        if (Interpreter.DEBUG)
         {
-            if ( method == null )
+            if (method == null)
                 Interpreter.debug(
-                    "getResolvedMethod cache MISS: " + clas +" - "+methodName );
+                    "getResolvedMethod cache MISS: " + clas +" - "+methodName);
             else
                 Interpreter.debug(
-                    "getResolvedMethod cache HIT: " + clas +" - " +method );
+                    "getResolvedMethod cache HIT: " + clas +" - " +method);
         }
         return method;
     }
@@ -388,13 +388,13 @@ public class BshClassManager
         However BeanShell is not currently able to reload
         classes supplied through the external classloader.
     */
-    public void setClassLoader( ClassLoader externalCL )
+    public void setClassLoader(ClassLoader externalCL)
     {
         externalClassLoader = externalCL;
         classLoaderChanged();
     }
 
-    public void addClassPath( URL path )
+    public void addClassPath(URL path)
         throws IOException {
     }
 
@@ -409,7 +409,7 @@ public class BshClassManager
         Set a new base classpath and create a new base classloader.
         This means all types change.
     */
-    public void setClassPath( URL [] cp )
+    public void setClassPath(URL [] cp)
         throws UtilEvalError
     {
         throw cmUnavailable();
@@ -430,7 +430,7 @@ public class BshClassManager
         whenever we are asked for classes in the appropriate space.
         For this we use a DiscreteFilesClassLoader
     */
-    public void reloadClasses( String [] classNames )
+    public void reloadClasses(String [] classNames)
         throws UtilEvalError
     {
         throw cmUnavailable();
@@ -442,7 +442,7 @@ public class BshClassManager
         The special package name "<unpackaged>" can be used to refer
         to unpackaged classes.
     */
-    public void reloadPackage( String pack )
+    public void reloadPackage(String pack)
         throws UtilEvalError
     {
         throw cmUnavailable();
@@ -478,17 +478,17 @@ public class BshClassManager
         Return the name or null if none is found,
         Throw an ClassPathException containing detail if name is ambigous.
     */
-    protected String getClassNameByUnqName( String name )
+    protected String getClassNameByUnqName(String name)
         throws UtilEvalError
     {
         throw cmUnavailable();
     }
 
-    public void addListener( Listener l ) { }
+    public void addListener(Listener l) { }
 
-    public void removeListener( Listener l ) { }
+    public void removeListener(Listener l) { }
 
-    public void dump( PrintWriter pw ) {
+    public void dump(PrintWriter pw) {
         pw.println("BshClassManager: no class manager.");
     }
 
@@ -505,50 +505,50 @@ public class BshClassManager
         class import resolution.  This workaround should handle most cases
         so we'll try it for now.
     */
-    protected void definingClass( String className ) {
+    protected void definingClass(String className) {
         String baseName = Name.suffix(className,1);
         int i = baseName.indexOf("$");
-        if ( i != -1 )
+        if (i != -1)
             baseName = baseName.substring(i+1);
-        String cur = (String)definingClassesBaseNames.get( baseName );
-        if ( cur != null )
+        String cur = (String)definingClassesBaseNames.get(baseName);
+        if (cur != null)
             throw new InterpreterError("Defining class problem: "+className
                 +": BeanShell cannot yet simultaneously define two or more "
                 +"dependent classes of the same name.  Attempt to define: "
                 + className +" while defining: "+cur
-            );
-        definingClasses.put( className, NOVALUE );
-        definingClassesBaseNames.put( baseName, className );
+           );
+        definingClasses.put(className, NOVALUE);
+        definingClassesBaseNames.put(baseName, className);
     }
 
-    protected boolean isClassBeingDefined( String className ) {
-        return definingClasses.get( className ) != null;
+    protected boolean isClassBeingDefined(String className) {
+        return definingClasses.get(className) != null;
     }
 
     /**
         This method is a temporary workaround used with definingClass.
         It is to be removed at some point.
     */
-    protected String getClassBeingDefined( String className ) {
+    protected String getClassBeingDefined(String className) {
         String baseName = Name.suffix(className,1);
-        return (String)definingClassesBaseNames.get( baseName );
+        return (String)definingClassesBaseNames.get(baseName);
     }
 
     /**
         Indicate that the specified class name has been defined and may be
         loaded normally.
     */
-    protected void doneDefiningClass( String className ) {
+    protected void doneDefiningClass(String className) {
         String baseName = Name.suffix(className,1);
-        definingClasses.remove( className );
-        definingClassesBaseNames.remove( baseName );
+        definingClasses.remove(className);
+        definingClassesBaseNames.remove(baseName);
     }
 
     /*
         The real implementation in the classpath.ClassManagerImpl handles
         reloading of the generated classes.
     */
-    public Class defineClass( String name, byte [] code )
+    public Class defineClass(String name, byte [] code)
     {
         throw new InterpreterError("Can't create class ("+name
             +") without class manager package.");
@@ -565,16 +565,16 @@ public class BshClassManager
                 cl, "defineClass",
                 new Object [] {
                     name, code,
-                    new Primitive( (int)0 )/offset/,
-                    new Primitive( code.length )/len/
+                    new Primitive((int)0)/offset/,
+                    new Primitive(code.length)/len/
                 },
                 (Interpreter)null, (CallStack)null, (SimpleNode)null
-            );
-        } catch ( Exception e ) {
+           );
+        } catch (Exception e) {
             e.printStackTrace();
-            throw new InterpreterError("Unable to define class: "+ e );
+            throw new InterpreterError("Unable to define class: "+ e);
         }
-        absoluteNonClasses.remove( name ); // may have been axed previously
+        absoluteNonClasses.remove(name); // may have been axed previously
         return clas;
     */
     }
@@ -585,10 +585,10 @@ public class BshClassManager
         Annotate the NoClassDefFoundError with some info about the class
         we were trying to load.
     */
-    protected static Error noClassDefFound( String className, Error e ) {
+    protected static Error noClassDefFound(String className, Error e) {
         return new NoClassDefFoundError(
             "A class required by class: "+className +" could not be loaded:\n"
-            +e.toString() );
+            +e.toString());
     }
 
     protected static UtilEvalError cmUnavailable() {
@@ -623,7 +623,7 @@ public class BshClassManager
         String methodName;
         int hashCode = 0;
 
-        SignatureKey( Class clas, String methodName, Class [] types ) {
+        SignatureKey(Class clas, String methodName, Class [] types) {
             this.clas = clas;
             this.methodName = methodName;
             this.types = types;
@@ -631,12 +631,12 @@ public class BshClassManager
 
         public int hashCode()
         {
-            if ( hashCode == 0 )
+            if (hashCode == 0)
             {
                 hashCode = clas.hashCode() * methodName.hashCode();
-                if ( types == null ) // no args method
+                if (types == null) // no args method
                     return hashCode;
-                for( int i =0; i < types.length; i++ ) {
+                for(int i =0; i < types.length; i++) {
                     int hc = types[i] == null ? 21 : types[i].hashCode();
                     hashCode = hashCode*(i+1) + hc;
                 }
@@ -644,24 +644,24 @@ public class BshClassManager
             return hashCode;
         }
 
-        public boolean equals( Object o ) {
+        public boolean equals(Object o) {
             SignatureKey target = (SignatureKey)o;
-            if ( types == null )
+            if (types == null)
                 return target.types == null;
-            if ( clas != target.clas )
+            if (clas != target.clas)
                 return false;
-            if ( !methodName.equals( target.methodName ) )
+            if (!methodName.equals(target.methodName))
                 return false;
-            if ( types.length != target.types.length )
+            if (types.length != target.types.length)
                 return false;
-            for( int i =0; i< types.length; i++ )
+            for(int i =0; i< types.length; i++)
             {
-                if ( types[i]==null )
+                if (types[i]==null)
                 {
-                    if ( !(target.types[i]==null) )
+                    if (!(target.types[i]==null))
                         return false;
                 } else
-                    if ( !types[i].equals( target.types[i] ) )
+                    if (!types[i].equals(target.types[i]))
                         return false;
             }
 

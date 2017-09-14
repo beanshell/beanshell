@@ -48,7 +48,7 @@ import java.util.Vector;
     <p
     <code><pre>
         Parser parser = new Parser(in);
-        while( !(eof=parser.Line()) ) {
+        while(!(eof=parser.Line())) {
             SimpleNode node = parser.popNode();
             // use the node, etc. (See bsh.BSH* classes)
         }
@@ -57,7 +57,7 @@ import java.util.Vector;
 public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConstants {/*@bgen(jjtree)*/
   protected JJTParserState jjtree = new JJTParserState();boolean retainComments = false;
 
-        public void setRetainComments( boolean b ) {
+        public void setRetainComments(boolean b) {
                 retainComments = b;
         }
 
@@ -72,13 +72,13 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
         /**
         Re-initialize the input stream and token source.
     */
-        void reInitInput( Reader in ) {
+        void reInitInput(Reader in) {
                 ReInit(in);
         }
 
         public SimpleNode popNode()
         {
-                if ( jjtree.nodeArity() > 0)  // number of child nodes
+                if (jjtree.nodeArity() > 0)  // number of child nodes
                         return (SimpleNode)jjtree.popNode();
                 else
                         return null;
@@ -89,18 +89,18 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
         This seems to be necessary to avoid certain looping errors when
         reading bogus input.  See Interpreter.
     */
-        void reInitTokenInput( Reader in ) {
-                jj_input_stream.ReInit( in,
+        void reInitTokenInput(Reader in) {
+                jj_input_stream.ReInit(in,
                         jj_input_stream.getEndLine(),
-                        jj_input_stream.getEndColumn() );
+                        jj_input_stream.getEndColumn());
         }
 
-        public static void main( String [] args )
+        public static void main(String [] args)
                 throws IOException, ParseException
         {
                 boolean print = false;
                 int i=0;
-                if ( args[0].equals("-p") ) {
+                if (args[0].equals("-p")) {
                         i++;
                         print=true;
                 }
@@ -108,9 +108,9 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
                         Reader in = new FileReader(args[i]);
                         Parser parser = new Parser(in);
                         parser.setRetainComments(true);
-                        while( !parser.Line()/*eof*/ )
-                                if ( print )
-                                        System.out.println( parser.popNode() );
+                        while(!parser.Line()/*eof*/)
+                                if (print)
+                                        System.out.println(parser.popNode());
                 }
         }
 
@@ -123,9 +123,9 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
                 int curTok = 1;
                 Token tok;
                 tok = getToken(curTok++);
-                if ( tok.kind != FOR ) return false;
+                if (tok.kind != FOR) return false;
                 tok = getToken(curTok++);
-                if ( tok.kind != LPAREN ) return false;
+                if (tok.kind != LPAREN) return false;
                 while (true)
                 {
                         tok = getToken(curTok++);
@@ -146,13 +146,13 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
         The auto-generated Parser.generateParseException() method does not
         provide line number info, therefore we do this.
     */
-        ParseException createParseException( String message )
+        ParseException createParseException(String message)
         {
                 Token errortok = token;
                 int line = errortok.beginLine, column = errortok.beginColumn;
                 String mess = (errortok.kind == 0) ? tokenImage[0] : errortok.image;
-                return new ParseException( "Parse error at line " + line
-                        + ", column " + column + " : " + message );
+                return new ParseException("Parse error at line " + line
+                        + ", column " + column + " : " + message);
         }
 
 /*
@@ -250,12 +250,12 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
         jj_consume_token(-1);
         throw new ParseException();
       }
-                if ( !lookahead )
+                if (!lookahead)
                         try {
-                                if ( mods == null ) mods = new Modifiers();
-                                mods.addModifier( context, getToken(0).image );
-                        } catch ( IllegalStateException e ) {
-                                {if (true) throw createParseException( e.getMessage() );}
+                                if (mods == null) mods = new Modifiers();
+                                mods.addModifier(context, getToken(0).image);
+                        } catch (IllegalStateException e) {
+                                {if (true) throw createParseException(e.getMessage());}
                         }
     }
         {if (true) return mods;}
@@ -481,8 +481,8 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
     jjtree.closeNodeScope(jjtn000, true);
     jjtc000 = false;
     jjtreeCloseNodeScope(jjtn000);
-                if ( s != null ) jjtn000.staticImport = true;
-                if ( t != null ) jjtn000.importPackage = true;
+                if (s != null) jjtn000.staticImport = true;
+                if (t != null) jjtn000.importPackage = true;
       } else {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case IMPORT:
@@ -572,7 +572,7 @@ void VariableDeclaratorId() #VariableDeclaratorId :
 { Token t; }
 {
   t=<IDENTIFIER> { jjtThis.name = t.image; }
-  ( "[" "]" { jjtThis.addUndefinedDimension(); } )*
+  ("[" "]" { jjtThis.addUndefinedDimension(); })*
 }
 */
   final public void VariableInitializer() throws ParseException {
@@ -2305,16 +2305,16 @@ void VariableDeclaratorId() #VariableDeclaratorId :
     if(ch == 'l' || ch == 'L')
     {
         literal = literal.substring(0,literal.length()-1);
-        jjtn000.value = new Primitive( Long.decode(literal).longValue() );
+        jjtn000.value = new Primitive(Long.decode(literal).longValue());
 
     }
     else
                 try {
                 jjtn000.value = new Primitive(
-                                Integer.decode( literal ).intValue() );
-                } catch ( NumberFormatException e ) {
+                                Integer.decode(literal).intValue());
+                } catch (NumberFormatException e) {
                         {if (true) throw createParseException(
-                                "Error or number too big for integer type: "+ literal );}
+                                "Error or number too big for integer type: "+ literal);}
                 }
         break;
       case FLOATING_POINT_LITERAL:
@@ -2327,14 +2327,14 @@ void VariableDeclaratorId() #VariableDeclaratorId :
     if(ch == 'f' || ch == 'F')
     {
         literal = literal.substring(0,literal.length()-1);
-        jjtn000.value = new Primitive( new Float( literal ).floatValue() );
+        jjtn000.value = new Primitive(new Float(literal).floatValue());
     }
     else
     {
         if(ch == 'd' || ch == 'D')
             literal = literal.substring(0,literal.length()-1);
 
-        jjtn000.value = new Primitive( new Double( literal ).doubleValue() );
+        jjtn000.value = new Primitive(new Double(literal).doubleValue());
     }
         break;
       case CHARACTER_LITERAL:
@@ -2343,8 +2343,8 @@ void VariableDeclaratorId() #VariableDeclaratorId :
                             jjtc000 = false;
                             jjtreeCloseNodeScope(jjtn000);
                 try {
-                jjtn000.charSetup( x.image.substring(1, x.image.length() - 1) );
-                } catch ( Exception e ) {
+                jjtn000.charSetup(x.image.substring(1, x.image.length() - 1));
+                } catch (Exception e) {
                         {if (true) throw createParseException("Error parsing character: "+x.image);}
                 }
         break;
@@ -2354,8 +2354,8 @@ void VariableDeclaratorId() #VariableDeclaratorId :
                          jjtc000 = false;
                          jjtreeCloseNodeScope(jjtn000);
                 try {
-                        jjtn000.stringSetup( x.image.substring(1, x.image.length() - 1) );
-                } catch ( Exception e ) {
+                        jjtn000.stringSetup(x.image.substring(1, x.image.length() - 1));
+                } catch (Exception e) {
                         {if (true) throw createParseException("Error parsing string: "+x.image);}
                 }
         break;
@@ -2782,7 +2782,7 @@ void VariableDeclaratorId() #VariableDeclaratorId :
           jjtree.closeNodeScope(jjtn000, true);
           jjtc000 = false;
           jjtreeCloseNodeScope(jjtn000);
-                if ( s != null ) jjtn000.isStatic = true;
+                if (s != null) jjtn000.isStatic = true;
     } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);
@@ -2837,7 +2837,7 @@ void VariableDeclaratorId() #VariableDeclaratorId :
   }
 
   final public void FormalComment() throws ParseException {
- /*@bgen(jjtree) #FormalComment( retainComments) */
+ /*@bgen(jjtree) #FormalComment(retainComments) */
         BSHFormalComment jjtn000 = new BSHFormalComment(JJTFORMALCOMMENT);
         boolean jjtc000 = true;
         jjtree.openNodeScope(jjtn000);
@@ -3237,9 +3237,9 @@ void VariableDeclaratorId() #VariableDeclaratorId :
 
 /*
     The new JDK1.5 enhanced for statement.
-    e.g. for( int a : arrayOfInts ) { }
+    e.g. for(int a : arrayOfInts) { }
     We also support loose typing of the iterator var for BeanShell
-    e.g. for( a : arrayOfInts ) { }
+    e.g. for(a : arrayOfInts) { }
 */
   final public void EnhancedForStatement() throws ParseException {
  /*@bgen(jjtree) EnhancedForStatement */
@@ -3681,7 +3681,7 @@ void VariableDeclaratorId() #VariableDeclaratorId :
           jjtree.closeNodeScope(jjtn000, true);
           jjtc000 = false;
           jjtreeCloseNodeScope(jjtn000);
-                if ( !closed ) {if (true) throw generateParseException();}
+                if (!closed) {if (true) throw generateParseException();}
     } catch (Throwable jjte000) {
           if (jjtc000) {
             jjtree.clearNodeScope(jjtn000);

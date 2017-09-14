@@ -52,12 +52,12 @@ class BSHArrayDimensions extends SimpleNode
     public void addUndefinedDimension() { numUndefinedDims++; }
 
     public Object eval(
-            Class type, CallStack callstack, Interpreter interpreter )
+            Class type, CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
-        if ( Interpreter.DEBUG ) Interpreter.debug("array base type = "+type);
+        if (Interpreter.DEBUG) Interpreter.debug("array base type = "+type);
         baseType = type;
-        return eval( callstack, interpreter );
+        return eval(callstack, interpreter);
     }
 
     /**
@@ -72,7 +72,7 @@ class BSHArrayDimensions extends SimpleNode
 
         The structure of the array dims is maintained in dimensions.
     */
-    public Object eval( CallStack callstack, Interpreter interpreter )
+    public Object eval(CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
         SimpleNode child = (SimpleNode)jjtGetChild(0);
@@ -86,10 +86,10 @@ class BSHArrayDimensions extends SimpleNode
         */
         if (child instanceof BSHArrayInitializer)
         {
-            if ( baseType == null )
+            if (baseType == null)
                 throw new EvalError(
                     "Internal Array Eval err:  unknown base type",
-                    this, callstack );
+                    this, callstack);
 
             Object initValue = ((BSHArrayInitializer)child).eval(
                 baseType, numUndefinedDims, callstack, interpreter);
@@ -100,17 +100,17 @@ class BSHArrayDimensions extends SimpleNode
 
             // Compare with number of dimensions actually created with the
             // number specified (syntax uses the undefined ones here)
-            if ( definedDimensions.length != numUndefinedDims )
+            if (definedDimensions.length != numUndefinedDims)
                 throw new EvalError(
                 "Incompatible initializer. Allocation calls for a " +
                 numUndefinedDims+ " dimensional array, but initializer is a " +
-                    actualDimensions + " dimensional array", this, callstack );
+                    actualDimensions + " dimensional array", this, callstack);
 
             // fill in definedDimensions [] lengths
             Object arraySlice = initValue;
-            for ( int i = 0; i < definedDimensions.length; i++ ) {
-                definedDimensions[i] = Array.getLength( arraySlice );
-                if ( definedDimensions[i] > 0 )
+            for (int i = 0; i < definedDimensions.length; i++) {
+                definedDimensions[i] = Array.getLength(arraySlice);
+                if (definedDimensions[i] > 0)
                     arraySlice = Array.get(arraySlice, 0);
             }
 
@@ -132,7 +132,7 @@ class BSHArrayDimensions extends SimpleNode
                 {
                     throw new EvalError(
                         "Array index: " + i +
-                        " does not evaluate to an integer", this, callstack );
+                        " does not evaluate to an integer", this, callstack);
                 }
             }
         }

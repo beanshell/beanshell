@@ -11,12 +11,12 @@ foo() {
 bar() {
     int a=99;
     foo();
-    assert( a==99 );
+    assert(a==99);
 }
 
 bar();
 
 // set by foo()
-assert( a == 5 );
+assert(a == 5);
 
 complete();

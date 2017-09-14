@@ -21,10 +21,10 @@ public class BshScriptEngine extends AbstractScriptEngine
     private bsh.Interpreter interpreter;
 
     public BshScriptEngine() {
-        this( null );
+        this(null);
     }
 
-    public BshScriptEngine( BshScriptEngineFactory factory )
+    public BshScriptEngine(BshScriptEngineFactory factory)
     {
         this.factory = factory;
         getInterpreter(); // go ahead and prime the interpreter now
@@ -32,7 +32,7 @@ public class BshScriptEngine extends AbstractScriptEngine
 
     protected Interpreter getInterpreter()
     {
-        if ( interpreter == null ) {
+        if (interpreter == null) {
             this.interpreter = new bsh.Interpreter();
             interpreter.setNameSpace(null); // should always be set by context
         }
@@ -40,16 +40,16 @@ public class BshScriptEngine extends AbstractScriptEngine
         return interpreter;
     }
 
-    public Object eval( String script, ScriptContext scriptContext )
+    public Object eval(String script, ScriptContext scriptContext)
         throws ScriptException
     {
-        return evalSource( script, scriptContext );
+        return evalSource(script, scriptContext);
     }
 
-    public Object eval( Reader reader, ScriptContext scriptContext )
+    public Object eval(Reader reader, ScriptContext scriptContext)
         throws ScriptException
     {
-        return evalSource( reader, scriptContext );
+        return evalSource(reader, scriptContext);
     }
 
     /*
@@ -58,42 +58,42 @@ public class BshScriptEngine extends AbstractScriptEngine
         BeanShell will do a few extra things in the string case... e.g.
         tack on a trailing ";" semicolon if necessary.
     */
-    private Object evalSource( Object source, ScriptContext scriptContext )
+    private Object evalSource(Object source, ScriptContext scriptContext)
         throws ScriptException
     {
-        bsh.NameSpace contextNameSpace = getEngineNameSpace( scriptContext );
+        bsh.NameSpace contextNameSpace = getEngineNameSpace(scriptContext);
         Interpreter bsh = getInterpreter();
-        bsh.setNameSpace( contextNameSpace );
+        bsh.setNameSpace(contextNameSpace);
 
         // This is a big hack, convert writer to PrintStream
-        bsh.setOut( new PrintStream(
-            new WriterOutputStream( scriptContext.getWriter() ) ) );
-        bsh.setErr( new PrintStream(
-            new WriterOutputStream( scriptContext.getErrorWriter() ) ) );
+        bsh.setOut(new PrintStream(
+            new WriterOutputStream(scriptContext.getWriter())));
+        bsh.setErr(new PrintStream(
+            new WriterOutputStream(scriptContext.getErrorWriter())));
 
         try {
-            if ( source instanceof Reader )
-                return bsh.eval( (Reader) source );
+            if (source instanceof Reader)
+                return bsh.eval((Reader) source);
             else
-                return bsh.eval( (String) source );
-        } catch ( ParseException e ) {
+                return bsh.eval((String) source);
+        } catch (ParseException e) {
             // explicit parsing error
             throw new ScriptException(
-                e.toString(), e.getErrorSourceFile(), e.getErrorLineNumber() );
-        } catch ( TargetError e ) {
+                e.toString(), e.getErrorSourceFile(), e.getErrorLineNumber());
+        } catch (TargetError e) {
             // The script threw an application level exception
             // set it as the cause ?
             ScriptException se = new ScriptException(
-                e.toString(), e.getErrorSourceFile(), e.getErrorLineNumber() );
-            se.initCause( e.getTarget() );
+                e.toString(), e.getErrorSourceFile(), e.getErrorLineNumber());
+            se.initCause(e.getTarget());
             throw se;
-        } catch ( EvalError e ) {
+        } catch (EvalError e) {
             // The script couldn't be evaluated properly
             throw new ScriptException(
-                e.toString(), e.getErrorSourceFile(), e.getErrorLineNumber() );
-        } catch ( InterpreterError e ) {
+                e.toString(), e.getErrorSourceFile(), e.getErrorLineNumber());
+        } catch (InterpreterError e) {
             // The interpreter had a fatal problem
-            throw new ScriptException( e.toString() );
+            throw new ScriptException(e.toString());
         }
     }
 
@@ -104,19 +104,19 @@ public class BshScriptEngine extends AbstractScriptEngine
         in the script context engine scope.  If none exists, ininitialize the
         context with one.
     */
-    private static NameSpace getEngineNameSpace( ScriptContext scriptContext )
+    private static NameSpace getEngineNameSpace(ScriptContext scriptContext)
     {
         NameSpace ns = (NameSpace)scriptContext.getAttribute(
-            engineNameSpaceKey, ENGINE_SCOPE );
+            engineNameSpaceKey, ENGINE_SCOPE);
 
-        if ( ns == null )
+        if (ns == null)
         {
             // Create a global namespace for the interpreter
-            Map engineView = new ScriptContextEngineView( scriptContext );
+            Map engineView = new ScriptContextEngineView(scriptContext);
             ns = new ExternalNameSpace(
-                null/*parent*/, "javax_script_context", engineView );
+                null/*parent*/, "javax_script_context", engineView);
 
-            scriptContext.setAttribute( engineNameSpaceKey, ns, ENGINE_SCOPE );
+            scriptContext.setAttribute(engineNameSpaceKey, ns, ENGINE_SCOPE);
         }
 
         return ns;
@@ -129,7 +129,7 @@ public class BshScriptEngine extends AbstractScriptEngine
 
     public ScriptEngineFactory getFactory()
     {
-        if ( factory == null )
+        if (factory == null)
             factory = new BshScriptEngineFactory();
         return factory;
     }
@@ -148,10 +148,10 @@ public class BshScriptEngine extends AbstractScriptEngine
      * @throws NullPointerException if the argument is null.
      */
 
-    public CompiledScript compile( String script ) throws
+    public CompiledScript compile(String script) throws
         ScriptException
     {
-        return compile( new StringReader( script ) );
+        return compile(new StringReader(script));
     }
 
     /**
@@ -168,7 +168,7 @@ public class BshScriptEngine extends AbstractScriptEngine
      * @throws ScriptException if compilation fails.
      * @throws NullPointerException if argument is null.
      */
-    public CompiledScript compile( Reader script ) throws
+    public CompiledScript compile(Reader script) throws
         ScriptException
     {
         // todo
@@ -198,34 +198,34 @@ public class BshScriptEngine extends AbstractScriptEngine
      * types cannot be found.
      * @throws NullPointerException if method name is null.
      */
-    public Object invokeMethod( Object thiz, String name, Object... args )
+    public Object invokeMethod(Object thiz, String name, Object... args)
         throws ScriptException, NoSuchMethodException
     {
-        if ( ! (thiz instanceof bsh.This) )
-            throw new ScriptException( "Illegal objec type: " +thiz.getClass() );
+        if (! (thiz instanceof bsh.This))
+            throw new ScriptException("Illegal objec type: " +thiz.getClass());
 
         bsh.This bshObject = (bsh.This)thiz;
 
         try {
-            return bshObject.invokeMethod( name, args );
-        } catch ( ParseException e ) {
+            return bshObject.invokeMethod(name, args);
+        } catch (ParseException e) {
             // explicit parsing error
             throw new ScriptException(
-                e.toString(), e.getErrorSourceFile(), e.getErrorLineNumber() );
-        } catch ( TargetError e ) {
+                e.toString(), e.getErrorSourceFile(), e.getErrorLineNumber());
+        } catch (TargetError e) {
             // The script threw an application level exception
             // set it as the cause ?
             ScriptException se = new ScriptException(
-                e.toString(), e.getErrorSourceFile(), e.getErrorLineNumber() );
-            se.initCause( e.getTarget() );
+                e.toString(), e.getErrorSourceFile(), e.getErrorLineNumber());
+            se.initCause(e.getTarget());
             throw se;
-        } catch ( EvalError e ) {
+        } catch (EvalError e) {
             // The script couldn't be evaluated properly
             throw new ScriptException(
-                e.toString(), e.getErrorSourceFile(), e.getErrorLineNumber() );
-        } catch ( InterpreterError e ) {
+                e.toString(), e.getErrorSourceFile(), e.getErrorLineNumber());
+        } catch (InterpreterError e) {
             // The interpreter had a fatal problem
-            throw new ScriptException( e.toString() );
+            throw new ScriptException(e.toString());
         }
     }
 
@@ -243,10 +243,10 @@ public class BshScriptEngine extends AbstractScriptEngine
      * argument types cannot be found.
      * @throws NullPointerException if method name is null.
      */
-    public Object invokeFunction( String name, Object... args )
+    public Object invokeFunction(String name, Object... args)
         throws ScriptException, NoSuchMethodException
     {
-        return invokeMethod( getGlobal(), name, args );
+        return invokeMethod(getGlobal(), name, args);
     }
 
     /**
@@ -264,11 +264,11 @@ public class BshScriptEngine extends AbstractScriptEngine
      * @throws IllegalArgumentException if the specified <code>Class</code> object
      * does not exist or is not an interface.
      */
-    public <T> T getInterface( Class<T> clasz )
+    public <T> T getInterface(Class<T> clasz)
     {
         try {
-            return (T) getGlobal().getInterface( clasz );
-        } catch ( UtilEvalError utilEvalError ) {
+            return (T) getGlobal().getInterface(clasz);
+        } catch (UtilEvalError utilEvalError) {
             utilEvalError.printStackTrace();
             return null;
         }
@@ -292,17 +292,17 @@ public class BshScriptEngine extends AbstractScriptEngine
      * does not exist or is not an interface, or if the specified Object is null
      * or does not represent a scripting object.
      */
-    public <T> T getInterface( Object thiz, Class<T> clasz )
+    public <T> T getInterface(Object thiz, Class<T> clasz)
     {
-        if ( !(thiz instanceof bsh.This) )
+        if (!(thiz instanceof bsh.This))
             throw new IllegalArgumentException(
-                "invalid object type: "+thiz.getClass() );
+                "invalid object type: "+thiz.getClass());
 
         try {
             bsh.This bshThis = (bsh.This)thiz;
-            return (T) bshThis.getInterface( clasz );
-        } catch ( UtilEvalError utilEvalError ) {
-            utilEvalError.printStackTrace( System.err );
+            return (T) bshThis.getInterface(clasz);
+        } catch (UtilEvalError utilEvalError) {
+            utilEvalError.printStackTrace(System.err);
             return null;
         }
     }
@@ -310,7 +310,7 @@ public class BshScriptEngine extends AbstractScriptEngine
     private bsh.This getGlobal()
     {
         // requires 2.0b5 to make getThis() public
-        return getEngineNameSpace( getContext() ).getThis( getInterpreter() );
+        return getEngineNameSpace(getContext()).getThis(getInterpreter());
     }
 
     /*
@@ -320,12 +320,12 @@ public class BshScriptEngine extends AbstractScriptEngine
     class WriterOutputStream extends OutputStream
     {
         Writer writer;
-        WriterOutputStream( Writer writer )
+        WriterOutputStream(Writer writer)
         {
             this.writer = writer;
         }
 
-        public void write( int b ) throws IOException
+        public void write(int b) throws IOException
         {
             writer.write(b);
         }

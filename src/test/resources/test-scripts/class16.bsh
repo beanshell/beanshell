@@ -15,25 +15,25 @@ class MyClass16 extends Thread
     static int sint = 1;
     public void run()
 {
-        assert( outerMethod() == 42 );
+        assert(outerMethod() == 42);
         print("enter run flag="+flag);
         sflag=true; flag=true;
-        assert( sint == 1 );
+        assert(sint == 1);
         sint=2;
-        assert( sint == 2 );
-        assert( MyClass16.sint == 2 );
+        assert(sint == 2);
+        assert(MyClass16.sint == 2);
     }
 }
 
-assert( MyClass16.sflag == false );
-assert( flag == false );
+assert(MyClass16.sflag == false);
+assert(flag == false);
 
 thread = new MyClass16();
 thread.start();
 thread.join();
 
-assert( flag == true );
-assert( MyClass16.sint == 2 );
-assert( MyClass16.sflag == true );
+assert(flag == true);
+assert(MyClass16.sint == 2);
+assert(MyClass16.sflag == true);
 
 complete();

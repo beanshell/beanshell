@@ -70,21 +70,21 @@ public class This implements java.io.Serializable, Runnable
         rough test suite time.  This references are also cached in NameSpace.
     */
     static This getThis(
-        NameSpace namespace, Interpreter declaringInterpreter )
+        NameSpace namespace, Interpreter declaringInterpreter)
     {
         try {
             Class c;
-            if ( Capabilities.canGenerateInterfaces() )
-                c = Class.forName( "bsh.XThis" );
-            else if ( Capabilities.haveSwing() )
-                c = Class.forName( "bsh.JThis" );
+            if (Capabilities.canGenerateInterfaces())
+                c = Class.forName("bsh.XThis");
+            else if (Capabilities.haveSwing())
+                c = Class.forName("bsh.JThis");
             else
-                return new This( namespace, declaringInterpreter );
+                return new This(namespace, declaringInterpreter);
 
-            return (This)Reflect.constructObject( c,
-                new Object [] { namespace, declaringInterpreter } );
+            return (This)Reflect.constructObject(c,
+                new Object [] { namespace, declaringInterpreter });
 
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             throw new InterpreterError("internal error 1 in This: "+e);
         }
     }
@@ -97,28 +97,28 @@ public class This implements java.io.Serializable, Runnable
         If this type of This implements it directly return this,
         else try complain that we don't have the proxy mechanism.
     */
-    public Object getInterface( Class clas )
+    public Object getInterface(Class clas)
         throws UtilEvalError
     {
-        if ( clas.isInstance( this ) )
+        if (clas.isInstance(this))
             return this;
         else
-            throw new UtilEvalError( "Dynamic proxy mechanism not available. "
-            + "Cannot construct interface type: "+clas );
+            throw new UtilEvalError("Dynamic proxy mechanism not available. "
+            + "Cannot construct interface type: "+clas);
     }
 
     /**
         Get a version of this scripted object implementing the specified
         interfaces.
     */
-    public Object getInterface( Class [] ca )
+    public Object getInterface(Class [] ca)
         throws UtilEvalError
     {
         for(int i=0; i<ca.length; i++)
-            if ( !(ca[i].isInstance( this )) )
+            if (!(ca[i].isInstance(this)))
                 throw new UtilEvalError(
                     "Dynamic proxy mechanism not available. "
-                    + "Cannot construct interface type: "+ca[i] );
+                    + "Cannot construct interface type: "+ca[i]);
 
         return this;
     }
@@ -128,10 +128,10 @@ public class This implements java.io.Serializable, Runnable
         package scope... I want this to be a singleton implemented by various
         children.
     */
-    protected This( NameSpace namespace, Interpreter declaringInterpreter ) {
+    protected This(NameSpace namespace, Interpreter declaringInterpreter) {
         this.namespace = namespace;
         this.declaringInterpreter = declaringInterpreter;
-        //initCallStack( namespace );
+        //initCallStack(namespace);
     }
 
     public NameSpace getNameSpace() {
@@ -144,10 +144,10 @@ public class This implements java.io.Serializable, Runnable
 
     public void run() {
         try {
-            invokeMethod( "run", new Object[0] );
-        } catch( EvalError e ) {
+            invokeMethod("run", new Object[0]);
+        } catch(EvalError e) {
             declaringInterpreter.error(
-                "Exception in runnable:" + e );
+                "Exception in runnable:" + e);
         }
     }
 
@@ -160,13 +160,13 @@ public class This implements java.io.Serializable, Runnable
         Primitive/Primitive.unwrap() for use outside of BeanShell.
         @see bsh.Primitive
     */
-    public Object invokeMethod( String name, Object [] args )
+    public Object invokeMethod(String name, Object [] args)
         throws EvalError
     {
         // null callstack, one will be created for us
         return invokeMethod(
             name, args, null/*declaringInterpreter*/, null, null,
-            false/*declaredOnly*/ );
+            false/*declaredOnly*/);
     }
 
     /**
@@ -208,7 +208,7 @@ public class This implements java.io.Serializable, Runnable
     public Object invokeMethod(
         String methodName, Object [] args,
         Interpreter interpreter, CallStack callstack, SimpleNode callerInfo,
-        boolean declaredOnly  )
+        boolean declaredOnly )
         throws EvalError
     {
         /*
@@ -228,24 +228,24 @@ public class This implements java.io.Serializable, Runnable
             args = oa;
         }
 
-        if ( interpreter == null )
+        if (interpreter == null)
             interpreter = declaringInterpreter;
-        if ( callstack == null )
-            callstack = new CallStack( namespace );
-        if ( callerInfo == null )
+        if (callstack == null)
+            callstack = new CallStack(namespace);
+        if (callerInfo == null)
             callerInfo = SimpleNode.JAVACODE;
 
         // Find the bsh method
-        Class [] types = Types.getTypes( args );
+        Class [] types = Types.getTypes(args);
         BshMethod bshMethod = null;
         try {
-            bshMethod = namespace.getMethod( methodName, types, declaredOnly );
-        } catch ( UtilEvalError e ) {
+            bshMethod = namespace.getMethod(methodName, types, declaredOnly);
+        } catch (UtilEvalError e) {
             // leave null
         }
 
-        if ( bshMethod != null )
-            return bshMethod.invoke( args, interpreter, callstack, callerInfo );
+        if (bshMethod != null)
+            return bshMethod.invoke(args, interpreter, callstack, callerInfo);
 
         /*
             No scripted method of that name.
@@ -257,15 +257,15 @@ public class This implements java.io.Serializable, Runnable
             a default impl.
         */
         // a default toString() that shows the interfaces we implement
-        if ( methodName.equals("toString" ) )
+        if (methodName.equals("toString"))
             return toString();
 
         // a default hashCode()
-        if ( methodName.equals("hashCode" ) )
+        if (methodName.equals("hashCode"))
             return new Integer(this.hashCode());
 
         // a default equals() testing for equality with the This reference
-        if ( methodName.equals("equals" ) ) {
+        if (methodName.equals("equals")) {
             Object obj = args[0];
             return this == obj ? Boolean.TRUE : Boolean.FALSE;
         }
@@ -275,18 +275,18 @@ public class This implements java.io.Serializable, Runnable
         // is that ok?
         try {
             bshMethod = namespace.getMethod(
-                "invoke", new Class [] { null, null } );
-        } catch ( UtilEvalError e ) { /*leave null*/ }
+                "invoke", new Class [] { null, null });
+        } catch (UtilEvalError e) { /*leave null*/ }
 
-        // Call script "invoke( String methodName, Object [] args );
-        if ( bshMethod != null )
-            return bshMethod.invoke( new Object [] { methodName, args },
-                interpreter, callstack, callerInfo );
+        // Call script "invoke(String methodName, Object [] args);
+        if (bshMethod != null)
+            return bshMethod.invoke(new Object [] { methodName, args },
+                interpreter, callstack, callerInfo);
 
         throw new EvalError("Method " +
-            StringUtil.methodString( methodName, types ) +
+            StringUtil.methodString(methodName, types) +
             " not found in bsh scripted object: "+ namespace.getName(),
-            callerInfo, callstack );
+            callerInfo, callstack);
     }
 
     /**
@@ -301,9 +301,9 @@ public class This implements java.io.Serializable, Runnable
         methods of This objects (small hack)
     */
     public static void bind(
-        This ths, NameSpace namespace, Interpreter declaringInterpreter )
+        This ths, NameSpace namespace, Interpreter declaringInterpreter)
     {
-        ths.namespace.setParent( namespace );
+        ths.namespace.setParent(namespace);
         ths.declaringInterpreter = declaringInterpreter;
     }
 
@@ -317,7 +317,7 @@ public class This implements java.io.Serializable, Runnable
         mechanism.  If not, then the method is evaluated by bsh.This itself
         as a scripted method call.
     */
-    static boolean isExposedThisMethod( String name )
+    static boolean isExposedThisMethod(String name)
     {
         return
             name.equals("getClass")

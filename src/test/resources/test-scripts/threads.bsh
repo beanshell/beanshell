@@ -13,7 +13,7 @@ foo() {
     return this;
 }
 
-t=new Thread( foo() );
+t=new Thread(foo());
 t.start();
 print("after");
 t.join();

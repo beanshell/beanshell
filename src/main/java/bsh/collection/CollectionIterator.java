@@ -61,8 +61,8 @@ public class CollectionIterator implements bsh.BshIterator
      *
      * @throws java.lang.NullPointerException If the argument is null
      */
-    public CollectionIterator( Object iterateOverMe ) {
-        iterator = createIterator( iterateOverMe );
+    public CollectionIterator(Object iterateOverMe) {
+        iterator = createIterator(iterateOverMe);
     }
 
     /**
@@ -79,22 +79,22 @@ public class CollectionIterator implements bsh.BshIterator
      *
      * @throws java.lang.NullPointerException If the argument is null
      */
-    protected Iterator createIterator( Object iterateOverMe )
+    protected Iterator createIterator(Object iterateOverMe)
         throws java.lang.IllegalArgumentException
     {
 
-        if ( iterateOverMe == null )
+        if (iterateOverMe == null)
             throw new NullPointerException("Object arguments passed to " +
                 "the CollectionIterator constructor cannot be null.");
 
-        if ( iterateOverMe instanceof Iterator )
+        if (iterateOverMe instanceof Iterator)
             return (Iterator)iterateOverMe;
 
-        if ( iterateOverMe instanceof Collection )
+        if (iterateOverMe instanceof Collection)
             return ((Collection)iterateOverMe).iterator();
 
-        Iterator it = getIteratorForIterable( iterateOverMe );
-        if ( it != null )
+        Iterator it = getIteratorForIterable(iterateOverMe);
+        if (it != null)
             return it;
 
         final CollectionManager.BasicBshIterator bbi = new
@@ -118,23 +118,23 @@ public class CollectionIterator implements bsh.BshIterator
         @return the Iterator or null if the object is not an Iterable.
         @author Daniel Leuck
     */
-    Iterator getIteratorForIterable( Object iterateOverMe )
+    Iterator getIteratorForIterable(Object iterateOverMe)
     {
         Iterator it = null;
         try {
             Class c = Class.forName("java.lang.Iterable");
-            if ( c.isInstance(iterateOverMe) )
+            if (c.isInstance(iterateOverMe))
             {
                 try {
                     Method m = c.getMethod("iterator", new Class[0]);
                     it = (Iterator)m.invoke(iterateOverMe, new Object[0]);
-                } catch( Exception e )
+                } catch(Exception e)
                 {
                     throw new InterpreterError("Unexpected problem calling " +
                         "\"iterator()\" on instance of java.lang.Iterable."+ e);
                 }
             }
-        } catch( ClassNotFoundException cnfe ) {
+        } catch(ClassNotFoundException cnfe) {
             // we are pre-Java 5 and should continue without an exception
         }
         return it;

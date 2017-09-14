@@ -6,17 +6,17 @@ class TestInner22
     int i = 4;
     Object t22This = this;
     new MyThread().start();
-    assert( TestInner22.this == t22This );
+    assert(TestInner22.this == t22This);
 
     void go()
     {
-        assert( TestInner22.this == this );
-        assert( TestInner22.this == t22This );
+        assert(TestInner22.this == this);
+        assert(TestInner22.this == t22This);
 
         r=new Runnable() {
             public void run() {
-                assert( this instanceof Runnable );
-                assert( TestInner22.this == t22This );
+                assert(this instanceof Runnable);
+                assert(TestInner22.this == t22This);
                 assert(i==4);
             }
         };
@@ -24,8 +24,8 @@ class TestInner22
 
         new Thread() {
             public void run() {
-                assert( this instanceof Thread );
-                assert( TestInner22.this == t22This );
+                assert(this instanceof Thread);
+                assert(TestInner22.this == t22This);
                 assert(i==4);
             }
         }.start();
@@ -35,18 +35,18 @@ class TestInner22
 
     class MyThread extends Thread {
         public void run() {
-            assert( this instanceof Thread );
-            assert( TestInner22.this == t22This );
-            assert( i == 4 );
+            assert(this instanceof Thread);
+            assert(TestInner22.this == t22This);
+            assert(i == 4);
         }
     }
 
     static class MyStaticThread extends Thread {
         public void run()
         {
-            assert( this instanceof Thread );
-            assert( isEvalError("TestInner22.this") );
-            assert( isEvalError("i") );
+            assert(this instanceof Thread);
+            assert(isEvalError("TestInner22.this"));
+            assert(isEvalError("i"));
         }
     }
 }

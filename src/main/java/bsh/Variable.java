@@ -36,17 +36,17 @@ public class Variable implements java.io.Serializable
     Modifiers modifiers;
     LHS lhs;
 
-    Variable( String name, Class type, LHS lhs )
+    Variable(String name, Class type, LHS lhs)
     {
         this.name = name;
         this.lhs = lhs;
         this.type = type;
     }
 
-    Variable( String name, Object value, Modifiers modifiers )
+    Variable(String name, Object value, Modifiers modifiers)
         throws UtilEvalError
     {
-        this( name, (Class)null/*type*/, value, modifiers );
+        this(name, (Class)null/*type*/, value, modifiers);
     }
 
     /**
@@ -54,24 +54,24 @@ public class Variable implements java.io.Serializable
     */
     Variable(
         String name, String typeDescriptor, Object value, Modifiers modifiers
-    )
+   )
         throws UtilEvalError
     {
-        this( name, (Class)null/*type*/, value, modifiers );
+        this(name, (Class)null/*type*/, value, modifiers);
         this.typeDescriptor = typeDescriptor;
     }
 
     /**
         @param value may be null if this
     */
-    Variable( String name, Class type, Object value, Modifiers modifiers )
+    Variable(String name, Class type, Object value, Modifiers modifiers)
         throws UtilEvalError
     {
 
         this.name=name;
         this.type = type;
         this.modifiers = modifiers;
-        setValue( value, DECLARATION );
+        setValue(value, DECLARATION);
     }
 
     /**
@@ -80,31 +80,31 @@ public class Variable implements java.io.Serializable
         if value is null the appropriate default value will be set for the
         type: e.g. false for boolean, zero for integer types.
     */
-    public void setValue( Object value, int context )
+    public void setValue(Object value, int context)
         throws UtilEvalError
     {
 
         // check this.value
-        if ( hasModifier("final") && this.value != null )
+        if (hasModifier("final") && this.value != null)
             throw new UtilEvalError ("Final variable, can't re-assign.");
 
         this.value = value;
 
-        if ( this.value == null )
-            this.value = Primitive.getDefaultValue( type );
+        if (this.value == null)
+            this.value = Primitive.getDefaultValue(type);
 
-        if ( lhs != null )
+        if (lhs != null)
         {
-            this.value = lhs.assign( Primitive.unwrap(value), false/*strictjava*/ );
+            this.value = lhs.assign(Primitive.unwrap(value), false/*strictjava*/);
             return;
         }
 
         // TODO: should add isJavaCastable() test for strictJava
         // (as opposed to isJavaAssignable())
-        if ( type != null )
-            this.value = Types.castObject( value, type,
+        if (type != null)
+            this.value = Types.castObject(value, type,
                 context == DECLARATION ? Types.CAST : Types.ASSIGNMENT
-            );
+           );
 
     }
 
@@ -116,9 +116,9 @@ public class Variable implements java.io.Serializable
     Object getValue()
         throws UtilEvalError
     {
-        if ( lhs != null )
+        if (lhs != null)
             return type == null ?
-                lhs.getValue() : Primitive.wrap( lhs.getValue(), type );
+                lhs.getValue() : Primitive.wrap(lhs.getValue(), type);
 
         return value;
     }
@@ -132,7 +132,7 @@ public class Variable implements java.io.Serializable
 
     public String getName() { return name; }
 
-    public boolean hasModifier( String name ) {
+    public boolean hasModifier(String name) {
         return modifiers != null && modifiers.hasModifier(name);
     }
 

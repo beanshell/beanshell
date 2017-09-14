@@ -77,7 +77,7 @@ public class ParseException extends EvalError {
     /**
         Used to add source file info to exception
     */
-    public void setErrorSourceFile( String file ) {
+    public void setErrorSourceFile(String file) {
         this.sourceFile = file;
     }
 
@@ -102,7 +102,7 @@ public class ParseException extends EvalError {
   public ParseException(Token currentTokenVal,
                         int[][] expectedTokenSequencesVal,
                         String[] tokenImageVal
-                       )
+                      )
   {
     // Begin BeanShell Modification - constructor
     this();
@@ -133,7 +133,7 @@ public class ParseException extends EvalError {
   public ParseException(String message) {
     // Begin BeanShell Modification - super constructor args
     // null node, null callstack, ParseException knows where the error is.
-    super( message, null, null );
+    super(message, null, null);
     // End BeanShell Modification - super constructor args
     specialConstructor = false;
   }
@@ -168,7 +168,7 @@ public class ParseException extends EvalError {
 
   // Begin BeanShell Modification - moved body to overloaded getMessage()
   public String getMessage() {
-    return getMessage( false );
+    return getMessage(false);
   }
   // End BeanShell Modification - moved body to overloaded getMessage()
 
@@ -183,7 +183,7 @@ public class ParseException extends EvalError {
    * gets displayed.
    */
   // Begin BeanShell Modification - added debug param
-  public String getMessage( boolean debug ) {
+  public String getMessage(boolean debug) {
   // End BeanShell Modification - added debug param
     if (!specialConstructor) {
       return super.getMessage();
@@ -218,7 +218,7 @@ public class ParseException extends EvalError {
     retval += "\" at line " + currentToken.next.beginLine + ", column " + currentToken.next.beginColumn + "." + eol;
 
     // Begin BeanShell Modification - made conditional on debug
-    if ( debug )
+    if (debug)
     {
         if (expectedTokenSequences.length == 1) {
           retval += "Was expecting:" + eol + "    ";

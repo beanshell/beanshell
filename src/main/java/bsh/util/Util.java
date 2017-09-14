@@ -43,7 +43,7 @@ public class Util
 {
     /*
     public static ConsoleInterface makeConsole() {
-        if ( bsh.Capabilities.haveSwing() )
+        if (bsh.Capabilities.haveSwing())
             return new JConsole();
         else
             return new AWTConsole();
@@ -58,20 +58,20 @@ public class Util
     public static void startSplashScreen()
     {
         int width=275,height=148;
-        Window win=new Window( new Frame() );
+        Window win=new Window(new Frame());
         win.pack();
         BshCanvas can=new BshCanvas();
-        can.setSize( width, height ); // why is this necessary?
+        can.setSize(width, height); // why is this necessary?
         Toolkit tk=Toolkit.getDefaultToolkit();
         Dimension dim=tk.getScreenSize();
         win.setBounds(
-            dim.width/2-width/2, dim.height/2-height/2, width, height );
+            dim.width/2-width/2, dim.height/2-height/2, width, height);
         win.add("Center", can);
         Image img=tk.getImage(
-            Interpreter.class.getResource("/bsh/util/lib/splash.gif") );
+            Interpreter.class.getResource("/bsh/util/lib/splash.gif"));
         MediaTracker mt=new MediaTracker(can);
         mt.addImage(img,0);
-        try { mt.waitForAll(); } catch ( Exception e ) { }
+        try { mt.waitForAll(); } catch (Exception e) { }
         Graphics gr=can.getBufferedGraphics();
         gr.drawImage(img, 0, 0, can);
         win.setVisible(true);
@@ -80,7 +80,7 @@ public class Util
     }
 
     public static void endSplashScreen() {
-        if ( splashScreen != null )
+        if (splashScreen != null)
             splashScreen.dispose();
     }
 

@@ -11,18 +11,18 @@ class TestReturn {
 }
 
 tr= new TestReturn();
-assert( tr.getBoolean() == true );
+assert(tr.getBoolean() == true);
 
-assert( tr.getByte() == 1 );
+assert(tr.getByte() == 1);
 // peek at bsh.Primitive here to check type
-print( tr.getByte().getType() == Byte.TYPE );
+print(tr.getByte().getType() == Byte.TYPE);
 
-assert( tr.getFloat() == 1.0f );
-assert( tr.getLong() == 42l );
-assert( tr.getDouble() == 4.2d );
+assert(tr.getFloat() == 1.0f);
+assert(tr.getLong() == 42l);
+assert(tr.getDouble() == 4.2d);
 
 d = tr.getD();
-assert( d instanceof Double );
-assert( d.doubleValue() == 4.2d );
+assert(d instanceof Double);
+assert(d.doubleValue() == 4.2d);
 
 complete();

@@ -3,7 +3,7 @@
 source("TestHarness.bsh");
 
 import bsh.*;
-if ( Capabilities.canGenerateInterfaces() )
+if (Capabilities.canGenerateInterfaces())
 {
     i=new Interpreter();
     r=i.eval(
@@ -11,9 +11,9 @@ if ( Capabilities.canGenerateInterfaces() )
         +"void run() { throw new EvalError(\"foo\"); } }");
     try {
         r.run();
-    } catch ( e ) {
+    } catch (e) {
         super.ue=e;
-        assert( e instanceof java.lang.reflect.UndeclaredThrowableException );
+        assert(e instanceof java.lang.reflect.UndeclaredThrowableException);
     }
 }
 
@@ -21,7 +21,7 @@ if ( Capabilities.canGenerateInterfaces() )
 make sure it properly prints the nested exception...
 
 import bsh.TargetError;
-te=new TargetError( "undec throw", ue );
+te=new TargetError("undec throw", ue);
 print(te);
 */
 

@@ -38,45 +38,45 @@ import java.text.*;
 */
 public class Remote
 {
-    public static void main( String args[] )
+    public static void main(String args[])
         throws Exception
     {
-        if ( args.length < 2 ) {
+        if (args.length < 2) {
             System.out.println(
                 "usage: Remote URL(http|bsh) file [ file ] ... ");
             System.exit(1);
         }
         String url = args[0];
         String text = getFile(args[1]);
-        int ret = eval( url, text );
-        System.exit( ret );
+        int ret = eval(url, text);
+        System.exit(ret);
         }
 
     /**
         Evaluate text in the interpreter at url, returning a possible integer
         return value.
     */
-    public static int eval( String url, String text )
+    public static int eval(String url, String text)
         throws IOException
     {
         String returnValue = null;
-        if ( url.startsWith( "http:" ) ) {
-            returnValue = doHttp( url, text );
-        } else if ( url.startsWith( "bsh:" ) ) {
-            returnValue = doBsh( url, text );
+        if (url.startsWith("http:")) {
+            returnValue = doHttp(url, text);
+        } else if (url.startsWith("bsh:")) {
+            returnValue = doBsh(url, text);
         } else
-            throw new IOException( "Unrecognized URL type."
+            throw new IOException("Unrecognized URL type."
                 +"Scheme must be http:// or bsh://");
 
         try {
-            return Integer.parseInt( returnValue );
-        } catch ( Exception e ) {
+            return Integer.parseInt(returnValue);
+        } catch (Exception e) {
             // this convention may change...
             return 0;
         }
     }
 
-    static String doBsh( String url, String text )
+    static String doBsh(String url, String text)
     {
         OutputStream out;
         InputStream in;
@@ -92,8 +92,8 @@ public class Remote
             int index = url.indexOf(":");
             host = url.substring(0,index);
             port = url.substring(index+1,url.length());
-        } catch ( Exception ex ) {
-            System.err.println("Bad URL: "+orgURL+": "+ex  );
+        } catch (Exception ex) {
+            System.err.println("Bad URL: "+orgURL+": "+ex );
             return returnValue;
         }
 
@@ -105,13 +105,13 @@ public class Remote
             out = s.getOutputStream();
             in = s.getInputStream();
 
-            sendLine( text, out );
+            sendLine(text, out);
 
             BufferedReader bin = new BufferedReader(
                 new InputStreamReader(in));
               String line;
-              while ( (line=bin.readLine()) != null )
-                System.out.println( line );
+              while ((line=bin.readLine()) != null)
+                System.out.println(line);
 
             // Need to scrape a value from the last line?
             returnValue="1";
@@ -122,10 +122,10 @@ public class Remote
         }
     }
 
-    private static void sendLine( String line, OutputStream outPipe )
+    private static void sendLine(String line, OutputStream outPipe)
         throws IOException
     {
-        outPipe.write( line.getBytes() );
+        outPipe.write(line.getBytes());
         outPipe.flush();
     }
 
@@ -137,48 +137,48 @@ public class Remote
         the encoded charset?  I guess we're supposed to add a ";charset" clause
         to the content type?
     */
-    static String doHttp( String postURL, String text )
+    static String doHttp(String postURL, String text)
     {
         String returnValue = null;
         StringBuffer sb = new StringBuffer();
-        sb.append( "bsh.client=Remote" );
-        sb.append( "&bsh.script=" );
+        sb.append("bsh.client=Remote");
+        sb.append("&bsh.script=");
         // This requires Java 1.3
         try {
-            sb.append( URLEncoder.encode( text, "UTF-8" ) );
-        } catch ( UnsupportedEncodingException e ) {
+            sb.append(URLEncoder.encode(text, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        String formData = sb.toString(  );
+        String formData = sb.toString();
 
         try {
-          URL url = new URL( postURL );
+          URL url = new URL(postURL);
           HttpURLConnection urlcon =
-              (HttpURLConnection) url.openConnection(  );
+              (HttpURLConnection) url.openConnection();
           urlcon.setRequestMethod("POST");
           urlcon.setRequestProperty("Content-type",
               "application/x-www-form-urlencoded");
           urlcon.setDoOutput(true);
           urlcon.setDoInput(true);
-          PrintWriter pout = new PrintWriter( new OutputStreamWriter(
-              urlcon.getOutputStream(), "8859_1"), true );
-          pout.print( formData );
+          PrintWriter pout = new PrintWriter(new OutputStreamWriter(
+              urlcon.getOutputStream(), "8859_1"), true);
+          pout.print(formData);
           pout.flush();
 
           // read results...
           int rc = urlcon.getResponseCode();
-          if ( rc != HttpURLConnection.HTTP_OK )
-            System.out.println("Error, HTTP response: "+rc );
+          if (rc != HttpURLConnection.HTTP_OK)
+            System.out.println("Error, HTTP response: "+rc);
 
           returnValue = urlcon.getHeaderField("Bsh-Return");
 
           BufferedReader bin = new BufferedReader(
-            new InputStreamReader( urlcon.getInputStream() ) );
+            new InputStreamReader(urlcon.getInputStream()));
           String line;
-          while ( (line=bin.readLine()) != null )
-            System.out.println( line );
+          while ((line=bin.readLine()) != null)
+            System.out.println(line);
 
-          System.out.println( "Return Value: "+returnValue );
+          System.out.println("Return Value: "+returnValue);
 
         } catch (MalformedURLException e) {
           System.out.println(e);     // bad postURL
@@ -192,14 +192,14 @@ public class Remote
     /*
         Note: assumes default character encoding
     */
-    static String getFile( String name )
+    static String getFile(String name)
         throws FileNotFoundException, IOException
     {
         StringBuffer sb = new StringBuffer();
-        BufferedReader bin = new BufferedReader( new FileReader( name ) );
+        BufferedReader bin = new BufferedReader(new FileReader(name));
         String line;
-        while ( (line=bin.readLine()) != null )
-            sb.append( line ).append( "\n" );
+        while ((line=bin.readLine()) != null)
+            sb.append(line).append("\n");
         return sb.toString();
     }
 

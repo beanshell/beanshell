@@ -4,7 +4,7 @@
     else it will be printed to standard error.
 */
 
-void error( item ) {
-    this.interpreter.error( String.valueOf(item) );
+void error(item) {
+    this.interpreter.error(String.valueOf(item));
 }
 

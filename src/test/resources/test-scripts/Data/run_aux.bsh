@@ -6,6 +6,6 @@ cd("..");
 cwd=bsh.cwd;
 
 // copy to another var
-if ( runArgument != void )
+if (runArgument != void)
     ra = runArgument;
 

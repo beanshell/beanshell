@@ -4,7 +4,7 @@ public class Accessibility2 extends Accessibility1
 {
     private Accessibility2(int a, int b, int c) { }
     Accessibility2(int a, int b) { }
-    protected Accessibility2(int a ) { }
+    protected Accessibility2(int a) { }
     public Accessibility2() { }
 
     private int field1 = 1;

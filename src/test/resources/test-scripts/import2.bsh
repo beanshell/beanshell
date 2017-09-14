@@ -7,29 +7,29 @@ source("TestHarness.bsh");
 */
 
 // mypackage is not imported
-assert( this.namespace.getClass("MyClass") == null );
+assert(this.namespace.getClass("MyClass") == null);
 
 foo() {
     import mypackage.*;
-    assert( this.namespace.getClass("MyClass") != null );
+    assert(this.namespace.getClass("MyClass") != null);
 }
 
 foo();
 
 // mypackage is still not imported
-assert( this.namespace.getClass("MyClass") == null );
+assert(this.namespace.getClass("MyClass") == null);
 
 
 // local blocks do *not* have their own namespace
 
-assert( this.namespace.getClass("MyClass") == null );
+assert(this.namespace.getClass("MyClass") == null);
 {
     import mypackage.*;
-    assert( this.namespace.getClass("MyClass") != null );
+    assert(this.namespace.getClass("MyClass") != null);
 }
 
 // mypackage is now imported
-assert( this.namespace.getClass("MyClass") != null );
+assert(this.namespace.getClass("MyClass") != null);
 
 
 complete();

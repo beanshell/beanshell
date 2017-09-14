@@ -3,12 +3,12 @@
     Display any output to the standard BeanShell output using print().
 */
 
-bsh.help.exec = "usage: exec( String arg )";
+bsh.help.exec = "usage: exec(String arg)";
 
-exec( String arg )
+exec(String arg)
 {
     this.proc = Runtime.getRuntime().exec(arg);
-    this.din = new DataInputStream( proc.getInputStream() );
-    while( (line=din.readLine()) != null )
+    this.din = new DataInputStream(proc.getInputStream());
+    while((line=din.readLine()) != null)
         print(line);
 }

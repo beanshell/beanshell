@@ -34,13 +34,13 @@ class BSHSwitchStatement
 
     public BSHSwitchStatement(int id) { super(id); }
 
-    public Object eval( CallStack callstack, Interpreter interpreter )
+    public Object eval(CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
         int numchild = jjtGetNumChildren();
         int child = 0;
         SimpleNode switchExp = ((SimpleNode)jjtGetChild(child++));
-        Object switchVal = switchExp.eval( callstack, interpreter );
+        Object switchVal = switchExp.eval(callstack, interpreter);
 
         /*
             Note: this could be made clearer by adding an inner class for the
@@ -52,32 +52,32 @@ class BSHSwitchStatement
         ReturnControl returnControl=null;
 
         // get the first label
-        if ( child >= numchild )
-            throw new EvalError("Empty switch statement.", this, callstack );
+        if (child >= numchild)
+            throw new EvalError("Empty switch statement.", this, callstack);
         label = ((BSHSwitchLabel)jjtGetChild(child++));
 
         // while more labels or blocks and haven't hit return control
-        while ( child < numchild && returnControl == null )
+        while (child < numchild && returnControl == null)
         {
             // if label is default or equals switchVal
-            if ( label.isDefault
+            if (label.isDefault
                 || primitiveEquals(
-                    switchVal, label.eval( callstack, interpreter ),
-                    callstack, switchExp )
-                )
+                    switchVal, label.eval(callstack, interpreter),
+                    callstack, switchExp)
+               )
             {
                 // execute nodes, skipping labels, until a break or return
-                while ( child < numchild )
+                while (child < numchild)
                 {
                     node = jjtGetChild(child++);
-                    if ( node instanceof BSHSwitchLabel )
+                    if (node instanceof BSHSwitchLabel)
                         continue;
                     // eval it
                     Object value =
-                        ((SimpleNode)node).eval( callstack, interpreter );
+                        ((SimpleNode)node).eval(callstack, interpreter);
 
                     // should check to disallow continue here?
-                    if ( value instanceof ReturnControl ) {
+                    if (value instanceof ReturnControl) {
                         returnControl = (ReturnControl)value;
                         break;
                     }
@@ -85,10 +85,10 @@ class BSHSwitchStatement
             } else
             {
                 // skip nodes until next label
-                while ( child < numchild )
+                while (child < numchild)
                 {
                     node = jjtGetChild(child++);
-                    if ( node instanceof BSHSwitchLabel ) {
+                    if (node instanceof BSHSwitchLabel) {
                         label = (BSHSwitchLabel)node;
                         break;
                     }
@@ -96,7 +96,7 @@ class BSHSwitchStatement
             }
         }
 
-        if ( returnControl != null && returnControl.kind == RETURN )
+        if (returnControl != null && returnControl.kind == RETURN)
             return returnControl;
         else
             return Primitive.VOID;
@@ -108,23 +108,23 @@ class BSHSwitchStatement
     */
     private boolean primitiveEquals(
         Object switchVal, Object targetVal,
-        CallStack callstack, SimpleNode switchExp  )
+        CallStack callstack, SimpleNode switchExp )
         throws EvalError
     {
-        if ( switchVal instanceof Primitive || targetVal instanceof Primitive )
+        if (switchVal instanceof Primitive || targetVal instanceof Primitive)
             try {
                 // binaryOperation can return Primitive or wrapper type
                 Object result = Primitive.binaryOperation(
-                    switchVal, targetVal, ParserConstants.EQ );
-                result = Primitive.unwrap( result );
-                return result.equals( Boolean.TRUE );
-            } catch ( UtilEvalError e ) {
+                    switchVal, targetVal, ParserConstants.EQ);
+                result = Primitive.unwrap(result);
+                return result.equals(Boolean.TRUE);
+            } catch (UtilEvalError e) {
                 throw e.toEvalError(
                     "Switch value: "+switchExp.getText()+": ",
-                    this, callstack );
+                    this, callstack);
             }
         else
-            return switchVal.equals( targetVal );
+            return switchVal.equals(targetVal);
     }
 }
 

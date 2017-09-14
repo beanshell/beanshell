@@ -8,12 +8,12 @@ int p=1;
     {
         int p=3;
         pz=99;
-        assert( p == 3 );
+        assert(p == 3);
     }
-    assert( p == 2 );
+    assert(p == 2);
 }
-assert( p == 1 );
-assert( pz == 99 );
+assert(p == 1);
+assert(pz == 99);
 
 
 /*
@@ -26,7 +26,7 @@ for(int i=0; i<1; i++) {
 for(int i=0; i<1; i++) {
    String var="hello";
 }
-assert( var == false );
+assert(var == false);
 
 u=2;
 int x=2;
@@ -45,31 +45,31 @@ int z1=2;
     // but the scope should be local
     int z1=5;
 }
-assert( u==3 );
-assert( x==3 );
+assert(u==3);
+assert(x==3);
 
-assert( z==void );
-assert( z1==2 );
+assert(z==void);
+assert(z1==2);
 
 i=0;
-while( i++ < 5 ) {
+while(i++ < 5) {
     int qz=5;
-    assert( qz == 5);
+    assert(qz == 5);
 }
-assert( qz == void);
+assert(qz == void);
 
 int i=0;
-while( i < 5 ) {
+while(i < 5) {
     i++;
     int qz=5;
-    assert( qz == 5);
+    assert(qz == 5);
 }
-assert( qz == void);
+assert(qz == void);
 
-if ( true ) {
-    assert( this == global );
-    if ( true ) {
-        assert( this == global );
+if (true) {
+    assert(this == global);
+    if (true) {
+        assert(this == global);
     }
 }
 

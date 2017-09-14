@@ -3,7 +3,7 @@
     This is just a convenience for playing with GUI components.
 */
 
-bsh.help.setFont = "usage: setFont( Component comp, int size )";
+bsh.help.setFont = "usage: setFont(Component comp, int size)";
 
 Font setFont(Component comp, String family, int style, int size) {
 

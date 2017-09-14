@@ -13,7 +13,7 @@ String getVersion()
         ver = this.interpreter.eval(
             "import bsh.Interpreter; Interpreter.VERSION");
         return "BeanShell version: "+ver;
-    } catch ( EvalError e ) {
+    } catch (EvalError e) {
         return "BeanShell version 1.1 or older (Please upgrade)";
     }
 }

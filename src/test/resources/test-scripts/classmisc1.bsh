@@ -5,23 +5,23 @@ source("TestHarness.bsh");
     Basic stuff...
 */
 
-assert( java.awt.image.ImageObserver.HEIGHT == 2 );
+assert(java.awt.image.ImageObserver.HEIGHT == 2);
 io = new java.awt.image.ImageObserver() { };
 
 import java.awt.image.ImageObserver;
 
-assert( ImageObserver.HEIGHT == 2 );
+assert(ImageObserver.HEIGHT == 2);
 io = new ImageObserver() { };
-assert( io instanceof ImageObserver );
+assert(io instanceof ImageObserver);
 
 // Can we see static fields supplied through interfaces of objects?
-assert( io.HEIGHT == 2 );
+assert(io.HEIGHT == 2);
 
 class MyImageObserver0 implements ImageObserver { }
-assert( MyImageObserver0.HEIGHT == 2 );
+assert(MyImageObserver0.HEIGHT == 2);
 
 myio = new MyImageObserver0();
-assert( myio.HEIGHT == 2 );
+assert(myio.HEIGHT == 2);
 
 /*
     Verify that static constants in interfaces are visible to code that
@@ -34,26 +34,26 @@ myObserver = new ImageObserver() {
     public boolean imageUpdate(
         Image image, int flags, int x, int y, int width, int height)
     {
-        assert( image == null );
-        assert( HEIGHT == ImageObserver.HEIGHT );
+        assert(image == null);
+        assert(HEIGHT == ImageObserver.HEIGHT);
         return true;
     }
 };
 
-myObserver.imageUpdate( null, 1, 1, 1, 1, 1 );
+myObserver.imageUpdate(null, 1, 1, 1, 1, 1);
 
 class MyImageObserver implements ImageObserver
 {
     public boolean imageUpdate(
         Image image, int flags, int x, int y, int width, int height)
     {
-        assert( image == null );
-        assert( HEIGHT == ImageObserver.HEIGHT );
+        assert(image == null);
+        assert(HEIGHT == ImageObserver.HEIGHT);
         return true;
      }
 };
 
 myObserver = new MyImageObserver();
-myObserver.imageUpdate( null, 1, 1, 1, 1, 1 );
+myObserver.imageUpdate(null, 1, 1, 1, 1, 1);
 
 complete();

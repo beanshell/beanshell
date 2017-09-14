@@ -27,13 +27,13 @@
     Imported commands are scoped just like imported clases.
     <p/>
 
-    @method void importCommands( resource path | package name )
+    @method void importCommands(resource path | package name)
 */
 
-bsh.help.importCommands = "usage: importCommands( string )";
+bsh.help.importCommands = "usage: importCommands(string)";
 
-importCommands( path )
+importCommands(path)
 {
-    this.caller.namespace.importCommands( path );
+    this.caller.namespace.importCommands(path);
 }
 

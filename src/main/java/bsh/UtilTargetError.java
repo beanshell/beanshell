@@ -41,27 +41,27 @@ public class UtilTargetError extends UtilEvalError
 {
     public Throwable t;
 
-    public UtilTargetError( String message, Throwable t ) {
-        super( message );
+    public UtilTargetError(String message, Throwable t) {
+        super(message);
         this.t = t;
     }
 
-    public UtilTargetError( Throwable t ) {
-        this( null, t );
+    public UtilTargetError(Throwable t) {
+        this(null, t);
     }
 
     /**
         Override toEvalError to throw TargetError type.
     */
     public EvalError toEvalError(
-        String msg, SimpleNode node, CallStack callstack  )
+        String msg, SimpleNode node, CallStack callstack )
     {
-        if ( msg == null )
+        if (msg == null)
             msg = getMessage();
         else
             msg = msg + ": " + getMessage();
 
-        return new TargetError( msg, t, node, callstack, false );
+        return new TargetError(msg, t, node, callstack, false);
     }
 }
 

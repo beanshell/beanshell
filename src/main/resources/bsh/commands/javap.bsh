@@ -10,53 +10,53 @@
     <p/>
     <pre>
     // equivalent
-    javap( java.util.Date ); // class identifier
-    javap( java.util.Date.class ); // class
-    javap( "java.util.Date" ); // String name of class
-    javap( new java.util.Date() ); // instance of class
+    javap(java.util.Date); // class identifier
+    javap(java.util.Date.class); // class
+    javap("java.util.Date"); // String name of class
+    javap(new java.util.Date()); // instance of class
     </pre>
 
-    @method void javap( String | Object | Class | ClassIdentifier )
+    @method void javap(String | Object | Class | ClassIdentifier)
 */
 
-bsh.help.javap= "usage: javap( value )";
+bsh.help.javap= "usage: javap(value)";
 
 import bsh.ClassIdentifier;
 import java.lang.reflect.Modifier;
 
-javap( Object o )
+javap(Object o)
 {
     Class clas;
-    if ( o instanceof ClassIdentifier )
+    if (o instanceof ClassIdentifier)
         clas = this.caller.namespace.identifierToClass(o);
-    else if ( o instanceof String )
+    else if (o instanceof String)
     {
-        if ( o.length() < 1 ) {
+        if (o.length() < 1) {
             error("javap: Empty class name.");
             return;
         }
         clas = this.caller.namespace.getClass((String)o);
-    } else if ( o instanceof Class )
+    } else if (o instanceof Class)
         clas = o;
     else
         clas = o.getClass();
 
-    print( "Class "+clas+" extends " +clas.getSuperclass() );
+    print("Class "+clas+" extends " +clas.getSuperclass());
 
     this.dmethods=clas.getDeclaredMethods();
     //print("------------- Methods ----------------");
     for(int i=0; i<dmethods.length; i++) {
         this.m = dmethods[i];
-        if ( Modifier.isPublic( m.getModifiers() ) )
-            print( m );
+        if (Modifier.isPublic(m.getModifiers()))
+            print(m);
     }
 
     //print("------------- Fields ----------------");
     this.fields=clas.getDeclaredFields();
     for(int i=0; i<fields.length; i++) {
         this.f = fields[i];
-        if ( Modifier.isPublic( f.getModifiers() ) )
-            print( f );
+        if (Modifier.isPublic(f.getModifiers()))
+            print(f);
     }
 }
 
