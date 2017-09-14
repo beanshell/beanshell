@@ -36,10 +36,10 @@ int z1=2;
 	assert(super.u==2);
 	u=3;
 	assert(u==3);
-	
+
 	x=3;
 	assert(x==3);
-	
+
 	int z=3;
 	// bsh allows the redeclaration...
 	// but the scope should be local

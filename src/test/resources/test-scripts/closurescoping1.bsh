@@ -13,7 +13,7 @@ foo() {
 			super.b = 31;
 			super.c = 9;
 			global.b = 32;
-			
+
 			print("gee");
 
 			val() {
@@ -42,7 +42,7 @@ assert(val == 42);
 assert( foo().bar().gee().val() == 42 );
 
 assert( b == 32 );
-assert( bar.b == 31 ); 
+assert( bar.b == 31 );
 assert( foo.b == 32 ); // global
 assert( foo.c == void );
 }
@@ -62,7 +62,7 @@ foo() {
 			barns.c = 9;
 
 			global.b = 32;
-			
+
 			print("gee");
 
 			val() {
@@ -91,7 +91,7 @@ assert(val == 42);
 assert( foo().bar().gee().val() == 42 );
 
 assert( b == 32 );
-assert( bar.b == 31 ); 
+assert( bar.b == 31 );
 assert( foo.b == 32 ); // global
 assert( foo.c == void );
 }

@@ -8,7 +8,7 @@ bsh.help.getResource = "usage: getResource( String name )";
 
 import bsh.Interpreter;
 
-URL getResource( String path ) 
+URL getResource( String path )
 {
 	return this.interpreter.getClassManager().getResource( path );
 }

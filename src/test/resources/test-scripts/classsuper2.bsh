@@ -4,7 +4,7 @@ source("TestHarness.bsh");
 	method.
 */
 
-class Super2 extends Base 
+class Super2 extends Base
 {
 	public void go() {
 		assert( baseMethod().equals("baseMethod") );

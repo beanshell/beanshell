@@ -4,7 +4,7 @@
 
     e.g. scripts A running in dir A sources script B in dir B.
 	Script B can use this command to load additional scripts (data, etc.)
-	relative to its own location (dir B) without having to explicitly know 
+	relative to its own location (dir B) without having to explicitly know
 	its "home" directory (B).
 	<p/>
 	Note: this only works for files currently.

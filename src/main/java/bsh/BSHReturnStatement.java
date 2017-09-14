@@ -34,7 +34,7 @@ class BSHReturnStatement extends SimpleNode implements ParserConstants
 
 	BSHReturnStatement(int id) { super(id); }
 
-	public Object eval(CallStack callstack, Interpreter interpreter)  
+	public Object eval(CallStack callstack, Interpreter interpreter)
 		throws EvalError
 	{
 		Object value;

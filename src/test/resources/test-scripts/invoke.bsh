@@ -3,7 +3,7 @@
 source("TestHarness.bsh");
 
 ignore() {
-	invoke( method, args ) { 
+	invoke( method, args ) {
 		return 5;
 	}
 

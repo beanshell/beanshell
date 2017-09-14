@@ -65,7 +65,7 @@ import bsh.*;
 	hate this.
 
 	Out of date:
-	
+
 	This class is out of date.  It does not use the special blocking piped
 	input stream that the jconsole uses.
 
@@ -75,7 +75,7 @@ import bsh.*;
 	that we can redirect stdout to our console... I don't see a way around
 	this.  Also we have to use getPeer() for the big hack above.
 */
-public class AWTConsole extends TextArea 
+public class AWTConsole extends TextArea
 	implements ConsoleInterface, Runnable, KeyListener {
 
 	private OutputStream outPipe;
@@ -132,14 +132,14 @@ public class AWTConsole extends TextArea
 
 	public void type(int code, char ch, int modifiers ) {
 		switch ( code ) {
-			case ( KeyEvent.VK_BACK_SPACE ):	
+			case ( KeyEvent.VK_BACK_SPACE ):
 				if (line.length() > 0) {
 					line.setLength( line.length() - 1 );
 					replaceRange( "", textLength-1, textLength );
 					textLength--;
 				}
 				break;
-			case ( KeyEvent.VK_ENTER ):	
+			case ( KeyEvent.VK_ENTER ):
 				enter();
 				break;
 			case ( KeyEvent.VK_U ):
@@ -148,7 +148,7 @@ public class AWTConsole extends TextArea
 					replaceRange( "", textLength-len, textLength );
 					line.setLength( 0 );
 					histLine = 0;
-					textLength = getText().length(); 
+					textLength = getText().length();
 				} else
 					doChar( ch );
 				break;
@@ -158,13 +158,13 @@ public class AWTConsole extends TextArea
 			case ( KeyEvent.VK_DOWN ):
 				historyDown();
 				break;
-			case ( KeyEvent.VK_TAB ):	
+			case ( KeyEvent.VK_TAB ):
 				line.append("    ");
 				append("    ");
 				textLength +=4;
 				break;
 /*
-			case ( KeyEvent.VK_LEFT ):	
+			case ( KeyEvent.VK_LEFT ):
 				if (line.length() > 0) {
 				break;
 */
@@ -207,14 +207,14 @@ public class AWTConsole extends TextArea
 		setCaretPosition( textLength );
 	}
 
-	/* 
+	/*
 		Here's the really disguisting hack.
 		We have to get to the peer because TextComponent will refuse to
 		let us set us set a caret position greater than the text length.
 		Great.  What a piece of crap.
 	*/
 	public void setCaretPosition( int pos ) {
-		((java.awt.peer.TextComponentPeer)getPeer()).setCaretPosition( 
+		((java.awt.peer.TextComponentPeer)getPeer()).setCaretPosition(
 			pos + countNLs() );
 	}
 
@@ -222,7 +222,7 @@ public class AWTConsole extends TextArea
 		This is part of a hack to fix the setCaretPosition() bug
 		Count the newlines in the text
 	*/
-	private int countNLs() { 
+	private int countNLs() {
 		String s = getText();
 		int c = 0;
 		for(int i=0; i< s.length(); i++)
@@ -242,7 +242,7 @@ public class AWTConsole extends TextArea
 		}
 	}
 	private void historyDown() {
-		if ( histLine == 0 ) 
+		if ( histLine == 0 )
 			return;
 
 		histLine--;
@@ -325,7 +325,7 @@ public class AWTConsole extends TextArea
 				f.dispose();
 			}
 		} );
-			
+
 		Interpreter interpreter = new Interpreter( console );
 		interpreter.run();
 	}

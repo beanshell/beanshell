@@ -37,7 +37,7 @@ class BSHTryStatement extends SimpleNode
 		super(id);
 	}
 
-	public Object eval( CallStack callstack, Interpreter interpreter)  
+	public Object eval( CallStack callstack, Interpreter interpreter)
 		throws EvalError
 	{
 		BSHBlock tryBlock = ((BSHBlock)jjtGetChild(0));
@@ -90,15 +90,15 @@ class BSHTryStatement extends SimpleNode
 		if ( target != null )
 			thrown = target.getTarget();
 
-		
+
 		// If we have an exception, find a catch
-		if (thrown != null) 
+		if (thrown != null)
 		{
 			int n = catchParams.size();
 			for(i=0; i<n; i++)
 			{
 				// Get catch block
-				BSHFormalParameter fp = 
+				BSHFormalParameter fp =
 					(BSHFormalParameter)catchParams.elementAt(i);
 
 				// Should cache this subject to classloader change message
@@ -112,7 +112,7 @@ class BSHTryStatement extends SimpleNode
 						"(Strict Java) Untyped catch block", this, callstack );
 
 				// If the param is typed check assignability
-				if ( fp.type != null ) 
+				if ( fp.type != null )
 					try {
 						thrown = (Throwable)Types.castObject(
 							thrown/*rsh*/, fp.type/*lhsType*/, Types.ASSIGNMENT );
@@ -135,7 +135,7 @@ class BSHTryStatement extends SimpleNode
 				// parameter and swap it on the stack after initializing it.
 
 				NameSpace enclosingNameSpace = callstack.top();
-				BlockNameSpace cbNameSpace = 
+				BlockNameSpace cbNameSpace =
 					new BlockNameSpace( enclosingNameSpace );
 
 				try {
@@ -178,7 +178,7 @@ class BSHTryStatement extends SimpleNode
 
 		if(ret instanceof ReturnControl)
 			return ret;
-		else	
+		else
 			return Primitive.VOID;
 	}
 }

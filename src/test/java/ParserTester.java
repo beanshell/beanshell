@@ -1,6 +1,6 @@
 import bsh.Interpreter;
 
-public class ParserTester { 
+public class ParserTester {
     public static Object eval(String code) {
         Interpreter interpreter = new Interpreter();
         try {

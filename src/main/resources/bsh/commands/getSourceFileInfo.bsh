@@ -1,7 +1,7 @@
 /**
 	Return the name of the file or source from which the current interpreter
 	is reading.  Note that if you use this within a method, the result will
-	not be the file from which the method was sourced, but will be the file 
+	not be the file from which the method was sourced, but will be the file
 	that the caller of the method is reading.   Methods are sourced once but
 	can be called many times... Each time the interpreter may be associated
 	with a different file and it is that calling interpreter that you are

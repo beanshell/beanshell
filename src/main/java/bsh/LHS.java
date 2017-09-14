@@ -32,14 +32,14 @@ import java.lang.reflect.Field;
 import java.util.Hashtable;
 
 /**
-	An LHS is a wrapper for an variable, field, or property.  It ordinarily 
-	holds the "left hand side" of an assignment and may be either resolved to 
+	An LHS is a wrapper for an variable, field, or property.  It ordinarily
+	holds the "left hand side" of an assignment and may be either resolved to
 	a value or assigned a value.
 	<p>
-	
+
 	There is one special case here termed METHOD_EVAL where the LHS is used
 	in an intermediate evaluation of a chain of suffixes and wraps a method
-	invocation.  In this case it may only be resolved to a value and cannot be 
+	invocation.  In this case it may only be resolved to a value and cannot be
 	assigned.  (You can't assign a value to the result of a method call e.g.
 	"foo() = 5;").
 	<p>
@@ -176,7 +176,7 @@ class LHS implements ParserConstants, java.io.Serializable
 	/**
 		Assign a value to the LHS.
 	*/
-	public Object assign( Object val, boolean strictJava ) 
+	public Object assign( Object val, boolean strictJava )
 		throws UtilEvalError
 	{
 		if ( type == VARIABLE )
@@ -186,7 +186,7 @@ class LHS implements ParserConstants, java.io.Serializable
 				nameSpace.setLocalVariableOrProperty( varName, val, strictJava );
 			else
 				nameSpace.setVariableOrProperty( varName, val, strictJava );
-		} else 
+		} else
 		if ( type == FIELD )
 		{
 			try {
@@ -195,15 +195,15 @@ class LHS implements ParserConstants, java.io.Serializable
 				field.set( object, Primitive.unwrap(val));
 				return val;
 			}
-			catch( NullPointerException e) {   
+			catch( NullPointerException e) {
     			throw new UtilEvalError(
 					"LHS ("+field.getName()+") not a static field.");
-			}     
-   			catch( IllegalAccessException e2) {   
+			}
+   			catch( IllegalAccessException e2) {
 				throw new UtilEvalError(
 					"LHS ("+field.getName()+") can't access field: "+e2);
-			}     
-			catch( IllegalArgumentException e3) 
+			}
+			catch( IllegalArgumentException e3)
 			{
 				String type = val instanceof Primitive ?
 					((Primitive)val).getType().getName()
@@ -213,7 +213,7 @@ class LHS implements ParserConstants, java.io.Serializable
 					+ " not assignable to field "+field.getName());
 			}
 		}
-		else 
+		else
 		if ( type == PROPERTY )
 		{
 			CollectionManager cm = CollectionManager.getCollectionManager();
@@ -227,7 +227,7 @@ class LHS implements ParserConstants, java.io.Serializable
 					Interpreter.debug("Assignment: " + e.getMessage());
 					throw new UtilEvalError("No such property: " + propName);
 				}
-		} else 
+		} else
 		if ( type == INDEX )
 			try {
 				Reflect.setIndex(object, index, val);
@@ -242,7 +242,7 @@ class LHS implements ParserConstants, java.io.Serializable
 		return val;
 	}
 
-	public String toString() { 
+	public String toString() {
 		return "LHS: "
 			+((field!=null)? "field = "+field.toString():"")
 			+(varName!=null ? " varName = "+varName: "")

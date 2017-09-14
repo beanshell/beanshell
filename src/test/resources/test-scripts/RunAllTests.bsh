@@ -16,7 +16,7 @@ warnedTests = "";
 // Test the test harness
 // Yes, it's been an issue before.
 r=run("Fail.bsh");
-if ( r.test_failed == void || !r.test_failed 
+if ( r.test_failed == void || !r.test_failed
 	|| !r.test_completed == void || !r.test_completed ) {
 	print("Test harness failure: Fail.bsh!");
 	exit();
@@ -24,16 +24,16 @@ if ( r.test_failed == void || !r.test_failed
 
 time=System.currentTimeMillis();
 
-for( i=0; i<list.length; i++) 
+for( i=0; i<list.length; i++)
 {
 	f=list[i];
 
-	if ( !f.endsWith(".bsh") 
-		|| f.equals("RunAllTests.bsh") 
-		|| f.equals("Fail.bsh") 
-		|| f.equals("TestHarness.bsh" ) 
-		//|| f.equals("LastTest.bsh" ) 
-	) 
+	if ( !f.endsWith(".bsh")
+		|| f.equals("RunAllTests.bsh")
+		|| f.equals("Fail.bsh")
+		|| f.equals("TestHarness.bsh" )
+		//|| f.equals("LastTest.bsh" )
+	)
 	{
 		print("Skipping File: "+f);
 		continue;

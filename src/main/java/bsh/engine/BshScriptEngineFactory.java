@@ -8,13 +8,13 @@ public class BshScriptEngineFactory implements
 	javax.script.ScriptEngineFactory
 {
 	// Begin impl ScriptEnginInfo
-	
+
 	final List<String> extensions = Arrays.asList( "bsh", "java" );
 
 	final List<String> mimeTypes = Arrays.asList(
-		"application/x-beanshell", 
+		"application/x-beanshell",
 		"application/x-bsh",
-		"application/x-java-source" 
+		"application/x-java-source"
 	);
 
 	final List<String> names = Arrays.asList( "beanshell", "bsh", "java" );
@@ -64,8 +64,8 @@ public class BshScriptEngineFactory implements
 		return null;
 	}
 
-    public String getMethodCallSyntax( 
-		String objectName, String methodName, String ... args ) 
+    public String getMethodCallSyntax(
+		String objectName, String methodName, String ... args )
 	{
 		// Note: this is very close to the bsh.StringUtil.methodString()
 		// method, which constructs a method signature from arg *types*.  Maybe
@@ -78,7 +78,7 @@ public class BshScriptEngineFactory implements
         if ( args.length > 0 )
 			sb.append(" ");
         for( int i=0; i<args.length; i++ )
-            sb.append( ( (args[i] == null) ? "null" : args[i] ) 
+            sb.append( ( (args[i] == null) ? "null" : args[i] )
 				+ ( i < (args.length-1) ? ", " : " " ) );
         sb.append(")");
         return sb.toString();
@@ -105,11 +105,11 @@ public class BshScriptEngineFactory implements
 
 	// Begin impl ScriptEngineFactory
 
-	public ScriptEngine getScriptEngine() 
+	public ScriptEngine getScriptEngine()
 	{
 		return new BshScriptEngine();
 	}
-		
+
 	// End impl ScriptEngineFactory
 }
 

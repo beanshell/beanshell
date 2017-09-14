@@ -30,7 +30,7 @@ package bsh;
 class BSHTypedVariableDeclaration extends SimpleNode
 {
 	public Modifiers modifiers;
-	
+
     BSHTypedVariableDeclaration(int id) { super(id); }
 
 	private BSHType getTypeNode() {
@@ -44,7 +44,7 @@ class BSHTypedVariableDeclaration extends SimpleNode
 		return typeNode.getType( callstack, interpreter );
 	}
 
-	BSHVariableDeclarator [] getDeclarators() 
+	BSHVariableDeclarator [] getDeclarators()
 	{
 		int n = jjtGetNumChildren();
 		int start=1;
@@ -60,7 +60,7 @@ class BSHTypedVariableDeclaration extends SimpleNode
 		evaluate the type and one or more variable declarators, e.g.:
 			int a, b=5, c;
 	*/
-    public Object eval( CallStack callstack, Interpreter interpreter)  
+    public Object eval( CallStack callstack, Interpreter interpreter)
 		throws EvalError
     {
 		try {
@@ -78,10 +78,10 @@ class BSHTypedVariableDeclaration extends SimpleNode
 				Object value = dec.eval( typeNode, callstack, interpreter);
 
 				try {
-					namespace.setTypedVariable( 
+					namespace.setTypedVariable(
 						dec.name, type, value, modifiers );
-				} catch ( UtilEvalError e ) { 
-					throw e.toEvalError( this, callstack ); 
+				} catch ( UtilEvalError e ) {
+					throw e.toEvalError( this, callstack );
 				}
 			}
 		} catch ( EvalError e ) {
@@ -91,10 +91,10 @@ class BSHTypedVariableDeclaration extends SimpleNode
         return Primitive.VOID;
     }
 
-	public String getTypeDescriptor( 
-		CallStack callstack, Interpreter interpreter, String defaultPackage ) 
-	{ 
-		return getTypeNode().getTypeDescriptor( 
+	public String getTypeDescriptor(
+		CallStack callstack, Interpreter interpreter, String defaultPackage )
+	{
+		return getTypeNode().getTypeDescriptor(
 			callstack, interpreter, defaultPackage );
 	}
 }

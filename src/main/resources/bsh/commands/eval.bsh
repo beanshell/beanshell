@@ -3,7 +3,7 @@
 	Returns the result of the evaluation or null.
 	<p>
 
-	Evaluate a string as if it were written directly in the current scope, 
+	Evaluate a string as if it were written directly in the current scope,
 	with side effects in the current scope.
 	<p>
 	e.g.
@@ -35,7 +35,7 @@
     }
     </pre>
 	<p>
-	
+
 	If you want eval() to throw target exceptions directly, without wrapping
 	them, you can simply redefine own eval like so:
 
@@ -50,7 +50,7 @@
     </pre>
 	<p/>
 
-	Here is a cute example of how to use eval to implement a dynamic cast.  
+	Here is a cute example of how to use eval to implement a dynamic cast.
 	i.e. to cast a script to an arbitrary type by name at run-time where the
 	type is not known when you are writing the script.  In this case the type
 	is in the variable interfaceType.

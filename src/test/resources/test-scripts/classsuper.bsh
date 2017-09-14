@@ -1,6 +1,6 @@
 source("TestHarness.bsh");
 
-class MyHashMap extends HashMap 
+class MyHashMap extends HashMap
 {
 	public Object get( Object obj ) {
 		return "getMyHashMap";
@@ -11,7 +11,7 @@ class MyHashMap extends HashMap
 		return super.get(obj);
 	}
 
-	public void clear() { 
+	public void clear() {
 		//_bshSuperclear();
 		super.clear();
 	}

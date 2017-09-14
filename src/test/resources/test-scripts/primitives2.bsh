@@ -2,7 +2,7 @@
 
 source("TestHarness.bsh");
 
-check(a, val, java.lang.Class cl) { 
+check(a, val, java.lang.Class cl) {
 	// we're looking at the Primitive here
 	assert( a.getValue().getClass().equals( cl ) );
 	assert( a.getValue() == val );

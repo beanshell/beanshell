@@ -2,7 +2,7 @@
 
 source("TestHarness.bsh");
 
-class Foo33 
+class Foo33
 {
 	static int a = 5;
 	int b;
@@ -19,7 +19,7 @@ class Foo33
 		b=c;
 	}
 
-	void method() { 
+	void method() {
 		assert( a == 5 );
 		assert( q == 5 || q==6/*after setQ()*/);
 		assert( this == fooThis );
@@ -32,7 +32,7 @@ class Foo33
 
 	setQ(int a) { q=a; }
 
-	static void smethod() 
+	static void smethod()
 	{
 		assert( a == 5 );
 
@@ -42,12 +42,12 @@ class Foo33
 		assert(isEvalError("method()"));
 	}
 
-	method2() { 
-		return "foo"; 
+	method2() {
+		return "foo";
 	}
 }
 
-class Bar33 extends Foo33 { 
+class Bar33 extends Foo33 {
 	int b2=99; // override
 	Object barThis = this;
 
