@@ -20,7 +20,7 @@ import InheritanceTest.*;
 print("Testing class/method scope and inheritance rules...");
 
 void call(obj,meth) {
-	meth.invoke(obj, noarg);
+    meth.invoke(obj, noarg);
 }
 
 try {
@@ -140,8 +140,8 @@ z.x();
 assert("If we made it this far, then we're OK.".length() == 38);
 
 } catch ( Exception e) {
-	error("Caught exception: "+e);
-	assert(false);
+    error("Caught exception: "+e);
+    assert(false);
 }
 
 complete();

@@ -15,7 +15,7 @@ assert( isEvalError("date3=5;") ); // can't assign int to Date
 bsh.system.shutdownOnExit;
 
 if ( bsh.system.shutdownOnExit == true )
-	System.out.println("foo");
+    System.out.println("foo");
 
 // accept expressions as well as block statements
 2;

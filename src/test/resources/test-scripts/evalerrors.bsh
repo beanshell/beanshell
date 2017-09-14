@@ -8,8 +8,8 @@ try { eval(")syntax"); } catch ( bsh.EvalError e ) { flag(); }
 try { eval("--)syntax"); } catch ( bsh.EvalError e ) { flag(); }
 
 try { run("Data/syntaxerrors.bsh"); } catch ( bsh.EvalError e ) {
-	print(e);
-	flag();
+    print(e);
+    flag();
 }
 
 assert( flag() == 5 );

@@ -29,21 +29,21 @@ public class InterpreterConcurrencyTest {
 
     static final String script =
             /*  1 */ "call(param) {" +
-            /*  3 */ "	class Echo {\n" +
-            /*  4 */ "		\n" +
-            /*  5 */ "   	final Object _s;\n" +
-            /*  6 */ "		\n" +
-            /*  7 */ "   	Echo(Object s) {\n" +
-            /*  8 */ "      	_s = s;\n" +
-            /*  9 */ "   	}\n" +
-            /*  0 */ "		\n" +
-            /* 11 */ "   	Object echo() {\n" +
-            /* 12 */ "      	return param;\n" +
-            /* 13 */ "   	}\n" +
-            /* 14 */ "		\n" +
-            /* 15 */ "	}\n" +
-            /* 16 */ "	\n" +
-            /* 17 */ "	return new Echo(param).echo();\n" +
+            /*  3 */ "  class Echo {\n" +
+            /*  4 */ "      \n" +
+            /*  5 */ "      final Object _s;\n" +
+            /*  6 */ "      \n" +
+            /*  7 */ "      Echo(Object s) {\n" +
+            /*  8 */ "          _s = s;\n" +
+            /*  9 */ "      }\n" +
+            /*  0 */ "      \n" +
+            /* 11 */ "      Object echo() {\n" +
+            /* 12 */ "          return param;\n" +
+            /* 13 */ "      }\n" +
+            /* 14 */ "      \n" +
+            /* 15 */ "  }\n" +
+            /* 16 */ "  \n" +
+            /* 17 */ "  return new Echo(param).echo();\n" +
             /* 18 */ "}" +
             /* 19 */ "return this;";
 
@@ -60,7 +60,7 @@ public class InterpreterConcurrencyTest {
     public void multi_threaded_callable() throws Exception {
         final AtomicInteger counter = new AtomicInteger();
         final String script = "call(v) {" +
-                "	return v;" +
+                "   return v;" +
                 "}" +
                 "return this;";
         final Interpreter interpreter = new Interpreter();

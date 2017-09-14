@@ -68,7 +68,7 @@ public class SourceForgeIssuesTest {
                 /* 7*/ "parser.setContentHandler( this );\n" +
                 /* 8*/ "\n" +
                 /* 9*/ "invoke( name, args ) {\n" +
-                /*10*/ "	events.add( name );\n" +
+                /*10*/ "    events.add( name );\n" +
                 /*11*/ "}\n" +
                 /*12*/ "\n" +
                 /*13*/ "source = new InputSource(new StringReader(\"<xml>test</xml>\"));\n" +
@@ -197,7 +197,7 @@ public class SourceForgeIssuesTest {
         } catch (TargetError e) {
             Assert.assertTrue(e.getTarget().getClass() == RuntimeException.class);
         }
-        Assert.assertEquals("foobar", TestUtil.eval("String a;", "try {", "	a = \"foobar\";", "} catch (Exception e) {", "	throw e;", "}", "return a;"));
+        Assert.assertEquals("foobar", TestUtil.eval("String a;", "try {", " a = \"foobar\";", "} catch (Exception e) {", "  throw e;", "}", "return a;"));
         String script = "boolean fieldBool = false;\n" +
                 "int fieldInt = 0;\n" +
                 "Boolean fieldBool2 = false;\n" +
