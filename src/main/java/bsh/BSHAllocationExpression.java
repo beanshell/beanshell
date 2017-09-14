@@ -38,8 +38,8 @@ class BSHAllocationExpression extends SimpleNode
 {
     BSHAllocationExpression(int id) { super(id); }
 	private static int innerClassCount = 0;
-	
-    public Object eval( CallStack callstack, Interpreter interpreter) 
+
+    public Object eval( CallStack callstack, Interpreter interpreter)
 		throws EvalError
     {
         // type is either a class name or a primitive type
@@ -53,10 +53,10 @@ class BSHAllocationExpression extends SimpleNode
             BSHAmbiguousName name = (BSHAmbiguousName)type;
 
             if (args instanceof BSHArguments)
-                return objectAllocation(name, (BSHArguments)args, 
+                return objectAllocation(name, (BSHArguments)args,
 					callstack, interpreter );
             else
-                return objectArrayAllocation(name, (BSHArrayDimensions)args, 
+                return objectArrayAllocation(name, (BSHArrayDimensions)args,
 					callstack, interpreter );
         }
         else
@@ -65,9 +65,9 @@ class BSHAllocationExpression extends SimpleNode
     }
 
     private Object objectAllocation(
-		BSHAmbiguousName nameNode, BSHArguments argumentsNode, 
-		CallStack callstack, Interpreter interpreter 
-	) 
+		BSHAmbiguousName nameNode, BSHArguments argumentsNode,
+		CallStack callstack, Interpreter interpreter
+	)
 		throws EvalError
     {
 		NameSpace namespace = callstack.top();
@@ -77,39 +77,39 @@ class BSHAllocationExpression extends SimpleNode
             throw new EvalError( "Null args in new.", this, callstack );
 
 		// Look for scripted class object
-        Object obj = nameNode.toObject( 
+        Object obj = nameNode.toObject(
 			callstack, interpreter, false/* force class*/ );
 
 		// Try regular class
 
-        obj = nameNode.toObject( 
+        obj = nameNode.toObject(
 			callstack, interpreter, true/*force class*/ );
 
         Class type = null;
 		if ( obj instanceof ClassIdentifier )
         	type = ((ClassIdentifier)obj).getTargetClass();
 		else
-			throw new EvalError( 
+			throw new EvalError(
 				"Unknown class: "+nameNode.text, this, callstack );
 
 		// Is an inner class style object allocation
 		boolean hasBody = jjtGetNumChildren() > 2;
 
-		if ( hasBody ) 
+		if ( hasBody )
 		{
         	BSHBlock body = (BSHBlock)jjtGetChild(2);
 			if ( type.isInterface() )
-				return constructWithInterfaceBody( 
+				return constructWithInterfaceBody(
 					type, args, body, callstack, interpreter );
 			else
-				return constructWithClassBody( 
+				return constructWithClassBody(
 					type, args, body, callstack, interpreter );
 		} else
 			return constructObject( type, args, callstack );
     }
 
-	private Object constructObject( 
-		Class type, Object[] args, CallStack callstack ) 
+	private Object constructObject(
+		Class type, Object[] args, CallStack callstack )
 		throws EvalError
 	{
 		Object obj;
@@ -123,7 +123,7 @@ class BSHAllocationExpression extends SimpleNode
 			Interpreter.debug("The constructor threw an exception:\n\t" +
 				e.getTargetException());
             throw new TargetError(
-				"Object constructor", e.getTargetException(), 
+				"Object constructor", e.getTargetException(),
 				this, callstack, true);
         }
 
@@ -132,22 +132,22 @@ class BSHAllocationExpression extends SimpleNode
 		if ( className.indexOf("$") == -1 )
 			return obj;
 
-		// Temporary hack to support inner classes 
+		// Temporary hack to support inner classes
 		// If the obj is a non-static inner class then import the context...
 		// This is not a sufficient emulation of inner classes.
 		// Replace this later...
 
 		// work through to class 'this'
 		This ths = callstack.top().getThis( null );
-		NameSpace instanceNameSpace = 
+		NameSpace instanceNameSpace =
 			Name.getClassNameSpace( ths.getNameSpace() );
-		
+
 		// Change the parent (which was the class static) to the class instance
 		// We really need to check if we're a static inner class here first...
 		// but for some reason Java won't show the static modifier on our
 		// fake inner classes...  could generate a flag field.
-		if ( instanceNameSpace != null 
-			&& className.startsWith( instanceNameSpace.getName() +"$") 
+		if ( instanceNameSpace != null
+			&& className.startsWith( instanceNameSpace.getName() +"$")
 		)
 		{
 			try {
@@ -166,9 +166,9 @@ class BSHAllocationExpression extends SimpleNode
 		This is totally broken...
 		need to construct a real inner class block here...
 	*/
-	private Object constructWithClassBody( 
+	private Object constructWithClassBody(
 		Class type, Object[] args, BSHBlock block,
-		CallStack callstack, Interpreter interpreter ) 
+		CallStack callstack, Interpreter interpreter )
 		throws EvalError
 	{
 		//throw new InterpreterError("constructWithClassBody unimplemented");
@@ -178,7 +178,7 @@ class BSHAllocationExpression extends SimpleNode
 		modifiers.addModifier( Modifiers.CLASS, "public" );
 		Class clas;
 		try {
-			clas = ClassGenerator.getClassGenerator() .generateClass( 
+			clas = ClassGenerator.getClassGenerator() .generateClass(
 				name, modifiers, null/*interfaces*/, type/*superClass*/,
 // block is not innerClassBlock here!!!
 				block, false/*isInterface*/, callstack, interpreter );
@@ -199,9 +199,9 @@ class BSHAllocationExpression extends SimpleNode
 		}
 	}
 
-	private Object constructWithInterfaceBody( 
+	private Object constructWithInterfaceBody(
 		Class type, Object[] args, BSHBlock body,
-		CallStack callstack, Interpreter interpreter ) 
+		CallStack callstack, Interpreter interpreter )
 		throws EvalError
 	{
 		NameSpace namespace = callstack.top();
@@ -220,24 +220,24 @@ class BSHAllocationExpression extends SimpleNode
 	}
 
     private Object objectArrayAllocation(
-		BSHAmbiguousName nameNode, BSHArrayDimensions dimensionsNode, 
-		CallStack callstack, Interpreter interpreter 
-	) 
+		BSHAmbiguousName nameNode, BSHArrayDimensions dimensionsNode,
+		CallStack callstack, Interpreter interpreter
+	)
 		throws EvalError
     {
 		NameSpace namespace = callstack.top();
         Class type = nameNode.toClass( callstack, interpreter );
         if ( type == null )
-            throw new EvalError( "Class " + nameNode.getName(namespace) 
+            throw new EvalError( "Class " + nameNode.getName(namespace)
 				+ " not found.", this, callstack );
 
 		return arrayAllocation( dimensionsNode, type, callstack, interpreter );
     }
 
     private Object primitiveArrayAllocation(
-		BSHPrimitiveType typeNode, BSHArrayDimensions dimensionsNode, 
-		CallStack callstack, Interpreter interpreter 
-	) 
+		BSHPrimitiveType typeNode, BSHArrayDimensions dimensionsNode,
+		CallStack callstack, Interpreter interpreter
+	)
 		throws EvalError
     {
         Class type = typeNode.getType();
@@ -245,8 +245,8 @@ class BSHAllocationExpression extends SimpleNode
 		return arrayAllocation( dimensionsNode, type, callstack, interpreter );
     }
 
-	private Object arrayAllocation( 
-		BSHArrayDimensions dimensionsNode, Class type, 
+	private Object arrayAllocation(
+		BSHArrayDimensions dimensionsNode, Class type,
 		CallStack callstack, Interpreter interpreter )
 		throws EvalError
 	{
@@ -270,41 +270,41 @@ class BSHAllocationExpression extends SimpleNode
 
 		Background: in Java arrays are implemented in arrays-of-arrays style
 		where, for example, a two dimensional array is a an array of arrays of
-		some base type.  Each dimension-type has a Java class type associated 
-		with it... so if foo = new int[5][5] then the type of foo is 
-		int [][] and the type of foo[0] is int[], etc.  Arrays may also be 
-		specified with undefined trailing dimensions - meaning that the lower 
-		order arrays are not allocated as objects. e.g.  
-		if foo = new int [5][]; then foo[0] == null //true; and can later be 
+		some base type.  Each dimension-type has a Java class type associated
+		with it... so if foo = new int[5][5] then the type of foo is
+		int [][] and the type of foo[0] is int[], etc.  Arrays may also be
+		specified with undefined trailing dimensions - meaning that the lower
+		order arrays are not allocated as objects. e.g.
+		if foo = new int [5][]; then foo[0] == null //true; and can later be
 		assigned with the appropriate type, e.g. foo[0] = new int[5];
 		(See Learning Java, O'Reilly & Associates more background).
 		<p>
 
 		To create an array with undefined trailing dimensions using the
 		reflection API we must use an array type to represent the lower order
-		(undefined) dimensions as the "base" type for the array creation... 
-		Java will then create the correct type by adding the dimensions of the 
+		(undefined) dimensions as the "base" type for the array creation...
+		Java will then create the correct type by adding the dimensions of the
 		base type to specified allocated dimensions yielding an array of
-		dimensionality base + specified with the base dimensons unallocated.  
-		To create the "base" array type we simply create a prototype, zero 
-		length in each dimension, array and use it to get its class 
-		(Actually, I think there is a way we could do it with Class.forName() 
+		dimensionality base + specified with the base dimensons unallocated.
+		To create the "base" array type we simply create a prototype, zero
+		length in each dimension, array and use it to get its class
+		(Actually, I think there is a way we could do it with Class.forName()
 		but I don't trust this).   The code is simpler than the explanation...
 		see below.
 	*/
-	private Object arrayNewInstance( 
+	private Object arrayNewInstance(
 		Class type, BSHArrayDimensions dimensionsNode, CallStack callstack )
 		throws EvalError
 	{
 		if ( dimensionsNode.numUndefinedDims > 0 )
 		{
-            Object proto = Array.newInstance( 
+            Object proto = Array.newInstance(
 				type, new int [dimensionsNode.numUndefinedDims] ); // zeros
 			type = proto.getClass();
 		}
 
         try {
-            return Array.newInstance( 
+            return Array.newInstance(
 				type, dimensionsNode.definedDimensions);
         } catch( NegativeArraySizeException e1 ) {
 			throw new TargetError( e1, this, callstack );

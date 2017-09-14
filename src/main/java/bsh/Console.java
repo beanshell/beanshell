@@ -33,14 +33,14 @@ import bsh.util.*;
 /**
 	Console startup class.
 */
-public class Console  
+public class Console
 {
 	public static void main( String args[] ) {
 
 		if ( !Capabilities.classExists( "bsh.util.Util" ) )
 			System.out.println("Can't find the BeanShell utilities...");
 
-		if ( Capabilities.haveSwing() ) 
+		if ( Capabilities.haveSwing() )
 		{
 			bsh.util.Util.startSplashScreen();
 			try {

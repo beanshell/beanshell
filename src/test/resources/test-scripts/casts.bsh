@@ -11,7 +11,7 @@ assert( ((int)a) == 0 );
 
 d=(double)+1;
 
-// cast error should be changed to throw classcastexception which could 
+// cast error should be changed to throw classcastexception which could
 // be caught
 assert( isEvalError( "i=(Integer)\"foo\";") );
 

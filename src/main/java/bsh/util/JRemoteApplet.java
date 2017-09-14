@@ -41,7 +41,7 @@ public class JRemoteApplet extends JApplet
 	OutputStream out;
 	InputStream in;
 
-	public void init() 
+	public void init()
 	{
 		getContentPane().setLayout(new BorderLayout());
 
@@ -53,7 +53,7 @@ public class JRemoteApplet extends JApplet
 			out = s.getOutputStream();
 			in = s.getInputStream();
 		} catch(IOException e) {
-			getContentPane().add("Center", 
+			getContentPane().add("Center",
 				new Label("Remote Connection Failed", Label.CENTER));
 			return;
 		}

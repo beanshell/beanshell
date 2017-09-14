@@ -32,7 +32,7 @@ class BSHStatementExpressionList extends SimpleNode
 {
 	BSHStatementExpressionList(int id) { super(id); }
 
-	public Object eval(CallStack callstack, Interpreter interpreter)  
+	public Object eval(CallStack callstack, Interpreter interpreter)
 		throws EvalError
 	{
 		int n = jjtGetNumChildren();

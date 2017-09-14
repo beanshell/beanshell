@@ -1,11 +1,11 @@
 source("TestHarness.bsh");
 
 assert(true);
-class Foo55 
-{ 
+class Foo55
+{
 	int x;
 
-	Foo55() { 
+	Foo55() {
 		this(0);
 		assert( x == 42 );
 		assert( this.x == 42 );
@@ -14,7 +14,7 @@ class Foo55
 		assert( this.x == 43 );
 	}
 
-	Foo55( int a ) 
+	Foo55( int a )
 	{
 		assert( x == 0 );
 		assert( this.x == 0 );

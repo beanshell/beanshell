@@ -35,9 +35,9 @@ class BSHArrayInitializer extends SimpleNode
     BSHArrayInitializer(int id) { super(id); }
 
     public Object eval( CallStack callstack, Interpreter interpreter )
-		throws EvalError 
+		throws EvalError
 	{
-		throw new EvalError( "Array initializer has no base type.", 
+		throw new EvalError( "Array initializer has no base type.",
 			this, callstack );
 	}
 
@@ -45,18 +45,18 @@ class BSHArrayInitializer extends SimpleNode
 		Construct the array from the initializer syntax.
 
 		@param baseType the base class type of the array (no dimensionality)
-		@param dimensions the top number of dimensions of the array 
+		@param dimensions the top number of dimensions of the array
 			e.g. 2 for a String [][];
 	*/
-    public Object eval( Class baseType, int dimensions, 
-						CallStack callstack, Interpreter interpreter ) 
+    public Object eval( Class baseType, int dimensions,
+						CallStack callstack, Interpreter interpreter )
 		throws EvalError
     {
         int numInitializers = jjtGetNumChildren();
 
 		// allocate the array to store the initializers
 		int [] dima = new int [dimensions]; // description of the array
-		// The other dimensions default to zero and are assigned when 
+		// The other dimensions default to zero and are assigned when
 		// the values are set.
 		dima[0] = numInitializers;
         Object initializers =  Array.newInstance( baseType, dima );
@@ -69,10 +69,10 @@ class BSHArrayInitializer extends SimpleNode
 			if ( node instanceof BSHArrayInitializer ) {
 				if ( dimensions < 2 )
 					throw new EvalError(
-						"Invalid Location for Intializer, position: "+i, 
+						"Invalid Location for Intializer, position: "+i,
 						this, callstack );
-            	currentInitializer = 
-					((BSHArrayInitializer)node).eval( 
+            	currentInitializer =
+					((BSHArrayInitializer)node).eval(
 						baseType, dimensions-1, callstack, interpreter);
 			} else
             	currentInitializer = node.eval( callstack, interpreter);
@@ -121,19 +121,19 @@ class BSHArrayInitializer extends SimpleNode
         return initializers;
     }
 
-	private void throwTypeError( 
-		Class baseType, Object initializer, int argNum, CallStack callstack ) 
+	private void throwTypeError(
+		Class baseType, Object initializer, int argNum, CallStack callstack )
 		throws EvalError
 	{
 		String rhsType;
 		if (initializer instanceof Primitive)
-			rhsType = 
+			rhsType =
 				((Primitive)initializer).getType().getName();
 		else
 			rhsType = Reflect.normalizeClassName(
 				initializer.getClass());
 
-		throw new EvalError ( "Incompatible type: " + rhsType 
+		throw new EvalError ( "Incompatible type: " + rhsType
 			+" in initializer of array type: "+ baseType
 			+" at position: "+argNum, this, callstack );
 	}

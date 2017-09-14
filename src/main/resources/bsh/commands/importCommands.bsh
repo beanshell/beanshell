@@ -1,7 +1,7 @@
 /**
 	Import scripted or compiled BeanShell commands in the following package
 	in the classpath.  You may use either "/" path or "." package notation.
-	e.g. 
+	e.g.
 	<pre>
 		// equivalent
 		importCommands("/bsh/commands")
@@ -32,7 +32,7 @@
 
 bsh.help.importCommands = "usage: importCommands( string )";
 
-importCommands( path ) 
+importCommands( path )
 {
 	this.caller.namespace.importCommands( path );
 }

@@ -1,7 +1,7 @@
 /**
- * Creates a JConsole in a JInternalFrame and adds it to the desktop 
+ * Creates a JConsole in a JInternalFrame and adds it to the desktop
  *
- * @return this (the workspace scripted object for allowing access to the 
+ * @return this (the workspace scripted object for allowing access to the
  *          frame, interpreter, etc.)
  *
  * @author Pat Niemeyer
@@ -15,7 +15,7 @@ import bsh.ClassPathException;
 import bsh.util.JConsole;
 import bsh.util.NameCompletionTable;
 
-makeWorkspace( String name ) 
+makeWorkspace( String name )
 {
 	if ( bsh.system.desktop == void ) {
 		print("No desktop...");
@@ -30,7 +30,7 @@ makeWorkspace( String name )
 	// provide name completion for console, name source is global namespace
 	// move this into JConsole?
 
-	// Access to read classpath is protected 
+	// Access to read classpath is protected
 	try {
 	this.nct = new NameCompletionTable();
 	nct.add( interpreter.getNameSpace() );
@@ -52,7 +52,7 @@ makeWorkspace( String name )
 
 	this.frame = bsh.system.desktop.makeInternalFrame( name );
 	frame.frameIcon=bsh.system.icons.workspace;
-	
+
 	/*
 		Notes: Careful not to print anything before returning sys io...
 		console is now gone.
@@ -66,11 +66,11 @@ makeWorkspace( String name )
 	internalFrameClosed(ife) {}
 	internalFrameOpened(ife) {}
 	internalFrameIconified(ife) {}
-	internalFrameDeiconified(ife) {}	
-	
+	internalFrameDeiconified(ife) {}
+
 	frame.addInternalFrameListener(this);
 
-	actionPerformed( e ) 
+	actionPerformed( e )
 	{
 		this.com = e.getActionCommand();
 		if ( com.equals("Workspace Editor") )

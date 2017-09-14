@@ -36,8 +36,8 @@ import java.lang.reflect.InvocationTargetException;
 	with a pointer to the declaring namespace.
 	<p>
 
-	When a method is located in a subordinate namespace or invoked from an 
-	arbitrary namespace it must nonetheless execute with its 'super' as the 
+	When a method is located in a subordinate namespace or invoked from an
+	arbitrary namespace it must nonetheless execute with its 'super' as the
 	context in which it was declared.
 	<p/>
 */
@@ -45,13 +45,13 @@ import java.lang.reflect.InvocationTargetException;
 	Note: this method incorrectly caches the method structure.  It needs to
 	be cleared when the classloader changes.
 */
-public class BshMethod 
-	implements java.io.Serializable 
+public class BshMethod
+	implements java.io.Serializable
 {
-	/* 
+	/*
 		This is the namespace in which the method is set.
-		It is a back-reference for the node, which needs to execute under this 
-		namespace.  It is not necessary to declare this transient, because 
+		It is a back-reference for the node, which needs to execute under this
+		namespace.  It is not necessary to declare this transient, because
 		we can only be saved as part of our namespace anyway... (currently).
 	*/
 	NameSpace declaringNameSpace;
@@ -76,18 +76,18 @@ public class BshMethod
 
 	// End method components
 
-	BshMethod( 
-		BSHMethodDeclaration method, 
-		NameSpace declaringNameSpace, Modifiers modifiers ) 
+	BshMethod(
+		BSHMethodDeclaration method,
+		NameSpace declaringNameSpace, Modifiers modifiers )
 	{
 		this( method.name, method.returnType, method.paramsNode.getParamNames(),
 			method.paramsNode.paramTypes, method.blockNode, declaringNameSpace,
 			modifiers );
 	}
 
-	BshMethod( 
+	BshMethod(
 		String name, Class returnType, String [] paramNames,
-		Class [] paramTypes, BSHBlock methodBody, 
+		Class [] paramTypes, BSHBlock methodBody,
 		NameSpace declaringNameSpace, Modifiers modifiers
 	) {
 		this.name = name;
@@ -108,7 +108,7 @@ public class BshMethod
 	BshMethod( Method method, Object object )
 	{
 		this( method.getName(), method.getReturnType(), null/*paramNames*/,
-			method.getParameterTypes(), null/*method.block*/, 
+			method.getParameterTypes(), null/*method.block*/,
 			null/*declaringNameSpace*/, null/*modifiers*/ );
 
 		this.javaMethod = method;
@@ -130,7 +130,7 @@ public class BshMethod
 
 	/**
 		Get the return type of the method.
-		@return Returns null for a loosely typed return value, 
+		@return Returns null for a loosely typed return value,
 			Void.TYPE for a void return type, or the Class of the type.
 	*/
 	/*
@@ -145,12 +145,12 @@ public class BshMethod
 
 	/**
 		Invoke the declared method with the specified arguments and interpreter
-		reference.  This is the simplest form of invoke() for BshMethod 
+		reference.  This is the simplest form of invoke() for BshMethod
 		intended to be used in reflective style access to bsh scripts.
 	*/
-	public Object invoke( 
-		Object[] argValues, Interpreter interpreter ) 
-		throws EvalError 
+	public Object invoke(
+		Object[] argValues, Interpreter interpreter )
+		throws EvalError
 	{
 		return invoke( argValues, interpreter, null, null, false );
 	}
@@ -159,23 +159,23 @@ public class BshMethod
 		Invoke the bsh method with the specified args, interpreter ref,
 		and callstack.
 		callerInfo is the node representing the method invocation
-		It is used primarily for debugging in order to provide access to the 
+		It is used primarily for debugging in order to provide access to the
 		text of the construct that invoked the method through the namespace.
-		@param callerInfo is the BeanShell AST node representing the method 
-			invocation.  It is used to print the line number and text of 
+		@param callerInfo is the BeanShell AST node representing the method
+			invocation.  It is used to print the line number and text of
 			errors in EvalError exceptions.  If the node is null here error
 			messages may not be able to point to the precise location and text
 			of the error.
 		@param callstack is the callstack.  If callstack is null a new one
 			will be created with the declaring namespace of the method on top
-			of the stack (i.e. it will look for purposes of the method 
-			invocation like the method call occurred in the declaring 
+			of the stack (i.e. it will look for purposes of the method
+			invocation like the method call occurred in the declaring
 			(enclosing) namespace in which the method is defined).
 	*/
-	public Object invoke( 
+	public Object invoke(
 		Object[] argValues, Interpreter interpreter, CallStack callstack,
-			SimpleNode callerInfo ) 
-		throws EvalError 
+			SimpleNode callerInfo )
+		throws EvalError
 	{
 		return invoke( argValues, interpreter, callstack, callerInfo, false );
 	}
@@ -184,27 +184,27 @@ public class BshMethod
 		Invoke the bsh method with the specified args, interpreter ref,
 		and callstack.
 		callerInfo is the node representing the method invocation
-		It is used primarily for debugging in order to provide access to the 
+		It is used primarily for debugging in order to provide access to the
 		text of the construct that invoked the method through the namespace.
-		@param callerInfo is the BeanShell AST node representing the method 
-			invocation.  It is used to print the line number and text of 
+		@param callerInfo is the BeanShell AST node representing the method
+			invocation.  It is used to print the line number and text of
 			errors in EvalError exceptions.  If the node is null here error
 			messages may not be able to point to the precise location and text
 			of the error.
 		@param callstack is the callstack.  If callstack is null a new one
 			will be created with the declaring namespace of the method on top
-			of the stack (i.e. it will look for purposes of the method 
-			invocation like the method call occurred in the declaring 
+			of the stack (i.e. it will look for purposes of the method
+			invocation like the method call occurred in the declaring
 			(enclosing) namespace in which the method is defined).
-		@param overrideNameSpace 
+		@param overrideNameSpace
 			When true the method is executed in the namespace on the top of the
 			stack instead of creating its own local namespace.  This allows it
 			to be used in constructors.
 	*/
-	Object invoke( 
+	Object invoke(
 		Object[] argValues, Interpreter interpreter, CallStack callstack,
-			SimpleNode callerInfo, boolean overrideNameSpace ) 
-		throws EvalError 
+			SimpleNode callerInfo, boolean overrideNameSpace )
+		throws EvalError
 	{
 		if ( argValues != null )
 			for (int i=0; i<argValues.length; i++)
@@ -214,13 +214,13 @@ public class BshMethod
 		if ( javaMethod != null )
 			try {
 				return Reflect.invokeMethod(
-					javaMethod, javaObject, argValues ); 
+					javaMethod, javaObject, argValues );
 			} catch ( ReflectError e ) {
 				throw new EvalError(
 					"Error invoking Java method: "+e, callerInfo, callstack );
 			} catch ( InvocationTargetException e2 ) {
-				throw new TargetError( 
-					"Exception invoking imported object method.", 
+				throw new TargetError(
+					"Exception invoking imported object method.",
 					e2, callerInfo, callstack, true/*isNative*/ );
 			}
 
@@ -242,10 +242,10 @@ public class BshMethod
 			} else
 				lock = declaringNameSpace.getThis(interpreter); // ???
 
-			synchronized( lock ) 
+			synchronized( lock )
 			{
-				return invokeImpl( 
-					argValues, interpreter, callstack, 
+				return invokeImpl(
+					argValues, interpreter, callstack,
 					callerInfo, overrideNameSpace );
 			}
 		} else
@@ -253,10 +253,10 @@ public class BshMethod
 				overrideNameSpace );
 	}
 
-	private Object invokeImpl( 
+	private Object invokeImpl(
 		Object[] argValues, Interpreter interpreter, CallStack callstack,
-			SimpleNode callerInfo, boolean overrideNameSpace ) 
-		throws EvalError 
+			SimpleNode callerInfo, boolean overrideNameSpace )
+		throws EvalError
 	{
 		Class returnType = getReturnType();
 		Class [] paramTypes = getParameterTypes();
@@ -269,13 +269,13 @@ public class BshMethod
 			argValues = new Object [] { };
 
 		// Cardinality (number of args) mismatch
-		if ( argValues.length != numArgs ) 
+		if ( argValues.length != numArgs )
 		{
 		/*
 			// look for help string
 			try {
 				// should check for null namespace here
-				String help = 
+				String help =
 					(String)declaringNameSpace.get(
 					"bsh.help."+name, interpreter );
 
@@ -285,8 +285,8 @@ public class BshMethod
 				throw eval error
 			}
 		*/
-			throw new EvalError( 
-				"Wrong number of arguments for local method: " 
+			throw new EvalError(
+				"Wrong number of arguments for local method: "
 				+ name, callerInfo, callstack );
 		}
 
@@ -306,7 +306,7 @@ public class BshMethod
 		for(int i=0; i<numArgs; i++)
 		{
 			// Set typed variable
-			if ( paramTypes[i] != null ) 
+			if ( paramTypes[i] != null )
 			{
 				try {
 					argValues[i] =
@@ -315,19 +315,19 @@ public class BshMethod
 				}
 				catch( UtilEvalError e) {
 					throw new EvalError(
-						"Invalid argument: " 
-						+ "`"+paramNames[i]+"'" + " for method: " 
-						+ name + " : " + 
+						"Invalid argument: "
+						+ "`"+paramNames[i]+"'" + " for method: "
+						+ name + " : " +
 						e.getMessage(), callerInfo, callstack );
 				}
 				try {
-					localNameSpace.setTypedVariable( paramNames[i], 
+					localNameSpace.setTypedVariable( paramNames[i],
 						paramTypes[i], argValues[i], null/*modifiers*/);
 				} catch ( UtilEvalError e2 ) {
-					throw e2.toEvalError( "Typed method parameter assignment", 
+					throw e2.toEvalError( "Typed method parameter assignment",
 						callerInfo, callstack  );
 				}
-			} 
+			}
 			// Set untyped variable
 			else  // untyped param
 			{
@@ -335,7 +335,7 @@ public class BshMethod
 				if ( argValues[i] == Primitive.VOID)
 					throw new EvalError(
 						"Undefined variable or class name, parameter: " +
-						paramNames[i] + " to method: " 
+						paramNames[i] + " to method: "
 						+ name, callerInfo, callstack );
 				else
 					try {
@@ -353,7 +353,7 @@ public class BshMethod
 			callstack.push( localNameSpace );
 
 		// Invoke the block, overriding namespace with localNameSpace
-		Object ret = methodBody.eval( 
+		Object ret = methodBody.eval(
 			callstack, interpreter, true/*override*/ );
 
 		// save the callstack including the called method, just for error mess
@@ -371,15 +371,15 @@ public class BshMethod
 			// Method body can only use 'return' statement type return control.
 			if ( retControl.kind == retControl.RETURN )
 				ret = ((ReturnControl)ret).value;
-			else 
+			else
 				// retControl.returnPoint is the Node of the return statement
-				throw new EvalError("'continue' or 'break' in method body", 
+				throw new EvalError("'continue' or 'break' in method body",
 					retControl.returnPoint, returnStack );
 
 			// Check for explicit return of value from void method type.
 			// retControl.returnPoint is the Node of the return statement
 			if ( returnType == Void.TYPE && ret != Primitive.VOID )
-				throw new EvalError( "Cannot return value from void method", 
+				throw new EvalError( "Cannot return value from void method",
 				retControl.returnPoint, returnStack);
 		}
 
@@ -402,7 +402,7 @@ public class BshMethod
 				if ( retControl != null )
 					node = retControl.returnPoint;
 				throw e.toEvalError(
-					"Incorrect type returned from method: " 
+					"Incorrect type returned from method: "
 					+ name + e.getMessage(), node, callstack );
 			}
 		}
@@ -416,7 +416,7 @@ public class BshMethod
 
 	public String toString() {
 		return "Scripted Method: "
-			+ StringUtil.methodString( name, getParameterTypes() ); 
+			+ StringUtil.methodString( name, getParameterTypes() );
 	}
 
 }

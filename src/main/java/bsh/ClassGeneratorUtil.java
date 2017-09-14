@@ -38,9 +38,9 @@ import java.util.List;
 import java.io.*;
 
 /**
-	ClassGeneratorUtil utilizes the ASM (www.objectweb.org) bytecode generator 
+	ClassGeneratorUtil utilizes the ASM (www.objectweb.org) bytecode generator
 	by Eric Bruneton in order to generate class "stubs" for BeanShell at
-	runtime.  
+	runtime.
 	<p>
 
 	Stub classes contain all of the fields of a BeanShell scripted class
@@ -53,7 +53,7 @@ import java.io.*;
 	(i.e. mixin) to delegate variable access to the class' instance variables.
 	<p>
 
-	Constructors for the class delegate to the static initInstance() method of 
+	Constructors for the class delegate to the static initInstance() method of
 	ClassGeneratorUtil to initialize new instances of the object.  initInstance()
 	invokes the instance intializer code (init vars and instance blocks) and
 	then delegates to the corresponding scripted constructor method in the
@@ -78,7 +78,7 @@ import java.io.*;
 	It would not be hard to eliminate the use of org.objectweb.asm.Type from
 	this class, making the distribution a tiny bit smaller.
 */
-public class ClassGeneratorUtil implements Constants 
+public class ClassGeneratorUtil implements Constants
 {
 	/** The name of the static field holding the reference to the bsh
 	 	 static This (the callback namespace for static methods) */
@@ -1185,9 +1185,9 @@ public class ClassGeneratorUtil implements Constants
 	/**
 		If a non-array object type, remove the prefix "L" and suffix ";".
 	*/
-	// Can this be factored out...?  
+	// Can this be factored out...?
 	// Should be be adding the L...; here instead?
-	private static String descriptorToClassName( String s ) 
+	private static String descriptorToClassName( String s )
 	{
 		if ( s.startsWith("[") || !s.startsWith("L") )
 			return s;
@@ -1226,9 +1226,9 @@ public class ClassGeneratorUtil implements Constants
 
 		ConstructorArgs() {  }
 
-		ConstructorArgs( int selector, Object [] args ) { 
+		ConstructorArgs( int selector, Object [] args ) {
 			this.selector = selector;
-			this.args = args; 
+			this.args = args;
 		}
 
 		Object next() { return args[arg++]; }
@@ -1250,7 +1250,7 @@ public class ClassGeneratorUtil implements Constants
 		That is, it should contain the scripted class definition.
 
 		This method relies on the fact that the ClassGenerator generateClass()
-		method will detect that the generated class already exists and 
+		method will detect that the generated class already exists and
 		initialize it rather than recreating it.
 
 	 	The only interact that this method has with the process is to initially

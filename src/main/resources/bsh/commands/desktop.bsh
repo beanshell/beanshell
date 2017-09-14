@@ -7,7 +7,7 @@
  * @author Pat Niemeyer
  * @author Daniel Leuck
  */
- 
+
 import javax.swing.*;
 import javax.swing.border.*;
 import bsh.util.JConsole;
@@ -16,9 +16,9 @@ import bsh.Interpreter;
 import java.awt.Component;
 import bsh.Capabilities;
 
-desktop() 
+desktop()
 {
-		
+
 	// need a way to set things to void again
 	if ( bsh.system.desktop != void ) {
 		print("There is	already	a desktop running...");
@@ -27,17 +27,17 @@ desktop()
 		bsh.system.desktop = this;   // race condition (hah!)
 
 	bsh.system.icons=object();
-	
+
 	bsh.system.icons.bean=
 		new ImageIcon(getResource("/bsh/util/lib/icon.gif"));
 	bsh.system.icons.workspace=
-		new ImageIcon(getResource("/bsh/util/lib/workspace.gif"));	
+		new ImageIcon(getResource("/bsh/util/lib/workspace.gif"));
 	bsh.system.icons.script=
 		new ImageIcon(getResource("/bsh/util/lib/script.gif"));
 	bsh.system.icons.eye=
-		new ImageIcon(getResource("/bsh/util/lib/eye.jpg"));		
+		new ImageIcon(getResource("/bsh/util/lib/eye.jpg"));
 
-	// Disallowed by applet security 
+	// Disallowed by applet security
 	try {
 		bsh.system.fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().
 			getAvailableFontFamilyNames();
@@ -46,7 +46,7 @@ desktop()
 	JPanel stage=new JPanel(new BorderLayout());
 	JPanel taskBar=new JPanel(new FlowLayout(FlowLayout.LEFT, 1, 1));
 
-	// For some insane reason, access to the JPanel background color object 
+	// For some insane reason, access to the JPanel background color object
 	// is protected on the Mac
 	borderColor = taskBar.background;
 	try {
@@ -55,11 +55,11 @@ desktop()
 	taskBar.setBorder( new MatteBorder(1,0,0,0, borderColor) );
 
 	ButtonGroup taskBarButtonGroup = new ButtonGroup();
-	
+
 	// Ignore unhandled method invocations from listeners.
 	invoke( method, args ) { }
 
-	makeInternalFrame( String name ) 
+	makeInternalFrame( String name )
 	{
 		// Closable by default
 		this.frame = new JInternalFrame( name, true, true, true, true );
@@ -77,15 +77,15 @@ desktop()
 			if(iframe!=null && !iframe.selected)
 				iframe.selected=true;
 		}
-		
+
 		return this;
 	}
 	this.taskBarButtonListener=taskBarButtonListener();
-	
-	addInternalFrame( frame ) 
+
+	addInternalFrame( frame )
 	{
 		iframeListener=new InternalFrameListener() {
-			
+
 			internalFrameClosing(ife) {
 				for(e:new Hashtable(frameMap).entrySet()) {
 					if(e.value.equals(ife.source)) {
@@ -97,26 +97,26 @@ desktop()
 					}
 				}
 			}
-			
+
 			internalFrameActivated(ife) {
 				for(e:frameMap.entrySet()) if(e.value.equals(ife.source)) {
 					if(!e.key.selected) e.key.selected=true;
 				}
 			}
-			
+
 			internalFrameDeactivated(ife) {}
 			internalFrameClosed(ife) {}
 			internalFrameOpened(ife) {}
 			internalFrameIconified(ife) {}
 			internalFrameDeiconified(ife) {}
 		};
-		
+
 		bsh.system.desktop.pane.add( frame	);
 		frame.addInternalFrameListener(iframeListener);
 		JToggleButton button = new JToggleButton(frame.title, frame.frameIcon);
 		taskBarButtonGroup.add(button);
 
-		// For some insane rason access to some of the color objects is 
+		// For some insane rason access to some of the color objects is
 		// protected on the Mac
 		try {
 		button.border=
@@ -126,7 +126,7 @@ desktop()
 		button.addActionListener(taskBarButtonListener);
 		taskBar.add(button);
 		taskBar.validate();
-		
+
 		frameMap.put(button,frame);
 	}
 
@@ -147,7 +147,7 @@ desktop()
 		exit();
 	}
 
-	actionPerformed( e ) 
+	actionPerformed( e )
 	{
 		this.com = e.getActionCommand();
 		if ( com.equals("New Bsh Workspace") )
@@ -179,10 +179,10 @@ desktop()
 	pane.addMouseListener( this );
 
 	this.frame=new JFrame("BeanShell Desktop 1.1");
-	
+
 	stage.add(pane);
 	stage.add(taskBar, BorderLayout.SOUTH);
-	
+
 	frame.getContentPane().add(stage);
 
 	windowClosing( e ) {
@@ -197,10 +197,10 @@ desktop()
 		If available, add a listener for classpath mapping
 		I'm planning to implement a GUI progress indicator here
 
-	if ( Capabilities.canGenerateInterfaces() ) 
+	if ( Capabilities.canGenerateInterfaces() )
 	{
 		import bsh.classpath.BshClassPath;
-		classFeedbackListener = new BshClassPath.MappingFeedback() 
+		classFeedbackListener = new BshClassPath.MappingFeedback()
 		{
 			startClassMapping() { }
 			classMapping( msg ) { }
@@ -216,9 +216,9 @@ desktop()
 
 	frame.setSize(800,600);
 	frame.show();
-	
+
 	Util.endSplashScreen();
-	
+
 	frame.toFront();
 	workSpace.frame.selected=true;
 }

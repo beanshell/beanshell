@@ -8,7 +8,7 @@ global.g = 7;
 r = run("Data/run_aux.bsh");
 assert( a==1 );
 assert( r.a == 5 );
-// run_aux does sets global g to 6, it should not appear here 
+// run_aux does sets global g to 6, it should not appear here
 assert( global.g == 7 );
 assert( r.g == 6 );
 
@@ -19,7 +19,7 @@ assert( !r.cwd.equals( bsh.cwd) );
 arg = object();
 arg.foo=1;
 r = run("Data/run_aux.bsh", arg);
-// run_aux copies runArgument to ra 
+// run_aux copies runArgument to ra
 assert( r.ra.foo == 1 );
 
 // test that classloading doesn't affect us

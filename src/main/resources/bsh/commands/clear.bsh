@@ -1,6 +1,6 @@
 /**
 	Clear all variables, methods, and imports from this namespace.
-	If this namespace is the root, it will be reset to the default 
+	If this namespace is the root, it will be reset to the default
 	imports.
 	See NameSpace.clear();
 	@see NameSpace.clear();

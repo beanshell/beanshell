@@ -40,11 +40,11 @@ class BSHFormalParameter extends SimpleNode
 
 	BSHFormalParameter(int id) { super(id); }
 
-	public String getTypeDescriptor( 
-		CallStack callstack, Interpreter interpreter, String defaultPackage ) 
+	public String getTypeDescriptor(
+		CallStack callstack, Interpreter interpreter, String defaultPackage )
 	{
 		if ( jjtGetNumChildren() > 0 )
-			return ((BSHType)jjtGetChild(0)).getTypeDescriptor( 
+			return ((BSHType)jjtGetChild(0)).getTypeDescriptor(
 				callstack, interpreter, defaultPackage );
 		else
 			// this will probably not get used
@@ -54,7 +54,7 @@ class BSHFormalParameter extends SimpleNode
 	/**
 		Evaluate the type.
 	*/
-	public Object eval( CallStack callstack, Interpreter interpreter) 
+	public Object eval( CallStack callstack, Interpreter interpreter)
 		throws EvalError
 	{
 		if ( jjtGetNumChildren() > 0 )

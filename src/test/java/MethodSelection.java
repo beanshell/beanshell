@@ -3,7 +3,7 @@ public class MethodSelection {
 
 	public Class constructedWith;
 
-	// constructors 
+	// constructors
 
 	public MethodSelection( Object o ) {
 		constructedWith = o.getClass();
@@ -99,7 +99,7 @@ public class MethodSelection {
 	/*
 		If we try to invoke an instance method through a static context
 		javac will error... rather than take the widening match.
-		See methodselection2.bsh 
+		See methodselection2.bsh
 	*/
 	public static Class staticVsDynamic1( Object obj ) {
 		System.out.println("Object");

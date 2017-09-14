@@ -35,7 +35,7 @@ class BSHBlock extends SimpleNode
 
 	BSHBlock(int id) { super(id); }
 
-	public Object eval( CallStack callstack, Interpreter interpreter) 
+	public Object eval( CallStack callstack, Interpreter interpreter)
 		throws EvalError
 	{
 		return eval( callstack, interpreter, false );
@@ -45,19 +45,19 @@ class BSHBlock extends SimpleNode
 		@param overrideNamespace if set to true the block will be executed
 		in the current namespace (not a subordinate one).
 		<p>
-		If true *no* new BlockNamespace will be swapped onto the stack and 
+		If true *no* new BlockNamespace will be swapped onto the stack and
 		the eval will happen in the current
-		top namespace.  This is used by BshMethod, TryStatement, etc.  
-		which must intialize the block first and also for those that perform 
+		top namespace.  This is used by BshMethod, TryStatement, etc.
+		which must intialize the block first and also for those that perform
 		multiple passes in the same block.
 	*/
-	public Object eval( 
-		CallStack callstack, Interpreter interpreter, 
-		boolean overrideNamespace ) 
+	public Object eval(
+		CallStack callstack, Interpreter interpreter,
+		boolean overrideNamespace )
 		throws EvalError
 	{
 		Object syncValue = null;
-		if ( isSynchronized ) 
+		if ( isSynchronized )
 		{
 			// First node is the expression on which to sync
 			SimpleNode exp = ((SimpleNode)jjtGetChild(0));
@@ -68,27 +68,27 @@ class BSHBlock extends SimpleNode
 		if ( isSynchronized ) // Do the actual synchronization
 			synchronized( syncValue )
 			{
-				ret = evalBlock( 
+				ret = evalBlock(
 					callstack, interpreter, overrideNamespace, null/*filter*/);
 			}
 		else
-				ret = evalBlock( 
+				ret = evalBlock(
 					callstack, interpreter, overrideNamespace, null/*filter*/);
 
 		return ret;
 	}
 
-	Object evalBlock( 
-		CallStack callstack, Interpreter interpreter, 
-		boolean overrideNamespace, NodeFilter nodeFilter ) 
+	Object evalBlock(
+		CallStack callstack, Interpreter interpreter,
+		boolean overrideNamespace, NodeFilter nodeFilter )
 		throws EvalError
-	{	
+	{
 		Object ret = Primitive.VOID;
 		NameSpace enclosingNameSpace = null;
-		if ( !overrideNamespace ) 
+		if ( !overrideNamespace )
 		{
 			enclosingNameSpace= callstack.top();
-			BlockNameSpace bodyNameSpace = 
+			BlockNameSpace bodyNameSpace =
 				new BlockNameSpace( enclosingNameSpace );
 
 			callstack.swap( bodyNameSpace );
@@ -99,7 +99,7 @@ class BSHBlock extends SimpleNode
 
 		try {
 			/*
-				Evaluate block in two passes: 
+				Evaluate block in two passes:
 				First do class declarations then do everything else.
 			*/
 			for(int i=startChild; i<numChildren; i++)
@@ -130,7 +130,7 @@ class BSHBlock extends SimpleNode
 			}
 		} finally {
 			// make sure we put the namespace back when we leave.
-			if ( !overrideNamespace ) 
+			if ( !overrideNamespace )
 				callstack.swap( enclosingNameSpace );
 		}
 		return ret;

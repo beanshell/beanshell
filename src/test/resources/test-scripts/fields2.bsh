@@ -4,8 +4,8 @@ source("TestHarness.bsh");
 
 object().x=5;
 foo() {
-	bar() { 
-		return this; 
+	bar() {
+		return this;
 	}
 	bar2() {
 		return foo();
@@ -21,7 +21,7 @@ fb.xx=5;
 foo().bar().x=5;
 foo().bar2().bar().x=5;
 
-// just an experiment 
+// just an experiment
 foo().bar2().bar2().bar2().bar();
 
 setAccessibility(true);

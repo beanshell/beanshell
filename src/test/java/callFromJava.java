@@ -1,6 +1,6 @@
 import bsh.*;
 
-public class callFromJava { 
+public class callFromJava {
 
 	public static void main( String argv[] ) throws EvalError {
 

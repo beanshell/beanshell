@@ -28,7 +28,7 @@ package bsh;
 import java.util.Hashtable;
 
 /**
-	
+
 	@author Pat Niemeyer (pat@pat.net)
 */
 /*
@@ -42,7 +42,7 @@ public class Modifiers implements java.io.Serializable
 	/**
 		@param context is METHOD or FIELD
 	*/
-	public void addModifier( int context, String name ) 
+	public void addModifier( int context, String name )
 	{
 		if ( modifiers == null )
 			modifiers = new Hashtable();
@@ -59,7 +59,7 @@ public class Modifiers implements java.io.Serializable
 			throw new IllegalStateException(
 				"public/private/protected cannot be used in combination." );
 
-		switch( context ) 
+		switch( context )
 		{
 		case CLASS:
 			validateForClass();
@@ -73,7 +73,7 @@ public class Modifiers implements java.io.Serializable
 		}
 	}
 
-	public boolean hasModifier( String name ) 
+	public boolean hasModifier( String name )
 	{
 		if ( modifiers == null )
 			modifiers = new Hashtable();
@@ -81,19 +81,19 @@ public class Modifiers implements java.io.Serializable
 	}
 
 	// could refactor these a bit
-	private void validateForMethod() 
-	{ 
+	private void validateForMethod()
+	{
 		insureNo("volatile", "Method");
 		insureNo("transient", "Method");
 	}
-	private void validateForField() 
-	{ 
+	private void validateForField()
+	{
 		insureNo("synchronized", "Variable");
 		insureNo("native", "Variable");
 		insureNo("abstract", "Variable");
 	}
-	private void validateForClass() 
-	{ 
+	private void validateForClass()
+	{
 		validateForMethod(); // volatile, transient
 		insureNo("native", "Class");
 		insureNo("synchronized", "Class");

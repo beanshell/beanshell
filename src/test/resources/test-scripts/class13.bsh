@@ -30,7 +30,7 @@ class TestInner1
 new TestInner1().go();
 new TestInner1.StaticInner1().go();
 
-// This should really not work... but it's actually ok unless we try to 
+// This should really not work... but it's actually ok unless we try to
 // access instance stuff
 assert( isEvalError("new TestInner1.InstanceInner1().go()") );
 

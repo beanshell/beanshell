@@ -24,7 +24,7 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
- 
+
 /*
 	Notes:
 	There is probably a lot of room for improvement in here.
@@ -36,7 +36,7 @@
 
 options {
     JAVA_UNICODE_ESCAPE=true;
-    STATIC=false;                                                                                       
+    STATIC=false;
 	/* Print grammar debugging info as we parse
 	DEBUG_PARSER=true;
 	*/
