@@ -27,7 +27,7 @@ package bsh.servlet;
 
 /**
 
-	This file is derived from Pat Niemeyer's free utilities package.  
+	This file is derived from Pat Niemeyer's free utilities package.
 	Now part of BeanShell.
 
 	@see http://www.pat.net/javautil/
@@ -42,7 +42,7 @@ import java.net.URL;
 /**
 	This is	a simple template engine.  An instance of SimpleTemplate wraps
 	a StringBuffer and performs replace operations on one or more parameters
-	embedded as HMTL style comments. The value can then be retrieved as a 
+	embedded as HMTL style comments. The value can then be retrieved as a
 	String or written to a stream.
 
 	Template values	in the text are	of the form:
@@ -58,7 +58,7 @@ import java.net.URL;
 
 	@author	Pat Niemeyer
 */
-public class SimpleTemplate 
+public class SimpleTemplate
 {
 	StringBuffer buff;
 	static String NO_TEMPLATE = "NO_TEMPLATE";	// Flag	for non-existent
@@ -124,7 +124,7 @@ public class SimpleTemplate
 		init(template);
 	}
 
-	public SimpleTemplate( URL url ) throws IOException 
+	public SimpleTemplate( URL url ) throws IOException
 	{
 		String template	= getStringFromStream( url.openStream() );
 		init(template);

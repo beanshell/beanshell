@@ -31,7 +31,7 @@ import java.util.*;
 	A namespace which maintains an external map of values held in variables in
 	its scope.  This mechanism provides a standard collections based interface
 	to the namespace as well as a convenient way to export and view values of
-	the namespace without the ordinary BeanShell wrappers.   
+	the namespace without the ordinary BeanShell wrappers.
 	</p>
 
 	Variables are maintained internally in the normal fashion to support
@@ -39,7 +39,7 @@ import java.util.*;
 	exported and imported in a synchronized way.  Variables are exported each
 	time they are written by BeanShell.  Imported variables from the map appear
 	in the BeanShell namespace as untyped variables with no modifiers and
-	shadow any previously defined variables in the scope. 
+	shadow any previously defined variables in the scope.
 	<p/>
 
 	Note: this class is inherentely dependent on Java 1.2 (for Map), however
@@ -71,20 +71,20 @@ public class ExternalNameSpace extends NameSpace
 {
 	private Map externalMap;
 
-    public ExternalNameSpace() 
+    public ExternalNameSpace()
 	{
 		this( null, "External Map Namespace", null );
 	}
 
 	/**
 	*/
-    public ExternalNameSpace( NameSpace parent, String name, Map externalMap ) 
+    public ExternalNameSpace( NameSpace parent, String name, Map externalMap )
 	{
 		super( parent, name );
 
 		if ( externalMap == null )
 			externalMap = new HashMap();
-			
+
 		this.externalMap = externalMap;
 
 	}
@@ -100,13 +100,13 @@ public class ExternalNameSpace extends NameSpace
 		map values are retained in the external map, but are removed from the
 		BeanShell namespace.
 	*/
-	public void setMap( Map map ) 
-	{ 
+	public void setMap( Map map )
+	{
 		// Detach any existing namespace to preserve it, then clear this
 		// namespace and set the new one
-		this.externalMap = null; 
+		this.externalMap = null;
 		clear();
-		this.externalMap = map ; 
+		this.externalMap = map ;
 	}
 
 	/**
@@ -119,7 +119,7 @@ public class ExternalNameSpace extends NameSpace
 
 	/**
 	*/
-	public String [] getVariableNames() 
+	public String [] getVariableNames()
 	{
 		// union of the names in the enclosing namespace and external map
 		Set nameSet = new HashSet();
@@ -151,12 +151,12 @@ public class ExternalNameSpace extends NameSpace
 		Object value =  externalMap.get( name );
 
 		Variable var;
-		if ( value == null ) 
+		if ( value == null )
 		{
 			// The var is not in external map and it should therefore not be
-			// found in local scope (it may have been removed via the map).  
+			// found in local scope (it may have been removed via the map).
 			// Clear it prophalactically.
-			super.unsetVariable( name ); 
+			super.unsetVariable( name );
 
 			// Search parent for var if applicable.
 			var = super.getVariableImpl( name, recurse );
@@ -169,7 +169,7 @@ public class ExternalNameSpace extends NameSpace
 			// If not in local scope then it was added via the external map,
 			// we'll wrap it and pass it along.  Else we'll use the one we
 			// found.
-			if ( localVar == null ) 
+			if ( localVar == null )
 				var = createVariable( name, null/*type*/, value, null/*mods*/ );
 			else
 				var = localVar;
@@ -196,7 +196,7 @@ public class ExternalNameSpace extends NameSpace
 		Clear all variables, methods, and imports from this namespace and clear
 		all values from the external map (via Map clear()).
 	*/
-	public void clear() 
+	public void clear()
 	{
 		super.clear();
 		externalMap.clear();

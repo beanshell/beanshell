@@ -1,5 +1,5 @@
 /**
-	Create a remote BeanShell listener service attached to 
+	Create a remote BeanShell listener service attached to
 	the current interpreter, listening on the specified port.
 */
 import bsh.util.Httpd;

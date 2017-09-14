@@ -15,14 +15,14 @@ class Foo
 	NameSpace instanceThisNameSpace = this.namespace;
 	q=5; // loose vars act like private instance vars
 
-	Foo() { } 
+	Foo() { }
 
 	Foo( int c ) {
 		b=c;
 	}
 
-	void method() 
-	{ 
+	void method()
+	{
 		assert( a == 5 );
 		assert( a.getClass() == bsh.Primitive.class );
 		print( a.getClass() );
@@ -48,16 +48,16 @@ class Foo
 	// can still assign loose to class
 	// resolution magically makes unqualified 'this' into instance but
 	// compound resolution uses namespace
-	void assignThis() { 
-		this.goober = 42; 
+	void assignThis() {
+		this.goober = 42;
 	}
-	void checkThis() { 
-		assert( goober == 42 ); 
-		assert( this.goober == 42 ); 
+	void checkThis() {
+		assert( goober == 42 );
+		assert( this.goober == 42 );
 		assert( this instanceof Foo );
 	}
 
-	static void smethod() 
+	static void smethod()
 	{
 		assert( a == 5 );
 
@@ -109,7 +109,7 @@ new Gee3();
 
 class Foo2 {
 	instanceThis = this;
-	method() 
+	method()
 	{
 		assert( this == instanceThis );
 		bar() {

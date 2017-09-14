@@ -1,7 +1,7 @@
 /**
 	Read filename into the interpreter and evaluate it in the current
 	namespace.  Like the Bourne Shell "." command.
-	This command acts exactly like the eval() command but reads from a file 
+	This command acts exactly like the eval() command but reads from a file
 	or URL source.
 	@see eval() for more information.
 	@throws bsh.EvalError or bsh.TargetError on errors in the sourced script.
@@ -15,8 +15,8 @@ Object source( String filename ) {
 }
 
 Object source( URL url ) {
-	return this.interpreter.eval( 
-		new InputStreamReader(url.openStream()), this.caller.namespace,  
+	return this.interpreter.eval(
+		new InputStreamReader(url.openStream()), this.caller.namespace,
 		"URL: "+url.toString()
 	);
 }

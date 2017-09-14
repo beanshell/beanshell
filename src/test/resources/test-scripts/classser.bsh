@@ -1,6 +1,6 @@
 source("TestHarness.bsh");
 
-class SerTest1 implements java.io.Serializable { 
+class SerTest1 implements java.io.Serializable {
 	int i;
 	SerTest1() { }
 	SerTest1(int i ) {

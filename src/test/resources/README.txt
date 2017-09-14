@@ -2,7 +2,7 @@
 Running the Test Scripts
 ------------------------
 
-Before running the test suite be sure to compile the java classes in the 
+Before running the test suite be sure to compile the java classes in the
 src directory and any subdirs and add this to your classpath.
 
 Then run the RunAllTests.bsh script:
@@ -10,14 +10,14 @@ Then run the RunAllTests.bsh script:
 	java bsh.Interpreter RunAllTests.bsh
 
 RunAllTests.bsh will run every file in test with a file extension of ".bsh"
-except itself and TestHarness.bsh.  At the end the test suite will report a 
+except itself and TestHarness.bsh.  At the end the test suite will report a
 summary of any failures or warnings.
 
 
 Writing Test Scripts
 --------------------
 
-Scripts here should source testharness.bsh 
+Scripts here should source testharness.bsh
 
 Use assert() to verify what's working.
 Use fail() (or assert(false)) to indicate failure.
@@ -38,7 +38,7 @@ Files in test
 -------------
 
 Data/
-	Misc data files and auxilliary scripts used by 
+	Misc data files and auxilliary scripts used by
 	the test scripts.
 
 Interactive/

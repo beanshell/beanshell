@@ -38,7 +38,7 @@
     with object scripting language features, written in Java. BeanShell
     dynamically executes standard Java syntax and extends it with common
     scripting conveniences such as loose types, commands, and method closures
-    like those in Perl and JavaScript. 
+    like those in Perl and JavaScript.
   </description>
   <url>https://github.com/beanshell/beanshell/</url>
   <licenses>
@@ -61,7 +61,7 @@
     <tag>HEAD</tag>
   </scm>
   <developers>
-    <!-- Current maintainers according to 
+    <!-- Current maintainers according to
          https://github.com/beanshell/
     -->
     <developer>
@@ -144,7 +144,7 @@
           <execution>
             <id>javacc</id>
             <goals>
-              <!-- jjtree disabled due to manual changes 
+              <!-- jjtree disabled due to manual changes
                                                in the previously generated bsh.jj :-
               <goal>jjtree-javacc</goal>-->
               <!-- disabled due to manual changes in the
@@ -198,7 +198,7 @@
       <scope>test</scope>
     </dependency>
     <!-- TODO: Replace src/main/java/bsh/org/objectweb/asm/
-      with a shadowed asm 
+      with a shadowed asm
     <dependency>
      <groupId>asm</groupId>
      <artifactId>asm</artifactId>

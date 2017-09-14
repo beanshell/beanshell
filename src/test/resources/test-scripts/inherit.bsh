@@ -10,7 +10,7 @@ source("TestHarness.bsh");
 // scopes.
 // Beware of the commented y.w(); below.  It should work, but with the current
 // state of the Reflection API it is impossible.
-// 
+//
 // The testharness doesn't really work for this because once we see the problem,
 // the interpreter stops reading further statments.
 //
@@ -113,7 +113,7 @@ w.b();
 x.a();
 x.b();
 x.x();
-		
+
 y.a();
 y.b();
 y.c();

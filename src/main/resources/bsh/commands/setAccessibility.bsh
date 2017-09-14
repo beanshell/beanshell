@@ -4,7 +4,7 @@
 */
 import bsh.Capabilities;
 
-setAccessibility( boolean b ) 
+setAccessibility( boolean b )
 {
 	Capabilities.setAccessibility(b);
 }

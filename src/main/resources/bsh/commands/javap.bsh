@@ -1,5 +1,5 @@
 /**
-	Print the public fields and methods of the specified class (output similar 
+	Print the public fields and methods of the specified class (output similar
 	to the JDK javap command).
 	<p/>
 	If the argument is a string it is considered to be a class name.  If the
@@ -24,7 +24,7 @@ bsh.help.javap= "usage: javap( value )";
 import bsh.ClassIdentifier;
 import java.lang.reflect.Modifier;
 
-javap( Object o ) 
+javap( Object o )
 {
 	Class clas;
 	if ( o instanceof ClassIdentifier )
@@ -38,9 +38,9 @@ javap( Object o )
 		clas = this.caller.namespace.getClass((String)o);
 	} else if ( o instanceof Class )
 		clas = o;
-	else 
+	else
 		clas = o.getClass();
-	
+
 	print( "Class "+clas+" extends " +clas.getSuperclass() );
 
 	this.dmethods=clas.getDeclaredMethods();

@@ -31,13 +31,13 @@ package bsh;
 
 /**
 	'This' is the type of bsh scripted objects.
-	A 'This' object is a bsh scripted object context.  It holds a namespace 
+	A 'This' object is a bsh scripted object context.  It holds a namespace
 	reference and implements event listeners and various other interfaces.
 
 	This holds a reference to the declaring interpreter for callbacks from
 	outside of bsh.
 */
-public class This implements java.io.Serializable, Runnable 
+public class This implements java.io.Serializable, Runnable
 {
 	/**
 		The namespace that this This reference wraps.
@@ -47,7 +47,7 @@ public class This implements java.io.Serializable, Runnable
 	/**
 		This is the interpreter running when the This ref was created.
 		It's used as a default interpreter for callback through the This
-		where there is no current interpreter instance 
+		where there is no current interpreter instance
 		e.g. interface proxy or event call backs from outside of bsh.
 	*/
 	transient Interpreter declaringInterpreter;
@@ -57,20 +57,20 @@ public class This implements java.io.Serializable, Runnable
 		of ".this" references in bsh are version dependent up until jdk1.3.
 		The version dependence was to support different default interface
 		implementations.  i.e. different sets of listener interfaces which
-		scripted objects were capable of implementing.  In jdk1.3 the 
-		reflection proxy mechanism was introduced which allowed us to 
+		scripted objects were capable of implementing.  In jdk1.3 the
+		reflection proxy mechanism was introduced which allowed us to
 		implement arbitrary interfaces.  This is fantastic.
 
 		A This object is a thin layer over a namespace, comprising a bsh object
 		context.  We create it here only if needed for the namespace.
 
-		Note: this method could be considered slow because of the way it 
-		dynamically factories objects.  However I've also done tests where 
-		I hard-code the factory to return JThis and see no change in the 
-		rough test suite time.  This references are also cached in NameSpace.  
+		Note: this method could be considered slow because of the way it
+		dynamically factories objects.  However I've also done tests where
+		I hard-code the factory to return JThis and see no change in the
+		rough test suite time.  This references are also cached in NameSpace.
 	*/
-    static This getThis( 
-		NameSpace namespace, Interpreter declaringInterpreter ) 
+    static This getThis(
+		NameSpace namespace, Interpreter declaringInterpreter )
 	{
 		try {
 			Class c;
@@ -90,14 +90,14 @@ public class This implements java.io.Serializable, Runnable
     }
 
 	/**
-		Get a version of this scripted object implementing the specified 
+		Get a version of this scripted object implementing the specified
 		interface.
 	*/
 	/*
 		If this type of This implements it directly return this,
 		else try complain that we don't have the proxy mechanism.
 	*/
-	public Object getInterface( Class clas ) 
+	public Object getInterface( Class clas )
 		throws UtilEvalError
 	{
 		if ( clas.isInstance( this ) )
@@ -111,25 +111,25 @@ public class This implements java.io.Serializable, Runnable
 		Get a version of this scripted object implementing the specified
 		interfaces.
 	*/
-	public Object getInterface( Class [] ca ) 
+	public Object getInterface( Class [] ca )
 		throws UtilEvalError
 	{
 		for(int i=0; i<ca.length; i++)
 			if ( !(ca[i].isInstance( this )) )
-				throw new UtilEvalError( 
-					"Dynamic proxy mechanism not available. " 
+				throw new UtilEvalError(
+					"Dynamic proxy mechanism not available. "
 					+ "Cannot construct interface type: "+ca[i] );
 
 		return this;
 	}
 
 	/*
-		I wish protected access were limited to children and not also 
+		I wish protected access were limited to children and not also
 		package scope... I want this to be a singleton implemented by various
-		children.  
+		children.
 	*/
-	protected This( NameSpace namespace, Interpreter declaringInterpreter ) { 
-		this.namespace = namespace; 
+	protected This( NameSpace namespace, Interpreter declaringInterpreter ) {
+		this.namespace = namespace;
 		this.declaringInterpreter = declaringInterpreter;
 		//initCallStack( namespace );
 	}
@@ -152,20 +152,20 @@ public class This implements java.io.Serializable, Runnable
 	}
 
 	/**
-		Invoke specified method as from outside java code, using the 
+		Invoke specified method as from outside java code, using the
 		declaring interpreter and current namespace.
 		The call stack will indicate that the method is being invoked from
 		outside of bsh in native java code.
-		Note: you must still wrap/unwrap args/return values using 
+		Note: you must still wrap/unwrap args/return values using
 		Primitive/Primitive.unwrap() for use outside of BeanShell.
 		@see bsh.Primitive
 	*/
-	public Object invokeMethod( String name, Object [] args ) 
+	public Object invokeMethod( String name, Object [] args )
 		throws EvalError
 	{
-		// null callstack, one will be created for us 
-		return invokeMethod( 
-			name, args, null/*declaringInterpreter*/, null, null, 
+		// null callstack, one will be created for us
+		return invokeMethod(
+			name, args, null/*declaringInterpreter*/, null, null,
 			false/*declaredOnly*/ );
 	}
 
@@ -174,19 +174,19 @@ public class This implements java.io.Serializable, Runnable
 		interpreter reference, callstack, and caller info.
 		<p>
 
-		Note: If you use this method outside of the bsh package and wish to 
-		use variables with primitive values you will have to wrap them using 
+		Note: If you use this method outside of the bsh package and wish to
+		use variables with primitive values you will have to wrap them using
 		bsh.Primitive.  Consider using This getInterface() to make a true Java
 		interface for invoking your scripted methods.
 		<p>
 
-		This method also implements the default object protocol of toString(), 
-		hashCode() and equals() and the invoke() meta-method handling as a 
+		This method also implements the default object protocol of toString(),
+		hashCode() and equals() and the invoke() meta-method handling as a
 		last resort.
 		<p>
 
 		Note: The invoke() meta-method will not catch the Object protocol
-		methods (toString(), hashCode()...).  If you want to override them you 
+		methods (toString(), hashCode()...).  If you want to override them you
 		have to script them directly.
 		<p>
 
@@ -205,10 +205,10 @@ public class This implements java.io.Serializable, Runnable
 		so we make a default one starting with the special JAVACODE namespace
 		and our namespace as the next.
 	*/
-	public Object invokeMethod( 
-		String methodName, Object [] args, 
-		Interpreter interpreter, CallStack callstack, SimpleNode callerInfo, 
-		boolean declaredOnly  ) 
+	public Object invokeMethod(
+		String methodName, Object [] args,
+		Interpreter interpreter, CallStack callstack, SimpleNode callerInfo,
+		boolean declaredOnly  )
 		throws EvalError
 	{
 		/*
@@ -274,36 +274,36 @@ public class This implements java.io.Serializable, Runnable
 		// Note: this code duplicates that in NameSpace getCommand()
 		// is that ok?
 		try {
-			bshMethod = namespace.getMethod( 
+			bshMethod = namespace.getMethod(
 				"invoke", new Class [] { null, null } );
 		} catch ( UtilEvalError e ) { /*leave null*/ }
 
 		// Call script "invoke( String methodName, Object [] args );
 		if ( bshMethod != null )
-			return bshMethod.invoke( new Object [] { methodName, args }, 
+			return bshMethod.invoke( new Object [] { methodName, args },
 				interpreter, callstack, callerInfo );
 
-		throw new EvalError("Method " + 
+		throw new EvalError("Method " +
 			StringUtil.methodString( methodName, types ) +
-			" not found in bsh scripted object: "+ namespace.getName(), 
+			" not found in bsh scripted object: "+ namespace.getName(),
 			callerInfo, callstack );
 	}
 
 	/**
 		Bind a This reference to a parent's namespace with the specified
-		declaring interpreter.  Also re-init the callstack.  It's necessary 
+		declaring interpreter.  Also re-init the callstack.  It's necessary
 		to bind a This reference before it can be used after deserialization.
 		This is used by the bsh load() command.
 		<p>
 
 		This is a static utility method because it's used by a bsh command
-		bind() and the interpreter doesn't currently allow access to direct 
+		bind() and the interpreter doesn't currently allow access to direct
 		methods of This objects (small hack)
 	*/
-	public static void bind( 
-		This ths, NameSpace namespace, Interpreter declaringInterpreter ) 
-	{ 
-		ths.namespace.setParent( namespace ); 
+	public static void bind(
+		This ths, NameSpace namespace, Interpreter declaringInterpreter )
+	{
+		ths.namespace.setParent( namespace );
 		ths.declaringInterpreter = declaringInterpreter;
 	}
 
@@ -313,18 +313,18 @@ public class This implements java.io.Serializable, Runnable
 		<p>
 
 		If the method is passed here the invocation will actually happen on
-		the bsh.This object via the regular reflective method invocation 
+		the bsh.This object via the regular reflective method invocation
 		mechanism.  If not, then the method is evaluated by bsh.This itself
 		as a scripted method call.
 	*/
-	static boolean isExposedThisMethod( String name ) 
+	static boolean isExposedThisMethod( String name )
 	{
-		return 
-			name.equals("getClass") 
+		return
+			name.equals("getClass")
 			|| name.equals("invokeMethod")
 			|| name.equals("getInterface")
 			// These are necessary to let us test synchronization from scripts
-			|| name.equals("wait") 
+			|| name.equals("wait")
 			|| name.equals("notify")
 			|| name.equals("notifyAll");
 	}

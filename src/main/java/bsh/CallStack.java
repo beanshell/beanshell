@@ -43,23 +43,23 @@ import java.util.Vector;
 	Sigh... have to stay 1.1 compatible.
 	<p>
 
-	Note: How can this be thread safe, you might ask?  Wouldn't a thread 
-	executing various beanshell methods be mutating the callstack?  Don't we 
+	Note: How can this be thread safe, you might ask?  Wouldn't a thread
+	executing various beanshell methods be mutating the callstack?  Don't we
 	need one CallStack per Thread in the interpreter?  The answer is that we do.
-	Any java.lang.Thread enters our script via an external (hard) Java 
-	reference via a This type interface, e.g.  the Runnable interface 
-	implemented by This or an arbitrary interface implemented by XThis.  
-	In that case the This invokeMethod() method (called by any interface that 
+	Any java.lang.Thread enters our script via an external (hard) Java
+	reference via a This type interface, e.g.  the Runnable interface
+	implemented by This or an arbitrary interface implemented by XThis.
+	In that case the This invokeMethod() method (called by any interface that
 	it exposes) creates a new CallStack for each external call.
 	<p>
 */
-public class CallStack 
+public class CallStack
 {
 	private Vector stack = new Vector(2);
 
 	public CallStack() { }
 
-	public CallStack( NameSpace namespace ) { 
+	public CallStack( NameSpace namespace ) {
 		push( namespace );
 	}
 
@@ -84,7 +84,7 @@ public class CallStack
 		else
 			return (NameSpace)(stack.elementAt(depth));
 	}
-	
+
 	/**
 		This is kind of crazy, but used by the setNameSpace command.
 		zero based.

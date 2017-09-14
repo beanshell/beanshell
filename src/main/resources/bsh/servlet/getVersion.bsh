@@ -7,7 +7,7 @@
 */
 import bsh.EvalError;
 
-String getVersion() 
+String getVersion()
 {
 	try {
 		ver = this.interpreter.eval(

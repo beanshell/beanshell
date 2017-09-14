@@ -1,6 +1,6 @@
 package mypackage;
 
-public class Accessibility2 extends Accessibility1 
+public class Accessibility2 extends Accessibility1
 {
 	private Accessibility2(int a, int b, int c) { }
 	Accessibility2(int a, int b) { }

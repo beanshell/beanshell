@@ -40,11 +40,11 @@ class BSHVariableDeclarator extends SimpleNode
     BSHVariableDeclarator(int id) { super(id); }
 
 	/**
-		Evaluate the optional initializer value.  
+		Evaluate the optional initializer value.
 		(The name was set at parse time.)
 
 		A variable declarator can be evaluated with or without preceding
-		type information. Currently the type info is only used by array 
+		type information. Currently the type info is only used by array
 		initializers in the case where there is no explicitly declared type.
 
 		@param typeNode is the BSHType node.  Its info is passed through to any
@@ -53,28 +53,28 @@ class BSHVariableDeclarator extends SimpleNode
 			int [] a = { 1, 2 };
 		typeNode may be null to indicate no type information available.
 	*/
-    public Object eval( 
-		BSHType typeNode, CallStack callstack, Interpreter interpreter)  
+    public Object eval(
+		BSHType typeNode, CallStack callstack, Interpreter interpreter)
 		throws EvalError
     {
 		// null value means no value
 		Object value = null;
 
-        if ( jjtGetNumChildren() > 0 ) 
+        if ( jjtGetNumChildren() > 0 )
 		{
             SimpleNode initializer = (SimpleNode)jjtGetChild(0);
 
 			/*
 				If we have type info and the child is an array initializer
 				pass it along...  Else use the default eval style.
-				(This allows array initializer to handle the problem... 
-				allowing for future enhancements in loosening types there).	
+				(This allows array initializer to handle the problem...
+				allowing for future enhancements in loosening types there).
 			*/
-			if ( (typeNode != null) 
-				&& initializer instanceof BSHArrayInitializer 
+			if ( (typeNode != null)
+				&& initializer instanceof BSHArrayInitializer
 			)
-            	value = ((BSHArrayInitializer)initializer).eval( 
-					typeNode.getBaseType(), typeNode.getArrayDims(), 
+            	value = ((BSHArrayInitializer)initializer).eval(
+					typeNode.getBaseType(), typeNode.getArrayDims(),
 					callstack, interpreter);
 			else
 				value = initializer.eval( callstack, interpreter);

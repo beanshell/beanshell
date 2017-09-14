@@ -9,15 +9,15 @@ flag=false;
 
 outerMethod() { print("outerMethod"); return 42; }
 
-class MyClass16 extends Thread 
+class MyClass16 extends Thread
 {
 	static boolean sflag=false;
 	static int sint = 1;
-	public void run() 
-{ 
+	public void run()
+{
 		assert( outerMethod() == 42 );
-		print("enter run flag="+flag); 
-		sflag=true; flag=true; 
+		print("enter run flag="+flag);
+		sflag=true; flag=true;
 		assert( sint == 1 );
 		sint=2;
 		assert( sint == 2 );

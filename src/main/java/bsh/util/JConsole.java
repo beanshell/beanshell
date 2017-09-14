@@ -56,7 +56,7 @@ import bsh.util.NameCompletion;
 */
 public class JConsole extends JScrollPane
 	implements GUIConsoleInterface, Runnable, KeyListener,
-	MouseListener, ActionListener, PropertyChangeListener 
+	MouseListener, ActionListener, PropertyChangeListener
 {
     private final static String	CUT = "Cut";
     private final static String	COPY = "Copy";
@@ -91,13 +91,13 @@ public class JConsole extends JScrollPane
 		this(null, null);
 	}
 
-	public JConsole( InputStream cin, OutputStream cout )  
+	public JConsole( InputStream cin, OutputStream cout )
 	{
 		super();
 
 		// Special TextPane which catches for cut and paste, both L&F keys and
 		// programmatic	behaviour
-		text = new JTextPane( doc=new DefaultStyledDocument() ) 
+		text = new JTextPane( doc=new DefaultStyledDocument() )
 			{
 				public void	cut() {
 					if (text.getCaretPosition() < cmdStart)	{
@@ -155,7 +155,7 @@ public class JConsole extends JScrollPane
 		requestFocus();
 	}
 
-	public void requestFocus() 
+	public void requestFocus()
 	{
 		super.requestFocus();
 		text.requestFocus();
@@ -176,7 +176,7 @@ public class JConsole extends JScrollPane
     }
 
     private synchronized void type( KeyEvent e ) {
-		switch ( e.getKeyCode()	) 
+		switch ( e.getKeyCode()	)
 		{
 			case ( KeyEvent.VK_ENTER ):
 			    if (e.getID() == KeyEvent.KEY_PRESSED) {
@@ -277,10 +277,10 @@ public class JConsole extends JScrollPane
 				break;
 
 			default:
-				if ( 
-					(e.getModifiers() & 
-					(InputEvent.CTRL_MASK 
-					| InputEvent.ALT_MASK | InputEvent.META_MASK)) == 0 ) 
+				if (
+					(e.getModifiers() &
+					(InputEvent.CTRL_MASK
+					| InputEvent.ALT_MASK | InputEvent.META_MASK)) == 0 )
 				{
 					// plain character
 					forceCaretMoveToEnd();
@@ -291,7 +291,7 @@ public class JConsole extends JScrollPane
 					keyTyped events, so backspace is not fully consumed.
 				*/
 				if (e.paramString().indexOf("Backspace") != -1)
-				{ 
+				{
 				  if (text.getCaretPosition() <= cmdStart) {
 						e.consume();
 						break;
@@ -308,12 +308,12 @@ public class JConsole extends JScrollPane
 
 		int i=part.length()-1;
 
-		// Character.isJavaIdentifierPart()  How convenient for us!! 
-		while ( 
-			i >= 0 && 
-				( Character.isJavaIdentifierPart(part.charAt(i)) 
+		// Character.isJavaIdentifierPart()  How convenient for us!!
+		while (
+			i >= 0 &&
+				( Character.isJavaIdentifierPart(part.charAt(i))
 				|| part.charAt(i) == '.' )
-		) 
+		)
 			i--;
 
 		part = part.substring(i+1);
@@ -428,7 +428,7 @@ public class JConsole extends JScrollPane
 			showHistoryLine();
 		}
 	}
-	
+
 	private	void historyDown() {
 		if ( histLine == 0 )
 			return;
@@ -451,22 +451,22 @@ public class JConsole extends JScrollPane
 
 	String ZEROS = "000";
 
-	private	void acceptLine( String	line ) 
+	private	void acceptLine( String	line )
 	{
 		// Patch to handle Unicode characters
 		// Submitted by Daniel Leuck
-		StringBuffer buf = new StringBuffer(); 
-		int lineLength = line.length(); 
+		StringBuffer buf = new StringBuffer();
+		int lineLength = line.length();
 		for(int i=0; i<lineLength; i++) {
 				char c = line.charAt(i);
 				if(c>127) {
-					String val = Integer.toString(c, 16); 
+					String val = Integer.toString(c, 16);
 					val=ZEROS.substring(0,4-val.length()) + val;
 					buf.append("\\u" + val);
 				} else {
 					buf.append(c);
 				}
-		} 
+		}
 		line = buf.toString();
 		// End unicode patch
 
@@ -518,7 +518,7 @@ public class JConsole extends JScrollPane
 	}
 
 	public void print(final Icon icon) {
-	    if (icon==null) 
+	    if (icon==null)
 			return;
 
 		invokeAndWait(new Runnable() {
@@ -527,7 +527,7 @@ public class JConsole extends JScrollPane
 				resetCommandStart();
 				text.setCaretPosition(cmdStart);
 			}
-		});			
+		});
 	}
 
 	public void print(Object s, Font font) {
@@ -548,7 +548,7 @@ public class JConsole extends JScrollPane
 				text.setCaretPosition(cmdStart);
 				setStyle(old, true);
 			}
-		});	
+		});
     }
 
 	public void print(
@@ -557,7 +557,7 @@ public class JConsole extends JScrollPane
 	    int	size,
 	    Color color
 	    ) {
-			
+
 	    print(s,fontFamilyName,size,color,false,false,false);
     }
 
@@ -569,7 +569,7 @@ public class JConsole extends JScrollPane
 	    final boolean bold,
 	    final  boolean italic,
 	    final boolean underline
-	    ) 
+	    )
 	{
 		invokeAndWait(new Runnable() {
 			public void run() {
@@ -580,7 +580,7 @@ public class JConsole extends JScrollPane
 				text.setCaretPosition(cmdStart);
 				setStyle(old, true);
 			}
-		});			
+		});
     }
 
     private AttributeSet setStyle(Font font) {
@@ -591,18 +591,18 @@ public class JConsole extends JScrollPane
 	    return setStyle(null, color);
     }
 
-    private AttributeSet setStyle( Font font, Color color) 
+    private AttributeSet setStyle( Font font, Color color)
 	{
 	    if (font!=null)
-			return setStyle( font.getFamily(), font.getSize(), color, 
-				font.isBold(), font.isItalic(), 
+			return setStyle( font.getFamily(), font.getSize(), color,
+				font.isBold(), font.isItalic(),
 				StyleConstants.isUnderline(getStyle()) );
 		else
 			return setStyle(null,-1,color);
     }
 
     private AttributeSet setStyle (
-	    String fontFamilyName, int	size, Color color) 
+	    String fontFamilyName, int	size, Color color)
 	{
 		MutableAttributeSet attr = new SimpleAttributeSet();
 		if (color!=null)
@@ -624,7 +624,7 @@ public class JConsole extends JScrollPane
 	    boolean bold,
 	    boolean italic,
 	    boolean underline
-	    ) 
+	    )
 	{
 		MutableAttributeSet attr = new SimpleAttributeSet();
 		if (color!=null)
@@ -750,14 +750,14 @@ public class JConsole extends JScrollPane
 
 		It also checks a little more frequently than the original read().
 
-		Warning: read() will not even error on a read to an explicitly closed 
+		Warning: read() will not even error on a read to an explicitly closed
 		pipe (override closed to for that).
 	*/
 	public static class BlockingPipedInputStream extends PipedInputStream
 	{
 		boolean closed;
-		public BlockingPipedInputStream( PipedOutputStream pout ) 
-			throws IOException 
+		public BlockingPipedInputStream( PipedOutputStream pout )
+			throws IOException
 		{
 			super(pout);
 		}

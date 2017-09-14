@@ -1,6 +1,6 @@
 /**
-	Print the item as an error.  
-	In the GUI console the text will show up in (something like) red, 
+	Print the item as an error.
+	In the GUI console the text will show up in (something like) red,
 	else it will be printed to standard error.
 */
 

@@ -1,10 +1,10 @@
 /**
-	Save a serializable Java object to filename. 
+	Save a serializable Java object to filename.
 */
 
 bsh.help.save = "usage: save( object, filename )";
 
-void save( Object obj, String filename ) 
+void save( Object obj, String filename )
 {
 	File file = pathToFile( filename );
 
@@ -19,7 +19,7 @@ void save( Object obj, String filename )
 		super.parent = obj.namespace.getParent();
 		obj.namespace.prune();
 	}
-	
+
 	OutputStream out = new FileOutputStream( file );
 	ObjectOutputStream oout = new ObjectOutputStream(out);
 	oout.writeObject( obj );
@@ -27,7 +27,7 @@ void save( Object obj, String filename )
 
 	// Reattach bsh objects to the caller's namespace after serialization
 	// NOTE: THIS IS NOT THREAD SAFE
-	if ( obj instanceof bsh.This ) 
+	if ( obj instanceof bsh.This )
 		obj.namespace.setParent( super.parent );
 }
 

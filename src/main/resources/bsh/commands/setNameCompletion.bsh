@@ -12,7 +12,7 @@ bsh.help.setNameCompletion= "usage: setNameCompletion( boolean )";
 
 /**
 */
-void setNameCompletion( boolean bool ) 
+void setNameCompletion( boolean bool )
 {
 	if ( bool == false )
 		if ( bsh.console != void )

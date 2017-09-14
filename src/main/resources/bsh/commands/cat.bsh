@@ -7,7 +7,7 @@ bsh.help.cat = "usage: cat( filename )";
 /**
 	cat comment
 */
-cat( String filename ) 
+cat( String filename )
 {
 	this.file = pathToFile( filename );
 
@@ -22,18 +22,18 @@ cat( String filename )
 /**
 	cat comment
 */
-cat( URL url ) 
+cat( URL url )
 {
 	cat( url.openStream() );
 }
 
-cat( InputStream ins ) 
+cat( InputStream ins )
 {
 	this.bin = new BufferedReader( new InputStreamReader( ins ) );
 	cat( bin );
 }
 
-cat( Reader reader ) 
+cat( Reader reader )
 {
 	try {
 		this.bin = new BufferedReader( reader );

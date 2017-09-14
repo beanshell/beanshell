@@ -11,7 +11,7 @@ a=2;
 assert(a==3);
 
 a=1;
-// Post increment 
+// Post increment
 assert( a++ == 1);
 a++;
 assert( a==3 );

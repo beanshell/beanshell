@@ -11,15 +11,15 @@ booga() { print("booga"); }
 booga();
 this.booga();
 
-if ( true ) 
+if ( true )
 {
 print("here1");
   assert( !(this.namespace instanceof bsh.BlockNameSpace) );
   BigDecimal c = new BigDecimal("1.0");
 print("here2");
-  print(c); 
+  print(c);
 print("here3");
-  assert( this.c == void ); 
+  assert( this.c == void );
   assert( this == ths );
   { // another block
   	assert( this == ths );
@@ -35,20 +35,20 @@ print("here4");
   goo() { print("goo"); }
   goo();
   //this.goo(); // doesn't work.  If it's important see NameSpace.java comment.
-} 
+}
 
 {
   assert( !(this.namespace instanceof bsh.BlockNameSpace) );
   BigDecimal c = new BigDecimal("1.0");
-  print(c); 
+  print(c);
   assert(this.c==void);
   assert( this == ths );
   blockthis = this;
   assert( this == blockthis );
   assert( blockthis == ths );
-} 
+}
 
-void method1()  
+void method1()
 {
   assert( !(this.namespace instanceof bsh.BlockNameSpace) );
   assert ( super == ths );
@@ -58,11 +58,11 @@ void method1()
   mthis = this;
 
   boolean condition1=true;
-  if (condition1) 
+  if (condition1)
   {
   	 assert( this == mthis );
 	 BigDecimal finalCost1 = new BigDecimal("1.0");
-	 print(finalCost1); 
+	 print(finalCost1);
 	 print(this);
   }
 }

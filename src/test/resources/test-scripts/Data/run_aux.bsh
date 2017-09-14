@@ -5,7 +5,7 @@ global.g = 6;
 cd("..");
 cwd=bsh.cwd;
 
-// copy to another var 
+// copy to another var
 if ( runArgument != void )
 	ra = runArgument;
 

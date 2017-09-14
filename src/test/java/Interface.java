@@ -1,5 +1,5 @@
 
-public interface Interface 
+public interface Interface
 {
 	public String getString();
 	public Integer getInteger();

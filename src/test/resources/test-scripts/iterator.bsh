@@ -65,7 +65,7 @@ if ( cm instanceof bsh.collection.CollectionManagerImpl )
 			flag();
 
 		assert( flag() == 13 );
-	} 
+	}
 
 } else
 	warning("No collections to test");

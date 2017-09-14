@@ -33,25 +33,25 @@ class BSHAmbiguousName extends SimpleNode
     public String text;
 
     BSHAmbiguousName(int id) { super(id); }
-	
+
     public Name getName( NameSpace namespace )
     {
         return namespace.getNameResolver( text );
     }
 
-    public Object toObject( CallStack callstack, Interpreter interpreter ) 
+    public Object toObject( CallStack callstack, Interpreter interpreter )
 		throws EvalError
     {
 		return toObject( callstack, interpreter, false );
     }
 
-    Object toObject( 
-		CallStack callstack, Interpreter interpreter, boolean forceClass ) 
+    Object toObject(
+		CallStack callstack, Interpreter interpreter, boolean forceClass )
 		throws EvalError
     {
 		try {
-        	return 
-				getName( callstack.top() ).toObject( 
+        	return
+				getName( callstack.top() ).toObject(
 					callstack, interpreter, forceClass );
 		} catch ( UtilEvalError e ) {
 //e.printStackTrace();
@@ -59,7 +59,7 @@ class BSHAmbiguousName extends SimpleNode
 		}
     }
 
-    public Class toClass( CallStack callstack, Interpreter interpreter ) 
+    public Class toClass( CallStack callstack, Interpreter interpreter )
 		throws EvalError
     {
 		try {
@@ -86,10 +86,10 @@ class BSHAmbiguousName extends SimpleNode
 		The interpretation of an ambiguous name is context sensitive.
 		We disallow a generic eval( ).
 	*/
-    public Object eval( CallStack callstack, Interpreter interpreter ) 
+    public Object eval( CallStack callstack, Interpreter interpreter )
 		throws EvalError
     {
-		throw new InterpreterError( 
+		throw new InterpreterError(
 			"Don't know how to eval an ambiguous name!"
 			+"  Use toObject() if you want an object." );
     }

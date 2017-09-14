@@ -34,7 +34,7 @@ package bsh;
 
 
 */
-class Types 
+class Types
 {
 	/*
 		Type conversion identifiers.  An ASSIGNMENT allows conversions that would
@@ -43,8 +43,8 @@ class Types
 		declarations (e.g. byte b = 42;)
 	*/
 	static final int CAST=0, ASSIGNMENT=1;
-	
-	static final int 
+
+	static final int
 		JAVA_BASE_ASSIGNABLE = 1,
 		JAVA_BOX_TYPES_ASSIGABLE = 2,
 		JAVA_VARARGS_ASSIGNABLE = 3,
@@ -137,8 +137,8 @@ class Types
 				return false;
 
 		return true;
-	}	
-	
+	}
+
 	private static boolean isSignatureVarargsAssignable(
 		Class[] from, Class[] to )
 	{
@@ -404,7 +404,7 @@ class Types
 			throw new InterpreterError("inconsistent args 2");
 		if ( toType == Void.TYPE )
 			throw new InterpreterError("loose toType should be null");
-		
+
 		// assignment to loose type, void type, or exactly same type
 		if ( toType == null || toType == fromType )
 			return checkOnly ? VALID_CAST :
@@ -413,12 +413,12 @@ class Types
 		// Casting to primitive type
         if ( toType.isPrimitive() )
 		{
-			if ( fromType == Void.TYPE || fromType == null 
+			if ( fromType == Void.TYPE || fromType == null
 				|| fromType.isPrimitive() )
 			{
 				// Both primitives, do primitive cast
-				return Primitive.castPrimitive( 
-					toType, fromType, (Primitive)fromValue, 
+				return Primitive.castPrimitive(
+					toType, fromType, (Primitive)fromValue,
 					checkOnly, operation );
 			} else
 			{
@@ -430,14 +430,14 @@ class Types
 					//Object r = checkOnly ? VALID_CAST :
 					Class unboxedFromType = Primitive.unboxType( fromType );
 					Primitive primFromValue;
-					if ( checkOnly ) 
+					if ( checkOnly )
 						primFromValue = null; // must be null in checkOnly
 					else
-						primFromValue = (Primitive)Primitive.wrap( 
+						primFromValue = (Primitive)Primitive.wrap(
 							fromValue, unboxedFromType );
 
-					return Primitive.castPrimitive( 
-						toType, unboxedFromType, primFromValue, 
+					return Primitive.castPrimitive(
+						toType, unboxedFromType, primFromValue,
 						checkOnly, operation );
 				} else
 				{
@@ -462,13 +462,13 @@ class Types
 			{
 				// primitive to wrapper type
 				return checkOnly ? VALID_CAST :
-					Primitive.castWrapper( 
-						Primitive.unboxType(toType), 
+					Primitive.castWrapper(
+						Primitive.unboxType(toType),
 						((Primitive)fromValue).getValue() );
 			}
 
 			// Primitive (not null or void) to Object.class type
-			if ( toType == Object.class 
+			if ( toType == Object.class
 				&& fromType != Void.TYPE && fromType != null )
 			{
 				// box it
@@ -476,10 +476,10 @@ class Types
 					((Primitive)fromValue).getValue();
 			}
 
-			// Primitive to arbitrary object type. 
-			// Allow Primitive.castToType() to handle it as well as cases of 
+			// Primitive to arbitrary object type.
+			// Allow Primitive.castToType() to handle it as well as cases of
 			// Primitive.NULL and Primitive.VOID
-			return Primitive.castPrimitive( 
+			return Primitive.castPrimitive(
 				toType, fromType, (Primitive)fromValue, checkOnly, operation );
 		}
 
@@ -487,26 +487,26 @@ class Types
 		// We do this last to allow various errors above to be caught.
 		// e.g cast Primitive.Void to Object would pass this
 		if ( toType.isAssignableFrom( fromType ) )
-			return checkOnly ? VALID_CAST : 
+			return checkOnly ? VALID_CAST :
 				fromValue;
 
-		// Can we use the proxy mechanism to cast a bsh.This to 
+		// Can we use the proxy mechanism to cast a bsh.This to
 		// the correct interface?
-		if ( toType.isInterface() 
-			&& bsh.This.class.isAssignableFrom( fromType ) 
-			&& Capabilities.canGenerateInterfaces() 
+		if ( toType.isInterface()
+			&& bsh.This.class.isAssignableFrom( fromType )
+			&& Capabilities.canGenerateInterfaces()
 		)
-			return checkOnly ? VALID_CAST : 
+			return checkOnly ? VALID_CAST :
 				((bsh.This)fromValue).getInterface( toType );
 
-		// Both numeric wrapper types? 
+		// Both numeric wrapper types?
 		// Try numeric style promotion wrapper cast
-		if ( Primitive.isWrapperType( toType ) 
-			&& Primitive.isWrapperType( fromType ) 
+		if ( Primitive.isWrapperType( toType )
+			&& Primitive.isWrapperType( fromType )
 		)
 			return checkOnly ? VALID_CAST :
 				Primitive.castWrapper( toType, fromValue );
-		
+
 		if ( checkOnly )
 			return INVALID_CAST;
 		else
@@ -515,18 +515,18 @@ class Types
 
 	/**
 		Return a UtilEvalError or UtilTargetError wrapping a ClassCastException
-		describing an illegal assignment or illegal cast, respectively.	
+		describing an illegal assignment or illegal cast, respectively.
 	*/
-    static UtilEvalError castError( 
-		Class lhsType, Class rhsType, int operation   ) 
+    static UtilEvalError castError(
+		Class lhsType, Class rhsType, int operation   )
     {
-		return castError( 
+		return castError(
 			Reflect.normalizeClassName(lhsType),
 			Reflect.normalizeClassName(rhsType), operation  );
     }
 
-    static UtilEvalError castError( 
-		String lhs, String rhs, int operation   ) 
+    static UtilEvalError castError(
+		String lhs, String rhs, int operation   )
     {
 		if ( operation == ASSIGNMENT )
 			return new UtilEvalError (
