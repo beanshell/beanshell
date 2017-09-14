@@ -2,25 +2,25 @@ source("TestHarness.bsh");
 
 class MyHashMap extends HashMap
 {
-	public Object get( Object obj ) {
-		return "getMyHashMap";
-	}
+    public Object get( Object obj ) {
+        return "getMyHashMap";
+    }
 
-	public Object get2( Object obj ) {
-		//return _bshSuperget( obj );
-		return super.get(obj);
-	}
+    public Object get2( Object obj ) {
+        //return _bshSuperget( obj );
+        return super.get(obj);
+    }
 
-	public void clear() {
-		//_bshSuperclear();
-		super.clear();
-	}
+    public void clear() {
+        //_bshSuperclear();
+        super.clear();
+    }
 
-	static go() {
-		assert( isEvalError("super.clear()") );
-	}
+    static go() {
+        assert( isEvalError("super.clear()") );
+    }
 
-	public void test( int a ) { }
+    public void test( int a ) { }
 }
 
 map=new MyHashMap();

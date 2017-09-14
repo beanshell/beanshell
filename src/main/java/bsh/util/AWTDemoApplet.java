@@ -33,17 +33,17 @@ import bsh.*;
 import bsh.util.*;
 
 /**
-	Run bsh as an applet for demo purposes.
+    Run bsh as an applet for demo purposes.
 */
 public class AWTDemoApplet extends Applet
 {
-	public void init()
-	{
-		setLayout(new BorderLayout());
-		ConsoleInterface console = new AWTConsole();
-		add("Center", (Component)console);
-		Interpreter interpreter = new Interpreter( console );
-		new Thread(interpreter).start();
-	}
+    public void init()
+    {
+        setLayout(new BorderLayout());
+        ConsoleInterface console = new AWTConsole();
+        add("Center", (Component)console);
+        Interpreter interpreter = new Interpreter( console );
+        new Thread(interpreter).start();
+    }
 }
 

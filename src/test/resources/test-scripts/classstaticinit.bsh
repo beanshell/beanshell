@@ -2,11 +2,11 @@ source("TestHarness.bsh");
 
 class TestStaticInit1
 {
-	static int staticCounter = 0;
-	int instanceCounter = 0;
+    static int staticCounter = 0;
+    int instanceCounter = 0;
 
-	static { print("static!"); staticCounter++; }
-	{ print("instance!"); instanceCounter++; }
+    static { print("static!"); staticCounter++; }
+    { print("instance!"); instanceCounter++; }
 }
 
 assert( TestStaticInit1.staticCounter == 1 );
