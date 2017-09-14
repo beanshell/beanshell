@@ -35,7 +35,7 @@ import java.lang.reflect.AccessibleObject;
 	ReflectManager - a dynamically loaded extension that supports extended
 	reflection features supported by JDK1.2 and greater.
 
-	In particular it currently supports accessible method and field access 
+	In particular it currently supports accessible method and field access
 	supported by JDK1.2 and greater.
 */
 public class ReflectManagerImpl extends ReflectManager
@@ -47,7 +47,7 @@ public class ReflectManagerImpl extends ReflectManager
 		@return true if the object was accessible or false if it was not.
 	*/
 // Arrays incomplete... need to use the array setter
-	public boolean setAccessible( Object obj ) 
+	public boolean setAccessible( Object obj )
 	{
 		if ( obj instanceof AccessibleObject ) {
 			((AccessibleObject)obj).setAccessible(true);

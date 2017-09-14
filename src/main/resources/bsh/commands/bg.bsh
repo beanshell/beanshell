@@ -2,14 +2,14 @@
 	Source a command in its own thread in the caller's namespace
 	<p>
 
-	This is like run() except that it runs the command in its own thread.  
+	This is like run() except that it runs the command in its own thread.
 	Returns the Thread object control.
 	@method Thread bg( String filename )
 */
 
 bsh.help.run= "usage: Thread bg( filename )";
 
-Thread bg( String filename ) 
+Thread bg( String filename )
 {
 	this.callerNameSpace = this.caller.namespace;
 	run() {

@@ -37,23 +37,23 @@ public class Inherit {
 		zb = Accessor.getZbyB();
 		zc = Accessor.getZbyC();
 
-		wa.a();  
-		
+		wa.a();
+
 		wb.a();
-		wb.b(); 
+		wb.b();
 
 		// Can't access W (package scope), doesn't work with Reflection either.
 		//((W)wa).w();
-		
+
 		xa.a();
-		
+
 		xb.a();
 		xb.b();
 
 		x.a();
 		x.b();
 		x.x();
-		
+
 		ya.a();
 
 		yb.a();

@@ -4,7 +4,7 @@
 
 bsh.help.rm = "usage: cd( path )";
 
-boolean rm( String pathname ) 
+boolean rm( String pathname )
 {
     this.file = pathToFile( pathname );
 

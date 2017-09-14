@@ -39,7 +39,7 @@ import bsh.*;
 	Nothing in the core language (bsh package) should depend on this.
 	Note: that promise is currently broken... fix it.
 */
-public class Util 
+public class Util
 {
 	/*
 	public static ConsoleInterface makeConsole() {
@@ -55,7 +55,7 @@ public class Util
 		This could live in the desktop script.
 		However we'd like to get it on the screen as quickly as possible.
 	*/
-	public static void startSplashScreen() 
+	public static void startSplashScreen()
 	{
 		int width=275,height=148;
 		Window win=new Window( new Frame() );
@@ -64,10 +64,10 @@ public class Util
         can.setSize( width, height ); // why is this necessary?
         Toolkit tk=Toolkit.getDefaultToolkit();
         Dimension dim=tk.getScreenSize();
-        win.setBounds( 
+        win.setBounds(
 			dim.width/2-width/2, dim.height/2-height/2, width, height );
         win.add("Center", can);
-        Image img=tk.getImage( 
+        Image img=tk.getImage(
 			Interpreter.class.getResource("/bsh/util/lib/splash.gif") );
         MediaTracker mt=new MediaTracker(can);
         mt.addImage(img,0);

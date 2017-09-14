@@ -35,10 +35,10 @@ import bsh.*;
 	Scriptable Canvas with buffered graphics.
 
 	Provides a Component that:
-	1) delegates calls to paint() to a bsh method called paint() 
+	1) delegates calls to paint() to a bsh method called paint()
 		in a specific NameSpace.
-	2) provides a simple buffered image maintained by built in paint() that 
-		is useful for simple immediate procedural rendering from scripts...  
+	2) provides a simple buffered image maintained by built in paint() that
+		is useful for simple immediate procedural rendering from scripts...
 
 */
 public class BshCanvas extends JComponent {

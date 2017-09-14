@@ -1,7 +1,7 @@
 /**
-	Open the class browser to view the specified class.  
-	If the argument is a string it is considered to be a class name.  
-	If the argument is an object, the class of the object is used.  
+	Open the class browser to view the specified class.
+	If the argument is a string it is considered to be a class name.
+	If the argument is an object, the class of the object is used.
 	If the arg is a class, the class is used.
 	<p>
 
@@ -14,7 +14,7 @@
 */
 import bsh.ClassIdentifier;
 
-browseClass( Object o ) 
+browseClass( Object o )
 {
 	String classname;
 	if ( o instanceof String)
@@ -23,13 +23,13 @@ browseClass( Object o )
 		classname = this.namespace.identifierToClass(o).getName();
 	else if ( o instanceof Class )
 		classname = o.getName();
-	else 
+	else
 		classname = o.getClass().getName();
 
 	// really need a way to unset and more powerful testing...
-	if ( bsh.system.desktop == void 
-			|| bsh.system.desktop.classbrowser == void 
-			|| bsh.system.desktop.classbrowser == null ) 
+	if ( bsh.system.desktop == void
+			|| bsh.system.desktop.classbrowser == void
+			|| bsh.system.desktop.classbrowser == null )
 	{
 		this.browser = classBrowser();
 	} else {

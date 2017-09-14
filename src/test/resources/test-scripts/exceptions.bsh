@@ -3,7 +3,7 @@
 source("TestHarness.bsh");
 
 fin=false;
-try { 
+try {
 	print("foo");
 	throw new Exception("foo");
 } catch ( IOException e ) {
@@ -21,7 +21,7 @@ assert(fin == true);
 
 fin=false;
 try {
-	try { 
+	try {
 		print("foo");
 		throw new ArithmeticException();
 	} catch ( IOException e ) {

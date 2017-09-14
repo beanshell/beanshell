@@ -36,7 +36,7 @@ import java.net.ServerSocket;
 	A very simple httpd that supports the remote server mode.
 	Files are loaded relative to the classpath (as resources).
 
-	Warning: this is not secure!  This server can probably be duped into 
+	Warning: this is not secure!  This server can probably be duped into
 	serving any file on your system!  Beware!
 
 	Note: at some point this should be recast as a beanshell script.
@@ -107,7 +107,7 @@ class HttpdConnection extends Thread
 			}
 
 			StringTokenizer st = new StringTokenizer(request);
-			if(st.countTokens() < 2) 
+			if(st.countTokens() < 2)
 				error(400, "Bad Request");
 			else
 			{
@@ -122,7 +122,7 @@ class HttpdConnection extends Thread
 		}
 		catch(IOException e)
 		{
-			System.out.println("I/O error " + e); 
+			System.out.println("I/O error " + e);
 			try
 			{
 				client.close();
@@ -131,7 +131,7 @@ class HttpdConnection extends Thread
 		}
 	}
 
-	private void serveFile(String file) 
+	private void serveFile(String file)
 		throws FileNotFoundException, IOException
 	{
 		// Do some mappings
@@ -166,7 +166,7 @@ class HttpdConnection extends Thread
 			}
 	}
 
-	private void sendFileData(String file) 
+	private void sendFileData(String file)
 		throws IOException, FileNotFoundException
 	{
 		/*
@@ -185,7 +185,7 @@ class HttpdConnection extends Thread
 
 			if ( file.endsWith(".gif") )
 				pout.println("Content-type: image/gif");
-			else 
+			else
 				if( file.endsWith(".html") || file.endsWith(".htm") )
 					pout.println("Content-Type: text/html");
 				else
@@ -213,7 +213,7 @@ class HttpdConnection extends Thread
 			pout.println("Content-type: text/html");
 			pout.println("Content-length: " + s.length() + "\n");
 		}
-		
+
 		pout.println(s);
 	}
 }

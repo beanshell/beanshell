@@ -4,8 +4,8 @@
 	to BeanShell's working directory and then file.getAbsolutePath() to get
 	back to a system localized string.
 	<p>
-	
-	Example: to change to the directory that contains the script we're 
+
+	Example: to change to the directory that contains the script we're
 	currently executing:
 
 	<pre>
@@ -17,11 +17,11 @@
 
 bsh.help.cd = "usage: dirname( path )";
 
-String dirname( String pathname ) 
+String dirname( String pathname )
 {
 	String dirName = ".";
 	// Normalize '/' to local file separator before work.
-	int i = pathname.replace('/', File.separatorChar ).lastIndexOf( 
+	int i = pathname.replace('/', File.separatorChar ).lastIndexOf(
 		File.separator );
     if ( i != -1 )
 		dirName = pathname.substring(0, i);

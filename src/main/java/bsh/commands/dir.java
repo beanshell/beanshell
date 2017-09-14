@@ -24,10 +24,10 @@
  *                                                                           *
  *****************************************************************************/
 /**
-	Display the contents of the current working directory.  
+	Display the contents of the current working directory.
 	The format is similar to the Unix ls -l
 	<em>This is an example of a bsh command written in Java for speed.</em>
-	
+
 	@method void dir( [ String dirname ] )
 */
 package bsh.commands;
@@ -39,9 +39,9 @@ import java.util.Vector;
 import java.util.GregorianCalendar;
 import java.util.Calendar;
 
-public class dir 
+public class dir
 {
-	static final String [] months = { "Jan", "Feb", "Mar", "Apr", 
+	static final String [] months = { "Jan", "Feb", "Mar", "Apr",
 		"May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 	public static String usage() {
@@ -51,7 +51,7 @@ public class dir
 	/**
 		Implement dir() command.
 	*/
-	public static void invoke( Interpreter env, CallStack callstack ) 
+	public static void invoke( Interpreter env, CallStack callstack )
 	{
 		String dir = ".";
 		invoke( env, callstack, dir );
@@ -60,8 +60,8 @@ public class dir
 	/**
 		Implement dir( String directory ) command.
 	*/
-	public static void invoke( 
-		Interpreter env, CallStack callstack, String dir ) 
+	public static void invoke(
+		Interpreter env, CallStack callstack, String dir )
 	{
 		File file;
 		String path;
@@ -97,7 +97,7 @@ public class dir
 			c.setTime(d);
 			int day	= c.get(Calendar.DAY_OF_MONTH);
 			sb.append( months[ c.get(Calendar.MONTH) ] + " " + day );
-			if ( day < 10 ) 
+			if ( day < 10 )
 				sb.append(" ");
 
 			sb.append(" ");
@@ -116,11 +116,11 @@ public class dir
 				len.setLength(si);
 				len.insert(0, pad);
 			}
-			
+
 			sb.append( len.toString() );
 
 			sb.append( " " + f.getName() );
-			if ( f.isDirectory() ) 
+			if ( f.isDirectory() )
 				sb.append("/");
 
 			env.println( sb.toString() );

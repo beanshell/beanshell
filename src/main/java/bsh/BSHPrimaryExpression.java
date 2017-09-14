@@ -35,7 +35,7 @@ class BSHPrimaryExpression extends SimpleNode
 	/**
 		Evaluate to a value object.
 	*/
-	public Object eval( CallStack callstack, Interpreter interpreter)  
+	public Object eval( CallStack callstack, Interpreter interpreter)
 		throws EvalError
 	{
 		return eval( false, callstack, interpreter );
@@ -44,7 +44,7 @@ class BSHPrimaryExpression extends SimpleNode
 	/**
 		Evaluate to a value object.
 	*/
-	public LHS toLHS( CallStack callstack, Interpreter interpreter)  
+	public LHS toLHS( CallStack callstack, Interpreter interpreter)
 		throws EvalError
 	{
 		Object obj = eval( true, callstack, interpreter );
@@ -63,12 +63,12 @@ class BSHPrimaryExpression extends SimpleNode
 		opportunity to work through them.  This lets the suffixes decide
 		how to interpret an ambiguous name (e.g. for the .class operation).
 	*/
-	private Object eval( boolean toLHS, 
-		CallStack callstack, Interpreter interpreter)  
+	private Object eval( boolean toLHS,
+		CallStack callstack, Interpreter interpreter)
 		throws EvalError
 	{
 		Object obj = jjtGetChild(0);
-		int numChildren = jjtGetNumChildren(); 
+		int numChildren = jjtGetNumChildren();
 
 		for(int i=1; i<numChildren; i++)
 			obj = ((BSHPrimarySuffix)jjtGetChild(i)).doSuffix(
@@ -86,14 +86,14 @@ class BSHPrimaryExpression extends SimpleNode
 				else
 					obj = ((BSHAmbiguousName)obj).toObject(
 						callstack, interpreter);
-			else 
+			else
 				// Some arbitrary kind of node
 				if ( toLHS )
 					// is this right?
-					throw new EvalError("Can't assign to prefix.", 
+					throw new EvalError("Can't assign to prefix.",
 						this, callstack );
 				else
-					obj = ((SimpleNode)obj).eval(callstack, interpreter);	
+					obj = ((SimpleNode)obj).eval(callstack, interpreter);
 
 		// return LHS or value object as determined by toLHS
 		if ( obj instanceof LHS )

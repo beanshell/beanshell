@@ -5,11 +5,11 @@ boolean test_completed=false;
 boolean test_warning=false;
 int test_flag = 0;
 
-assert( boolean condition ) 
+assert( boolean condition )
 {
 	if ( !condition )
-	{ 	
-		print( 
+	{
+		print(
 			"Test FAILED: "
 			+"Line: "+ this.namespace.getInvocationLine()
 			+" : "+this.namespace.getInvocationText()
@@ -19,7 +19,7 @@ assert( boolean condition )
 	}
 }
 
-isEvalError( String text ) 
+isEvalError( String text )
 {
 	boolean flag = false;
 	try {

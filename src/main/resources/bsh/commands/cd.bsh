@@ -7,7 +7,7 @@ bsh.help.cd = "usage: cd( path )";
 /*
 	Additions by Kevin Raulerson, http://www.spin.com.mx/~kevinr/
 */
-void cd( String pathname ) 
+void cd( String pathname )
 {
     this.file = pathToFile( pathname );
 

@@ -35,10 +35,10 @@ class BSHAssignment extends SimpleNode implements ParserConstants
     BSHAssignment(int id) { super(id); }
 
     public Object eval(
-		CallStack callstack, Interpreter interpreter) 
+		CallStack callstack, Interpreter interpreter)
 		throws EvalError
     {
-        BSHPrimaryExpression lhsNode = 
+        BSHPrimaryExpression lhsNode =
 			(BSHPrimaryExpression)jjtGetChild(0);
 
 		if ( lhsNode == null )
@@ -63,7 +63,7 @@ class BSHAssignment extends SimpleNode implements ParserConstants
         SimpleNode rhsNode = (SimpleNode)jjtGetChild(1);
 
         Object rhs;
-		
+
 		// implement "blocks" foo = { };
 		// if ( rhsNode instanceof BSHBlock )
 		//    rsh =
@@ -80,53 +80,53 @@ class BSHAssignment extends SimpleNode implements ParserConstants
 					return lhs.assign( rhs, strictJava );
 
 				case PLUSASSIGN:
-					return lhs.assign( 
+					return lhs.assign(
 						operation(lhsValue, rhs, PLUS), strictJava );
 
 	            case MINUSASSIGN:
-					return lhs.assign( 
+					return lhs.assign(
 						operation(lhsValue, rhs, MINUS), strictJava );
 
 				case STARASSIGN:
-					return lhs.assign( 
+					return lhs.assign(
 						operation(lhsValue, rhs, STAR), strictJava );
 
 	            case SLASHASSIGN:
-					return lhs.assign( 
+					return lhs.assign(
 						operation(lhsValue, rhs, SLASH), strictJava );
 
 	            case ANDASSIGN:
 				case ANDASSIGNX:
-					return lhs.assign( 
+					return lhs.assign(
 						operation(lhsValue, rhs, BIT_AND), strictJava );
 
 	            case ORASSIGN:
 	            case ORASSIGNX:
-	                return lhs.assign( 
+	                return lhs.assign(
 						operation(lhsValue, rhs, BIT_OR), strictJava );
 
 	            case XORASSIGN:
-	                return lhs.assign( 
+	                return lhs.assign(
 						operation(lhsValue, rhs, XOR), strictJava );
 
 	            case MODASSIGN:
-	                return lhs.assign( 
+	                return lhs.assign(
 						operation(lhsValue, rhs, MOD), strictJava );
 
 	            case LSHIFTASSIGN:
 	            case LSHIFTASSIGNX:
-	                return lhs.assign( 
+	                return lhs.assign(
 						operation(lhsValue, rhs, LSHIFT), strictJava );
 
 	            case RSIGNEDSHIFTASSIGN:
 	            case RSIGNEDSHIFTASSIGNX:
-	                return lhs.assign( 
+	                return lhs.assign(
 					operation(lhsValue, rhs, RSIGNEDSHIFT ), strictJava );
 
 	            case RUNSIGNEDSHIFTASSIGN:
 	            case RUNSIGNEDSHIFTASSIGNX:
-	                return lhs.assign( 
-						operation(lhsValue, rhs, RUNSIGNEDSHIFT), 
+	                return lhs.assign(
+						operation(lhsValue, rhs, RUNSIGNEDSHIFT),
 						strictJava );
 
 				default:
@@ -138,7 +138,7 @@ class BSHAssignment extends SimpleNode implements ParserConstants
 		}
     }
 
-    private Object operation( Object lhs, Object rhs, int kind ) 
+    private Object operation( Object lhs, Object rhs, int kind )
 		throws UtilEvalError
     {
 		/*

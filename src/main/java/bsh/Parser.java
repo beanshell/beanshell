@@ -35,7 +35,7 @@ import java.util.Vector;
 	only how to parse the structure of the language, it does not understand
 	names, commands, etc.
 	<p>
-	You can use the Parser from the command line to do basic structural 
+	You can use the Parser from the command line to do basic structural
 	validation of BeanShell files without actually executing them. e.g.
 	<code><pre>
 		java bsh.Parser [ -p ] file [ file ] [ ... ]
@@ -78,7 +78,7 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
 
         public SimpleNode popNode()
         {
-                if ( jjtree.nodeArity() > 0)  // number of child nodes 
+                if ( jjtree.nodeArity() > 0)  // number of child nodes
                         return (SimpleNode)jjtree.popNode();
                 else
                         return null;
@@ -115,7 +115,7 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
         }
 
         /**
-		Lookahead for the enhanced for statement.  
+		Lookahead for the enhanced for statement.
 		Expect "for" "(" and then see whether we hit ":" or a ";" first.
 	*/
         boolean isRegularForStatement()

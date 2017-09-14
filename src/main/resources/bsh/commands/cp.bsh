@@ -4,7 +4,7 @@
 
 bsh.help.cp = "usage: cp( fromFile, toFile )";
 
-cp( String fromFile, String toFile ) 
+cp( String fromFile, String toFile )
 {
     this.from = pathToFile( fromFile );
     this.to = pathToFile( toFile );

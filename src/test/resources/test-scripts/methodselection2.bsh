@@ -30,12 +30,12 @@ assert( isEvalError("java.util.ArrayList.add(\"foo\")"));
 
 // various null argument problems that used to throw internal errors should now
 // just be eval errors
-try { 
+try {
 	eval("new Character(null)");
 } catch ( EvalError e ) {
 	// as long as it's not an InterpreterError or worse
 }
-try { 
+try {
 	eval("new java.net.URL(null, new Integer(0))");
 } catch ( EvalError e ) {
 	// as long as it's not an InterpreterError or worse
@@ -57,9 +57,9 @@ else
 	warning("Can't test method selection on package private impl...");
 
 /*
-	Can we see a concrete public method in a package-private abstract 
+	Can we see a concrete public method in a package-private abstract
 	base class?  The method is *not* be overridden in the public concrete
-	class... 
+	class...
 	This seems to be a Java core reflection deficiency... There appears to
 	be no wy to access such a method.
 */

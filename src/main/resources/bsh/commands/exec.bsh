@@ -5,7 +5,7 @@
 
 bsh.help.exec = "usage: exec( String arg )";
 
-exec( String arg ) 
+exec( String arg )
 {
 	this.proc = Runtime.getRuntime().exec(arg);
 	this.din = new DataInputStream( proc.getInputStream() );

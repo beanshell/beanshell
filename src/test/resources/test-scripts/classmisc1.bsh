@@ -31,8 +31,8 @@ assert( myio.HEIGHT == 2 );
 */
 
 myObserver = new ImageObserver() {
-	public boolean imageUpdate( 
-		Image image, int flags, int x, int y, int width, int height) 
+	public boolean imageUpdate(
+		Image image, int flags, int x, int y, int width, int height)
 	{
 		assert( image == null );
 		assert( HEIGHT == ImageObserver.HEIGHT );
@@ -44,8 +44,8 @@ myObserver.imageUpdate( null, 1, 1, 1, 1, 1 );
 
 class MyImageObserver implements ImageObserver
 {
-	public boolean imageUpdate( 
-		Image image, int flags, int x, int y, int width, int height) 
+	public boolean imageUpdate(
+		Image image, int flags, int x, int y, int width, int height)
 	{
 		assert( image == null );
 		assert( HEIGHT == ImageObserver.HEIGHT );

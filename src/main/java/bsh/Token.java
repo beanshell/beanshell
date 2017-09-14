@@ -29,7 +29,7 @@ package bsh;
 	This file has been modified for BeanShell to make Token serializable.
 	If this file is regenerated please make this change.
 
-	All BeanShell modifications are demarcated by "Begin BeanShell 
+	All BeanShell modifications are demarcated by "Begin BeanShell
 	Modification - ... " and "End BeanShell Modification - ..."
 */
 
