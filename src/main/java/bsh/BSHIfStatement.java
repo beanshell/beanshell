@@ -23,50 +23,72 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
-class BSHIfStatement extends SimpleNode
-{
-    BSHIfStatement(int id) { super(id); }
+/**
+ * The Class BSHIfStatement.
+ */
+class BSHIfStatement extends SimpleNode {
 
-    public Object eval(CallStack callstack, Interpreter interpreter)  
-		throws EvalError
-    {
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * Instantiates a new BSH if statement.
+     *
+     * @param id
+     *            the id
+     */
+    BSHIfStatement(final int id) {
+        super(id);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Object eval(final CallStack callstack, final Interpreter interpreter)
+            throws EvalError {
         Object ret = null;
-
-        if( evaluateCondition( 
-			(SimpleNode)jjtGetChild(0), callstack, interpreter ) )
-            ret = ((SimpleNode)jjtGetChild(1)).eval(callstack, interpreter);
-        else
-            if(jjtGetNumChildren() > 2)
-                ret = ((SimpleNode)jjtGetChild(2)).eval(callstack, interpreter);
-
-        if(ret instanceof ReturnControl)
+        if (evaluateCondition((SimpleNode) this.jjtGetChild(0), callstack,
+                interpreter))
+            ret = ((SimpleNode) this.jjtGetChild(1)).eval(callstack,
+                    interpreter);
+        else if (this.jjtGetNumChildren() > 2)
+            ret = ((SimpleNode) this.jjtGetChild(2)).eval(callstack,
+                    interpreter);
+        if (ret instanceof ReturnControl)
             return ret;
-        else    
+        else
             return Primitive.VOID;
     }
 
-    public static boolean evaluateCondition(
-		SimpleNode condExp, CallStack callstack, Interpreter interpreter) 
-		throws EvalError
-    {
+    /**
+     * Evaluate condition.
+     *
+     * @param condExp
+     *            the cond exp
+     * @param callstack
+     *            the callstack
+     * @param interpreter
+     *            the interpreter
+     * @return true, if successful
+     * @throws EvalError
+     *             the eval error
+     */
+    public static boolean evaluateCondition(final SimpleNode condExp,
+            final CallStack callstack, final Interpreter interpreter)
+            throws EvalError {
         Object obj = condExp.eval(callstack, interpreter);
-        if(obj instanceof Primitive) {
-			if ( obj == Primitive.VOID )
-				throw new EvalError("Condition evaluates to void type", 
-					condExp, callstack );
-            obj = ((Primitive)obj).getValue();
-		}
-
-        if(obj instanceof Boolean)
-            return ((Boolean)obj).booleanValue();
+        if (obj instanceof Primitive) {
+            if (obj == Primitive.VOID)
+                throw new EvalError("Condition evaluates to void type", condExp,
+                        callstack);
+            obj = ((Primitive) obj).getValue();
+        }
+        if (obj instanceof Boolean)
+            return ((Boolean) obj).booleanValue();
         else
             throw new EvalError(
-				"Condition must evaluate to a Boolean or boolean.", 
-				condExp, callstack );
+                    "Condition must evaluate to a Boolean or boolean.", condExp,
+                    callstack);
     }
 }

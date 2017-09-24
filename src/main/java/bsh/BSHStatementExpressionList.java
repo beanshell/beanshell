@@ -23,25 +23,35 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
-class BSHStatementExpressionList extends SimpleNode
-{
-	BSHStatementExpressionList(int id) { super(id); }
+/**
+ * The Class BSHStatementExpressionList.
+ */
+class BSHStatementExpressionList extends SimpleNode {
 
-	public Object eval(CallStack callstack, Interpreter interpreter)  
-		throws EvalError
-	{
-		int n = jjtGetNumChildren();
-		for(int i=0; i<n; i++)
-		{
-			SimpleNode node = ((SimpleNode)jjtGetChild(i));
-			node.eval(callstack, interpreter);
-		}
-		return Primitive.VOID;
-	}
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * Instantiates a new BSH statement expression list.
+     *
+     * @param id
+     *            the id
+     */
+    BSHStatementExpressionList(final int id) {
+        super(id);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Object eval(final CallStack callstack, final Interpreter interpreter)
+            throws EvalError {
+        final int n = this.jjtGetNumChildren();
+        for (int i = 0; i < n; i++) {
+            final SimpleNode node = (SimpleNode) this.jjtGetChild(i);
+            node.eval(callstack, interpreter);
+        }
+        return Primitive.VOID;
+    }
 }
-

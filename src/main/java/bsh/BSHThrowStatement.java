@@ -23,28 +23,38 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
-class BSHThrowStatement extends SimpleNode
-{
-	BSHThrowStatement(int id) { super(id); }
+/**
+ * The Class BSHThrowStatement.
+ */
+class BSHThrowStatement extends SimpleNode {
 
-	public Object eval( CallStack callstack, Interpreter interpreter)  
-		throws EvalError
-	{
-		Object obj = ((SimpleNode)jjtGetChild(0)).eval(callstack, interpreter);
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
 
-		// need to loosen this to any throwable... do we need to handle
-		// that in interpreter somewhere?  check first...
-		if(!(obj instanceof Exception))
-			throw new EvalError("Expression in 'throw' must be Exception type",
-				this, callstack );
+    /**
+     * Instantiates a new BSH throw statement.
+     *
+     * @param id
+     *            the id
+     */
+    BSHThrowStatement(final int id) {
+        super(id);
+    }
 
-		// wrap the exception in a TargetException to propagate it up
-		throw new TargetError( (Exception)obj, this, callstack );
-	}
+    /** {@inheritDoc} */
+    @Override
+    public Object eval(final CallStack callstack, final Interpreter interpreter)
+            throws EvalError {
+        final Object obj = ((SimpleNode) this.jjtGetChild(0)).eval(callstack,
+                interpreter);
+        // need to loosen this to any throwable... do we need to handle
+        // that in interpreter somewhere? check first...
+        if (!(obj instanceof Exception))
+            throw new EvalError("Expression in 'throw' must be Exception type",
+                    this, callstack);
+        // wrap the exception in a TargetException to propagate it up
+        throw new TargetError((Exception) obj, this, callstack);
+    }
 }
-

@@ -1,48 +1,48 @@
 /**
-	Open the class browser.
+    Open the class browser.
 */
 import bsh.util.ClassBrowser;
 
-classBrowser() 
+classBrowser()
 {
-	this.inDesktop = ( bsh.system.desktop != void );
+    this.inDesktop = (bsh.system.desktop != void);
 
-	this.browser = new ClassBrowser( this.interpreter.getClassManager() );
-	browser.init();
+    this.browser = new ClassBrowser(this.interpreter.getClassManager());
+    browser.init();
 
-	if ( inDesktop ) {
-		this.frame = 
-			bsh.system.desktop.makeInternalFrame("BeanShell Class Browser");
-		frame.frameIcon = bsh.system.icons.eye;
-		bsh.system.desktop.classbrowser = browser;
-	} else {
-		this.frame = new javax.swing.JFrame("BeanShell Class Browser");
-		frame.iconImage=bsh.system.icons.eye.image;
-	}
-		
-	// Ignore unhandled method invocations from listeners.
-	invoke( name, args ) {
-		if ( !name.startsWith("internalFrame") )
-			throw new Error("method: "+name);
-	}
-	internalFrameClosing( e ) {
-		// really need foo=void;...  
-		bsh.system.desktop.classbrowser = null;
-	}
+    if (inDesktop) {
+        this.frame =
+            bsh.system.desktop.makeInternalFrame("BeanShell Class Browser");
+        frame.frameIcon = bsh.system.icons.eye;
+        bsh.system.desktop.classbrowser = browser;
+    } else {
+        this.frame = new javax.swing.JFrame("BeanShell Class Browser");
+        frame.iconImage=bsh.system.icons.eye.image;
+    }
 
-	if ( inDesktop )
-		frame.addInternalFrameListener(this);
+    // Ignore unhandled method invocations from listeners.
+    invoke(name, args) {
+        if (!name.startsWith("internalFrame"))
+            throw new Error("method: "+name);
+    }
+    internalFrameClosing(e) {
+        // really need foo=void;...
+        bsh.system.desktop.classbrowser = null;
+    }
 
-	browser.setFrame( frame );
-	frame.getContentPane().add("Center", browser);
-	frame.pack();
+    if (inDesktop)
+        frame.addInternalFrameListener(this);
 
-	if ( inDesktop )
-		bsh.system.desktop.addInternalFrame(frame);
+    browser.setFrame(frame);
+    frame.getContentPane().add("Center", browser);
+    frame.pack();
 
-	frame.show();
-	frame.selected=true;
+    if (inDesktop)
+        bsh.system.desktop.addInternalFrame(frame);
 
-	return browser;
+    frame.show();
+    frame.selected=true;
+
+    return browser;
 }
 

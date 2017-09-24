@@ -31,7 +31,6 @@
  *
  * Author: Eric Bruneton
  */
-
 package bsh.org.objectweb.asm;
 
 /**
@@ -43,241 +42,413 @@ package bsh.org.objectweb.asm;
  * automatically replaced by LDC_W or LDC2_W when necessary, WIDE, GOTO_W and
  * JSR_W.
  */
-
 public interface Constants {
 
-  // access flags
-
-  int ACC_PUBLIC = 1;
-  int ACC_PRIVATE = 2;
-  int ACC_PROTECTED = 4;
-  int ACC_STATIC = 8;
-  int ACC_FINAL = 16;
-  int ACC_SYNCHRONIZED = 32;
-  int ACC_VOLATILE = 64;
-  int ACC_TRANSIENT = 128;
-  int ACC_NATIVE = 256;
-  int ACC_INTERFACE = 512;
-  int ACC_ABSTRACT = 1024;
-  int ACC_STRICT = 2048;
-  int ACC_SUPER = 32;
-
-  int ACC_SYNTHETIC = 65536;
-  int ACC_DEPRECATED = 131072;
-
-  // types for NEWARRAY
-
-  int T_BOOLEAN = 4;
-  int T_CHAR = 5;
-  int T_FLOAT = 6;
-  int T_DOUBLE = 7;
-  int T_BYTE = 8;
-  int T_SHORT = 9;
-  int T_INT = 10;
-  int T_LONG = 11;
-
-  // opcodes                  // visit method (- = idem)
-
-  int NOP = 0;                // visitInsn
-  int ACONST_NULL = 1;        // -
-  int ICONST_M1 = 2;          // -
-  int ICONST_0 = 3;           // -
-  int ICONST_1 = 4;           // -
-  int ICONST_2 = 5;           // -
-  int ICONST_3 = 6;           // -
-  int ICONST_4 = 7;           // -
-  int ICONST_5 = 8;           // -
-  int LCONST_0 = 9;           // -
-  int LCONST_1 = 10;          // -
-  int FCONST_0 = 11;          // -
-  int FCONST_1 = 12;          // -
-  int FCONST_2 = 13;          // -
-  int DCONST_0 = 14;          // -
-  int DCONST_1 = 15;          // -
-  int BIPUSH = 16;            // visitIntInsn
-  int SIPUSH = 17;            // -
-  int LDC = 18;               // visitLdcInsn
-  //int LDC_W = 19;           // -
-  //int LDC2_W = 20;          // -
-  int ILOAD = 21;             // visitVarInsn
-  int LLOAD = 22;             // -
-  int FLOAD = 23;             // -
-  int DLOAD = 24;             // -
-  int ALOAD = 25;             // -
-  //int ILOAD_0 = 26;         // -
-  //int ILOAD_1 = 27;         // -
-  //int ILOAD_2 = 28;         // -
-  //int ILOAD_3 = 29;         // -
-  //int LLOAD_0 = 30;         // -
-  //int LLOAD_1 = 31;         // -
-  //int LLOAD_2 = 32;         // -
-  //int LLOAD_3 = 33;         // -
-  //int FLOAD_0 = 34;         // -
-  //int FLOAD_1 = 35;         // -
-  //int FLOAD_2 = 36;         // -
-  //int FLOAD_3 = 37;         // -
-  //int DLOAD_0 = 38;         // -
-  //int DLOAD_1 = 39;         // -
-  //int DLOAD_2 = 40;         // -
-  //int DLOAD_3 = 41;         // -
-  //int ALOAD_0 = 42;         // -
-  //int ALOAD_1 = 43;         // -
-  //int ALOAD_2 = 44;         // -
-  //int ALOAD_3 = 45;         // -
-  int IALOAD = 46;            // visitInsn
-  int LALOAD = 47;            // -
-  int FALOAD = 48;            // -
-  int DALOAD = 49;            // -
-  int AALOAD = 50;            // -
-  int BALOAD = 51;            // -
-  int CALOAD = 52;            // -
-  int SALOAD = 53;            // -
-  int ISTORE = 54;            // visitVarInsn
-  int LSTORE = 55;            // -
-  int FSTORE = 56;            // -
-  int DSTORE = 57;            // -
-  int ASTORE = 58;            // -
-  //int ISTORE_0 = 59;        // -
-  //int ISTORE_1 = 60;        // -
-  //int ISTORE_2 = 61;        // -
-  //int ISTORE_3 = 62;        // -
-  //int LSTORE_0 = 63;        // -
-  //int LSTORE_1 = 64;        // -
-  //int LSTORE_2 = 65;        // -
-  //int LSTORE_3 = 66;        // -
-  //int FSTORE_0 = 67;        // -
-  //int FSTORE_1 = 68;        // -
-  //int FSTORE_2 = 69;        // -
-  //int FSTORE_3 = 70;        // -
-  //int DSTORE_0 = 71;        // -
-  //int DSTORE_1 = 72;        // -
-  //int DSTORE_2 = 73;        // -
-  //int DSTORE_3 = 74;        // -
-  //int ASTORE_0 = 75;        // -
-  //int ASTORE_1 = 76;        // -
-  //int ASTORE_2 = 77;        // -
-  //int ASTORE_3 = 78;        // -
-  int IASTORE = 79;           // visitInsn
-  int LASTORE = 80;           // -
-  int FASTORE = 81;           // -
-  int DASTORE = 82;           // -
-  int AASTORE = 83;           // -
-  int BASTORE = 84;           // -
-  int CASTORE = 85;           // -
-  int SASTORE = 86;           // -
-  int POP = 87;               // -
-  int POP2 = 88;              // -
-  int DUP = 89;               // -
-  int DUP_X1 = 90;            // -
-  int DUP_X2 = 91;            // -
-  int DUP2 = 92;              // -
-  int DUP2_X1 = 93;           // -
-  int DUP2_X2 = 94;           // -
-  int SWAP = 95;              // -
-  int IADD = 96;              // -
-  int LADD = 97;              // -
-  int FADD = 98;              // -
-  int DADD = 99;              // -
-  int ISUB = 100;             // -
-  int LSUB = 101;             // -
-  int FSUB = 102;             // -
-  int DSUB = 103;             // -
-  int IMUL = 104;             // -
-  int LMUL = 105;             // -
-  int FMUL = 106;             // -
-  int DMUL = 107;             // -
-  int IDIV = 108;             // -
-  int LDIV = 109;             // -
-  int FDIV = 110;             // -
-  int DDIV = 111;             // -
-  int IREM = 112;             // -
-  int LREM = 113;             // -
-  int FREM = 114;             // -
-  int DREM = 115;             // -
-  int INEG = 116;             // -
-  int LNEG = 117;             // -
-  int FNEG = 118;             // -
-  int DNEG = 119;             // -
-  int ISHL = 120;             // -
-  int LSHL = 121;             // -
-  int ISHR = 122;             // -
-  int LSHR = 123;             // -
-  int IUSHR = 124;            // -
-  int LUSHR = 125;            // -
-  int IAND = 126;             // -
-  int LAND = 127;             // -
-  int IOR = 128;              // -
-  int LOR = 129;              // -
-  int IXOR = 130;             // -
-  int LXOR = 131;             // -
-  int IINC = 132;             // visitIincInsn
-  int I2L = 133;              // visitInsn
-  int I2F = 134;              // -
-  int I2D = 135;              // -
-  int L2I = 136;              // -
-  int L2F = 137;              // -
-  int L2D = 138;              // -
-  int F2I = 139;              // -
-  int F2L = 140;              // -
-  int F2D = 141;              // -
-  int D2I = 142;              // -
-  int D2L = 143;              // -
-  int D2F = 144;              // -
-  int I2B = 145;              // -
-  int I2C = 146;              // -
-  int I2S = 147;              // -
-  int LCMP = 148;             // -
-  int FCMPL = 149;            // -
-  int FCMPG = 150;            // -
-  int DCMPL = 151;            // -
-  int DCMPG = 152;            // -
-  int IFEQ = 153;             // visitJumpInsn
-  int IFNE = 154;             // -
-  int IFLT = 155;             // -
-  int IFGE = 156;             // -
-  int IFGT = 157;             // -
-  int IFLE = 158;             // -
-  int IF_ICMPEQ = 159;        // -
-  int IF_ICMPNE = 160;        // -
-  int IF_ICMPLT = 161;        // -
-  int IF_ICMPGE = 162;        // -
-  int IF_ICMPGT = 163;        // -
-  int IF_ICMPLE = 164;        // -
-  int IF_ACMPEQ = 165;        // -
-  int IF_ACMPNE = 166;        // -
-  int GOTO = 167;             // -
-  int JSR = 168;              // -
-  int RET = 169;              // visitVarInsn
-  int TABLESWITCH = 170;      // visiTableSwitchInsn
-  int LOOKUPSWITCH = 171;     // visitLookupSwitch
-  int IRETURN = 172;          // visitInsn
-  int LRETURN = 173;          // -
-  int FRETURN = 174;          // -
-  int DRETURN = 175;          // -
-  int ARETURN = 176;          // -
-  int RETURN = 177;           // -
-  int GETSTATIC = 178;        // visitFieldInsn
-  int PUTSTATIC = 179;        // -
-  int GETFIELD = 180;         // -
-  int PUTFIELD = 181;         // -
-  int INVOKEVIRTUAL = 182;    // visitMethodInsn
-  int INVOKESPECIAL = 183;    // -
-  int INVOKESTATIC = 184;     // -
-  int INVOKEINTERFACE = 185;  // -
-  //int UNUSED = 186;         // NOT VISITED
-  int NEW = 187;              // visitTypeInsn
-  int NEWARRAY = 188;         // visitIntInsn
-  int ANEWARRAY = 189;        // visitTypeInsn
-  int ARRAYLENGTH = 190;      // visitInsn
-  int ATHROW = 191;           // -
-  int CHECKCAST = 192;        // visitTypeInsn
-  int INSTANCEOF = 193;       // -
-  int MONITORENTER = 194;     // visitInsn
-  int MONITOREXIT = 195;      // -
-  //int WIDE = 196;           // NOT VISITED
-  int MULTIANEWARRAY = 197;   // visitMultiANewArrayInsn
-  int IFNULL = 198;           // visitJumpInsn
-  int IFNONNULL = 199;        // -
-  //int GOTO_W = 200;         // -
-  //int JSR_W = 201;          // -
+    // access flags
+    /** The acc public. */
+    int ACC_PUBLIC = 1;
+    /** The acc private. */
+    int ACC_PRIVATE = 2;
+    /** The acc protected. */
+    int ACC_PROTECTED = 4;
+    /** The acc static. */
+    int ACC_STATIC = 8;
+    /** The acc final. */
+    int ACC_FINAL = 16;
+    /** The acc synchronized. */
+    int ACC_SYNCHRONIZED = 32;
+    /** The acc volatile. */
+    int ACC_VOLATILE = 64;
+    /** The acc transient. */
+    int ACC_TRANSIENT = 128;
+    /** The acc native. */
+    int ACC_NATIVE = 256;
+    /** The acc interface. */
+    int ACC_INTERFACE = 512;
+    /** The acc abstract. */
+    int ACC_ABSTRACT = 1024;
+    /** The acc strict. */
+    int ACC_STRICT = 2048;
+    /** The acc super. */
+    int ACC_SUPER = 32;
+    /** The acc synthetic. */
+    int ACC_SYNTHETIC = 65536;
+    /** The acc deprecated. */
+    int ACC_DEPRECATED = 131072;
+    // types for NEWARRAY
+    /** The t boolean. */
+    int T_BOOLEAN = 4;
+    /** The t char. */
+    int T_CHAR = 5;
+    /** The t float. */
+    int T_FLOAT = 6;
+    /** The t double. */
+    int T_DOUBLE = 7;
+    /** The t byte. */
+    int T_BYTE = 8;
+    /** The t short. */
+    int T_SHORT = 9;
+    /** The t int. */
+    int T_INT = 10;
+    /** The t long. */
+    int T_LONG = 11;
+    // opcodes // visit method (- = idem)
+    /** The nop. */
+    int NOP = 0; // visitInsn
+    /** The aconst null. */
+    int ACONST_NULL = 1; // -
+    /** The iconst m1. */
+    int ICONST_M1 = 2; // -
+    /** The iconst 0. */
+    int ICONST_0 = 3; // -
+    /** The iconst 1. */
+    int ICONST_1 = 4; // -
+    /** The iconst 2. */
+    int ICONST_2 = 5; // -
+    /** The iconst 3. */
+    int ICONST_3 = 6; // -
+    /** The iconst 4. */
+    int ICONST_4 = 7; // -
+    /** The iconst 5. */
+    int ICONST_5 = 8; // -
+    /** The lconst 0. */
+    int LCONST_0 = 9; // -
+    /** The lconst 1. */
+    int LCONST_1 = 10; // -
+    /** The fconst 0. */
+    int FCONST_0 = 11; // -
+    /** The fconst 1. */
+    int FCONST_1 = 12; // -
+    /** The fconst 2. */
+    int FCONST_2 = 13; // -
+    /** The dconst 0. */
+    int DCONST_0 = 14; // -
+    /** The dconst 1. */
+    int DCONST_1 = 15; // -
+    /** The bipush. */
+    int BIPUSH = 16; // visitIntInsn
+    /** The sipush. */
+    int SIPUSH = 17; // -
+    /** The ldc. */
+    int LDC = 18; // visitLdcInsn
+    // int LDC_W = 19; // -
+    // int LDC2_W = 20; // -
+    /** The iload. */
+    int ILOAD = 21; // visitVarInsn
+    /** The lload. */
+    int LLOAD = 22; // -
+    /** The fload. */
+    int FLOAD = 23; // -
+    /** The dload. */
+    int DLOAD = 24; // -
+    /** The aload. */
+    int ALOAD = 25; // -
+    // int ILOAD_0 = 26; // -
+    // int ILOAD_1 = 27; // -
+    // int ILOAD_2 = 28; // -
+    // int ILOAD_3 = 29; // -
+    // int LLOAD_0 = 30; // -
+    // int LLOAD_1 = 31; // -
+    // int LLOAD_2 = 32; // -
+    // int LLOAD_3 = 33; // -
+    // int FLOAD_0 = 34; // -
+    // int FLOAD_1 = 35; // -
+    // int FLOAD_2 = 36; // -
+    // int FLOAD_3 = 37; // -
+    // int DLOAD_0 = 38; // -
+    // int DLOAD_1 = 39; // -
+    // int DLOAD_2 = 40; // -
+    // int DLOAD_3 = 41; // -
+    // int ALOAD_0 = 42; // -
+    // int ALOAD_1 = 43; // -
+    // int ALOAD_2 = 44; // -
+    // int ALOAD_3 = 45; // -
+    /** The iaload. */
+    int IALOAD = 46; // visitInsn
+    /** The laload. */
+    int LALOAD = 47; // -
+    /** The faload. */
+    int FALOAD = 48; // -
+    /** The daload. */
+    int DALOAD = 49; // -
+    /** The aaload. */
+    int AALOAD = 50; // -
+    /** The baload. */
+    int BALOAD = 51; // -
+    /** The caload. */
+    int CALOAD = 52; // -
+    /** The saload. */
+    int SALOAD = 53; // -
+    /** The istore. */
+    int ISTORE = 54; // visitVarInsn
+    /** The lstore. */
+    int LSTORE = 55; // -
+    /** The fstore. */
+    int FSTORE = 56; // -
+    /** The dstore. */
+    int DSTORE = 57; // -
+    /** The astore. */
+    int ASTORE = 58; // -
+    // int ISTORE_0 = 59; // -
+    // int ISTORE_1 = 60; // -
+    // int ISTORE_2 = 61; // -
+    // int ISTORE_3 = 62; // -
+    // int LSTORE_0 = 63; // -
+    // int LSTORE_1 = 64; // -
+    // int LSTORE_2 = 65; // -
+    // int LSTORE_3 = 66; // -
+    // int FSTORE_0 = 67; // -
+    // int FSTORE_1 = 68; // -
+    // int FSTORE_2 = 69; // -
+    // int FSTORE_3 = 70; // -
+    // int DSTORE_0 = 71; // -
+    // int DSTORE_1 = 72; // -
+    // int DSTORE_2 = 73; // -
+    // int DSTORE_3 = 74; // -
+    // int ASTORE_0 = 75; // -
+    // int ASTORE_1 = 76; // -
+    // int ASTORE_2 = 77; // -
+    // int ASTORE_3 = 78; // -
+    /** The iastore. */
+    int IASTORE = 79; // visitInsn
+    /** The lastore. */
+    int LASTORE = 80; // -
+    /** The fastore. */
+    int FASTORE = 81; // -
+    /** The dastore. */
+    int DASTORE = 82; // -
+    /** The aastore. */
+    int AASTORE = 83; // -
+    /** The bastore. */
+    int BASTORE = 84; // -
+    /** The castore. */
+    int CASTORE = 85; // -
+    /** The sastore. */
+    int SASTORE = 86; // -
+    /** The pop. */
+    int POP = 87; // -
+    /** The pop2. */
+    int POP2 = 88; // -
+    /** The dup. */
+    int DUP = 89; // -
+    /** The dup x1. */
+    int DUP_X1 = 90; // -
+    /** The dup x2. */
+    int DUP_X2 = 91; // -
+    /** The dup2. */
+    int DUP2 = 92; // -
+    /** The dup2 x1. */
+    int DUP2_X1 = 93; // -
+    /** The dup2 x2. */
+    int DUP2_X2 = 94; // -
+    /** The swap. */
+    int SWAP = 95; // -
+    /** The iadd. */
+    int IADD = 96; // -
+    /** The ladd. */
+    int LADD = 97; // -
+    /** The fadd. */
+    int FADD = 98; // -
+    /** The dadd. */
+    int DADD = 99; // -
+    /** The isub. */
+    int ISUB = 100; // -
+    /** The lsub. */
+    int LSUB = 101; // -
+    /** The fsub. */
+    int FSUB = 102; // -
+    /** The dsub. */
+    int DSUB = 103; // -
+    /** The imul. */
+    int IMUL = 104; // -
+    /** The lmul. */
+    int LMUL = 105; // -
+    /** The fmul. */
+    int FMUL = 106; // -
+    /** The dmul. */
+    int DMUL = 107; // -
+    /** The idiv. */
+    int IDIV = 108; // -
+    /** The ldiv. */
+    int LDIV = 109; // -
+    /** The fdiv. */
+    int FDIV = 110; // -
+    /** The ddiv. */
+    int DDIV = 111; // -
+    /** The irem. */
+    int IREM = 112; // -
+    /** The lrem. */
+    int LREM = 113; // -
+    /** The frem. */
+    int FREM = 114; // -
+    /** The drem. */
+    int DREM = 115; // -
+    /** The ineg. */
+    int INEG = 116; // -
+    /** The lneg. */
+    int LNEG = 117; // -
+    /** The fneg. */
+    int FNEG = 118; // -
+    /** The dneg. */
+    int DNEG = 119; // -
+    /** The ishl. */
+    int ISHL = 120; // -
+    /** The lshl. */
+    int LSHL = 121; // -
+    /** The ishr. */
+    int ISHR = 122; // -
+    /** The lshr. */
+    int LSHR = 123; // -
+    /** The iushr. */
+    int IUSHR = 124; // -
+    /** The lushr. */
+    int LUSHR = 125; // -
+    /** The iand. */
+    int IAND = 126; // -
+    /** The land. */
+    int LAND = 127; // -
+    /** The ior. */
+    int IOR = 128; // -
+    /** The lor. */
+    int LOR = 129; // -
+    /** The ixor. */
+    int IXOR = 130; // -
+    /** The lxor. */
+    int LXOR = 131; // -
+    /** The iinc. */
+    int IINC = 132; // visitIincInsn
+    /** The i2l. */
+    int I2L = 133; // visitInsn
+    /** The i2f. */
+    int I2F = 134; // -
+    /** The i2d. */
+    int I2D = 135; // -
+    /** The l2i. */
+    int L2I = 136; // -
+    /** The l2f. */
+    int L2F = 137; // -
+    /** The l2d. */
+    int L2D = 138; // -
+    /** The f2i. */
+    int F2I = 139; // -
+    /** The f2l. */
+    int F2L = 140; // -
+    /** The f2d. */
+    int F2D = 141; // -
+    /** The d2i. */
+    int D2I = 142; // -
+    /** The d2l. */
+    int D2L = 143; // -
+    /** The d2f. */
+    int D2F = 144; // -
+    /** The i2b. */
+    int I2B = 145; // -
+    /** The i2c. */
+    int I2C = 146; // -
+    /** The i2s. */
+    int I2S = 147; // -
+    /** The lcmp. */
+    int LCMP = 148; // -
+    /** The fcmpl. */
+    int FCMPL = 149; // -
+    /** The fcmpg. */
+    int FCMPG = 150; // -
+    /** The dcmpl. */
+    int DCMPL = 151; // -
+    /** The dcmpg. */
+    int DCMPG = 152; // -
+    /** The ifeq. */
+    int IFEQ = 153; // visitJumpInsn
+    /** The ifne. */
+    int IFNE = 154; // -
+    /** The iflt. */
+    int IFLT = 155; // -
+    /** The ifge. */
+    int IFGE = 156; // -
+    /** The ifgt. */
+    int IFGT = 157; // -
+    /** The ifle. */
+    int IFLE = 158; // -
+    /** The if icmpeq. */
+    int IF_ICMPEQ = 159; // -
+    /** The if icmpne. */
+    int IF_ICMPNE = 160; // -
+    /** The if icmplt. */
+    int IF_ICMPLT = 161; // -
+    /** The if icmpge. */
+    int IF_ICMPGE = 162; // -
+    /** The if icmpgt. */
+    int IF_ICMPGT = 163; // -
+    /** The if icmple. */
+    int IF_ICMPLE = 164; // -
+    /** The if acmpeq. */
+    int IF_ACMPEQ = 165; // -
+    /** The if acmpne. */
+    int IF_ACMPNE = 166; // -
+    /** The goto. */
+    int GOTO = 167; // -
+    /** The jsr. */
+    int JSR = 168; // -
+    /** The ret. */
+    int RET = 169; // visitVarInsn
+    /** The tableswitch. */
+    int TABLESWITCH = 170; // visiTableSwitchInsn
+    /** The lookupswitch. */
+    int LOOKUPSWITCH = 171; // visitLookupSwitch
+    /** The ireturn. */
+    int IRETURN = 172; // visitInsn
+    /** The lreturn. */
+    int LRETURN = 173; // -
+    /** The freturn. */
+    int FRETURN = 174; // -
+    /** The dreturn. */
+    int DRETURN = 175; // -
+    /** The areturn. */
+    int ARETURN = 176; // -
+    /** The return. */
+    int RETURN = 177; // -
+    /** The getstatic. */
+    int GETSTATIC = 178; // visitFieldInsn
+    /** The putstatic. */
+    int PUTSTATIC = 179; // -
+    /** The getfield. */
+    int GETFIELD = 180; // -
+    /** The putfield. */
+    int PUTFIELD = 181; // -
+    /** The invokevirtual. */
+    int INVOKEVIRTUAL = 182; // visitMethodInsn
+    /** The invokespecial. */
+    int INVOKESPECIAL = 183; // -
+    /** The invokestatic. */
+    int INVOKESTATIC = 184; // -
+    /** The invokeinterface. */
+    int INVOKEINTERFACE = 185; // -
+    // int UNUSED = 186; // NOT VISITED
+    /** The new. */
+    int NEW = 187; // visitTypeInsn
+    /** The newarray. */
+    int NEWARRAY = 188; // visitIntInsn
+    /** The anewarray. */
+    int ANEWARRAY = 189; // visitTypeInsn
+    /** The arraylength. */
+    int ARRAYLENGTH = 190; // visitInsn
+    /** The athrow. */
+    int ATHROW = 191; // -
+    /** The checkcast. */
+    int CHECKCAST = 192; // visitTypeInsn
+    /** The instanceof. */
+    int INSTANCEOF = 193; // -
+    /** The monitorenter. */
+    int MONITORENTER = 194; // visitInsn
+    /** The monitorexit. */
+    int MONITOREXIT = 195; // -
+    // int WIDE = 196; // NOT VISITED
+    /** The multianewarray. */
+    int MULTIANEWARRAY = 197; // visitMultiANewArrayInsn
+    /** The ifnull. */
+    int IFNULL = 198; // visitJumpInsn
+    /** The ifnonnull. */
+    int IFNONNULL = 199; // -
+    // int GOTO_W = 200; // -
+    // int JSR_W = 201; // -
 }

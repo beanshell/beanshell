@@ -23,44 +23,57 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
 /**
-	Implement casts.
-
-	I think it should be possible to simplify some of the code here by
-	using the Types.getAssignableForm() method, but I haven't looked 
-	into it.
-*/
+ * Implement casts.
+ *
+ * I think it should be possible to simplify some of the code here by
+ * using the Types.getAssignableForm() method, but I haven't looked
+ * into it.
+ */
 class BSHCastExpression extends SimpleNode {
 
-    public BSHCastExpression(int id) { super(id); }
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
 
-	/**
-		@return the result of the cast.
-	*/
-	public Object eval(
-		CallStack callstack, Interpreter interpreter ) throws EvalError
-    {
-		NameSpace namespace = callstack.top();
-        Class toType = ((BSHType)jjtGetChild(0)).getType( 
-			callstack, interpreter );
-		SimpleNode expression = (SimpleNode)jjtGetChild(1);
-
-        // evaluate the expression
-        Object fromValue = expression.eval(callstack, interpreter);
-        Class fromType = fromValue.getClass();
-
-		// TODO: need to add isJavaCastable() test for strictJava
-		// (as opposed to isJavaAssignable())
-		try {
-			return Types.castObject( fromValue, toType, Types.CAST );
-		} catch ( UtilEvalError e ) {
-			throw e.toEvalError( this, callstack  );
-		}
+    /**
+     * Instantiates a new BSH cast expression.
+     *
+     * @param id
+     *            the id
+     */
+    public BSHCastExpression(final int id) {
+        super(id);
     }
 
+    /**
+     * Eval.
+     *
+     * @param callstack
+     *            the callstack
+     * @param interpreter
+     *            the interpreter
+     * @return the result of the cast.
+     * @throws EvalError
+     *             the eval error
+     */
+    @Override
+    public Object eval(final CallStack callstack, final Interpreter interpreter)
+            throws EvalError {
+        callstack.top();
+        final Class toType = ((BSHType) this.jjtGetChild(0)).getType(callstack,
+                interpreter);
+        final SimpleNode expression = (SimpleNode) this.jjtGetChild(1);
+        // evaluate the expression
+        final Object fromValue = expression.eval(callstack, interpreter);
+        fromValue.getClass();
+        // TODO: need to add isJavaCastable() test for strictJava
+        // (as opposed to isJavaAssignable())
+        try {
+            return Types.castObject(fromValue, toType, Types.CAST);
+        } catch (final UtilEvalError e) {
+            throw e.toEvalError(this, callstack);
+        }
+    }
 }

@@ -23,78 +23,120 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh;
 
-class BSHTypedVariableDeclaration extends SimpleNode
-{
-	public Modifiers modifiers;
-	
-    BSHTypedVariableDeclaration(int id) { super(id); }
+/**
+ * The Class BSHTypedVariableDeclaration.
+ */
+class BSHTypedVariableDeclaration extends SimpleNode {
 
-	private BSHType getTypeNode() {
-		return ((BSHType)jjtGetChild(0));
-	}
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+    /** The modifiers. */
+    public Modifiers modifiers;
 
-	Class evalType( CallStack callstack, Interpreter interpreter )
-		throws EvalError
-	{
-		BSHType typeNode = getTypeNode();
-		return typeNode.getType( callstack, interpreter );
-	}
+    /**
+     * Instantiates a new BSH typed variable declaration.
+     *
+     * @param id
+     *            the id
+     */
+    BSHTypedVariableDeclaration(final int id) {
+        super(id);
+    }
 
-	BSHVariableDeclarator [] getDeclarators() 
-	{
-		int n = jjtGetNumChildren();
-		int start=1;
-		BSHVariableDeclarator [] bvda = new BSHVariableDeclarator[ n-start ];
-		for (int i = start; i < n; i++)
-		{
-			bvda[i-start] = (BSHVariableDeclarator)jjtGetChild(i);
-		}
-		return bvda;
-	}
+    /**
+     * Gets the type node.
+     *
+     * @return the type node
+     */
+    private BSHType getTypeNode() {
+        return (BSHType) this.jjtGetChild(0);
+    }
 
-	/**
-		evaluate the type and one or more variable declarators, e.g.:
-			int a, b=5, c;
-	*/
-    public Object eval( CallStack callstack, Interpreter interpreter)  
-		throws EvalError
-    {
-		try {
-			NameSpace namespace = callstack.top();
-			BSHType typeNode = getTypeNode();
-			Class type = typeNode.getType( callstack, interpreter );
+    /**
+     * Eval type.
+     *
+     * @param callstack
+     *            the callstack
+     * @param interpreter
+     *            the interpreter
+     * @return the class
+     * @throws EvalError
+     *             the eval error
+     */
+    Class evalType(final CallStack callstack, final Interpreter interpreter)
+            throws EvalError {
+        final BSHType typeNode = this.getTypeNode();
+        return typeNode.getType(callstack, interpreter);
+    }
 
-			BSHVariableDeclarator [] bvda = getDeclarators();
-			for (int i = 0; i < bvda.length; i++)
-			{
-				BSHVariableDeclarator dec = bvda[i];
+    /**
+     * Gets the declarators.
+     *
+     * @return the declarators
+     */
+    BSHVariableDeclarator[] getDeclarators() {
+        final int n = this.jjtGetNumChildren();
+        final int start = 1;
+        final BSHVariableDeclarator[] bvda = new BSHVariableDeclarator[n
+                - start];
+        for (int i = start; i < n; i++)
+            bvda[i - start] = (BSHVariableDeclarator) this.jjtGetChild(i);
+        return bvda;
+    }
 
-				// Type node is passed down the chain for array initializers
-				// which need it under some circumstances
-				Object value = dec.eval( typeNode, callstack, interpreter);
-
-				try {
-					namespace.setTypedVariable( 
-						dec.name, type, value, modifiers );
-				} catch ( UtilEvalError e ) { 
-					throw e.toEvalError( this, callstack ); 
-				}
-			}
-		} catch ( EvalError e ) {
-			e.reThrow( "Typed variable declaration" );
-		}
-
+    /**
+     * Evaluate the type and one or more variable declarators, e.g.
+     * int a, b=5, c;
+     *
+     * @param callstack
+     *            the callstack
+     * @param interpreter
+     *            the interpreter
+     * @return the object
+     * @throws EvalError
+     *             the eval error
+     */
+    @Override
+    public Object eval(final CallStack callstack, final Interpreter interpreter)
+            throws EvalError {
+        try {
+            final NameSpace namespace = callstack.top();
+            final BSHType typeNode = this.getTypeNode();
+            final Class type = typeNode.getType(callstack, interpreter);
+            final BSHVariableDeclarator[] bvda = this.getDeclarators();
+            for (final BSHVariableDeclarator dec : bvda) {
+                // Type node is passed down the chain for array initializers
+                // which need it under some circumstances
+                final Object value = dec.eval(typeNode, callstack, interpreter);
+                try {
+                    namespace.setTypedVariable(dec.name, type, value,
+                            this.modifiers);
+                } catch (final UtilEvalError e) {
+                    throw e.toEvalError(this, callstack);
+                }
+            }
+        } catch (final EvalError e) {
+            e.reThrow("Typed variable declaration");
+        }
         return Primitive.VOID;
     }
 
-	public String getTypeDescriptor( 
-		CallStack callstack, Interpreter interpreter, String defaultPackage ) 
-	{ 
-		return getTypeNode().getTypeDescriptor( 
-			callstack, interpreter, defaultPackage );
-	}
+    /**
+     * Gets the type descriptor.
+     *
+     * @param callstack
+     *            the callstack
+     * @param interpreter
+     *            the interpreter
+     * @param defaultPackage
+     *            the default package
+     * @return the type descriptor
+     */
+    public String getTypeDescriptor(final CallStack callstack,
+            final Interpreter interpreter, final String defaultPackage) {
+        return this.getTypeNode().getTypeDescriptor(callstack, interpreter,
+                defaultPackage);
+    }
 }

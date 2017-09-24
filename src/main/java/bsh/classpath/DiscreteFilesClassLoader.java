@@ -23,67 +23,88 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.classpath;
 
-import java.io.*;
-import java.io.File;
-import java.util.*;
-import java.awt.*;
+import java.util.HashMap;
+
 import bsh.BshClassManager;
 import bsh.classpath.BshClassPath.ClassSource;
-import bsh.classpath.BshClassPath.DirClassSource;
-import bsh.classpath.BshClassPath.GeneratedClassSource;
 
 /**
-	A classloader which can load one or more classes from specified sources.
-	Because the classes are loaded via a single classloader they change as a
-	group and any versioning cross dependencies can be managed.
-*/
-public class DiscreteFilesClassLoader extends BshClassLoader 
-{
-	/**
-		Map of class sources which also implies our coverage space.
-	*/
-	ClassSourceMap map;
+ * A classloader which can load one or more classes from specified sources.
+ * Because the classes are loaded via a single classloader they change as a
+ * group and any versioning cross dependencies can be managed.
+ */
+public class DiscreteFilesClassLoader extends BshClassLoader {
 
-	public static class ClassSourceMap extends HashMap 
-	{
-		public void put( String name, ClassSource source ) {
-			super.put( name, source );
-		}
-		public ClassSource get( String name ) {
-			return (ClassSource)super.get( name );
-		}
-	}
-	
-	public DiscreteFilesClassLoader( 
-		BshClassManager classManager, ClassSourceMap map ) 
-	{
-		super( classManager );
-		this.map = map;
-	}
+    /**
+     * Map of class sources which also implies our coverage space.
+     */
+    ClassSourceMap map;
 
-	/**
-	*/
-	public Class findClass( String name ) throws ClassNotFoundException 
-	{
-		// Load it if it's one of our classes
-		ClassSource source = map.get( name );
+    /**
+     * The Class ClassSourceMap.
+     */
+    public static class ClassSourceMap extends HashMap {
 
-		if ( source != null )
-		{
-			byte [] code = source.getCode( name );
-			return defineClass( name, code, 0, code.length );
-		} else
-			// Let superclass BshClassLoader (URLClassLoader) findClass try 
-			// to find the class...
-			return super.findClass( name );
-	}
+        /** The Constant serialVersionUID. */
+        private static final long serialVersionUID = 1L;
 
-	public String toString() {
-		return super.toString() + "for files: "+map;
-	}
+        /**
+         * Put.
+         *
+         * @param name
+         *            the name
+         * @param source
+         *            the source
+         */
+        public void put(final String name, final ClassSource source) {
+            super.put(name, source);
+        }
 
+        /**
+         * Gets the.
+         *
+         * @param name
+         *            the name
+         * @return the class source
+         */
+        public ClassSource get(final String name) {
+            return (ClassSource) super.get(name);
+        }
+    }
+
+    /**
+     * Instantiates a new discrete files class loader.
+     *
+     * @param classManager
+     *            the class manager
+     * @param map
+     *            the map
+     */
+    public DiscreteFilesClassLoader(final BshClassManager classManager,
+            final ClassSourceMap map) {
+        super(classManager);
+        this.map = map;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Class findClass(final String name) throws ClassNotFoundException {
+        // Load it if it's one of our classes
+        final ClassSource source = this.map.get(name);
+        if (source != null) {
+            final byte[] code = source.getCode(name);
+            return this.defineClass(name, code, 0, code.length);
+        } else
+            // Let superclass BshClassLoader (URLClassLoader) findClass try
+            // to find the class...
+            return super.findClass(name);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        return super.toString() + "for files: " + this.map;
+    }
 }

@@ -17,22 +17,31 @@
  * under the License.                                                        *
  *                                                                           *
 /****************************************************************************/
-
 package bsh;
+
+import java.io.File;
 
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import java.io.File;
-
+/**
+ * The Class Class3_Test.
+ */
 @RunWith(FilteredTestRunner.class)
 public class Class3_Test {
 
+    /**
+     * Run script class 3.
+     *
+     * @throws Exception
+     *             the exception
+     */
     @Test
     @Category(KnownIssue.class)
     public void run_script_class3() throws Exception {
-        new OldScriptsTest.TestBshScript(new File("src/test/resources/test-scripts/class3.bsh")).runTest();
+        new OldScriptsTest.TestBshScript(
+                new File("src/test/resources/test-scripts/class3.bsh"))
+                        .runTest();
     }
-
 }

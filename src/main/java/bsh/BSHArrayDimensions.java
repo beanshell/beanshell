@@ -23,120 +23,150 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
 import java.lang.reflect.Array;
 
 /**
-	The name of this class is somewhat misleading.  This covers both the case
-	where there is an array initializer and 
-*/
-class BSHArrayDimensions extends SimpleNode
-{
-	public Class baseType;
+ * The name of this class is somewhat misleading. This covers both the case
+ * where there is an array initializer and
+ */
+class BSHArrayDimensions extends SimpleNode {
+
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+    /** The base type. */
+    public Class baseType;
+    /** The num defined dims. */
     public int numDefinedDims;
+    /** The num undefined dims. */
     public int numUndefinedDims;
-	/** 
-		The Length in each defined dimension.  This value set by the eval() 
-		Since the values can come from Expressions we should be re-eval()d each
-		time.
-	*/
-	public int [] definedDimensions;  
+    /**
+     * The Length in each defined dimension. This value set by the eval()
+     * Since the values can come from Expressions we should be re-eval()d each
+     * time.
+     */
+    public int[] definedDimensions;
 
-    BSHArrayDimensions(int id) { super(id); }
+    /**
+     * Instantiates a new BSH array dimensions.
+     *
+     * @param id
+     *            the id
+     */
+    BSHArrayDimensions(final int id) {
+        super(id);
+    }
 
-    public void addDefinedDimension() { numDefinedDims++; }
-    public void addUndefinedDimension() { numUndefinedDims++; }
+    /**
+     * Adds the defined dimension.
+     */
+    public void addDefinedDimension() {
+        this.numDefinedDims++;
+    }
 
-    public Object eval( 
-			Class type, CallStack callstack, Interpreter interpreter ) 
-		throws EvalError 
-	{
-		if ( Interpreter.DEBUG ) Interpreter.debug("array base type = "+type);
-		baseType = type;
-		return eval( callstack, interpreter );
-	}
+    /**
+     * Adds the undefined dimension.
+     */
+    public void addUndefinedDimension() {
+        this.numUndefinedDims++;
+    }
 
-	/**
-		Evaluate the structure of the array in one of two ways:
+    /**
+     * Eval.
+     *
+     * @param type
+     *            the type
+     * @param callstack
+     *            the callstack
+     * @param interpreter
+     *            the interpreter
+     * @return the object
+     * @throws EvalError
+     *             the eval error
+     */
+    public Object eval(final Class type, final CallStack callstack,
+            final Interpreter interpreter) throws EvalError {
+        if (Interpreter.DEBUG)
+            Interpreter.debug("array base type = " + type);
+        this.baseType = type;
+        return this.eval(callstack, interpreter);
+    }
 
-			a) an initializer exists, evaluate it and return
-			the fully constructed array object, also record the dimensions
-			of that array
-			
-			b) evaluate and record the lengths in each dimension and 
-			return void.
-
-		The structure of the array dims is maintained in dimensions.
-	*/
-    public Object eval( CallStack callstack, Interpreter interpreter )  
-		throws EvalError
-    {
-		SimpleNode child = (SimpleNode)jjtGetChild(0);
-
-		/*
-			Child is array initializer.  Evaluate it and fill in the 
-			dimensions it returns.  Initialized arrays are always fully defined
-			(no undefined dimensions to worry about).  
-			The syntax uses the undefinedDimension count.
-			e.g. int [][] { 1, 2 };
-		*/
-		if (child instanceof BSHArrayInitializer)
-		{
-			if ( baseType == null )
-				throw new EvalError( 
-					"Internal Array Eval err:  unknown base type", 
-					this, callstack );
-
-			Object initValue = ((BSHArrayInitializer)child).eval(
-				baseType, numUndefinedDims, callstack, interpreter);
-
-			Class arrayClass = initValue.getClass();
-			int actualDimensions = Reflect.getArrayDimensions(arrayClass);
-			definedDimensions = new int[ actualDimensions ];
-
-			// Compare with number of dimensions actually created with the
-			// number specified (syntax uses the undefined ones here)
-			if ( definedDimensions.length != numUndefinedDims )
-				throw new EvalError(
-				"Incompatible initializer. Allocation calls for a " + 
-				numUndefinedDims+ " dimensional array, but initializer is a " +
-					actualDimensions + " dimensional array", this, callstack );
-
-			// fill in definedDimensions [] lengths
-			Object arraySlice = initValue;
-			for ( int i = 0; i < definedDimensions.length; i++ ) {
-				definedDimensions[i] = Array.getLength( arraySlice );
-				if ( definedDimensions[i] > 0 )
-					arraySlice = Array.get(arraySlice, 0);
-			}
-
-			return initValue;
-		}
-		else 
-		// Evaluate the defined dimensions of the array
-		{
-			definedDimensions = new int[ numDefinedDims ];
-
-			for(int i = 0; i < numDefinedDims; i++)
-			{
-				try {
-					Object length = ((SimpleNode)jjtGetChild(i)).eval(
-						callstack, interpreter);
-					definedDimensions[i] = ((Primitive)length).intValue();
-				}
-				catch(Exception e)
-				{
-					throw new EvalError(
-						"Array index: " + i + 
-						" does not evaluate to an integer", this, callstack );
-				}
-			}
-		}
-
+    /**
+     * Evaluate the structure of the array in one of two ways:
+     *
+     * a) an initializer exists, evaluate it and return
+     * the fully constructed array object, also record the dimensions
+     * of that array
+     *
+     * b) evaluate and record the lengths in each dimension and
+     * return void.
+     *
+     * The structure of the array dims is maintained in dimensions.
+     *
+     * @param callstack
+     *            the callstack
+     * @param interpreter
+     *            the interpreter
+     * @return the object
+     * @throws EvalError
+     *             the eval error
+     */
+    @Override
+    public Object eval(final CallStack callstack, final Interpreter interpreter)
+            throws EvalError {
+        final SimpleNode child = (SimpleNode) this.jjtGetChild(0);
+        /*
+         * Child is array initializer. Evaluate it and fill in the
+         * dimensions it returns. Initialized arrays are always fully defined
+         * (no undefined dimensions to worry about).
+         * The syntax uses the undefinedDimension count.
+         * e.g. int [][] { 1, 2 };
+         */
+        if (child instanceof BSHArrayInitializer) {
+            if (this.baseType == null)
+                throw new EvalError(
+                        "Internal Array Eval err:  unknown base type", this,
+                        callstack);
+            final Object initValue = ((BSHArrayInitializer) child).eval(
+                    this.baseType, this.numUndefinedDims, callstack,
+                    interpreter);
+            final Class arrayClass = initValue.getClass();
+            final int actualDimensions = Reflect.getArrayDimensions(arrayClass);
+            this.definedDimensions = new int[actualDimensions];
+            // Compare with number of dimensions actually created with the
+            // number specified (syntax uses the undefined ones here)
+            if (this.definedDimensions.length != this.numUndefinedDims)
+                throw new EvalError(
+                        "Incompatible initializer. Allocation calls for a "
+                                + this.numUndefinedDims
+                                + " dimensional array, but initializer is a "
+                                + actualDimensions + " dimensional array",
+                        this, callstack);
+            // fill in definedDimensions [] lengths
+            Object arraySlice = initValue;
+            for (int i = 0; i < this.definedDimensions.length; i++) {
+                this.definedDimensions[i] = Array.getLength(arraySlice);
+                if (this.definedDimensions[i] > 0)
+                    arraySlice = Array.get(arraySlice, 0);
+            }
+            return initValue;
+        } else {
+            // Evaluate the defined dimensions of the array
+            this.definedDimensions = new int[this.numDefinedDims];
+            for (int i = 0; i < this.numDefinedDims; i++)
+                try {
+                    final Object length = ((SimpleNode) this.jjtGetChild(i))
+                            .eval(callstack, interpreter);
+                    this.definedDimensions[i] = ((Primitive) length).intValue();
+                } catch (final Exception e) {
+                    throw new EvalError(
+                            "Array index: " + i
+                                    + " does not evaluate to an integer",
+                            this, callstack);
+                }
+        }
         return Primitive.VOID;
     }
 }

@@ -23,21 +23,35 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh;
 
+/**
+ * The Class BSHSwitchLabel.
+ */
 class BSHSwitchLabel extends SimpleNode {
-	boolean isDefault;
 
-	public BSHSwitchLabel(int id) { super(id); }
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+    /** The is default. */
+    boolean isDefault;
 
-	public Object eval(
-		CallStack callstack, Interpreter interpreter) throws EvalError
-	{
-		if ( isDefault )
-			return null; // should probably error
-		SimpleNode label = ((SimpleNode)jjtGetChild(0));
-		return label.eval( callstack, interpreter );
-	}
+    /**
+     * Instantiates a new BSH switch label.
+     *
+     * @param id
+     *            the id
+     */
+    public BSHSwitchLabel(final int id) {
+        super(id);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Object eval(final CallStack callstack, final Interpreter interpreter)
+            throws EvalError {
+        if (this.isDefault)
+            return null; // should probably error
+        final SimpleNode label = (SimpleNode) this.jjtGetChild(0);
+        return label.eval(callstack, interpreter);
+    }
 }

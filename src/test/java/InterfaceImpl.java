@@ -1,10 +1,30 @@
+/**
+ * The Class InterfaceImpl.
+ */
+public class InterfaceImpl implements Interface {
 
-public class InterfaceImpl implements Interface
-{
-	public String getString() { return "foo"; }
-	public Integer getInteger() { return new Integer(5); }
-	public int getPrimitiveInt() { return 7; }
-	public boolean getPrimitiveBool() { return true; }
-	public Object getNull() { return null; }
+    /** {@inheritDoc} */
+    public String getString() {
+        return "foo";
+    }
+
+    /** {@inheritDoc} */
+    public Integer getInteger() {
+        return new Integer(5);
+    }
+
+    /** {@inheritDoc} */
+    public int getPrimitiveInt() {
+        return 7;
+    }
+
+    /** {@inheritDoc} */
+    public boolean getPrimitiveBool() {
+        return true;
+    }
+
+    /** {@inheritDoc} */
+    public Object getNull() {
+        return null;
+    }
 }
-

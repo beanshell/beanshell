@@ -12,23 +12,23 @@ a=new Accessibility2();
 
 setAccessibility(false);
 
-assert( Fields.propTest == 22 );
+assert(Fields.propTest == 22);
 assert(Accessibility2.sfield4==4);
 
 /*
-	package mypackage;
-	class A { public static field; }
-	public class B extends A { }
+    package mypackage;
+    class A { public static field; }
+    public class B extends A { }
 
-	Should 'field' of non-public A be accessible through public class B?
-	javac would allow this, but reflection API only works with accessibility on
+    Should 'field' of non-public A be accessible through public class B?
+    javac would allow this, but reflection API only works with accessibility on
 */
 //assert(Accessibility2.supersfield4==4);
 
 javax.swing.JInternalFrame.DO_NOTHING_ON_CLOSE;
 
-assert( isEvalError("a.get1()") );
-assert( isEvalError("a.field1") );
+assert(isEvalError("a.get1()"));
+assert(isEvalError("a.field1"));
 
 //
 // With accessibility

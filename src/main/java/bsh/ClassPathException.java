@@ -23,11 +23,23 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh;
 
+/**
+ * The Class ClassPathException.
+ */
 public class ClassPathException extends UtilEvalError {
-	public ClassPathException( String msg ) { super(msg); }
-}
 
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * Instantiates a new class path exception.
+     *
+     * @param msg
+     *            the msg
+     */
+    public ClassPathException(final String msg) {
+        super(msg);
+    }
+}

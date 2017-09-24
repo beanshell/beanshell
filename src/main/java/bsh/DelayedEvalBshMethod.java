@@ -23,78 +23,121 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh;
 
-public class DelayedEvalBshMethod extends BshMethod
-{
-	String returnTypeDescriptor;
-	BSHReturnType returnTypeNode;
-	String [] paramTypeDescriptors;
-	BSHFormalParameters paramTypesNode;
+/**
+ * The Class DelayedEvalBshMethod.
+ */
+public class DelayedEvalBshMethod extends BshMethod {
 
-	// used for the delayed evaluation...
-	transient CallStack callstack;
-	transient Interpreter interpreter;
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+    /** The return type descriptor. */
+    String returnTypeDescriptor;
+    /** The return type node. */
+    BSHReturnType returnTypeNode;
+    /** The param type descriptors. */
+    String[] paramTypeDescriptors;
+    /** The param types node. */
+    BSHFormalParameters paramTypesNode;
+    /** The callstack. */
+    // used for the delayed evaluation...
+    transient CallStack callstack;
+    /** The interpreter. */
+    transient Interpreter interpreter;
 
-	/**
-		This constructor is used in class generation.  It supplies String type
-		descriptors for return and parameter class types and allows delay of 
-		the evaluation of those types until they are requested.  It does this
-		by holding BSHType nodes, as well as an evaluation callstack, and
-		interpreter which are called when the class types are requested. 
-	*/
-	/*
-		Note: technically I think we could get by passing in only the
-		current namespace or perhaps BshClassManager here instead of 
-		CallStack and Interpreter.  However let's just play it safe in case
-		of future changes - anywhere you eval a node you need these.
-	*/
-	DelayedEvalBshMethod( 
-		String name, 
-		String returnTypeDescriptor, BSHReturnType returnTypeNode,
-		String [] paramNames,
-		String [] paramTypeDescriptors, BSHFormalParameters paramTypesNode,
-		BSHBlock methodBody, 
-		NameSpace declaringNameSpace, Modifiers modifiers,
-		CallStack callstack, Interpreter interpreter
-	) {
-		super( name, null/*returnType*/, paramNames, null/*paramTypes*/,
-			methodBody, declaringNameSpace, modifiers );
+    /**
+     * This constructor is used in class generation. It supplies String type
+     * descriptors for return and parameter class types and allows delay of
+     * the evaluation of those types until they are requested. It does this
+     * by holding BSHType nodes, as well as an evaluation callstack, and
+     * interpreter which are called when the class types are requested.
+     *
+     * @param name
+     *            the name
+     * @param returnTypeDescriptor
+     *            the return type descriptor
+     * @param returnTypeNode
+     *            the return type node
+     * @param paramNames
+     *            the param names
+     * @param paramTypeDescriptors
+     *            the param type descriptors
+     * @param paramTypesNode
+     *            the param types node
+     * @param methodBody
+     *            the method body
+     * @param declaringNameSpace
+     *            the declaring name space
+     * @param modifiers
+     *            the modifiers
+     * @param callstack
+     *            the callstack
+     * @param interpreter
+     *            the interpreter
+     *
+     * Note: technically I think we could get by passing in only the
+     * current namespace or perhaps BshClassManager here instead of
+     * CallStack and Interpreter. However let's just play it safe in case
+     * of future changes - anywhere you eval a node you need these.
+     */
+    DelayedEvalBshMethod(final String name, final String returnTypeDescriptor,
+            final BSHReturnType returnTypeNode, final String[] paramNames,
+            final String[] paramTypeDescriptors,
+            final BSHFormalParameters paramTypesNode, final BSHBlock methodBody,
+            final NameSpace declaringNameSpace, final Modifiers modifiers,
+            final CallStack callstack, final Interpreter interpreter) {
+        super(name, null/* returnType */, paramNames, null/* paramTypes */,
+                methodBody, declaringNameSpace, modifiers);
+        this.returnTypeDescriptor = returnTypeDescriptor;
+        this.returnTypeNode = returnTypeNode;
+        this.paramTypeDescriptors = paramTypeDescriptors;
+        this.paramTypesNode = paramTypesNode;
+        this.callstack = callstack;
+        this.interpreter = interpreter;
+    }
 
-		this.returnTypeDescriptor = returnTypeDescriptor;
-		this.returnTypeNode = returnTypeNode;
-		this.paramTypeDescriptors = paramTypeDescriptors;
-		this.paramTypesNode = paramTypesNode;
-		this.callstack = callstack;
-		this.interpreter = interpreter;
-	}
+    /**
+     * Gets the return type descriptor.
+     *
+     * @return the return type descriptor
+     */
+    public String getReturnTypeDescriptor() {
+        return this.returnTypeDescriptor;
+    }
 
-	public String getReturnTypeDescriptor() { return returnTypeDescriptor; }
+    /** {@inheritDoc} */
+    @Override
+    public Class getReturnType() {
+        if (this.returnTypeNode == null)
+            return null;
+        // BSHType will cache the type for us
+        try {
+            return this.returnTypeNode.evalReturnType(this.callstack,
+                    this.interpreter);
+        } catch (final EvalError e) {
+            throw new InterpreterError("can't eval return type: " + e);
+        }
+    }
 
-	public Class getReturnType() 
-	{ 
-		if ( returnTypeNode == null )
-			return null;
+    /**
+     * Gets the param type descriptors.
+     *
+     * @return the param type descriptors
+     */
+    public String[] getParamTypeDescriptors() {
+        return this.paramTypeDescriptors;
+    }
 
-		// BSHType will cache the type for us
-		try {
-			return returnTypeNode.evalReturnType( callstack, interpreter );
-		} catch ( EvalError e ) {
-			throw new InterpreterError("can't eval return type: "+e);
-		}
-	}
-
-	public String [] getParamTypeDescriptors() { return paramTypeDescriptors; }
-
-	public Class [] getParameterTypes() 
-	{ 
-		// BSHFormalParameters will cache the type for us
-		try {
-			return (Class [])paramTypesNode.eval( callstack, interpreter );
-		} catch ( EvalError e ) {
-			throw new InterpreterError("can't eval param types: "+e);
-		}
-	}
+    /** {@inheritDoc} */
+    @Override
+    public Class[] getParameterTypes() {
+        // BSHFormalParameters will cache the type for us
+        try {
+            return (Class[]) this.paramTypesNode.eval(this.callstack,
+                    this.interpreter);
+        } catch (final EvalError e) {
+            throw new InterpreterError("can't eval param types: " + e);
+        }
+    }
 }

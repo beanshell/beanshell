@@ -1,18 +1,29 @@
 /**
-	test misc. generation of exceptions
-*/
+ * test misc. generation of exceptions
+ */
 public class Exceptions {
 
-	public static void throwRuntime() {
-		throw new RuntimeException();
-	}
+    /**
+     * Throw runtime.
+     */
+    public static void throwRuntime() {
+        throw new RuntimeException();
+    }
 
-	public static void throwArithmetic() {
-		throw new ArithmeticException();
-	}
+    /**
+     * Throw arithmetic.
+     */
+    public static void throwArithmetic() {
+        throw new ArithmeticException();
+    }
 
-	public static void throwException() throws Exception {
-		throw new Exception();
-	}
-
+    /**
+     * Throw exception.
+     *
+     * @throws Exception
+     *             the exception
+     */
+    public static void throwException() throws Exception {
+        throw new Exception();
+    }
 }

@@ -23,42 +23,46 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.util;
 
 import java.applet.Applet;
+import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.*;
-import java.io.*;
-import java.net.*;
+import java.awt.Label;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.net.URL;
 
 /**
-	A lightweight console applet for remote display of a Beanshell session.
-*/
-public class AWTRemoteApplet extends Applet
-{
-	OutputStream out;
-	InputStream in;
+ * A lightweight console applet for remote display of a Beanshell session.
+ */
+public class AWTRemoteApplet extends Applet {
 
-	public void init() 
-	{
-		setLayout(new BorderLayout());
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+    /** The out. */
+    OutputStream out;
+    /** The in. */
+    InputStream in;
 
-		try {
-			URL base = getDocumentBase();
-
-			// connect to session server on port (httpd + 1)
-			Socket s = new Socket(base.getHost(), base.getPort() + 1);
-			out = s.getOutputStream();
-			in = s.getInputStream();
-		} catch(IOException e) {
-			add("Center", new Label("Remote Connection Failed", Label.CENTER));
-			return;
-		}
-
-		Component console = new AWTConsole(in, out);
-		add("Center", console);
-	}
+    /** {@inheritDoc} */
+    @Override
+    public void init() {
+        this.setLayout(new BorderLayout());
+        try {
+            final URL base = this.getDocumentBase();
+            // connect to session server on port (httpd + 1)
+            final Socket s = new Socket(base.getHost(), base.getPort() + 1);
+            this.out = s.getOutputStream();
+            this.in = s.getInputStream();
+        } catch (final IOException e) {
+            this.add("Center",
+                    new Label("Remote Connection Failed", Label.CENTER));
+            return;
+        }
+        final Component console = new AWTConsole(this.in, this.out);
+        this.add("Center", console);
+    }
 }
-

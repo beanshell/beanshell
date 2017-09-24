@@ -23,8 +23,6 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh;
 
 /**
@@ -32,15 +30,28 @@ package bsh;
  */
 public class InterpreterError extends RuntimeException {
 
-    public InterpreterError(String message) {
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * Instantiates a new interpreter error.
+     *
+     * @param message
+     *            the message
+     */
+    public InterpreterError(final String message) {
         super(message);
     }
 
-
-    public InterpreterError(String message, Throwable cause) {
+    /**
+     * Instantiates a new interpreter error.
+     *
+     * @param message
+     *            the message
+     * @param cause
+     *            the cause
+     */
+    public InterpreterError(final String message, final Throwable cause) {
         super(message, cause);
     }
-
-
 }
-

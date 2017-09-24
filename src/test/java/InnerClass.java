@@ -1,15 +1,32 @@
-
+/**
+ * The Class InnerClass.
+ */
 public class InnerClass {
 
-	public static class Inner {
-		public int x = 5;
-		public static int y=6;
+    /**
+     * The Class Inner.
+     */
+    public static class Inner {
 
-		public Inner() { }
+        /** The x. */
+        public int x = 5;
+        /** The y. */
+        public static int y = 6;
 
-		public static class Inner2 {
-			public Inner2() { }
-		}
-	}
+        /**
+         * Instantiates a new inner.
+         */
+        public Inner() {}
 
+        /**
+         * The Class Inner2.
+         */
+        public static class Inner2 {
+
+            /**
+             * Instantiates a new inner 2.
+             */
+            public Inner2() {}
+        }
+    }
 }

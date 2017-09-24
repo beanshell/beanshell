@@ -23,198 +23,232 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.util;
 
-import java.io.*;
-import java.util.StringTokenizer;
-import java.net.Socket;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.StringTokenizer;
 
 /**
-	A very simple httpd that supports the remote server mode.
-	Files are loaded relative to the classpath (as resources).
+ * A very simple httpd that supports the remote server mode.
+ * Files are loaded relative to the classpath (as resources).
+ *
+ * Warning: this is not secure! This server can probably be duped into
+ * serving any file on your system! Beware!
+ *
+ * Note: at some point this should be recast as a beanshell script.
+ */
+public class Httpd extends Thread {
 
-	Warning: this is not secure!  This server can probably be duped into 
-	serving any file on your system!  Beware!
+    /** The ss. */
+    ServerSocket ss;
 
-	Note: at some point this should be recast as a beanshell script.
-*/
-public class Httpd extends Thread
-{
-	ServerSocket ss;
+    /**
+     * The main method.
+     *
+     * @param argv
+     *            the arguments
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
+    public static void main(final String argv[]) throws IOException {
+        new Httpd(Integer.parseInt(argv[0])).start();
+    }
 
-	public static void main(String argv[]) throws IOException
-	{
-		new Httpd(Integer.parseInt(argv[0])).start();
-	}
+    /**
+     * Instantiates a new httpd.
+     *
+     * @param port
+     *            the port
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
+    public Httpd(final int port) throws IOException {
+        this.ss = new ServerSocket(port);
+    }
 
-	public Httpd(int port) throws IOException
-	{
-		ss = new ServerSocket(port);
-	}
-
-	public void run()
-	{
-//		System.out.println("starting httpd...");
-		try
-		{
-			while(true)
-				new HttpdConnection(ss.accept()).start();
-		}
-		catch(IOException e)
-		{
-			System.out.println(e);
-		}
-	}
+    /** {@inheritDoc} */
+    @Override
+    public void run() {
+        // System.out.println("starting httpd...");
+        try {
+            while (true)
+                new HttpdConnection(this.ss.accept()).start();
+        } catch (final IOException e) {
+            System.out.println(e);
+        }
+    }
 }
 
-class HttpdConnection extends Thread
-{
-	Socket client;
-	BufferedReader in;
-	OutputStream out;
-	PrintStream pout;
-	boolean isHttp1;
+/**
+ * The Class HttpdConnectionData.
+ */
+class HttpdConnection extends Thread {
 
-	HttpdConnection(Socket client)
-	{
-		this.client = client;
-		setPriority(NORM_PRIORITY - 1);
-	}
+    /** The client. */
+    public Socket client;
 
-	public void run()
-	{
-		try
-		{
-			in = new BufferedReader( new InputStreamReader(
-				client.getInputStream() ) );
-			out = client.getOutputStream();
-			pout = new PrintStream(out);
+    /** The in. */
+    public BufferedReader in;
 
-			String request = in.readLine();
-			if ( request == null )
-				error(400, "Empty Request");
+    /** The out. */
+    public OutputStream out;
 
-			if(request.toLowerCase().indexOf("http/1.") != -1)
-			{
-				String s;
-				while((!(s = in.readLine()).equals("")) && (s != null))
-				{ ; }
+    /** The pout. */
+    public PrintStream pout;
 
-				isHttp1 = true;
-			}
+    /** The is http 1. */
+    public boolean isHttp1;
 
-			StringTokenizer st = new StringTokenizer(request);
-			if(st.countTokens() < 2) 
-				error(400, "Bad Request");
-			else
-			{
-				String command = st.nextToken();
-				if(command.equals("GET"))
-					serveFile(st.nextToken());
-				else
-					error(400, "Bad Request");
-			}
+    /**
+     * Instantiates a new httpd connection data.
+     *
+     * @param client
+     *            the client
+     */
+    HttpdConnection(final Socket client) {
+        this.client = client;
+        this.setPriority(NORM_PRIORITY - 1);
+    }
 
-			client.close();
-		}
-		catch(IOException e)
-		{
-			System.out.println("I/O error " + e); 
-			try
-			{
-				client.close();
-			}
-			catch(Exception e2) { }
-		}
-	}
+    /** {@inheritDoc} */
+    @Override
+    public void run() {
+        try {
+            this.in = new BufferedReader(
+                    new InputStreamReader(this.client.getInputStream()));
+            this.out = this.client.getOutputStream();
+            this.pout = new PrintStream(this.out);
+            final String request = this.in.readLine();
+            if (request == null)
+                this.error(400, "Empty Request");
+            if (request.toLowerCase().indexOf("http/1.") != -1) {
+                String s;
+                while (!(s = this.in.readLine()).equals("") && s != null);
+                this.isHttp1 = true;
+            }
+            final StringTokenizer st = new StringTokenizer(request);
+            if (st.countTokens() < 2)
+                this.error(400, "Bad Request");
+            else {
+                final String command = st.nextToken();
+                if (command.equals("GET"))
+                    this.serveFile(st.nextToken());
+                else
+                    this.error(400, "Bad Request");
+            }
+            this.client.close();
+        } catch (final IOException e) {
+            System.out.println("I/O error " + e);
+            try {
+                this.client.close();
+            } catch (final Exception e2) {}
+        }
+    }
 
-	private void serveFile(String file) 
-		throws FileNotFoundException, IOException
-	{
-		// Do some mappings
-		if ( file.equals("/") )
-			file = "/remote/remote.html";
+    /**
+     * Serve file.
+     *
+     * @param file
+     *            the file
+     * @throws FileNotFoundException
+     *             the file not found exception
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
+    private void serveFile(String file)
+            throws FileNotFoundException, IOException {
+        // Do some mappings
+        if (file.equals("/"))
+            file = "/remote/remote.html";
+        if (file.startsWith("/remote/"))
+            file = "/bsh/util/lib/" + file.substring(8);
+        /*
+         * if(file.startsWith("/"))
+         * file = file.substring(1);
+         * if(file.endsWith("/") || file.equals(""))
+         * file = file + "index.html";
+         * if(!fileAccessOK(file))
+         * {
+         * error(403, "Forbidden");
+         * return;
+         * }
+         */
+        // don't send java packages over... (e.g. swing)
+        if (file.startsWith("/java"))
+            this.error(404, "Object Not Found");
+        else
+            try {
+                System.out.println("sending file: " + file);
+                this.sendFileData(file);
+            } catch (final FileNotFoundException e) {
+                this.error(404, "Object Not Found");
+            }
+    }
 
-		if ( file.startsWith("/remote/") )
-			file = "/bsh/util/lib/" + file.substring(8);
+    /**
+     * Send file data.
+     *
+     * @param file
+     *            the file
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     * @throws FileNotFoundException
+     *             the file not found exception
+     */
+    private void sendFileData(final String file)
+            throws IOException, FileNotFoundException {
+        /*
+         * Why aren't resources being found when this runs on Win95?
+         */
+        final InputStream fis = this.getClass().getResourceAsStream(file);
+        if (fis == null)
+            throw new FileNotFoundException(file);
+        final byte[] data = new byte[fis.available()];
+        if (this.isHttp1) {
+            this.pout.println("HTTP/1.0 200 Document follows");
+            this.pout.println("Content-length: " + data.length);
+            if (file.endsWith(".gif"))
+                this.pout.println("Content-type: image/gif");
+            else if (file.endsWith(".html") || file.endsWith(".htm"))
+                this.pout.println("Content-Type: text/html");
+            else
+                this.pout.println("Content-Type: application/octet-stream");
+            this.pout.println();
+        }
+        int bytesread = 0;
+        // Never, ever trust available()
+        do {
+            bytesread = fis.read(data);
+            if (bytesread > 0)
+                this.pout.write(data, 0, bytesread);
+        }
+        while (bytesread != -1);
+        this.pout.flush();
+    }
 
-	/*
-		if(file.startsWith("/"))
-			file = file.substring(1);
-		if(file.endsWith("/") || file.equals(""))
-			file = file + "index.html";
-
-		if(!fileAccessOK(file))
-		{
-			error(403, "Forbidden");
-			return;
-		}
-	*/
-
-		// don't send java packages over... (e.g. swing)
-		if ( file.startsWith("/java" ) )
-			error(404, "Object Not Found");
-		else
-			try {
-				System.out.println("sending file: "+file);
-				sendFileData(file);
-			} catch(FileNotFoundException e) {
-				error(404, "Object Not Found");
-			}
-	}
-
-	private void sendFileData(String file) 
-		throws IOException, FileNotFoundException
-	{
-		/*
-			Why aren't resources being found when this runs on Win95?
-		*/
-		InputStream fis = getClass().getResourceAsStream(file);
-		if(fis == null)
-			throw new FileNotFoundException(file);
-		byte[] data = new byte[fis.available()];
-
-		if(isHttp1)
-		{
-			pout.println("HTTP/1.0 200 Document follows");
-
-			pout.println("Content-length: " + data.length );
-
-			if ( file.endsWith(".gif") )
-				pout.println("Content-type: image/gif");
-			else 
-				if( file.endsWith(".html") || file.endsWith(".htm") )
-					pout.println("Content-Type: text/html");
-				else
-					pout.println("Content-Type: application/octet-stream");
-
-			pout.println();
-		}
-
-		int bytesread =	0;
-		// Never, ever trust available()
-		do {
-			bytesread = fis.read(data);
-			if (bytesread > 0)
-				pout.write( data, 0, bytesread );
-		} while( bytesread != -1 );
-		pout.flush();
-	}
-
-	private void error(int num, String s)
-	{
-		s = "<html><h1>" + s + "</h1></html>";
-		if(isHttp1)
-		{
-			pout.println("HTTP/1.0 " + num + " " + s);
-			pout.println("Content-type: text/html");
-			pout.println("Content-length: " + s.length() + "\n");
-		}
-		
-		pout.println(s);
-	}
+    /**
+     * Error.
+     *
+     * @param num
+     *            the num
+     * @param s
+     *            the s
+     */
+    private void error(final int num, String s) {
+        s = "<html><h1>" + s + "</h1></html>";
+        if (this.isHttp1) {
+            this.pout.println("HTTP/1.0 " + num + " " + s);
+            this.pout.println("Content-type: text/html");
+            this.pout.println("Content-length: " + s.length() + "\n");
+        }
+        this.pout.println(s);
+    }
 }
-

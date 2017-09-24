@@ -6,18 +6,18 @@
 
     <pre>
         Map map = new HashMap();
-        importObject( map );
+        importObject(map);
         put("foo", "bar");
-        print( get("foo") ); // "bar"
+        print(get("foo")); // "bar"
     </pre>
 
-    @method void importObject( Object object )
+    @method void importObject(Object object)
 */
 
-bsh.help.importObject = "usage: importObject( Object )";
+bsh.help.importObject = "usage: importObject(Object)";
 
-importObject( Object object ) 
+importObject(Object object)
 {
-	this.caller.namespace.importObject( object );
+    this.caller.namespace.importObject(object);
 }
 

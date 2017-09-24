@@ -7,7 +7,7 @@ a+="bar";
 a+=5;
 a+=null;
 
-assert( a.equals("foobar5null") );
+assert(a.equals("foobar5null"));
 
 b="foo"+"bar"+5;
 

@@ -27,216 +27,290 @@ package bsh.servlet;
 
 /**
 
-	This file is derived from Pat Niemeyer's free utilities package.  
-	Now part of BeanShell.
+    This file is derived from Pat Niemeyer's free utilities package.
+    Now part of BeanShell.
 
-	@see http://www.pat.net/javautil/
-	@version 1.0
-	@author Pat Niemeyer (pat@pat.net)
+    @see http://www.pat.net/javautil/
+    @version 1.0
+    @author Pat Niemeyer (pat@pat.net)
 */
-
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.Reader;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
-	This is	a simple template engine.  An instance of SimpleTemplate wraps
-	a StringBuffer and performs replace operations on one or more parameters
-	embedded as HMTL style comments. The value can then be retrieved as a 
-	String or written to a stream.
+ * This is a simple template engine. An instance of SimpleTemplate wraps
+ * a StringBuffer and performs replace operations on one or more parameters
+ * embedded as HMTL style comments. The value can then be retrieved as a
+ * String or written to a stream.
+ *
+ * Template values in the text are of the form:
+ *
+ * <!-- TEMPLATE-NAME -->
+ *
+ * Substitutions then take the form of:
+ *
+ * template.replace("NAME", value);
+ *
+ * Two static util methods are provided to help read the text of a template
+ * from a stream (perhaps a URL or resource). e.g.
+ *
+ * @author Pat Niemeyer
+ */
+public class SimpleTemplate {
 
-	Template values	in the text are	of the form:
+    /** The buff. */
+    StringBuffer buff;
+    /** The no template. */
+    static String NO_TEMPLATE = "NO_TEMPLATE"; // Flag for non-existent
+    /** The template data. */
+    static Map templateData = new HashMap();
+    /** The cache templates. */
+    static boolean cacheTemplates = true;
 
-		<!-- TEMPLATE-NAME -->
+    /**
+     * Get a template by name, with caching.
+     * Note: this should be updated to search the resource path first, etc.
+     *
+     * Create a new instance of a template from the specified file.
+     *
+     * The file text is cached so lookup is fast. Failure to find the
+     * file is also cached so the read will not happen twice.
+     *
+     * @param file
+     *            the file
+     * @return the template
+     */
+    public static SimpleTemplate getTemplate(final String file) {
+        String templateText = (String) templateData.get(file);
+        if (templateText == null || !cacheTemplates)
+            try {
+                final FileReader fr = new FileReader(file);
+                templateText = SimpleTemplate.getStringFromStream(fr);
+                templateData.put(file, templateText);
+            } catch (final IOException e) {
+                // Not found
+                templateData.put(file, NO_TEMPLATE);
+            }
+        else
+        // Quick check prevents trying each time
+        if (templateText.equals(NO_TEMPLATE))
+            return null;
+        if (templateText == null)
+            return null;
+        else
+            return new SimpleTemplate(templateText);
+    }
 
-	Substitutions then take	the form of:
+    /**
+     * Gets the string from stream.
+     *
+     * @param ins
+     *            the ins
+     * @return the string from stream
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
+    public static String getStringFromStream(final InputStream ins)
+            throws IOException {
+        return getStringFromStream(new InputStreamReader(ins));
+    }
 
-		template.replace( "NAME", value	);
+    /**
+     * Gets the string from stream.
+     *
+     * @param reader
+     *            the reader
+     * @return the string from stream
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
+    public static String getStringFromStream(final Reader reader)
+            throws IOException {
+        final StringBuffer sb = new StringBuffer();
+        final BufferedReader br = new BufferedReader(reader);
+        String line;
+        while ((line = br.readLine()) != null)
+            sb.append(line + "\n");
+        return sb.toString();
+    }
 
-	Two static util	methods	are provided to	help read the text of a	template
-	from a stream (perhaps a URL or	resource).  e.g.
+    /**
+     * Instantiates a new simple template.
+     *
+     * @param template
+     *            the template
+     */
+    public SimpleTemplate(final String template) {
+        this.init(template);
+    }
 
-	@author	Pat Niemeyer
-*/
-public class SimpleTemplate 
-{
-	StringBuffer buff;
-	static String NO_TEMPLATE = "NO_TEMPLATE";	// Flag	for non-existent
-	static Map templateData	= new HashMap();
-	static boolean cacheTemplates =	true;
+    /**
+     * Instantiates a new simple template.
+     *
+     * @param reader
+     *            the reader
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
+    public SimpleTemplate(final Reader reader) throws IOException {
+        final String template = getStringFromStream(reader);
+        this.init(template);
+    }
 
-	/**
-		Get a template by name, with caching.
-		Note: this should be updated to search the resource path first, etc.
+    /**
+     * Instantiates a new simple template.
+     *
+     * @param url
+     *            the url
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
+    public SimpleTemplate(final URL url) throws IOException {
+        final String template = getStringFromStream(url.openStream());
+        this.init(template);
+    }
 
-		Create a new instance of a template from the specified file.
+    /**
+     * Inits the.
+     *
+     * @param s
+     *            the s
+     */
+    private void init(final String s) {
+        this.buff = new StringBuffer(s);
+    }
 
-		The file text is cached	so lookup is fast.  Failure to find the
-		file is	also cached so the read	will not happen	twice.
+    /**
+     * Substitute the specified text for the parameter.
+     *
+     * @param param
+     *            the param
+     * @param value
+     *            the value
+     */
+    public void replace(final String param, final String value) {
+        int[] range;
+        while ((range = this.findTemplate(param)) != null)
+            this.buff.replace(range[0], range[1], value);
+    }
 
-	*/
-	public static SimpleTemplate getTemplate( String file )
-	{
-		String templateText = (String)templateData.get(	file );
+    /**
+     * Find the starting (inclusive) and ending (exclusive) index of the
+     * named template and return them as a two element int [].
+     * Or return null if the param is not found.
+     *
+     * @param name
+     *            the name
+     * @return the int[]
+     */
+    int[] findTemplate(final String name) {
+        final String text = this.buff.toString();
+        final int len = text.length();
+        int start = 0;
+        while (start < len) {
+            // Find begin and end comment
+            final int cstart = text.indexOf("<!--", start);
+            if (cstart == -1)
+                return null; // no more comments
+            int cend = text.indexOf("-->", cstart);
+            if (cend == -1)
+                return null; // no more complete comments
+            cend += "-->".length();
+            // Find template tag
+            final int tstart = text.indexOf("TEMPLATE-", cstart);
+            if (tstart == -1) {
+                start = cend; // try the next comment
+                continue;
+            }
+            // Is the tag inside the comment we found?
+            if (tstart > cend) {
+                start = cend; // try the next comment
+                continue;
+            }
+            // find begin and end of param name
+            final int pstart = tstart + "TEMPLATE-".length();
+            int pend = len;
+            for (pend = pstart; pend < len; pend++) {
+                final char c = text.charAt(pend);
+                if (c == ' ' || c == '\t' || c == '-')
+                    break;
+            }
+            if (pend >= len)
+                return null;
+            final String param = text.substring(pstart, pend);
+            // If it's the correct one, return the comment extent
+            if (param.equals(name))
+                return new int[] {cstart, cend};
+            // System.out.println("Found param: {"+param+"} in comment: "+
+            // text.substring(cstart, cend) +"}");
+            // Else try the next one
+            start = cend;
+        }
+        // Not found
+        return null;
+    }
 
-		if ( templateText == null || !cacheTemplates ) {
-			try {
-				FileReader fr =	new FileReader(	file );
-				templateText = SimpleTemplate.getStringFromStream( fr );
-				templateData.put( file,	templateText );
-			} catch	( IOException e	) {
-				// Not found
-				templateData.put( file,	NO_TEMPLATE );
-			}
-		} else
-			// Quick check prevents	trying each time
-			if ( templateText.equals( NO_TEMPLATE )	)
-				return null;
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        return this.buff.toString();
+    }
 
-		if ( templateText == null )
-			return null;
-		else
-			return new SimpleTemplate( templateText	);
-	}
+    /**
+     * Write.
+     *
+     * @param out
+     *            the out
+     */
+    public void write(final PrintWriter out) {
+        out.println(this.toString());
+    }
 
-	public static String getStringFromStream( InputStream ins )
-		throws IOException
-	{
-		return getStringFromStream( new	InputStreamReader( ins ) );
-	}
+    /**
+     * Write.
+     *
+     * @param out
+     *            the out
+     */
+    public void write(final PrintStream out) {
+        out.println(this.toString());
+    }
 
-	public static String getStringFromStream( Reader reader	) throws IOException {
-		StringBuffer sb	= new StringBuffer();
-		BufferedReader br = new	BufferedReader(	reader );
-		String line;
-		while (	( line = br.readLine() ) != null )
-			sb.append( line	+"\n");
+    /**
+     * usage: filename param value.
+     *
+     * @param args
+     *            the arguments
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
+    public static void main(final String[] args) throws IOException {
+        final String filename = args[0];
+        final String param = args[1];
+        final String value = args[2];
+        final FileReader fr = new FileReader(filename);
+        final String templateText = SimpleTemplate.getStringFromStream(fr);
+        final SimpleTemplate template = new SimpleTemplate(templateText);
+        template.replace(param, value);
+        template.write(System.out);
+    }
 
-		return sb.toString();
-	}
-
-	public SimpleTemplate( String template ) {
-		init(template);
-	}
-
-	public SimpleTemplate( Reader reader ) throws IOException {
-		String template	= getStringFromStream( reader );
-		init(template);
-	}
-
-	public SimpleTemplate( URL url ) throws IOException 
-	{
-		String template	= getStringFromStream( url.openStream() );
-		init(template);
-	}
-
-	private void init( String s ) {
-		buff = new StringBuffer( s );
-	}
-
-	/**
-		Substitute the specified text for the parameter
-	*/
-	public void replace( String param, String value	) {
-		int [] range;
-		while (	(range = findTemplate( param ))	!= null	)
-			buff.replace( range[0],	range[1], value	);
-	}
-
-	/**
-		Find the starting (inclusive) and ending (exclusive) index of the
-		named template and return them as a two	element	int [].
-		Or return null if the param is not found.
-	*/
-	int [] findTemplate( String name ) {
-		String text = buff.toString();
-		int len	= text.length();
-
-		int start = 0;
-
-		while (	start <	len ) {
-
-			// Find	begin and end comment
-			int cstart = text.indexOf( "<!--", start );
-			if ( cstart == -1 )
-				return null;  // no more comments
-			int cend = text.indexOf( "-->",	cstart );
-			if ( cend == -1	)
-				return null;  // no more complete comments
-			cend +=	"-->".length();
-
-			// Find	template tag
-			int tstart = text.indexOf( "TEMPLATE-",	cstart );
-			if ( tstart == -1 ) {
-				start =	cend; // try the next comment
-				continue;
-			}
-
-			// Is the tag inside the comment we found?
-			if ( tstart > cend ) {
-				start =	cend; // try the next comment
-				continue;
-			}
-
-			// find	begin and end of param name
-			int pstart = tstart + "TEMPLATE-".length();
-
-			int pend = len;
-			for ( pend = pstart; pend < len; pend++) {
-				char c = text.charAt( pend );
-				if ( c == ' ' || c == '\t' || c	== '-' )
-					break;
-			}
-			if ( pend >= len )
-				return null;
-
-			String param = text.substring( pstart, pend );
-
-			// If it's the correct one, return the comment extent
-			if ( param.equals( name	) )
-				return new int [] { cstart, cend };
-
-//System.out.println( "Found param: {"+param+"}	in comment: "+ text.substring(cstart, cend) +"}");
-			// Else	try the	next one
-			start =	cend;
-		}
-
-		// Not found
-		return null;
-	}
-
-	public String toString() {
-		return buff.toString();
-	}
-
-	public void write( PrintWriter out ) {
-		out.println( toString()	);
-	}
-
-	public void write( PrintStream out ) {
-		out.println( toString()	);
-	}
-
-	/**
-		usage: filename	param value
-	*/
-	public static void main( String	[] args	) throws IOException
-	{
-		String filename	= args[0];
-		String param = args[1];
-		String value = args[2];
-
-		FileReader fr =	new FileReader(	filename );
-		String templateText = SimpleTemplate.getStringFromStream( fr );
-		SimpleTemplate template	= new SimpleTemplate( templateText );
-
-		template.replace( param, value );
-		template.write(	System.out );
-	}
-
-	public static void setCacheTemplates( boolean b	) {
-		cacheTemplates = b;
-	}
-
+    /**
+     * Sets the cache templates.
+     *
+     * @param b
+     *            the new cache templates
+     */
+    public static void setCacheTemplates(final boolean b) {
+        cacheTemplates = b;
+    }
 }
-

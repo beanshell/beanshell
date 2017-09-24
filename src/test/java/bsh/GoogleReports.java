@@ -17,113 +17,144 @@
  * under the License.                                                        *
  *                                                                           *
 /****************************************************************************/
-
 package bsh;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static bsh.TestUtil.eval;
 import static org.junit.Assert.assertEquals;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+/**
+ * The Class GoogleReports.
+ */
 @RunWith(FilteredTestRunner.class)
 public class GoogleReports {
 
+    /**
+     * While loop.
+     *
+     * @throws Exception
+     *             the exception
+     */
     @Test
     @SuppressWarnings({"ConstantIfStatement"})
     public void while_loop() throws Exception {
         int loopCount = 0;
         do {
             loopCount++;
-            if (loopCount > 100) {
+            if (loopCount > 100)
                 break;
-            }
-            if (true) {
+            if (true)
                 continue;
-            }
-        } while (false);
+        }
+        while (false);
         assertEquals(1, loopCount);
-        loopCount = (Integer) eval("int loopCount = 0;", "do{", "	loopCount++;", "	if (loopCount > 100) break;", "	if (true) continue;", "} while (false);", "return loopCount");
+        loopCount = (Integer) eval("int loopCount = 0;", "do{",
+                "   loopCount++;", "    if (loopCount > 100) break;",
+                " if (true) continue;", "} while (false);", "return loopCount");
         assertEquals(1, loopCount);
-        loopCount = (Integer) eval("int loopCount = 0;", "while (loopCount < 1) {", "	loopCount++;", "	if (loopCount > 100) return loopCount;", "	if (true) continue;", "}", "return loopCount");
+        loopCount = (Integer) eval("int loopCount = 0;",
+                "while (loopCount < 1) {", "   loopCount++;",
+                "    if (loopCount > 100) return loopCount;",
+                "  if (true) continue;", "}", "return loopCount");
         assertEquals(1, loopCount);
-        assertEquals(Boolean.TRUE, eval("while(true) { break; return false; } return true;"));
-        assertEquals(Boolean.TRUE, eval("do { break; return false; } while(true); return true;"));
-        loopCount = (Integer) eval("int loopCount = 0;", "while (++loopCount < 2);", "return loopCount");
+        assertEquals(Boolean.TRUE,
+                eval("while(true) { break; return false; } return true;"));
+        assertEquals(Boolean.TRUE,
+                eval("do { break; return false; } while(true); return true;"));
+        loopCount = (Integer) eval("int loopCount = 0;",
+                "while (++loopCount < 2);", "return loopCount");
         assertEquals(2, loopCount);
-        loopCount = (Integer) eval("int loopCount = 0;", "do { } while (++loopCount < 2);", "return loopCount");
+        loopCount = (Integer) eval("int loopCount = 0;",
+                "do { } while (++loopCount < 2);", "return loopCount");
         assertEquals(2, loopCount);
     }
 
-
     /**
-     * <a href="http://code.google.com/p/beanshell2/issues/detail?id=6">issue#60</a>
+     * <a href=
+     * "http://code.google.com/p/beanshell2/issues/detail?id=6">issue#60</a>.
+     *
+     * @throws Exception
+     *             the exception
      */
     @Test
     public void accessibility_issue_a() throws Exception {
         final Interpreter interpreter = new Interpreter();
         interpreter.set("x", this);
         Capabilities.setAccessibility(true);
-        assertEquals("private-Integer", interpreter.eval("return x.issue6(new Integer(9));"));
+        assertEquals("private-Integer",
+                interpreter.eval("return x.issue6(new Integer(9));"));
         Capabilities.setAccessibility(false);
-        assertEquals("public-Number", interpreter.eval("return x.issue6(new Integer(9));"));
+        assertEquals("public-Number",
+                interpreter.eval("return x.issue6(new Integer(9));"));
     }
 
-
     /**
-     * <a href="http://code.google.com/p/beanshell2/issues/detail?id=6">issue#60</a>
+     * <a href=
+     * "http://code.google.com/p/beanshell2/issues/detail?id=6">issue#60</a>.
+     *
+     * @throws Exception
+     *             the exception
      */
     @Test
     public void accessibility_issue_b() throws Exception {
         final Interpreter interpreter = new Interpreter();
         interpreter.set("x", this);
-        assertEquals("public-Number", interpreter.eval("return x.issue6(new Integer(9));"));
+        assertEquals("public-Number",
+                interpreter.eval("return x.issue6(new Integer(9));"));
         Capabilities.setAccessibility(true);
-        assertEquals("private-Integer", interpreter.eval("return x.issue6(new Integer(9));"));
+        assertEquals("private-Integer",
+                interpreter.eval("return x.issue6(new Integer(9));"));
     }
 
-
     /**
-     * <a href="http://code.google.com/p/beanshell2/issues/detail?id=10">issue#10</a>
+     * <a href=
+     * "http://code.google.com/p/beanshell2/issues/detail?id=10">issue#10</a>.
+     *
+     * @throws Exception
+     *             the exception
      */
     @Test(expected = ParseException.class)
     public void parse_error() throws Exception {
         eval("\1;");
     }
 
-
     /**
-     * <a href="http://code.google.com/p/beanshell2/issues/detail?id=11">issue#11</a>
+     * <a href=
+     * "http://code.google.com/p/beanshell2/issues/detail?id=11">issue#11</a>.
+     *
+     * @throws Exception
+     *             the exception
      */
     @Test
     public void return_in_try_block_does_not_return() throws Exception {
-        assertEquals(
-                "in try block",
-                eval(
-                    /*1*/ "try {",
-                    /*2*/ "   return \"in try block\";",
-                    /*3*/ "} finally {}" +
-                    /*4*/ "return \"after try block\";"));
+        assertEquals("in try block", eval(/* 1 */ "try {",
+                /* 2 */ "   return \"in try block\";", /* 3 */ "} finally {}"
+                /* 4 */ + "return \"after try block\";"));
     }
 
-
     /**
-     * <a href="http://code.google.com/p/beanshell2/issues/detail?id=12">issue#12</a>
+     * <a href=
+     * "http://code.google.com/p/beanshell2/issues/detail?id=12">issue#12</a>.
+     *
+     * @throws Exception
+     *             the exception
      */
     @Test
     public void override_method() throws Exception {
-        assertEquals(
-                "changed",
-                eval(
-                    /*1*/ "foo() { return \"original\";}",
-                    /*2*/ "foo() { return \"changed\";}",
-                    /*3*/ "return foo();"));
-
+        assertEquals("changed",
+                eval(/* 1 */ "foo() { return \"original\";}",
+                        /* 2 */ "foo() { return \"changed\";}",
+                        /* 3 */ "return foo();"));
     }
 
-
     /**
-     * <a href="http://code.google.com/p/beanshell2/issues/detail?id=32">issue#32</a>
+     * <a href=
+     * "http://code.google.com/p/beanshell2/issues/detail?id=32">issue#32</a>.
+     *
+     * @throws Exception
+     *             the exception
      */
     @Test
     public void binary_operator_or() throws Exception {
@@ -133,9 +164,12 @@ public class GoogleReports {
         assertEquals(false, eval("return false | false"));
     }
 
-
     /**
-     * <a href="http://code.google.com/p/beanshell2/issues/detail?id=32">issue#32</a>
+     * <a href=
+     * "http://code.google.com/p/beanshell2/issues/detail?id=32">issue#32</a>.
+     *
+     * @throws Exception
+     *             the exception
      */
     @Test
     public void binary_operator_and() throws Exception {
@@ -145,10 +179,12 @@ public class GoogleReports {
         assertEquals(false, eval("return false & false"));
     }
 
-
-
     /**
-     * <a href="http://code.google.com/p/beanshell2/issues/detail?id=32">issue#32</a>
+     * <a href=
+     * "http://code.google.com/p/beanshell2/issues/detail?id=32">issue#32</a>.
+     *
+     * @throws Exception
+     *             the exception
      */
     @Test
     public void binary_operator_xor() throws Exception {
@@ -158,17 +194,14 @@ public class GoogleReports {
         assertEquals(false, eval("return false ^ false"));
     }
 
-
-    /*
-    * helpers
-    */
-    private static String issue6(Integer ignored) {
-        return "private-Integer";
-    }
-
-
-    public static String issue6(Number ignored) {
+    /**
+     * Issue 6.
+     *
+     * @param ignored
+     *            the ignored
+     * @return the string
+     */
+    public static String issue6(final Number ignored) {
         return "public-Number";
     }
-
 }

@@ -17,14 +17,18 @@
  * under the License.                                                        *
  *                                                                           *
 /****************************************************************************/
-
 package bsh;
 
+/**
+ * The Class NotSuitedFor_Java5_OrLower.
+ */
 public class NotSuitedFor_Java5_OrLower implements TestFilter {
 
-    public static boolean CURRENT_VM_IS_BELOW_v6 = "1.6".compareTo(System.getProperty("java.version").substring(0, 3)) > 0;
+    /** The CURREN T V M I S BELO W v 6. */
+    public static boolean CURRENT_VM_IS_BELOW_v6 = "1.6"
+            .compareTo(System.getProperty("java.version").substring(0, 3)) > 0;
 
-
+    /** {@inheritDoc} */
     public boolean skip() {
         return CURRENT_VM_IS_BELOW_v6;
     }

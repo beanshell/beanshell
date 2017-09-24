@@ -3,14 +3,14 @@
 source("TestHarness.bsh");
 
 failb() {
-	fail();
-	return false;
+    fail();
+    return false;
 }
 
 // fail() should not be evaluated here
-if ( true || failb() ) { }
+if (true || failb()) { }
 
 // fail() should not be evaluated here
-if ( false && failb() ) { }
+if (false && failb()) { }
 
 complete();

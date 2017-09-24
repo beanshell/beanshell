@@ -28,87 +28,116 @@ package bsh;
 import java.util.Hashtable;
 
 /**
-	
-	@author Pat Niemeyer (pat@pat.net)
-*/
-/*
-	Note: which of these things should be checked at parse time vs. run time?
-*/
-public class Modifiers implements java.io.Serializable
-{
-	public static final int CLASS=0, METHOD=1, FIELD=2;
-	Hashtable modifiers;
+ * The Class Modifiers.
+ *
+ * @author Pat Niemeyer (pat@pat.net)
+ *
+ * Note: which of these things should be checked at parse time vs. run time?
+ */
+public class Modifiers implements java.io.Serializable {
 
-	/**
-		@param context is METHOD or FIELD
-	*/
-	public void addModifier( int context, String name ) 
-	{
-		if ( modifiers == null )
-			modifiers = new Hashtable();
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+    /** The Constant FIELD. */
+    public static final int CLASS = 0, METHOD = 1, FIELD = 2;
+    /** The modifiers. */
+    Hashtable modifiers;
 
-		Object existing = modifiers.put( name, Void.TYPE/*arbitrary flag*/ );
-		if ( existing != null )
-			throw new IllegalStateException("Duplicate modifier: "+ name );
+    /**
+     * Adds the modifier.
+     *
+     * @param context
+     *            is METHOD or FIELD
+     * @param name
+     *            the name
+     */
+    public void addModifier(final int context, final String name) {
+        if (this.modifiers == null)
+            this.modifiers = new Hashtable();
+        final Object existing = this.modifiers.put(name,
+                Void.TYPE/* arbitrary flag */);
+        if (existing != null)
+            throw new IllegalStateException("Duplicate modifier: " + name);
+        int count = 0;
+        if (this.hasModifier("private"))
+            ++count;
+        if (this.hasModifier("protected"))
+            ++count;
+        if (this.hasModifier("public"))
+            ++count;
+        if (count > 1)
+            throw new IllegalStateException(
+                    "public/private/protected cannot be used in combination.");
+        switch (context) {
+            case CLASS:
+                this.validateForClass();
+                break;
+            case METHOD:
+                this.validateForMethod();
+                break;
+            case FIELD:
+                this.validateForField();
+                break;
+        }
+    }
 
-		int count = 0;
-		if ( hasModifier("private") ) ++count;
-		if ( hasModifier("protected") ) ++count;
-		if ( hasModifier("public") ) ++count;
-		if ( count > 1 )
-			throw new IllegalStateException(
-				"public/private/protected cannot be used in combination." );
+    /**
+     * Checks for modifier.
+     *
+     * @param name
+     *            the name
+     * @return true, if successful
+     */
+    public boolean hasModifier(final String name) {
+        if (this.modifiers == null)
+            this.modifiers = new Hashtable();
+        return this.modifiers.get(name) != null;
+    }
 
-		switch( context ) 
-		{
-		case CLASS:
-			validateForClass();
-			break;
-		case METHOD:
-			validateForMethod();
-			break;
-		case FIELD:
-			validateForField();
-			break;
-		}
-	}
+    // could refactor these a bit
+    /**
+     * Validate for method.
+     */
+    private void validateForMethod() {
+        this.insureNo("volatile", "Method");
+        this.insureNo("transient", "Method");
+    }
 
-	public boolean hasModifier( String name ) 
-	{
-		if ( modifiers == null )
-			modifiers = new Hashtable();
-		return modifiers.get(name) != null;
-	}
+    /**
+     * Validate for field.
+     */
+    private void validateForField() {
+        this.insureNo("synchronized", "Variable");
+        this.insureNo("native", "Variable");
+        this.insureNo("abstract", "Variable");
+    }
 
-	// could refactor these a bit
-	private void validateForMethod() 
-	{ 
-		insureNo("volatile", "Method");
-		insureNo("transient", "Method");
-	}
-	private void validateForField() 
-	{ 
-		insureNo("synchronized", "Variable");
-		insureNo("native", "Variable");
-		insureNo("abstract", "Variable");
-	}
-	private void validateForClass() 
-	{ 
-		validateForMethod(); // volatile, transient
-		insureNo("native", "Class");
-		insureNo("synchronized", "Class");
-	}
+    /**
+     * Validate for class.
+     */
+    private void validateForClass() {
+        this.validateForMethod(); // volatile, transient
+        this.insureNo("native", "Class");
+        this.insureNo("synchronized", "Class");
+    }
 
-	private void insureNo( String modifier, String context )
-	{
-		if ( hasModifier( modifier ) )
-			throw new IllegalStateException(
-				context + " cannot be declared '"+modifier+"'");
-	}
+    /**
+     * Insure no.
+     *
+     * @param modifier
+     *            the modifier
+     * @param context
+     *            the context
+     */
+    private void insureNo(final String modifier, final String context) {
+        if (this.hasModifier(modifier))
+            throw new IllegalStateException(
+                    context + " cannot be declared '" + modifier + "'");
+    }
 
-	public String toString()
-	{
-		return "Modifiers: "+modifiers;
-	}
-
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        return "Modifiers: " + this.modifiers;
+    }
 }

@@ -23,25 +23,39 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh;
 
-public class ClassIdentifier 
-{
-	Class clas;
+/**
+ * The Class ClassIdentifier.
+ */
+public class ClassIdentifier {
 
-	public ClassIdentifier( Class clas ) {
-		this.clas = clas;
-	}
+    /** The clas. */
+    Class clas;
 
-	// Can't call it getClass()
-	public Class getTargetClass() {
-		return clas;
-	}
+    /**
+     * Instantiates a new class identifier.
+     *
+     * @param clas
+     *            the clas
+     */
+    public ClassIdentifier(final Class clas) {
+        this.clas = clas;
+    }
 
-	public String toString() {
-		return "Class Identifier: "+clas.getName();
-	}
+    /**
+     * Gets the target class.
+     * Can't call it getClass()
+     *
+     * @return the target class
+     */
+    public Class getTargetClass() {
+        return this.clas;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        return "Class Identifier: " + this.clas.getName();
+    }
 }
-

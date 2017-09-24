@@ -1,18 +1,37 @@
+/**
+ * The Class InterfaceConsumer.
+ */
+public class InterfaceConsumer {
 
-public class InterfaceConsumer
-{
-	public InterfaceConsumer() { }
+    /**
+     * Instantiates a new interface consumer.
+     */
+    public InterfaceConsumer() {}
 
-	public boolean consumeInterface( Interface interf ) {
-		String s = interf.getString();
-		Integer i = interf.getInteger();
-		int i2 = interf.getPrimitiveInt();
-		boolean b = interf.getPrimitiveBool();
-		assertTrue( interf.getNull() == null );
-		return true;
-	}
-	public static void assertTrue( boolean cond ) {
-		if ( !cond ) throw new RuntimeException("assert failed..");
-	}
+    /**
+     * Consume interface.
+     *
+     * @param interf
+     *            the interf
+     * @return true, if successful
+     */
+    public boolean consumeInterface(final Interface interf) {
+        interf.getString();
+        interf.getInteger();
+        interf.getPrimitiveInt();
+        interf.getPrimitiveBool();
+        assertTrue(interf.getNull() == null);
+        return true;
+    }
+
+    /**
+     * Assert true.
+     *
+     * @param cond
+     *            the cond
+     */
+    public static void assertTrue(final boolean cond) {
+        if (!cond)
+            throw new RuntimeException("assert failed..");
+    }
 }
-

@@ -17,11 +17,17 @@
  * under the License.                                                        *
  *                                                                           *
 /****************************************************************************/
-
 package bsh;
 
+/**
+ * The Interface TestFilter.
+ */
 public interface TestFilter {
 
+    /**
+     * Skip.
+     *
+     * @return true, if successful
+     */
     boolean skip();
-
 }

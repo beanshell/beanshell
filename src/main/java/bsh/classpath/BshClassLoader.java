@@ -23,166 +23,181 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.classpath;
 
-import java.net.*;
-import java.util.*;
-import java.io.*;
+import java.net.URL;
+import java.net.URLClassLoader;
+
 import bsh.BshClassManager;
 
 /**
-	One of the things BshClassLoader does is to address a deficiency in
-	URLClassLoader that prevents us from specifying individual classes
-	via URLs.
-*/
-public class BshClassLoader extends URLClassLoader 
-{
-	BshClassManager classManager;
+ * One of the things BshClassLoader does is to address a deficiency in
+ * URLClassLoader that prevents us from specifying individual classes
+ * via URLs.
+ */
+public class BshClassLoader extends URLClassLoader {
 
-	/**
-		@param bases URLs JARClassLoader seems to require absolute paths 
-	*/
-	public BshClassLoader( BshClassManager classManager, URL [] bases ) {
-		super( bases );
-		this.classManager = classManager;
-	}
+    /** The class manager. */
+    BshClassManager classManager;
 
-	/**
-		@param bases URLs JARClassLoader seems to require absolute paths 
-	*/
-	public BshClassLoader( BshClassManager classManager, BshClassPath bcp ) {
-		this( classManager, bcp.getPathComponents() );
-	}
+    /**
+     * Instantiates a new bsh class loader.
+     *
+     * @param classManager
+     *            the class manager
+     * @param bases
+     *            URLs JARClassLoader seems to require absolute paths
+     */
+    public BshClassLoader(final BshClassManager classManager,
+            final URL[] bases) {
+        super(bases);
+        this.classManager = classManager;
+    }
 
-	/**
-		For use by children
-		@param bases URLs JARClassLoader seems to require absolute paths 
-	*/
-	protected BshClassLoader( BshClassManager classManager ) { 
-		this( classManager, new URL [] { } );
-	}
+    /**
+     * Instantiates a new bsh class loader.
+     *
+     * @param classManager
+     *            the class manager
+     * @param bcp
+     *            the bcp
+     */
+    public BshClassLoader(final BshClassManager classManager,
+            final BshClassPath bcp) {
+        this(classManager, bcp.getPathComponents());
+    }
 
-	// public version of addURL
-	public void addURL( URL url ) {
-		super.addURL( url );
-	}
+    /**
+     * For use by children.
+     *
+     * @param classManager
+     *            the class manager
+     */
+    protected BshClassLoader(final BshClassManager classManager) {
+        this(classManager, new URL[] {});
+    }
 
-	/**
-		This modification allows us to reload classes which are in the 
-		Java VM user classpath.  We search first rather than delegate to
-		the parent classloader (or bootstrap path) first.
+    // public version of addURL
+    /** {@inheritDoc} */
+    @Override
+    public void addURL(final URL url) {
+        super.addURL(url);
+    }
 
-		An exception is for BeanShell core classes which are always loaded from
-		the same classloader as the interpreter.
-	*/
-	public Class loadClass(String name, boolean resolve)
-        throws ClassNotFoundException
-    {
+    /**
+     * This modification allows us to reload classes which are in the
+     * Java VM user classpath. We search first rather than delegate to
+     * the parent classloader (or bootstrap path) first.
+     *
+     * An exception is for BeanShell core classes which are always loaded from
+     * the same classloader as the interpreter.
+     *
+     * @param name
+     *            the name
+     * @param resolve
+     *            the resolve
+     * @return the class
+     * @throws ClassNotFoundException
+     *             the class not found exception
+     */
+    @Override
+    public Class loadClass(final String name, final boolean resolve)
+            throws ClassNotFoundException {
         Class c = null;
+        /*
+         * Check first for classes loaded through this loader.
+         * The VM will not allow a class to be loaded twice.
+         */
+        c = this.findLoadedClass(name);
+        if (c != null)
+            return c;
+        // This is copied from ClassManagerImpl
+        // We should refactor this somehow if it sticks around
+        if (name.startsWith(ClassManagerImpl.BSH_PACKAGE))
+            try {
+                return bsh.Interpreter.class.getClassLoader().loadClass(name);
+            } catch (final ClassNotFoundException e) {}
+        /*
+         * Try to find the class using our classloading mechanism.
+         * Note: I wish we didn't have to catch the exception here... slow
+         */
+        try {
+            c = this.findClass(name);
+        } catch (final ClassNotFoundException e) {}
+        if (c == null)
+            throw new ClassNotFoundException("here in loaClass");
+        if (resolve)
+            this.resolveClass(c);
+        return c;
+    }
 
-		/*
-			Check first for classes loaded through this loader.
-			The VM will not allow a class to be loaded twice.
-		*/
-        c = findLoadedClass(name);
-		if ( c != null )
-			return c;
+    /**
+     * Find the correct source for the class...
+     *
+     * Try designated loader if any
+     * Try our URLClassLoader paths if any
+     * Try base loader if any
+     * Try system ???
+     * add some caching for not found classes?
+     *
+     * @param name
+     *            the name
+     * @return the class
+     * @throws ClassNotFoundException
+     *             the class not found exception
+     */
+    @Override
+    protected Class findClass(final String name) throws ClassNotFoundException {
+        // Deal with this cast somehow... maybe have this class use
+        // ClassManagerImpl type directly.
+        // Don't add the method to BshClassManager... it's really an impl thing
+        final ClassManagerImpl bcm = (ClassManagerImpl) this.getClassManager();
+        // Should we try to load the class ourselves or delegate?
+        // look for overlay loader
+        ClassLoader cl = bcm.getLoaderForClass(name);
+        // If there is a designated loader and it's not us delegate to it
+        if (cl != null && cl != this)
+            try {
+                return cl.loadClass(name);
+            } catch (final ClassNotFoundException e) {
+                throw new ClassNotFoundException(
+                        "Designated loader could not find class: " + e);
+            }
+        // Let URLClassLoader try any paths it may have
+        if (this.getURLs().length > 0)
+            try {
+                return super.findClass(name);
+            } catch (final ClassNotFoundException e) {
+                // System.out.println(
+                // "base loader here caught class not found: "+name);
+            }
+        // If there is a baseLoader and it's not us delegate to it
+        cl = bcm.getBaseLoader();
+        if (cl != null && cl != this)
+            try {
+                return cl.loadClass(name);
+            } catch (final ClassNotFoundException e) {}
+        // Try system loader
+        return bcm.plainClassForName(name);
+    }
 
-// This is copied from ClassManagerImpl
-// We should refactor this somehow if it sticks around
-		if ( name.startsWith( ClassManagerImpl.BSH_PACKAGE ) )
-			try {
-				return bsh.Interpreter.class.getClassLoader().loadClass( name );
-			} catch ( ClassNotFoundException e ) {}
-
-		/*
-			Try to find the class using our classloading mechanism.
-			Note: I wish we didn't have to catch the exception here... slow
-		*/
-		try {
-			c = findClass( name );
-		} catch ( ClassNotFoundException e ) { }
-
-		if ( c == null )
-			throw new ClassNotFoundException("here in loaClass");
-
-		if ( resolve )
-			resolveClass( c );
-
-		return c;
-	}
-
-	/**
-		Find the correct source for the class...
-
-		Try designated loader if any
-		Try our URLClassLoader paths if any
-		Try base loader if any
-		Try system ???
-	*/
-	// add some caching for not found classes?
-	protected Class findClass( String name ) 
-		throws ClassNotFoundException 
-	{
-		// Deal with this cast somehow... maybe have this class use 
-		// ClassManagerImpl type directly.
-		// Don't add the method to BshClassManager... it's really an impl thing
-		ClassManagerImpl bcm = (ClassManagerImpl)getClassManager();
-
-		// Should we try to load the class ourselves or delegate?
-		// look for overlay loader
-
-		ClassLoader cl = bcm.getLoaderForClass( name );
-
-		Class c;
-
-		// If there is a designated loader and it's not us delegate to it
-		if ( cl != null && cl != this )
-			try {
-				return cl.loadClass( name );
-			} catch ( ClassNotFoundException e ) {
-				throw new ClassNotFoundException(
-					"Designated loader could not find class: "+e );
-			}
-
-		// Let URLClassLoader try any paths it may have
-		if ( getURLs().length > 0 )
-			try {
-				return super.findClass(name);
-			} catch ( ClassNotFoundException e ) { 
-				//System.out.println(
-				//	"base loader here caught class not found: "+name );
-			}
-
-
-		// If there is a baseLoader and it's not us delegate to it
-		cl = bcm.getBaseLoader();
-
-		if ( cl != null && cl != this )
-			try {
-				return cl.loadClass( name );
-			} catch ( ClassNotFoundException e ) { }
-
-		// Try system loader
-		return bcm.plainClassForName( name );
-	}
-
-	/*
-		The superclass does something like this
-
-        c = findLoadedClass(name);
-        if null
-            try
-                if parent not null
-                    c = parent.loadClass(name, false);
-                else
-                    c = findBootstrapClass(name);
-            catch ClassNotFoundException 
-                c = findClass(name);
-	*/
-
-	BshClassManager getClassManager() { return classManager; }
-
+    /**
+     * Gets the class manager.
+     *
+     * @return the class manager
+     *
+     * The superclass does something like this
+     * c = findLoadedClass(name);
+     * if null
+     * try
+     * if parent not null
+     * c = parent.loadClass(name, false);
+     * else
+     * c = findBootstrapClass(name);
+     * catch ClassNotFoundException
+     * c = findClass(name);
+     */
+    BshClassManager getClassManager() {
+        return this.classManager;
+    }
 }

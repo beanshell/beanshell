@@ -1,1 +1,1 @@
-int testCommand( int a ) { return a; }
+int testCommand(int a) { return a; }

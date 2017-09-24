@@ -23,53 +23,58 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
-class BSHImportDeclaration extends SimpleNode
-{
-	public boolean importPackage;
-	public boolean staticImport;
-	public boolean superImport;
+/**
+ * The Class BSHImportDeclaration.
+ */
+class BSHImportDeclaration extends SimpleNode {
 
-	BSHImportDeclaration(int id) { super(id); }
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+    /** The import package. */
+    public boolean importPackage;
+    /** The static import. */
+    public boolean staticImport;
+    /** The super import. */
+    public boolean superImport;
 
-	public Object eval( CallStack callstack, Interpreter interpreter) 
-		throws EvalError
-	{
-		NameSpace namespace = callstack.top();
-		if ( superImport )
-			try {
-				namespace.doSuperImport();
-			} catch ( UtilEvalError e ) {
-				throw e.toEvalError( this, callstack  );
-			}
-		else 
-		{
-			if ( staticImport )
-			{
-				if ( importPackage )
-				{
-					Class clas = ((BSHAmbiguousName)jjtGetChild(0)).toClass( 
-						callstack, interpreter );
-					namespace.importStatic( clas );
-				} else
-					throw new EvalError( 
-						"static field imports not supported yet", 
-						this, callstack );
-			} else 
-			{
-				String name = ((BSHAmbiguousName)jjtGetChild(0)).text;
-				if ( importPackage )
-					namespace.importPackage(name);
-				else
-					namespace.importClass(name);
-			}
-		}
+    /**
+     * Instantiates a new BSH import declaration.
+     *
+     * @param id
+     *            the id
+     */
+    BSHImportDeclaration(final int id) {
+        super(id);
+    }
 
+    /** {@inheritDoc} */
+    @Override
+    public Object eval(final CallStack callstack, final Interpreter interpreter)
+            throws EvalError {
+        final NameSpace namespace = callstack.top();
+        if (this.superImport)
+            try {
+                namespace.doSuperImport();
+            } catch (final UtilEvalError e) {
+                throw e.toEvalError(this, callstack);
+            }
+        else if (this.staticImport) {
+            if (this.importPackage) {
+                final Class clas = ((BSHAmbiguousName) this.jjtGetChild(0))
+                        .toClass(callstack, interpreter);
+                namespace.importStatic(clas);
+            } else
+                throw new EvalError("static field imports not supported yet",
+                        this, callstack);
+        } else {
+            final String name = ((BSHAmbiguousName) this.jjtGetChild(0)).text;
+            if (this.importPackage)
+                namespace.importPackage(name);
+            else
+                namespace.importClass(name);
+        }
         return Primitive.VOID;
-	}
+    }
 }
-

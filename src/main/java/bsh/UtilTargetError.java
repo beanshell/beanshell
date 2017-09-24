@@ -23,45 +23,65 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
 /**
-	UtilTargetError is an error corresponding to a TargetError but thrown by a 
-	utility or other class that does not have the caller context (Node) 
-	available to it.  See UtilEvalError for an explanation of the difference
-	between UtilEvalError and EvalError.
-	<p>
+ * UtilTargetError is an error corresponding to a TargetError but thrown by a
+ * utility or other class that does not have the caller context (Node)
+ * available to it. See UtilEvalError for an explanation of the difference
+ * between UtilEvalError and EvalError.
+ * <p>
+ *
+ * @see UtilEvalError
+ */
+public class UtilTargetError extends UtilEvalError {
 
-	@see UtilEvalError
-*/
-public class UtilTargetError extends UtilEvalError
-{
-	public Throwable t;
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+    /** The t. */
+    public Throwable t;
 
-	public UtilTargetError( String message, Throwable t ) {
-		super( message );
-		this.t = t;
-	}
+    /**
+     * Instantiates a new util target error.
+     *
+     * @param message
+     *            the message
+     * @param t
+     *            the t
+     */
+    public UtilTargetError(final String message, final Throwable t) {
+        super(message);
+        this.t = t;
+    }
 
-	public UtilTargetError( Throwable t ) {
-		this( null, t );
-	}
+    /**
+     * Instantiates a new util target error.
+     *
+     * @param t
+     *            the t
+     */
+    public UtilTargetError(final Throwable t) {
+        this(null, t);
+    }
 
-	/**
-		Override toEvalError to throw TargetError type.
-	*/
-	public EvalError toEvalError( 
-		String msg, SimpleNode node, CallStack callstack  ) 
-	{
-		if ( msg == null )
-			msg = getMessage();
-		else
-			msg = msg + ": " + getMessage();
-
-		return new TargetError( msg, t, node, callstack, false );
-	}
+    /**
+     * Override toEvalError to throw TargetError type.
+     *
+     * @param msg
+     *            the msg
+     * @param node
+     *            the node
+     * @param callstack
+     *            the callstack
+     * @return the eval error
+     */
+    @Override
+    public EvalError toEvalError(String msg, final SimpleNode node,
+            final CallStack callstack) {
+        if (msg == null)
+            msg = this.getMessage();
+        else
+            msg = msg + ": " + this.getMessage();
+        return new TargetError(msg, this.t, node, callstack, false);
+    }
 }
-

@@ -1,5 +1,12 @@
 package InheritanceTest;
 
+/**
+ * The Interface B.
+ */
 public interface B extends A {
-	void b();
+
+    /**
+     * B.
+     */
+    void b();
 }

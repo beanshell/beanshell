@@ -2,5 +2,5 @@
 
 import mypackage.*;
 
-myClassVisible = ( this.namespace.getClass("MyClass") != null );
+myClassVisible = (this.namespace.getClass("MyClass") != null);
 

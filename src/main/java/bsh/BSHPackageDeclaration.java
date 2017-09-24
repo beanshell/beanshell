@@ -23,26 +23,35 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
-public class BSHPackageDeclaration extends SimpleNode 
-{
+/**
+ * The Class BSHPackageDeclaration.
+ */
+public class BSHPackageDeclaration extends SimpleNode {
 
-  public BSHPackageDeclaration(int id) {
-    super(id);
-  }
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
 
-	public Object eval( CallStack callstack, Interpreter interpreter )
-		throws EvalError
-	{
-		BSHAmbiguousName name = (BSHAmbiguousName)jjtGetChild(0);
-		NameSpace namespace = callstack.top();
-		namespace.setPackage( name.text );
-		// import the package we're in by default...
-		namespace.importPackage( name.text );
-		return Primitive.VOID;
-	}
+    /**
+     * Instantiates a new BSH package declaration.
+     *
+     * @param id
+     *            the id
+     */
+    public BSHPackageDeclaration(final int id) {
+        super(id);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Object eval(final CallStack callstack, final Interpreter interpreter)
+            throws EvalError {
+        final BSHAmbiguousName name = (BSHAmbiguousName) this.jjtGetChild(0);
+        final NameSpace namespace = callstack.top();
+        namespace.setPackage(name.text);
+        // import the package we're in by default...
+        namespace.importPackage(name.text);
+        return Primitive.VOID;
+    }
 }

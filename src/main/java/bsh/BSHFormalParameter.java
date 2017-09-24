@@ -23,46 +23,74 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh;
 
 /**
-	A formal parameter declaration.
-	For loose variable declaration type is null.
-*/
-class BSHFormalParameter extends SimpleNode
-{
-	public static final Class UNTYPED = null;
-	public String name;
-	// unsafe caching of type here
-	public Class type;
+ * A formal parameter declaration.
+ * For loose variable declaration type is null.
+ */
+class BSHFormalParameter extends SimpleNode {
 
-	BSHFormalParameter(int id) { super(id); }
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+    /** The Constant UNTYPED. */
+    public static final Class UNTYPED = null;
+    /** The name. */
+    public String name;
+    /** The type. */
+    // unsafe caching of type here
+    public Class type;
 
-	public String getTypeDescriptor( 
-		CallStack callstack, Interpreter interpreter, String defaultPackage ) 
-	{
-		if ( jjtGetNumChildren() > 0 )
-			return ((BSHType)jjtGetChild(0)).getTypeDescriptor( 
-				callstack, interpreter, defaultPackage );
-		else
-			// this will probably not get used
-			return "Ljava/lang/Object;";  // Object type
-	}
+    /**
+     * Instantiates a new BSH formal parameter.
+     *
+     * @param id
+     *            the id
+     */
+    BSHFormalParameter(final int id) {
+        super(id);
+    }
 
-	/**
-		Evaluate the type.
-	*/
-	public Object eval( CallStack callstack, Interpreter interpreter) 
-		throws EvalError
-	{
-		if ( jjtGetNumChildren() > 0 )
-			type = ((BSHType)jjtGetChild(0)).getType( callstack, interpreter );
-		else
-			type = UNTYPED;
+    /**
+     * Gets the type descriptor.
+     *
+     * @param callstack
+     *            the callstack
+     * @param interpreter
+     *            the interpreter
+     * @param defaultPackage
+     *            the default package
+     * @return the type descriptor
+     */
+    public String getTypeDescriptor(final CallStack callstack,
+            final Interpreter interpreter, final String defaultPackage) {
+        if (this.jjtGetNumChildren() > 0)
+            return ((BSHType) this.jjtGetChild(0)).getTypeDescriptor(callstack,
+                    interpreter, defaultPackage);
+        else
+            // this will probably not get used
+            return "Ljava/lang/Object;"; // Object type
+    }
 
-		return type;
-	}
+    /**
+     * Evaluate the type.
+     *
+     * @param callstack
+     *            the callstack
+     * @param interpreter
+     *            the interpreter
+     * @return the object
+     * @throws EvalError
+     *             the eval error
+     */
+    @Override
+    public Object eval(final CallStack callstack, final Interpreter interpreter)
+            throws EvalError {
+        if (this.jjtGetNumChildren() > 0)
+            this.type = ((BSHType) this.jjtGetChild(0)).getType(callstack,
+                    interpreter);
+        else
+            this.type = UNTYPED;
+        return this.type;
+    }
 }
-

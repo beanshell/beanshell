@@ -17,37 +17,69 @@
  * under the License.                                                        *
  *                                                                           *
 /****************************************************************************/
-
 package bsh;
 
 import org.junit.Assert;
-
 import org.junit.Test;
 
+/**
+ * The Class BshMethodTest.
+ */
 public class BshMethodTest {
 
     /**
-     * Verifies that subclasses are not considered equal to superclass interfaces
+     * Verifies that subclasses are not considered equal to superclass
+     * interfaces
      * with a (potential) subset of the subclasses fields.
      */
     @SuppressWarnings("serial")
     @Test
     public void testEqualsObject_subclassEquality() {
-        // define a simple subclass of BshMethod:
+
+        /**
+         * define a simple subclass of BshMethod: The Class SubMethod.
+         */
         class SubMethod extends BshMethod {
 
-            public SubMethod(String name, Class returnType, String[] paramNames, Class[] paramTypes, BSHBlock methodBody, NameSpace declaringNameSpace, Modifiers modifiers) {
-                super(name, returnType, paramNames, paramTypes, methodBody, declaringNameSpace, modifiers);
+            /** The Constant serialVersionUID. */
+            private static final long serialVersionUID = 1L;
+
+            /**
+             * Instantiates a new sub method.
+             *
+             * @param name
+             *            the name
+             * @param returnType
+             *            the return type
+             * @param paramNames
+             *            the param names
+             * @param paramTypes
+             *            the param types
+             * @param methodBody
+             *            the method body
+             * @param declaringNameSpace
+             *            the declaring name space
+             * @param modifiers
+             *            the modifiers
+             */
+            public SubMethod(final String name, final Class returnType,
+                    final String[] paramNames, final Class[] paramTypes,
+                    final BSHBlock methodBody,
+                    final NameSpace declaringNameSpace,
+                    final Modifiers modifiers) {
+                super(name, returnType, paramNames, paramTypes, methodBody,
+                        declaringNameSpace, modifiers);
             }
         }
 
         final String name = "testMethod";
-        final BshMethod subInst = new SubMethod(name, Integer.class, new String[]{}, new Class[]{}, null, null, null);
-        final BshMethod supInst = new BshMethod(name, Integer.class, new String[]{}, new Class[]{}, null, null, null);
-
-        Assert.assertFalse("Subclasses should not be equal to super classes", supInst.equals(subInst));
+        final BshMethod subInst = new SubMethod(name, Integer.class,
+                new String[] {}, new Class[] {}, null, null, null);
+        final BshMethod supInst = new BshMethod(name, Integer.class,
+                new String[] {}, new Class[] {}, null, null, null);
+        Assert.assertFalse("Subclasses should not be equal to super classes",
+                supInst.equals(subInst));
     }
-
 
     /**
      * Very simple test to verify hashcode contract.
@@ -55,10 +87,13 @@ public class BshMethodTest {
     @Test
     public void testHashCode_contract() {
         final String name = "testMethod";
-        final BshMethod method1 = new BshMethod(name, Integer.class, new String[]{}, new Class[]{}, null, null, null);
-        final BshMethod method2 = new BshMethod(name, Integer.class, new String[]{}, new Class[]{}, null, null, null);
-
-        Assert.assertTrue("precondition check for test failed.", method2.equals(method1));
-        Assert.assertEquals("Equal classes should have equal hashcodes", method2.hashCode(), method1.hashCode());
+        final BshMethod method1 = new BshMethod(name, Integer.class,
+                new String[] {}, new Class[] {}, null, null, null);
+        final BshMethod method2 = new BshMethod(name, Integer.class,
+                new String[] {}, new Class[] {}, null, null, null);
+        Assert.assertTrue("precondition check for test failed.",
+                method2.equals(method1));
+        Assert.assertEquals("Equal classes should have equal hashcodes",
+                method2.hashCode(), method1.hashCode());
     }
 }
