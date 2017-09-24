@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE suppressions PUBLIC
+    "-//Puppy Crawl//DTD Suppressions 1.1//EN"
+    "http://checkstyle.sourceforge.net/dtds/suppressions_1_1.dtd">
+
+<suppressions>
+
+<!-- TODO comments are handy -->
+    <suppress files=".*" checks="TodoComment" />
+
+<!-- lets not be anal: allow inline conditions and 1 line statements -->
+    <suppress files=".*" checks="ArrayTypeStyle" />
+    <suppress files=".*" checks="AvoidInlineConditionals" />
+    <suppress files=".*" checks="NeedBraces" />
+    <suppress files=".*" checks="WhitespaceAround" />
+
+<!-- Not specifying interface members as public is debateable  -->
+    <suppress files=".*" checks="RedundantModifier" />
+<!-- explicitly marking parameters final is just daft -->
+    <suppress files=".*" checks="FinalParameters" />
+<!-- 80 character line is ideal but a few places over is not a crisis -->
+    <suppress files=".*" checks="LineLength" />
+
+
+<!-- These fall outside the scope of code clean-up and requires refactoring -->
+    <suppress files=".*" checks="naming" />
+    <suppress files=".*" checks="design" />
+    <suppress files=".*" checks="coding" />
+    <suppress files=".*" checks="MethodLength" />
+    <suppress files=".*" checks="FileLength" />
+    <suppress files=".*" checks="ParameterNumber" />
+    <suppress files=".*" checks="AvoidNestedBlocks" />
+    <suppress files=".*" checks="EmptyBlock" />
+
+</suppressions>
+
