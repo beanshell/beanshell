@@ -23,156 +23,153 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
-class BSHAssignment extends SimpleNode implements ParserConstants
-{
+/**
+ * The Class BSHAssignment.
+ */
+class BSHAssignment extends SimpleNode implements ParserConstants {
+
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+    /** The operator. */
     public int operator;
 
-    BSHAssignment(int id) { super(id); }
+    /**
+     * Instantiates a new BSH assignment.
+     *
+     * @param id
+     *            the id
+     */
+    BSHAssignment(final int id) {
+        super(id);
+    }
 
-    public Object eval(
-        CallStack callstack, Interpreter interpreter)
-        throws EvalError
-    {
-        BSHPrimaryExpression lhsNode =
-            (BSHPrimaryExpression)jjtGetChild(0);
-
+    /** {@inheritDoc} */
+    @Override
+    public Object eval(final CallStack callstack, final Interpreter interpreter)
+            throws EvalError {
+        final BSHPrimaryExpression lhsNode = (BSHPrimaryExpression) this
+                .jjtGetChild(0);
         if (lhsNode == null)
             throw new InterpreterError("Error, null LHSnode");
-
-        boolean strictJava = interpreter.getStrictJava();
-        LHS lhs = lhsNode.toLHS(callstack, interpreter);
+        final boolean strictJava = interpreter.getStrictJava();
+        final LHS lhs = lhsNode.toLHS(callstack, interpreter);
         if (lhs == null)
             throw new InterpreterError("Error, null LHS");
-
         // For operator-assign operations save the lhs value before evaluating
-        // the rhs.  This is correct Java behavior for postfix operations
+        // the rhs. This is correct Java behavior for postfix operations
         // e.g. i=1; i+=i++; // should be 2 not 3
         Object lhsValue = null;
-        if (operator != ASSIGN) // assign doesn't need the pre-value
+        if (this.operator != ASSIGN) // assign doesn't need the pre-value
             try {
                 lhsValue = lhs.getValue();
-            } catch (UtilEvalError e) {
+            } catch (final UtilEvalError e) {
                 throw e.toEvalError(this, callstack);
             }
-
-        SimpleNode rhsNode = (SimpleNode)jjtGetChild(1);
-
+        final SimpleNode rhsNode = (SimpleNode) this.jjtGetChild(1);
         Object rhs;
-
         // implement "blocks" foo = { };
         // if (rhsNode instanceof BSHBlock)
-        //    rsh =
+        // rsh =
         // else
         rhs = rhsNode.eval(callstack, interpreter);
-
         if (rhs == Primitive.VOID)
             throw new EvalError("Void assignment.", this, callstack);
-
         try {
-            switch(operator)
-            {
+            switch (this.operator) {
                 case ASSIGN:
                     return lhs.assign(rhs, strictJava);
-
                 case PLUSASSIGN:
-                    return lhs.assign(
-                        operation(lhsValue, rhs, PLUS), strictJava);
-
+                    return lhs.assign(this.operation(lhsValue, rhs, PLUS),
+                            strictJava);
                 case MINUSASSIGN:
-                    return lhs.assign(
-                        operation(lhsValue, rhs, MINUS), strictJava);
-
+                    return lhs.assign(this.operation(lhsValue, rhs, MINUS),
+                            strictJava);
                 case STARASSIGN:
-                    return lhs.assign(
-                        operation(lhsValue, rhs, STAR), strictJava);
-
+                    return lhs.assign(this.operation(lhsValue, rhs, STAR),
+                            strictJava);
                 case SLASHASSIGN:
-                    return lhs.assign(
-                        operation(lhsValue, rhs, SLASH), strictJava);
-
+                    return lhs.assign(this.operation(lhsValue, rhs, SLASH),
+                            strictJava);
                 case ANDASSIGN:
                 case ANDASSIGNX:
-                    return lhs.assign(
-                        operation(lhsValue, rhs, BIT_AND), strictJava);
-
+                    return lhs.assign(this.operation(lhsValue, rhs, BIT_AND),
+                            strictJava);
                 case ORASSIGN:
                 case ORASSIGNX:
-                    return lhs.assign(
-                        operation(lhsValue, rhs, BIT_OR), strictJava);
-
+                    return lhs.assign(this.operation(lhsValue, rhs, BIT_OR),
+                            strictJava);
                 case XORASSIGN:
-                    return lhs.assign(
-                        operation(lhsValue, rhs, XOR), strictJava);
-
+                    return lhs.assign(this.operation(lhsValue, rhs, XOR),
+                            strictJava);
                 case MODASSIGN:
-                    return lhs.assign(
-                        operation(lhsValue, rhs, MOD), strictJava);
-
+                    return lhs.assign(this.operation(lhsValue, rhs, MOD),
+                            strictJava);
                 case LSHIFTASSIGN:
                 case LSHIFTASSIGNX:
-                    return lhs.assign(
-                        operation(lhsValue, rhs, LSHIFT), strictJava);
-
+                    return lhs.assign(this.operation(lhsValue, rhs, LSHIFT),
+                            strictJava);
                 case RSIGNEDSHIFTASSIGN:
                 case RSIGNEDSHIFTASSIGNX:
                     return lhs.assign(
-                    operation(lhsValue, rhs, RSIGNEDSHIFT), strictJava);
-
+                            this.operation(lhsValue, rhs, RSIGNEDSHIFT),
+                            strictJava);
                 case RUNSIGNEDSHIFTASSIGN:
                 case RUNSIGNEDSHIFTASSIGNX:
                     return lhs.assign(
-                        operation(lhsValue, rhs, RUNSIGNEDSHIFT),
-                        strictJava);
-
+                            this.operation(lhsValue, rhs, RUNSIGNEDSHIFT),
+                            strictJava);
                 default:
                     throw new InterpreterError(
-                        "unimplemented operator in assignment BSH");
+                            "unimplemented operator in assignment BSH");
             }
-        } catch (UtilEvalError e) {
+        } catch (final UtilEvalError e) {
             throw e.toEvalError(this, callstack);
         }
     }
 
-    private Object operation(Object lhs, Object rhs, int kind)
-        throws UtilEvalError
-    {
+    /**
+     * Operation.
+     *
+     * @param lhs
+     *            the lhs
+     * @param rhs
+     *            the rhs
+     * @param kind
+     *            the kind
+     * @return the object
+     * @throws UtilEvalError
+     *             the util eval error
+     */
+    private Object operation(final Object lhs, final Object rhs, final int kind)
+            throws UtilEvalError {
         /*
-            Implement String += value;
-            According to the JLS, value may be anything.
-            In BeanShell, we'll disallow VOID (undefined) values.
-            (or should we map them to the empty string?)
-        */
+         * Implement String += value;
+         * According to the JLS, value may be anything.
+         * In BeanShell, we'll disallow VOID (undefined) values.
+         * (or should we map them to the empty string?)
+         */
         if (lhs instanceof String && rhs != Primitive.VOID) {
             if (kind != PLUS)
                 throw new UtilEvalError(
-                    "Use of non + operator with String LHS");
-
-            return (String)lhs + rhs;
+                        "Use of non + operator with String LHS");
+            return (String) lhs + rhs;
         }
-
         if (lhs instanceof Primitive || rhs instanceof Primitive)
-            if(lhs == Primitive.VOID || rhs == Primitive.VOID)
+            if (lhs == Primitive.VOID || rhs == Primitive.VOID)
                 throw new UtilEvalError(
-                    "Illegal use of undefined object or 'void' literal");
+                        "Illegal use of undefined object or 'void' literal");
             else if (lhs == Primitive.NULL || rhs == Primitive.NULL)
                 throw new UtilEvalError(
-                    "Illegal use of null object or 'null' literal");
-
-
-        if((lhs instanceof Boolean || lhs instanceof Character ||
-             lhs instanceof Number || lhs instanceof Primitive) &&
-            (rhs instanceof Boolean || rhs instanceof Character ||
-             rhs instanceof Number || rhs instanceof Primitive))
-        {
+                        "Illegal use of null object or 'null' literal");
+        if ((lhs instanceof Boolean || lhs instanceof Character
+                || lhs instanceof Number || lhs instanceof Primitive)
+                && (rhs instanceof Boolean || rhs instanceof Character
+                        || rhs instanceof Number || rhs instanceof Primitive))
             return Primitive.binaryOperation(lhs, rhs, kind);
-        }
-
-        throw new UtilEvalError("Non primitive value in operator: " +
-            lhs.getClass() + " " + tokenImage[kind] + " " + rhs.getClass());
+        throw new UtilEvalError(
+                "Non primitive value in operator: " + lhs.getClass() + " "
+                        + tokenImage[kind] + " " + rhs.getClass());
     }
 }

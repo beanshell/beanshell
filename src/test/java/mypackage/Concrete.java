@@ -1,3 +1,6 @@
 package mypackage;
 
-public class Concrete extends AbstractBase { }
+/**
+ * The Class Concrete.
+ */
+public class Concrete extends AbstractBase {}

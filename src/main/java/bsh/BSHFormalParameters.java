@@ -23,87 +23,115 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh;
 
-class BSHFormalParameters extends SimpleNode
-{
-    private String [] paramNames;
+/**
+ * The Class BSHFormalParameters.
+ */
+class BSHFormalParameters extends SimpleNode {
+
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+    /** The param names. */
+    private String[] paramNames;
     /**
-        For loose type parameters the paramTypes are null.
-    */
+     * For loose type parameters the paramTypes are null.
+     */
     // unsafe caching of types
-    Class [] paramTypes;
+    Class[] paramTypes;
+    /** The num args. */
     int numArgs;
-    String [] typeDescriptors;
+    /** The type descriptors. */
+    String[] typeDescriptors;
 
-    BSHFormalParameters(int id) { super(id); }
+    /**
+     * Instantiates a new BSH formal parameters.
+     *
+     * @param id
+     *            the id
+     */
+    BSHFormalParameters(final int id) {
+        super(id);
+    }
 
-    void insureParsed()
-    {
-        if (paramNames != null)
+    /**
+     * Insure parsed.
+     */
+    void insureParsed() {
+        if (this.paramNames != null)
             return;
-
-        this.numArgs = jjtGetNumChildren();
-        String [] paramNames = new String[numArgs];
-
-        for(int i=0; i<numArgs; i++)
-        {
-            BSHFormalParameter param = (BSHFormalParameter)jjtGetChild(i);
+        this.numArgs = this.jjtGetNumChildren();
+        final String[] paramNames = new String[this.numArgs];
+        for (int i = 0; i < this.numArgs; i++) {
+            final BSHFormalParameter param = (BSHFormalParameter) this
+                    .jjtGetChild(i);
             paramNames[i] = param.name;
         }
-
         this.paramNames = paramNames;
     }
 
-    public String [] getParamNames() {
-        insureParsed();
-        return paramNames;
+    /**
+     * Gets the param names.
+     *
+     * @return the param names
+     */
+    public String[] getParamNames() {
+        this.insureParsed();
+        return this.paramNames;
     }
 
-    public String [] getTypeDescriptors(
-        CallStack callstack, Interpreter interpreter, String defaultPackage)
-    {
-        if (typeDescriptors != null)
-            return typeDescriptors;
-
-        insureParsed();
-        String [] typeDesc = new String[numArgs];
-
-        for(int i=0; i<numArgs; i++)
-        {
-            BSHFormalParameter param = (BSHFormalParameter)jjtGetChild(i);
-            typeDesc[i] = param.getTypeDescriptor(
-                callstack, interpreter, defaultPackage);
+    /**
+     * Gets the type descriptors.
+     *
+     * @param callstack
+     *            the callstack
+     * @param interpreter
+     *            the interpreter
+     * @param defaultPackage
+     *            the default package
+     * @return the type descriptors
+     */
+    public String[] getTypeDescriptors(final CallStack callstack,
+            final Interpreter interpreter, final String defaultPackage) {
+        if (this.typeDescriptors != null)
+            return this.typeDescriptors;
+        this.insureParsed();
+        final String[] typeDesc = new String[this.numArgs];
+        for (int i = 0; i < this.numArgs; i++) {
+            final BSHFormalParameter param = (BSHFormalParameter) this
+                    .jjtGetChild(i);
+            typeDesc[i] = param.getTypeDescriptor(callstack, interpreter,
+                    defaultPackage);
         }
-
         this.typeDescriptors = typeDesc;
         return typeDesc;
     }
 
     /**
-        Evaluate the types.
-        Note that type resolution does not require the interpreter instance.
-    */
-    public Object eval(CallStack callstack, Interpreter interpreter)
-        throws EvalError
-    {
-        if (paramTypes != null)
-            return paramTypes;
-
-        insureParsed();
-        Class [] paramTypes = new Class[numArgs];
-
-        for(int i=0; i<numArgs; i++)
-        {
-            BSHFormalParameter param = (BSHFormalParameter)jjtGetChild(i);
-            paramTypes[i] = (Class)param.eval(callstack, interpreter);
+     * Evaluate the types.
+     * Note that type resolution does not require the interpreter instance.
+     *
+     * @param callstack
+     *            the callstack
+     * @param interpreter
+     *            the interpreter
+     * @return the object
+     * @throws EvalError
+     *             the eval error
+     */
+    @Override
+    public Object eval(final CallStack callstack, final Interpreter interpreter)
+            throws EvalError {
+        if (this.paramTypes != null)
+            return this.paramTypes;
+        this.insureParsed();
+        final Class[] paramTypes = new Class[this.numArgs];
+        for (int i = 0; i < this.numArgs; i++) {
+            final BSHFormalParameter param = (BSHFormalParameter) this
+                    .jjtGetChild(i);
+            paramTypes[i] = (Class) param.eval(callstack, interpreter);
         }
-
         this.paramTypes = paramTypes;
-
         return paramTypes;
     }
 }
-

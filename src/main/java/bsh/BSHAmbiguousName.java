@@ -23,79 +23,136 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
-class BSHAmbiguousName extends SimpleNode
-{
+/**
+ * The Class BSHAmbiguousName.
+ */
+class BSHAmbiguousName extends SimpleNode {
+
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+    /** The text. */
     public String text;
 
-    BSHAmbiguousName(int id) { super(id); }
-
-    public Name getName(NameSpace namespace)
-    {
-        return namespace.getNameResolver(text);
+    /**
+     * Instantiates a new BSH ambiguous name.
+     *
+     * @param id
+     *            the id
+     */
+    BSHAmbiguousName(final int id) {
+        super(id);
     }
 
-    public Object toObject(CallStack callstack, Interpreter interpreter)
-        throws EvalError
-    {
-        return toObject(callstack, interpreter, false);
+    /**
+     * Gets the name.
+     *
+     * @param namespace
+     *            the namespace
+     * @return the name
+     */
+    public Name getName(final NameSpace namespace) {
+        return namespace.getNameResolver(this.text);
     }
 
-    Object toObject(
-        CallStack callstack, Interpreter interpreter, boolean forceClass)
-        throws EvalError
-    {
+    /**
+     * To object.
+     *
+     * @param callstack
+     *            the callstack
+     * @param interpreter
+     *            the interpreter
+     * @return the object
+     * @throws EvalError
+     *             the eval error
+     */
+    public Object toObject(final CallStack callstack,
+            final Interpreter interpreter) throws EvalError {
+        return this.toObject(callstack, interpreter, false);
+    }
+
+    /**
+     * To object.
+     *
+     * @param callstack
+     *            the callstack
+     * @param interpreter
+     *            the interpreter
+     * @param forceClass
+     *            the force class
+     * @return the object
+     * @throws EvalError
+     *             the eval error
+     */
+    Object toObject(final CallStack callstack, final Interpreter interpreter,
+            final boolean forceClass) throws EvalError {
         try {
-            return
-                getName(callstack.top()).toObject(
-                    callstack, interpreter, forceClass);
-        } catch (UtilEvalError e) {
-//e.printStackTrace();
+            return this.getName(callstack.top()).toObject(callstack,
+                    interpreter, forceClass);
+        } catch (final UtilEvalError e) {
+            // e.printStackTrace();
             throw e.toEvalError(this, callstack);
         }
     }
 
-    public Class toClass(CallStack callstack, Interpreter interpreter)
-        throws EvalError
-    {
+    /**
+     * To class.
+     *
+     * @param callstack
+     *            the callstack
+     * @param interpreter
+     *            the interpreter
+     * @return the class
+     * @throws EvalError
+     *             the eval error
+     */
+    public Class toClass(final CallStack callstack,
+            final Interpreter interpreter) throws EvalError {
         try {
-            return getName(callstack.top()).toClass();
-        } catch (ClassNotFoundException e) {
+            return this.getName(callstack.top()).toClass();
+        } catch (final ClassNotFoundException e) {
             throw new EvalError(e.getMessage(), this, callstack);
-        } catch (UtilEvalError e2) {
+        } catch (final UtilEvalError e2) {
             // ClassPathException is a type of UtilEvalError
             throw e2.toEvalError(this, callstack);
         }
     }
 
-    public LHS toLHS(CallStack callstack, Interpreter interpreter)
-        throws EvalError
-    {
+    /**
+     * To LHS.
+     *
+     * @param callstack
+     *            the callstack
+     * @param interpreter
+     *            the interpreter
+     * @return the lhs
+     * @throws EvalError
+     *             the eval error
+     */
+    public LHS toLHS(final CallStack callstack, final Interpreter interpreter)
+            throws EvalError {
         try {
-            return getName(callstack.top()).toLHS(callstack, interpreter);
-        } catch (UtilEvalError e) {
+            return this.getName(callstack.top()).toLHS(callstack, interpreter);
+        } catch (final UtilEvalError e) {
             throw e.toEvalError(this, callstack);
         }
     }
 
-    /*
-        The interpretation of an ambiguous name is context sensitive.
-        We disallow a generic eval().
-    */
-    public Object eval(CallStack callstack, Interpreter interpreter)
-        throws EvalError
-    {
-        throw new InterpreterError(
-            "Don't know how to eval an ambiguous name!"
-            +"  Use toObject() if you want an object.");
+    /** {@inheritDoc} *
+     * The interpretation of an ambiguous name is context sensitive.
+     * We disallow a generic eval().
+     */
+    @Override
+    public Object eval(final CallStack callstack, final Interpreter interpreter)
+            throws EvalError {
+        throw new InterpreterError("Don't know how to eval an ambiguous name!"
+                + "  Use toObject() if you want an object.");
     }
 
+    /** {@inheritDoc} */
+    @Override
     public String toString() {
-        return "AmbigousName: "+text;
+        return "AmbigousName: " + this.text;
     }
 }
-

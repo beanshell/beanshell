@@ -23,49 +23,49 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.collection;
 
-import java.util.Iterator;
-import java.util.Collection;
-import java.util.Enumeration;
 import java.util.Map;
-import java.lang.reflect.Array;
+
 import bsh.BshIterator;
 
 /**
-    Dynamically loaded extension supporting post 1.1 collections iterator.
-    @author Pat Niemeyer
+ * Dynamically loaded extension supporting post 1.1 collections iterator.
+ *
+ * @author Pat Niemeyer
  */
-public class CollectionManagerImpl extends bsh.CollectionManager
-{
-    public BshIterator getBshIterator(Object obj)
-        throws IllegalArgumentException
-    {
+public class CollectionManagerImpl extends bsh.CollectionManager {
+
+    /** {@inheritDoc} */
+    @Override
+    public BshIterator getBshIterator(final Object obj)
+            throws IllegalArgumentException {
         return new CollectionIterator(obj);
     }
 
-    public boolean isMap(Object obj)
-    {
+    /** {@inheritDoc} */
+    @Override
+    public boolean isMap(final Object obj) {
         if (obj instanceof Map)
             return true;
         else
             return super.isMap(obj);
     }
 
-    public Object getFromMap(Object map, Object key)
-    {
+    /** {@inheritDoc} */
+    @Override
+    public Object getFromMap(final Object map, final Object key) {
         // Hashtable implements Map
-        return ((Map)map).get(key);
+        return ((Map) map).get(key);
     }
 
-    /*
-        Place the raw value into the map... should be unwrapped.
+    /** {@inheritDoc} *
+     * Place the raw value into the map... should be unwrapped.
      */
-    public Object putInMap(Object map, Object key, Object value)
-    {
+    @Override
+    public Object putInMap(final Object map, final Object key,
+            final Object value) {
         // Hashtable implements Map
-        return ((Map)map).put(key, value);
+        return ((Map) map).put(key, value);
     }
 }

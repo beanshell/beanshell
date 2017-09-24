@@ -23,43 +23,47 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.util;
 
-import javax.swing.*;
-import java.awt.*;
-import java.io.*;
-import java.net.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Label;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.net.URL;
+
+import javax.swing.JApplet;
 
 /**
-    A lightweight console applet for remote display of a Beanshell session.
-*/
+ * A lightweight console applet for remote display of a Beanshell session.
+ */
+public class JRemoteApplet extends JApplet {
 
-public class JRemoteApplet extends JApplet
-{
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+    /** The out. */
     OutputStream out;
+    /** The in. */
     InputStream in;
 
-    public void init()
-    {
-        getContentPane().setLayout(new BorderLayout());
-
+    /** {@inheritDoc} */
+    @Override
+    public void init() {
+        this.getContentPane().setLayout(new BorderLayout());
         try {
-            URL base = getDocumentBase();
-
+            final URL base = this.getDocumentBase();
             // connect to session server on port (httpd + 1)
-            Socket s = new Socket(base.getHost(), base.getPort() + 1);
-            out = s.getOutputStream();
-            in = s.getInputStream();
-        } catch(IOException e) {
-            getContentPane().add("Center",
-                new Label("Remote Connection Failed", Label.CENTER));
+            final Socket s = new Socket(base.getHost(), base.getPort() + 1);
+            this.out = s.getOutputStream();
+            this.in = s.getInputStream();
+        } catch (final IOException e) {
+            this.getContentPane().add("Center",
+                    new Label("Remote Connection Failed", Label.CENTER));
             return;
         }
-
-        Component console = new JConsole(in, out);
-        getContentPane().add("Center", console);
+        final Component console = new JConsole(this.in, this.out);
+        this.getContentPane().add("Center", console);
     }
 }
-

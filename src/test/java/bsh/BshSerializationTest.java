@@ -17,23 +17,23 @@
  * under the License.                                                        *
  *                                                                           *
 /****************************************************************************/
-
 package bsh;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * This tests serialization of the beanshell interpreter
+ * This tests serialization of the beanshell interpreter.
  *
  * @author Jessen Yu
  */
 public class BshSerializationTest {
 
     /**
-     * Tests that Special.NULL_VALUE is correctly serialized/deserialized
+     * Tests that Special.NULL_VALUE is correctly serialized/deserialized.
      *
-     * @throws Exception in case of failure
+     * @throws Exception
+     *             in case of failure
      */
     @Test
     public void testNullValueSerialization() throws Exception {
@@ -44,26 +44,27 @@ public class BshSerializationTest {
         Assert.assertNull(deserInterpreter.eval("myNull"));
     }
 
-
     /**
-     * Tests that Primitive.NULL is correctly serialized/deserialized
+     * Tests that Primitive.NULL is correctly serialized/deserialized.
      *
-     * @throws Exception in case of failure
+     * @throws Exception
+     *             in case of failure
      */
     @Test
     public void testSpecialNullSerialization() throws Exception {
         final Interpreter originalInterpreter = new Interpreter();
         originalInterpreter.eval("myNull = null;");
         Assert.assertTrue((Boolean) originalInterpreter.eval("myNull == null"));
-        final Interpreter deserInterpreter = TestUtil.serDeser(originalInterpreter);
+        final Interpreter deserInterpreter = TestUtil
+                .serDeser(originalInterpreter);
         Assert.assertTrue((Boolean) deserInterpreter.eval("myNull == null"));
     }
 
-
     /**
-     * Tests that a declared method can be serialized (but not exploited)
+     * Tests that a declared method can be serialized (but not exploited).
      *
-     * @throws Exception in case of failure
+     * @throws Exception
+     *             in case of failure
      */
     @Test
     public void testMethodSerialization() throws Exception {
@@ -73,5 +74,4 @@ public class BshSerializationTest {
         final Interpreter deserInterpreter = TestUtil.serDeser(origInterpreter);
         Assert.assertEquals(1337, deserInterpreter.eval("method()"));
     }
-
 }

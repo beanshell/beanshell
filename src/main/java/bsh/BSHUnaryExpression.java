@@ -23,105 +23,142 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
-class BSHUnaryExpression extends SimpleNode implements ParserConstants
-{
+/**
+ * The Class BSHUnaryExpression.
+ */
+class BSHUnaryExpression extends SimpleNode implements ParserConstants {
+
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+    /** The kind. */
     public int kind;
+    /** The postfix. */
     public boolean postfix = false;
 
-    BSHUnaryExpression(int id) { super(id); }
+    /**
+     * Instantiates a new BSH unary expression.
+     *
+     * @param id
+     *            the id
+     */
+    BSHUnaryExpression(final int id) {
+        super(id);
+    }
 
-    public Object eval(CallStack callstack, Interpreter interpreter)
-        throws EvalError
-    {
-        SimpleNode node = (SimpleNode)jjtGetChild(0);
-
+    /** {@inheritDoc} */
+    @Override
+    public Object eval(final CallStack callstack, final Interpreter interpreter)
+            throws EvalError {
+        final SimpleNode node = (SimpleNode) this.jjtGetChild(0);
         // If this is a unary increment of decrement (either pre or postfix)
-        // then we need an LHS to which to assign the result.  Otherwise
+        // then we need an LHS to which to assign the result. Otherwise
         // just do the unary operation for the value.
         try {
-            if (kind == INCR || kind == DECR) {
-                LHS lhs = ((BSHPrimaryExpression)node).toLHS(
-                    callstack, interpreter);
-                return lhsUnaryOperation(lhs, interpreter.getStrictJava());
+            if (this.kind == INCR || this.kind == DECR) {
+                final LHS lhs = ((BSHPrimaryExpression) node).toLHS(callstack,
+                        interpreter);
+                return this.lhsUnaryOperation(lhs, interpreter.getStrictJava());
             } else
-                return
-                    unaryOperation(node.eval(callstack, interpreter), kind);
-        } catch (UtilEvalError e) {
+                return this.unaryOperation(node.eval(callstack, interpreter),
+                        this.kind);
+        } catch (final UtilEvalError e) {
             throw e.toEvalError(this, callstack);
         }
     }
 
-    private Object lhsUnaryOperation(LHS lhs, boolean strictJava)
-        throws UtilEvalError
-    {
-        if (Interpreter.DEBUG) Interpreter.debug("lhsUnaryOperation");
+    /**
+     * Lhs unary operation.
+     *
+     * @param lhs
+     *            the lhs
+     * @param strictJava
+     *            the strict java
+     * @return the object
+     * @throws UtilEvalError
+     *             the util eval error
+     */
+    private Object lhsUnaryOperation(final LHS lhs, final boolean strictJava)
+            throws UtilEvalError {
+        if (Interpreter.DEBUG)
+            Interpreter.debug("lhsUnaryOperation");
         Object prevalue, postvalue;
         prevalue = lhs.getValue();
-        postvalue = unaryOperation(prevalue, kind);
-
+        postvalue = this.unaryOperation(prevalue, this.kind);
         Object retVal;
-        if (postfix)
+        if (this.postfix)
             retVal = prevalue;
         else
             retVal = postvalue;
-
         lhs.assign(postvalue, strictJava);
         return retVal;
     }
 
-    private Object unaryOperation(Object op, int kind) throws UtilEvalError
-    {
+    /**
+     * Unary operation.
+     *
+     * @param op
+     *            the op
+     * @param kind
+     *            the kind
+     * @return the object
+     * @throws UtilEvalError
+     *             the util eval error
+     */
+    private Object unaryOperation(final Object op, final int kind)
+            throws UtilEvalError {
         if (op instanceof Boolean || op instanceof Character
-            || op instanceof Number)
-            return primitiveWrapperUnaryOperation(op, kind);
-
+                || op instanceof Number)
+            return this.primitiveWrapperUnaryOperation(op, kind);
         if (!(op instanceof Primitive))
             throw new UtilEvalError("Unary operation " + tokenImage[kind]
-                + " inappropriate for object");
-
-
-        return Primitive.unaryOperation((Primitive)op, kind);
+                    + " inappropriate for object");
+        return Primitive.unaryOperation((Primitive) op, kind);
     }
 
-    private Object primitiveWrapperUnaryOperation(Object val, int kind)
-        throws UtilEvalError
-    {
-        Class operandType = val.getClass();
-        Object operand = Primitive.promoteToInteger(val);
-
+    /**
+     * Primitive wrapper unary operation.
+     *
+     * @param val
+     *            the val
+     * @param kind
+     *            the kind
+     * @return the object
+     * @throws UtilEvalError
+     *             the util eval error
+     */
+    private Object primitiveWrapperUnaryOperation(final Object val,
+            final int kind) throws UtilEvalError {
+        final Class operandType = val.getClass();
+        final Object operand = Primitive.promoteToInteger(val);
         if (operand instanceof Boolean)
-            return Primitive.booleanUnaryOperation((Boolean)operand, kind)
-                    ? Boolean.TRUE : Boolean.FALSE;
-        else
-        if (operand instanceof Integer)
-        {
-            int result = Primitive.intUnaryOperation((Integer)operand, kind);
-
+            return Primitive.booleanUnaryOperation((Boolean) operand, kind)
+                    ? Boolean.TRUE
+                    : Boolean.FALSE;
+        else if (operand instanceof Integer) {
+            final int result = Primitive.intUnaryOperation((Integer) operand,
+                    kind);
             // ++ and -- must be cast back the original type
-            if(kind == INCR || kind == DECR)
-            {
-                if(operandType == Byte.TYPE)
-                    return new Byte((byte)result);
-                if(operandType == Short.TYPE)
-                    return new Short((short)result);
-                if(operandType == Character.TYPE)
-                    return new Character((char)result);
+            if (kind == INCR || kind == DECR) {
+                if (operandType == Byte.TYPE)
+                    return new Byte((byte) result);
+                if (operandType == Short.TYPE)
+                    return new Short((short) result);
+                if (operandType == Character.TYPE)
+                    return new Character((char) result);
             }
-
             return new Integer(result);
-        }
-        else if(operand instanceof Long)
-            return new Long(Primitive.longUnaryOperation((Long)operand, kind));
-        else if(operand instanceof Float)
-            return new Float(Primitive.floatUnaryOperation((Float)operand, kind));
-        else if(operand instanceof Double)
-            return new Double(Primitive.doubleUnaryOperation((Double)operand, kind));
+        } else if (operand instanceof Long)
+            return new Long(Primitive.longUnaryOperation((Long) operand, kind));
+        else if (operand instanceof Float)
+            return new Float(
+                    Primitive.floatUnaryOperation((Float) operand, kind));
+        else if (operand instanceof Double)
+            return new Double(
+                    Primitive.doubleUnaryOperation((Double) operand, kind));
         else
-            throw new InterpreterError("An error occurred.  Please call technical support.");
+            throw new InterpreterError(
+                    "An error occurred.  Please call technical support.");
     }
 }

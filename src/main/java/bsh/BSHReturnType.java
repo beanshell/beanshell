@@ -23,38 +23,73 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
-class BSHReturnType extends SimpleNode
-{
+/**
+ * The Class BSHReturnType.
+ */
+class BSHReturnType extends SimpleNode {
+
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+    /** The is void. */
     public boolean isVoid;
 
-    BSHReturnType(int id) { super(id); }
-
-    BSHType getTypeNode() {
-        return (BSHType)jjtGetChild(0);
+    /**
+     * Instantiates a new BSH return type.
+     *
+     * @param id
+     *            the id
+     */
+    BSHReturnType(final int id) {
+        super(id);
     }
 
-    public String getTypeDescriptor(
-        CallStack callstack, Interpreter interpreter, String defaultPackage)
-    {
-        if (isVoid)
+    /**
+     * Gets the type node.
+     *
+     * @return the type node
+     */
+    BSHType getTypeNode() {
+        return (BSHType) this.jjtGetChild(0);
+    }
+
+    /**
+     * Gets the type descriptor.
+     *
+     * @param callstack
+     *            the callstack
+     * @param interpreter
+     *            the interpreter
+     * @param defaultPackage
+     *            the default package
+     * @return the type descriptor
+     */
+    public String getTypeDescriptor(final CallStack callstack,
+            final Interpreter interpreter, final String defaultPackage) {
+        if (this.isVoid)
             return "V";
         else
-            return getTypeNode().getTypeDescriptor(
-                callstack, interpreter, defaultPackage);
+            return this.getTypeNode().getTypeDescriptor(callstack, interpreter,
+                    defaultPackage);
     }
 
-    public Class evalReturnType(
-        CallStack callstack, Interpreter interpreter) throws EvalError
-    {
-        if (isVoid)
+    /**
+     * Eval return type.
+     *
+     * @param callstack
+     *            the callstack
+     * @param interpreter
+     *            the interpreter
+     * @return the class
+     * @throws EvalError
+     *             the eval error
+     */
+    public Class evalReturnType(final CallStack callstack,
+            final Interpreter interpreter) throws EvalError {
+        if (this.isVoid)
             return Void.TYPE;
         else
-            return getTypeNode().getType(callstack, interpreter);
+            return this.getTypeNode().getType(callstack, interpreter);
     }
 }
-

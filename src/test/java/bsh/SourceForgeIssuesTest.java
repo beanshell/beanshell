@@ -17,21 +17,21 @@
  * under the License.                                                        *
  *                                                                           *
 /****************************************************************************/
-
 package bsh;
 
-import bsh.classpath.ClassManagerImpl;
+import static bsh.TestUtil.eval;
+import static org.junit.Assert.assertEquals;
+
+import java.lang.ref.WeakReference;
+import java.util.concurrent.Callable;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import java.lang.ref.WeakReference;
-import java.util.concurrent.Callable;
-
-import static bsh.TestUtil.eval;
-import static org.junit.Assert.assertEquals;
+import bsh.classpath.ClassManagerImpl;
 
 /**
  * todo:<p>
@@ -47,39 +47,51 @@ import static org.junit.Assert.assertEquals;
 @RunWith(FilteredTestRunner.class)
 public class SourceForgeIssuesTest {
 
+    /**
+     * After.
+     */
     @After
     public void after() {
         Interpreter.DEBUG = false;
     }
 
-
     /**
-     * <a href="http://sourceforge.net/tracker/?func=detail&aid=2898046&group_id=4075&atid=104075">Sourceforge issue "Error HERE! thrown while SAX parsing" - ID: 2898046</a>.
+     * <a href=
+     * "http://sourceforge.net/tracker/?func=detail&aid=2898046&group_id=4075&atid=104075">Sourceforge
+     * issue "Error HERE! thrown while SAX parsing" - ID: 2898046</a>.
+     *
+     * @throws Exception
+     *             the exception
      */
     @Test
     public void sourceforge_issue_2898046() throws Exception {
-        final String CODE_2898046 =
-                /* 1*/ "import javax.xml.parsers.*;\n" +
-                /* 2*/ "import org.xml.sax.InputSource;\n" +
-                /* 3*/ "events = new ArrayList();" +
-                /* 4*/ "factory = SAXParserFactory.newInstance();\n" +
-                /* 5*/ "saxParser = factory.newSAXParser();\n" +
-                /* 6*/ "parser = saxParser.getXMLReader();\n" +
-                /* 7*/ "parser.setContentHandler(this);\n" +
-                /* 8*/ "\n" +
-                /* 9*/ "invoke(name, args) {\n" +
-                /*10*/ "    events.add(name);\n" +
-                /*11*/ "}\n" +
-                /*12*/ "\n" +
-                /*13*/ "source = new InputSource(new StringReader(\"<xml>test</xml>\"));\n" +
-                /*14*/ "parser.parse(source);" +
-                /*15*/ "return events;";
-        Assert.assertEquals("[setDocumentLocator, startDocument, startElement, characters, endElement, endDocument]", eval(CODE_2898046).toString());
+        final String CODE_2898046 = /* 1 */ "import javax.xml.parsers.*;\n"
+/* 2 */ + "import org.xml.sax.InputSource;\n"
+/* 3 */ + "events = new ArrayList();"
+/* 4 */ + "factory = SAXParserFactory.newInstance();\n"
+/* 5 */ + "saxParser = factory.newSAXParser();\n"
+/* 6 */ + "parser = saxParser.getXMLReader();\n"
+/* 7 */ + "parser.setContentHandler(this);\n"
+/* 8 */ + "\n"
+/* 9 */ + "invoke(name, args) {\n"
+/* 10 */ + "    events.add(name);\n"
+/* 11 */ + "}\n"
+/* 12 */ + "\n"
+/* 13 */ + "source = new InputSource(new StringReader(\"<xml>test</xml>\"));\n"
+/* 14 */ + "parser.parse(source);"
+/* 15 */ + "return events;";
+        Assert.assertEquals(
+                "[setDocumentLocator, startDocument, startElement, characters, endElement, endDocument]",
+                eval(CODE_2898046).toString());
     }
 
-
     /**
-     * <a href="http://sourceforge.net/tracker/?func=detail&aid=2884749&group_id=4075&atid=104075">Sourceforge issue "Memory leak with WeakReferences" - ID: 2884749</a>.
+     * <a href=
+     * "http://sourceforge.net/tracker/?func=detail&aid=2884749&group_id=4075&atid=104075">Sourceforge
+     * issue "Memory leak with WeakReferences" - ID: 2884749</a>.
+     *
+     * @throws Exception
+     *             the exception
      */
     @Test
     public void sourceforge_issue_2884749() throws Exception {
@@ -96,18 +108,27 @@ public class SourceForgeIssuesTest {
         Assert.assertNull(weakRef.get());
     }
 
-
     /**
-     * <a href="http://sourceforge.net/tracker/?func=detail&aid=2945459&group_id=4075&atid=104075">Sourceforge issue "Parsing of long hex literals fails" - ID: 2945459</a>.
+     * <a href=
+     * "http://sourceforge.net/tracker/?func=detail&aid=2945459&group_id=4075&atid=104075">Sourceforge
+     * issue "Parsing of long hex literals fails" - ID: 2945459</a>.
+     *
+     * @throws Exception
+     *             the exception
      */
     @Test
     public void sourceforge_issue_2945459() throws Exception {
-        Assert.assertEquals(0x0000000001L, eval("long foo = 0x0000000001L;", "return foo"));
+        Assert.assertEquals(0x0000000001L,
+                eval("long foo = 0x0000000001L;", "return foo"));
     }
 
-
     /**
-     * <a href="http://sourceforge.net/tracker/?func=detail&aid=2562805&group_id=4075&atid=104075">Sourceforge issue "Debug fails if called method argument is null" - ID: 2562805</a>.
+     * <a href=
+     * "http://sourceforge.net/tracker/?func=detail&aid=2562805&group_id=4075&atid=104075">Sourceforge
+     * issue "Debug fails if called method argument is null" - ID: 2562805</a>.
+     *
+     * @throws Exception
+     *             the exception
      */
     @Test
     public void sourceforge_issue_2562805() throws Exception {
@@ -115,44 +136,84 @@ public class SourceForgeIssuesTest {
         eval("System.out.println(null);");
     }
 
-
     /**
-     * <a href="http://sourceforge.net/tracker/?func=detail&aid=2081602&group_id=4075&atid=104075">Sourceforge issue "NullPointerException Thrown by Overriden Method" - ID: 2081602</a>.
-     * Just a "learning test" to check the call flow for constructors of generated classes.
+     * <a href=
+     * "http://sourceforge.net/tracker/?func=detail&aid=2081602&group_id=4075&atid=104075">Sourceforge
+     * issue "NullPointerException Thrown by Overriden Method" - ID:
+     * 2081602</a>.
+     * Just a "learning test" to check the call flow for constructors of
+     * generated classes.
      *
+     * @throws Exception
+     *             the exception
      * @see #sourceforge_issue_2081602
      */
     @Test
     public void sourceforge_issue_2081602_learning_test() throws Exception {
-        final Object result = TestUtil.eval("Object echo(msg, x) {", "   print(msg + ' ' + x);", "   return x;", "}", "public class A implements java.util.concurrent.Callable {", "   int _id;", "   public A (int id) {", "      _id = echo(\"A\", id);", "   }", "   public Object call() { return _id; }", "}", "public class B extends A {", "   public B (int id) {", "      super (echo(\"B\", id * 2));", "   }", "}", "return new B (2);");
+        final Object result = TestUtil.eval("Object echo(msg, x) {",
+                "   print(msg + ' ' + x);", "   return x;", "}",
+                "public class A implements java.util.concurrent.Callable {",
+                "   int _id;", "   public A (int id) {",
+                "      _id = echo(\"A\", id);", "   }",
+                "   public Object call() { return _id; }", "}",
+                "public class B extends A {", "   public B (int id) {",
+                "      super (echo(\"B\", id * 2));", "   }", "}",
+                "return new B (2);");
         Assert.assertEquals(4, ((java.util.concurrent.Callable) result).call());
     }
 
-
     /**
-     * <a href="http://sourceforge.net/tracker/?func=detail&aid=2081602&group_id=4075&atid=104075">Sourceforge issue "NullPointerException Thrown by Overriden Method" - ID: 2081602</a>.
+     * <a href=
+     * "http://sourceforge.net/tracker/?func=detail&aid=2081602&group_id=4075&atid=104075">Sourceforge
+     * issue "NullPointerException Thrown by Overriden Method" - ID:
+     * 2081602</a>.
      * Overriding a method which is invoked from super-constructor issues a NPE.
+     *
+     * @throws Exception
+     *             the exception
      */
     @Test
     @Category(KnownIssue.class)
     public void sourceforge_issue_2081602() throws Exception {
         // Interpreter.DEBUG = true;
-        Callable result = (Callable) TestUtil.eval("Object echo(msg, x) {", "   print(msg + ' ' + x);", "   return x;", "}", "public class A implements " + Callable.class.getName() + " {", "   int _id;", "   public A (int id) {", "      print (\" A.<init> \" + id);", "      setId(id);", "   }", "   public void setId (int id) {", "      print (\" A.setId \" + id);", "      _id = id;", "   }", "   public Object call() { return _id; }", "}", "public class B extends A {", "   public B (int id) {", "      super (echo(\" B.<init>\", id * 3));", "   }", "   public void setId (int id) {", "      print (\" B.setId \" + id);", "      super.setId(id * 5);", "   }", "}", "return new B (1);");
+        final Callable result = (Callable) TestUtil.eval(
+                "Object echo(msg, x) {", "   print(msg + ' ' + x);",
+                "   return x;", "}",
+                "public class A implements " + Callable.class.getName() + " {",
+                "   int _id;", "   public A (int id) {",
+                "      print (\" A.<init> \" + id);", "      setId(id);",
+                "   }", "   public void setId (int id) {",
+                "      print (\" A.setId \" + id);", "      _id = id;", "   }",
+                "   public Object call() { return _id; }", "}",
+                "public class B extends A {", "   public B (int id) {",
+                "      super (echo(\" B.<init>\", id * 3));", "   }",
+                "   public void setId (int id) {",
+                "      print (\" B.setId \" + id);",
+                "      super.setId(id * 5);", "   }", "}", "return new B (1);");
         Assert.assertEquals(15, result.call());
     }
 
-
     /**
-     * <a href="http://sourceforge.net/tracker/?func=detail&aid=1897313&group_id=4075&atid=104075">Sourceforge issue "error when looping over collections containing null" - ID: 1897313</a>.
+     * <a href=
+     * "http://sourceforge.net/tracker/?func=detail&aid=1897313&group_id=4075&atid=104075">Sourceforge
+     * issue "error when looping over collections containing null" - ID:
+     * 1897313</a>.
+     *
+     * @throws Exception
+     *             the exception
      */
     @Test
     public void sourceforge_issue_1897313() throws Exception {
         eval("for (x: new String[]{\"foo\",null,\"bar\"}) { System.out.println(x); }");
     }
 
-
     /**
-     * <a href="http://sourceforge.net/tracker/?func=detail&aid=1796035&group_id=4075&atid=104075">Sourceforge issue "Grammar error when defining arrays" - ID: 1796035</a>.
+     * <a href=
+     * "http://sourceforge.net/tracker/?func=detail&aid=1796035&group_id=4075&atid=104075">Sourceforge
+     * issue "Grammar error when defining arrays" - ID: 1796035</a>.
+     *
+     * @throws Exception
+     *             the exception
      */
     @Test
     @Category(KnownIssue.class)
@@ -160,31 +221,55 @@ public class SourceForgeIssuesTest {
         eval("byte array[] = new byte[0]; return array;");
     }
 
-
     /**
-     * <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1897015&group_id=4075&atid=1950677">Sourceforge issue "parsing number 0xff000000 fails" - ID: 1950677</a>.
+     * <a href=
+     * "http://sourceforge.net/tracker/index.php?func=detail&aid=1897015&group_id=4075&atid=1950677">Sourceforge
+     * issue "parsing number 0xff000000 fails" - ID: 1950677</a>.
+     *
+     * @throws Exception
+     *             the exception
      */
     @Test
     public void sourceforge_issue_1950677() throws Exception {
         assertEquals(0xff000000, eval("return 0xff000000;"));
     }
 
-
+    /**
+     * The Class A.
+     */
     public static class A {
 
+        /**
+         * Static method.
+         *
+         * @return the string
+         */
         public static String staticMethod() {
             return "A";
         }
     }
 
+    /**
+     * The Class B.
+     */
     public static class B extends A {
 
+        /**
+         * Static method.
+         *
+         * @return the string
+         */
         public static String staticMethod() {
             return "B";
         }
     }
 
-
+    /**
+     * Misc tests.
+     *
+     * @throws Exception
+     *             the exception
+     */
     @Test
     public void misc_tests() throws Exception {
         Assert.assertEquals(true, TestUtil.eval("return true == true;"));
@@ -194,41 +279,54 @@ public class SourceForgeIssuesTest {
         try {
             TestUtil.eval("throw new RuntimeException();");
             Assert.fail();
-        } catch (TargetError e) {
-            Assert.assertTrue(e.getTarget().getClass() == RuntimeException.class);
+        } catch (final TargetError e) {
+            Assert.assertTrue(
+                    e.getTarget().getClass() == RuntimeException.class);
         }
-        Assert.assertEquals("foobar", TestUtil.eval("String a;", "try {", " a = \"foobar\";", "} catch (Exception e) {", "  throw e;", "}", "return a;"));
-        String script = "boolean fieldBool = false;\n" +
-                "int fieldInt = 0;\n" +
-                "Boolean fieldBool2 = false;\n" +
-                "void run() {\n" +
-                "fieldBool = ! fieldBool;\n" +
-                "fieldBool2 = ! fieldBool2;\n" +
-                "fieldInt++;\n" +
-                "System.out.println(\"fieldBool: \"+fieldBool);\n" +
-                "System.out.println(\"fieldBool2: \"+fieldBool2);\n" +
-                "System.out.println(\"fieldInt: \"+fieldInt);\n" +
-                "}\n";
-        Interpreter bsh = new Interpreter();
+        Assert.assertEquals("foobar",
+                TestUtil.eval("String a;", "try {", " a = \"foobar\";",
+                        "} catch (Exception e) {", "  throw e;", "}",
+                        "return a;"));
+        final String script = "boolean fieldBool = false;\n"
+                + "int fieldInt = 0;\n" + "Boolean fieldBool2 = false;\n"
+                + "void run() {\n" + "fieldBool = ! fieldBool;\n"
+                + "fieldBool2 = ! fieldBool2;\n" + "fieldInt++;\n"
+                + "System.out.println(\"fieldBool: \"+fieldBool);\n"
+                + "System.out.println(\"fieldBool2: \"+fieldBool2);\n"
+                + "System.out.println(\"fieldInt: \"+fieldInt);\n" + "}\n";
+        final Interpreter bsh = new Interpreter();
         bsh.eval(script);
-        Runnable runnable = (Runnable) bsh.getInterface(Runnable.class);
+        final Runnable runnable = (Runnable) bsh.getInterface(Runnable.class);
         runnable.run();
     }
 
-
+    /**
+     * The listener interface for receiving dummy events.
+     * The class that is interested in processing a dummy
+     * event implements this interface, and the object created
+     * with that class is registered with a component using the
+     * component's <code>addDummyListener</code> method. When
+     * the dummy event occurs, that object's appropriate
+     * method is invoked.
+     *
+     * @see DummyEvent
+     */
     private static class DummyListener implements BshClassManager.Listener {
 
+        /** The memory. */
         final byte[] _memory;
 
-
+        /**
+         * Instantiates a new dummy listener.
+         *
+         * @param numBytes
+         *            the num bytes
+         */
         public DummyListener(int numBytes) {
             _memory = new byte[numBytes];
         }
 
-
-        public void classLoaderChanged() {
-            // noop
-        }
-
+        /** {@inheritDoc} */
+        public void classLoaderChanged() {}
     }
 }

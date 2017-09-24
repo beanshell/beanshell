@@ -23,16 +23,29 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh.util;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.TextArea;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.PrintStream;
+import java.io.Reader;
 import java.util.Vector;
-import bsh.*;
+
+import bsh.ConsoleInterface;
+import bsh.Interpreter;
 
 /*
     This should go away eventually...  Native AWT sucks.
@@ -41,300 +54,410 @@ import bsh.*;
     Notes: todo -
     clean up the watcher thread, set daemon status
 */
-
 /**
-    An old AWT based console for BeanShell.
-
-    I looked everwhere for one, and couldn't find anything that worked.
-    I've tried to keep this as small as possible, no frills.
-    (Well, one frill - a simple history with the up/down arrows)
-    My hope is that this can be moved to a lightweight (portable) component
-    with JFC soon... but Swing is still very slow and buggy.
-
-    Done: see JConsole.java
-
-    The big Hack:
-
-    The heinous, disguisting hack in here is to keep the caret (cursor)
-    at the bottom of the text (without the user having to constantly click
-    at the bottom).  It wouldn't be so bad if the damned setCaretPostition()
-    worked as expected.  But the AWT TextArea for some insane reason treats
-    NLs as characters... oh, and it refuses to let you set a caret position
-    greater than the text length - for which it counts NLs as *one* character.
-    The glorious hack to fix this is to go the TextComponent peer.  I really
-    hate this.
-
-    Out of date:
-
-    This class is out of date.  It does not use the special blocking piped
-    input stream that the jconsole uses.
-
-    Deprecation:
-
-    This file uses two deprecate APIs.  We want to be a PrintStream so
-    that we can redirect stdout to our console... I don't see a way around
-    this.  Also we have to use getPeer() for the big hack above.
-*/
+ * An old AWT based console for BeanShell.
+ *
+ * I looked everwhere for one, and couldn't find anything that worked.
+ * I've tried to keep this as small as possible, no frills.
+ * (Well, one frill - a simple history with the up/down arrows)
+ * My hope is that this can be moved to a lightweight (portable) component
+ * with JFC soon... but Swing is still very slow and buggy.
+ *
+ * Done: see JConsole.java
+ *
+ * The big Hack:
+ *
+ * The heinous, disguisting hack in here is to keep the caret (cursor)
+ * at the bottom of the text (without the user having to constantly click
+ * at the bottom). It wouldn't be so bad if the damned setCaretPostition()
+ * worked as expected. But the AWT TextArea for some insane reason treats
+ * NLs as characters... oh, and it refuses to let you set a caret position
+ * greater than the text length - for which it counts NLs as *one* character.
+ * The glorious hack to fix this is to go the TextComponent peer. I really
+ * hate this.
+ *
+ * Out of date:
+ *
+ * This class is out of date. It does not use the special blocking piped
+ * input stream that the jconsole uses.
+ *
+ * Deprecation:
+ *
+ * This file uses two deprecate APIs. We want to be a PrintStream so
+ * that we can redirect stdout to our console... I don't see a way around
+ * this. Also we have to use getPeer() for the big hack above.
+ */
 public class AWTConsole extends TextArea
-    implements ConsoleInterface, Runnable, KeyListener {
+        implements ConsoleInterface, Runnable, KeyListener {
 
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+    /** The out pipe. */
     private OutputStream outPipe;
+    /** The in pipe. */
     private InputStream inPipe;
-
     // formerly public
+    /** The in. */
     private InputStream in;
+    /** The out. */
     private PrintStream out;
 
-    public Reader getIn() { return new InputStreamReader(in); }
-    public PrintStream getOut() { return out; }
-    public PrintStream getErr() { return out; }
-
-    private StringBuffer line = new StringBuffer();
-    private String startedLine;
-    private int textLength = 0;
-    private Vector history = new Vector();
-    private int histLine = 0;
-
-    public AWTConsole(int rows, int cols, InputStream cin, OutputStream cout) {
-        super(rows, cols);
-        setFont(new Font("Monospaced",Font.PLAIN,14));
-        setEditable(false);
-        addKeyListener (this);
-
-        outPipe = cout;
-        if (outPipe == null) {
-            outPipe = new PipedOutputStream();
-            try {
-                in = new PipedInputStream((PipedOutputStream)outPipe);
-            } catch (IOException e) {
-                print("Console internal error...");
-            }
-        }
-
-        // start the inpipe watcher
-        inPipe = cin;
-        new Thread(this).start();
-
-        requestFocus();
+    /** {@inheritDoc} */
+    public Reader getIn() {
+        return new InputStreamReader(this.in);
     }
 
-    public void keyPressed(KeyEvent e) {
-        type(e.getKeyCode(), e.getKeyChar(), e.getModifiers());
+    /** {@inheritDoc} */
+    public PrintStream getOut() {
+        return this.out;
+    }
+
+    /** {@inheritDoc} */
+    public PrintStream getErr() {
+        return this.out;
+    }
+
+    /** The line. */
+    private StringBuffer line = new StringBuffer();
+    /** The started line. */
+    private String startedLine;
+    /** The text length. */
+    private int textLength = 0;
+    /** The history. */
+    private final Vector history = new Vector();
+    /** The hist line. */
+    private int histLine = 0;
+
+    /**
+     * Instantiates a new AWT console.
+     *
+     * @param rows
+     *            the rows
+     * @param cols
+     *            the cols
+     * @param cin
+     *            the cin
+     * @param cout
+     *            the cout
+     */
+    public AWTConsole(final int rows, final int cols, final InputStream cin,
+            final OutputStream cout) {
+        super(rows, cols);
+        this.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        this.setEditable(false);
+        this.addKeyListener(this);
+        this.outPipe = cout;
+        if (this.outPipe == null) {
+            this.outPipe = new PipedOutputStream();
+            try {
+                this.in = new PipedInputStream(
+                        (PipedOutputStream) this.outPipe);
+            } catch (final IOException e) {
+                this.print("Console internal error...");
+            }
+        }
+        // start the inpipe watcher
+        this.inPipe = cin;
+        new Thread(this).start();
+        this.requestFocus();
+    }
+
+    /** {@inheritDoc} */
+    public void keyPressed(final KeyEvent e) {
+        this.type(e.getKeyCode(), e.getKeyChar(), e.getModifiers());
         e.consume();
     }
 
+    /**
+     * Instantiates a new AWT console.
+     */
     public AWTConsole() {
         this(12, 80, null, null);
     }
-    public AWTConsole(InputStream in, OutputStream out) {
+
+    /**
+     * Instantiates a new AWT console.
+     *
+     * @param in
+     *            the in
+     * @param out
+     *            the out
+     */
+    public AWTConsole(final InputStream in, final OutputStream out) {
         this(12, 80, in, out);
     }
 
-    public void type(int code, char ch, int modifiers) {
+    /**
+     * Type.
+     *
+     * @param code
+     *            the code
+     * @param ch
+     *            the ch
+     * @param modifiers
+     *            the modifiers
+     */
+    public void type(final int code, final char ch, final int modifiers) {
         switch (code) {
-            case (KeyEvent.VK_BACK_SPACE):
-                if (line.length() > 0) {
-                    line.setLength(line.length() - 1);
-                    replaceRange("", textLength-1, textLength);
-                    textLength--;
+            case KeyEvent.VK_BACK_SPACE:
+                if (this.line.length() > 0) {
+                    this.line.setLength(this.line.length() - 1);
+                    this.replaceRange("", this.textLength - 1, this.textLength);
+                    this.textLength--;
                 }
                 break;
-            case (KeyEvent.VK_ENTER):
-                enter();
+            case KeyEvent.VK_ENTER:
+                this.enter();
                 break;
-            case (KeyEvent.VK_U):
+            case KeyEvent.VK_U:
                 if ((modifiers & InputEvent.CTRL_MASK) > 0) {
-                    int len = line.length();
-                    replaceRange("", textLength-len, textLength);
-                    line.setLength(0);
-                    histLine = 0;
-                    textLength = getText().length();
+                    final int len = this.line.length();
+                    this.replaceRange("", this.textLength - len,
+                            this.textLength);
+                    this.line.setLength(0);
+                    this.histLine = 0;
+                    this.textLength = this.getText().length();
                 } else
-                    doChar(ch);
+                    this.doChar(ch);
                 break;
-            case (KeyEvent.VK_UP):
-                historyUp();
+            case KeyEvent.VK_UP:
+                this.historyUp();
                 break;
-            case (KeyEvent.VK_DOWN):
-                historyDown();
+            case KeyEvent.VK_DOWN:
+                this.historyDown();
                 break;
-            case (KeyEvent.VK_TAB):
-                line.append("    ");
-                append("    ");
-                textLength +=4;
+            case KeyEvent.VK_TAB:
+                this.line.append("    ");
+                this.append("    ");
+                this.textLength += 4;
                 break;
-/*
-            case (KeyEvent.VK_LEFT):
-                if (line.length() > 0) {
-                break;
-*/
-            // Control-C
-            case (KeyEvent.VK_C):
+            /*
+             * case (KeyEvent.VK_LEFT):
+             * if (line.length() > 0) {
+             * break;
+             */
+            case KeyEvent.VK_C: // Control-C
                 if ((modifiers & InputEvent.CTRL_MASK) > 0) {
-                    line.append("^C");
-                    append("^C");
-                    textLength += 2;
+                    this.line.append("^C");
+                    this.append("^C");
+                    this.textLength += 2;
                 } else
-                    doChar(ch);
+                    this.doChar(ch);
                 break;
             default:
-                doChar(ch);
+                this.doChar(ch);
         }
     }
 
-    private void doChar(char ch) {
-        if ((ch >= ' ') && (ch <= '~')) {
-            line.append(ch);
-            append(String.valueOf(ch));
-            textLength++;
+    /**
+     * Do char.
+     *
+     * @param ch
+     *            the ch
+     */
+    private void doChar(final char ch) {
+        if (ch >= ' ' && ch <= '~') {
+            this.line.append(ch);
+            this.append(String.valueOf(ch));
+            this.textLength++;
         }
     }
 
+    /**
+     * Enter.
+     */
     private void enter() {
         String s;
-        if (line.length() == 0)  // special hack for empty return!
+        if (this.line.length() == 0) // special hack for empty return!
             s = ";\n";
         else {
-            s = line +"\n";
-            history.addElement(line.toString());
+            s = this.line + "\n";
+            this.history.addElement(this.line.toString());
         }
-        line.setLength(0);
-        histLine = 0;
-        append("\n");
-        textLength = getText().length(); // sync for safety
-        acceptLine(s);
-
-        setCaretPosition(textLength);
+        this.line.setLength(0);
+        this.histLine = 0;
+        this.append("\n");
+        this.textLength = this.getText().length(); // sync for safety
+        this.acceptLine(s);
+        this.setCaretPosition(this.textLength);
     }
 
-    /*
-        Here's the really disguisting hack.
-        We have to get to the peer because TextComponent will refuse to
-        let us set us set a caret position greater than the text length.
-        Great.  What a piece of crap.
-    */
-    public void setCaretPosition(int pos) {
-        ((java.awt.peer.TextComponentPeer)getPeer()).setCaretPosition(
-            pos + countNLs());
+    /** {@inheritDoc} *
+     * Here's the really disguisting hack.
+     * We have to get to the peer because TextComponent will refuse to
+     * let us set us set a caret position greater than the text length.
+     * Great. What a piece of crap.
+     */
+    @Override
+    public void setCaretPosition(final int pos) {
+        ((java.awt.peer.TextComponentPeer) this.getPeer())
+                .setCaretPosition(pos + this.countNLs());
     }
 
-    /*
-        This is part of a hack to fix the setCaretPosition() bug
-        Count the newlines in the text
-    */
+    /**
+     * Count N ls.
+     *
+     * @return the int
+     *
+     * This is part of a hack to fix the setCaretPosition() bug
+     * Count the newlines in the text
+     */
     private int countNLs() {
-        String s = getText();
+        final String s = this.getText();
         int c = 0;
-        for(int i=0; i< s.length(); i++)
+        for (int i = 0; i < s.length(); i++)
             if (s.charAt(i) == '\n')
                 c++;
         return c;
     }
 
+    /**
+     * History up.
+     */
     private void historyUp() {
-        if (history.size() == 0)
+        if (this.history.size() == 0)
             return;
-        if (histLine == 0)  // save current line
-            startedLine = line.toString();
-        if (histLine < history.size()) {
-            histLine++;
-            showHistoryLine();
+        if (this.histLine == 0) // save current line
+            this.startedLine = this.line.toString();
+        if (this.histLine < this.history.size()) {
+            this.histLine++;
+            this.showHistoryLine();
         }
     }
-    private void historyDown() {
-        if (histLine == 0)
-            return;
 
-        histLine--;
-        showHistoryLine();
+    /**
+     * History down.
+     */
+    private void historyDown() {
+        if (this.histLine == 0)
+            return;
+        this.histLine--;
+        this.showHistoryLine();
     }
 
+    /**
+     * Show history line.
+     */
     private void showHistoryLine() {
         String showline;
-        if (histLine == 0)
-            showline = startedLine;
+        if (this.histLine == 0)
+            showline = this.startedLine;
         else
-            showline = (String)history.elementAt(history.size() - histLine);
-
-        replaceRange(showline, textLength-line.length(), textLength);
-        line = new StringBuffer(showline);
-        textLength = getText().length();
+            showline = (String) this.history
+                    .elementAt(this.history.size() - this.histLine);
+        this.replaceRange(showline, this.textLength - this.line.length(),
+                this.textLength);
+        this.line = new StringBuffer(showline);
+        this.textLength = this.getText().length();
     }
 
-    private void acceptLine(String line) {
-        if (outPipe == null)
-            print("Console internal error...");
+    /**
+     * Accept line.
+     *
+     * @param line
+     *            the line
+     */
+    private void acceptLine(final String line) {
+        if (this.outPipe == null)
+            this.print("Console internal error...");
         else
             try {
-                outPipe.write(line.getBytes());
-                outPipe.flush();
-            } catch (IOException e) {
-                outPipe = null;
+                this.outPipe.write(line.getBytes());
+                this.outPipe.flush();
+            } catch (final IOException e) {
+                this.outPipe = null;
                 throw new RuntimeException("Console pipe broken...");
             }
     }
 
-    public void println(Object o) {
-        print(String.valueOf(o)+"\n");
+    /** {@inheritDoc} */
+    public void println(final Object o) {
+        this.print(String.valueOf(o) + "\n");
     }
 
-    public void error(Object o) {
-        print(o, Color.red);
+    /** {@inheritDoc} */
+    public void error(final Object o) {
+        this.print(o, Color.red);
     }
 
-    // No color
-    public void print(Object o, Color c) {
-        print("*** " + String.valueOf(o));
+    /**
+     * Prints No color.
+     *
+     * @param o
+     *            the o
+     * @param c
+     *            the c
+     */
+    public void print(final Object o, final Color c) {
+        this.print("*** " + String.valueOf(o));
     }
 
-    synchronized public void print(Object o) {
-        append(String.valueOf(o));
-        textLength = getText().length(); // sync for safety
+    /** {@inheritDoc} */
+    public synchronized void print(final Object o) {
+        this.append(String.valueOf(o));
+        this.textLength = this.getText().length(); // sync for safety
     }
 
+    /**
+     * In pipe watcher.
+     *
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
     private void inPipeWatcher() throws IOException {
-        if (inPipe == null) {
-            PipedOutputStream pout = new PipedOutputStream();
-            out = new PrintStream(pout);
-            inPipe = new PipedInputStream(pout);
+        if (this.inPipe == null) {
+            final PipedOutputStream pout = new PipedOutputStream();
+            this.out = new PrintStream(pout);
+            this.inPipe = new PipedInputStream(pout);
         }
-        byte [] ba = new byte [256]; // arbitrary blocking factor
+        final byte[] ba = new byte[256]; // arbitrary blocking factor
         int read;
-        while ((read = inPipe.read(ba)) != -1)
-            print(new String(ba, 0, read));
-
-        println("Console: Input closed...");
+        while ((read = this.inPipe.read(ba)) != -1)
+            this.print(new String(ba, 0, read));
+        this.println("Console: Input closed...");
     }
 
+    /** {@inheritDoc} */
     public void run() {
         try {
-            inPipeWatcher();
-        } catch (IOException e) {
-            println("Console: I/O Error...");
+            this.inPipeWatcher();
+        } catch (final IOException e) {
+            this.println("Console: I/O Error...");
         }
     }
 
-    public static void main(String args[]) {
-        AWTConsole console = new AWTConsole();
+    /**
+     * The main method.
+     *
+     * @param args
+     *            the arguments
+     */
+    public static void main(final String args[]) {
+        final AWTConsole console = new AWTConsole();
         final Frame f = new Frame("Bsh Console");
         f.add(console, "Center");
         f.pack();
         f.setVisible(true);
         f.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
+
+            @Override
+            public void windowClosing(final WindowEvent e) {
                 f.dispose();
             }
         });
-
-        Interpreter interpreter = new Interpreter(console);
+        final Interpreter interpreter = new Interpreter(console);
         interpreter.run();
     }
 
+    /** {@inheritDoc} */
+    @Override
     public String toString() {
         return "BeanShell AWTConsole";
     }
 
-    // unused
-    public void keyTyped(KeyEvent e) { }
-    public void keyReleased(KeyEvent e) { }
+    /** {@inheritDoc} */
+    public void keyTyped(final KeyEvent e) {}
+
+    /** {@inheritDoc} */
+    public void keyReleased(final KeyEvent e) {}
 }

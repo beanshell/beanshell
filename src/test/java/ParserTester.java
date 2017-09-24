@@ -1,12 +1,23 @@
 import bsh.Interpreter;
 
+/**
+ * The Class ParserTester.
+ */
 public class ParserTester {
-    public static Object eval(String code) {
-        Interpreter interpreter = new Interpreter();
+
+    /**
+     * Eval.
+     *
+     * @param code
+     *            the code
+     * @return the object
+     */
+    public static Object eval(final String code) {
+        final Interpreter interpreter = new Interpreter();
         try {
             interpreter.eval(code);
             return null;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             return e;
         }
     }

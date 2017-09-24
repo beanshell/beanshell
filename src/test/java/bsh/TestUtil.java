@@ -17,7 +17,6 @@
  * under the License.                                                        *
  *                                                                           *
 /****************************************************************************/
-
 package bsh;
 
 import java.io.ByteArrayInputStream;
@@ -31,12 +30,18 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * The Class TestUtil.
+ */
 public class TestUtil {
 
     /**
      * Serializes and then deserializes the given instance - should be not null.
      *
-     * @param orgig this instance is serialized and then deserialized
+     * @param <T>
+     *            the generic type
+     * @param orgig
+     *            this instance is serialized and then deserialized
      * @return the instance after serialization and deserialization
      */
     @SuppressWarnings({"unchecked"})
@@ -44,13 +49,17 @@ public class TestUtil {
         try {
             final ByteArrayOutputStream byteOS = new ByteArrayOutputStream();
             new ObjectOutputStream(byteOS).writeObject(orgig);
-            return (T) new ObjectInputStream(new ByteArrayInputStream(byteOS.toByteArray())).readObject();
-        } catch (Exception e) {
+            return (T) new ObjectInputStream(
+                    new ByteArrayInputStream(byteOS.toByteArray()))
+                            .readObject();
+        } catch (final Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-
+    /**
+     * Clean up.
+     */
     static void cleanUp() {
         System.gc();
         System.gc();
@@ -60,112 +69,172 @@ public class TestUtil {
         System.gc();
     }
 
-
     /**
-     * Measure the time of concurrent executions of the provided runnable instance - the first error or runtime exceptions
-     * during execution is populated to the caller. The provided runnable is executed {@code taskCount * iterationCount}
+     * Measure the time of concurrent executions of the provided runnable
+     * instance - the first error or runtime exceptions
+     * during execution is populated to the caller. The provided runnable is
+     * executed {@code taskCount * iterationCount}
      * times.
+     *
+     * @param runnable
+     *            the runnable
+     * @param threadCount
+     *            the thread count
+     * @param taskCount
+     *            the task count
+     * @param iterationCount
+     *            the iteration count
+     * @return the long
+     * @throws InterruptedException
+     *             the interrupted exception
      */
-    public static long measureConcurrentTime(final Runnable runnable, final int threadCount, final int taskCount, final int iterationCount) throws InterruptedException {
-        final long duration = _measureConcurrentTime(runnable, threadCount, taskCount, iterationCount);
+    public static long measureConcurrentTime(final Runnable runnable,
+            final int threadCount, final int taskCount,
+            final int iterationCount) throws InterruptedException {
+        final long duration = _measureConcurrentTime(runnable, threadCount,
+                taskCount, iterationCount);
         cleanUp();
         return duration;
     }
 
-
-    static long _measureConcurrentTime(final Runnable runnable, final int threadCount, final int taskCount, final int iterationCount) throws InterruptedException {
-        if (threadCount < 1) {
-            throw new IllegalArgumentException("thread count must be at least 1");
-        }
-        if (taskCount < threadCount) {
+    /**
+     * Measure concurrent time.
+     *
+     * @param runnable
+     *            the runnable
+     * @param threadCount
+     *            the thread count
+     * @param taskCount
+     *            the task count
+     * @param iterationCount
+     *            the iteration count
+     * @return the long
+     * @throws InterruptedException
+     *             the interrupted exception
+     */
+    static long _measureConcurrentTime(final Runnable runnable,
+            final int threadCount, final int taskCount,
+            final int iterationCount) throws InterruptedException {
+        if (threadCount < 1)
+            throw new IllegalArgumentException(
+                    "thread count must be at least 1");
+        if (taskCount < threadCount)
             throw new IllegalArgumentException("task count below thread count");
-        }
         @SuppressWarnings({"ThrowableInstanceNeverThrown"})
         final Exception callerStack = new Exception("called from");
-        final CountDownLatch countDownLatch = new CountDownLatch(threadCount + 1);
+        final CountDownLatch countDownLatch = new CountDownLatch(
+                threadCount + 1);
         final AtomicReference<Throwable> exceptionHolder = new AtomicReference<Throwable>();
-        final MeasureRunnable toMeasure = new MeasureRunnable(countDownLatch, runnable, iterationCount, exceptionHolder);
-        final ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
-        for (int i = 0; i < taskCount; i++) {
+        final MeasureRunnable toMeasure = new MeasureRunnable(countDownLatch,
+                runnable, iterationCount, exceptionHolder);
+        final ExecutorService executorService = Executors
+                .newFixedThreadPool(threadCount);
+        for (int i = 0; i < taskCount; i++)
             executorService.submit(toMeasure);
-        }
         cleanUp();
         final long startTime = System.nanoTime();
         countDownLatch.countDown(); // start all
         executorService.shutdown();
         executorService.awaitTermination(60 * 60, TimeUnit.SECONDS);
         final Throwable throwable = exceptionHolder.get();
-        if (throwable instanceof RuntimeException) {
+        if (throwable instanceof RuntimeException)
             throw combineTraces((RuntimeException) throwable, callerStack);
-        }
-        if (throwable instanceof Error) {
+        if (throwable instanceof Error)
             throw combineTraces((Error) throwable, callerStack);
-        }
-        if (throwable != null) {
-            //noinspection ThrowableInstanceNeverThrown
+        if (throwable != null)
+            // noinspection ThrowableInstanceNeverThrown
             throw combineTraces(new RuntimeException(throwable), callerStack);
-        }
         return System.nanoTime() - startTime;
     }
 
-
     /**
-     * Adds {@code cause} as root-cause to {@code throwable} and returns {@code throwable}.
+     * Adds {@code cause} as root-cause to {@code throwable} and returns
+     * {@code throwable}.
      *
-     * @param throwable exception which root-cause should be extended.
-     * @param cause     new root-cause, usually a caller-stack.
-     * @param <T>       type of given throwable.
+     * @param <T>
+     *            type of given throwable.
+     * @param throwable
+     *            exception which root-cause should be extended.
+     * @param cause
+     *            new root-cause, usually a caller-stack.
      * @return {@code throwable} extended with the given {@code cause}.
      */
-    static <T extends Throwable> T combineTraces(final T throwable, final Exception cause) {
+    static <T extends Throwable> T combineTraces(final T throwable,
+            final Exception cause) {
         Throwable rootCause = throwable;
-        while (rootCause.getCause() != null) {
+        while (rootCause.getCause() != null)
             rootCause = rootCause.getCause();
-        }
         rootCause.initCause(cause);
         return throwable;
     }
 
-
+    /**
+     * Eval.
+     *
+     * @param code
+     *            the code
+     * @return the object
+     * @throws Exception
+     *             the exception
+     */
     public static Object eval(final String... code) throws Exception {
-        StringBuffer buffer = new StringBuffer();
-        for (String s : code) {
+        final StringBuffer buffer = new StringBuffer();
+        for (final String s : code)
             buffer.append(s).append('\n');
-        }
         return new Interpreter().eval(buffer.toString());
     }
 
-
+    /**
+     * The Class MeasureRunnable.
+     */
     static class MeasureRunnable implements Runnable {
 
+        /** The count down latch. */
         private final CountDownLatch _countDownLatch;
+
+        /** The task. */
         private final Runnable _task;
+
+        /** The iteration count. */
         private final int _iterationCount;
+
+        /** The exception. */
         private final AtomicReference<Throwable> _exception;
 
-
-        private MeasureRunnable(final CountDownLatch countDownLatch, final Runnable task, final int iterationCount, final AtomicReference<Throwable> exception) {
-            _countDownLatch = countDownLatch;
-            _task = task;
-            _iterationCount = iterationCount;
-            _exception = exception;
+        /**
+         * Instantiates a new measure runnable.
+         *
+         * @param countDownLatch
+         *            the count down latch
+         * @param task
+         *            the task
+         * @param iterationCount
+         *            the iteration count
+         * @param exception
+         *            the exception
+         */
+        private MeasureRunnable(final CountDownLatch countDownLatch,
+                final Runnable task, final int iterationCount,
+                final AtomicReference<Throwable> exception) {
+            this._countDownLatch = countDownLatch;
+            this._task = task;
+            this._iterationCount = iterationCount;
+            this._exception = exception;
         }
 
-
+        /** {@inheritDoc} */
         public void run() {
             try {
-                _countDownLatch.countDown();
-                for (int i = 0; i < _iterationCount; i++) {
-                    _task.run();
-                }
-            } catch (RuntimeException e) {
-                _exception.compareAndSet(null, e);
+                this._countDownLatch.countDown();
+                for (int i = 0; i < this._iterationCount; i++)
+                    this._task.run();
+            } catch (final RuntimeException e) {
+                this._exception.compareAndSet(null, e);
                 throw e;
-            } catch (Error e) {
-                _exception.compareAndSet(null, e);
+            } catch (final Error e) {
+                this._exception.compareAndSet(null, e);
                 throw e;
             }
         }
-
     }
 }

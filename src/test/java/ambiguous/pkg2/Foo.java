@@ -1,5 +1,10 @@
 package ambiguous.pkg2;
 
+/**
+ * The Class Foo.
+ */
 public class Foo {
-    public static String pkg ="pkg2";
+
+    /** The pkg. */
+    public static String pkg = "pkg2";
 }

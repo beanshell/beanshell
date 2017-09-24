@@ -17,27 +17,27 @@
  * under the License.                                                        *
  *                                                                           *
 /****************************************************************************/
-
 package bsh;
-
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-import org.junit.Assert;
 
 import java.io.File;
 import java.io.FileReader;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.junit.Assert;
+
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+
 /**
  * Run the old test scripts inherited from beanshell.
- * It's not always clear what the test cases do so this will need some more investigations for failing tests.
+ * It's not always clear what the test cases do so this will need some more
+ * investigations for failing tests.
  */
 public class OldScriptsTest {
 
+    /** The Constant KNOWN_FAILING_TESTS. */
     private static final Set<String> KNOWN_FAILING_TESTS;
-
-
     static {
         KNOWN_FAILING_TESTS = new HashSet<String>();
         KNOWN_FAILING_TESTS.add("class13.bsh");
@@ -47,7 +47,13 @@ public class OldScriptsTest {
         KNOWN_FAILING_TESTS.add("run.bsh");
     }
 
-
+    /**
+     * Suite.
+     *
+     * @return the junit.framework. test
+     * @throws Exception
+     *             the exception
+     */
     public static junit.framework.Test suite() throws Exception {
         final TestSuite suite = new TestSuite();
         final File baseDir = new File("src/test/resources/test-scripts");
@@ -61,40 +67,58 @@ public class OldScriptsTest {
         return suite;
     }
 
-
-    private static void addTests(File baseDir, TestSuite suite) {
+    /**
+     * Adds the tests.
+     *
+     * @param baseDir
+     *            the base dir
+     * @param suite
+     *            the suite
+     */
+    private static void addTests(final File baseDir, final TestSuite suite) {
         final File[] files = baseDir.listFiles();
-        if (files != null) {
+        if (files != null)
             for (final File file : files) {
                 final String name = file.getName();
-                if (file.isFile() && name.endsWith(".bsh") && !"TestHarness.bsh".equals(name) && !"RunAllTests.bsh".equals(name) && !"Fail.bsh".equals(name)) {
-                    if (KnownIssue.SKIP_KOWN_ISSUES && KNOWN_FAILING_TESTS.contains(name)) {
+                if (file.isFile() && name.endsWith(".bsh")
+                        && !"TestHarness.bsh".equals(name)
+                        && !"RunAllTests.bsh".equals(name)
+                        && !"Fail.bsh".equals(name)) {
+                    if (KnownIssue.SKIP_KOWN_ISSUES
+                            && KNOWN_FAILING_TESTS.contains(name)) {
                         System.out.println("skipping test " + file);
                         continue;
                     }
                     suite.addTest(new TestBshScript(file));
                 }
             }
-        }
     }
 
-
+    /**
+     * The Class TestBshScript.
+     */
     static class TestBshScript extends TestCase {
 
-        private File _file;
+        /** The file. */
+        private final File _file;
 
-
+        /**
+         * Instantiates a new test bsh script.
+         *
+         * @param file
+         *            the file
+         */
         public TestBshScript(final File file) {
-            _file = file;
+            this._file = file;
         }
 
-
+        /** {@inheritDoc} */
         @Override
         public String getName() {
-            return _file.getName();
+            return this._file.getName();
         }
 
-
+        /** {@inheritDoc} */
         @Override
         public void runTest() throws Exception {
             System.out.println(getClass().getResource("/bsh/commands/cd.bsh"));

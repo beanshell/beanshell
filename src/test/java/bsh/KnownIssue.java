@@ -17,16 +17,19 @@
  * under the License.                                                        *
  *                                                                           *
 /****************************************************************************/
-
 package bsh;
 
+/**
+ * The Class KnownIssue.
+ */
 public class KnownIssue implements TestFilter {
 
-    static final boolean SKIP_KOWN_ISSUES = System.getProperties().containsKey("skip_known_issues");
+    /** The Constant SKIP_KOWN_ISSUES. */
+    static final boolean SKIP_KOWN_ISSUES = System.getProperties()
+            .containsKey("skip_known_issues");
 
-
+    /** {@inheritDoc} */
     public boolean skip() {
         return SKIP_KOWN_ISSUES;
     }
-
 }

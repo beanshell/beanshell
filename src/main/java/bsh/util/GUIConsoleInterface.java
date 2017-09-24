@@ -23,27 +23,45 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.util;
 
-import bsh.ConsoleInterface;
 import java.awt.Color;
 
+import bsh.ConsoleInterface;
+
 /**
-    Additional capabilities of an interactive console for BeanShell.
-    Although this is called "GUIConsoleInterface" it might just as well be
-    used by a more sophisticated text-only command line.
-    <p>
-    Note: we may want to express the command line history, editing,
-    and cut & paste functionality here as well at some point.
-*/
-public interface GUIConsoleInterface extends ConsoleInterface
-{
+ * Additional capabilities of an interactive console for BeanShell.
+ * Although this is called "GUIConsoleInterface" it might just as well be
+ * used by a more sophisticated text-only command line.
+ * <p>
+ * Note: we may want to express the command line history, editing,
+ * and cut & paste functionality here as well at some point.
+ */
+public interface GUIConsoleInterface extends ConsoleInterface {
+
+    /**
+     * Prints the.
+     *
+     * @param o
+     *            the o
+     * @param color
+     *            the color
+     */
     public void print(Object o, Color color);
+
+    /**
+     * Sets the name completion.
+     *
+     * @param nc
+     *            the new name completion
+     */
     public void setNameCompletion(NameCompletion nc);
 
-    /** e.g. the wait cursor */
+    /**
+     * e.g. the wait cursor
+     *
+     * @param on
+     *            the new wait feedback
+     */
     public void setWaitFeedback(boolean on);
 }
-

@@ -23,14 +23,30 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
-class ReflectError extends Exception
-{
-    public ReflectError() { super(); }
-    public ReflectError(String s) { super(s); }
-}
+/**
+ * The Class ReflectError.
+ */
+class ReflectError extends Exception {
 
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * Instantiates a new reflect error.
+     */
+    public ReflectError() {
+        super();
+    }
+
+    /**
+     * Instantiates a new reflect error.
+     *
+     * @param s
+     *            the s
+     */
+    public ReflectError(final String s) {
+        super(s);
+    }
+}

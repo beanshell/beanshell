@@ -25,12 +25,11 @@
  *****************************************************************************/
 package bsh;
 
-
 /**
  * Implementation of the enhanced for(:) statement.
  * This statement uses BshIterable to support iteration over a wide variety
- * of iterable types.  Under JDK 1.1 this statement supports primitive and
- * Object arrays, Vectors, and enumerations.  Under JDK 1.2 and later it
+ * of iterable types. Under JDK 1.1 this statement supports primitive and
+ * Object arrays, Vectors, and enumerations. Under JDK 1.2 and later it
  * additionally supports collections.
  *
  * @author Daniel Leuck
@@ -38,64 +37,78 @@ package bsh;
  */
 class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
 
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+
+    /** The var name. */
     String varName;
 
-
-    BSHEnhancedForStatement(int id) {
+    /**
+     * Instantiates a new BSH enhanced for statement.
+     *
+     * @param id
+     *            the id
+     */
+    BSHEnhancedForStatement(final int id) {
         super(id);
     }
 
-
-    public Object eval(CallStack callstack, Interpreter interpreter) throws EvalError {
+    /** {@inheritDoc} */
+    @Override
+    public Object eval(final CallStack callstack, final Interpreter interpreter)
+            throws EvalError {
         Class elementType = null;
         SimpleNode expression;
         SimpleNode statement = null;
-        NameSpace enclosingNameSpace = callstack.top();
-        SimpleNode firstNode = ((SimpleNode) jjtGetChild(0));
-        int nodeCount = jjtGetNumChildren();
+        final NameSpace enclosingNameSpace = callstack.top();
+        final SimpleNode firstNode = (SimpleNode) this.jjtGetChild(0);
+        final int nodeCount = this.jjtGetNumChildren();
         if (firstNode instanceof BSHType) {
             elementType = ((BSHType) firstNode).getType(callstack, interpreter);
-            expression = ((SimpleNode) jjtGetChild(1));
-            if (nodeCount > 2) {
-                statement = ((SimpleNode) jjtGetChild(2));
-            }
+            expression = (SimpleNode) this.jjtGetChild(1);
+            if (nodeCount > 2)
+                statement = (SimpleNode) this.jjtGetChild(2);
         } else {
             expression = firstNode;
-            if (nodeCount > 1) {
-                statement = ((SimpleNode) jjtGetChild(1));
-            }
+            if (nodeCount > 1)
+                statement = (SimpleNode) this.jjtGetChild(1);
         }
-        BlockNameSpace eachNameSpace = new BlockNameSpace(enclosingNameSpace);
+        final BlockNameSpace eachNameSpace = new BlockNameSpace(
+                enclosingNameSpace);
         callstack.swap(eachNameSpace);
         final Object iteratee = expression.eval(callstack, interpreter);
-        if (iteratee == Primitive.NULL) {
-            throw new EvalError("The collection, array, map, iterator, or " + "enumeration portion of a for statement cannot be null.", this, callstack);
-        }
-        CollectionManager cm = CollectionManager.getCollectionManager();
-        if (!cm.isBshIterable(iteratee)) {
-            throw new EvalError("Can't iterate over type: " + iteratee.getClass(), this, callstack);
-        }
-        BshIterator iterator = cm.getBshIterator(iteratee);
+        if (iteratee == Primitive.NULL)
+            throw new EvalError("The collection, array, map, iterator, or "
+                    + "enumeration portion of a for statement cannot be null.",
+                    this, callstack);
+        final CollectionManager cm = CollectionManager.getCollectionManager();
+        if (!cm.isBshIterable(iteratee))
+            throw new EvalError(
+                    "Can't iterate over type: " + iteratee.getClass(), this,
+                    callstack);
+        final BshIterator iterator = cm.getBshIterator(iteratee);
         Object returnControl = Primitive.VOID;
         while (iterator.hasNext()) {
             try {
                 Object value = iterator.next();
-                if (value == null) {
+                if (value == null)
                     value = Primitive.NULL;
-                }
-                if (elementType != null) {
-                    eachNameSpace.setTypedVariable(varName/*name*/, elementType/*type*/, value/*value*/, new Modifiers()/*none*/);
-                } else {
-                    eachNameSpace.setVariable(varName, value, false);
-                }
-            } catch (UtilEvalError e) {
-                throw e.toEvalError("for loop iterator variable:" + varName, this, callstack);
+                if (elementType != null)
+                    eachNameSpace.setTypedVariable(this.varName/* name */,
+                            elementType/* type */, value/* value */,
+                            new Modifiers()/* none */);
+                else
+                    eachNameSpace.setVariable(this.varName, value, false);
+            } catch (final UtilEvalError e) {
+                throw e.toEvalError(
+                        "for loop iterator variable:" + this.varName, this,
+                        callstack);
             }
             boolean breakout = false; // switch eats a multi-level break here?
             if (statement != null) {
                 // not empty statement
-                Object ret = statement.eval(callstack, interpreter);
-                if (ret instanceof ReturnControl) {
+                final Object ret = statement.eval(callstack, interpreter);
+                if (ret instanceof ReturnControl)
                     switch (((ReturnControl) ret).kind) {
                         case RETURN:
                             returnControl = ret;
@@ -107,14 +120,11 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
                             breakout = true;
                             break;
                     }
-                }
             }
-            if (breakout) {
+            if (breakout)
                 break;
-            }
         }
         callstack.swap(enclosingNameSpace);
         return returnControl;
     }
-
 }

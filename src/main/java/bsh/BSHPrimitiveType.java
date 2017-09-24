@@ -23,16 +23,34 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
-class BSHPrimitiveType extends SimpleNode
-{
+/**
+ * The Class BSHPrimitiveType.
+ */
+class BSHPrimitiveType extends SimpleNode {
+
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+    /** The type. */
     public Class type;
 
-    BSHPrimitiveType(int id) { super(id); }
-    public Class getType() { return type; }
-}
+    /**
+     * Instantiates a new BSH primitive type.
+     *
+     * @param id
+     *            the id
+     */
+    BSHPrimitiveType(final int id) {
+        super(id);
+    }
 
+    /**
+     * Gets the type.
+     *
+     * @return the type
+     */
+    public Class getType() {
+        return this.type;
+    }
+}

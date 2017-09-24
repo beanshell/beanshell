@@ -23,27 +23,38 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
-class BSHReturnStatement extends SimpleNode implements ParserConstants
-{
+/**
+ * The Class BSHReturnStatement.
+ */
+class BSHReturnStatement extends SimpleNode implements ParserConstants {
+
+    /** The Constant serialVersionUID. */
+    private static final long serialVersionUID = 1L;
+    /** The kind. */
     public int kind;
 
-    BSHReturnStatement(int id) { super(id); }
+    /**
+     * Instantiates a new BSH return statement.
+     *
+     * @param id
+     *            the id
+     */
+    BSHReturnStatement(final int id) {
+        super(id);
+    }
 
-    public Object eval(CallStack callstack, Interpreter interpreter)
-        throws EvalError
-    {
+    /** {@inheritDoc} */
+    @Override
+    public Object eval(final CallStack callstack, final Interpreter interpreter)
+            throws EvalError {
         Object value;
-        if(jjtGetNumChildren() > 0)
-            value = ((SimpleNode)jjtGetChild(0)).eval(callstack, interpreter);
+        if (this.jjtGetNumChildren() > 0)
+            value = ((SimpleNode) this.jjtGetChild(0)).eval(callstack,
+                    interpreter);
         else
             value = Primitive.VOID;
-
-        return new ReturnControl(kind, value, this);
+        return new ReturnControl(this.kind, value, this);
     }
 }
-

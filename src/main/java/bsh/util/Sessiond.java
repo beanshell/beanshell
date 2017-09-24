@@ -23,74 +23,104 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.util;
 
-import java.io.*;
-
-import java.net.Socket;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.net.ServerSocket;
-import bsh.*;
+import java.net.Socket;
+
+import bsh.Interpreter;
+import bsh.NameSpace;
 
 /**
-    BeanShell remote session server.
-    Starts instances of bsh for client connections.
-    Note: the sessiond effectively maps all connections to the same interpreter
-    (shared namespace).
-*/
-public class Sessiond extends Thread
-{
-    private ServerSocket ss;
+ * BeanShell remote session server.
+ * Starts instances of bsh for client connections.
+ * Note: the sessiond effectively maps all connections to the same interpreter
+ * (shared namespace).
+ */
+public class Sessiond extends Thread {
+
+    /** The ss. */
+    private final ServerSocket ss;
+    /** The global name space. */
     NameSpace globalNameSpace;
 
     /*
-    public static void main(String argv[]) throws IOException
-    {
-        new Sessiond(Integer.parseInt(argv[0])).start();
-    }
-    */
+     * public static void main(String argv[]) throws IOException
+     * {
+     * new Sessiond(Integer.parseInt(argv[0])).start();
+     * }
+     */
 
-    public Sessiond(NameSpace globalNameSpace, int port) throws IOException
-    {
-        ss = new ServerSocket(port);
+    /**
+     * Instantiates a new sessiond.
+     *
+     * @param globalNameSpace
+     *            the global name space
+     * @param port
+     *            the port
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
+    public Sessiond(final NameSpace globalNameSpace, final int port)
+            throws IOException {
+        this.ss = new ServerSocket(port);
         this.globalNameSpace = globalNameSpace;
     }
 
-    public void run()
-    {
-        try
-        {
-            while(true)
-                new SessiondConnection(globalNameSpace, ss.accept()).start();
+    /** {@inheritDoc} */
+    @Override
+    public void run() {
+        try {
+            while (true)
+                new SessiondConnection(this.globalNameSpace, this.ss.accept())
+                        .start();
+        } catch (final IOException e) {
+            System.out.println(e);
         }
-        catch(IOException e) { System.out.println(e); }
     }
 }
 
-class SessiondConnection extends Thread
-{
+/**
+ * The Class SessiondConnection.
+ */
+class SessiondConnection extends Thread {
+
+    /** The global name space. */
     NameSpace globalNameSpace;
+
+    /** The client. */
     Socket client;
 
-    SessiondConnection(NameSpace globalNameSpace, Socket client)
-    {
+    /**
+     * Instantiates a new sessiond connection.
+     *
+     * @param globalNameSpace
+     *            the global name space
+     * @param client
+     *            the client
+     */
+    SessiondConnection(final NameSpace globalNameSpace, final Socket client) {
         this.client = client;
         this.globalNameSpace = globalNameSpace;
     }
 
-    public void run()
-    {
-        try
-        {
-            InputStream in = client.getInputStream();
-            PrintStream out = new PrintStream(client.getOutputStream());
-            Interpreter i = new Interpreter(
-                new InputStreamReader(in), out, out, true, globalNameSpace);
+    /** {@inheritDoc} */
+    @Override
+    public void run() {
+        try {
+            final InputStream in = this.client.getInputStream();
+            final PrintStream out = new PrintStream(
+                    this.client.getOutputStream());
+            final Interpreter i = new Interpreter(new InputStreamReader(in),
+                    out, out, true, this.globalNameSpace);
             i.setExitOnEOF(false); // don't exit interp
             i.run();
+        } catch (final IOException e) {
+            System.out.println(e);
         }
-        catch(IOException e) { System.out.println(e); }
     }
 }
-
