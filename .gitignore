@@ -19,3 +19,4 @@ BeanShell.iml
 BeanShell.ipr
 BeanShell.iws
 *gradle*
+*.ser
