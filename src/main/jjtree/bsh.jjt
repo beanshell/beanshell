@@ -36,10 +36,24 @@
 options {
     JAVA_UNICODE_ESCAPE=true;
     STATIC=false;
+    JDK_VERSION="1.8";
+
     MULTI=true;
     NODE_DEFAULT_VOID=true;
     NODE_SCOPE_HOOK=true;
     NODE_PREFIX="BSH";
+    NODE_PACKAGE="bsh";
+    NODE_CLASS="bsh.SimpleNode";
+
+    /* Unused options
+    VISITOR=false;
+    VISITOR_DATA_TYPE="Object";
+    VISITOR_RETURN_TYPE="Object";
+    VISITOR_EXCEPTION="";
+    TRACK_TOKENS=false;
+    NODE_USES_PARSER=false;
+    */
+
     /* Print grammar debugging info as we parse
     DEBUG_PARSER=true;
     */
@@ -92,8 +106,9 @@ PARSER_BEGIN(Parser)
  *****************************************************************************/
 package bsh;
 
-import java.io.*;
-import java.util.Vector;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 
 /**
     This is the BeanShell parser.  It is used internally by the Interpreter
@@ -213,13 +228,13 @@ public class Parser
         The auto-generated Parser.generateParseException() method does not
         provide line number info, therefore we do this.
     */
-    ParseException createParseException( String message )
+    ParseException createParseException( String message, Exception e )
     {
         Token errortok = token;
         int line = errortok.beginLine, column = errortok.beginColumn;
         String mess = (errortok.kind == 0) ? tokenImage[0] : errortok.image;
         return new ParseException( "Parse error at line " + line
-            + ", column " + column + " : " + message );
+            + ", column " + column + " : " + message, e );
     }
 }
 
@@ -514,7 +529,7 @@ Modifiers Modifiers( int context, boolean lookahead ) :
                 if ( mods == null ) mods = new Modifiers();
                 mods.addModifier( context, getToken(0).image );
             } catch ( IllegalStateException e ) {
-                throw createParseException( e.getMessage() );
+                throw createParseException( e.getMessage(), e );
             }
     }
   )* {
@@ -1005,7 +1020,7 @@ void Literal() #Literal :
                 Integer.decode( literal ).intValue() );
         } catch ( NumberFormatException e ) {
             throw createParseException(
-                "Error or number too big for integer type: "+ literal );
+                "Error or number too big for integer type: "+ literal, e );
         }
   }
 |
@@ -1031,7 +1046,7 @@ void Literal() #Literal :
         try {
             jjtThis.charSetup( x.image.substring(1, x.image.length() - 1) );
         } catch ( Exception e ) {
-            throw createParseException("Error parsing character: "+x.image);
+            throw createParseException("Error parsing character: "+x.image, e);
         }
     }
 |
@@ -1039,7 +1054,7 @@ void Literal() #Literal :
         try {
             jjtThis.stringSetup( x.image.substring(1, x.image.length() - 1) );
         } catch ( Exception e ) {
-            throw createParseException("Error parsing string: "+x.image);
+            throw createParseException("Error parsing string: "+x.image, e);
         }
     }
 |

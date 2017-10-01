@@ -97,7 +97,8 @@ class BSHLiteral extends SimpleNode
     void stringSetup(String str)
     {
         StringBuffer buffer = new StringBuffer();
-        for(int i = 0; i < str.length(); i++)
+        int len = str.length();
+        for(int i = 0; i < len; i++)
         {
             char ch = str.charAt(i);
             if(ch == '\\')
@@ -110,7 +111,8 @@ class BSHLiteral extends SimpleNode
                     int endPos = i;
 
                     // check the next two characters
-                    while(endPos < i + 2)
+                    int max = Math.min( i + 2, len - 1 );
+                    while(endPos < max)
                     {
                         if(Character.isDigit(str.charAt(endPos + 1)))
                             endPos++;
