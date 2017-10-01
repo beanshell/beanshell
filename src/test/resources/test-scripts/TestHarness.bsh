@@ -3,18 +3,18 @@
 boolean test_failed=false;
 boolean test_completed=false;
 boolean test_warning=false;
+String test_message="Test completed with no errors.";
 int test_flag = 0;
 
 assert( boolean condition )
 {
     if ( !condition )
     {
-        print(
-            "Test FAILED: "
+        super.test_message = "Test FAILED: "
             +"Line: "+ this.namespace.getInvocationLine()
             +" : "+this.namespace.getInvocationText()
-            +" : while evaluating file: "+getSourceFileInfo()
-        );
+            +" : while evaluating file: "+getSourceFileInfo();
+        print(super.test_message);
         super.test_failed = true;
     }
 }

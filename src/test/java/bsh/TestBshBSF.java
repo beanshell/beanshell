@@ -1,64 +1,54 @@
 package bsh;
+
 import java.util.Vector;
 
 import org.apache.bsf.BSFEngine;
 import org.apache.bsf.BSFException;
 import org.apache.bsf.BSFManager;
 
-public class TestBshBSF
-{
-    public static void main( String [] args )
-        throws BSFException
-    {
-        BSFManager mgr = new BSFManager();
+/** The Class TestBshBSF. */
+public class TestBshBSF {
 
+    /** The main method.
+     * @param args the arguments
+     * @throws BSFException the BSF exception */
+    public static void main(final String[] args) throws BSFException {
+        final BSFManager mgr = new BSFManager();
         // register beanshell with the BSF framework
-        String [] extensions = { "bsh" };
-        mgr.registerScriptingEngine(
-            "beanshell", "bsh.util.BeanShellBSFEngine", extensions );
-
+        final String[] extensions = {"bsh"};
+        BSFManager.registerScriptingEngine("beanshell",
+                "bsh.util.BeanShellBSFEngine", extensions);
         mgr.declareBean("foo", "fooString", String.class);
         mgr.declareBean("bar", "barString", String.class);
         mgr.registerBean("gee", "geeString");
-
-        BSFEngine beanshellEngine = mgr.loadScriptingEngine("beanshell");
-
+        final BSFEngine beanshellEngine = mgr.loadScriptingEngine("beanshell");
         String script = "foo + bar + bsf.lookupBean(\"gee\")";
-        Object result = beanshellEngine.eval( "Test eval...", -1, -1, script );
-
-        assertTrue( result.equals("fooStringbarStringgeeString" ) );
-
+        Object result = beanshellEngine.eval("Test eval...", -1, -1, script);
+        assertTrue(result.equals("fooStringbarStringgeeString"));
         // test apply()
-        Vector names = new Vector();
+        final Vector<String> names = new Vector<>();
         names.addElement("name");
-        Vector vals = new Vector();
+        final Vector<String> vals = new Vector<>();
         vals.addElement("Pat");
-
         script = "name + name";
-
-        result = beanshellEngine.apply(
-            "source string...", -1, -1, script, names, vals );
-
-        assertTrue( result.equals("PatPat" ) );
-
-        result = beanshellEngine.eval( "Test eval...", -1, -1, "name" );
-
+        result = beanshellEngine.apply("source string...", -1, -1, script,
+                names, vals);
+        assertTrue(result.equals("PatPat"));
+        result = beanshellEngine.eval("Test eval...", -1, -1, "name");
         // name should not be set
-        assertTrue( result == null );
-
+        assertTrue(result == null);
         // Verify the primitives are unwrapped
-        result = beanshellEngine.eval( "Test eval...", -1, -1, "1+1");
-
-        assertTrue( result instanceof Integer
-            && ((Integer)result).intValue() == 2 );
+        result = beanshellEngine.eval("Test eval...", -1, -1, "1+1");
+        assertTrue(result instanceof Integer
+                && ((Integer) result).intValue() == 2);
     }
 
-    static void assertTrue( boolean cond ) {
-        if ( cond )
+    /** Assert true.
+     * @param cond the cond */
+    static void assertTrue(final boolean cond) {
+        if (cond)
             System.out.println("Passed...");
         else
             throw new Error("assert failed...");
     }
-
 }
-

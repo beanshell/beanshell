@@ -17,16 +17,22 @@
  * under the License.                                                        *
  *                                                                           *
 /****************************************************************************/
-
 package bsh;
 
+import java.util.HashSet;
+import java.util.Set;
+
+/** The Class KnownIssue. */
 public class KnownIssue implements TestFilter {
 
-    static final boolean SKIP_KOWN_ISSUES = System.getProperties().containsKey("skip_known_issues");
+    /** The Constant KNOWN_FAILING_TESTS. */
+    public static final Set<String> KNOWN_FAILING_TESTS = new HashSet<>();
+    /** The Constant SKIP_KNOWN_ISSUES. */
+    public static final boolean SKIP_KNOWN_ISSUES = System.getProperties()
+            .containsKey("skip_known_issues");
 
-
+    /** {@inheritDoc} */
     public boolean skip() {
-        return SKIP_KOWN_ISSUES;
+        return SKIP_KNOWN_ISSUES;
     }
-
 }
