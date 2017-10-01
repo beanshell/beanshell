@@ -1,8 +1,9 @@
 package bsh.engine;
 
-import javax.script.*;
-import java.util.List;
 import java.util.Arrays;
+import java.util.List;
+
+import javax.script.ScriptEngine;
 
 public class BshScriptEngineFactory implements
     javax.script.ScriptEngineFactory

@@ -23,14 +23,13 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
-import java.lang.reflect.*;
+import java.io.NotSerializableException;
+import java.io.ObjectStreamException;
 import java.lang.reflect.InvocationHandler;
-import java.io.*;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.Hashtable;
 
 /**

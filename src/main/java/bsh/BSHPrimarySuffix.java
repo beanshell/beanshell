@@ -23,12 +23,8 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
-import java.util.Hashtable;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 

@@ -28,7 +28,10 @@
 
 package bsh;
 
-import java.io.*;
+import java.io.FilterReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 
 /**
     This is a quick hack to turn empty lines entered interactively on the

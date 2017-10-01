@@ -23,20 +23,33 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.classpath;
 
-import java.util.*;
-import java.util.zip.*;
-import java.io.*;
-import java.net.*;
+import java.io.DataInputStream;
 import java.io.File;
-import bsh.ConsoleInterface;
-import bsh.StringUtil;
-import bsh.ClassPathException;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Vector;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import bsh.ClassPathException;
 import bsh.NameSource;
+import bsh.StringUtil;
 
 /**
     A BshClassPath encapsulates knowledge about a class path of URLs.

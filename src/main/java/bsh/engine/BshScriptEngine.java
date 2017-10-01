@@ -1,10 +1,33 @@
 package bsh.engine;
 
-import java.io.*;
+import static javax.script.ScriptContext.ENGINE_SCOPE;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.Writer;
 import java.util.Map;
-import javax.script.*;
-import bsh.*;
-import static javax.script.ScriptContext.*;
+
+import javax.script.AbstractScriptEngine;
+import javax.script.Bindings;
+import javax.script.Compilable;
+import javax.script.CompiledScript;
+import javax.script.Invocable;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngineFactory;
+import javax.script.ScriptException;
+import javax.script.SimpleBindings;
+
+import bsh.EvalError;
+import bsh.ExternalNameSpace;
+import bsh.Interpreter;
+import bsh.InterpreterError;
+import bsh.NameSpace;
+import bsh.ParseException;
+import bsh.TargetError;
+import bsh.UtilEvalError;
 
 /*
     Notes

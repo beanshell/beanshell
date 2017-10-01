@@ -26,8 +26,9 @@
  *****************************************************************************/
 package bsh;
 
-import java.io.*;
-import java.util.Vector;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 
 /**
     This is the BeanShell parser.  It is used internally by the Interpreter

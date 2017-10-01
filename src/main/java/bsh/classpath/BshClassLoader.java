@@ -23,13 +23,11 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.classpath;
 
-import java.net.*;
-import java.util.*;
-import java.io.*;
+import java.net.URL;
+import java.net.URLClassLoader;
+
 import bsh.BshClassManager;
 
 /**

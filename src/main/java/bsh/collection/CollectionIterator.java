@@ -25,19 +25,12 @@
  *****************************************************************************/
 package bsh.collection;
 
-import bsh.Capabilities;
-import bsh.CollectionManager;
-import bsh.UtilTargetError;
-import bsh.InterpreterError;
-
 import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
-
-import java.util.Iterator;
 import java.util.Collection;
-import java.util.Enumeration;
+import java.util.Iterator;
 
-import java.lang.reflect.Array;
+import bsh.CollectionManager;
+import bsh.InterpreterError;
 
 /**
  *  This is the implementation of:

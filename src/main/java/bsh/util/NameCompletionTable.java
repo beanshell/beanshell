@@ -23,13 +23,13 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.util;
 
-import java.util.*;
-import bsh.StringUtil;
+import java.util.ArrayList;
+import java.util.List;
+
 import bsh.NameSource;
+import bsh.StringUtil;
 
 /**
     NameCompletionTable is a utility that implements simple name completion for

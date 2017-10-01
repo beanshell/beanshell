@@ -25,8 +25,6 @@
  *                                                                           *
  *****************************************************************************/
 package bsh;
-import java.io.*;
-import java.util.Vector;
 
 public class ParserTokenManager implements ParserConstants
 {

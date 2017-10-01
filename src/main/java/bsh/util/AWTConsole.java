@@ -23,16 +23,29 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh.util;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.TextArea;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.PrintStream;
+import java.io.Reader;
 import java.util.Vector;
-import bsh.*;
+
+import bsh.ConsoleInterface;
+import bsh.Interpreter;
 
 /*
     This should go away eventually...  Native AWT sucks.
