@@ -24,7 +24,6 @@
  *                                                                           *
  *****************************************************************************/
 
-
 package bsh;
 
 import java.io.IOException;
@@ -35,8 +34,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 /**
@@ -102,7 +103,7 @@ public class BshClassManager
         Note: these should probably be re-implemented with Soft references.
         (as opposed to strong or Weak)
     */
-    protected final transient Map<String,Object> absoluteNonClasses = new Hashtable<>();
+    protected final transient Set<String> absoluteNonClasses = Collections.synchronizedSet(new HashSet<>());
 
     /**
         Caches for resolved object and static methods.
@@ -112,11 +113,11 @@ public class BshClassManager
     protected transient volatile Map<SignatureKey,Method> resolvedObjectMethods = new Hashtable<>();
     protected transient volatile Map<SignatureKey,Method> resolvedStaticMethods = new Hashtable<>();
 
-    protected final transient Map<String,Object> definingClasses = new Hashtable<>();
+    private final transient Set<String> definingClasses = Collections.synchronizedSet(new HashSet<>());
     protected final transient Map<String,String> definingClassesBaseNames = new Hashtable<>();
 
     /** @see #associateClass( Class ) */
-    protected final transient Hashtable<String, Class> associatedClasses = new Hashtable<>();
+    protected final transient Map<String, Class> associatedClasses = new Hashtable<>();
     private static final Map<BshClassManager,Object> classManagers = Collections.synchronizedMap(new WeakHashMap<>());
 
     static void clearResolveCache() {
@@ -138,19 +139,9 @@ public class BshClassManager
     {
         BshClassManager manager;
 
-        // Do we have the necessary jdk1.2 packages and optional package?
-        if ( Capabilities.classExists("java.lang.ref.WeakReference")
-            && Capabilities.classExists("java.util.HashMap")
-            && Capabilities.classExists("bsh.classpath.ClassManagerImpl")
-        )
-            try {
-                // Try to load the module
-                // don't refer to it directly here or we're dependent upon it
-                Class clas = Class.forName( "bsh.classpath.ClassManagerImpl" );
-                manager = (BshClassManager)clas.newInstance();
-            } catch ( Exception e ) {
-                throw new InterpreterError("Error loading classmanager: "+e);
-            }
+        // Do we have the optional package?
+        if ( Capabilities.classExists("bsh.classpath.ClassManagerImpl") )
+            manager = new bsh.classpath.ClassManagerImpl();
         else
             manager = new BshClassManager();
 
@@ -305,7 +296,7 @@ public class BshClassManager
         if ( value != null )
             absoluteClassCache.put( name, value );
         else
-            absoluteNonClasses.put( name, NOVALUE );
+            absoluteNonClasses.add( name );
     }
 
     /**
@@ -532,12 +523,12 @@ public class BshClassManager
                 +"dependent classes of the same name.  Attempt to define: "
                 + className +" while defining: "+cur
             );
-        definingClasses.put( className, NOVALUE );
+        definingClasses.add( className );
         definingClassesBaseNames.put( baseName, className );
     }
 
     protected boolean isClassBeingDefined( String className ) {
-        return definingClasses.get( className ) != null;
+        return definingClasses.contains( className );
     }
 
     /**
