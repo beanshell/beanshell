@@ -56,7 +56,7 @@
     <version.jdk>1.8</version.jdk>
     <maven.compiler.source>${version.jdk}</maven.compiler.source>
     <maven.compiler.target>${version.jdk}</maven.compiler.target>
-</properties>
+  </properties>
 
   <scm>
     <connection>scm:git:git://github.com/beanshell/beanshell.git</connection>
@@ -141,23 +141,40 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>javacc-maven-plugin</artifactId>
-        <version>2.6</version>
+        <groupId>com.helger.maven</groupId>
+        <artifactId>ph-javacc-maven-plugin</artifactId>
+        <version>2.8.2</version>
         <executions>
           <execution>
             <id>javacc</id>
             <goals>
               <!-- jjtree disabled due to manual changes
-                                               in the previously generated bsh.jj :-
-              <goal>jjtree-javacc</goal>-->
+                                               in the previously generated bsh.jj :- -->
+              <goal>jjtree-javacc</goal>
               <!-- disabled due to manual changes in the
                    generated files in src/main/java
               <goal>javacc</goal>
               -->
             </goals>
+            <configuration>
+                <jdkVersion>1.8</jdkVersion>
+                <javadocFriendlyComments>true</javadocFriendlyComments>
+                <static>false</static>
+                <usercharstream>true</usercharstream>
+                <!--packageName>bsh.parser</packageName>
+                <sourceDirectory>src/main/java/</sourceDirectory>
+                <outputDirectory>${project.build.directory}/generated-sources/javacc</outputDirectory-->
+
+            </configuration>
           </execution>
         </executions>
+      <dependencies>
+        <dependency>
+          <groupId>net.java.dev.javacc</groupId>
+          <artifactId>javacc</artifactId>
+          <version>7.0.2</version>
+        </dependency>
+      </dependencies>
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
@@ -174,6 +191,13 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>2.17</version>
+        <dependencies>
+            <dependency>
+                <groupId>com.puppycrawl.tools</groupId>
+                <artifactId>checkstyle</artifactId>
+                <version>8.2</version>
+            </dependency>
+        </dependencies>
         <executions>
          <execution>
            <id>validate</id>
@@ -182,6 +206,9 @@
              <encoding>UTF-8</encoding>
              <failsOnViolation>true</failsOnViolation>
              <includeTestSourceDirectory>true</includeTestSourceDirectory>
+             <sourceDirectories>
+                 <sourceDirectory>src/main/java</sourceDirectory>
+             </sourceDirectories>
            </configuration>
            <goals>
              <goal>check</goal>
@@ -208,7 +235,7 @@
             <phase>verify</phase>
           </execution>
         </executions>
-      </plugin>
+    </plugin>
     </plugins>
   </build>
 

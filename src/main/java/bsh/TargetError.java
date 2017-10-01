@@ -25,7 +25,6 @@
  *****************************************************************************/
 
 
-
 package bsh;
 
 import java.lang.reflect.InvocationTargetException;
@@ -51,8 +50,7 @@ public class TargetError extends EvalError
         String msg, Throwable t, SimpleNode node, CallStack callstack,
         boolean inNativeCode )
     {
-        super( msg, node, callstack );
-        initCause(t);
+        super( msg, node, callstack, t );
         this.inNativeCode = inNativeCode;
     }
 
@@ -78,20 +76,12 @@ public class TargetError extends EvalError
             printTargetError( getCause() );
     }
 
-    public void printStackTrace() {
-        printStackTrace( false, System.err );
-    }
-
-    public void printStackTrace( PrintStream out ) {
-        printStackTrace( false, out );
-    }
-
     public void printStackTrace( boolean debug, PrintStream out ) {
         if ( debug ) {
             super.printStackTrace( out );
             out.println("--- Target Stack Trace ---");
         }
-        getCause().printStackTrace(out);
+        getCause().printStackTrace( out );
     }
 
     /**
