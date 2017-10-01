@@ -27,6 +27,7 @@ package bsh;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
 class BSHPrimarySuffix extends SimpleNode
 {
@@ -272,10 +273,9 @@ class BSHPrimarySuffix extends SimpleNode
             return new LHS(obj, (String)value);
 
         // Property style access to Hashtable or Map
-        CollectionManager cm = CollectionManager.getCollectionManager();
-        if ( cm.isMap( obj ) )
-        {
-            Object val = cm.getFromMap( obj, value/*key*/ );
+        if (obj instanceof Map) {
+            @SuppressWarnings("rawtypes")
+            Object val = ((Map) obj).get(value);
             return ( val == null ?  val = Primitive.NULL : val );
         }
 
