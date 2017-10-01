@@ -26,10 +26,6 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Contact: Eric.Bruneton@rd.francetelecom.com
- *
- * Author: Eric Bruneton
  */
 
 package bsh.org.objectweb.asm;
@@ -43,6 +39,8 @@ package bsh.org.objectweb.asm;
  * visitLocalVariable} and {@link #visitLineNumber visitLineNumber} methods may
  * be called in any order, at any time (provided the labels passed as arguments
  * have already been visited with {@link #visitLabel visitLabel}).
+ *
+ * @author Eric Bruneton
  */
 
 public interface CodeVisitor {
@@ -125,7 +123,7 @@ public interface CodeVisitor {
    * @param opcode the opcode of the type instruction to be visited. This opcode
    *      is either GETSTATIC, PUTSTATIC, GETFIELD or PUTFIELD.
    * @param owner the internal name of the field's owner class (see {@link
-   *      Type#getInternalName getInternalName}).
+   *      Type#getInternalName() getInternalName}).
    * @param name the field's name.
    * @param desc the field's descriptor (see {@link Type Type}).
    */
@@ -140,7 +138,7 @@ public interface CodeVisitor {
    *      is either INVOKEVIRTUAL, INVOKESPECIAL, INVOKESTATIC or
    *      INVOKEINTERFACE.
    * @param owner the internal name of the method's owner class (see {@link
-   *      Type#getInternalName getInternalName}).
+   *      Type#getInternalName() getInternalName}).
    * @param name the method's name.
    * @param desc the method's descriptor (see {@link Type Type}).
    */
@@ -181,7 +179,8 @@ public interface CodeVisitor {
    * @param cst the constant to be loaded on the stack. This parameter must be
    *      a non null {@link java.lang.Integer Integer}, a {@link java.lang.Float
    *      Float}, a {@link java.lang.Long Long}, a {@link java.lang.Double
-   *      Double} or a {@link String String}.
+   *      Double} a {@link String String} (or a {@link Type Type} for
+   *      <tt>.class</tt> constants, for classes whose version is 49.0 or more).
    */
 
   void visitLdcInsn (Object cst);
@@ -294,4 +293,17 @@ public interface CodeVisitor {
    */
 
   void visitLineNumber (int line, Label start);
+
+  // -------------------------------------------------------------------------
+  // Non standard attributes
+  // -------------------------------------------------------------------------
+
+  /**
+   * Visits a non standard attribute of the code. This method must visit only
+   * the first attribute in the given attribute list.
+   *
+   * @param attr a non standard code attribute. Must not be <tt>null</tt>.
+   */
+
+  void visitAttribute (Attribute attr);
 }

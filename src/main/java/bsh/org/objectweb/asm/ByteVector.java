@@ -26,10 +26,6 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Contact: Eric.Bruneton@rd.francetelecom.com
- *
- * Author: Eric Bruneton
  */
 
 package bsh.org.objectweb.asm;
@@ -37,9 +33,11 @@ package bsh.org.objectweb.asm;
 /**
  * A dynamically extensible vector of bytes. This class is roughly equivalent to
  * a DataOutputStream on top of a ByteArrayOutputStream, but is more efficient.
+ *
+ * @author Eric Bruneton
  */
 
-final class ByteVector {
+public class ByteVector {
 
   /**
    * The content of this vector.
@@ -79,7 +77,7 @@ final class ByteVector {
    * @return this byte vector.
    */
 
-  public ByteVector put1 (final int b) {
+  public ByteVector putByte (final int b) {
     int length = this.length;
     if (length + 1 > data.length) {
       enlarge(1);
@@ -98,7 +96,7 @@ final class ByteVector {
    * @return this byte vector.
    */
 
-  public ByteVector put11 (final int b1, final int b2) {
+  ByteVector put11 (final int b1, final int b2) {
     int length = this.length;
     if (length + 2 > data.length) {
       enlarge(2);
@@ -118,7 +116,7 @@ final class ByteVector {
    * @return this byte vector.
    */
 
-  public ByteVector put2 (final int s) {
+  public ByteVector putShort (final int s) {
     int length = this.length;
     if (length + 2 > data.length) {
       enlarge(2);
@@ -139,7 +137,7 @@ final class ByteVector {
    * @return this byte vector.
    */
 
-  public ByteVector put12 (final int b, final int s) {
+  ByteVector put12 (final int b, final int s) {
     int length = this.length;
     if (length + 3 > data.length) {
       enlarge(3);
@@ -160,7 +158,7 @@ final class ByteVector {
    * @return this byte vector.
    */
 
-  public ByteVector put4 (final int i) {
+  public ByteVector putInt (final int i) {
     int length = this.length;
     if (length + 4 > data.length) {
       enlarge(4);
@@ -182,7 +180,7 @@ final class ByteVector {
    * @return this byte vector.
    */
 
-  public ByteVector put8 (final long l) {
+  public ByteVector putLong (final long l) {
     int length = this.length;
     if (length + 8 > data.length) {
       enlarge(8);
@@ -203,14 +201,14 @@ final class ByteVector {
   }
 
   /**
-   * Puts a String in UTF format into this byte vector. The byte vector is
-   * automatically enlarged if necessary.
+   * Puts an UTF8 string into this byte vector. The byte vector is automatically
+   * enlarged if necessary.
    *
    * @param s a String.
    * @return this byte vector.
    */
 
-  public ByteVector putUTF (final String s) {
+  public ByteVector putUTF8 (final String s) {
     int charLength = s.length();
     int byteLength = 0;
     for (int i = 0; i < charLength; ++i) {
