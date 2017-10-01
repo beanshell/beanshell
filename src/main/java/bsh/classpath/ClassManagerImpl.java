@@ -23,22 +23,29 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.classpath;
 
-import java.net.*;
-import java.util.*;
-import java.lang.ref.*;
 import java.io.IOException;
-import java.io.*;
-import bsh.classpath.BshClassPath.ClassSource;
-import bsh.classpath.BshClassPath.JarClassSource;
-import bsh.classpath.BshClassPath.GeneratedClassSource;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
+import java.net.URL;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Vector;
+
 import bsh.BshClassManager;
 import bsh.ClassPathException;
 import bsh.Interpreter;  // for debug()
 import bsh.UtilEvalError;
+import bsh.classpath.BshClassPath.ClassSource;
+import bsh.classpath.BshClassPath.GeneratedClassSource;
+import bsh.classpath.BshClassPath.JarClassSource;
 
 /**
     <pre>

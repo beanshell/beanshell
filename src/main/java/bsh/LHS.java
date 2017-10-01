@@ -23,13 +23,9 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
 import java.lang.reflect.Field;
-import java.util.Hashtable;
 
 /**
     An LHS is a wrapper for an variable, field, or property.  It ordinarily

@@ -1,8 +1,15 @@
 package bsh.engine;
 
+import static javax.script.ScriptContext.ENGINE_SCOPE;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import javax.script.ScriptContext;
-import java.util.*;
-import static javax.script.ScriptContext.*;
 
 /**
  * This class implements an ENGINE_SCOPE centric Map view of the ScriptContext

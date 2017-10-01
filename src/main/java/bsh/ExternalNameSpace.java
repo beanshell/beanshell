@@ -25,7 +25,11 @@
  *****************************************************************************/
 package bsh;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
     A namespace which maintains an external map of values held in variables in
