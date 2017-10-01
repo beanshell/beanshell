@@ -1,9 +1,21 @@
 package bsh;
 
 
-import java.io.*;
-import javax.script.*;
-import static javax.script.ScriptContext.*;
+import static javax.script.ScriptContext.ENGINE_SCOPE;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+
+import javax.script.Bindings;
+import javax.script.Invocable;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+import javax.script.SimpleBindings;
 
 public class TestBshScriptEngine
 {

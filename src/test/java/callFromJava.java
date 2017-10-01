@@ -1,4 +1,5 @@
-import bsh.*;
+import bsh.EvalError;
+import bsh.Interpreter;
 
 public class callFromJava {
 

@@ -23,12 +23,10 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
-import java.io.*;
+import java.io.PrintStream;
+import java.io.Reader;
 
 /**
     The capabilities of a minimal console for BeanShell.

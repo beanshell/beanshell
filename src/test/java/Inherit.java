@@ -3,7 +3,12 @@
  * This source corresponds with the `inherit.bsh' test script.
  */
 
-import InheritanceTest.*;
+import InheritanceTest.A;
+import InheritanceTest.Accessor;
+import InheritanceTest.B;
+import InheritanceTest.C;
+import InheritanceTest.X;
+import InheritanceTest.Y;
 
 public class Inherit {
 
