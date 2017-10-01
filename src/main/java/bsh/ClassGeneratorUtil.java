@@ -218,7 +218,7 @@ public class ClassGeneratorUtil implements Constants
 
         String sourceFile = "BeanShell Generated via ASM (www.objectweb.org)";
         ClassWriter cw = new ClassWriter(true);
-        cw.visit( classMods, fqClassName, superClassName,
+        cw.visit( V1_5, classMods, fqClassName, superClassName,
             interfaceNames, sourceFile );
 
         if ( !isInterface )
@@ -334,7 +334,7 @@ public class ClassGeneratorUtil implements Constants
     static void generateField(
         String fieldName, String type, int modifiers, ClassWriter cw )
     {
-        cw.visitField( modifiers, fieldName, type, null/*value*/ );
+        cw.visitField( modifiers, fieldName, type, null/*value*/, null );
     }
 
     /**
@@ -358,7 +358,7 @@ public class ClassGeneratorUtil implements Constants
 
         // Generate method body
         CodeVisitor cv = cw.visitMethod(
-            modifiers, methodName, methodDescriptor, exceptions );
+            modifiers, methodName, methodDescriptor, exceptions, null );
 
         if ( (modifiers & ACC_ABSTRACT) != 0 )
             return;
@@ -434,7 +434,8 @@ public class ClassGeneratorUtil implements Constants
 
         // Create this constructor method
         CodeVisitor cv =
-            cw.visitMethod( modifiers, "<init>", methodDescriptor, exceptions );
+            cw.visitMethod( modifiers, "<init>", methodDescriptor,
+                    exceptions, null );
 
         // Generate code to push arguments as an object array
         generateParameterReifierCode( paramTypes, false/*isStatic*/, cv );
@@ -471,7 +472,8 @@ public class ClassGeneratorUtil implements Constants
     void generateStaticInitializer( ClassWriter cw )
     {
         CodeVisitor cv =
-            cw.visitMethod( ACC_STATIC, "<clinit>", "()V", null/*exceptions*/ );
+            cw.visitMethod( ACC_STATIC, "<clinit>", "()V",
+                    null/*exceptions*/, null );
 
         // Generate code to invoke the ClassGeneratorUtil initStatic() method
 
@@ -673,8 +675,8 @@ public class ClassGeneratorUtil implements Constants
         String methodDescriptor = getMethodDescriptor( returnType, paramTypes );
 
         // Add method body
-        CodeVisitor cv = cw.visitMethod(
-            modifiers, "_bshSuper"+methodName, methodDescriptor, exceptions );
+        CodeVisitor cv = cw.visitMethod( modifiers, "_bshSuper"+methodName,
+                methodDescriptor, exceptions, null );
 
         cv.visitVarInsn(ALOAD, 0);
         // Push vars

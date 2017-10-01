@@ -26,11 +26,6 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Contact: Eric.Bruneton@rd.francetelecom.com
- *
- * Author: Eric Bruneton
- * with contributions from: Chris Nokleberg
  */
 
 package bsh.org.objectweb.asm;
@@ -40,6 +35,8 @@ import java.lang.reflect.Method;
 /**
  * A Java type. This class can be used to make it easier to manipulate type
  * and method descriptors.
+ *
+ * @author Eric Bruneton, Chris Nokleberg
  */
 
 public class Type {
@@ -441,21 +438,38 @@ public class Type {
   }
 
   /**
-   * Returns the name of the class corresponding to this object type.
-   * This method should only be used for an object type.
+   * Returns the name of the class corresponding to this type.
    *
-   * @return the fully qualified name of the class corresponding to this object
-   *      type.
+   * @return the fully qualified name of the class corresponding to this type.
    */
 
   public String getClassName () {
-    return new String(buf, off + 1, len - 2).replace('/', '.');
+    switch (sort) {
+      case VOID:    return "void";
+      case BOOLEAN: return "boolean";
+      case CHAR:    return "char";
+      case BYTE:    return "byte";
+      case SHORT:   return "short";
+      case INT:     return "int";
+      case FLOAT:   return "float";
+      case LONG:    return "long";
+      case DOUBLE:  return "double";
+      case ARRAY:
+        StringBuffer b = new StringBuffer(getElementType().getClassName());
+        for (int i = getDimensions(); i > 0; --i) {
+          b.append("[]");
+        }
+        return b.toString();
+      //case OBJECT:
+      default:
+        return new String(buf, off + 1, len - 2).replace('/', '.');
+    }
   }
 
   /**
    * Returns the internal name of the class corresponding to this object type.
    * The internal name of a class is its fully qualified name, where '.' are
-   * replaced by '/'.   * This method should only be used for an object type.
+   * replaced by '/'. This method should only be used for an object type.
    *
    * @return the internal name of the class corresponding to this object type.
    */
@@ -701,10 +715,17 @@ public class Type {
   }
 
   // --------------------------------------------------------------------------
-  // Equals and hashcode
+  // Equals, hashCode and toString
   // --------------------------------------------------------------------------
 
-  public boolean equals (Object o) {
+  /**
+   * Tests if the given object is equal to this type.
+   *
+   * @param o the object to be compared to this type.
+   * @return <tt>true</tt> if the given object is equal to this type.
+   */
+
+  public boolean equals (final Object o) {
     if (this == o) {
       return true;
     }
@@ -728,6 +749,12 @@ public class Type {
     return true;
   }
 
+  /**
+   * Returns a hash code value for this type.
+   *
+   * @return a hash code value for this type.
+   */
+
   public int hashCode () {
     int hc = 13 * sort;
     if (sort == Type.OBJECT || sort == Type.ARRAY) {
@@ -736,5 +763,15 @@ public class Type {
       }
     }
     return hc;
+  }
+
+  /**
+   * Returns a string representation of this type.
+   *
+   * @return the descriptor of this type.
+   */
+
+  public String toString () {
+    return getDescriptor();
   }
 }

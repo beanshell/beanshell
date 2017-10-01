@@ -26,10 +26,6 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Contact: Eric.Bruneton@rd.francetelecom.com
- *
- * Author: Eric Bruneton
  */
 
 package bsh.org.objectweb.asm;
@@ -37,7 +33,10 @@ package bsh.org.objectweb.asm;
 /**
  * A visitor to visit a Java class. The methods of this interface must be called
  * in the following order: <tt>visit</tt> (<tt>visitField</tt> |
- * <tt>visitMethod</tt> | <tt>visitInnerClass</tt>)* <tt>visitEnd</tt>.
+ * <tt>visitMethod</tt> | <tt>visitInnerClass</tt> | <tt>visitAttribute</tt>)*
+ * <tt>visitEnd</tt>.
+ *
+ * @author Eric Bruneton
  */
 
 public interface ClassVisitor {
@@ -45,21 +44,23 @@ public interface ClassVisitor {
   /**
    * Visits the header of the class.
    *
+   * @param version the class version.
    * @param access the class's access flags (see {@link Constants}). This
    *      parameter also indicates if the class is deprecated.
-   * @param name the internal name of the class (see {@link Type#getInternalName
+   * @param name the internal name of the class (see {@link Type#getInternalName()
    *      getInternalName}).
    * @param superName the internal of name of the super class (see {@link
-   *      Type#getInternalName getInternalName}). For interfaces, the super
+   *      Type#getInternalName() getInternalName}). For interfaces, the super
    *      class is {@link Object}. May be <tt>null</tt>, but only for the {@link
    *      Object java.lang.Object} class.
    * @param interfaces the internal names of the class's interfaces (see {@link
-   *      Type#getInternalName getInternalName}). May be <tt>null</tt>.
+   *      Type#getInternalName() getInternalName}). May be <tt>null</tt>.
    * @param sourceFile the name of the source file from which this class was
    *      compiled. May be <tt>null</tt>.
    */
 
   void visit (
+    int version,
     int access,
     String name,
     String superName,
@@ -71,9 +72,9 @@ public interface ClassVisitor {
    * necessarily a member of the class being visited.
    *
    * @param name the internal name of an inner class (see {@link
-   *      Type#getInternalName getInternalName}).
+   *      Type#getInternalName() getInternalName}).
    * @param outerName the internal name of the class to which the inner class
-   *      belongs (see {@link Type#getInternalName getInternalName}). May be
+   *      belongs (see {@link Type#getInternalName() getInternalName}). May be
    *      <tt>null</tt>.
    * @param innerName the (simple) name of the inner class inside its enclosing
    *      class. May be <tt>null</tt> for anonymous inner classes.
@@ -98,12 +99,21 @@ public interface ClassVisitor {
    *      <tt>null</tt> if the field does not have an initial value, must be an
    *      {@link java.lang.Integer Integer}, a {@link java.lang.Float Float}, a
    *      {@link java.lang.Long Long}, a {@link java.lang.Double Double} or a
-   *      {@link String String}. <em>This parameter is only used for static
-   *      fields</em>. Its value is ignored for non static fields, which must be
-   *      initialized through bytecode instructions in constructors or methods.
+   *      {@link String String} (for <tt>int</tt>, <tt>float</tt>, <tt>long</tt>
+   *      or <tt>String</tt> fields respectively). <i>This parameter is only
+   *      used for static fields</i>. Its value is ignored for non static
+   *      fields, which must be initialized through bytecode instructions in
+   *      constructors or methods.
+   * @param attrs the non standard method attributes, linked together by their
+   *      <tt>next</tt> field. May be <tt>null</tt>.
    */
 
-  void visitField (int access, String name, String desc, Object value);
+  void visitField (
+    int access,
+    String name,
+    String desc,
+    Object value,
+    Attribute attrs);
 
   /**
    * Visits a method of the class. This method <i>must</i> return a new
@@ -115,8 +125,10 @@ public interface ClassVisitor {
    * @param name the method's name.
    * @param desc the method's descriptor (see {@link Type Type}).
    * @param exceptions the internal names of the method's exception
-   *      classes (see {@link Type#getInternalName getInternalName}). May be
+   *      classes (see {@link Type#getInternalName() getInternalName}). May be
    *      <tt>null</tt>.
+   * @param attrs the non standard method attributes, linked together by their
+   *      <tt>next</tt> field. May be <tt>null</tt>.
    * @return an object to visit the byte code of the method, or <tt>null</tt> if
    *      this class visitor is not interested in visiting the code of this
    *      method.
@@ -126,7 +138,17 @@ public interface ClassVisitor {
     int access,
     String name,
     String desc,
-    String[] exceptions);
+    String[] exceptions,
+    Attribute attrs);
+
+  /**
+   * Visits a non standard attribute of the class. This method must visit only
+   * the first attribute in the given attribute list.
+   *
+   * @param attr a non standard class attribute. Must not be <tt>null</tt>.
+   */
+
+  void visitAttribute (Attribute attr);
 
   /**
    * Visits the end of the class. This method, which is the last one to be
