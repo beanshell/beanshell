@@ -25,11 +25,10 @@
  *****************************************************************************/
 package bsh;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Stream;
+
 
 /**
     A namespace which maintains an external map of values held in variables in
@@ -73,7 +72,7 @@ import java.util.Set;
 */
 public class ExternalNameSpace extends NameSpace
 {
-    private Map externalMap;
+    private Map<String,Object> externalMap;
 
     public ExternalNameSpace()
     {
@@ -82,21 +81,21 @@ public class ExternalNameSpace extends NameSpace
 
     /**
     */
-    public ExternalNameSpace( NameSpace parent, String name, Map externalMap )
+    public ExternalNameSpace( NameSpace parent, String name, Map<String,Object> externalMap )
     {
         super( parent, name );
 
-        if ( externalMap == null )
-            externalMap = new HashMap();
-
         this.externalMap = externalMap;
+
+        if ( externalMap == null )
+            externalMap = new HashMap<String,Object>();
 
     }
 
     /**
         Get the map view of this namespace.
     */
-    public Map getMap() { return externalMap; }
+    public Map<String,Object> getMap() { return externalMap; }
 
     /**
         Set the external Map which to which this namespace synchronizes.
@@ -104,11 +103,10 @@ public class ExternalNameSpace extends NameSpace
         map values are retained in the external map, but are removed from the
         BeanShell namespace.
     */
-    public void setMap( Map map )
+    public void setMap( Map<String,Object> map )
     {
         // Detach any existing namespace to preserve it, then clear this
         // namespace and set the new one
-        this.externalMap = null;
         clear();
         this.externalMap = map ;
     }
@@ -125,12 +123,10 @@ public class ExternalNameSpace extends NameSpace
     */
     public String [] getVariableNames()
     {
-        // union of the names in the enclosing namespace and external map
-        Set nameSet = new HashSet();
-        String [] nsNames = super.getVariableNames();
-        nameSet.addAll( Arrays.asList( nsNames ) );
-        nameSet.addAll( externalMap.keySet() );
-        return (String [])nameSet.toArray( new String[0] );
+        return Stream.concat(
+                Stream.of(super.getVariableNames()),
+                this.externalMap.keySet().stream()
+            ).toArray(String[]::new);
     }
 
     /**
