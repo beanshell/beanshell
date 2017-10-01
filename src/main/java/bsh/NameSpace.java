@@ -274,12 +274,12 @@ public class NameSpace
      *      <p>
      *      Setting a new variable (which didn't exist before) or removing a
      *      variable causes a namespace change. */
-    Variable setVariable(final String name, final Object value,
+    Variable setVariable(final String name, Object value,
             final boolean strictJava, final boolean recurse)
             throws UtilEvalError {
         // primitives should have been wrapped
         if (value == null)
-            throw new InterpreterError("null variable value");
+            value = Primitive.NULL; // So then wrap it
         // Locate the variable definition if it exists.
         final Variable existing = this.getVariableImpl(name, recurse);
         // Found an existing variable here (or above if recurse allowed)
