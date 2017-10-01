@@ -25,13 +25,12 @@
  *****************************************************************************/
 package bsh;
 
+import java.util.Iterator;
 
 /**
  * Implementation of the enhanced for(:) statement.
- * This statement uses BshIterable to support iteration over a wide variety
- * of iterable types.  Under JDK 1.1 this statement supports primitive and
- * Object arrays, Vectors, and enumerations.  Under JDK 1.2 and later it
- * additionally supports collections.
+ *  This statement uses Iterator to support iteration over a wide variety
+ *  of iterable types.
  *
  * @author Daniel Leuck
  * @author Pat Niemeyer
@@ -68,26 +67,21 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
         BlockNameSpace eachNameSpace = new BlockNameSpace(enclosingNameSpace);
         callstack.swap(eachNameSpace);
         final Object iteratee = expression.eval(callstack, interpreter);
-        if (iteratee == Primitive.NULL) {
-            throw new EvalError("The collection, array, map, iterator, or " + "enumeration portion of a for statement cannot be null.", this, callstack);
-        }
         CollectionManager cm = CollectionManager.getCollectionManager();
         if (!cm.isBshIterable(iteratee)) {
             throw new EvalError("Can't iterate over type: " + iteratee.getClass(), this, callstack);
         }
-        BshIterator iterator = cm.getBshIterator(iteratee);
+        Iterator iterator = cm.getBshIterator(iteratee);
         Object returnControl = Primitive.VOID;
         while (iterator.hasNext()) {
             try {
                 Object value = iterator.next();
-                if (value == null) {
+                if (value == null)
                     value = Primitive.NULL;
-                }
-                if (elementType != null) {
+                if (elementType != null)
                     eachNameSpace.setTypedVariable(varName/*name*/, elementType/*type*/, value/*value*/, new Modifiers()/*none*/);
-                } else {
+                else
                     eachNameSpace.setVariable(varName, value, false);
-                }
             } catch (UtilEvalError e) {
                 throw e.toEvalError("for loop iterator variable:" + varName, this, callstack);
             }

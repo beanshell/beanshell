@@ -26,6 +26,7 @@
 package bsh;
 
 import java.lang.reflect.Field;
+import java.util.Map;
 
 /**
     An LHS is a wrapper for an variable, field, or property.  It ordinarily
@@ -128,6 +129,7 @@ class LHS implements ParserConstants, java.io.Serializable
         this.index = index;
     }
 
+    @SuppressWarnings("rawtypes")
     public Object getValue() throws UtilEvalError
     {
         if ( type == VARIABLE )
@@ -146,10 +148,9 @@ class LHS implements ParserConstants, java.io.Serializable
         {
             // return the raw type here... we don't know what it's supposed
             // to be...
-            CollectionManager cm = CollectionManager.getCollectionManager();
-            if ( cm.isMap( object ) )
-                return cm.getFromMap( object/*map*/, propName );
-            else
+            if (this.object instanceof Map)
+                return ((Map) this.object).get(this.propName);
+             else
                 try {
                     return Reflect.getObjectProperty(object, propName);
                 } catch(ReflectError e) {
@@ -172,6 +173,7 @@ class LHS implements ParserConstants, java.io.Serializable
     /**
         Assign a value to the LHS.
     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public Object assign( Object val, boolean strictJava )
         throws UtilEvalError
     {
@@ -212,10 +214,10 @@ class LHS implements ParserConstants, java.io.Serializable
         else
         if ( type == PROPERTY )
         {
-            CollectionManager cm = CollectionManager.getCollectionManager();
-            if ( cm.isMap( object ) )
-                cm.putInMap( object/*map*/, propName, Primitive.unwrap(val) );
-            else
+            if (this.object instanceof Map)
+                ((Map) this.object).put(this.propName,
+                        Primitive.unwrap(val));
+             else
                 try {
                     Reflect.setObjectProperty(object, propName, val);
                 }

@@ -31,6 +31,15 @@ for (int i = new Integer(0).intValue(); i < 3; i++)
 assert( a.equals("gee") );
 assert( flag() == 1 );
 
-assert( isEvalError("for( a : 42 )") );
+// New feature - any object iterates over method and property names
+// assert( isEvalError("for( a : 42 )") );
+count = 0;
+for( a:42 ) count++;
+assert(count == 46);
+
+// Can even iterate over null
+count = 0;
+for( a:null ) count++;
+assert(count == 0);
 
 complete();
