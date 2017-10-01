@@ -40,14 +40,23 @@ package bsh;
 */
 public class EvalError extends Exception
 {
-    SimpleNode node;
+    private SimpleNode node;
 
     // Note: no way to mutate the Throwable message, must maintain our own
-    String message;
+    private String message;
 
-    CallStack callstack;
+    private CallStack callstack;
+
+    public EvalError( String s, SimpleNode node, CallStack callstack, Throwable cause ) {
+        super(cause);
+        init(s,node,callstack);
+    }
 
     public EvalError( String s, SimpleNode node, CallStack callstack ) {
+        init(s,node,callstack);
+    }
+
+    private void init( String s, SimpleNode node, CallStack callstack ) {
         setMessage(s);
         this.node = node;
         // freeze the callstack for the stack trace.
@@ -147,12 +156,12 @@ public class EvalError extends Exception
     */
     public String getMessage() { return message; }
 
-    public void setMessage( String s ) { message = s; }
+    private void setMessage( String s ) { message = s; }
 
     /**
         Prepend the message if it is non-null.
     */
-    protected void prependMessage( String s )
+    private void prependMessage( String s )
     {
         if ( s == null )
             return;
