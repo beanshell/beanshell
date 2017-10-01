@@ -28,6 +28,7 @@
 package bsh;
 
 import java.lang.reflect.Method;
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 
 /**
@@ -45,9 +46,7 @@ import java.lang.reflect.InvocationTargetException;
     Note: this method incorrectly caches the method structure.  It needs to
     be cleared when the classloader changes.
 */
-public class BshMethod
-    implements java.io.Serializable
-{
+public class BshMethod implements Serializable {
     /*
         This is the namespace in which the method is set.
         It is a back-reference for the node, which needs to execute under this
@@ -419,4 +418,30 @@ public class BshMethod
             + StringUtil.methodString( name, getParameterTypes() );
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if( !(o instanceof BshMethod) )
+            return false;
+        BshMethod m = (BshMethod)o;
+        if( !name.equals(m.name) || numArgs!=m.numArgs )
+            return false;
+        for( int i=0; i<numArgs; i++ ) {
+            if( !equal(cparamTypes[i],m.cparamTypes[i]) )
+                return false;
+        }
+        return true;
+    }
+
+    private static boolean equal(Object obj1,Object obj2) {
+        return obj1==null ? obj2==null : obj1.equals(obj2);
+    }
+
+    @Override
+    public int hashCode() {
+        int h = name.hashCode();
+        for (Class<?> cparamType : cparamTypes) {
+            h = h * 31 + cparamType.hashCode();
+        }
+        return h + numArgs;
+    }
 }
