@@ -34,7 +34,10 @@ import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
+import java.util.Collections;
 import java.util.Hashtable;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
     BshClassManager manages all classloading in BeanShell.
@@ -76,7 +79,7 @@ import java.util.Hashtable;
 public class BshClassManager
 {
     /** Identifier for no value item.  Use a hashtable as a Set. */
-    private static Object NOVALUE = new Object();
+    private static final Object NOVALUE = new Object();
     /**
         The interpreter which created the class manager
         This is used to load scripted classes from source files.
@@ -93,27 +96,36 @@ public class BshClassManager
         Note: these should probably be re-implemented with Soft references.
         (as opposed to strong or Weak)
     */
-    protected transient Hashtable absoluteClassCache = new Hashtable();
+    protected final transient Map<String,Class> absoluteClassCache = new Hashtable<>();
     /**
         Global cache for things we know are *not* classes.
         Note: these should probably be re-implemented with Soft references.
         (as opposed to strong or Weak)
     */
-    protected transient Hashtable absoluteNonClasses = new Hashtable();
+    protected final transient Map<String,Object> absoluteNonClasses = new Hashtable<>();
 
     /**
         Caches for resolved object and static methods.
         We keep these maps separate to support fast lookup in the general case
         where the method may be either.
     */
-    protected transient Hashtable resolvedObjectMethods = new Hashtable();
-    protected transient Hashtable resolvedStaticMethods = new Hashtable();
+    protected transient volatile Map<SignatureKey,Method> resolvedObjectMethods = new Hashtable<>();
+    protected transient volatile Map<SignatureKey,Method> resolvedStaticMethods = new Hashtable<>();
 
-    protected transient Hashtable definingClasses = new Hashtable();
-    protected transient Hashtable definingClassesBaseNames = new Hashtable();
+    protected final transient Map<String,Object> definingClasses = new Hashtable<>();
+    protected final transient Map<String,String> definingClassesBaseNames = new Hashtable<>();
 
     /** @see #associateClass( Class ) */
-    protected transient Hashtable associatedClasses = new Hashtable();
+    protected final transient Hashtable<String, Class> associatedClasses = new Hashtable<>();
+    private static final Map<BshClassManager,Object> classManagers = Collections.synchronizedMap(new WeakHashMap<>());
+
+    static void clearResolveCache() {
+        BshClassManager[] managers = (BshClassManager[])classManagers.keySet().toArray(new BshClassManager[0]);
+        for( BshClassManager m : managers ) {
+            m.resolvedObjectMethods = new Hashtable<SignatureKey,Method>();
+            m.resolvedStaticMethods = new Hashtable<SignatureKey,Method>();
+        }
+    }
 
     /**
         Create a new instance of the class manager.
@@ -145,6 +157,7 @@ public class BshClassManager
         if ( interpreter == null )
             interpreter = new Interpreter();
         manager.declaringInterpreter = interpreter;
+        classManagers.put(manager,null);
         return manager;
     }
 
@@ -316,7 +329,7 @@ public class BshClassManager
 
     public Class getAssociatedClass( String name )
     {
-        return (Class)associatedClasses.get( name );
+        return associatedClasses.get( name );
     }
 
     /**
@@ -351,9 +364,9 @@ public class BshClassManager
 
         // Try static and then object, if allowed
         // Note that the Java compiler should not allow both.
-        Method method = (Method)resolvedStaticMethods.get( sk );
+        Method method = resolvedStaticMethods.get( sk );
         if ( method == null && !onlyStatic)
-            method = (Method)resolvedObjectMethods.get( sk );
+            method = resolvedObjectMethods.get( sk );
 
         if ( Interpreter.DEBUG )
         {
@@ -373,10 +386,10 @@ public class BshClassManager
     */
     protected void clearCaches()
     {
-        absoluteNonClasses = new Hashtable();
-        absoluteClassCache = new Hashtable();
-        resolvedObjectMethods = new Hashtable();
-        resolvedStaticMethods = new Hashtable();
+        absoluteNonClasses.clear();
+        absoluteClassCache.clear();
+        resolvedObjectMethods.clear();
+        resolvedStaticMethods.clear();
     }
 
     /**
@@ -512,7 +525,7 @@ public class BshClassManager
         int i = baseName.indexOf("$");
         if ( i != -1 )
             baseName = baseName.substring(i+1);
-        String cur = (String)definingClassesBaseNames.get( baseName );
+        String cur = definingClassesBaseNames.get( baseName );
         if ( cur != null )
             throw new InterpreterError("Defining class problem: "+className
                 +": BeanShell cannot yet simultaneously define two or more "
@@ -533,7 +546,7 @@ public class BshClassManager
     */
     protected String getClassBeingDefined( String className ) {
         String baseName = Name.suffix(className,1);
-        return (String)definingClassesBaseNames.get( baseName );
+        return definingClassesBaseNames.get( baseName );
     }
 
     /**

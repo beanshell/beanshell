@@ -24,7 +24,6 @@
  *                                                                           *
  *****************************************************************************/
 
-
 package bsh;
 
 import java.util.Hashtable;
@@ -42,7 +41,7 @@ import java.util.Hashtable;
 */
 public class Capabilities
 {
-    private static boolean accessibility = false;
+    private static volatile boolean accessibility = false;
 
     public static boolean haveSwing() {
         // classExists caches info for us
@@ -74,22 +73,23 @@ public class Capabilities
         if ( b == false )
         {
             accessibility = false;
-            return;
+        } else {
+
+            if ( !classExists( "java.lang.reflect.AccessibleObject" )
+                || !classExists("bsh.reflect.ReflectManagerImpl")
+            )
+                throw new Unavailable( "Accessibility unavailable" );
+
+            // test basic access
+            try {
+                String.class.getDeclaredMethods();
+            } catch ( SecurityException e ) {
+                throw new Unavailable("Accessibility unavailable: "+e);
+            }
+
+            accessibility = true;
         }
-
-        if ( !classExists( "java.lang.reflect.AccessibleObject" )
-            || !classExists("bsh.reflect.ReflectManagerImpl")
-        )
-            throw new Unavailable( "Accessibility unavailable" );
-
-        // test basic access
-        try {
-            String.class.getDeclaredMethods();
-        } catch ( SecurityException e ) {
-            throw new Unavailable("Accessibility unavailable: "+e);
-        }
-
-        accessibility = true;
+        BshClassManager.clearResolveCache();
     }
 
     private static Hashtable classes = new Hashtable();
