@@ -155,7 +155,7 @@ public class ClassManagerImpl extends BshClassManager
             return c;
 
         // check negative cache
-        if ( absoluteNonClasses.get(name)!=null ) {
+        if ( absoluteNonClasses.contains(name) ) {
             if ( Interpreter.DEBUG )
                 Interpreter.debug("absoluteNonClass list hit: "+name);
             return null;
