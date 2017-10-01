@@ -23,12 +23,7 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
-
-import bsh.util.*;
 
 /**
     Console startup class.

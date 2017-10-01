@@ -23,15 +23,17 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.util;
 
 import java.applet.Applet;
+import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.*;
-import java.io.*;
-import java.net.*;
+import java.awt.Label;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.net.URL;
 
 /**
     A lightweight console applet for remote display of a Beanshell session.

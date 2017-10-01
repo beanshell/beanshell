@@ -32,12 +32,15 @@
 */
 package bsh.commands;
 
-import java.io.*;
-import bsh.*;
-import java.util.Date;
-import java.util.Vector;
-import java.util.GregorianCalendar;
+import java.io.File;
+import java.io.IOException;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+
+import bsh.CallStack;
+import bsh.Interpreter;
+import bsh.StringUtil;
 
 public class dir
 {

@@ -23,11 +23,10 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh;
 
-import java.util.*;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
 public class StringUtil
 {

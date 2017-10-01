@@ -23,11 +23,7 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.util;
-
-import java.util.*;
 
 /**
     The interface for name completion.

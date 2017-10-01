@@ -1,6 +1,9 @@
 package bsh;
-import org.apache.bsf.*;
 import java.util.Vector;
+
+import org.apache.bsf.BSFEngine;
+import org.apache.bsf.BSFException;
+import org.apache.bsf.BSFManager;
 
 public class TestBshBSF
 {
