@@ -53,7 +53,10 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <checkstyle.suppressions.location>src/conf/checkstyle-supressions.xml</checkstyle.suppressions.location>
-  </properties>
+    <version.jdk>1.8</version.jdk>
+    <maven.compiler.source>${version.jdk}</maven.compiler.source>
+    <maven.compiler.target>${version.jdk}</maven.compiler.target>
+</properties>
 
   <scm>
     <connection>scm:git:git://github.com/beanshell/beanshell.git</connection>
