@@ -1,7 +1,7 @@
 #!/bin/java bsh.Interpreter
 
 /**
-	Make sure the interpreter throws exceptions properly.
+    Make sure the interpreter throws exceptions properly.
 */
 
 import bsh.Interpreter;
@@ -12,18 +12,18 @@ source("TestHarness.bsh");
 // eval undefined method
 i=new Interpreter();
 try {
-	i.eval("foo()");
+    i.eval("foo()");
 } catch ( EvalError e ) {
-	flag();
+    flag();
 }
 
 // eval with undefined argument: bar
 i=new Interpreter();
 try {
-	i.eval("foo( arg ) { print(arg); }");
-	i.eval("foo( bar ); ");
+    i.eval("foo( arg ) { print(arg); }");
+    i.eval("foo( bar ); ");
 } catch ( EvalError e ) {
-	flag();
+    flag();
 }
 
 assert(flag()==2);

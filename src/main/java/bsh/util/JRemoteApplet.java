@@ -23,43 +23,47 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.util;
 
-import javax.swing.*;
-import java.awt.*;
-import java.io.*;
-import java.net.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Label;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.net.URL;
+
+import javax.swing.JApplet;
 
 /**
-	A lightweight console applet for remote display of a Beanshell session.
+    A lightweight console applet for remote display of a Beanshell session.
 */
 
 public class JRemoteApplet extends JApplet
 {
-	OutputStream out;
-	InputStream in;
+    OutputStream out;
+    InputStream in;
 
-	public void init() 
-	{
-		getContentPane().setLayout(new BorderLayout());
+    public void init()
+    {
+        getContentPane().setLayout(new BorderLayout());
 
-		try {
-			URL base = getDocumentBase();
+        try {
+            URL base = getDocumentBase();
 
-			// connect to session server on port (httpd + 1)
-			Socket s = new Socket(base.getHost(), base.getPort() + 1);
-			out = s.getOutputStream();
-			in = s.getInputStream();
-		} catch(IOException e) {
-			getContentPane().add("Center", 
-				new Label("Remote Connection Failed", Label.CENTER));
-			return;
-		}
+            // connect to session server on port (httpd + 1)
+            Socket s = new Socket(base.getHost(), base.getPort() + 1);
+            out = s.getOutputStream();
+            in = s.getInputStream();
+        } catch(IOException e) {
+            getContentPane().add("Center",
+                new Label("Remote Connection Failed", Label.CENTER));
+            return;
+        }
 
-		Component console = new JConsole(in, out);
-		getContentPane().add("Center", console);
-	}
+        Component console = new JConsole(in, out);
+        getContentPane().add("Center", console);
+    }
 }
 

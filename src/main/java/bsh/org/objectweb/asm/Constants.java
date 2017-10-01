@@ -26,10 +26,6 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Contact: Eric.Bruneton@rd.francetelecom.com
- *
- * Author: Eric Bruneton
  */
 
 package bsh.org.objectweb.asm;
@@ -42,28 +38,44 @@ package bsh.org.objectweb.asm;
  * opcodes are therefore not defined in this interface. Likewise for LDC,
  * automatically replaced by LDC_W or LDC2_W when necessary, WIDE, GOTO_W and
  * JSR_W.
+ *
+ * @author Eric Bruneton, Eugene Kuleshov
  */
 
 public interface Constants {
 
+  // versions
+
+  int V1_1 = 3 << 16 | 45;
+  int V1_2 = 0 << 16 | 46;
+  int V1_3 = 0 << 16 | 47;
+  int V1_4 = 0 << 16 | 48;
+  int V1_5 = 0 << 16 | 49;
+
   // access flags
 
-  int ACC_PUBLIC = 1;
-  int ACC_PRIVATE = 2;
-  int ACC_PROTECTED = 4;
-  int ACC_STATIC = 8;
-  int ACC_FINAL = 16;
-  int ACC_SYNCHRONIZED = 32;
-  int ACC_VOLATILE = 64;
-  int ACC_TRANSIENT = 128;
-  int ACC_NATIVE = 256;
-  int ACC_INTERFACE = 512;
-  int ACC_ABSTRACT = 1024;
-  int ACC_STRICT = 2048;
-  int ACC_SUPER = 32;
+  int ACC_PUBLIC =       0x0001; // class, field, method
+  int ACC_PRIVATE =      0x0002; // class, field, method
+  int ACC_PROTECTED =    0x0004; // class, field, method
+  int ACC_STATIC =       0x0008; //        field, method
+  int ACC_FINAL =        0x0010; // class, field, method
+  int ACC_SUPER =        0x0020; // class
+  int ACC_SYNCHRONIZED = 0x0020; //               method
+  int ACC_VOLATILE =     0x0040; //        field
+  int ACC_BRIDGE =       0x0040; //               method
+  int ACC_VARARGS =      0x0080; //               method
+  int ACC_TRANSIENT =    0x0080; //        field
+  int ACC_NATIVE =       0x0100; //               method
+  int ACC_INTERFACE =    0x0200; // class
+  int ACC_ABSTRACT =     0x0400; // class,        method
+  int ACC_STRICT =       0x0800; //               method
+  int ACC_SYNTHETIC =    0x1000; // class, field, method
+  int ACC_ANNOTATION =   0x2000; // class
+  int ACC_ENUM =         0x4000; // class(?) field  inner
 
-  int ACC_SYNTHETIC = 65536;
-  int ACC_DEPRECATED = 131072;
+  // ASM specific pseudo access flags
+
+  int ACC_DEPRECATED =   131072; // class, field, method
 
   // types for NEWARRAY
 

@@ -23,67 +23,61 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.classpath;
 
-import java.io.*;
-import java.io.File;
-import java.util.*;
-import java.awt.*;
+import java.util.HashMap;
+
 import bsh.BshClassManager;
 import bsh.classpath.BshClassPath.ClassSource;
-import bsh.classpath.BshClassPath.DirClassSource;
-import bsh.classpath.BshClassPath.GeneratedClassSource;
 
 /**
-	A classloader which can load one or more classes from specified sources.
-	Because the classes are loaded via a single classloader they change as a
-	group and any versioning cross dependencies can be managed.
+    A classloader which can load one or more classes from specified sources.
+    Because the classes are loaded via a single classloader they change as a
+    group and any versioning cross dependencies can be managed.
 */
-public class DiscreteFilesClassLoader extends BshClassLoader 
+public class DiscreteFilesClassLoader extends BshClassLoader
 {
-	/**
-		Map of class sources which also implies our coverage space.
-	*/
-	ClassSourceMap map;
+    /**
+        Map of class sources which also implies our coverage space.
+    */
+    ClassSourceMap map;
 
-	public static class ClassSourceMap extends HashMap 
-	{
-		public void put( String name, ClassSource source ) {
-			super.put( name, source );
-		}
-		public ClassSource get( String name ) {
-			return (ClassSource)super.get( name );
-		}
-	}
-	
-	public DiscreteFilesClassLoader( 
-		BshClassManager classManager, ClassSourceMap map ) 
-	{
-		super( classManager );
-		this.map = map;
-	}
+    public static class ClassSourceMap extends HashMap
+    {
+        public void put( String name, ClassSource source ) {
+            super.put( name, source );
+        }
+        public ClassSource get( String name ) {
+            return (ClassSource)super.get( name );
+        }
+    }
 
-	/**
-	*/
-	public Class findClass( String name ) throws ClassNotFoundException 
-	{
-		// Load it if it's one of our classes
-		ClassSource source = map.get( name );
+    public DiscreteFilesClassLoader(
+        BshClassManager classManager, ClassSourceMap map )
+    {
+        super( classManager );
+        this.map = map;
+    }
 
-		if ( source != null )
-		{
-			byte [] code = source.getCode( name );
-			return defineClass( name, code, 0, code.length );
-		} else
-			// Let superclass BshClassLoader (URLClassLoader) findClass try 
-			// to find the class...
-			return super.findClass( name );
-	}
+    /**
+    */
+    public Class findClass( String name ) throws ClassNotFoundException
+    {
+        // Load it if it's one of our classes
+        ClassSource source = map.get( name );
 
-	public String toString() {
-		return super.toString() + "for files: "+map;
-	}
+        if ( source != null )
+        {
+            byte [] code = source.getCode( name );
+            return defineClass( name, code, 0, code.length );
+        } else
+            // Let superclass BshClassLoader (URLClassLoader) findClass try
+            // to find the class...
+            return super.findClass( name );
+    }
+
+    public String toString() {
+        return super.toString() + "for files: "+map;
+    }
 
 }

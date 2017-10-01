@@ -25,12 +25,12 @@ oa = new Object [] { null, "foo", "bar" };
 assert( oa instanceof Object [] );
 x = new String[] {null, "foo"};
 
-Object[] test = new Object[] { new Long(2000), "MyDisk", new Double(21.4) }; 
+Object[] test = new Object[] { new Long(2000), "MyDisk", new Double(21.4) };
 assert( test.length == 3);
 assert( test[2] instanceof Double );
 
-Object[] test2 = new Object[] { 
-	(Object)new Long(2000), (Object)"MyDisk", (Object)new Double(21.4) }; 
+Object[] test2 = new Object[] {
+    (Object)new Long(2000), (Object)"MyDisk", (Object)new Double(21.4) };
 
 
 assert( isEvalError("a=new int[] { 2, new Object() }") );
@@ -54,18 +54,18 @@ String [][] d2sa  = new String [][] { d1sa, d1sa };
 // multidimensional initializers
 String [][] sa2 = new String [][] { new String [] { "foo" }, new String [] { "foo", "bar" } };
 
-String [][][] sa3 = new String [][][] { 
-		new String [][] { 
-			new String [] { "foo" }, new String [] { "f", "f", } },
-		new String [][] { 
-			new String [] { "foo", "bar", "flag" } } 
-	};
+String [][][] sa3 = new String [][][] {
+        new String [][] {
+            new String [] { "foo" }, new String [] { "f", "f", } },
+        new String [][] {
+            new String [] { "foo", "bar", "flag" } }
+    };
 
 assert( sa3[1][0][2].equals("flag") );
 
-Object [][] o= new Object [][] { 
-	new Object [] {"me",new Integer(5),new Byte((byte)3)}, 
-	new Object [] {"you",new Integer(6),new Byte((byte)2)} }; 
+Object [][] o= new Object [][] {
+    new Object [] {"me",new Integer(5),new Byte((byte)3)},
+    new Object [] {"you",new Integer(6),new Byte((byte)2)} };
 
 // initializers which rely on the declared type of the variable!
 // This is quite a coup! ;);)
@@ -77,8 +77,8 @@ String [][] d2xa  = { d1xa, d1xa };
 // d2xa  = { d1xa, d1xa };
 
 // Wow!  I am so happy ;)
-String [][][] sa99 = 
-		{ { { "foo", null }, { "f", "f", } }, { { "foo", "bar", "flag" } } };
+String [][][] sa99 =
+        { { { "foo", null }, { "f", "f", } }, { { "foo", "bar", "flag" } } };
 assert( sa99[1][0][2].equals("flag") );
 
 // a few more
@@ -104,8 +104,8 @@ oo = new Object[] { 0, "a" };
 oo = new Object[] { new Integer(0), new String("a") };
 oo = new Object[] { (Object) new Integer(0), (Object) new String("a") };
 ov = new Vector();
-ov.add(0); 
-ov.add("a"); 
+ov.add(0);
+ov.add("a");
 oo = ov.toArray();
 
 // new stuff to support undefined array dimensions

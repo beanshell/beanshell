@@ -29,145 +29,145 @@ package bsh;
 
 class BSHMethodDeclaration extends SimpleNode
 {
-	public String name;
+    public String name;
 
-	// Begin Child node structure evaluated by insureNodesParsed
+    // Begin Child node structure evaluated by insureNodesParsed
 
-	BSHReturnType returnTypeNode;
-	BSHFormalParameters paramsNode;
-	BSHBlock blockNode;
-	// index of the first throws clause child node
-	int firstThrowsClause;
+    BSHReturnType returnTypeNode;
+    BSHFormalParameters paramsNode;
+    BSHBlock blockNode;
+    // index of the first throws clause child node
+    int firstThrowsClause;
 
-	// End Child node structure evaluated by insureNodesParsed
+    // End Child node structure evaluated by insureNodesParsed
 
-	public Modifiers modifiers;
+    public Modifiers modifiers;
 
-	// Unsafe caching of type here.
-	Class returnType;  // null (none), Void.TYPE, or a Class
-	int numThrows = 0;
+    // Unsafe caching of type here.
+    Class returnType;  // null (none), Void.TYPE, or a Class
+    int numThrows = 0;
 
-	BSHMethodDeclaration(int id) { super(id); }
+    BSHMethodDeclaration(int id) { super(id); }
 
-	/**
-		Set the returnTypeNode, paramsNode, and blockNode based on child
-		node structure.  No evaluation is done here.
-	*/
-	synchronized void insureNodesParsed() 
-	{
-		if ( paramsNode != null ) // there is always a paramsNode
-			return;
+    /**
+        Set the returnTypeNode, paramsNode, and blockNode based on child
+        node structure.  No evaluation is done here.
+    */
+    synchronized void insureNodesParsed()
+    {
+        if ( paramsNode != null ) // there is always a paramsNode
+            return;
 
-		Object firstNode = jjtGetChild(0);
-		firstThrowsClause = 1;
-		if ( firstNode instanceof BSHReturnType )
-		{
-			returnTypeNode = (BSHReturnType)firstNode;
-			paramsNode = (BSHFormalParameters)jjtGetChild(1);
-			if ( jjtGetNumChildren() > 2+numThrows )
-				blockNode = (BSHBlock)jjtGetChild(2+numThrows); // skip throws
-			++firstThrowsClause;
-		}
-		else
-		{
-			paramsNode = (BSHFormalParameters)jjtGetChild(0);
-			blockNode = (BSHBlock)jjtGetChild(1+numThrows); // skip throws
-		}
-	}
+        Object firstNode = jjtGetChild(0);
+        firstThrowsClause = 1;
+        if ( firstNode instanceof BSHReturnType )
+        {
+            returnTypeNode = (BSHReturnType)firstNode;
+            paramsNode = (BSHFormalParameters)jjtGetChild(1);
+            if ( jjtGetNumChildren() > 2+numThrows )
+                blockNode = (BSHBlock)jjtGetChild(2+numThrows); // skip throws
+            ++firstThrowsClause;
+        }
+        else
+        {
+            paramsNode = (BSHFormalParameters)jjtGetChild(0);
+            blockNode = (BSHBlock)jjtGetChild(1+numThrows); // skip throws
+        }
+    }
 
-	/**
-		Evaluate the return type node.
-		@return the type or null indicating loosely typed return
-	*/
-	Class evalReturnType( CallStack callstack, Interpreter interpreter )
-		throws EvalError
-	{
-		insureNodesParsed();
-		if ( returnTypeNode != null )
-			return returnTypeNode.evalReturnType( callstack, interpreter );
-		else 
-			return null;
-	}
+    /**
+        Evaluate the return type node.
+        @return the type or null indicating loosely typed return
+    */
+    Class evalReturnType( CallStack callstack, Interpreter interpreter )
+        throws EvalError
+    {
+        insureNodesParsed();
+        if ( returnTypeNode != null )
+            return returnTypeNode.evalReturnType( callstack, interpreter );
+        else
+            return null;
+    }
 
-	String getReturnTypeDescriptor( 
-		CallStack callstack, Interpreter interpreter, String defaultPackage )
-	{
-		insureNodesParsed();
-		if ( returnTypeNode == null )
-			return null;
-		else
-			return returnTypeNode.getTypeDescriptor( 
-				callstack, interpreter, defaultPackage );
-	}
+    String getReturnTypeDescriptor(
+        CallStack callstack, Interpreter interpreter, String defaultPackage )
+    {
+        insureNodesParsed();
+        if ( returnTypeNode == null )
+            return null;
+        else
+            return returnTypeNode.getTypeDescriptor(
+                callstack, interpreter, defaultPackage );
+    }
 
-	BSHReturnType getReturnTypeNode() {
-		insureNodesParsed();
-		return returnTypeNode;
-	}
+    BSHReturnType getReturnTypeNode() {
+        insureNodesParsed();
+        return returnTypeNode;
+    }
 
-	/**
-		Evaluate the declaration of the method.  That is, determine the
-		structure of the method and install it into the caller's namespace.
-	*/
-	public Object eval( CallStack callstack, Interpreter interpreter )
-		throws EvalError
-	{
-		returnType = evalReturnType( callstack, interpreter );
-		evalNodes( callstack, interpreter );
+    /**
+        Evaluate the declaration of the method.  That is, determine the
+        structure of the method and install it into the caller's namespace.
+    */
+    public Object eval( CallStack callstack, Interpreter interpreter )
+        throws EvalError
+    {
+        returnType = evalReturnType( callstack, interpreter );
+        evalNodes( callstack, interpreter );
 
-		// Install an *instance* of this method in the namespace.
-		// See notes in BshMethod 
+        // Install an *instance* of this method in the namespace.
+        // See notes in BshMethod
 
 // This is not good...
 // need a way to update eval without re-installing...
 // so that we can re-eval params, etc. when classloader changes
 // look into this
 
-		NameSpace namespace = callstack.top();
-		BshMethod bshMethod = new BshMethod( this, namespace, modifiers );
-		try {
-			namespace.setMethod( name, bshMethod );
-		} catch ( UtilEvalError e ) {
-			throw e.toEvalError(this,callstack);
-		}
+        NameSpace namespace = callstack.top();
+        BshMethod bshMethod = new BshMethod( this, namespace, modifiers );
+        try {
+            namespace.setMethod( name, bshMethod );
+        } catch ( UtilEvalError e ) {
+            throw e.toEvalError(this,callstack);
+        }
 
-		return Primitive.VOID;
-	}
+        return Primitive.VOID;
+    }
 
-	private void evalNodes( CallStack callstack, Interpreter interpreter ) 
-		throws EvalError
-	{
-		insureNodesParsed();
-		
-		// validate that the throws names are class names
-		for(int i=firstThrowsClause; i<numThrows+firstThrowsClause; i++)
-			((BSHAmbiguousName)jjtGetChild(i)).toClass( 
-				callstack, interpreter );
+    private void evalNodes( CallStack callstack, Interpreter interpreter )
+        throws EvalError
+    {
+        insureNodesParsed();
 
-		paramsNode.eval( callstack, interpreter );
+        // validate that the throws names are class names
+        for(int i=firstThrowsClause; i<numThrows+firstThrowsClause; i++)
+            ((BSHAmbiguousName)jjtGetChild(i)).toClass(
+                callstack, interpreter );
 
-		// if strictJava mode, check for loose parameters and return type
-		if ( interpreter.getStrictJava() )
-		{
-			for(int i=0; i<paramsNode.paramTypes.length; i++)
-				if ( paramsNode.paramTypes[i] == null )
-					// Warning: Null callstack here.  Don't think we need
-					// a stack trace to indicate how we sourced the method.
-					throw new EvalError(
-				"(Strict Java Mode) Undeclared argument type, parameter: " +
-					paramsNode.getParamNames()[i] + " in method: " 
-					+ name, this, null );
+        paramsNode.eval( callstack, interpreter );
 
-			if ( returnType == null )
-				// Warning: Null callstack here.  Don't think we need
-				// a stack trace to indicate how we sourced the method.
-				throw new EvalError(
-				"(Strict Java Mode) Undeclared return type for method: "
-					+ name, this, null );
-		}
-	}
+        // if strictJava mode, check for loose parameters and return type
+        if ( interpreter.getStrictJava() )
+        {
+            for(int i=0; i<paramsNode.paramTypes.length; i++)
+                if ( paramsNode.paramTypes[i] == null )
+                    // Warning: Null callstack here.  Don't think we need
+                    // a stack trace to indicate how we sourced the method.
+                    throw new EvalError(
+                "(Strict Java Mode) Undeclared argument type, parameter: " +
+                    paramsNode.getParamNames()[i] + " in method: "
+                    + name, this, null );
 
-	public String toString() {
-		return "MethodDeclaration: "+name;
-	}
+            if ( returnType == null )
+                // Warning: Null callstack here.  Don't think we need
+                // a stack trace to indicate how we sourced the method.
+                throw new EvalError(
+                "(Strict Java Mode) Undeclared return type for method: "
+                    + name, this, null );
+        }
+    }
+
+    public String toString() {
+        return "MethodDeclaration: "+name;
+    }
 }

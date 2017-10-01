@@ -98,9 +98,9 @@ public class Project_Coin_Test {
         try {
             interpreter.set("autoclosable", autoclosable);
             interpreter.eval("try (x = new BufferedOutputStream(autoclosable)) {\n" +
-                    "	x.write(42);\n" +
+                    "   x.write(42);\n" +
                     "} catch (Exception e) {\n" +
-                    "	thrownException = e;\n" +
+                    "   thrownException = e;\n" +
                     "}\n");
             fail("expected exception");
         } catch (final EvalError evalError) {
@@ -120,7 +120,7 @@ public class Project_Coin_Test {
     @Test
     @Category(Project_Coin_Test.class)
     public void switch_on_strings() throws Exception {
-        final Object result = eval("switch(\"hurz\") {\n", "	case \"bla\": return 1;", "	case \"foo\": return 2;", "	case \"hurz\": return 3;", "	case \"igss\": return 4;", "	default: return 5;", "}\n");
+        final Object result = eval("switch(\"hurz\") {\n", "    case \"bla\": return 1;", " case \"foo\": return 2;", " case \"hurz\": return 3;", "    case \"igss\": return 4;", "    default: return 5;", "}\n");
         assertEquals(result, 3);
     }
 

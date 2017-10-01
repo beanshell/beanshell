@@ -23,27 +23,27 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.util;
 
 import java.applet.Applet;
-import java.awt.*;
-import bsh.*;
-import bsh.util.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+
+import bsh.ConsoleInterface;
+import bsh.Interpreter;
 
 /**
-	Run bsh as an applet for demo purposes.
+    Run bsh as an applet for demo purposes.
 */
 public class AWTDemoApplet extends Applet
 {
-	public void init()
-	{
-		setLayout(new BorderLayout());
-		ConsoleInterface console = new AWTConsole();
-		add("Center", (Component)console);
-		Interpreter interpreter = new Interpreter( console );
-		new Thread(interpreter).start();
-	}
+    public void init()
+    {
+        setLayout(new BorderLayout());
+        ConsoleInterface console = new AWTConsole();
+        add("Center", (Component)console);
+        Interpreter interpreter = new Interpreter( console );
+        new Thread(interpreter).start();
+    }
 }
 

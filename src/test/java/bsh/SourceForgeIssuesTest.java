@@ -20,18 +20,19 @@
 
 package bsh;
 
-import bsh.classpath.ClassManagerImpl;
+import static bsh.TestUtil.eval;
+import static org.junit.Assert.assertEquals;
+
+import java.lang.ref.WeakReference;
+import java.util.concurrent.Callable;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import java.lang.ref.WeakReference;
-import java.util.concurrent.Callable;
-
-import static bsh.TestUtil.eval;
-import static org.junit.Assert.assertEquals;
+import bsh.classpath.ClassManagerImpl;
 
 /**
  * todo:<p>
@@ -68,7 +69,7 @@ public class SourceForgeIssuesTest {
                 /* 7*/ "parser.setContentHandler( this );\n" +
                 /* 8*/ "\n" +
                 /* 9*/ "invoke( name, args ) {\n" +
-                /*10*/ "	events.add( name );\n" +
+                /*10*/ "    events.add( name );\n" +
                 /*11*/ "}\n" +
                 /*12*/ "\n" +
                 /*13*/ "source = new InputSource(new StringReader(\"<xml>test</xml>\"));\n" +
@@ -197,7 +198,7 @@ public class SourceForgeIssuesTest {
         } catch (TargetError e) {
             Assert.assertTrue(e.getTarget().getClass() == RuntimeException.class);
         }
-        Assert.assertEquals("foobar", TestUtil.eval("String a;", "try {", "	a = \"foobar\";", "} catch (Exception e) {", "	throw e;", "}", "return a;"));
+        Assert.assertEquals("foobar", TestUtil.eval("String a;", "try {", " a = \"foobar\";", "} catch (Exception e) {", "  throw e;", "}", "return a;"));
         String script = "boolean fieldBool = false;\n" +
                 "int fieldInt = 0;\n" +
                 "Boolean fieldBool2 = false;\n" +

@@ -16,8 +16,8 @@
 
 bsh.help.importObject = "usage: importObject( Object )";
 
-importObject( Object object ) 
+importObject( Object object )
 {
-	this.caller.namespace.importObject( object );
+    this.caller.namespace.importObject( object );
 }
 
