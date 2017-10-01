@@ -38,7 +38,7 @@
     with object scripting language features, written in Java. BeanShell
     dynamically executes standard Java syntax and extends it with common
     scripting conveniences such as loose types, commands, and method closures
-    like those in Perl and JavaScript. 
+    like those in Perl and JavaScript.
   </description>
   <url>https://github.com/beanshell/beanshell/</url>
   <licenses>
@@ -52,6 +52,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <checkstyle.suppressions.location>src/conf/checkstyle-supressions.xml</checkstyle.suppressions.location>
   </properties>
 
   <scm>
@@ -61,7 +62,7 @@
     <tag>HEAD</tag>
   </scm>
   <developers>
-    <!-- Current maintainers according to 
+    <!-- Current maintainers according to
          https://github.com/beanshell/
     -->
     <developer>
@@ -144,7 +145,7 @@
           <execution>
             <id>javacc</id>
             <goals>
-              <!-- jjtree disabled due to manual changes 
+              <!-- jjtree disabled due to manual changes
                                                in the previously generated bsh.jj :-
               <goal>jjtree-javacc</goal>-->
               <!-- disabled due to manual changes in the
@@ -165,6 +166,25 @@
             </manifest>
           </archive>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.17</version>
+        <executions>
+         <execution>
+           <id>validate</id>
+           <phase>verify</phase>
+           <configuration>
+             <encoding>UTF-8</encoding>
+             <failsOnViolation>true</failsOnViolation>
+             <includeTestSourceDirectory>true</includeTestSourceDirectory>
+           </configuration>
+           <goals>
+             <goal>check</goal>
+           </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.felix</groupId>
@@ -198,7 +218,7 @@
       <scope>test</scope>
     </dependency>
     <!-- TODO: Replace src/main/java/bsh/org/objectweb/asm/
-      with a shadowed asm 
+      with a shadowed asm
     <dependency>
      <groupId>asm</groupId>
      <artifactId>asm</artifactId>

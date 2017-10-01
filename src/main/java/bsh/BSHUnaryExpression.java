@@ -31,60 +31,60 @@ package bsh;
 class BSHUnaryExpression extends SimpleNode implements ParserConstants
 {
     public int kind;
-	public boolean postfix = false;
+    public boolean postfix = false;
 
     BSHUnaryExpression(int id) { super(id); }
 
-    public Object eval( CallStack callstack, Interpreter interpreter)  
-		throws EvalError
+    public Object eval( CallStack callstack, Interpreter interpreter)
+        throws EvalError
     {
         SimpleNode node = (SimpleNode)jjtGetChild(0);
 
-		// If this is a unary increment of decrement (either pre or postfix)
-		// then we need an LHS to which to assign the result.  Otherwise
-		// just do the unary operation for the value.
-		try {
-			if ( kind == INCR || kind == DECR ) {
-				LHS lhs = ((BSHPrimaryExpression)node).toLHS( 
-					callstack, interpreter );
-				return lhsUnaryOperation( lhs, interpreter.getStrictJava() );
-			} else
-				return 
-					unaryOperation( node.eval(callstack, interpreter), kind );
-		} catch ( UtilEvalError e ) {
-			throw e.toEvalError( this, callstack );
-		}
+        // If this is a unary increment of decrement (either pre or postfix)
+        // then we need an LHS to which to assign the result.  Otherwise
+        // just do the unary operation for the value.
+        try {
+            if ( kind == INCR || kind == DECR ) {
+                LHS lhs = ((BSHPrimaryExpression)node).toLHS(
+                    callstack, interpreter );
+                return lhsUnaryOperation( lhs, interpreter.getStrictJava() );
+            } else
+                return
+                    unaryOperation( node.eval(callstack, interpreter), kind );
+        } catch ( UtilEvalError e ) {
+            throw e.toEvalError( this, callstack );
+        }
     }
 
-    private Object lhsUnaryOperation( LHS lhs, boolean strictJava ) 
-		throws UtilEvalError
+    private Object lhsUnaryOperation( LHS lhs, boolean strictJava )
+        throws UtilEvalError
     {
         if ( Interpreter.DEBUG ) Interpreter.debug("lhsUnaryOperation");
         Object prevalue, postvalue;
         prevalue = lhs.getValue();
         postvalue = unaryOperation(prevalue, kind);
 
-		Object retVal;
-		if ( postfix )
-			retVal = prevalue;
-		else
-			retVal = postvalue;
+        Object retVal;
+        if ( postfix )
+            retVal = prevalue;
+        else
+            retVal = postvalue;
 
-		lhs.assign( postvalue, strictJava );
-		return retVal;
+        lhs.assign( postvalue, strictJava );
+        return retVal;
     }
 
     private Object unaryOperation( Object op, int kind ) throws UtilEvalError
     {
-        if (op instanceof Boolean || op instanceof Character 
-			|| op instanceof Number)
+        if (op instanceof Boolean || op instanceof Character
+            || op instanceof Number)
             return primitiveWrapperUnaryOperation( op, kind );
 
         if ( !(op instanceof Primitive) )
             throw new UtilEvalError( "Unary operation " + tokenImage[kind]
                 + " inappropriate for object" );
 
-		
+
         return Primitive.unaryOperation((Primitive)op, kind);
     }
 
@@ -95,10 +95,10 @@ class BSHUnaryExpression extends SimpleNode implements ParserConstants
         Object operand = Primitive.promoteToInteger(val);
 
         if ( operand instanceof Boolean )
-			return Primitive.booleanUnaryOperation((Boolean)operand, kind)
-					? Boolean.TRUE : Boolean.FALSE;
-        else 
-		if ( operand instanceof Integer )
+            return Primitive.booleanUnaryOperation((Boolean)operand, kind)
+                    ? Boolean.TRUE : Boolean.FALSE;
+        else
+        if ( operand instanceof Integer )
         {
             int result = Primitive.intUnaryOperation((Integer)operand, kind);
 

@@ -34,6 +34,6 @@ public class AnnotationsParsing {
     @Test
     @Category(KnownIssue.class)
     public void annotation_on_method_declaration() throws Exception {
-        TestUtil.eval("public int myMethod(final int i) {", "	return i * 7;", "}", "return myMethod(6);");
+        TestUtil.eval("public int myMethod(final int i) {", "   return i * 7;", "}", "return myMethod(6);");
     }
 }

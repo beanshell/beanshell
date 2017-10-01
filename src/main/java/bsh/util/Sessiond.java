@@ -23,74 +23,76 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.util;
 
-import java.io.*;
-
-import java.net.Socket;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.net.ServerSocket;
-import bsh.*;
+import java.net.Socket;
+
+import bsh.Interpreter;
+import bsh.NameSpace;
 
 /**
-	BeanShell remote session server.
-	Starts instances of bsh for client connections.
-	Note: the sessiond effectively maps all connections to the same interpreter
-	(shared namespace).
+    BeanShell remote session server.
+    Starts instances of bsh for client connections.
+    Note: the sessiond effectively maps all connections to the same interpreter
+    (shared namespace).
 */
 public class Sessiond extends Thread
 {
-	private ServerSocket ss;
-	NameSpace globalNameSpace;
+    private ServerSocket ss;
+    NameSpace globalNameSpace;
 
-	/*
-	public static void main(String argv[]) throws IOException
-	{
-		new Sessiond( Integer.parseInt(argv[0])).start();
-	}
-	*/
+    /*
+    public static void main(String argv[]) throws IOException
+    {
+        new Sessiond( Integer.parseInt(argv[0])).start();
+    }
+    */
 
-	public Sessiond(NameSpace globalNameSpace, int port) throws IOException
-	{
-		ss = new ServerSocket(port);
-		this.globalNameSpace = globalNameSpace;
-	}
+    public Sessiond(NameSpace globalNameSpace, int port) throws IOException
+    {
+        ss = new ServerSocket(port);
+        this.globalNameSpace = globalNameSpace;
+    }
 
-	public void run()
-	{
-		try
-		{
-			while(true)
-				new SessiondConnection(globalNameSpace, ss.accept()).start();
-		}
-		catch(IOException e) { System.out.println(e); }
-	}
+    public void run()
+    {
+        try
+        {
+            while(true)
+                new SessiondConnection(globalNameSpace, ss.accept()).start();
+        }
+        catch(IOException e) { System.out.println(e); }
+    }
 }
 
 class SessiondConnection extends Thread
 {
-	NameSpace globalNameSpace;
-	Socket client;
+    NameSpace globalNameSpace;
+    Socket client;
 
-	SessiondConnection(NameSpace globalNameSpace, Socket client)
-	{
-		this.client = client;
-		this.globalNameSpace = globalNameSpace;
-	}
+    SessiondConnection(NameSpace globalNameSpace, Socket client)
+    {
+        this.client = client;
+        this.globalNameSpace = globalNameSpace;
+    }
 
-	public void run()
-	{
-		try
-		{
-			InputStream in = client.getInputStream();
-			PrintStream out = new PrintStream(client.getOutputStream());
-			Interpreter i = new Interpreter( 
-				new InputStreamReader(in), out, out, true, globalNameSpace);
-			i.setExitOnEOF( false ); // don't exit interp
-			i.run();
-		}
-		catch(IOException e) { System.out.println(e); }
-	}
+    public void run()
+    {
+        try
+        {
+            InputStream in = client.getInputStream();
+            PrintStream out = new PrintStream(client.getOutputStream());
+            Interpreter i = new Interpreter(
+                new InputStreamReader(in), out, out, true, globalNameSpace);
+            i.setExitOnEOF( false ); // don't exit interp
+            i.run();
+        }
+        catch(IOException e) { System.out.println(e); }
+    }
 }
 
