@@ -1,8 +1,8 @@
 #!/bin/sh
 #
-# Run the BeanShell interpreter on a file with command line arguments.  If the
+# Run the BeanShell interpreter on a file with command line arguments. If the
 # user has bsh.Interpreter in their classpath then the interpreter is executed
-# with the user's classpath.  Otherwise, the default bsh path specified in
+# with the user's classpath. Otherwise, the default bsh path specified in
 # DEFAULTBSH is added to end of the user's path.
 #
 # If you wish to avoid the classpath test (which uses javap) then you can set
