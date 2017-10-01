@@ -33,9 +33,7 @@ package bsh;
     Note: this is too complicated... need some cleanup and simplification.
     @see Primitive.binaryOperation
 */
-class BSHBinaryExpression extends SimpleNode
-    implements ParserConstants
-{
+class BSHBinaryExpression extends SimpleNode implements ParserConstants {
     public int kind;
 
     BSHBinaryExpression(int id) { super(id); }
@@ -51,7 +49,7 @@ class BSHBinaryExpression extends SimpleNode
         if (kind == INSTANCEOF)
         {
             // null object ref is not instance of any type
-            if ( lhs == Primitive.NULL )
+            if ( lhs == Primitive.NULL || lhs == null )
                 return Primitive.FALSE;
 
             Class rhs = ((BSHType)jjtGetChild(1)).getType(
@@ -96,7 +94,7 @@ class BSHBinaryExpression extends SimpleNode
         }
         /*
             Look ahead and short circuit evaluation of the rhs if:
-                we're a boolean AND and the lhs is false.
+                we're a boolean OR and the lhs is true.
         */
         if ( kind == BOOL_OR || kind == BOOL_ORX ) {
             Object obj = lhs;

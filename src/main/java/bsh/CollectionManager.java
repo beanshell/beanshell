@@ -23,171 +23,168 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh;
 
-import java.util.Enumeration;
-import java.util.Vector;
-import java.util.Hashtable;
 import java.lang.reflect.Array;
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-/**
-    The default CollectionManager (which remains Java 1.1 compatible)
-    supports iteration over objects of type:
-    Enumeration, Vector, String, StringBuffer and array.
-    The dynamically loaded CollectionManagerImpl supports additional types when
-    it is present.
+/** The default CollectionManager supports iteration over objects of type:
+ * Enumeration, Iterator, Iterable, CharSequence, and array. */
+public final class CollectionManager {
 
-    @see BshIterable.java
-*/
-public class CollectionManager
-{
-    private static CollectionManager manager;
+    /** The Constant manager. */
+    private static final CollectionManager manager = new CollectionManager();
 
-    public synchronized static CollectionManager getCollectionManager()
-    {
-        if ( manager == null
-            && Capabilities.classExists("java.util.Collection") )
-        {
-            Class clas;
-            try {
-                clas = Class.forName( "bsh.collection.CollectionManagerImpl" );
-                manager = (CollectionManager)clas.newInstance();
-            } catch ( Exception e ) {
-                Interpreter.debug("unable to load CollectionManagerImpl: "+e);
-            }
-        }
-
-        if ( manager == null )
-            manager = new CollectionManager(); // default impl
-
+    /** Gets the collection manager.
+     * @return the collection manager */
+    public static synchronized CollectionManager getCollectionManager() {
         return manager;
     }
 
-    /**
-    */
-    public boolean isBshIterable( Object obj )
-    {
+    /** Checks if is bsh iterable.
+     * @param obj the obj
+     * @return true, if is bsh iterable */
+    public boolean isBshIterable(final Object obj) {
         // This could be smarter...
         try {
-            getBshIterator( obj );
+            this.getBshIterator(obj);
             return true;
-        } catch( IllegalArgumentException e ) {
+        } catch (final IllegalArgumentException e) {
             return false;
         }
     }
 
-    public BshIterator getBshIterator( Object obj )
-        throws IllegalArgumentException
-    {
-        return new BasicBshIterator( obj );
-    }
-
-    public boolean isMap( Object obj ) {
-        return obj instanceof Hashtable;
-    }
-
-    public Object getFromMap( Object map, Object key ) {
-        return ((Hashtable)map).get(key);
-    }
-
-    public Object putInMap( Object map, Object key, Object value )
-    {
-        return ((Hashtable)map).put(key, value);
-    }
-
-    /**
-        Determine dynamically if the target is an iterator by the presence of a
-        pair of next() and hasNext() methods.
-    public static boolean isIterator() { }
-    */
-
-    /**
-     * An implementation that works with JDK 1.1
-     */
-    public static class BasicBshIterator implements BshIterator
-    {
-        Enumeration enumeration;
-
-        /**
-         * Construct a basic BasicBshIterator
-         *
-         * @param The object over which we are iterating
-         *
-         * @throws java.lang.IllegalArgumentException If the argument is not a
-         * supported (i.e. iterable) type.
-         *
-         * @throws java.lang.NullPointerException If the argument is null
-         */
-        public BasicBshIterator(Object iterateOverMe) {
-            enumeration = createEnumeration(iterateOverMe);
-        }
-
-        /**
-         * Create an enumeration over the given object
-         *
-         * @param iterateOverMe Object of type Enumeration, Vector, String,
-         *                      StringBuffer or an array
-         *
-         * @return an enumeration
-         *
-         * @throws java.lang.IllegalArgumentException If the argument is not a
-         * supported (i.e. iterable) type.
-         *
-         * @throws java.lang.NullPointerException If the argument is null
-         */
-        protected Enumeration createEnumeration( Object iterateOverMe )
-        {
-            if(iterateOverMe==null)
-                throw new NullPointerException("Object arguments passed to " +
-                    "the BasicBshIterator constructor cannot be null.");
-
-            if (iterateOverMe instanceof Enumeration)
-                return (Enumeration)iterateOverMe;
-
-            if (iterateOverMe instanceof Vector)
-                return ((Vector)iterateOverMe).elements();
-
-            if (iterateOverMe.getClass().isArray()) {
-                final Object array = iterateOverMe;
-                return new Enumeration() {
-                    int index = 0, length = Array.getLength(array);
-                    public Object nextElement() {
-                        return Array.get(array, index++);
-                    }
-                    public boolean hasMoreElements() { return index<length; }
-                };
+    /** Empty it.
+     * @param <T> the generic type
+     * @return the iterator */
+    private <T> Iterator<T> emptyIt() {
+        return new Iterator<T>() {
+            @Override
+            public boolean hasNext() {
+                return false;
             }
+            @Override
+            public T next() {
+                return null;
+            }
+        };
+    }
 
-            if (iterateOverMe instanceof String)
-                return createEnumeration(((String)iterateOverMe).toCharArray());
+    /** Arrayit.
+     * @param array the array
+     * @return the iterator */
+    private Iterator<Object> arrayit(final Object array) {
+        return new Iterator<Object>() {
+            private int index = 0;
+            private final int length = Array.getLength(array);
+            @Override
+            public boolean hasNext() {
+                return this.index < this.length;
+            }
+            @Override
+            public Object next() {
+                return Array.get(array, this.index++);
+            }
+        };
+    }
 
-            if (iterateOverMe instanceof StringBuffer)
-                return createEnumeration(
-                    iterateOverMe.toString().toCharArray());
+    /** Gets the bsh iterator.
+     * @param obj the obj
+     * @return the bsh iterator */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public Iterator getBshIterator(final Enumeration obj) {
+        return Collections.list(obj).iterator();
+    }
 
-            throw new IllegalArgumentException(
-                "Cannot enumerate object of type "+iterateOverMe.getClass());
-        }
+    /** Gets the bsh iterator.
+     * @param obj the obj
+     * @return the bsh iterator */
+    @SuppressWarnings("rawtypes")
+    public Iterator getBshIterator(final Iterator obj) {
+        return obj;
+    }
 
-        /**
-         * Fetch the next object in the iteration
-         *
-         * @return The next object
-         */
-        public Object next() {
-            return  enumeration.nextElement();
-        }
+    /** Gets the bsh iterator.
+     * @param obj the obj
+     * @return the bsh iterator */
+    public Iterator<Object> getBshIterator(final Object[] obj) {
+        return Arrays.asList(obj).iterator();
+    }
 
-        /**
-         * Returns true if and only if there are more objects available
-         * via the <code>next()</code> method
-         *
-         * @return The next object
-         */
-        public boolean hasNext() {
-            return enumeration.hasMoreElements();
-        }
+    /** Gets the bsh iterator.
+     * @param obj the obj
+     * @return the bsh iterator */
+    public Iterator<Object> getBshIterator(final CharSequence obj) {
+        return this.arrayit(obj.toString().toCharArray());
+    }
+
+    public Iterator<?> getBshIterator(final String obj) {
+        return this.getBshIterator(new StringBuilder(obj));
+    }
+    /** Reflect name.
+     * @param obj the obj
+     * @return the stream */
+    public Stream<String> reflectNames(Object obj) {
+        return Stream.concat(
+                Stream.of(obj.getClass().getFields())
+                    .map(field -> field.getName()),
+                Stream.of(obj.getClass().getDeclaredMethods())
+                    .map(method -> method.getName() + "("))
+                .sorted().distinct();
+    }
+    public Stream<SimpleImmutableEntry<String, Object>> reflectionEntries(Object obj) {
+        return Stream.concat(
+                Stream.of(obj.getClass().getFields())
+                    .map(field -> {
+                            Object val = null; 
+                        try {
+                            field.setAccessible(true);
+                            val = field.get(obj);
+                        } catch (Exception e) {}
+                        return new SimpleImmutableEntry<>(field.getName(), val);
+                    }),
+                Stream.of(obj.getClass().getDeclaredMethods())
+                    .map(method -> { 
+                        Object val = null; 
+                        try {
+                            method.setAccessible(true);
+                            val = method.invoke(obj, new Object[method.getParameterCount()]);
+                        } catch (Exception e) {}
+                        return new SimpleImmutableEntry<>(method.getName(), val);
+                    }));
+    }
+
+    /** Gets the bsh iterator.
+     * @param obj the obj
+     * @return the bsh iterator
+     * @throws IllegalArgumentException the illegal argument exception */
+    @SuppressWarnings("rawtypes")
+    public Iterator getBshIterator(final Object obj)
+            throws IllegalArgumentException {
+        if (obj == null)
+            return this.emptyIt();
+        if (obj instanceof Primitive)
+            if (((Primitive) obj).getType() == null)
+                return this.emptyIt();
+            else
+                return getBshIterator(Primitive.unwrap(obj));
+        if (obj instanceof String)
+            return getBshIterator((String) obj);
+        if (obj instanceof Object[])
+            return getBshIterator((Object[]) obj);
+        if (obj.getClass().isArray())
+            return this.arrayit(obj);
+        if (obj instanceof Iterable)
+            return ((Iterable) obj).iterator();
+        if (obj instanceof Object)
+            return reflectionEntries(obj).collect(Collectors.toList()).iterator();
+        throw new IllegalArgumentException(
+                "Cannot iterate over object of type " + obj.getClass());
     }
 }
