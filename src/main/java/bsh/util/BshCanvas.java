@@ -23,13 +23,17 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.util;
 
-import java.awt.*;
-import javax.swing.*;
-import bsh.*;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Image;
+
+import javax.swing.JComponent;
+
+import bsh.EvalError;
+import bsh.Interpreter;
+import bsh.This;
 
 /**
     Scriptable Canvas with buffered graphics.

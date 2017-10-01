@@ -27,15 +27,20 @@
 
 package bsh;
 
-import bsh.org.objectweb.asm.*;
-import bsh.org.objectweb.asm.Type;
-
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.*;
+
+import bsh.org.objectweb.asm.ClassWriter;
+import bsh.org.objectweb.asm.CodeVisitor;
+import bsh.org.objectweb.asm.Constants;
+import bsh.org.objectweb.asm.Label;
+import bsh.org.objectweb.asm.Type;
 
 /**
     ClassGeneratorUtil utilizes the ASM (www.objectweb.org) bytecode generator

@@ -23,14 +23,15 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.util;
 
-import javax.swing.*;
-import java.awt.*;
-import bsh.*;
-import bsh.util.*;
+import java.awt.BorderLayout;
+
+import javax.swing.JApplet;
+
+import bsh.EvalError;
+import bsh.Interpreter;
+import bsh.TargetError;
 
 /**
     Run bsh as an applet for demo purposes.

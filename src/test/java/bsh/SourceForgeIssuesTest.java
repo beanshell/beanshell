@@ -20,18 +20,19 @@
 
 package bsh;
 
-import bsh.classpath.ClassManagerImpl;
+import static bsh.TestUtil.eval;
+import static org.junit.Assert.assertEquals;
+
+import java.lang.ref.WeakReference;
+import java.util.concurrent.Callable;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
-import java.lang.ref.WeakReference;
-import java.util.concurrent.Callable;
-
-import static bsh.TestUtil.eval;
-import static org.junit.Assert.assertEquals;
+import bsh.classpath.ClassManagerImpl;
 
 /**
  * todo:<p>

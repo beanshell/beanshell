@@ -23,15 +23,17 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.util;
 
-import java.io.*;
-
-import java.net.Socket;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.net.ServerSocket;
-import bsh.*;
+import java.net.Socket;
+
+import bsh.Interpreter;
+import bsh.NameSpace;
 
 /**
     BeanShell remote session server.

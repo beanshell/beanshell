@@ -23,15 +23,17 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
 package bsh.util;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import java.util.Vector;
-import bsh.*;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.MediaTracker;
+import java.awt.Toolkit;
+import java.awt.Window;
+
+import bsh.Interpreter;
 
 
 /**

@@ -25,8 +25,9 @@
  *****************************************************************************/
 package bsh;
 
-import bsh.Capabilities.Unavailable;
 import java.lang.reflect.InvocationTargetException;
+
+import bsh.Capabilities.Unavailable;
 
 public abstract class ClassGenerator
 {
