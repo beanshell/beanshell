@@ -27,6 +27,9 @@
 
 
 package bsh;
+
+import java.io.Serializable;
+
 /*
     Note: great care (and lots of typing) were taken to insure that the
     namespace and interpreter references are passed on the stack and not
@@ -43,8 +46,11 @@ package bsh;
     try to remember to mark these as transient to highlight them.
 
 */
-class SimpleNode implements Node
-{
+class SimpleNode implements Node, Serializable {
+
+    /** Serialization ID */
+    private static final long serialVersionUID = 1L;
+
     public static SimpleNode JAVACODE =
         new SimpleNode( -1 ) {
             public String getSourceFile() {
@@ -63,6 +69,9 @@ class SimpleNode implements Node
     protected Node parent;
     protected Node[] children;
     protected int id;
+    protected Object value;
+    protected Parser parser;
+
     Token firstToken, lastToken;
 
     /** the source of the text from which this was parsed */
@@ -70,6 +79,11 @@ class SimpleNode implements Node
 
     public SimpleNode(int i) {
         id = i;
+    }
+
+    public SimpleNode(Parser p, int i) {
+      this(i);
+      parser = p;
     }
 
     public void jjtOpen() { }
@@ -104,6 +118,9 @@ class SimpleNode implements Node
     public int jjtGetNumChildren() {
         return (children == null) ? 0 : children.length;
     }
+
+    public void jjtSetValue(Object value) { this.value = value; }
+    public Object jjtGetValue() { return value; }
 
     /*
         You can override these two methods in subclasses of SimpleNode to
@@ -213,6 +230,11 @@ class SimpleNode implements Node
         }
 
         return text.toString();
+    }
+
+    @Override
+    public int getId() {
+        return this.id;
     }
 }
 
