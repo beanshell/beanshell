@@ -703,7 +703,7 @@ public class Interpreter
                     e.setNode( node );
                 e.reThrow( "Sourced file: "+sourceFileInfo );
             } catch ( Exception e) {
-                final EvalError evalError = new EvalError("Sourced file: " + sourceFileInfo + " unknown error: " + e.getMessage(), node, callstack);
+                final EvalError evalError = new EvalError("Sourced file: " + sourceFileInfo + " unknown error: " + e.getMessage(), node, callstack, e);
                 evalError.initCause(e);
                 throw evalError;
             } catch(TokenMgrError e) {
