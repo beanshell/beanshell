@@ -26,10 +26,6 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Contact: Eric.Bruneton@rd.francetelecom.com
- *
- * Author: Eric Bruneton
  */
 
 package bsh.org.objectweb.asm;
@@ -37,6 +33,8 @@ package bsh.org.objectweb.asm;
 /**
  * A label represents a position in the bytecode of a method. Labels are used
  * for jump, goto, and switch instructions, and for try catch blocks.
+ *
+ * @author Eric Bruneton
  */
 
 public class Label {
@@ -46,6 +44,12 @@ public class Label {
    */
 
   CodeWriter owner;
+
+  /**
+   * The line number corresponding to this label, if known.
+   */
+
+  int line;
 
   /**
    * Indicates if the position of this label is known.
@@ -58,6 +62,12 @@ public class Label {
    */
 
   int position;
+
+  /**
+   * If the label position has been updated, after instruction resizing.
+   */
+
+  boolean resized;
 
   /**
    * Number of forward references to this label, times two.
@@ -142,6 +152,24 @@ public class Label {
   // --------------------------------------------------------------------------
 
   /**
+   * Returns the offset corresponding to this label. This offset is computed
+   * from the start of the method's bytecode. <i>This method is intended for
+   * {@link Attribute} sub classes, and is normally not needed by class
+   * generators or adapters.</i>
+   *
+   * @return the offset corresponding to this label.
+   * @throws IllegalStateException if this label is not resolved yet.
+   */
+
+  public int getOffset () {
+    if (!resolved) {
+      throw new IllegalStateException(
+        "Label offset position has not been resolved yet");
+    }
+    return position;
+  }
+
+  /**
    * Puts a reference to this label in the bytecode of a method. If the position
    * of the label is known, the offset is computed and written directly.
    * Otherwise, a null offset is written and a new forward reference is declared
@@ -172,17 +200,17 @@ public class Label {
     }
     if (resolved) {
       if (wideOffset) {
-        out.put4(position - source);
+        out.putInt(position - source);
       } else {
-        out.put2(position - source);
+        out.putShort(position - source);
       }
     } else {
       if (wideOffset) {
         addReference(-1 - source, out.length);
-        out.put4(-1);
+        out.putInt(-1);
       } else {
         addReference(source, out.length);
-        out.put2(-1);
+        out.putShort(-1);
       }
     }
   }
@@ -285,5 +313,19 @@ public class Label {
       }
     }
     return needUpdate;
+  }
+
+  // --------------------------------------------------------------------------
+  // Overriden Object methods
+  // --------------------------------------------------------------------------
+
+  /**
+   * Returns a string representation of this label.
+   *
+   * @return a string representation of this label.
+   */
+
+  public String toString () {
+    return "L" + System.identityHashCode(this);
   }
 }

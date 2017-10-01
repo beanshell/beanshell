@@ -26,16 +26,14 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Contact: Eric.Bruneton@rd.francetelecom.com
- *
- * Author: Eric Bruneton
  */
 
 package bsh.org.objectweb.asm;
 
 /**
  * An edge in the control flow graph of a method body. See {@link Label Label}.
+ *
+ * @author Eric Bruneton
  */
 
 class Edge {
@@ -63,7 +61,7 @@ class Edge {
   Edge next;
 
   /**
-   * The next available edge in the pool. See {@link CodeWriter#pool pool}.
+   * The next available edge in the pool. See {@link CodeWriter}.
    */
 
   Edge poolNext;
