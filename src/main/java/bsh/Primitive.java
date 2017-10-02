@@ -28,6 +28,7 @@
 
 package bsh;
 
+import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -99,8 +100,20 @@ public final class Primitive implements ParserConstants, Serializable {
         private static final long serialVersionUID = 1L;
         private Special() { }
 
-        public static final Special NULL_VALUE = new Special();
-        public static final Special VOID_TYPE = new Special();
+        public static final Special NULL_VALUE = new Special()
+        {
+            private Object readResolve() throws ObjectStreamException
+            {
+                return Special.NULL_VALUE;
+            }
+        };
+        public static final Special VOID_TYPE = new Special()
+        {
+            private Object readResolve() throws ObjectStreamException
+            {
+                return Special.VOID_TYPE;
+            }
+        };
     }
 
     /*
@@ -118,6 +131,22 @@ public final class Primitive implements ParserConstants, Serializable {
         reasons we'll consider the lack of a type to be a special value.
     */
     public static final Primitive VOID = new Primitive(Special.VOID_TYPE);
+
+    private Object readResolve() throws ObjectStreamException
+    {
+        if (value == Special.NULL_VALUE)
+        {
+            return Primitive.NULL;
+        }
+        else if (value == Special.VOID_TYPE)
+        {
+            return Primitive.VOID;
+        }
+        else
+        {
+            return this;
+        }
+    }
 
     // private to prevent invocation with param that isn't a primitive-wrapper
     public Primitive( Object value )
