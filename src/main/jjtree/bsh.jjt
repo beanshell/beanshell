@@ -1121,7 +1121,7 @@ void Literal() #Literal :
 |
   x = <LONG_STRING_LITERAL> {
         try {
-            jjtThis.value = x.image.substring(3, x.image.length() - 3).intern();
+            jjtThis.value = x.image.substring(3, x.image.length() - 3);
         } catch ( Exception e ) {
             throw createParseException("Error parsing long string: "+x.image, e);
         }
