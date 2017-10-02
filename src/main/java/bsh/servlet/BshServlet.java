@@ -180,8 +180,9 @@ public class BshServlet extends HttpServlet
 
             if ( error instanceof bsh.EvalError )
             {
-                int lineNo = ((EvalError)error).getErrorLineNumber();
-                String msg = error.getMessage();
+                EvalError evalError = (EvalError)error;
+                int lineNo = evalError.getErrorLineNumber();
+                String msg = evalError.getRawMessage();
                 int contextLines = 4;
                 errString = escape(msg);
                 if ( lineNo > -1 )

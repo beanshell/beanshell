@@ -68,7 +68,7 @@ package bsh;
  */
 
 // Begin BeanShell Modification - public, extend EvalError
-public class ParseException extends EvalError {
+public final class ParseException extends EvalError {
 // End BeanShell Modification - public, extend EvalError
 
   /**
@@ -80,7 +80,7 @@ public class ParseException extends EvalError {
 
   // Begin BeanShell Modification - sourceFile
 
-  static String sourceFile = "<unknown>";
+  private static String sourceFile = "<unknown>";
 
   /**
      Used to add source file info to exception
