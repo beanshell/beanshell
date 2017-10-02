@@ -709,11 +709,11 @@ void AmbiguousName() #AmbiguousName :
 */
 {
     Token t;
-    StringBuffer s;
+    StringBuilder s;
 }
 {
   t = <IDENTIFIER> {
-    s = new StringBuffer(t.image);
+    s = new StringBuilder(t.image);
   }
   ( LOOKAHEAD(2) "." t = <IDENTIFIER> { s.append("."+t.image); } )* {
     jjtThis.text = s.toString();

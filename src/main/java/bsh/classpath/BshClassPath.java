@@ -49,7 +49,6 @@ import java.util.zip.ZipInputStream;
 
 import bsh.ClassPathException;
 import bsh.NameSource;
-import bsh.StringUtil;
 
 /**
     A BshClassPath encapsulates knowledge about a class path of URLs.
@@ -588,7 +587,7 @@ public class BshClassPath
             return userClassPathComp;
 
         String cp=System.getProperty("java.class.path");
-        String [] paths=StringUtil.split(cp, File.pathSeparator);
+        String [] paths = cp.split(File.pathSeparator);
 
         URL [] urls = new URL[ paths.length ];
         try {
