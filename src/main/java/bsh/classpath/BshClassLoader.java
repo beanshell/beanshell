@@ -78,36 +78,37 @@ public class BshClassLoader extends URLClassLoader
     public Class loadClass(String name, boolean resolve)
         throws ClassNotFoundException
     {
-        Class c = null;
+        if (name.startsWith("java.")) {
+            return super.loadClass(name, resolve); // prevent SecurityException
+        }
 
         /*
             Check first for classes loaded through this loader.
             The VM will not allow a class to be loaded twice.
         */
-        c = findLoadedClass(name);
-        if ( c != null )
+        Class c = findLoadedClass(name);
+        if ( c != null ) {
             return c;
+        }
 
-// This is copied from ClassManagerImpl
-// We should refactor this somehow if it sticks around
-        if ( name.startsWith( ClassManagerImpl.BSH_PACKAGE ) )
+        // This is copied from ClassManagerImpl
+        // We should refactor this somehow if it sticks around
+        if ( name.startsWith( ClassManagerImpl.BSH_PACKAGE ) ) {
             try {
                 return bsh.Interpreter.class.getClassLoader().loadClass( name );
-            } catch ( ClassNotFoundException e ) {}
+            } catch ( ClassNotFoundException e ) {
+                // ignore
+            }
+        }
 
         /*
             Try to find the class using our classloading mechanism.
-            Note: I wish we didn't have to catch the exception here... slow
         */
-        try {
-            c = findClass( name );
-        } catch ( ClassNotFoundException e ) { }
+        c = findClass( name );
 
-        if ( c == null )
-            throw new ClassNotFoundException("here in loaClass");
-
-        if ( resolve )
+        if ( resolve ) {
             resolveClass( c );
+        }
 
         return c;
     }
