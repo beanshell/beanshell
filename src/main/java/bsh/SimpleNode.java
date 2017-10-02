@@ -217,7 +217,7 @@ class SimpleNode implements Node, Serializable {
     */
     public String getText()
     {
-        StringBuffer text = new StringBuffer();
+        StringBuilder text = new StringBuilder();
         Token t = firstToken;
         while ( t!=null ) {
             text.append(t.image);
