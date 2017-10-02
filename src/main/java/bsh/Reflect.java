@@ -212,8 +212,10 @@ final class Reflect {
         throws UtilEvalError, ReflectError
     {
         if ( object instanceof This ) {
-            This t = (This)object;
-            return t.namespace.getVariableOrProperty(fieldName, null);
+            return ((This)object).namespace.getVariable( fieldName );
+        } else if( object == Primitive.NULL ) {
+            throw new UtilTargetError( new NullPointerException(
+                "Attempt to access field '" +fieldName+"' on null value" ) );
         } else {
             try {
                 return getFieldValue(
@@ -325,7 +327,7 @@ final class Reflect {
                 field = clas.getField(fieldName);
         }
         catch( NoSuchFieldException e) {
-            throw new ReflectError("No such field: " + fieldName );
+            throw new ReflectError("No such field: " + fieldName, e );
         } catch ( SecurityException e ) {
             throw new UtilTargetError(
             "Security Exception while searching fields of: "+clas,
@@ -760,6 +762,8 @@ final class Reflect {
     public static boolean hasObjectPropertyGetter(
         Class clas, String propName )
     {
+        if( clas == Primitive.class )
+            return false;
         String getterName = accessorName("get", propName );
         try {
             clas.getMethod( getterName, new Class [0] );
