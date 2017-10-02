@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -138,11 +139,11 @@ public final class CollectionManager {
                     .map(method -> method.getName() + "("))
                 .sorted().distinct();
     }
-    public Stream<SimpleImmutableEntry<String, Object>> reflectionEntries(Object obj) {
+    public Stream<Entry<String, Object>> reflectionEntries(Object obj) {
         return Stream.concat(
                 Stream.of(obj.getClass().getFields())
                     .map(field -> {
-                            Object val = null; 
+                        Object val = null;
                         try {
                             field.setAccessible(true);
                             val = field.get(obj);
@@ -150,8 +151,8 @@ public final class CollectionManager {
                         return new SimpleImmutableEntry<>(field.getName(), val);
                     }),
                 Stream.of(obj.getClass().getDeclaredMethods())
-                    .map(method -> { 
-                        Object val = null; 
+                    .map(method -> {
+                        Object val = null;
                         try {
                             method.setAccessible(true);
                             val = method.invoke(obj, new Object[method.getParameterCount()]);
