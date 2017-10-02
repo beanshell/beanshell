@@ -150,7 +150,22 @@ public final class This implements java.io.Serializable, Runnable
                 // Unwrap target exception.  If the interface declares that
                 // it throws the ex it will be delivered.  If not it will be
                 // wrapped in an UndeclaredThrowable
-                throw te.getTarget();
+
+                // This isn't simple because unwrapping this loses all context info.
+                // So rewrap is better than unwrap.  - fschmidt
+                Throwable t = te.getTarget();
+                Class<? extends Throwable> c = t.getClass();
+                String msg = t.getMessage();
+                try {
+                    Throwable t2 = msg==null
+                        ? c.getConstructor().newInstance()
+                        : c.getConstructor(String.class).newInstance(msg)
+                    ;
+                    t2.initCause(te);
+                    throw t2;
+                } catch(NoSuchMethodException e) {
+                    throw t;
+                }
             } catch ( EvalError ee ) {
                 // Ease debugging...
                 // XThis.this refers to the enclosing class instance
