@@ -160,7 +160,7 @@ final class Reflect {
             throw new ReflectError( "Cannot access method "
                 + StringUtil.methodString(
                     method.getName(), method.getParameterTypes() )
-                + " in '" + method.getDeclaringClass() + "' :" + e );
+                + " in '" + method.getDeclaringClass() + "' :" + e, e );
         }
     }
 
@@ -366,7 +366,7 @@ final class Reflect {
         // Quick check catches public fields include those in interfaces
         try {
             field = clas.getField(fieldName);
-            ReflectManager.RMSetAccessible( field );
+            field.setAccessible(true);
             return field;
         } catch ( NoSuchFieldException e ) { }
 
@@ -375,7 +375,7 @@ final class Reflect {
         {
             try {
                 field = clas.getDeclaredField(fieldName);
-                ReflectManager.RMSetAccessible( field );
+                field.setAccessible(true);
                 return field;
 
                 // Not found, fall through to next class
@@ -471,10 +471,8 @@ final class Reflect {
             // This is the first time we've seen this method, set accessibility
             // Note: even if it's a public method, we may have found it in a
             // non-public class
-            if ( method != null && !publicOnly ) {
-                try {
-                    ReflectManager.RMSetAccessible( method );
-                } catch ( UtilEvalError e ) { /*ignore*/ }
+            if ( method != null && (!publicOnly || isPublic(method)) ) {
+                method.setAccessible(true);
             }
 
             // If succeeded cache the resolved method.
@@ -612,9 +610,7 @@ final class Reflect {
             throw cantFindConstructor( clas, types );
 
         if ( !isPublic( con ) )
-            try {
-                ReflectManager.RMSetAccessible( con );
-            } catch ( UtilEvalError e ) { /*ignore*/ }
+            con.setAccessible(true);
 
         args=Primitive.unwrap( args );
         try {

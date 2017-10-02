@@ -59,6 +59,10 @@ public class UtilEvalError extends Exception
         super(s);
     }
 
+    public UtilEvalError( String s, Throwable cause ) {
+        super(s,cause);
+    }
+
     /**
         Re-throw as an eval error, prefixing msg to the message and specifying
         the node.  If a node already exists the addNode is ignored.
@@ -76,7 +80,7 @@ public class UtilEvalError extends Exception
             msg = "";
         else
             msg = msg + ": ";
-        return new EvalError( msg+getMessage(), node, callstack );
+        return new EvalError( msg+getMessage(), node, callstack, this );
     }
 
     public EvalError toEvalError ( SimpleNode node, CallStack callstack )

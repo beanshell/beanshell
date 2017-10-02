@@ -1081,7 +1081,7 @@ public class ClassGeneratorUtil implements Constants
             try { // Evaluate the initializer block
                 instanceInitBlock.evalBlock(
                     callstack, interpreter, true/*override*/,
-                    ClassGeneratorImpl.ClassNodeFilter.CLASSINSTANCE );
+                    ClassGenerator.ClassNodeFilter.CLASSINSTANCE );
             } catch ( Exception e ) {
                 throw new InterpreterError("Error in class initialization: "+e);
             }
