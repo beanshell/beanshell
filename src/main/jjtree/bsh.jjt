@@ -367,6 +367,12 @@ TOKEN : /* LITERALS */
       "\""
   >
 |
+  < LONG_STRING_LITERAL:
+      "\"\"\""
+      ( ~["\""] ("\"")? ("\"")? )*
+      "\"\"\""
+  >
+|
    < FORMAL_COMMENT:
         "/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/"
     >
@@ -1055,6 +1061,14 @@ void Literal() #Literal :
             jjtThis.stringSetup( x.image.substring(1, x.image.length() - 1) );
         } catch ( Exception e ) {
             throw createParseException("Error parsing string: "+x.image, e);
+        }
+    }
+|
+  x = <LONG_STRING_LITERAL> {
+        try {
+            jjtThis.value = x.image.substring(3, x.image.length() - 3).intern();
+        } catch ( Exception e ) {
+            throw createParseException("Error parsing long string: "+x.image, e);
         }
     }
 |
