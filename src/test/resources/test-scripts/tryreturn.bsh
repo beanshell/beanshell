@@ -1,0 +1,25 @@
+#!/bin/java bsh.Interpreter
+/*
+ * DAL: This test checks for returns with a try block
+ *
+ */
+
+source("TestHarness.bsh");
+
+int fn() {
+    try {
+        return 1;
+    } finally {}
+    print("shouldn't get here, but does");  // only before bug was fixed
+    2;
+}
+
+
+
+
+
+// This succeeds and it should succeed.
+assert( fn() == 1  );
+
+
+complete();
