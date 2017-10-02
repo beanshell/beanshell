@@ -420,16 +420,23 @@ public class BshMethod implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if( !(o instanceof BshMethod) )
+        if (o == null) {
             return false;
-        BshMethod m = (BshMethod)o;
-        if( !name.equals(m.name) || numArgs!=m.numArgs )
-            return false;
-        for( int i=0; i<numArgs; i++ ) {
-            if( !equal(cparamTypes[i],m.cparamTypes[i]) )
-                return false;
         }
-        return true;
+        if (o == this) {
+            return true;
+        }
+        if (o.getClass() == this.getClass()) {
+            BshMethod m = (BshMethod)o;
+            if( !name.equals(m.name) || numArgs!=m.numArgs )
+                return false;
+            for( int i=0; i<numArgs; i++ ) {
+                if( !equal(cparamTypes[i],m.cparamTypes[i]) )
+                    return false;
+            }
+            return true;
+        }
+        return false;
     }
 
     private static boolean equal(Object obj1,Object obj2) {
