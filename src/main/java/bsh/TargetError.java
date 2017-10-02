@@ -42,9 +42,9 @@ import java.io.PrintStream;
     from the eval() or interpreter.eval() method it may be caught and unwrapped
     to determine what exception was thrown.
 */
-public class TargetError extends EvalError
+public final class TargetError extends EvalError
 {
-    boolean inNativeCode;
+    private final boolean inNativeCode;
 
     public TargetError(
         String msg, Throwable t, SimpleNode node, CallStack callstack,
@@ -69,9 +69,9 @@ public class TargetError extends EvalError
             return target;
     }
 
-    public String toString()
+    public String getMessage()
     {
-        return super.toString()
+        return super.getMessage()
             + "\nTarget exception: " +
             printTargetError( getCause() );
     }
