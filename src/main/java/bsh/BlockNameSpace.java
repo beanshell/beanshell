@@ -177,10 +177,10 @@ class BlockNameSpace extends NameSpace
         getParent().importPackage( name );
     }
 
-    public void setMethod(String name, BshMethod method)
+    public void setMethod(BshMethod method)
         throws UtilEvalError
     {
-        getParent().setMethod( name, method );
+        getParent().setMethod( method );
     }
 }
 
