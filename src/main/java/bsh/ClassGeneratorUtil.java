@@ -649,7 +649,7 @@ public class ClassGeneratorUtil implements Constants
 
     static String getMethodDescriptor( String returnType, String [] paramTypes )
     {
-        StringBuffer sb = new StringBuffer("(");
+        StringBuilder sb = new StringBuilder("(");
         for(int i=0; i<paramTypes.length; i++)
             sb.append(paramTypes[i]);
         sb.append(")"+returnType);

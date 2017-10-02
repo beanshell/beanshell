@@ -171,10 +171,6 @@ public class ClassManagerImpl extends BshClassManager
             try {
                 c = overlayLoader.loadClass(name);
             } catch ( Exception e ) {
-            // used to squeltch this... changed for 1.3
-            // see BshClassManager
-            } catch ( NoClassDefFoundError e2 ) {
-                throw noClassDefFound( name, e2 );
             }
 
             // Should be there since it was explicitly mapped
@@ -186,7 +182,9 @@ public class ClassManagerImpl extends BshClassManager
             if ( name.startsWith( BSH_PACKAGE ) )
                 try {
                     c = Interpreter.class.getClassLoader().loadClass( name );
-                } catch ( ClassNotFoundException e ) {}
+                } catch ( ClassNotFoundException e ) {
+                } catch ( NoClassDefFoundError e ) {
+                }
         }
 
         // Check classpath extension / reloaded classes
@@ -217,6 +215,7 @@ public class ClassManagerImpl extends BshClassManager
                 if ( contextClassLoader != null )
                     c = Class.forName( name, true, contextClassLoader );
             } catch ( ClassNotFoundException e ) { // fall through
+            } catch ( NoClassDefFoundError e ) { // fall through
             } catch ( SecurityException e ) { } // fall through
         }
 
@@ -224,7 +223,9 @@ public class ClassManagerImpl extends BshClassManager
         if ( c == null )
             try {
                 c = plainClassForName( name );
-            } catch ( ClassNotFoundException e ) {}
+            } catch ( ClassNotFoundException e ) {
+            } catch ( NoClassDefFoundError e ) {
+            }
 
         // Cache result (or null for not found)
         // Note: plainClassForName already caches, so it will be redundant
@@ -352,8 +353,7 @@ public class ClassManagerImpl extends BshClassManager
         DiscreteFilesClassLoader.ClassSourceMap map =
             new DiscreteFilesClassLoader.ClassSourceMap();
 
-        for (int i=0; i< classNames.length; i++)
-        {
+        for (int i=0; i< classNames.length; i++) {
             String name = classNames[i];
 
             // look in baseLoader class path
@@ -525,7 +525,6 @@ public class ClassManagerImpl extends BshClassManager
     */
     public Class defineClass( String name, byte [] code )
     {
-//System.out.println( "defineClass: "+name );
         baseClassPath.setClassSource( name, new GeneratedClassSource( code ) );
         try {
             reloadClasses( new String [] { name } );
