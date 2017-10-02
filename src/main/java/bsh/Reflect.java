@@ -49,8 +49,8 @@ import java.util.List;
     having to catch the exceptions.  Method lookups are now cached at a high
     level so they are less important, however the logic is messy.
 */
-class Reflect
-{
+final class Reflect {
+
     /**
         Invoke method on arbitrary object instance.
         invocation may be static (through the object instance) or dynamic.
@@ -113,13 +113,31 @@ class Reflect
 
         logInvokeMethod( "Invoking method (entry): ", method, args );
 
+        boolean isVarArgs = method.isVarArgs();
+
         // Map types to assignable forms, need to keep this fast...
-        Object [] tmpArgs = new Object [ args.length ];
         Class [] types = method.getParameterTypes();
+        Object [] tmpArgs = new Object [ types.length ];
+        int fixedArgLen = types.length;
+        if( isVarArgs ) {
+            if( fixedArgLen==args.length && types[fixedArgLen-1].isAssignableFrom(args[fixedArgLen-1].getClass()) ) {
+                isVarArgs = false;
+            } else {
+                fixedArgLen--;
+            }
+        }
         try {
-            for (int i=0; i<args.length; i++)
+            for (int i=0; i<fixedArgLen; i++)
                 tmpArgs[i] = Types.castObject(
                     args[i]/*rhs*/, types[i]/*lhsType*/, Types.ASSIGNMENT );
+            if( isVarArgs ) {
+                Class varType = types[fixedArgLen].getComponentType();
+                Object varArgs = Array.newInstance( varType, args.length - fixedArgLen );
+                for( int i=fixedArgLen, j=0; i<args.length; i++, j++ )
+                    Array.set( varArgs,j, Primitive.unwrap( Types.castObject(
+                        args[i]/*rhs*/, varType/*lhsType*/, Types.ASSIGNMENT ) ) );
+                tmpArgs[fixedArgLen] = varArgs;
+            }
         } catch ( UtilEvalError e ) {
             throw new InterpreterError(
                 "illegal argument type in method invocation: "+e );
@@ -542,7 +560,8 @@ class Reflect
                 baseClass.getMethods() : baseClass.getDeclaredMethods();
             for( Method m : methods ) {
                 if (  m.getName().equals( methodName )
-                    && ( m.getParameterTypes().length == numArgs )
+                    && ( m.isVarArgs() ? m.getParameterTypes().length-1 <= numArgs
+                        : m.getParameterTypes().length == numArgs )
                 ) {
                     if( isPublicClass && isPublic(m) ) {
                         publicMethods.add( m );
@@ -653,12 +672,29 @@ class Reflect
         Class[] idealMatch, List<Method> methods )
     {
         // copy signatures into array for findMostSpecificMethod()
-        Class [][] candidateSigs = new Class [ methods.size() ][];
-        for(int i=0; i<candidateSigs.length; i++)
-            candidateSigs[i] = methods.get(i).getParameterTypes();
+        List<Class[]> candidateSigs = new ArrayList<Class[]>();
+        List<Method> methodList = new ArrayList<Method>();
+        for( Method method : methods ) {
+            Class[] parameterTypes = method.getParameterTypes();
+            methodList.add( method );
+            candidateSigs.add( parameterTypes );
+            if( method.isVarArgs() ) {
+                Class[] candidateSig = new Class[idealMatch.length];
+                int j = 0;
+                for( ; j<parameterTypes.length-1; j++ ) {
+                    candidateSig[j] = parameterTypes[j];
+                }
+                Class varType = parameterTypes[j].getComponentType();
+                for( ; j<idealMatch.length; j++ ) {
+                    candidateSig[j] = varType;
+                }
+                methodList.add( method );
+                candidateSigs.add( candidateSig );
+            }
+        }
 
-        int match = findMostSpecificSignature( idealMatch, candidateSigs );
-        return match == -1 ? null : methods.get(match);
+        int match = findMostSpecificSignature( idealMatch, candidateSigs.toArray(new Class[0][]) );
+        return match == -1 ? null : methodList.get(match);
     }
 
     /**
