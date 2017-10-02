@@ -76,14 +76,17 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
         while (iterator.hasNext()) {
             try {
                 Object value = iterator.next();
-                if (value == null)
+                if ( value == null )
                     value = Primitive.NULL;
-                if (elementType != null)
-                    eachNameSpace.setTypedVariable(varName/*name*/, elementType/*type*/, value/*value*/, new Modifiers()/*none*/);
+                if ( elementType != null )
+                    eachNameSpace.setTypedVariable(
+                        varName/*name*/, elementType/*type*/,
+                        value, new Modifiers()/*none*/ );
                 else
-                    eachNameSpace.setVariable(varName, value, false);
-            } catch (UtilEvalError e) {
-                throw e.toEvalError("for loop iterator variable:" + varName, this, callstack);
+                    eachNameSpace.setVariable( varName, value, false );
+            } catch ( UtilEvalError e ) {
+                throw e.toEvalError(
+                    "for loop iterator variable:"+ varName, this, callstack );
             }
             boolean breakout = false; // switch eats a multi-level break here?
             if (statement != null) {
