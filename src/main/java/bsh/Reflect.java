@@ -526,6 +526,12 @@ class Reflect
         Class baseClass, String methodName, int numArgs,
         List<Method> publicMethods, List<Method> nonPublicMethods )
     {
+        // Do we have a superclass? (interfaces don't, etc.)
+        Class superclass = baseClass.getSuperclass();
+        if ( superclass != null )
+            gatherMethodsRecursive( superclass,
+                methodName, numArgs, publicMethods, nonPublicMethods );
+
         // Add methods of the current class to the list.
         // In public case be careful to only add methods from a public class
         // and to use getMethods() instead of getDeclaredMethods()
@@ -548,15 +554,8 @@ class Reflect
         }
 
         // Does the class or interface implement interfaces?
-        Class [] intfs = baseClass.getInterfaces();
-        for( int i=0; i< intfs.length; i++ )
-            gatherMethodsRecursive(  intfs[i],
-                methodName, numArgs, publicMethods, nonPublicMethods );
-
-        // Do we have a superclass? (interfaces don't, etc.)
-        Class superclass = baseClass.getSuperclass();
-        if ( superclass != null )
-            gatherMethodsRecursive( superclass,
+        for( Class intf : baseClass.getInterfaces() )
+            gatherMethodsRecursive(  intf,
                 methodName, numArgs, publicMethods, nonPublicMethods );
     }
 
