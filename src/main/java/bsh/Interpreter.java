@@ -101,7 +101,7 @@ public class Interpreter
 {
     /* --- Begin static members --- */
 
-    public static final String VERSION = "2.0b6";
+    public static final String VERSION = "2.1b0";
     /*
         Debug utils are static so that they are reachable by code that doesn't
         necessarily have an interpreter reference (e.g. tracing in utils).
@@ -446,6 +446,7 @@ public class Interpreter
         // init the callstack.
         CallStack callstack = new CallStack( globalNameSpace );
 
+        SimpleNode node = null;
         boolean eof = false;
         while( !eof )
         {
@@ -463,12 +464,17 @@ public class Interpreter
 
                 if( get_jjtree().nodeArity() > 0 )  // number of child nodes
                 {
-                    SimpleNode node = (SimpleNode)(get_jjtree().rootNode());
+                    if( node != null )
+                        node.lastToken.next = null;  // prevent OutOfMemoryError
+
+                    node = (SimpleNode)(get_jjtree().rootNode());
 
                     if(DEBUG)
                         node.dump(">");
 
                     Object ret = node.eval( callstack, this );
+
+                    node.lastToken.next = null;  // prevent OutOfMemoryError
 
                     // sanity check during development
                     if ( callstack.depth() > 1 )
@@ -632,24 +638,19 @@ public class Interpreter
 
         CallStack callstack = new CallStack( nameSpace );
 
+        SimpleNode node = null;
         boolean eof = false;
         while(!eof)
         {
-            SimpleNode node = null;
             try
             {
                 eof = localInterpreter.Line();
                 if (localInterpreter.get_jjtree().nodeArity() > 0)
                 {
-                    node = (SimpleNode)localInterpreter.get_jjtree().rootNode();
-                    // quick filter for when we're running as a compiler only
-                    if ( getSaveClasses()
-                        && !(node instanceof BSHClassDeclaration)
-                        && !(node instanceof BSHImportDeclaration )
-                        && !(node instanceof BSHPackageDeclaration )
-                    )
-                        continue;
+                    if( node != null )
+                        node.lastToken.next = null;  // prevent OutOfMemoryError
 
+                    node = (SimpleNode)localInterpreter.get_jjtree().rootNode();
                     // nodes remember from where they were sourced
                     node.setSourceFile( sourceFileInfo );
 
@@ -687,9 +688,10 @@ public class Interpreter
                 throw e;
 
             } catch ( InterpreterError e ) {
-                final EvalError evalError = new EvalError("Sourced file: " + sourceFileInfo + " internal Error: " + e.getMessage(), node, callstack);
-                evalError.initCause(e);
-                throw evalError;
+                e.printStackTrace();
+                throw new EvalError(
+                    "Sourced file: "+sourceFileInfo+" internal Error: "
+                    + e.getMessage(), node, callstack);
             } catch ( TargetError e ) {
                 // failsafe, set the Line as the origin of the error.
                 if ( e.getNode()==null )
@@ -703,13 +705,15 @@ public class Interpreter
                     e.setNode( node );
                 e.reThrow( "Sourced file: "+sourceFileInfo );
             } catch ( Exception e) {
-                final EvalError evalError = new EvalError("Sourced file: " + sourceFileInfo + " unknown error: " + e.getMessage(), node, callstack, e);
-                evalError.initCause(e);
-                throw evalError;
+                if ( DEBUG)
+                    e.printStackTrace();
+                throw new EvalError(
+                    "Sourced file: "+sourceFileInfo+" unknown error: "
+                    + e.getMessage(), node, callstack, e);
             } catch(TokenMgrError e) {
-                final EvalError evalError = new EvalError("Sourced file: " + sourceFileInfo + " Token Parsing Error: " + e.getMessage(), node, callstack);
-                evalError.initCause(e);
-                throw evalError;
+                throw new EvalError(
+                    "Sourced file: "+sourceFileInfo+" Token Parsing Error: "
+                    + e.getMessage(), node, callstack );
             } finally {
                 localInterpreter.get_jjtree().reset();
 
@@ -835,8 +839,7 @@ public class Interpreter
         Get the value of the name.
         name may be any value. e.g. a variable or field
     */
-    public Object get( String name ) throws EvalError
-    {
+    public Object get( String name ) throws EvalError {
         try {
             Object ret = globalNameSpace.get( name, this );
             return Primitive.unwrap( ret );

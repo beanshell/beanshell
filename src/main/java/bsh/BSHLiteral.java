@@ -28,8 +28,10 @@
 
 package bsh;
 
-class BSHLiteral extends SimpleNode
+public final class BSHLiteral extends SimpleNode
 {
+    public static volatile boolean internStrings = true;
+
     public Object value;
 
     BSHLiteral(int id) { super(id); }
@@ -130,6 +132,9 @@ class BSHLiteral extends SimpleNode
             buffer.append(ch);
         }
 
-        value = buffer.toString().intern();
+        String s = buffer.toString();
+        if( internStrings )
+            s = s.intern();
+        value = s;
     }
 }

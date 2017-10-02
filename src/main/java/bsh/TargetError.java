@@ -89,7 +89,7 @@ public final class TargetError extends EvalError
         If the proxy mechanism is available, allow the extended print to
         check for UndeclaredThrowableException and print that embedded error.
     */
-    public String printTargetError( Throwable t )
+    private String printTargetError( Throwable t )
     {
         return getCause().toString() + "\n" + xPrintTargetError( t );
     }
@@ -103,7 +103,7 @@ public final class TargetError extends EvalError
         This is acceptable here because we're not in a critical path...
         Otherwise we'd need yet another dynamically loaded module just for this.
     */
-    public String xPrintTargetError( Throwable t )
+    private String xPrintTargetError( Throwable t )
     {
         String getTarget =
             "import java.lang.reflect.UndeclaredThrowableException;"+
