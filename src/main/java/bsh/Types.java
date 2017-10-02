@@ -24,7 +24,6 @@
  *                                                                           *
  *****************************************************************************/
 
-
 package bsh;
 
 /**
@@ -494,7 +493,6 @@ class Types
         // the correct interface?
         if ( toType.isInterface()
             && bsh.This.class.isAssignableFrom( fromType )
-            && Capabilities.canGenerateInterfaces()
         )
             return checkOnly ? VALID_CAST :
                 ((bsh.This)fromValue).getInterface( toType );
