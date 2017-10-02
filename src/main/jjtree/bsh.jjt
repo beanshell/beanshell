@@ -658,7 +658,7 @@ void FormalParameter() #FormalParameter :
 { Token t; }
 {
   // added [] to Type for bsh.  Removed [ final ] - is that legal?
-  LOOKAHEAD(2) Type() [ TypeArguments() ] t=<IDENTIFIER> { jjtThis.name = t.image; }
+  LOOKAHEAD(2) Type() t=<IDENTIFIER> { jjtThis.name = t.image; }
 |
   t=<IDENTIFIER> { jjtThis.name = t.image; }
 }
@@ -687,7 +687,7 @@ void ReturnType() #ReturnType :
 {
   "void" { jjtThis.isVoid = true; }
 |
-  Type()
+  Type() [ TypeArguments() ]
 }
 
 void PrimitiveType() #PrimitiveType :
@@ -1117,19 +1117,13 @@ void ArgumentList() :
   ( "," Expression() )*
 }
 
-void TypeArguments() :
-{ }
-{
-    "<" <IDENTIFIER> ">"
-}
-
 void AllocationExpression() #AllocationExpression :
 { }
 {
   LOOKAHEAD(2)
   "new" PrimitiveType() ArrayDimensions()
 |
-  "new" AmbiguousName() [ TypeArguments() ]
+  "new" AmbiguousName()
     (
         ArrayDimensions()
     |
@@ -1233,7 +1227,7 @@ void BlockStatement() :
     MethodDeclaration()
 |
   // SYNTACTIC_LOOKAHEAD
-  LOOKAHEAD( Modifiers( Modifiers.FIELD, true ) Type() [ TypeArguments() ] <IDENTIFIER> )
+  LOOKAHEAD( Modifiers( Modifiers.FIELD, true ) Type() <IDENTIFIER> )
   TypedVariableDeclaration() ";"
 |
   Statement()
@@ -1384,7 +1378,7 @@ void TypedVariableDeclaration() #TypedVariableDeclaration :
 }
 {
     mods = Modifiers( Modifiers.FIELD, false )
-    Type() [ TypeArguments() ] VariableDeclarator() ( "," VariableDeclarator() )*
+    Type() VariableDeclarator() ( "," VariableDeclarator() )*
     {
         jjtThis.modifiers = mods;
     }
