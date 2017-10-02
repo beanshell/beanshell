@@ -96,7 +96,7 @@ class BSHLiteral extends SimpleNode
 
     void stringSetup(String str)
     {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         int len = str.length();
         for(int i = 0; i < len; i++)
         {

@@ -199,7 +199,7 @@ public final class This implements java.io.Serializable, Runnable
             {
                 Class [] ints = proxy.getClass().getInterfaces();
                 // XThis.this refers to the enclosing class instance
-                StringBuffer sb = new StringBuffer(
+                StringBuilder sb = new StringBuilder(
                     This.this.toString() + "\nimplements:" );
                 for(int i=0; i<ints.length; i++)
                     sb.append( " "+ ints[i].getName()

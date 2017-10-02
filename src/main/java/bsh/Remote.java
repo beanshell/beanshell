@@ -150,7 +150,7 @@ public class Remote
     static String doHttp( String postURL, String text )
     {
         String returnValue = null;
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append( "bsh.client=Remote" );
         sb.append( "&bsh.script=" );
         // This requires Java 1.3
@@ -205,7 +205,7 @@ public class Remote
     static String getFile( String name )
         throws FileNotFoundException, IOException
     {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         BufferedReader bin = new BufferedReader( new FileReader( name ) );
         String line;
         while ( (line=bin.readLine()) != null )

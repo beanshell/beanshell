@@ -34,6 +34,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -119,10 +120,10 @@ public class ClassBrowser extends JSplitPane
         }
     }
 
-    String [] toSortedStrings ( Collection c ) {
-        List l = new ArrayList( c );
-        String [] sa = (String[])(l.toArray( new String[0] ));
-        return StringUtil.bubbleSort(sa);
+    String [] toSortedStrings ( Collection<String> c ) {
+        String [] sa = c.toArray(new String[c.size()]);
+        Arrays.sort(sa);
+        return sa;
     }
 
     void setClist( String packagename ) {
@@ -330,7 +331,7 @@ public class ClassBrowser extends JSplitPane
             public void valueChanged(TreeSelectionEvent e) {
                 TreePath tp = e.getPath();
                 Object [] oa = tp.getPath();
-                StringBuffer selectedPackage = new StringBuffer();
+                StringBuilder selectedPackage = new StringBuilder();
                 for(int i=1; i<oa.length; i++) {
                     selectedPackage.append( oa[i].toString() );
                     if ( i+1 < oa.length )
@@ -559,7 +560,7 @@ public class ClassBrowser extends JSplitPane
             Iterator it=packages.iterator();
             while( it.hasNext() ) {
                 String pack = (String)(it.next());
-                String [] sa = StringUtil.split( pack, "." );
+                String [] sa = pack.split( "." );
                 Map level=packageTree;
                 for (int i=0; i< sa.length; i++ ) {
                     String name = sa[i];
@@ -619,7 +620,7 @@ public class ClassBrowser extends JSplitPane
         */
         void addNodeMap( TreeNode node ) {
 
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             TreeNode tn = node;
             while( tn != root ) {
                 sb.insert(0, tn.toString() );

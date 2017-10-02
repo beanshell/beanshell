@@ -92,7 +92,7 @@ public class BshServlet extends HttpServlet
 
         Object scriptResult = null;
         Exception scriptError = null;
-        StringBuffer scriptOutput = new StringBuffer();
+        StringBuilder scriptOutput = new StringBuilder();
         if ( script != null ) {
             try {
                 scriptResult = evalScript(
@@ -116,7 +116,7 @@ public class BshServlet extends HttpServlet
     void sendHTML(
         HttpServletRequest request, HttpServletResponse response,
         String script, Exception scriptError, Object scriptResult,
-        StringBuffer scriptOutput, boolean capture )
+        StringBuilder scriptOutput, boolean capture )
         throws IOException
     {
         // Format the output using a simple templating utility
@@ -150,7 +150,7 @@ public class BshServlet extends HttpServlet
 
     void sendRaw(
         HttpServletRequest request, HttpServletResponse response,
-        Exception scriptError, Object scriptResult, StringBuffer scriptOutput )
+        Exception scriptError, Object scriptResult, StringBuilder scriptOutput )
         throws IOException
     {
         response.setContentType("text/plain");
@@ -166,7 +166,7 @@ public class BshServlet extends HttpServlet
     */
     String formatScriptResultHTML(
         String script, Object result, Exception error,
-        StringBuffer scriptOutput )
+        StringBuilder scriptOutput )
         throws IOException
     {
         SimpleTemplate tmplt;
@@ -207,7 +207,7 @@ public class BshServlet extends HttpServlet
     */
     String showScriptContextHTML( String s, int lineNo, int context )
     {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         BufferedReader br = new BufferedReader( new StringReader(s) );
 
         int beginLine = Math.max( 1, lineNo-context );
@@ -251,7 +251,7 @@ public class BshServlet extends HttpServlet
     }
 
     Object evalScript(
-        String script, StringBuffer scriptOutput, boolean captureOutErr,
+        String script, StringBuilder scriptOutput, boolean captureOutErr,
         HttpServletRequest request, HttpServletResponse response )
         throws EvalError
     {
@@ -298,7 +298,7 @@ public class BshServlet extends HttpServlet
         String search = "&<>";
         String[] replace = {"&amp;", "&lt;", "&gt;"};
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
 
         for (int i = 0; i < value.length(); i++)
         {
