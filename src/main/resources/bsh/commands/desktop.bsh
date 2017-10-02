@@ -196,11 +196,14 @@ desktop()
     // start one terminal
     workSpace=makeWorkspace( ""+windowCount++   );
 
-    frame.setSize(800,600);
-    frame.show();
-
     Util.endSplashScreen();
 
-    frame.toFront();
-    workSpace.frame.selected=true;
+    EventQueue.invokeLater(new Runnable() {
+        public void run() {
+            frame.setSize(800,600);
+            frame.setVisible(true);
+            frame.toFront();
+            workSpace.frame.selected=true;
+        }
+    });
 }
