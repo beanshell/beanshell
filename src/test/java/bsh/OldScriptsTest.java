@@ -129,11 +129,11 @@ public class OldScriptsTest {
                 interpreter.eval(new FileReader(this._file));
             } catch (final Exception e) {
                 throw new RuntimeException("Test: "
-                        + this._file.getName(), e);
+                        + this._file.getName(), e.getCause());
             }
             assertEquals("'test_completed' flag check", Boolean.TRUE,
                     interpreter.get("test_completed"));
-            assertEquals(interpreter.get("test_message").toString(),
+            assertEquals(getName()+ " " +interpreter.get("test_message").toString(),
                     Boolean.FALSE, interpreter.get("test_failed"));
         }
     }
