@@ -188,18 +188,21 @@ class LHS implements ParserConstants, java.io.Serializable
         if ( type == FIELD )
         {
             try {
+                Object fieldVal = val instanceof Primitive ?
+                    ((Primitive)val).getValue() : val;
+
                 // This should probably be in Reflect.java
-                ReflectManager.RMSetAccessible( field );
-                field.set( object, Primitive.unwrap(val));
+                field.setAccessible(true);
+                field.set( object, fieldVal );
                 return val;
             }
             catch( NullPointerException e) {
                 throw new UtilEvalError(
-                    "LHS ("+field.getName()+") not a static field.");
+                    "LHS ("+field.getName()+") not a static field.",e);
             }
             catch( IllegalAccessException e2) {
                 throw new UtilEvalError(
-                    "LHS ("+field.getName()+") can't access field: "+e2);
+                    "LHS ("+field.getName()+") can't access field: "+e2,e2);
             }
             catch( IllegalArgumentException e3)
             {
