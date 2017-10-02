@@ -25,7 +25,6 @@
  *****************************************************************************/
 
 
-
 package bsh;
 
 class BSHAmbiguousName extends SimpleNode
@@ -54,7 +53,6 @@ class BSHAmbiguousName extends SimpleNode
                 getName( callstack.top() ).toObject(
                     callstack, interpreter, forceClass );
         } catch ( UtilEvalError e ) {
-//e.printStackTrace();
             throw e.toEvalError( this, callstack );
         }
     }
@@ -65,7 +63,7 @@ class BSHAmbiguousName extends SimpleNode
         try {
             return getName( callstack.top() ).toClass();
         } catch ( ClassNotFoundException e ) {
-            throw new EvalError( e.getMessage(), this, callstack );
+            throw new EvalError( e.getMessage(), this, callstack, e );
         } catch ( UtilEvalError e2 ) {
             // ClassPathException is a type of UtilEvalError
             throw e2.toEvalError( this, callstack );

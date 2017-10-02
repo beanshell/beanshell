@@ -150,49 +150,30 @@ class BSHAllocationExpression extends SimpleNode
             && className.startsWith( instanceNameSpace.getName() +"$")
         )
         {
-            try {
-                ClassGenerator.getClassGenerator().setInstanceNameSpaceParent(
-                    obj, className, instanceNameSpace );
-            } catch ( UtilEvalError e ) {
-                throw e.toEvalError( this, callstack );
-            }
+            ClassGenerator.getClassGenerator().setInstanceNameSpaceParent(
+                obj, className, instanceNameSpace );
         }
 
         return obj;
     }
 
-    // TODO
-    /*
-        This is totally broken...
-        need to construct a real inner class block here...
-    */
     private Object constructWithClassBody(
         Class type, Object[] args, BSHBlock block,
         CallStack callstack, Interpreter interpreter )
         throws EvalError
     {
-        //throw new InterpreterError("constructWithClassBody unimplemented");
-
         String name = callstack.top().getName() + "$" + (++innerClassCount);
         Modifiers modifiers = new Modifiers();
         modifiers.addModifier( Modifiers.CLASS, "public" );
-        Class clas;
-        try {
-            clas = ClassGenerator.getClassGenerator() .generateClass(
+        Class clas = ClassGenerator.getClassGenerator() .generateClass(
                 name, modifiers, null/*interfaces*/, type/*superClass*/,
-// block is not innerClassBlock here!!!
                 block, false/*isInterface*/, callstack, interpreter );
-        } catch ( UtilEvalError e ) {
-            throw e.toEvalError( this, callstack );
-        }
         try {
             return Reflect.constructObject( clas, args );
         } catch ( Exception e ) {
             if ( e instanceof InvocationTargetException )
                 e = (Exception)((InvocationTargetException)e)
                     .getTargetException();
-            if ( Interpreter.DEBUG )
-                e.printStackTrace();
             throw new EvalError(
                 "Error constructing inner class instance: "+e, this, callstack
             );
@@ -212,11 +193,7 @@ class BSHAllocationExpression extends SimpleNode
         // statical import fields from the interface so that code inside
         // can refer to the fields directly (e.g. HEIGHT)
         local.importStatic( type );
-        try {
-            return local.getThis(interpreter).getInterface( type );
-        } catch ( UtilEvalError e ) {
-            throw e.toEvalError( this, callstack );
-        }
+        return local.getThis(interpreter).getInterface( type );
     }
 
     private Object objectArrayAllocation(

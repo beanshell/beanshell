@@ -91,12 +91,7 @@ public class TargetError extends EvalError
     */
     public String printTargetError( Throwable t )
     {
-        String s = getCause().toString();
-
-        if ( Capabilities.canGenerateInterfaces() )
-            s += "\n" + xPrintTargetError( t );
-
-        return s;
+        return getCause().toString() + "\n" + xPrintTargetError( t );
     }
 
     /**

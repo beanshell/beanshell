@@ -28,6 +28,11 @@
 
 package bsh;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
     'This' is the type of bsh scripted objects.
@@ -37,12 +42,12 @@ package bsh;
     This holds a reference to the declaring interpreter for callbacks from
     outside of bsh.
 */
-public class This implements java.io.Serializable, Runnable
+public final class This implements java.io.Serializable, Runnable
 {
     /**
         The namespace that this This reference wraps.
     */
-    NameSpace namespace;
+    final NameSpace namespace;
 
     /**
         This is the interpreter running when the This ref was created.
@@ -51,6 +56,14 @@ public class This implements java.io.Serializable, Runnable
         e.g. interface proxy or event call backs from outside of bsh.
     */
     transient Interpreter declaringInterpreter;
+
+    /**
+        A cache of proxy interface handlers.
+        Currently just one per interface.
+    */
+    private Map<Integer,Object> interfaces;
+
+    private final InvocationHandler invocationHandler = new Handler();
 
     /**
         getThis() is a factory for bsh.This type references.  The capabilities
@@ -72,63 +85,135 @@ public class This implements java.io.Serializable, Runnable
     static This getThis(
         NameSpace namespace, Interpreter declaringInterpreter )
     {
-        try {
-            Class c;
-            if ( Capabilities.canGenerateInterfaces() )
-                c = Class.forName( "bsh.XThis" );
-            else if ( Capabilities.haveSwing() )
-                c = Class.forName( "bsh.JThis" );
-            else
-                return new This( namespace, declaringInterpreter );
-
-            return (This)Reflect.constructObject( c,
-                new Object [] { namespace, declaringInterpreter } );
-
-        } catch ( Exception e ) {
-            throw new InterpreterError("internal error 1 in This: "+e);
-        }
+        return new This( namespace, declaringInterpreter );
     }
 
     /**
         Get a version of this scripted object implementing the specified
         interface.
     */
-    /*
-        If this type of This implements it directly return this,
-        else try complain that we don't have the proxy mechanism.
+    /**
+        Get dynamic proxy for interface, caching those it creates.
     */
     public Object getInterface( Class clas )
-        throws UtilEvalError
     {
-        if ( clas.isInstance( this ) )
-            return this;
-        else
-            throw new UtilEvalError( "Dynamic proxy mechanism not available. "
-            + "Cannot construct interface type: "+clas );
+        return getInterface( new Class[] { clas } );
     }
 
     /**
-        Get a version of this scripted object implementing the specified
-        interfaces.
+        Get dynamic proxy for interface, caching those it creates.
     */
     public Object getInterface( Class [] ca )
-        throws UtilEvalError
     {
-        for(int i=0; i<ca.length; i++)
-            if ( !(ca[i].isInstance( this )) )
-                throw new UtilEvalError(
-                    "Dynamic proxy mechanism not available. "
-                    + "Cannot construct interface type: "+ca[i] );
+        if ( interfaces == null )
+            interfaces = new HashMap<Integer,Object>();
 
-        return this;
+        // Make a hash of the interface hashcodes in order to cache them
+        int hash = 21;
+        for(int i=0; i<ca.length; i++)
+            hash *= ca[i].hashCode() + 3;
+        Integer hashKey = new Integer(hash);
+
+        Object interf = interfaces.get( hashKey );
+
+        if ( interf == null )
+        {
+            ClassLoader classLoader = ca[0].getClassLoader(); // ?
+            interf = Proxy.newProxyInstance(
+                classLoader, ca, invocationHandler );
+            interfaces.put( hashKey, interf );
+        }
+
+        return interf;
     }
 
-    /*
-        I wish protected access were limited to children and not also
-        package scope... I want this to be a singleton implemented by various
-        children.
+    /**
+        This is the invocation handler for the dynamic proxy.
+        <p>
+
+        Notes:
+        Inner class for the invocation handler seems to shield this unavailable
+        interface from JDK1.2 VM...
+
+        I don't understand this.  JThis works just fine even if those
+        classes aren't there (doesn't it?)  This class shouldn't be loaded
+        if an XThis isn't instantiated in NameSpace.java, should it?
     */
-    protected This( NameSpace namespace, Interpreter declaringInterpreter ) {
+    class Handler implements InvocationHandler, java.io.Serializable
+    {
+        public Object invoke( Object proxy, Method method, Object[] args )
+            throws Throwable
+        {
+            try {
+                return invokeImpl( proxy, method, args );
+            } catch ( TargetError te ) {
+                // Unwrap target exception.  If the interface declares that
+                // it throws the ex it will be delivered.  If not it will be
+                // wrapped in an UndeclaredThrowable
+                throw te.getTarget();
+            } catch ( EvalError ee ) {
+                // Ease debugging...
+                // XThis.this refers to the enclosing class instance
+                if ( Interpreter.DEBUG )
+                    Interpreter.debug( "EvalError in scripted interface: "
+                    + This.this.toString() + ": "+ ee );
+                throw ee;
+            }
+        }
+
+        public Object invokeImpl( Object proxy, Method method, Object[] args )
+            throws EvalError
+        {
+            String methodName = method.getName();
+            CallStack callstack = new CallStack( namespace );
+
+            /*
+                If equals() is not explicitly defined we must override the
+                default implemented by the This object protocol for scripted
+                object.  To support XThis equals() must test for equality with
+                the generated proxy object, not the scripted bsh This object;
+                otherwise callers from outside in Java will not see a the
+                proxy object as equal to itself.
+            */
+            BshMethod equalsMethod = null;
+            try {
+                equalsMethod = namespace.getMethod(
+                    "equals", new Class [] { Object.class } );
+            } catch ( UtilEvalError e ) {/*leave null*/ }
+            if ( methodName.equals("equals" ) && equalsMethod == null ) {
+                Object obj = args[0];
+                return new Boolean( proxy == obj );
+            }
+
+            /*
+                If toString() is not explicitly defined override the default
+                to show the proxy interfaces.
+            */
+            BshMethod toStringMethod = null;
+            try {
+                toStringMethod =
+                    namespace.getMethod( "toString", new Class [] { } );
+            } catch ( UtilEvalError e ) {/*leave null*/ }
+
+            if ( methodName.equals("toString" ) && toStringMethod == null)
+            {
+                Class [] ints = proxy.getClass().getInterfaces();
+                // XThis.this refers to the enclosing class instance
+                StringBuffer sb = new StringBuffer(
+                    This.this.toString() + "\nimplements:" );
+                for(int i=0; i<ints.length; i++)
+                    sb.append( " "+ ints[i].getName()
+                        + ((ints.length > 1)?",":"") );
+                return sb.toString();
+            }
+
+            Class [] paramTypes = method.getParameterTypes();
+            return Primitive.unwrap(
+                invokeMethod( methodName, Primitive.wrap(args, paramTypes) ) );
+        }
+    };
+
+    private This( NameSpace namespace, Interpreter declaringInterpreter ) {
         this.namespace = namespace;
         this.declaringInterpreter = declaringInterpreter;
         //initCallStack( namespace );
