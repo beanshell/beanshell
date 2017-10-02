@@ -515,9 +515,9 @@ public class Interpreter
             catch (EvalError e)
             {
                 if ( interactive )
-                    error( "EvalError: "+e.toString() );
-                else
                     error( "EvalError: "+e.getMessage() );
+                else
+                    error( "EvalError: "+e.getRawMessage() );
 
                 if(DEBUG)
                     e.printStackTrace();
