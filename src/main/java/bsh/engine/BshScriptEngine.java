@@ -27,7 +27,6 @@ import bsh.InterpreterError;
 import bsh.NameSpace;
 import bsh.ParseException;
 import bsh.TargetError;
-import bsh.UtilEvalError;
 
 /*
     Notes
@@ -289,12 +288,7 @@ public class BshScriptEngine extends AbstractScriptEngine
      */
     public <T> T getInterface( Class<T> clasz )
     {
-        try {
-            return (T) getGlobal().getInterface( clasz );
-        } catch ( UtilEvalError utilEvalError ) {
-            utilEvalError.printStackTrace();
-            return null;
-        }
+        return (T) getGlobal().getInterface( clasz );
     }
 
     /**
@@ -321,13 +315,8 @@ public class BshScriptEngine extends AbstractScriptEngine
             throw new IllegalArgumentException(
                 "invalid object type: "+thiz.getClass() );
 
-        try {
-            bsh.This bshThis = (bsh.This)thiz;
-            return (T) bshThis.getInterface( clasz );
-        } catch ( UtilEvalError utilEvalError ) {
-            utilEvalError.printStackTrace( System.err );
-            return null;
-        }
+        bsh.This bshThis = (bsh.This)thiz;
+        return (T) bshThis.getInterface( clasz );
     }
 
     private bsh.This getGlobal()

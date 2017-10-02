@@ -48,11 +48,6 @@ public class Capabilities
         return classExists( "javax.swing.JButton" );
     }
 
-    public static boolean canGenerateInterfaces() {
-        // classExists caches info for us
-        return classExists( "java.lang.reflect.Proxy" );
-    }
-
     /**
         If accessibility is enabled
         determine if the accessibility mechanism exists and if we have
@@ -74,11 +69,6 @@ public class Capabilities
         {
             accessibility = false;
         } else {
-
-            if ( !classExists( "java.lang.reflect.AccessibleObject" )
-                || !classExists("bsh.reflect.ReflectManagerImpl")
-            )
-                throw new Unavailable( "Accessibility unavailable" );
 
             // test basic access
             try {
