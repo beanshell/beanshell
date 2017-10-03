@@ -155,10 +155,9 @@ public class NameSpace
         this(parent, null, name);
     }
 
-    // public NameSpace(BshClassManager classManager, String name)
-    // {
-    // this(null, classManager, name);
-    // }
+    public NameSpace(final String name, final BshClassManager classManager) {
+        this(null, classManager, name);
+    }
     /** Instantiates a new name space.
      * @param parent the parent
      * @param classManager the class manager
