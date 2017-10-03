@@ -113,8 +113,8 @@ public class TestUtil {
      * Adds {@code cause} as root-cause to {@code throwable} and returns {@code throwable}.
      *
      * @param throwable exception which root-cause should be extended.
-     * @param cause     new root-cause, usually a caller-stack.
-     * @param <T>       type of given throwable.
+     * @param cause new root-cause, usually a caller-stack.
+     * @param <T> type of given throwable.
      * @return {@code throwable} extended with the given {@code cause}.
      */
     static <T extends Throwable> T combineTraces(final T throwable, final Exception cause) {
