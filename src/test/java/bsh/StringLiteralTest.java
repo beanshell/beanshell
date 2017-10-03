@@ -60,6 +60,13 @@ public class StringLiteralTest {
     }
 
 
+    /** http://sourceforge.net/tracker/?func=detail&aid=1898217&group_id=4075&atid=104075 */
+    @Test
+    public void parse_unicode_literals() throws Exception {
+        assertStringParsing("\u00FF", "\\u00FF", DelimiterMode.SINGLE_LINE);
+    }
+
+
     @Test
     public void parse_long_string_literal_multiline() throws Exception {
         assertStringParsing("test\ntest", DelimiterMode.MULTI_LINE);
