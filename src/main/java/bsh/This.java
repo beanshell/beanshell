@@ -197,7 +197,7 @@ public final class This implements java.io.Serializable, Runnable
             } catch ( UtilEvalError e ) {/*leave null*/ }
             if ( methodName.equals("equals" ) && equalsMethod == null ) {
                 Object obj = args[0];
-                return new Boolean( proxy == obj );
+                return proxy == obj;
             }
 
             /*
@@ -226,9 +226,9 @@ public final class This implements java.io.Serializable, Runnable
             return Primitive.unwrap(
                 invokeMethod( methodName, Primitive.wrap(args, paramTypes) ) );
         }
-    };
+    }
 
-    private This( NameSpace namespace, Interpreter declaringInterpreter ) {
+    This( NameSpace namespace, Interpreter declaringInterpreter ) {
         this.namespace = namespace;
         this.declaringInterpreter = declaringInterpreter;
         //initCallStack( namespace );
