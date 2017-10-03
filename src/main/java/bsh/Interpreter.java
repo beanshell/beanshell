@@ -390,15 +390,15 @@ public class Interpreter
                             "Class: "+result+" main method threw exception:"+o);
                     }
             } catch ( FileNotFoundException e ) {
-                System.out.println("File not found: "+e);
+                System.err.println("File not found: "+e);
             } catch ( TargetError e ) {
-                System.out.println("Script threw exception: "+e);
+                System.err.println("Script threw exception: "+e);
                 if ( e.inNativeCode() )
                     e.printStackTrace( DEBUG, System.err );
             } catch ( EvalError e ) {
-                System.out.println("Evaluation Error: "+e);
+                System.err.println("Evaluation Error: "+e);
             } catch ( IOException e ) {
-                System.out.println("I/O Error: "+e);
+                System.err.println("I/O Error: "+e);
             }
         } else
         {
