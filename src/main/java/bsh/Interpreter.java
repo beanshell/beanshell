@@ -121,7 +121,14 @@ public class Interpreter
     }
 
     /** Shared system object visible under bsh.system */
-    static This sharedObject;
+    private static final SystemObject SYSTEM_OBJECT = new SystemObject();
+
+    /** Shared system object visible under bsh.system */
+    private static final class SystemObject implements Serializable {
+        private static final long serialVersionUID = 1L;
+        @SuppressWarnings("unused")
+        public volatile boolean shutdownOnExit = true;
+    }
 
     /**
         Strict Java mode
@@ -291,17 +298,12 @@ public class Interpreter
         // bsh
         setu("bsh", new NameSpace(null, bcm, "Bsh Object" ).getThis( this ) );
 
-        // init the static shared sharedObject if it's not there yet
-        if ( sharedObject == null )
-            sharedObject = new NameSpace(null,
-                bcm, "Bsh Shared System Object" ).getThis( this );
         // bsh.system
-        setu( "bsh.system", sharedObject );
-        setu( "bsh.shared", sharedObject ); // alias
+        setu( "bsh.system", SYSTEM_OBJECT);
+        setu( "bsh.shared", SYSTEM_OBJECT); // alias
 
         // bsh.help
-        This helpText = new NameSpace(null,
-            bcm, "Bsh Command Help Text" ).getThis( this );
+        This helpText = new NameSpace(null, bcm, "Bsh Command Help Text" ).getThis( this );
         setu( "bsh.help", helpText );
 
         // bsh.cwd
