@@ -597,7 +597,6 @@ final class Reflect {
 
         Object obj = null;
         Class[] types = Types.getTypes(args);
-        Constructor con = null;
 
         // Find the constructor.
         // (there are no inherited constructors to worry about)
@@ -607,7 +606,7 @@ final class Reflect {
 
         if ( Interpreter.DEBUG )
             Interpreter.debug("Looking for most specific constructor: "+clas);
-        con = findMostSpecificConstructor(types, constructors);
+        Constructor con = findMostSpecificConstructor(types, constructors);
         if ( con == null )
             throw cantFindConstructor( clas, types );
 
@@ -616,7 +615,7 @@ final class Reflect {
 
         args=Primitive.unwrap( args );
         try {
-            obj = con.newInstance( args );
+            return con.newInstance( args );
         } catch(InstantiationException e) {
             throw new ReflectError("The class "+clas+" is abstract ");
         } catch(IllegalAccessException e) {
@@ -626,10 +625,6 @@ final class Reflect {
         } catch(IllegalArgumentException e) {
             throw new ReflectError("The number of arguments was wrong");
         }
-        if (obj == null)
-            throw new ReflectError("Couldn't construct the object");
-
-        return obj;
     }
 
     /*
@@ -691,7 +686,7 @@ final class Reflect {
             }
         }
 
-        int match = findMostSpecificSignature( idealMatch, candidateSigs.toArray(new Class[0][]) );
+        int match = findMostSpecificSignature( idealMatch, candidateSigs.toArray(new Class[candidateSigs.size()][]) );
         return match == -1 ? null : methodList.get(match);
     }
 
@@ -786,8 +781,8 @@ final class Reflect {
 
         // we don't know the right hand side of the assignment yet.
         // has at least one setter of the right name?
-        for(int i=0; i<methods.length; i++)
-            if ( methods[i].getName().equals( setterName ) )
+        for(Method method: methods)
+            if ( method.getName().equals( setterName ) )
                 return true;
         return false;
     }
