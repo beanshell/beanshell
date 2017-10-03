@@ -1041,26 +1041,27 @@ public class NameSpace
             /* Found the full name in imported classes. */
             // Try to make the full imported name
             Class<?> clas = this.classForName(fullname);
-            // Handle imported inner class case
-            if (clas == null) {
-                // Imported full name wasn't found as an absolute class
-                // If it is compound, try to resolve to an inner class.
-                // (maybe this should happen in the BshClassManager?)
-                if (Name.isCompound(fullname))
-                    try {
-                        clas = this.getNameResolver(fullname).toClass();
-                    } catch (final ClassNotFoundException e) { /* not a class */ }
-                else if (Interpreter.DEBUG)
-                    Interpreter.debug(
-                            "imported unpackaged name not found:" + fullname);
-                // If found cache the full name in the BshClassManager
-                if (clas != null) {
-                    // (should we cache info in not a class case too?)
-                    this.getClassManager().cacheClassInfo(fullname, clas);
-                    return clas;
-                }
-            } else
+
+            if ( clas != null )
                 return clas;
+
+            // Handle imported inner class case
+            // Imported full name wasn't found as an absolute class
+            // If it is compound, try to resolve to an inner class.
+            // (maybe this should happen in the BshClassManager?)
+            if (Name.isCompound(fullname))
+                try {
+                    clas = this.getNameResolver(fullname).toClass();
+                } catch (final ClassNotFoundException e) { /* not a class */ }
+            else if (Interpreter.DEBUG)
+                Interpreter.debug(
+                        "imported unpackaged name not found:" + fullname);
+            // If found cache the full name in the BshClassManager
+            if (clas != null) {
+                // (should we cache info in not a class case too?)
+                this.getClassManager().cacheClassInfo(fullname, clas);
+                return clas;
+            }
             // It was explicitly imported, but we don't know what it is.
             // should we throw an error here??
             return null;
