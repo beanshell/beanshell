@@ -93,11 +93,9 @@ public class SourceForgeIssuesTest {
     }
 
 
-    /**
-     * <a href="http://sourceforge.net/tracker/?func=detail&aid=2081602&group_id=4075&atid=104075">Sourceforge issue "NullPointerException Thrown by Overriden Method" - ID: 2081602</a>.
+    /** <a href="http://sourceforge.net/tracker/?func=detail&aid=2081602&group_id=4075&atid=104075">Sourceforge issue "NullPointerException Thrown by Overriden Method" - ID: 2081602</a>.
      * Just a "learning test" to check the call flow for constructors of generated classes.
-     * @see #sourceforge_issue_2081602
-     **/
+     * @see #sourceforge_issue_2081602 */
     @Test
     public void sourceforge_issue_2081602_learning_test() throws Exception {
         final Object result = TestUtil.eval(
@@ -122,10 +120,8 @@ public class SourceForgeIssuesTest {
     }
 
 
-    /**
-     * <a href="http://sourceforge.net/tracker/?func=detail&aid=2081602&group_id=4075&atid=104075">Sourceforge issue "NullPointerException Thrown by Overriden Method" - ID: 2081602</a>.
-     * Overriding a method which is invoked from super-constructor issues a NPE.
-     **/
+    /** <a href="http://sourceforge.net/tracker/?func=detail&aid=2081602&group_id=4075&atid=104075">Sourceforge issue "NullPointerException Thrown by Overriden Method" - ID: 2081602</a>.
+     * Overriding a method which is invoked from super-constructor issues a NPE. */
     @Test
     public void sourceforge_issue_2081602() throws Exception {
         // Interpreter.DEBUG = true;
@@ -160,27 +156,21 @@ public class SourceForgeIssuesTest {
     }
 
 
-    /**
-     * <a href="http://sourceforge.net/tracker/?func=detail&aid=1897313&group_id=4075&atid=104075">Sourceforge issue "error when looping over collections containing null" - ID: 1897313</a>.
-     */
+    /** <a href="http://sourceforge.net/tracker/?func=detail&aid=1897313&group_id=4075&atid=104075">Sourceforge issue "error when looping over collections containing null" - ID: 1897313</a>.*/
     @Test
     public void sourceforge_issue_1897313() throws Exception {
-        TestUtil.eval("for (x: new String[]{\"foo\",null,\"bar\"}) { System.out.println(x); }");
+        TestUtil.eval("for (x: new String[]{\"foo\",null,\"bar\"}) { print(x); }");
     }
 
 
-    /**
-     * <a href="http://sourceforge.net/tracker/?func=detail&aid=1796035&group_id=4075&atid=104075">Sourceforge issue "Grammar error when defining arrays" - ID: 1796035</a>.
-     */
+    /** <a href="http://sourceforge.net/tracker/?func=detail&aid=1796035&group_id=4075&atid=104075">Sourceforge issue "Grammar error when defining arrays" - ID: 1796035</a>. */
     @Test
     public void sourceforge_issue_1796035() throws Exception {
         TestUtil.eval("byte array[] = new byte[0]; return array;");
     }
 
 
-    /**
-     * <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1897015&group_id=4075&atid=1950677">Sourceforge issue "parsing number 0xff000000 fails" - ID: 1950677</a>.
-     */
+    /** <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1897015&group_id=4075&atid=1950677">Sourceforge issue "parsing number 0xff000000 fails" - ID: 1950677</a>. */
     @Test
     public void sourceforge_issue_1950677() throws Exception {
         Assert.assertEquals(0xff000000, TestUtil.eval("return 0xff000000;"));
