@@ -540,7 +540,6 @@ public class NameSpace
             return this.classManager;
         if (this.parent != null && this.parent != JAVACODE)
             return this.parent.getClassManager();
-        // System.out.println("experiment: creating class manager");
         this.setClassManager(BshClassManager
                 .createClassManager(null/* interp */));
         // Interpreter.debug("No class manager namespace:" +this);
