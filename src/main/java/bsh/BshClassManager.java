@@ -140,7 +140,14 @@ public class BshClassManager
 
         // Do we have the optional package?
         if ( Capabilities.classExists("bsh.classpath.ClassManagerImpl") )
-            manager = new bsh.classpath.ClassManagerImpl();
+            try {
+                // Try to load the module
+                // don't refer to it directly here or we're dependent upon it
+                Class clas = Class.forName( "bsh.classpath.ClassManagerImpl" );
+                manager = (BshClassManager)clas.newInstance();
+            } catch ( Exception e ) {
+                throw new InterpreterError("Error loading classmanager: "+e);
+            }
         else
             manager = new BshClassManager();
 
