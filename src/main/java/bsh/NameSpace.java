@@ -28,6 +28,7 @@ package bsh;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -46,7 +47,7 @@ import java.util.Map;
  * Note: Dropping support for JDK 1.1. in favour of Collections
  * Note: This class has gotten too big. It should be broken down a bit. */
 public class NameSpace
-        implements java.io.Serializable, BshClassManager.Listener, NameSource {
+        implements Serializable, BshClassManager.Listener, NameSource, Cloneable {
 
     /** The Constant serialVersionUID. */
     private static final long serialVersionUID = 1L;
@@ -65,21 +66,21 @@ public class NameSpace
     /** The parent. */
     private NameSpace parent;
     /** The variables. */
-    private final Map<String, Variable> variables = new HashMap<>();
+    private Map<String, Variable> variables = new HashMap<>();
     /** The methods. */
-    private final Map<String, List<BshMethod>> methods = new HashMap<>();
+    private Map<String, List<BshMethod>> methods = new HashMap<>();
     /** The imported classes. */
-    protected final Map<String, String> importedClasses = new HashMap<>();
+    protected Map<String, String> importedClasses = new HashMap<>();
     /** The imported packages. */
-    private final List<String> importedPackages = new ArrayList<>();
+    private List<String> importedPackages = new ArrayList<>();
     /** The imported commands. */
-    private final List<String> importedCommands = new ArrayList<>();
+    private List<String> importedCommands = new ArrayList<>();
     /** The imported objects. */
-    private final List<Object> importedObjects = new ArrayList<>();
+    private List<Object> importedObjects = new ArrayList<>();
     /** The imported static. */
-    private final List<Class<?>> importedStatic = new ArrayList<>();
+    private List<Class<?>> importedStatic = new ArrayList<>();
     /** The name source listeners. */
-    private final List<NameSource.Listener> nameSourceListeners = new ArrayList<>();
+    private List<NameSource.Listener> nameSourceListeners = new ArrayList<>();
     /** The package name. */
     private String packageName;
     /** The class manager. */
@@ -88,7 +89,7 @@ public class NameSpace
     // See notes in getThis()
     private This thisReference;
     /** Name resolver objects. */
-    private final Map<String, Name> names = new HashMap<>();
+    private Map<String, Name> names = new HashMap<>();
     /** The node associated with the creation of this namespace. This is used
      * support getInvocationLine() and getInvocationText(). */
     SimpleNode callerInfoNode;
@@ -1386,4 +1387,40 @@ public class NameSpace
                     + ee.getMessage());
         }
     }
+
+
+    NameSpace copy() {
+        try {
+            final NameSpace clone = (NameSpace) clone();
+            clone.thisReference = null;
+            clone.variables = clone(variables);
+            clone.methods = clone(methods);
+            clone.importedClasses = clone(importedClasses);
+            clone.importedPackages = clone(importedPackages);
+            clone.importedCommands = clone(importedCommands);
+            clone.importedObjects = clone(importedObjects);
+            clone.importedStatic = clone(importedStatic);
+            clone.names = clone(names);
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+
+    private <K,V> Map<K,V> clone(final Map<K,V> map) {
+        if (map == null) {
+            return null;
+        }
+        return new HashMap<K,V>(map);
+    }
+
+
+    private <T> List<T> clone(final List<T> list) {
+        if (list == null) {
+            return null;
+        }
+        return new ArrayList<T>(list);
+    }
+
 }

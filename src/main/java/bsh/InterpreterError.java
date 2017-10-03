@@ -32,12 +32,12 @@ package bsh;
  */
 public class InterpreterError extends RuntimeException {
 
-    public InterpreterError(String message) {
+    public InterpreterError(final String message) {
         super(message);
     }
 
 
-    public InterpreterError(String message, Throwable cause) {
+    public InterpreterError(final String message, final Throwable cause) {
         super(message, cause);
     }
 
