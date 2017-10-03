@@ -154,7 +154,7 @@ public class Interpreter
         interactive;    // Interpreter has a user, print prompts, etc.
 
     /** Control the verbose printing of results for the show() command. */
-    private boolean showResults;
+    private boolean showResults = true;
 
     /* --- End instance data --- */
 
@@ -179,7 +179,10 @@ public class Interpreter
     {
         //System.out.println("New Interpreter: "+this +", sourcefile = "+sourceFileInfo );
         parser = new Parser( in );
-        long t1=System.currentTimeMillis();
+        long t1 = 0;
+        if (Interpreter.DEBUG) {
+            t1=System.currentTimeMillis();
+        }
         this.in = in;
         this.out = out;
         this.err = err;
@@ -191,11 +194,19 @@ public class Interpreter
         this.sourceFileInfo = sourceFileInfo;
 
         BshClassManager bcm = BshClassManager.createClassManager( this );
-        if ( namespace == null )
-            this.globalNameSpace = new NameSpace( null, bcm, "global");
-        else
-            this.globalNameSpace = namespace;
-
+        if ( namespace == null ) {
+            globalNameSpace = new NameSpace(namespace, bcm, "global");
+            initRootSystemObject();
+        } else {
+            globalNameSpace = namespace;
+            try {
+                if ( ! (globalNameSpace.getVariable("bsh") instanceof This)) {
+                    initRootSystemObject();
+                }
+            } catch (final UtilEvalError e) {
+                throw new IllegalStateException(e);
+            }
+        }
         // now done in NameSpace automatically when root
         // The classes which are imported by default
         //globalNameSpace.loadDefaultImports();
@@ -209,9 +220,10 @@ public class Interpreter
         if ( interactive )
             loadRCFiles();
 
-        long t2=System.currentTimeMillis();
-        if ( Interpreter.DEBUG )
+        if ( Interpreter.DEBUG ) {
+            long t2=System.currentTimeMillis();
             Interpreter.debug("Time to initialize interpreter: "+(t2-t1));
+        }
     }
 
     public Interpreter(
@@ -487,9 +499,9 @@ public class Interpreter
                     if( ret != Primitive.VOID )
                     {
                         setu("$_", ret);
-                        if ( showResults )
-                            println("<" + ret + ">");
                     }
+                    if ( showResults )
+                        println("--> " + ret);
                 }
             }
             catch(ParseException e)
@@ -669,9 +681,9 @@ public class Interpreter
                         break; // non-interactive, return control now
                     }
 
-                    if ( localInterpreter.showResults
-                        && retVal != Primitive.VOID )
-                        println("<" + retVal + ">");
+                   // if ( localInterpreter.showResults
+                   //     && retVal != Primitive.VOID )
+                       // println("<" + retVal + ">");
                 }
             } catch(ParseException e) {
                 /*
@@ -1243,7 +1255,7 @@ public class Interpreter
     }
 
     public static String getSaveClassesDir() {
-        return System.getProperty("saveClasses");
+        return System.getProperty("bsh.debugClasses");
     }
 
     public static boolean getSaveClasses()  {

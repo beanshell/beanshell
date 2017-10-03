@@ -105,28 +105,29 @@ class BSHAllocationExpression extends SimpleNode
                 return constructWithClassBody(
                     type, args, body, callstack, interpreter );
         } else
-            return constructObject( type, args, callstack );
+            return constructObject( type, args, callstack, interpreter );
     }
 
-    private Object constructObject(
-        Class type, Object[] args, CallStack callstack )
-        throws EvalError
-    {
+    private Object constructObject(Class<?> type, Object[] args, CallStack callstack, Interpreter interpreter ) throws EvalError {
+        final boolean isGeneratedClass = GeneratedClass.class.isAssignableFrom(type);
+        if (isGeneratedClass) {
+            ClassGeneratorUtil.registerConstructorContext(callstack, interpreter);
+        }
         Object obj;
         try {
             obj = Reflect.constructObject( type, args );
         } catch ( ReflectError e) {
             throw new EvalError(
                 "Constructor error: " + e.getMessage(), this, callstack );
-        } catch(InvocationTargetException e) {
+        } catch (InvocationTargetException e) {
             // No need to wrap this debug
-            Interpreter.debug("The constructor threw an exception:\n\t" +
-                e.getTargetException());
-            throw new TargetError(
-                "Object constructor", e.getTargetException(),
-                this, callstack, true);
+            Interpreter.debug("The constructor threw an exception:\n\t" + e.getTargetException());
+            throw new TargetError("Object constructor", e.getTargetException(), this, callstack, true);
+        } finally {
+            if (isGeneratedClass) {
+                ClassGeneratorUtil.registerConstructorContext(null, null); // clean up, prevent memory leak
+            }
         }
-
         String className = type.getName();
         // Is it an inner class?
         if ( className.indexOf("$") == -1 )
@@ -171,12 +172,11 @@ class BSHAllocationExpression extends SimpleNode
         try {
             return Reflect.constructObject( clas, args );
         } catch ( Exception e ) {
-            if ( e instanceof InvocationTargetException )
-                e = (Exception)((InvocationTargetException)e)
-                    .getTargetException();
-            throw new EvalError(
-                "Error constructing inner class instance: "+e, this, callstack
-            );
+            Throwable cause = e;
+            if ( e instanceof InvocationTargetException ) {
+                cause = ((InvocationTargetException) e).getTargetException();
+            }
+            throw new EvalError("Error constructing inner class instance: "+e, this, callstack, cause);
         }
     }
 
