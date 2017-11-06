@@ -1,14 +1,13 @@
 package bsh;
 
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.net.URL;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class PreparsedScriptTest {
 
@@ -84,7 +83,7 @@ public class PreparsedScriptTest {
                 }
             }
         };
-        final long time = TestUtil.measureConcurrentTime(runnable, 30, 30, 1000);
+//        final long time = TestUtil.measureConcurrentTime(runnable, 30, 30, 1000);
 //        System.out.println(TimeUnit.NANOSECONDS.toMillis(time));
     }
 
