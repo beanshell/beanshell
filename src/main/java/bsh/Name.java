@@ -583,7 +583,7 @@ class Name implements java.io.Serializable
             obj = thisNameSpace.getVariable(varName, evalBaseObject == null);
 
         if ( obj == null )
-            throw new InterpreterError("null this field ref:"+varName);
+            obj = Primitive.NULL;
 
         return obj;
     }

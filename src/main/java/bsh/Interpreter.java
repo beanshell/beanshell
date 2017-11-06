@@ -122,7 +122,7 @@ public class Interpreter
 
     /** Shared system object visible under bsh.system */
     private static final This SYSTEM_OBJECT = This.getThis(new NameSpace(null, null, "bsh.system"), null);
-    
+
     /** Shared system object visible under bsh.system */
     public static void setShutdownOnExit(final boolean value) {
         try {
