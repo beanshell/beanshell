@@ -8,11 +8,11 @@ import java.util.Arrays;
 public class BshScriptEngineFactory implements javax.script.ScriptEngineFactory {
     // Begin impl ScriptEnginInfo
 
-    final List<String> extensions = Arrays.asList("bsh", "java");
+	final List<String> extensions = Arrays.asList("bsh");
 
-    final List<String> mimeTypes = Arrays.asList("application/x-beanshell", "application/x-bsh", "application/x-java-source");
+	final List<String> mimeTypes = Arrays.asList("application/x-beanshell", "application/x-bsh");
 
-    final List<String> names = Arrays.asList("beanshell", "bsh", "java");
+	final List<String> names = Arrays.asList("beanshell", "bsh");
 
 
     public String getEngineName() {
