@@ -1222,6 +1222,9 @@ public class NameSpace
         this.importPackage("java.awt.event");
         this.importPackage("java.awt");
         this.importPackage("java.net");
+        this.importPackage("java.util.function");
+        this.importPackage("java.util.stream");
+        this.importPackage("java.util.regex");
         this.importPackage("java.util");
         this.importPackage("java.io");
         this.importPackage("java.lang");
