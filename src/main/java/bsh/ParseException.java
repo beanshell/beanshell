@@ -242,6 +242,8 @@ public final class ParseException extends EvalError {
       for (int i = 0; i < str.length(); i++) {
         switch (str.charAt(i))
         {
+           case 0 :
+              continue;
            case '\b':
               retval.append("\\b");
               continue;
@@ -277,11 +279,28 @@ public final class ParseException extends EvalError {
         }
       }
       return retval.toString();
-   }
+    }
 
-   // Begin BeanShell Modification - override error methods and toString
-
+    // Begin BeanShell Modification - override error methods and toString
+    @Override
     public int getErrorLineNumber() {
+        if (currentToken == null) {
+            String message = getMessage();
+            int index = message.indexOf(" at line ");
+            if (index > -1) {
+                message = message.substring(index + 9);
+                index = message.indexOf(',');
+                try {
+                    if (index == -1) {
+                        return Integer.parseInt(message);
+                    }
+                    return Integer.parseInt(message.substring(0, index));
+                } catch (NumberFormatException e) {
+                    // ignore, we have no valid line information, just return -1 for now
+                }
+            }
+            return -1;
+        }
         return currentToken.next.beginLine;
     }
 
