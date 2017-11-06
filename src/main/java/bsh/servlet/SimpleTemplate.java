@@ -69,7 +69,7 @@ public class SimpleTemplate
 {
     StringBuffer buff;
     static String NO_TEMPLATE = "NO_TEMPLATE";  // Flag for non-existent
-    static Map templateData = new HashMap();
+    static Map<String,String> templateData  = new HashMap<>();
     static boolean cacheTemplates = true;
 
     /**
@@ -84,7 +84,7 @@ public class SimpleTemplate
     */
     public static SimpleTemplate getTemplate( String file )
     {
-        String templateText = (String)templateData.get( file );
+        String templateText = templateData.get( file );
 
         if ( templateText == null || !cacheTemplates ) {
             try {
