@@ -66,7 +66,7 @@ public class Project_Coin_Test {
 
     @SuppressWarnings({"JUnitTestMethodWithNoAssertions"})
     @Test
-    @Category(Project_Coin_Test.class)
+    @Category(ProjectCoinFeature.class)
     public void try_with_resource_parsing() throws Exception {
         eval("try (ByteArrayOutputStream x = new ByteArrayOutputStream()) {", "} catch (Exception e) {", "}\n");
         eval("try (ByteArrayOutputStream x = new ByteArrayOutputStream(); ByteArrayOutputStream y = new ByteArrayOutputStream()) {", "} catch (Exception e) {", "}\n");
@@ -75,7 +75,7 @@ public class Project_Coin_Test {
 
 
     @Test
-    @Category(Project_Coin_Test.class)
+    @Category(ProjectCoinFeature.class)
     public void try_with_resource() throws Exception {
         final Interpreter interpreter = new Interpreter();
         final AtomicBoolean closed = new AtomicBoolean(false);
