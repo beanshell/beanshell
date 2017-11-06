@@ -141,7 +141,7 @@ public class OldScriptsTest {
         public void runTest() throws Exception {
             Assume.assumeFalse("skipping test " + getName(), SKIP_KNOWN_ISSUES
                     && KNOWN_FAILING_TESTS.contains(getName()));
-            
+
             final Interpreter interpreter = new Interpreter();
             final String path = '\"' + this._file.getParentFile()
                     .getAbsolutePath().replace('\\', '/') + '\"';
