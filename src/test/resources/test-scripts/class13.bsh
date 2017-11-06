@@ -7,17 +7,17 @@ class TestInner1
     static class StaticInner1 {
         void go() {
             assert( this instanceof StaticInner1 );
-            //print("static parent of go(): "+this.namespace.getParent());
-            //print("static parent2 of go(): "
-                //+this.namespace.getParent().getParent());
+//            print("static parent of go(): "+this.namespace.getParent());
+//            print("static parent2 of go(): "
+//                +this.namespace.getParent().getParent());
         }
     }
     class InstanceInner1 {
         void go() {
             assert( this instanceof InstanceInner1 );
-            //print("instance parent of go(): "+this.namespace.getParent());
-            //print("instance parent2 of go(): "
-                //+this.namespace.getParent().getParent() );
+//            print("instance parent of go(): "+this.namespace.getParent());
+//            print("instance parent2 of go(): "
+//                +this.namespace.getParent().getParent() );
         }
     }
 

@@ -27,7 +27,8 @@ assert(i2 == 2);
 
 // multiple inits
 for(x=0, a=2, y="foo"; x<3; x++) {
-    print(x+", "+y);
+    b = x+", "+y;
+//    print(x+", "+y);
 }
 
 // Can't declare var again already declared in forinit

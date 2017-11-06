@@ -25,7 +25,7 @@ class Foo
     {
         assert( a == 5 );
         assert( a.getClass() == bsh.Primitive.class );
-        print( a.getClass() );
+//        print( a.getClass() );
         assert( b.getClass() == bsh.Primitive.class );
         new byte[a];
         assert( q == 5 );
@@ -72,11 +72,11 @@ class Foo
 
 }
 
-print( Foo );
+//print( Foo );
 
 // static
-print( Foo );
-print("Foo.a = "+Foo.a );
+//print( Foo );
+//print("Foo.a = "+Foo.a );
 assert(Foo.a == 5);
 assert(isEvalError("print(Foo.b)"));
 Foo.smethod();
@@ -92,7 +92,7 @@ foo.smethod(); // static
 //assert( foo.q == 5 ); // loose instance private
 foo.setQ(6);
 assert( foo.getQ()==6);
-print( "foo.getQ" +foo.getQ() );
+//print( "foo.getQ" +foo.getQ() );
 
 foo.assignThis();
 foo.checkThis();

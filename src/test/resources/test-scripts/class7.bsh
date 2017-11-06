@@ -15,7 +15,7 @@ assert( tr.getBoolean() == true );
 
 assert( tr.getByte() == 1 );
 // peek at bsh.Primitive here to check type
-print( tr.getByte().getType() == Byte.TYPE );
+//print( tr.getByte().getType() == Byte.TYPE );
 
 assert( tr.getFloat() == 1.0f );
 assert( tr.getLong() == 42l );

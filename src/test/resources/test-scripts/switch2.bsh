@@ -80,12 +80,12 @@ barobj=object();
 switch( fooobj )
 {
 case barobj:
-    print("barobj");
+//    print("barobj");
     assert(false);
 
 case fooobj:
     flag();
-    print("fooobj");
+//    print("fooobj");
 
 default:
 }
@@ -96,11 +96,11 @@ switch( dateobj )
 {
 case dateobj2:
     flag();
-    print("date1");
+//    print("date1");
 
 case dateobj:
     flag();
-    print("date2");
+//    print("date2");
 
 default:
 }

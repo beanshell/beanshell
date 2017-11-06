@@ -14,7 +14,7 @@ foo() {
             super.c = 9;
             global.b = 32;
 
-            print("gee");
+//            print("gee");
 
             val() {
                 return 42;
@@ -22,10 +22,10 @@ foo() {
 
             return this;
         }
-        print("bar");
+//        print("bar");
         return this;
     }
-    print("foo");
+//    print("foo");
     return this;
 }
 
@@ -63,7 +63,7 @@ foo() {
 
             global.b = 32;
 
-            print("gee");
+//            print("gee");
 
             val() {
                 return 42;
@@ -71,10 +71,10 @@ foo() {
 
             return this;
         }
-        print("bar");
+//        print("bar");
         return this;
     }
-    print("foo");
+//    print("foo");
     return this;
 }
 

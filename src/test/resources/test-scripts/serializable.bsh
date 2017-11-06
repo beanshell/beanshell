@@ -12,8 +12,8 @@ try {
 }
 
 o2=load("o.ser");
-print(o2);
-print(o2.foo);
+//print(o2);
+//print(o2.foo);
 
 assert( o2.foo.equals("bar") );
 

@@ -71,7 +71,7 @@ try {
     a=5;
 }
 
-print(a);
+//print(a);
 assert(a==5);
 assert(skdlfjl==void);
 // catch clause exception param shouldn't leak out
