@@ -179,7 +179,7 @@ class Types
         assignment rules, not including auto-boxing/unboxing.
      @param rhsType may be null to indicate primitive null value
     */
-    static boolean isJavaBaseAssignable( Class lhsType, Class rhsType )
+	static boolean isJavaBaseAssignable( Class<?> lhsType, Class<?> rhsType )
     {
         /*
             Assignment to loose type, defer to bsh extensions
@@ -382,7 +382,7 @@ class Types
         conversions...  Where does that need to go?
     */
     private static Object castObject(
-        Class toType, Class fromType, Object fromValue,
+		Class<?> toType, Class<?> fromType, Object fromValue,
         int operation, boolean checkOnly )
         throws UtilEvalError
     {
