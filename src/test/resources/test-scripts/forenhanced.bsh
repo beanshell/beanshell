@@ -8,24 +8,27 @@ al.add("bar");
 al.add("gee");
 
 for( a : al )
-    print( a );
+    b = a;
+//    print( a );
 
 assert( a.equals("gee") );
 
 for( a : this.al )
-    print( a );
+    b = a;
+//    print( a );
 
 al.add("goo");
 
 for( String a : al )
 {
-    print( a );
+//    print( a );
     if ( a.equals("goo") )
         flag();
 }
 
 for (int i = new Integer(0).intValue(); i < 3; i++)
-    print(i);
+    bb = i;
+//    print(i);
 
 // the typed vars don't leak
 assert( a.equals("gee") );

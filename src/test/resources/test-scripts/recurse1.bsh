@@ -3,9 +3,9 @@
 source("TestHarness.bsh");
 
 foo( arg ) {
-    print("namespace = "+this.namespace);
+//    print("namespace = "+this.namespace);
     if ( arg < 5 ) {
-        print( "recursing");
+//        print( "recursing");
         next=foo( arg + 1 );
         assert( next == arg + 1 );
     }

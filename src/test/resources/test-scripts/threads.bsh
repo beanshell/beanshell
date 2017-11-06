@@ -6,7 +6,7 @@ foo() {
     run() {
         flag();
         for(int i=0; i<5; i++) {
-            print(i);
+//            print(i);
             Thread.sleep(100);
         }
     }
@@ -15,7 +15,7 @@ foo() {
 
 t=new Thread( foo() );
 t.start();
-print("after");
+//print("after");
 t.join();
 assert(flag()==1);
 

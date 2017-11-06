@@ -58,7 +58,7 @@ myMap.put( "d1", new Double(49.9) );
 
 assert( interpreter.get("d1") instanceof Double );
 
-interpreter.eval("print(this.variables)");
+//interpreter.eval("print(this.variables)");
 
 // set var in bsh then remove it in external map
 interpreter.eval("x1=42");

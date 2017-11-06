@@ -3,8 +3,8 @@
 source("TestHarness.bsh");
 
 foo( arg1, arg2 ) {
-    print("arg1 = "+arg1);
-    print("arg2 = "+arg2);
+//    print("arg1 = "+arg1);
+//    print("arg2 = "+arg2);
     5;
 }
 
@@ -15,7 +15,7 @@ foo2( arg1 ) {
 foo3( arg1 ) {
     52;
     return;
-    print("return failed...");
+//    print("return failed...");
 }
 
 myObject( arg1, arg2 ) {
