@@ -8,7 +8,7 @@ try { eval(")syntax"); } catch ( bsh.EvalError e ) { flag(); }
 try { eval("--)syntax"); } catch ( bsh.EvalError e ) { flag(); }
 
 try { run("Data/syntaxerrors.bsh"); } catch ( bsh.EvalError e ) {
-    print(e);
+//    print(e);
     flag();
 }
 

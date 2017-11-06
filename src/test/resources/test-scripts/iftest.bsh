@@ -14,8 +14,8 @@ else
 if ( true ) assert(true); else assert(false);
 
 if ( true ) {
-    System.out.println("foo...");
-    System.out.println("bar...");
+//    System.out.println("foo...");
+//    System.out.println("bar...");
     assert(true);
 } else {
     assert(false);

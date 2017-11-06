@@ -6,7 +6,7 @@ switch(0) {
     default:
 }
 
-print("test1");
+//print("test1");
 test_flag = 0;
 switch( 1 ) {
     case 1:
@@ -17,7 +17,7 @@ switch( 1 ) {
 }
 assert(flag()==1);
 
-print("test2");
+//print("test2");
 test_flag = 0;
 int a=2;
 switch( a ) {
@@ -80,7 +80,7 @@ for(i=98; i<=99; i++) {
 }
 assert(flag()==2);
 
-print("test string");
+//print("test string");
 test_flag = 0;
 str="foo";
 switch( str ) {
@@ -94,7 +94,7 @@ switch( str ) {
 }
 assert(flag()==1);
 
-print("test float");
+//print("test float");
 test_flag = 0;
 flt= 3.14F;
 switch( flt ) {

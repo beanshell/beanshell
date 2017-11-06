@@ -9,7 +9,7 @@ b=5;
 };
 assert( b==6 );
 
-print(a);
-print(b);
+//print(a);
+//print(b);
 
 complete();

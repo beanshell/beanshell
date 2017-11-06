@@ -8,7 +8,7 @@ n=null;
 try {
     n.foo();
 } catch ( NullPointerException e ) {
-    print(e);
+//    print(e);
     flag();
 }
 
@@ -20,7 +20,7 @@ returnNull() {
 try {
     returnNull().foo();
 } catch ( NullPointerException e ) {
-    print(e);
+//    print(e);
     flag();
 }
 
@@ -29,7 +29,7 @@ map=new HashMap();
 try {
     map.get("foo").length();
 } catch ( NullPointerException e ) {
-    print(e);
+//    print(e);
     flag();
 }
 
@@ -39,7 +39,7 @@ assert( s == null );
 try {
     s.foo();
 } catch ( NullPointerException e ) {
-    print(e);
+//    print(e);
     flag();
 }
 
