@@ -121,13 +121,15 @@ public class Interpreter
     }
 
     /** Shared system object visible under bsh.system */
-    private static final SystemObject SYSTEM_OBJECT = new SystemObject();
-
+    private static final This SYSTEM_OBJECT = This.getThis(new NameSpace(null, null, "bsh.system"), null);
+    
     /** Shared system object visible under bsh.system */
-    private static final class SystemObject implements Serializable {
-        private static final long serialVersionUID = 1L;
-        @SuppressWarnings("unused")
-        public volatile boolean shutdownOnExit = true;
+    public static void setShutdownOnExit(final boolean value) {
+        try {
+            SYSTEM_OBJECT.getNameSpace().setVariable("shutdownOnExit", Boolean.valueOf(value), false);
+        } catch (final UtilEvalError utilEvalError) {
+            throw new IllegalStateException(utilEvalError);
+        }
     }
 
     /**

@@ -21,6 +21,8 @@
 package bsh;
 
 import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.lang.ref.WeakReference;
 
@@ -39,16 +41,14 @@ public class InterpreterTest {
         }
     }
 
-    /*
-     @Test
-     public void check_system_object() throws Exception {
-         TestUtil.eval("bsh.system.foo = \"test\";");
-         final Object result = TestUtil.eval("return bsh.system.foo;");
-         assertEquals("test", result);
-         assertNull(TestUtil.eval("return bsh.system.shutdownOnExit;"));
-         Interpreter.setShutdownOnExit(false);
-         assertEquals(Boolean.FALSE, TestUtil.eval("return bsh.system.shutdownOnExit;"));
-     }
-     */
+    @Test
+    public void check_system_object() throws Exception {
+        TestUtil.eval("bsh.system.foo = \"test\";");
+        final Object result = TestUtil.eval("return bsh.system.foo;");
+        assertEquals("test", result);
+        assertNull(TestUtil.eval("return bsh.system.shutdownOnExit;"));
+        Interpreter.setShutdownOnExit(false);
+        assertEquals(Boolean.FALSE, TestUtil.eval("return bsh.system.shutdownOnExit;"));
+    }
 
 }
