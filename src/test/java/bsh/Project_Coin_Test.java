@@ -1,23 +1,3 @@
-/*****************************************************************************
- * Licensed to the Apache Software Foundation (ASF) under one                *
- * or more contributor license agreements.  See the NOTICE file              *
- * distributed with this work for additional information                     *
- * regarding copyright ownership.  The ASF licenses this file                *
- * to you under the Apache License, Version 2.0 (the                         *
- * "License"); you may not use this file except in compliance                *
- * with the License.  You may obtain a copy of the License at                *
- *                                                                           *
- *     http://www.apache.org/licenses/LICENSE-2.0                            *
- *                                                                           *
- * Unless required by applicable law or agreed to in writing,                *
- * software distributed under the License is distributed on an               *
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY                    *
- * KIND, either express or implied.  See the License for the                 *
- * specific language governing permissions and limitations                   *
- * under the License.                                                        *
- *                                                                           *
-/****************************************************************************/
-
 package bsh;
 
 import org.junit.Test;
@@ -37,7 +17,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(FilteredTestRunner.class)
-@Category(ProjectCoinFeature.class)
 public class Project_Coin_Test {
 
 
@@ -58,19 +37,32 @@ public class Project_Coin_Test {
     @Category(ProjectCoinFeature.class)
     public void diamond_operator() throws Exception {
         eval("List<String> list = new ArrayList<>()");
-        final Object anagrams = eval("Map<String, List<String>> anagrams = new HashMap<>();" + "return anagrams;");
+        final Object anagrams = eval(
+                "Map<String, List<String>> anagrams = new HashMap<>();" +
+                "return anagrams;");
         assertNotNull(anagrams);
         assertTrue(anagrams.getClass().getName(), anagrams instanceof HashMap);
     }
 
 
-    @SuppressWarnings({"JUnitTestMethodWithNoAssertions"})
     @Test
     @Category(ProjectCoinFeature.class)
     public void try_with_resource_parsing() throws Exception {
-        eval("try (ByteArrayOutputStream x = new ByteArrayOutputStream()) {", "} catch (Exception e) {", "}\n");
-        eval("try (ByteArrayOutputStream x = new ByteArrayOutputStream(); ByteArrayOutputStream y = new ByteArrayOutputStream()) {", "} catch (Exception e) {", "}\n");
-        eval("try (x = new ByteArrayOutputStream(); y = new ByteArrayOutputStream()) {", "} catch (Exception e) {", "}\n");
+        eval(
+                "try (ByteArrayOutputStream x = new ByteArrayOutputStream()) {",
+                "} catch (Exception e) {",
+                "}\n"
+        );
+        eval(
+                "try (ByteArrayOutputStream x = new ByteArrayOutputStream(); ByteArrayOutputStream y = new ByteArrayOutputStream()) {",
+                "} catch (Exception e) {",
+                "}\n"
+        );
+        eval(
+                "try (x = new ByteArrayOutputStream(); y = new ByteArrayOutputStream()) {",
+                "} catch (Exception e) {",
+                "}\n"
+        );
     }
 
 
@@ -97,11 +89,13 @@ public class Project_Coin_Test {
         };
         try {
             interpreter.set("autoclosable", autoclosable);
-            interpreter.eval("try (x = new BufferedOutputStream(autoclosable)) {\n" +
+            interpreter.eval(
+                    "try (x = new BufferedOutputStream(autoclosable)) {\n" +
                     "   x.write(42);\n" +
                     "} catch (Exception e) {\n" +
                     "   thrownException = e;\n" +
-                    "}\n");
+                    "}\n"
+            );
             fail("expected exception");
         } catch (final EvalError evalError) {
             if (evalError instanceof ParseException) {
@@ -118,9 +112,15 @@ public class Project_Coin_Test {
 
 
     @Test
-    @Category(Project_Coin_Test.class)
     public void switch_on_strings() throws Exception {
-        final Object result = eval("switch(\"hurz\") {\n", "    case \"bla\": return 1;", " case \"foo\": return 2;", " case \"hurz\": return 3;", "    case \"igss\": return 4;", "    default: return 5;", "}\n");
+        final Object result = eval(
+                    "switch(\"hurz\") {\n",
+                    "   case \"bla\": return 1;",
+                    "   case \"foo\": return 2;",
+                    "   case \"hurz\": return 3;",
+                    "   case \"igss\": return 4;",
+                    "   default: return 5;",
+                    "}\n");
         assertEquals(result, 3);
     }
 
