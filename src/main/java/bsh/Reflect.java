@@ -505,9 +505,10 @@ final class Reflect {
 
         if ( Interpreter.DEBUG )
             Interpreter.debug("Looking for most specific method: "+methodName);
+        if (null != nonPublicMethods && !nonPublicMethods.isEmpty())
+            publicMethods.addAll(nonPublicMethods);
+
         Method method = findMostSpecificMethod( types, publicMethods );
-        if( method==null && nonPublicMethods!=null )
-            method = findMostSpecificMethod( types, nonPublicMethods );
 
         return method;
     }

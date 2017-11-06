@@ -25,12 +25,15 @@ import org.junit.runner.RunWith;
 
 import static bsh.TestUtil.eval;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 
 @RunWith(FilteredTestRunner.class)
-public class GoogleReports {
+public class GoogleReportsTest {
 
     @Test
-    @SuppressWarnings({"ConstantIfStatement"})
     public void while_loop() throws Exception {
         int loopCount = 0;
         do {
@@ -55,7 +58,6 @@ public class GoogleReports {
         assertEquals(2, loopCount);
     }
 
-
     /**
      * <a href="http://code.google.com/p/beanshell2/issues/detail?id=6">issue#60</a>
      */
@@ -69,7 +71,6 @@ public class GoogleReports {
         assertEquals("public-Number", interpreter.eval("return x.issue6(new Integer(9));"));
     }
 
-
     /**
      * <a href="http://code.google.com/p/beanshell2/issues/detail?id=6">issue#60</a>
      */
@@ -82,15 +83,25 @@ public class GoogleReports {
         assertEquals("private-Integer", interpreter.eval("return x.issue6(new Integer(9));"));
     }
 
+    /*
+    * helpers
+    */
+    @SuppressWarnings("unused")
+    private static String issue6(Integer ignored) {
+        return "private-Integer";
+    }
+
+    public static String issue6(Number ignored) {
+        return "public-Number";
+    }
 
     /**
      * <a href="http://code.google.com/p/beanshell2/issues/detail?id=10">issue#10</a>
      */
     @Test(expected = ParseException.class)
     public void parse_error() throws Exception {
-        eval("\1;");
+        eval("\1;>");
     }
-
 
     /**
      * <a href="http://code.google.com/p/beanshell2/issues/detail?id=11">issue#11</a>
@@ -106,7 +117,6 @@ public class GoogleReports {
                     /*4*/ "return \"after try block\";"));
     }
 
-
     /**
      * <a href="http://code.google.com/p/beanshell2/issues/detail?id=12">issue#12</a>
      */
@@ -121,7 +131,6 @@ public class GoogleReports {
 
     }
 
-
     /**
      * <a href="http://code.google.com/p/beanshell2/issues/detail?id=32">issue#32</a>
      */
@@ -132,7 +141,6 @@ public class GoogleReports {
         assertEquals(true, eval("return false | true"));
         assertEquals(false, eval("return false | false"));
     }
-
 
     /**
      * <a href="http://code.google.com/p/beanshell2/issues/detail?id=32">issue#32</a>
@@ -145,8 +153,6 @@ public class GoogleReports {
         assertEquals(false, eval("return false & false"));
     }
 
-
-
     /**
      * <a href="http://code.google.com/p/beanshell2/issues/detail?id=32">issue#32</a>
      */
@@ -158,17 +164,21 @@ public class GoogleReports {
         assertEquals(false, eval("return false ^ false"));
     }
 
-
-    /*
-    * helpers
-    */
-    private static String issue6(Integer ignored) {
-        return "private-Integer";
-    }
-
-
-    public static String issue6(Number ignored) {
-        return "public-Number";
+    @Test
+    public void issue_60() throws Exception {
+        final String script =
+                "String foo = null;" +
+                "if (foo != null && foo.length() > 0) return \"not empty\";" +
+                "return \"empty\";";
+        final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+        scriptEngineManager.registerEngineName("beanshell", new BshScriptEngineFactory());
+        final ScriptEngine engine = scriptEngineManager.getEngineByName("beanshell");
+        assertNotNull(engine);
+        Object result;
+        result = engine.eval(script);
+        assertEquals("empty", result);
+        result = eval(script);
+        assertEquals("empty", result);
     }
 
 }
