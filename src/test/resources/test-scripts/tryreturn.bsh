@@ -10,7 +10,7 @@ int fn() {
     try {
         return 1;
     } finally {}
-    print("shouldn't get here, but does");  // only before bug was fixed
+//    print("shouldn't get here, but does");  // only before bug was fixed
     2;
 }
 
