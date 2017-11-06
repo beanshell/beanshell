@@ -28,10 +28,11 @@ public class KnownIssue implements TestFilter {
     /** The Constant KNOWN_FAILING_TESTS. */
     public static final Set<String> KNOWN_FAILING_TESTS = new HashSet<>();
     /** The Constant SKIP_KNOWN_ISSUES. */
-    public static final boolean SKIP_KNOWN_ISSUES = System.getProperties()
-            .containsKey("skip_known_issues");
+    public static final boolean SKIP_KNOWN_ISSUES = new Boolean(System.getProperties()
+            .getProperty("skip_known_issues"));
 
     /** {@inheritDoc} */
+    @Override
     public boolean skip() {
         return SKIP_KNOWN_ISSUES;
     }

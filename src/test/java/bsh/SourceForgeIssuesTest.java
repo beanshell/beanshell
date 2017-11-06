@@ -24,10 +24,13 @@ import bsh.classpath.ClassManagerImpl;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.junit.runner.RunWith;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.Callable;
 
+@RunWith(FilteredTestRunner.class)
 public class SourceForgeIssuesTest {
 
     @After
@@ -97,6 +100,7 @@ public class SourceForgeIssuesTest {
     /** <a href="http://sourceforge.net/tracker/?func=detail&aid=2081602&group_id=4075&atid=104075">Sourceforge issue "NullPointerException Thrown by Overriden Method" - ID: 2081602</a>.
      * Just a "learning test" to check the call flow for constructors of generated classes.
      * @see #sourceforge_issue_2081602 */
+    @Category(KnownIssue.class)
     @Test
     public void sourceforge_issue_2081602_learning_test() throws Exception {
         final Object result = TestUtil.eval(
@@ -123,6 +127,7 @@ public class SourceForgeIssuesTest {
 
     /** <a href="http://sourceforge.net/tracker/?func=detail&aid=2081602&group_id=4075&atid=104075">Sourceforge issue "NullPointerException Thrown by Overriden Method" - ID: 2081602</a>.
      * Overriding a method which is invoked from super-constructor issues a NPE. */
+    @Category(KnownIssue.class)
     @Test
     public void sourceforge_issue_2081602() throws Exception {
         // Interpreter.DEBUG = true;
@@ -165,6 +170,7 @@ public class SourceForgeIssuesTest {
 
 
     /** <a href="http://sourceforge.net/tracker/?func=detail&aid=1796035&group_id=4075&atid=104075">Sourceforge issue "Grammar error when defining arrays" - ID: 1796035</a>. */
+    @Category(KnownIssue.class)
     @Test
     public void sourceforge_issue_1796035() throws Exception {
         TestUtil.eval("byte array[] = new byte[0]; return array;");
