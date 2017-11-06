@@ -23,6 +23,8 @@ package bsh;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
+import static org.junit.Assert.assertEquals;
+import static bsh.TestUtil.eval;
 
 
 /**
@@ -34,6 +36,9 @@ public class AnnotationsParsingTest {
     @Test
     @Category(KnownIssue.class)
     public void annotation_on_method_declaration() throws Exception {
-        TestUtil.eval("public int myMethod(final int i) {", "   return i * 7;", "}", "return myMethod(6);");
+        assertEquals(42, eval("public int myMethod(final int i) {",
+                              "   return i * 7;",
+                              "}",
+                              "return myMethod(6);"));
     }
 }
