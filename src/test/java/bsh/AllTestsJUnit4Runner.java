@@ -25,13 +25,13 @@ public class AllTestsJUnit4Runner extends BlockJUnit4ClassRunner {
             suite = (TestSuite) SuiteMethod.testFromSuiteMethod(klass);
             method = TestCase.class.getDeclaredMethod("runBare");
         } catch (Throwable t) { throw new InitializationError(t); }
-        
+
     }
 
     @Override
     protected List<FrameworkMethod> getChildren() {
         return Stream.concat(
-                   super.getChildren().stream(), 
+                   super.getChildren().stream(),
                    Collections.list(suite.tests()).stream()
                        .map(TestSuiteMethod::new))
                .collect(Collectors.toList());
@@ -56,12 +56,12 @@ public class AllTestsJUnit4Runner extends BlockJUnit4ClassRunner {
         public String getName() {
             return test.getName();
         }
-        
+
         @Override
         public boolean equals(Object obj) {
             if (!(obj instanceof TestSuiteMethod))
                 return false;
-            return test.equals(((TestSuiteMethod) obj).test); 
+            return test.equals(((TestSuiteMethod) obj).test);
         }
 
         @Override
@@ -70,5 +70,5 @@ public class AllTestsJUnit4Runner extends BlockJUnit4ClassRunner {
         }
 
     };
-    
+
 }

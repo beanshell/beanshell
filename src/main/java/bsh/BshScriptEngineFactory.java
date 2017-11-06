@@ -21,7 +21,7 @@ public class BshScriptEngineFactory implements javax.script.ScriptEngineFactory 
 
 
     public String getEngineVersion() {
-        return "1.0";
+        return Interpreter.VERSION;
     }
 
 

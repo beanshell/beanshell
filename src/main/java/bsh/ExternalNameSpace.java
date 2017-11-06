@@ -85,10 +85,10 @@ public class ExternalNameSpace extends NameSpace
     {
         super( parent, name );
 
-        this.externalMap = externalMap;
-
         if ( externalMap == null )
             externalMap = new HashMap<String,Object>();
+
+        this.externalMap = externalMap;
 
     }
 
@@ -148,7 +148,10 @@ public class ExternalNameSpace extends NameSpace
         throws UtilEvalError
     {
         // check the external map for the variable name
-        Object value =  externalMap.get( name );
+        Object value = externalMap.get( name );
+
+        if ( value == null && externalMap.containsKey( name ) )
+            value = Primitive.NULL;
 
         Variable var;
         if ( value == null )
