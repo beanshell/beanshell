@@ -20,7 +20,7 @@ try {
 // eval with undefined argument: bar
 i=new Interpreter();
 try {
-    i.eval("foo( arg ) { print(arg); }");
+    i.eval("foo( arg ) { return arg; }");
     i.eval("foo( bar ); ");
 } catch ( EvalError e ) {
     flag();

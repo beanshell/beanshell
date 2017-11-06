@@ -17,7 +17,7 @@ source("TestHarness.bsh");
 
 import InheritanceTest.*;
 
-print("Testing class/method scope and inheritance rules...");
+//print("Testing class/method scope and inheritance rules...");
 
 void call(obj,meth) {
     meth.invoke(obj, noarg);
@@ -74,22 +74,22 @@ myy  = cy.getDeclaredMethod("y", nopar);
 mzc  = cz.getDeclaredMethod("c", nopar);
 mzz  = cz.getDeclaredMethod("z", nopar);
 
-print(maa);
-print(mbb);
-print(mcc);
+//print(maa);
+//print(mbb);
+//print(mcc);
 
-print(mwa);
-print(mwb);
-print(mww);
+//print(mwa);
+//print(mwb);
+//print(mww);
 
-print(mxa);
-print(mxx);
+//print(mxa);
+//print(mxx);
 
-print(myc);
-print(myy);
+//print(myc);
+//print(myy);
 
-print(mzc);
-print(mzz);
+//print(mzc);
+//print(mzz);
 
 
 mc = cc.getInterfaces();

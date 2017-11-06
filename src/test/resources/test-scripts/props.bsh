@@ -6,7 +6,7 @@ source("TestHarness.bsh");
 
 // {} syntax
 b = new java.awt.Button();
-print( b{"name"} );
+//print( b{"name"} );
 b{"name"} = "MyButton!";
 assert( b{"name"}.equals("MyButton!") );
 

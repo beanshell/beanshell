@@ -7,7 +7,7 @@ booga=37;
 foo( arg ) {
     goo=booga;
     run() {
-        print("hello");
+//        print("hello");
         return 42;
     }
     getBooga() {
@@ -24,7 +24,7 @@ save(f, "f.ser");
 
 booga=12;
 
-print("here1");
+//print("here1");
 f2=load("f.ser");
 
 assert( f2.run() == 42 );

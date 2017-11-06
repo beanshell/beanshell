@@ -7,40 +7,40 @@ import java.math.BigDecimal;
 ths = this;
 assert( !(this.namespace instanceof bsh.BlockNameSpace) );
 
-booga() { print("booga"); }
-booga();
-this.booga();
+booga() { return "booga"; }
+assert(booga() == "booga");
+assert(this.booga() == "booga");
 
 if ( true )
 {
-print("here1");
+//print("here1");
   assert( !(this.namespace instanceof bsh.BlockNameSpace) );
   BigDecimal c = new BigDecimal("1.0");
-print("here2");
-  print(c);
-print("here3");
+//print("here2");
+//  print(c);
+//print("here3");
   assert( this.c == void );
   assert( this == ths );
   { // another block
     assert( this == ths );
     assert( this.c == void );
   }
-print("here4");
+//print("here4");
   blockthis = this;
   assert( this == blockthis );
   assert( blockthis == ths );
   this.foo=5;
   assert(foo==5);
   assert(this.foo==5);
-  goo() { print("goo"); }
-  goo();
+  goo() { return "goo"; }
+  assert(goo() == "goo");
   //this.goo(); // doesn't work.  If it's important see NameSpace.java comment.
 }
 
 {
   assert( !(this.namespace instanceof bsh.BlockNameSpace) );
   BigDecimal c = new BigDecimal("1.0");
-  print(c);
+//  print(c);
   assert(this.c==void);
   assert( this == ths );
   blockthis = this;
@@ -62,8 +62,8 @@ void method1()
   {
      assert( this == mthis );
      BigDecimal finalCost1 = new BigDecimal("1.0");
-     print(finalCost1);
-     print(this);
+//     print(finalCost1);
+//     print(this);
   }
 }
 
