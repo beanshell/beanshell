@@ -62,10 +62,11 @@ public class ScriptContextEngineView implements Map<String, Object> {
      * @throws NullPointerException if the key is <tt>null</tt> and this map does
      *                              not permit <tt>null</tt> keys (optional).
      */
-    // Why isn't the compiler allowing this?
-    //public boolean containsKey( String key )
+    @Override
     public boolean containsKey(Object key) {
-        return context.getAttribute((String) key) != null;
+        if (key instanceof String)
+            return context.getAttributesScope((String) key) != -1;
+        return false;
     }
 
 
