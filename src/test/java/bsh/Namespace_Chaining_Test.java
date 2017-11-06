@@ -21,6 +21,7 @@
 package bsh;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.io.StringReader;
@@ -31,7 +32,7 @@ import static org.junit.Assert.assertEquals;
  * <a href="http://code.google.com/p/beanshell2/issues/detail?id=74">Namespace chaining issue</a>
  */
 @RunWith(FilteredTestRunner.class)
-public class Namespace_chaining {
+public class Namespace_Chaining_Test {
 
     @Test
     public void namespace_nesting() throws UtilEvalError {
@@ -48,21 +49,22 @@ public class Namespace_chaining {
 
 
     @Test
+    @Category(KnownIssue.class)
     public void jdownloader_test_case() throws Exception {
         Interpreter root = new Interpreter();
         Interpreter child = new Interpreter(new StringReader(""), System.out, System.err, false, new NameSpace(root.getNameSpace(), "child"));
 
-        // root.eval("int bar=42;");
+        root.eval("int bar=42;");
         child.eval("int bar=4711;");
 
-        root.eval("bar;");  // Correctly prints 42 from root's namepace
-        child.eval("bar;"); // Correctly prints 4711 from child's local namespace
+        assertEquals(42, root.eval("bar;"));
+        assertEquals(4711, child.eval("bar;"));
 
         // Let's declare a method that should refer to the "foo" variable in the parent namespace
-        root.eval("void foo() { System.out.println(\"bar is \" + bar + \". Namespace is \" + this.namespace + \". Parent namespace is \" + this.namespace.getParent()); }");
+        root.eval("int foo() { return bar; }");
 
-        root.eval("foo();"); // Correctly prints 42 from root's namespace as bar is visible inside method
-        System.out.println("child.get(\"bar\") -> " + child.get("bar"));
-        child.eval("foo();"); // Oops. Should print 4711 as the parent namespace of the method's namespace should be child's namespace, but prints 42 instead.
+        assertEquals(42, root.eval("foo();")); 
+
+        assertEquals(4711, child.eval("foo();")); // incorrectly returns 42
     }
 }
