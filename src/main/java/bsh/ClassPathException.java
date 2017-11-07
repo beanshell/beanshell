@@ -29,5 +29,8 @@ package bsh;
 
 public class ClassPathException extends UtilEvalError {
     public ClassPathException( String msg ) { super(msg); }
+    public ClassPathException( String s, Throwable cause ) {
+        super(s,cause);
+    }
 }
 

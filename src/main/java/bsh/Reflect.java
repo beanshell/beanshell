@@ -140,7 +140,7 @@ final class Reflect {
             }
         } catch ( UtilEvalError e ) {
             throw new InterpreterError(
-                "illegal argument type in method invocation: "+e );
+                "illegal argument type in method invocation: "+e, e);
         }
 
         // unwrap any primitives
@@ -176,7 +176,7 @@ final class Reflect {
         catch( ArrayIndexOutOfBoundsException  e1 ) {
             throw new UtilTargetError( e1 );
         } catch(Exception e) {
-            throw new ReflectError("Array access:" + e);
+            throw new ReflectError("Array access:" + e, e);
         }
     }
 
@@ -193,7 +193,7 @@ final class Reflect {
             throw new UtilTargetError(
                 new ArrayStoreException( e1.toString() ) );
         } catch(Exception e) {
-            throw new ReflectError("Array access:" + e);
+            throw new ReflectError("Array access:" + e, e);
         }
     }
 
@@ -283,9 +283,9 @@ final class Reflect {
 
         } catch( NullPointerException e ) { // shouldn't happen
             throw new ReflectError(
-                "???" + fieldName + " is not a static field.");
+                "???" + fieldName + " is not a static field.", e);
         } catch(IllegalAccessException e) {
-            throw new ReflectError("Can't access field: " + fieldName);
+            throw new ReflectError("Can't access field: " + fieldName, e);
         }
     }
 
@@ -618,13 +618,13 @@ final class Reflect {
         try {
             return con.newInstance( args );
         } catch(InstantiationException e) {
-            throw new ReflectError("The class "+clas+" is abstract ");
+            throw new ReflectError("The class "+clas+" is abstract ", e);
         } catch(IllegalAccessException e) {
             throw new ReflectError(
                 "We don't have permission to create an instance."
-                +"Use setAccessibility(true) to enable access." );
+                +"Use setAccessibility(true) to enable access.", e);
         } catch(IllegalArgumentException e) {
-            throw new ReflectError("The number of arguments was wrong");
+            throw new ReflectError("The number of arguments was wrong", e);
         }
     }
 
@@ -826,7 +826,7 @@ final class Reflect {
         catch(InvocationTargetException e)
         {
             throw new UtilEvalError("Property accessor threw exception: "
-                +e.getTargetException() );
+                +e.getTargetException(),  e.getTargetException());
         }
     }
 
@@ -846,7 +846,7 @@ final class Reflect {
         catch ( InvocationTargetException e )
         {
             throw new UtilEvalError("Property accessor threw exception: "
-                +e.getTargetException() );
+                +e.getTargetException(), e.getTargetException());
         }
     }
 

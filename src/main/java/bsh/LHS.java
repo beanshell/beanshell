@@ -141,7 +141,7 @@ class LHS implements ParserConstants, java.io.Serializable
                 Object o = field.get( object );
                 return Primitive.wrap( o, field.getType() );
             } catch(IllegalAccessException e2) {
-                throw new UtilEvalError("Can't read field: " + field);
+                throw new UtilEvalError("Can't read field: " + field, e2);
             }
 
         if ( type == PROPERTY )
@@ -155,7 +155,7 @@ class LHS implements ParserConstants, java.io.Serializable
                     return Reflect.getObjectProperty(object, propName);
                 } catch(ReflectError e) {
                     Interpreter.debug(e.getMessage());
-                    throw new UtilEvalError("No such property: " + propName);
+                    throw new UtilEvalError("No such property: " + propName, e);
                 }
         }
 
@@ -164,7 +164,7 @@ class LHS implements ParserConstants, java.io.Serializable
                 return Reflect.getIndex(object, index);
             }
             catch(Exception e) {
-                throw new UtilEvalError("Array access: " + e);
+                throw new UtilEvalError("Array access: " + e, e);
             }
 
         throw new InterpreterError("LHS type");
@@ -198,11 +198,11 @@ class LHS implements ParserConstants, java.io.Serializable
             }
             catch( NullPointerException e) {
                 throw new UtilEvalError(
-                    "LHS ("+field.getName()+") not a static field.",e);
+                    "LHS ("+field.getName()+") not a static field.", e);
             }
             catch( IllegalAccessException e2) {
                 throw new UtilEvalError(
-                    "LHS ("+field.getName()+") can't access field: "+e2,e2);
+                    "LHS ("+field.getName()+") can't access field: "+e2, e2);
             }
             catch( IllegalArgumentException e3)
             {
@@ -211,7 +211,7 @@ class LHS implements ParserConstants, java.io.Serializable
                     : val.getClass().getName();
                 throw new UtilEvalError(
                     "Argument type mismatch. " + (val == null ? "null" : type )
-                    + " not assignable to field "+field.getName());
+                    + " not assignable to field "+field.getName(), e3);
             }
         }
         else
@@ -226,7 +226,7 @@ class LHS implements ParserConstants, java.io.Serializable
                 }
                 catch(ReflectError e) {
                     Interpreter.debug("Assignment: " + e.getMessage());
-                    throw new UtilEvalError("No such property: " + propName);
+                    throw new UtilEvalError("No such property: " + propName, e);
                 }
         } else
         if ( type == INDEX )
@@ -235,7 +235,7 @@ class LHS implements ParserConstants, java.io.Serializable
             } catch ( UtilTargetError e1 ) { // pass along target error
                 throw e1;
             } catch ( Exception e ) {
-                throw new UtilEvalError("Assignment: " + e.getMessage());
+                throw new UtilEvalError("Assignment: " + e.getMessage(), e);
             }
         else
             throw new InterpreterError("unknown lhs");
