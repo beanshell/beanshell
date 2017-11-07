@@ -1105,7 +1105,8 @@ public class NameSpace
      * @param vec the vec */
     protected void getAllNamesAux(final List<String> vec) {
         vec.addAll(this.variables.keySet());
-        vec.addAll(this.methods.keySet());
+        if ( methods != null )
+            vec.addAll(this.methods.keySet());
         if (this.parent != null)
             this.parent.getAllNamesAux(vec);
     }
