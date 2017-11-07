@@ -70,21 +70,14 @@ public class Capabilities
         {
             accessibility = false;
         } else {
-
-            // test basic access
+            String.class.getDeclaredMethods(); // test basic access
             try {
-                String.class.getDeclaredMethods();
-                try {
-                    final Field field = Capabilities.class.getField("classes");
-                    field.setAccessible(true);
-                    field.setAccessible(false);
-                } catch (NoSuchFieldException e) {
-                    // ignore
-                }
-            } catch ( SecurityException e ) {
-                throw new Unavailable("Accessibility unavailable: "+e, e);
+                final Field field = Capabilities.class.getField("classes");
+                field.setAccessible(true);
+                field.setAccessible(false);
+            } catch (NoSuchFieldException e) {
+                // ignore
             }
-
             accessibility = true;
         }
         BshClassManager.clearResolveCache();
