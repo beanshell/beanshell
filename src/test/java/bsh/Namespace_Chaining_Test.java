@@ -63,7 +63,7 @@ public class Namespace_Chaining_Test {
         // Let's declare a method that should refer to the "foo" variable in the parent namespace
         root.eval("int foo() { return bar; }");
 
-        assertEquals(42, root.eval("foo();")); 
+        assertEquals(42, root.eval("foo();"));
 
         assertEquals(4711, child.eval("foo();")); // incorrectly returns 42
     }
