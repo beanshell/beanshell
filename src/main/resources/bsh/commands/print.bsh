@@ -32,7 +32,7 @@ void print( arg )
         print("}");
     }
     else
-        this.interpreter.println(String.valueOf(arg));
+        this.interpreter.println(java.lang.String.valueOf(arg));
 
 /*
 Do we want to iterate over iterable things?
