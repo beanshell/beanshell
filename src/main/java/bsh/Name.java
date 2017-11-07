@@ -687,7 +687,7 @@ class Name implements java.io.Serializable
             }
         }
         catch( UtilEvalError e ) {
-            throw new UtilEvalError( "LHS evaluation: " + e.getMessage() );
+            throw new UtilEvalError( "LHS evaluation: " + e.getMessage(), e);
         }
 
         // Finished eval and its a class.
@@ -738,7 +738,7 @@ class Name implements java.io.Serializable
                     return lhs;
                 }
             } catch(ReflectError e) {
-                throw new UtilEvalError("Field access: "+e);
+                throw new UtilEvalError("Field access: "+e, e);
             }
         }
 

@@ -74,7 +74,7 @@ public class Capabilities
             try {
                 String.class.getDeclaredMethods();
             } catch ( SecurityException e ) {
-                throw new Unavailable("Accessibility unavailable: "+e);
+                throw new Unavailable("Accessibility unavailable: "+e, e);
             }
 
             accessibility = true;
@@ -121,6 +121,9 @@ public class Capabilities
     public static class Unavailable extends UtilEvalError
     {
         public Unavailable(String s ){ super(s); }
+        public Unavailable( String s, Throwable cause ) {
+            super(s,cause);
+        }
     }
 }
 
