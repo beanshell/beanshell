@@ -288,7 +288,7 @@ class BSHPrimarySuffix extends SimpleNode
         }
         catch (ReflectError e)
         {
-            throw new EvalError("No such property: " + value, this, callstack );
+            throw new EvalError("No such property: " + value, this, callstack, e);
         }
     }
 }

@@ -157,7 +157,7 @@ class BSHType extends SimpleNode
                 type = obj.getClass();
             } catch(Exception e) {
                 throw new EvalError("Couldn't construct array type",
-                    this, callstack );
+                    this, callstack, e);
             }
         } else
             type = baseType;

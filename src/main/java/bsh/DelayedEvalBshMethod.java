@@ -82,7 +82,7 @@ public class DelayedEvalBshMethod extends BshMethod
         try {
             return returnTypeNode.evalReturnType( callstack, interpreter );
         } catch ( EvalError e ) {
-            throw new InterpreterError("can't eval return type: "+e);
+            throw new InterpreterError("can't eval return type: "+e, e);
         }
     }
 
@@ -94,7 +94,7 @@ public class DelayedEvalBshMethod extends BshMethod
         try {
             return (Class [])paramTypesNode.eval( callstack, interpreter );
         } catch ( EvalError e ) {
-            throw new InterpreterError("can't eval param types: "+e);
+            throw new InterpreterError("can't eval param types: "+e, e);
         }
     }
 }

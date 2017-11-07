@@ -84,7 +84,7 @@ public final class ClassGenerator {
         try {
             Capabilities.setAccessibility(true);
         } catch (Capabilities.Unavailable e) {
-            throw new EvalError("Defining classes currently requires reflective Accessibility.", block, callstack);
+            throw new EvalError("Defining classes currently requires reflective Accessibility.", block, callstack, e);
         }
 
         NameSpace enclosingNameSpace = callstack.top();
@@ -144,7 +144,7 @@ public final class ClassGenerator {
         try {
             classStaticNameSpace.setLocalVariable(ClassGeneratorUtil.BSHINIT, block, false/*strictJava*/);
         } catch (UtilEvalError e) {
-            throw new InterpreterError("unable to init static: " + e);
+            throw new InterpreterError("unable to init static: " + e, e);
         }
 
         // Give the static space its class static import
@@ -163,7 +163,7 @@ public final class ClassGenerator {
                 LHS lhs = Reflect.getLHSStaticField(genClass, bshStaticFieldName);
                 lhs.assign(classStaticNameSpace.getThis(interpreter), false/*strict*/);
             } catch (Exception e) {
-                throw new InterpreterError("Error in class gen setup: " + e);
+                throw new InterpreterError("Error in class gen setup: " + e, e);
             }
         }
 

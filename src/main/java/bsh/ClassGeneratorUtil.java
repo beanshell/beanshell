@@ -178,7 +178,7 @@ public class ClassGeneratorUtil implements Constants {
         try {
             classStaticNameSpace.setLocalVariable(BSHCONSTRUCTORS, constructors, false/*strict*/);
         } catch (UtilEvalError e) {
-            throw new InterpreterError("can't set cons var");
+            throw new InterpreterError("can't set cons var", e);
         }
 
         this.isInterface = isInterface;
@@ -199,7 +199,7 @@ public class ClassGeneratorUtil implements Constants {
             classStaticNameSpace.setLocalVariable(BSHCONSTRUCTORS, constructors, false/*strict*/);
             classStaticNameSpace.setLocalVariable(BSHINIT, instanceInitBlock, false/*strict*/);
         } catch (UtilEvalError e) {
-            throw new InterpreterError("Unable to init class static block: " + e);
+            throw new InterpreterError("Unable to init class static block: " + e, e);
         }
     }
 
@@ -826,7 +826,7 @@ public class ClassGeneratorUtil implements Constants {
                 throw new InterpreterError("Unable to find constructors array in class");
             constructors = (DelayedEvalBshMethod[]) cons;
         } catch (Exception e) {
-            throw new InterpreterError("Unable to get instance initializers: " + e);
+            throw new InterpreterError("Unable to get instance initializers: " + e, e);
         }
 
         if (index == DEFAULTCONSTRUCTOR) { // auto-gen default constructor
@@ -868,7 +868,7 @@ public class ClassGeneratorUtil implements Constants {
             try {
                 consArgsNameSpace.setTypedVariable(consArgNames[i], consArgTypes[i], consArgs[i], null/*modifiers*/);
             } catch (UtilEvalError e) {
-                throw new InterpreterError("err setting local cons arg:" + e);
+                throw new InterpreterError("err setting local cons arg:" + e, e);
             }
         }
 
@@ -882,7 +882,7 @@ public class ClassGeneratorUtil implements Constants {
         try {
             args = argsNode.getArguments(callstack, interpreter);
         } catch (EvalError e) {
-            throw new InterpreterError("Error evaluating constructor args: " + e);
+            throw new InterpreterError("Error evaluating constructor args: " + e, e);
         }
 
         Class[] argTypes = Types.getTypes(args);
@@ -981,7 +981,7 @@ public class ClassGeneratorUtil implements Constants {
             try {
                 instanceInitBlock = (BSHBlock) classStaticThis.getNameSpace().getVariable(BSHINIT);
             } catch (Exception e) {
-                throw new InterpreterError("unable to get instance initializer: " + e);
+                throw new InterpreterError("unable to get instance initializer: " + e, e);
             }
 
             // Create the instance namespace
@@ -999,7 +999,7 @@ public class ClassGeneratorUtil implements Constants {
                 LHS lhs = Reflect.getLHSObjectField(instance, BSHTHIS + className);
                 lhs.assign(instanceThis, false/*strict*/);
             } catch (Exception e) {
-                throw new InterpreterError("Error in class gen setup: " + e);
+                throw new InterpreterError("Error in class gen setup: " + e, e);
             }
 
             // Give the instance space its object import
@@ -1047,7 +1047,7 @@ public class ClassGeneratorUtil implements Constants {
             if (e instanceof InvocationTargetException) {
                 e = (Exception) ((InvocationTargetException) e).getTargetException();
             }
-            throw new InterpreterError("Error in class initialization: " + e);
+            throw new InterpreterError("Error in class initialization: " + e, e);
         }
     }
 
@@ -1072,7 +1072,7 @@ public class ClassGeneratorUtil implements Constants {
         try {
             return (This) Reflect.getStaticFieldValue(clas, BSHSTATIC + className);
         } catch (Exception e) {
-            throw new InterpreterError("Unable to get class static space: " + e);
+            throw new InterpreterError("Unable to get class static space: " + e, e);
         }
     }
 
@@ -1086,7 +1086,7 @@ public class ClassGeneratorUtil implements Constants {
             Object o = Reflect.getObjectFieldValue(instance, BSHTHIS + className);
             return (This) Primitive.unwrap(o); // unwrap Primitive.Null to null
         } catch (Exception e) {
-            throw new InterpreterError("Generated class: Error getting This" + e);
+            throw new InterpreterError("Generated class: Error getting This" + e, e);
         }
     }
 

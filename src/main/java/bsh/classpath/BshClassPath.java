@@ -598,7 +598,7 @@ public class BshClassPath
                 urls[i] = new File(
                     new File(paths[i]).getCanonicalPath() ).toURI().toURL();
         } catch ( IOException e ) {
-            throw new ClassPathException("can't parse class path: "+e);
+            throw new ClassPathException("can't parse class path: "+e, e);
         }
 
         userClassPathComp = urls;
@@ -672,7 +672,7 @@ public class BshClassPath
                 bootClassPath = new BshClassPath(
                     "Boot Class Path", new URL[] { url } );
             } catch ( MalformedURLException e ) {
-                throw new ClassPathException(" can't find boot jar: "+e);
+                throw new ClassPathException(" can't find boot jar: "+e, e);
             }
         }
         return bootClassPath;
@@ -741,7 +741,7 @@ public class BshClassPath
                 dis.readFully( bytes );
                 dis.close();
             } catch(IOException ie ) {
-                throw new RuntimeException("Couldn't load file: "+file);
+                throw new RuntimeException("Couldn't load file: "+file, ie);
             }
 
             return bytes;
