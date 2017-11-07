@@ -93,11 +93,11 @@ public class BeanShellBSFEngine extends BSFEngineImpl
                 return Primitive.unwrap( value );
             } catch ( InterpreterError e )
             {
-                throw new BSFException(BSFException.REASON_UNKNOWN_LANGUAGE, 
+                throw new BSFException(BSFException.REASON_UNKNOWN_LANGUAGE,
                     "BeanShell interpreter internal error: "+e, e);
             } catch ( TargetError e2 )
             {
-                throw new BSFException(BSFException.REASON_EXECUTION_ERROR, 
+                throw new BSFException(BSFException.REASON_EXECUTION_ERROR,
                     "The application script threw an exception: "
                     + e2.getTarget(), e2 );
             } catch ( EvalError e3 )
@@ -163,18 +163,18 @@ public class BeanShellBSFEngine extends BSFEngineImpl
 
         } catch ( InterpreterError e )
         {
-            throw new BSFException(BSFException.REASON_UNKNOWN_LANGUAGE, 
+            throw new BSFException(BSFException.REASON_UNKNOWN_LANGUAGE,
                 "BeanShell interpreter internal error: "+e
                 + sourceInfo(source,lineNo,columnNo), e);
         } catch ( TargetError e2 )
         {
-            throw new BSFException(BSFException.REASON_EXECUTION_ERROR, 
+            throw new BSFException(BSFException.REASON_EXECUTION_ERROR,
                 "The application script threw an exception: "
                 + e2.getTarget()
                 + sourceInfo(source,lineNo,columnNo), e2);
         } catch ( EvalError e3 )
         {
-            throw new BSFException(BSFException.REASON_OTHER_ERROR, 
+            throw new BSFException(BSFException.REASON_OTHER_ERROR,
                 "BeanShell script error: "+e3
                 + sourceInfo(source,lineNo,columnNo), e3);
         }
@@ -191,18 +191,18 @@ public class BeanShellBSFEngine extends BSFEngineImpl
             return interpreter.eval( ((String)expr) );
         } catch ( InterpreterError e )
         {
-            throw new BSFException(BSFException.REASON_UNKNOWN_LANGUAGE, 
+            throw new BSFException(BSFException.REASON_UNKNOWN_LANGUAGE,
                 "BeanShell interpreter internal error: "+e
                 + sourceInfo(source,lineNo,columnNo), e);
         } catch ( TargetError e2 )
         {
-            throw new BSFException(BSFException.REASON_EXECUTION_ERROR, 
+            throw new BSFException(BSFException.REASON_EXECUTION_ERROR,
                 "The application script threw an exception: "
                 + e2.getTarget()
                 + sourceInfo(source,lineNo,columnNo), e2);
         } catch ( EvalError e3 )
         {
-            throw new BSFException(BSFException.REASON_OTHER_ERROR, 
+            throw new BSFException(BSFException.REASON_OTHER_ERROR,
                 "BeanShell script error: "+e3
                 + sourceInfo(source,lineNo,columnNo), e3);
         }
