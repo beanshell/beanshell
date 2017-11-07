@@ -192,7 +192,7 @@ class LHS implements ParserConstants, java.io.Serializable
                     ((Primitive)val).getValue() : val;
 
                 // This should probably be in Reflect.java
-                field.setAccessible(true);
+                Reflect.setAccessible(field);
                 field.set( object, fieldVal );
                 return val;
             }
