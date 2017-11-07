@@ -281,7 +281,7 @@ class Types
             ) == VALID_CAST;
         } catch ( UtilEvalError e ) {
             // This should not happen with checkOnly true
-            throw new InterpreterError("err in cast check: "+e);
+            throw new InterpreterError("err in cast check: "+e, e);
         }
     }
 

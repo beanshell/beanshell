@@ -118,7 +118,7 @@ class BSHAllocationExpression extends SimpleNode
             obj = Reflect.constructObject( type, args );
         } catch ( ReflectError e) {
             throw new EvalError(
-                "Constructor error: " + e.getMessage(), this, callstack );
+                "Constructor error: " + e.getMessage(), this, callstack, e);
         } catch (InvocationTargetException e) {
             // No need to wrap this debug
             Interpreter.debug("The constructor threw an exception:\n\t" + e.getTargetException());
@@ -287,7 +287,7 @@ class BSHAllocationExpression extends SimpleNode
             throw new TargetError( e1, this, callstack );
         } catch( Exception e ) {
             throw new EvalError("Can't construct primitive array: " +
-                e.getMessage(), this, callstack);
+                e.getMessage(), this, callstack, e);
         }
     }
 }
