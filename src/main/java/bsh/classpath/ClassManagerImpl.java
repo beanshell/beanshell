@@ -246,6 +246,10 @@ public class ClassManagerImpl extends BshClassManager
 */
             }
 
+        // Try scripted class
+        if ( c == null )
+            c = loadSourceClass( name );
+
         // Cache result (or null for not found)
         cacheClassInfo( name, c );
 
