@@ -28,17 +28,17 @@ public class Issue_55_Test {
         externalNameSpace.setVariable("a", Primitive.NULL, false);
         assertTrue("map should contain variable 'a'", externalNameSpace.getMap().containsKey("a"));
         assertNull("variable 'a' should have value <NULL>", externalNameSpace.getMap().get("a"));
-	}
+    }
 
-	@Test
-	public void check_ParseExceptionLineNumber() throws Exception {
-		final String script = "print(\"test\";";
-		try {
-			new BshScriptEngineFactory().getScriptEngine().eval(script);
-			fail("expected script exception");
-		} catch (ScriptException e) {
-			assertEquals(1, e.getLineNumber());
-		}
+    @Test
+    public void check_ParseExceptionLineNumber() throws Exception {
+        final String script = "print(\"test\";";
+        try {
+            new BshScriptEngineFactory().getScriptEngine().eval(script);
+            fail("expected script exception");
+        } catch (ScriptException e) {
+            assertEquals(1, e.getLineNumber());
+        }
     }
 
 }
