@@ -715,7 +715,7 @@ public class Interpreter
                 e.printStackTrace();
                 throw new EvalError(
                     "Sourced file: "+sourceFileInfo+" internal Error: "
-                    + e.getMessage(), node, callstack);
+                    + e.getMessage(), node, callstack, e);
             } catch ( TargetError e ) {
                 // failsafe, set the Line as the origin of the error.
                 if ( e.getNode()==null )
@@ -737,7 +737,7 @@ public class Interpreter
             } catch(TokenMgrError e) {
                 throw new EvalError(
                     "Sourced file: "+sourceFileInfo+" Token Parsing Error: "
-                    + e.getMessage(), node, callstack );
+                    + e.getMessage(), node, callstack, e);
             } finally {
                 localInterpreter.get_jjtree().reset();
 
@@ -879,7 +879,7 @@ public class Interpreter
         try {
             return get( name );
         } catch ( EvalError e ) {
-            throw new InterpreterError("set: "+e);
+            throw new InterpreterError("set: "+e, e);
         }
     }
 
@@ -915,7 +915,7 @@ public class Interpreter
         try {
             set(name, value);
         } catch ( EvalError e ) {
-            throw new InterpreterError("set: "+e);
+            throw new InterpreterError("set: "+e, e);
         }
     }
 
@@ -953,13 +953,13 @@ public class Interpreter
 
             if ( lhs.type != LHS.VARIABLE )
                 throw new EvalError("Can't unset, not a variable: "+name,
-                    SimpleNode.JAVACODE, new CallStack() );
+                    SimpleNode.JAVACODE, new CallStack());
 
             //lhs.assign( null, false );
             lhs.nameSpace.unsetVariable( name );
         } catch ( UtilEvalError e ) {
             throw new EvalError( e.getMessage(),
-                SimpleNode.JAVACODE, new CallStack() );
+                SimpleNode.JAVACODE, new CallStack(), e);
         }
     }
 

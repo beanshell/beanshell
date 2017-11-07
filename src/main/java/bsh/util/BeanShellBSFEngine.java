@@ -52,7 +52,7 @@ public class BeanShellBSFEngine extends BSFEngineImpl
         try {
             interpreter.set( "bsf", mgr );
         } catch ( EvalError e ) {
-            throw new BSFException("bsh internal error: "+e.toString());
+            throw new BSFException(BSFException.REASON_OTHER_ERROR, "bsh internal error: "+e, e);
         }
 
         for(int i=0; i<declaredBeans.size(); i++)
@@ -83,7 +83,7 @@ public class BeanShellBSFEngine extends BSFEngineImpl
             try {
                 object = interpreter.get("global");
             } catch ( EvalError e ) {
-                throw new BSFException("bsh internal error: "+e.toString());
+                throw new BSFException(BSFException.REASON_OTHER_ERROR, "bsh internal error: "+e, e);
             }
 
         if ( object instanceof bsh.This )
@@ -93,16 +93,16 @@ public class BeanShellBSFEngine extends BSFEngineImpl
                 return Primitive.unwrap( value );
             } catch ( InterpreterError e )
             {
-                throw new BSFException(
-                    "BeanShell interpreter internal error: "+e );
+                throw new BSFException(BSFException.REASON_UNKNOWN_LANGUAGE, 
+                    "BeanShell interpreter internal error: "+e, e);
             } catch ( TargetError e2 )
             {
-                throw new BSFException(
+                throw new BSFException(BSFException.REASON_EXECUTION_ERROR, 
                     "The application script threw an exception: "
-                    + e2.getTarget() );
+                    + e2.getTarget(), e2 );
             } catch ( EvalError e3 )
             {
-                throw new BSFException( "BeanShell script error: "+e3 );
+                throw new BSFException(BSFException.REASON_OTHER_ERROR, "BeanShell script error: "+e3, e3);
             }
         else
             throw new BSFException(
@@ -163,20 +163,20 @@ public class BeanShellBSFEngine extends BSFEngineImpl
 
         } catch ( InterpreterError e )
         {
-            throw new BSFException(
+            throw new BSFException(BSFException.REASON_UNKNOWN_LANGUAGE, 
                 "BeanShell interpreter internal error: "+e
-                + sourceInfo(source,lineNo,columnNo) );
+                + sourceInfo(source,lineNo,columnNo), e);
         } catch ( TargetError e2 )
         {
-            throw new BSFException(
+            throw new BSFException(BSFException.REASON_EXECUTION_ERROR, 
                 "The application script threw an exception: "
                 + e2.getTarget()
-                + sourceInfo(source,lineNo,columnNo) );
+                + sourceInfo(source,lineNo,columnNo), e2);
         } catch ( EvalError e3 )
         {
-            throw new BSFException(
+            throw new BSFException(BSFException.REASON_OTHER_ERROR, 
                 "BeanShell script error: "+e3
-                + sourceInfo(source,lineNo,columnNo) );
+                + sourceInfo(source,lineNo,columnNo), e3);
         }
     }
 
@@ -191,20 +191,20 @@ public class BeanShellBSFEngine extends BSFEngineImpl
             return interpreter.eval( ((String)expr) );
         } catch ( InterpreterError e )
         {
-            throw new BSFException(
+            throw new BSFException(BSFException.REASON_UNKNOWN_LANGUAGE, 
                 "BeanShell interpreter internal error: "+e
-                + sourceInfo(source,lineNo,columnNo) );
+                + sourceInfo(source,lineNo,columnNo), e);
         } catch ( TargetError e2 )
         {
-            throw new BSFException(
+            throw new BSFException(BSFException.REASON_EXECUTION_ERROR, 
                 "The application script threw an exception: "
                 + e2.getTarget()
-                + sourceInfo(source,lineNo,columnNo) );
+                + sourceInfo(source,lineNo,columnNo), e2);
         } catch ( EvalError e3 )
         {
-            throw new BSFException(
+            throw new BSFException(BSFException.REASON_OTHER_ERROR, 
                 "BeanShell script error: "+e3
-                + sourceInfo(source,lineNo,columnNo) );
+                + sourceInfo(source,lineNo,columnNo), e3);
         }
     }
 
@@ -248,8 +248,8 @@ public class BeanShellBSFEngine extends BSFEngineImpl
         try {
             interpreter.set( bean.name, bean.bean);
         } catch ( EvalError e ) {
-            throw new BSFException( "error declaring bean: "+bean.name
-            +" : "+e.toString() );
+            throw new BSFException(BSFException.REASON_OTHER_ERROR, "error declaring bean: "+bean.name
+            +" : "+e, e);
         }
     }
 
@@ -259,7 +259,7 @@ public class BeanShellBSFEngine extends BSFEngineImpl
         try {
             interpreter.unset( bean.name );
         } catch ( EvalError e ) {
-            throw new BSFException("bsh internal error: "+e.toString());
+            throw new BSFException(BSFException.REASON_OTHER_ERROR, "bsh internal error: "+e, e);
         }
     }
 

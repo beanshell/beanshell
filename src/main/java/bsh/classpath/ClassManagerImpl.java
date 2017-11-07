@@ -497,7 +497,7 @@ public class ClassManagerImpl extends BshClassManager
             //getClassPath().setNameCompletionIncludeUnqNames(true);
 
         } catch ( ClassPathException e ) {
-            throw new UtilEvalError("Error importing classpath "+ e );
+            throw new UtilEvalError("Error importing classpath "+ e, e);
         }
 
         superImport = true;
@@ -564,7 +564,7 @@ public class ClassManagerImpl extends BshClassManager
         try {
             reloadClasses( new String [] { name } );
         } catch ( ClassPathException e ) {
-            throw new bsh.InterpreterError("defineClass: "+e);
+            throw new bsh.InterpreterError("defineClass: "+e, e);
         }
         return classForName( name );
     }

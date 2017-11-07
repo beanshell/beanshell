@@ -288,7 +288,7 @@ public class NameSpace
                 existing.setValue(value, Variable.ASSIGNMENT);
             } catch (final UtilEvalError e) {
                 throw new UtilEvalError(
-                        "Variable assignment: " + name + ": " + e.getMessage());
+                        "Variable assignment: " + name + ": " + e.getMessage(), e);
             }
             return existing;
         } else {
@@ -384,7 +384,7 @@ public class NameSpace
                 existing.setValue(value, Variable.ASSIGNMENT);
             } catch (final UtilEvalError e) {
                 throw new UtilEvalError(
-                        "Variable assignment: " + name + ": " + e.getMessage());
+                        "Variable assignment: " + name + ": " + e.getMessage(), e);
             }
         else {
             // No previous variable definition found here (or above if recurse)
@@ -952,7 +952,7 @@ public class NameSpace
              * using it as a tool to load the command, not as part of the
              * execution path. */
             Interpreter.debug(e.toString());
-            throw new UtilEvalError("Error loading script: " + e.getMessage());
+            throw new UtilEvalError("Error loading script: " + e.getMessage(), e);
         }
         // Look for the loaded command
         final BshMethod meth = this.getMethod(name, argTypes);
@@ -1361,7 +1361,7 @@ public class NameSpace
             } catch (final EvalError ee) {
                 throw new UtilEvalError(
                         "'This' property accessor threw exception: "
-                                + ee.getMessage());
+                                + ee.getMessage(), ee);
             }
         return false;
     }
@@ -1387,7 +1387,7 @@ public class NameSpace
             return Primitive.VOID;
         } catch (final EvalError ee) {
             throw new UtilEvalError("'This' property accessor threw exception: "
-                    + ee.getMessage());
+                    + ee.getMessage(), ee);
         }
     }
 

@@ -118,7 +118,7 @@ public final class TargetError extends EvalError
             i.set("target", t);
             return (String)i.eval( getTarget );
         } catch ( EvalError e ) {
-            throw new InterpreterError("xprintarget: "+e.toString() );
+            throw new InterpreterError("xprintarget: "+e, e);
         }
     }
 
