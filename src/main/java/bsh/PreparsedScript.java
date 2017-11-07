@@ -58,7 +58,8 @@ public class PreparsedScript {
         final BshMethod method = new BshMethod(_method.getName(), _method.getReturnType(), _method.getParameterNames(), _method.getParameterTypes(), _method.methodBody, nameSpace, _method.getModifiers());
         for (final Map.Entry<String, ?> entry : context.entrySet()) {
             try {
-                nameSpace.setVariable(entry.getKey(), entry.getValue(), false);
+                final Object value = entry.getValue();
+                nameSpace.setVariable(entry.getKey(), value != null ? value : Primitive.NULL, false);
             } catch (final UtilEvalError e) {
                 throw new EvalError("cannot set variable '" + entry.getKey() + '\'', null, null, e);
             }
