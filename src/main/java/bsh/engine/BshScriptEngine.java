@@ -1,6 +1,10 @@
 package bsh.engine;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.script.*;
 import bsh.*;
@@ -134,45 +138,87 @@ public class BshScriptEngine extends AbstractScriptEngine
 		return factory;
 	}
 
-	/**
-	 * Compiles the script (source represented as a <code>String</code>) for later
+    /**
+	 * Compiles the script (source represented as a {@code String}) for later
 	 * execution.
 	 *
-	 * @param script The source of the script, represented as a
-	 * <code>String</code>.
-	 *
-	 * @return An subclass of <code>CompiledScript</code> to be executed later
-	 *         using one of the <code>eval</code> methods of <code>CompiledScript</code>.
-	 *
-	 * @throws ScriptException if compilation fails.
+	 * @param script The source of the script, represented as a {@code String}.
+	 * @return An subclass of {@code CompiledScript} to be executed later
+	 *         using one of the {@code eval} methods of {@code CompiledScript}.
+	 * @throws ScriptException	  if compilation fails.
 	 * @throws NullPointerException if the argument is null.
 	 */
 
-	public CompiledScript compile( String script ) throws
-		ScriptException
-	{
-		return compile( new StringReader( script ) );
+	public CompiledScript compile(String script) throws ScriptException {
+		try {
+			final PreparsedScript preparsed = new PreparsedScript(script);
+			return new CompiledScript() {
+
+				@Override
+				public Object eval(ScriptContext context) throws ScriptException {
+					final HashMap<String, Object> map = new HashMap<String, Object>();
+					final List<Integer> scopes = new ArrayList<Integer>(context.getScopes());
+					Collections.sort(scopes); // lowest scope at first pos
+					Collections.reverse(scopes); // highest scope at first pos
+					for (final Integer scope : scopes) {
+						map.putAll(context.getBindings(scope));
+					}
+					preparsed.setOut(toPrintStream(context.getWriter()));
+					preparsed.setErr(toPrintStream(context.getErrorWriter()));
+					try {
+						return preparsed.invoke(map);
+					} catch (final EvalError e) {
+						throw constructScriptException(e);
+					}
+				}
+
+
+				@Override
+				public ScriptEngine getEngine() {
+					return BshScriptEngine.this;
+				}
+
+			};
+		} catch (final EvalError e) {
+			throw constructScriptException(e);
+		}
 	}
 
+
+	private ScriptException constructScriptException(final EvalError e) {
+		return new ScriptException(e.getMessage(), e.getErrorSourceFile(), e.getErrorLineNumber());
+	}
+
+
+	private static String convertToString(Reader reader) throws IOException {
+		final StringBuffer buffer = new StringBuffer(64);
+		char[] cb = new char[64];
+		int len;
+		while ((len = reader.read(cb)) != -1) {
+			buffer.append(cb, 0, len);
+		}
+		return buffer.toString();
+	}
+
+	
 	/**
-	 * Compiles the script (source read from <code>Reader</code>) for later
-	 * execution.  Functionality is identical to <code>compile(String)</code> other
+	 * Compiles the script (source read from {@code Reader}) for later
+	 * execution.  Functionality is identical to {@code compile(String)} other
 	 * than the way in which the source is passed.
 	 *
 	 * @param script The reader from which the script source is obtained.
-	 *
-	 * @return An implementation of <code>CompiledScript</code> to be executed
-	 *         later using one of its <code>eval</code> methods of
-	 *         <code>CompiledScript</code>.
-	 *
-	 * @throws ScriptException if compilation fails.
+	 * @return An implementation of {@code CompiledScript} to be executed
+	 *         later using one of its {@code eval} methods of
+	 *         {@code CompiledScript}.
+	 * @throws ScriptException	  if compilation fails.
 	 * @throws NullPointerException if argument is null.
 	 */
-	public CompiledScript compile( Reader script ) throws
-		ScriptException
-	{
-		// todo
-		throw new Error("unimplemented");
+	public CompiledScript compile(Reader script) throws ScriptException {
+		try {
+			return compile(convertToString(script));
+		} catch (IOException e) {
+			throw new ScriptException(e);
+		}
 	}
 
 	/**
@@ -341,4 +387,8 @@ public class BshScriptEngine extends AbstractScriptEngine
 		}
 	}
 
+	private PrintStream toPrintStream(final Writer writer) {
+		// This is a big hack, convert writer to PrintStream
+		return new PrintStream(new WriterOutputStream(writer));
+	}
 }
