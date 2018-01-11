@@ -90,7 +90,7 @@ public class TestBshScriptEngine
 		String line = bin.readLine();
 		assertTrue( line.equals( outString ));
 		new File(fname).delete();
-
+		jsr223Test(engine); 
 		// compile
 		// ...
 
@@ -98,6 +98,16 @@ public class TestBshScriptEngine
 
 	}
 
+	private static void jsr223Test(ScriptEngine engine) throws FileNotFoundException, ScriptException {
+		String scriptFile = "scripts" + File.separator + "testcompilable.bsh";
+		// add JSR223 test
+		BufferedReader fileReader = new BufferedReader(new FileReader(scriptFile),
+                (int) scriptFile.length());
+		CompiledScript compiledScript = ((Compilable) engine).compile(fileReader);       
+        Integer result = (Integer)compiledScript.eval();		
+		assertTrue(4 == result);
+	}
+	
 	static void assertTrue( boolean cond )
 	{
 		if ( cond )
