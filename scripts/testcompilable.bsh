@@ -1,0 +1,2 @@
+System.out.println("I'm compiled script");
+2*2;
