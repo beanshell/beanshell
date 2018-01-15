@@ -166,10 +166,10 @@ public class NameSpace
 		this( parent, null, name );
 	}
 
-//    public NameSpace( BshClassManager classManager, String name )
-//	{
-//		this( null, classManager, name );
-//	}
+    public NameSpace( BshClassManager classManager, String name )
+	{
+		this( null, classManager, name );
+	}
 
     public NameSpace( 
 		NameSpace parent, BshClassManager classManager, String name ) 
