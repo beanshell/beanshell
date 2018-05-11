@@ -22,8 +22,10 @@ package bsh;
 
 import static bsh.TestUtil.eval;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.concurrent.Callable;
 import java.util.function.IntSupplier;
 
 import org.junit.Test;
@@ -38,6 +40,12 @@ public class ClassGeneratorTest {
         eval("class X1 {}");
     }
 
+    @Test
+    public void creating_class_should_not_set_accessibility() throws Exception {
+        assertFalse("pre: no accessibility should be set", Capabilities.haveAccessibility());
+        TestUtil.eval("class X1 {}");
+        assertFalse("post: no accessibility should be set", Capabilities.haveAccessibility());
+    }
 
     @Test
     public void create_instance() throws Exception {
@@ -53,13 +61,38 @@ public class ClassGeneratorTest {
     public void constructor_args() throws Exception {
         final Object[] oa = (Object[]) eval(
             "class X3 implements IntSupplier {",
-                "Object _instanceVar;",
+                "final Object _instanceVar;",
                 "public X3(Object arg) { _instanceVar = arg; }",
                 "public int getAsInt() { return _instanceVar; }",
             "}",
             "return new Object[] { new X3(0), new X3(1) } ");
         assertEquals(0, ( (IntSupplier) oa[0] ).getAsInt());
         assertEquals(1, ( (IntSupplier) oa[1] ).getAsInt());
+    }
+
+
+    @Test
+    public void call_protected_constructor_from_script() throws Exception {
+        final Object[] oa = (Object[]) TestUtil.eval(
+            "class X4 implements java.util.concurrent.Callable {",
+                "final Object _instanceVar;",
+                "X4(Object arg) { _instanceVar = arg; }",
+                "public Object call() { return _instanceVar; }",
+            "}",
+            "return new Object[] { new X4(0), new X4(1) } ");
+        assertEquals(0, ( (Callable) oa[0] ).call());
+        assertEquals(1, ( (Callable) oa[1] ).call());
+    }
+
+
+    @Test ( expected = TargetError.class)
+    public void assignment_to_final_field_should_not_be_allowed() throws Exception {
+        TestUtil.eval(
+            "class X3 implements java.util.concurrent.Callable {",
+                "final Object _instanceVar = null;",
+                "public X3(Object arg) { _instanceVar = arg; }",
+            "}",
+            "return new Object[] { new X3(0), new X3(1) } ");
     }
 
 

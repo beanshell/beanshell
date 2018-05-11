@@ -283,13 +283,8 @@ public class NameSpace
         // Locate the variable definition if it exists.
         final Variable existing = this.getVariableImpl(name, recurse);
         // Found an existing variable here (or above if recurse allowed)
-        if (existing != null) {
-            try {
-                existing.setValue(value, Variable.ASSIGNMENT);
-            } catch (final UtilEvalError e) {
-                throw new UtilEvalError(
-                        "Variable assignment: " + name + ": " + e.getMessage(), e);
-            }
+        if ( existing != null ) {
+            existing.setValue( value, Variable.ASSIGNMENT );
             return existing;
         } else {
             // No previous variable definition found here (or above if recurse)
