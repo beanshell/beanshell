@@ -79,6 +79,7 @@ public class ClassGeneratorTest {
                 "X4(Object arg) { _instanceVar = arg; }",
                 "public Object call() { return _instanceVar; }",
             "}",
+            "setAccessibility(false);",
             "return new Object[] { new X4(0), new X4(1) } ");
         assertEquals(0, ( (Callable) oa[0] ).call());
         assertEquals(1, ( (Callable) oa[1] ).call());
