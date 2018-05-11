@@ -139,6 +139,10 @@ public class OldScriptsTest {
         /** {@inheritDoc} */
         @Override
         public void runTest() throws Exception {
+            // fields still need to be made public
+            // setAccessibility added to pass tests
+            Capabilities.setAccessibility(true);
+
             Assume.assumeFalse("skipping test " + getName(), SKIP_KNOWN_ISSUES
                     && KNOWN_FAILING_TESTS.contains(getName()));
 
