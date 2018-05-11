@@ -93,94 +93,93 @@ class BSHTryStatement extends SimpleNode
 
 
         // If we have an exception, find a catch
-        if (thrown != null)
-        {
-            int n = catchParams.size();
-            for(i=0; i<n; i++)
+		try {
+            if (thrown != null)
             {
-                // Get catch block
-                BSHFormalParameter fp = catchParams.get(i);
+                int n = catchParams.size();
+                for(i=0; i<n; i++)
+                {
+                    // Get catch block
+                    BSHFormalParameter fp = catchParams.get(i);
 
-                // Should cache this subject to classloader change message
-                // Evaluation of the formal parameter simply resolves its
-                // type via the specified namespace.. it doesn't modify the
-                // namespace.
-                fp.eval( callstack, interpreter );
+                    // Should cache this subject to classloader change message
+                    // Evaluation of the formal parameter simply resolves its
+                    // type via the specified namespace.. it doesn't modify the
+                    // namespace.
+                    fp.eval( callstack, interpreter );
 
-                if ( fp.type == null && interpreter.getStrictJava() )
-                    throw new EvalError(
-                        "(Strict Java) Untyped catch block", this, callstack );
+                    if ( fp.type == null && interpreter.getStrictJava() )
+                        throw new EvalError(
+                            "(Strict Java) Untyped catch block", this, callstack );
 
-                // If the param is typed check assignability
-                if ( fp.type != null )
+                    // If the param is typed check assignability
+                    if ( fp.type != null )
+                        try {
+                            thrown = (Throwable)Types.castObject(
+                                thrown/*rsh*/, fp.type/*lhsType*/, Types.ASSIGNMENT );
+                        } catch( UtilEvalError e ) {
+                            /*
+                                Catch the mismatch and continue to try the next
+                                Note: this is innefficient, should have an
+                                isAssignableFrom() that doesn't throw
+                                // TODO: we do now have a way to test assignment
+                                //  in castObject(), use it?
+                            */
+                            continue;
+                        }
+
+                    // Found match, execute catch block
+                    BSHBlock cb = catchBlocks.get(i);
+
+                    // Prepare to execute the block.
+                    // We must create a new BlockNameSpace to hold the catch
+                    // parameter and swap it on the stack after initializing it.
+
+                    NameSpace enclosingNameSpace = callstack.top();
+                    BlockNameSpace cbNameSpace =
+                        new BlockNameSpace( enclosingNameSpace );
+
                     try {
-                        thrown = (Throwable)Types.castObject(
-                            thrown/*rsh*/, fp.type/*lhsType*/, Types.ASSIGNMENT );
-                    } catch( UtilEvalError e ) {
-                        /*
-                            Catch the mismatch and continue to try the next
-                            Note: this is innefficient, should have an
-                            isAssignableFrom() that doesn't throw
-                            // TODO: we do now have a way to test assignment
-                            //  in castObject(), use it?
-                        */
-                        continue;
+                        if ( fp.type == BSHFormalParameter.UNTYPED )
+                            // set an untyped variable directly in the block
+                            cbNameSpace.setBlockVariable( fp.name, thrown );
+                        else
+                        {
+                            // set a typed variable (directly in the block)
+                            cbNameSpace.setTypedVariable(
+                                fp.name, fp.type, thrown, new Modifiers()/*none*/ );
+                        }
+                    } catch ( UtilEvalError e ) {
+                        throw new InterpreterError(
+                            "Unable to set var in catch block namespace." );
                     }
 
-                // Found match, execute catch block
-                BSHBlock cb = catchBlocks.get(i);
-
-                // Prepare to execute the block.
-                // We must create a new BlockNameSpace to hold the catch
-                // parameter and swap it on the stack after initializing it.
-
-                NameSpace enclosingNameSpace = callstack.top();
-                BlockNameSpace cbNameSpace =
-                    new BlockNameSpace( enclosingNameSpace );
-
-                try {
-                    if ( fp.type == BSHFormalParameter.UNTYPED )
-                        // set an untyped variable directly in the block
-                        cbNameSpace.setBlockVariable( fp.name, thrown );
-                    else
-                    {
-                        // set a typed variable (directly in the block)
-                        cbNameSpace.setTypedVariable(
-                            fp.name, fp.type, thrown, new Modifiers()/*none*/ );
+                    // put cbNameSpace on the top of the stack
+                    callstack.swap( cbNameSpace );
+                    try {
+                        ret = cb.eval( callstack, interpreter );
+                    } finally {
+                        // put it back
+                        callstack.swap( enclosingNameSpace );
                     }
-                } catch ( UtilEvalError e ) {
-                    throw new InterpreterError(
-                        "Unable to set var in catch block namespace." );
-                }
 
-                // put cbNameSpace on the top of the stack
-                callstack.swap( cbNameSpace );
-                try {
-                    ret = cb.eval( callstack, interpreter );
-                } finally {
-                    // put it back
-                    callstack.swap( enclosingNameSpace );
+                    target = null;  // handled target
+                    break;
                 }
-
-                target = null;  // handled target
-                break;
             }
-        }
-
-        // evaluate finally block
-        if( finallyBlock != null ) {
-            Object result = finallyBlock.eval(callstack, interpreter);
-            if( result instanceof ReturnControl )
-                return result;
-        }
-
+		} finally {
+            // evaluate finally block
+            if( finallyBlock != null ) {
+                Object result = finallyBlock.eval(callstack, interpreter);
+                if( result instanceof ReturnControl )
+                    return result;
+            }
+		}
         // exception fell through, throw it upward...
         if(target != null)
             throw target;
 
-        if(ret instanceof ReturnControl)
-            return ret;
-        else
-            return Primitive.VOID;
+        // no exception return
+        return ((ret instanceof ReturnControl)) ? ret : Primitive.VOID;
     }
 }
