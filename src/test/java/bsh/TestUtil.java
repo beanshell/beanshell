@@ -25,6 +25,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -127,12 +129,21 @@ public class TestUtil {
     }
 
 
-    public static Object eval(final String... code) throws Exception {
-        StringBuffer buffer = new StringBuffer();
-        for (String s : code) {
+    public static Object eval(final String ... code) throws Exception {
+        return eval(Collections.<String, Integer>emptyMap(), code);
+    }
+
+
+    public static Object eval(final Map<? extends String, ?> params, final String ... code) throws Exception {
+        final StringBuffer buffer = new StringBuffer();
+        for (final String s : code) {
             buffer.append(s).append('\n');
         }
-        return new Interpreter().eval(buffer.toString());
+        final Interpreter interpreter = new Interpreter();
+        for (final Map.Entry<? extends String, ?> entry : params.entrySet()) {
+            interpreter.set(entry.getKey(), entry.getValue());
+        }
+        return interpreter.eval(buffer.toString());
     }
 
 
