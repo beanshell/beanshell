@@ -165,6 +165,9 @@ public class ClassGeneratorUtil implements Constants {
         List<DelayedEvalBshMethod> methodsl = new ArrayList<>();
         String classBaseName = getBaseName(className); // for inner classes
         for (DelayedEvalBshMethod bshmethod : bshmethods) {
+            if (!Capabilities.haveAccessibility()) {
+                bshmethod.makePublic();
+            }
             if (bshmethod.getName().equals(classBaseName)) {
                 consl.add(bshmethod);
             } else {
