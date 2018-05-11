@@ -85,8 +85,13 @@ public class Variable implements java.io.Serializable
     {
 
         // check this.value
-        if ( hasModifier("final") && this.value != null )
-            throw new UtilEvalError ("Final variable, can't re-assign.");
+        if (hasModifier("final")) {
+            if (this.value != null) {
+                throw new UtilEvalError("Final variable '" + getName() + "', can't re-assign.");
+            } else if (value == null && context == DECLARATION) {
+                return;
+            }
+        }
 
         this.value = value;
 

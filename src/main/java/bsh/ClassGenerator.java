@@ -79,13 +79,6 @@ public final class ClassGenerator {
      * using ClassGenerator.
      */
     public static Class generateClassImpl(String name, Modifiers modifiers, Class[] interfaces, Class superClass, BSHBlock block, boolean isInterface, CallStack callstack, Interpreter interpreter) throws EvalError {
-        // Scripting classes currently requires accessibility
-        // This can be eliminated with a bit more work.
-        try {
-            Capabilities.setAccessibility(true);
-        } catch (Capabilities.Unavailable e) {
-            throw new EvalError("Defining classes currently requires reflective Accessibility.", block, callstack, e);
-        }
 
         NameSpace enclosingNameSpace = callstack.top();
         String packageName = enclosingNameSpace.getPackage();

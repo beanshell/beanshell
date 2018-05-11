@@ -140,6 +140,17 @@ public class BshMethod implements Serializable {
 
     public Modifiers getModifiers() { return modifiers; }
 
+    public void makePublic() {
+        if (modifiers == null) {
+            modifiers = new Modifiers();
+        }
+        if (!modifiers.hasModifier("public")
+                &&!modifiers.hasModifier("private")
+                &&!modifiers.hasModifier("protected")) {
+            modifiers.addModifier(Modifiers.METHOD, "public");
+        }
+    }
+
     public String getName() { return name; }
 
     /**
