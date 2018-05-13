@@ -37,6 +37,7 @@ class BSHFormalParameter extends SimpleNode
     public String name;
     // unsafe caching of type here
     public Class type;
+    boolean isFinal = false;
 
     BSHFormalParameter(int id) { super(id); }
 
