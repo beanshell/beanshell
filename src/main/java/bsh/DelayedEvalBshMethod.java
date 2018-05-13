@@ -61,7 +61,7 @@ public class DelayedEvalBshMethod extends BshMethod
         CallStack callstack, Interpreter interpreter
     ) {
         super( name, null/*returnType*/, paramNames, null/*paramTypes*/,
-            methodBody, declaringNameSpace, modifiers );
+            null/*paramModifiers*/, methodBody, declaringNameSpace, modifiers );
 
         this.returnTypeDescriptor = returnTypeDescriptor;
         this.returnTypeNode = returnTypeNode;
