@@ -101,7 +101,9 @@ class BSHTryStatement extends SimpleNode
                 {
                     // Get catch block
                     BSHFormalParameter fp = catchParams.get(i);
-
+                    Modifiers modifiers = new Modifiers(Modifiers.FIELD);
+                    if (fp.isFinal)
+                        modifiers.addModifier("final");
                     // Should cache this subject to classloader change message
                     // Evaluation of the formal parameter simply resolves its
                     // type via the specified namespace.. it doesn't modify the
@@ -147,7 +149,7 @@ class BSHTryStatement extends SimpleNode
                         {
                             // set a typed variable (directly in the block)
                             cbNameSpace.setTypedVariable(
-                                fp.name, fp.type, thrown, new Modifiers(Modifiers.FIELD)/*none*/ );
+                                fp.name, fp.type, thrown, modifiers);
                         }
                     } catch ( UtilEvalError e ) {
                         throw new InterpreterError(

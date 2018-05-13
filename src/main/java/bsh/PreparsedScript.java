@@ -55,7 +55,9 @@ public class PreparsedScript {
     public Object invoke(final Map<String, ?> context) throws EvalError {
         final NameSpace nameSpace = new NameSpace("BeanshellExecutable", _interpreter.getClassManager());
         nameSpace.setParent(_interpreter.getNameSpace());
-        final BshMethod method = new BshMethod(_method.getName(), _method.getReturnType(), _method.getParameterNames(), _method.getParameterTypes(), _method.methodBody, nameSpace, _method.getModifiers());
+        final BshMethod method = new BshMethod(_method.getName(), _method.getReturnType(),
+                _method.getParameterNames(), _method.getParameterTypes(), _method.getParameterModifiers(),
+                _method.methodBody, nameSpace, _method.getModifiers());
         for (final Map.Entry<String, ?> entry : context.entrySet()) {
             try {
                 final Object value = entry.getValue();

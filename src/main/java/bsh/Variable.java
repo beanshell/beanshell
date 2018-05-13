@@ -86,7 +86,7 @@ public class Variable implements java.io.Serializable
 
         // check this.value
         if (hasModifier("final")) {
-            if(lhs == null)
+            if(lhs == null && type == null)
                 return;
             if (this.value != null)
                 throw new UtilEvalError("Cannot re-assign final field "+name+".");

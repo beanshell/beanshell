@@ -30,6 +30,7 @@ package bsh;
 class BSHFormalParameters extends SimpleNode
 {
     private String [] paramNames;
+    private Modifiers [] paramModifiers;
     /**
         For loose type parameters the paramTypes are null.
     */
@@ -47,14 +48,23 @@ class BSHFormalParameters extends SimpleNode
 
         this.numArgs = jjtGetNumChildren();
         String [] paramNames = new String[numArgs];
+        Modifiers [] paramModifiers = new Modifiers[numArgs];
 
         for(int i=0; i<numArgs; i++)
         {
             BSHFormalParameter param = (BSHFormalParameter)jjtGetChild(i);
             paramNames[i] = param.name;
+            paramModifiers[i] = new Modifiers(Modifiers.FIELD);
+            if (param.isFinal)
+                paramModifiers[i].addModifier("final");
         }
-
         this.paramNames = paramNames;
+        this.paramModifiers = paramModifiers;
+    }
+
+    public Modifiers [] getParamModifiers() {
+        insureParsed();
+        return paramModifiers;
     }
 
     public String [] getParamNames() {
