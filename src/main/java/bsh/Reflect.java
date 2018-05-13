@@ -364,38 +364,44 @@ final class Reflect {
     private static Field findAccessibleField( Class clas, String fieldName )
         throws UtilEvalError, NoSuchFieldException
     {
+        Field field = null;
         // Quick check catches public fields include those in interfaces
         try {
-            // This fails on public static field not accessible for some reason
-            // see accessibility.bsh Accessibility1.supersfield4
-            // return clas.getField(fieldName);
-            // Simplest fix to make tests pass
-            Field field = clas.getField(fieldName);
-            if (Capabilities.haveAccessibility())
-                field.setAccessible(true);
-            return field;
+            field = clas.getField(fieldName);
+            // Not all public fields may be accessible
+            if (field.isAccessible())
+                return field;
         } catch (NoSuchFieldException e) {
             // ignore
         }
         // try hidden fields (protected, private, package protected)
         if (Capabilities.haveAccessibility()) {
             try {
+                loop:
                 while (clas != null) {
-                    final Field[] declaredFields = clas.getDeclaredFields();
-                    for (int i = 0; i < declaredFields.length; i++) {
-                        Field field = declaredFields[i];
-                        if (field.getName().equals(fieldName)) {
-                            field.setAccessible(true);
-                            return field;
-                        }
-                    }
+                    if ((field = getDeclaredFields(clas, fieldName)) != null)
+                        break loop;
+                    for (Class<?> inter : clas.getInterfaces())
+                        if ((field = getDeclaredFields(inter, fieldName)) != null)
+                            break loop;
                     clas = clas.getSuperclass();
+                }
+                if (field != null) {
+                    field.setAccessible(true);
+                    return field;
                 }
             } catch (SecurityException e) {
                // ignore -> NoSuchFieldException
             }
         }
         throw new NoSuchFieldException(fieldName);
+    }
+
+    private static Field getDeclaredFields(Class<?> clas, String fieldName) {
+        for (Field field :clas.getDeclaredFields())
+            if (field.getName().equals(fieldName))
+                return field;
+        return null;
     }
 
     /**
@@ -480,15 +486,9 @@ final class Reflect {
             checkFoundStaticMethod( method, staticOnly, clas );
 
             // This is the first time we've seen this method, set accessibility
-            // Note: even if it's a public method, we may have found it in a
-            // non-public class
-            if (method != null) {
+            if (method != null && !publicOnly && !method.isAccessible()) {
                 try {
-                    if (!isPublic(method) && !publicOnly) {
-                        method.setAccessible(true);
-                    } else if (isPublic(method) && !isPublic(method.getDeclaringClass())) {
-                        method.setAccessible(true); // todo: need a test case
-                    }
+                    method.setAccessible(true);
                 } catch (SecurityException e) {
                     method = null;
                 }
@@ -994,9 +994,12 @@ final class Reflect {
         return Modifier.isStatic(m.getModifiers());
     }
 
+    public static boolean isStatic(Field f) {
+        return f != null && Modifier.isStatic(f.getModifiers());
+    }
 
     static void setAccessible(final Field field) {
-        if ( ! isPublic(field) && Capabilities.haveAccessibility()) {
+        if ( ! field.isAccessible() && Capabilities.haveAccessibility()) {
             field.setAccessible(true);
         }
     }

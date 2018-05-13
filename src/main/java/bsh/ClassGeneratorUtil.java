@@ -94,7 +94,7 @@ public class ClassGeneratorUtil implements Constants {
      * The name of the instance field holding the reference to the bsh
      * instance This (the callback namespace for instance methods)
      */
-    private static final String BSHTHIS = "_bshThis";
+    static final String BSHTHIS = "_bshThis";
 
     /**
      * The prefix for the name of the super delegate methods. e.g.
@@ -165,9 +165,6 @@ public class ClassGeneratorUtil implements Constants {
         List<DelayedEvalBshMethod> methodsl = new ArrayList<>();
         String classBaseName = getBaseName(className); // for inner classes
         for (DelayedEvalBshMethod bshmethod : bshmethods) {
-            if (!Capabilities.haveAccessibility()) {
-                bshmethod.makePublic();
-            }
             if (bshmethod.getName().equals(classBaseName)) {
                 consl.add(bshmethod);
             } else {

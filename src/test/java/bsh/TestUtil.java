@@ -62,6 +62,9 @@ public class TestUtil {
         System.gc();
     }
 
+    static {
+        Capabilities.setAccessibility(Boolean.valueOf(System.getProperty("accessibility")));
+    }
 
     /**
      * Measure the time of concurrent executions of the provided runnable instance - the first error or runtime exceptions

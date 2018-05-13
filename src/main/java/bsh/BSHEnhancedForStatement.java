@@ -81,7 +81,7 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
                 if ( elementType != null )
                     eachNameSpace.setTypedVariable(
                         varName/*name*/, elementType/*type*/,
-                        value, new Modifiers()/*none*/ );
+                        value, new Modifiers(Modifiers.FIELD)/*none*/ );
                 else
                     eachNameSpace.setVariable( varName, value, false );
             } catch ( UtilEvalError e ) {
