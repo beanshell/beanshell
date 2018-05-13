@@ -98,6 +98,7 @@ public class BshMethod implements Serializable {
         this.methodBody = methodBody;
         this.declaringNameSpace = declaringNameSpace;
         this.modifiers = modifiers;
+        this.getModifiers().hasModifier("public");
     }
 
     /*
@@ -138,17 +139,10 @@ public class BshMethod implements Serializable {
     */
     public Class getReturnType() { return creturnType; }
 
-    public Modifiers getModifiers() { return modifiers; }
-
-    public void makePublic() {
-        if (modifiers == null) {
-            modifiers = new Modifiers();
-        }
-        if (!modifiers.hasModifier("public")
-                &&!modifiers.hasModifier("private")
-                &&!modifiers.hasModifier("protected")) {
-            modifiers.addModifier(Modifiers.METHOD, "public");
-        }
+    public Modifiers getModifiers() {
+        if (this.modifiers == null)
+            this.modifiers = new Modifiers(Modifiers.METHOD);
+        return this.modifiers;
     }
 
     public String getName() { return name; }
@@ -426,7 +420,8 @@ public class BshMethod implements Serializable {
 
     public String toString() {
         return "Scripted Method: "
-            + StringUtil.methodString( name, getParameterTypes() );
+            + StringUtil.methodString( name, getParameterTypes() )
+            + " " + modifiers;
     }
 
     @Override

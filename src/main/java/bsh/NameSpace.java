@@ -660,9 +660,9 @@ public class NameSpace
     @Deprecated
     public void setTypedVariable(final String name, final Class<?> type,
             final Object value, final boolean isFinal) throws UtilEvalError {
-        final Modifiers modifiers = new Modifiers();
+        final Modifiers modifiers = new Modifiers(Modifiers.FIELD);
         if (isFinal)
-            modifiers.addModifier(Modifiers.FIELD, "final");
+            modifiers.addModifier("final");
         this.setTypedVariable(name, type, value, modifiers);
     }
 
@@ -703,6 +703,10 @@ public class NameSpace
                             + " was previously declared with type: "
                             + existing.getType());
                 else {
+                    if (existing.modifiers == null) {
+                        existing.modifiers = modifiers;
+                        existing.getModifiers().hasModifier("public");
+                    }
                     // else set it and return
                     existing.setValue(value, Variable.DECLARATION);
                     return;
@@ -909,17 +913,23 @@ public class NameSpace
         for (final Object object : this.importedObjects) {
             final Field field = Reflect.resolveJavaField(object.getClass(),
                     name, false/* onlyStatic */);
-            if (field != null)
-                return this.createVariable(name, field.getType(),
+            if (field != null) {
+                Variable var = this.createVariable(name, field.getType(),
                         new LHS(object, field));
+                this.variables.put(name, var);
+                return var;
+            }
         }
         // Try static imports
         for (final Class<?> stat : this.importedStatic) {
             final Field field = Reflect.resolveJavaField(stat,
                     name, true/* onlyStatic */);
-            if (field != null)
-                return this.createVariable(name, field.getType(),
+            if (field != null) {
+                Variable var = this.createVariable(name, field.getType(),
                         new LHS(field));
+                this.variables.put(name, var);
+                return var;
+            }
         }
         return null;
     }
