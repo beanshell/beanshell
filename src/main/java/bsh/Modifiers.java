@@ -37,16 +37,18 @@ import java.util.Hashtable;
 public class Modifiers implements java.io.Serializable
 {
     public static final int CLASS=0, METHOD=1, FIELD=2;
-    Hashtable modifiers;
+    private final int context;
+    private final Hashtable modifiers = new Hashtable();
+
+    public Modifiers(int context) {
+        this.context = context;
+    }
 
     /**
         @param context is METHOD or FIELD
     */
-    public void addModifier( int context, String name )
+    public void addModifier( String name )
     {
-        if ( modifiers == null )
-            modifiers = new Hashtable();
-
         Object existing = modifiers.put( name, Void.TYPE/*arbitrary flag*/ );
         if ( existing != null )
             throw new IllegalStateException("Duplicate modifier: "+ name );
@@ -75,9 +77,15 @@ public class Modifiers implements java.io.Serializable
 
     public boolean hasModifier( String name )
     {
-        if ( modifiers == null )
-            modifiers = new Hashtable();
-        return modifiers.get(name) != null;
+        if (name.equals("public") && !modifiers.containsKey(name)
+                && !Capabilities.haveAccessibility()
+                && !modifiers.containsKey("private")
+                && !modifiers.containsKey("protected")) {
+            try {
+                addModifier(name);
+            } catch (Throwable e) { /*ignore */ }
+        }
+        return modifiers.containsKey(name);
     }
 
     // could refactor these a bit
@@ -108,7 +116,7 @@ public class Modifiers implements java.io.Serializable
 
     public String toString()
     {
-        return "Modifiers: "+modifiers;
+        return "Modifiers: "+modifiers.keySet();
     }
 
 }
