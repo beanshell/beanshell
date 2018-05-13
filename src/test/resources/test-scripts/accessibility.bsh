@@ -2,6 +2,8 @@
 
 source("TestHarness.bsh");
 
+import bsh.Capabilities;
+currentAccessibility=Capabilities.haveAccessibility();
 import mypackage.*;
 
 a=new Accessibility2();
@@ -122,6 +124,6 @@ assert(m.foo(2).equals("private"));
 warning("this test runs on sparc but fails on windows... Nail this down.");
 assert(m.foo(null).equals("public"));
 
-setAccessibility(false);
+setAccessibility(currentAccessibility);
 
 complete();

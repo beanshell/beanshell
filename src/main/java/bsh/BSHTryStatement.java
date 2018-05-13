@@ -147,7 +147,7 @@ class BSHTryStatement extends SimpleNode
                         {
                             // set a typed variable (directly in the block)
                             cbNameSpace.setTypedVariable(
-                                fp.name, fp.type, thrown, new Modifiers()/*none*/ );
+                                fp.name, fp.type, thrown, new Modifiers(Modifiers.FIELD)/*none*/ );
                         }
                     } catch ( UtilEvalError e ) {
                         throw new InterpreterError(

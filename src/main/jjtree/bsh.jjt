@@ -586,8 +586,8 @@ Modifiers Modifiers( int context, boolean lookahead ) :
     ) {
         if ( !lookahead )
             try {
-                if ( mods == null ) mods = new Modifiers();
-                mods.addModifier( context, getToken(0).image );
+                if ( mods == null ) mods = new Modifiers( context );
+                mods.addModifier( getToken(0).image );
             } catch ( IllegalStateException e ) {
                 throw createParseException( e.getMessage(), e );
             }
