@@ -38,6 +38,7 @@ import java.util.Iterator;
 class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
 
     String varName;
+    boolean isFinal = false;
 
 
     BSHEnhancedForStatement(int id) {
@@ -46,6 +47,9 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
 
 
     public Object eval(CallStack callstack, Interpreter interpreter) throws EvalError {
+        Modifiers modifiers = new Modifiers(Modifiers.FIELD);
+        if (this.isFinal)
+            modifiers.addModifier("final");
         Class elementType = null;
         SimpleNode expression;
         SimpleNode statement = null;
@@ -54,6 +58,8 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
         int nodeCount = jjtGetNumChildren();
         if (firstNode instanceof BSHType) {
             elementType = ((BSHType) firstNode).getType(callstack, interpreter);
+            if (elementType == null)
+                elementType = Object.class;
             expression = ((SimpleNode) jjtGetChild(1));
             if (nodeCount > 2) {
                 statement = ((SimpleNode) jjtGetChild(2));
@@ -64,8 +70,6 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
                 statement = ((SimpleNode) jjtGetChild(1));
             }
         }
-        BlockNameSpace eachNameSpace = new BlockNameSpace(enclosingNameSpace);
-        callstack.swap(eachNameSpace);
         final Object iteratee = expression.eval(callstack, interpreter);
         CollectionManager cm = CollectionManager.getCollectionManager();
         if (!cm.isBshIterable(iteratee)) {
@@ -75,15 +79,13 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
         Object returnControl = Primitive.VOID;
         while (iterator.hasNext()) {
             try {
+                BlockNameSpace eachNameSpace = new BlockNameSpace(enclosingNameSpace);
+                callstack.swap(eachNameSpace);
                 Object value = iterator.next();
                 if ( value == null )
                     value = Primitive.NULL;
-                if ( elementType != null )
-                    eachNameSpace.setTypedVariable(
-                        varName/*name*/, elementType/*type*/,
-                        value, new Modifiers(Modifiers.FIELD)/*none*/ );
-                else
-                    eachNameSpace.setVariable( varName, value, false );
+                eachNameSpace.setTypedVariable(
+                    varName, elementType, value, modifiers);
             } catch ( UtilEvalError e ) {
                 throw e.toEvalError(
                     "for loop iterator variable:"+ varName, this, callstack );

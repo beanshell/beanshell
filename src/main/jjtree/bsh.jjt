@@ -709,10 +709,16 @@ void FormalParameters() #FormalParameters :
 }
 
 void FormalParameter() #FormalParameter :
-{ Token t; }
 {
+  Token t;
+  Token s = null;
+}
+{
+
   // added [] to Type for bsh.  Removed [ final ] - is that legal?
-  LOOKAHEAD(2) Type() t=<IDENTIFIER> { jjtThis.name = t.image; }
+  LOOKAHEAD(2) [ s = "final" ] {
+        if ( s != null ) jjtThis.isFinal = true;
+    } Type() [ TypeArguments() ] t=<IDENTIFIER> { jjtThis.name = t.image; }
 |
   t=<IDENTIFIER> { jjtThis.name = t.image; }
 }
@@ -1407,13 +1413,18 @@ void ForStatement() #ForStatement :
     e.g. for( a : arrayOfInts ) { }
 */
 void EnhancedForStatement() #EnhancedForStatement :
-{ Token t = null; }
+{
+  Token t = null;
+  Token s = null;
+}
 {
   LOOKAHEAD( 4 ) // look ahead for the ":" before deciding
   "for" "(" t=<IDENTIFIER> ":" Expression() ")"
     Statement() { jjtThis.varName = t.image; }
   |
-  "for" "(" Type() t=<IDENTIFIER> ":" Expression() ")"
+  "for" "(" [ s = "final" ] {
+        if ( s != null ) jjtThis.isFinal = true;
+    } Type() t=<IDENTIFIER> ":" Expression() ")"
     Statement() { jjtThis.varName = t.image; }
 }
 

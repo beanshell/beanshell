@@ -65,6 +65,7 @@ public class BshMethod implements Serializable {
     private String [] paramNames;
     private int numArgs;
     private Class [] cparamTypes;
+    private Modifiers [] paramModifiers;
 
     // Scripted method body
     BSHBlock methodBody;
@@ -80,18 +81,19 @@ public class BshMethod implements Serializable {
         NameSpace declaringNameSpace, Modifiers modifiers )
     {
         this( method.name, method.returnType, method.paramsNode.getParamNames(),
-            method.paramsNode.paramTypes, method.blockNode, declaringNameSpace,
-            modifiers );
+            method.paramsNode.paramTypes, method.paramsNode.getParamModifiers(),
+            method.blockNode, declaringNameSpace, modifiers );
     }
 
     BshMethod(
         String name, Class returnType, String [] paramNames,
-        Class [] paramTypes, BSHBlock methodBody,
+        Class [] paramTypes, Modifiers [] paramModifiers, BSHBlock methodBody,
         NameSpace declaringNameSpace, Modifiers modifiers
     ) {
         this.name = name;
         this.creturnType = returnType;
         this.paramNames = paramNames;
+        this.paramModifiers = paramModifiers;
         if ( paramNames != null )
             this.numArgs = paramNames.length;
         this.cparamTypes = paramTypes;
@@ -108,7 +110,7 @@ public class BshMethod implements Serializable {
     BshMethod( Method method, Object object )
     {
         this( method.getName(), method.getReturnType(), null/*paramNames*/,
-            method.getParameterTypes(), null/*method.block*/,
+            method.getParameterTypes(), null/*paramModifiers*/, null/*method.block*/,
             null/*declaringNameSpace*/, null/*modifiers*/ );
 
         this.javaMethod = method;
@@ -127,6 +129,7 @@ public class BshMethod implements Serializable {
     */
     public Class [] getParameterTypes() { return cparamTypes; }
     public String [] getParameterNames() { return paramNames; }
+    public Modifiers [] getParameterModifiers() { return paramModifiers; }
 
     /**
         Get the return type of the method.
@@ -326,7 +329,7 @@ public class BshMethod implements Serializable {
                 }
                 try {
                     localNameSpace.setTypedVariable( paramNames[i],
-                        paramTypes[i], argValues[i], null/*modifiers*/);
+                        paramTypes[i], argValues[i], paramModifiers[i]);
                 } catch ( UtilEvalError e2 ) {
                     throw e2.toEvalError( "Typed method parameter assignment",
                         callerInfo, callstack  );
