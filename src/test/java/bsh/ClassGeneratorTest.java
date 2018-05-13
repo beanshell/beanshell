@@ -21,19 +21,25 @@
 package bsh;
 
 import static bsh.TestUtil.eval;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.Callable;
 import java.util.function.IntSupplier;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 @RunWith(FilteredTestRunner.class)
 public class ClassGeneratorTest {
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void create_class_with_default_constructor() throws Exception {
@@ -42,9 +48,12 @@ public class ClassGeneratorTest {
 
     @Test
     public void creating_class_should_not_set_accessibility() throws Exception {
+        boolean current = Capabilities.haveAccessibility();
+        Capabilities.setAccessibility(false);
         assertFalse("pre: no accessibility should be set", Capabilities.haveAccessibility());
         TestUtil.eval("class X1 {}");
         assertFalse("post: no accessibility should be set", Capabilities.haveAccessibility());
+        Capabilities.setAccessibility(current);
     }
 
     @Test
@@ -79,23 +88,173 @@ public class ClassGeneratorTest {
                 "X4(Object arg) { _instanceVar = arg; }",
                 "public Object call() { return _instanceVar; }",
             "}",
-            "setAccessibility(false);",
             "return new Object[] { new X4(0), new X4(1) } ");
         assertEquals(0, ( (Callable) oa[0] ).call());
         assertEquals(1, ( (Callable) oa[1] ).call());
     }
 
 
-    @Test ( expected = TargetError.class)
-    public void assignment_to_final_field_should_not_be_allowed() throws Exception {
+    @Test
+    public void assignment_to_final_field_init_should_not_be_allowed() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Cannot re-assign final field _initVar."));
+
         TestUtil.eval(
-            "class X3 implements java.util.concurrent.Callable {",
-                "final Object _instanceVar = null;",
-                "public X3(Object arg) { _instanceVar = arg; }",
+            "class X3 {",
+                "final Object _initVar = null;",
+                "public X3() { _initVar = 0; }",
             "}",
-            "return new Object[] { new X3(0), new X3(1) } ");
+            "new X3();");
     }
 
+    @Test
+    public void assignment_to_final_field_should_not_be_allowed() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Cannot re-assign final field _assVar."));
+
+        TestUtil.eval(
+            "class X3 {",
+                "final Object _assVar = null;",
+            "}",
+            "x3 = new X3();",
+            "x3._assVar = 0;");
+    }
+
+    @Test
+    public void non_assignment_to_static_final_field_should_not_be_allowed() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Static final field _staticVar is not set."));
+
+        TestUtil.eval(
+            "class X7 {",
+                "static final Object _staticVar;",
+            "}");
+    }
+
+    @Test
+    public void assignment_to_static_final_field_init_should_not_be_allowed() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Cannot re-assign final field _initStaticVar."));
+
+        TestUtil.eval(
+            "class X7 {",
+                "static final Object _initStaticVar = null;",
+                "public X7() { _initStaticVar = 0; }",
+            "}",
+            "new X7();");
+    }
+
+    @Test
+    public void assignment_to_static_final_field_should_not_be_allowed() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Cannot re-assign final field _assStaticVar."));
+
+        TestUtil.eval(
+            "class X7 {",
+                "static final Object _assStaticVar = null;",
+            "}",
+            "X7._assStaticVar = 0;");
+    }
+
+    @Test
+    public void assignment_to_unassigned_final_field_is_allowed() throws Exception {
+        Object unAssVar = TestUtil.eval(
+            "class X3 {",
+                "final Object _unAssVar;",
+            "}",
+            "x3 = new X3();",
+            "x3._unAssVar = 0;",
+            "return x3._unAssVar;");
+        assertEquals("Un-assigned field _unAssVal equals 0.", 0, unAssVar);
+    }
+
+    @Test
+    public void verify_public_accesible_modifiers() throws Exception {
+        TestUtil.cleanUp();
+        boolean current = Capabilities.haveAccessibility();
+        Capabilities.setAccessibility(false);
+
+        Class<?> cls = (Class<?>) TestUtil.eval(
+            "class X6 {",
+                "public Object public_var;",
+                "private Object private_var = null;",
+                "protected Object protected_var = null;",
+                "public final Object public_final_var;",
+                "final Object final_var;",
+                "static Object static_var;",
+                "static final Object static_final_var = null;",
+                "volatile Object volatile_var;",
+                "transient Object transient_var;",
+                "no_type_var = 0;",
+                "Object no_modifier_var;",
+                "X6() {}",
+                "just_method() {}",
+                "void void_method() {}",
+                "Object type_method() {}",
+                "synchronized sync_method() {}",
+                "final final_method() {}",
+                "static static_method() {}",
+                "abstract abstract_method() {}",
+                "public public_method() {}",
+                "private private_method() {}",
+                "protected protected_method() {}",
+            "}",
+            "return X6.class ");
+
+        Object inst = cls.newInstance();
+        This ths = (This)cls.getField("_bshThisX6").get(inst);
+        NameSpace ns = ths.getNameSpace();
+        assertTrue("public_var has public modifier", varHasModifier(ns, "public_var", "public"));
+        assertFalse("private_var does not have public modifier", varHasModifier(ns, "private_var", "public"));
+        assertTrue("private_var has private modifier", varHasModifier(ns, "private_var", "private"));
+        assertFalse("protected_var does not have public modifier", varHasModifier(ns, "protected_var", "public"));
+        assertTrue("protected_var has protected modifier", varHasModifier(ns, "protected_var", "protected"));
+        assertTrue("public_final_var has public modifier", varHasModifier(ns, "public_final_var", "public"));
+        assertTrue("public_final_var has final modifier", varHasModifier(ns, "public_final_var", "final"));
+        assertTrue("final_var has public modifier", varHasModifier(ns, "final_var", "public"));
+        assertTrue("final_var has final modifier", varHasModifier(ns, "final_var", "final"));
+        assertTrue("transient_var has public modifier", varHasModifier(ns, "transient_var", "public"));
+        assertTrue("transient_var has transient modifier", varHasModifier(ns, "transient_var", "transient"));
+        assertTrue("volatile_var has public modifier", varHasModifier(ns, "volatile_var", "public"));
+        assertTrue("volatile_var has volatile modifier", varHasModifier(ns, "volatile_var", "volatile"));
+        assertTrue("no_modifier_var has public modifier", varHasModifier(ns, "no_modifier_var", "public"));
+        assertTrue("no_type_var has public modifier", varHasModifier(ns, "no_type_var", "public"));
+        assertTrue("constructor has public modifier", methHasModifier(ns, "X6", "public"));
+        assertTrue("just_method has public modifier", methHasModifier(ns, "just_method", "public"));
+        assertTrue("void_method has public modifier", methHasModifier(ns, "void_method", "public"));
+        assertTrue("type_method has public modifier", methHasModifier(ns, "type_method", "public"));
+        assertTrue("sync_method has public modifier", methHasModifier(ns, "sync_method", "public"));
+        assertTrue("sync_method has synchronized modifier", methHasModifier(ns, "sync_method", "synchronized"));
+        assertTrue("final_method has public modifier", methHasModifier(ns, "final_method", "public"));
+        assertTrue("final_method has final modifier", methHasModifier(ns, "final_method", "final"));
+        assertTrue("static_method has public modifier", methHasModifier(ns, "static_method", "public"));
+        assertTrue("abstract_method has public modifier", methHasModifier(ns, "abstract_method", "public"));
+        assertTrue("abstract_method has abstract modifier", methHasModifier(ns, "abstract_method", "abstract"));
+        assertTrue("public_method has public modifier", methHasModifier(ns, "public_method", "public"));
+        assertFalse("private_method does not have public modifier", methHasModifier(ns, "private_method", "public"));
+        assertTrue("private_method has private modifier", methHasModifier(ns, "private_method", "private"));
+        assertFalse("protected_method does not have public modifier", methHasModifier(ns, "protected_method", "public"));
+        assertTrue("protected_method has protected modifier", methHasModifier(ns, "protected_method", "protected"));
+
+        ths = (This)cls.getField("_bshStaticX6").get(null);
+        ns = ths.getNameSpace();
+        assertTrue("static_var has public modifier", varHasModifier(ns, "static_var", "public"));
+        assertTrue("static_var has static modifier", varHasModifier(ns, "static_var", "static"));
+        assertTrue("static_final_var has public modifier", varHasModifier(ns, "static_final_var", "public"));
+        assertTrue("static_final_var has static modifier", varHasModifier(ns, "static_final_var", "static"));
+        assertTrue("static_final_var has final modifier", varHasModifier(ns, "static_final_var", "final"));
+        assertTrue("static_method has static modifier", methHasModifier(ns, "static_method", "static"));
+
+        Capabilities.setAccessibility(current);
+    }
+
+    private boolean varHasModifier(NameSpace ns, String var, String mod) throws UtilEvalError {
+        return ns.getVariableImpl(var, false).hasModifier(mod);
+    }
+
+    private boolean methHasModifier(NameSpace ns, String meth, String mod) throws UtilEvalError {
+        return ns.getMethod(meth, new Class<?>[0]).hasModifier(mod);
+    }
 
     @Test
     public void outer_namespace_visibility() throws Exception {

@@ -27,7 +27,7 @@ package bsh;
 
 public class Variable implements java.io.Serializable
 {
-    static final int DECLARATION=0, ASSIGNMENT=1;
+    public static final int DECLARATION=0, ASSIGNMENT=1;
     /** A null type means an untyped variable */
     String name;
     Class type = null;
@@ -67,10 +67,10 @@ public class Variable implements java.io.Serializable
     Variable( String name, Class type, Object value, Modifiers modifiers )
         throws UtilEvalError
     {
-
         this.name=name;
         this.type = type;
         this.modifiers = modifiers;
+        this.getModifiers().hasModifier("public");
         setValue( value, DECLARATION );
     }
 
@@ -86,11 +86,15 @@ public class Variable implements java.io.Serializable
 
         // check this.value
         if (hasModifier("final")) {
-            if (this.value != null) {
-                throw new UtilEvalError("Final variable '" + getName() + "', can't re-assign.");
-            } else if (value == null && context == DECLARATION) {
+            if(lhs == null)
                 return;
-            }
+            if (this.value != null)
+                throw new UtilEvalError("Cannot re-assign final field "+name+".");
+            if (value == null && context == DECLARATION)
+                if (hasModifier("static"))
+                    throw new UtilEvalError("Static final field "+name+" is not set.");
+                else
+                    return;
         }
 
         this.value = value;
@@ -100,7 +104,7 @@ public class Variable implements java.io.Serializable
 
         if ( lhs != null )
         {
-            this.value = lhs.assign( Primitive.unwrap(value), false/*strictjava*/ );
+            this.value = lhs.assign( value, false/*strictjava*/ );
             return;
         }
 
@@ -133,16 +137,20 @@ public class Variable implements java.io.Serializable
 
     public String getTypeDescriptor() { return typeDescriptor; }
 
-    public Modifiers getModifiers() { return modifiers; }
+    public Modifiers getModifiers() {
+        if (modifiers == null)
+            this.modifiers = new Modifiers(Modifiers.FIELD);
+        return this.modifiers;
+    }
 
     public String getName() { return name; }
 
     public boolean hasModifier( String name ) {
-        return modifiers != null && modifiers.hasModifier(name);
+        return getModifiers().hasModifier(name);
     }
 
     public String toString() {
-        return "Variable: "+super.toString()+" "+name+", type:"+type
-            +", value:"+value +", lhs = "+lhs;
+        return "Variable: "+name+", type:"+type
+            +", value:"+value +", lhs = "+lhs+" "+modifiers;
     }
 }

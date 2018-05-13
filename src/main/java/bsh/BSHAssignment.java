@@ -77,6 +77,10 @@ class BSHAssignment extends SimpleNode implements ParserConstants
             switch(operator)
             {
                 case ASSIGN:
+                    if (lhs.isFinal()) {
+                        lhs.getVariable().setValue(rhs, Variable.ASSIGNMENT);
+                        return lhs.getVariable().getValue();
+                    }
                     return lhs.assign( rhs, strictJava );
 
                 case PLUSASSIGN:
