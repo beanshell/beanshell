@@ -35,20 +35,20 @@ public class BshMethodTest {
        // define a simple subclass of BshMethod:
        class SubMethod extends BshMethod {
           public SubMethod(String name, Class returnType, String[] paramNames,
-                Class[] paramTypes, BSHBlock methodBody,
+                Class[] paramTypes, Modifiers[] paramModifiers, BSHBlock methodBody,
                 NameSpace declaringNameSpace, Modifiers modifiers) {
-             super(name, returnType, paramNames, paramTypes, methodBody,
-                   declaringNameSpace, modifiers);
+             super(name, returnType, paramNames, paramTypes, paramModifiers,
+                     methodBody, declaringNameSpace, modifiers);
           }
        }
        final String name = "testMethod";
 
        final BshMethod subInst =
             new SubMethod(name, Integer.class, new String[] {}, new Class[] {},
-                  null, null, null);
+                 new Modifiers[] {}, null, null, null);
        final BshMethod supInst =
             new BshMethod(name, Integer.class, new String[] {}, new Class[] {},
-                  null, null, null);
+                    new Modifiers[] {}, null, null, null);
 
        Assert.assertFalse("Subclasses should not be equal to super classes",
             supInst.equals(subInst));
@@ -61,9 +61,9 @@ public class BshMethodTest {
     public void testHashCode_contract() {
        final String name = "testMethod";
        final BshMethod method1 = new BshMethod(name,
-             Integer.class, new String[]{}, new Class[]{}, null, null, null);
+             Integer.class, new String[0], new Class[0], new Modifiers[0], null, null, null);
        final BshMethod method2 = new BshMethod(name,
-             Integer.class, new String[]{}, new Class[]{}, null, null, null);
+             Integer.class, new String[0], new Class[0], new Modifiers[0], null, null, null);
 
        Assert.assertTrue("precondition check for test failed.",
              method2.equals(method1));
