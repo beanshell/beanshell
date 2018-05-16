@@ -1098,14 +1098,14 @@ void Literal() #Literal :
     if(ch == 'f' || ch == 'F')
     {
         literal = literal.substring(0,literal.length()-1);
-        jjtThis.value = new Primitive( new Float( literal ).floatValue() );
+        jjtThis.value = new Primitive( Float.valueOf( literal ).floatValue() );
     }
     else
     {
         if(ch == 'd' || ch == 'D')
             literal = literal.substring(0,literal.length()-1);
 
-        jjtThis.value = new Primitive( new Double( literal ).doubleValue() );
+        jjtThis.value = new Primitive( Double.valueOf( literal ).doubleValue() );
     }
   }
 |
