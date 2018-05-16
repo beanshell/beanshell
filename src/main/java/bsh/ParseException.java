@@ -194,7 +194,7 @@ public final class ParseException extends EvalError {
       expected.append(EOL).append("    ");
     }
     // Begin BeanShell Modification - added sourceFile info
-    String retval = "In file: "+ sourceFile +" Encountered \"";
+    String retval = "In file: "+ sourceFile +" Encountered ";
     // End BeanShell Modification - added sourceFile info
     Token tok = currentToken.next;
     for (int i = 0; i < maxSize; i++) {
@@ -204,12 +204,12 @@ public final class ParseException extends EvalError {
         break;
       }
       retval += " " + tokenImage[tok.kind];
-      retval += " \"";
+      retval += " ";
       retval += add_escapes(tok.image);
-      retval += " \"";
+      retval += " ";
       tok = tok.next;
     }
-    retval += "\" at line " + currentToken.next.beginLine + ", column " + currentToken.next.beginColumn;
+    retval += " at line " + currentToken.next.beginLine + ", column " + currentToken.next.beginColumn;
     retval += "." + EOL;
 
     // Begin BeanShell Modification - made conditional on debug
@@ -312,7 +312,7 @@ public final class ParseException extends EvalError {
             maxSize = expectedTokenSequences[i].length;
         }
 
-        String retval = "In file: "+ sourceFile +" Encountered \"";
+        String retval = "In file: "+ sourceFile +" Encountered ";
         Token tok = currentToken.next;
         for (int i = 0; i < maxSize; i++) {
           if (i != 0) retval += " ";
@@ -321,12 +321,12 @@ public final class ParseException extends EvalError {
             break;
           }
           retval += " " + tokenImage[tok.kind];
-          retval += " \"";
+          retval += " ";
           retval += add_escapes(tok.image);
-          retval += " \"";
+          retval += " ";
           tok = tok.next;
         }
-        retval += "\" at line " + currentToken.next.beginLine + ", column " + currentToken.next.beginColumn;
+        retval += " at line " + currentToken.next.beginLine + ", column " + currentToken.next.beginColumn;
         retval += "." + EOL;
 
         return retval;
