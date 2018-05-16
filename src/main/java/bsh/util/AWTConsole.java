@@ -132,7 +132,7 @@ public class AWTConsole extends TextArea
     }
 
     public void keyPressed( KeyEvent e ) {
-        type( e.getKeyCode(), e.getKeyChar(), e.getModifiers() );
+        type( e.getKeyCode(), e.getKeyChar(), e.getModifiersEx() );
         e.consume();
     }
 
@@ -156,7 +156,7 @@ public class AWTConsole extends TextArea
                 enter();
                 break;
             case ( KeyEvent.VK_U ):
-                if ( (modifiers & InputEvent.CTRL_MASK) > 0 ) {
+                if ( (modifiers & InputEvent.CTRL_DOWN_MASK) > 0 ) {
                     int len = line.length();
                     replaceRange( "", textLength-len, textLength );
                     line.setLength( 0 );
@@ -183,7 +183,7 @@ public class AWTConsole extends TextArea
 */
             // Control-C
             case ( KeyEvent.VK_C ):
-                if ( (modifiers & InputEvent.CTRL_MASK) > 0 ) {
+                if ( (modifiers & InputEvent.CTRL_DOWN_MASK) > 0 ) {
                     line.append("^C");
                     append("^C");
                     textLength += 2;
@@ -227,8 +227,7 @@ public class AWTConsole extends TextArea
         Great.  What a piece of crap.
     */
     public void setCaretPosition( int pos ) {
-        ((java.awt.peer.TextComponentPeer)getPeer()).setCaretPosition(
-            pos + countNLs() );
+        super.setCaretPosition( pos + countNLs() );
     }
 
     /*
