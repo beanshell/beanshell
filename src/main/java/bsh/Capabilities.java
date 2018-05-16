@@ -27,7 +27,8 @@
 package bsh;
 
 import java.lang.reflect.AccessibleObject;
-import java.util.Hashtable;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
     The map of extended features supported by the runtime in which we live.
@@ -82,7 +83,7 @@ public class Capabilities
         BshClassManager.clearResolveCache();
     }
 
-    private static Hashtable classes = new Hashtable();
+    private static Map<String, Class<?>> classes = new WeakHashMap<>();
     /**
         Use direct Class.forName() to test for the existence of a class.
         We should not use BshClassManager here because:
@@ -94,7 +95,7 @@ public class Capabilities
     */
     public static boolean classExists( String name )
     {
-        Object c = classes.get( name );
+        Class<?> c = classes.get( name );
 
         if ( c == null ) {
             try {
@@ -106,13 +107,14 @@ public class Capabilities
                 c = Class.forName( name );
             } catch ( ClassNotFoundException e ) { }
 
-            if ( c != null )
-                classes.put(c,"unused");
         }
-
+        classes.put(name, c);
         return c != null;
     }
 
+    public static Class<?> getExisting(String name) {
+        return classes.get(name);
+    }
     /**
         An attempt was made to use an unavailable capability supported by
         an optional package.  The normal operation is to test before attempting
