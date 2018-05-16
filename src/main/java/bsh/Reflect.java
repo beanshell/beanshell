@@ -34,6 +34,14 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.WeakHashMap;
+import java.util.stream.Stream;
+
+import static bsh.ClassGeneratorUtil.BSHTHIS;
+import static bsh.ClassGeneratorUtil.BSHSTATIC;
+import static bsh.ClassGeneratorUtil.BSHCLASSMODIFIERS;
 
 /**
  * All of the reflection API code lies here.  It is in the form of static
@@ -704,7 +712,8 @@ final class Reflect {
             }
         }
 
-        int match = findMostSpecificSignature( idealMatch, candidateSigs.toArray(new Class[candidateSigs.size()][]) );
+        int match = findMostSpecificSignature( idealMatch,
+                candidateSigs.toArray(new Class[candidateSigs.size()][]) );
         return match == -1 ? null : methodList.get(match);
     }
 
@@ -978,6 +987,241 @@ final class Reflect {
                 "Can't find constructor: "
                     + StringUtil.methodString( clas.getName(), types )
                     +" in class: "+ clas.getName() );
+    }
+
+    /*
+     * Whether class is a bsh script generated type
+     */
+    public static boolean isGeneratedClass(Class<?> type) {
+        return GeneratedClass.class.isAssignableFrom(type);
+    }
+
+    /*
+     * Get This namespace from the class static field BSHSTATIC
+     */
+    public static NameSpace getThisNS(Class<?> type) {
+        try {
+            if (!isGeneratedClass(type))
+                return null;
+            return ((This)Reflect.getStaticFieldValue(
+                    type, BSHSTATIC + type.getName())).namespace;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /*
+     * Get This namespace from the instance field BSHTHIS
+     */
+    public static NameSpace getThisNS(Object object) {
+        try {
+            Class<?> type = object.getClass();
+            if (!isGeneratedClass(type))
+                return null;
+            return ((This)Reflect.getObjectFieldValue(
+                    object, BSHTHIS + type.getName())).namespace;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /*
+     * Get only variable names from the name space.
+     * Filter out any bsh internal names.
+     */
+    public static String[] getVariableNames(NameSpace ns) {
+        if (ns == null)
+            return new String[0];
+        return Stream.of(ns.getVariableNames())
+                .filter(name->!name.matches("_?bsh.*"))
+                .toArray(String[]::new);
+    }
+
+    /*
+     * Convenience method helper to get method names from namespace
+     */
+    public static String[] getMethodNames(NameSpace ns) {
+        if (ns == null)
+            return new String[0];
+        return ns.getMethodNames();
+    }
+
+    /*
+     * Get method from class static namespace
+     */
+    public static BshMethod getMethod(Class<?> type, String name, Class<?>[] sig) {
+        return getMethod(getThisNS(type), name, sig);
+    }
+
+    /*
+     * Get method from object instance namespace
+     */
+    public static BshMethod getMethod(Object object, String name, Class<?>[] sig) {
+        return getMethod(getThisNS(object), name, sig);
+    }
+
+    /*
+     * Get method from namespace
+     */
+    public static BshMethod getMethod(NameSpace ns, String name, Class<?>[] sig) {
+        try {
+            return ns.getMethod(name, sig, true);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /*
+     * Get method from either class static or object instance namespaces
+     */
+    public static BshMethod getDeclaredMethod(Class<?> type, String name, Class<?>[] sig) {
+        BshMethod meth = getMethod(type, name, sig);
+        if (null == meth)
+            return getMethod(getNewInstance(type), name, sig);
+        return meth;
+    }
+
+    /*
+     * Get all methods from class static namespace
+     */
+    public static BshMethod[] getMethods(Class<?> type) {
+        return getMethods(getThisNS(type));
+    }
+
+    /*
+     * Get all methods from object instance namespace
+     */
+    public static BshMethod[] getMethods(Object object) {
+        return getMethods(getThisNS(object));
+    }
+
+    /*
+     * Get all methods from namespace
+     */
+    public static BshMethod[] getMethods(NameSpace ns) {
+        if (ns == null)
+            return new BshMethod[0];
+        return ns.getMethods();
+    }
+
+    /*
+     * Get all methods from both class static and object instance namespaces
+     */
+    public static BshMethod[] getDeclaredMethods(Class<?> type) {
+        return Stream.concat(
+                Stream.of(getMethods(type)),
+                Stream.of(getMethods(getNewInstance(type)))
+            ).distinct().toArray(BshMethod[]::new);
+    }
+
+    /*
+     * Get variable from class static namespace
+     */
+    public static Variable getVariable(Class<?> type, String name) {
+        return getVariable(getThisNS(type), name);
+    }
+
+    /*
+     * Get variable from object instance namespace
+     */
+    public static Variable getVariable(Object object, String name) {
+        return getVariable(getThisNS(object), name);
+    }
+
+    /*
+     * Get variable from namespace
+     */
+    public static Variable getVariable(NameSpace ns, String name) {
+        try {
+            return ns.getVariableImpl(name, false);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /*
+     * Get variable from either class static or object instance namespaces
+     */
+    public static Variable getDeclaredVariable(Class<?> type, String name) {
+        Variable var = getVariable(type, name);
+        try {
+            if (null == var)
+                return getVariable(type.newInstance(), name);
+        } catch (InstantiationException | IllegalAccessException e) { /* ignore */ }
+        return var;
+    }
+
+    /*
+     * Get all variables from class static namespace
+     */
+    public static Variable[] getVariables(Class<?> type) {
+        return getVariables(getThisNS(type));
+    }
+
+    /*
+     * Get all variables from object instance namespace
+     */
+    public static Variable[] getVariables(Object object) {
+        return getVariables(getThisNS(object));
+    }
+
+    /*
+     * Get all variables from namespace
+     */
+    public static Variable[] getVariables(NameSpace ns) {
+        return getVariables(ns, getVariableNames(ns));
+    }
+
+    /*
+     * Get named list of variables from namespace
+     */
+    public static Variable[] getVariables(NameSpace ns, String[] names) {
+        if (names == null)
+            return new Variable[0];
+        return Stream.of(names).map(name->getVariable(ns, name))
+            .filter(Objects::nonNull).toArray(Variable[]::new);
+    }
+
+    /*
+     * Get all variables from both class static and object instance namespaces
+     */
+    public static Variable[] getDeclaredVariables(Class<?> type) {
+        try {
+            return Stream.concat(
+                    Stream.of(getVariables(type)),
+                    Stream.of(getVariables(type.newInstance()))
+                ).toArray(Variable[]::new);
+        } catch (InstantiationException | IllegalAccessException e) {
+            return new Variable[0];
+        }
+    }
+
+    /*
+     * Get class modifiers from static variable BSHCLASSMODIFIERS
+     */
+    public static Modifiers getClassModifiers(Class<?> type) {
+        try {
+            return (Modifiers)getVariable(type, BSHCLASSMODIFIERS).getValue();
+        } catch (UtilEvalError e) {
+            return new Modifiers(Modifiers.CLASS);
+        }
+    }
+
+    private static final Map<Class<?>,Object> instanceCache = new WeakHashMap<>();
+
+    /*
+     * Class new instance or null, wrap exception handling and
+     * instance cache.
+     */
+    public static Object getNewInstance(Class<?> type) {
+        if (instanceCache.containsKey(type))
+            return instanceCache.get(type);
+        try {
+            instanceCache.put(type, type.newInstance());
+        } catch (InstantiationException | IllegalAccessException e) {
+            instanceCache.put(type, null);
+        }
+        return instanceCache.get(type);
     }
 
     private static boolean isPublic(Member member) {
