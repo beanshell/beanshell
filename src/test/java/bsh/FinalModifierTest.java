@@ -19,12 +19,12 @@ public class FinalModifierTest {
     @Test
     public void assignment_to_final_field_init_should_not_be_allowed() throws Exception {
         thrown.expect(EvalError.class);
-        thrown.expectMessage(containsString("Cannot re-assign final field _initVar."));
+        thrown.expectMessage(containsString("Cannot re-assign final variable _initVar."));
 
         eval(
             "class X3 {",
                 "final Object _initVar = null;",
-                "public X3() { _initVar = 0; }",
+                "X3() { _initVar = 0; }",
             "}",
             "new X3();"
         );
@@ -33,7 +33,7 @@ public class FinalModifierTest {
     @Test
     public void assignment_to_final_field_should_not_be_allowed() throws Exception {
         thrown.expect(EvalError.class);
-        thrown.expectMessage(containsString("Cannot re-assign final field _assVar."));
+        thrown.expectMessage(containsString("Cannot re-assign final variable _assVar."));
 
         eval(
             "class X3 {",
@@ -47,7 +47,7 @@ public class FinalModifierTest {
     @Test
     public void non_assignment_to_static_final_field_should_not_be_allowed() throws Exception {
         thrown.expect(EvalError.class);
-        thrown.expectMessage(containsString("Static final field _staticVar is not set."));
+        thrown.expectMessage(containsString("Static final variable _staticVar is not initialized."));
 
         eval(
             "class X7 {",
@@ -57,14 +57,27 @@ public class FinalModifierTest {
     }
 
     @Test
+    public void non_assignment_to_final_field_should_not_be_allowed() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Final variable _finVar1 is not initialized."));
+
+        eval(
+            "class X77 {",
+                "final Object _finVar1;",
+            "}",
+            "new X77();"
+        );
+    }
+
+    @Test
     public void assignment_to_static_final_field_init_should_not_be_allowed() throws Exception {
         thrown.expect(EvalError.class);
-        thrown.expectMessage(containsString("Cannot re-assign final field _initStaticVar."));
+        thrown.expectMessage(containsString("Cannot re-assign final variable _initStaticVar."));
 
         eval(
             "class X7 {",
                 "static final Object _initStaticVar = null;",
-                "public X7() { _initStaticVar = 0; }",
+                "X7() { _initStaticVar = 0; }",
             "}",
             "new X7();"
         );
@@ -73,7 +86,7 @@ public class FinalModifierTest {
     @Test
     public void assignment_to_static_final_field_should_not_be_allowed() throws Exception {
         thrown.expect(EvalError.class);
-        thrown.expectMessage(containsString("Cannot re-assign final field _assStaticVar."));
+        thrown.expectMessage(containsString("Cannot re-assign final variable _assStaticVar."));
 
         eval(
             "class X7 {",
@@ -88,18 +101,34 @@ public class FinalModifierTest {
         Object unAssVar = eval(
             "class X3 {",
                 "final Object _unAssVar;",
+                "X3 () {",
+                    "this._unAssVar = 0;",
+                "}",
             "}",
             "x3 = new X3();",
-            "x3._unAssVar = 0;",
             "return x3._unAssVar;"
         );
         assertEquals("Un-assigned field _unAssVal equals 0.", 0, unAssVar);
     }
 
     @Test
+    public void assignment_to_unassigned_static_final_field_in_static_block_is_allowed() throws Exception {
+        Object unAssVar = eval(
+            "class X3 {",
+                "static final Object _staticAssVal;",
+                "static { ",
+                    "_staticAssVal = 3; ",
+                "}",
+            "}",
+            "return X3._staticAssVal;"
+        );
+        assertEquals("Un-assigned field _staticAssVal equals 3.", 3, unAssVar);
+    }
+
+    @Test
     public void final_in_method_parameter() throws Exception {
         final Object result = eval(
-                "String test(final String text){",
+                "String test(final String text) {",
                     "return text;",
                 "}",
                 "return test(\"abc\");"
@@ -110,10 +139,10 @@ public class FinalModifierTest {
     @Test
     public void final_in_method_parameter_should_not_allow_modify() throws Exception {
         thrown.expect(EvalError.class);
-        thrown.expectMessage(containsString("Cannot re-assign final field text."));
+        thrown.expectMessage(containsString("Cannot re-assign final variable text."));
 
         eval(
-                "Object test(final String text, int digit){",
+                "Object test(final String text, int digit) {",
                     "digit = 2;",
                     "text = \"def\";",
                 "}",
@@ -136,7 +165,7 @@ public class FinalModifierTest {
     @Test
     public void final_variable_in_method_block_should_not_allow_modify() throws Exception {
         thrown.expect(EvalError.class);
-        thrown.expectMessage(containsString("Cannot re-assign final field text."));
+        thrown.expectMessage(containsString("Cannot re-assign final variable text."));
 
         eval(
                 "String test() {",
@@ -160,7 +189,7 @@ public class FinalModifierTest {
     @Test
     public void final_variable_global_scope_should_not_allow_modify() throws Exception {
         thrown.expect(EvalError.class);
-        thrown.expectMessage(containsString("Cannot re-assign final field text."));
+        thrown.expectMessage(containsString("Cannot re-assign final variable text."));
 
         eval(
             "final String text = \"abc\";",
@@ -186,7 +215,7 @@ public class FinalModifierTest {
     @Test
     public void final_variable_in_while_loop_should_not_allow_modify() throws Exception {
         thrown.expect(EvalError.class);
-        thrown.expectMessage(containsString("Cannot re-assign final field tot."));
+        thrown.expectMessage(containsString("Cannot re-assign final variable tot."));
 
         eval(
             "lst = new int[] {1,2,3,4,5};",
@@ -214,7 +243,7 @@ public class FinalModifierTest {
     @Test
     public void final_variable_in_for_loop_should_not_allow_modify() throws Exception {
         thrown.expect(EvalError.class);
-        thrown.expectMessage(containsString("Cannot re-assign final field i."));
+        thrown.expectMessage(containsString("Cannot re-assign final variable i."));
 
         eval(
             "lst = new int[] {1,2,3,4,5};",
@@ -239,15 +268,237 @@ public class FinalModifierTest {
     @Test
     public void final_variable_in_catch_should_not_allow_modify() throws Exception {
         thrown.expect(EvalError.class);
-        thrown.expectMessage(containsString("Cannot re-assign final field e."));
+        thrown.expectMessage(containsString("Cannot re-assign final variable e."));
 
         eval(
             "try {",
                 "throw new Exception(\"abc\");",
             "} catch (final Exception e) {",
                 "e = new Exception(\"def\");",
-                "return e.getMessage();",
             "}"
+        );
+    }
+
+    @Test
+    public void final_method_should_not_allow_override() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Cannot override lastM() in P1 overridden method is final"));
+
+        eval(
+            "class P1 {",
+                "final lastM() {}",
+            "}",
+            "class C extends P1 {",
+                "lastM() {}",
+            "}"
+        );
+    }
+
+    @Test
+    public void final_method_with_return_type_should_not_allow_override() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Cannot override lastM() in P1 overridden method is final"));
+
+        eval(
+            "class P1 {",
+                "final String lastM() {}",
+            "}",
+            "class C extends P1 {",
+                "lastM() {}",
+            "}"
+        );
+    }
+
+    @Test
+    public void final_void_method_should_not_allow_override() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Cannot override lastM() in P1 overridden method is final"));
+
+        eval(
+            "class P1 {",
+                "final void lastM() {}",
+            "}",
+            "class C extends P1 {",
+                "lastM() {}",
+            "}"
+        );
+    }
+
+    @Test
+    public void final_void_method_should_not_allow_override_return_type() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Cannot override lastM() in P1 overridden method is final"));
+
+        eval(
+            "class P1 {",
+                "final void lastM() {}",
+            "}",
+            "class C extends P1 {",
+                "int lastM() {}",
+            "}"
+        );
+    }
+
+    @Test
+    public void final_method_with_args_should_not_allow_override() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Cannot override lastM() in P1 overridden method is final"));
+
+        eval(
+            "class P1 {",
+                "final lastM(a, e) {}",
+            "}",
+            "class C extends P1 {",
+                "lastM(a, e) {}",
+            "}"
+        );
+    }
+
+    @Test
+    public void final_method_with_assignable_args_should_not_allow_override() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Cannot override lastM() in P1 overridden method is final"));
+
+        eval(
+            "class P1 {",
+                "final lastM(a, e) {}",
+            "}",
+            "class C extends P1 {",
+                "lastM(String a, Integer e) {}",
+            "}"
+        );
+    }
+
+    @Test
+    public void final_method_with_mixed_args_should_not_allow_override() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Cannot override lastM() in P1 overridden method is final"));
+
+        eval(
+            "class P1 {",
+                "final lastM(int a, String b, c, Object d) {}",
+            "}",
+            "class C extends P1 {",
+                "lastM(int a, String b, c, Object d) {}",
+            "}"
+        );
+    }
+
+    @Test
+    public void final_static_method_should_not_allow_override() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Cannot override firstM() in P6 overridden method is final"));
+
+        eval(
+            "class P6 {",
+                "static final firstM() {}",
+            "}",
+            "class C extends P6 {",
+                "firstM() {}",
+            "}"
+        );
+    }
+
+    @Test
+    public void final_static_method_should_not_allow_static_override() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Cannot override firstM() in P6 overridden method is final"));
+
+        eval(
+            "class P6 {",
+                "static final firstM() {}",
+            "}",
+            "class C extends P6 {",
+                "static firstM() {}",
+            "}"
+        );
+    }
+
+    @Test
+    public void final_method_should_not_allow_static_override() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Cannot override firstM() in P6 overridden method is final"));
+
+        eval(
+            "class P6 {",
+                "final firstM() {}",
+            "}",
+            "class C extends P6 {",
+                "static firstM() {}",
+            "}"
+        );
+    }
+
+    @Test
+    public void final_protected_method_should_not_allow_override() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Cannot override protM() in P6 overridden method is final"));
+
+        eval(
+            "class P6 {",
+                "protected final protM() {}",
+            "}",
+            "class C extends P6 {",
+                "protM() {}",
+            "}"
+        );
+    }
+
+    @Test
+    public void final_pivate_method_should_allow_override() throws Exception {
+        final Object res = eval(
+            "class P6 {",
+                "private final privM() { return 2; }",
+                "public pubP() { return privM(); }",
+                "public inhP() { return statC(); }",
+                "protected ovrM() { return pubC(); }",
+            "}",
+            "class C extends P6 {",
+                "privM() { return 1 + ovrM(); }",
+                "pubC() { return privM() + pubP(); }",
+                "public ovrM() { return 0; }",
+                "statC() { return super.ovrM(); }",
+
+            "}",
+            "return new C().inhP();"
+        );
+        assertEquals(3, res);
+    }
+
+    @Test
+    public void final_method_should_not_allow_override_private() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Cannot override lastM() in P1 overridden method is final"));
+
+        eval(
+            "class P1 {",
+                "final lastM() {}",
+            "}",
+            "class C extends P1 {",
+                "private lastM() {}",
+            "}"
+        );
+    }
+
+    @Test
+    public void final_class_should_not_allow_extends() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Cannot inherit from final class P2"));
+
+        eval(
+            "final class P2 { }",
+            "class C extends P2 { }"
+        );
+    }
+
+    @Test
+    public void final_static_class_should_not_allow_extends() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Cannot inherit from final class P2"));
+
+        eval(
+            "static final class P2 { }",
+            "class C extends P2 { }"
         );
     }
 }

@@ -84,17 +84,12 @@ public class Variable implements java.io.Serializable
         throws UtilEvalError
     {
 
-        // check this.value
+        // prevent final variable re-assign
         if (hasModifier("final")) {
-            if(lhs == null && type == null)
-                return;
             if (this.value != null)
-                throw new UtilEvalError("Cannot re-assign final field "+name+".");
-            if (value == null && context == DECLARATION)
-                if (hasModifier("static"))
-                    throw new UtilEvalError("Static final field "+name+" is not set.");
-                else
-                    return;
+                throw new UtilEvalError("Cannot re-assign final variable "+name+".");
+            if (value == null)
+                return;
         }
 
         this.value = value;
@@ -104,7 +99,7 @@ public class Variable implements java.io.Serializable
 
         if ( lhs != null )
         {
-            this.value = lhs.assign( value, false/*strictjava*/ );
+            this.value = lhs.assign( this.value, false/*strictjava*/ );
             return;
         }
 
@@ -115,6 +110,14 @@ public class Variable implements java.io.Serializable
                 context == DECLARATION ? Types.CAST : Types.ASSIGNMENT
             );
 
+    }
+
+    void validateFinalIsSet(boolean isStatic) {
+        if (!hasModifier("final") || this.value != null)
+            return;
+        if (isStatic == hasModifier("static"))
+            throw new RuntimeException((isStatic ? "Static f" : "F")
+                    +"inal variable "+name+" is not initialized.");
     }
 
     /*

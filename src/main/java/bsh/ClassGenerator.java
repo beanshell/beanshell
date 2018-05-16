@@ -159,6 +159,9 @@ public final class ClassGenerator {
                 throw new InterpreterError("Error in class gen setup: " + e, e);
             }
         }
+        // Validate that static final variables were set
+        for (Variable var : Reflect.getVariables(classStaticNameSpace))
+                var.validateFinalIsSet(true);
 
         bcm.doneDefiningClass(fqClassName);
         return genClass;

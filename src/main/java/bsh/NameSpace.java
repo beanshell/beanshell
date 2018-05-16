@@ -774,9 +774,9 @@ public class NameSpace
             final Class<?>[][] candidates = this.methods.get(name)
                     .stream().map(m -> m.getParameterTypes())
                     .toArray(Class<?>[][]::new);
-            method = this.methods.get(name).get(
-                    Reflect.findMostSpecificSignature(sig,
-                            candidates));
+            int idx = Reflect.findMostSpecificSignature(sig, candidates);
+            if (idx != -1)
+                method = this.methods.get(name).get(idx);
         }
         if (method == null && !this.isClass && !declaredOnly)
             method = this.getImportedMethod(name, sig);
