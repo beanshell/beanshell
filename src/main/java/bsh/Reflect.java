@@ -1144,10 +1144,8 @@ final class Reflect {
      */
     public static Variable getDeclaredVariable(Class<?> type, String name) {
         Variable var = getVariable(type, name);
-        try {
-            if (null == var)
-                return getVariable(type.newInstance(), name);
-        } catch (InstantiationException | IllegalAccessException e) { /* ignore */ }
+        if (null == var)
+            return getVariable(getNewInstance(type), name);
         return var;
     }
 
@@ -1186,14 +1184,10 @@ final class Reflect {
      * Get all variables from both class static and object instance namespaces
      */
     public static Variable[] getDeclaredVariables(Class<?> type) {
-        try {
-            return Stream.concat(
-                    Stream.of(getVariables(type)),
-                    Stream.of(getVariables(type.newInstance()))
-                ).toArray(Variable[]::new);
-        } catch (InstantiationException | IllegalAccessException e) {
-            return new Variable[0];
-        }
+        return Stream.concat(
+                Stream.of(getVariables(type)),
+                Stream.of(getVariables(getNewInstance(type)))
+            ).toArray(Variable[]::new);
     }
 
     /*
@@ -1217,8 +1211,8 @@ final class Reflect {
         if (instanceCache.containsKey(type))
             return instanceCache.get(type);
         try {
-            instanceCache.put(type, type.newInstance());
-        } catch (InstantiationException | IllegalAccessException e) {
+            instanceCache.put(type, type.getConstructor().newInstance());
+        } catch ( IllegalArgumentException | ReflectiveOperationException | SecurityException e) {
             instanceCache.put(type, null);
         }
         return instanceCache.get(type);
