@@ -106,21 +106,21 @@ class BSHUnaryExpression extends SimpleNode implements ParserConstants
             if(kind == INCR || kind == DECR)
             {
                 if(operandType == Byte.TYPE)
-                    return new Byte((byte)result);
+                    return Byte.valueOf((byte)result);
                 if(operandType == Short.TYPE)
-                    return new Short((short)result);
+                    return Short.valueOf((short)result);
                 if(operandType == Character.TYPE)
-                    return new Character((char)result);
+                    return Character.valueOf((char)result);
             }
 
-            return new Integer(result);
+            return Integer.valueOf(result);
         }
         else if(operand instanceof Long)
-            return new Long(Primitive.longUnaryOperation((Long)operand, kind));
+            return Long.valueOf(Primitive.longUnaryOperation((Long)operand, kind));
         else if(operand instanceof Float)
-            return new Float(Primitive.floatUnaryOperation((Float)operand, kind));
+            return Float.valueOf(Primitive.floatUnaryOperation((Float)operand, kind));
         else if(operand instanceof Double)
-            return new Double(Primitive.doubleUnaryOperation((Double)operand, kind));
+            return Double.valueOf(Primitive.doubleUnaryOperation((Double)operand, kind));
         else
             throw new InterpreterError("An error occurred.  Please call technical support.");
     }

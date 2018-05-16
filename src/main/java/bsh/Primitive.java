@@ -165,13 +165,13 @@ public final class Primitive implements ParserConstants, Serializable {
     }
 
     public Primitive(boolean value) { this(value ? Boolean.TRUE : Boolean.FALSE); }
-    public Primitive(byte value) { this(new Byte(value)); }
-    public Primitive(short value) { this(new Short(value)); }
-    public Primitive(char value) { this(new Character(value)); }
-    public Primitive(int value) { this(new Integer(value)); }
-    public Primitive(long value) { this(new Long(value)); }
-    public Primitive(float value) { this(new Float(value)); }
-    public Primitive(double value) { this(new Double(value)); }
+    public Primitive(byte value) { this(Byte.valueOf(value)); }
+    public Primitive(short value) { this(Short.valueOf(value)); }
+    public Primitive(char value) { this(Character.valueOf(value)); }
+    public Primitive(int value) { this(Integer.valueOf(value)); }
+    public Primitive(long value) { this(Long.valueOf(value)); }
+    public Primitive(float value) { this(Float.valueOf(value)); }
+    public Primitive(double value) { this(Double.valueOf(value)); }
 
     /**
         Return the primitive value stored in its java.lang wrapper class
@@ -359,43 +359,43 @@ public final class Primitive implements ParserConstants, Serializable {
 
             // arithmetic
             case PLUS:
-                return new Long(lhs + rhs);
+                return Long.valueOf(lhs + rhs);
 
             case MINUS:
-                return new Long(lhs - rhs);
+                return Long.valueOf(lhs - rhs);
 
             case STAR:
-                return new Long(lhs * rhs);
+                return Long.valueOf(lhs * rhs);
 
             case SLASH:
-                return new Long(lhs / rhs);
+                return Long.valueOf(lhs / rhs);
 
             case MOD:
-                return new Long(lhs % rhs);
+                return Long.valueOf(lhs % rhs);
 
             // bitwise
             case LSHIFT:
             case LSHIFTX:
-                return new Long(lhs << rhs);
+                return Long.valueOf(lhs << rhs);
 
             case RSIGNEDSHIFT:
             case RSIGNEDSHIFTX:
-                return new Long(lhs >> rhs);
+                return Long.valueOf(lhs >> rhs);
 
             case RUNSIGNEDSHIFT:
             case RUNSIGNEDSHIFTX:
-                return new Long(lhs >>> rhs);
+                return Long.valueOf(lhs >>> rhs);
 
             case BIT_AND:
             case BIT_ANDX:
-                return new Long(lhs & rhs);
+                return Long.valueOf(lhs & rhs);
 
             case BIT_OR:
             case BIT_ORX:
-                return new Long(lhs | rhs);
+                return Long.valueOf(lhs | rhs);
 
             case XOR:
-                return new Long(lhs ^ rhs);
+                return Long.valueOf(lhs ^ rhs);
 
             default:
                 throw new InterpreterError(
@@ -436,43 +436,43 @@ public final class Primitive implements ParserConstants, Serializable {
 
             // arithmetic
             case PLUS:
-                return new Integer(lhs + rhs);
+                return Integer.valueOf(lhs + rhs);
 
             case MINUS:
-                return new Integer(lhs - rhs);
+                return Integer.valueOf(lhs - rhs);
 
             case STAR:
-                return new Integer(lhs * rhs);
+                return Integer.valueOf(lhs * rhs);
 
             case SLASH:
-                return new Integer(lhs / rhs);
+                return Integer.valueOf(lhs / rhs);
 
             case MOD:
-                return new Integer(lhs % rhs);
+                return Integer.valueOf(lhs % rhs);
 
             // bitwise
             case LSHIFT:
             case LSHIFTX:
-                return new Integer(lhs << rhs);
+                return Integer.valueOf(lhs << rhs);
 
             case RSIGNEDSHIFT:
             case RSIGNEDSHIFTX:
-                return new Integer(lhs >> rhs);
+                return Integer.valueOf(lhs >> rhs);
 
             case RUNSIGNEDSHIFT:
             case RUNSIGNEDSHIFTX:
-                return new Integer(lhs >>> rhs);
+                return Integer.valueOf(lhs >>> rhs);
 
             case BIT_AND:
             case BIT_ANDX:
-                return new Integer(lhs & rhs);
+                return Integer.valueOf(lhs & rhs);
 
             case BIT_OR:
             case BIT_ORX:
-                return new Integer(lhs | rhs);
+                return Integer.valueOf(lhs | rhs);
 
             case XOR:
-                return new Integer(lhs ^ rhs);
+                return Integer.valueOf(lhs ^ rhs);
 
             default:
                 throw new InterpreterError(
@@ -514,19 +514,19 @@ public final class Primitive implements ParserConstants, Serializable {
 
             // arithmetic
             case PLUS:
-                return new Double(lhs + rhs);
+                return Double.valueOf(lhs + rhs);
 
             case MINUS:
-                return new Double(lhs - rhs);
+                return Double.valueOf(lhs - rhs);
 
             case STAR:
-                return new Double(lhs * rhs);
+                return Double.valueOf(lhs * rhs);
 
             case SLASH:
-                return new Double(lhs / rhs);
+                return Double.valueOf(lhs / rhs);
 
             case MOD:
-                return new Double(lhs % rhs);
+                return Double.valueOf(lhs % rhs);
 
             // can't shift floating-point values
             case LSHIFT:
@@ -576,19 +576,19 @@ public final class Primitive implements ParserConstants, Serializable {
 
             // arithmetic
             case PLUS:
-                return new Float(lhs + rhs);
+                return Float.valueOf(lhs + rhs);
 
             case MINUS:
-                return new Float(lhs - rhs);
+                return Float.valueOf(lhs - rhs);
 
             case STAR:
-                return new Float(lhs * rhs);
+                return Float.valueOf(lhs * rhs);
 
             case SLASH:
-                return new Float(lhs / rhs);
+                return Float.valueOf(lhs / rhs);
 
             case MOD:
-                return new Float(lhs % rhs);
+                return Float.valueOf(lhs % rhs);
 
             // can't shift floats
             case LSHIFT:
@@ -611,9 +611,9 @@ public final class Primitive implements ParserConstants, Serializable {
     static Object promoteToInteger(Object wrapper )
     {
         if(wrapper instanceof Character)
-            return new Integer(((Character)wrapper).charValue());
+            return Integer.valueOf(((Character)wrapper).charValue());
         else if((wrapper instanceof Byte) || (wrapper instanceof Short))
-            return new Integer(((Number)wrapper).intValue());
+            return Integer.valueOf(((Number)wrapper).intValue());
 
         return wrapper;
     }
@@ -637,23 +637,23 @@ public final class Primitive implements ParserConstants, Serializable {
             if((b = (lnum instanceof Double)) || (rnum instanceof Double))
             {
                 if(b)
-                    rhs = new Double(rnum.doubleValue());
+                    rhs = Double.valueOf(rnum.doubleValue());
                 else
-                    lhs = new Double(lnum.doubleValue());
+                    lhs = Double.valueOf(lnum.doubleValue());
             }
             else if((b = (lnum instanceof Float)) || (rnum instanceof Float))
             {
                 if(b)
-                    rhs = new Float(rnum.floatValue());
+                    rhs = Float.valueOf(rnum.floatValue());
                 else
-                    lhs = new Float(lnum.floatValue());
+                    lhs = Float.valueOf(lnum.floatValue());
             }
             else if((b = (lnum instanceof Long)) || (rnum instanceof Long))
             {
                 if(b)
-                    rhs = new Long(rnum.longValue());
+                    rhs = Long.valueOf(rnum.longValue());
                 else
-                    lhs = new Long(lnum.longValue());
+                    lhs = Long.valueOf(lnum.longValue());
             }
         }
 
@@ -828,7 +828,7 @@ public final class Primitive implements ParserConstants, Serializable {
 
         // Promote character to Number type for these purposes
         if (value instanceof Character)
-            value = new Integer(((Character)value).charValue());
+            value = Integer.valueOf(((Character)value).charValue());
 
         if (value instanceof Number)
             return (Number)value;
@@ -1130,7 +1130,7 @@ public final class Primitive implements ParserConstants, Serializable {
 
         // first promote char to Number type to avoid duplicating code
         if ( value instanceof Character )
-            value = new Integer(((Character)value).charValue());
+            value = Integer.valueOf(((Character)value).charValue());
 
         if ( !(value instanceof Number) )
             throw new InterpreterError("bad type in cast");
@@ -1138,19 +1138,19 @@ public final class Primitive implements ParserConstants, Serializable {
         Number number = (Number)value;
 
         if (toType == Byte.TYPE)
-            return new Byte(number.byteValue());
+            return Byte.valueOf(number.byteValue());
         if (toType == Short.TYPE)
-            return new Short(number.shortValue());
+            return Short.valueOf(number.shortValue());
         if (toType == Character.TYPE)
-            return new Character((char)number.intValue());
+            return Character.valueOf((char)number.intValue());
         if (toType == Integer.TYPE)
-            return new Integer(number.intValue());
+            return Integer.valueOf(number.intValue());
         if (toType == Long.TYPE)
-            return new Long(number.longValue());
+            return Long.valueOf(number.longValue());
         if (toType == Float.TYPE)
-            return new Float(number.floatValue());
+            return Float.valueOf(number.floatValue());
         if (toType == Double.TYPE)
-            return new Double(number.doubleValue());
+            return Double.valueOf(number.doubleValue());
 
         throw new InterpreterError("error in wrapper cast");
     }
