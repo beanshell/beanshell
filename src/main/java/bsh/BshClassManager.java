@@ -144,9 +144,9 @@ public class BshClassManager
             try {
                 // Try to load the module
                 // don't refer to it directly here or we're dependent upon it
-                Class clazz = Class.forName( "bsh.classpath.ClassManagerImpl" );
-                manager = (BshClassManager) clazz.newInstance();
-            } catch ( Exception e ) {
+                Class<?> clazz = Capabilities.getExisting("bsh.classpath.ClassManagerImpl");
+                manager = (BshClassManager) clazz.getConstructor().newInstance();
+            } catch ( IllegalArgumentException | ReflectiveOperationException | SecurityException e) {
                 throw new InterpreterError("Error loading classmanager", e);
             }
         else
