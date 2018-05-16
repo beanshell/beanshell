@@ -155,7 +155,7 @@ public class JConsole extends JScrollPane
         if ( outPipe == null ) {
             outPipe = new PipedOutputStream();
             try {
-                in = new PipedInputStream((PipedOutputStream)outPipe);
+                in = new PipedInputStream((PipedOutputStream) outPipe, 64 * 1024);
             } catch ( IOException e ) {
                 print("Console internal error (1)...", Color.red);
             }
