@@ -43,15 +43,11 @@ public class FilteredTestRunner extends BlockJUnit4ClassRunner {
             final Class<?>[] value = category.value();
             for (final Class<?> categoryClass : value) {
                 if (TestFilter.class.isAssignableFrom(categoryClass)) {
-                    try {
-                        final TestFilter testFilter = (TestFilter) categoryClass.newInstance();
-                        if (testFilter.skip()) {
-                            notifier.fireTestIgnored(description);
+                    final TestFilter testFilter = (TestFilter) Reflect.getNewInstance(categoryClass);
+                    if (testFilter.skip()) {
+                        notifier.fireTestIgnored(description);
 //                            System.out.println("skipping test " + method.getMethod() + " due filter " + categoryClass.getSimpleName());
-                            return;
-                        }
-                    } catch (final InstantiationException | IllegalAccessException e) {
-                        throw new AssertionError(e);
+                        return;
                     }
                 }
             }
