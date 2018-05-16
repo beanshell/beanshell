@@ -21,7 +21,6 @@
 package bsh;
 
 import static bsh.TestUtil.eval;
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -30,17 +29,12 @@ import static org.junit.Assert.assertTrue;
 import java.util.concurrent.Callable;
 import java.util.function.IntSupplier;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 @RunWith(FilteredTestRunner.class)
 public class ClassGeneratorTest {
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
     @Test
     public void create_class_with_default_constructor() throws Exception {
         eval("class X1 {}");
@@ -120,6 +114,7 @@ public class ClassGeneratorTest {
                 "synchronized sync_method() {}",
                 "final final_method() {}",
                 "static static_method() {}",
+                "static final static_final_method() {}",
                 "abstract abstract_method() {}",
                 "public public_method() {}",
                 "private private_method() {}",
@@ -127,59 +122,68 @@ public class ClassGeneratorTest {
             "}",
             "return X6.class ");
 
-        Object inst = cls.newInstance();
-        This ths = (This)cls.getField("_bshThisX6").get(inst);
-        NameSpace ns = ths.getNameSpace();
-        assertTrue("public_var has public modifier", varHasModifier(ns, "public_var", "public"));
-        assertFalse("private_var does not have public modifier", varHasModifier(ns, "private_var", "public"));
-        assertTrue("private_var has private modifier", varHasModifier(ns, "private_var", "private"));
-        assertFalse("protected_var does not have public modifier", varHasModifier(ns, "protected_var", "public"));
-        assertTrue("protected_var has protected modifier", varHasModifier(ns, "protected_var", "protected"));
-        assertTrue("public_final_var has public modifier", varHasModifier(ns, "public_final_var", "public"));
-        assertTrue("public_final_var has final modifier", varHasModifier(ns, "public_final_var", "final"));
-        assertTrue("final_var has public modifier", varHasModifier(ns, "final_var", "public"));
-        assertTrue("final_var has final modifier", varHasModifier(ns, "final_var", "final"));
-        assertTrue("transient_var has public modifier", varHasModifier(ns, "transient_var", "public"));
-        assertTrue("transient_var has transient modifier", varHasModifier(ns, "transient_var", "transient"));
-        assertTrue("volatile_var has public modifier", varHasModifier(ns, "volatile_var", "public"));
-        assertTrue("volatile_var has volatile modifier", varHasModifier(ns, "volatile_var", "volatile"));
-        assertTrue("no_modifier_var has public modifier", varHasModifier(ns, "no_modifier_var", "public"));
-        assertTrue("no_type_var has public modifier", varHasModifier(ns, "no_type_var", "public"));
-        assertTrue("constructor has public modifier", methHasModifier(ns, "X6", "public"));
-        assertTrue("just_method has public modifier", methHasModifier(ns, "just_method", "public"));
-        assertTrue("void_method has public modifier", methHasModifier(ns, "void_method", "public"));
-        assertTrue("type_method has public modifier", methHasModifier(ns, "type_method", "public"));
-        assertTrue("sync_method has public modifier", methHasModifier(ns, "sync_method", "public"));
-        assertTrue("sync_method has synchronized modifier", methHasModifier(ns, "sync_method", "synchronized"));
-        assertTrue("final_method has public modifier", methHasModifier(ns, "final_method", "public"));
-        assertTrue("final_method has final modifier", methHasModifier(ns, "final_method", "final"));
-        assertTrue("static_method has public modifier", methHasModifier(ns, "static_method", "public"));
-        assertTrue("abstract_method has public modifier", methHasModifier(ns, "abstract_method", "public"));
-        assertTrue("abstract_method has abstract modifier", methHasModifier(ns, "abstract_method", "abstract"));
-        assertTrue("public_method has public modifier", methHasModifier(ns, "public_method", "public"));
-        assertFalse("private_method does not have public modifier", methHasModifier(ns, "private_method", "public"));
-        assertTrue("private_method has private modifier", methHasModifier(ns, "private_method", "private"));
-        assertFalse("protected_method does not have public modifier", methHasModifier(ns, "protected_method", "public"));
-        assertTrue("protected_method has protected modifier", methHasModifier(ns, "protected_method", "protected"));
+        // public class
+        assertTrue("class has public modifier", Reflect.getClassModifiers(cls).hasModifier("public"));
 
-        ths = (This)cls.getField("_bshStaticX6").get(null);
-        ns = ths.getNameSpace();
-        assertTrue("static_var has public modifier", varHasModifier(ns, "static_var", "public"));
-        assertTrue("static_var has static modifier", varHasModifier(ns, "static_var", "static"));
-        assertTrue("static_final_var has public modifier", varHasModifier(ns, "static_final_var", "public"));
-        assertTrue("static_final_var has static modifier", varHasModifier(ns, "static_final_var", "static"));
-        assertTrue("static_final_var has final modifier", varHasModifier(ns, "static_final_var", "final"));
-        assertTrue("static_method has static modifier", methHasModifier(ns, "static_method", "static"));
+        // public static variables
+        assertTrue("static_var has public modifier", var(cls, "static_var", "public"));
+        assertTrue("static_var has static modifier", var(cls, "static_var", "static"));
+        assertTrue("static_final_var has public modifier", var(cls, "static_final_var", "public"));
+        assertTrue("static_final_var has static modifier", var(cls, "static_final_var", "static"));
+        assertTrue("static_final_var has final modifier", var(cls, "static_final_var", "final"));
+
+        // public static methods
+        assertTrue("static_method has public modifier", meth(cls, "static_method", "public"));
+        assertTrue("static_method has static modifier", meth(cls, "static_method", "static"));
+        assertTrue("static_final_method has public modifier", meth(cls, "static_final_method", "public"));
+        assertTrue("static_final_method has static modifier", meth(cls, "static_final_method", "static"));
+        assertTrue("static_final_method has final modifier", meth(cls, "static_final_method", "final"));
+
+        // public instance variables
+        assertTrue("public_var has public modifier", var(cls, "public_var", "public"));
+        assertFalse("private_var does not have public modifier", var(cls, "private_var", "public"));
+        assertTrue("private_var has private modifier", var(cls, "private_var", "private"));
+        assertFalse("protected_var does not have public modifier", var(cls, "protected_var", "public"));
+        assertTrue("protected_var has protected modifier", var(cls, "protected_var", "protected"));
+        assertTrue("public_final_var has public modifier", var(cls, "public_final_var", "public"));
+        assertTrue("public_final_var has final modifier", var(cls, "public_final_var", "final"));
+        assertTrue("final_var has public modifier", var(cls, "final_var", "public"));
+        assertTrue("final_var has final modifier", var(cls, "final_var", "final"));
+        assertTrue("transient_var has public modifier", var(cls, "transient_var", "public"));
+        assertTrue("transient_var has transient modifier", var(cls, "transient_var", "transient"));
+        assertTrue("volatile_var has public modifier", var(cls, "volatile_var", "public"));
+        assertTrue("volatile_var has volatile modifier", var(cls, "volatile_var", "volatile"));
+        assertTrue("no_modifier_var has public modifier", var(cls, "no_modifier_var", "public"));
+        assertTrue("no_type_var has public modifier", var(cls, "no_type_var", "public"));
+
+        // public instance methods
+        assertTrue("constructor has public modifier", meth(cls, "X6", "public"));
+        assertTrue("just_method has public modifier", meth(cls, "just_method", "public"));
+        assertTrue("void_method has public modifier", meth(cls, "void_method", "public"));
+        assertTrue("type_method has public modifier", meth(cls, "type_method", "public"));
+        assertTrue("sync_method has public modifier", meth(cls, "sync_method", "public"));
+        assertTrue("sync_method has synchronized modifier", meth(cls, "sync_method", "synchronized"));
+        assertTrue("final_method has public modifier", meth(cls, "final_method", "public"));
+        assertTrue("final_method has final modifier", meth(cls, "final_method", "final"));
+        assertTrue("abstract_method has public modifier", meth(cls, "abstract_method", "public"));
+        assertTrue("abstract_method has abstract modifier", meth(cls, "abstract_method", "abstract"));
+        assertTrue("public_method has public modifier", meth(cls, "public_method", "public"));
+        assertFalse("private_method does not have public modifier", meth(cls, "private_method", "public"));
+        assertTrue("private_method has private modifier", meth(cls, "private_method", "private"));
+        assertFalse("protected_method does not have public modifier", meth(cls, "protected_method", "public"));
+        assertTrue("protected_method has protected modifier", meth(cls, "protected_method", "protected"));
 
         Capabilities.setAccessibility(current);
     }
 
-    private boolean varHasModifier(NameSpace ns, String var, String mod) throws UtilEvalError {
-        return ns.getVariableImpl(var, false).hasModifier(mod);
+    private boolean var(Class<?> type, String var, String mod) throws UtilEvalError {
+        Variable v = Reflect.getDeclaredVariable(type, var);
+        return null != v && v.hasModifier(mod);
     }
 
-    private boolean methHasModifier(NameSpace ns, String meth, String mod) throws UtilEvalError {
-        return ns.getMethod(meth, new Class<?>[0]).hasModifier(mod);
+    private boolean meth(Class<?> type, String meth, String mod) throws UtilEvalError {
+        BshMethod m = Reflect.getDeclaredMethod(type, meth, new Class<?>[0]);
+        return null != m && m.hasModifier(mod);
     }
 
     @Test

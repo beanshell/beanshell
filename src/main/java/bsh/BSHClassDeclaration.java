@@ -27,6 +27,11 @@
 
 package bsh;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 /**
 */
 class BSHClassDeclaration extends SimpleNode
@@ -66,10 +71,24 @@ class BSHClassDeclaration extends SimpleNode
 
         // resolve superclass if any
         Class superClass = null;
+        final List<BshMethod> meths = new ArrayList<>(0);
         if ( extend ) {
             BSHAmbiguousName superNode = (BSHAmbiguousName)jjtGetChild(child++);
             superClass = superNode.toClass( callstack, interpreter );
+            if (Reflect.isGeneratedClass(superClass)) {
+                // Validate final classes should not be extended
+                if (Reflect.getClassModifiers(superClass).hasModifier("final"))
+                    throw new EvalError("Cannot inherit from final class "
+                        + superClass.getName(), null, null);
+                // Collect final methods from all super class namespaces
+                meths.addAll(Stream.of(Reflect.getDeclaredMethods(superClass))
+                    .filter(m->m.hasModifier("final")&&!m.hasModifier("private"))
+                    .collect(Collectors.toList()));
+            }
         }
+
+        if (modifiers == null)
+            modifiers = new Modifiers(Modifiers.CLASS);
 
         // Get interfaces
         Class [] interfaces = new Class[numInterfaces];
@@ -89,9 +108,17 @@ class BSHClassDeclaration extends SimpleNode
         else
             block = new BSHBlock( ParserTreeConstants.JJTBLOCK );
 
-        return ClassGenerator.getClassGenerator().generateClass(
+        Class<?> clas = ClassGenerator.getClassGenerator().generateClass(
             name, modifiers, interfaces, superClass, block, isInterface,
             callstack, interpreter );
+
+        // Validate final methods should not be overwritten
+        for (BshMethod m : meths)
+           if (null != Reflect.getDeclaredMethod(clas, m.getName(), m.getParameterTypes()))
+               throw new EvalError("Cannot override "+m.getName()+"() in " +
+                   superClass.getName() + " overridden method is final", null, null);
+
+        return clas;
     }
 
     public String toString() {

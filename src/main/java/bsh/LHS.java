@@ -180,25 +180,11 @@ class LHS implements ParserConstants, java.io.Serializable
             return var.hasModifier("final");
         if (field == null)
             return false;
-        try {
-            Class<?> clas = field.getDeclaringClass();
-            This ths = null;
-            if (isStatic()) {
-                String bshFieldName = ClassGeneratorUtil.BSHSTATIC + clas.getName();
-                ths = (This)Reflect.getStaticFieldValue(clas, bshFieldName);
-            } else {
-                if (object == null)
-                    object = clas.newInstance();
-                String bshFieldName = ClassGeneratorUtil.BSHTHIS + clas.getName();
-                ths = (This)Reflect.getObjectFieldValue(object, bshFieldName);
-            }
-            if (ths == null)
-                return false;
-            this.var = ths.namespace.getVariableImpl(field.getName(), false);
-            return var.hasModifier("final");
-        } catch (Throwable e) {
-            return false;
-        }
+        if (isStatic())
+            this.var = Reflect.getVariable(field.getDeclaringClass(), field.getName());
+        else
+            this.var = Reflect.getVariable(object, field.getName());
+        return var != null && var.hasModifier("final");
     }
 
     public Variable getVariable() {
