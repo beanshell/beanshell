@@ -21,7 +21,7 @@ public class Issue_88_Test {
     }
 
     @Test
-	public void call_of_public_inherited_method_from_non_public_class_with_accessibilty() throws Exception {
+    public void call_of_public_inherited_method_from_non_public_class_with_accessibilty() throws Exception {
         boolean current = Capabilities.haveAccessibility();
         Capabilities.setAccessibility(true);
        final Interpreter interpreter = new Interpreter();
