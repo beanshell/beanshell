@@ -25,9 +25,12 @@
  *****************************************************************************/
 package bsh.util;
 
-import java.applet.Applet;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Frame;
+import java.awt.Window;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import bsh.ConsoleInterface;
 import bsh.Interpreter;
@@ -35,15 +38,26 @@ import bsh.Interpreter;
 /**
     Run bsh as an applet for demo purposes.
 */
-public class AWTDemoApplet extends Applet
+public class AWTDemoApplet extends Frame
 {
-    public void init()
+    public AWTDemoApplet()
     {
+        super("AWT Demo");
         setLayout(new BorderLayout());
         ConsoleInterface console = new AWTConsole();
         add("Center", (Component)console);
         Interpreter interpreter = new Interpreter( console );
         new Thread(interpreter).start();
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent windowEvent){
+               System.exit(0);
+            }
+         });
+        pack();
+        setVisible(true);
+    }
+    public static void main(String[] args) {
+        new Window(new AWTDemoApplet());
     }
 }
 

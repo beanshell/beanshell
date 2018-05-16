@@ -32,38 +32,45 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.net.URL;
 
-import javax.swing.JApplet;
+import javax.swing.JFrame;
+import javax.swing.JWindow;
+
 
 /**
     A lightweight console applet for remote display of a Beanshell session.
 */
 
-public class JRemoteApplet extends JApplet
+public class JRemoteApplet extends JFrame
 {
     OutputStream out;
     InputStream in;
 
-    public void init()
-    {
-        getContentPane().setLayout(new BorderLayout());
+    public JRemoteApplet(int port) {
 
+        getContentPane().setLayout(new BorderLayout());
+        setSize(600, 200);
         try {
-            URL base = getDocumentBase();
+            // URL base = getDocumentBase();
 
             // connect to session server on port (httpd + 1)
-            Socket s = new Socket(base.getHost(), base.getPort() + 1);
+            Socket s = new Socket("localhost", port);// base.getHost(), base.getPort() + 1);
             out = s.getOutputStream();
             in = s.getInputStream();
         } catch(IOException e) {
             getContentPane().add("Center",
                 new Label("Remote Connection Failed", Label.CENTER));
+            setVisible(true);
             return;
         }
 
         Component console = new JConsole(in, out);
         getContentPane().add("Center", console);
+        setVisible(true);
     }
+    public static void main(String[] args) {
+        new JWindow(new JRemoteApplet(Integer.parseInt(args[0])));
+    }
+
 }
 
