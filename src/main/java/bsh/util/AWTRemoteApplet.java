@@ -25,42 +25,59 @@
  *****************************************************************************/
 package bsh.util;
 
-import java.applet.Applet;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Label;
+import java.awt.Window;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.net.URL;
+
+import java.awt.Frame;
 
 /**
     A lightweight console applet for remote display of a Beanshell session.
 */
-public class AWTRemoteApplet extends Applet
+public class AWTRemoteApplet extends Frame
 {
     OutputStream out;
     InputStream in;
 
-    public void init()
+    public AWTRemoteApplet(int port)
     {
+        super("AWT Remote");
         setLayout(new BorderLayout());
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent windowEvent){
+               System.exit(0);
+            }
+         });
 
         try {
-            URL base = getDocumentBase();
+            //URL base = getDocumentBase();
 
             // connect to session server on port (httpd + 1)
-            Socket s = new Socket(base.getHost(), base.getPort() + 1);
+            Socket s = new Socket("localhost", port);//base.getHost(), base.getPort() + 1);
             out = s.getOutputStream();
             in = s.getInputStream();
         } catch(IOException e) {
             add("Center", new Label("Remote Connection Failed", Label.CENTER));
+            pack();
+            setVisible(true);
             return;
         }
 
         Component console = new AWTConsole(in, out);
         add("Center", console);
+        pack();
+        setVisible(true);
     }
+    public static void main(String[] args) {
+        new Window(new AWTRemoteApplet(Integer.parseInt(args[0])));
+    }
+
 }
 
