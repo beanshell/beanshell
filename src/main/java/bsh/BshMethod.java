@@ -456,7 +456,7 @@ public class BshMethod implements Serializable {
     public int hashCode() {
         int h = name.hashCode();
         for (Class<?> cparamType : cparamTypes) {
-            h = h * 31 + cparamType.hashCode();
+            h = h * 31 + (cparamType == null ? 0 : cparamType.hashCode());
         }
         return h + numArgs;
     }

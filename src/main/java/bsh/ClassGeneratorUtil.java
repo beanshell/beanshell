@@ -113,6 +113,11 @@ public class ClassGeneratorUtil implements Constants {
     private static final String BSHCONSTRUCTORS = "_bshConstructors";
 
     /**
+     * The bsh static namespace variable that holds the class modifiers
+     */
+    static final String BSHCLASSMODIFIERS = "_bshClassModifiers";
+
+    /**
      * The switch branch number for the default constructor.
      * The value -1 will cause the default branch to be taken.
      */
@@ -177,6 +182,7 @@ public class ClassGeneratorUtil implements Constants {
 
         try {
             classStaticNameSpace.setLocalVariable(BSHCONSTRUCTORS, constructors, false/*strict*/);
+            classStaticNameSpace.setLocalVariable(BSHCLASSMODIFIERS, classModifiers, false/*strict*/);
         } catch (UtilEvalError e) {
             throw new InterpreterError("can't set cons var", e);
         }
