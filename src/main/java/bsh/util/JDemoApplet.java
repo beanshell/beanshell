@@ -27,7 +27,8 @@ package bsh.util;
 
 import java.awt.BorderLayout;
 
-import javax.swing.JApplet;
+import javax.swing.JFrame;
+import javax.swing.JWindow;
 
 import bsh.EvalError;
 import bsh.Interpreter;
@@ -36,15 +37,17 @@ import bsh.TargetError;
 /**
     Run bsh as an applet for demo purposes.
 */
-public class JDemoApplet extends JApplet
+public class JDemoApplet extends JFrame
 {
-    public void init()
+    public JDemoApplet(String type)
     {
-        String debug = getParameter("debug");
+        super("Demo");
+
+        String debug = null; // getParameter("debug");
         if ( debug != null && debug.equals("true") )
             Interpreter.DEBUG=true;
 
-        String type = getParameter("type");
+        // String type = getParameter("type");
         if ( type != null && type.equals("desktop") )
             // start the desktop
             try {
@@ -60,11 +63,16 @@ public class JDemoApplet extends JApplet
         else
         {
             getContentPane().setLayout(new BorderLayout());
+            setSize(600,200);
             JConsole console = new JConsole();
             getContentPane().add("Center", console);
             Interpreter interpreter = new Interpreter( console );
             new Thread(interpreter).start();
+            setVisible(true);
         }
+    }
+    public static void main(String[] args) {
+        new JWindow(new JDemoApplet(args[0]));
     }
 }
 
