@@ -1054,12 +1054,11 @@ void PrimarySuffix() #PrimarySuffix :
   "{" Expression() "}" {
         jjtThis.operation = BSHPrimarySuffix.PROPERTY;
     }
-/*
-    For inner classes
+/*  For inner classes */
 |
-  LOOKAHEAD(2)
-  "." AllocationExpression()
-*/
+    AllocationExpression() {
+        jjtThis.operation = BSHPrimarySuffix.NEW;
+    }
 }
 
 void Literal() #Literal :
@@ -1197,6 +1196,9 @@ void AllocationExpression() #AllocationExpression :
         // SYNTACTIC_LOOKAHEAD
         Arguments() [ LOOKAHEAD(2) Block() ]
     )
+|
+  ".new " AmbiguousName() [ TypeArguments() ]
+     ( Arguments() [ LOOKAHEAD(2) Block() ] )
 }
 
 void ArrayDimensions() #ArrayDimensions :

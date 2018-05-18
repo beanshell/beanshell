@@ -400,6 +400,13 @@ class Name implements java.io.Serializable
             if ( obj == null ) {
                 String iclass = clas.getName()+"$"+field;
                 Class c = namespace.getClass( iclass );
+
+                if (null == namespace.classInstance
+                        && Reflect.isGeneratedClass(c)
+                        && !Reflect.getClassModifiers(c).hasModifier("static"))
+                    throw new UtilEvalError("an enclosing instance that contains "
+                            + clas.getName() + "." + field + " is required");
+
                 if ( c != null )
                     obj = new ClassIdentifier(c);
             }
