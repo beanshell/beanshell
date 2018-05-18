@@ -109,7 +109,7 @@ public class OldScriptsTest {
      * @param suite the suite
      * @return true, if is under scrutiny */
     private static boolean isUnderScrutiny(final TestSuite suite) {
-        final String trouble_maker = ""; // test file(s) under scrutiny
+        final String trouble_maker = System.getProperty("script"); // test file(s) under scrutiny
         if (trouble_maker.isEmpty())
             return false;
         for (String f:trouble_maker.split(","))
@@ -153,9 +153,8 @@ public class OldScriptsTest {
             } catch (final Exception e) {
                 throw new RuntimeException(getName(), e.getCause());
             }
-            assertEquals("'test_completed' flag check", Boolean.TRUE,
-                    interpreter.get("test_completed"));
-            assertEquals(getName(), Boolean.FALSE, interpreter.get("test_failed"));
+            assertTrue("Test did not complete", (Boolean)interpreter.get("test_completed"));
+            assertFalse(""+interpreter.get("test_message"), (Boolean)interpreter.get("test_failed"));
         }
     }
 }
