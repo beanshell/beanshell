@@ -1,16 +1,16 @@
 package InheritanceTest;
 
 public class Accessor {
-    public static A getWbyA() {return new W();}
-    public static B getWbyB() {return new W();}
-    public static A getXbyA() {return new X();}
-    public static B getXbyB() {return new X();}
-    public static X getX()    {return new X();}
-    public static A getYbyA() {return new Y();}
-    public static B getYbyB() {return new Y();}
-    public static C getYbyC() {return new Y();}
-    public static Y getY()    {return new Y();}
-    public static A getZbyA() {return new Z();}
-    public static B getZbyB() {return new Z();}
-    public static C getZbyC() {return new Z();}
+    public static AA getWbyA() {return new WW();}
+    public static BB getWbyB() {return new WW();}
+    public static AA getXbyA() {return new XX();}
+    public static BB getXbyB() {return new XX();}
+    public static XX getX()    {return new XX();}
+    public static AA getYbyA() {return new YY();}
+    public static BB getYbyB() {return new YY();}
+    public static CC getYbyC() {return new YY();}
+    public static YY getY()    {return new YY();}
+    public static AA getZbyA() {return new ZZ();}
+    public static BB getZbyB() {return new ZZ();}
+    public static CC getZbyC() {return new ZZ();}
 }
