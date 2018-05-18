@@ -35,7 +35,8 @@ class BSHPrimarySuffix extends SimpleNode
         CLASS = 0,
         INDEX = 1,
         NAME = 2,
-        PROPERTY = 3;
+        PROPERTY = 3,
+        NEW = 4;
 
     public int operation;
     Object index;
@@ -113,6 +114,8 @@ class BSHPrimarySuffix extends SimpleNode
                 case PROPERTY:
                     return doProperty( toLHS, obj, callstack, interpreter );
 
+                case NEW:
+                    return doNewInner(obj, toLHS, callstack, interpreter);
                 default:
                     throw new InterpreterError( "Unknown suffix type" );
             }
@@ -126,6 +129,16 @@ class BSHPrimarySuffix extends SimpleNode
             throw new TargetError( "target exception", e.getTargetException(),
                 this, callstack, true);
         }
+    }
+
+    /*
+        Instance.new InnerClass() implementation
+    */
+    private Object doNewInner(Object obj, boolean toLHS,
+        CallStack callstack, Interpreter interpreter) throws EvalError {
+        callstack.pop();
+        callstack.push(Reflect.getThisNS(obj));
+        return ((BSHAllocationExpression)jjtGetChild(0)).eval(callstack, interpreter);
     }
 
     /*
