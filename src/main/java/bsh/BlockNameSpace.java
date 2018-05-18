@@ -49,6 +49,7 @@ class BlockNameSpace extends NameSpace
         throws EvalError
     {
         super( parent, parent.getName()+ "/BlockNameSpace" );
+        this.isMethod = parent.isMethod;
     }
 
     /**

@@ -49,8 +49,7 @@ public class Namespace_Chaining_Test {
 
 
     @Test
-    @Category(KnownIssue.class)
-    public void jdownloader_test_case() throws Exception {
+    public void override_child_namespace() throws Exception {
         Interpreter root = new Interpreter();
         Interpreter child = new Interpreter(new StringReader(""), System.out, System.err, false, new NameSpace(root.getNameSpace(), "child"));
 
@@ -60,11 +59,32 @@ public class Namespace_Chaining_Test {
         assertEquals(42, root.eval("bar;"));
         assertEquals(4711, child.eval("bar;"));
 
-        // Let's declare a method that should refer to the "foo" variable in the parent namespace
+        // Method foo declared in parent namespace returns bar
         root.eval("int foo() { return bar; }");
 
         assertEquals(42, root.eval("foo();"));
+        assertEquals(4711, child.eval("foo();"));
+    }
 
-        assertEquals(4711, child.eval("foo();")); // incorrectly returns 42
+    @Test
+    public void override_child_child_namespace() throws Exception {
+        Interpreter root = new Interpreter();
+        Interpreter child = new Interpreter(new StringReader(""), System.out, System.err, false, new NameSpace(root.getNameSpace(), "child"));
+        Interpreter child2 = new Interpreter(new StringReader(""), System.out, System.err, false, new NameSpace(child.getNameSpace(), "child2"));
+
+        root.eval("int bar=42;");
+        child.eval("int bar=4711;");
+        child2.eval("int bar=5;");
+
+        assertEquals(42, root.eval("bar;"));
+        assertEquals(4711, child.eval("bar;"));
+        assertEquals(5, child2.eval("bar;"));
+
+        // Method foo declared in parent namespace returns bar
+        root.eval("int foo() { return bar; }");
+
+        assertEquals(42, root.eval("foo();"));
+        assertEquals(4711, child.eval("foo();"));
+        assertEquals(5, child2.eval("foo();"));
     }
 }
