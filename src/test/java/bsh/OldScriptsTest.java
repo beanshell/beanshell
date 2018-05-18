@@ -43,28 +43,18 @@ public class OldScriptsTest {
     private static final File baseDir = new File(
             "src/test/resources/test-scripts");
     static {
-        KNOWN_FAILING_TESTS.add("basic.bsh");
         KNOWN_FAILING_TESTS.add("blockscope.bsh");
         KNOWN_FAILING_TESTS.add("class.bsh");
         KNOWN_FAILING_TESTS.add("class3.bsh");
         KNOWN_FAILING_TESTS.add("classinner.bsh");
         KNOWN_FAILING_TESTS.add("classinterf1.bsh");
         KNOWN_FAILING_TESTS.add("classser.bsh");
-        KNOWN_FAILING_TESTS.add("commands.bsh");
-        KNOWN_FAILING_TESTS.add("expressions.bsh");
         KNOWN_FAILING_TESTS.add("externalNameSpace.bsh");
         KNOWN_FAILING_TESTS.add("forenhanced.bsh");
         KNOWN_FAILING_TESTS.add("forscope.bsh");
         KNOWN_FAILING_TESTS.add("forscope4.bsh");
         KNOWN_FAILING_TESTS.add("iftest.bsh");
-        KNOWN_FAILING_TESTS.add("inherit.bsh");
-        KNOWN_FAILING_TESTS.add("modifiers.bsh");
         KNOWN_FAILING_TESTS.add("newscoping.bsh");
-        KNOWN_FAILING_TESTS.add("parserissues1.bsh");
-        KNOWN_FAILING_TESTS.add("run.bsh");
-        KNOWN_FAILING_TESTS.add("serializable.bsh");
-        KNOWN_FAILING_TESTS.add("serializable2.bsh");
-        KNOWN_FAILING_TESTS.add("serializable3.bsh");
         KNOWN_FAILING_TESTS.add("tryscope.bsh");
     }
 

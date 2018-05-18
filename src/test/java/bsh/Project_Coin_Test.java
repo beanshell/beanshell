@@ -6,12 +6,10 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static bsh.TestUtil.eval;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -30,18 +28,6 @@ public class Project_Coin_Test {
         assertEquals("0b_1001_1001", 153, interpreter.eval("return 0b_1001_1001;"));
         assertEquals("0x_9_9", 153, interpreter.eval("return 0x_9_9;"));
         assertEquals("15_500_000_000L", 15500000000L, interpreter.eval("return 15_500_000_000L;"));
-    }
-
-
-    @Test
-    @Category(ProjectCoinFeature.class)
-    public void diamond_operator() throws Exception {
-        eval("List<String> list = new ArrayList<>()");
-        final Object anagrams = eval(
-                "Map<String, List<String>> anagrams = new HashMap<>();" +
-                "return anagrams;");
-        assertNotNull(anagrams);
-        assertTrue(anagrams.getClass().getName(), anagrams instanceof HashMap);
     }
 
 
