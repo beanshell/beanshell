@@ -3,28 +3,28 @@
  * This source corresponds with the `inherit.bsh' test script.
  */
 
-import InheritanceTest.A;
+import InheritanceTest.AA;
 import InheritanceTest.Accessor;
-import InheritanceTest.B;
-import InheritanceTest.C;
-import InheritanceTest.X;
-import InheritanceTest.Y;
+import InheritanceTest.BB;
+import InheritanceTest.CC;
+import InheritanceTest.XX;
+import InheritanceTest.YY;
 
 public class Inherit {
 
     public static void main(String[] args) {
-        A wa;
-        B wb;
-        A xa;
-        B xb;
-        X x;
-        A ya;
-        B yb;
-        C yc;
-        Y y;
-        A za;
-        B zb;
-        C zc;
+        AA wa;
+        BB wb;
+        AA xa;
+        BB xb;
+        XX x;
+        AA ya;
+        BB yb;
+        CC yc;
+        YY y;
+        AA za;
+        BB zb;
+        CC zc;
 
         wa = Accessor.getWbyA();
         wb = Accessor.getWbyB();
