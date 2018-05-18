@@ -46,7 +46,6 @@ public class OldScriptsTest {
         KNOWN_FAILING_TESTS.add("basic.bsh");
         KNOWN_FAILING_TESTS.add("blockscope.bsh");
         KNOWN_FAILING_TESTS.add("class.bsh");
-        KNOWN_FAILING_TESTS.add("class13.bsh");
         KNOWN_FAILING_TESTS.add("class3.bsh");
         KNOWN_FAILING_TESTS.add("classinner.bsh");
         KNOWN_FAILING_TESTS.add("classinterf1.bsh");

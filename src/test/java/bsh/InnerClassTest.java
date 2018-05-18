@@ -20,19 +20,136 @@
 
 package bsh;
 
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 
+import static bsh.TestUtil.eval;
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertEquals;
+
 @RunWith(FilteredTestRunner.class)
-public class Class13Test {
+public class InnerClassTest {
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Test
-    @Category(KnownIssue.class)
     public void run_script_class13() throws Exception {
         new OldScriptsTest.TestBshScript(new File("src/test/resources/test-scripts/class13.bsh")).runTest();
+    }
+
+    @Test
+    public void inner_class_instance_from_outer_method() throws Exception {
+        Object ret = eval(
+            "class Outer {",
+                "class Inner {",
+                    "go() { return 1; }",
+                "}",
+                "go() {",
+                    "new Inner();",
+                "}",
+            "}",
+            "new Outer().go().go();"
+        );
+        assertEquals("Inner class instance returns 1", 1, ret);
+    }
+
+    @Test
+    public void inner_class_instance_from_outer_constructor() throws Exception {
+        Object ret = eval(
+            "class Outer {",
+                "Inner go;",
+                "class Inner {",
+                    "go() { return 1; }",
+                "}",
+                "Outer() {",
+                    "go = new Inner();",
+                "}",
+            "}",
+            "new Outer().go.go();"
+        );
+        assertEquals("Inner class instance returns 1", 1, ret);
+    }
+
+    @Test
+    public void static_reference_to_inner_class() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Static method Inner() not found in class'Outer'"));
+
+        eval(
+            "class Outer {",
+                "class Inner {",
+                    "go() { return 1; }",
+                "}",
+            "}",
+            "Outer.Inner().go();"
+        );
+    }
+
+    @Test
+    public void static_reference_to_inner_class_after_instance() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("an enclosing instance that contains Outer.Inner is required"));
+
+        eval(
+            "class Outer {",
+                "class Inner {",
+                    "go() { return 1; }",
+                "}",
+                "static class InStatic {",
+                    "go() { return 1; }",
+                "}",
+            "}",
+            "new Outer.InStatic();",
+            "new Outer.Inner();"
+        );
+    }
+
+    @Test
+    public void new_inner_class_instance() throws Exception {
+        Object ret = eval(
+            "class Outer {",
+                "class Inner {",
+                    "go() { return 1; }",
+                "}",
+            "}",
+            "o = new Outer();",
+            "return o.new Inner().go();"
+        );
+        assertEquals("New inner class from instance", 1, ret);
+    }
+
+    @Test
+    public void new_inner_class_new_instance() throws Exception {
+        Object ret = eval(
+            "class Outer {",
+                "class Inner {",
+                    "go() { return 1; }",
+                "}",
+            "}",
+            "new Outer().new Inner().go();"
+        );
+        assertEquals("New inner class from instance", 1, ret);
+    }
+
+    @Test
+    public void new_inner_class_new_instance_with_args() throws Exception {
+        Object ret = eval(
+            "class Outer {",
+                "class Inner {",
+                    "int a;",
+                    "go() { return this.a; }",
+                    "Inner(a) {",
+                        "this.a = a;",
+                    "}",
+                "}",
+            "}",
+            "new Outer().new Inner(1).go();"
+        );
+        assertEquals("New inner class from instance", 1, ret);
     }
 
 }
