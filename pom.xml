@@ -243,6 +243,7 @@
       <configuration>
         <systemPropertyVariables>
           <accessibility>false</accessibility>
+          <script></script>
           <skip_known_issues>true</skip_known_issues>
          </systemPropertyVariables>
         </configuration>
