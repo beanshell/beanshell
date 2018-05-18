@@ -1,13 +1,13 @@
 package InheritanceTest;
 
-public class X extends W {
+public class XX extends WW {
     public void a() {
-        System.out.println("X.a()");
+//        System.out.println("X.a()");
     }
     public void x() {
-        System.out.println("X.x()");
+//        System.out.println("X.x()");
     }
     void x_() {
-        System.out.println("X.x_()");
+//        System.out.println("X.x_()");
     }
 }

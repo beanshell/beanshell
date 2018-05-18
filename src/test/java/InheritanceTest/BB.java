@@ -1,5 +1,5 @@
 package InheritanceTest;
 
-public interface B extends A {
+public interface BB extends AA {
     void b();
 }
