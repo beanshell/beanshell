@@ -100,7 +100,6 @@ public class SourceForgeIssuesTest {
     /** <a href="http://sourceforge.net/tracker/?func=detail&aid=2081602&group_id=4075&atid=104075">Sourceforge issue "NullPointerException Thrown by Overriden Method" - ID: 2081602</a>.
      * Just a "learning test" to check the call flow for constructors of generated classes.
      * @see #sourceforge_issue_2081602 */
-    @Category(KnownIssue.class)
     @Test
     public void sourceforge_issue_2081602_learning_test() throws Exception {
         final Object result = TestUtil.eval(
