@@ -24,19 +24,19 @@ void call(obj,meth) {
 }
 
 try {
-A w;
-X x;
-Y y;
-A z;
+AA w;
+XX x;
+YY y;
+AA z;
 
 // these should use something like this.namespace.getClass() instead...
-ca = getClass("InheritanceTest.A");
-cb = getClass("InheritanceTest.B");
-cc = getClass("InheritanceTest.C");
-cw = getClass("InheritanceTest.W");
-cx = getClass("InheritanceTest.X");
-cy = getClass("InheritanceTest.Y");
-cz = getClass("InheritanceTest.Z");
+ca = getClass("InheritanceTest.AA");
+cb = getClass("InheritanceTest.BB");
+cc = getClass("InheritanceTest.CC");
+cw = getClass("InheritanceTest.WW");
+cx = getClass("InheritanceTest.XX");
+cy = getClass("InheritanceTest.YY");
+cz = getClass("InheritanceTest.ZZ");
 
 sa = ca.getSuperclass();
 sb = cb.getSuperclass();

@@ -1,5 +1,5 @@
 package InheritanceTest;
 
-public interface A {
+public interface AA {
     void a();
 }

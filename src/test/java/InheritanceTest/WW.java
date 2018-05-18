@@ -1,16 +1,16 @@
 package InheritanceTest;
 
-class W implements B {
+class WW implements BB {
     public void a() {
-        System.out.println("W.a()");
+//        System.out.println("W.a()");
     }
     public void b() {
-        System.out.println("W.b()");
+//        System.out.println("W.b()");
     }
     public void w() {
-        System.out.println("W.w()");
+//        System.out.println("W.w()");
     }
     void w_() {
-        System.out.println("W.w_()");
+//        System.out.println("W.w_()");
     }
 }

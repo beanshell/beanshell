@@ -68,7 +68,7 @@ Object load( String filename )
 
     Object obj;
     FileInputStream in = new FileInputStream( file );
-    javap( BshObjectInputStream );
+//    javap( BshObjectInputStream );
     ObjectInputStream oin;
     if ( BshObjectInputStream != void )
         oin = new BshObjectInputStream( this.namespace.getClassManager(), in );
