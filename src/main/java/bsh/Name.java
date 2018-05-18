@@ -902,10 +902,12 @@ class Name implements java.io.Serializable
         }
 
         // If defined, invoke it
-        if ( meth != null )
-            return meth.invoke( args, interpreter, callstack, callerInfo );
+        if ( meth != null ) {
+            boolean overrideChild = !namespace.isMethod
+                    && namespace.isChildOf(meth.declaringNameSpace);
 
-        BshClassManager bcm = interpreter.getClassManager();
+            return meth.invoke( args, interpreter, callstack, callerInfo, overrideChild );
+        }
 
         // Look for a BeanShell command
 
