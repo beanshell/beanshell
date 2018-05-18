@@ -104,8 +104,9 @@ class BSHType extends SimpleNode
                     clas = ((BSHAmbiguousName)node).toClass(
                         callstack, interpreter );
                 } catch ( EvalError e ) {
-                    //throw new InterpreterError("unable to resolve type: "+e);
-                    // ignore and try default package
+                    // Lets assume we have a generics raw type
+                    if (clasName.length() == 1)
+                        clasName = "java.lang.Object";
                     //System.out.println("BSHType: "+node+" class not found");
                 }
             } else
@@ -145,8 +146,18 @@ class BSHType extends SimpleNode
         if ( node instanceof BSHPrimitiveType )
             baseType = ((BSHPrimitiveType)node).getType();
         else
+            try {
             baseType = ((BSHAmbiguousName)node).toClass(
                 callstack, interpreter );
+            } catch (EvalError e) {
+                // Assuming generics raw type
+                if (node.getText().trim().length() == 1
+                        && getTypeDescriptor(callstack, interpreter, "").endsWith("Object;")
+                        && e.getCause() instanceof ClassNotFoundException)
+                    baseType = Object.class;
+                else
+                    e.reThrow(node.getText().trim()+" does not look like a generics raw type.");
+            }
 
         if ( arrayDims > 0 ) {
             try {
