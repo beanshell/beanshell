@@ -1,0 +1,44 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+public class Box<T> {
+
+    private T t;
+
+    public void set(T t) {
+        this.t = t;
+    }
+
+    public T get() {
+        return t;
+    }
+}
+
+public class BoxDemo {
+
+    public static <U> void addBox(U u, List<Box<U>> boxes) {
+      Box<U> box = new Box<>();
+      box.set(u);
+      boxes.add(box);
+    }
+
+    public static <U> int countBoxes(List<Box<U>> boxes) {
+        int counter = 0;
+        for (Box<U> box: boxes) {
+            U boxContents = box.get();
+            counter++;
+        }
+        return counter;
+    }
+
+}
+List<Box<Integer>> listOfIntegerBoxes = new ArrayList<>();
+BoxDemo.<Integer>addBox(Integer.valueOf(10), listOfIntegerBoxes);
+BoxDemo.addBox(Integer.valueOf(20), listOfIntegerBoxes);
+BoxDemo.addBox(Integer.valueOf(30), listOfIntegerBoxes);
+
+assert(3 == BoxDemo.countBoxes(listOfIntegerBoxes));
+
+complete();
+
