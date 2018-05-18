@@ -34,7 +34,6 @@ import static bsh.TestUtil.eval;
 public class AnnotationsParsingTest {
 
     @Test
-    @Category(KnownIssue.class)
     public void annotation_on_method_declaration() throws Exception {
         assertEquals(42, eval("public int myMethod(final int i) {",
                               "   return i * 7;",
