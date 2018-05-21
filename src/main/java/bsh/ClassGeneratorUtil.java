@@ -667,8 +667,8 @@ public class ClassGeneratorUtil implements Opcodes {
 
         generatePlainReturnCode(returnType, cv);
 
-        // Need to calculate this... just fudging here for now.
-        cv.visitMaxs(20, 20);
+        // values here are ignored, computed automatically by ClassWriter
+        cv.visitMaxs(0, 0);
     }
 
     boolean classContainsMethod(Class clas, String methodName, String[] paramTypes) {
