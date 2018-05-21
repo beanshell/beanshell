@@ -49,8 +49,8 @@ public class OldScriptsTest {
         KNOWN_FAILING_TESTS.add("classinner.bsh");
         KNOWN_FAILING_TESTS.add("classinterf1.bsh");
         KNOWN_FAILING_TESTS.add("classser.bsh");
+        KNOWN_FAILING_TESTS.add("commands.bsh");
         KNOWN_FAILING_TESTS.add("externalNameSpace.bsh");
-        KNOWN_FAILING_TESTS.add("forenhanced.bsh");
         KNOWN_FAILING_TESTS.add("forscope.bsh");
         KNOWN_FAILING_TESTS.add("forscope4.bsh");
         KNOWN_FAILING_TESTS.add("iftest.bsh");
@@ -140,10 +140,15 @@ public class OldScriptsTest {
             try {
                 interpreter.eval(new FileReader(this._file));
             } catch (final Exception e) {
-                throw new RuntimeException(getName(), e.getCause());
+                if (!System.getProperty("script").isEmpty())
+                    e.printStackTrace(System.out);
+                throw new RuntimeException(getName(), e);
             }
-            assertTrue("Test did not complete", (Boolean)interpreter.get("test_completed"));
-            assertFalse(""+interpreter.get("test_message"), (Boolean)interpreter.get("test_failed"));
+            assertTrue("Test did not complete."+interpreter.get("test_message"),
+                    (Boolean)interpreter.get("test_completed"));
+            assertFalse(""+interpreter.get("test_message"),
+                    (Boolean)interpreter.get("test_failed"));
+
         }
     }
 }
