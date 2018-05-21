@@ -430,7 +430,7 @@ public class ClassGeneratorUtil implements Opcodes {
 
         String[] exceptions = null;
         String methodDescriptor = getMethodDescriptor("V", paramTypes);
-        
+
         String paramTypesSig = getTypeParameterSignature(paramTypes);
 
         // Create this constructor method
@@ -645,7 +645,7 @@ public class ClassGeneratorUtil implements Opcodes {
         }
 
         String methodDescriptor = getMethodDescriptor(returnType, paramTypes);
-        
+
         String paramTypesSig = getTypeParameterSignature(paramTypes);
 
         // Add method body

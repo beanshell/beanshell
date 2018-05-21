@@ -25,7 +25,8 @@
  *****************************************************************************/
 package bsh;
 
-import java.util.Hashtable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
 
@@ -36,9 +37,10 @@ import java.util.Hashtable;
 */
 public class Modifiers implements java.io.Serializable
 {
+    private static final long serialVersionUID = 1L;
     public static final int CLASS=0, METHOD=1, FIELD=2;
     private final int context;
-    private final Hashtable modifiers = new Hashtable();
+    private final List<String> modifiers = new ArrayList<>();
 
     public Modifiers(int context) {
         this.context = context;
@@ -49,9 +51,9 @@ public class Modifiers implements java.io.Serializable
     */
     public void addModifier( String name )
     {
-        Object existing = modifiers.put( name, Void.TYPE/*arbitrary flag*/ );
-        if ( existing != null )
+        if ( modifiers.contains( name ) )
             throw new IllegalStateException("Duplicate modifier: "+ name );
+        modifiers.add(name);
 
         int count = 0;
         if ( hasModifier("private") ) ++count;
@@ -77,15 +79,15 @@ public class Modifiers implements java.io.Serializable
 
     public boolean hasModifier( String name )
     {
-        if (name.equals("public") && !modifiers.containsKey(name)
+        if (name.equals("public") && !modifiers.contains(name)
                 && !Capabilities.haveAccessibility()
-                && !modifiers.containsKey("private")
-                && !modifiers.containsKey("protected")) {
+                && !modifiers.contains("private")
+                && !modifiers.contains("protected")) {
             try {
-                addModifier(name);
+                modifiers.add(0, name);
             } catch (Throwable e) { /*ignore */ }
         }
-        return modifiers.containsKey(name);
+        return modifiers.contains(name);
     }
 
     // could refactor these a bit
@@ -116,7 +118,7 @@ public class Modifiers implements java.io.Serializable
 
     public String toString()
     {
-        return "Modifiers: "+modifiers.keySet();
+        return "Modifiers: "+String.join(" ", modifiers);
     }
 
 }
