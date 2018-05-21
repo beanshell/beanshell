@@ -3,6 +3,8 @@ package bsh;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import bsh.engine.BshScriptEngineFactory;
+
 import javax.script.ScriptException;
 
 import static org.junit.Assert.assertEquals;
