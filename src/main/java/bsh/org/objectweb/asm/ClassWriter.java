@@ -1,1100 +1,714 @@
-/***
- * ASM: a very small and fast Java bytecode manipulation framework
- * Copyright (c) 2000,2002,2003 INRIA, France Telecom
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the copyright holders nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
- * THE POSSIBILITY OF SUCH DAMAGE.
- */
-
+// ASM: a very small and fast Java bytecode manipulation framework
+// Copyright (c) 2000-2011 INRIA, France Telecom
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
+// 1. Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+// 3. Neither the name of the copyright holders nor the names of its
+//    contributors may be used to endorse or promote products derived from
+//    this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+// THE POSSIBILITY OF SUCH DAMAGE.
 package bsh.org.objectweb.asm;
 
 /**
- * A {@link ClassVisitor ClassVisitor} that generates Java class files. More
- * precisely this visitor generates a byte array conforming to the Java class
- * file format. It can be used alone, to generate a Java class "from scratch",
- * or with one or more {@link ClassReader ClassReader} and adapter class
- * visitor to generate a modified class from one or more existing Java classes.
+ * A {@link ClassVisitor} that generates a corresponding ClassFile structure, as defined in the Java
+ * Virtual Machine Specification (JVMS). It can be used alone, to generate a Java class "from
+ * scratch", or with one or more {@link ClassReader} and adapter {@link ClassVisitor} to generate a
+ * modified class from one or more existing Java classes.
  *
+ * @see <a href="https://docs.oracle.com/javase/specs/jvms/se9/html/jvms-4.html">JVMS 4</a>
  * @author Eric Bruneton
  */
-
-public class ClassWriter implements ClassVisitor {
-
-  /**
-   * The type of CONSTANT_Class constant pool items.
-   */
-
-  final static int CLASS = 7;
+public class ClassWriter extends ClassVisitor {
 
   /**
-   * The type of CONSTANT_Fieldref constant pool items.
+   * A flag to automatically compute the maximum stack size and the maximum number of local
+   * variables of methods. If this flag is set, then the arguments of the {@link
+   * MethodVisitor#visitMaxs} method of the {@link MethodVisitor} returned by the {@link
+   * #visitMethod} method will be ignored, and computed automatically from the signature and the
+   * bytecode of each method.
+   *
+   * @see #ClassWriter(int)
    */
-
-  final static int FIELD = 9;
+  public static final int COMPUTE_MAXS = 1;
 
   /**
-   * The type of CONSTANT_Methodref constant pool items.
+   * A flag to automatically compute the stack map frames of methods from scratch. If this flag is
+   * set, then the calls to the {@link MethodVisitor#visitFrame} method are ignored, and the stack
+   * map frames are recomputed from the methods bytecode. The arguments of the {@link
+   * MethodVisitor#visitMaxs} method are also ignored and recomputed from the bytecode. In other
+   * words, {@link #COMPUTE_FRAMES} implies {@link #COMPUTE_MAXS}.
+   *
+   * @see #ClassWriter(int)
    */
+  public static final int COMPUTE_FRAMES = 2;
 
-  final static int METH = 10;
+  // Note: fields are ordered as in the ClassFile structure, and those related to attributes are
+  // ordered as in Section 4.7 of the JVMS.
 
   /**
-   * The type of CONSTANT_InterfaceMethodref constant pool items.
+   * The minor_version and major_version fields of the JVMS ClassFile structure. minor_version is
+   * stored in the 16 most significant bits, and major_version in the 16 least significant bits.
    */
-
-  final static int IMETH = 11;
-
-  /**
-   * The type of CONSTANT_String constant pool items.
-   */
-
-  final static int STR = 8;
-
-  /**
-   * The type of CONSTANT_Integer constant pool items.
-   */
-
-  final static int INT = 3;
-
-  /**
-   * The type of CONSTANT_Float constant pool items.
-   */
-
-  final static int FLOAT = 4;
-
-  /**
-   * The type of CONSTANT_Long constant pool items.
-   */
-
-  final static int LONG = 5;
-
-  /**
-   * The type of CONSTANT_Double constant pool items.
-   */
-
-  final static int DOUBLE = 6;
-
-  /**
-   * The type of CONSTANT_NameAndType constant pool items.
-   */
-
-  final static int NAME_TYPE = 12;
-
-  /**
-   * The type of CONSTANT_Utf8 constant pool items.
-   */
-
-  final static int UTF8 = 1;
-
-  /**
-   * Minor and major version numbers of the class to be generated.
-   */
-
   private int version;
 
-  /**
-   * Index of the next item to be added in the constant pool.
-   */
-
-  private short index;
+  /** The symbol table for this class (contains the constant_pool and the BootstrapMethods). */
+  private final SymbolTable symbolTable;
 
   /**
-   * The constant pool of this class.
+   * The access_flags field of the JVMS ClassFile structure. This field can contain ASM specific
+   * access flags, such as {@link Opcodes#ACC_DEPRECATED}, which are removed when generating the
+   * ClassFile structure.
    */
+  private int accessFlags;
 
-  private ByteVector pool;
+  /** The this_class field of the JVMS ClassFile structure. */
+  private int thisClass;
 
-  /**
-   * The constant pool's hash table data.
-   */
+  /** The super_class field of the JVMS ClassFile structure. */
+  private int superClass;
 
-  private Item[] items;
-
-  /**
-   * The threshold of the constant pool's hash table.
-   */
-
-  private int threshold;
-
-  /**
-   * The access flags of this class.
-   */
-
-  private int access;
-
-  /**
-   * The constant pool item that contains the internal name of this class.
-   */
-
-  private int name;
-
-  /**
-   * The constant pool item that contains the internal name of the super class
-   * of this class.
-   */
-
-  private int superName;
-
-  /**
-   * Number of interfaces implemented or extended by this class or interface.
-   */
-
+  /** The interface_count field of the JVMS ClassFile structure. */
   private int interfaceCount;
 
-  /**
-   * The interfaces implemented or extended by this class or interface. More
-   * precisely, this array contains the indexes of the constant pool items
-   * that contain the internal names of these interfaces.
-   */
-
+  /** The 'interfaces' array of the JVMS ClassFile structure. */
   private int[] interfaces;
 
   /**
-   * The index of the constant pool item that contains the name of the source
-   * file from which this class was compiled.
+   * The fields of this class, stored in a linked list of {@link FieldWriter} linked via their
+   * {@link FieldWriter#fv} field. This field stores the first element of this list.
    */
-
-  private int sourceFile;
+  private FieldWriter firstField;
 
   /**
-   * Number of fields of this class.
+   * The fields of this class, stored in a linked list of {@link FieldWriter} linked via their
+   * {@link FieldWriter#fv} field. This field stores the last element of this list.
    */
-
-  private int fieldCount;
+  private FieldWriter lastField;
 
   /**
-   * The fields of this class.
+   * The methods of this class, stored in a linked list of {@link MethodWriter} linked via their
+   * {@link MethodWriter#mv} field. This field stores the first element of this list.
    */
-
-  private ByteVector fields;
+  private MethodWriter firstMethod;
 
   /**
-   * <tt>true</tt> if the maximum stack size and number of local variables must
-   * be automatically computed.
+   * The methods of this class, stored in a linked list of {@link MethodWriter} linked via their
+   * {@link MethodWriter#mv} field. This field stores the last element of this list.
    */
+  private MethodWriter lastMethod;
 
-  private boolean computeMaxs;
+  /** The number_of_classes field of the InnerClasses attribute, or 0. */
+  private int numberOfClasses;
+
+  /** The 'classes' array of the InnerClasses attribute, or <tt>null</tt>. */
+  private ByteVector classes;
+
+  /** The class_index field of the EnclosingMethod attribute, or 0. */
+  private int enclosingClassIndex;
+
+  /** The method_index field of the EnclosingMethod attribute. */
+  private int enclosingMethodIndex;
+
+  /** The signature_index field of the Signature attribute, or 0. */
+  private int signatureIndex;
+
+  /** The source_file_index field of the SourceFile attribute, or 0. */
+  private int sourceFileIndex;
+
+  /** The debug_extension field of the SourceDebugExtension attribute, or <tt>null</tt>. */
+  private ByteVector debugExtension;
 
   /**
-   * <tt>true</tt> to test that all attributes are known.
+   * The first non standard attribute of this class. The next ones can be accessed with the {@link
+   * Attribute#nextAttribute} field. May be <tt>null</tt>.
+   *
+   * <p><b>WARNING</b>: this list stores the attributes in the <i>reverse</i> order of their visit.
+   * firstAttribute is actually the last attribute visited in {@link #visitAttribute}. The {@link
+   * #toByteArray} method writes the attributes in the order defined by this list, i.e. in the
+   * reverse order specified by the user.
    */
-
-  boolean checkAttributes;
+  private Attribute firstAttribute;
 
   /**
-   * The methods of this class. These methods are stored in a linked list of
-   * {@link CodeWriter CodeWriter} objects, linked to each other by their {@link
-   * CodeWriter#next} field. This field stores the first element of this list.
+   * Indicates what must be automatically computed in {@link MethodWriter}. Must be one of {@link
+   * MethodWriter#COMPUTE_NOTHING}, {@link MethodWriter#COMPUTE_MAX_STACK_AND_LOCAL}, {@link
+   * MethodWriter#COMPUTE_INSERTED_FRAMES}, or {@link MethodWriter#COMPUTE_ALL_FRAMES}.
    */
+  private int compute;
 
-  CodeWriter firstMethod;
-
-  /**
-   * The methods of this class. These methods are stored in a linked list of
-   * {@link CodeWriter CodeWriter} objects, linked to each other by their {@link
-   * CodeWriter#next} field. This field stores the last element of this list.
-   */
-
-  CodeWriter lastMethod;
-
-  /**
-   * The number of entries in the InnerClasses attribute.
-   */
-
-  private int innerClassesCount;
-
-  /**
-   * The InnerClasses attribute.
-   */
-
-  private ByteVector innerClasses;
-
-  /**
-   * The non standard attributes of the class.
-   */
-
-  private Attribute attrs;
-
-  /**
-   * A reusable key used to look for items in the hash {@link #items items}.
-   */
-
-  Item key;
-
-  /**
-   * A reusable key used to look for items in the hash {@link #items items}.
-   */
-
-  Item key2;
-
-  /**
-   * A reusable key used to look for items in the hash {@link #items items}.
-   */
-
-  Item key3;
-
-  /**
-   * The type of instructions without any label.
-   */
-
-  final static int NOARG_INSN = 0;
-
-  /**
-   * The type of instructions with an signed byte label.
-   */
-
-  final static int SBYTE_INSN = 1;
-
-  /**
-   * The type of instructions with an signed short label.
-   */
-
-  final static int SHORT_INSN = 2;
-
-  /**
-   * The type of instructions with a local variable index label.
-   */
-
-  final static int VAR_INSN = 3;
-
-  /**
-   * The type of instructions with an implicit local variable index label.
-   */
-
-  final static int IMPLVAR_INSN = 4;
-
-  /**
-   * The type of instructions with a type descriptor argument.
-   */
-
-  final static int TYPE_INSN = 5;
-
-  /**
-   * The type of field and method invocations instructions.
-   */
-
-  final static int FIELDORMETH_INSN = 6;
-
-  /**
-   * The type of the INVOKEINTERFACE instruction.
-   */
-
-  final static int ITFMETH_INSN = 7;
-
-  /**
-   * The type of instructions with a 2 bytes bytecode offset label.
-   */
-
-  final static int LABEL_INSN = 8;
-
-  /**
-   * The type of instructions with a 4 bytes bytecode offset label.
-   */
-
-  final static int LABELW_INSN = 9;
-
-  /**
-   * The type of the LDC instruction.
-   */
-
-  final static int LDC_INSN = 10;
-
-  /**
-   * The type of the LDC_W and LDC2_W instructions.
-   */
-
-  final static int LDCW_INSN = 11;
-
-  /**
-   * The type of the IINC instruction.
-   */
-
-  final static int IINC_INSN = 12;
-
-  /**
-   * The type of the TABLESWITCH instruction.
-   */
-
-  final static int TABL_INSN = 13;
-
-  /**
-   * The type of the LOOKUPSWITCH instruction.
-   */
-
-  final static int LOOK_INSN = 14;
-
-  /**
-   * The type of the MULTIANEWARRAY instruction.
-   */
-
-  final static int MANA_INSN = 15;
-
-  /**
-   * The type of the WIDE instruction.
-   */
-
-  final static int WIDE_INSN = 16;
-
-  /**
-   * The instruction types of all JVM opcodes.
-   */
-
-  static byte[] TYPE;
-
-  // --------------------------------------------------------------------------
-  // Static initializer
-  // --------------------------------------------------------------------------
-
-  /**
-   * Computes the instruction types of JVM opcodes.
-   */
-
-  static {
-    int i;
-    byte[] b = new byte[220];
-    String s =
-      "AAAAAAAAAAAAAAAABCKLLDDDDDEEEEEEEEEEEEEEEEEEEEAAAAAAAADDDDDEEEEEEEEE" +
-      "EEEEEEEEEEEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAA" +
-      "AAAAAAAAAAAAAAAAAIIIIIIIIIIIIIIIIDNOAAAAAAGGGGGGGHAFBFAAFFAAQPIIJJII" +
-      "IIIIIIIIIIIIIIII";
-    for (i = 0; i < b.length; ++i) {
-      b[i] = (byte)(s.charAt(i) - 'A');
-    }
-    TYPE = b;
-
-    /* code to generate the above string
-
-    // SBYTE_INSN instructions
-    b[Constants.NEWARRAY] = SBYTE_INSN;
-    b[Constants.BIPUSH] = SBYTE_INSN;
-
-    // SHORT_INSN instructions
-    b[Constants.SIPUSH] = SHORT_INSN;
-
-    // (IMPL)VAR_INSN instructions
-    b[Constants.RET] = VAR_INSN;
-    for (i = Constants.ILOAD; i <= Constants.ALOAD; ++i) {
-      b[i] = VAR_INSN;
-    }
-    for (i = Constants.ISTORE; i <= Constants.ASTORE; ++i) {
-      b[i] = VAR_INSN;
-    }
-    for (i = 26; i <= 45; ++i) { // ILOAD_0 to ALOAD_3
-      b[i] = IMPLVAR_INSN;
-    }
-    for (i = 59; i <= 78; ++i) { // ISTORE_0 to ASTORE_3
-      b[i] = IMPLVAR_INSN;
-    }
-
-    // TYPE_INSN instructions
-    b[Constants.NEW] = TYPE_INSN;
-    b[Constants.ANEWARRAY] = TYPE_INSN;
-    b[Constants.CHECKCAST] = TYPE_INSN;
-    b[Constants.INSTANCEOF] = TYPE_INSN;
-
-    // (Set)FIELDORMETH_INSN instructions
-    for (i = Constants.GETSTATIC; i <= Constants.INVOKESTATIC; ++i) {
-      b[i] = FIELDORMETH_INSN;
-    }
-    b[Constants.INVOKEINTERFACE] = ITFMETH_INSN;
-
-    // LABEL(W)_INSN instructions
-    for (i = Constants.IFEQ; i <= Constants.JSR; ++i) {
-      b[i] = LABEL_INSN;
-    }
-    b[Constants.IFNULL] = LABEL_INSN;
-    b[Constants.IFNONNULL] = LABEL_INSN;
-    b[200] = LABELW_INSN; // GOTO_W
-    b[201] = LABELW_INSN; // JSR_W
-    // temporary opcodes used internally by ASM - see Label and CodeWriter
-    for (i = 202; i < 220; ++i) {
-      b[i] = LABEL_INSN;
-    }
-
-    // LDC(_W) instructions
-    b[Constants.LDC] = LDC_INSN;
-    b[19] = LDCW_INSN; // LDC_W
-    b[20] = LDCW_INSN; // LDC2_W
-
-    // special instructions
-    b[Constants.IINC] = IINC_INSN;
-    b[Constants.TABLESWITCH] = TABL_INSN;
-    b[Constants.LOOKUPSWITCH] = LOOK_INSN;
-    b[Constants.MULTIANEWARRAY] = MANA_INSN;
-    b[196] = WIDE_INSN; // WIDE
-
-    for (i = 0; i < b.length; ++i) {
-      System.err.print((char)('A' + b[i]));
-    }
-    System.err.println();
-    */
-  }
-
-  // --------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   // Constructor
-  // --------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
 
   /**
-   * Constructs a new {@link ClassWriter ClassWriter} object.
+   * Constructs a new {@link ClassWriter} object and enables optimizations for "mostly add" bytecode
+   * transformations. These optimizations are the following:
    *
-   * @param computeMaxs <tt>true</tt> if the maximum stack size and the maximum
-   *      number of local variables must be automatically computed. If this flag
-   *      is <tt>true</tt>, then the arguments of the {@link
-   *      CodeVisitor#visitMaxs visitMaxs} method of the {@link CodeVisitor
-   *      CodeVisitor} returned by the {@link #visitMethod visitMethod} method
-   *      will be ignored, and computed automatically from the signature and
-   *      the bytecode of each method.
+   * <ul>
+   *   <li>The constant pool and bootstrap methods from the original class are copied as is in the
+   *       new class, which saves time. New constant pool entries and new bootstrap methods will be
+   *       added at the end if necessary, but unused constant pool entries or bootstrap methods
+   *       <i>won't be removed</i>.
+   *   <li>Methods that are not transformed are copied as is in the new class, directly from the
+   *       original class bytecode (i.e. without emitting visit events for all the method
+   *       instructions), which saves a <i>lot</i> of time. Untransformed methods are detected by
+   *       the fact that the {@link ClassReader} receives {@link MethodVisitor} objects that come
+   *       from a {@link ClassWriter} (and not from any other {@link ClassVisitor} instance).
+   * </ul>
+   *
+   * @param flags option flags that can be used to modify the default behavior of this class.Must be
+   *     zero or more of {@link #COMPUTE_MAXS} and {@link #COMPUTE_FRAMES}. <i>These option flags do
+   *     not affect methods that are copied as is in the new class. This means that neither the
+   *     maximum stack size nor the stack frames will be computed for these methods</i>.
    */
-
-  public ClassWriter (final boolean computeMaxs) {
-    this(computeMaxs, false);
+  public ClassWriter(final int flags) {
+    super(Opcodes.ASM6);
+    symbolTable = new SymbolTable(this);
+    if ((flags & COMPUTE_FRAMES) != 0) {
+      this.compute = MethodWriter.COMPUTE_ALL_FRAMES;
+    } else if ((flags & COMPUTE_MAXS) != 0) {
+      this.compute = MethodWriter.COMPUTE_MAX_STACK_AND_LOCAL;
+    } else {
+      this.compute = MethodWriter.COMPUTE_NOTHING;
+    }
   }
 
-  /**
-   * Constructs a new {@link ClassWriter ClassWriter} object.
-   *
-   * @param computeMaxs <tt>true</tt> if the maximum stack size and the maximum
-   *      number of local variables must be automatically computed. If this flag
-   *      is <tt>true</tt>, then the arguments of the {@link
-   *      CodeVisitor#visitMaxs visitMaxs} method of the {@link CodeVisitor
-   *      CodeVisitor} returned by the {@link #visitMethod visitMethod} method
-   *      will be ignored, and computed automatically from the signature and
-   *      the bytecode of each method.
-   * @param skipUnknownAttributes <tt>true</tt> to silently ignore unknown
-   *      attributes, or <tt>false</tt> to throw an exception if an unknown
-   *      attribute is found.
-   */
+  // -----------------------------------------------------------------------------------------------
+  // Implementation of the ClassVisitor abstract class
+  // -----------------------------------------------------------------------------------------------
 
-  public ClassWriter (
-    final boolean computeMaxs,
-    final boolean skipUnknownAttributes)
-  {
-    index = 1;
-    pool = new ByteVector();
-    items = new Item[64];
-    threshold = (int)(0.75d*items.length);
-    key = new Item();
-    key2 = new Item();
-    key3 = new Item();
-    this.computeMaxs = computeMaxs;
-    this.checkAttributes = !skipUnknownAttributes;
-  }
-
-  // --------------------------------------------------------------------------
-  // Implementation of the ClassVisitor interface
-  // --------------------------------------------------------------------------
-
-  public void visit (
-    final int version,
-    final int access,
-    final String name,
-    final String superName,
-    final String[] interfaces,
-    final String sourceFile)
-  {
+  @Override
+  public final void visit(
+      final int version,
+      final int access,
+      final String name,
+      final String signature,
+      final String superName,
+      final String[] interfaces) {
     this.version = version;
-    this.access = access;
-    this.name = newClass(name);
-    this.superName = superName == null ? 0 : newClass(superName);
+    this.accessFlags = access;
+    this.thisClass = symbolTable.setMajorVersionAndClassName(version & 0xFFFF, name);
+    if (signature != null) {
+      this.signatureIndex = symbolTable.addConstantUtf8(signature);
+    }
+    this.superClass = superName == null ? 0 : symbolTable.addConstantClass(superName).index;
     if (interfaces != null && interfaces.length > 0) {
       interfaceCount = interfaces.length;
       this.interfaces = new int[interfaceCount];
       for (int i = 0; i < interfaceCount; ++i) {
-        this.interfaces[i] = newClass(interfaces[i]);
+        this.interfaces[i] = symbolTable.addConstantClass(interfaces[i]).index;
       }
     }
-    if (sourceFile != null) {
-      newUTF8("SourceFile");
-      this.sourceFile = newUTF8(sourceFile);
+  }
+
+  @Override
+  public final void visitSource(final String file, final String debug) {
+    if (file != null) {
+      sourceFileIndex = symbolTable.addConstantUtf8(file);
     }
-    if ((access & Constants.ACC_DEPRECATED) != 0) {
-      newUTF8("Deprecated");
-    }
-    if ((access & Constants.ACC_SYNTHETIC) != 0) {
-      newUTF8("Synthetic");
+    if (debug != null) {
+      debugExtension = new ByteVector().encodeUTF8(debug, 0, Integer.MAX_VALUE);
     }
   }
 
-  public void visitInnerClass (
-    final String name,
-    final String outerName,
-    final String innerName,
-    final int access)
-  {
-    if (innerClasses == null) {
-      newUTF8("InnerClasses");
-      innerClasses = new ByteVector();
-    }
-    ++innerClassesCount;
-    innerClasses.putShort(name == null ? 0 : newClass(name));
-    innerClasses.putShort(outerName == null ? 0 : newClass(outerName));
-    innerClasses.putShort(innerName == null ? 0 : newUTF8(innerName));
-    innerClasses.putShort(access);
-  }
-
-  public void visitField (
-    final int access,
-    final String name,
-    final String desc,
-    final Object value,
-    final Attribute attrs)
-  {
-    ++fieldCount;
-    if (fields == null) {
-      fields = new ByteVector();
-    }
-    fields.putShort(access).putShort(newUTF8(name)).putShort(newUTF8(desc));
-    int attributeCount = 0;
-    if (value != null) {
-      ++attributeCount;
-    }
-    if ((access & Constants.ACC_SYNTHETIC) != 0) {
-      ++attributeCount;
-    }
-    if ((access & Constants.ACC_DEPRECATED) != 0) {
-      ++attributeCount;
-    }
-    if (attrs != null) {
-      attributeCount += attrs.getCount();
-    }
-    fields.putShort(attributeCount);
-    if (value != null) {
-      fields.putShort(newUTF8("ConstantValue"));
-      fields.putInt(2).putShort(newConstItem(value).index);
-    }
-    if ((access & Constants.ACC_SYNTHETIC) != 0) {
-      fields.putShort(newUTF8("Synthetic")).putInt(0);
-    }
-    if ((access & Constants.ACC_DEPRECATED) != 0) {
-      fields.putShort(newUTF8("Deprecated")).putInt(0);
-    }
-    if (attrs != null) {
-      attrs.put(this, null, 0, -1, -1, fields);
+  @Override
+  public final void visitOuterClass(
+      final String owner, final String name, final String descriptor) {
+    enclosingClassIndex = symbolTable.addConstantClass(owner).index;
+    if (name != null && descriptor != null) {
+      enclosingMethodIndex = symbolTable.addConstantNameAndType(name, descriptor);
     }
   }
 
-  public CodeVisitor visitMethod (
-    final int access,
-    final String name,
-    final String desc,
-    final String[] exceptions,
-    final Attribute attrs)
-  {
-    CodeWriter cw = new CodeWriter(this, computeMaxs);
-    cw.init(access, name, desc, exceptions, attrs);
-    return cw;
+  @Override
+  public final void visitAttribute(final Attribute attribute) {
+    // Store the attributes in the <i>reverse</i> order of their visit by this method.
+    attribute.nextAttribute = firstAttribute;
+    firstAttribute = attribute;
   }
 
-  public void visitAttribute (final Attribute attr) {
-    attr.next = attrs;
-    attrs = attr;
-  }
-
-  public void visitEnd () {
-  }
-
-  // --------------------------------------------------------------------------
-  // Other public methods
-  // --------------------------------------------------------------------------
-
-  /**
-   * Returns the bytecode of the class that was build with this class writer.
-   *
-   * @return the bytecode of the class that was build with this class writer.
-   */
-
-  public byte[] toByteArray () {
-    // computes the real size of the bytecode of this class
-    int size = 24 + 2*interfaceCount;
-    if (fields != null) {
-      size += fields.length;
+  @Override
+  public final void visitInnerClass(
+      final String name, final String outerName, final String innerName, final int access) {
+    if (classes == null) {
+      classes = new ByteVector();
     }
-    int nbMethods = 0;
-    CodeWriter cb = firstMethod;
-    while (cb != null) {
-      ++nbMethods;
-      size += cb.getSize();
-      cb = cb.next;
-    }
-    int attributeCount = 0;
-    if (sourceFile != 0) {
-      ++attributeCount;
-      size += 8;
-    }
-    if ((access & Constants.ACC_DEPRECATED) != 0) {
-      ++attributeCount;
-      size += 6;
-    }
-    if ((access & Constants.ACC_SYNTHETIC) != 0) {
-      ++attributeCount;
-      size += 6;
-    }
-    if (innerClasses != null) {
-      ++attributeCount;
-      size += 8 + innerClasses.length;
-    }
-    if (attrs != null) {
-      attributeCount += attrs.getCount();
-      size += attrs.getSize(this, null, 0, -1, -1);
-    }
-    size += pool.length;
-    // allocates a byte vector of this size, in order to avoid unnecessary
-    // arraycopy operations in the ByteVector.enlarge() method
-    ByteVector out = new ByteVector(size);
-    out.putInt(0xCAFEBABE).putInt(version);
-    out.putShort(index).putByteArray(pool.data, 0, pool.length);
-    out.putShort(access).putShort(name).putShort(superName);
-    out.putShort(interfaceCount);
-    for (int i = 0; i < interfaceCount; ++i) {
-      out.putShort(interfaces[i]);
-    }
-    out.putShort(fieldCount);
-    if (fields != null) {
-      out.putByteArray(fields.data, 0, fields.length);
-    }
-    out.putShort(nbMethods);
-    cb = firstMethod;
-    while (cb != null) {
-      cb.put(out);
-      cb = cb.next;
-    }
-    out.putShort(attributeCount);
-    if (sourceFile != 0) {
-      out.putShort(newUTF8("SourceFile")).putInt(2).putShort(sourceFile);
-    }
-    if ((access & Constants.ACC_DEPRECATED) != 0) {
-      out.putShort(newUTF8("Deprecated")).putInt(0);
-    }
-    if ((access & Constants.ACC_SYNTHETIC) != 0) {
-      out.putShort(newUTF8("Synthetic")).putInt(0);
-    }
-    if (innerClasses != null) {
-      out.putShort(newUTF8("InnerClasses"));
-      out.putInt(innerClasses.length + 2).putShort(innerClassesCount);
-      out.putByteArray(innerClasses.data, 0, innerClasses.length);
-    }
-    if (attrs != null) {
-      attrs.put(this, null, 0, -1, -1, out);
-    }
-    return out.data;
-  }
-
-  // --------------------------------------------------------------------------
-  // Utility methods: constant pool management
-  // --------------------------------------------------------------------------
-
-  /**
-   * Adds a number or string constant to the constant pool of the class being
-   * build. Does nothing if the constant pool already contains a similar item.
-   *
-   * @param cst the value of the constant to be added to the constant pool. This
-   *      parameter must be an {@link java.lang.Integer Integer}, a {@link
-   *      java.lang.Float Float}, a {@link java.lang.Long Long}, a {@link
-   *      java.lang.Double Double}, a {@link String String} or a {@link Type}.
-   * @return a new or already existing constant item with the given value.
-   */
-
-  Item newConstItem (final Object cst) {
-    if (cst instanceof Integer) {
-      int val = ((Integer)cst).intValue();
-      return newInteger(val);
-    } else if (cst instanceof Byte) {
-      int val = ((Byte)cst).intValue();
-      return newInteger(val);
-    } else if (cst instanceof Character) {
-      int val = ((Character)cst).charValue();
-      return newInteger(val);
-    } else if (cst instanceof Short) {
-      int val = ((Short)cst).intValue();
-      return newInteger(val);
-    } else if (cst instanceof Boolean) {
-      int val = ((Boolean)cst).booleanValue() ? 1 : 0;
-      return newInteger(val);
-    } else if (cst instanceof Float) {
-      float val = ((Float)cst).floatValue();
-      return newFloat(val);
-    } else if (cst instanceof Long) {
-      long val = ((Long)cst).longValue();
-      return newLong(val);
-    } else if (cst instanceof Double) {
-      double val = ((Double)cst).doubleValue();
-      return newDouble(val);
-    } else if (cst instanceof String) {
-      return newString((String)cst);
-    } else if (cst instanceof Type) {
-      Type t = (Type)cst;
-      return newClassItem(
-        t.getSort() == Type.OBJECT ? t.getInternalName() : t.getDescriptor());
+    // Section 4.7.6 of the JVMS states "Every CONSTANT_Class_info entry in the constant_pool table
+    // which represents a class or interface C that is not a package member must have exactly one
+    // corresponding entry in the classes array". To avoid duplicates we keep track in the info
+    // field of the Symbol of each CONSTANT_Class_info entry C whether an inner class entry has
+    // already been added for C. If so, we store the index of this inner class entry (plus one) in
+    // the info field. This trick allows duplicate detection in O(1) time.
+    Symbol nameSymbol = symbolTable.addConstantClass(name);
+    if (nameSymbol.info == 0) {
+      ++numberOfClasses;
+      classes.putShort(nameSymbol.index);
+      classes.putShort(outerName == null ? 0 : symbolTable.addConstantClass(outerName).index);
+      classes.putShort(innerName == null ? 0 : symbolTable.addConstantUtf8(innerName));
+      classes.putShort(access);
+      nameSymbol.info = numberOfClasses;
     } else {
-      throw new IllegalArgumentException("value " + cst);
+      // Compare the inner classes entry nameSymbol.info - 1 with the arguments of this method and
+      // throw an exception if there is a difference?
     }
   }
 
+  @Override
+  public final FieldVisitor visitField(
+      final int access,
+      final String name,
+      final String descriptor,
+      final String signature,
+      final Object value) {
+    FieldWriter fieldWriter =
+        new FieldWriter(symbolTable, access, name, descriptor, signature, value);
+    if (firstField == null) {
+      firstField = fieldWriter;
+    } else {
+      lastField.fv = fieldWriter;
+    }
+    return lastField = fieldWriter;
+  }
+
+  @Override
+  public final MethodVisitor visitMethod(
+      final int access,
+      final String name,
+      final String descriptor,
+      final String signature,
+      final String[] exceptions) {
+    MethodWriter methodWriter =
+        new MethodWriter(symbolTable, access, name, descriptor, signature, exceptions, compute);
+    if (firstMethod == null) {
+      firstMethod = methodWriter;
+    } else {
+      lastMethod.mv = methodWriter;
+    }
+    return lastMethod = methodWriter;
+  }
+
+  @Override
+  public final void visitEnd() {
+    // Nothing to do.
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // Other public methods
+  // -----------------------------------------------------------------------------------------------
+
   /**
-   * Adds a number or string constant to the constant pool of the class being
-   * build. Does nothing if the constant pool already contains a similar item.
-   * <i>This method is intended for {@link Attribute} sub classes, and is
-   * normally not needed by class generators or adapters.</i>
+   * Returns the content of the class file that was built by this ClassWriter.
    *
-   * @param cst the value of the constant to be added to the constant pool. This
-   *      parameter must be an {@link java.lang.Integer Integer}, a {@link
-   *      java.lang.Float Float}, a {@link java.lang.Long Long}, a {@link
-          java.lang.Double Double} or a {@link String String}.
-   * @return the index of a new or already existing constant item with the given
-   *      value.
+   * @return the binary content of the JVMS ClassFile structure that was built by this ClassWriter.
    */
+  public byte[] toByteArray() {
+    // First step: compute the size in bytes of the ClassFile structure.
+    // The magic field uses 4 bytes, 10 mandatory fields (minor_version, major_version,
+    // constant_pool_count, access_flags, this_class, super_class, interfaces_count, fields_count,
+    // methods_count and attributes_count) use 2 bytes each, and each interface uses 2 bytes too.
+    int size = 24 + 2 * interfaceCount;
+    int fieldsCount = 0;
+    FieldWriter fieldWriter = firstField;
+    while (fieldWriter != null) {
+      ++fieldsCount;
+      size += fieldWriter.computeFieldInfoSize();
+      fieldWriter = (FieldWriter) fieldWriter.fv;
+    }
+    int methodsCount = 0;
+    MethodWriter methodWriter = firstMethod;
+    while (methodWriter != null) {
+      ++methodsCount;
+      size += methodWriter.computeMethodInfoSize();
+      methodWriter = (MethodWriter) methodWriter.mv;
+    }
+    // For ease of reference, we use here the same attribute order as in Section 4.7 of the JVMS.
+    int attributesCount = 0;
+    if (classes != null) {
+      ++attributesCount;
+      size += 8 + classes.length;
+      symbolTable.addConstantUtf8(Constants.INNER_CLASSES);
+    }
+    if (enclosingClassIndex != 0) {
+      ++attributesCount;
+      size += 10;
+      symbolTable.addConstantUtf8(Constants.ENCLOSING_METHOD);
+    }
+    if ((accessFlags & Opcodes.ACC_SYNTHETIC) != 0 && (version & 0xFFFF) < Opcodes.V1_5) {
+      ++attributesCount;
+      size += 6;
+      symbolTable.addConstantUtf8(Constants.SYNTHETIC);
+    }
+    if (signatureIndex != 0) {
+      ++attributesCount;
+      size += 8;
+      symbolTable.addConstantUtf8(Constants.SIGNATURE);
+    }
+    if (sourceFileIndex != 0) {
+      ++attributesCount;
+      size += 8;
+      symbolTable.addConstantUtf8(Constants.SOURCE_FILE);
+    }
+    if (debugExtension != null) {
+      ++attributesCount;
+      size += 6 + debugExtension.length;
+      symbolTable.addConstantUtf8(Constants.SOURCE_DEBUG_EXTENSION);
+    }
+    if ((accessFlags & Opcodes.ACC_DEPRECATED) != 0) {
+      ++attributesCount;
+      size += 6;
+      symbolTable.addConstantUtf8(Constants.DEPRECATED);
+    }
+    if (symbolTable.computeBootstrapMethodsSize() > 0) {
+      ++attributesCount;
+      size += symbolTable.computeBootstrapMethodsSize();
+    }
+    if (firstAttribute != null) {
+      attributesCount += firstAttribute.getAttributeCount();
+      size += firstAttribute.computeAttributesSize(symbolTable);
+    }
+    // IMPORTANT: this must be the last part of the ClassFile size computation, because the previous
+    // statements can add attribute names to the constant pool, thereby changing its size!
+    size += symbolTable.getConstantPoolLength();
+    if (symbolTable.getConstantPoolCount() > 0xFFFF) {
+      throw new IndexOutOfBoundsException("Class file too large!");
+    }
 
-  public int newConst (final Object cst) {
-    return newConstItem(cst).index;
+    // Second step: allocate a ByteVector of the correct size (in order to avoid any array copy in
+    // dynamic resizes) and fill it with the ClassFile content.
+    ByteVector result = new ByteVector(size);
+    result.putInt(0xCAFEBABE).putInt(version);
+    symbolTable.putConstantPool(result);
+    int mask = (version & 0xFFFF) < Opcodes.V1_5 ? Opcodes.ACC_SYNTHETIC : 0;
+    result.putShort(accessFlags & ~mask).putShort(thisClass).putShort(superClass);
+    result.putShort(interfaceCount);
+    for (int i = 0; i < interfaceCount; ++i) {
+      result.putShort(interfaces[i]);
+    }
+    result.putShort(fieldsCount);
+    fieldWriter = firstField;
+    while (fieldWriter != null) {
+      fieldWriter.putFieldInfo(result);
+      fieldWriter = (FieldWriter) fieldWriter.fv;
+    }
+    result.putShort(methodsCount);
+    boolean hasFrames = false;
+    boolean hasAsmInstructions = false;
+    methodWriter = firstMethod;
+    while (methodWriter != null) {
+      hasFrames |= methodWriter.hasFrames();
+      hasAsmInstructions |= methodWriter.hasAsmInstructions();
+      methodWriter.putMethodInfo(result);
+      methodWriter = (MethodWriter) methodWriter.mv;
+    }
+    // For ease of reference, we use here the same attribute order as in Section 4.7 of the JVMS.
+    result.putShort(attributesCount);
+    if (classes != null) {
+      result
+          .putShort(symbolTable.addConstantUtf8(Constants.INNER_CLASSES))
+          .putInt(classes.length + 2)
+          .putShort(numberOfClasses)
+          .putByteArray(classes.data, 0, classes.length);
+    }
+    if (enclosingClassIndex != 0) {
+      result
+          .putShort(symbolTable.addConstantUtf8(Constants.ENCLOSING_METHOD))
+          .putInt(4)
+          .putShort(enclosingClassIndex)
+          .putShort(enclosingMethodIndex);
+    }
+    if ((accessFlags & Opcodes.ACC_SYNTHETIC) != 0 && (version & 0xFFFF) < Opcodes.V1_5) {
+      result.putShort(symbolTable.addConstantUtf8(Constants.SYNTHETIC)).putInt(0);
+    }
+    if (signatureIndex != 0) {
+      result
+          .putShort(symbolTable.addConstantUtf8(Constants.SIGNATURE))
+          .putInt(2)
+          .putShort(signatureIndex);
+    }
+    if (sourceFileIndex != 0) {
+      result
+          .putShort(symbolTable.addConstantUtf8(Constants.SOURCE_FILE))
+          .putInt(2)
+          .putShort(sourceFileIndex);
+    }
+    if (debugExtension != null) {
+      int length = debugExtension.length;
+      result
+          .putShort(symbolTable.addConstantUtf8(Constants.SOURCE_DEBUG_EXTENSION))
+          .putInt(length)
+          .putByteArray(debugExtension.data, 0, length);
+    }
+    if ((accessFlags & Opcodes.ACC_DEPRECATED) != 0) {
+      result.putShort(symbolTable.addConstantUtf8(Constants.DEPRECATED)).putInt(0);
+    }
+    symbolTable.putBootstrapMethods(result);
+    if (firstAttribute != null) {
+      firstAttribute.putAttributes(symbolTable, result);
+    }
+
+    // Third step: do a ClassReader->ClassWriter round trip if the generated class contains ASM
+    // specific instructions due to large forward jumps.
+    if (hasAsmInstructions) {
+      firstField = null;
+      lastField = null;
+      firstMethod = null;
+      lastMethod = null;
+      firstAttribute = null;
+      compute = hasFrames ? MethodWriter.COMPUTE_INSERTED_FRAMES : MethodWriter.COMPUTE_NOTHING;
+      return toByteArray();
+    } else {
+      return result.data;
+    }
   }
 
-  public int newConstInt (final int i) {
-    return newInteger(i).index;
-  }
+  // -----------------------------------------------------------------------------------------------
+  // Utility methods: constant pool management for Attribute sub classes
+  // -----------------------------------------------------------------------------------------------
 
-  public int newConstLong (final long l) {
-    return newLong(l).index;
-  }
-
-  public int newConstFloat (final float f) {
-    return newFloat(f).index;
-  }
-
-  public int newConstDouble (final double d) {
-    return newDouble(d).index;
+  /**
+   * Adds a number or string constant to the constant pool of the class being build. Does nothing if
+   * the constant pool already contains a similar item. <i>This method is intended for {@link
+   * Attribute} sub classes, and is normally not needed by class generators or adapters.</i>
+   *
+   * @param value the value of the constant to be added to the constant pool. This parameter must be
+   *     an {@link Integer}, a {@link Float}, a {@link Long}, a {@link Double} or a {@link String}.
+   * @return the index of a new or already existing constant item with the given value.
+   */
+  public int newConst(final Object value) {
+    return symbolTable.addConstant(value).index;
   }
 
   /**
-   * Adds an UTF8 string to the constant pool of the class being build. Does
-   * nothing if the constant pool already contains a similar item. <i>This
-   * method is intended for {@link Attribute} sub classes, and is normally not
-   * needed by class generators or adapters.</i>
+   * Adds an UTF8 string to the constant pool of the class being build. Does nothing if the constant
+   * pool already contains a similar item. <i>This method is intended for {@link Attribute} sub
+   * classes, and is normally not needed by class generators or adapters.</i>
    *
    * @param value the String value.
    * @return the index of a new or already existing UTF8 item.
    */
-
-  public int newUTF8 (final String value) {
-    key.set(UTF8, value, null, null);
-    Item result = get(key);
-    if (result == null) {
-      pool.putByte(UTF8).putUTF8(value);
-      result = new Item(index++, key);
-      put(result);
-    }
-    return result.index;
+  public int newUTF8(final String value) {
+    return symbolTable.addConstantUtf8(value);
   }
 
   /**
-   * Adds a class reference to the constant pool of the class being build. Does
-   * nothing if the constant pool already contains a similar item. <i>This
-   * method is intended for {@link Attribute} sub classes, and is normally not
-   * needed by class generators or adapters.</i>
+   * Adds a class reference to the constant pool of the class being build. Does nothing if the
+   * constant pool already contains a similar item. <i>This method is intended for {@link Attribute}
+   * sub classes, and is normally not needed by class generators or adapters.</i>
    *
    * @param value the internal name of the class.
    * @return the index of a new or already existing class reference item.
    */
-
-  public int newClass (final String value) {
-    return newClassItem(value).index;
+  public int newClass(final String value) {
+    return symbolTable.addConstantClass(value).index;
   }
 
   /**
-   * Adds a class reference to the constant pool of the class being build. Does
-   * nothing if the constant pool already contains a similar item. <i>This
-   * method is intended for {@link Attribute} sub classes, and is normally not
-   * needed by class generators or adapters.</i>
+   * Adds a method type reference to the constant pool of the class being build. Does nothing if the
+   * constant pool already contains a similar item. <i>This method is intended for {@link Attribute}
+   * sub classes, and is normally not needed by class generators or adapters.</i>
    *
-   * @param value the internal name of the class.
-   * @return a new or already existing class reference item.
+   * @param methodDescriptor method descriptor of the method type.
+   * @return the index of a new or already existing method type reference item.
    */
-
-  private Item newClassItem (final String value) {
-    key2.set(CLASS, value, null, null);
-    Item result = get(key2);
-    if (result == null) {
-      pool.put12(CLASS, newUTF8(value));
-      result = new Item(index++, key2);
-      put(result);
-    }
-    return result;
+  public int newMethodType(final String methodDescriptor) {
+    return symbolTable.addConstantMethodType(methodDescriptor).index;
   }
 
   /**
-   * Adds a field reference to the constant pool of the class being build. Does
-   * nothing if the constant pool already contains a similar item. <i>This
-   * method is intended for {@link Attribute} sub classes, and is normally not
-   * needed by class generators or adapters.</i>
+   * Adds a module reference to the constant pool of the class being build. Does nothing if the
+   * constant pool already contains a similar item. <i>This method is intended for {@link Attribute}
+   * sub classes, and is normally not needed by class generators or adapters.</i>
+   *
+   * @param moduleName name of the module.
+   * @return the index of a new or already existing module reference item.
+   */
+  public int newModule(final String moduleName) {
+    return symbolTable.addConstantModule(moduleName).index;
+  }
+
+  /**
+   * Adds a package reference to the constant pool of the class being build. Does nothing if the
+   * constant pool already contains a similar item. <i>This method is intended for {@link Attribute}
+   * sub classes, and is normally not needed by class generators or adapters.</i>
+   *
+   * @param packageName name of the package in its internal form.
+   * @return the index of a new or already existing module reference item.
+   */
+  public int newPackage(final String packageName) {
+    return symbolTable.addConstantPackage(packageName).index;
+  }
+
+  /**
+   * Adds a handle to the constant pool of the class being build. Does nothing if the constant pool
+   * already contains a similar item. <i>This method is intended for {@link Attribute} sub classes,
+   * and is normally not needed by class generators or adapters.</i>
+   *
+   * @param tag the kind of this handle. Must be {@link Opcodes#H_GETFIELD}, {@link
+   *     Opcodes#H_GETSTATIC}, {@link Opcodes#H_PUTFIELD}, {@link Opcodes#H_PUTSTATIC}, {@link
+   *     Opcodes#H_INVOKEVIRTUAL}, {@link Opcodes#H_INVOKESTATIC}, {@link Opcodes#H_INVOKESPECIAL},
+   *     {@link Opcodes#H_NEWINVOKESPECIAL} or {@link Opcodes#H_INVOKEINTERFACE}.
+   * @param owner the internal name of the field or method owner class.
+   * @param name the name of the field or method.
+   * @param descriptor the descriptor of the field or method.
+   * @return the index of a new or already existing method type reference item.
+   * @deprecated this method is superseded by {@link #newHandle(int, String, String, String,
+   *     boolean)}.
+   */
+  @Deprecated
+  public int newHandle(
+      final int tag, final String owner, final String name, final String descriptor) {
+    return newHandle(tag, owner, name, descriptor, tag == Opcodes.H_INVOKEINTERFACE);
+  }
+
+  /**
+   * Adds a handle to the constant pool of the class being build. Does nothing if the constant pool
+   * already contains a similar item. <i>This method is intended for {@link Attribute} sub classes,
+   * and is normally not needed by class generators or adapters.</i>
+   *
+   * @param tag the kind of this handle. Must be {@link Opcodes#H_GETFIELD}, {@link
+   *     Opcodes#H_GETSTATIC}, {@link Opcodes#H_PUTFIELD}, {@link Opcodes#H_PUTSTATIC}, {@link
+   *     Opcodes#H_INVOKEVIRTUAL}, {@link Opcodes#H_INVOKESTATIC}, {@link Opcodes#H_INVOKESPECIAL},
+   *     {@link Opcodes#H_NEWINVOKESPECIAL} or {@link Opcodes#H_INVOKEINTERFACE}.
+   * @param owner the internal name of the field or method owner class.
+   * @param name the name of the field or method.
+   * @param descriptor the descriptor of the field or method.
+   * @param isInterface true if the owner is an interface.
+   * @return the index of a new or already existing method type reference item.
+   */
+  public int newHandle(
+      final int tag,
+      final String owner,
+      final String name,
+      final String descriptor,
+      final boolean isInterface) {
+    return symbolTable.addConstantMethodHandle(tag, owner, name, descriptor, isInterface).index;
+  }
+
+  /**
+   * Adds an invokedynamic reference to the constant pool of the class being build. Does nothing if
+   * the constant pool already contains a similar item. <i>This method is intended for {@link
+   * Attribute} sub classes, and is normally not needed by class generators or adapters.</i>
+   *
+   * @param name name of the invoked method.
+   * @param descriptor descriptor of the invoke method.
+   * @param bootstrapMethodHandle the bootstrap method.
+   * @param bootstrapMethodArguments the bootstrap method constant arguments.
+   * @return the index of a new or already existing invokedynamic reference item.
+   */
+  public int newInvokeDynamic(
+      final String name,
+      final String descriptor,
+      final Handle bootstrapMethodHandle,
+      final Object... bootstrapMethodArguments) {
+    return symbolTable.addConstantInvokeDynamic(
+            name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments)
+        .index;
+  }
+
+  /**
+   * Adds a field reference to the constant pool of the class being build. Does nothing if the
+   * constant pool already contains a similar item. <i>This method is intended for {@link Attribute}
+   * sub classes, and is normally not needed by class generators or adapters.</i>
    *
    * @param owner the internal name of the field's owner class.
    * @param name the field's name.
-   * @param desc the field's descriptor.
+   * @param descriptor the field's descriptor.
    * @return the index of a new or already existing field reference item.
    */
-
-  public int newField (
-    final String owner,
-    final String name,
-    final String desc)
-  {
-    key3.set(FIELD, owner, name, desc);
-    Item result = get(key3);
-    if (result == null) {
-      put122(FIELD, newClass(owner), newNameType(name, desc));
-      result = new Item(index++, key3);
-      put(result);
-    }
-    return result.index;
+  public int newField(final String owner, final String name, final String descriptor) {
+    return symbolTable.addConstantFieldref(owner, name, descriptor).index;
   }
 
   /**
-   * Adds a method reference to the constant pool of the class being build. Does
-   * nothing if the constant pool already contains a similar item.
+   * Adds a method reference to the constant pool of the class being build. Does nothing if the
+   * constant pool already contains a similar item. <i>This method is intended for {@link Attribute}
+   * sub classes, and is normally not needed by class generators or adapters.</i>
    *
    * @param owner the internal name of the method's owner class.
    * @param name the method's name.
-   * @param desc the method's descriptor.
-   * @param itf <tt>true</tt> if <tt>owner</tt> is an interface.
-   * @return a new or already existing method reference item.
-   */
-
-  Item newMethodItem (
-    final String owner,
-    final String name,
-    final String desc,
-    final boolean itf)
-  {
-    key3.set(itf ? IMETH : METH, owner, name, desc);
-    Item result = get(key3);
-    if (result == null) {
-      put122(itf ? IMETH : METH, newClass(owner), newNameType(name, desc));
-      result = new Item(index++, key3);
-      put(result);
-    }
-    return result;
-  }
-
-  /**
-   * Adds a method reference to the constant pool of the class being build. Does
-   * nothing if the constant pool already contains a similar item. <i>This
-   * method is intended for {@link Attribute} sub classes, and is normally not
-   * needed by class generators or adapters.</i>
-   *
-   * @param owner the internal name of the method's owner class.
-   * @param name the method's name.
-   * @param desc the method's descriptor.
-   * @param itf <tt>true</tt> if <tt>owner</tt> is an interface.
+   * @param descriptor the method's descriptor.
+   * @param isInterface <tt>true</tt> if <tt>owner</tt> is an interface.
    * @return the index of a new or already existing method reference item.
    */
-
-  public int newMethod (
-    final String owner,
-    final String name,
-    final String desc,
-    final boolean itf)
-  {
-    return newMethodItem(owner, name, desc, itf).index;
+  public int newMethod(
+      final String owner, final String name, final String descriptor, final boolean isInterface) {
+    return symbolTable.addConstantMethodref(owner, name, descriptor, isInterface).index;
   }
 
   /**
-   * Adds an integer to the constant pool of the class being build. Does nothing
-   * if the constant pool already contains a similar item.
-   *
-   * @param value the int value.
-   * @return a new or already existing int item.
-   */
-
-  private Item newInteger (final int value) {
-    key.set(value);
-    Item result = get(key);
-    if (result == null) {
-      pool.putByte(INT).putInt(value);
-      result = new Item(index++, key);
-      put(result);
-    }
-    return result;
-  }
-
-  /**
-   * Adds a float to the constant pool of the class being build. Does nothing if
-   * the constant pool already contains a similar item.
-   *
-   * @param value the float value.
-   * @return a new or already existing float item.
-   */
-
-  private Item newFloat (final float value) {
-    key.set(value);
-    Item result = get(key);
-    if (result == null) {
-      pool.putByte(FLOAT).putInt(Float.floatToIntBits(value));
-      result = new Item(index++, key);
-      put(result);
-    }
-    return result;
-  }
-
-  /**
-   * Adds a long to the constant pool of the class being build. Does nothing if
-   * the constant pool already contains a similar item.
-   *
-   * @param value the long value.
-   * @return a new or already existing long item.
-   */
-
-  private Item newLong (final long value) {
-    key.set(value);
-    Item result = get(key);
-    if (result == null) {
-      pool.putByte(LONG).putLong(value);
-      result = new Item(index, key);
-      put(result);
-      index += 2;
-    }
-    return result;
-  }
-
-  /**
-   * Adds a double to the constant pool of the class being build. Does nothing
-   * if the constant pool already contains a similar item.
-   *
-   * @param value the double value.
-   * @return a new or already existing double item.
-   */
-
-  private Item newDouble (final double value) {
-    key.set(value);
-    Item result = get(key);
-    if (result == null) {
-      pool.putByte(DOUBLE).putLong(Double.doubleToLongBits(value));
-      result = new Item(index, key);
-      put(result);
-      index += 2;
-    }
-    return result;
-  }
-
-  /**
-   * Adds a string to the constant pool of the class being build. Does nothing
-   * if the constant pool already contains a similar item.
-   *
-   * @param value the String value.
-   * @return a new or already existing string item.
-   */
-
-  private Item newString (final String value) {
-    key2.set(STR, value, null, null);
-    Item result = get(key2);
-    if (result == null) {
-      pool.put12(STR, newUTF8(value));
-      result = new Item(index++, key2);
-      put(result);
-    }
-    return result;
-  }
-
-  /**
-   * Adds a name and type to the constant pool of the class being build. Does
-   * nothing if the constant pool already contains a similar item. <i>This
-   * method is intended for {@link Attribute} sub classes, and is normally not
-   * needed by class generators or adapters.</i>
+   * Adds a name and type to the constant pool of the class being build. Does nothing if the
+   * constant pool already contains a similar item. <i>This method is intended for {@link Attribute}
+   * sub classes, and is normally not needed by class generators or adapters.</i>
    *
    * @param name a name.
-   * @param desc a type descriptor.
+   * @param descriptor a type descriptor.
    * @return the index of a new or already existing name and type item.
    */
-
-  public int newNameType (final String name, final String desc) {
-    key2.set(NAME_TYPE, name, desc, null);
-    Item result = get(key2);
-    if (result == null) {
-      put122(NAME_TYPE, newUTF8(name), newUTF8(desc));
-      result = new Item(index++, key2);
-      put(result);
-    }
-    return result.index;
+  public int newNameType(final String name, final String descriptor) {
+    return symbolTable.addConstantNameAndType(name, descriptor);
   }
 
-  /**
-   * Returns the constant pool's hash table item which is equal to the given
-   * item.
-   *
-   * @param key a constant pool item.
-   * @return the constant pool's hash table item which is equal to the given
-   *      item, or <tt>null</tt> if there is no such item.
-   */
+  // -----------------------------------------------------------------------------------------------
+  // Default method to compute common super classes when computing stack map frames
+  // -----------------------------------------------------------------------------------------------
 
-  private Item get (final Item key) {
-    int h = key.hashCode;
-    Item i = items[h % items.length];
-    while (i != null) {
-      if (i.hashCode == h && key.isEqualTo(i)) {
-        return i;
-      }
-      i = i.next;
+  /**
+   * Returns the common super type of the two given types. The default implementation of this method
+   * <i>loads</i> the two given classes and uses the java.lang.Class methods to find the common
+   * super class. It can be overridden to compute this common super type in other ways, in
+   * particular without actually loading any class, or to take into account the class that is
+   * currently being generated by this ClassWriter, which can of course not be loaded since it is
+   * under construction.
+   *
+   * @param type1 the internal name of a class.
+   * @param type2 the internal name of another class.
+   * @return the internal name of the common super class of the two given classes.
+   */
+  protected String getCommonSuperClass(final String type1, final String type2) {
+    ClassLoader classLoader = getClass().getClassLoader();
+    Class<?> class1;
+    try {
+      class1 = Class.forName(type1.replace('/', '.'), false, classLoader);
+    } catch (Exception e) {
+      throw new TypeNotPresentException(type1, e);
     }
-    return null;
-  }
-
-  /**
-   * Puts the given item in the constant pool's hash table. The hash table
-   * <i>must</i> not already contains this item.
-   *
-   * @param i the item to be added to the constant pool's hash table.
-   */
-
-  private void put (final Item i) {
-    if (index > threshold) {
-      Item[] newItems = new Item[items.length * 2 + 1];
-      for (int l = items.length - 1; l >= 0; --l) {
-        Item j = items[l];
-        while (j != null) {
-          int index = j.hashCode % newItems.length;
-          Item k = j.next;
-          j.next = newItems[index];
-          newItems[index] = j;
-          j = k;
-        }
-      }
-      items = newItems;
-      threshold = (int)(items.length * 0.75);
+    Class<?> class2;
+    try {
+      class2 = Class.forName(type2.replace('/', '.'), false, classLoader);
+    } catch (Exception e) {
+      throw new TypeNotPresentException(type2, e);
     }
-    int index = i.hashCode % items.length;
-    i.next = items[index];
-    items[index] = i;
-  }
-
-  /**
-   * Puts one byte and two shorts into the constant pool.
-   *
-   * @param b a byte.
-   * @param s1 a short.
-   * @param s2 another short.
-   */
-
-  private void put122 (final int b, final int s1, final int s2) {
-    pool.put12(b, s1).putShort(s2);
+    if (class1.isAssignableFrom(class2)) {
+      return type1;
+    }
+    if (class2.isAssignableFrom(class1)) {
+      return type2;
+    }
+    if (class1.isInterface() || class2.isInterface()) {
+      return "java/lang/Object";
+    } else {
+      do {
+        class1 = class1.getSuperclass();
+      } while (!class1.isAssignableFrom(class2));
+      return class1.getName().replace('.', '/');
+    }
   }
 }
