@@ -7,42 +7,184 @@ al.add("foo");
 al.add("bar");
 al.add("gee");
 
-for( a : al )
+// inerate over iterable
+for ( a : al )
     b = a;
-//    print( a );
+assert(a == void);
+assert(b == void);
 
-assert( a.equals("gee") );
+a="a";
+b="b";
 
-for( a : this.al )
+for ( a : this.al )
     b = a;
-//    print( a );
+assert(a.equals("a"));
+assert(b.equals("gee"));
+
+v = new Vector();
+v.addAll(al);
+// iterate over enumerator
+for ( a : v.elements() )
+  b = a;
+assert(a.equals("a"));
+assert(b.equals("gee"));
 
 al.add("goo");
 
-for( String a : al )
-{
-//    print( a );
-    if ( a.equals("goo") )
-        flag();
+// iterate over iterator
+for ( String a : al.iterator() ) {
+  b = a;
+  if ( a.equals("goo") )
+    flag();
 }
+assert(flag() == 1);
+assert(a.equals("a"));
+assert(b.equals("goo"));
 
-for (int i = new Integer(0).intValue(); i < 3; i++)
-    bb = i;
-//    print(i);
+// iterate over Object[] object array
+for ( final String a : al.toArray() )
+  b = a;
+assert(a.equals("a"));
+assert(b.equals("goo"));
 
-// the typed vars don't leak
-assert( a.equals("gee") );
-assert( flag() == 1 );
+// iterate over String[] object array
+for ( final String a : al.toArray(new String[al.size()]) )
+  b = a;
+assert(a.equals("a"));
+assert(b.equals("goo"));
 
-// New feature - any object iterates over method and property names
-// assert( isEvalError("for( a : 42 )") );
+// iterate over int[] primitive array
+for ( a : new int[] {1, 2, 3, 4} ) 
+  b = a;
+assert(a.equals("a"));
+assert(b == 4);
+
+for (int a = new Integer(0).intValue(); a < 3; a++)
+    b = a;
+assert(a.equals("a"));
+assert( b == 2 );
+
+// iterate over string sequence
+for ( a : "abcdef" )
+    b = a;
+assert(a.equals("a"));
+assert(b.equals('f'));
+
+// iterate over char sequence
+for ( a : new StringBuilder("abcdef").reverse() )
+    b = a;
+assert(a.equals("a"));
+assert(b.equals('a'));
+
+// iterate over number range 0 up to 42 inclusive
 count = 0;
-for( a:42 ) count++;
-assert(count == 46);
+for ( a : 42 ) 
+count++;
+assert(a.equals("a"));
+assert(43 == count);
 
-// Can even iterate over null
+// iterate over number range 0 down to -21 inclusive
+for ( a : -21 )
+    b = a;
+assert(a.equals("a"));
+assert(-21 == b);
+
+// iterate over character code point range a to z
 count = 0;
-for( a:null ) count++;
+for ( a : 'z' )
+    count++;
+assert(a.equals("a"));
+assert(26 == count);
+
+// iterate over character code point range A to Z
+count = 0;
+for ( a : 'Z' )
+    count++;
+assert(a.equals("a"));
+assert(26 == count);
+
+// iterate over character code point range 0 to 9
+for ( a : '9' )
+    b = a;
+assert(a.equals("a"));
+assert(b.equals("9"));
+
+//  iterate over character code point range
+// Runic block set u+16A0 - u+16F8 89 chars
+count = 0;
+for ( a : '\u16F8' )
+    count++;
+assert(a.equals("a"));
+assert(89 == count);
+
+// Iterate over object reflection member information
+final class TT { final int a(b,c,d) { b+c+d; } static final void e(f) {} final int g=1; static final int h=0; }
+tt=new TT();
+
+// iterate over true reflection of generated class instance 
+for ( a : tt )
+  b = a;
+//  print(b=a);
+assert(a.equals("a"));
+assert(b.equals("public final int a(Object, Object, Object)"));
+
+// iterate over true reflection of generated class identifier
+for ( a : TT )
+  b = a;
+//  print(b=a);
+assert(a.equals("a"));
+assert(b.equals("public final int a(Object, Object, Object)"));
+
+// iterate over reflection of generated interface identifier
+interface BB { int i=1; int ii(a, b, c); }
+for ( a : BB )
+  b = a;
+//  print(b=a);
+assert(a.equals("a"));
+assert(b.equals("public abstract int ii(Object, Object, Object)"));
+
+// iterate over reflection of system interface identifier
+for ( a : Runnable )
+    b = a;
+//  print(b=a);
+assert(a.equals("a"));
+assert(b.equals("public abstract void run()"));
+
+// iterate over reflection of class type
+for ( a : Cloneable.class )
+  b = a;
+//  print(b=a);
+assert(a.equals("a"));
+assert(b.equals("public abstract interface Cloneable"));
+
+// iterate over java reflection of system interface identifier
+for ( a : Serializable )
+  b = a;
+//  print(b=a);
+assert(a.equals("a"));
+assert(b.equals("public abstract interface Serializable"));
+
+// iterate over java reflection of system instance
+for ( a : new Object() )
+  b = a;
+//  print(b=a);
+assert(a.equals("a"));
+assert(b.equals("public final native void notifyAll()"));
+
+// Empty iterations over null, void, 0 ranges etc
+count = 0;
+for ( a : null ) count++;
+assert(count == 0);
+nil = null;
+for ( a : nil ) count++;
+assert(count == 0);
+for ( a : void ) count++;
+assert(count == 0);
+for ( a : not_set ) count++;
+assert(count == 0);
+for ( a : 0 ) count++;
+assert(count == 0);
+for ( a : 0.0 ) count++;
 assert(count == 0);
 
 complete();
