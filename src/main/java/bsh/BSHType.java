@@ -156,7 +156,7 @@ class BSHType extends SimpleNode
                         && e.getCause() instanceof ClassNotFoundException)
                     baseType = Object.class;
                 else
-                    e.reThrow(node.getText().trim()+" does not look like a generics raw type.");
+                    e.reThrow("");
             }
 
         if ( arrayDims > 0 ) {

@@ -153,7 +153,7 @@ public class Variable implements java.io.Serializable
     }
 
     public String toString() {
-        return "Variable: "+name+", type:"+type
-            +", value:"+value +", lhs = "+lhs+" "+modifiers;
+        return "Variable: " + StringUtil.variableString(this)
+                + ", value:" + value + ", lhs = " + lhs;
     }
 }

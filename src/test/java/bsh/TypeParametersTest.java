@@ -167,9 +167,9 @@ public class TypeParametersTest {
     }
 
     @Test
-    public void generics_bounded_type_params_no_primitivu() throws Exception {
+    public void generics_bounded_type_params_no_primitive() throws Exception {
         thrown.expect(EvalError.class);
-        thrown.expectMessage(containsString("Command not found: countGreaterThan([I, int)"));
+        thrown.expectMessage(containsString("Command not found: countGreaterThan(int[], int)"));
 
         eval(
             "public static <T extends Comparable<T>> int countGreaterThan(T[] anArray, T elem) {",
