@@ -1,0 +1,33 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+public class GenericsNested {
+    List<String> names = new ArrayList<String>();
+    Map<List<String>, Integer> nameMap = new HashMap<List<String>, Integer>();
+    Map<String, Map<List<String>, Integer>> nameMapLookup = new HashMap<String, Map<List<String>, Integer>>();
+    List<Map<String, Map<List<String>, Integer>>> nameMaps = new ArrayList<Map<String, Map<List<String>, Integer>>>();
+    List<List<Map<String, Map<List<String>, Integer>>>> ofNameMaps = new ArrayList<List<Map<String, Map<List<String>, Integer>>>>();
+
+    public GenericsNested() {
+        names.add("foo");
+        names.add("bar");
+        names.add("baz");
+        nameMap.put(names, names.size());
+        nameMapLookup.put("foobarbaz", nameMap);
+        nameMaps.add(nameMapLookup);
+        ofNameMaps.add(nameMaps);
+    }
+    
+    public int countNames() {
+        int count = ofNameMaps.get(0).get(0).get("foobarbaz").get(names).intValue();
+        if (count < 4 && count > 0)
+            return count;
+        return 0;
+    }
+
+}
+
+assert(3 == new GenericsNested().countNames());
+
+complete();
