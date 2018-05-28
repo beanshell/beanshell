@@ -28,7 +28,6 @@
     Notes:
     There is probably a lot of room for improvement in here.
     All of the syntactic lookaheads have been commented with:
-        SYNTACTIC_LOOKAHEAD
     These are probably expensive and we may want to start weeding them out
     where possible.
 */
@@ -768,11 +767,6 @@ int NameList() :
 void Expression() :
 { }
 {
-    /**
-        SYNTACTIC_LOOKAHEAD
-        Note: the original grammar was cheating here and we've fixed that,
-        but at the expense of another syntactic lookahead.
-    */
   LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
   Assignment()
 |
@@ -935,7 +929,6 @@ void UnaryExpressionNotPlusMinus() :
   ( t="~" | t="!" ) UnaryExpression()
     { jjtThis.kind = t.kind; } #UnaryExpression(1)
 |
-    // SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( CastLookahead() ) CastExpression()
 |
   PostfixExpression()
@@ -946,7 +939,6 @@ void CastLookahead() : { }
 {
   LOOKAHEAD(2) "(" PrimitiveType()
 |
-// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( "(" AmbiguousName() "[" ) "(" AmbiguousName() "[" "]"
 |
   "(" AmbiguousName() ")" ( "~" | "!" | "(" | <IDENTIFIER> | /* "this" | "super" | */ "new" | Literal() )
@@ -955,7 +947,6 @@ void CastLookahead() : { }
 void PostfixExpression() :
 { Token t = null; }
 {
-// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( PrimaryExpression() ("++"|"--") )
   PrimaryExpression()
       ( t="++" | t="--" ) {
@@ -967,7 +958,6 @@ void PostfixExpression() :
 void CastExpression() #CastExpression :
 { }
 {
-// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( "(" PrimitiveType() ) "(" Type() ")" UnaryExpression()
 |
   "(" Type() ")" UnaryExpressionNotPlusMinus()
@@ -991,7 +981,6 @@ void PrimaryPrefix() : { }
 |
   AllocationExpression()
 |
-  // SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( MethodInvocation() )
     MethodInvocation()
 |
@@ -1162,7 +1151,6 @@ void AllocationExpression() #AllocationExpression :
     (
         ArrayDimensions()
     |
-        // SYNTACTIC_LOOKAHEAD
         Arguments() [ LOOKAHEAD(2) Block() ]
     )
 |
@@ -1264,7 +1252,6 @@ void BlockStatement() :
   )
     MethodDeclaration()
 |
-  // SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( Modifiers( Modifiers.FIELD, true ) Type() <IDENTIFIER> )
   TypedVariableDeclaration() ";"
 |
@@ -1315,7 +1302,6 @@ void StatementExpression() :
     |
       PreDecrementExpression()
     |
-      // SYNTACTIC_LOOKAHEAD
       LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
       Assignment() { }
     |
@@ -1402,7 +1388,6 @@ void EnhancedForStatement() #EnhancedForStatement :
 void ForInit() :
 { Token t = null; }
 {
-// SYNTACTIC_LOOKAHEAD
   LOOKAHEAD( Modifiers( Modifiers.FIELD, true ) Type() <IDENTIFIER> )
   TypedVariableDeclaration()
 |
