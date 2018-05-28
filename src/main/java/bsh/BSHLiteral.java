@@ -81,19 +81,29 @@ public final class BSHLiteral extends SimpleNode
 
     public void charSetup(String str)
     {
-        char ch = str.charAt(0);
-        if(ch == '\\')
-        {
-            // get next character
-            ch = str.charAt(1);
+        int len = str.toCharArray().length;
 
-            if(Character.isDigit(ch))
-                ch = (char)Integer.parseInt(str.substring(1), 8);
-            else
-                ch = getEscapeChar(ch);
+        if (len == 0 || len > 4 || ( len > 1 && str.charAt(0) != '\\' ) ) {
+            stringSetup(str);
+            return;
         }
-
-        value = new Primitive(Character.valueOf(ch).charValue());
+        try {
+            char ch = str.charAt(0);
+            if(ch == '\\')
+            {
+                // get next character
+                ch = str.charAt(1);
+    
+                if(Character.isDigit(ch))
+                    ch = (char)Integer.parseInt(str.substring(1), 8);
+                else
+                    ch = getEscapeChar(ch);
+            }
+    
+            value = new Primitive(Character.valueOf(ch).charValue());
+        } catch (Exception e) {
+            stringSetup(str);
+        }
     }
 
     void stringSetup(String str)
@@ -108,7 +118,7 @@ public final class BSHLiteral extends SimpleNode
                 // get next character
                 ch = str.charAt(++i);
 
-                if(Character.isDigit(ch))
+                if(Character.isDigit(ch) && Integer.parseInt(String.valueOf(ch)) < 8)
                 {
                     int endPos = i;
 
@@ -116,14 +126,19 @@ public final class BSHLiteral extends SimpleNode
                     int max = Math.min( i + 2, len - 1 );
                     while(endPos < max)
                     {
-                        if(Character.isDigit(str.charAt(endPos + 1)))
+                        final char t = str.charAt(endPos + 1);
+                        if(Character.isDigit(t) && Integer.parseInt(String.valueOf(t)) < 8)
                             endPos++;
                         else
                             break;
                     }
-
-                    ch = (char)Integer.parseInt(str.substring(i, endPos + 1), 8);
-                    i = endPos;
+                    String num = str.substring(i, endPos + 1);
+                    if (num.length() == 3 && Integer.parseInt(String.valueOf(ch)) > 3)
+                        ch = getEscapeChar(ch);
+                    else {
+                        ch = (char)Integer.parseInt(num, 8);
+                        i = endPos;
+                    }
                 }
                 else
                     ch = getEscapeChar(ch);
