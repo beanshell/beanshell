@@ -186,6 +186,13 @@ public class TypeParametersTest {
     }
 
     @Test
+    public void generics_nested() throws Exception {
+        new OldScriptsTest.TestBshScript(
+                new File("src/test/resources/test-scripts/genericsnested.bsh")
+                ).runTest();
+    }
+
+    @Test
     public void generics_methods() throws Exception {
         new OldScriptsTest.TestBshScript(
                 new File("src/test/resources/test-scripts/genericmethods.bsh")
@@ -225,6 +232,30 @@ public class TypeParametersTest {
         assertNotNull(ret);
         assertEquals("List size is 4", 4, ret);
         assertTrue(ret.getClass().getName(), ret instanceof Integer);
+    }
+
+    @Test
+    public void generics_lookalike_if_statement_and() throws Exception {
+        final Object ret = eval(
+            "a = 1;",
+            "if (a < 2 && a > 0)",
+                "return a;",
+            "return 0;"
+        );
+        assertNotNull(ret);
+        assertEquals("a < 2 && a > 0 = 1", 1, ret);
+    }
+
+    @Test
+    public void generics_lookalike_if_statement_or() throws Exception {
+        final Object ret = eval(
+            "a = 1;",
+            "if (a < 0 || a > 0)",
+                "return a;",
+            "return 0;"
+        );
+        assertNotNull(ret);
+        assertEquals("a < 0 || a > 0 = 1", 1, ret);
     }
 
 }
