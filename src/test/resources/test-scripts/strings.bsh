@@ -2,19 +2,90 @@
 
 source("TestHarness.bsh");
 
+// char is not a string
+assert('a' == 'a');
+assert('a' != "a");
+assert("\u3456".charAt(0) == '\u3456');
+assert('\101' == 'A');
+assert('\101' != "\101");
+assert('A' == 65);
+assert(new Character('a') == 'a');
+assert(new Character("a".charAt(0)) == 'a');
+assert(Character.valueOf('a') == 'a');
+assert(Character.valueOf("a".charAt(0)) == 'a');
+assert(!"abc".substring(2).equals('c'));
+assert('a' instanceof bsh.Primitive);
+assert('a'.getType() == Character.TYPE);
+
+// not a char is a string
+assert('' instanceof String);
+assert("" instanceof String);
+assert("a" instanceof String);
+assert('ab' instanceof String);
+assert("a" == "a");
+assert("\132" == "Z");
+assert('\488' == "\00488"); // not a valid char octal
+assert('' == '');
+assert('' == "");
+assert("" == "");
+assert('ab' == 'ab');
+assert('ab' == "ab");
+assert("ab" == "ab");
+assert('ab'.equals('ab'));
+assert('ab'.equals("ab"));
+assert("ab".equals("ab"));
+assert("ab".equals('ab'));
+assert('abc'.equals('abc'));
+assert('abc'.equals("abc"));
+assert("abc".equals("abc"));
+assert("abc".equals('abc'));
+assert("abc".charAt(0) == 'a');
+assert("abc".charAt(0) != "a");
+assert("abc".substring(1).equals('bc'));
+assert("abc".substring(1).equals("bc"));
+assert("abc".substring(2).equals("c"));
+assert("\"quoted\"" == '"quoted"');
+assert('\'quoted\'' == "'quoted'");
+assert('xb'.concat('xb').equals('xbxb'));
+
+// Long strings
+class A { a=3; b(c,d) {} }
+out="\n";
+for (x : A)
+  out += x + "\n";
+
+aout = """
+public class A extends Object implements GeneratedClass {
+    public int a;
+    public Object b(Object, Object) {}
+}
+""";
+assert(aout.equals(out));
+
+assert("""
+This is a long string
+containing "a quote" within
+the string.
+""".contains('"a quote"'));
+
+// String concatenation
 a="foo";
 a+="bar";
 a+=5;
 a+=null;
+a+="a";
 
-assert( a.equals("foobar5null") );
+assert( a.equals("foobar5nulla") );
+
+a='foo';
+a+='bar';
+a+=5;
+a+=null;
+a+='a';
+
+assert( a.equals('foobar5nulla') );
 
 b="foo"+"bar"+5;
-
-s = "\1a\1a";
-s = "\1a";
-// This is legal in Java... what does it mean exactly?
-s = "\1";
-
+assert(b.equals('foobar5'));
 
 complete();
