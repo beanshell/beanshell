@@ -790,10 +790,8 @@ class Name implements java.io.Serializable
         // been here and determined that this is a static method invocation.
         // Note: maybe factor this out with path below... clean up.
         if ( classOfStaticMethod != null )
-        {
             return Reflect.invokeStaticMethod(
-                bcm, classOfStaticMethod, methodName, args );
-        }
+                bcm, classOfStaticMethod, methodName, args, callerInfo );
 
         if ( !Name.isCompound(value) )
             return invokeLocalMethod(
@@ -813,6 +811,7 @@ class Name implements java.io.Serializable
             // Allow getThis() to work through block namespaces first
             This ths = namespace.getThis( interpreter );
             NameSpace thisNameSpace = ths.getNameSpace();
+            thisNameSpace.setNode(callerInfo);
             NameSpace classNameSpace = getClassNameSpace( thisNameSpace );
             if ( classNameSpace != null )
             {
@@ -867,7 +866,7 @@ class Name implements java.io.Serializable
         classOfStaticMethod = clas;
 
         if ( clas != null )
-            return Reflect.invokeStaticMethod( bcm, clas, methodName, args );
+            return Reflect.invokeStaticMethod( bcm, clas, methodName, args, callerInfo );
 
         // return null; ???
         throw new UtilEvalError("invokeMethod: unknown target: " + targetName);
@@ -959,7 +958,7 @@ class Name implements java.io.Serializable
         if ( commandObject instanceof Class )
             try {
                 return Reflect.invokeCompiledCommand(
-                    ((Class)commandObject), args, interpreter, callstack );
+                    ((Class)commandObject), args, interpreter, callstack, callerInfo );
             } catch ( UtilEvalError e ) {
                 throw e.toEvalError("Error invoking compiled command: ",
                 callerInfo, callstack );

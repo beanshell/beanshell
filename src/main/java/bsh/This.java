@@ -270,6 +270,29 @@ public final class This implements java.io.Serializable, Runnable
     }
 
     /**
+        Simplified method for class generated method stubs.
+        Uses This.namespace and declaringInterpreter and retains
+        callerInfo from namespace.getNode().
+        Also unwraps Primitives for convenience.
+     */
+    public Object invokeMethod(
+            String methodName, Object [] args,
+            boolean declaredOnly  )
+            throws EvalError
+    {
+        CallStack callstack = new CallStack(namespace);
+        SimpleNode node = namespace.getNode();
+        namespace.setNode(null);
+        try {
+            return Primitive.unwrap(invokeMethod(
+                    methodName, args, declaringInterpreter,
+                    callstack, node, declaredOnly));
+        } catch (Exception e) {
+            throw new EvalError(e.getMessage(), node, callstack, e);
+        }
+    }
+
+    /**
         Invoke a method in this namespace with the specified args,
         interpreter reference, callstack, and caller info.
         <p>
