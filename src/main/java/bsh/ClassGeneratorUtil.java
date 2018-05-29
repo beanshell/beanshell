@@ -359,7 +359,7 @@ public class ClassGeneratorUtil implements Opcodes {
      * Generate a delegate method - static or instance.
      * The generated code packs the method arguments into an object array
      * (wrapping primitive types in bsh.Primitive), invokes the static or
-     * instance namespace invokeMethod() method, and then unwraps / returns
+     * instance This invokeMethod() method, and then returns
      * the result.
      */
     private void generateMethod(String className, String fqClassName, String methodName, String returnType, String[] paramTypes, int modifiers, ClassWriter cw) {
@@ -382,15 +382,10 @@ public class ClassGeneratorUtil implements Opcodes {
         }
 
         // Generate code to push the BSHTHIS or BSHSTATIC field
-        if (isStatic) {
+        if (isStatic)
             pushBshStatic(fqClassName, className, cv);
-        } else {
-            // Push 'this'
-            cv.visitVarInsn(ALOAD, 0);
-
-            // Get the instance field
-            cv.visitFieldInsn(GETFIELD, fqClassName, BSHTHIS + className, "Lbsh/This;");
-        }
+        else
+            pushBshThis(fqClassName, className, cv);
 
         // Push the name of the method as a constant
         cv.visitLdcInsn(methodName);
@@ -398,19 +393,11 @@ public class ClassGeneratorUtil implements Opcodes {
         // Generate code to push arguments as an object array
         generateParameterReifierCode(paramTypes, isStatic, cv);
 
-        // Push nulls for various args of invokeMethod
-        cv.visitInsn(ACONST_NULL); // interpreter
-        cv.visitInsn(ACONST_NULL); // callstack
-        cv.visitInsn(ACONST_NULL); // callerinfo
-
         // Push the boolean constant 'true' (for declaredOnly)
         cv.visitInsn(ICONST_1);
 
         // Invoke the method This.invokeMethod( name, Class [] sig, boolean )
-        cv.visitMethodInsn(INVOKEVIRTUAL, "bsh/This", "invokeMethod", Type.getMethodDescriptor(Type.getType(Object.class), new Type[]{Type.getType(String.class), Type.getType(Object[].class), Type.getType(Interpreter.class), Type.getType(CallStack.class), Type.getType(SimpleNode.class), Type.getType(Boolean.TYPE)}), isInterface);
-
-        // Generate code to unwrap bsh Primitive types
-        cv.visitMethodInsn(INVOKESTATIC, "bsh/Primitive", "unwrap", "(Ljava/lang/Object;)Ljava/lang/Object;", isInterface);
+        cv.visitMethodInsn(INVOKEVIRTUAL, "bsh/This", "invokeMethod", "(Ljava/lang/String;[Ljava/lang/Object;Z)Ljava/lang/Object;", false);
 
         // Generate code to return the value
         generateReturnCode(returnType, cv);
@@ -563,6 +550,14 @@ public class ClassGeneratorUtil implements Opcodes {
     // push the class static This object
     private static void pushBshStatic(String fqClassName, String className, MethodVisitor cv) {
         cv.visitFieldInsn(GETSTATIC, fqClassName, BSHSTATIC + className, "Lbsh/This;");
+    }
+
+    // push the class static This object
+    private static void pushBshThis(String fqClassName, String className, MethodVisitor cv) {
+        // Push 'this'
+        cv.visitVarInsn(ALOAD, 0);
+        // Get the instance field
+        cv.visitFieldInsn(GETFIELD, fqClassName, BSHTHIS + className, "Lbsh/This;");
     }
 
     /*

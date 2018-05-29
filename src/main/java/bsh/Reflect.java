@@ -86,6 +86,9 @@ final class Reflect {
 
             Method method = resolveExpectedJavaMethod(
                 bcm, clas, object, methodName, args, false );
+            NameSpace ns = getThisNS(object);
+            if (null != ns)
+                ns.setNode(callerInfo);
 
             return invokeMethod( method, object, args );
         } catch ( UtilEvalError e ) {
@@ -99,10 +102,13 @@ final class Reflect {
         method being a bsh scripted method.
     */
     public static Object invokeStaticMethod(
-        BshClassManager bcm, Class clas, String methodName, Object [] args )
+        BshClassManager bcm, Class clas, String methodName, Object [] args, SimpleNode callerInfo )
         throws ReflectError, UtilEvalError, InvocationTargetException
     {
         Interpreter.debug("invoke static Method");
+        NameSpace ns = getThisNS(clas);
+        if (null != ns)
+            ns.setNode(callerInfo);
         Method method = resolveExpectedJavaMethod(
             bcm, clas, null, methodName, args, true );
         return invokeMethod( method, null, args );
@@ -933,7 +939,7 @@ final class Reflect {
     */
     public static Object invokeCompiledCommand(
         Class commandClass, Object [] args, Interpreter interpreter,
-        CallStack callstack )
+        CallStack callstack, SimpleNode callerInfo )
         throws UtilEvalError
     {
         // add interpereter and namespace to args list
@@ -944,7 +950,7 @@ final class Reflect {
         BshClassManager bcm = interpreter.getClassManager();
         try {
             return Reflect.invokeStaticMethod(
-                bcm, commandClass, "invoke", invokeArgs );
+                bcm, commandClass, "invoke", invokeArgs, callerInfo );
         } catch ( InvocationTargetException e ) {
             throw new UtilEvalError(
                 "Error in compiled command: "+e.getTargetException(), e );
