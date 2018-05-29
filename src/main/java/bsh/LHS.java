@@ -55,7 +55,8 @@ class LHS implements ParserConstants, java.io.Serializable
         FIELD = 1,
         PROPERTY = 2,
         INDEX = 3,
-        METHOD_EVAL = 4;
+        METHOD_EVAL = 4,
+        LOOSETYPE_FIELD = 5;
 
     int type;
 
@@ -78,6 +79,15 @@ class LHS implements ParserConstants, java.io.Serializable
         this.localVar = localVar;
         this.varName = varName;
         this.nameSpace = nameSpace;
+    }
+
+    LHS( NameSpace nameSpace, String varName )
+    {
+        type = LOOSETYPE_FIELD;
+        this.varName = varName;
+        this.nameSpace = nameSpace;
+        if (nameSpace.classInstance != null)
+            this.nameSpace = Reflect.getThisNS(nameSpace.classInstance);
     }
 
     /**
@@ -135,7 +145,6 @@ class LHS implements ParserConstants, java.io.Serializable
     {
         if ( type == VARIABLE )
             return nameSpace.getVariableOrProperty( varName, null );
-            // return nameSpace.getVariable( varName );
 
         if (type == FIELD)
             try {
@@ -168,11 +177,18 @@ class LHS implements ParserConstants, java.io.Serializable
                 throw new UtilEvalError("Array access: " + e, e);
             }
 
+        if ( type == LOOSETYPE_FIELD )
+            return nameSpace.getVariable( varName );
+
         throw new InterpreterError("LHS type");
     }
 
     public boolean isStatic() {
-        return Reflect.isStatic(field);
+        if (null != field)
+            return Reflect.isStatic(field);
+        if (null != var)
+            return var.hasModifier("static");
+        return false;
     }
 
     public boolean isFinal() {
@@ -204,39 +220,32 @@ class LHS implements ParserConstants, java.io.Serializable
                 nameSpace.setLocalVariableOrProperty( varName, val, strictJava );
             else
                 nameSpace.setVariableOrProperty( varName, val, strictJava );
-        } else
-        if ( type == FIELD )
-        {
-            try {
-                Object fieldVal = val instanceof Primitive ?
-                    ((Primitive)val).getValue() : val;
+        } else  if ( type == FIELD )  try {
+            if (val == null)
+                val = Primitive.getDefaultValue(field.getType());
+            Object fieldVal = val instanceof Primitive ?
+                ((Primitive)val).getValue() : val;
 
-                // This should probably be in Reflect.java
-                Reflect.setAccessible(field);
-                field.set( object, fieldVal );
-                return val;
-            }
-            catch( NullPointerException e) {
-                throw new UtilEvalError(
-                    "LHS ("+field.getName()+") not a static field.", e);
-            }
-            catch( IllegalAccessException e2) {
-                throw new UtilEvalError(
-                    "LHS ("+field.getName()+") can't access field: "+e2, e2);
-            }
-            catch( IllegalArgumentException e3)
-            {
-                String type = val instanceof Primitive ?
-                    ((Primitive)val).getType().getName()
-                    : val.getClass().getName();
-                throw new UtilEvalError(
-                    "Argument type mismatch. " + (val == null ? "null" : type )
-                    + " not assignable to field "+field.getName(), e3);
-            }
+            Reflect.setAccessible(field);
+            field.set( object, fieldVal );
+            return val;
         }
-        else
-        if ( type == PROPERTY )
+        catch( NullPointerException e) {
+            throw new UtilEvalError(
+                "LHS ("+field.getName()+") not a static field.", e);
+        }
+        catch( IllegalAccessException e2) {
+            throw new UtilEvalError(
+                "LHS ("+field.getName()+") can't access field: "+e2, e2);
+        }
+        catch( IllegalArgumentException e3)
         {
+            String type = val == null ? "null"
+                : getValueType(val).getSimpleName();
+            throw new UtilEvalError(
+                "Argument type mismatch. " + type
+                + " not assignable to field "+field.getName(), e3);
+        } else if ( type == PROPERTY ) {
             if (this.object instanceof Map)
                 ((Map) this.object).put(this.propName,
                         Primitive.unwrap(val));
@@ -248,19 +257,31 @@ class LHS implements ParserConstants, java.io.Serializable
                     Interpreter.debug("Assignment: " + e.getMessage());
                     throw new UtilEvalError("No such property: " + propName, e);
                 }
-        } else
-        if ( type == INDEX )
-            try {
-                Reflect.setIndex(object, index, val);
-            } catch ( UtilTargetError e1 ) { // pass along target error
-                throw e1;
-            } catch ( Exception e ) {
-                throw new UtilEvalError("Assignment: " + e.getMessage(), e);
-            }
+        }
+        else if ( type == INDEX ) try {
+            Reflect.setIndex(object, index, val);
+        } catch ( UtilTargetError e1 ) { // pass along target error
+            throw e1;
+        } catch ( Exception e ) {
+            throw new UtilEvalError("Assignment: " + e.getMessage(), e);
+        }
+        else if (type == LOOSETYPE_FIELD) {
+            Modifiers mods = new Modifiers(Modifiers.FIELD);
+            nameSpace.setTypedVariable(varName, getValueType(val), val, mods);
+            return val;
+        }
         else
-            throw new InterpreterError("unknown lhs");
+            throw new InterpreterError("unknown lhs type");
 
         return val;
+    }
+
+    private Class<?> getValueType(Object val) {
+        if (null == val)
+            return null;
+        if (val instanceof Primitive)
+            return ((Primitive) val).getType();
+        return val.getClass();
     }
 
     public String toString() {
