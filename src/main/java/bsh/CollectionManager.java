@@ -103,21 +103,25 @@ public final class CollectionManager {
         if (obj instanceof ClassIdentifier)
             type = ((ClassIdentifier)obj).getTargetClass();
         if (Reflect.isGeneratedClass(type))
-            return Stream.concat(
+            return Stream.concat(Stream.concat(
                 Stream.of(StringUtil.classString(type)),
                 Stream.concat(
                     Stream.of(Reflect.getDeclaredVariables(type))
-                        .map(StringUtil::variableString),
+                        .map(StringUtil::variableString)
+                        .map("    "::concat),
                     Stream.of(Reflect.getDeclaredMethods(type))
-                        .map(StringUtil::methodString)));
+                        .map(StringUtil::methodString)
+                        .map("    "::concat))), Stream.of("}"));
         else
-            return Stream.concat(
+            return Stream.concat(Stream.concat(
                 Stream.of(StringUtil.classString(type)),
                 Stream.concat(
                     Stream.of(type.getFields())
-                        .map(StringUtil::variableString),
+                        .map(StringUtil::variableString)
+                        .map("    "::concat),
                     Stream.of(type.getMethods())
-                        .map(StringUtil::methodString)));
+                        .map(StringUtil::methodString)
+                        .map("    "::concat))), Stream.of("}"));
     }
 
     /** Gets iterator for enumerated elements.
