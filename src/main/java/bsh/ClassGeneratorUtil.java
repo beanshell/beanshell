@@ -442,7 +442,7 @@ public class ClassGeneratorUtil implements Opcodes {
         cv.visitVarInsn(ALOAD, argsVar);
 
         // invoke the initInstance() method
-        cv.visitMethodInsn(INVOKESTATIC, "bsh/ClassGeneratorUtil", "initInstance", "(L" + GeneratedClass.class.getName().replace('.', '/') + ";Ljava/lang/String;[Ljava/lang/Object;)V", isInterface);
+        cv.visitMethodInsn(INVOKESTATIC, "bsh/ClassGeneratorUtil", "initInstance", "(Lbsh/GeneratedClass;Ljava/lang/String;[Ljava/lang/Object;)V", false);
 
         cv.visitInsn(RETURN);
 
@@ -464,10 +464,10 @@ public class ClassGeneratorUtil implements Opcodes {
         // Invoke Class.forName() to get our class.
         // We do this here, as opposed to in the bsh static init helper method
         // in order to be sure to capture the correct classloader.
-        cv.visitMethodInsn(INVOKESTATIC, "java/lang/Class", "forName", "(Ljava/lang/String;)Ljava/lang/Class;", isInterface);
+        cv.visitMethodInsn(INVOKESTATIC, "java/lang/Class", "forName", "(Ljava/lang/String;)Ljava/lang/Class;", false);
 
         // invoke the initStatic() method
-        cv.visitMethodInsn(INVOKESTATIC, "bsh/ClassGeneratorUtil", "initStatic", "(Ljava/lang/Class;)V", isInterface);
+        cv.visitMethodInsn(INVOKESTATIC, "bsh/ClassGeneratorUtil", "initStatic", "(Ljava/lang/Class;)V", false);
 
         cv.visitInsn(RETURN);
 
@@ -514,7 +514,7 @@ public class ClassGeneratorUtil implements Opcodes {
         cv.visitIntInsn(BIPUSH, consIndex);
 
         // invoke the ClassGeneratorUtil getConstructorsArgs() method
-        cv.visitMethodInsn(INVOKESTATIC, "bsh/ClassGeneratorUtil", "getConstructorArgs", "(Ljava/lang/String;Lbsh/This;[Ljava/lang/Object;I)" + "Lbsh/ClassGeneratorUtil$ConstructorArgs;", isInterface);
+        cv.visitMethodInsn(INVOKESTATIC, "bsh/ClassGeneratorUtil", "getConstructorArgs", "(Ljava/lang/String;Lbsh/This;[Ljava/lang/Object;I)" + "Lbsh/ClassGeneratorUtil$ConstructorArgs;", false);
 
         // store ConstructorArgs in consArgsVar
         cv.visitVarInsn(ASTORE, consArgsVar);
@@ -541,7 +541,7 @@ public class ClassGeneratorUtil implements Opcodes {
         cv.visitLabel(defaultLabel);
         // default branch always invokes no args super
         cv.visitVarInsn(ALOAD, 0); // push 'this'
-        cv.visitMethodInsn(INVOKESPECIAL, superClassName, "<init>", "()V", isInterface);
+        cv.visitMethodInsn(INVOKESPECIAL, superClassName, "<init>", "()V", false);
 
         // done with switch
         cv.visitLabel(endLabel);
@@ -603,7 +603,7 @@ public class ClassGeneratorUtil implements Opcodes {
             } else {
                 retType = type;
             }
-            cv.visitMethodInsn(INVOKEVIRTUAL, className, method, "()" + retType, isInterface);
+            cv.visitMethodInsn(INVOKEVIRTUAL, className, method, "()" + retType, false);
             // if it's an object type we must do a check cast
             if (method.equals("getObject")) {
                 cv.visitTypeInsn(CHECKCAST, descriptorToClassName(type));
@@ -612,7 +612,7 @@ public class ClassGeneratorUtil implements Opcodes {
 
         // invoke the constructor for this branch
         String descriptor = getMethodDescriptor("V", paramTypes);
-        cv.visitMethodInsn(INVOKESPECIAL, targetClassName, "<init>", descriptor, isInterface);
+        cv.visitMethodInsn(INVOKESPECIAL, targetClassName, "<init>", descriptor, false);
         cv.visitJumpInsn(GOTO, endLabel);
     }
 
@@ -658,7 +658,7 @@ public class ClassGeneratorUtil implements Opcodes {
             localVarIndex += ((paramType.equals("D") || paramType.equals("J")) ? 2 : 1);
         }
 
-        cv.visitMethodInsn(INVOKESPECIAL, superClassName, methodName, methodDescriptor, isInterface);
+        cv.visitMethodInsn(INVOKESPECIAL, superClassName, methodName, methodDescriptor, false);
 
         generatePlainReturnCode(returnType, cv);
 
@@ -750,7 +750,7 @@ public class ClassGeneratorUtil implements Opcodes {
                 cv.visitInsn(DUP);
                 cv.visitVarInsn(opcode, localVarIndex);
                 String desc = param; // ok?
-                cv.visitMethodInsn(INVOKESPECIAL, type, "<init>", "(" + desc + ")V", isInterface);
+                cv.visitMethodInsn(INVOKESPECIAL, type, "<init>", "(" + desc + ")V", false);
             } else {
                 // Technically incorrect here - we need to wrap null values
                 // as bsh.Primitive.NULL.  However the This.invokeMethod()
@@ -812,7 +812,7 @@ public class ClassGeneratorUtil implements Opcodes {
 
             String desc = returnType;
             cv.visitTypeInsn(CHECKCAST, type); // type is correct here
-            cv.visitMethodInsn(INVOKEVIRTUAL, type, meth, "()" + desc, isInterface);
+            cv.visitMethodInsn(INVOKEVIRTUAL, type, meth, "()" + desc, false);
             cv.visitInsn(opcode);
         } else {
             cv.visitTypeInsn(CHECKCAST, descriptorToClassName(returnType));
