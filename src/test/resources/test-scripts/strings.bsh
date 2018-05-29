@@ -57,7 +57,7 @@ for (x : A)
 aout = """
 public class A extends Object implements GeneratedClass {
     public int a;
-    public Object b(Object, Object) {}
+    public Object b(Object c, Object d) {}
 }
 """;
 assert(aout.equals(out));
