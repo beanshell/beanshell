@@ -295,7 +295,20 @@ final class Reflect {
             Object value = f.get(object);
             Class returnType = f.getType();
             return Primitive.wrap( value, returnType );
-
+        } catch ( ReflectError e ) {
+            NameSpace ns = getThisNS(clas);
+            if (isGeneratedClass(clas) && null != ns && ns.isClass)
+                if (staticOnly) {
+                    Object var = ns.getVariable(fieldName, true);
+                    if (Primitive.VOID != var)
+                        return var;
+                }
+                else if (null != (ns = getThisNS(object))) {
+                    Object var = ns.getVariable(fieldName, true);
+                    if (Primitive.VOID != var)
+                        return var;
+                }
+            throw e;
         } catch( NullPointerException e ) { // shouldn't happen
             throw new ReflectError(
                 "???" + fieldName + " is not a static field.", e);
@@ -999,7 +1012,7 @@ final class Reflect {
      * Whether class is a bsh script generated type
      */
     public static boolean isGeneratedClass(Class<?> type) {
-        return GeneratedClass.class.isAssignableFrom(type);
+        return null != type && GeneratedClass.class.isAssignableFrom(type);
     }
 
     /*
@@ -1009,8 +1022,8 @@ final class Reflect {
         try {
             if (!isGeneratedClass(type))
                 return null;
-            return ((This)Reflect.getStaticFieldValue(
-                    type, BSHSTATIC + type.getName())).namespace;
+            return ((This) Reflect.getStaticFieldValue(
+                    type, BSHSTATIC + type.getSimpleName())).namespace;
         } catch (Exception e) {
             return null;
         }
@@ -1025,7 +1038,7 @@ final class Reflect {
             if (!isGeneratedClass(type))
                 return null;
             return ((This)Reflect.getObjectFieldValue(
-                    object, BSHTHIS + type.getName())).namespace;
+                    object, BSHTHIS + type.getSimpleName())).namespace;
         } catch (Exception e) {
             return null;
         }
@@ -1202,7 +1215,7 @@ final class Reflect {
     public static Modifiers getClassModifiers(Class<?> type) {
         try {
             return (Modifiers)getVariable(type, BSHCLASSMODIFIERS).getValue();
-        } catch (UtilEvalError e) {
+        } catch (Exception e) {
             return new Modifiers(Modifiers.CLASS);
         }
     }

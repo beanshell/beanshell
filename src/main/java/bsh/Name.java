@@ -679,8 +679,10 @@ class Name implements java.io.Serializable
             if ( evalName.equals("this") )
                 throw new UtilEvalError("Can't assign to 'this'." );
 
-            // Interpreter.debug("Simple var LHS...");
-            lhs = new LHS( namespace, evalName, false/*bubble up if allowed*/);
+            if (namespace.isClass) // Loose type field
+                lhs = new LHS( namespace, evalName );
+            else
+                lhs = new LHS( namespace, evalName, false/*bubble up if allowed*/);
             return lhs;
         }
 
