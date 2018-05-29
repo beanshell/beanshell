@@ -49,16 +49,17 @@ assert('\'quoted\'' == "'quoted'");
 assert('xb'.concat('xb').equals('xbxb'));
 
 // Long strings
-class A { a=3; b(c,d) {} }
 out="\n";
-for (x : A)
+for (x : 5)
   out += x + "\n";
 
 aout = """
-public class A extends Object implements GeneratedClass {
-    public int a;
-    public Object b(Object c, Object d) {}
-}
+0
+1
+2
+3
+4
+5
 """;
 assert(aout.equals(out));
 
