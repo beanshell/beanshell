@@ -422,9 +422,8 @@ public class BshMethod implements Serializable {
     }
 
     public String toString() {
-        return "Scripted Method: "
-            + StringUtil.methodString( name, getParameterTypes() )
-            + " " + modifiers;
+        return "Method: "
+            + StringUtil.methodString( this );
     }
 
     @Override
