@@ -517,6 +517,7 @@ TOKEN : /* OPERATORS */
 | < RSIGNEDSHIFTASSIGNX: "@right_shift_assign" >
 | < RUNSIGNEDSHIFTASSIGN: ">>>=" >
 | < RUNSIGNEDSHIFTASSIGNX: "@right_unsigned_shift_assign" >
+| < ELLIPSIS: "..." >
 }
 
 
@@ -685,14 +686,12 @@ void FormalParameters() #FormalParameters :
 void FormalParameter() #FormalParameter :
 {
   Token t;
-  Token s = null;
 }
 {
 
-  // added [] to Type for bsh.  Removed [ final ] - is that legal?
-  LOOKAHEAD(2) [ s = "final" ] {
-        if ( s != null ) jjtThis.isFinal = true;
-    } Type() t=<IDENTIFIER> { jjtThis.name = t.image; }
+  LOOKAHEAD(2) [ "final" { jjtThis.isFinal = true; } ]
+  Type()[ <ELLIPSIS> { jjtThis.isVarArgs = true; } ]
+  t=<IDENTIFIER> { jjtThis.name = t.image; }
 |
   t=<IDENTIFIER> { jjtThis.name = t.image; }
 }

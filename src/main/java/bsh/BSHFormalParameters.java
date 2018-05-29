@@ -38,6 +38,7 @@ class BSHFormalParameters extends SimpleNode
     Class [] paramTypes;
     int numArgs;
     String [] typeDescriptors;
+    boolean isVarArgs;
 
     BSHFormalParameters(int id) { super(id); }
 
@@ -53,6 +54,7 @@ class BSHFormalParameters extends SimpleNode
         for(int i=0; i<numArgs; i++)
         {
             BSHFormalParameter param = (BSHFormalParameter)jjtGetChild(i);
+            isVarArgs = param.isVarArgs;
             paramNames[i] = param.name;
             paramModifiers[i] = new Modifiers(Modifiers.FIELD);
             if (param.isFinal)
