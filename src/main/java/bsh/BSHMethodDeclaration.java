@@ -46,6 +46,7 @@ class BSHMethodDeclaration extends SimpleNode
     // Unsafe caching of type here.
     Class returnType;  // null (none), Void.TYPE, or a Class
     int numThrows = 0;
+    boolean isVarArgs;
 
     BSHMethodDeclaration(int id) { super(id); }
 
@@ -73,6 +74,8 @@ class BSHMethodDeclaration extends SimpleNode
             paramsNode = (BSHFormalParameters)jjtGetChild(0);
             blockNode = (BSHBlock)jjtGetChild(1+numThrows); // skip throws
         }
+        paramsNode.insureParsed();
+        isVarArgs = paramsNode.isVarArgs;
     }
 
     /**
@@ -125,11 +128,8 @@ class BSHMethodDeclaration extends SimpleNode
 
         NameSpace namespace = callstack.top();
         BshMethod bshMethod = new BshMethod( this, namespace, modifiers );
-        try {
-            namespace.setMethod( bshMethod );
-        } catch ( UtilEvalError e ) {
-            throw e.toEvalError(this,callstack);
-        }
+
+        namespace.setMethod( bshMethod );
 
         return Primitive.VOID;
     }

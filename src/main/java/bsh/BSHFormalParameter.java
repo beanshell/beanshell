@@ -27,6 +27,8 @@
 
 package bsh;
 
+import java.lang.reflect.Array;
+
 /**
     A formal parameter declaration.
     For loose variable declaration type is null.
@@ -38,6 +40,7 @@ class BSHFormalParameter extends SimpleNode
     // unsafe caching of type here
     public Class type;
     boolean isFinal = false;
+    boolean isVarArgs = false;
 
     BSHFormalParameter(int id) { super(id); }
 
@@ -45,11 +48,11 @@ class BSHFormalParameter extends SimpleNode
         CallStack callstack, Interpreter interpreter, String defaultPackage )
     {
         if ( jjtGetNumChildren() > 0 )
-            return ((BSHType)jjtGetChild(0)).getTypeDescriptor(
+            return (isVarArgs ? "[" : "") + ((BSHType)jjtGetChild(0)).getTypeDescriptor(
                 callstack, interpreter, defaultPackage );
         else
             // this will probably not get used
-            return "Ljava/lang/Object;";  // Object type
+            return  (isVarArgs ? "[" : "") +"Ljava/lang/Object;";  // Object type
     }
 
     /**
@@ -62,6 +65,9 @@ class BSHFormalParameter extends SimpleNode
             type = ((BSHType)jjtGetChild(0)).getType( callstack, interpreter );
         else
             type = UNTYPED;
+
+        if (isVarArgs)
+            type = Array.newInstance(type, 0).getClass();
 
         return type;
     }

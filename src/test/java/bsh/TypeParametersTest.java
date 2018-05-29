@@ -2,7 +2,6 @@ package bsh;
 
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
@@ -213,13 +212,12 @@ public class TypeParametersTest {
             "lst"
         );
         assertNotNull(ret);
-        assertEquals("List size is 1", 1, ((List)ret).size());
+        assertEquals("List size is 1", 1, ((List<?>)ret).size());
         assertTrue(ret.getClass().getName(), ret instanceof List);
     }
 
     @Test
-    @Category(KnownIssue.class)
-    public void generics_arargs() throws Exception {
+    public void generics_varargs() throws Exception {
         final Object ret = eval(
             "public static <T> void addToList (List<T> listArg, T... elements) {",
                 "for (T x : elements)",
