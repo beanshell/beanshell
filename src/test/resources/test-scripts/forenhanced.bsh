@@ -54,7 +54,7 @@ assert(a.equals("a"));
 assert(b.equals("goo"));
 
 // iterate over int[] primitive array
-for ( a : new int[] {1, 2, 3, 4} ) 
+for ( a : new int[] {1, 2, 3, 4} )
   b = a;
 assert(a.equals("a"));
 assert(b == 4);
@@ -78,7 +78,7 @@ assert(b.equals('a'));
 
 // iterate over number range 0 up to 42 inclusive
 count = 0;
-for ( a : 42 ) 
+for ( a : 42 )
 count++;
 assert(a.equals("a"));
 assert(43 == count);
@@ -121,19 +121,19 @@ assert(89 == count);
 final class TT { final int a(b,c,d) { b+c+d; } static final void e(f) {} final int g=1; static final int h=0; }
 tt=new TT();
 
-// iterate over true reflection of generated class instance 
+// iterate over true reflection of generated class instance
 for ( a : tt )
   b = a;
 //  print(b=a);
 assert(a.equals("a"));
-assert(b.equals("public final int a(Object, Object, Object)"));
+assert(b.equals("}"));
 
 // iterate over true reflection of generated class identifier
 for ( a : TT )
   b = a;
 //  print(b=a);
 assert(a.equals("a"));
-assert(b.equals("public final int a(Object, Object, Object)"));
+assert(b.equals("}"));
 
 // iterate over reflection of generated interface identifier
 interface BB { int i=1; int ii(a, b, c); }
@@ -141,36 +141,43 @@ for ( a : BB )
   b = a;
 //  print(b=a);
 assert(a.equals("a"));
-assert(b.equals("public abstract int ii(Object, Object, Object)"));
+assert(b.equals("}"));
+
+// iterate over simple generated class identifier
+class CC { i=1; ii(a, b, c) { i; } }
+for ( a : CC )
+  b = a;
+//  print(b=a);
+assert(a.equals("a"));
+assert(b.equals("}"));
 
 // iterate over reflection of system interface identifier
 for ( a : Runnable )
     b = a;
 //  print(b=a);
 assert(a.equals("a"));
-assert(b.equals("public abstract void run()"));
+assert(b.equals("}"));
 
 // iterate over reflection of class type
 for ( a : Cloneable.class )
   b = a;
 //  print(b=a);
 assert(a.equals("a"));
-assert(b.equals("public abstract interface Cloneable"));
+assert(b.equals("}"));
 
 // iterate over java reflection of system interface identifier
 for ( a : Serializable )
   b = a;
 //  print(b=a);
 assert(a.equals("a"));
-assert(b.equals("public abstract interface Serializable"));
+assert(b.equals("}"));
 
 // iterate over java reflection of system instance
 for ( a : new Object() )
   b = a;
-//  print(b=a);
+//  print(b+=a+"\n");
 assert(a.equals("a"));
-assert(b.equals("public final native void notifyAll()"));
-
+assert(b.equals("}"));
 // Empty iterations over null, void, 0 ranges etc
 count = 0;
 for ( a : null ) count++;
