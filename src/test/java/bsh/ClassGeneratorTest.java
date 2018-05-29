@@ -24,10 +24,13 @@ import static bsh.TestUtil.eval;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.Callable;
 import java.util.function.IntSupplier;
+
+import static org.hamcrest.Matchers.instanceOf;
 
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -83,8 +86,8 @@ public class ClassGeneratorTest {
                 "public Object call() { return _instanceVar; }",
             "}",
             "return new Object[] { new X4(0), new X4(1) } ");
-        assertEquals(0, ( (Callable) oa[0] ).call());
-        assertEquals(1, ( (Callable) oa[1] ).call());
+        assertEquals(0, ( (Callable<?>) oa[0] ).call());
+        assertEquals(1, ( (Callable<?>) oa[1] ).call());
     }
 
 
@@ -216,6 +219,83 @@ public class ClassGeneratorTest {
         assertEquals(0, supplier.getAsInt());
     }
 
+   @Test
+    public void primitive_data_types_class() throws Exception {
+        Object object = eval("class Test { public static final int x = 4; }; new Test();");
+        assertThat(Reflect.getVariable(object, "x").getValue(), instanceOf(Primitive.class));
+        object = eval("class Test { public static int x = 1; }; new Test();");
+        assertThat(Reflect.getVariable(object, "x").getValue(), instanceOf(Primitive.class));
+        object = eval("class Test { public final int x = 1; }; new Test();");
+        assertThat(Reflect.getVariable(object, "x").getValue(), instanceOf(Primitive.class));
+        object = eval("class Test { static final int x = 1; }; new Test();");
+        assertThat(Reflect.getVariable(object, "x").getValue(), instanceOf(Primitive.class));
+        object = eval("class Test { public int x = 1; }; new Test();");
+        assertThat(Reflect.getVariable(object, "x").getValue(), instanceOf(Primitive.class));
+        object = eval("class Test { static int x = 1; }; new Test();");
+        assertThat(Reflect.getVariable(object, "x").getValue(), instanceOf(Primitive.class));
+        object = eval("class Test { final int x = 1; }; new Test();");
+        assertThat(Reflect.getVariable(object, "x").getValue(), instanceOf(Primitive.class));
+        object = eval("class Test { int x = 1; }; new Test();");
+        assertThat(Reflect.getVariable(object, "x").getValue(), instanceOf(Primitive.class));
+        object = eval("class Test { x = 1; }; new Test();");
+        assertThat(Reflect.getVariable(object, "x").getValue(), instanceOf(Primitive.class));
+    }
+
+   @Test
+    public void unwrapped_return_types_class() throws Exception {
+        Object x = eval("class Test { public static final int x = 4; }; Test.x;");
+        assertThat(x, instanceOf(Integer.class));
+        x = eval("class Test { public static int x = 1; }; Test.x;");
+        assertThat(x, instanceOf(Integer.class));
+        x = eval("class Test { public final int x = 1; }; new Test().x;");
+        assertThat(x, instanceOf(Integer.class));
+        x = eval("class Test { static final int x = 1; }; Test.x;");
+        assertThat(x, instanceOf(Integer.class));
+        x = eval("class Test { public int x = 1; }; new Test().x;");
+        assertThat(x, instanceOf(Integer.class));
+        x = eval("class Test { static int x = 1; }; Test.x;");
+        assertThat(x, instanceOf(Integer.class));
+        x = eval("class Test { final int x = 1; }; new Test().x;");
+        assertThat(x, instanceOf(Integer.class));
+        x = eval("class Test { int x = 1; }; new Test().x;");
+        assertThat(x, instanceOf(Integer.class));
+        x = eval("class Test { x = 1; }; new Test().x;");
+        assertThat(x, instanceOf(Integer.class));
+    }
+
+
+    @Test
+    public void class_static_fields() throws Exception {
+        assertEquals(1, eval("class Test { public static final int x = 1; }; Test.x;"));
+        assertEquals(1, eval("class Test { static final int x = 1; }; Test.x;"));
+        assertEquals(1, eval("class Test { public static int x = 1; }; Test.x;"));
+        assertEquals(1, eval("class Test { static int x = 1; }; Test.x;"));
+        assertEquals(1, eval("class Test { public static int x = 1; }; Test.x;"));
+        assertEquals("1", eval("class Test { public static String x = \"1\"; }; Test.x;"));
+        assertEquals(0, eval("class Test { public static int x; }; Test.x;"));
+        assertEquals(0, eval("class Test { public static final int x = 0; }; Test.x;"));
+    }
+
+    @Test
+    public void class_instance_fields() throws Exception {
+        assertEquals(1, eval("class Test { public final int x = 1; }; new Test().x;"));
+        assertEquals(1, eval("class Test { final int x = 1; }; new Test().x;"));
+        assertEquals(1, eval("class Test { public int x = 1; }; new Test().x;"));
+        assertEquals(1, eval("class Test { int x = 1; }; new Test().x;"));
+        assertEquals(1, eval("class Test { x = 1; }; new Test().x;"));
+        assertEquals("1", eval("class Test { public String x = \"1\"; }; new Test().x;"));
+        assertEquals(0, eval("class Test { int x; }; new Test().x;"));
+        assertEquals(0, eval("class Test { final int x = 0; }; new Test().x;"));
+        assertEquals(4, eval("class Test { int x = 4; }; new Test().x;"));
+        assertEquals(5, eval("class Test { x = 5; }; new Test().x;"));
+        assertEquals(6, eval("class Test { int x; Test() { x=6; } }; new Test().x;"));
+    }
+
+    @Test
+    public void fields_edge_cases() throws Exception {
+        assertEquals(7, eval("class Test { ITest in; int x; class ITest { out() { 7; } } Test() { in = new ITest(); x = in.out(); } }; new Test().x;"));
+        assertEquals(8, eval("class Test { ITest in; class ITest { out() { 8; } } Test() { in = new ITest(); } } new Test().in.out();"));
+    }
 
     /**
      * See also failing test script "classinterf1.bsh" and
