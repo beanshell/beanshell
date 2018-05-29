@@ -152,7 +152,6 @@ class BSHType extends SimpleNode
             } catch (EvalError e) {
                 // Assuming generics raw type
                 if (node.getText().trim().length() == 1
-                        && getTypeDescriptor(callstack, interpreter, "").endsWith("Object;")
                         && e.getCause() instanceof ClassNotFoundException)
                     baseType = Object.class;
                 else
