@@ -139,9 +139,27 @@ class Types
     }
 
     private static boolean isSignatureVarargsAssignable(
-        Class[] from, Class[] to )
+        Class<?>[] from, Class<?>[] to )
     {
-        return false;
+        if (to.length == 0 || to.length > from.length)
+            return false;
+        int last = to.length - 1;
+        if (to[last] == null || !to[last].isArray())
+            return false;
+        if (to.length == from.length
+                && from[last].isArray()
+                && !isJavaAssignable(to[last].getComponentType(), from[last].getComponentType()))
+            return false;
+
+        if (!from[last].isArray())
+            for (int i = last; i < from.length; i++)
+                if (!isJavaAssignable(to[last].getComponentType(), from[i]))
+                    return false;
+
+        for (int i = 0; i < last; i++)
+            if (!isJavaAssignable(to[i], from[i]))
+                return false;
+        return true;
     }
 
     /**

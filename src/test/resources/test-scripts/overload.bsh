@@ -22,14 +22,23 @@ foo( Object o, String o2 ) {
 foo( String o, String o2 ) {
     return 6;
 }
-foo() {
+foo(String... a) {
     return 7;
+}
+foo(String a, int... b) {
+    return 8;
+}
+foo() {
+    return 9;
 }
 
 assert( foo("qbert") == 3 );
 assert( foo( new Object() ) == 4 );
+assert( foo( new Object(), "foo" ) == 5 );
 assert( foo( "foo", "bar" ) == 6 );
-assert( foo()==7 );
+assert( foo( "foo", "bar", "baz" ) == 7 );
+assert( foo( "foo", 1, 2 ) == 8 );
+assert( foo() == 9 );
 
 //print (foo(99));
 assert( foo(99) == 4 ); // int boxed to Object
