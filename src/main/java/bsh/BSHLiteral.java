@@ -93,13 +93,13 @@ public final class BSHLiteral extends SimpleNode
             {
                 // get next character
                 ch = str.charAt(1);
-    
+
                 if(Character.isDigit(ch))
                     ch = (char)Integer.parseInt(str.substring(1), 8);
                 else
                     ch = getEscapeChar(ch);
             }
-    
+
             value = new Primitive(Character.valueOf(ch).charValue());
         } catch (Exception e) {
             stringSetup(str);
