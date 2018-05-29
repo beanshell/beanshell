@@ -3,6 +3,7 @@ package bsh.engine;
 import javax.script.ScriptEngine;
 
 import bsh.Interpreter;
+import bsh.StringUtil;
 
 import java.util.List;
 import java.util.Arrays;
@@ -78,22 +79,10 @@ public class BshScriptEngineFactory implements javax.script.ScriptEngineFactory 
 
 
     public String getMethodCallSyntax(String objectName, String methodName, String... args) {
-        // Note: this is very close to the bsh.StringUtil.methodString()
-        // method, which constructs a method signature from arg *types*.  Maybe
-        // combine these later.
-
         StringBuffer sb = new StringBuffer();
-        if (objectName != null) {
+        if (objectName != null)
             sb.append(objectName).append('.');
-        }
-        sb.append(methodName).append('(');
-        if (args.length > 0) {
-            sb.append(' ');
-        }
-        for (int i = 0; i < args.length; i++) {
-            sb.append((args[i] == null) ? "null" : args[i]).append(i < (args.length - 1) ? ", " : " ");
-        }
-        sb.append(")");
+        sb.append(StringUtil.methodString(methodName, args));
         return sb.toString();
     }
 
