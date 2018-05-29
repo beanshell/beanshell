@@ -29,6 +29,7 @@ package bsh;
 
 import java.lang.reflect.Method;
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 
 /**
@@ -47,6 +48,9 @@ import java.lang.reflect.InvocationTargetException;
     be cleared when the classloader changes.
 */
 public class BshMethod implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     /*
         This is the namespace in which the method is set.
         It is a back-reference for the node, which needs to execute under this
@@ -59,12 +63,12 @@ public class BshMethod implements Serializable {
 
     Modifiers modifiers;
     private String name;
-    private Class creturnType;
+    private Class<?> creturnType;
 
     // Arguments
     private String [] paramNames;
-    private int numArgs;
-    private Class [] cparamTypes;
+    private int paramCount;
+    private Class<?> [] cparamTypes;
     private Modifiers [] paramModifiers;
 
     // Scripted method body
@@ -73,6 +77,7 @@ public class BshMethod implements Serializable {
     // Java Method, for a BshObject that delegates to a real Java method
     private Method javaMethod;
     private Object javaObject;
+    private boolean isVarArgs;
 
     // End method components
 
@@ -83,11 +88,12 @@ public class BshMethod implements Serializable {
         this( method.name, method.returnType, method.paramsNode.getParamNames(),
             method.paramsNode.paramTypes, method.paramsNode.getParamModifiers(),
             method.blockNode, declaringNameSpace, modifiers );
+        this.isVarArgs = method.isVarArgs;
     }
 
     BshMethod(
-        String name, Class returnType, String [] paramNames,
-        Class [] paramTypes, Modifiers [] paramModifiers, BSHBlock methodBody,
+        String name, Class<?> returnType, String [] paramNames,
+        Class<?> [] paramTypes, Modifiers [] paramModifiers, BSHBlock methodBody,
         NameSpace declaringNameSpace, Modifiers modifiers
     ) {
         this.name = name;
@@ -95,7 +101,7 @@ public class BshMethod implements Serializable {
         this.paramNames = paramNames;
         this.paramModifiers = paramModifiers;
         if ( paramNames != null )
-            this.numArgs = paramNames.length;
+            this.paramCount = paramNames.length;
         this.cparamTypes = paramTypes;
         this.methodBody = methodBody;
         this.declaringNameSpace = declaringNameSpace;
@@ -127,10 +133,19 @@ public class BshMethod implements Serializable {
         Note: bshmethod needs to re-evaluate arg types here
         This is broken.
     */
-    public Class [] getParameterTypes() { return cparamTypes; }
+    public Class<?> [] getParameterTypes() {
+        if (null == this.javaMethod)
+            return cparamTypes;
+        return this.javaMethod.getParameterTypes();
+    }
     public String [] getParameterNames() { return paramNames; }
     public Modifiers [] getParameterModifiers() { return paramModifiers; }
 
+    public int getParameterCount() {
+        if (null == this.javaMethod)
+            return paramCount;
+        return this.javaMethod.getParameterCount();
+    }
     /**
         Get the return type of the method.
         @return Returns null for a loosely typed return value,
@@ -140,7 +155,11 @@ public class BshMethod implements Serializable {
         Note: bshmethod needs to re-evaluate the method return type here.
         This is broken.
     */
-    public Class getReturnType() { return creturnType; }
+    public Class<?> getReturnType() {
+        if (null == this.javaMethod)
+            return creturnType;
+        return this.javaMethod.getReturnType();
+    }
 
     public Modifiers getModifiers() {
         if (this.modifiers == null)
@@ -148,7 +167,17 @@ public class BshMethod implements Serializable {
         return this.modifiers;
     }
 
-    public String getName() { return name; }
+    public String getName() {
+        if (null == this.javaMethod)
+            return name;
+        return this.javaMethod.getName();
+    }
+
+    public boolean isVarArgs() {
+        if (null == this.javaMethod)
+            return isVarArgs;
+        return this.javaMethod.isVarArgs();
+    }
 
     /**
         Invoke the declared method with the specified arguments and interpreter
@@ -265,10 +294,9 @@ public class BshMethod implements Serializable {
             SimpleNode callerInfo, boolean overrideNameSpace )
         throws EvalError
     {
-        Class returnType = getReturnType();
-        Class [] paramTypes = getParameterTypes();
+        Class<?> returnType = getReturnType();
+        Class<?> [] paramTypes = getParameterTypes();
 
-        // If null callstack
         if ( callstack == null )
             callstack = new CallStack( declaringNameSpace );
 
@@ -276,8 +304,7 @@ public class BshMethod implements Serializable {
             argValues = new Object [] { };
 
         // Cardinality (number of args) mismatch
-        if ( argValues.length != numArgs )
-        {
+        if ( !isVarArgs() && argValues.length != getParameterCount() ) {
         /*
             // look for help string
             try {
@@ -309,50 +336,71 @@ public class BshMethod implements Serializable {
         // should we do this for both cases above?
         localNameSpace.setNode( callerInfo );
 
+        int lastParamIndex = getParameterCount() - 1;
+        Object varArgs = !isVarArgs() ? null
+            : Array.newInstance(
+                paramTypes[lastParamIndex].getComponentType(),
+                argValues.length-lastParamIndex);
         // set the method parameters in the local namespace
-        for(int i=0; i<numArgs; i++)
+        for(int i=0; i < argValues.length; i++)
         {
+
+            int k = (i >= lastParamIndex) ? lastParamIndex : i;
+            Class<?> paramType = (isVarArgs() && k == lastParamIndex)
+                    ? paramTypes[k].getComponentType()
+                    : paramTypes[k];
+
             // Set typed variable
-            if ( paramTypes[i] != null )
-            {
+            if ( null != paramType ) {
                 try {
-                    argValues[i] =
-                        //Types.getAssignableForm( argValues[i], paramTypes[i] );
-                        Types.castObject( argValues[i], paramTypes[i], Types.ASSIGNMENT );
+                    argValues[i] = Types.castObject(
+                            argValues[i], paramType, Types.ASSIGNMENT );
                 }
                 catch( UtilEvalError e) {
                     throw new EvalError(
                         "Invalid argument: "
-                        + "`"+paramNames[i]+"'" + " for method: "
+                        + "`"+paramNames[k]+"'" + " for method: "
                         + name + " : " +
                         e.getMessage(), callerInfo, callstack );
                 }
                 try {
-                    localNameSpace.setTypedVariable( paramNames[i],
-                        paramTypes[i], argValues[i], paramModifiers[i]);
+                    if (isVarArgs() && i >= lastParamIndex)
+                        Array.set(varArgs, i-k, Primitive.unwrap(argValues[i]));
+                    else
+                        localNameSpace.setTypedVariable( paramNames[k],
+                            paramType, argValues[i], paramModifiers[k]);
                 } catch ( UtilEvalError e2 ) {
                     throw e2.toEvalError( "Typed method parameter assignment",
                         callerInfo, callstack  );
                 }
-            }
-            // Set untyped variable
-            else  // untyped param
-            {
+            } else {  // untyped param
+
                 // getAssignable would catch this for typed param
                 if ( argValues[i] == Primitive.VOID)
                     throw new EvalError(
                         "Undefined variable or class name, parameter: " +
-                        paramNames[i] + " to method: "
+                        paramNames[k] + " to method: "
                         + name, callerInfo, callstack );
-                else
-                    try {
-                        localNameSpace.setLocalVariable(
-                            paramNames[i], argValues[i],
-                            interpreter.getStrictJava() );
-                    } catch ( UtilEvalError e3 ) {
-                        throw e3.toEvalError( callerInfo, callstack );
-                    }
+                else try {
+                    localNameSpace.setLocalVariable(
+                        paramNames[k], argValues[i],
+                        interpreter.getStrictJava() );
+                } catch ( UtilEvalError e3 ) {
+                    throw e3.toEvalError( "Typed method parameter assignment",
+                            callerInfo, callstack );
+                }
             }
+        }
+
+        if (isVarArgs()) try {
+            localNameSpace.setTypedVariable(
+                    paramNames[lastParamIndex],
+                    paramTypes[lastParamIndex],
+                    varArgs,
+                    paramModifiers[lastParamIndex]);
+        } catch (UtilEvalError e1) {
+            throw e1.toEvalError("Typed method parameter assignment",
+                    callerInfo, callstack);
         }
 
         // Push the new namespace on the call stack
@@ -371,13 +419,12 @@ public class BshMethod implements Serializable {
             callstack.pop();
 
         ReturnControl retControl = null;
-        if ( ret instanceof ReturnControl )
-        {
-            retControl = (ReturnControl)ret;
+        if ( ret instanceof ReturnControl ) {
+            retControl = (ReturnControl) ret;
 
             // Method body can only use 'return' statement type return control.
-            if ( retControl.kind == retControl.RETURN )
-                ret = ((ReturnControl)ret).value;
+            if ( retControl.kind == ReturnControl.RETURN )
+                ret = retControl.value;
             else
                 // retControl.returnPoint is the Node of the return statement
                 throw new EvalError("'continue' or 'break' in method body",
@@ -390,19 +437,15 @@ public class BshMethod implements Serializable {
                 retControl.returnPoint, returnStack);
         }
 
-        if ( returnType != null )
-        {
+        if ( returnType != null ) {
             // If return type void, return void as the value.
             if ( returnType == Void.TYPE )
                 return Primitive.VOID;
 
             // return type is a class
             try {
-                ret =
-                    // Types.getAssignableForm( ret, (Class)returnType );
-                    Types.castObject( ret, returnType, Types.ASSIGNMENT );
-            } catch( UtilEvalError e )
-            {
+                ret = Types.castObject( ret, returnType, Types.ASSIGNMENT );
+            } catch( UtilEvalError e ) {
                 // Point to return statement point if we had one.
                 // (else it was implicit return? What's the case here?)
                 SimpleNode node = callerInfo;
@@ -436,10 +479,10 @@ public class BshMethod implements Serializable {
         }
         if (o.getClass() == this.getClass()) {
             BshMethod m = (BshMethod)o;
-            if( !name.equals(m.name) || numArgs!=m.numArgs )
+            if( !name.equals(m.name) || getParameterCount() != m.getParameterCount() )
                 return false;
-            for( int i=0; i<numArgs; i++ ) {
-                if( !equal(cparamTypes[i],m.cparamTypes[i]) )
+            for( int i = 0; i < getParameterCount(); i++ ) {
+                if( !equal(getParameterTypes()[i], m.getParameterTypes()[i]) )
                     return false;
             }
             return true;
@@ -454,9 +497,9 @@ public class BshMethod implements Serializable {
     @Override
     public int hashCode() {
         int h = name.hashCode();
-        for (Class<?> cparamType : cparamTypes) {
+        for (final Class<?> cparamType : getParameterTypes()) {
             h = h * 31 + (cparamType == null ? 0 : cparamType.hashCode());
         }
-        return h + numArgs;
+        return h + getParameterCount();
     }
 }

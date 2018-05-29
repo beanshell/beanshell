@@ -736,8 +736,7 @@ public class NameSpace
      *         internal use.
      * @see Interpreter#source(String)
      * @see Interpreter#eval(String) */
-    public void setMethod(BshMethod method)
-            throws UtilEvalError {
+    public void setMethod(BshMethod method) {
         String name = method.getName();
         if (!this.methods.containsKey(name))
             this.methods.put(name, new ArrayList<BshMethod>(1));
