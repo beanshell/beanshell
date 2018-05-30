@@ -85,6 +85,7 @@ public class OldScriptsTest {
                 if (file.isFile() && name.endsWith(".bsh")
                         && !"TestHarness.bsh".equals(name)
                         && !"RunAllTests.bsh".equals(name)
+                        && !"Assert.bsh".equals(name)
                         && !"Fail.bsh".equals(name)) {
                     suite.addTest(new TestBshScript(file));
                 }

@@ -1,0 +1,265 @@
+#!/bin/java bsh.Interpreter
+import org.junit.Assert;
+import static org.hamcrest.Matchers.*;
+
+assertEquals(String message, double expected, double actual) {
+    try {
+        Assert.assertEquals(message, expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertEquals(double expected, double actual) {
+    try {
+        Assert.assertEquals(expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertEquals(String message, long expected, long actual) {
+    try {
+        Assert.assertEquals(message, expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertEquals(long expected, long actual) {
+    try {
+        Assert.assertEquals(expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertEquals(String message, float expected, float actual, float delta) {
+    try {
+        Assert.assertEquals(message, expected, actual, delta);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertEquals(Object[] expected, Object[] actual) {
+    try {
+        Assert.assertEquals(expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertEquals(String message, Object[] expected, Object[] actual) {
+    try {
+        Assert.assertEquals(message, expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertEquals(float expected, float actual, float delta) {
+    try {
+        Assert.assertEquals(expected, actual, delta);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertEquals(double expected, double actual, double delta) {
+    try {
+        Assert.assertEquals(expected, actual, delta);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertEquals(Object expected, Object actual) {
+    try {
+        Assert.assertEquals(expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertEquals(String message, double expected, double actual, double delta) {
+    try {
+        Assert.assertEquals(message, expected, actual, delta);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertEquals(String message, Object expected, Object actual) {
+    try {
+        Assert.assertEquals(message, expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertTrue(boolean condition) {
+    try {
+        Assert.assertTrue(condition);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertTrue(String message, boolean condition) {
+    try {
+        Assert.assertTrue(message, condition);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertFalse(boolean condition) {
+    try {
+        Assert.assertFalse(condition);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertFalse(String message, boolean condition) {
+    try {
+        Assert.assertFalse(message, condition);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertNotEquals(String message, float expected, float actual, float delta) {
+    try {
+        Assert.assertNotEquals(message, expected, actual, delta);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertNotEquals(long expected, long actual) {
+    try {
+        Assert.assertNotEquals(expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertNotEquals(String message, long expected, long actual) {
+    try {
+        Assert.assertNotEquals(message, expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertNotEquals(String message, Object expected, Object actual) {
+    try {
+        Assert.assertNotEquals(message, expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertNotEquals(Object expected, Object actual) {
+    try {
+        Assert.assertNotEquals(expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertNotEquals(String message, double expected, double actual, double delta) {
+    try {
+        Assert.assertNotEquals(message, expected, actual, delta);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertNotEquals(double expected, double actual, double delta) {
+    try {
+        Assert.assertNotEquals(message, expected, actual, delta);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertNotEquals(float expected, float actual, float delta) {
+    try {
+        Assert.assertNotEquals(expected, actual, delta);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertArrayEquals(double[] expected, double[] actual, double delta) {
+    try {
+        Assert.assertArrayEquals(expected, actual, delta);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertArrayEquals(String message, float[] expected, float[] actual, float delta) {
+    try {
+        Assert.assertArrayEquals(message, expected, actual, delta);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertArrayEquals(float[] expected, float[] actual, float delta) {
+    try {
+        Assert.assertArrayEquals(expected, actual, delta);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertArrayEquals(String message, byte[] expected, byte[] actual) {
+    try {
+        Assert.assertArrayEquals(message, expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertArrayEquals(byte[] expected, byte[] actual) {
+    try {
+        Assert.assertArrayEquals(expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertArrayEquals(String message, char[] expected, char[] actual) {
+    try {
+        Assert.assertArrayEquals(message, expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertArrayEquals(char[] expected, char[] actual) {
+    try {
+        Assert.assertArrayEquals(expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertArrayEquals(String message, short[] expected, short[] actual) {
+    try {
+        Assert.assertArrayEquals(message, expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertArrayEquals(String message, boolean[] expected, boolean[] actual) {
+    try {
+        Assert.assertArrayEquals(message, expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertArrayEquals(Object[] expected, Object[] actual) {
+    try {
+        Assert.assertArrayEquals(expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertArrayEquals(String message, Object[] expected, Object[] actual) {
+    try {
+        Assert.assertArrayEquals(message, expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertArrayEquals(boolean[] expected, boolean[] actual) {
+    try {
+        Assert.assertArrayEquals(expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertArrayEquals(String message, int[] expected, int[] actual) {
+    try {
+        Assert.assertArrayEquals(message, expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertArrayEquals(String message, double[] expected, double[] actual, double delta) {
+    try {
+        Assert.assertArrayEquals(message, expected, actual, delta);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertArrayEquals(String message, long[] expected, long[] actual) {
+    try {
+        Assert.assertArrayEquals(message, expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertArrayEquals(long[] expected, long[] actual) {
+    try {
+        Assert.assertArrayEquals(expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertArrayEquals(short[] expected, short[] actual) {
+    try {
+        Assert.assertArrayEquals(expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertArrayEquals(int[] expected, int[] actual) {
+    try {
+        Assert.assertArrayEquals(expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertNotNull(Object object) {
+    try {
+        Assert.assertNotNull(object);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertNotNull(String message, Object object) {
+    try {
+        Assert.assertNotNull(message, object);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertNull(String message, Object object) {
+    try {
+        Assert.assertNull(message, object);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertNull(Object object) {
+    try {
+        Assert.assertNull(object);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertNotSame(String message, Object expected, Object actual) {
+    try {
+        Assert.assertNotSame(message, expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertNotSame(Object expected, Object actual) {
+    try {
+        Assert.assertNotSame(expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertThat(Object actual, matcher) {
+    try {
+        Assert.assertThat(actual, matcher);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertThat(String message, Object actual, matcher) {
+    try {
+        Assert.assertThat(message, actual, matcher);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertSame(String message, Object expected, Object actual) {
+    try {
+        Assert.assertSame(message, expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+assertSame(Object expected, Object actual) {
+    try {
+        Assert.assertSame(expected, actual);
+    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+}
+
