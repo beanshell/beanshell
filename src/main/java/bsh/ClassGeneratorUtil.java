@@ -26,6 +26,9 @@
 
 package bsh;
 
+import static bsh.ClassGenerator.ClassNodeFilter.CLASSINSTANCE;
+import static bsh.ClassGenerator.ClassNodeFilter.CLASSSTATIC;
+
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -999,7 +1002,7 @@ public class ClassGeneratorUtil implements Opcodes {
 
             // evaluate the instance portion of the block in it
             try { // Evaluate the initializer block
-                instanceInitBlock.evalBlock(callstack, interpreter, true/*override*/, ClassGenerator.ClassNodeFilter.CLASSINSTANCE);
+                instanceInitBlock.evalBlock(callstack, interpreter, true/*override*/, CLASSINSTANCE);
             } catch (Exception e) {
                 throw new InterpreterError("Error in class initialization: " + e, e);
             }
@@ -1041,17 +1044,38 @@ public class ClassGeneratorUtil implements Opcodes {
         }
     }
 
-    /**
-     * The class is "cold" (detached with no live interpreter static
-     * This reference) try to start a new interpreter and source the
-     * script backing it.
-     *
-     * We pass in both the fq class name and the static This ref here just
-     * to minimize the generated code. All we really do here is a simple
-     * if condition for now.
-     */
-    public static void initStatic(Class genClass) {
-        startInterpreterForClass(genClass);
+
+    /** Lazy initialize static context implementation.
+     * Called from <clinit> after static This was populated we will now
+     * proceed to evaluate the static block node.
+     * @param genClass the generated class.
+     * @param className name of the class.
+     * @throws UtilEvalError combined exceptions. */
+    public static void initStatic(Class<?> genClass) throws UtilEvalError {
+        String className = genClass.getSimpleName();
+        try {
+            This staticThis = getClassStaticThis(genClass, className);
+            NameSpace classStaticNameSpace = staticThis.getNameSpace();
+            Interpreter interpreter = staticThis.declaringInterpreter;
+
+            if (null == interpreter)
+                throw new UtilEvalError("No namespace or interpreter for statitc This."
+                        +" Start interpreter for class not implemented yet.");
+                //startInterpreterForClass(genClass); ???
+
+            BSHBlock block = (BSHBlock) classStaticNameSpace.getVariable(BSHINIT);
+            CallStack callstack = new CallStack(classStaticNameSpace);
+
+            // evaluate the static portion of the block in the static space
+            block.evalBlock(callstack, interpreter, true/*override*/, CLASSSTATIC);
+
+            // Validate that static final variables were set
+            for (Variable var : Reflect.getVariables(classStaticNameSpace))
+                var.validateFinalIsSet(true);
+        } catch (Exception e) {
+            throw new UtilEvalError("Exception in static init block <clinit> for class "
+                    + className + ". With message: " + e.getMessage(), e);
+        }
     }
 
     /** Pull provider for class static This.
