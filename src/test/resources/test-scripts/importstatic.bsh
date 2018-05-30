@@ -1,0 +1,31 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+class Abc {
+    static int A = 1;
+    static String FOO = "foo";
+    static Object[] arr = new Object[] { "bar", 1, "baz", 3 };
+    static int get() { 2; }
+    static int plus(add) { get() + add; }
+}
+
+
+import static Abc.A;
+
+assertEquals(1, A);
+
+import static Abc.plus;
+
+assertEquals(6, plus(4));
+
+import static Abc.*;
+
+assertNotNull(FOO);
+assertSame("foo", FOO);
+assertEquals(2, get());
+assertArrayEquals(new Object[] { "bar", 1, "baz", 3 }, arr);
+
+complete();
+

@@ -623,6 +623,17 @@ final class Reflect {
                 methodName, numArgs, publicMethods, nonPublicMethods );
     }
 
+    /** Find a static method member of baseClass, for the given name.
+     * @param baseClass class to query
+     * @param methodName method name to find
+     * @return a BshMethod wrapped Method. */
+    static BshMethod staticMethodForName(Class<?> baseClass, String methodName) {
+        for (Method method : baseClass.getMethods())
+            if (method.getName().equals(methodName)
+                    && Modifier.isStatic(method.getModifiers()))
+                return new BshMethod(method, null);
+        return null;
+    }
     /**
         Primary object constructor
         This method is simpler than those that must resolve general method
