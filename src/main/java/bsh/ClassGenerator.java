@@ -103,6 +103,9 @@ public final class ClassGenerator {
         Variable[] variables = getDeclaredVariables(block, callstack, interpreter, packageName);
         DelayedEvalBshMethod[] methods = getDeclaredMethods(block, callstack, interpreter, packageName);
 
+        // initialize static this singleton in namespace
+        classStaticNameSpace.getThis(interpreter);
+
         // Create the class generator, which encapsulates all knowledge of the
         // structure of the class
         ClassGeneratorUtil classGenerator = new ClassGeneratorUtil(modifiers, className, packageName, superClass, interfaces, variables, methods, classStaticNameSpace, isInterface);
@@ -149,16 +152,6 @@ public final class ClassGenerator {
 
         callstack.pop();
 
-        if (!genClass.isInterface()) {
-            // Set the static bsh This callback
-            String bshStaticFieldName = ClassGeneratorUtil.BSHSTATIC + className;
-            try {
-                LHS lhs = Reflect.getLHSStaticField(genClass, bshStaticFieldName);
-                lhs.assign(classStaticNameSpace.getThis(interpreter), false/*strict*/);
-            } catch (Exception e) {
-                throw new InterpreterError("Error in class gen setup: " + e, e);
-            }
-        }
         // Validate that static final variables were set
         for (Variable var : Reflect.getVariables(classStaticNameSpace))
                 var.validateFinalIsSet(true);
@@ -187,14 +180,14 @@ public final class ClassGenerator {
             if (node instanceof BSHTypedVariableDeclaration) {
                 BSHTypedVariableDeclaration tvd = (BSHTypedVariableDeclaration) node;
                 Modifiers modifiers = tvd.modifiers;
-                String type = tvd.getTypeDescriptor(callstack, interpreter, defaultPackage);
                 BSHVariableDeclarator[] vardec = tvd.getDeclarators();
                 for (BSHVariableDeclarator aVardec : vardec) {
                     String name = aVardec.name;
                     try {
+                        Class<?> type = tvd.evalType(callstack, interpreter);
                         Variable var = new Variable(name, type, null/*value*/, modifiers);
                         vars.add(var);
-                    } catch (UtilEvalError e) {
+                    } catch (UtilEvalError | EvalError e) {
                         // value error shouldn't happen
                     }
                 }
@@ -261,13 +254,16 @@ public final class ClassGenerator {
         }
 
         boolean isStatic(SimpleNode node) {
+            if (null != node.jjtGetParent() && node.jjtGetParent().jjtGetParent() instanceof BSHClassDeclaration)
+                if (((BSHClassDeclaration) node.jjtGetParent().jjtGetParent()).isInterface)
+                    return true;
+
             if (node instanceof BSHTypedVariableDeclaration)
                 return ((BSHTypedVariableDeclaration) node).modifiers != null && ((BSHTypedVariableDeclaration) node).modifiers.hasModifier("static");
 
             if (node instanceof BSHMethodDeclaration)
                 return ((BSHMethodDeclaration) node).modifiers != null && ((BSHMethodDeclaration) node).modifiers.hasModifier("static");
 
-            // need to add static block here
             if (node instanceof BSHBlock)
                 return ((BSHBlock) node).isStatic;
 
