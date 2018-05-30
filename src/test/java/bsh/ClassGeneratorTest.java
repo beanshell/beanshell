@@ -35,7 +35,6 @@ import static org.hamcrest.Matchers.instanceOf;
 
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
@@ -369,13 +368,11 @@ public class ClassGeneratorTest {
     }
 
     @Test
-    @Category(KnownIssue.class)
     public void define_interface_with_constants() throws Exception {
-        // these three are treated equal in java
+        // all interface fields are public static final in java
         eval("interface Test { public static final int x = 1; }");
         eval("interface Test { static final int x = 1; }");
         eval("interface Test { final int x = 1; }");
-        // these three are treated equal in java
         eval("interface Test { public static int x = 1; }");
         eval("interface Test { static int x = 1; }");
         eval("interface Test { int x = 1; }");
