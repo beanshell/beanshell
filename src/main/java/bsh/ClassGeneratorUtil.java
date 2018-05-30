@@ -159,14 +159,12 @@ public class ClassGeneratorUtil implements Opcodes {
             this.fqClassName = className;
             this.canonClassName = className;
         }
-        if (superClass == null) {
+        if (superClass == null)
             superClass = Object.class;
-        }
         this.superClass = superClass;
         this.superClassName = Type.getInternalName(superClass);
-        if (interfaces == null) {
+        if (interfaces == null)
             interfaces = new Class[0];
-        }
         this.interfaces = interfaces;
         this.vars = vars;
         classStaticNameSpace.isInterface = isInterface;
@@ -178,23 +176,14 @@ public class ClassGeneratorUtil implements Opcodes {
         List<DelayedEvalBshMethod> consl = new ArrayList<>();
         List<DelayedEvalBshMethod> methodsl = new ArrayList<>();
         String classBaseName = getBaseName(className); // for inner classes
-        for (DelayedEvalBshMethod bshmethod : bshmethods) {
-            if (bshmethod.getName().equals(classBaseName)) {
+        for (DelayedEvalBshMethod bshmethod : bshmethods)
+            if (bshmethod.getName().equals(classBaseName))
                 consl.add(bshmethod);
-            } else {
+            else
                 methodsl.add(bshmethod);
-            }
-        }
 
         constructors = consl.toArray(new DelayedEvalBshMethod[consl.size()]);
         methods = methodsl.toArray(new DelayedEvalBshMethod[methodsl.size()]);
-
-        try {
-            classStaticNameSpace.setLocalVariable(BSHCONSTRUCTORS, constructors, false/*strict*/);
-            classStaticNameSpace.setLocalVariable(BSHCLASSMODIFIERS, classModifiers, false/*strict*/);
-        } catch (UtilEvalError e) {
-            throw new InterpreterError("can't set cons var", e);
-        }
 
         this.isInterface = isInterface;
 
@@ -213,6 +202,7 @@ public class ClassGeneratorUtil implements Opcodes {
      */
     public void initStaticNameSpace(NameSpace classStaticNameSpace, BSHBlock instanceInitBlock) {
         try {
+            classStaticNameSpace.setLocalVariable(BSHCLASSMODIFIERS, classModifiers, false/*strict*/);
             classStaticNameSpace.setLocalVariable(BSHCONSTRUCTORS, constructors, false/*strict*/);
             classStaticNameSpace.setLocalVariable(BSHINIT, instanceInitBlock, false/*strict*/);
         } catch (UtilEvalError e) {
@@ -278,9 +268,8 @@ public class ClassGeneratorUtil implements Opcodes {
         boolean hasConstructor = false;
         for (int i = 0; i < constructors.length; i++) {
             // Don't generate private constructors
-            if (constructors[i].hasModifier("private")) {
+            if (constructors[i].hasModifier("private"))
                 continue;
-            }
 
             int modifiers = getASMModifiers(constructors[i].getModifiers());
             generateConstructor(i, constructors[i].getParamTypeDescriptors(), modifiers, cw);
@@ -310,9 +299,8 @@ public class ClassGeneratorUtil implements Opcodes {
             generateMethod(className, fqClassName, method.getName(), returnType, method.getParamTypeDescriptors(), modifiers, cw);
 
             boolean overridden = classContainsMethod(superClass, method.getName(), method.getParamTypeDescriptors());
-            if (!isStatic && overridden) {
+            if (!isStatic && overridden)
                 generateSuperDelegateMethod(superClassName, method.getName(), returnType, method.getParamTypeDescriptors(), modifiers, cw);
-            }
         }
 
         return cw.toByteArray();
@@ -323,25 +311,19 @@ public class ClassGeneratorUtil implements Opcodes {
      */
     private static int getASMModifiers(Modifiers modifiers) {
         int mods = 0;
-        if (modifiers == null) {
+        if (modifiers == null)
             return mods;
-        }
 
-        if (modifiers.hasModifier("public")) {
+        if (modifiers.hasModifier("public"))
             mods += ACC_PUBLIC;
-        }
-        if (modifiers.hasModifier("protected")) {
+        if (modifiers.hasModifier("protected"))
             mods += ACC_PROTECTED;
-        }
-        if (modifiers.hasModifier("static")) {
+        if (modifiers.hasModifier("static"))
             mods += ACC_STATIC;
-        }
-        if (modifiers.hasModifier("synchronized")) {
+        if (modifiers.hasModifier("synchronized"))
             mods += ACC_SYNCHRONIZED;
-        }
-        if (modifiers.hasModifier("abstract")) {
+        if (modifiers.hasModifier("abstract"))
             mods += ACC_ABSTRACT;
-        }
 
         return mods;
     }
@@ -378,9 +360,8 @@ public class ClassGeneratorUtil implements Opcodes {
         String[] exceptions = null;
         boolean isStatic = (modifiers & ACC_STATIC) != 0;
 
-        if (returnType == null) { // map loose return type to Object
+        if (returnType == null) // map loose return type to Object
             returnType = OBJECT;
-        }
 
         String methodDescriptor = getMethodDescriptor(returnType, paramTypes);
 
@@ -389,9 +370,8 @@ public class ClassGeneratorUtil implements Opcodes {
         // Generate method body
         MethodVisitor cv = cw.visitMethod(modifiers, methodName, methodDescriptor, paramTypesSig, exceptions);
 
-        if ((modifiers & ACC_ABSTRACT) != 0) {
+        if ((modifiers & ACC_ABSTRACT) != 0)
             return;
-        }
 
         // Generate code to push the BSHTHIS or BSHSTATIC field
         if (isStatic)
@@ -509,9 +489,8 @@ public class ClassGeneratorUtil implements Opcodes {
         int cases = superConstructors.length + constructors.length;
 
         Label[] labels = new Label[cases];
-        for (int i = 0; i < cases; i++) {
+        for (int i = 0; i < cases; i++)
             labels[i] = new Label();
-        }
 
         // Generate code to call ClassGeneratorUtil to get our switch index
         // and give us args...
@@ -545,12 +524,10 @@ public class ClassGeneratorUtil implements Opcodes {
 
         // generate switch body
         int index = 0;
-        for (int i = 0; i < superConstructors.length; i++, index++) {
+        for (int i = 0; i < superConstructors.length; i++, index++)
             doSwitchBranch(index, superClassName, getTypeDescriptors(superConstructors[i].getParameterTypes()), endLabel, labels, consArgsVar, cv);
-        }
-        for (int i = 0; i < constructors.length; i++, index++) {
+        for (int i = 0; i < constructors.length; i++, index++)
             doSwitchBranch(index, fqClassName, constructors[i].getParamTypeDescriptors(), endLabel, labels, consArgsVar, cv);
-        }
 
         // generate the default branch of switch
         cv.visitLabel(defaultLabel);
@@ -589,40 +566,38 @@ public class ClassGeneratorUtil implements Opcodes {
         // Unload the arguments from the ConstructorArgs object
         for (String type : paramTypes) {
             final String method;
-            if (type.equals("Z")) {
+            if (type.equals("Z"))
                 method = "getBoolean";
-            } else if (type.equals("B")) {
+            else if (type.equals("B"))
                 method = "getByte";
-            } else if (type.equals("C")) {
+            else if (type.equals("C"))
                 method = "getChar";
-            } else if (type.equals("S")) {
+            else if (type.equals("S"))
                 method = "getShort";
-            } else if (type.equals("I")) {
+            else if (type.equals("I"))
                 method = "getInt";
-            } else if (type.equals("J")) {
+            else if (type.equals("J"))
                 method = "getLong";
-            } else if (type.equals("D")) {
+            else if (type.equals("D"))
                 method = "getDouble";
-            } else if (type.equals("F")) {
+            else if (type.equals("F"))
                 method = "getFloat";
-            } else {
+            else
                 method = "getObject";
-            }
 
             // invoke the iterator method on the ConstructorArgs
             cv.visitVarInsn(ALOAD, consArgsVar); // push the ConstructorArgs
             String className = "bsh/ClassGeneratorUtil$ConstructorArgs";
             String retType;
-            if (method.equals("getObject")) {
+            if (method.equals("getObject"))
                 retType = OBJECT;
-            } else {
+            else
                 retType = type;
-            }
+
             cv.visitMethodInsn(INVOKEVIRTUAL, className, method, "()" + retType, false);
             // if it's an object type we must do a check cast
-            if (method.equals("getObject")) {
+            if (method.equals("getObject"))
                 cv.visitTypeInsn(CHECKCAST, descriptorToClassName(type));
-            }
         }
 
         // invoke the constructor for this branch
@@ -633,9 +608,9 @@ public class ClassGeneratorUtil implements Opcodes {
 
     private static String getMethodDescriptor(String returnType, String[] paramTypes) {
         StringBuilder sb = new StringBuilder("(");
-        for (String paramType : paramTypes) {
+        for (String paramType : paramTypes)
             sb.append(paramType);
-        }
+
         sb.append(')').append(returnType);
         return sb.toString();
     }
@@ -650,9 +625,8 @@ public class ClassGeneratorUtil implements Opcodes {
     private void generateSuperDelegateMethod(String superClassName, String methodName, String returnType, String[] paramTypes, int modifiers, ClassWriter cw) {
         String[] exceptions = null;
 
-        if (returnType == null) { // map loose return to Object
+        if (returnType == null) // map loose return to Object
             returnType = OBJECT;
-        }
 
         String methodDescriptor = getMethodDescriptor(returnType, paramTypes);
 
@@ -665,11 +639,10 @@ public class ClassGeneratorUtil implements Opcodes {
         // Push vars
         int localVarIndex = 1;
         for (String paramType : paramTypes) {
-            if (isPrimitive(paramType)) {
+            if (isPrimitive(paramType))
                 cv.visitVarInsn(ILOAD, localVarIndex);
-            } else {
+            else
                 cv.visitVarInsn(ALOAD, localVarIndex);
-            }
             localVarIndex += ((paramType.equals("D") || paramType.equals("J")) ? 2 : 1);
         }
 
@@ -684,25 +657,20 @@ public class ClassGeneratorUtil implements Opcodes {
     boolean classContainsMethod(Class clas, String methodName, String[] paramTypes) {
         while (clas != null) {
             Method[] methods = clas.getDeclaredMethods();
-            for (Method method : methods) {
+            for (Method method : methods)
                 if (method.getName().equals(methodName)) {
                     String[] methodParamTypes = getTypeDescriptors(method.getParameterTypes());
                     boolean found = true;
-                    for (int j = 0; j < methodParamTypes.length; j++) {
+                    for (int j = 0; j < methodParamTypes.length; j++)
                         if (!paramTypes[j].equals(methodParamTypes[j])) {
                             found = false;
                             break;
                         }
-                    }
-                    if (found) {
+                    if (found)
                         return true;
-                    }
                 }
-            }
-
             clas = clas.getSuperclass();
         }
-
         return false;
     }
 
@@ -710,17 +678,16 @@ public class ClassGeneratorUtil implements Opcodes {
      * Generate return code for a normal bytecode
      */
     private static void generatePlainReturnCode(String returnType, MethodVisitor cv) {
-        if (returnType.equals("V")) {
+        if (returnType.equals("V"))
             cv.visitInsn(RETURN);
-        } else if (isPrimitive(returnType)) {
+        else if (isPrimitive(returnType)) {
             int opcode = IRETURN;
-            if (returnType.equals("D")) {
+            if (returnType.equals("D"))
                 opcode = DRETURN;
-            } else if (returnType.equals("F")) {
+            else if (returnType.equals("F"))
                 opcode = FRETURN;
-            } else if (returnType.equals("J")) { //long
+            else if (returnType.equals("J")) //long
                 opcode = LRETURN;
-            }
 
             cv.visitInsn(opcode);
         } else {
@@ -750,15 +717,14 @@ public class ClassGeneratorUtil implements Opcodes {
             cv.visitIntInsn(SIPUSH, i);
             if (isPrimitive(param)) {
                 int opcode;
-                if (param.equals("F")) {
+                if (param.equals("F"))
                     opcode = FLOAD;
-                } else if (param.equals("D")) {
+                else if (param.equals("D"))
                     opcode = DLOAD;
-                } else if (param.equals("J")) {
+                else if (param.equals("J"))
                     opcode = LLOAD;
-                } else {
+                else
                     opcode = ILOAD;
-                }
 
                 String type = "bsh/Primitive";
                 cv.visitTypeInsn(NEW, type);
@@ -862,23 +828,23 @@ public class ClassGeneratorUtil implements Opcodes {
             throw new InterpreterError("Unable to get instance initializers: " + e, e);
         }
 
-        if (index == DEFAULTCONSTRUCTOR) { // auto-gen default constructor
+        if (index == DEFAULTCONSTRUCTOR) // auto-gen default constructor
             return ConstructorArgs.DEFAULT;
-        } // use default super constructor
+        // use default super constructor
 
         DelayedEvalBshMethod constructor = constructors[index];
 
-        if (constructor.methodBody.jjtGetNumChildren() == 0) {
+        if (constructor.methodBody.jjtGetNumChildren() == 0)
             return ConstructorArgs.DEFAULT;
-        } // use default super constructor
+        // use default super constructor
 
         // Determine if the constructor calls this() or super()
         String altConstructor = null;
         BSHArguments argsNode = null;
         SimpleNode firstStatement = (SimpleNode) constructor.methodBody.jjtGetChild(0);
-        if (firstStatement instanceof BSHPrimaryExpression) {
+        if (firstStatement instanceof BSHPrimaryExpression)
             firstStatement = (SimpleNode) firstStatement.jjtGetChild(0);
-        }
+
         if (firstStatement instanceof BSHMethodInvocation) {
             BSHMethodInvocation methodNode = (BSHMethodInvocation) firstStatement;
             BSHAmbiguousName methodName = methodNode.getNameNode();
@@ -888,21 +854,19 @@ public class ClassGeneratorUtil implements Opcodes {
             }
         }
 
-        if (altConstructor == null) {
+        if (altConstructor == null)
             return ConstructorArgs.DEFAULT;
-        } // use default super constructor
+        // use default super constructor
 
         // Make a tmp namespace to hold the original constructor args for
         // use in eval of the parameters node
         NameSpace consArgsNameSpace = new NameSpace(classStaticThis.getNameSpace(), "consArgs");
         String[] consArgNames = constructor.getParameterNames();
         Class[] consArgTypes = constructor.getParameterTypes();
-        for (int i = 0; i < consArgs.length; i++) {
-            try {
-                consArgsNameSpace.setTypedVariable(consArgNames[i], consArgTypes[i], consArgs[i], null/*modifiers*/);
-            } catch (UtilEvalError e) {
-                throw new InterpreterError("err setting local cons arg:" + e, e);
-            }
+        for (int i = 0; i < consArgs.length; i++) try {
+            consArgsNameSpace.setTypedVariable(consArgNames[i], consArgTypes[i], consArgs[i], null/*modifiers*/);
+        } catch (UtilEvalError e) {
+            throw new InterpreterError("err setting local cons arg:" + e, e);
         }
 
         // evaluate the args
@@ -921,38 +885,34 @@ public class ClassGeneratorUtil implements Opcodes {
         Class[] argTypes = Types.getTypes(args);
         args = Primitive.unwrap(args);
         Class superClass = interpreter.getClassManager().classForName(superClassName);
-        if (superClass == null) {
+        if (superClass == null)
             throw new InterpreterError("can't find superclass: " + superClassName);
-        }
+
         Constructor[] superCons = superClass.getDeclaredConstructors();
 
         // find the matching super() constructor for the args
         if (altConstructor.equals("super")) {
             int i = Reflect.findMostSpecificConstructorIndex(argTypes, superCons);
-            if (i == -1) {
+            if (i == -1)
                 throw new InterpreterError("can't find constructor for args!");
-            }
             return new ConstructorArgs(i, args);
         }
 
         // find the matching this() constructor for the args
         Class[][] candidates = new Class[constructors.length][];
-        for (int i = 0; i < candidates.length; i++) {
+        for (int i = 0; i < candidates.length; i++)
             candidates[i] = constructors[i].getParameterTypes();
-        }
         int i = Reflect.findMostSpecificSignature(argTypes, candidates);
-        if (i == -1) {
+        if (i == -1)
             throw new InterpreterError("can't find constructor for args 2!");
-        }
         // this() constructors come after super constructors in the table
 
         int selector = i + superCons.length;
         int ourSelector = index + superCons.length;
 
         // Are we choosing ourselves recursively through a this() reference?
-        if (selector == ourSelector) {
+        if (selector == ourSelector)
             throw new InterpreterError("Recusive constructor call.");
-        }
 
         return new ConstructorArgs(selector, args);
     }
@@ -966,16 +926,14 @@ public class ClassGeneratorUtil implements Opcodes {
      * {@link #initInstance(GeneratedClass, String, Object[])}.
      */
     static void registerConstructorContext(CallStack callstack, Interpreter interpreter) {
-        if (callstack != null) {
+        if (callstack != null)
             CONTEXT_NAMESPACE.set(callstack.top());
-        } else {
+        else
             CONTEXT_NAMESPACE.remove();
-        }
-        if (interpreter != null) {
+        if (interpreter != null)
             CONTEXT_INTERPRETER.set(interpreter);
-        } else {
+        else
             CONTEXT_INTERPRETER.remove();
-        }
     }
 
 
@@ -1004,9 +962,8 @@ public class ClassGeneratorUtil implements Opcodes {
             // Get the static This reference from the proto-instance
             This classStaticThis = getClassStaticThis(instance.getClass(), className);
             interpreter = CONTEXT_INTERPRETER.get();
-            if (interpreter == null) {
+            if (interpreter == null)
                 interpreter = classStaticThis.declaringInterpreter;
-            }
 
 
             // Get the instance initializer block from the static This
@@ -1021,9 +978,8 @@ public class ClassGeneratorUtil implements Opcodes {
             if (CONTEXT_NAMESPACE.get() != null) {
                 instanceNameSpace = classStaticThis.getNameSpace().copy();
                 instanceNameSpace.setParent(CONTEXT_NAMESPACE.get());
-            } else {
+            } else
                 instanceNameSpace = new NameSpace(classStaticThis.getNameSpace(), className); // todo: old code
-            }
             instanceNameSpace.isClass = true;
 
             // Set the instance This reference on the instance
@@ -1065,26 +1021,22 @@ public class ClassGeneratorUtil implements Opcodes {
             BshMethod constructor = instanceNameSpace.getMethod(constructorName, sig, true/*declaredOnly*/);
 
             // if args, we must have constructor
-            if (args.length > 0 && constructor == null) {
+            if (args.length > 0 && constructor == null)
                 throw new InterpreterError("Can't find constructor: " + className);
-            }
 
             // Evaluate the constructor
-            if (constructor != null) {
+            if (constructor != null)
                 constructor.invoke(args, interpreter, callstack, null/*callerInfo*/, false/*overrideNameSpace*/);
-            }
 
             // Validate that final variables were set
             for (Variable var : Reflect.getVariables(instance))
                 var.validateFinalIsSet(false);
 
         } catch (Exception e) {
-            if (e instanceof TargetError) {
+            if (e instanceof TargetError)
                 e = (Exception) ((TargetError) e).getTarget();
-            }
-            if (e instanceof InvocationTargetException) {
+            if (e instanceof InvocationTargetException)
                 e = (Exception) ((InvocationTargetException) e).getTargetException();
-            }
             throw new InterpreterError("Error in class initialization: " + e, e);
         }
     }
@@ -1150,9 +1102,8 @@ public class ClassGeneratorUtil implements Opcodes {
 
     private static String[] getTypeDescriptors(Class[] cparams) {
         String[] sa = new String[cparams.length];
-        for (int i = 0; i < sa.length; i++) {
+        for (int i = 0; i < sa.length; i++)
             sa[i] = BSHType.getTypeDescriptor(cparams[i]);
-        }
         return sa;
     }
 
@@ -1162,9 +1113,8 @@ public class ClassGeneratorUtil implements Opcodes {
     // Can this be factored out...?
     // Should be be adding the L...; here instead?
     private static String descriptorToClassName(String s) {
-        if (s.startsWith("[") || !s.startsWith("L")) {
+        if (s.startsWith("[") || !s.startsWith("L"))
             return s;
-        }
         return s.substring(1, s.length() - 1);
     }
 
@@ -1173,9 +1123,8 @@ public class ClassGeneratorUtil implements Opcodes {
      */
     private static String getBaseName(String className) {
         int i = className.indexOf("$");
-        if (i == -1) {
+        if (i == -1)
             return className;
-        }
 
         return className.substring(i + 1);
     }
@@ -1201,8 +1150,7 @@ public class ClassGeneratorUtil implements Opcodes {
          * The index of the constructor to call.
          */
 
-        ConstructorArgs() {
-        }
+        ConstructorArgs() { }
 
         ConstructorArgs(int selector, Object[] args) {
             this.selector = selector;
@@ -1285,9 +1233,8 @@ public class ClassGeneratorUtil implements Opcodes {
             bsh.eval(reader, bsh.getNameSpace(), resName);
         } catch (TargetError e) {
             System.out.println("Script threw exception: " + e);
-            if (e.inNativeCode()) {
+            if (e.inNativeCode())
                 e.printStackTrace(System.err);
-            }
         } catch (EvalError e) {
             System.out.println("Evaluation Error: " + e);
         }
