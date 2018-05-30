@@ -643,6 +643,10 @@ public class NameSpace
         return var;
     }
 
+    protected void setVariableImpl(Variable var) {
+        if (!this.variables.containsKey(var.getName()))
+            this.variables.put(var.getName(), var);
+    }
     /*
         Get variables declared in this namespace.
     */
