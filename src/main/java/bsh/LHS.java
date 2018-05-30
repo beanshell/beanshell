@@ -183,6 +183,26 @@ class LHS implements ParserConstants, java.io.Serializable
         throw new InterpreterError("LHS type");
     }
 
+    public String getName() {
+        if (null != field)
+            return field.getName();
+        if (null != var)
+            return var.getName();
+        return varName;
+    }
+
+    public Class<?> getType() {
+        if (null != field)
+            return field.getType();
+        if (null != var)
+            return var.getType();
+        try {
+            return getValueType(getValue());
+        } catch (UtilEvalError e) {
+            return null;
+        }
+    }
+
     public boolean isStatic() {
         if (null != field)
             return Reflect.isStatic(field);
@@ -204,7 +224,15 @@ class LHS implements ParserConstants, java.io.Serializable
     }
 
     public Variable getVariable() {
-        return this.var;
+        if (var != null)
+            return this.var;
+        if (field == null)
+            return new Variable(getName(), getType(), this);
+        else try {
+            return new Variable(getName(), getType(), getValue(), new Modifiers(Modifiers.FIELD));
+        } catch (UtilEvalError e) {
+            return null;
+        }
     }
     /**
         Assign a value to the LHS.
