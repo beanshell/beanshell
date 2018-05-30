@@ -217,12 +217,12 @@ public class ClassGeneratorTest {
                     "static final Object VAR = var;",
                     "public int getAsInt() { return VAR; }",
                 "}",
-                "var = 1;",
-                "a = new X5();",
-                "var = 2;",
+                "var = 1;", // class not initialized yet
+                "a = new X5();", // lazy initialize
+                "var = 2;", // constant X5.VAR unchanged
                 "return a;"
         );
-        assertEquals(0, supplier.getAsInt());
+        assertEquals(1, supplier.getAsInt());
     }
 
    @Test
@@ -368,10 +368,6 @@ public class ClassGeneratorTest {
         assertEquals(8, eval("class Test { ITest in; class ITest { out() { 8; } } Test() { in = new ITest(); } } new Test().in.out();"));
     }
 
-    /**
-     * See also failing test script "classinterf1.bsh" and
-     * <a href="http://code.google.com/p/beanshell2/issues/detail?id=46">issue #46</a>.
-     */
     @Test
     @Category(KnownIssue.class)
     public void define_interface_with_constants() throws Exception {
