@@ -34,6 +34,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.WeakHashMap;
 
 import bsh.org.objectweb.asm.ClassWriter;
 import bsh.org.objectweb.asm.Label;
@@ -126,10 +129,12 @@ public class ClassGeneratorUtil implements Opcodes {
     private static final String OBJECT = "Ljava/lang/Object;";
 
     private final String className;
+    private final String canonClassName;
     /**
      * fully qualified class name (with package) e.g. foo/bar/Blah
      */
     private final String fqClassName;
+    private final String uuid;
     private final Class superClass;
     private final String superClassName;
     private final Class[] interfaces;
@@ -137,9 +142,9 @@ public class ClassGeneratorUtil implements Opcodes {
     private final Constructor[] superConstructors;
     private final DelayedEvalBshMethod[] constructors;
     private final DelayedEvalBshMethod[] methods;
-    private final NameSpace classStaticNameSpace;
+    private static final Map<String,NameSpace> contextStore = new WeakHashMap<>();
     private final Modifiers classModifiers;
-    private boolean isInterface;
+    private final boolean isInterface;
 
     /**
      * @param packageName e.g. "com.foo.bar"
@@ -149,8 +154,10 @@ public class ClassGeneratorUtil implements Opcodes {
         this.className = className;
         if (packageName != null) {
             this.fqClassName = packageName.replace('.', '/') + "/" + className;
+            this.canonClassName = packageName+"."+className;
         } else {
             this.fqClassName = className;
+            this.canonClassName = className;
         }
         if (superClass == null) {
             superClass = Object.class;
@@ -162,7 +169,9 @@ public class ClassGeneratorUtil implements Opcodes {
         }
         this.interfaces = interfaces;
         this.vars = vars;
-        this.classStaticNameSpace = classStaticNameSpace;
+        classStaticNameSpace.isInterface = isInterface;
+        this.uuid = UUID.randomUUID().toString();
+        contextStore.put(this.uuid, classStaticNameSpace);
         this.superConstructors = superClass.getDeclaredConstructors();
 
         // Split the methods into constructors and regular method lists
@@ -189,6 +198,8 @@ public class ClassGeneratorUtil implements Opcodes {
 
         this.isInterface = isInterface;
 
+        if (isInterface && !classModifiers.hasModifier("abstract"))
+            classModifiers.addModifier("abstract");
     }
 
     /**
@@ -213,56 +224,55 @@ public class ClassGeneratorUtil implements Opcodes {
      * Generate the class bytecode for this class.
      */
     public byte[] generateClass() {
+        NameSpace classStaticNameSpace = contextStore.get(this.uuid);
         // Force the class public for now...
         int classMods = getASMModifiers(classModifiers) | ACC_PUBLIC;
-        if (isInterface) {
+        if (isInterface)
             classMods |= ACC_INTERFACE | ACC_ABSTRACT;
-        }
 
-        String[] interfaceNames = new String[interfaces.length + (isInterface ? 0 : 1)]; // one more interface for instance init callback
+        String[] interfaceNames = new String[interfaces.length + 1]; // +1 for GeneratedClass
         for (int i = 0; i < interfaces.length; i++) {
             interfaceNames[i] = Type.getInternalName(interfaces[i]);
+            if (Reflect.isGeneratedClass(interfaces[i]))
+                for (Variable v : Reflect.getVariables(interfaces[i]))
+                    classStaticNameSpace.setVariableImpl(v);
         }
-        if (!isInterface) {
-            interfaceNames[interfaces.length] = Type.getInternalName(GeneratedClass.class);
-        }
+        // Everyone implements GeneratedClass
+        interfaceNames[interfaces.length] = Type.getInternalName(GeneratedClass.class);
 
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         cw.visit(V1_8, classMods, fqClassName, null, superClassName, interfaceNames);
 
-        if (!isInterface) {
+        if (!isInterface)
             // Generate the bsh instance 'This' reference holder field
-            generateField(BSHTHIS + className, "Lbsh/This;", ACC_PUBLIC, cw);
-
-            // Generate the static bsh static reference holder field
-            generateField(BSHSTATIC + className, "Lbsh/This;", ACC_PUBLIC + ACC_STATIC, cw);
-        }
+            generateField(BSHTHIS+className, "Lbsh/This;", ACC_PUBLIC, cw);
+        // Generate the static bsh static This reference holder field
+        generateField(BSHSTATIC+className, "Lbsh/This;", ACC_PUBLIC + ACC_STATIC + ACC_FINAL, cw);
+        // Generate class UUID
+        generateField("UUID", "Ljava/lang/String;", ACC_PUBLIC + ACC_STATIC + ACC_FINAL, this.uuid, cw);
 
         // Generate the fields
         for (Variable var : vars) {
-            String type = var.getTypeDescriptor();
-
-            // Don't generate private or loosely typed fields
-            // Note: loose types aren't currently parsed anyway...
-            if (var.hasModifier("private") || type == null) {
+            // Don't generate private fields
+            if (var.hasModifier("private"))
                 continue;
-            }
 
             int modifiers;
             if (isInterface) {
                 modifiers = ACC_PUBLIC | ACC_STATIC | ACC_FINAL;
-            } else {
+                var.setConstant();
+                classStaticNameSpace.setVariableImpl(var);
+                // keep constant fields virtual
+                continue;
+            } else
                 modifiers = getASMModifiers(var.getModifiers());
-            }
 
+            String type = var.getTypeDescriptor();
             generateField(var.getName(), type, modifiers, cw);
         }
 
-        // Generate the portion of the static initializer that bootstraps
-        // the interpreter for a cold class.
-        if (Interpreter.getSaveClasses()) {
-            generateStaticInitializer(cw);
-        }
+        // Generate the static initializer.
+        generateStaticInitializer(cw);
 
         // Generate the constructors
         boolean hasConstructor = false;
@@ -278,27 +288,27 @@ public class ClassGeneratorUtil implements Opcodes {
         }
 
         // If no other constructors, generate a default constructor
-        if (!isInterface && !hasConstructor) {
+        if (!isInterface && !hasConstructor)
             generateConstructor(DEFAULTCONSTRUCTOR/*index*/, new String[0], ACC_PUBLIC, cw);
-        }
 
         // Generate the delegate methods
         for (DelayedEvalBshMethod method : methods) {
             String returnType = method.getReturnTypeDescriptor();
 
-            // Don't generate private /*or loosely return typed */ methods
-            if (method.hasModifier("private") /*|| returnType == null*/) {
+            // Don't generate private methods
+            if (method.hasModifier("private"))
                 continue;
-            }
 
             int modifiers = getASMModifiers(method.getModifiers());
-            if (isInterface) {
+            boolean isStatic = (modifiers & ACC_STATIC) > 0;
+            if (isInterface && !isStatic) {
                 modifiers |= (ACC_PUBLIC | ACC_ABSTRACT);
+                if (!method.hasModifier("abstract"))
+                    method.getModifiers().addModifier("abstract");
             }
 
             generateMethod(className, fqClassName, method.getName(), returnType, method.getParamTypeDescriptors(), modifiers, cw);
 
-            boolean isStatic = (modifiers & ACC_STATIC) > 0;
             boolean overridden = classContainsMethod(superClass, method.getName(), method.getParamTypeDescriptors());
             if (!isStatic && overridden) {
                 generateSuperDelegateMethod(superClassName, method.getName(), returnType, method.getParamTypeDescriptors(), modifiers, cw);
@@ -336,11 +346,13 @@ public class ClassGeneratorUtil implements Opcodes {
         return mods;
     }
 
-    /**
-     * Generate a field - static or instance.
-     */
+    /** Generate a field - static or instance. */
     private static void generateField(String fieldName, String type, int modifiers, ClassWriter cw) {
-        cw.visitField(modifiers, fieldName, type, null/*signature*/, null/*value*/);
+        generateField(fieldName, type, modifiers, null/*value*/, cw);
+    }
+    /** Generate field and assign initial value. */
+    private static void generateField(String fieldName, String type, int modifiers, Object value, ClassWriter cw) {
+        cw.visitField(modifiers, fieldName, type, null/*signature*/, value);
     }
 
     /**
@@ -454,16 +466,19 @@ public class ClassGeneratorUtil implements Opcodes {
      * Generate the static initializer for the class
      */
     void generateStaticInitializer(ClassWriter cw) {
-        MethodVisitor cv = cw.visitMethod(ACC_STATIC, "<clinit>", "()V", null/*sig*/, null/*exceptions*/);
 
         // Generate code to invoke the ClassGeneratorUtil initStatic() method
+        MethodVisitor cv = cw.visitMethod(ACC_STATIC, "<clinit>", "()V", null/*sig*/, null/*exceptions*/);
 
-        // Push the class name as a constant
-        cv.visitLdcInsn(fqClassName);
+        // initialize _bshStaticThis
+        cv.visitFieldInsn(GETSTATIC, fqClassName, "UUID", "Ljava/lang/String;");
+        cv.visitMethodInsn(INVOKESTATIC, "bsh/ClassGeneratorUtil", "pullBshStatic", "(Ljava/lang/String;)Lbsh/This;", false);
+        cv.visitFieldInsn(PUTSTATIC, fqClassName, BSHSTATIC+className, "Lbsh/This;");
 
         // Invoke Class.forName() to get our class.
         // We do this here, as opposed to in the bsh static init helper method
         // in order to be sure to capture the correct classloader.
+        cv.visitLdcInsn(canonClassName);
         cv.visitMethodInsn(INVOKESTATIC, "java/lang/Class", "forName", "(Ljava/lang/String;)Ljava/lang/Class;", false);
 
         // invoke the initStatic() method
@@ -1084,7 +1099,20 @@ public class ClassGeneratorUtil implements Opcodes {
      * if condition for now.
      */
     public static void initStatic(Class genClass) {
-        startInterpreterForClass(genClass);
+        // startInterpreterForClass(genClass);
+    }
+
+    /** Pull provider for class static This.
+     * Called from <clinit> to initialize class BSHSTATIC.
+     * @param uuid the class unique id.
+     * @return This from static namespace. */
+    public static This pullBshStatic(String uuid) {
+        if (contextStore.containsKey(uuid))
+            return contextStore.get(uuid).getThis(null);
+        else
+            // we lost the context, provide empty
+            // container for static final field
+            return This.getThis(null, null);
     }
 
     /**
