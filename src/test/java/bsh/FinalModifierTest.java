@@ -5,8 +5,13 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static bsh.TestUtil.eval;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.hasProperty;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Rule;
 
@@ -46,14 +51,47 @@ public class FinalModifierTest {
 
     @Test
     public void non_assignment_to_static_final_field_should_not_be_allowed() throws Exception {
-        thrown.expect(EvalError.class);
-        thrown.expectMessage(containsString("Static final variable _staticVar is not initialized."));
+        thrown.expect(ExceptionInInitializerError.class);
+        thrown.expectCause(allOf(
+            instanceOf(UtilEvalError.class),
+            hasProperty("message",
+                containsString("Static final variable _staticVar is not initialized."))));
 
         eval(
             "class X7 {",
                 "static final Object _staticVar;",
-            "}"
+            "}",
+            "X7._staticVar;" // lazy initialize
         );
+    }
+
+    @Test
+    public void non_assignment_to_static_final_field_late_init_should_not_be_allowed() throws Exception {
+        thrown.expect(ExceptionInInitializerError.class);
+        thrown.expectCause(allOf(
+            instanceOf(UtilEvalError.class),
+            hasProperty("message",
+                containsString("Static final variable _staticVar is not initialized."))));
+
+        Class<?> clas = (Class<?>) eval(
+            "class X7 {",
+                "static final Object _staticVar;",
+                "static final int _value = 6;",
+            "}",
+            "X7.class;" // X7 not initialized
+        );
+        clas.getField("_value").get(null); // lazy initialize
+    }
+
+    @Test
+    public void non_assignment_to_static_final_field_no_initialize_should_be_allowed() throws Exception {
+        Class<?> clas = (Class<?>) eval(
+            "class X8 {",
+                "static final Object _staticVar;",
+            "}",
+            "X8.class;" // X8 not initialized
+        );
+        assertThat("Class name is X8 not initialized", "X8", equalTo(clas.getName()));
     }
 
     @Test
@@ -136,11 +174,40 @@ public class FinalModifierTest {
         assertEquals("Assigned primitive field _staticAssVal equals 4.", 4, unAssVar);
     }
 
+    @Test
+    public void assignment_to_interface_primitive_field_no_default_value() throws Exception {
+        Object unAssVar = eval(
+            "interface X3 {",
+                "int _staticAssVal = 4;",
+            "}",
+            "return X3._staticAssVal;"
+        );
+        assertEquals("Assigned primitive field _staticAssVal equals 4.", 4, unAssVar);
+    }
+
+    @Test
+    public void assignment_to_interface_primitive_field_default_value() throws Exception {
+        thrown.expect(ExceptionInInitializerError.class);
+        thrown.expectCause(allOf(
+            instanceOf(UtilEvalError.class),
+            hasProperty("message",
+                containsString("Static final variable _staticAssVal is not initialized."))));
+
+        eval(
+            "interface X3 {",
+                "int _staticAssVal;",
+            "}",
+            "return X3._staticAssVal;"
+        );
+    }
 
     @Test
     public void assignment_to_static_final_primitive_field_default_value() throws Exception {
-        thrown.expect(EvalError.class);
-        thrown.expectMessage(containsString("Static final variable _staticAssVal is not initialized."));
+        thrown.expect(ExceptionInInitializerError.class);
+        thrown.expectCause(allOf(
+            instanceOf(UtilEvalError.class),
+            hasProperty("message",
+                containsString("Static final variable _staticAssVal is not initialized."))));
 
         eval(
             "class X3 {",
@@ -162,6 +229,8 @@ public class FinalModifierTest {
             "return new X3()._instVal;"
         );
     }
+
+    @Test
     public void final_in_method_parameter() throws Exception {
         final Object result = eval(
                 "String test(final String text) {",
