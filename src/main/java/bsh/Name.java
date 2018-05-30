@@ -412,6 +412,9 @@ class Name implements java.io.Serializable
             }
 
             if ( obj == null )
+                obj = Reflect.staticMethodForName(clas, field);
+
+            if ( obj == null )
                 throw new UtilEvalError(
                     "No static field or inner class: "
                     + field + " of " + clas );
