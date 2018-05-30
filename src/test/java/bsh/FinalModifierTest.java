@@ -126,6 +126,42 @@ public class FinalModifierTest {
     }
 
     @Test
+    public void assignment_to_static_final_primitive_field_no_default_value() throws Exception {
+        Object unAssVar = eval(
+            "class X3 {",
+                "static final int _staticAssVal = 4;",
+            "}",
+            "return X3._staticAssVal;"
+        );
+        assertEquals("Assigned primitive field _staticAssVal equals 4.", 4, unAssVar);
+    }
+
+
+    @Test
+    public void assignment_to_static_final_primitive_field_default_value() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Static final variable _staticAssVal is not initialized."));
+
+        eval(
+            "class X3 {",
+                "static final int _staticAssVal;",
+            "}",
+            "return X3._staticAssVal;"
+        );
+    }
+
+    @Test
+    public void assignment_to_final_primitive_field_default_value() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Final variable _instVal is not initialized."));
+
+        eval(
+            "class X3 {",
+                "final int _instVal;",
+            "}",
+            "return new X3()._instVal;"
+        );
+    }
     public void final_in_method_parameter() throws Exception {
         final Object result = eval(
                 "String test(final String text) {",
