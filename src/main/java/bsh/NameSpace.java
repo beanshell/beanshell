@@ -101,6 +101,7 @@ public class NameSpace
      * We can move this class related behavior out to a subclass of NameSpace,
      * but we'll start here. */
     boolean isClass;
+    boolean isInterface;
     /** The class static. */
     Class<?> classStatic;
     /** The class instance. */
@@ -1149,7 +1150,8 @@ public class NameSpace
                 + (this.nsName == null
                     ? super.toString()
                     : this.nsName + " (" + super.toString() + ")")
-                + (this.isClass ? " (isClass) " : "")
+                + (this.isClass ? " (class) " : "")
+                + (this.isInterface ? " (interface) " : "")
                 + (this.isMethod ? " (method) " : "")
                 + (this.classStatic != null ? " (class static) " : "")
                 + (this.classInstance != null ? " (class instance) " : "");

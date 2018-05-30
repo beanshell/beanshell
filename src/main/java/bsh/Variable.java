@@ -69,9 +69,8 @@ public class Variable implements java.io.Serializable
     {
         this.name=name;
         this.type = type;
-        this.modifiers = modifiers;
-        this.getModifiers().hasModifier("public");
-        setValue( value, DECLARATION );
+        this.setModifiers( modifiers );
+        this.setValue( value, DECLARATION );
     }
 
     /**
@@ -94,11 +93,10 @@ public class Variable implements java.io.Serializable
 
         this.value = value;
 
-        if ( this.value == null )
+        if ( this.value == null && context != DECLARATION )
             this.value = Primitive.getDefaultValue( type );
 
-        if ( lhs != null )
-        {
+        if ( lhs != null ) {
             this.value = lhs.assign( this.value, false/*strictjava*/ );
             return;
         }
@@ -135,21 +133,37 @@ public class Variable implements java.io.Serializable
         return value;
     }
 
-    /** A type of null means loosely typed variable */
+    public String getName() { return name; }
     public Class getType() { return type;   }
 
-    public String getTypeDescriptor() { return typeDescriptor; }
+    public String getTypeDescriptor() {
+        if (null == typeDescriptor)
+            typeDescriptor = BSHType.getTypeDescriptor(
+                type == null ? Object.class : type);
+        return typeDescriptor;
+    }
 
     public Modifiers getModifiers() {
         if (modifiers == null)
-            this.modifiers = new Modifiers(Modifiers.FIELD);
+            this.setModifiers(new Modifiers(Modifiers.FIELD));
         return this.modifiers;
     }
 
-    public String getName() { return name; }
+    private void setModifiers(Modifiers modifiers) {
+        this.modifiers = modifiers;
+        this.hasModifier("public");
+    }
+
 
     public boolean hasModifier( String name ) {
         return getModifiers().hasModifier(name);
+    }
+
+    public void setConstant() {
+        if (hasModifier("private") || hasModifier("protected"))
+            throw new IllegalArgumentException("Illegal modifier for interface field "
+                    + getName() + ". Only public static & final are permitted.");
+        getModifiers().setConstant();
     }
 
     public String toString() {

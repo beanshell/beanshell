@@ -30,14 +30,20 @@ import static org.junit.Assert.assertTrue;
 import java.util.concurrent.Callable;
 import java.util.function.IntSupplier;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 @RunWith(FilteredTestRunner.class)
 public class ClassGeneratorTest {
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
     @Test
     public void create_class_with_default_constructor() throws Exception {
         eval("class X1 {}");
@@ -242,6 +248,28 @@ public class ClassGeneratorTest {
     }
 
    @Test
+    public void primitive_data_types_interface() throws Exception {
+        Class<?> type = (Class<?>) eval("interface Test { public static final int x = 4; }; Test.class;");
+        assertThat(Reflect.getVariable(type, "x").getValue(), instanceOf(Primitive.class));
+        type = (Class<?>) eval("interface Test { public static int x = 1; }; Test.class;");
+        assertThat(Reflect.getVariable(type, "x").getValue(), instanceOf(Primitive.class));
+        type = (Class<?>) eval("interface Test { public final int x = 1; }; Test.class;");
+        assertThat(Reflect.getVariable(type, "x").getValue(), instanceOf(Primitive.class));
+        type = (Class<?>) eval("interface Test { static final int x = 1; }; Test.class;");
+        assertThat(Reflect.getVariable(type, "x").getValue(), instanceOf(Primitive.class));
+        type = (Class<?>) eval("interface Test { public int x = 1; }; Test.class;");
+        assertThat(Reflect.getVariable(type, "x").getValue(), instanceOf(Primitive.class));
+        type = (Class<?>) eval("interface Test { static int x = 1; }; Test.class;");
+        assertThat(Reflect.getVariable(type, "x").getValue(), instanceOf(Primitive.class));
+        type = (Class<?>) eval("interface Test { final int x = 1; }; Test.class;");
+        assertThat(Reflect.getVariable(type, "x").getValue(), instanceOf(Primitive.class));
+        type = (Class<?>) eval("interface Test { int x = 1; }; Test.class;");
+        assertThat(Reflect.getVariable(type, "x").getValue(), instanceOf(Primitive.class));
+        type = (Class<?>) eval("interface Test { x = 1; }; Test.class;");
+        assertThat(Reflect.getVariable(type, "x").getValue(), instanceOf(Primitive.class));
+    }
+
+   @Test
     public void unwrapped_return_types_class() throws Exception {
         Object x = eval("class Test { public static final int x = 4; }; Test.x;");
         assertThat(x, instanceOf(Integer.class));
@@ -263,6 +291,49 @@ public class ClassGeneratorTest {
         assertThat(x, instanceOf(Integer.class));
     }
 
+   @Test
+    public void unwrapped_return_types_interface() throws Exception {
+        Object x = eval("interface Test { public static final int x = 4; }; Test.x;");
+        assertThat(x, instanceOf(Integer.class));
+        x = eval("interface Test { public static int x = 1; }; Test.x;");
+        assertThat(x, instanceOf(Integer.class));
+        x = eval("interface Test { public final int x = 1; }; Test.x;");
+        assertThat(x, instanceOf(Integer.class));
+        x = eval("interface Test { static final int x = 1; }; Test.x;");
+        assertThat(x, instanceOf(Integer.class));
+        x = eval("interface Test { public int x = 1; }; Test.x;");
+        assertThat(x, instanceOf(Integer.class));
+        x = eval("interface Test { static int x = 1; }; Test.x;");
+        assertThat(x, instanceOf(Integer.class));
+        x = eval("interface Test { final int x = 1; }; Test.x;");
+        assertThat(x, instanceOf(Integer.class));
+        x = eval("interface Test { int x = 1; }; Test.x;");
+        assertThat(x, instanceOf(Integer.class));
+        x = eval("interface Test { x = 1; }; Test.x;");
+        assertThat(x, instanceOf(Integer.class));
+    }
+
+    @Test
+    public void interface_constant_fields() throws Exception {
+        // In java interface constants are all public final string
+        assertEquals(1, eval("interface Test { public static final int x = 1; }; Test.x;"));
+        assertEquals(1, eval("interface Test { static final int x = 1; }; Test.x;"));
+        assertEquals(1, eval("interface Test { final int x = 1; }; Test.x;"));
+        assertEquals(1, eval("interface Test { public static int x = 1; }; Test.x;"));
+        assertEquals(1, eval("interface Test { static int x = 1; }; Test.x;"));
+        assertEquals(1, eval("interface Test { public static int x = 1; }; Test.x;"));
+        assertEquals(2, eval("interface Test { int x = 2; }; Test.x;"));
+        assertEquals(3, eval("interface Test { x = 3; }; Test.x;"));
+    }
+
+    @Test
+    public void interface_constant_field_illegal_modifier() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Illegal modifier for interface field x. "
+                + "Only public static & final are permitted."));
+
+        eval("interface Test { protected int x = 2; };");
+    }
 
     @Test
     public void class_static_fields() throws Exception {

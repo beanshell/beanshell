@@ -583,11 +583,15 @@ void ClassDeclaration() #ClassDeclaration :
 }
 {
     mods = Modifiers( Modifiers.CLASS, false )
-    ( "class" | "interface" { jjtThis.isInterface=true; } )
-    name=<IDENTIFIER>
+    ( "class" name=<IDENTIFIER>
     [ "extends" AmbiguousName() { jjtThis.extend = true; } ]
     [ "implements" numInterfaces=NameList()
         { jjtThis.numInterfaces=numInterfaces; } ]
+  |
+    "interface" { jjtThis.isInterface=true; } name=<IDENTIFIER>
+    [ "extends" numInterfaces=NameList()
+        { jjtThis.numInterfaces=numInterfaces; } ]
+    )
     Block()
     {
         jjtThis.modifiers = mods;

@@ -1138,10 +1138,12 @@ final class Reflect {
      * Get all methods from both class static and object instance namespaces
      */
     public static BshMethod[] getDeclaredMethods(Class<?> type) {
-        return Stream.concat(
-                Stream.of(getMethods(type)),
+        Stream<BshMethod> statc = Stream.of(getMethods(type));
+        if (type.isInterface())
+            return statc.toArray(BshMethod[]::new);
+        return Stream.concat(statc,
                 Stream.of(getMethods(getNewInstance(type)))
-            ).distinct().toArray(BshMethod[]::new);
+            ).toArray(BshMethod[]::new);
     }
 
     /*
@@ -1214,10 +1216,12 @@ final class Reflect {
      * Get all variables from both class static and object instance namespaces
      */
     public static Variable[] getDeclaredVariables(Class<?> type) {
-        return Stream.concat(
-                Stream.of(getVariables(type)),
+        Stream<Variable> statc = Stream.of(getVariables(type));
+        if (type.isInterface())
+            return statc.toArray(Variable[]::new);
+        return Stream.concat(statc,
                 Stream.of(getVariables(getNewInstance(type)))
-            ).toArray(Variable[]::new);
+            ).distinct().toArray(Variable[]::new);
     }
 
     /*
