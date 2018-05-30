@@ -103,12 +103,20 @@ public final class ClassGenerator {
         Variable[] variables = getDeclaredVariables(block, callstack, interpreter, packageName);
         DelayedEvalBshMethod[] methods = getDeclaredMethods(block, callstack, interpreter, packageName);
 
+        callstack.pop();
+
         // initialize static this singleton in namespace
         classStaticNameSpace.getThis(interpreter);
 
         // Create the class generator, which encapsulates all knowledge of the
         // structure of the class
         ClassGeneratorUtil classGenerator = new ClassGeneratorUtil(modifiers, className, packageName, superClass, interfaces, variables, methods, classStaticNameSpace, isInterface);
+
+        // Let the class generator install hooks relating to the structure of
+        // the class into the class static namespace.  e.g. the constructor
+        // array.  This is necessary whether we are generating code or just
+        // reinitializing a previously generated class.
+        classGenerator.initStaticNameSpace(classStaticNameSpace, block/*instance initializer*/);
 
         // Check for existing class (saved class file)
         Class genClass = bcm.getAssociatedClass(fqClassName);
@@ -120,41 +128,18 @@ public final class ClassGenerator {
             // bootstrap the interpreter
             byte[] code = classGenerator.generateClass();
 
-            if (Interpreter.getSaveClasses()) {
+            if (Interpreter.getSaveClasses())
                 saveClasses(className, code);
-            }
 
             // Define the new class in the classloader
             genClass = bcm.defineClass(fqClassName, code);
         }
-
-        // Let the class generator install hooks relating to the structure of
-        // the class into the class static namespace.  e.g. the constructor
-        // array.  This is necessary whether we are generating code or just
-        // reinitializing a previously generated class.
-        classGenerator.initStaticNameSpace(classStaticNameSpace, block/*instance initializer*/);
-
         // import the unqualified class name into parent namespace
         enclosingNameSpace.importClass(fqClassName.replace('$', '.'));
-
-        try {
-            classStaticNameSpace.setLocalVariable(ClassGeneratorUtil.BSHINIT, block, false/*strictJava*/);
-        } catch (UtilEvalError e) {
-            throw new InterpreterError("unable to init static: " + e, e);
-        }
 
         // Give the static space its class static import
         // important to do this after all classes are defined
         classStaticNameSpace.setClassStatic(genClass);
-
-        // evaluate the static portion of the block in the static space
-        block.evalBlock(callstack, interpreter, true/*override*/, ClassNodeFilter.CLASSSTATIC);
-
-        callstack.pop();
-
-        // Validate that static final variables were set
-        for (Variable var : Reflect.getVariables(classStaticNameSpace))
-                var.validateFinalIsSet(true);
 
         bcm.doneDefiningClass(fqClassName);
         return genClass;
