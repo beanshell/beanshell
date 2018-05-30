@@ -116,11 +116,6 @@ class BSHAllocationExpression extends SimpleNode
         Object obj;
         try {
             obj = Reflect.constructObject( type, args );
-
-            // Validate that final variables were set
-            if (isGeneratedClass)
-                for (Variable var : Reflect.getVariables(obj))
-                    var.validateFinalIsSet(false);
         } catch ( ReflectError e) {
             throw new EvalError(
                 "Constructor error: " + e.getMessage(), this, callstack, e);

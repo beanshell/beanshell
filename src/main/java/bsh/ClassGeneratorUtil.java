@@ -1058,6 +1058,11 @@ public class ClassGeneratorUtil implements Opcodes {
             if (constructor != null) {
                 constructor.invoke(args, interpreter, callstack, null/*callerInfo*/, false/*overrideNameSpace*/);
             }
+
+            // Validate that final variables were set
+            for (Variable var : Reflect.getVariables(instance))
+                var.validateFinalIsSet(false);
+
         } catch (Exception e) {
             if (e instanceof TargetError) {
                 e = (Exception) ((TargetError) e).getTarget();
