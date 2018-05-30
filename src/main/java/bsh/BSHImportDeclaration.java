@@ -30,6 +30,7 @@ package bsh;
 
 class BSHImportDeclaration extends SimpleNode
 {
+    private static final long serialVersionUID = 1L;
     public boolean importPackage;
     public boolean staticImport;
     public boolean superImport;
@@ -40,33 +41,42 @@ class BSHImportDeclaration extends SimpleNode
         throws EvalError
     {
         NameSpace namespace = callstack.top();
-        if ( superImport )
-            try {
-                namespace.doSuperImport();
-            } catch ( UtilEvalError e ) {
-                throw e.toEvalError( this, callstack  );
-            }
-        else
-        {
-            if ( staticImport )
-            {
-                if ( importPackage )
-                {
-                    Class clas = ((BSHAmbiguousName)jjtGetChild(0)).toClass(
-                        callstack, interpreter );
-                    namespace.importStatic( clas );
-                } else
-                    throw new EvalError(
-                        "static field imports not supported yet",
+        BSHAmbiguousName ambigName = (BSHAmbiguousName) jjtGetChild(0);
+        if ( superImport ) try {
+            namespace.doSuperImport();
+        } catch ( UtilEvalError e ) {
+            throw e.toEvalError( this, callstack  );
+        }
+        else if ( staticImport ) {
+            if ( importPackage ) {
+                // import all (*) static members
+                Class<?> clas = ambigName.toClass( callstack, interpreter );
+                namespace.importStatic( clas );
+            } else {
+
+                try { // import static method
+                    Object obj = ambigName.toObject( callstack, interpreter );
+                    if ( obj instanceof BshMethod ) {
+                        namespace.setMethod( (BshMethod) obj );
+                        return Primitive.VOID;
+                    }
+                } catch (Exception e) { /* ignore try field instead */ }
+                // import static field
+                LHS lhs = ambigName.toLHS( callstack, interpreter );
+                if ( null != lhs && lhs.isStatic() ) {
+                    namespace.setVariableImpl( lhs.getVariable() );
+                    return Primitive.VOID;
+                }
+                throw new EvalError(ambigName.text
+                        + " is not a static member of a class",
                         this, callstack );
-            } else
-            {
-                String name = ((BSHAmbiguousName)jjtGetChild(0)).text;
-                if ( importPackage )
-                    namespace.importPackage(name);
-                else
-                    namespace.importClass(name);
             }
+        } else { // import package
+            String name = ambigName.text;
+            if ( importPackage )
+                namespace.importPackage(name);
+            else
+                namespace.importClass(name);
         }
 
         return Primitive.VOID;
