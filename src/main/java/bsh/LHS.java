@@ -295,6 +295,8 @@ class LHS implements ParserConstants, java.io.Serializable
         }
         else if (type == LOOSETYPE_FIELD) {
             Modifiers mods = new Modifiers(Modifiers.FIELD);
+            if (nameSpace.isInterface)
+                mods.setConstant();
             nameSpace.setTypedVariable(varName, getValueType(val), val, mods);
             return val;
         }

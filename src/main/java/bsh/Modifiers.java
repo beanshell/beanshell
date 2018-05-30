@@ -79,14 +79,9 @@ public class Modifiers implements java.io.Serializable
 
     public boolean hasModifier( String name )
     {
-        if (name.equals("public") && !modifiers.contains(name)
-                && !Capabilities.haveAccessibility()
-                && !modifiers.contains("private")
-                && !modifiers.contains("protected")) {
-            try {
-                modifiers.add(0, name);
-            } catch (Throwable e) { /*ignore */ }
-        }
+        if (name.equals("public")
+                && !Capabilities.haveAccessibility())
+            insertPublic();
         return modifiers.contains(name);
     }
 
@@ -114,6 +109,21 @@ public class Modifiers implements java.io.Serializable
         if ( hasModifier( modifier ) )
             throw new IllegalStateException(
                 context + " cannot be declared '"+modifier+"'");
+    }
+
+    private void insertPublic() {
+        if (!modifiers.contains("public")
+                && !modifiers.contains("private")
+                && !modifiers.contains("protected"))
+            modifiers.add(0, "public");
+    }
+
+    public void setConstant() {
+        insertPublic();
+        modifiers.remove("static");
+        addModifier("static");
+        modifiers.remove("final");
+        addModifier("final");
     }
 
     public String toString()
