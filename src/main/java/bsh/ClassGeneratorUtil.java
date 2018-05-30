@@ -1099,7 +1099,7 @@ public class ClassGeneratorUtil implements Opcodes {
      * if condition for now.
      */
     public static void initStatic(Class genClass) {
-        // startInterpreterForClass(genClass);
+        startInterpreterForClass(genClass);
     }
 
     /** Pull provider for class static This.
