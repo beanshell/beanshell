@@ -196,12 +196,29 @@ public class SourceForgeIssuesTest {
 
 
     /** <a href="http://sourceforge.net/tracker/?func=detail&aid=1796035&group_id=4075&atid=104075">Sourceforge issue "Grammar error when defining arrays" - ID: 1796035</a>. */
-    @Category(KnownIssue.class)
     @Test
     public void sourceforge_issue_1796035_variable_declared_array() throws Exception {
         Object ret = eval("byte array[] = new byte[0]; return array;");
         assertThat(ret, instanceOf(new byte[0].getClass()));
         assertArrayEquals(new byte[0], (byte[]) ret);
+        ret = eval("int array[][] = new int[0][0]; return array;");
+        assertThat(ret, instanceOf(new int[0][0].getClass()));
+        assertArrayEquals(new int[0][0], (int[][]) ret);
+        ret = eval("array = new int[] {1,2}; return array;");
+        assertThat(ret, instanceOf(new int[0].getClass()));
+        assertArrayEquals(new int[] {1,2}, (int[]) ret);
+        ret = eval("String array[] = new String[0]; return array;");
+        assertThat(ret, instanceOf(new String[0].getClass()));
+        assertArrayEquals(new String[0], (Object[]) ret);
+        ret = eval("String array[] = new String[] {'foo'}; return array;");
+        assertThat(ret, instanceOf(new String[0].getClass()));
+        assertArrayEquals(new String[] {"foo"}, (Object[]) ret);
+        ret = eval("String array[][] = new String[0][0]; return array;");
+        assertThat(ret, instanceOf(new String[0][0].getClass()));
+        assertArrayEquals(new String[0][0], (Object[][]) ret);
+        ret = eval("String array[][] = new String[][] {new String[]{'foo'}}; return array;");
+        assertThat(ret, instanceOf(new String[0][0].getClass()));
+        assertArrayEquals(new String[][] { new String[] {"foo"} }, (Object[][]) ret);
     }
 
 
