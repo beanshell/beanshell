@@ -24,9 +24,8 @@ for(i=2, a=5; i<10; i++) {
 
 //assert(i==1);  old behavior
 assert(i==10);
-//assert(a==void);  old behavior
-assert(a==5);
-assert(patfj==42);
+assert(a==void);
+assert(patfj==void);
 
 // with types the spot where allocation occurs is always clear
 int i=5;

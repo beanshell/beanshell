@@ -2,6 +2,7 @@
 
 source("TestHarness.bsh");
 
+bar1 = 0;
 try {
     int foo1=5;
     bar1=5;
@@ -22,8 +23,8 @@ try {
 }
 
 assert( foo2 == void );
-assert( bar2 == 5 );
-assert( b2 == 5);
+assert( bar2 == void );
+assert( b2 == void );
 assert( e2 ==  void );
 
 try {
@@ -38,6 +39,7 @@ try {
 }
 assert( e3 == void );
 
+fin1 = 0;
 try {
     a=1/0;
 } catch ( e3 ) {
@@ -51,10 +53,11 @@ assert( fin2 == void );
 try {
 } catch ( e3 ) {
 } finally {
-    fin1=5;
+    fin1=6;
     int fin2=5;
 }
-assert( fin1 == 5 );
+
+assert( fin1 == 6 );
 assert( fin2 == void );
 
 try {
