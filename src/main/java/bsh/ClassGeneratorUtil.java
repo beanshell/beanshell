@@ -39,7 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import bsh.org.objectweb.asm.ClassWriter;
 import bsh.org.objectweb.asm.Label;
@@ -145,7 +145,7 @@ public class ClassGeneratorUtil implements Opcodes {
     private final Constructor[] superConstructors;
     private final DelayedEvalBshMethod[] constructors;
     private final DelayedEvalBshMethod[] methods;
-    private static final Map<String,NameSpace> contextStore = new WeakHashMap<>();
+    private static final Map<String,NameSpace> contextStore = new ConcurrentHashMap<>();
     private final Modifiers classModifiers;
     private final boolean isInterface;
 
@@ -171,8 +171,7 @@ public class ClassGeneratorUtil implements Opcodes {
         this.interfaces = interfaces;
         this.vars = vars;
         classStaticNameSpace.isInterface = isInterface;
-        this.uuid = UUID.randomUUID().toString();
-        contextStore.put(this.uuid, classStaticNameSpace);
+        contextStore.put(this.uuid = UUID.randomUUID().toString(), classStaticNameSpace);
         this.superConstructors = superClass.getDeclaredConstructors();
 
         // Split the methods into constructors and regular method lists
@@ -1084,7 +1083,7 @@ public class ClassGeneratorUtil implements Opcodes {
      * @return This from static namespace. */
     public static This pullBshStatic(String uuid) {
         if (contextStore.containsKey(uuid))
-            return contextStore.get(uuid).getThis(null);
+            return contextStore.remove(uuid).getThis(null);
         else
             // we lost the context, provide empty
             // container for static final field
