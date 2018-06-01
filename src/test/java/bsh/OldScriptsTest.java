@@ -43,17 +43,10 @@ public class OldScriptsTest {
     private static final File baseDir = new File(
             "src/test/resources/test-scripts");
     static {
-        KNOWN_FAILING_TESTS.add("blockscope.bsh");
         KNOWN_FAILING_TESTS.add("class3.bsh");
         KNOWN_FAILING_TESTS.add("classinner.bsh");
         KNOWN_FAILING_TESTS.add("classser.bsh");
-        KNOWN_FAILING_TESTS.add("commands.bsh");
         KNOWN_FAILING_TESTS.add("externalNameSpace.bsh");
-        KNOWN_FAILING_TESTS.add("forscope.bsh");
-        KNOWN_FAILING_TESTS.add("forscope4.bsh");
-        KNOWN_FAILING_TESTS.add("iftest.bsh");
-        KNOWN_FAILING_TESTS.add("newscoping.bsh");
-        KNOWN_FAILING_TESTS.add("tryscope.bsh");
     }
 
     @Test
