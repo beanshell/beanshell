@@ -30,6 +30,7 @@ package bsh;
 class BSHTypedVariableDeclaration extends SimpleNode
 {
     public Modifiers modifiers;
+    private BSHVariableDeclarator[] bvda; 
 
     BSHTypedVariableDeclaration(int id) { super(id); }
 
@@ -46,9 +47,11 @@ class BSHTypedVariableDeclaration extends SimpleNode
 
     BSHVariableDeclarator [] getDeclarators()
     {
+        if (null != bvda)
+            return bvda;
         int n = jjtGetNumChildren();
         int start=1;
-        BSHVariableDeclarator [] bvda = new BSHVariableDeclarator[ n-start ];
+        bvda = new BSHVariableDeclarator[ n-start ];
         for (int i = start; i < n; i++)
         {
             bvda[i-start] = (BSHVariableDeclarator)jjtGetChild(i);
@@ -66,6 +69,7 @@ class BSHTypedVariableDeclaration extends SimpleNode
         try {
             NameSpace namespace = callstack.top();
             BSHType typeNode = getTypeNode();
+            typeNode.declaredDimensions(getDeclarators()[0].dimensions);
             Class type = typeNode.getType( callstack, interpreter );
 
             BSHVariableDeclarator [] bvda = getDeclarators();

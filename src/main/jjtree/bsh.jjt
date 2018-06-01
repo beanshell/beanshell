@@ -649,7 +649,9 @@ void VariableDeclarator() #VariableDeclarator :
     Token t;
 }
 {
-    t=<IDENTIFIER> [ "=" VariableInitializer() ]
+    t=<IDENTIFIER>
+    ( "[" "]" { jjtThis.dimensions++; } )*
+    [ "=" VariableInitializer() ]
     {
         jjtThis.name = t.image;
     }
