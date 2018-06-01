@@ -239,7 +239,10 @@ public class Parser
     int parseInt(String s) throws NumberFormatException {
         int radix;
         int i;
-        if( s.startsWith("0x") || s.startsWith("0X") ) {
+        if( s.startsWith("0b") || s.startsWith("0B") ) {
+            radix = 2;
+            i = 2;
+        } else if( s.startsWith("0x") || s.startsWith("0X") ) {
             radix = 16;
             i = 2;
         } else if( s.startsWith("0") && s.length() > 1 ) {
@@ -252,6 +255,7 @@ public class Parser
         int result = 0;
         int len = s.length();
         for( ; i<len; i++ ) {
+            if (s.charAt(i) == '_') continue;
             if( result < 0 )
                 throw new NumberFormatException("Number too big for integer type: "+s);
             result *= radix;
@@ -266,7 +270,10 @@ public class Parser
     long parseLong(String s) throws NumberFormatException {
         int radix;
         int i;
-        if( s.startsWith("0x") || s.startsWith("0X") ) {
+        if( s.startsWith("0b") || s.startsWith("0B") ) {
+            radix = 2;
+            i = 2;
+        } else if( s.startsWith("0x") || s.startsWith("0X") ) {
             radix = 16;
             i = 2;
         } else if( s.startsWith("0") && s.length() > 1 ) {
@@ -279,6 +286,7 @@ public class Parser
         long result = 0;
         int len = s.length();
         for( ; i<len; i++ ) {
+            if (s.charAt(i) == '_') continue;
             if( result < 0L )
                 throw new NumberFormatException("Number too big for long type: "+s);
             result *= radix;
@@ -377,12 +385,15 @@ TOKEN : /* LITERALS */
   < INTEGER_LITERAL:
         <DECIMAL_LITERAL> (["l","L"])?
       | <HEX_LITERAL> (["l","L"])?
+      | <BINARY_LITERAL> (["l","L"])?
       | <OCTAL_LITERAL> (["l","L"])?
   >
 |
-  < #DECIMAL_LITERAL: ["1"-"9"] (["0"-"9"])* >
+  < #DECIMAL_LITERAL: ["1"-"9"] (["0"-"9","_"])* >
 |
-  < #HEX_LITERAL: "0" ["x","X"] (["0"-"9","a"-"f","A"-"F"])+ >
+  < #HEX_LITERAL: "0" ["x","X"] (["0"-"9","a"-"f","A"-"F","_"])+ >
+|
+  < #BINARY_LITERAL: "0" ["b","B"] ((["0","1","_"])*(["0","1"])?) >
 |
   < #OCTAL_LITERAL: "0" (["0"-"7"])* >
 |
