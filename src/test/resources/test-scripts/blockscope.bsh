@@ -13,7 +13,7 @@ int p=1;
     assert( p == 2 );
 }
 assert( p == 1 );
-assert( pz == 99 );
+assert( pz == void );
 
 
 /*

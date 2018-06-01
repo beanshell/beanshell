@@ -17,13 +17,13 @@ for(int i=1; i<3; i++) {
     i2 = i;
 }
 assert(i==99);
-assert(q==2);
+assert(q==void);
 
 // typed and untyped vars effectively have different scope
 assert(a==9);
 assert(q2==99);
 
-assert(i2 == 2);
+assert(i2 == void);
 
 // multiple inits
 for(x=0, a=2, y="foo"; x<3; x++) {
