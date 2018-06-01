@@ -195,6 +195,18 @@ class BSHType extends SimpleNode
         return arrayDims;
     }
 
+    public void declaredDimensions(int dimensions) {
+        if (dimensions > 0) {
+            SimpleNode node = getTypeNode();
+            if ( node instanceof BSHPrimitiveType )
+                while (dimensions-- > 0)
+                    ((BSHPrimitiveType)node).type = Array.newInstance(
+                            ((BSHPrimitiveType)node).type, 0).getClass();
+            else
+                arrayDims = dimensions;
+        }
+    }
+
     public void classLoaderChanged() {
         type = null;
         baseType = null;
