@@ -19,7 +19,6 @@ public class Project_Coin_Test {
 
 
     @Test
-    @Category(ProjectCoinFeature.class)
     public void integer_literal_enhancements() throws Exception {
         final Interpreter interpreter = new Interpreter();
         assertEquals("0x99", 153, interpreter.eval("return 0x99;"));
