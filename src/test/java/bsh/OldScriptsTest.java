@@ -43,7 +43,6 @@ public class OldScriptsTest {
     private static final File baseDir = new File(
             "src/test/resources/test-scripts");
     static {
-        KNOWN_FAILING_TESTS.add("class3.bsh");
         KNOWN_FAILING_TESTS.add("classinner.bsh");
         KNOWN_FAILING_TESTS.add("classser.bsh");
         KNOWN_FAILING_TESTS.add("externalNameSpace.bsh");
