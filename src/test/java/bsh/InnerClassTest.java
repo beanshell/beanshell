@@ -40,6 +40,21 @@ public class InnerClassTest {
     }
 
     @Test
+    public void run_script_innerclass() throws Throwable {
+        new BshScriptTestCase.Script("innerclass.bsh").runTest();
+    }
+
+    @Test
+    public void run_script_innerclass2() throws Throwable {
+        new BshScriptTestCase.Script("innerclass2.bsh").runTest();
+    }
+
+    @Test
+    public void run_script_classinner() throws Throwable {
+        new BshScriptTestCase.Script("classinner.bsh").runTest();
+    }
+
+    @Test
     public void inner_class_instance_from_outer_method() throws Exception {
         Object ret = eval(
             "class Outer {",
