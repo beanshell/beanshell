@@ -101,14 +101,18 @@ class BSHTryStatement extends SimpleNode
             while ( callstack.depth() > callstackDepth )
                 stackInfo += "\t" + callstack.pop() +"\n";
         } finally {
-            // try block finished auto close try-with-resources
-            if (null != this.tryWithResources)
-                this.tryWithResources.autoClose();
-        }
+            // unwrap the target error
+            if ( target != null )
+                thrown = target.getTarget();
 
-        // unwrap the target error
-        if ( target != null )
-            thrown = target.getTarget();
+            // try block finished auto close try-with-resources
+            if (null != this.tryWithResources) {
+                List<Throwable> tlist = this.tryWithResources.autoClose();
+                for (Throwable t: tlist) // Java 9/10 treats this differently from 8
+                    if (null != thrown && thrown != t)
+                        thrown.addSuppressed(t);
+            }
+        }
 
 
         // If we have an exception, find a catch
