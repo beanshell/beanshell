@@ -94,14 +94,6 @@ public class SourceForgeIssuesTest {
         assertNull(weakRef.get());
     }
 
-
-    /** <a href="http://sourceforge.net/tracker/?func=detail&aid=2945459&group_id=4075&atid=104075">Sourceforge issue "Parsing of long hex literals fails" - ID: 2945459</a>. */
-    @Test
-    public void sourceforge_issue_2945459_parse_long_hex_literal() throws Exception {
-        assertEquals(0x0000000001L, eval("long foo = 0x0000000001L;", "return foo"));
-    }
-
-
     /** <a href="http://sourceforge.net/tracker/?func=detail&aid=2562805&group_id=4075&atid=104075">Sourceforge issue "Debug fails if called method argument is null" - ID: 2562805</a>. */
     @Test
     public void sourceforge_issue_2562805_debug_nullpointerexception() throws Exception {
@@ -220,13 +212,6 @@ public class SourceForgeIssuesTest {
         ret = eval("String array[][] = new String[][] {new String[]{'foo'}}; return array;");
         assertThat(ret, instanceOf(new String[0][0].getClass()));
         assertArrayEquals(new String[][] { new String[] {"foo"} }, (Object[][]) ret);
-    }
-
-
-    /** <a href="http://sourceforge.net/tracker/index.php?func=detail&aid=1897015&group_id=4075&atid=1950677">Sourceforge issue "parsing number 0xff000000 fails" - ID: 1950677</a>. */
-    @Test
-    public void sourceforge_issue_1950677_parsing_hex_literal() throws Exception {
-        assertEquals(0xff000000, eval("return 0xff000000;"));
     }
 
 
