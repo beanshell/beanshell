@@ -2,6 +2,7 @@ package bsh;
 
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -17,10 +18,11 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+@RunWith(FilteredTestRunner.class)
 public class TryStatementTest {
 
     @Test
-    @Category(ProjectCoinFeature.class)
+    @Category(KnownIssue.class)
     public void try_with_resource_parsing() throws Exception {
         eval(
                 "try (ByteArrayOutputStream x = new ByteArrayOutputStream()) {",
@@ -41,7 +43,7 @@ public class TryStatementTest {
 
 
     @Test
-    @Category(ProjectCoinFeature.class)
+    @Category(KnownIssue.class)
     public void try_with_resource() throws Exception {
         final Interpreter interpreter = new Interpreter();
         final AtomicBoolean closed = new AtomicBoolean(false);

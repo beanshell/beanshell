@@ -4,7 +4,6 @@ package bsh;
 import static bsh.TestUtil.eval;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import static org.hamcrest.Matchers.arrayWithSize;
@@ -514,27 +513,27 @@ public class ReflectTest {
     @Test
     public void findMostSpecificSignature() {
         int value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
-            {Double.TYPE}, {new char[0].getClass()}, {String.class}, {Object.class}
+            {Double.TYPE}, {char[].class}, {String.class}, {Object.class}
         });
         assertEquals("most specific String class", 2, value);
         value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
-            {Double.TYPE}, {new char[0].getClass()}, {Object.class}, {String.class}
+            {Double.TYPE}, {char[].class}, {Object.class}, {String.class}
         });
         assertEquals("most specific String class", 3, value);
         value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
-            {Double.TYPE}, {new char[0].getClass()}, {Integer.class}, {String.class}
+            {Double.TYPE}, {char[].class}, {Integer.class}, {String.class}
         });
         assertEquals("most specific String class", 3, value);
         value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
-            {Double.TYPE}, {new char[0].getClass()}, {Number.class}, {Integer.class}
+            {Double.TYPE}, {char[].class}, {Number.class}, {Integer.class}
         });
         assertEquals("most specific Integer class", 3, value);
         value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
-            {Double.TYPE}, {new char[0].getClass()}, {Object.class}, {Boolean.TYPE}
+            {Double.TYPE}, {char[].class}, {Object.class}, {Boolean.TYPE}
         });
         assertEquals("most specific Object class", 2, value);
         value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
-            {Double.TYPE}, {new char[0].getClass()}, {Boolean.TYPE}
+            {Double.TYPE}, {char[].class}, {Boolean.TYPE}
         });
         assertEquals("most specific char[] class", 1, value);
     }
