@@ -30,7 +30,7 @@ package bsh;
 class BSHTypedVariableDeclaration extends SimpleNode
 {
     public Modifiers modifiers;
-    private BSHVariableDeclarator[] bvda; 
+    private BSHVariableDeclarator[] bvda;
 
     BSHTypedVariableDeclaration(int id) { super(id); }
 
