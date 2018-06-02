@@ -19,18 +19,6 @@ public class Project_Coin_Test {
 
 
     @Test
-    public void integer_literal_enhancements() throws Exception {
-        final Interpreter interpreter = new Interpreter();
-        assertEquals("0x99", 153, interpreter.eval("return 0x99;"));
-        assertEquals("0231", 153, interpreter.eval("return 0231;"));
-        assertEquals("0b10011001", 153, interpreter.eval("return 0b10011001;"));
-        assertEquals("0b_1001_1001", 153, interpreter.eval("return 0b_1001_1001;"));
-        assertEquals("0x_9_9", 153, interpreter.eval("return 0x_9_9;"));
-        assertEquals("15_500_000_000L", 15500000000L, interpreter.eval("return 15_500_000_000L;"));
-    }
-
-
-    @Test
     @Category(ProjectCoinFeature.class)
     public void try_with_resource_parsing() throws Exception {
         eval(
