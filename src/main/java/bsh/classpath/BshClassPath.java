@@ -668,9 +668,12 @@ public class BshClassPath
             {
                 //String rtjar = System.getProperty("java.home")+"/lib/rt.jar";
                 String rtjar = getRTJarPath();
-                URL url = new File( rtjar ).toURI().toURL();
-                bootClassPath = new BshClassPath(
-                    "Boot Class Path", new URL[] { url } );
+                if (null != rtjar) {
+                    URL url = new File( rtjar ).toURI().toURL();
+                    bootClassPath = new BshClassPath(
+                        "Boot Class Path", new URL[] { url } );
+                } else // Java 9+ no more rt.jar
+                    bootClassPath = new BshClassPath("Boot Class Path");
             } catch ( MalformedURLException e ) {
                 throw new ClassPathException(" can't find boot jar: "+e, e);
             }
