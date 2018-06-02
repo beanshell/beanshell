@@ -53,20 +53,34 @@ class BSHImportDeclaration extends SimpleNode
                 Class<?> clas = ambigName.toClass( callstack, interpreter );
                 namespace.importStatic( clas );
             } else {
-
-                try { // import static method
-                    Object obj = ambigName.toObject( callstack, interpreter );
-                    if ( obj instanceof BshMethod ) {
-                        namespace.setMethod( (BshMethod) obj );
-                        return Primitive.VOID;
-                    }
+                Object obj = null;
+                Class<?> clas = null;
+                String name = Name.suffix(ambigName.text, 1);
+                try { // import static method from class
+                    clas = namespace.getClass(Name.prefix(ambigName.text));
+                    obj = Reflect.staticMethodForName(clas, name);
+                } catch (Exception e) { e.printStackTrace(); /* ignore try field instead */ }
+                try { // import static field from class
+                    if (null != clas && null == obj)
+                        obj = Reflect.getLHSStaticField(clas, name);
+                } catch (Exception e) { /* ignore try method instead */ }
+                try { // import static method from Name
+                    if (null == obj)
+                        obj = ambigName.toObject( callstack, interpreter );
                 } catch (Exception e) { /* ignore try field instead */ }
-                // import static field
-                LHS lhs = ambigName.toLHS( callstack, interpreter );
-                if ( null != lhs && lhs.isStatic() ) {
-                    namespace.setVariableImpl( lhs.getVariable() );
+                // do we have a method
+                if ( obj instanceof BshMethod ) {
+                    namespace.setMethod( (BshMethod) obj );
                     return Primitive.VOID;
                 }
+                // import static field from Name
+                obj = ambigName.toLHS( callstack, interpreter );
+                // do we have a field
+                if ( obj instanceof LHS && ((LHS) obj).isStatic() ) {
+                    namespace.setVariableImpl( ((LHS) obj).getVariable() );
+                    return Primitive.VOID;
+                }
+                // no static member found
                 throw new EvalError(ambigName.text
                         + " is not a static member of a class",
                         this, callstack );
