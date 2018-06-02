@@ -33,22 +33,37 @@ import java.util.List;
 
 class BSHTryStatement extends SimpleNode
 {
+    BSHTryWithResources tryWithResources = null;
+
     BSHTryStatement(int id)
     {
         super(id);
     }
 
+    private int firstBlockNode() {
+        for (int i=0; i<jjtGetNumChildren(); i++)
+            if (jjtGetChild(i) instanceof BSHBlock)
+                return i;
+        return 0;
+    }
+
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
-        BSHBlock tryBlock = ((BSHBlock)jjtGetChild(0));
+
+        if (jjtGetChild(0) instanceof BSHTryWithResources) {
+            this.tryWithResources = ((BSHTryWithResources) jjtGetChild(0));
+            this.tryWithResources.eval(callstack, interpreter);
+        }
+
+        int i = firstBlockNode();
+        BSHBlock tryBlock = (BSHBlock) jjtGetChild(i++);
 
         List<BSHFormalParameter> catchParams = new ArrayList<>();
         List<BSHBlock> catchBlocks = new ArrayList<>();
 
         int nchild = jjtGetNumChildren();
         Node node = null;
-        int i=1;
         while((i < nchild) && ((node = jjtGetChild(i++)) instanceof BSHFormalParameter))
         {
             catchParams.add((BSHFormalParameter)node);
@@ -85,6 +100,10 @@ class BSHTryStatement extends SimpleNode
             String stackInfo = "Bsh Stack: ";
             while ( callstack.depth() > callstackDepth )
                 stackInfo += "\t" + callstack.pop() +"\n";
+        } finally {
+            // try block finished auto close try-with-resources
+            if (null != this.tryWithResources)
+                this.tryWithResources.autoClose();
         }
 
         // unwrap the target error
