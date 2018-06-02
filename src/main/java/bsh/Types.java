@@ -271,7 +271,7 @@ class Types
         // prim can be boxed and assigned to Object
         if ( lhsType == Object.class )
             return true;
-        
+
         // null rhs type corresponds to type of Primitive.NULL
         // assignable to any object type but not array
         if (rhsType == null)
