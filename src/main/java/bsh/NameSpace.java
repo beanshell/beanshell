@@ -221,12 +221,12 @@ public class NameSpace
         return this.getNameResolver(name).toObject(callstack, interpreter);
     }
 
-    /** Set the variable through this namespace. This method obeys the
-     * LOCALSCOPING property to determine how variables are set.
+    /** Set the variable through this namespace.
      * <p>
      * Note: this method is primarily intended for use internally. If you use
      * this method outside of the bsh package and wish to set variables with
      * primitive values you will have to wrap them using bsh.Primitive.
+     * </p>
      * @param name the name
      * @param value the value
      * @param strictJava specifies whether strict java rules are applied.
@@ -234,12 +234,10 @@ public class NameSpace
      * @see bsh.Primitive
      *      <p>
      *      Setting a new variable (which didn't exist before) or removing a
-     *      variable causes a namespace change. */
+     *      variable causes a namespace change. </p>*/
     public void setVariable(final String name, final Object value,
             final boolean strictJava) throws UtilEvalError {
-        // if localscoping switch follow strictJava, else recurse
-        final boolean recurse = Interpreter.LOCALSCOPING ? strictJava : true;
-        this.setVariable(name, value, strictJava, recurse);
+        this.setVariable(name, value, strictJava, true);
     }
 
     /** Set a variable explicitly in the local scope.
@@ -257,13 +255,10 @@ public class NameSpace
      * variable may be an existing or non-existing variable. It may live in this
      * namespace or in a parent namespace if recurse is true.
      * <p>
-     * Note: This method is not public and does *not* know about LOCALSCOPING.
-     * Its caller methods must set recurse intelligently in all situations
-     * (perhaps based on LOCALSCOPING).
-     * <p>
      * Note: this method is primarily intended for use internally. If you use
      * this method outside of the bsh package and wish to set variables with
      * primitive values you will have to wrap them using bsh.Primitive.
+     * </p>
      * @param name the name
      * @param value the value
      * @param strictJava specifies whether strict java rules are applied.
@@ -274,7 +269,7 @@ public class NameSpace
      * @see bsh.Primitive
      *      <p>
      *      Setting a new variable (which didn't exist before) or removing a
-     *      variable causes a namespace change. */
+     *      variable causes a namespace change. </p>*/
     Variable setVariable(final String name, Object value,
             final boolean strictJava, final boolean recurse)
             throws UtilEvalError {
@@ -323,9 +318,7 @@ public class NameSpace
      * @throws UtilEvalError the util eval error */
     public void setVariableOrProperty(final String name, final Object value,
             final boolean strictJava) throws UtilEvalError {
-        // if localscoping switch follow strictJava, else recurse
-        final boolean recurse = Interpreter.LOCALSCOPING ? strictJava : true;
-        this.setVariableOrProperty(name, value, strictJava, recurse);
+        this.setVariableOrProperty(name, value, strictJava, true);
     }
 
     /** Set a variable or property explicitly in the local scope.
