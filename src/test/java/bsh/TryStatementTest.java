@@ -1,11 +1,14 @@
 package bsh;
 
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -13,39 +16,59 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static bsh.TestUtil.eval;
 import static bsh.TestUtil.toMap;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.arrayWithSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(FilteredTestRunner.class)
 public class TryStatementTest {
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Test
-    @Category(KnownIssue.class)
     public void try_with_resource_parsing() throws Exception {
-        eval(
+        Object resource = eval(
                 "try (ByteArrayOutputStream x = new ByteArrayOutputStream()) {",
-                "} catch (Exception e) {",
-                "}\n"
+                    "return x;",
+                "} catch (Exception e) {}"
         );
-        eval(
+        assertThat(resource, instanceOf(AutoCloseable.class));
+        assertThat(resource, instanceOf(ByteArrayOutputStream.class));
+    }
+
+    @Test
+    public void try_with_resource_parsing_multi() throws Exception {
+        Object resource = eval(
                 "try (ByteArrayOutputStream x = new ByteArrayOutputStream(); ByteArrayOutputStream y = new ByteArrayOutputStream()) {",
-                "} catch (Exception e) {",
-                "}\n"
+                    "return new AutoCloseable[] {x, y};",
+                "} catch (Exception e) {}"
         );
-        eval(
+        assertThat(resource, instanceOf(AutoCloseable[].class));
+        assertThat((AutoCloseable[]) resource, arrayWithSize(2));
+        assertThat(Array.get(resource, 0), instanceOf(ByteArrayOutputStream.class));
+        assertThat(Array.get(resource, 1), instanceOf(ByteArrayOutputStream.class));
+    }
+
+    @Test
+    public void try_with_resource_parsing_multi_loosetype() throws Exception {
+        Object resource = eval(
                 "try (x = new ByteArrayOutputStream(); y = new ByteArrayOutputStream()) {",
-                "} catch (Exception e) {",
-                "}\n"
+                    "return new AutoCloseable[] {x, y};",
+                "} catch (Exception e) {}"
         );
+        assertThat(resource, instanceOf(AutoCloseable[].class));
+        assertThat((AutoCloseable[]) resource, arrayWithSize(2));
+        assertThat(Array.get(resource, 0), instanceOf(ByteArrayOutputStream.class));
+        assertThat(Array.get(resource, 1), instanceOf(ByteArrayOutputStream.class));
     }
 
 
     @Test
-    @Category(KnownIssue.class)
     public void try_with_resource() throws Exception {
-        final Interpreter interpreter = new Interpreter();
         final AtomicBoolean closed = new AtomicBoolean(false);
         final IOException fromWrite = new IOException("exception from write");
         final IOException fromClose = new IOException("exception from close");
@@ -64,24 +87,22 @@ public class TryStatementTest {
             }
         };
         try {
-            interpreter.set("autoclosable", autoclosable);
-            interpreter.eval(
-                    "try (x = new BufferedOutputStream(autoclosable)) {\n" +
-                    "   x.write(42);\n" +
-                    "} catch (Exception e) {\n" +
-                    "   thrownException = e;\n" +
-                    "}\n"
+            eval(toMap("autoclosable", autoclosable),
+                "try (x = new BufferedOutputStream(autoclosable)) {",
+                    "x.write(42);",
+                    "x.flush();",
+                "} catch (e) {",
+                    "throw e;",
+                "}"
             );
             fail("expected exception");
-        } catch (final EvalError evalError) {
-            if (evalError instanceof ParseException) {
+        } catch (final Throwable evalError) {
+            if (!(evalError.getCause() instanceof IOException))
                 throw evalError;
-            }
             final Throwable e = evalError.getCause();
-            assertSame(fromWrite, e);
-            interpreter.set("exception", e);
-            final Object suppressed = interpreter.eval("return exception.getSuppressed();"); // avoid java 7 syntax in java code ;)
-            assertSame(fromClose, suppressed);
+            assertSame("same fromWrite exception thrown", fromWrite, e);
+            assertThat("1 suppressed exception collected", e.getSuppressed(), arrayWithSize(1));
+            assertSame("same fromClose exception thrown", fromClose, e.getSuppressed()[0]);
         }
         assertTrue("stream should be closed", closed.get());
     }
