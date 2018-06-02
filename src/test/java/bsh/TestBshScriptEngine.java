@@ -2,6 +2,8 @@ package bsh;
 
 
 import static javax.script.ScriptContext.ENGINE_SCOPE;
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
@@ -14,12 +16,19 @@ import javax.script.Bindings;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
-public class TestBshScriptEngine
-{
+import bsh.engine.BshScriptEngineFactory;
+
+public class TestBshScriptEngine {
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
     @Test
     public void test_bsh_script_engine( ) throws Throwable {
         ScriptEngineManager manager =
@@ -107,5 +116,22 @@ public class TestBshScriptEngine
 
         // Add a new scope dynamically?
 
+    }
+    
+    @Test
+    public void check_BshScriptEngineFactory() throws Exception {
+        final String script = "a = null; return \"a=\" + a;\n";
+        final Object interpreterResult = new Interpreter().eval(script);
+        final Object scriptEngineResult = new BshScriptEngineFactory().getScriptEngine().eval(script);
+        assertEquals(interpreterResult, scriptEngineResult);
+    }
+
+    @Test
+    public void check_ParseExceptionLineNumber() throws Exception {
+        thrown.expect(ScriptException.class);
+        thrown.expectMessage(containsString("Encountered  \"(\" (  at line 1, column 6"));
+
+        final String script = "print(\"test\";";
+        new BshScriptEngineFactory().getScriptEngine().eval(script);
     }
 }

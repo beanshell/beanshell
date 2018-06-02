@@ -4,29 +4,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static bsh.TestUtil.eval;
+import static bsh.TestUtil.toMap;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeTrue;
 
 @RunWith(FilteredTestRunner.class)
-public class Issue_88_Test {
+public class AccessibilityTest {
 
     @Test
-    public void call_of_public_inherited_method_from_non_public_class_without_accessibilty() throws Exception {
-        assumeTrue("testing illegal access assumes accessibility", Capabilities.haveAccessibility());
-        Capabilities.setAccessibility(false);
-        final Interpreter interpreter = new Interpreter();
-        interpreter.set("x", new Implementation());
-        assertEquals("public String", interpreter.eval("x.method(\"foo\");"));
-        Capabilities.setAccessibility(true);
-    }
-
-    @Test
-    public void call_of_public_inherited_method_from_non_public_class_with_accessibilty() throws Exception {
-        assumeTrue("testing illegal access assumes accessibility", Capabilities.haveAccessibility());
-        Capabilities.setAccessibility(true);
-       final Interpreter interpreter = new Interpreter();
-        interpreter.set("x", new Implementation());
-        assertEquals("public String", interpreter.eval("x.method(\"foo\");"));
+    public void call_of_public_inherited_method_from_non_public_class_with_or_without_accessibilty() throws Exception {
+        assertEquals("public String", eval(
+                toMap("x", new Implementation()),
+                "x.method(\"foo\");"));
     }
 
     @Test
@@ -58,7 +46,7 @@ public class Issue_88_Test {
     }
 
 
-    public class Implementation extends AbstractImplementation {
+    class Implementation extends AbstractImplementation {
         public Object method(final CharSequence param) {
             return "public CharSequence";
         }
