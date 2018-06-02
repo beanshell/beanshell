@@ -4,19 +4,19 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static bsh.TestUtil.eval;
+import static bsh.TestUtil.toMap;
 import static org.junit.Assert.assertEquals;
 
-public class Issue_93_Test {
+public class TryStatementTest {
 
     @Test
     public void try_catch_finally() throws Exception {
         final List<String> calls = new ArrayList<String>();
         final Object result = eval(
-                Collections.singletonMap("calls", calls),
+                toMap("calls", calls),
                 "calls.add(\"start\");",
                 "try {",
                 "   calls.add(\"try\");",
@@ -38,7 +38,7 @@ public class Issue_93_Test {
     public void execute_finally_when_try_block_contains_return() throws Exception {
         final List<String> calls = new ArrayList<String>();
         final Object result = eval(
-                Collections.singletonMap("calls", calls),
+                toMap("calls", calls),
                 "calls.add(\"start\");",
                 "try {",
                 "   calls.add(\"try\");",
@@ -62,7 +62,7 @@ public class Issue_93_Test {
     public void execute_finally_block_when_catch_block_throws_exception() throws Exception {
         final List<String> calls = new ArrayList<String>();
         final Object result = eval(
-                Collections.singletonMap("calls", calls),
+                toMap("calls", calls),
                 "calls.add(\"start\");",
                 "try {",
                 "   calls.add(\"try\");",
@@ -88,7 +88,7 @@ public class Issue_93_Test {
     public void execute_finally_block_when_catch_block_contains_return_statement() throws Exception {
         final List<String> calls = new ArrayList<String>();
         final Object result = eval(
-                Collections.singletonMap("calls", calls),
+                toMap("calls", calls),
                 "calls.add(\"start\");",
                 "try {",
                 "   calls.add(\"try\");",
