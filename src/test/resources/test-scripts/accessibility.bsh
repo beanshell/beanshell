@@ -1,9 +1,10 @@
 #!/bin/java bsh.Interpreter
 
 source("TestHarness.bsh");
+source("Assert.bsh");
 
-import bsh.Capabilities;
-currentAccessibility=Capabilities.haveAccessibility();
+assumeTrue("testing illegal access assumes accessibility", haveAccessibility());
+
 import mypackage.*;
 
 a=new Accessibility2();
@@ -124,6 +125,6 @@ assert(m.foo(2).equals("private"));
 warning("this test runs on sparc but fails on windows... Nail this down.");
 assert(m.foo(null).equals("public"));
 
-setAccessibility(currentAccessibility);
+setAccessibility(true);
 
 complete();
