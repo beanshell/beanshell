@@ -1,10 +1,13 @@
 package bsh;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.Vector;
 
 import org.apache.bsf.BSFEngine;
 import org.apache.bsf.BSFException;
 import org.apache.bsf.BSFManager;
+import org.junit.Test;
 
 /** The Class TestBshBSF. */
 public class TestBshBSF {
@@ -12,7 +15,8 @@ public class TestBshBSF {
     /** The main method.
      * @param args the arguments
      * @throws BSFException the BSF exception */
-    public static void main(final String[] args) throws BSFException {
+    @Test
+    public void test_bsf_engine() throws BSFException {
         final BSFManager mgr = new BSFManager();
         // register beanshell with the BSF framework
         final String[] extensions = {"bsh"};
@@ -41,14 +45,5 @@ public class TestBshBSF {
         result = beanshellEngine.eval("Test eval...", -1, -1, "1+1");
         assertTrue(result instanceof Integer
                 && ((Integer) result).intValue() == 2);
-    }
-
-    /** Assert true.
-     * @param cond the cond */
-    static void assertTrue(final boolean cond) {
-        if (cond)
-            System.out.println("Passed...");
-        else
-            throw new Error("assert failed...");
     }
 }
