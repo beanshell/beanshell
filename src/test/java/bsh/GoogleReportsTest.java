@@ -20,6 +20,9 @@
 
 package bsh;
 
+import static bsh.Capabilities.setAccessibility;
+import static bsh.Capabilities.haveAccessibility;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -28,6 +31,8 @@ import bsh.engine.BshScriptEngineFactory;
 import static bsh.TestUtil.eval;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -81,12 +86,15 @@ public class GoogleReportsTest {
      */
     @Test
     public void accessibility_issue_a() throws Exception {
+        assumeTrue("testing illegal access assumes accessibility", haveAccessibility());
         final Interpreter interpreter = new Interpreter();
         interpreter.set("x", this);
-        Capabilities.setAccessibility(true);
+        setAccessibility(true);
         assertEquals("private-Integer", interpreter.eval("return x.issue6(new Integer(9));"));
-        Capabilities.setAccessibility(false);
+        setAccessibility(false);
         assertEquals("public-Number", interpreter.eval("return x.issue6(new Integer(9));"));
+        setAccessibility(true);
+        assertTrue("accessibility remains true", haveAccessibility());
     }
 
     /**
@@ -94,11 +102,14 @@ public class GoogleReportsTest {
      */
     @Test
     public void accessibility_issue_b() throws Exception {
+        assumeTrue("testing illegal access assumes accessibility", haveAccessibility());
         final Interpreter interpreter = new Interpreter();
         interpreter.set("x", this);
+        setAccessibility(false);
         assertEquals("public-Number", interpreter.eval("return x.issue6(new Integer(9));"));
-        Capabilities.setAccessibility(true);
+        setAccessibility(true);
         assertEquals("private-Integer", interpreter.eval("return x.issue6(new Integer(9));"));
+        assertTrue("accessibility remains true", haveAccessibility());
     }
 
     /*
