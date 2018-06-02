@@ -2,13 +2,6 @@
 
 source("TestHarness.bsh");
 
-// everything in here is for testing the new scoping rules
-if ( Interpreter.LOCALSCOPING )
-{
-    complete();
-    return; // note: return from source() doesn't exit caller
-}
-
 /*
     New BeanShell 1.3 scoping rules:
 */
