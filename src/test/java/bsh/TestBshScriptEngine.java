@@ -2,26 +2,26 @@ package bsh;
 
 
 import static javax.script.ScriptContext.ENGINE_SCOPE;
+import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.Writer;
 
 import javax.script.Bindings;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 import javax.script.SimpleBindings;
+
+import org.junit.Test;
 
 public class TestBshScriptEngine
 {
-    public static void main( String [] args )
-        throws ScriptException, NoSuchMethodException, IOException
-    {
+    @Test
+    public void test_bsh_script_engine( ) throws Throwable {
         ScriptEngineManager manager =
             new ScriptEngineManager( bsh.Interpreter.class.getClassLoader() );
 
@@ -91,7 +91,6 @@ public class TestBshScriptEngine
         assertTrue( (Integer)engine.get("foo") ==42 );
 
         // Try redirecting output
-        System.out.println( "Before redirect, stdout..." );
         String fname = "testBshScriptEngine.out";
         String outString = "Data 1 2 3.";
         Writer fout = new FileWriter( fname );
@@ -108,13 +107,5 @@ public class TestBshScriptEngine
 
         // Add a new scope dynamically?
 
-    }
-
-    static void assertTrue( boolean cond )
-    {
-        if ( cond )
-            System.out.println( "Passed..." );
-        else
-            throw new Error( "assert failed..." );
     }
 }
