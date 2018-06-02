@@ -48,7 +48,7 @@ public class BshScriptTestCase {
     public static final File test_scripts_dir = new File(
         "src/test/resources/test-scripts").getAbsoluteFile();
     static {
-        KNOWN_FAILING_TESTS.add("externalNameSpace.bsh");
+        //KNOWN_FAILING_TESTS.add("Fail.bsh");
     }
 
     @Test
