@@ -5,29 +5,28 @@ import org.junit.runner.RunWith;
 
 import static bsh.TestUtil.eval;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeTrue;
 
 @RunWith(FilteredTestRunner.class)
-@SuppressWarnings("UnusedDeclaration")
 public class Issue_88_Test {
 
     @Test
     public void call_of_public_inherited_method_from_non_public_class_without_accessibilty() throws Exception {
-        boolean current = Capabilities.haveAccessibility();
+        assumeTrue("testing illegal access assumes accessibility", Capabilities.haveAccessibility());
         Capabilities.setAccessibility(false);
         final Interpreter interpreter = new Interpreter();
         interpreter.set("x", new Implementation());
         assertEquals("public String", interpreter.eval("x.method(\"foo\");"));
-        Capabilities.setAccessibility(current);
+        Capabilities.setAccessibility(true);
     }
 
     @Test
     public void call_of_public_inherited_method_from_non_public_class_with_accessibilty() throws Exception {
-        boolean current = Capabilities.haveAccessibility();
+        assumeTrue("testing illegal access assumes accessibility", Capabilities.haveAccessibility());
         Capabilities.setAccessibility(true);
        final Interpreter interpreter = new Interpreter();
         interpreter.set("x", new Implementation());
         assertEquals("public String", interpreter.eval("x.method(\"foo\");"));
-        Capabilities.setAccessibility(current);
     }
 
     @Test
@@ -52,6 +51,7 @@ public class Issue_88_Test {
             return "public String";
         }
 
+        @SuppressWarnings("unused")
         private Object method(final Object param) {
             return "private Object";
         }

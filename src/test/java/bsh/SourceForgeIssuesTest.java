@@ -55,6 +55,7 @@ public class SourceForgeIssuesTest {
     /** <a href="http://sourceforge.net/tracker/?func=detail&aid=2898046&group_id=4075&atid=104075">Sourceforge issue "Error HERE! thrown while SAX parsing" - ID: 2898046</a>. */
     @Test
     public void sourceforge_issue_2898046_sax_parsing_error() throws Exception {
+        assumeTrue("testing illegal access assumes accessibility", haveAccessibility());
         final String CODE_2898046 =
                 /* 1*/ "import javax.xml.parsers.*;\n"+
                 /* 2*/ "import org.xml.sax.InputSource;\n"+
