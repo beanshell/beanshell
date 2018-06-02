@@ -1,6 +1,16 @@
 source("TestHarness.bsh");
 
-new Thread() { public void run() { } };
-new java.io.FilterOutputStream(this.interpreter.out) { };
+class AB {
+    class CD { x = 2; }
+    static class EF { static int x = 1; y = 3;}
+}
+
+ab = new AB();
+cd = ab.new CD();
+ef = new AB.EF();
+
+assert(AB.EF.x == 1);
+assert(cd.x == 2);
+assert(ef.y == 3);
 
 complete();
