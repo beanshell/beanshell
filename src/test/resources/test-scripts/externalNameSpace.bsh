@@ -1,9 +1,13 @@
 source("TestHarness.bsh");
 
-import bsh.*;
+source("Assert.bsh");
 
-if ( Capabilities.classExists("bsh.ExternalNameSpace") )
-{
+
+import bsh.Interpreter;
+import bsh.ExternalNameSpace;
+import static bsh.Capabilities.classExists;
+
+assumeTrue("external NameSpace needed to test", classExists("bsh.ExternalNameSpace"));
 
 Interpreter interpreter = new Interpreter();
 Map myMap = new HashMap();
@@ -11,62 +15,60 @@ ens = new ExternalNameSpace( interpreter.getNameSpace(), "Test", myMap );
 interpreter.setNameSpace( ens );
 
 interpreter.eval("foo=42");
-assert( myMap.get("foo") instanceof Integer );
-assert( myMap.get("foo") == 42 );
+assertThat( myMap.get("foo"), instanceOf(Integer.class) );
+assertEquals( 42, myMap.get("foo") );
 
 // primitives get mapped back to prims inside the interpreter
 interpreter.eval("int fooint=42");
-assert( interpreter.eval("fooint.getClass()") == bsh.Primitive.class );
-assert( myMap.get("fooint") instanceof Integer );
+assertSame( bsh.Primitive.class, interpreter.eval("fooint.getClass()") );
+assertThat( myMap.get("fooint"), instanceOf(Integer.class) );
 
 interpreter.eval("Integer fooInt=42");
-assert( interpreter.eval("fooInt.getClass()") == Integer.class );
-assert( myMap.get("fooint") instanceof Integer );
+assertSame( Integer.class, interpreter.eval("fooInt.getClass()") );
+assertThat( myMap.get("fooint"), instanceOf(Integer.class) );
 
 // make sure vars propogate from child namespace properly
 interpreter.eval("run() { if (foo!=42) throw new RuntimeException(); foo=55; }");
 interpreter.eval("run()");
-assert( interpreter.eval("foo") == 55 );
-assert( myMap.get("foo") == 55 );
+assertEquals( 55, interpreter.eval("foo") );
+assertEquals( 55, myMap.get("foo") );
 
 interpreter.eval("flag=true");
-assert( myMap.get("flag") instanceof Boolean );
-assert( myMap.get("flag").booleanValue() == true );
+assertThat( myMap.get("flag"), instanceOf(Boolean.class) );
+assertTrue( myMap.get("flag").booleanValue() );
 interpreter.eval("flag=false");
-assert( myMap.get("flag").booleanValue() == false );
+assertFalse( myMap.get("flag").booleanValue() );
 
 interpreter.eval("int bar = 43");
 // it's a primitive to bsh
-assert( interpreter.eval("bar.getClass() == bsh.Primitive.class") == true );
+assertTrue( interpreter.eval("bar.getClass() == bsh.Primitive.class") );
 // it's an Integer to the map
-assert( myMap.get("bar") instanceof Integer );
-assert( myMap.get("bar") == 43 );
+assertThat( myMap.get("bar"), instanceOf(Integer.class) );
+assertEquals( 43, myMap.get("bar") );
 // check again
-assert( interpreter.eval("bar.getClass() == bsh.Primitive.class") == true );
+assertTrue( interpreter.eval("bar.getClass() == bsh.Primitive.class") );
 
-assert( interpreter.get("e1") == null );
+assertNull( interpreter.get("e1") );
 
 myMap.put( "e2", new Integer(44) );
 
-assert( interpreter.get("e2") == 44 );
+assertEquals( 44, interpreter.get("e2") );
 
 myMap.put( "d1", new Date() );
 
-assert( interpreter.get("d1") instanceof Date );
+assertThat( interpreter.get("d1"), instanceOf(Date.class) );
 
 myMap.put( "d1", new Double(49.9) );
 
-assert( interpreter.get("d1") instanceof Double );
+assertThat( interpreter.get("d1"), instanceOf(Double.class) );
 
 //interpreter.eval("print(this.variables)");
 
 // set var in bsh then remove it in external map
 interpreter.eval("x1=42");
-assert( interpreter.get("x1") == 42 );
+assertEquals( 42, interpreter.get("x1") );
 myMap.remove("x1");
-assert( interpreter.get("x1") == null ); // interpreter maps VOID to null
+assertNull( interpreter.get("x1") ); // interpreter maps VOID to null
 
-} else
-warning("No ExternalNameSpace to test...");
 
 complete();
