@@ -628,12 +628,18 @@ final class Reflect {
      * @param methodName method name to find
      * @return a BshMethod wrapped Method. */
     static BshMethod staticMethodForName(Class<?> baseClass, String methodName) {
-        for (Method method : baseClass.getMethods())
+        for (Method method : baseClass.getDeclaredMethods())
             if (method.getName().equals(methodName)
-                    && Modifier.isStatic(method.getModifiers()))
+                    && Modifier.isStatic(method.getModifiers())) {
+                if (Capabilities.haveAccessibility())
+                    method.setAccessible(true);
+                else if (!Modifier.isPublic(method.getModifiers()))
+                    continue;
                 return new BshMethod(method, null);
+            }
         return null;
     }
+
     /**
         Primary object constructor
         This method is simpler than those that must resolve general method
