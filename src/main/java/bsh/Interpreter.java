@@ -110,7 +110,7 @@ public class Interpreter
         reference in some way to determine the scope of the command that
         turns it on or off.
     */
-    public static boolean DEBUG, TRACE, LOCALSCOPING;
+    public static boolean DEBUG, TRACE;
     public static boolean COMPATIBIILTY;
 
     // This should be per instance
@@ -1146,7 +1146,6 @@ public class Interpreter
             debug = System.err;
             DEBUG = Boolean.getBoolean("debug");
             TRACE = Boolean.getBoolean("trace");
-            LOCALSCOPING = Boolean.getBoolean("localscoping");
             COMPATIBIILTY = Boolean.getBoolean("bsh.compatibility");
             String outfilename = System.getProperty("outfile");
             if ( outfilename != null )
