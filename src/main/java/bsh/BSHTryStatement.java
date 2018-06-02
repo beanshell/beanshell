@@ -59,15 +59,15 @@ class BSHTryStatement extends SimpleNode
         int i = firstBlockNode();
         BSHBlock tryBlock = (BSHBlock) jjtGetChild(i++);
 
-        List<BSHFormalParameter> catchParams = new ArrayList<>();
+        List<BSHMultiCatch> catchParams = new ArrayList<>();
         List<BSHBlock> catchBlocks = new ArrayList<>();
 
         int nchild = jjtGetNumChildren();
         Node node = null;
-        while((i < nchild) && ((node = jjtGetChild(i++)) instanceof BSHFormalParameter))
+        while((i < nchild) && ((node = jjtGetChild(i++)) instanceof BSHMultiCatch))
         {
-            catchParams.add((BSHFormalParameter)node);
-            catchBlocks.add((BSHBlock)jjtGetChild(i++));
+            catchParams.add((BSHMultiCatch) node);
+            catchBlocks.add((BSHBlock) jjtGetChild(i++));
             node = null;
         }
         // finally block
@@ -119,40 +119,34 @@ class BSHTryStatement extends SimpleNode
         try {
             if (thrown != null)
             {
+                Class<?> thrownType = thrown.getClass();
                 int n = catchParams.size();
                 for(i=0; i<n; i++)
                 {
                     // Get catch block
-                    BSHFormalParameter fp = catchParams.get(i);
+                    BSHMultiCatch mc = catchParams.get(i);
                     Modifiers modifiers = new Modifiers(Modifiers.FIELD);
-                    if (fp.isFinal)
+                    if (mc.isFinal())
                         modifiers.addModifier("final");
-                    // Should cache this subject to classloader change message
-                    // Evaluation of the formal parameter simply resolves its
-                    // type via the specified namespace.. it doesn't modify the
-                    // namespace.
-                    fp.eval( callstack, interpreter );
 
-                    if ( fp.type == null && interpreter.getStrictJava() )
+                    mc.eval( callstack, interpreter );
+
+                    if ( mc.isUntyped() && interpreter.getStrictJava() )
                         throw new EvalError(
                             "(Strict Java) Untyped catch block", this, callstack );
 
                     // If the param is typed check assignability
-                    if ( fp.type != null )
-                        try {
-                            thrown = (Throwable)Types.castObject(
-                                thrown/*rsh*/, fp.type/*lhsType*/, Types.ASSIGNMENT );
-                        } catch( UtilEvalError e ) {
-                            /*
-                                Catch the mismatch and continue to try the next
-                                Note: this is innefficient, should have an
-                                isAssignableFrom() that doesn't throw
-                                // TODO: we do now have a way to test assignment
-                                //  in castObject(), use it?
-                            */
+                    Class<?> mcType = null;
+                    if ( !mc.isUntyped() ) {
+                        boolean found = false;
+                        for ( Class<?> cType: mc.getTypes() )
+                            if ( true == ( found = Types.isBshAssignable(cType, thrownType) ) ) {
+                                mcType = cType;
+                                break;
+                            }
+                        if ( !found )
                             continue;
-                        }
-
+                    }
                     // Found match, execute catch block
                     BSHBlock cb = catchBlocks.get(i);
 
@@ -165,15 +159,13 @@ class BSHTryStatement extends SimpleNode
                         new BlockNameSpace( enclosingNameSpace );
 
                     try {
-                        if ( fp.type == BSHFormalParameter.UNTYPED )
+                        if ( mcType == BSHMultiCatch.UNTYPED )
                             // set an untyped variable directly in the block
-                            cbNameSpace.setBlockVariable( fp.name, thrown );
+                            cbNameSpace.setBlockVariable( mc.name, thrown );
                         else
-                        {
                             // set a typed variable (directly in the block)
                             cbNameSpace.setTypedVariable(
-                                fp.name, fp.type, thrown, modifiers);
-                        }
+                                mc.name, mcType, thrown, modifiers);
                     } catch ( UtilEvalError e ) {
                         throw new InterpreterError(
                             "Unable to set var in catch block namespace." );
