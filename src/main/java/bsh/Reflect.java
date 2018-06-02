@@ -792,10 +792,10 @@ final class Reflect {
                 // the new best match.
                 if ( Types.isSignatureAssignable(
                         idealMatch, targetMatch, round )
-                    && ( (bestMatch == null) ||
-                        ( Types.isSignatureAssignable( targetMatch, bestMatch,
+                    && ( (bestMatch == null) || Types.areSignaturesEqual(idealMatch, targetMatch)
+                        || ( Types.isSignatureAssignable( targetMatch, bestMatch,
                                 Types.JAVA_BASE_ASSIGNABLE ) &&
-                        !Types.areSignaturesEqual(targetMatch, bestMatch) )
+                        !Types.areSignaturesEqual(idealMatch, bestMatch) )
                         )
                 )
                 {
