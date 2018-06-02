@@ -28,6 +28,7 @@
 package bsh;
 
 import java.lang.reflect.Method;
+import java.util.stream.IntStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
@@ -138,8 +139,20 @@ public class BshMethod implements Serializable {
             return cparamTypes;
         return this.javaMethod.getParameterTypes();
     }
-    public String [] getParameterNames() { return paramNames; }
-    public Modifiers [] getParameterModifiers() { return paramModifiers; }
+
+    public String [] getParameterNames() {
+        if (null == paramNames)
+            paramNames = IntStream.range(97, 97+getParameterCount())
+            .boxed().map(n->String.valueOf((char) n.intValue()))
+            .toArray(String[]::new);
+        return paramNames;
+    }
+
+    public Modifiers [] getParameterModifiers() {
+        if (null == paramModifiers)
+            paramModifiers = new Modifiers[getParameterCount()];
+        return paramModifiers;
+    }
 
     public int getParameterCount() {
         if (null == this.javaMethod)
