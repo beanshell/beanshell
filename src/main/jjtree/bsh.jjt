@@ -1481,11 +1481,21 @@ void TryStatement() #TryStatement:
 { boolean closed = false; }
 {
     "try" [ TryWithResources() ] Block()
-    ( "catch" "(" FormalParameter() ")" Block() { closed = true; } )*
+    ( "catch" "(" MultiCatch() ")" Block() { closed = true; } )*
     [ "finally" Block() { closed = true; } ]
     {
         if ( !closed ) throw generateParseException();
     }
+}
+
+void MultiCatch() #MultiCatch :
+{ Token t; }
+{
+  LOOKAHEAD(2) [ "final" { jjtThis.isFinal = true; } ]
+  Type() ( "|" Type() )*
+  t=<IDENTIFIER> { jjtThis.name = t.image; }
+|
+  t=<IDENTIFIER> { jjtThis.name = t.image; }
 }
 
 void TryWithResources() #TryWithResources :

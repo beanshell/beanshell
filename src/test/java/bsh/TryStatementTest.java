@@ -16,8 +16,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static bsh.TestUtil.eval;
 import static bsh.TestUtil.toMap;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.arrayWithSize;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
@@ -30,11 +32,52 @@ public class TryStatementTest {
     public ExpectedException thrown = ExpectedException.none();
 
     @Test
+    public void multi_catch() throws Exception {
+        Object resource = eval(
+            "try {",
+                "throw new NullPointerException('Looks like null');",
+            "} catch (RuntimeException | Error e) {",
+                "return e;",
+            "}"
+        );
+        assertThat(resource, instanceOf(RuntimeException.class));
+        assertThat(resource, not(instanceOf(Error.class)));
+    }
+
+    @Test
+    public void multi_catch_2nd() throws Exception {
+        thrown.expect(Exception.class);
+        thrown.expectMessage(containsString("Looks like Uncaught"));
+
+        eval(
+            "try {",
+                "throw new Exception('Looks like Uncaught');",
+            "} catch (RuntimeException | Error e) {",
+                "return e;",
+            "}"
+        );
+    }
+
+    @Test
+    public void multi_catch_3rd() throws Exception {
+        Object resource = eval(
+            "try {",
+                "throw new Error('Looks like Th');",
+            "} catch (RuntimeException | Error e) {",
+                "return e;",
+            "}"
+        );
+        assertThat(resource, not(instanceOf(RuntimeException.class)));
+        assertThat(resource, instanceOf(Error.class));
+    }
+
+
+    @Test
     public void try_with_resource_parsing() throws Exception {
         Object resource = eval(
-                "try (ByteArrayOutputStream x = new ByteArrayOutputStream()) {",
-                    "return x;",
-                "} catch (Exception e) {}"
+            "try (ByteArrayOutputStream x = new ByteArrayOutputStream()) {",
+                "return x;",
+            "} catch (Exception e) {}"
         );
         assertThat(resource, instanceOf(AutoCloseable.class));
         assertThat(resource, instanceOf(ByteArrayOutputStream.class));
@@ -43,9 +86,9 @@ public class TryStatementTest {
     @Test
     public void try_with_resource_parsing_multi() throws Exception {
         Object resource = eval(
-                "try (ByteArrayOutputStream x = new ByteArrayOutputStream(); ByteArrayOutputStream y = new ByteArrayOutputStream()) {",
-                    "return new AutoCloseable[] {x, y};",
-                "} catch (Exception e) {}"
+            "try (ByteArrayOutputStream x = new ByteArrayOutputStream(); ByteArrayOutputStream y = new ByteArrayOutputStream()) {",
+                "return new AutoCloseable[] {x, y};",
+            "} catch (Exception e) {}"
         );
         assertThat(resource, instanceOf(AutoCloseable[].class));
         assertThat((AutoCloseable[]) resource, arrayWithSize(2));
@@ -56,9 +99,9 @@ public class TryStatementTest {
     @Test
     public void try_with_resource_parsing_multi_loosetype() throws Exception {
         Object resource = eval(
-                "try (x = new ByteArrayOutputStream(); y = new ByteArrayOutputStream()) {",
-                    "return new AutoCloseable[] {x, y};",
-                "} catch (Exception e) {}"
+            "try (x = new ByteArrayOutputStream(); y = new ByteArrayOutputStream()) {",
+                "return new AutoCloseable[] {x, y};",
+            "} catch (Exception e) {}"
         );
         assertThat(resource, instanceOf(AutoCloseable[].class));
         assertThat((AutoCloseable[]) resource, arrayWithSize(2));
