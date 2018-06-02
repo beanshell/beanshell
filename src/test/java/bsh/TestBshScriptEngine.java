@@ -117,7 +117,7 @@ public class TestBshScriptEngine {
         // Add a new scope dynamically?
 
     }
-    
+
     @Test
     public void check_BshScriptEngineFactory() throws Exception {
         final String script = "a = null; return \"a=\" + a;\n";
