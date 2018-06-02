@@ -1,6 +1,7 @@
 #!/bin/java bsh.Interpreter
 import org.junit.Assert;
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assume.*;
 
 assertEquals(String message, double expected, double actual) {
     try {

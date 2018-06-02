@@ -21,12 +21,17 @@ package bsh;
 
 import static bsh.KnownIssue.KNOWN_FAILING_TESTS;
 import static bsh.KnownIssue.SKIP_KNOWN_ISSUES;
+import static bsh.Capabilities.setAccessibility;
+import static org.junit.Assume.assumeFalse;
+import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.isA;
+import static org.hamcrest.Matchers.containsString;
+import static java.lang.Boolean.valueOf;
 
 import java.io.File;
 import java.io.FileReader;
 
-import org.junit.Assert;
-import org.junit.Assume;
+import org.junit.AssumptionViolatedException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -37,11 +42,11 @@ import junit.framework.TestSuite;
  * what the test cases do so this will need some more investigations for failing
  * tests. */
 @RunWith(AllTestsJUnit4Runner.class)
-public class OldScriptsTest {
+public class BshScriptTestCase {
 
     /** The Constant baseDir. */
-    private static final File baseDir = new File(
-            "src/test/resources/test-scripts");
+    public static final File test_scripts_dir = new File(
+        "src/test/resources/test-scripts").getAbsoluteFile();
     static {
         KNOWN_FAILING_TESTS.add("classinner.bsh");
         KNOWN_FAILING_TESTS.add("classser.bsh");
@@ -49,18 +54,19 @@ public class OldScriptsTest {
     }
 
     @Test
-    public void testFailScript() throws Exception {
+    public void testFailScript() throws Throwable {
         try {
-            new TestBshScript(new File(baseDir, "Fail.bsh")).runTest();
-            Assert.fail("Fail.bsh should fail!");
+            new Script("Fail.bsh").runTest();
         } catch (final AssertionError e) {
-            // expected
+            assertThat("test expected to fail", e, isA(Error.class));
+            assertThat("with message", e.getMessage(),
+                    containsString("Test FAILED: Line: 11 : assert ( false )"));
         }
     }
     /** Suite.
      * @return the junit.framework. test
      * @throws Exception the exception */
-    public static junit.framework.Test suite() throws Exception {
+    public static junit.framework.Test suite() throws Throwable {
         final TestSuite suite = new TestSuite();
         addTests(suite);
         return suite;
@@ -69,7 +75,7 @@ public class OldScriptsTest {
     /** Adds the tests.
      * @param suite the suite */
     private static void addTests(final TestSuite suite) {
-        final File[] files = baseDir.listFiles();
+        final File[] files = test_scripts_dir.listFiles();
         if (!isUnderScrutiny(suite) && files != null)
             for (final File file : files) {
                 final String name = file.getName();
@@ -78,7 +84,7 @@ public class OldScriptsTest {
                         && !"RunAllTests.bsh".equals(name)
                         && !"Assert.bsh".equals(name)
                         && !"Fail.bsh".equals(name)) {
-                    suite.addTest(new TestBshScript(file));
+                    suite.addTest(new Script(file));
                 }
             }
     }
@@ -93,20 +99,26 @@ public class OldScriptsTest {
         if (trouble_maker.isEmpty())
             return false;
         for (String f:trouble_maker.split(","))
-            suite.addTest(new TestBshScript(new File(baseDir, f)));
+            suite.addTest(new Script(f));
         return true;
     }
 
     /** The Class TestBshScript. */
-    static class TestBshScript extends TestCase {
+    static class Script extends TestCase {
 
         /** The file. */
         private final File _file;
 
         /** Instantiates a new test bsh script.
          * @param file the file */
-        public TestBshScript(final File file) {
+        public Script(final File file) {
             this._file = file;
+        }
+
+        /** Instantiates a new test bsh script.
+         * @param script the script file name */
+        public Script(String script) {
+            this(new File(test_scripts_dir, script));
         }
 
         /** {@inheritDoc} */
@@ -115,30 +127,35 @@ public class OldScriptsTest {
             return this._file.getName();
         }
 
+        private void skipAssumptions(Throwable assumption) throws Throwable {
+            while (null != assumption)
+                if ((assumption = assumption.getCause())
+                        instanceof AssumptionViolatedException)
+                    throw assumption;
+        }
+
         /** {@inheritDoc} */
         @Override
-        public void runTest() throws Exception {
-            Capabilities.setAccessibility(Boolean.valueOf(System.getProperty("accessibility")));
-
-            Assume.assumeFalse("skipping test " + getName(), SKIP_KNOWN_ISSUES
+        public void runTest() throws Throwable {
+            setAccessibility(valueOf(System.getProperty("accessibility")));
+            assumeFalse("skipping test " + getName(), SKIP_KNOWN_ISSUES
                     && KNOWN_FAILING_TESTS.contains(getName()));
 
             final Interpreter interpreter = new Interpreter();
-            final String path = '\"' + this._file.getParentFile()
-                    .getAbsolutePath().replace('\\', '/') + '\"';
-            interpreter.eval("path=" + path + ';');
-            interpreter.eval("cd(" + path + ");");
+            interpreter.set("bsh.cwd", test_scripts_dir.getPath());
+
             try {
                 interpreter.eval(new FileReader(this._file));
-            } catch (final Exception e) {
+            } catch (final Throwable e) {
+                skipAssumptions(e);
                 if (!System.getProperty("script").isEmpty())
                     e.printStackTrace(System.out);
                 throw new RuntimeException(getName(), e);
             }
             assertTrue("Test did not complete."+interpreter.get("test_message"),
-                    (Boolean)interpreter.get("test_completed"));
+                    (Boolean) interpreter.get("test_completed"));
             assertFalse(""+interpreter.get("test_message"),
-                    (Boolean)interpreter.get("test_failed"));
+                    (Boolean) interpreter.get("test_failed"));
 
         }
     }
