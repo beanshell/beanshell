@@ -25,6 +25,9 @@
  *****************************************************************************/
 package bsh;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Map;
 
@@ -41,8 +44,8 @@ import java.util.Map;
     "foo() = 5;").
     <p>
 */
-class LHS implements ParserConstants, java.io.Serializable
-{
+class LHS implements ParserConstants, Serializable {
+    private static final long serialVersionUID = 1L;
     NameSpace nameSpace;
     /** The assignment should be to a local variable */
     boolean localVar;
@@ -148,9 +151,10 @@ class LHS implements ParserConstants, java.io.Serializable
 
         if (type == FIELD)
             try {
+                if (null == field) fetchField();
                 Object o = field.get( object );
                 return Primitive.wrap( o, field.getType() );
-            } catch(IllegalAccessException e2) {
+            } catch(ReflectiveOperationException e2) {
                 throw new UtilEvalError("Can't read field: " + field, e2);
             }
 
@@ -249,6 +253,7 @@ class LHS implements ParserConstants, java.io.Serializable
             else
                 nameSpace.setVariableOrProperty( varName, val, strictJava );
         } else  if ( type == FIELD )  try {
+            if (null == field) fetchField();
             if (val == null)
                 val = Primitive.getDefaultValue(field.getType());
             Object fieldVal = val instanceof Primitive ?
@@ -262,7 +267,7 @@ class LHS implements ParserConstants, java.io.Serializable
             throw new UtilEvalError(
                 "LHS ("+field.getName()+") not a static field.", e);
         }
-        catch( IllegalAccessException e2) {
+        catch( ReflectiveOperationException e2) {
             throw new UtilEvalError(
                 "LHS ("+field.getName()+") can't access field: "+e2, e2);
         }
@@ -319,6 +324,28 @@ class LHS implements ParserConstants, java.io.Serializable
             +((field!=null)? "field = "+field.toString():"")
             +(varName!=null ? " varName = "+varName: "")
             +(nameSpace!=null ? " nameSpace = "+nameSpace.toString(): "");
+    }
+
+    private void dropField() {
+        if (null == this.object || !(this.object instanceof Class))
+            this.object = field.getDeclaringClass();
+        this.varName = field.getName();
+        this.field = null;
+    }
+
+    private void fetchField() throws ReflectiveOperationException {
+        Class<?> cls = this.object.getClass();
+        if (this.object instanceof Class)
+            cls = (Class<?>) this.object;
+        this.field = cls.getField(varName);
+    }
+
+    private synchronized void writeObject(final ObjectOutputStream s)
+            throws IOException {
+        if ( type == FIELD ) // field not serializable
+            dropField();
+
+        s.defaultWriteObject();
     }
 }
 
