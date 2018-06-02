@@ -1,6 +1,7 @@
 #!/bin/java bsh.Interpreter
 
 source("TestHarness.bsh");
+source("Assert.bsh");
 
 object().x=5;
 foo() {
@@ -24,11 +25,10 @@ foo().bar2().bar().x=5;
 // just an experiment
 foo().bar2().bar2().bar2().bar();
 
-setAccessibility(true);
+assumeTrue("testing illegal access assumes accessibility", haveAccessibility());
 Thread.currentThread().daemon = false;
 Thread.currentThread().currentThread().daemon = false;
 Thread.currentThread().currentThread().currentThread().daemon = false;
-setAccessibility(false);
 
 Fields [] fa = { new Fields(), new Fields() };
 fa[0].x=5;
