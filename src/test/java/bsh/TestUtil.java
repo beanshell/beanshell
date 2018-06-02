@@ -41,7 +41,7 @@ public class TestUtil {
      * @param orgig this instance is serialized and then deserialized
      * @return the instance after serialization and deserialization
      */
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings("unchecked")
     public static <T extends Serializable> T serDeser(final T orgig) {
         try {
             final ByteArrayOutputStream byteOS = new ByteArrayOutputStream();
@@ -85,31 +85,26 @@ public class TestUtil {
         if (taskCount < threadCount) {
             throw new IllegalArgumentException("task count below thread count");
         }
-        @SuppressWarnings({"ThrowableInstanceNeverThrown"})
+
         final Exception callerStack = new Exception("called from");
         final CountDownLatch countDownLatch = new CountDownLatch(threadCount + 1);
         final AtomicReference<Throwable> exceptionHolder = new AtomicReference<Throwable>();
         final MeasureRunnable toMeasure = new MeasureRunnable(countDownLatch, runnable, iterationCount, exceptionHolder);
         final ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
-        for (int i = 0; i < taskCount; i++) {
+        for (int i = 0; i < taskCount; i++)
             executorService.submit(toMeasure);
-        }
         cleanUp();
         final long startTime = System.nanoTime();
         countDownLatch.countDown(); // start all
         executorService.shutdown();
         executorService.awaitTermination(60 * 60, TimeUnit.SECONDS);
         final Throwable throwable = exceptionHolder.get();
-        if (throwable instanceof RuntimeException) {
+        if (throwable instanceof RuntimeException)
             throw combineTraces((RuntimeException) throwable, callerStack);
-        }
-        if (throwable instanceof Error) {
+        if (throwable instanceof Error)
             throw combineTraces((Error) throwable, callerStack);
-        }
-        if (throwable != null) {
-            //noinspection ThrowableInstanceNeverThrown
+        if (throwable != null)
             throw combineTraces(new RuntimeException(throwable), callerStack);
-        }
         return System.nanoTime() - startTime;
     }
 
@@ -124,31 +119,33 @@ public class TestUtil {
      */
     static <T extends Throwable> T combineTraces(final T throwable, final Exception cause) {
         Throwable rootCause = throwable;
-        while (rootCause.getCause() != null) {
+        while (rootCause.getCause() != null)
             rootCause = rootCause.getCause();
-        }
         rootCause.initCause(cause);
         return throwable;
     }
 
+    public static String script(final String ... code) {
+        final StringBuffer buffer = new StringBuffer();
+        for (final String s : code)
+            buffer.append(s).append('\n');
+        return buffer.toString();
+    }
 
     public static Object eval(final String ... code) throws Exception {
         return eval(Collections.<String, Integer>emptyMap(), code);
     }
 
-
-    public static Object eval(final Map<? extends String, ?> params, final String ... code) throws Exception {
-        final StringBuffer buffer = new StringBuffer();
-        for (final String s : code) {
-            buffer.append(s).append('\n');
-        }
+    public static Object eval(final Map<String, ?> params, final String ... code) throws Exception {
         final Interpreter interpreter = new Interpreter();
-        for (final Map.Entry<? extends String, ?> entry : params.entrySet()) {
+        for (final Map.Entry<String, ?> entry : params.entrySet())
             interpreter.set(entry.getKey(), entry.getValue());
-        }
-        return interpreter.eval(buffer.toString());
+        return interpreter.eval(script(code));
     }
 
+    public static <K,E> Map<K,E> toMap(K key, E value) {
+        return Collections.singletonMap(key, value);
+    }
 
     static class MeasureRunnable implements Runnable {
 
@@ -169,13 +166,9 @@ public class TestUtil {
         public void run() {
             try {
                 _countDownLatch.countDown();
-                for (int i = 0; i < _iterationCount; i++) {
+                for (int i = 0; i < _iterationCount; i++)
                     _task.run();
-                }
-            } catch (RuntimeException e) {
-                _exception.compareAndSet(null, e);
-                throw e;
-            } catch (Error e) {
+            } catch (Error | RuntimeException e) {
                 _exception.compareAndSet(null, e);
                 throw e;
             }
