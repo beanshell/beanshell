@@ -5,7 +5,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -178,24 +177,18 @@ public class TypeParametersTest {
     }
 
     @Test
-    public void generics_type_inference() throws Exception {
-        new OldScriptsTest.TestBshScript(
-                new File("src/test/resources/test-scripts/generictypeinference.bsh")
-                ).runTest();
+    public void generics_type_inference() throws Throwable {
+        new BshScriptTestCase.Script("generictypeinference.bsh").runTest();
     }
 
     @Test
-    public void generics_nested() throws Exception {
-        new OldScriptsTest.TestBshScript(
-                new File("src/test/resources/test-scripts/genericsnested.bsh")
-                ).runTest();
+    public void generics_nested() throws Throwable {
+        new BshScriptTestCase.Script("genericsnested.bsh").runTest();
     }
 
     @Test
-    public void generics_methods() throws Exception {
-        new OldScriptsTest.TestBshScript(
-                new File("src/test/resources/test-scripts/genericmethods.bsh")
-                ).runTest();
+    public void generics_methods() throws Throwable {
+        new BshScriptTestCase.Script("genericmethods.bsh").runTest();
     }
 
     @Test

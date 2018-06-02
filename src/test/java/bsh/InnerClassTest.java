@@ -25,8 +25,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
-import java.io.File;
-
 import static bsh.TestUtil.eval;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
@@ -37,8 +35,8 @@ public class InnerClassTest {
     public ExpectedException thrown = ExpectedException.none();
 
     @Test
-    public void run_script_class13() throws Exception {
-        new OldScriptsTest.TestBshScript(new File("src/test/resources/test-scripts/class13.bsh")).runTest();
+    public void run_script_class13() throws Throwable {
+        new BshScriptTestCase.Script("class13.bsh").runTest();
     }
 
     @Test
