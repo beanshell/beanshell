@@ -82,10 +82,7 @@ assert( bar instanceof Foo33 );
 bar.method(); // instance
 bar.smethod(); // static
 bar.setQ(6);
-if ( Interpreter.LOCALSCOPING ) // not sure if we should allow this
-    assert( bar.q == 5 );
-else
-    assert( bar.q == 6 );
+assert( bar.q == 6 );
 
 // non default constructors
 assert(isEvalError("new Bar33(6)"));
@@ -117,10 +114,7 @@ gee.method(); // instance
 gee.smethod(); // static
 assert( gee.q == 5 ); // loose instance
 gee.setQ(6);
-if ( Interpreter.LOCALSCOPING ) // not sure if we should allow this
-    assert( gee.q == 5 );
-else
-    assert( gee.q == 6 );
+assert( gee.q == 6 );
 
 assert( bar.method2().equals("bar") );
 assert( gee.method2().equals("bar") );
