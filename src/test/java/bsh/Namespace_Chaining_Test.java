@@ -26,6 +26,8 @@ import org.junit.runner.RunWith;
 import java.io.StringReader;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * <a href="http://code.google.com/p/beanshell2/issues/detail?id=74">Namespace chaining issue</a>
@@ -86,4 +88,13 @@ public class Namespace_Chaining_Test {
         assertEquals(4711, child.eval("foo();"));
         assertEquals(5, child2.eval("foo();"));
     }
+
+    @Test
+    public void check_ExternalNameSpace() throws Exception {
+        final ExternalNameSpace externalNameSpace = new ExternalNameSpace();
+        externalNameSpace.setVariable("a", Primitive.NULL, false);
+        assertTrue("map should contain variable 'a'", externalNameSpace.getMap().containsKey("a"));
+        assertNull("variable 'a' should have value <NULL>", externalNameSpace.getMap().get("a"));
+    }
+
 }
