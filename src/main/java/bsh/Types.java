@@ -141,13 +141,16 @@ class Types
     private static boolean isSignatureVarargsAssignable(
         Class<?>[] from, Class<?>[] to )
     {
-        if (to.length == 0 || to.length > from.length)
+        if (to.length == 0 || to.length > from.length + 1)
             return false;
         int last = to.length - 1;
         if (to[last] == null || !to[last].isArray())
             return false;
-        if (to.length == from.length
-                && from[last].isArray()
+        if (to.length == from.length + 1)
+            return true;
+        if (to.length == from.length && from[last] == null)
+            return true;
+        if (to.length == from.length && from[last].isArray()
                 && !isJavaAssignable(to[last].getComponentType(), from[last].getComponentType()))
             return false;
 
@@ -209,10 +212,10 @@ class Types
         if ( lhsType == null )
             return false;
 
-        // null rhs type corresponds to type of Primitive.NULL
-        // assignable to any object type
+        // null rhs type corresponds to type of Primitive.NULL assignable to any
+        // object type but we give preference here to string types
         if ( rhsType == null )
-            return !lhsType.isPrimitive();
+            return lhsType == String.class;
 
         if ( lhsType.isPrimitive() && rhsType.isPrimitive() )
         {
@@ -268,6 +271,11 @@ class Types
         // prim can be boxed and assigned to Object
         if ( lhsType == Object.class )
             return true;
+        
+        // null rhs type corresponds to type of Primitive.NULL
+        // assignable to any object type but not array
+        if (rhsType == null)
+            return !lhsType.isPrimitive() && !lhsType.isArray();
 
         // prim numeric type can be boxed and assigned to number
         if ( lhsType == Number.class
