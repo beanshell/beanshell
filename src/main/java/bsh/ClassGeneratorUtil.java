@@ -274,7 +274,7 @@ public class ClassGeneratorUtil implements Opcodes {
                 continue;
 
             int modifiers = getASMModifiers(constructors[i].getModifiers());
-            generateConstructor(i, constructors[i].getParamTypeDescriptors(), modifiers, cw);
+            generateConstructor(i, constructors[i].getParamTypeDescriptors(), (modifiers>0?modifiers:ACC_PUBLIC), cw);
             hasConstructor = true;
         }
 
@@ -298,11 +298,11 @@ public class ClassGeneratorUtil implements Opcodes {
                     method.getModifiers().addModifier("abstract");
             }
 
-            generateMethod(className, fqClassName, method.getName(), returnType, method.getParamTypeDescriptors(), modifiers, cw);
+            generateMethod(className, fqClassName, method.getName(), returnType, method.getParamTypeDescriptors(), (modifiers>0?modifiers:ACC_PUBLIC), cw);
 
             boolean overridden = classContainsMethod(superClass, method.getName(), method.getParamTypeDescriptors());
             if (!isStatic && overridden)
-                generateSuperDelegateMethod(superClassName, method.getName(), returnType, method.getParamTypeDescriptors(), modifiers, cw);
+                generateSuperDelegateMethod(superClassName, method.getName(), returnType, method.getParamTypeDescriptors(), ACC_PUBLIC, cw);
         }
 
         return cw.toByteArray();
