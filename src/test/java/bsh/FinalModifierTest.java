@@ -76,7 +76,7 @@ public class FinalModifierTest {
         Class<?> clas = (Class<?>) eval(
             "class X7 {",
                 "static final Object _staticVar;",
-                "static final int _value = 6;",
+                "public static final int _value = 6;",
             "}",
             "X7.class;" // X7 not initialized
         );
