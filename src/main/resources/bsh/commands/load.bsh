@@ -4,8 +4,6 @@
 
 bsh.help.load = "usage: load(filename)";
 
-setAccessibility(true);
-
 import bsh.BshClassManager;
 import java.io.*;
 import java.lang.reflect.Proxy;
