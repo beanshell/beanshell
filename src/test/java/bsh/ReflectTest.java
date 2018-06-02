@@ -512,18 +512,30 @@ public class ReflectTest {
      * This will result in a {@code NullPointerException}.
      */
     @Test
-    @Category(KnownIssue.class)
     public void findMostSpecificSignature() {
-        final int value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
-                {Double.TYPE},
-                {(new char[0]).getClass()},
-                {String.class},
-                {Object.class},
-                {Boolean.TYPE},
-                {Integer.TYPE},
-                {Long.TYPE},
-                {Character.TYPE},
+        int value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
+            {Double.TYPE}, {new char[0].getClass()}, {String.class}, {Object.class}
         });
-        assertEquals(3, value);
+        assertEquals("most specific String class", 2, value);
+        value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
+            {Double.TYPE}, {new char[0].getClass()}, {Object.class}, {String.class}
+        });
+        assertEquals("most specific String class", 3, value);
+        value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
+            {Double.TYPE}, {new char[0].getClass()}, {Integer.class}, {String.class}
+        });
+        assertEquals("most specific String class", 3, value);
+        value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
+            {Double.TYPE}, {new char[0].getClass()}, {Number.class}, {Integer.class}
+        });
+        assertEquals("most specific Integer class", 3, value);
+        value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
+            {Double.TYPE}, {new char[0].getClass()}, {Object.class}, {Boolean.TYPE}
+        });
+        assertEquals("most specific Object class", 2, value);
+        value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
+            {Double.TYPE}, {new char[0].getClass()}, {Boolean.TYPE}
+        });
+        assertEquals("most specific char[] class", 1, value);
     }
 }
