@@ -65,9 +65,7 @@
     <tag>HEAD</tag>
   </scm>
   <developers>
-    <!-- Current maintainers according to
-         https://github.com/beanshell/
-    -->
+    <!-- Current maintainers according to https://github.com/beanshell/ -->
     <developer>
       <id>patniemeyer</id>
       <name>Patrick Niemeyer</name>
@@ -143,42 +141,26 @@
       <plugin>
         <groupId>com.helger.maven</groupId>
         <artifactId>ph-javacc-maven-plugin</artifactId>
-        <version>2.8.2</version>
+        <version>4.0.3</version>
         <executions>
           <execution>
             <id>javacc</id>
             <goals>
-              <!-- jjtree disabled due to manual changes
-                                               in the previously generated bsh.jj :- -->
               <goal>jjtree-javacc</goal>
-              <!-- disabled due to manual changes in the
-                   generated files in src/main/java
-              <goal>javacc</goal>
-              -->
             </goals>
             <configuration>
-                <jdkVersion>1.8</jdkVersion>
-                <javadocFriendlyComments>true</javadocFriendlyComments>
-                <static>false</static>
-                <usercharstream>true</usercharstream>
-                <!--packageName>bsh.parser</packageName>
-                <sourceDirectory>src/main/java/</sourceDirectory>
-                <outputDirectory>${project.build.directory}/generated-sources/javacc</outputDirectory-->
-
+              <jdkVersion>1.8</jdkVersion>
+              <javadocFriendlyComments>true</javadocFriendlyComments>
+              <static>false</static>
+              <usercharstream>true</usercharstream>
             </configuration>
           </execution>
         </executions>
-      <dependencies>
-        <dependency>
-          <groupId>net.java.dev.javacc</groupId>
-          <artifactId>javacc</artifactId>
-          <version>7.0.2</version>
-        </dependency>
-      </dependencies>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>2.4</version>
+        <version>3.1.0</version>
         <configuration>
           <archive>
             <manifest>
@@ -192,27 +174,27 @@
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>2.17</version>
         <dependencies>
-            <dependency>
-                <groupId>com.puppycrawl.tools</groupId>
-                <artifactId>checkstyle</artifactId>
-                <version>8.2</version>
-            </dependency>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>8.10</version>
+          </dependency>
         </dependencies>
         <executions>
-         <execution>
-           <id>validate</id>
-           <phase>verify</phase>
-           <configuration>
-             <encoding>UTF-8</encoding>
-             <failsOnViolation>true</failsOnViolation>
-             <includeTestSourceDirectory>true</includeTestSourceDirectory>
-             <sourceDirectories>
-                 <sourceDirectory>src/main/java</sourceDirectory>
-             </sourceDirectories>
-           </configuration>
-           <goals>
-             <goal>check</goal>
-           </goals>
+          <execution>
+            <id>validate</id>
+            <phase>verify</phase>
+            <configuration>
+              <encoding>UTF-8</encoding>
+              <failsOnViolation>true</failsOnViolation>
+              <includeTestSourceDirectory>true</includeTestSourceDirectory>
+              <sourceDirectories>
+                <sourceDirectory>src/main/java</sourceDirectory>
+              </sourceDirectories>
+            </configuration>
+            <goals>
+              <goal>check</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
@@ -225,7 +207,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
-        <version>2.4</version>
+        <version>3.0.1</version>
         <executions>
           <execution>
             <id>attach-sources</id>
@@ -235,19 +217,20 @@
             <phase>verify</phase>
           </execution>
         </executions>
-    </plugin>
-    <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-surefire-plugin</artifactId>
-      <version>2.20.1</version>
-      <configuration>
-        <systemPropertyVariables>
-          <accessibility>false</accessibility>
-          <script></script>
-          <skip_known_issues>true</skip_known_issues>
-         </systemPropertyVariables>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.21.0</version>
+        <configuration>
+          <systemPropertyVariables>
+            <bsh.debugClasses></bsh.debugClasses>
+            <accessibility>false</accessibility>
+            <script></script>
+            <skip_known_issues>true</skip_known_issues>
+          </systemPropertyVariables>
         </configuration>
-    </plugin>
+      </plugin>
     </plugins>
   </build>
 
@@ -260,20 +243,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>org.hamcrest</groupId>
-        <artifactId>hamcrest-all</artifactId>
-        <version>1.3</version>
-        <scope>test</scope>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <version>1.3</version>
+      <scope>test</scope>
     </dependency>
-    <!-- TODO: Replace src/main/java/bsh/org/objectweb/asm/
-      with a shadowed asm
-    <dependency>
-     <groupId>asm</groupId>
-     <artifactId>asm</artifactId>
-     <version>1.3.5</version>
-     <scope>provided</scope>
-    </dependency>
-    -->
 
     <dependency>
       <groupId>javax.servlet</groupId>
