@@ -1480,10 +1480,25 @@ void TryStatement() #TryStatement:
  */
 { boolean closed = false; }
 {
-    "try" Block()
+    "try" [ TryWithResources() ] Block()
     ( "catch" "(" FormalParameter() ")" Block() { closed = true; } )*
     [ "finally" Block() { closed = true; } ]
     {
         if ( !closed ) throw generateParseException();
     }
+}
+
+void TryWithResources() #TryWithResources :
+{  }
+{
+   "(" AutoCloseable() ( ";" AutoCloseable() )* ")"
+}
+
+void AutoCloseable() #AutoCloseable :
+{  }
+{
+  LOOKAHEAD(2)
+       Type() VariableDeclarator()
+    |
+        VariableDeclarator()
 }
