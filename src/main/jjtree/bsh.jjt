@@ -605,7 +605,7 @@ void ClassDeclaration() #ClassDeclaration :
     )
     Block()
     {
-        jjtThis.modifiers = mods;
+        if (null != mods) jjtThis.modifiers = mods;
         jjtThis.name = name.image;
     }
 }
@@ -617,7 +617,7 @@ void MethodDeclaration() #MethodDeclaration :
     int count;
 }
 {
-    mods = Modifiers( Modifiers.METHOD, false ) { jjtThis.modifiers = mods; }
+    mods = Modifiers( Modifiers.METHOD, false ) { if (null != mods) jjtThis.modifiers = mods; }
 (
     LOOKAHEAD( <IDENTIFIER> "(" )
     t = <IDENTIFIER> { jjtThis.name = t.image; }
@@ -1424,7 +1424,7 @@ void TypedVariableDeclaration() #TypedVariableDeclaration :
     mods = Modifiers( Modifiers.FIELD, false )
     Type() VariableDeclarator() ( "," VariableDeclarator() )*
     {
-        jjtThis.modifiers = mods;
+        if (null != mods) jjtThis.modifiers = mods;
     }
 }
 

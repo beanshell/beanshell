@@ -41,7 +41,7 @@ class BSHMethodDeclaration extends SimpleNode
 
     // End Child node structure evaluated by insureNodesParsed
 
-    public Modifiers modifiers;
+    public Modifiers modifiers = new Modifiers(Modifiers.METHOD);
 
     // Unsafe caching of type here.
     Class returnType;  // null (none), Void.TYPE, or a Class
