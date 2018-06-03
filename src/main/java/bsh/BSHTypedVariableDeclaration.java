@@ -29,7 +29,7 @@ package bsh;
 
 class BSHTypedVariableDeclaration extends SimpleNode
 {
-    public Modifiers modifiers;
+    public Modifiers modifiers = new Modifiers(Modifiers.FIELD);
     private BSHVariableDeclarator[] bvda;
 
     BSHTypedVariableDeclaration(int id) { super(id); }
