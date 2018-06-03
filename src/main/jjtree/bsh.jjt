@@ -594,7 +594,8 @@ void ClassDeclaration() #ClassDeclaration :
 }
 {
     mods = Modifiers( Modifiers.CLASS, false )
-    ( "class" name=<IDENTIFIER>
+  (
+    "class" name=<IDENTIFIER>
     [ "extends" AmbiguousName() { jjtThis.extend = true; } ]
     [ "implements" numInterfaces=NameList()
         { jjtThis.numInterfaces=numInterfaces; } ]
@@ -602,7 +603,7 @@ void ClassDeclaration() #ClassDeclaration :
     "interface" { jjtThis.isInterface=true; } name=<IDENTIFIER>
     [ "extends" numInterfaces=NameList()
         { jjtThis.numInterfaces=numInterfaces; } ]
-    )
+  )
     Block()
     {
         if (null != mods) jjtThis.modifiers = mods;
@@ -637,22 +638,14 @@ void PackageDeclaration () #PackageDeclaration:
 }
 
 void ImportDeclaration() #ImportDeclaration :
-{
-    Token s = null;
-    Token t = null;
-}
+{ }
 {
   LOOKAHEAD( 3 )
-  "import" [ s = "static" ] AmbiguousName() [ t = "." "*" ] ";"
-  {
-        if ( s != null ) jjtThis.staticImport = true;
-        if ( t != null ) jjtThis.importPackage = true;
-  }
-  |
-    // bsh super import statement
-  "import" "*" ";" {
-        jjtThis.superImport = true;
-    }
+  "import" [ "static" { jjtThis.staticImport = true; } ]
+  AmbiguousName() [ "." "*" { jjtThis.importPackage = true; } ] ";"
+|
+   // bsh super import statement
+  "import" "*" ";" { jjtThis.superImport = true; }
 }
 
 void VariableDeclarator() #VariableDeclarator :
@@ -663,9 +656,7 @@ void VariableDeclarator() #VariableDeclarator :
     t=<IDENTIFIER>
     ( "[" "]" { jjtThis.dimensions++; } )*
     [ "=" VariableInitializer() ]
-    {
-        jjtThis.name = t.image;
-    }
+    { jjtThis.name = t.image; }
 }
 
 /*
@@ -705,7 +696,6 @@ void FormalParameter() #FormalParameter :
   Token t;
 }
 {
-
   LOOKAHEAD(2) [ "final" { jjtThis.isFinal = true; } ]
   Type()[ <ELLIPSIS> { jjtThis.isVarArgs = true; } ]
   t=<IDENTIFIER> { jjtThis.name = t.image; }
@@ -771,9 +761,9 @@ void AmbiguousName() #AmbiguousName :
 }
 
 int NameList() :
-{ int count = 0; }
+{ int count = 1; }
 {
-  AmbiguousName() { ++count; } ( "," AmbiguousName() { ++count; } )*
+  AmbiguousName() ( "," AmbiguousName() { ++count; } )*
   { return count; }
 }
 
@@ -1381,24 +1371,19 @@ void ForStatement() #ForStatement :
 
 /*
     The new JDK1.5 enhanced for statement.
-    e.g. for( int a : arrayOfInts ) { }
-    We also support loose typing of the iterator var for BeanShell
-    e.g. for( a : arrayOfInts ) { }
 */
 void EnhancedForStatement() #EnhancedForStatement :
 {
   Token t = null;
-  Token s = null;
 }
 {
   LOOKAHEAD( 4 ) // look ahead for the ":" before deciding
   "for" "(" t=<IDENTIFIER> ":" Expression() ")"
-    Statement() { jjtThis.varName = t.image; }
-  |
-  "for" "(" [ s = "final" ] {
-        if ( s != null ) jjtThis.isFinal = true;
-    } Type() t=<IDENTIFIER> ":" Expression() ")"
-    Statement() { jjtThis.varName = t.image; }
+  Statement() { jjtThis.varName = t.image; }
+|
+  "for" "(" [ "final" { jjtThis.isFinal = true; } ] 
+  Type() t=<IDENTIFIER> ":" Expression() ")"
+  Statement() { jjtThis.varName = t.image; }
 }
 
 void ForInit() :
