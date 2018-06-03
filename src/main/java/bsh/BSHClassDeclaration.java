@@ -47,7 +47,7 @@ class BSHClassDeclaration extends SimpleNode
     static final String CLASSINITNAME = "_bshClassInit";
 
     String name;
-    Modifiers modifiers;
+    Modifiers modifiers = new Modifiers(Modifiers.CLASS);
     int numInterfaces;
     boolean extend;
     boolean isInterface;
