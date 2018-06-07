@@ -122,6 +122,8 @@ public class BshClassPath
         Changes in the bcp will be reflected through us.
     */
     public void addComponent( BshClassPath bcp ) {
+        if (bcp == null)
+            return;
         if ( compPaths == null )
             compPaths = new ArrayList();
         compPaths.add( bcp );
@@ -672,8 +674,7 @@ public class BshClassPath
                     URL url = new File( rtjar ).toURI().toURL();
                     bootClassPath = new BshClassPath(
                         "Boot Class Path", new URL[] { url } );
-                } else // Java 9+ no more rt.jar
-                    bootClassPath = new BshClassPath("Boot Class Path");
+                }
             } catch ( MalformedURLException e ) {
                 throw new ClassPathException(" can't find boot jar: "+e, e);
             }
