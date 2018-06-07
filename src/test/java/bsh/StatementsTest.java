@@ -19,7 +19,21 @@ public class StatementsTest {
             "   case 'igss': return 4;",
             "   default: return 5;",
             "}");
-        assertEquals(result, 3);
+        assertEquals("hurz matches hurz", 3, result);
+    }
+
+    @Test
+    public void switch_to_default() throws Throwable {
+
+        final Object result = eval(
+            "switch('hurzzzz') {",
+            "   case 'bla': return 1;",
+            "   case 'foo': return 2;",
+            "   case 'hurz': return 3;",
+            "   case 'igss': return 4;",
+            "   default: return 5;",
+            "}");
+        assertEquals("hurzzzzz doesn't match any case", 5, result);
     }
 
 }
