@@ -773,7 +773,7 @@ public class NameSpace
         // Get import first.
         if (this.isClass && !declaredOnly)
             method = this.getImportedMethod(name, sig);
-        if (this.methods.containsKey(name)) {
+        if (method == null && this.methods.containsKey(name)) {
             // Apply most specific signature matching
             final Class<?>[][] candidates = this.methods.get(name)
                     .stream().map(m -> m.getParameterTypes())
@@ -785,7 +785,7 @@ public class NameSpace
         if (method == null && !this.isClass && !declaredOnly)
             method = this.getImportedMethod(name, sig);
         // try parent
-        if (!declaredOnly && method == null && this.parent != null)
+        if (method == null && !declaredOnly && this.parent != null)
             return this.parent.getMethod(name, sig);
         return method;
     }
@@ -913,13 +913,23 @@ public class NameSpace
      * @return the imported var
      * @throws UtilEvalError the util eval error */
     protected Variable getImportedVar(final String name) throws UtilEvalError {
+        Variable var = null;
         // Try object imports
         for (final Object object : this.importedObjects) {
             final Field field = Reflect.resolveJavaField(object.getClass(),
                     name, false/* onlyStatic */);
-            if (field != null) {
-                Variable var = this.createVariable(name, field.getType(),
-                        new LHS(object, field));
+            if (field != null)
+                var = this.createVariable(name, field.getType(), new LHS(object, field));
+            else if (this.isClass) {
+                // try find inherited loose-typed instance fields
+                Class<?> supr = object.getClass();
+                while (Reflect.isGeneratedClass(supr = supr.getSuperclass())) {
+                    This ths = ClassGeneratorUtil.getClassInstanceThis(object, supr.getSimpleName());
+                    if (null != ths && null != (var = ths.getNameSpace().variables.get(name)))
+                        break;
+                }
+            }
+            if (null != var) {
                 this.variables.put(name, var);
                 return var;
             }
@@ -929,7 +939,7 @@ public class NameSpace
             final Field field = Reflect.resolveJavaField(stat,
                     name, true/* onlyStatic */);
             if (field != null) {
-                Variable var = this.createVariable(name, field.getType(),
+                var = this.createVariable(name, field.getType(),
                         new LHS(field));
                 this.variables.put(name, var);
                 return var;
