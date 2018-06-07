@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 import bsh.org.objectweb.asm.ClassWriter;
 import bsh.org.objectweb.asm.Label;
@@ -221,6 +222,9 @@ public class ClassGeneratorUtil implements Opcodes {
         int classMods = getASMModifiers(classModifiers) | ACC_PUBLIC;
         if (isInterface)
             classMods |= ACC_INTERFACE | ACC_ABSTRACT;
+        else if ( (classMods & ACC_ABSTRACT) > 0 )
+            // bsh classes are not abstract
+            classMods -= ACC_ABSTRACT;
 
         String[] interfaceNames = new String[interfaces.length + 1]; // +1 for GeneratedClass
         for (int i = 0; i < interfaces.length; i++) {
@@ -280,9 +284,8 @@ public class ClassGeneratorUtil implements Opcodes {
         if (!isInterface && !hasConstructor)
             generateConstructor(DEFAULTCONSTRUCTOR/*index*/, new String[0], ACC_PUBLIC, cw);
 
-        // Generate the delegate methods
+        // Generate methods
         for (DelayedEvalBshMethod method : methods) {
-            String returnType = method.getReturnTypeDescriptor();
 
             // Don't generate private methods
             if (method.hasModifier("private"))
@@ -294,9 +297,11 @@ public class ClassGeneratorUtil implements Opcodes {
             generateMethod(className, fqClassName, method.getName(), method.getReturnTypeDescriptor(),
                     method.getParamTypeDescriptors(), modifiers, cw);
 
-            boolean overridden = classContainsMethod(superClass, method.getName(), method.getParamTypeDescriptors());
-            if (!isStatic && overridden)
-                generateSuperDelegateMethod(superClassName, method.getName(), returnType, method.getParamTypeDescriptors(), ACC_PUBLIC, cw);
+            // check if method overrides existing method, apply inheritance rules and generate super delegate.
+            Method m = classContainsMethod(superClass, method.getName(), method.getParamTypeDescriptors());
+            if ( null != m && checkInheritanceRules(m.getModifiers(), modifiers, m.getDeclaringClass()) && !isStatic )
+                generateSuperDelegateMethod(superClassName, method.getName(), method.getReturnTypeDescriptor(),
+                        method.getParamTypeDescriptors(), ACC_PUBLIC, cw);
         }
 
         return cw.toByteArray();
@@ -657,24 +662,74 @@ public class ClassGeneratorUtil implements Opcodes {
         cv.visitMaxs(0, 0);
     }
 
-    boolean classContainsMethod(Class clas, String methodName, String[] paramTypes) {
-        while (clas != null) {
-            Method[] methods = clas.getDeclaredMethods();
-            for (Method method : methods)
-                if (method.getName().equals(methodName)) {
+    /** Validate abstract method implementation.
+     * Check that class is abstract or implements all abstract methods. BSH classes are not abstract
+     * which allows us to instantiate abstract classes.
+     * Also applies inheritance rules @see checkInheritanceRules().
+     * @param type The class to check.
+     * @throws RuntimException if validation fails. */
+    static void checkAbstractMethodImplementation(Class<?> type) {
+        List<Method> methsp = new ArrayList<>();
+        List<Method> methso = new ArrayList<>();
+        Reflect.gatherMethodsRecursive(type, null, 0, methsp, methso);
+
+        Stream.concat(methsp.stream(), methso.stream())
+        .filter( m -> ( m.getModifiers() & ACC_ABSTRACT ) > 0 )
+        .forEach( method -> {
+            Method[] meth = Stream.concat(methsp.stream(), methso.stream())
+                .filter( m -> ( m.getModifiers() & ( ACC_ABSTRACT | ACC_PRIVATE ) ) == 0
+                    && method.getName().equals(m.getName())
+                    && Types.areSignaturesEqual(method.getParameterTypes(), m.getParameterTypes()))
+                .sorted( (a, b) -> ( a.getModifiers() & ACC_PUBLIC ) > 0 ? 1
+                        : ( a.getModifiers() & ACC_PROTECTED ) > 0 ? 0 : -1 )
+                .toArray(Method[]::new);
+
+            if ( meth.length == 0 && !Reflect.getClassModifiers(type).hasModifier("abstract") )
+                throw new RuntimeException(type.getSimpleName()
+                    +" is not abstract and does not override abstract method "
+                    + method.getName() +"() in "+ method.getDeclaringClass().getSimpleName());
+            if ( meth.length > 0)
+                checkInheritanceRules(method.getModifiers(), meth[0].getModifiers(), method.getDeclaringClass());
+        });
+    }
+
+    /** Apply inheritance rules. Overridden methods may not reduce visibility.
+     * @param parentModifiers parent modifiers of method being overridden
+     * @param overriddenModifiers overridden modifiers of new method
+     * @param parentClass parent class name
+     * @return true if visibility is not reduced
+     * @throws RuntimeException if validation fails */
+    static boolean checkInheritanceRules(int parentModifiers, int overriddenModifiers, Class<?> parentClass) {
+        int prnt = parentModifiers & ( ACC_PUBLIC | ACC_PRIVATE | ACC_PROTECTED );
+        int chld = overriddenModifiers & ( ACC_PUBLIC | ACC_PRIVATE | ACC_PROTECTED );
+
+        if ( chld == prnt || prnt == ACC_PRIVATE || chld == ACC_PUBLIC || (prnt == 0 && chld != ACC_PRIVATE) )
+            return true;
+
+        throw new RuntimeException("Cannot reduce the visibility of the inherited method from "
+                + parentClass.getName());
+    }
+
+    /** Check if method name and type descriptor signature is overridden.
+     * @param clas super class
+     * @param methodName name of method
+     * @param paramTypes type descriptor of parameter types
+     * @return matching method or null if not found */
+    static Method classContainsMethod(Class<?> clas, String methodName, String[] paramTypes) {
+        while ( clas != null ) {
+            for ( Method method : clas.getDeclaredMethods() )
+                if ( method.getName().equals(methodName)
+                        && paramTypes.length == method.getParameterCount() ) {
                     String[] methodParamTypes = getTypeDescriptors(method.getParameterTypes());
                     boolean found = true;
-                    for (int j = 0; j < methodParamTypes.length; j++)
-                        if (!paramTypes[j].equals(methodParamTypes[j])) {
-                            found = false;
+                    for ( int j = 0; j < paramTypes.length; j++ )
+                        if (false == (found = paramTypes[j].equals(methodParamTypes[j])))
                             break;
-                        }
-                    if (found)
-                        return true;
+                    if (found) return method;
                 }
             clas = clas.getSuperclass();
         }
-        return false;
+        return null;
     }
 
     /**
