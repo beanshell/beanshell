@@ -446,6 +446,11 @@ final class Reflect {
 
         Class [] types = Types.getTypes(args);
         Method method = resolveJavaMethod( bcm, clas, name, types, staticOnly );
+        if (method != null && method.getDeclaringClass().isInterface()
+                && method.getDeclaringClass() != clas
+                && Modifier.isStatic(method.getModifiers()))
+            // static interface methods are class only
+            method = null;
 
         if ( method == null )
             throw new ReflectError(
@@ -1029,16 +1034,16 @@ final class Reflect {
      * Whether class is a bsh script generated type
      */
     public static boolean isGeneratedClass(Class<?> type) {
-        return null != type && GeneratedClass.class.isAssignableFrom(type);
+        return null != type && type != GeneratedClass.class && GeneratedClass.class.isAssignableFrom(type);
     }
 
     /*
      * Get This namespace from the class static field BSHSTATIC
      */
     public static NameSpace getThisNS(Class<?> type) {
+        if (!isGeneratedClass(type))
+            return null;
         try {
-            if (!isGeneratedClass(type))
-                return null;
             return ((This) Reflect.getStaticFieldValue(
                     type, BSHSTATIC + type.getSimpleName())).namespace;
         } catch (Exception e) {
@@ -1050,10 +1055,12 @@ final class Reflect {
      * Get This namespace from the instance field BSHTHIS
      */
     public static NameSpace getThisNS(Object object) {
+        if (null == object)
+            return null;
+        Class<?> type = object.getClass();
+        if (!isGeneratedClass(type))
+            return null;
         try {
-            Class<?> type = object.getClass();
-            if (!isGeneratedClass(type))
-                return null;
             return ((This)Reflect.getObjectFieldValue(
                     object, BSHTHIS + type.getSimpleName())).namespace;
         } catch (Exception e) {
@@ -1100,6 +1107,8 @@ final class Reflect {
      * Get method from namespace
      */
     public static BshMethod getMethod(NameSpace ns, String name, Class<?>[] sig) {
+        if (null == ns)
+            return null;
         try {
             return ns.getMethod(name, sig, true);
         } catch (Exception e) {
@@ -1111,8 +1120,10 @@ final class Reflect {
      * Get method from either class static or object instance namespaces
      */
     public static BshMethod getDeclaredMethod(Class<?> type, String name, Class<?>[] sig) {
+        if (!isGeneratedClass(type))
+            return null;
         BshMethod meth = getMethod(type, name, sig);
-        if (null == meth)
+        if (null == meth && !type.isInterface())
             return getMethod(getNewInstance(type), name, sig);
         return meth;
     }
@@ -1144,12 +1155,11 @@ final class Reflect {
      * Get all methods from both class static and object instance namespaces
      */
     public static BshMethod[] getDeclaredMethods(Class<?> type) {
-        Stream<BshMethod> statc = Stream.of(getMethods(type));
+        if (!isGeneratedClass(type))
+            return new BshMethod[0];
         if (type.isInterface())
-            return statc.toArray(BshMethod[]::new);
-        return Stream.concat(statc,
-                Stream.of(getMethods(getNewInstance(type)))
-            ).toArray(BshMethod[]::new);
+            return getMethods(type);
+        return getMethods(getNewInstance(type));
     }
 
     /*
@@ -1170,6 +1180,8 @@ final class Reflect {
      * Get variable from namespace
      */
     public static Variable getVariable(NameSpace ns, String name) {
+        if (null == ns)
+            return null;
         try {
             return ns.getVariableImpl(name, false);
         } catch (Exception e) {
@@ -1181,8 +1193,10 @@ final class Reflect {
      * Get variable from either class static or object instance namespaces
      */
     public static Variable getDeclaredVariable(Class<?> type, String name) {
+        if (!isGeneratedClass(type))
+            return null;
         Variable var = getVariable(type, name);
-        if (null == var)
+        if (null == var && !type.isInterface())
             return getVariable(getNewInstance(type), name);
         return var;
     }
@@ -1212,7 +1226,7 @@ final class Reflect {
      * Get named list of variables from namespace
      */
     public static Variable[] getVariables(NameSpace ns, String[] names) {
-        if (names == null)
+        if (null == ns || null == names)
             return new Variable[0];
         return Stream.of(names).map(name->getVariable(ns, name))
             .filter(Objects::nonNull).toArray(Variable[]::new);
@@ -1222,12 +1236,11 @@ final class Reflect {
      * Get all variables from both class static and object instance namespaces
      */
     public static Variable[] getDeclaredVariables(Class<?> type) {
-        Stream<Variable> statc = Stream.of(getVariables(type));
+        if (!isGeneratedClass(type))
+            return new Variable[0];
         if (type.isInterface())
-            return statc.toArray(Variable[]::new);
-        return Stream.concat(statc,
-                Stream.of(getVariables(getNewInstance(type)))
-            ).distinct().toArray(Variable[]::new);
+            return getVariables(type);
+        return getVariables(getNewInstance(type));
     }
 
     /*
