@@ -491,7 +491,7 @@ public class ClassGeneratorUtil implements Opcodes {
      * This method also generates the code to call the static
      * ClassGeneratorUtil
      * getConstructorArgs() method which inspects the scripted constructor to
-     * find the alternate constructor signature (if any) and evalute the
+     * find the alternate constructor signature (if any) and evaluate the
      * arguments at runtime. The getConstructorArgs() method returns the
      * actual arguments as well as the index of the constructor to call.
      */
@@ -1006,43 +1006,62 @@ public class ClassGeneratorUtil implements Opcodes {
      * namespace.
      */
     public static void initInstance(GeneratedClass instance, String className, Object[] args) {
-        Class[] sig = Types.getTypes(args);
-        CallStack callstack = new CallStack();
-        Interpreter interpreter;
-        NameSpace instanceNameSpace;
+        try {
+            This instanceThis = initClassInstanceThis(instance, className);
+            NameSpace instanceNameSpace = instanceThis.getNameSpace();
 
-        // check to see if the instance has already been initialized
-        // (the case if using a this() alternate constuctor)
-        // todo PeJoBo70 write test for this
+            // if this is a super constructor we need to initialize the parent's instance This
+            List<String> parentNames = new ArrayList<>();
+            Class<?> clas = instance.getClass();
+            while ( null != clas && !clas.getSimpleName().equals(className) ) {
+                parentNames.add(0, clas.getSimpleName());
+                clas = clas.getSuperclass();
+            }
+            parentNames.forEach(name -> initClassInstanceThis(instance, name));
+
+            // Find the constructor (now in the instance namespace)
+            BshMethod constructor = instanceNameSpace.getMethod(getBaseName(className), Types.getTypes(args), true/*declaredOnly*/);
+
+            // if args, we must have constructor
+            if (args.length > 0 && constructor == null)
+                throw new InterpreterError("Can't find constructor: " + className);
+
+            // Evaluate the constructor
+            if (constructor != null)
+                constructor.invoke(args, instanceThis.declaringInterpreter);
+
+            // Validate that final variables were set
+            for (Variable var : Reflect.getVariables(instance))
+                var.validateFinalIsSet(false);
+        } catch (Exception e) {
+            if (e instanceof TargetError)
+                e = (Exception) ((TargetError) e).getTarget();
+            if (e instanceof InvocationTargetException)
+                e = (Exception) ((InvocationTargetException) e).getTargetException();
+            throw new InterpreterError("Error in class initialization: " + e, e);
+        }
+    }
+
+    /** Initialize the class instance This field and evaluate instance init block.
+     * @param instance the instance this from class <init>
+     * @param className the name of instance relative
+     * @return instance This */
+    private static This initClassInstanceThis(Object instance, String className) {
         This instanceThis = getClassInstanceThis(instance, className);
-
-        // XXX clean up this conditional
-        if (instanceThis == null) {
+        if (null == instanceThis) {
             // Create the instance 'This' namespace, set it on the object
             // instance and invoke the instance initializer
 
             // Get the static This reference from the proto-instance
             This classStaticThis = getClassStaticThis(instance.getClass(), className);
-            interpreter = CONTEXT_INTERPRETER.get();
+            Interpreter interpreter = CONTEXT_INTERPRETER.get();
             if (interpreter == null)
                 interpreter = classStaticThis.declaringInterpreter;
 
-
-            // Get the instance initializer block from the static This
-            BSHBlock instanceInitBlock;
-            try {
-                instanceInitBlock = (BSHBlock) classStaticThis.getNameSpace().getVariable(BSHINIT);
-            } catch (Exception e) {
-                throw new InterpreterError("unable to get instance initializer: " + e, e);
-            }
-
             // Create the instance namespace
-            if (CONTEXT_NAMESPACE.get() != null) {
-                instanceNameSpace = classStaticThis.getNameSpace().copy();
+            NameSpace instanceNameSpace = classStaticThis.getNameSpace().copy();
+            if (CONTEXT_NAMESPACE.get() != null)
                 instanceNameSpace.setParent(CONTEXT_NAMESPACE.get());
-            } else
-                instanceNameSpace = new NameSpace(classStaticThis.getNameSpace(), className); // todo: old code
-            instanceNameSpace.isClass = true;
 
             // Set the instance This reference on the instance
             instanceThis = instanceNameSpace.getThis(interpreter);
@@ -1056,53 +1075,24 @@ public class ClassGeneratorUtil implements Opcodes {
             // Give the instance space its object import
             instanceNameSpace.setClassInstance(instance);
 
-            // should use try/finally here to pop ns
-            callstack.push(instanceNameSpace);
+            // Get the instance initializer block from the static This
+            BSHBlock instanceInitBlock;
+            try {
+                instanceInitBlock = (BSHBlock) classStaticThis.getNameSpace().getVariable(BSHINIT);
+            } catch (Exception e) {
+                throw new InterpreterError("unable to get instance initializer: " + e, e);
+            }
 
             // evaluate the instance portion of the block in it
             try { // Evaluate the initializer block
-                instanceInitBlock.evalBlock(callstack, interpreter, true/*override*/, CLASSINSTANCE);
+                instanceInitBlock.evalBlock(new CallStack(instanceNameSpace), interpreter, true/*override*/, CLASSINSTANCE);
             } catch (Exception e) {
                 throw new InterpreterError("Error in class initialization: " + e, e);
             }
 
-            callstack.pop();
-
-        } else {
-            // The object instance has already been initialzed by another
-            // constructor.  Fall through to invoke the constructor body below.
-            interpreter = instanceThis.declaringInterpreter;
-            instanceNameSpace = instanceThis.getNameSpace();
         }
-
-        // invoke the constructor method from the instanceThis
-
-        String constructorName = getBaseName(className);
-        try {
-            // Find the constructor (now in the instance namespace)
-            BshMethod constructor = instanceNameSpace.getMethod(constructorName, sig, true/*declaredOnly*/);
-
-            // if args, we must have constructor
-            if (args.length > 0 && constructor == null)
-                throw new InterpreterError("Can't find constructor: " + className);
-
-            // Evaluate the constructor
-            if (constructor != null)
-                constructor.invoke(args, interpreter, callstack, null/*callerInfo*/, false/*overrideNameSpace*/);
-
-            // Validate that final variables were set
-            for (Variable var : Reflect.getVariables(instance))
-                var.validateFinalIsSet(false);
-
-        } catch (Exception e) {
-            if (e instanceof TargetError)
-                e = (Exception) ((TargetError) e).getTarget();
-            if (e instanceof InvocationTargetException)
-                e = (Exception) ((InvocationTargetException) e).getTargetException();
-            throw new InterpreterError("Error in class initialization: " + e, e);
-        }
+        return instanceThis;
     }
-
 
     /** Lazy initialize static context implementation.
      * Called from <clinit> after static This was populated we will now
