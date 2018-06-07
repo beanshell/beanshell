@@ -1,0 +1,60 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// Child constructor calls parent overridden method
+class Child {
+  int id = 0;
+
+  Child(int a) {
+    setID(a);
+  }
+
+  void setID(int a) {
+    id = a;
+  }
+
+  int getID() {
+    id;
+  }
+}
+
+class Parent extends Child {
+  Parent(int a) {
+    super(a);
+  }
+
+  void setID(int a) {
+    id = a * 6;
+  }
+}
+
+assertEquals(18, new Parent(3).getID());
+
+// default constructor
+class Child {
+  id = 0;
+
+  Child() {
+    setID(3);
+  }
+
+  void setID(a) {
+    id = a;
+  }
+
+  int getID() {
+    id;
+  }
+}
+
+class Parent extends Child {
+  void setID(a) {
+    id = a * 7;
+  }
+}
+
+assertEquals(21, new Parent().getID());
+
+complete();
