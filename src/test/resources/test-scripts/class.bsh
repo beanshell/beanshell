@@ -67,7 +67,7 @@ class Foo
         assert(isEvalError("method()"));
 
         // no 'this' in static context
-        assert( isEvalError("this") );
+        assert( isEvalError("Can't refer to class instance from static context.", "this") );
     }
 
 }
