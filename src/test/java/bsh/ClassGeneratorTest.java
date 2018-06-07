@@ -95,6 +95,13 @@ public class ClassGeneratorTest {
         assertEquals(1, ( (Callable<?>) oa[1] ).call());
     }
 
+    @Test
+    public void class_with_abstract_method_must_be_abstract() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Test is not abstract and does not override abstract method x() in Test"));
+
+        eval("class Test { abstract void x(); }");
+    }
 
     @Test
     public void verify_public_accesible_modifiers() throws Exception {
@@ -103,7 +110,7 @@ public class ClassGeneratorTest {
         Capabilities.setAccessibility(false);
 
         Class<?> cls = (Class<?>) TestUtil.eval(
-            "class X6 {",
+            "abstract class X6 {",
                 "public Object public_var;",
                 "private Object private_var = null;",
                 "protected Object protected_var = null;",
@@ -128,10 +135,11 @@ public class ClassGeneratorTest {
                 "private private_method() {}",
                 "protected protected_method() {}",
             "}",
-            "return X6.class ");
+            "return X6.class;");
 
         // public class
         assertTrue("class has public modifier", Reflect.getClassModifiers(cls).hasModifier("public"));
+        assertTrue("class has abstract modifier", Reflect.getClassModifiers(cls).hasModifier("abstract"));
 
         // public static variables
         assertTrue("static_var has public modifier", var(cls, "static_var", "public"));
