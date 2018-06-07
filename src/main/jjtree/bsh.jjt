@@ -568,7 +568,7 @@ Modifiers Modifiers( int context, boolean lookahead ) :
     (
         "private" | "protected" | "public" | "synchronized" | "final"
         | "native" | "transient" | "volatile" | "abstract" | "static"
-        | "strictfp"
+        | "strictfp" | "default"
     ) {
         if ( !lookahead )
             try {
@@ -1329,7 +1329,7 @@ void SwitchLabel() #SwitchLabel :
 {
   "case" Expression() ":"
 |
-  "default" ":" { jjtThis.isDefault = true; }
+  "default:" { jjtThis.isDefault = true; }
 }
 
 void IfStatement() #IfStatement :
@@ -1381,7 +1381,7 @@ void EnhancedForStatement() #EnhancedForStatement :
   "for" "(" t=<IDENTIFIER> ":" Expression() ")"
   Statement() { jjtThis.varName = t.image; }
 |
-  "for" "(" [ "final" { jjtThis.isFinal = true; } ] 
+  "for" "(" [ "final" { jjtThis.isFinal = true; } ]
   Type() t=<IDENTIFIER> ":" Expression() ")"
   Statement() { jjtThis.varName = t.image; }
 }
