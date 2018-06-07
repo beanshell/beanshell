@@ -1,8 +1,12 @@
 language: java
 script:
+  - jdk_switcher use oraclejdk8
   - mvn clean package install -Daccessibility=true
+  - jdk_switcher use oraclejdk9
+  - mvn clean test -DargLine=--illegal-access=deny
 cache:
   directories:
     - $HOME/.m2
 jdk:
   - oraclejdk8
+  - oraclejdk9
