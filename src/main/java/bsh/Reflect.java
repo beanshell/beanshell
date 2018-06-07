@@ -557,6 +557,11 @@ final class Reflect {
         if (null != nonPublicMethods && !nonPublicMethods.isEmpty())
             publicMethods.addAll(nonPublicMethods);
 
+        // sort methods by class hierarchy
+        publicMethods.sort((a,b) ->
+            (a.getDeclaringClass().isAssignableFrom(b.getDeclaringClass())) ? 1
+                : (a.getDeclaringClass() == b.getDeclaringClass()) ? 0 : -1);
+
         Method method = findMostSpecificMethod( types, publicMethods );
 
         return method;
@@ -791,6 +796,9 @@ final class Reflect {
             for (int i=0; i < candidates.length; i++)
             {
                 Class[] targetMatch = candidates[i];
+                if (null != bestMatch && Types.areSignaturesEqual(targetMatch,bestMatch))
+                    // overridden keep first
+                    continue;
 
                 // If idealMatch fits targetMatch and this is the first match
                 // or targetMatch is more specific than the best match, make it
