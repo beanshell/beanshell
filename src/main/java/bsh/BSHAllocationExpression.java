@@ -165,7 +165,6 @@ class BSHAllocationExpression extends SimpleNode
     {
         String name = callstack.top().getName() + "$" + (++innerClassCount);
         Modifiers modifiers = new Modifiers(Modifiers.CLASS);
-        modifiers.hasModifier("public");
         Class clas = ClassGenerator.getClassGenerator().generateClass(
                 name, modifiers, null/*interfaces*/, type/*superClass*/,
                 block, false/*isInterface*/, callstack, interpreter );

@@ -249,16 +249,14 @@ public class ClassGeneratorUtil implements Opcodes {
             if (var.hasModifier("private"))
                 continue;
 
-            int modifiers;
             if (isInterface) {
-                modifiers = ACC_PUBLIC | ACC_STATIC | ACC_FINAL;
                 var.setConstant();
                 classStaticNameSpace.setVariableImpl(var);
                 // keep constant fields virtual
                 continue;
-            } else
-                modifiers = getASMModifiers(var.getModifiers());
+            }
 
+            int modifiers = getASMModifiers(var.getModifiers());
             String type = var.getTypeDescriptor();
             generateField(var.getName(), type, modifiers, cw);
         }
@@ -274,7 +272,7 @@ public class ClassGeneratorUtil implements Opcodes {
                 continue;
 
             int modifiers = getASMModifiers(constructors[i].getModifiers());
-            generateConstructor(i, constructors[i].getParamTypeDescriptors(), (modifiers>0?modifiers:ACC_PUBLIC), cw);
+            generateConstructor(i, constructors[i].getParamTypeDescriptors(), modifiers, cw);
             hasConstructor = true;
         }
 
@@ -292,13 +290,9 @@ public class ClassGeneratorUtil implements Opcodes {
 
             int modifiers = getASMModifiers(method.getModifiers());
             boolean isStatic = (modifiers & ACC_STATIC) > 0;
-            if (isInterface && !isStatic) {
-                modifiers |= (ACC_PUBLIC | ACC_ABSTRACT);
-                if (!method.hasModifier("abstract"))
-                    method.getModifiers().addModifier("abstract");
-            }
 
-            generateMethod(className, fqClassName, method.getName(), returnType, method.getParamTypeDescriptors(), (modifiers>0?modifiers:ACC_PUBLIC), cw);
+            generateMethod(className, fqClassName, method.getName(), method.getReturnTypeDescriptor(),
+                    method.getParamTypeDescriptors(), modifiers, cw);
 
             boolean overridden = classContainsMethod(superClass, method.getName(), method.getParamTypeDescriptors());
             if (!isStatic && overridden)
@@ -318,6 +312,8 @@ public class ClassGeneratorUtil implements Opcodes {
 
         if (modifiers.hasModifier("public"))
             mods += ACC_PUBLIC;
+        if (modifiers.hasModifier("private"))
+            mods += ACC_PRIVATE;
         if (modifiers.hasModifier("protected"))
             mods += ACC_PROTECTED;
         if (modifiers.hasModifier("static"))
@@ -326,6 +322,11 @@ public class ClassGeneratorUtil implements Opcodes {
             mods += ACC_SYNCHRONIZED;
         if (modifiers.hasModifier("abstract"))
             mods += ACC_ABSTRACT;
+
+        if ( ( mods & (ACC_PUBLIC | ACC_PRIVATE | ACC_PROTECTED) ) == 0 ) {
+            mods |= ACC_PUBLIC;
+            modifiers.addModifier("public");
+        }
 
         return mods;
     }

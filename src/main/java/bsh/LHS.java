@@ -89,8 +89,6 @@ class LHS implements ParserConstants, Serializable {
         type = LOOSETYPE_FIELD;
         this.varName = varName;
         this.nameSpace = nameSpace;
-        if (nameSpace.classInstance != null)
-            this.nameSpace = Reflect.getThisNS(nameSpace.classInstance);
     }
 
     /**
@@ -300,6 +298,7 @@ class LHS implements ParserConstants, Serializable {
         }
         else if (type == LOOSETYPE_FIELD) {
             Modifiers mods = new Modifiers(Modifiers.FIELD);
+            mods.addModifier("public");
             if (nameSpace.isInterface)
                 mods.setConstant();
             nameSpace.setTypedVariable(varName, getValueType(val), val, mods);

@@ -151,7 +151,6 @@ public class Variable implements java.io.Serializable
 
     private void setModifiers(Modifiers modifiers) {
         this.modifiers = modifiers;
-        this.hasModifier("public");
     }
 
 
