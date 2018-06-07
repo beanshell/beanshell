@@ -142,6 +142,9 @@ public final class ClassGenerator {
         classStaticNameSpace.setClassStatic(genClass);
 
         bcm.doneDefiningClass(fqClassName);
+
+        ClassGeneratorUtil.checkAbstractMethodImplementation(genClass);
+
         return genClass;
     }
 

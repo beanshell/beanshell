@@ -112,7 +112,7 @@ class BSHClassDeclaration extends SimpleNode
             name, modifiers, interfaces, superClass, block, isInterface,
             callstack, interpreter );
 
-        // Validate final methods should not be overwritten
+        // Validate final methods should not be overridden
         for (BshMethod m : meths)
            if (null != Reflect.getDeclaredMethod(clas, m.getName(), m.getParameterTypes()))
                throw new EvalError("Cannot override "+m.getName()+"() in " +

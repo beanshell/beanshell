@@ -585,7 +585,7 @@ final class Reflect {
 
         @return the candidate methods vector
     */
-    private static void gatherMethodsRecursive(
+    static void gatherMethodsRecursive(
         Class baseClass, String methodName, int numArgs,
         List<Method> publicMethods, List<Method> nonPublicMethods )
     {
@@ -604,9 +604,9 @@ final class Reflect {
             Method[] methods = nonPublicMethods==null ?
                 baseClass.getMethods() : baseClass.getDeclaredMethods();
             for( Method m : methods ) {
-                if (  m.getName().equals( methodName )
+                if  (methodName == null || (  m.getName().equals( methodName )
                     && ( m.isVarArgs() ? m.getParameterTypes().length-1 <= numArgs
-                        : m.getParameterTypes().length == numArgs )
+                        : m.getParameterTypes().length == numArgs ))
                 ) {
                     if( isPublicClass && isPublic(m) ) {
                         publicMethods.add( m );
