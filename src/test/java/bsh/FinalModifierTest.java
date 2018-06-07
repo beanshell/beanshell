@@ -554,20 +554,14 @@ public class FinalModifierTest {
         final Object res = eval(
             "class P6 {",
                 "private final privM() { return 2; }",
-                "public pubP() { return privM(); }",
-                "public inhP() { return statC(); }",
-                "protected ovrM() { return pubC(); }",
+                "public inhP() { return privM(); }",
             "}",
             "class C extends P6 {",
-                "privM() { return 1 + ovrM(); }",
-                "pubC() { return privM() + pubP(); }",
-                "public ovrM() { return 0; }",
-                "statC() { return super.ovrM(); }",
-
+                "privM() { return 1; }",
             "}",
             "return new C().inhP();"
         );
-        assertEquals(3, res);
+        assertEquals(1, res);
     }
 
     @Test

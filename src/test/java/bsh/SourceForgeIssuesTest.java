@@ -23,7 +23,6 @@ package bsh;
 import bsh.classpath.ClassManagerImpl;
 import org.junit.After;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import static bsh.Capabilities.haveAccessibility;
@@ -51,6 +50,11 @@ public class SourceForgeIssuesTest {
         Interpreter.DEBUG = false;
     }
 
+//    @Test
+//    @Category(KnownIssue.class)
+//    public void skip_test() throws Throwable {
+//
+//    }
 
     /** <a href="http://sourceforge.net/tracker/?func=detail&aid=2898046&group_id=4075&atid=104075">Sourceforge issue "Error HERE! thrown while SAX parsing" - ID: 2898046</a>. */
     @Test
@@ -121,7 +125,7 @@ public class SourceForgeIssuesTest {
      * Just a "learning test" to check the call flow for constructors of generated classes.
      * @see #sourceforge_issue_2081602 */
     @Test
-    public void sourceforge_issue_2081602_nullpointerexception_overwritten_method() throws Exception {
+    public void sourceforge_issue_2081602_nullpointerexception_overridden_method() throws Exception {
         final Object result = eval(
                 "Object echo(msg, x) {",
                 "//   print(msg + ' ' + x);",
@@ -146,9 +150,8 @@ public class SourceForgeIssuesTest {
 
     /** <a href="http://sourceforge.net/tracker/?func=detail&aid=2081602&group_id=4075&atid=104075">Sourceforge issue "NullPointerException Thrown by Overriden Method" - ID: 2081602</a>.
      * Overriding a method which is invoked from super-constructor issues a NPE. */
-    @Category(KnownIssue.class)
     @Test
-    public void sourceforge_issue_2081602_overwritten_method_called_from_super() throws Exception {
+    public void sourceforge_issue_2081602_overridden_method_called_from_super() throws Exception {
         // Interpreter.DEBUG = true;
         Callable<?> result = (Callable<?>) eval(
                 "Object echo(msg, x) {",

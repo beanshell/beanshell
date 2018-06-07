@@ -1,0 +1,28 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// Child calls parent overridden method
+class Child {
+  int id = 0;
+
+  void setID(int a) {
+    id = a;
+  }
+
+  int getID() {
+    setID(3);
+    id;
+  }
+}
+
+class Parent extends Child {
+  void setID(int a) {
+    id = a * 7;
+  }
+}
+
+assertEquals(21, new Parent().getID());
+
+complete();
