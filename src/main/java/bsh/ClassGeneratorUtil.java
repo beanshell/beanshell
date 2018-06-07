@@ -291,6 +291,10 @@ public class ClassGeneratorUtil implements Opcodes {
             if (method.hasModifier("private"))
                 continue;
 
+            if ( isInterface )
+                if ( !method.hasModifier("static") && !method.hasModifier("default") )
+                    if ( !method.hasModifier("abstract") )
+                        method.getModifiers().addModifier("abstract");
             int modifiers = getASMModifiers(method.getModifiers());
             boolean isStatic = (modifiers & ACC_STATIC) > 0;
 
@@ -382,7 +386,7 @@ public class ClassGeneratorUtil implements Opcodes {
             return;
 
         // Generate code to push the BSHTHIS or BSHSTATIC field
-        if (isStatic)
+        if (isStatic||isInterface)
             pushBshStatic(fqClassName, className, cv);
         else
             pushBshThis(fqClassName, className, cv);
