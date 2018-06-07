@@ -107,7 +107,6 @@ public class BshMethod implements Serializable {
         this.methodBody = methodBody;
         this.declaringNameSpace = declaringNameSpace;
         this.modifiers = modifiers;
-        this.getModifiers().hasModifier("public");
     }
 
     /*

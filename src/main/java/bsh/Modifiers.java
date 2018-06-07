@@ -53,7 +53,10 @@ public class Modifiers implements java.io.Serializable
     {
         if ( modifiers.contains( name ) )
             throw new IllegalStateException("Duplicate modifier: "+ name );
-        modifiers.add(name);
+        if (name.equals("public")||name.equals("protected")||name.equals("private"))
+            modifiers.add(0, name);
+        else
+            modifiers.add(name);
 
         int count = 0;
         if ( hasModifier("private") ) ++count;
@@ -79,9 +82,6 @@ public class Modifiers implements java.io.Serializable
 
     public boolean hasModifier( String name )
     {
-        if (name.equals("public")
-                && !Capabilities.haveAccessibility())
-            insertPublic();
         return modifiers.contains(name);
     }
 
@@ -111,18 +111,10 @@ public class Modifiers implements java.io.Serializable
                 context + " cannot be declared '"+modifier+"'");
     }
 
-    private void insertPublic() {
-        if (!modifiers.contains("public")
-                && !modifiers.contains("private")
-                && !modifiers.contains("protected"))
-            modifiers.add(0, "public");
-    }
-
     public void setConstant() {
-        insertPublic();
-        modifiers.remove("static");
+        modifiers.clear();
+        addModifier("public");
         addModifier("static");
-        modifiers.remove("final");
         addModifier("final");
     }
 

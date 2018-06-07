@@ -710,10 +710,8 @@ public class NameSpace
                             + " was previously declared with type: "
                             + existing.getType());
                 else {
-                    if (existing.modifiers == null) {
+                    if (existing.modifiers == null)
                         existing.modifiers = modifiers;
-                        existing.getModifiers().hasModifier("public");
-                    }
                     // else set it and return
                     existing.setValue(value, Variable.DECLARATION);
                     return;
