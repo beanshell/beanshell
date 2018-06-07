@@ -5,14 +5,14 @@
 source("TestHarness.bsh");
 
 // {} syntax
-b = new java.awt.Button();
+//b = new java.awt.Button();
 //print( b{"name"} );
-b{"name"} = "MyButton!";
-assert( b{"name"}.equals("MyButton!") );
+//b{"name"} = "MyButton!";
+//assert( b{"name"}.equals("MyButton!") );
 
 // extended field style access
-b.name = "Test";
-assert( b.name.equals("Test") );
+//b.name = "Test";
+//assert( b.name.equals("Test") );
 
 // for booleans support both getFoo() and isFoo() style
 Float fl = new Float(1.0f);
