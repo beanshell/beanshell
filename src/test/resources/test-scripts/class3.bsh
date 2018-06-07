@@ -1,6 +1,7 @@
 #!/bin/java bsh.Interpreter
 
 source("TestHarness.bsh");
+source("Assert.bsh");
 
 class Foo33
 {
@@ -20,7 +21,7 @@ class Foo33
     }
 
     void method() {
-        assert( a == 5 );
+        assertEquals( 5, a );
         assert( q == 5 || q==6/*after setQ()*/);
         assert( this == fooThis );
 
@@ -93,7 +94,7 @@ assert( bar2.q == 5 );
 assert( bar2.b2 == 99 );
 
 // Version 1.3 doesn't support this.
-assert( ((Foo33)bar2).b2 == 99 );
+assertEquals(99, ((Foo33)bar2).b2 );
 
 // subclass tests
 bar.barMethod();
