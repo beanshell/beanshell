@@ -1,6 +1,6 @@
 language: java
 script:
-  - mvn clean package install -Dmaven.test.skip=true
+  - mvn clean package install -Daccessibility=true
 cache:
   directories:
     - $HOME/.m2
