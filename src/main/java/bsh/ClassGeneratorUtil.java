@@ -904,6 +904,8 @@ public class ClassGeneratorUtil implements Opcodes {
         String altConstructor = null;
         BSHArguments argsNode = null;
         SimpleNode firstStatement = (SimpleNode) constructor.methodBody.jjtGetChild(0);
+        if (firstStatement instanceof BSHAssignment)
+            firstStatement = (SimpleNode) firstStatement.jjtGetChild(0);
         if (firstStatement instanceof BSHPrimaryExpression)
             firstStatement = (SimpleNode) firstStatement.jjtGetChild(0);
 
