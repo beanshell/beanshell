@@ -1,0 +1,15 @@
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+class CLASS1 {
+    static int i = 0;
+    CLASS1(x) { i++; }
+}
+
+c = new CLASS1(new CLASS1(new CLASS1(new CLASS1(new CLASS1(
+    new CLASS1(new CLASS1(new CLASS1(new CLASS1(new CLASS1(
+    new CLASS1(new CLASS1(new CLASS1("foo")))))))))))));
+
+assertEquals("13 nested objects parsed", 13, CLASS1.i);
+
+complete();
