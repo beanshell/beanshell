@@ -30,7 +30,7 @@ package bsh;
 
 class BSHAssignment extends SimpleNode implements ParserConstants
 {
-    public int operator;
+    public Integer operator;
 
     BSHAssignment(int id) { super(id); }
 
@@ -38,6 +38,9 @@ class BSHAssignment extends SimpleNode implements ParserConstants
         CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
+        if (null == operator && jjtGetNumChildren() > 0)
+            return ((SimpleNode)jjtGetChild(0)).eval(callstack, interpreter);
+
         BSHPrimaryExpression lhsNode =
             (BSHPrimaryExpression)jjtGetChild(0);
 

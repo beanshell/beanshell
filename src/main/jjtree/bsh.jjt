@@ -768,25 +768,15 @@ int NameList() :
 }
 
 /*
- * Expression syntax follows.
+ * This expansion has been written this way instead of:
+ *   Assignment() | ConditionalExpression()
+ * for performance reasons.
  */
-void Expression() :
-{ }
-{
-  LOOKAHEAD( PrimaryExpression() AssignmentOperator() )
-  Assignment()
-|
-  ConditionalExpression()
-}
-
-void Assignment() #Assignment :
+void Expression() #Assignment :
 { int op ; }
 {
-  PrimaryExpression()
-    op = AssignmentOperator() { jjtThis.operator = op; }
-    // Add this for blocks, e.g. foo = { };
-    //( Expression() | Block() )
-    Expression()
+  ConditionalExpression()
+  [ op=AssignmentOperator() { jjtThis.operator = op; } Expression() ]
 }
 
 int AssignmentOperator() :
@@ -1016,6 +1006,7 @@ void PrimarySuffix() #PrimarySuffix :
     }
 |
     // Field access or method invocation
+  LOOKAHEAD(2)
   "." t = <IDENTIFIER> [ Arguments() ] {
         jjtThis.operation = BSHPrimarySuffix.NAME;
         jjtThis.field = t.image;
@@ -1026,7 +1017,8 @@ void PrimarySuffix() #PrimarySuffix :
     }
 /*  For inner classes */
 |
-    AllocationExpression() {
+  LOOKAHEAD(2)
+  "." AllocationExpression() {
         jjtThis.operation = BSHPrimarySuffix.NEW;
     }
 }
@@ -1150,18 +1142,15 @@ void ArgumentList() :
 void AllocationExpression() #AllocationExpression :
 { }
 {
-  LOOKAHEAD(2)
-  "new" PrimitiveType() ArrayDimensions()
-|
-  "new" AmbiguousName()
-    (
+  "new" (
+      PrimitiveType() ArrayDimensions()
+   |
+      AmbiguousName() (
         ArrayDimensions()
-    |
+      |
         Arguments() [ LOOKAHEAD(2) Block() ]
-    )
-|
-  ".new " AmbiguousName()
-     ( Arguments() [ LOOKAHEAD(2) Block() ] )
+      )
+   )
 }
 
 void ArrayDimensions() #ArrayDimensions :
