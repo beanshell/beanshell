@@ -109,6 +109,17 @@ public class TryStatementTest {
         assertThat(Array.get(resource, 1), instanceOf(ByteArrayOutputStream.class));
     }
 
+    @Test
+    public void try_with_resource_non_autocloseable() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("The resource type java.lang.String does not implement java.lang.AutoCloseable."));
+
+        eval(
+            "try (x = new String()) {",
+                "return x;",
+            "} catch (Exception e) {}"
+        );
+    }
 
     @Test
     public void try_with_resource() throws Exception {
