@@ -279,17 +279,13 @@ public class ClassManagerImpl extends BshClassManager
     @Override
     public InputStream getResourceAsStream( String path )
     {
-        InputStream in = null;
-        if ( baseLoader != null )
-        {
+        Object in = null;
+        if ( null != baseLoader )
             // classloader wants no leading slash
             in = baseLoader.getResourceAsStream( path.substring(1) );
-        }
-        if ( in == null )
-        {
-            in = super.getResourceAsStream( path );
-        }
-        return in;
+        if ( null == in )
+            return super.getResourceAsStream( path );
+        return (InputStream) in;
     }
 
     ClassLoader getLoaderForClass( String name ) {
@@ -412,12 +408,12 @@ public class ClassManagerImpl extends BshClassManager
         }
 
         // Create classloader for the set of classes
-        ClassLoader cl = new DiscreteFilesClassLoader( this, map );
+        DiscreteFilesClassLoader.newInstance( this, map );
 
         // map those classes the loader in the overlay map
         Iterator it = map.keySet().iterator();
         while ( it.hasNext() )
-            loaderMap.put( (String)it.next(), cl );
+            loaderMap.put( it.next(), DiscreteFilesClassLoader.instance() );
 
         classLoaderChanged();
     }

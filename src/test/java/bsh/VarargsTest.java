@@ -37,6 +37,7 @@ public class VarargsTest {
         final List<Object> list = (List<Object>) interpreter.eval("helper.list(1,2,3)");
         // An array initializer may be specified in a declaration, or as part of an array creation expression.
         Assert.assertEquals(Arrays.<Object>asList(1,2,3), list);
+        interpreter.close();
     }
 
 
@@ -47,6 +48,7 @@ public class VarargsTest {
         @SuppressWarnings({"unchecked"})
         final List<Object> list = (List<Object>) interpreter.eval("helper.list(new Object[] {1,2,3})");
         Assert.assertEquals(Arrays.<Object>asList(1,2,3), list);
+        interpreter.close();
     }
 
 

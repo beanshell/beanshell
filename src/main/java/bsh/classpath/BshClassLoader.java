@@ -93,13 +93,9 @@ public class BshClassLoader extends URLClassLoader
 
         // This is copied from ClassManagerImpl
         // We should refactor this somehow if it sticks around
-        if ( name.startsWith( ClassManagerImpl.BSH_PACKAGE ) ) {
-            try {
-                return bsh.Interpreter.class.getClassLoader().loadClass( name );
-            } catch ( ClassNotFoundException e ) {
-                // ignore
-            }
-        }
+        if ( name.startsWith( ClassManagerImpl.BSH_PACKAGE ) ) try {
+            return bsh.Interpreter.class.getClassLoader().loadClass( name );
+        } catch ( ClassNotFoundException e ) { /* ignore */ }
 
         /*
             Try to find the class using our classloading mechanism.
@@ -138,31 +134,28 @@ public class BshClassLoader extends URLClassLoader
         Class c;
 
         // If there is a designated loader and it's not us delegate to it
-        if ( cl != null && cl != this )
-            try {
-                return cl.loadClass( name );
-            } catch ( ClassNotFoundException e ) {
-                throw new ClassNotFoundException(
-                    "Designated loader could not find class: "+e );
-            }
+        if ( cl != null && cl != this ) try {
+            return cl.loadClass( name );
+        } catch ( ClassNotFoundException e ) {
+            throw new ClassNotFoundException(
+                "Designated loader could not find class: "+e );
+        }
 
         // Let URLClassLoader try any paths it may have
-        if ( getURLs().length > 0 )
-            try {
-                return super.findClass(name);
-            } catch ( ClassNotFoundException e ) {
-                //System.out.println(
-                //  "base loader here caught class not found: "+name );
-            }
+        if ( getURLs().length > 0 ) try {
+            return super.findClass(name);
+        } catch ( ClassNotFoundException e ) {
+            //System.out.println(
+            //  "base loader here caught class not found: "+name );
+        }
 
 
         // If there is a baseLoader and it's not us delegate to it
         cl = bcm.getBaseLoader();
 
-        if ( cl != null && cl != this )
-            try {
-                return cl.loadClass( name );
-            } catch ( ClassNotFoundException e ) { }
+        if ( cl != null && cl != this ) try {
+            return cl.loadClass( name );
+        } catch ( ClassNotFoundException e ) { }
 
         // Try system loader
         return bcm.plainClassForName( name );

@@ -1076,6 +1076,7 @@ public class Interpreter
     public static void redirectOutputToFile( String filename )
     {
         try {
+            @SuppressWarnings("resource")
             PrintStream pout = new PrintStream(
                 new FileOutputStream( filename ) );
             System.setOut( pout );

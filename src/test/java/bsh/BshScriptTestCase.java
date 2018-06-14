@@ -134,27 +134,28 @@ public class BshScriptTestCase {
 
         /** {@inheritDoc} */
         @Override
+        @SuppressWarnings("resource")
         public void runTest() throws Throwable {
             setAccessibility(valueOf(System.getProperty("accessibility")));
             assumeFalse("skipping test " + getName(), SKIP_KNOWN_ISSUES
                     && KNOWN_FAILING_TESTS.contains(getName()));
 
-            final Interpreter interpreter = new Interpreter();
-            interpreter.set("bsh.cwd", test_scripts_dir.getPath());
+            try (final Interpreter interpreter = new Interpreter()) {
+                interpreter.set("bsh.cwd", test_scripts_dir.getPath());
 
-            try {
-                interpreter.eval(new FileReader(this._file));
-            } catch (final Throwable e) {
-                skipAssumptions(e);
-                if (!System.getProperty("script").isEmpty())
-                    e.printStackTrace(System.out);
-                throw new RuntimeException(getName(), e);
+                try {
+                    interpreter.eval(new FileReader(this._file));
+                } catch (final Throwable e) {
+                    skipAssumptions(e);
+                    if (!System.getProperty("script").isEmpty())
+                        e.printStackTrace(System.out);
+                    throw new RuntimeException(getName(), e);
+                }
+                assertTrue("Test did not complete."+interpreter.get("test_message"),
+                        (Boolean) interpreter.get("test_completed"));
+                assertFalse(""+interpreter.get("test_message"),
+                        (Boolean) interpreter.get("test_failed"));
             }
-            assertTrue("Test did not complete."+interpreter.get("test_message"),
-                    (Boolean) interpreter.get("test_completed"));
-            assertFalse(""+interpreter.get("test_message"),
-                    (Boolean) interpreter.get("test_failed"));
-
         }
     }
 }
