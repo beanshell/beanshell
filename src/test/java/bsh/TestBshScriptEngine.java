@@ -3,6 +3,7 @@ package bsh;
 
 import static javax.script.ScriptContext.ENGINE_SCOPE;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
@@ -20,16 +21,19 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.io.Writer;
 
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.Invocable;
+import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import javax.script.SimpleScriptContext;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -112,14 +116,15 @@ public class TestBshScriptEngine {
 
         // Try redirecting output
         String fname = "testBshScriptEngine.out";
-        String outString = "Data 1 2 3.";
+        String outString = "checkstyle-supressions.xml";
         Writer fout = new FileWriter( fname );
         engine.getContext().setWriter( fout );
         engine.put( "outString", outString );
-        engine.eval(new StringReader("print(outString);"));
+        engine.eval(new StringReader("dir('src/conf');"));
         BufferedReader bin = new BufferedReader( new FileReader( fname ) );
         String line = bin.readLine();
-        assertEquals( outString, line );
+        assertNotNull(line);
+        assertThat(line, endsWith(outString));
         new File(fname).delete();
         bin.close();
         fout.close();
@@ -168,6 +173,18 @@ public class TestBshScriptEngine {
         assertThat(bsef.getMimeTypes(), contains("application/x-beanshell", "application/x-bsh"));
         assertThat(bsef.getExtensions(), contains("bsh"));
         assertThat(bsef.getNames(), contains("beanshell", "bsh"));
+    }
+
+    @Test
+    public void test_eval_writer_unicode() throws Exception {
+        ScriptEngine engine = new BshScriptEngineFactory().getScriptEngine();
+        ScriptContext ctx = new SimpleScriptContext();
+        StringWriter sw = new StringWriter();
+        ctx.setWriter(sw);
+        engine.setContext(ctx);
+        engine.eval("print('\\u3456');");
+        assertEquals('\u3456', sw.toString().charAt(0));
+        sw.close();
     }
 
     @Test
