@@ -28,7 +28,7 @@ public class BSHAutoCloseable extends BSHTypedVariableDeclaration {
         super.eval(callstack, interpreter);
 
         try {
-            this.varThis = callstack.top().getVariableImpl(name, true);
+            this.varThis = callstack.top().getVariableImpl(this.getName(), true);
         } catch (UtilEvalError e) {
             throw e.toEvalError("Unable to evaluate the try-with-resource "
                 + this.getName() + ". With message:" + e.getMessage(),
