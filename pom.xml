@@ -223,6 +223,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.21.0</version>
         <configuration>
+          <argLine>${surefireArgLine}</argLine>
           <systemPropertyVariables>
             <bsh.debugClasses></bsh.debugClasses>
             <accessibility>false</accessibility>
@@ -230,6 +231,39 @@
             <skip_known_issues>true</skip_known_issues>
           </systemPropertyVariables>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.1</version>
+        <executions>
+          <execution>
+            <id>default-prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+            <configuration>
+              <propertyName>surefireArgLine</propertyName>
+              <append>true</append>
+              <excludes>
+                <exclude>bsh/org/objectweb/**/*</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>default-report</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
+              <excludes>
+                <exclude>bsh/org/objectweb/**/*</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
