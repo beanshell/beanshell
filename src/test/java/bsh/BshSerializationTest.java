@@ -63,6 +63,8 @@ public class BshSerializationTest {
         Assert.assertNull(origInterpreter.eval("myNull"));
         final Interpreter deserInterpreter = TestUtil.serDeser(origInterpreter);
         Assert.assertNull(deserInterpreter.eval("myNull"));
+        origInterpreter.close();
+        deserInterpreter.close();
     }
 
     /**
@@ -76,5 +78,7 @@ public class BshSerializationTest {
         Assert.assertTrue((Boolean) originalInterpreter.eval("myNull == null"));
         final Interpreter deserInterpreter = TestUtil.serDeser(originalInterpreter);
         Assert.assertTrue((Boolean) deserInterpreter.eval("myNull == null"));
+        originalInterpreter.close();
+        deserInterpreter.close();
     }
 }

@@ -82,6 +82,7 @@ public class InterpreterConcurrencyTest {
             }
         };
         measureConcurrentTime(runnable, 30, 30, 100);
+        interpreter.close();
     }
 
 
@@ -104,9 +105,10 @@ public class InterpreterConcurrencyTest {
     }
 
 
-    private This createCallable() throws EvalError {
-        final Interpreter interpreter = new Interpreter();
-        return (This) interpreter.eval(script);
+    private This createCallable() throws Exception {
+        try (final Interpreter interpreter = new Interpreter()) {
+            return (This) interpreter.eval(script);
+        }
     }
 
 }

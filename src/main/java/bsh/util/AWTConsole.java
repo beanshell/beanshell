@@ -97,6 +97,7 @@ public class AWTConsole extends TextArea
     // formerly public
     private InputStream in;
     private PrintStream out;
+    private static Interpreter interpreter;
 
     public Reader getIn() { return new InputStreamReader(in); }
     public PrintStream getOut() { return out; }
@@ -338,7 +339,7 @@ public class AWTConsole extends TextArea
             }
         } );
 
-        Interpreter interpreter = new Interpreter( console );
+        interpreter = new Interpreter( console );
         interpreter.run();
     }
 

@@ -1,9 +1,8 @@
-import bsh.EvalError;
 import bsh.Interpreter;
 
 public class callFromJava {
 
-    public static void main( String argv[] ) throws EvalError {
+    public static void main( String argv[] ) throws Exception {
 
         Interpreter interpreter = new Interpreter();
         interpreter.set("foo", 5);
@@ -14,6 +13,7 @@ public class callFromJava {
             System.out.println("FAILED...");
         else
             System.out.println("passed...");
+        interpreter.close();
     }
 }
 

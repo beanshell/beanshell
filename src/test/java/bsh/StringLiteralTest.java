@@ -73,14 +73,15 @@ public class StringLiteralTest {
     }
 
 
-    private void assertStringParsing(final String s, final DelimiterMode mode) throws EvalError {
+    private void assertStringParsing(final String s, final DelimiterMode mode) throws Exception {
         assertStringParsing(s, s, mode);
     }
 
 
-    private void assertStringParsing(final String expected, final String source, final DelimiterMode mode) throws EvalError {
-        final Interpreter interpreter = new Interpreter();
-        Assert.assertEquals(expected, interpreter.eval("return " + mode.delimiter() + source + mode.delimiter() + ""));
+    private void assertStringParsing(final String expected, final String source, final DelimiterMode mode) throws Exception {
+        try (final Interpreter interpreter = new Interpreter() ) {
+            Assert.assertEquals(expected, interpreter.eval("return " + mode.delimiter() + source + mode.delimiter() + ""));
+        }
     }
 
 }
