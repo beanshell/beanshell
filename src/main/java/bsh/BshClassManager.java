@@ -152,8 +152,6 @@ public class BshClassManager
         else
             manager = new BshClassManager();
 
-        if ( interpreter == null )
-            interpreter = new Interpreter();
         manager.declaringInterpreter = interpreter;
         classManagers.put(manager,null);
         return manager;
@@ -193,17 +191,15 @@ public class BshClassManager
     // Move me to classpath/ClassManagerImpl???
     protected Class<?> loadSourceClass( final String name ) {
         final String fileName = '/' + name.replace('.', '/') + ".java";
-        final InputStream in = getResourceAsStream( fileName );
-        if ( in == null ) {
+        final URL url = getResource( fileName );
+        if ( url == null )
             return null;
-        }
         try {
             Interpreter.debug("Loading class from source file: " + fileName);
-            declaringInterpreter.eval( new InputStreamReader(in) );
-        } catch ( EvalError e ) {
-            if (Interpreter.DEBUG) {
+            declaringInterpreter.eval( new InputStreamReader((InputStream) url.getContent()) );
+        } catch ( IOException | EvalError e ) {
+            if (Interpreter.DEBUG)
                 e.printStackTrace();
-            }
         }
         try {
             return plainClassForName( name );
@@ -250,12 +246,10 @@ public class BshClassManager
     {
         URL url = null;
         if ( externalClassLoader != null )
-        {
             // classloader wants no leading slash
             url = externalClassLoader.getResource( path.substring(1) );
-        }
         if ( url == null )
-            url = Interpreter.class.getResource( path );
+            return Interpreter.class.getResource( path );
 
         return url;
     }
@@ -265,16 +259,14 @@ public class BshClassManager
     */
     public InputStream getResourceAsStream( String path )
     {
-        InputStream in = null;
+        Object in = null;
         if ( externalClassLoader != null )
-        {
             // classloader wants no leading slash
             in = externalClassLoader.getResourceAsStream( path.substring(1) );
-        }
         if ( in == null )
-            in = Interpreter.class.getResourceAsStream( path );
+            return Interpreter.class.getResourceAsStream( path );
 
-        return in;
+        return (InputStream) in;
     }
 
     /**

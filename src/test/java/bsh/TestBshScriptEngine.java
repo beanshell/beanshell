@@ -99,7 +99,6 @@ public class TestBshScriptEngine {
             (Runnable) invocable.getInterface( scriptedObject, Runnable.class );
         runnable.run();
         assertTrue( (Boolean) engine.get("flag2") );
-
         // Run with alternate bindings
         assertTrue( (Boolean) engine.get("flag") );
         assertEquals( 42, engine.get("foo") );
@@ -123,6 +122,7 @@ public class TestBshScriptEngine {
         assertEquals( outString, line );
         new File(fname).delete();
         bin.close();
+        fout.close();
 
         // Add a new scope dynamically?
 
@@ -251,6 +251,7 @@ public class TestBshScriptEngine {
     public void check_script_exception_compile_close_ioe() throws Exception {
         thrown.expect(ScriptException.class);
         thrown.expectMessage(containsString("Test Close IOE"));
+
         Reader read = new BufferedReader( new StringReader("return 42;") ) {
             public void close() throws IOException {
                 throw new IOException("Test Close IOE");
@@ -264,6 +265,7 @@ public class TestBshScriptEngine {
         thrown.expect(ScriptException.class);
         thrown.expectMessage(containsString("Test Close IOE"));
 
+        @SuppressWarnings("resource")
         Reader read = new BufferedReader( new StringReader("return 42;") ) {
             public void close() throws IOException {
                 throw new IOException("Test Close IOE");

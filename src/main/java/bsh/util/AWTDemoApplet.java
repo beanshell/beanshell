@@ -40,13 +40,14 @@ import bsh.Interpreter;
 */
 public class AWTDemoApplet extends Frame
 {
+    Interpreter interpreter;
     public AWTDemoApplet()
     {
         super("AWT Demo");
         setLayout(new BorderLayout());
         ConsoleInterface console = new AWTConsole();
         add("Center", (Component)console);
-        Interpreter interpreter = new Interpreter( console );
+        interpreter = new Interpreter( console );
         new Thread(interpreter).start();
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent windowEvent){
