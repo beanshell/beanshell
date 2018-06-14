@@ -87,8 +87,7 @@ public class SimpleTemplate
         String templateText = templateData.get( file );
 
         if ( templateText == null || !cacheTemplates ) {
-            try {
-                FileReader fr = new FileReader( file );
+            try (FileReader fr = new FileReader( file )) {
                 templateText = SimpleTemplate.getStringFromStream( fr );
                 templateData.put( file, templateText );
             } catch ( IOException e ) {
@@ -233,12 +232,13 @@ public class SimpleTemplate
         String param = args[1];
         String value = args[2];
 
-        FileReader fr = new FileReader( filename );
-        String templateText = SimpleTemplate.getStringFromStream( fr );
-        SimpleTemplate template = new SimpleTemplate( templateText );
+        try (FileReader fr = new FileReader( filename )) {
+            String templateText = SimpleTemplate.getStringFromStream( fr );
+            SimpleTemplate template = new SimpleTemplate( templateText );
 
-        template.replace( param, value );
-        template.write( System.out );
+            template.replace( param, value );
+            template.write( System.out );
+        }
     }
 
     public static void setCacheTemplates( boolean b ) {

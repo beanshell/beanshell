@@ -88,8 +88,10 @@ public class Remote
 
     static String doBsh( String url, String text )
     {
-        OutputStream out;
-        InputStream in;
+        OutputStream out = null;
+        InputStream in = null;
+        BufferedReader bin = null;
+        Socket s = null;
         String host = "";
         String port = "";
         String returnValue = "-1";
@@ -110,14 +112,14 @@ public class Remote
         try {
             System.out.println("Connecting to host : "
                 + host + " at port : " + port);
-            Socket s = new Socket(host, Integer.parseInt(port) + 1);
+            s = new Socket(host, Integer.parseInt(port) + 1);
 
             out = s.getOutputStream();
             in = s.getInputStream();
 
             sendLine( text, out );
 
-            BufferedReader bin = new BufferedReader(
+            bin = new BufferedReader(
                 new InputStreamReader(in));
               String line;
               while ( (line=bin.readLine()) != null )
@@ -129,6 +131,19 @@ public class Remote
         } catch(Exception ex) {
             System.err.println("Error communicating with server: "+ex);
             return returnValue;
+        } finally {
+            if (null != bin) try {
+                bin.close();
+            } catch (IOException e) { /* ignore */ }
+            if (null != s) try {
+                s.close();
+            } catch (IOException e) { /* ignore */ }
+            if (null != in) try {
+                in.close();
+            } catch (IOException e) { /* ignore */ }
+            if (null != out) try {
+                out.close();
+            } catch (IOException e) { /* ignore */ }
         }
     }
 
@@ -206,10 +221,11 @@ public class Remote
         throws FileNotFoundException, IOException
     {
         StringBuilder sb = new StringBuilder();
-        BufferedReader bin = new BufferedReader( new FileReader( name ) );
-        String line;
-        while ( (line=bin.readLine()) != null )
-            sb.append( line ).append( "\n" );
+        try ( BufferedReader bin = new BufferedReader( new FileReader( name ) ) ) {
+            String line;
+            while ( (line=bin.readLine()) != null )
+                sb.append( line ).append( "\n" );
+        }
         return sb.toString();
     }
 

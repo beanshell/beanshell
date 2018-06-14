@@ -45,6 +45,7 @@ public class AWTRemoteApplet extends Frame
 {
     OutputStream out;
     InputStream in;
+    Socket s;
 
     public AWTRemoteApplet(int port)
     {
@@ -60,7 +61,7 @@ public class AWTRemoteApplet extends Frame
             //URL base = getDocumentBase();
 
             // connect to session server on port (httpd + 1)
-            Socket s = new Socket("localhost", port);//base.getHost(), base.getPort() + 1);
+            s = new Socket("localhost", port);//base.getHost(), base.getPort() + 1);
             out = s.getOutputStream();
             in = s.getInputStream();
         } catch(IOException e) {
