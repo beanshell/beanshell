@@ -1,5 +1,6 @@
 package bsh;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.Map;
@@ -14,7 +15,14 @@ public class PreparsedScript {
 
     private final BshMethod _method;
     private final Interpreter _interpreter;
+    private boolean closed = false;
 
+    public void close() throws IOException {
+        if ( !closed ) {
+            _interpreter.close();
+            closed = true;
+        }
+    }
 
     public PreparsedScript(final String source) throws EvalError {
         this(source, getDefaultClassLoader());
