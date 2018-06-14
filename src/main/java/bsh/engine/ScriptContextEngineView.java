@@ -2,9 +2,7 @@ package bsh.engine;
 
 import javax.script.ScriptContext;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,16 +36,18 @@ public class ScriptContextEngineView implements Map<String, Object> {
      * Returns the number of unique object bindings in all scopes.
      * (duplicate, shadowed, bindings count as a single binging).
      */
+    @Override
     public int size() {
-        return totalKeySet().size();
+        return totalMap().size();
     }
 
 
     /**
      * Returns true if no bindings are present in any scope of the context.
      */
+    @Override
     public boolean isEmpty() {
-        return totalKeySet().size() == 0;
+        return totalMap().isEmpty();
     }
 
 
@@ -64,9 +64,7 @@ public class ScriptContextEngineView implements Map<String, Object> {
      */
     @Override
     public boolean containsKey(Object key) {
-        if (key instanceof String)
-            return context.getAttributesScope((String) key) != -1;
-        return false;
+        return totalMap().containsKey(key);
     }
 
 
@@ -86,9 +84,9 @@ public class ScriptContextEngineView implements Map<String, Object> {
      * @throws NullPointerException if the value is <tt>null</tt> and this map does
      *                              not permit <tt>null</tt> values (optional).
      */
+    @Override
     public boolean containsValue(Object value) {
-        Set values = totalValueSet();
-        return values.contains(value);
+        return totalMap().containsValue(value);
     }
 
 
@@ -106,6 +104,7 @@ public class ScriptContextEngineView implements Map<String, Object> {
      *                              not permit <tt>null</tt> keys (optional).
      * @see #containsKey(Object)
      */
+    @Override
     public Object get(Object key) {
         return context.getAttribute((String) key);
     }
@@ -129,6 +128,7 @@ public class ScriptContextEngineView implements Map<String, Object> {
      * @throws NullPointerException       if this map does not permit <tt>null</tt> keys
      *                                       or values, and the specified key or value is <tt>null</tt>.
      */
+    @Override
     public Object put(String key, Object value) {
         Object oldValue = context.getAttribute(key, ENGINE_SCOPE);
         context.setAttribute(key, value, ENGINE_SCOPE);
@@ -150,6 +150,7 @@ public class ScriptContextEngineView implements Map<String, Object> {
      *                                       this map does not permit <tt>null</tt> keys or values, and the specified map
      *                                       contains <tt>null</tt> keys or values.
      */
+    @Override
     public void putAll(Map<? extends String, ? extends Object> t) {
         context.getBindings(ENGINE_SCOPE).putAll(t);
     }
@@ -177,12 +178,12 @@ public class ScriptContextEngineView implements Map<String, Object> {
      */
     // Why is the compiler complaining about this?
     //public Object remove( String key )
-    public Object remove(Object okey) {
-        // This shouldn't be necessary... we don't map Objects, Strings.
-        String key = (String) okey;
-        Object oldValue = context.getAttribute(key, ENGINE_SCOPE);
-        context.removeAttribute(key, ENGINE_SCOPE);
-        return oldValue;
+    @Override
+    public Object remove(Object key) {
+        int scope = context.getAttributesScope((String) key);
+        if (scope > -1)
+            return context.removeAttribute((String) key, scope);
+        return null;
     }
 
 
@@ -191,8 +192,10 @@ public class ScriptContextEngineView implements Map<String, Object> {
      *
      * @throws UnsupportedOperationException clear is not supported by this map.
      */
+    @Override
     public void clear() {
-        context.getBindings(ENGINE_SCOPE).clear();
+        for (int i : context.getScopes())
+            context.getBindings(i).clear();
     }
 
 
@@ -202,8 +205,9 @@ public class ScriptContextEngineView implements Map<String, Object> {
      *
      * @return a set view of the keys contained in this map.
      */
+    @Override
     public Set<String> keySet() {
-        return totalKeySet();
+        return totalMap().keySet();
     }
 
 
@@ -213,8 +217,9 @@ public class ScriptContextEngineView implements Map<String, Object> {
      *
      * @return a collection view of the values contained in this map.
      */
+    @Override
     public Collection<Object> values() {
-        return totalValueSet();
+        return totalMap().values();
     }
 
 
@@ -233,28 +238,18 @@ public class ScriptContextEngineView implements Map<String, Object> {
      *
      * @return a set view of the mappings contained in this map.
      */
+    @Override
     public Set<Entry<String, Object>> entrySet() {
-        throw new Error("unimplemented");
+        return totalMap().entrySet();
     }
 
 
-    private Set<String> totalKeySet() {
-        Set<String> keys = new HashSet<String>();
-        List<Integer> scopes = context.getScopes();
-        for (int i : scopes) {
-            keys.addAll(context.getBindings(i).keySet());
-        }
-        return Collections.unmodifiableSet(keys);
-    }
-
-
-    private Set<Object> totalValueSet() {
-        Set<Object> values = new HashSet<Object>();
-        List<Integer> scopes = context.getScopes();
-        for (int i : scopes) {
-            values.addAll(context.getBindings(i).values());
-        }
-        return Collections.unmodifiableSet(values);
+    private Map<String, Object> totalMap() {
+        Map<String, Object> map = new HashMap<String,Object>();
+        for (int i : context.getScopes())
+            if (null != context.getBindings(i))
+                map.putAll(context.getBindings(i));
+        return map;
     }
 
 }
