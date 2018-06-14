@@ -25,6 +25,8 @@
  *****************************************************************************/
 package bsh;
 
+import java.io.IOException;
+
 /**
     Console startup class.
 */
@@ -38,9 +40,9 @@ public class Console
         if ( Capabilities.haveSwing() )
         {
             bsh.util.Util.startSplashScreen();
-            try {
-                new Interpreter().eval("desktop()");
-            } catch ( EvalError e ) {
+            try (Interpreter interpreter = new Interpreter()) {
+                interpreter.eval("desktop()");
+            } catch ( IOException | EvalError e ) {
                 System.err.println("Couldn't start desktop: "+e);
             }
         } else {

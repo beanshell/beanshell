@@ -50,6 +50,7 @@ public class BshServlet extends HttpServlet
 {
     static String bshVersion;
     static String exampleScript = "print(\"hello!\");";
+    static Interpreter bsh;
 
     static String getBshVersion()
     {
@@ -65,7 +66,7 @@ public class BshServlet extends HttpServlet
             This command works around the lack of a coherent version number
             in the early versions.
         */
-        Interpreter bsh = new Interpreter();
+        bsh = new Interpreter();
         try {
             bsh.eval( new InputStreamReader( BshServlet.class.getResource(
                 "getVersion.bsh").openStream() ) );
@@ -146,6 +147,7 @@ public class BshServlet extends HttpServlet
         PrintWriter out = response.getWriter();
         st.write(out);
         out.flush();
+        out.close();
     }
 
     void sendRaw(
@@ -160,6 +162,7 @@ public class BshServlet extends HttpServlet
         else
             out.println( scriptOutput.toString() );
         out.flush();
+        out.close();
     }
 
     /**
@@ -270,7 +273,6 @@ public class BshServlet extends HttpServlet
 
         // Eval the text, gathering the return value or any error.
         Object result = null;
-        String error = null;
         PrintStream sout = System.out;
         PrintStream serr = System.err;
         if ( captureOutErr ) {

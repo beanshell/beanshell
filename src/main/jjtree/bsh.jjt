@@ -192,6 +192,7 @@ public class Parser
             while( !parser.Line()/*eof*/ )
                 if ( print )
                     System.out.println( parser.popNode() );
+            in.close();
         }
     }
 

@@ -29,12 +29,13 @@ package bsh;
 import static bsh.ClassGenerator.ClassNodeFilter.CLASSINSTANCE;
 import static bsh.ClassGenerator.ClassNodeFilter.CLASSSTATIC;
 
-import java.io.InputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -1056,9 +1057,6 @@ public class ClassGeneratorUtil implements Opcodes {
 
             // Get the static This reference from the proto-instance
             This classStaticThis = getClassStaticThis(instance.getClass(), className);
-            Interpreter interpreter = CONTEXT_INTERPRETER.get();
-            if (interpreter == null)
-                interpreter = classStaticThis.declaringInterpreter;
 
             // Create the instance namespace
             NameSpace instanceNameSpace = classStaticThis.getNameSpace().copy();
@@ -1066,7 +1064,10 @@ public class ClassGeneratorUtil implements Opcodes {
                 instanceNameSpace.setParent(CONTEXT_NAMESPACE.get());
 
             // Set the instance This reference on the instance
-            instanceThis = instanceNameSpace.getThis(interpreter);
+            if (null != CONTEXT_INTERPRETER.get())
+                instanceThis = instanceNameSpace.getThis(CONTEXT_INTERPRETER.get());
+            else
+                instanceThis = instanceNameSpace.getThis(classStaticThis.declaringInterpreter);
             try {
                 LHS lhs = Reflect.getLHSObjectField(instance, BSHTHIS + className);
                 lhs.assign(instanceThis, false/*strict*/);
@@ -1087,7 +1088,7 @@ public class ClassGeneratorUtil implements Opcodes {
 
             // evaluate the instance portion of the block in it
             try { // Evaluate the initializer block
-                instanceInitBlock.evalBlock(new CallStack(instanceNameSpace), interpreter, true/*override*/, CLASSINSTANCE);
+                instanceInitBlock.evalBlock(new CallStack(instanceNameSpace), instanceThis.declaringInterpreter, true/*override*/, CLASSINSTANCE);
             } catch (Exception e) {
                 throw new InterpreterError("Error in class initialization: " + e, e);
             }
@@ -1291,26 +1292,25 @@ public class ClassGeneratorUtil implements Opcodes {
         String baseName = Name.suffix(fqClassName, 1);
         String resName = baseName + ".bsh";
 
-        InputStream in = genClass.getResourceAsStream(resName);
-        if (in == null)
+        URL url = genClass.getResource(resName);
+        if (null == url)
             throw new InterpreterError("Script (" + resName + ") for BeanShell generated class: " + genClass + " not found.");
 
         Reader reader = new InputStreamReader(genClass.getResourceAsStream(resName));
 
         // Set up the interpreter
-        Interpreter bsh = new Interpreter();
-        NameSpace globalNS = bsh.getNameSpace();
-        globalNS.setName("class_" + baseName + "_global");
-        globalNS.getClassManager().associateClass(genClass);
+        try (Interpreter bsh = new Interpreter()) {
+            NameSpace globalNS = bsh.getNameSpace();
+            globalNS.setName("class_" + baseName + "_global");
+            globalNS.getClassManager().associateClass(genClass);
 
-        // Source the script
-        try {
-            bsh.eval(reader, bsh.getNameSpace(), resName);
+            // Source the script
+            bsh.eval(reader, globalNS, resName);
         } catch (TargetError e) {
             System.out.println("Script threw exception: " + e);
             if (e.inNativeCode())
                 e.printStackTrace(System.err);
-        } catch (EvalError e) {
+        } catch (IOException | EvalError e) {
             System.out.println("Evaluation Error: " + e);
         }
     }

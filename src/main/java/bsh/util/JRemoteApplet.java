@@ -45,6 +45,7 @@ public class JRemoteApplet extends JFrame
 {
     OutputStream out;
     InputStream in;
+    Socket s;
 
     public JRemoteApplet(int port) {
 
@@ -54,7 +55,7 @@ public class JRemoteApplet extends JFrame
             // URL base = getDocumentBase();
 
             // connect to session server on port (httpd + 1)
-            Socket s = new Socket("localhost", port);// base.getHost(), base.getPort() + 1);
+            s = new Socket("localhost", port);// base.getHost(), base.getPort() + 1);
             out = s.getOutputStream();
             in = s.getInputStream();
         } catch(IOException e) {

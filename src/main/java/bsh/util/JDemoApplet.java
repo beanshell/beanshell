@@ -39,6 +39,7 @@ import bsh.TargetError;
 */
 public class JDemoApplet extends JFrame
 {
+    Interpreter interpreter;
     public JDemoApplet(String type)
     {
         super("Demo");
@@ -51,7 +52,8 @@ public class JDemoApplet extends JFrame
         if ( type != null && type.equals("desktop") )
             // start the desktop
             try {
-                new Interpreter().eval( "desktop()" );
+                interpreter = new Interpreter();
+                interpreter.eval( "desktop()" );
             } catch ( TargetError te ) {
                 te.printStackTrace();
                 System.out.println( te.getTarget() );
@@ -66,7 +68,7 @@ public class JDemoApplet extends JFrame
             setSize(600,200);
             JConsole console = new JConsole();
             getContentPane().add("Center", console);
-            Interpreter interpreter = new Interpreter( console );
+            interpreter = new Interpreter( console );
             new Thread(interpreter).start();
             setVisible(true);
         }

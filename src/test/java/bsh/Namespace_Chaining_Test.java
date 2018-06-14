@@ -65,6 +65,9 @@ public class Namespace_Chaining_Test {
 
         assertEquals(42, root.eval("foo();"));
         assertEquals(4711, child.eval("foo();"));
+
+        root.close();
+        child.close();
     }
 
     @Test
@@ -87,6 +90,10 @@ public class Namespace_Chaining_Test {
         assertEquals(42, root.eval("foo();"));
         assertEquals(4711, child.eval("foo();"));
         assertEquals(5, child2.eval("foo();"));
+
+        root.close();
+        child.close();
+        child2.close();
     }
 
     @Test

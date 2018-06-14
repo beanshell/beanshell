@@ -31,6 +31,7 @@ import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -860,10 +861,11 @@ public class NameSpace
             else
                 scriptPath = path + "/" + name + ".bsh";
             Interpreter.debug("searching for script: " + scriptPath);
-            final InputStream in = bcm.getResourceAsStream(scriptPath);
-            if (in != null)
-                return this.loadScriptedCommand(in, name, argTypes,
-                        scriptPath, interpreter);
+            URL url = bcm.getResource(scriptPath);
+            if (null != url) try {
+                return this.loadScriptedCommand((InputStream) url.getContent(),
+                    name, argTypes, scriptPath, interpreter);
+            } catch (IOException e) { /* ignore */ }
             // Chop leading "/" and change "/" to "."
             String className;
             if (path.equals("/"))

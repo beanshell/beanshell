@@ -28,7 +28,7 @@
 package bsh;
 
 import java.lang.reflect.InvocationTargetException;
-
+import java.io.IOException;
 import java.io.PrintStream;
 
 /**
@@ -107,17 +107,16 @@ public final class TargetError extends EvalError
     {
         String getTarget =
             "import java.lang.reflect.UndeclaredThrowableException;"+
-            "String result=\"\";"+
+            "String result='';"+
             "while ( target instanceof UndeclaredThrowableException ) {"+
             "   target=target.getUndeclaredThrowable(); " +
-            "   result+=\"Nested: \"+target.toString();" +
+            "   result+='Nested: '+target.toString();" +
             "}"+
             "return result;";
-        Interpreter i = new Interpreter();
-        try {
+        try (Interpreter i = new Interpreter()) {
             i.set("target", t);
             return (String)i.eval( getTarget );
-        } catch ( EvalError e ) {
+        } catch ( IOException | EvalError e ) {
             throw new InterpreterError("xprintarget: "+e, e);
         }
     }
