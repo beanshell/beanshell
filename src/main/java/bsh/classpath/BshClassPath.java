@@ -32,7 +32,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.FileSystemAlreadyExistsException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -368,23 +374,26 @@ public class BshClassPath
     synchronized void map( URL url )
         throws IOException
     {
-        String name = url.getFile();
-        File f = new File( name );
+        if ("jrt".equals(url.getProtocol())) {
+            classMapping("FileSystem: "+url );
+            map( searchJrtFSForClasses( url ), new JrtClassSource(url) );
+        } else  if ("jar".equals(url.getProtocol())) {
+            classMapping("FileSystem: "+url );
+            map( searchJarFSForClasses( url ), new JarClassSource(url) );
+        } else {
+            String name = url.getFile();
+            File f = new File( name );
 
-        if ( f.isDirectory() ) {
-            classMapping( "Directory "+ f.toString() );
-            map( traverseDirForClasses( f ), new DirClassSource(f) );
-        } else if ( isArchiveFileName( name ) ) {
-            classMapping("Archive: "+url );
-            map( searchJarForClasses( url ), new JarClassSource(url) );
-        }
-        /*
-        else if ( isClassFileName( name ) )
-            map( looseClass( name ), url );
-        */
-        else {
-            String s = "Not a classpath component: "+ name ;
-            errorWhileMapping( s );
+            if ( f.isDirectory() ) {
+                classMapping( "Directory "+ f.toString() );
+                map( traverseDirForClasses( f ), new DirClassSource(f) );
+            } else if ( isArchiveFileName( name ) ) {
+                classMapping("Archive: "+url );
+                map( searchArchiveForClasses( url ), new JarClassSource(url) );
+            } else {
+                String s = "Not a classpath component: "+ name ;
+                errorWhileMapping( s );
+            }
         }
     }
 
@@ -492,27 +501,58 @@ public class BshClassPath
         return list;
     }
 
-    /**
-        Get the class file entries from the Jar
-    */
-    static String [] searchJarForClasses( URL jar )
-        throws IOException
-    {
-        Vector v = new Vector();
-        InputStream in = jar.openStream();
-        ZipInputStream zin = new ZipInputStream(in);
+    /** Search jrt file system for module classes.
+     * @param the jrt: file system url
+     * @return array of class names found
+     * @throws IOException */
+    static String [] searchJrtFSForClasses( URL url ) throws IOException {
+        try {
+            Path path = FileSystems.getFileSystem(new URI("jrt:/")).getPath("modules", url.getPath());
+
+            return Files.walk(path).map(Path::toString)
+                    .filter(BshClassPath::isClassFileName)
+                    .map(BshClassPath::canonicalizeClassName)
+                    .toArray(String[]::new);
+        } catch (URISyntaxException e) { /* ignore */ }
+        return new String[0];
+    }
+
+    /** Search jar file system for classes.
+     * @param the jar: file system url
+     * @return array of class names found
+     * @throws IOException */
+    static String [] searchJarFSForClasses( URL url ) throws IOException {
+        try {
+            try {
+                FileSystems.newFileSystem(url.toURI(), new HashMap<>());
+            } catch (FileSystemAlreadyExistsException e) { /* ignore */ }
+
+            Path path = FileSystems.getFileSystem(url.toURI()).getPath("/");
+
+            return Files.walk(path).map(Path::toString)
+                    .filter(BshClassPath::isClassFileName)
+                    .map(BshClassPath::canonicalizeClassName)
+                    .toArray(String[]::new);
+        } catch (URISyntaxException e) { /* ignore */ }
+        return new String[0];
+    }
+
+    /** Search Archive for classes.
+     * @param the archive file location
+     * @return array of class names found
+     * @throws IOException */
+    static String [] searchArchiveForClasses( URL url ) throws IOException {
+        List<String> list = new ArrayList<>();
+        ZipInputStream zip = new ZipInputStream(url.openStream());
 
         ZipEntry ze;
-        while( (ze= zin.getNextEntry()) != null ) {
-            String name=ze.getName();
-            if ( isClassFileName( name ) )
-                v.addElement( canonicalizeClassName(name) );
-        }
-        zin.close();
+        while( zip.available() == 1 )
+            if ( (ze = zip.getNextEntry()) != null )
+                if ( isClassFileName( ze.getName() ) )
+                    list.add( canonicalizeClassName( ze.getName() ) );
+        zip.close();
 
-        String [] sa = new String [v.size()];
-        v.copyInto(sa);
-        return sa;
+        return list.toArray( new String[list.size()] );
     }
 
     public static boolean isClassFileName( String name ){
@@ -522,7 +562,7 @@ public class BshClassPath
 
     public static boolean isArchiveFileName( String name ){
         name = name.toLowerCase();
-        return ( name.endsWith(".jar") || name.endsWith(".zip") );
+        return ( name.endsWith(".jar") || name.endsWith(".zip") || name.endsWith(".jmod") );
     }
 
     /**
@@ -533,12 +573,18 @@ public class BshClassPath
     */
     public static String canonicalizeClassName( String name )
     {
-        String classname=name.replace('/', '.');
-        classname=classname.replace('\\', '.');
+        String classname = name;
+        if ( classname.startsWith("modules/"))
+            classname = classname.replaceFirst("^modules/[^/]+/", "");
+        classname = classname.replaceAll("[/\\\\]", ".");
+        if ( classname.startsWith(".") )
+            classname = classname.substring(1);
         if ( classname.startsWith("class ") )
-            classname=classname.substring(6);
+            classname = classname.substring(6);
+        if ( classname.startsWith("classes.") )
+            classname = classname.substring(8);
         if ( classname.endsWith(".class") )
-            classname=classname.substring(0,classname.length()-6);
+            classname = classname.replaceFirst("\\.[^\\.]+$", "");
         return classname;
     }
 
@@ -668,12 +714,10 @@ public class BshClassPath
         {
             try
             {
-                //String rtjar = System.getProperty("java.home")+"/lib/rt.jar";
-                String rtjar = getRTJarPath();
+                URL rtjar = getRTJarPath();
                 if (null != rtjar) {
-                    URL url = new File( rtjar ).toURI().toURL();
                     bootClassPath = new BshClassPath(
-                        "Boot Class Path", new URL[] { url } );
+                        "Boot Class Path", new URL[] { rtjar } );
                 }
             } catch ( MalformedURLException e ) {
                 throw new ClassPathException(" can't find boot jar: "+e, e);
@@ -683,19 +727,22 @@ public class BshClassPath
     }
 
 
-    private static String getRTJarPath()
+    private static URL getRTJarPath() throws MalformedURLException
     {
         String urlString =
             Class.class.getResource("/java/lang/String.class").toExternalForm();
 
+        if ( urlString.startsWith("jrt:/") ) {
+            int i = urlString.indexOf('/', 5);
+            if ( i == -1 )
+                return null;
+            return new URL(urlString.substring(0, i));
+        }
+
         if ( !urlString.startsWith("jar:file:") )
             return null;
 
-        int i = urlString.indexOf("!");
-        if ( i == -1 )
-            return null;
-
-        return urlString.substring( "jar:file:".length(), i );
+        return new URL(urlString.replaceFirst("[^!]*$", "/"));
     }
 
     public abstract static class ClassSource {
@@ -751,6 +798,25 @@ public class BshClassPath
             return bytes;
         }
 
+    }
+
+    public static class JrtClassSource extends ClassSource {
+
+        JrtClassSource( URL url ) { source = url; }
+
+        public URL getURL() { return (URL) source; }
+
+        public byte [] getCode( String className ) {
+            String n = '/' + className.replace( '.', '/' ) + ".class";
+            try (DataInputStream in = new DataInputStream((InputStream) new URL(source + n).getContent())) {
+                byte[] bytes = new byte[in.available()];
+                in.readFully(bytes);
+                return bytes;
+            } catch (IOException e) { /* ignore */ }
+            return new byte[0];
+        }
+
+        public String toString() { return "Jrt: "+source; }
     }
 
     public static class GeneratedClassSource extends ClassSource
