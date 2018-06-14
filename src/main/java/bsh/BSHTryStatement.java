@@ -41,10 +41,9 @@ class BSHTryStatement extends SimpleNode
     }
 
     private int firstBlockNode() {
-        for (int i=0; i<jjtGetNumChildren(); i++)
-            if (jjtGetChild(i) instanceof BSHBlock)
-                return i;
-        return 0;
+        if (jjtGetChild(0) instanceof BSHBlock)
+                return 0;
+        return 1;
     }
 
     public Object eval( CallStack callstack, Interpreter interpreter)
