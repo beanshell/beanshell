@@ -14,7 +14,6 @@ import javax.script.SimpleBindings;
 import bsh.EvalError;
 import bsh.ExternalNameSpace;
 import bsh.Interpreter;
-import bsh.InterpreterError;
 import bsh.NameSpace;
 import bsh.ParseException;
 import bsh.PreparsedScript;
@@ -25,10 +24,11 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CoderResult;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /*
@@ -67,11 +67,13 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
     }
 
 
+    @Override
     public Object eval(String script, ScriptContext scriptContext) throws ScriptException {
         return evalSource(script, scriptContext);
     }
 
 
+    @Override
     public Object eval(Reader reader, ScriptContext scriptContext) throws ScriptException {
         return evalSource(reader, scriptContext);
     }
@@ -85,14 +87,14 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
 
 
     private Object evalSource(Object source, ScriptContext scriptContext) throws ScriptException {
-        bsh.NameSpace contextNameSpace = getEngineNameSpace(scriptContext);
-        Interpreter bsh = getInterpreter();
-        bsh.setNameSpace(contextNameSpace);
+        try ( Interpreter bsh = getInterpreter() ) {
+            bsh.NameSpace contextNameSpace = getEngineNameSpace(scriptContext);
+            bsh.setNameSpace(contextNameSpace);
 
-        bsh.setOut(toPrintStream(scriptContext.getWriter()));
-        bsh.setErr(toPrintStream(scriptContext.getErrorWriter()));
+            bsh.setOut(toPrintStream(scriptContext.getWriter()));
+            bsh.setErr(toPrintStream(scriptContext.getErrorWriter()));
 
-        try {
+
             if (source instanceof Reader) {
                 return bsh.eval((Reader) source);
             } else {
@@ -103,15 +105,13 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
             throw new ScriptException(e.toString(), e.getErrorSourceFile(), e.getErrorLineNumber());
         } catch (TargetError e) {
             // The script threw an application level exception
-            // set it as the cause ?
             ScriptException se = new ScriptException(e.toString(), e.getErrorSourceFile(), e.getErrorLineNumber());
             se.initCause(e.getTarget());
             throw se;
         } catch (EvalError e) {
             // The script couldn't be evaluated properly
             throw new ScriptException(e.toString(), e.getErrorSourceFile(), e.getErrorLineNumber());
-        } catch (InterpreterError e) {
-            // The interpreter had a fatal problem
+        } catch (IOException e) {
             throw new ScriptException(e.toString());
         }
     }
@@ -131,25 +131,26 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
 
 
     private static NameSpace getEngineNameSpace(ScriptContext scriptContext) {
-        NameSpace ns = (NameSpace) scriptContext.getAttribute(engineNameSpaceKey, ScriptContext.ENGINE_SCOPE);
+        Map<String, Object> engineView = new ScriptContextEngineView(scriptContext);
+        NameSpace ns = (NameSpace) engineView.get(engineNameSpaceKey);
 
-        if (ns == null) {
+        if (!engineView.containsKey(engineNameSpaceKey)) {
             // Create a global namespace for the interpreter
-            Map<String, Object> engineView = new ScriptContextEngineView(scriptContext);
             ns = new ExternalNameSpace(null/*parent*/, "javax_script_context", engineView);
-
-            scriptContext.setAttribute(engineNameSpaceKey, ns, ScriptContext.ENGINE_SCOPE);
+            engineView.put(engineNameSpaceKey, ns);
         }
 
         return ns;
     }
 
 
+    @Override
     public Bindings createBindings() {
         return new SimpleBindings();
     }
 
 
+    @Override
     public ScriptEngineFactory getFactory() {
         if (factory == null) {
             factory = new BshScriptEngineFactory();
@@ -169,6 +170,7 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
      * @throws NullPointerException if the argument is null.
      */
 
+    @Override
     public CompiledScript compile(String script) throws ScriptException {
         try {
             final PreparsedScript preparsed = new PreparsedScript(script);
@@ -176,22 +178,20 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
 
                 @Override
                 public Object eval(ScriptContext context) throws ScriptException {
-                    final HashMap<String, Object> map = new HashMap<String, Object>();
-                    final List<Integer> scopes = new ArrayList<Integer>(context.getScopes());
-                    Collections.sort(scopes); // lowest scope at first pos
-                    Collections.reverse(scopes); // highest scope at first pos
-                    for (final Integer scope : scopes) {
-                        map.putAll(context.getBindings(scope));
-                    }
                     preparsed.setOut(toPrintStream(context.getWriter()));
                     preparsed.setErr(toPrintStream(context.getErrorWriter()));
                     try {
-                        return preparsed.invoke(map);
+                        return preparsed.invoke(new ScriptContextEngineView(context));
                     } catch (final EvalError e) {
                         throw constructScriptException(e);
+                    } finally {
+                        try {
+                            preparsed.close();
+                        } catch (IOException e) {
+                            throw new ScriptException(e.toString(), script, -1);
+                        }
                     }
                 }
-
 
                 @Override
                 public ScriptEngine getEngine() {
@@ -217,6 +217,7 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
         while ((len = reader.read(cb)) != -1) {
             buffer.append(cb, 0, len);
         }
+        reader.close();
         return buffer.toString();
     }
 
@@ -233,6 +234,7 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
      * @throws ScriptException    if compilation fails.
      * @throws NullPointerException if argument is null.
      */
+    @Override
     public CompiledScript compile(Reader script) throws ScriptException {
         try {
             return compile(convertToString(script));
@@ -263,18 +265,16 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
      *                                      types cannot be found.
      * @throws NullPointerException      if method name is null.
      */
+    @Override
     public Object invokeMethod(Object thiz, String name, Object... args) throws ScriptException, NoSuchMethodException {
         if (!(thiz instanceof bsh.This)) {
-            throw new ScriptException("Illegal objec type: " + thiz.getClass());
+            throw new ScriptException("Illegal object type: " + (null == thiz ? "null" : thiz.getClass()));
         }
 
         bsh.This bshObject = (bsh.This) thiz;
 
         try {
             return bshObject.invokeMethod(name, args);
-        } catch (ParseException e) {
-            // explicit parsing error
-            throw new ScriptException(e.toString(), e.getErrorSourceFile(), e.getErrorLineNumber());
         } catch (TargetError e) {
             // The script threw an application level exception
             // set it as the cause ?
@@ -284,9 +284,6 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
         } catch (EvalError e) {
             // The script couldn't be evaluated properly
             throw new ScriptException(e.toString(), e.getErrorSourceFile(), e.getErrorLineNumber());
-        } catch (InterpreterError e) {
-            // The interpreter had a fatal problem
-            throw new ScriptException(e.toString());
         }
     }
 
@@ -303,6 +300,7 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
      *                                      argument types cannot be found.
      * @throws NullPointerException      if method name is null.
      */
+    @Override
     public Object invokeFunction(String name, Object... args) throws ScriptException, NoSuchMethodException {
         return invokeMethod(getGlobal(), name, args);
     }
@@ -321,6 +319,7 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
      * @throws IllegalArgumentException if the specified {@code Class} object
      *                                  does not exist or is not an interface.
      */
+    @Override
     public <T> T getInterface(Class<T> clasz) {
         return clasz.cast(getGlobal().getInterface(clasz));
     }
@@ -342,9 +341,10 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
      *                                  does not exist or is not an interface, or if the specified Object is null
      *                                  or does not represent a scripting object.
      */
+    @Override
     public <T> T getInterface(Object thiz, Class<T> clasz) {
         if (!(thiz instanceof bsh.This)) {
-            throw new IllegalArgumentException("invalid object type: " + thiz.getClass());
+            throw new IllegalArgumentException("Illegal object type: " + (null == thiz ? "null" : thiz.getClass()));
         }
 
         bsh.This bshThis = (bsh.This) thiz;
@@ -364,24 +364,55 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
 
     class WriterOutputStream extends OutputStream {
 
-        Writer writer;
-
+        private final ByteBuffer input;
+        private final CharBuffer output;
+        private final Writer writer;
+        private final CharsetDecoder decoder;
 
         WriterOutputStream(Writer writer) {
             this.writer = writer;
+            this.decoder = StandardCharsets.UTF_8.newDecoder();
+            int size = 16384;
+            this.input = ByteBuffer.allocate(size);
+            this.output = CharBuffer.allocate(size);
         }
 
-
-        public void write(int b) throws IOException {
-            writer.write(b);
+        @Override
+        public void write(int data) throws IOException {
+            this.write(new byte[] {(byte) data}, 0, 1);
         }
 
-
-        public void flush() throws IOException {
-            writer.flush();
+        @Override
+        public void write(byte[] buffer) throws IOException {
+            this.write(buffer, 0, buffer.length);
         }
 
+        @Override
+        public void write(byte[] buffer, int offset, int length) throws IOException {
+            while (length > 0) {
+                final int done = Math.min(length, this.input.remaining());
+                this.input.put(buffer, offset, done);
+                this.input.flip();
+                while (true) {
+                    final CoderResult result = this.decoder.decode(
+                        this.input, this.output, false);
+                    if (result.isError())
+                        result.throwException();
+                    this.writer.write(
+                        this.output.array(), 0, this.output.position()
+                    );
+                    this.writer.flush();
+                    this.output.rewind();
+                    if (result.isUnderflow())
+                        break;
+                }
+                this.input.compact();
+                offset += done;
+                length -= done;
+            }
+        }
 
+        @Override
         public void close() throws IOException {
             writer.close();
         }

@@ -1,6 +1,7 @@
 package bsh.engine;
 
 import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
 
 import bsh.Interpreter;
 import bsh.StringUtil;
@@ -9,7 +10,7 @@ import java.util.List;
 import java.util.Arrays;
 
 //  Adopted from http://ikayzo.org/svn/beanshell/BeanShell/engine/src/bsh/engine/BshScriptEngineFactory.java
-public class BshScriptEngineFactory implements javax.script.ScriptEngineFactory {
+public class BshScriptEngineFactory implements ScriptEngineFactory {
     // Begin impl ScriptEnginInfo
 
     final List<String> extensions = Arrays.asList("bsh");
@@ -50,7 +51,7 @@ public class BshScriptEngineFactory implements javax.script.ScriptEngineFactory 
 
 
     public String getLanguageVersion() {
-        return bsh.Interpreter.VERSION + "";
+        return Interpreter.VERSION;
     }
 
 
@@ -82,13 +83,13 @@ public class BshScriptEngineFactory implements javax.script.ScriptEngineFactory 
         StringBuffer sb = new StringBuffer();
         if (objectName != null)
             sb.append(objectName).append('.');
-        sb.append(StringUtil.methodString(methodName, args));
+        sb.append(StringUtil.methodString(methodName, args)).append(";");
         return sb.toString();
     }
 
 
     public String getOutputStatement(String message) {
-        return "print( \"" + message + "\" );";
+        return "print(\"" + message + "\");";
     }
 
 

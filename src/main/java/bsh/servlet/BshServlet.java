@@ -288,6 +288,9 @@ public class BshServlet extends HttpServlet
         }
         pout.flush();
         scriptOutput.append( baos.toString() );
+        try {
+            bsh.close();
+        } catch (IOException e) { /* ignore */ }
         return result;
     }
 
