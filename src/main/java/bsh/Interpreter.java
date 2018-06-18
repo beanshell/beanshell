@@ -516,7 +516,7 @@ public class Interpreter
                         setu("$_", ret);
                     }
                     if ( showResults )
-                        println("--> " + ret);
+                        println("--> " + ret + " : " + StringUtil.typeString(ret));
                 }
             }
             catch(ParseException e)
@@ -532,7 +532,6 @@ public class Interpreter
             catch(InterpreterError e)
             {
                 error("Internal Error: " + e.getMessage());
-                e.printStackTrace();
                 if(!interactive)
                     eof = true;
             }
@@ -700,7 +699,6 @@ public class Interpreter
                     throw e;
 
                 } catch ( InterpreterError e ) {
-                    e.printStackTrace();
                     throw new EvalError(
                         "Sourced file: "+sourceFileInfo+" internal Error: "
                         + e.getMessage(), node, callstack, e);

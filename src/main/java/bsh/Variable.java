@@ -91,22 +91,22 @@ public class Variable implements java.io.Serializable
                 return;
         }
 
+        // TODO: should add isJavaCastable() test for strictJava
+        // (as opposed to isJavaAssignable())
+        if ( type != null && value != null ) {
+            this.value = Types.castObject( value, type,
+                context == DECLARATION ? Types.CAST : Types.ASSIGNMENT
+            );
+            value = this.value;
+        }
+
         this.value = value;
 
         if ( this.value == null && context != DECLARATION )
             this.value = Primitive.getDefaultValue( type );
 
-        if ( lhs != null ) {
+        if ( lhs != null )
             this.value = lhs.assign( this.value, false/*strictjava*/ );
-            return;
-        }
-
-        // TODO: should add isJavaCastable() test for strictJava
-        // (as opposed to isJavaAssignable())
-        if ( type != null && value != null )
-            this.value = Types.castObject( value, type,
-                context == DECLARATION ? Types.CAST : Types.ASSIGNMENT
-            );
 
     }
 

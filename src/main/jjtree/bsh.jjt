@@ -237,66 +237,35 @@ public class Parser
             + ", column " + column + " : " + message, e );
     }
 
-    int parseInt(String s) throws NumberFormatException {
-        int radix;
-        int i;
-        if( s.startsWith("0b") || s.startsWith("0B") ) {
-            radix = 2;
-            i = 2;
-        } else if( s.startsWith("0x") || s.startsWith("0X") ) {
-            radix = 16;
-            i = 2;
-        } else if( s.startsWith("0") && s.length() > 1 ) {
-            radix = 8;
-            i = 1;
-        } else {
-            radix = 10;
-            i = 0;
-        }
-        int result = 0;
-        int len = s.length();
-        for( ; i<len; i++ ) {
-            if (s.charAt(i) == '_') continue;
-            if( result < 0 )
-                throw new NumberFormatException("Number too big for integer type: "+s);
-            result *= radix;
-            int digit = Character.digit(s.charAt(i),radix);
-            if( digit < 0 )
-                throw new NumberFormatException("Invalid integer type: "+s);
-            result += digit;
-        }
-        return result;
+    private int getRadix(String s) {
+        if( s.startsWith("0b") || s.startsWith("0B") )
+            return 2;
+        if( s.startsWith("0x") || s.startsWith("0X") )
+            return 16;
+        if( s.startsWith("0") && s.length() > 1 )
+            return 8;
+        return 10;
     }
 
-    long parseLong(String s) throws NumberFormatException {
-        int radix;
-        int i;
-        if( s.startsWith("0b") || s.startsWith("0B") ) {
-            radix = 2;
-            i = 2;
-        } else if( s.startsWith("0x") || s.startsWith("0X") ) {
-            radix = 16;
-            i = 2;
-        } else if( s.startsWith("0") && s.length() > 1 ) {
-            radix = 8;
-            i = 1;
-        } else {
-            radix = 10;
-            i = 0;
-        }
+    private int getStartIdx(int radix) {
+        return radix == 10 ? 0 : radix == 8 ? 1 : 2;
+    }
+
+    Primitive parseDecimal(String s) throws NumberFormatException {
+        int radix = getRadix(s);
         long result = 0;
         int len = s.length();
-        for( ; i<len; i++ ) {
+        for( int i = getStartIdx(radix); i<len; i++ ) {
             if (s.charAt(i) == '_') continue;
-            if( result < 0L )
-                throw new NumberFormatException("Number too big for long type: "+s);
             result *= radix;
             int digit = Character.digit(s.charAt(i),radix);
             if( digit < 0 )
-                throw new NumberFormatException("Invalid long type: "+s);
+                throw new NumberFormatException("Invalid decimal type: "+s);
             result += digit;
+            if( result < 0L )
+                return new Primitive(new java.math.BigInteger(s.substring(getStartIdx(radix)), radix));
         }
-        return result;
+        return Primitive.shrinkWrap(result);
     }
 }
 
@@ -483,8 +452,6 @@ TOKEN : /* OPERATORS */
 | < LTX: "@lt" >
 | < BANG: "!" >
 | < TILDE: "~" >
-| < HOOK: "?" >
-| < COLON: ":" >
 | < EQ: "==" >
 | < LE: "<=" >
 | < LEX: "@lteq" >
@@ -507,6 +474,7 @@ TOKEN : /* OPERATORS */
 | < BIT_ORX: "@bitwise_or" >
 | < XOR: "^" >
 | < MOD: "%" >
+| < POWER: "**" >
 | < LSHIFT: "<<" >
 | < LSHIFTX: "@left_shift" >
 | < RSIGNEDSHIFT: ">>" >
@@ -523,12 +491,15 @@ TOKEN : /* OPERATORS */
 | < ORASSIGNX: "@or_assign" >
 | < XORASSIGN: "^=" >
 | < MODASSIGN: "%=" >
+| < POWERASSIGN: "**=" >
 | < LSHIFTASSIGN: "<<=" >
 | < LSHIFTASSIGNX: "@left_shift_assign" >
 | < RSIGNEDSHIFTASSIGN: ">>=" >
 | < RSIGNEDSHIFTASSIGNX: "@right_shift_assign" >
 | < RUNSIGNEDSHIFTASSIGN: ">>>=" >
 | < RUNSIGNEDSHIFTASSIGNX: "@right_unsigned_shift_assign" >
+| < HOOK: "?" >
+| < COLON: ":" >
 | < ELLIPSIS: "..." >
 }
 
@@ -660,17 +631,6 @@ void VariableDeclarator() #VariableDeclarator :
     { jjtThis.name = t.image; }
 }
 
-/*
-this originally handled postfix array dimensions...
-
-void VariableDeclaratorId() #VariableDeclaratorId :
-{ Token t; }
-{
-  t=<IDENTIFIER> { jjtThis.name = t.image; }
-  ( "[" "]" { jjtThis.addUndefinedDimension(); } )*
-}
-*/
-
 void VariableInitializer() :
 {}
 {
@@ -783,9 +743,9 @@ void Expression() #Assignment :
 int AssignmentOperator() :
 { Token t; }
 {
-    ( "=" | "*=" | "/=" | "%=" | "+=" | "-=" | "&=" | "^=" | "|=" |
-      "<<=" | "@left_shift_assign" | ">>=" | "@right_shift_assign" |
-      ">>>=" | "@right_unsigned_shift_assign" )
+    ( "=" | "*=" | "**=" | "/=" | "%=" | "+=" | "-=" | "&=" | "@and_assign" |
+     "^=" | "|=" | "@or_assign" | "<<=" | "@left_shift_assign" | ">>=" |
+     "@right_shift_assign" | ">>>=" | "@right_unsigned_shift_assign" )
     {
         t = getToken(0);
         return t.kind;
@@ -889,7 +849,7 @@ void AdditiveExpression() :
 void MultiplicativeExpression() :
 { Token t = null; }
 {
-  UnaryExpression() ( ( t= "*" | t= "/" | t= "%" )
+  UnaryExpression() ( ( t= "*" | t= "/" | t= "%" | t= "**" )
   UnaryExpression() { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
 }
 
@@ -1030,44 +990,42 @@ void Literal() #Literal :
     boolean b;
     String literal;
     char ch;
+    int len;
 }
 {
   x = <INTEGER_LITERAL>
   {
-    literal = x.image;
-    ch = literal.charAt(literal.length()-1);
-    if(ch == 'l' || ch == 'L')
-    {
+    literal = x.image.replaceAll("_", "");
+    len = literal.length();
+    ch = literal.charAt(len-1);
+    if( ch == 'l' || ch == 'L') {
         literal = literal.substring(0,literal.length()-1);
-        try {
-            jjtThis.value = new Primitive( parseLong(literal) );
-        } catch ( NumberFormatException e ) {
-            throw createParseException( e.getMessage(), e );
-        }
+	    try {
+	        jjtThis.value = parseDecimal(literal).castToType(Long.TYPE, 0);
+	    } catch ( NumberFormatException e ) {
+	        throw createParseException( e.getMessage(), e );
+	    }
+    } else try {
+        jjtThis.value = parseDecimal(literal);
+    } catch ( NumberFormatException e ) {
+        throw createParseException( e.getMessage(), e );
     }
-    else
-        try {
-            jjtThis.value = new Primitive( parseInt(literal) );
-        } catch ( NumberFormatException e ) {
-            throw createParseException( e.getMessage(), e );
-        }
   }
 |
   x = <FLOATING_POINT_LITERAL>
   {
     literal = x.image;
     ch = literal.charAt(literal.length()-1);
-    if(ch == 'f' || ch == 'F')
-    {
-        literal = literal.substring(0,literal.length()-1);
+    if(ch == 'f' || ch == 'F') {
+        literal = literal.substring(0, literal.length()-1);
         jjtThis.value = new Primitive( Float.valueOf( literal ).floatValue() );
-    }
-    else
-    {
-        if(ch == 'd' || ch == 'D')
-            literal = literal.substring(0,literal.length()-1);
-
+    } else if(ch == 'd' || ch == 'D') {
+        literal = literal.substring(0, literal.length()-1);
         jjtThis.value = new Primitive( Double.valueOf( literal ).doubleValue() );
+    } else try {
+        jjtThis.value = Primitive.shrinkWrap( new java.math.BigDecimal( literal ) );
+    } catch ( NumberFormatException e ) {
+        throw createParseException( e.getMessage(), e );
     }
   }
 |
