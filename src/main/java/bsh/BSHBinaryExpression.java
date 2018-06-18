@@ -128,7 +128,7 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
                 */
             } else
                 try {
-                    return Primitive.binaryOperation(lhs, rhs, kind);
+                    return Operators.binaryOperation(lhs, rhs, kind);
                 } catch ( UtilEvalError e ) {
                     throw e.toEvalError( this, callstack  );
                 }

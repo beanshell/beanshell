@@ -1251,6 +1251,8 @@ public class NameSpace
         this.importPackage("java.util");
         this.importPackage("java.io");
         this.importPackage("java.lang");
+        this.importClass("java.math.BigInteger");
+        this.importClass("java.math.BigDecimal");
         this.importCommands("/bsh/commands");
     }
 

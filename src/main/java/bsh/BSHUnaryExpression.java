@@ -85,43 +85,19 @@ class BSHUnaryExpression extends SimpleNode implements ParserConstants
                 + " inappropriate for object" );
 
 
-        return Primitive.unaryOperation((Primitive)op, kind);
+        return Operators.unaryOperation((Primitive)op, kind);
     }
 
     private Object primitiveWrapperUnaryOperation(Object val, int kind)
         throws UtilEvalError
     {
-        Class operandType = val.getClass();
-        Object operand = Primitive.promoteToInteger(val);
+        Class<?> operandType = val.getClass();
+        Object operand = Operators.promoteToInteger(val);
 
         if ( operand instanceof Boolean )
-            return Primitive.booleanUnaryOperation((Boolean)operand, kind)
+            return Operators.booleanUnaryOperation((Boolean)operand, kind)
                     ? Boolean.TRUE : Boolean.FALSE;
         else
-        if ( operand instanceof Integer )
-        {
-            int result = Primitive.intUnaryOperation((Integer)operand, kind);
-
-            // ++ and -- must be cast back the original type
-            if(kind == INCR || kind == DECR)
-            {
-                if(operandType == Byte.TYPE)
-                    return Byte.valueOf((byte)result);
-                if(operandType == Short.TYPE)
-                    return Short.valueOf((short)result);
-                if(operandType == Character.TYPE)
-                    return Character.valueOf((char)result);
-            }
-
-            return Integer.valueOf(result);
-        }
-        else if(operand instanceof Long)
-            return Long.valueOf(Primitive.longUnaryOperation((Long)operand, kind));
-        else if(operand instanceof Float)
-            return Float.valueOf(Primitive.floatUnaryOperation((Float)operand, kind));
-        else if(operand instanceof Double)
-            return Double.valueOf(Primitive.doubleUnaryOperation((Double)operand, kind));
-        else
-            throw new InterpreterError("An error occurred.  Please call technical support.");
+            return unaryOperation(val, kind);
     }
 }
