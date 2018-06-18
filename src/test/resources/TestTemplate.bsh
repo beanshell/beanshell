@@ -1,10 +1,82 @@
 #!/bin/java bsh.Interpreter
 
 source("TestHarness.bsh");
+source("Assert.bsh");
 
-// Insert tests here, calling
-// assert(), isEvalError(), fail(), warning(), flag()
-// TODO: add examples of these calls here...
+// Insert unit tests here...
+//
+// Just copy, paste and rename this template into the test-scripts folder and it
+// will automagically be included in the maven build tests. You can single out your
+// unit test, which includes more verbose error output, with the following command:
+//
+// $ mvn test -Dtest=BshScriptTestCase -Dscript=your_test_script.bsh
+//
+// The complete set of org.junit.Assert functions are exposed for your convenience.
+// assertEquals, assertNotEquals, assertArrayEquals, assertSame, assertNotSame,
+// assertTrue, assertFalse, assertNull, assertNotNull, with or without message text.
+// The assert functions follow the following pattern:
+//
+// assertEquals("Optional message", expected, actual);
+//
+// As well as all the org.hamcrest.Matchers:
+// allOf, any, anyOf, array, arrayContaining, arrayWithSize, both, closeTo,
+// comparesEqualTo, contains, containsInAnyOrder, containsString, describedAs,
+// either, empty, emptyArray, emptyCollectionOf, emptyIterable, emptyIterableOf,
+// endsWith, equalTo, equalToIgnoringCase, equalToIgnoringWhiteSpace, eventFrom,
+// eventFrom, everyItem, greaterThan, greaterThanOrEqualTo, hasEntry, hasEntry,
+// hasItem, hasItemInArray, hasItems, hasKey, hasProperty, hasSize, hasToString,
+// hasValue, hasXPath, instanceOf, is, isA, isEmptyOrNullString, isEmptyString,
+// isIn, isOneOf, iterableWithSize, lessThan, lessThanOrEqualTo, not, notNullValue,
+// nullValue, sameInstance, samePropertyValuesAs, startsWith, stringContainsInOrder,
+// theInstance, typeCompatibleWith.
+// These matchers can be mixed and matched together with the assertThat command,
+// with or without message text.
+// Command format:
+//
+// assertThat("Optional message", actual, matcher);
+//
+// Examples:
+//
+// assertThat("Value is instance of class", value, instanceOf(Some.class));
+// assertThat("Assert Null", value, nullValue());
+// assertThat("Empty or foo", value, anyOf(isEmptyString(), containsString("foo"));
+//
+// The isEvalError command is an easy way to test expected exceptions. We wrap
+// isEvalError in an assert which will trigger a fail if no exception occurred.
+//
+// assert(isEvalError("Optional matching exception message", "eval script"));
+//
+// You also have access to junit assumptions, which is a convenient method for
+// skipping a test unless certain assumptions are met.
+// The following commands are available:
+// assumeTrue, assumeFalse, assumeNoException, assumeNotNull, assumeThat
+//
+// A common beanshell use case for assumptions are tests that rely on accessibility.
+// Beanshell only makes public members accessible unless accessibility is enabled
+// and members generally considered illegal to access will be provided.
+// Accessibility is enabled with the mvn command line argument:
+//
+// $ mvn test -Daccessibility=true
+//
+// To skip a test on the assumption that accessibility is enabled use: the script
+// will run if haveAccessibility returns true otherwise it's skipped.
+//
+// assumeTrue("testing package private methods needs privilege", haveAccessibility());
+//
+// Some other useful commands which may come in handy is fail, to fail and abort the
+// test and flag, which is a convenient counter command that can be incremented.
+// Example usage:
+//
+// if ( true )
+//     flag();
+// else
+//     fail();
+//
+// assertEquals("Flag should be 1", 1, flag());
+//
+// Important!!!!
+// Make sure your script ends with the complete command or the test harness will
+// assume it could not finish and the your test will fail.
 
 complete();
 
