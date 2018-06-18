@@ -1,30 +1,34 @@
 #!/bin/java bsh.Interpreter
 
 source("TestHarness.bsh");
+source("Assert.bsh");
 
-check(a, val, java.lang.Class cl) {
+check(s, a, val, java.lang.Class cl) {
     // we're looking at the Primitive here
-    assert( a.getValue().getClass().equals( cl ) );
-    assert( a.getValue() == val );
+    assertEquals( s, a.getValue().getClass(), cl );
+    assertTrue( s, a.getValue() == val );
 }
 
 // Promotion tests
-
 // Should be integer
-check(5, 5, Integer.class);
-check(5+5, 10, Integer.class);
-check(5/2, 2, Integer.class);
+check("check 5 5 Integer", 5, 5, Integer.class);
+check("check 5+5 10 Integer", 5+5, 10, Integer.class);
+check("check 5/2 2 Integer", 5/2, 2, Integer.class);
 
 // Should be double
-check(4.0, 4.0, Double.class);
-check(5.0+5.0, 10.0, Double.class);
-check(1+1.0, 2.0, Double.class);
+check("check 4.0 4.0 Long", 4.0, 4.0, Float.class);
+check("check 5.0+5.0 10.0 Long", 5.0+5.0, 10.0, Float.class);
+check("check 1+1.0 2.0 Long", 1+1.0, 2.0, Float.class);
 
-check((byte)5, 5, Byte.class);
-check((short)5, 5, Short.class);
-check((long)5, 5, Long.class);
-check('5', '5', Character.class);
-check((float)5.0, 5.0, Float.class );
+check("check (byte)5 5 Byte", (byte)5, 5, Byte.class);
+check("check (short)5 5 Short", (short)5, 5, Short.class);
+check("check (long)5 5 Long", (long)5, 5, Long.class);
+check("check '5' '5' Character", '5', '5', Character.class);
+check("check (float)5.0 5.0 Float", (float)5.0, 5.0, Float.class );
+
+assertThat(3.4028235E38, instanceOf(Float.TYPE));
+assertThat(3.4028236E38, instanceOf(Double.TYPE));
+
 
 // boxing numbers to Object type
 v = new Vector();

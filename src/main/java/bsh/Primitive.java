@@ -30,6 +30,8 @@ package bsh;
 
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,7 +44,7 @@ import java.util.Map;
  * @author Pat Niemeyer
  * @author Daniel Leuck
  */
-public final class Primitive implements ParserConstants, Serializable {
+public final class Primitive implements Serializable {
     /*
     Note: this class is final because we may test == Primitive.class in places.
     If we need to change that search for those tests.
@@ -50,28 +52,6 @@ public final class Primitive implements ParserConstants, Serializable {
     /** default serial version id */
     private static final long serialVersionUID = 1L;
 
-    /*
-    static Hashtable primitiveToWrapper = new Hashtable();
-    static Hashtable wrapperToPrimitive = new Hashtable();
-    static {
-        primitiveToWrapper.put( Boolean.TYPE, Boolean.class );
-        primitiveToWrapper.put( Byte.TYPE, Byte.class );
-        primitiveToWrapper.put( Short.TYPE, Short.class );
-        primitiveToWrapper.put( Character.TYPE, Character.class );
-        primitiveToWrapper.put( Integer.TYPE, Integer.class );
-        primitiveToWrapper.put( Long.TYPE, Long.class );
-        primitiveToWrapper.put( Float.TYPE, Float.class );
-        primitiveToWrapper.put( Double.TYPE, Double.class );
-        wrapperToPrimitive.put( Boolean.class, Boolean.TYPE );
-        wrapperToPrimitive.put( Byte.class, Byte.TYPE );
-        wrapperToPrimitive.put( Short.class, Short.TYPE );
-        wrapperToPrimitive.put( Character.class, Character.TYPE );
-        wrapperToPrimitive.put( Integer.class, Integer.TYPE );
-        wrapperToPrimitive.put( Long.class, Long.TYPE );
-        wrapperToPrimitive.put( Float.class, Float.TYPE );
-        wrapperToPrimitive.put( Double.class, Double.TYPE );
-    }
-    */
     static final Map<Class<?>, Class<?>> wrapperMap = new HashMap<>();
     static {
         wrapperMap.put( Boolean.TYPE, Boolean.class );
@@ -90,6 +70,8 @@ public final class Primitive implements ParserConstants, Serializable {
         wrapperMap.put( Long.class, Long.TYPE );
         wrapperMap.put( Float.class, Float.TYPE );
         wrapperMap.put( Double.class, Double.TYPE );
+        wrapperMap.put( BigInteger.class, BigInteger.class );
+        wrapperMap.put( BigDecimal.class, BigDecimal.class );
     }
 
     /** The primitive value stored in its java.lang wrapper class */
@@ -100,17 +82,15 @@ public final class Primitive implements ParserConstants, Serializable {
         private static final long serialVersionUID = 1L;
         private Special() { }
 
-        public static final Special NULL_VALUE = new Special()
-        {
-            private Object readResolve() throws ObjectStreamException
-            {
+        public static final Special NULL_VALUE = new Special() {
+            private static final long serialVersionUID = 1L;
+            private Object readResolve() throws ObjectStreamException {
                 return Special.NULL_VALUE;
             }
         };
-        public static final Special VOID_TYPE = new Special()
-        {
-            private Object readResolve() throws ObjectStreamException
-            {
+        public static final Special VOID_TYPE = new Special() {
+            private static final long serialVersionUID = 1L;
+            private Object readResolve() throws ObjectStreamException {
                 return Special.VOID_TYPE;
             }
         };
@@ -122,8 +102,8 @@ public final class Primitive implements ParserConstants, Serializable {
     */
     public static final Primitive NULL = new Primitive(Special.NULL_VALUE);
 
-    public static Primitive TRUE = new Primitive(true);
-    public static Primitive FALSE = new Primitive(false);
+    public static final Primitive TRUE = new Primitive(true);
+    public static final Primitive FALSE = new Primitive(false);
 
     /**
         VOID means "no type".
@@ -135,21 +115,14 @@ public final class Primitive implements ParserConstants, Serializable {
     private Object readResolve() throws ObjectStreamException
     {
         if (value == Special.NULL_VALUE)
-        {
             return Primitive.NULL;
-        }
-        else if (value == Special.VOID_TYPE)
-        {
+        if (value == Special.VOID_TYPE)
             return Primitive.VOID;
-        }
-        else
-        {
-            return this;
-        }
+        return this;
     }
 
     // private to prevent invocation with param that isn't a primitive-wrapper
-    public Primitive( Object value )
+    private Primitive( Object value )
     {
         if ( value == null )
             throw new InterpreterError(
@@ -157,8 +130,7 @@ public final class Primitive implements ParserConstants, Serializable {
 
         if ( value != Special.NULL_VALUE
             && value != Special.VOID_TYPE &&
-            !isWrapperType( value.getClass() )
-        )
+            !isWrapperType( value.getClass() ) )
             throw new InterpreterError( "Not a wrapper type: "+value.getClass());
 
         this.value = value;
@@ -172,6 +144,8 @@ public final class Primitive implements ParserConstants, Serializable {
     public Primitive(long value) { this(Long.valueOf(value)); }
     public Primitive(float value) { this(Float.valueOf(value)); }
     public Primitive(double value) { this(Double.valueOf(value)); }
+    public Primitive(BigInteger value) { this((Object) value); }
+    public Primitive(BigDecimal value) { this((Object) value); }
 
     /**
         Return the primitive value stored in its java.lang wrapper class
@@ -180,21 +154,18 @@ public final class Primitive implements ParserConstants, Serializable {
     {
         if ( value == Special.NULL_VALUE )
             return null;
-        else
         if ( value == Special.VOID_TYPE )
                 throw new InterpreterError("attempt to unwrap void type");
-        else
-            return value;
+        return value;
     }
 
     public String toString()
     {
         if(value == Special.NULL_VALUE)
             return "null";
-        else if(value == Special.VOID_TYPE)
+        if(value == Special.VOID_TYPE)
             return "void";
-        else
-            return value.toString();
+        return value.toString();
     }
 
     /**
@@ -215,602 +186,46 @@ public final class Primitive implements ParserConstants, Serializable {
         return unboxType( value.getClass() );
     }
 
-    /**
-        Perform a binary operation on two Primitives or wrapper types.
-        If both original args were Primitives return a Primitive result
-        else it was mixed (wrapper/primitive) return the wrapper type.
-        The exception is for boolean operations where we will return the
-        primitive type either way.
-    */
-    public static Object binaryOperation(
-        Object obj1, Object obj2, int kind)
-        throws UtilEvalError
-    {
-        // special primitive types
-        if ( obj1 == NULL || obj2 == NULL )
-            throw new UtilEvalError(
-                "Null value or 'null' literal in binary operation");
-        if ( obj1 == VOID || obj2 == VOID )
-            throw new UtilEvalError(
-            "Undefined variable, class, or 'void' literal in binary operation");
-
-        // keep track of the original types
-        Class<?> lhsOrgType = obj1.getClass();
-        Class<?> rhsOrgType = obj2.getClass();
-
-        // Unwrap primitives
-        if ( obj1 instanceof Primitive )
-            obj1 = ((Primitive)obj1).getValue();
-        if ( obj2 instanceof Primitive )
-            obj2 = ((Primitive)obj2).getValue();
-
-        Object[] operands = promotePrimitives(obj1, obj2);
-        Object lhs = operands[0];
-        Object rhs = operands[1];
-
-        if(lhs.getClass() != rhs.getClass())
-            throw new UtilEvalError("Type mismatch in operator.  "
-            + lhs.getClass() + " cannot be used with " + rhs.getClass() );
-
-        Object result;
-        try {
-            result = binaryOperationImpl( lhs, rhs, kind );
-        } catch ( ArithmeticException e ) {
-            throw new UtilTargetError( "Arithemetic Exception in binary op", e);
+    public static boolean isFloatingpoint(Object number) {
+        return number instanceof Float || number instanceof Double
+                || number instanceof BigDecimal;
+    }
+    public static Primitive shrinkWrap(Object number) {
+        if (!(number instanceof Number))
+            throw new InterpreterError("Can only shrink wrap Number types");
+        Number value = (Number) number;
+        if (!isFloatingpoint(number)) {
+            try {
+                long longValue = Long.parseLong(number.toString());
+                if (longValue > Integer.MIN_VALUE && longValue < Integer.MAX_VALUE)
+                    return new Primitive(Integer.parseInt(number.toString()));
+                float floatValue = Float.parseFloat(number.toString());
+                if (floatValue > Long.MIN_VALUE && floatValue < Long.MAX_VALUE)
+                    return new Primitive(longValue);
+            } catch (NumberFormatException nfe) {}
+            if (value instanceof BigInteger)
+                return new Primitive((BigInteger) number);
         }
-
-
-        if(result instanceof Boolean)
-            return ((Boolean)result).booleanValue() ? Primitive.TRUE :
-                Primitive.FALSE;
-        // If both original args were Primitives return a Primitive result
-        // else it was mixed (wrapper/primitive) return the wrapper type
-        // Exception is for boolean result, return the primitive
-        else if ((lhsOrgType == Primitive.class && rhsOrgType == Primitive.class))
-            return new Primitive( result );
-        else
-            return result;
+        if (!Float.isInfinite(value.floatValue()))
+            return new Primitive(value.floatValue());
+        if (!Double.isInfinite(value.doubleValue()))
+            return new Primitive(value.doubleValue());
+        return new Primitive((BigDecimal) number);
     }
 
-    static Object binaryOperationImpl( Object lhs, Object rhs, int kind )
-        throws UtilEvalError
-    {
-        if(lhs instanceof Boolean)
-            return booleanBinaryOperation((Boolean)lhs, (Boolean)rhs, kind);
-        else if(lhs instanceof Integer)
-            return intBinaryOperation( (Integer)lhs, (Integer)rhs, kind );
-        else if(lhs instanceof Long)
-            return longBinaryOperation((Long)lhs, (Long)rhs, kind);
-        else if(lhs instanceof Float)
-            return floatBinaryOperation((Float)lhs, (Float)rhs, kind);
-        else if(lhs instanceof Double)
-            return doubleBinaryOperation( (Double)lhs, (Double)rhs, kind);
-        else
-            throw new UtilEvalError("Invalid types in binary operator" );
-    }
-
-    static Boolean booleanBinaryOperation(Boolean B1, Boolean B2, int kind)
-    {
-        boolean lhs = B1.booleanValue();
-        boolean rhs = B2.booleanValue();
-
-        switch(kind)
-        {
-            case EQ:
-                return lhs == rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case NE:
-                return lhs != rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case BOOL_OR:
-            case BOOL_ORX:
-                return lhs || rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case BOOL_AND:
-            case BOOL_ANDX:
-                return lhs && rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case BIT_AND:
-            case BIT_ANDX:
-                return lhs & rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case BIT_OR:
-            case BIT_ORX:
-                return lhs | rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case XOR:
-                return lhs ^ rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            default:
-                throw new InterpreterError("unimplemented binary operator");
-        }
-    }
-
-    // returns Object covering both Long and Boolean return types
-    static Object longBinaryOperation(Long L1, Long L2, int kind)
-    {
-        long lhs = L1.longValue();
-        long rhs = L2.longValue();
-
-        switch(kind)
-        {
-            // boolean
-            case LT:
-            case LTX:
-                return lhs < rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case GT:
-            case GTX:
-                return lhs > rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case EQ:
-                return lhs == rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case LE:
-            case LEX:
-                return lhs <= rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case GE:
-            case GEX:
-                return lhs >= rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case NE:
-                return lhs != rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            // arithmetic
-            case PLUS:
-                return Long.valueOf(lhs + rhs);
-
-            case MINUS:
-                return Long.valueOf(lhs - rhs);
-
-            case STAR:
-                return Long.valueOf(lhs * rhs);
-
-            case SLASH:
-                return Long.valueOf(lhs / rhs);
-
-            case MOD:
-                return Long.valueOf(lhs % rhs);
-
-            // bitwise
-            case LSHIFT:
-            case LSHIFTX:
-                return Long.valueOf(lhs << rhs);
-
-            case RSIGNEDSHIFT:
-            case RSIGNEDSHIFTX:
-                return Long.valueOf(lhs >> rhs);
-
-            case RUNSIGNEDSHIFT:
-            case RUNSIGNEDSHIFTX:
-                return Long.valueOf(lhs >>> rhs);
-
-            case BIT_AND:
-            case BIT_ANDX:
-                return Long.valueOf(lhs & rhs);
-
-            case BIT_OR:
-            case BIT_ORX:
-                return Long.valueOf(lhs | rhs);
-
-            case XOR:
-                return Long.valueOf(lhs ^ rhs);
-
-            default:
-                throw new InterpreterError(
-                    "Unimplemented binary long operator");
-        }
-    }
-
-    // returns Object covering both Integer and Boolean return types
-    static Object intBinaryOperation(Integer I1, Integer I2, int kind)
-    {
-        int lhs = I1.intValue();
-        int rhs = I2.intValue();
-
-        switch(kind)
-        {
-            // boolean
-            case LT:
-            case LTX:
-                return lhs < rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case GT:
-            case GTX:
-                return lhs > rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case EQ:
-                return lhs == rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case LE:
-            case LEX:
-                return lhs <= rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case GE:
-            case GEX:
-                return lhs >= rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case NE:
-                return lhs != rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            // arithmetic
-            case PLUS:
-                return Integer.valueOf(lhs + rhs);
-
-            case MINUS:
-                return Integer.valueOf(lhs - rhs);
-
-            case STAR:
-                return Integer.valueOf(lhs * rhs);
-
-            case SLASH:
-                return Integer.valueOf(lhs / rhs);
-
-            case MOD:
-                return Integer.valueOf(lhs % rhs);
-
-            // bitwise
-            case LSHIFT:
-            case LSHIFTX:
-                return Integer.valueOf(lhs << rhs);
-
-            case RSIGNEDSHIFT:
-            case RSIGNEDSHIFTX:
-                return Integer.valueOf(lhs >> rhs);
-
-            case RUNSIGNEDSHIFT:
-            case RUNSIGNEDSHIFTX:
-                return Integer.valueOf(lhs >>> rhs);
-
-            case BIT_AND:
-            case BIT_ANDX:
-                return Integer.valueOf(lhs & rhs);
-
-            case BIT_OR:
-            case BIT_ORX:
-                return Integer.valueOf(lhs | rhs);
-
-            case XOR:
-                return Integer.valueOf(lhs ^ rhs);
-
-            default:
-                throw new InterpreterError(
-                    "Unimplemented binary integer operator");
-        }
-    }
-
-    // returns Object covering both Double and Boolean return types
-    static Object doubleBinaryOperation(Double D1, Double D2, int kind)
-        throws UtilEvalError
-    {
-        double lhs = D1.doubleValue();
-        double rhs = D2.doubleValue();
-
-        switch(kind)
-        {
-            // boolean
-            case LT:
-            case LTX:
-                return lhs < rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case GT:
-            case GTX:
-                return lhs > rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case EQ:
-                return lhs == rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case LE:
-            case LEX:
-                return lhs <= rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case GE:
-            case GEX:
-                return lhs >= rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case NE:
-                return lhs != rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            // arithmetic
-            case PLUS:
-                return Double.valueOf(lhs + rhs);
-
-            case MINUS:
-                return Double.valueOf(lhs - rhs);
-
-            case STAR:
-                return Double.valueOf(lhs * rhs);
-
-            case SLASH:
-                return Double.valueOf(lhs / rhs);
-
-            case MOD:
-                return Double.valueOf(lhs % rhs);
-
-            // can't shift floating-point values
-            case LSHIFT:
-            case LSHIFTX:
-            case RSIGNEDSHIFT:
-            case RSIGNEDSHIFTX:
-            case RUNSIGNEDSHIFT:
-            case RUNSIGNEDSHIFTX:
-                throw new UtilEvalError("Can't shift doubles");
-
-            default:
-                throw new InterpreterError(
-                    "Unimplemented binary double operator");
-        }
-    }
-    // returns Object covering both Long and Boolean return types
-    static Object floatBinaryOperation(Float F1, Float F2, int kind)
-        throws UtilEvalError
-    {
-        float lhs = F1.floatValue();
-        float rhs = F2.floatValue();
-
-        switch(kind)
-        {
-            // boolean
-            case LT:
-            case LTX:
-                return lhs < rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case GT:
-            case GTX:
-                return lhs > rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case EQ:
-                return lhs == rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case LE:
-            case LEX:
-                return lhs <= rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case GE:
-            case GEX:
-                return lhs >= rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            case NE:
-                return lhs != rhs ? Boolean.TRUE : Boolean.FALSE;
-
-            // arithmetic
-            case PLUS:
-                return Float.valueOf(lhs + rhs);
-
-            case MINUS:
-                return Float.valueOf(lhs - rhs);
-
-            case STAR:
-                return Float.valueOf(lhs * rhs);
-
-            case SLASH:
-                return Float.valueOf(lhs / rhs);
-
-            case MOD:
-                return Float.valueOf(lhs % rhs);
-
-            // can't shift floats
-            case LSHIFT:
-            case LSHIFTX:
-            case RSIGNEDSHIFT:
-            case RSIGNEDSHIFTX:
-            case RUNSIGNEDSHIFT:
-            case RUNSIGNEDSHIFTX:
-                throw new UtilEvalError("Can't shift floats ");
-
-            default:
-                throw new InterpreterError(
-                    "Unimplemented binary float operator");
-        }
-    }
-
-    /**
-        Promote primitive wrapper type to to Integer wrapper type
-    */
-    static Object promoteToInteger(Object wrapper )
-    {
-        if(wrapper instanceof Character)
-            return Integer.valueOf(((Character)wrapper).charValue());
-        else if((wrapper instanceof Byte) || (wrapper instanceof Short))
-            return Integer.valueOf(((Number)wrapper).intValue());
-
-        return wrapper;
-    }
-
-    /**
-        Promote the pair of primitives to the maximum type of the two.
-        e.g. [int,long]->[long,long]
-    */
-    static Object[] promotePrimitives(Object lhs, Object rhs)
-    {
-        lhs = promoteToInteger(lhs);
-        rhs = promoteToInteger(rhs);
-
-        if((lhs instanceof Number) && (rhs instanceof Number))
-        {
-            Number lnum = (Number)lhs;
-            Number rnum = (Number)rhs;
-
-            boolean b;
-
-            if((b = (lnum instanceof Double)) || (rnum instanceof Double))
-            {
-                if(b)
-                    rhs = Double.valueOf(rnum.doubleValue());
-                else
-                    lhs = Double.valueOf(lnum.doubleValue());
-            }
-            else if((b = (lnum instanceof Float)) || (rnum instanceof Float))
-            {
-                if(b)
-                    rhs = Float.valueOf(rnum.floatValue());
-                else
-                    lhs = Float.valueOf(lnum.floatValue());
-            }
-            else if((b = (lnum instanceof Long)) || (rnum instanceof Long))
-            {
-                if(b)
-                    rhs = Long.valueOf(rnum.longValue());
-                else
-                    lhs = Long.valueOf(lnum.longValue());
-            }
-        }
-
-        return new Object[] { lhs, rhs };
-    }
-
-    public static Primitive unaryOperation(Primitive val, int kind)
-        throws UtilEvalError
-    {
-        if (val == NULL)
-            throw new UtilEvalError(
-                "illegal use of null object or 'null' literal");
-        if (val == VOID)
-            throw new UtilEvalError(
-                "illegal use of undefined object or 'void' literal");
-
-        Class<?> operandType = val.getType();
-        Object operand = promoteToInteger(val.getValue());
-
-        if ( operand instanceof Boolean )
-            return booleanUnaryOperation((Boolean)operand, kind)
-                ? Primitive.TRUE : Primitive.FALSE;
-        else if(operand instanceof Integer)
-        {
-            int result = intUnaryOperation((Integer)operand, kind);
-
-            // ++ and -- must be cast back the original type
-            if(kind == INCR || kind == DECR)
-            {
-                if(operandType == Byte.TYPE)
-                    return new Primitive((byte)result);
-                if(operandType == Short.TYPE)
-                    return new Primitive((short)result);
-                if(operandType == Character.TYPE)
-                    return new Primitive((char)result);
-            }
-
-            return new Primitive(result);
-        }
-        else if(operand instanceof Long)
-            return new Primitive(longUnaryOperation((Long)operand, kind));
-        else if(operand instanceof Float)
-            return new Primitive(floatUnaryOperation((Float)operand, kind));
-        else if(operand instanceof Double)
-            return new Primitive(doubleUnaryOperation((Double)operand, kind));
-        else
-            throw new InterpreterError(
-                "An error occurred.  Please call technical support.");
-    }
-
-    static boolean booleanUnaryOperation(Boolean B, int kind)
-        throws UtilEvalError
-    {
-        boolean operand = B.booleanValue();
-        switch(kind)
-        {
-            case BANG:
-                return !operand;
-            default:
-                throw new UtilEvalError("Operator inappropriate for boolean");
-        }
-    }
-
-    static int intUnaryOperation(Integer I, int kind)
-    {
-        int operand = I.intValue();
-
-        switch(kind)
-        {
-            case PLUS:
-                return operand;
-            case MINUS:
-                return -operand;
-            case TILDE:
-                return ~operand;
-            case INCR:
-                return operand + 1;
-            case DECR:
-                return operand - 1;
-            default:
-                throw new InterpreterError("bad integer unaryOperation");
-        }
-    }
-
-    static long longUnaryOperation(Long L, int kind)
-    {
-        long operand = L.longValue();
-
-        switch(kind)
-        {
-            case PLUS:
-                return operand;
-            case MINUS:
-                return -operand;
-            case TILDE:
-                return ~operand;
-            case INCR:
-                return operand + 1;
-            case DECR:
-                return operand - 1;
-            default:
-                throw new InterpreterError("bad long unaryOperation");
-        }
-    }
-
-    static float floatUnaryOperation(Float F, int kind)
-    {
-        float operand = F.floatValue();
-
-        switch(kind)
-        {
-            case PLUS:
-                return operand;
-            case MINUS:
-                return -operand;
-            case INCR:
-                return operand + 1;
-            case DECR:
-                return operand - 1;
-            default:
-                throw new InterpreterError("bad float unaryOperation");
-        }
-    }
-
-    static double doubleUnaryOperation(Double D, int kind)
-    {
-        double operand = D.doubleValue();
-
-        switch(kind)
-        {
-            case PLUS:
-                return operand;
-            case MINUS:
-                return -operand;
-            case INCR:
-                return operand + 1;
-            case DECR:
-                return operand - 1;
-            default:
-                throw new InterpreterError("bad double unaryOperation");
-        }
-    }
 
     public int intValue() throws UtilEvalError
     {
         if(value instanceof Number)
             return((Number)value).intValue();
-        else
-            throw new UtilEvalError("Primitive not a number");
+        throw new UtilEvalError("Primitive not a number");
     }
 
     public boolean booleanValue() throws UtilEvalError
     {
         if(value instanceof Boolean)
             return((Boolean)value).booleanValue();
-        else
-            throw new UtilEvalError("Primitive not a boolean");
+        throw new UtilEvalError("Primitive not a boolean");
     }
 
     /**
@@ -819,7 +234,8 @@ public final class Primitive implements ParserConstants, Serializable {
     */
     public boolean isNumber() {
         return ( !(value instanceof Boolean)
-            && !(this == NULL) && !(this == VOID) );
+            && !(this == NULL) && !(this == VOID) )
+            && value instanceof Number;
     }
 
     public Number numberValue() throws UtilEvalError
@@ -832,8 +248,8 @@ public final class Primitive implements ParserConstants, Serializable {
 
         if (value instanceof Number)
             return (Number)value;
-        else
-            throw new UtilEvalError("Primitive not a number");
+
+        throw new UtilEvalError("Primitive not a number");
     }
 
     /**
@@ -842,10 +258,16 @@ public final class Primitive implements ParserConstants, Serializable {
     */
     public boolean equals( Object obj )
     {
-        if ( obj instanceof Primitive )
+        if ( obj instanceof Primitive ) {
+            if (((Primitive)obj).isNumber())
+                if(Primitive.isFloatingpoint(obj))
+                    return ((Number) this.getValue()).doubleValue() == ((Number) ((Primitive)obj).value).doubleValue();
+                else
+                    return ((Number) this.getValue()).longValue() == ((Number) ((Primitive)obj).value).longValue();
             return ((Primitive)obj).value.equals( this.value );
-        else
-            return false;
+        }
+
+        return false;
     }
 
     /**
@@ -874,8 +296,8 @@ public final class Primitive implements ParserConstants, Serializable {
         // unwrap primitives
         if (obj instanceof Primitive)
             return((Primitive)obj).getValue();
-        else
-            return obj;
+
+        return obj;
     }
 
     /*
@@ -897,7 +319,6 @@ public final class Primitive implements ParserConstants, Serializable {
     {
         if ( args == null )
             return null;
-
         Object [] oa = new Object[ args.length ];
         for(int i=0; i<args.length; i++)
             oa[i] = wrap( args[i], paramTypes[i] );
@@ -1025,7 +446,7 @@ public final class Primitive implements ParserConstants, Serializable {
             throw new InterpreterError("bad cast param 1");
         if ( !checkOnly && fromValue == null )
             throw new InterpreterError("bad cast param 2");
-        if ( fromType != null && !fromType.isPrimitive() )
+        if ( fromType != null && !(isWrapperType(fromType)||fromType.isPrimitive()) )
             throw new InterpreterError("bad fromType:" +fromType);
         if ( fromValue == Primitive.NULL && fromType != null )
             throw new InterpreterError("inconsistent args 1");
@@ -1066,9 +487,9 @@ public final class Primitive implements ParserConstants, Serializable {
 
             if ( checkOnly )
                 return Types.INVALID_CAST;
-            else
-                throw Types.castError(
-                        "object type:" + toType, "primitive value", operation);
+
+            throw Types.castError(
+                    "object type:" + toType, "primitive value", operation);
         }
 
         // can only cast boolean to boolean
@@ -1080,11 +501,35 @@ public final class Primitive implements ParserConstants, Serializable {
                 else
                     throw Types.castError( toType, fromType, operation );
 
-            return checkOnly ? Types.VALID_CAST :
-                fromValue;
+            return checkOnly ? Types.VALID_CAST : fromValue;
         }
 
         // Do numeric cast
+        if (null != fromValue && fromValue.isNumber()) {
+            Number number = (Number) fromValue.getValue();
+            if (!isFloatingpoint(fromValue.getValue())) {
+                if ((toType == Byte.class || toType == Byte.TYPE)
+                        && number.shortValue() < Byte.MAX_VALUE && number.shortValue() > Byte.MIN_VALUE)
+                    return checkOnly ? Types.VALID_CAST : new Primitive( number.byteValue());
+                if ((toType == Short.class || toType == Short.TYPE)
+                        && number.intValue() < Short.MAX_VALUE && number.intValue() > Short.MIN_VALUE)
+                    return checkOnly ? Types.VALID_CAST : new Primitive( number.shortValue());
+                if ((toType == Integer.class || toType == Integer.TYPE)
+                        && number.longValue() < Integer.MAX_VALUE && number.longValue() > Integer.MIN_VALUE)
+                    return checkOnly ? Types.VALID_CAST : new Primitive( number.intValue());
+                if ((toType == Long.class || toType == Long.TYPE)
+                        && number.floatValue() < Long.MAX_VALUE && number.floatValue() > Long.MIN_VALUE)
+                    return checkOnly ? Types.VALID_CAST : new Primitive( number.longValue());
+            } else {
+                if ((toType == Float.class || toType == Float.TYPE)
+                        && !Float.isInfinite(number.floatValue())
+                        && number.doubleValue() < Float.MAX_VALUE && number.doubleValue() > -Float.MAX_VALUE)
+                    return checkOnly ? Types.VALID_CAST : new Primitive( number.floatValue());
+                if ((toType == Double.class || toType == Double.TYPE)
+                        && !Double.isInfinite(number.doubleValue()))
+                    return checkOnly ? Types.VALID_CAST : new Primitive( number.doubleValue());
+            }
+        }
 
         // Only allow legal Java assignment unless we're a CAST operation
         if ( operation == Types.ASSIGNMENT
@@ -1092,8 +537,8 @@ public final class Primitive implements ParserConstants, Serializable {
         ) {
             if ( checkOnly )
                 return Types.INVALID_CAST;
-            else
-                throw Types.castError( toType, fromType, operation );
+
+            throw Types.castError( toType, fromType, operation );
         }
 
         return checkOnly ? Types.VALID_CAST :
@@ -1124,8 +569,7 @@ public final class Primitive implements ParserConstants, Serializable {
         {
             if ( toType != Boolean.TYPE )
                 throw new InterpreterError("bad wrapper cast of boolean");
-            else
-                return value;
+            return value;
         }
 
         // first promote char to Number type to avoid duplicating code

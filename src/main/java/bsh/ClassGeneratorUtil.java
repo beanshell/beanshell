@@ -1242,7 +1242,7 @@ public class ClassGeneratorUtil implements Opcodes {
         }
 
         public byte getByte() {
-            return (Byte) next();
+            return ((Number) next()).byteValue();
         }
 
         public char getChar() {
@@ -1250,23 +1250,23 @@ public class ClassGeneratorUtil implements Opcodes {
         }
 
         public short getShort() {
-            return (Short) next();
+            return ((Number) next()).shortValue();
         }
 
         public int getInt() {
-            return (Integer) next();
+            return ((Number) next()).intValue();
         }
 
         public long getLong() {
-            return (Long) next();
+            return ((Number) next()).longValue();
         }
 
         public double getDouble() {
-            return (Double) next();
+            return ((Number) next()).doubleValue();
         }
 
         public float getFloat() {
-            return (Float) next();
+            return ((Number) next()).floatValue();
         }
 
         public Object getObject() {
