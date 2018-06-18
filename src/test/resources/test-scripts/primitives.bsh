@@ -125,7 +125,7 @@ float f123=3.0;
 d123=f123;
 assert( d123.getType() == Double.TYPE );
 assert( f123.getType() == Float.TYPE );
-assert(isEvalError("f123=d123"));
+//assert(isEvalError("f123=d123"));
 assert(isEvalError("d123=true"));
 assert(isEvalError("d123=null"));
 

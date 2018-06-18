@@ -81,8 +81,8 @@ class BSHAssignment extends SimpleNode implements ParserConstants
             {
                 case ASSIGN:
                     if (lhs.isFinal()) {
-                        lhs.getVariable().setValue(rhs, Variable.ASSIGNMENT);
-                        return lhs.getVariable().getValue();
+                        lhs.getVariable().setValue( rhs, Variable.ASSIGNMENT );
+                        return rhs;
                     }
                     return lhs.assign( rhs, strictJava );
 
@@ -119,6 +119,10 @@ class BSHAssignment extends SimpleNode implements ParserConstants
                 case MODASSIGN:
                     return lhs.assign(
                         operation(lhsValue, rhs, MOD), strictJava );
+
+                case POWERASSIGN:
+                    return lhs.assign(
+                            operation(lhsValue, rhs, POWER), strictJava );
 
                 case LSHIFTASSIGN:
                 case LSHIFTASSIGNX:
@@ -176,7 +180,7 @@ class BSHAssignment extends SimpleNode implements ParserConstants
             (rhs instanceof Boolean || rhs instanceof Character ||
              rhs instanceof Number || rhs instanceof Primitive) )
         {
-            return Primitive.binaryOperation(lhs, rhs, kind);
+            return Operators.binaryOperation(lhs, rhs, kind);
         }
 
         throw new UtilEvalError("Non primitive value in operator: " +

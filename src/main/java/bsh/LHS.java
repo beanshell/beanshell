@@ -120,7 +120,7 @@ class LHS implements ParserConstants, Serializable {
     */
     LHS( Object object, String propName )
     {
-        if(object == null)
+        if( object == null )
             throw new NullPointerException("constructed empty LHS");
 
         type = PROPERTY;
@@ -133,7 +133,7 @@ class LHS implements ParserConstants, Serializable {
     */
     LHS( Object array, int index )
     {
-        if(array == null)
+        if( array == null )
             throw new NullPointerException("constructed empty LHS");
 
         type = INDEX;
@@ -147,37 +147,32 @@ class LHS implements ParserConstants, Serializable {
         if ( type == VARIABLE )
             return nameSpace.getVariableOrProperty( varName, null );
 
-        if (type == FIELD)
-            try {
-                if (null == field) fetchField();
-                Object o = field.get( object );
-                return Primitive.wrap( o, field.getType() );
-            } catch(ReflectiveOperationException e2) {
-                throw new UtilEvalError("Can't read field: " + field, e2);
-            }
-
-        if ( type == PROPERTY )
-        {
-            // return the raw type here... we don't know what it's supposed
-            // to be...
-            if (this.object instanceof Map)
-                return ((Map) this.object).get(this.propName);
-             else
-                try {
-                    return Reflect.getObjectProperty(object, propName);
-                } catch(ReflectError e) {
-                    Interpreter.debug(e.getMessage());
-                    throw new UtilEvalError("No such property: " + propName, e);
-                }
+        if ( type == FIELD ) try {
+            fetchField();
+            Object o = field.get( object );
+            return Primitive.wrap( o, field.getType() );
+        } catch( ReflectiveOperationException e2 ) {
+            throw new UtilEvalError("Can't read field: " + field, e2);
         }
 
-        if ( type == INDEX )
-            try {
-                return Reflect.getIndex(object, index);
+        if ( type == PROPERTY ) {
+            // return the raw type here... we don't know what it's supposed
+            // to be...
+            if ( this.object instanceof Map )
+                return ((Map) this.object).get(this.propName);
+             else try {
+                return Reflect.getObjectProperty(object, propName);
+            } catch(ReflectError e) {
+                Interpreter.debug(e.getMessage());
+                throw new UtilEvalError("No such property: " + propName, e);
             }
-            catch(Exception e) {
-                throw new UtilEvalError("Array access: " + e, e);
-            }
+        }
+
+        if ( type == INDEX ) try {
+            return Reflect.getIndex(object, index);
+        } catch(Exception e) {
+            throw new UtilEvalError("Array access: " + e, e);
+        }
 
         if ( type == LOOSETYPE_FIELD )
             return nameSpace.getVariable( varName );
@@ -186,60 +181,54 @@ class LHS implements ParserConstants, Serializable {
     }
 
     public String getName() {
-        if (null != field)
+        if ( null != field )
             return field.getName();
-        if (null != var)
+        if ( null != var )
             return var.getName();
         return varName;
     }
 
     public Class<?> getType() {
-        if (null != field)
+        if ( null != field )
             return field.getType();
-        if (null != var)
+        if ( null != var )
             return var.getType();
         try {
             return getValueType(getValue());
-        } catch (UtilEvalError e) {
+        } catch ( UtilEvalError e ) {
             return null;
         }
     }
 
     public boolean isStatic() {
-        if (null != field)
+        if ( null != field )
             return Reflect.isStatic(field);
-        if (null != var)
-            return var.hasModifier("static");
-        return false;
+        if ( null == this.var )
+            return false;
+        return var.hasModifier("static");
     }
 
     public boolean isFinal() {
-        if (var != null)
-            return var.hasModifier("final");
-        if (field == null)
+        if ( getVariable() == null )
             return false;
-        if (isStatic())
-            this.var = Reflect.getVariable(field.getDeclaringClass(), field.getName());
-        else
-            this.var = Reflect.getVariable(object, field.getName());
-        return var != null && var.hasModifier("final");
+        return var.hasModifier("final");
     }
 
     public Variable getVariable() {
-        if (var != null)
+        if ( null != var )
             return this.var;
-        if (field == null)
-            return new Variable(getName(), getType(), this);
-        else try {
-            return new Variable(getName(), getType(), getValue(), new Modifiers(Modifiers.FIELD));
-        } catch (UtilEvalError e) {
-            return null;
-        }
+        if ( null != nameSpace )
+            this.var = Reflect.getVariable(nameSpace, getName());
+        else if ( isStatic() )
+            this.var = Reflect.getVariable(field.getDeclaringClass(), getName());
+        else
+            this.var = Reflect.getVariable(object, getName());
+        return this.var;
     }
     /**
         Assign a value to the LHS.
     */
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings("unchecked")
     public Object assign( Object val, boolean strictJava )
         throws UtilEvalError
     {
@@ -251,25 +240,22 @@ class LHS implements ParserConstants, Serializable {
             else
                 nameSpace.setVariableOrProperty( varName, val, strictJava );
         } else  if ( type == FIELD )  try {
-            if (null == field) fetchField();
-            if (val == null)
-                val = Primitive.getDefaultValue(field.getType());
-            Object fieldVal = val instanceof Primitive ?
-                ((Primitive)val).getValue() : val;
+            fetchField();
+            Object fieldVal = Primitive.unwrap(val);
 
             Reflect.setAccessible(field);
             field.set( object, fieldVal );
             return val;
         }
-        catch( NullPointerException e) {
+        catch( NullPointerException e ) {
             throw new UtilEvalError(
                 "LHS ("+field.getName()+") not a static field.", e);
         }
-        catch( ReflectiveOperationException e2) {
+        catch( ReflectiveOperationException e2 ) {
             throw new UtilEvalError(
                 "LHS ("+field.getName()+") can't access field: "+e2, e2);
         }
-        catch( IllegalArgumentException e3)
+        catch( IllegalArgumentException e3 )
         {
             String type = val == null ? "null"
                 : getValueType(val).getSimpleName();
@@ -277,17 +263,15 @@ class LHS implements ParserConstants, Serializable {
                 "Argument type mismatch. " + type
                 + " not assignable to field "+field.getName(), e3);
         } else if ( type == PROPERTY ) {
-            if (this.object instanceof Map)
-                ((Map) this.object).put(this.propName,
+            if ( this.object instanceof Map )
+                ((Map<String, Object>) this.object).put(this.propName,
                         Primitive.unwrap(val));
-             else
-                try {
-                    Reflect.setObjectProperty(object, propName, val);
-                }
-                catch(ReflectError e) {
-                    Interpreter.debug("Assignment: " + e.getMessage());
-                    throw new UtilEvalError("No such property: " + propName, e);
-                }
+            else try {
+                Reflect.setObjectProperty(object, propName, val);
+            } catch(ReflectError e) {
+                Interpreter.debug("Assignment: " + e.getMessage());
+                throw new UtilEvalError("No such property: " + propName, e);
+            }
         }
         else if ( type == INDEX ) try {
             Reflect.setIndex(object, index, val);
@@ -295,25 +279,22 @@ class LHS implements ParserConstants, Serializable {
             throw e1;
         } catch ( Exception e ) {
             throw new UtilEvalError("Assignment: " + e.getMessage(), e);
-        }
-        else if (type == LOOSETYPE_FIELD) {
+        } else if ( type == LOOSETYPE_FIELD ) {
             Modifiers mods = new Modifiers(Modifiers.FIELD);
             mods.addModifier("public");
-            if (nameSpace.isInterface)
+            if ( nameSpace.isInterface )
                 mods.setConstant();
             nameSpace.setTypedVariable(varName, getValueType(val), val, mods);
             return val;
-        }
-        else
+        } else
             throw new InterpreterError("unknown lhs type");
-
         return val;
     }
 
     private Class<?> getValueType(Object val) {
-        if (null == val)
+        if ( null == val )
             return null;
-        if (val instanceof Primitive)
+        if ( val instanceof Primitive )
             return ((Primitive) val).getType();
         return val.getClass();
     }
@@ -326,24 +307,26 @@ class LHS implements ParserConstants, Serializable {
     }
 
     private void dropField() {
-        if (null == this.object || !(this.object instanceof Class))
+        if ( null == field ) return;
+        if ( null == this.object || !(this.object instanceof Class) )
             this.object = field.getDeclaringClass();
         this.varName = field.getName();
         this.field = null;
     }
 
-    private void fetchField() throws ReflectiveOperationException {
+    private void fetchField() {
+        if ( null != field || null == object ) return;
         Class<?> cls = this.object.getClass();
-        if (this.object instanceof Class)
+        if ( this.object instanceof Class )
             cls = (Class<?>) this.object;
-        this.field = cls.getField(varName);
+        try {
+            this.field = cls.getField(varName);
+        } catch ( NoSuchFieldException | SecurityException e ) { /* ignore */ }
     }
 
     private synchronized void writeObject(final ObjectOutputStream s)
             throws IOException {
-        if ( type == FIELD ) // field not serializable
-            dropField();
-
+        dropField(); // field not serializable
         s.defaultWriteObject();
     }
 }
