@@ -35,6 +35,17 @@ import java.util.stream.Stream;
 
 public class StringUtil {
 
+    /** type from value to string
+     * @param value for type
+     * @return string type  */
+    public static String typeString(Object value) {
+        return null == value
+                ? "null"
+                : value instanceof Primitive
+                    ? ((Primitive) value).getType().getSimpleName()
+                    : value.getClass().getSimpleName();
+    }
+
     /** Count region matches.
      * @param one string to compare
      * @param two string to compare with
@@ -44,6 +55,14 @@ public class StringUtil {
         while( one.regionMatches(0, two, 0, i ))
             i++;
         return one.substring(0, i-1);
+    }
+
+    /** Produce a method string from supplied value args.
+     * @param name method name.
+     * @param args the value to process.
+     * @return still just a method string. */
+    public static String methodString(String name, Object[] args) {
+        return methodString(name, Types.getTypes(args));
     }
 
     /** Produce a simple string representation of a method name with args.
