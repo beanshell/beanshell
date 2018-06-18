@@ -247,6 +247,9 @@
               <append>true</append>
               <excludes>
                 <exclude>bsh/org/objectweb/**/*</exclude>
+                <exclude>bsh/Token*</exclude>
+                <exclude>bsh/JavaCharStream*</exclude>
+                <exclude>bsh/*Parser*</exclude>
               </excludes>
             </configuration>
           </execution>
@@ -260,6 +263,9 @@
               <outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
               <excludes>
                 <exclude>bsh/org/objectweb/**/*</exclude>
+                <exclude>bsh/Token*</exclude>
+                <exclude>bsh/JavaCharStream*</exclude>
+                <exclude>bsh/*Parser*</exclude>
               </excludes>
             </configuration>
           </execution>
