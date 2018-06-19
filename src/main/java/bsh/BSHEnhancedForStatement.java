@@ -77,7 +77,7 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
         }
         Iterator iterator = cm.getBshIterator(iteratee);
         Object returnControl = Primitive.VOID;
-        while (iterator.hasNext()) {
+        while ( !Thread.interrupted() && iterator.hasNext() ) {
             try {
                 BlockNameSpace eachNameSpace = new BlockNameSpace(enclosingNameSpace);
                 callstack.swap(eachNameSpace);
