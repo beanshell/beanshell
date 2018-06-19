@@ -87,7 +87,7 @@ class BSHForStatement extends SimpleNode implements ParserConstants
             forInit.eval( callstack, interpreter );
 
         Object returnControl = Primitive.VOID;
-        while(true)
+        while( !Thread.interrupted() )
         {
             if ( hasExpression )
             {

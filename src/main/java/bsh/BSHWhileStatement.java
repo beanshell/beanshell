@@ -61,7 +61,8 @@ class BSHWhileStatement extends SimpleNode implements ParserConstants {
             }
         }
         boolean doOnceFlag = isDoStatement;
-        while (doOnceFlag || BSHIfStatement.evaluateCondition(condExp, callstack, interpreter)) {
+        while ( !Thread.interrupted()
+                && ( doOnceFlag || BSHIfStatement.evaluateCondition(condExp, callstack, interpreter)) ) {
             doOnceFlag = false;
             // no body?
             if (body == null) {
