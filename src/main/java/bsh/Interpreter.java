@@ -462,20 +462,19 @@ public class Interpreter
           exercise the parser and get the basic expression classes loaded...
           This ameliorates the delay after typing the first statement.
         */
-        if ( interactive )
-            try {
-                eval("printBanner();");
-            } catch ( EvalError e ) {
-                println(
-                    "BeanShell "+VERSION+" - by Pat Niemeyer (pat@pat.net)");
-            }
+        if ( interactive && null == getParent() ) try {
+            eval("printBanner();");
+        } catch ( EvalError e ) {
+            println(
+                "BeanShell "+VERSION+" - by Pat Niemeyer (pat@pat.net)");
+        }
 
         // init the callstack.
         CallStack callstack = new CallStack( globalNameSpace );
 
         SimpleNode node = null;
         boolean eof = false;
-        while( !eof )
+        while( !Thread.interrupted() && !eof )
         {
             try
             {
