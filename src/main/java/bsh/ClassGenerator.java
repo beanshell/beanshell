@@ -143,7 +143,8 @@ public final class ClassGenerator {
 
         bcm.doneDefiningClass(fqClassName);
 
-        ClassGeneratorUtil.checkAbstractMethodImplementation(genClass);
+        if (interpreter.getStrictJava())
+            ClassGeneratorUtil.checkAbstractMethodImplementation(genClass);
 
         return genClass;
     }
