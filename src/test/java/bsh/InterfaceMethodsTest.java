@@ -5,6 +5,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static bsh.TestUtil.eval;
+import static bsh.TestUtil.script;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 
@@ -97,12 +98,15 @@ public class InterfaceMethodsTest {
         thrown.expect(EvalError.class);
         thrown.expectMessage(containsString("ZZC is not abstract and does not override abstract method ab() in ZZ"));
 
-        eval(
-            "interface ZZ {",
-                "int ab();",
-            "}",
-            "class ZZC implements ZZ { }"
-        );
+        try (final Interpreter interpreter = new Interpreter()) {
+            interpreter.setStrictJava(true);
+            interpreter.eval(script(
+                "interface ZZ {",
+                    "int ab();",
+                "}",
+                "class ZZC implements ZZ { }"
+            ));
+        }
     }
 
     @Test
@@ -110,12 +114,15 @@ public class InterfaceMethodsTest {
         thrown.expect(EvalError.class);
         thrown.expectMessage(containsString("Cannot reduce the visibility of the inherited method from ZZ"));
 
-        eval(
-            "interface ZZ {",
-                "int ab();",
-            "}",
-            "class ZZC implements ZZ { protected int ab() { 1; } }"
-        );
+        try (final Interpreter interpreter = new Interpreter()) {
+            interpreter.setStrictJava(true);
+            interpreter.eval(script(
+                "interface ZZ {",
+                    "int ab();",
+                "}",
+                "class ZZC implements ZZ { protected int ab() { 1; } }"
+            ));
+        }
     }
 
     @Test
