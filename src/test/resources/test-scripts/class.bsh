@@ -102,9 +102,9 @@ foo2 = new Foo(6);
 assert( foo2.b == 6 );
 assert( foo2.a == 5 );
 
-class Bar implements Runnable { void run() {} }
+class Bar implements Runnable { }
 bar = new Bar();
-class Gee3 implements Runnable, ActionListener { void run() {} void actionPerformed(ActionEvent e) {} }
+class Gee3 implements Runnable, ActionListener { }
 new Gee3();
 
 class Foo2 {

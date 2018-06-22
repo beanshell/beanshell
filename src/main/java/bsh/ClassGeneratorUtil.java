@@ -302,9 +302,8 @@ public class ClassGeneratorUtil implements Opcodes {
             generateMethod(className, fqClassName, method.getName(), method.getReturnTypeDescriptor(),
                     method.getParamTypeDescriptors(), modifiers, cw);
 
-            // check if method overrides existing method, apply inheritance rules and generate super delegate.
-            Method m = classContainsMethod(superClass, method.getName(), method.getParamTypeDescriptors());
-            if ( null != m && checkInheritanceRules(m.getModifiers(), modifiers, m.getDeclaringClass()) && !isStatic )
+            // check if method overrides existing method and generate super delegate.
+            if ( null != classContainsMethod(superClass, method.getName(), method.getParamTypeDescriptors()) && !isStatic )
                 generateSuperDelegateMethod(superClassName, method.getName(), method.getReturnTypeDescriptor(),
                         method.getParamTypeDescriptors(), ACC_PUBLIC, cw);
         }
