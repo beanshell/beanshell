@@ -1,0 +1,31 @@
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+public class A {
+    public String val = "";
+
+    public A (int id) {
+        testMethod( "I" );
+    }
+
+    public void testMethod (String testString) {
+        this.val = testString;
+    }
+
+}
+
+public class B extends A {
+    public B ( int id ) {
+        super (id);
+    }
+
+    public void testMethod (String testString) {
+        this.val = "override " + testString;
+    }
+}
+
+B mInOut = new B ( 0 );
+
+assertEquals("override I", mInOut.val);
+
+complete();
