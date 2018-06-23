@@ -95,9 +95,8 @@ public class Capabilities
     */
     public static boolean classExists( String name )
     {
-        Class<?> c = classes.get( name );
-
-        if ( c == null ) {
+        if ( !classes.containsKey(name) ) {
+            Class<?> c = null;
             try {
                 /*
                     Note: do *not* change this to
@@ -106,10 +105,9 @@ public class Capabilities
                 */
                 c = Class.forName( name );
             } catch ( ClassNotFoundException e ) { }
-
+            classes.put(name, c);
         }
-        classes.put(name, c);
-        return c != null;
+        return getExisting( name ) != null;
     }
 
     public static Class<?> getExisting(String name) {
