@@ -160,7 +160,8 @@ The old documentation available at [http://beanshell.org](http://www.beanshell.o
 BeanShell was originally maintained by Patrick Niemeyer at http://beanshell.org/ - distributed as
 BeanShell (2.0b4 and earlier) were distributed under
 GNU Lesser General Public License (LGPL) and Sun Public License (SPL).
-In 2000 the project was hosted on sourceforge which quickly saw interest in the new java scripting language grow.
+
+In 2000 the project got [hosted on sourceforge](https://sourceforge.net/projects/beanshell/) which quickly saw interest in the new java scripting language grow.
 
 ### 2005: JSR 274: The BeanShell Scripting Language
 
