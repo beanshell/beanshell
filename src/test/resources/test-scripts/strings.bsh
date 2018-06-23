@@ -1,6 +1,7 @@
 #!/bin/java bsh.Interpreter
 
 source("TestHarness.bsh");
+source("Assert.bsh");
 
 // char is not a string
 assert('a' == 'a');
@@ -47,6 +48,17 @@ assert("abc".substring(2).equals("c"));
 assert("\"quoted\"" == '"quoted"');
 assert('\'quoted\'' == "'quoted'");
 assert('xb'.concat('xb').equals('xbxb'));
+
+// additional edge cases
+assertEquals('\n', '\12');
+assertEquals('\n', '\012');
+assertEquals("\n", "\12");
+assertEquals("\n", "\012");
+assertEquals("?7", '\777');
+assertEquals("?7", "\777");
+assertEquals("?77", '\7777');
+assertEquals("?77", "\7777");
+assertEquals("Is a question?", "Is a question\77");
 
 // Long strings
 out="\n";
