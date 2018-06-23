@@ -1,0 +1,18 @@
+source("TestHarness.bsh");
+
+source("Assert.bsh");
+
+import bsh.BshClassManager;
+import bsh.Capabilities;
+import static bsh.Capabilities.classExists;
+import static bsh.Capabilities.haveSwing;
+
+assertTrue("java.lang.String exists", classExists("java.lang.String"));
+assertFalse("unknown.Class does not exist", classExists("unknown.Class"));
+
+assertTrue("has swing", haveSwing());
+
+assertTrue(isEvalError("ClassLoading features unavailable.", "new BshClassManager().reloadAllClasses();"));
+assertTrue(isEvalError("nada", "throw new Capabilities.Unavailable('nada', new Throwable());"));
+
+complete();
