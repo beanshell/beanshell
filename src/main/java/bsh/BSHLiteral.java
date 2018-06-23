@@ -94,8 +94,12 @@ public final class BSHLiteral extends SimpleNode
                 // get next character
                 ch = str.charAt(1);
 
-                if(Character.isDigit(ch))
-                    ch = (char)Integer.parseInt(str.substring(1), 8);
+                if(Character.isDigit(ch)) {
+                    if (255 < (ch = (char)Integer.parseInt(str.substring(1), 8))) {
+                        stringSetup(str);
+                        return;
+                    }
+                }
                 else
                     ch = getEscapeChar(ch);
             }
@@ -134,11 +138,10 @@ public final class BSHLiteral extends SimpleNode
                     }
                     String num = str.substring(i, endPos + 1);
                     if (num.length() == 3 && Integer.parseInt(String.valueOf(ch)) > 3)
-                        ch = getEscapeChar(ch);
-                    else {
+                        ch = (char)Integer.parseInt(str.substring(i, endPos--), 8);
+                    else
                         ch = (char)Integer.parseInt(num, 8);
-                        i = endPos;
-                    }
+                    i = endPos;
                 }
                 else
                     ch = getEscapeChar(ch);
