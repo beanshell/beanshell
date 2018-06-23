@@ -39,11 +39,26 @@ public class StringUtil {
      * @param value for type
      * @return string type  */
     public static String typeString(Object value) {
-        return null == value
-                ? "null"
-                : value instanceof Primitive
-                    ? ((Primitive) value).getType().getSimpleName()
-                    : value.getClass().getSimpleName();
+        return null == value || Primitive.NULL == value
+            ? "null"
+            : value instanceof Primitive
+                ? ((Primitive) value).getType().getSimpleName()
+                : value.getClass().getName().startsWith("java.lang")
+                        || value.getClass().getName().contains("math.Big")
+                    ? value.getClass().getSimpleName()
+                    : value.getClass().getName();
+    }
+
+    /** generate string of value and type.
+     * @param value to inspect
+     * @return string of value :type */
+    public static String typeValueString(final Object value) {
+        StringBuilder val = new StringBuilder(""+value);
+        if (value instanceof String)
+            val.insert(0, "\"").append("\"");
+        if (Primitive.unwrap(value) instanceof Character)
+            val.insert(0, "'").append("'");
+        return val.append(" :").append(typeString(value)).toString();
     }
 
     /** Count region matches.
