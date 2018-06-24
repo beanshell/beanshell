@@ -446,7 +446,8 @@ final class Reflect {
 
         Class [] types = Types.getTypes(args);
         Method method = resolveJavaMethod( bcm, clas, name, types, staticOnly );
-        if (method != null && method.getDeclaringClass().isInterface()
+        if ( null != bcm && bcm.getStrictJava()
+                && method != null && method.getDeclaringClass().isInterface()
                 && method.getDeclaringClass() != clas
                 && Modifier.isStatic(method.getModifiers()))
             // static interface methods are class only
