@@ -70,14 +70,17 @@ public class InterfaceMethodsTest {
     public void static_interface_method_from_class_static_fails() throws Exception {
         thrown.expect(EvalError.class);
         thrown.expectMessage(containsString("Static method ab() not found in class'AAC'"));
-
-        eval("import bsh.Reflect;",
-            "interface AA {",
-                "static int ab() { 2; }",
-            "}",
-            "class AAC implements AA {}",
-            "AAC.ab();"
-        );
+        try ( Interpreter interpreter = new Interpreter() ) {
+            interpreter.setStrictJava(true);
+            interpreter.eval(script(
+                "import bsh.Reflect;",
+                "interface AA {",
+                    "static int ab() { 2; }",
+                "}",
+                "class AAC implements AA {}",
+                "AAC.ab();"
+            ));
+        }
     }
 
     @Test

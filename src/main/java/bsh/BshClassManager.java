@@ -87,6 +87,10 @@ public class BshClassManager
     */
     private Interpreter declaringInterpreter;
 
+    public boolean getStrictJava() {
+        return null != declaringInterpreter && declaringInterpreter.getStrictJava();
+    }
+
     /**
         An external classloader supplied by the setClassLoader() command.
     */
