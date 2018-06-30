@@ -251,21 +251,9 @@ public class Parser
         return radix == 10 ? 0 : radix == 8 ? 1 : 2;
     }
 
-    Primitive parseDecimal(String s) throws NumberFormatException {
+    Primitive parseIntegral(String s) throws NumberFormatException {
         int radix = getRadix(s);
-        long result = 0;
-        int len = s.length();
-        for( int i = getStartIdx(radix); i<len; i++ ) {
-            if (s.charAt(i) == '_') continue;
-            result *= radix;
-            int digit = Character.digit(s.charAt(i),radix);
-            if( digit < 0 )
-                throw new NumberFormatException("Invalid decimal type: "+s);
-            result += digit;
-            if( result < 0L )
-                return new Primitive(new java.math.BigInteger(s.substring(getStartIdx(radix)), radix));
-        }
-        return Primitive.shrinkWrap(result);
+        return new Primitive(new java.math.BigInteger(s.substring(getStartIdx(radix)), radix));
     }
 }
 
@@ -353,10 +341,10 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 TOKEN : /* LITERALS */
 {
   < INTEGER_LITERAL:
-        <DECIMAL_LITERAL> (["l","L"])?
-      | <HEX_LITERAL> (["l","L"])?
-      | <BINARY_LITERAL> (["l","L"])?
-      | <OCTAL_LITERAL> (["l","L"])?
+        <DECIMAL_LITERAL> (["o","O","s","S","i","I","l","L","w","W"])?
+      | <HEX_LITERAL> (["o","O","s","S","i","I","l","L","w","W"])?
+      | <BINARY_LITERAL> (["o","O","s","S","i","I","l","L","w","W"])?
+      | <OCTAL_LITERAL> (["o","O","s","S","i","I","l","L","w","W"])?
   >
 |
   < #DECIMAL_LITERAL: ["1"-"9"] (["0"-"9","_"])* >
@@ -368,10 +356,10 @@ TOKEN : /* LITERALS */
   < #OCTAL_LITERAL: "0" (["0"-"7"])* >
 |
   < FLOATING_POINT_LITERAL:
-        (["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)? (["f","F","d","D"])?
-      | "." (["0"-"9"])+ (<EXPONENT>)? (["f","F","d","D"])?
-      | (["0"-"9"])+ <EXPONENT> (["f","F","d","D"])?
-      | (["0"-"9"])+ (<EXPONENT>)? ["f","F","d","D"]
+        (["0"-"9"])+ "." (["0"-"9"])* (<EXPONENT>)? (["f","F","d","D","w","W"])?
+      | "." (["0"-"9"])+ (<EXPONENT>)? (["f","F","d","D","w","W"])?
+      | (["0"-"9"])+ <EXPONENT> (["f","F","d","D","w","W"])?
+      | (["0"-"9"])+ ["f","F","d","D"]
   >
 |
   < #EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
@@ -990,23 +978,20 @@ void Literal() #Literal :
     boolean b;
     String literal;
     char ch;
-    int len;
+    int last;
 }
 {
   x = <INTEGER_LITERAL>
   {
     literal = x.image.replaceAll("_", "");
-    len = literal.length();
-    ch = literal.charAt(len-1);
-    if( ch == 'l' || ch == 'L') {
-        literal = literal.substring(0,literal.length()-1);
-	    try {
-	        jjtThis.value = parseDecimal(literal).castToType(Long.TYPE, 0);
-	    } catch ( NumberFormatException e ) {
-	        throw createParseException( e.getMessage(), e );
-	    }
-    } else try {
-        jjtThis.value = parseDecimal(literal);
+    last = literal.length() - 1;
+    ch = literal.charAt(last);
+    try {
+	    if( Types.Suffix.isIntegral(ch) )
+	        jjtThis.value = parseIntegral(literal.substring(0, last))
+	              .castToType(Types.Suffix.getIntegralType(ch), 0);
+        else
+            jjtThis.value = Primitive.shrinkWrap(parseIntegral(literal).getValue());
     } catch ( NumberFormatException e ) {
         throw createParseException( e.getMessage(), e );
     }
@@ -1015,15 +1000,14 @@ void Literal() #Literal :
   x = <FLOATING_POINT_LITERAL>
   {
     literal = x.image;
-    ch = literal.charAt(literal.length()-1);
-    if(ch == 'f' || ch == 'F') {
-        literal = literal.substring(0, literal.length()-1);
-        jjtThis.value = new Primitive( Float.valueOf( literal ).floatValue() );
-    } else if(ch == 'd' || ch == 'D') {
-        literal = literal.substring(0, literal.length()-1);
-        jjtThis.value = new Primitive( Double.valueOf( literal ).doubleValue() );
-    } else try {
-        jjtThis.value = Primitive.shrinkWrap( new java.math.BigDecimal( literal ) );
+    last = literal.length() - 1;
+    ch = literal.charAt(last);
+    try {
+	    if( Types.Suffix.isFloatingPoint(ch) )
+	        jjtThis.value = new Primitive(new java.math.BigDecimal(literal.substring(0, last)))
+	               .castToType(Types.Suffix.getFloatingPointType(ch), 0);
+	    else
+	        jjtThis.value = Primitive.shrinkWrap( new java.math.BigDecimal( literal ) );
     } catch ( NumberFormatException e ) {
         throw createParseException( e.getMessage(), e );
     }

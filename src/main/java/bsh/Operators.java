@@ -22,10 +22,8 @@ class Operators implements ParserConstants {
         Class<?> rhsOrgType = obj2.getClass();
 
         // Unwrap primitives
-        if ( obj1 instanceof Primitive )
-            obj1 = ((Primitive)obj1).getValue();
-        if ( obj2 instanceof Primitive )
-            obj2 = ((Primitive)obj2).getValue();
+        obj1 = Primitive.unwrap(obj1);
+        obj2 = Primitive.unwrap(obj2);
 
         Object[] operands = promotePrimitives(obj1, obj2);
         Object lhs = operands[0];
@@ -68,7 +66,6 @@ class Operators implements ParserConstants {
         if (lhs instanceof BigDecimal)
             return bigDecimalBinaryOperation( (BigDecimal) lhs, (BigDecimal) rhs, kind );
         if (Primitive.isFloatingpoint(lhs))
-            //return bigDecimalBinaryOperation( BigDecimal.valueOf(((Number) lhs).doubleValue()), BigDecimal.valueOf(((Number) rhs).doubleValue()), kind );
             return doubleBinaryOperation( ((Number) lhs).doubleValue(), ((Number) rhs).doubleValue(), kind);
         if (lhs instanceof Number)
             return longBinaryOperation(((Number) lhs).longValue(), ((Number) rhs).longValue(), kind);
@@ -147,12 +144,12 @@ class Operators implements ParserConstants {
         {
             // arithmetic
             case PLUS:
-                if (lhs > 0 && Long.MAX_VALUE - lhs < rhs)
+                if (lhs > 0 && (Long.MAX_VALUE - lhs) < rhs)
                     return bigIntegerBinaryOperation(BigInteger.valueOf(lhs), BigInteger.valueOf(rhs), kind);
                 return lhs + rhs;
 
             case MINUS:
-                if (lhs < 0 && Long.MIN_VALUE + lhs < rhs)
+                if (lhs < 0 && (Long.MIN_VALUE - lhs) > -rhs)
                     return bigIntegerBinaryOperation(BigInteger.valueOf(lhs), BigInteger.valueOf(rhs), kind);
                 return lhs - rhs;
 
@@ -169,7 +166,8 @@ class Operators implements ParserConstants {
 
             case POWER:
                 double check = Math.pow(lhs, rhs);
-                if (check > Long.MIN_VALUE && check < Long.MAX_VALUE)
+                BigInteger bi = BigDecimal.valueOf(check).toBigInteger();
+                if (bi.compareTo(Primitive.LONG_MIN) >= 0 && bi.compareTo(Primitive.LONG_MAX) <= 0)
                     return (long) check;
                 return bigIntegerBinaryOperation(BigInteger.valueOf(lhs), BigInteger.valueOf(rhs), kind);
 
@@ -270,12 +268,12 @@ class Operators implements ParserConstants {
         {
             // arithmetic
             case PLUS:
-                if (lhs > 0 && Double.MAX_VALUE - lhs < rhs)
+                if (lhs > 0d && (Double.MAX_VALUE - lhs) < rhs)
                     return bigDecimalBinaryOperation(BigDecimal.valueOf(lhs), BigDecimal.valueOf(rhs), kind);
                 return lhs + rhs;
 
             case MINUS:
-                if ( lhs < 0.0 && -Double.MAX_VALUE + lhs < rhs)
+                if ( lhs < 0d && (-Double.MAX_VALUE - lhs) > -rhs)
                     return bigDecimalBinaryOperation(BigDecimal.valueOf(lhs), BigDecimal.valueOf(rhs), kind);
                 return lhs - rhs;
 
@@ -321,7 +319,7 @@ class Operators implements ParserConstants {
                 return lhs.add(rhs);
 
             case MINUS:
-                return lhs.subtract(rhs).abs();
+                return lhs.subtract(rhs);
 
             case STAR:
                 return lhs.multiply(rhs);
