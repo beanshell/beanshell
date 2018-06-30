@@ -25,9 +25,12 @@
  *****************************************************************************/
 package bsh;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,7 +38,7 @@ import java.util.stream.Stream;
 
 public class StringUtil {
 
-    /** type from value to string
+    /** Type from value to string.
      * @param value for type
      * @return string type  */
     public static String typeString(Object value) {
@@ -43,22 +46,63 @@ public class StringUtil {
             ? "null"
             : value instanceof Primitive
                 ? ((Primitive) value).getType().getSimpleName()
-                : value.getClass().getName().startsWith("java.lang")
-                        || value.getClass().getName().contains("math.Big")
-                    ? value.getClass().getSimpleName()
-                    : value.getClass().getName();
+                : typeString(value.getClass());
     }
 
-    /** generate string of value and type.
+    /** Type from class to string.
+     * @param clas for type
+     * @return string type */
+    public static String typeString(Class<?> clas) {
+        return clas.isArray() ? typeString(clas.getComponentType())+"[]"
+                : clas.getName().startsWith("java.lang")
+                    || clas.getName().contains("math.Big")
+                ? clas.getSimpleName() : clas.getName();
+    }
+
+    /** Generate string of value and type.
      * @param value to inspect
      * @return string of value :type */
     public static String typeValueString(final Object value) {
+        StringBuilder sb = new StringBuilder(valueString(value));
+        return sb.append(" :").append(typeString(value)).toString();
+    }
+
+    /** Format value string.
+     * @param value to format
+     * @return string formatted value */
+    public static String valueString(final Object value) {
         StringBuilder val = new StringBuilder(""+value);
+        if (null != value && value.getClass().isArray()) {
+            val = new StringBuilder("[");
+            for (int i = 0; i < Array.getLength(value); i++)
+                val.append(valueString(Array.get(value, i))).append(", ");
+            if (val.reverse().charAt(0) == ' ')
+                val.delete(0, 2);
+            return val.reverse().append("]").toString();
+        }
         if (value instanceof String)
-            val.insert(0, "\"").append("\"");
+            return val.insert(0, "\"").append("\"").toString();
         if (Primitive.unwrap(value) instanceof Character)
-            val.insert(0, "'").append("'");
-        return val.append(" :").append(typeString(value)).toString();
+            return val.insert(0, "'").append("'").toString();
+        if (Primitive.unwrap(value) instanceof Number) {
+            if (Primitive.unwrap(value) instanceof Byte)
+                return val.append("o").toString();
+            if (Primitive.unwrap(value) instanceof Short)
+                return val.append("s").toString();
+            if (Primitive.unwrap(value) instanceof Integer)
+                return val.append("I").toString();
+            if (Primitive.unwrap(value) instanceof Long)
+                return val.append("L").toString();
+            if (Primitive.unwrap(value) instanceof BigInteger)
+                return val.append("W").toString();
+            if (Primitive.unwrap(value) instanceof Float)
+                return val.append("f").toString();
+            if (Primitive.unwrap(value) instanceof Double)
+                return val.append("d").toString();
+            if (Primitive.unwrap(value) instanceof BigDecimal)
+                return val.append("w").toString();
+        }
+        return val.toString();
     }
 
     /** Count region matches.

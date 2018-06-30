@@ -474,6 +474,7 @@ public class Interpreter
 
         SimpleNode node = null;
         boolean eof = false;
+        int idx = -1;
         while( !Thread.interrupted() && !eof )
         {
             try
@@ -513,9 +514,12 @@ public class Interpreter
                     if( ret != Primitive.VOID )
                     {
                         setu("$_", ret);
-                    }
-                    if ( showResults )
-                        println("--> " + ret + " : " + StringUtil.typeString(ret));
+                        if (interactive)
+                            setu("$"+(++idx%10), ret);
+                        if ( showResults )
+                            println("--> $" + (idx%10) + " = " + StringUtil.typeValueString(ret));
+                    } else if ( showResults )
+                        println("--> void");
                 }
             }
             catch(ParseException e)

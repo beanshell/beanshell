@@ -280,13 +280,31 @@ class BSHAllocationExpression extends SimpleNode
         }
 
         try {
-            return Array.newInstance(
+            Object arr = Array.newInstance(
                 type, dimensionsNode.definedDimensions);
+            arrayFillDefaultValue(arr);
+            return arr;
         } catch( NegativeArraySizeException e1 ) {
             throw new TargetError( e1, this, callstack );
         } catch( Exception e ) {
             throw new EvalError("Can't construct primitive array: " +
                 e.getMessage(), this, callstack, e);
+        }
+    }
+
+    private void arrayFillDefaultValue(Object arr) {
+        if (null == arr)
+            return;
+        Class<?> clas = arr.getClass();
+        Class<?> comp = clas.getComponentType();
+        if (!clas.isPrimitive() && clas.isArray()
+                && !comp.isPrimitive()) {
+            Object def = Primitive.getDefaultValue(comp);
+            for (int i = 0; i < Array.getLength(arr); i++)
+                if (comp.isArray())
+                    arrayFillDefaultValue(Array.get(arr, i));
+                else
+                    Array.set(arr, i, Primitive.unwrap(def));
         }
     }
 }
