@@ -274,6 +274,11 @@ class LHS implements ParserConstants, Serializable {
             }
         }
         else if ( type == INDEX ) try {
+            if ( val != null ) try {
+                val = Types.castObject( val, object.getClass().getComponentType(),
+                    Types.ASSIGNMENT);
+            } catch (UtilEvalError e) { /*ignore*/ }
+
             Reflect.setIndex(object, index, val);
         } catch ( UtilTargetError e1 ) { // pass along target error
             throw e1;

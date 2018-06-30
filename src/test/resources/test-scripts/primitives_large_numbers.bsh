@@ -19,7 +19,7 @@ assertThat(t, instanceOf(Double.class));
 assertEquals(1.7976931348622157E308, t, 0.0);
 t = 179769313486241571234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012.3456;
 assertThat(t, instanceOf(BigDecimal.class));
-assertEquals(new BigDecimal("179769313486241571234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012.3456"), t);
+assertEquals(179769313486241571234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012.3456w, t);
 
 //addition floating point
 t = 1.2345 + 1.2345;
@@ -33,10 +33,10 @@ assertThat(t, instanceOf(Double.class));
 assertEquals(-1.7976931348623147E308, t, 0.0);
 t = Double.MAX_VALUE + 1E293;
 assertThat(t, instanceOf(BigDecimal.class));
-assertEquals(new BigDecimal("1.7976931348623167E308"), t);
+assertEquals(1.7976931348623167E308w, t);
 t = 1.7976931348623167E308 + 1.7976931348623167E308;
 assertThat(t, instanceOf(BigDecimal.class));
-assertEquals(new BigDecimal("3.5953862697246334E308"), t);
+assertEquals(3.5953862697246334E308w, t);
 
 //subtraction floating point
 t = 1.2345 - 1;
@@ -44,22 +44,28 @@ assertThat(t, instanceOf(Float.class));
 assertEquals(0.23450005, t, 0.0);
 t = -Float.MAX_VALUE - 12345678901234567890123456789012f;
 assertThat(t, instanceOf(Double.class));
-assertEquals(3.4028235898420748E38, t, 0.0);
+assertEquals(-3.4028235898420748E38d, t, 0.0);
 t = Float.MAX_VALUE - 12345678901234567890123456789012f;
 assertThat(t, instanceOf(Float.class));
 assertEquals(3.4028233E38, t, 0.0);
 t = -Float.MAX_VALUE - 0.0000001f;
 assertThat(t, instanceOf(Float.class));
-assertEquals(3.4028235E38, t, 0.0);
+assertEquals(-3.4028235E38f, t, 0.0);
 t = Double.MAX_VALUE - 1E293;
 assertThat(t, instanceOf(Double.class));
-assertEquals(1.7976931348623147E308, t, 0.0);
+assertEquals(1.7976931348623147E308d, t, 0.0);
+t = -1.7976931348623147E308d - 1E292d;
+assertThat(t, instanceOf(Double.class));
+assertEquals(-1.797693134862315E308d, t, 0.0);
+t = -1.7976931348623147E308 - 1E293;
+assertThat(t, instanceOf(Double.class));
+assertEquals(-1.7976931348623157E308d, t, 0.0);
 t = -Double.MAX_VALUE - 1E293;
 assertThat(t, instanceOf(BigDecimal.class));
-assertEquals(new BigDecimal("1.7976931348623167E308"), t);
+assertEquals(-1.7976931348623167E+308w, t);
 t = 1.7976931348623167E308 - 1E309;
 assertThat(t, instanceOf(BigDecimal.class));
-assertEquals(new BigDecimal("8.2023068651376833E+308"), t);
+assertEquals(-8.2023068651376833E+308w, t);
 
 //mulitiplication floating point
 t = 1.0 * 2;
@@ -70,10 +76,10 @@ assertThat(t, instanceOf(Double.class));
 assertEquals(6.805646932770577E38, t, 0.0);
 t = 2 * Double.MAX_VALUE;
 assertThat(t, instanceOf(BigDecimal.class));
-assertEquals(new BigDecimal("3.59538626972463140E308"), t);
+assertEquals(3.59538626972463140E308w, t);
 t = 2 * 1.7976931348623167E308;
 assertThat(t, instanceOf(BigDecimal.class));
-assertEquals(new BigDecimal("3.5953862697246334E+308"), t);
+assertEquals(3.5953862697246334E+308w, t);
 //mulitiplication floating point
 
 //Division  floating point
@@ -89,7 +95,7 @@ assertThat(t, instanceOf(Double.class));
 assertEquals(8.988465674311579E307, t, 0.0);
 t = 1.7976931348623167E616 / 2;
 assertThat(t, instanceOf(BigDecimal.class));
-assertEquals(new BigDecimal("8.9884656743115835E+615"), t);
+assertEquals(8.9884656743115835E+615w, t);
 
 //modulus floating point
 t = 5.0 % 2;
@@ -114,42 +120,42 @@ assertThat(t, instanceOf(Double.class));
 assertEquals(1.1579207543382391E77, t, 0.0);
 t = Double.MAX_VALUE ** 2;
 assertThat(t, instanceOf(BigDecimal.class));
-assertEquals(new BigDecimal("3.23170060713109998320439596646649E616"), t);
+assertEquals(3.23170060713109998320439596646649E616w, t);
 t = 1.7976931348623167E308 ** 2;
 assertThat(t, instanceOf(BigDecimal.class));
-assertEquals(new BigDecimal("3.23170060713110357859066569109889E616"), t);
+assertEquals(3.23170060713110357859066569109889E616w, t);
 
 t = -7976931348623167E308;
 assertThat(t, instanceOf(BigDecimal.class));
-assertEquals(new BigDecimal("-7.976931348623167E+323"), t);
+assertEquals(-7.976931348623167E+323w, t);
 t = ~t;
 assertThat(t, instanceOf(BigDecimal.class));
-assertEquals(new BigDecimal("-7.976931348623167E+323"), t);
+assertEquals(-7.976931348623167E+323w, t);
 t = +t;
 assertThat(t, instanceOf(BigDecimal.class));
-assertEquals(new BigDecimal("-7.976931348623167E+323"), t);
+assertEquals(-7.976931348623167E+323w, t);
 t = -t;
 assertThat(t, instanceOf(BigDecimal.class));
-assertEquals(new BigDecimal("7.976931348623167E+323"), t);
+assertEquals(7.976931348623167E+323w, t);
 t = ~t;
 assertThat(t, instanceOf(BigDecimal.class));
-assertEquals(new BigDecimal("-7.976931348623167E+323"), t);
+assertEquals(-7.976931348623167E+323w, t);
 t = -t;
 assertThat(t, instanceOf(BigDecimal.class));
-assertEquals(new BigDecimal("7.976931348623167E+323"), t);
+assertEquals(7.976931348623167E+323w, t);
 t++;
 assertThat(t, instanceOf(BigDecimal.class));
-assertEquals(new BigDecimal("797693134862316700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"), t);
+assertEquals(797693134862316700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001.0w, t);
 t--;
 assertThat(t, instanceOf(BigDecimal.class));
-assertEquals(new BigDecimal("797693134862316700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"), t);
+assertEquals(797693134862316700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0w, t);
 
 
 t = 1L;
 assertThat(t, instanceOf(Long.class));
 assertEquals(1L, t);
 
-//assign decimal
+//assign integral
 t = 32768;
 assertThat(t, instanceOf(Integer.class));
 assertEquals(32768, t);
@@ -158,23 +164,35 @@ assertThat(t, instanceOf(Long.class));
 assertEquals(2147483648, t);
 t = 9223372036854775808;
 assertThat(t, instanceOf(BigInteger.class));
-assertEquals(new BigInteger("9223372036854775808"), t);
+assertEquals(9223372036854775808W, t);
 
-//addition decimal
+//addition integral
 t = Short.MAX_VALUE + 1;
 assertThat(t, instanceOf(Integer.class));
 assertEquals(32768, t);
 t = Integer.MAX_VALUE + 1;
 assertThat(t, instanceOf(Long.class));
 assertEquals(2147483648, t);
-t = Long.MAX_VALUE + 1;
+t = -9223372036854775809 + 2;
+assertThat(t, instanceOf(Long.class));
+assertEquals(-9223372036854775807L, t);
+t = 9223372036854775804L + 2L;
+assertThat(t, instanceOf(Long.class));
+assertEquals(9223372036854775806L, t);
+t = -9223372036854775807L + 2L;
+assertThat(t, instanceOf(Long.class));
+assertEquals(-9223372036854775805L, t);
+t = 9223372036854775807L + 2L;
 assertThat(t, instanceOf(BigInteger.class));
-assertEquals(new BigInteger("9223372036854775808"), t);
+assertEquals(9223372036854775809W, t);
+t = -9223372036854775810 + 1;
+assertThat(t, instanceOf(BigInteger.class));
+assertEquals(-9223372036854775809W, t);
 t = 9223372036854775808 + 2;
 assertThat(t, instanceOf(BigInteger.class));
-assertEquals(new BigInteger("9223372036854775810"), t);
+assertEquals(9223372036854775810W, t);
 
-//subtraction decimal
+//subtraction integral
 t = Short.MIN_VALUE - 1;
 assertThat(t, instanceOf(Integer.class));
 assertEquals(-32769, t);
@@ -183,12 +201,12 @@ assertThat(t, instanceOf(Long.class));
 assertEquals(-2147483649, t);
 t = Long.MIN_VALUE - 1;
 assertThat(t, instanceOf(BigInteger.class));
-assertEquals(new BigInteger("-9223372036854775809"), t);
-t = 9223372036854775808 - 2;
-assertThat(t, instanceOf(BigInteger.class));
-assertEquals(new BigInteger("9223372036854775806"), t);
+assertEquals(-9223372036854775809W, t);
+t = 9223372036854775808 - 1;
+assertThat(t, instanceOf(Long.class));
+assertEquals(9223372036854775807L, t);
 
-//multiplication decimal
+//multiplication integral
 t = Short.MAX_VALUE * 2;
 assertThat(t, instanceOf(Integer.class));
 assertEquals(65534, t);
@@ -197,12 +215,12 @@ assertThat(t, instanceOf(Long.class));
 assertEquals(4294967294, t);
 t = Long.MAX_VALUE * 2;
 assertThat(t, instanceOf(BigInteger.class));
-assertEquals(new BigInteger("18446744073709551614"), t);
+assertEquals(18446744073709551614W, t);
 t = 2 * 9223372036854775808;
 assertThat(t, instanceOf(BigInteger.class));
-assertEquals(new BigInteger("18446744073709551616"), t);
+assertEquals(18446744073709551616W, t);
 
-//division decimal
+//division integral
 t = Short.MAX_VALUE / 2;
 assertThat(t, instanceOf(Integer.class));
 assertEquals(16383, t);
@@ -214,9 +232,9 @@ assertThat(t, instanceOf(Long.class));
 assertEquals(4611686018427387903, t);
 t = 92233720368547758087656765676876 / 2;
 assertThat(t, instanceOf(BigInteger.class));
-assertEquals(new BigInteger("46116860184273879043828382838438"), t);
+assertEquals(46116860184273879043828382838438W, t);
 
-//modulus decimal
+//modulus integral
 t = Short.MAX_VALUE % 2;
 assertThat(t, instanceOf(Integer.class));
 assertEquals(1, t);
@@ -230,7 +248,7 @@ t = 922337203685477580876567656769 % 2;
 assertThat(t, instanceOf(Integer.class));
 assertEquals(1, t);
 
-//to the power decimal
+//to the power integral
 t = Short.MAX_VALUE ** 2;
 assertThat(t, instanceOf(Integer.class));
 assertEquals(1073676289, t);
@@ -242,21 +260,21 @@ assertThat(t, instanceOf(Long.class));
 assertEquals(-35184372088832, t);
 t = Long.MIN_VALUE ** 3;
 assertThat(t, instanceOf(BigInteger.class));
-assertEquals(new BigInteger("-784637716923335095479473677900958302012794430558004314112"), t);
+assertEquals(-784637716923335095479473677900958302012794430558004314112W, t);
 t = Long.MAX_VALUE ** 2;
 assertThat(t, instanceOf(BigInteger.class));
-assertEquals(new BigInteger("85070591730234615847396907784232501249"), t);
+assertEquals(85070591730234615847396907784232501249W, t);
 t = 9223372036854775808 ** 2;
 assertThat(t, instanceOf(BigInteger.class));
-assertEquals(new BigInteger("85070591730234615865843651857942052864"), t);
+assertEquals(85070591730234615865843651857942052864W, t);
 
 //shift operators
 t = 9223372036854775808 << 2;
 assertThat(t, instanceOf(BigInteger.class));
-assertEquals(new BigInteger("36893488147419103232"), t);
+assertEquals(36893488147419103232W, t);
 t = 9223372036854775808 @left_shift 2;
 assertThat(t, instanceOf(BigInteger.class));
-assertEquals(new BigInteger("36893488147419103232"), t);
+assertEquals(36893488147419103232W, t);
 t = 9223372036854775808 >> 2;
 assertThat(t, instanceOf(Long.class));
 assertEquals(2305843009213693952, t);
@@ -284,21 +302,21 @@ assertThat(t, instanceOf(Integer.class));
 assertEquals(0, t);
 t = 9223372036854775808 | 2;
 assertThat(t, instanceOf(BigInteger.class));
-assertEquals(new BigInteger("9223372036854775810"), t);
+assertEquals(9223372036854775810W, t);
 t = 9223372036854775808 @bitwise_or 2;
 assertThat(t, instanceOf(BigInteger.class));
-assertEquals(new BigInteger("9223372036854775810"), t);
+assertEquals(9223372036854775810W, t);
 t = 9223372036854775808 ^ 2;
 
 t = ~9223372036854775808;
 assertThat(t, instanceOf(BigInteger.class));
-assertEquals(new BigInteger("-9223372036854775809"), t);
+assertEquals(-9223372036854775809W, t);
 t++;
 assertThat(t, instanceOf(BigInteger.class));
-assertEquals(new BigInteger("-9223372036854775808"), t);
+assertEquals(-9223372036854775808W, t);
 t--;
 assertThat(t, instanceOf(BigInteger.class));
-assertEquals(new BigInteger("-9223372036854775809"), t);
+assertEquals(-9223372036854775809W, t);
 
 
 complete();
