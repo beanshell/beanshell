@@ -14,18 +14,37 @@ L = Long.valueOf(1L);
 B = Boolean.TRUE;
 C = Character.valueOf('a');
 
-assertTrue(isEvalError("Unimplemented binary float operator", "Operators.bigDecimalBinaryOperation(BD, BD, 0);"));
-assertTrue(isEvalError("Unimplemented binary double operator", "Operators.doubleBinaryOperation(D, D, 0);"));
-assertTrue(isEvalError("Unimplemented binary integer operator", "Operators.bigIntegerBinaryOperation(BI, BI, 0);"));
-assertTrue(isEvalError("Unimplemented binary long operator", "Operators.longBinaryOperation(L, L, 0);"));
-assertTrue(isEvalError("unimplemented binary operator", "Operators.booleanBinaryOperation(B, B, 0);"));
-assertTrue(isEvalError("Invalid types in binary operator", "Operators.binaryOperationImpl(C, C, 0);"));
+assert(isEvalError("Unimplemented binary float operator", "Operators.bigDecimalBinaryOperation(BD, BD, 0);"));
+assert(isEvalError("Unimplemented binary double operator", "Operators.doubleBinaryOperation(D, D, 0);"));
+assert(isEvalError("Unimplemented binary integer operator", "Operators.bigIntegerBinaryOperation(BI, BI, 0);"));
+assert(isEvalError("Unimplemented binary long operator", "Operators.longBinaryOperation(L, L, 0);"));
+assert(isEvalError("unimplemented binary operator", "Operators.booleanBinaryOperation(B, B, 0);"));
+assert(isEvalError("Invalid types in binary operator", "Operators.binaryOperationImpl(C, C, 0);"));
+assert(isEvalError("invalid type in castWrapper: class java.lang.String", "Primitive.castWrapper(String.class, 1);"));
+assert(isEvalError("cannot assign number 0 to type String", "Primitive.castNumber(String.class, (Integer) 0, true);"));
+assert(isEvalError("null value in castWrapper", "Primitive.castWrapper(Integer.TYPE, null);"));
+assert(isEvalError("bad wrapper cast of boolean", "Primitive.castWrapper(Integer.TYPE, B);"));
+assert(isEvalError("bad type in cast", "Primitive.castWrapper(Integer.TYPE, '');"));
+assert(isEvalError("cannot assign number 1 to type void", "Primitive.castWrapper(Void.TYPE, 1);"));
+assert(isEvalError("Not a wrapper type: class java.lang.String", "new Primitive('');"));
 
-assertTrue(isEvalError("invalid type in castWrapper: class java.lang.String", "Primitive.castWrapper(String.class, 1);"));
-assertTrue(isEvalError("null value in castWrapper", "Primitive.castWrapper(Integer.TYPE, null);"));
-assertTrue(isEvalError("bad wrapper cast of boolean", "Primitive.castWrapper(Integer.TYPE, B);"));
-assertTrue(isEvalError("bad type in cast", "Primitive.castWrapper(Integer.TYPE, '');"));
-assertTrue(isEvalError("error in wrapper cast", "Primitive.castWrapper(Void.TYPE, 1);"));
+Primitive.castNumber(Byte.class, (Integer) 1, true);
+Primitive.castNumber(Short.class, (Integer) 1, true);
+Primitive.castNumber(Integer.class, (Short) 1, true);
+Primitive.castNumber(Integer.class, (Byte) 1, true);
+Primitive.castNumber(Long.class, (Integer) 7, true);
+Primitive.castNumber(Long.class, (Integer) 1, true);
+Primitive.castNumber(Long.class, (Integer) 0, true);
+Primitive.castNumber(Character.class, (Integer) 1, true);
+Primitive.castNumber(Double.class, (Integer) 1, true);
+Primitive.castNumber(Float.class, (Integer) 1, true);
+Primitive.castNumber(BigInteger.class, (Integer) 9, true);
+Primitive.castNumber(BigInteger.class, (Integer) 1, true);
+Primitive.castNumber(BigInteger.class, (Integer) 0, true);
+Primitive.castNumber(BigDecimal.class, (Integer) 5, true);
+Primitive.castNumber(BigDecimal.class, (Integer) 1, true);
+Primitive.castNumber(BigDecimal.class, (Integer) 0, true);
+Primitive.castNumber(BigDecimal.class, (Float) 1, true);
 
 complete();
 
