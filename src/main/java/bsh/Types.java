@@ -26,6 +26,12 @@
 
 package bsh;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
     Static routines supporing type comparison and conversion in BeanShell.
 
@@ -42,6 +48,44 @@ class Types
         declarations (e.g. byte b = 42;)
     */
     static final int CAST=0, ASSIGNMENT=1;
+
+    public static class Suffix {
+        private static final Map<String, Class<?>> m
+            = Collections.unmodifiableMap(new HashMap<String, Class<?>>() {
+                private static final long serialVersionUID = 1L;
+            {
+                put("O", Byte.TYPE);
+                put("S", Short.TYPE);
+                put("I", Integer.TYPE);
+                put("L", Long.TYPE);
+                put("W", BigInteger.class);
+                put("w", BigDecimal.class);
+                put("d", Double.TYPE);
+                put("f", Float.TYPE);
+            }
+        });
+
+        private static String toUpperKey(Character key) {
+            return key.toString().toUpperCase();
+        }
+
+        private static String toLowerKey(Character key) {
+            return key.toString().toLowerCase();
+        }
+
+        public static boolean isIntegral(Character key) {
+            return m.containsKey(toUpperKey(key));
+        }
+        public static Class<?> getIntegralType(Character key) {
+            return m.get(toUpperKey(key));
+        }
+        public static boolean isFloatingPoint(Character key) {
+            return m.containsKey(toLowerKey(key));
+        }
+        public static Class<?> getFloatingPointType(Character key) {
+            return m.get(toLowerKey(key));
+        }
+    };
 
     static final int
         JAVA_BASE_ASSIGNABLE = 1,
@@ -530,8 +574,7 @@ class Types
         // Both numeric wrapper types?
         // Try numeric style promotion wrapper cast
         if ( Primitive.isWrapperType( toType )
-            && Primitive.isWrapperType( fromType )
-        )
+            && Primitive.isWrapperType( fromType ) )
             return checkOnly ? VALID_CAST :
                 Primitive.castWrapper( toType, fromValue );
 
