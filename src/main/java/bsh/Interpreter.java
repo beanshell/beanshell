@@ -556,12 +556,6 @@ public class Interpreter
                 if(!interactive)
                     eof = true;
             }
-            catch (TokenMgrException e) {
-                if ( DEBUG )
-                    e.printStackTrace();
-                if(!interactive)
-                    eof = true;
-            }
             catch(Exception e)
             {
                 error("Unknown error: " + e);
@@ -1299,14 +1293,5 @@ public class Interpreter
     public static boolean getSaveClasses()  {
         return getSaveClassesDir() != null && !getSaveClassesDir().isEmpty();
     }
-
-    public void resetParser(Reader in) {
-        try {
-            this.in.close();
-        } catch (IOException x) {
-            // nothing to do...
-        }
-        this.in = in;
-        parser = new Parser(in);
-    }
 }
+
