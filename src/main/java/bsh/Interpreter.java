@@ -468,7 +468,7 @@ public class Interpreter
             try
             {
                 if ( interactive )
-                    print( getBshPrompt() );
+                    prompt(getBshPrompt());
 
                 EOF = readLine();
 
@@ -1300,6 +1300,11 @@ public class Interpreter
 
     public static boolean getSaveClasses()  {
         return getSaveClassesDir() != null && !getSaveClassesDir().isEmpty();
+    }
+
+    @Override
+    public void prompt(String prompt) {
+        print(prompt);
     }
 }
 
