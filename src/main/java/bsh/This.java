@@ -428,6 +428,12 @@ public final class This implements java.io.Serializable, Runnable
             callerInfo, callstack );
     }
 
+    /** Delegate method to return enum values array.
+     * @return array of enum values */
+    public Object[] enumValues() {
+        return Reflect.getEnumConstants(getNameSpace().classStatic);
+    }
+
     /**
         Bind a This reference to a parent's namespace with the specified
         declaring interpreter.  Also re-init the callstack.  It's necessary

@@ -306,6 +306,11 @@ public class BshMethod implements Serializable {
             SimpleNode callerInfo, boolean overrideNameSpace )
         throws EvalError
     {
+        if (hasModifier("abstract"))
+            throw new EvalError(
+                    "Cannot invoke abstract method "
+                    + name, callerInfo, callstack );
+
         Class<?> returnType = getReturnType();
         Class<?> [] paramTypes = getParameterTypes();
 
@@ -483,23 +488,19 @@ public class BshMethod implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null) {
+        if (o == null)
             return false;
-        }
-        if (o == this) {
+        if (o == this)
             return true;
-        }
-        if (o.getClass() == this.getClass()) {
-            BshMethod m = (BshMethod)o;
-            if( !name.equals(m.name) || getParameterCount() != m.getParameterCount() )
+        if (o.getClass() != this.getClass())
+            return false;
+        BshMethod m = (BshMethod)o;
+        if( !name.equals(m.name) || getParameterCount() != m.getParameterCount() )
+            return false;
+        for( int i = 0; i < getParameterCount(); i++ )
+            if( !equal(getParameterTypes()[i], m.getParameterTypes()[i]) )
                 return false;
-            for( int i = 0; i < getParameterCount(); i++ ) {
-                if( !equal(getParameterTypes()[i], m.getParameterTypes()[i]) )
-                    return false;
-            }
-            return true;
-        }
-        return false;
+        return true;
     }
 
     private static boolean equal(Object obj1,Object obj2) {
@@ -508,10 +509,9 @@ public class BshMethod implements Serializable {
 
     @Override
     public int hashCode() {
-        int h = name.hashCode();
-        for (final Class<?> cparamType : getParameterTypes()) {
-            h = h * 31 + (cparamType == null ? 0 : cparamType.hashCode());
-        }
+        int h = name.hashCode() + getClass().hashCode();
+        for (final Class<?> cparamType : getParameterTypes())
+            h += 3 + (cparamType == null ? 0 : cparamType.hashCode());
         return h + getParameterCount();
     }
 }

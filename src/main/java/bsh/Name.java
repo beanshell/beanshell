@@ -849,9 +849,19 @@ class Name implements java.io.Serializable
                 // in Name (can't treat primitive like an object message)
                 // but the hole is useful right now.
                 if ( Interpreter.DEBUG )
-                    interpreter.debug(
+                    Interpreter.debug(
                     "Attempt to access method on primitive..."
                     + " allowing bsh.Primitive to peek through for debugging");
+            }
+
+            // enum block members will be in namespace only
+            if ( obj.getClass().isEnum() ) {
+                NameSpace thisNamespace = Reflect.getThisNS(obj);
+                if ( null != thisNamespace ) {
+                    BshMethod m = thisNamespace.getMethod(methodName, Types.getTypes(args), true);
+                    if ( null != m )
+                        return m.invoke(args, interpreter, callstack, callerInfo);
+                }
             }
 
             // found an object and it's not an undefined variable
