@@ -43,5 +43,6 @@ public interface ConsoleInterface {
     public void println( Object o );
     public void print( Object o );
     public void error( Object o );
+    public void prompt( String prompt ); 
 }
 
