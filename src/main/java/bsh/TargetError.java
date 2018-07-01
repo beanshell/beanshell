@@ -28,7 +28,6 @@
 package bsh;
 
 import java.lang.reflect.InvocationTargetException;
-import java.io.IOException;
 import java.io.PrintStream;
 
 /**
@@ -72,7 +71,7 @@ public final class TargetError extends EvalError
     public String getMessage()
     {
         return super.getMessage()
-            + "\nTarget exception: " +
+            + "Caused by: " +
             printTargetError( getCause() );
     }
 
@@ -84,41 +83,15 @@ public final class TargetError extends EvalError
         getCause().printStackTrace( out );
     }
 
-    /**
-        Generate a printable string showing the wrapped target exception.
-        If the proxy mechanism is available, allow the extended print to
-        check for UndeclaredThrowableException and print that embedded error.
-    */
+    /** Generate a printable string showing the wrapped target exceptions.
+     * @param t wrapped target exception
+     * @return messages unwrapped */
     private String printTargetError( Throwable t )
     {
-        return getCause().toString() + "\n" + xPrintTargetError( t );
-    }
-
-    /**
-        Extended form of print target error.
-        This indirection is used to print UndeclaredThrowableExceptions
-        which are possible when the proxy mechanism is available.
-
-        We are shielded from compile problems by using a bsh script.
-        This is acceptable here because we're not in a critical path...
-        Otherwise we'd need yet another dynamically loaded module just for this.
-    */
-    private String xPrintTargetError( Throwable t )
-    {
-        String getTarget =
-            "import java.lang.reflect.UndeclaredThrowableException;"+
-            "String result='';"+
-            "while ( target instanceof UndeclaredThrowableException ) {"+
-            "   target=target.getUndeclaredThrowable(); " +
-            "   result+='Nested: '+target.toString();" +
-            "}"+
-            "return result;";
-        try (Interpreter i = new Interpreter()) {
-            i.set("target", t);
-            return (String)i.eval( getTarget );
-        } catch ( IOException | EvalError e ) {
-            throw new InterpreterError("xprintarget: "+e, e);
-        }
+        StringBuilder msgs = new StringBuilder(t.toString());
+        while (null != (t = t.getCause()))
+            msgs.append("\n").append(t.toString());
+        return msgs.toString();
     }
 
     /**

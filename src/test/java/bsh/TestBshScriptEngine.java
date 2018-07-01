@@ -208,7 +208,7 @@ public class TestBshScriptEngine {
     @Test
     public void check_exception_thrown_in_script() throws Exception {
         thrown.expect(ScriptException.class);
-        thrown.expectMessage(containsString("Target exception: java.lang.Exception: test exception"));
+        thrown.expectMessage(containsString("Caused by: java.lang.Exception: test exception"));
 
         final String script = "throw new Exception('test exception');";
         new BshScriptEngineFactory().getScriptEngine().eval(script);
@@ -257,7 +257,7 @@ public class TestBshScriptEngine {
     @Test
     public void check_script_exception_invoke_function_throws_exception() throws Exception {
         thrown.expect(ScriptException.class);
-        thrown.expectMessage(containsString("Target exception: java.lang.Exception: test exception"));
+        thrown.expectMessage(containsString("Caused by: java.lang.Exception: test exception"));
 
         ScriptEngine engine =  new ScriptEngineManager().getEngineByName("beanshell");
         engine.eval("foo() { throw new Exception('test exception'); }");
