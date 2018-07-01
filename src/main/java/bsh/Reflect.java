@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.WeakHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static bsh.ClassGeneratorUtil.BSHTHIS;
@@ -1302,6 +1303,23 @@ final class Reflect {
         if ( ! field.isAccessible() && Capabilities.haveAccessibility()) {
             field.setAccessible(true);
         }
+    }
+
+    /** Manually create enum values array without using enum.values().
+     * @param enm enum class to query
+     * @return array of enum values */
+    @SuppressWarnings("unchecked")
+    static <T> T[] getEnumConstants(Class<T> enm) {
+        List<T> s = Stream.of(enm.getFields())
+                .filter(f->f.getType() == enm)
+                .map(f->{
+            try {
+                return (T) f.get(null);
+            } catch (Exception e) {
+                return null;
+            }
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+        return s.toArray((T[]) Array.newInstance(enm, s.size()));
     }
 }
 

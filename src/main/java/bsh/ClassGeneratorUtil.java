@@ -28,6 +28,9 @@ package bsh;
 
 import static bsh.ClassGenerator.ClassNodeFilter.CLASSINSTANCE;
 import static bsh.ClassGenerator.ClassNodeFilter.CLASSSTATIC;
+import static bsh.ClassGenerator.Type.CLASS;
+import static bsh.ClassGenerator.Type.INTERFACE;
+import static bsh.ClassGenerator.Type.ENUM;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -135,6 +138,7 @@ public class ClassGeneratorUtil implements Opcodes {
 
     private final String className;
     private final String canonClassName;
+    private final String classDescript;
     /**
      * fully qualified class name (with package) e.g. foo/bar/Blah
      */
@@ -149,14 +153,15 @@ public class ClassGeneratorUtil implements Opcodes {
     private final DelayedEvalBshMethod[] methods;
     private static final Map<String,NameSpace> contextStore = new ConcurrentHashMap<>();
     private final Modifiers classModifiers;
-    private final boolean isInterface;
+    private final ClassGenerator.Type type;
 
     /**
      * @param packageName e.g. "com.foo.bar"
      */
-    public ClassGeneratorUtil(Modifiers classModifiers, String className, String packageName, Class superClass, Class[] interfaces, Variable[] vars, DelayedEvalBshMethod[] bshmethods, NameSpace classStaticNameSpace, boolean isInterface) {
+    public ClassGeneratorUtil(Modifiers classModifiers, String className, String packageName, Class superClass, Class[] interfaces, Variable[] vars, DelayedEvalBshMethod[] bshmethods, NameSpace classStaticNameSpace, ClassGenerator.Type type) {
         this.classModifiers = classModifiers;
         this.className = className;
+        this.type = type;
         if (packageName != null) {
             this.fqClassName = packageName.replace('.', '/') + "/" + className;
             this.canonClassName = packageName+"."+className;
@@ -164,15 +169,21 @@ public class ClassGeneratorUtil implements Opcodes {
             this.fqClassName = className;
             this.canonClassName = className;
         }
+        this.classDescript = "L"+fqClassName.replace('.', '/')+";";
+
         if (superClass == null)
-            superClass = Object.class;
+            if (type == ENUM)
+                superClass = Enum.class;
+            else
+                superClass = Object.class;
         this.superClass = superClass;
         this.superClassName = Type.getInternalName(superClass);
         if (interfaces == null)
             interfaces = new Class[0];
         this.interfaces = interfaces;
         this.vars = vars;
-        classStaticNameSpace.isInterface = isInterface;
+        classStaticNameSpace.isInterface = type == INTERFACE;
+        classStaticNameSpace.isEnum = type == ENUM;
         contextStore.put(this.uuid = UUID.randomUUID().toString(), classStaticNameSpace);
         this.superConstructors = superClass.getDeclaredConstructors();
 
@@ -189,10 +200,10 @@ public class ClassGeneratorUtil implements Opcodes {
         constructors = consl.toArray(new DelayedEvalBshMethod[consl.size()]);
         methods = methodsl.toArray(new DelayedEvalBshMethod[methodsl.size()]);
 
-        this.isInterface = isInterface;
-
-        if (isInterface && !classModifiers.hasModifier("abstract"))
+        if (type == INTERFACE && !classModifiers.hasModifier("abstract"))
             classModifiers.addModifier("abstract");
+        if (type == ENUM && !classModifiers.hasModifier("static"))
+            classModifiers.addModifier("static");
     }
 
     /**
@@ -221,8 +232,10 @@ public class ClassGeneratorUtil implements Opcodes {
         NameSpace classStaticNameSpace = contextStore.get(this.uuid);
         // Force the class public for now...
         int classMods = getASMModifiers(classModifiers) | ACC_PUBLIC;
-        if (isInterface)
+        if (type == INTERFACE)
             classMods |= ACC_INTERFACE | ACC_ABSTRACT;
+        else if (type == ENUM)
+            classMods |= ACC_FINAL | ACC_SUPER | ACC_ENUM;
         else if ( (classMods & ACC_ABSTRACT) > 0 )
             // bsh classes are not abstract
             classMods -= ACC_ABSTRACT;
@@ -238,9 +251,10 @@ public class ClassGeneratorUtil implements Opcodes {
         interfaceNames[interfaces.length] = Type.getInternalName(GeneratedClass.class);
 
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        cw.visit(V1_8, classMods, fqClassName, null, superClassName, interfaceNames);
+        String signature = type == ENUM ? "Ljava/lang/Enum<"+classDescript+">;" : null;
+        cw.visit(V1_8, classMods, fqClassName, signature, superClassName, interfaceNames);
 
-        if (!isInterface)
+        if ( type != INTERFACE )
             // Generate the bsh instance 'This' reference holder field
             generateField(BSHTHIS+className, "Lbsh/This;", ACC_PUBLIC, cw);
         // Generate the static bsh static This reference holder field
@@ -254,17 +268,24 @@ public class ClassGeneratorUtil implements Opcodes {
             if (var.hasModifier("private"))
                 continue;
 
-            if (isInterface) {
+            String fType = var.getTypeDescriptor();
+            int modifiers = getASMModifiers(var.getModifiers());
+
+            if ( type == INTERFACE ) {
                 var.setConstant();
                 classStaticNameSpace.setVariableImpl(var);
                 // keep constant fields virtual
                 continue;
+            } else if ( type == ENUM && var.hasModifier("enum") ) {
+                modifiers |= ACC_ENUM | ACC_FINAL;
+                fType = classDescript;
             }
 
-            int modifiers = getASMModifiers(var.getModifiers());
-            String type = var.getTypeDescriptor();
-            generateField(var.getName(), type, modifiers, cw);
+            generateField(var.getName(), fType, modifiers, cw);
         }
+
+        if (type == ENUM)
+            generateEnumSupport(fqClassName, className, classDescript, cw);
 
         // Generate the static initializer.
         generateStaticInitializer(cw);
@@ -282,7 +303,7 @@ public class ClassGeneratorUtil implements Opcodes {
         }
 
         // If no other constructors, generate a default constructor
-        if (!isInterface && !hasConstructor)
+        if ( type == CLASS && !hasConstructor )
             generateConstructor(DEFAULTCONSTRUCTOR/*index*/, new String[0], ACC_PUBLIC, cw);
 
         // Generate methods
@@ -292,7 +313,7 @@ public class ClassGeneratorUtil implements Opcodes {
             if (method.hasModifier("private"))
                 continue;
 
-            if ( isInterface )
+            if ( type == INTERFACE )
                 if ( !method.hasModifier("static") && !method.hasModifier("default") )
                     if ( !method.hasModifier("abstract") )
                         method.getModifiers().addModifier("abstract");
@@ -361,6 +382,61 @@ public class ClassGeneratorUtil implements Opcodes {
         return sb.toString();
     }
 
+    /** Generate support code needed for Enum types.
+     * Generates enum values and valueOf methods, default private constructor with initInstance call.
+     * Instead of maintaining a synthetic array of enum values we greatly reduce the required bytecode
+     * needed by delegating to This.enumValues and building the array dynamically.
+     * @param fqClassName fully qualified class name
+     * @param className class name string
+     * @param classDescript class descriptor string
+     * @param cw current class writer */
+    private void generateEnumSupport(String fqClassName, String className, String classDescript, ClassWriter cw) {
+        // generate enum values() method delegated to static This.enumValues.
+        MethodVisitor cv = cw.visitMethod(ACC_PUBLIC | ACC_STATIC, "values", "()["+classDescript, null, null);
+        pushBshStatic(fqClassName, className, cv);
+        cv.visitMethodInsn(INVOKEVIRTUAL, "bsh/This", "enumValues", "()[Ljava/lang/Object;", false);
+        generatePlainReturnCode("["+classDescript, cv);
+        cv.visitMaxs(0, 0);
+        // generate Enum.valueOf delegate method
+        cv = cw.visitMethod(ACC_PUBLIC | ACC_STATIC, "valueOf", "(Ljava/lang/String;)"+classDescript, null, null);
+        cv.visitLdcInsn(Type.getType(classDescript));
+        cv.visitVarInsn(ALOAD, 0);
+        cv.visitMethodInsn(INVOKESTATIC, "java/lang/Enum", "valueOf", "(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/Enum;", false);
+        generatePlainReturnCode(fqClassName, cv);
+        cv.visitMaxs(0, 0);
+        // generate default private constructor and initInstance call
+        cv = cw.visitMethod(ACC_PRIVATE, "<init>", "(Ljava/lang/String;I)V", null, null);
+        cv.visitVarInsn(ALOAD, 0);
+        cv.visitVarInsn(ALOAD, 1);
+        cv.visitVarInsn(ILOAD, 2);
+        cv.visitMethodInsn(INVOKESPECIAL, "java/lang/Enum", "<init>", "(Ljava/lang/String;I)V", false);
+        cv.visitVarInsn(ALOAD, 0);
+        cv.visitLdcInsn(className);
+        generateParameterReifierCode(new String[0], false/*isStatic*/, cv);
+        cv.visitMethodInsn(INVOKESTATIC, "bsh/ClassGeneratorUtil", "initInstance", "(Lbsh/GeneratedClass;Ljava/lang/String;[Ljava/lang/Object;)V", false);
+        cv.visitInsn(RETURN);
+        cv.visitMaxs(0, 0);
+    }
+
+    /** Generate the static initialization of the enum constants. Called from clinit.
+     * @param fqClassName fully qualified class name
+     * @param classDescript class descriptor string
+     * @param cv clinit method visitor */
+    private void generateEnumStaticInit(String fqClassName, String classDescript, MethodVisitor cv) {
+        int ordinal = ICONST_0;
+        for ( Variable var : vars ) if ( var.hasModifier("enum") ) {
+            cv.visitTypeInsn(NEW, fqClassName);
+            cv.visitInsn(DUP);
+            cv.visitLdcInsn(var.getName());
+            if ( ICONST_5 >= ordinal )
+                cv.visitInsn(ordinal++);
+            else
+                cv.visitIntInsn(BIPUSH, (ordinal++) - ICONST_0);
+            cv.visitMethodInsn(INVOKESPECIAL, fqClassName, "<init>", "(Ljava/lang/String;I)V", false);
+            cv.visitFieldInsn(PUTSTATIC, fqClassName, var.getName(), classDescript);
+        }
+    }
+
     /**
      * Generate a delegate method - static or instance.
      * The generated code packs the method arguments into an object array
@@ -386,7 +462,7 @@ public class ClassGeneratorUtil implements Opcodes {
             return;
 
         // Generate code to push the BSHTHIS or BSHSTATIC field
-        if (isStatic||isInterface)
+        if ( isStatic||type == INTERFACE )
             pushBshStatic(fqClassName, className, cv);
         else
             pushBshThis(fqClassName, className, cv);
@@ -466,6 +542,9 @@ public class ClassGeneratorUtil implements Opcodes {
         cv.visitFieldInsn(GETSTATIC, fqClassName, "UUID", "Ljava/lang/String;");
         cv.visitMethodInsn(INVOKESTATIC, "bsh/ClassGeneratorUtil", "pullBshStatic", "(Ljava/lang/String;)Lbsh/This;", false);
         cv.visitFieldInsn(PUTSTATIC, fqClassName, BSHSTATIC+className, "Lbsh/This;");
+
+        if ( type == ENUM )
+            generateEnumStaticInit(fqClassName, classDescript, cv);
 
         // Invoke Class.forName() to get our class.
         // We do this here, as opposed to in the bsh static init helper method
@@ -1021,12 +1100,20 @@ public class ClassGeneratorUtil implements Opcodes {
             }
             parentNames.forEach(name -> initClassInstanceThis(instance, name));
 
+            if ( instanceNameSpace.isEnum ) {
+                Object a = instanceThis.declaringInterpreter.get(instance+"-args");
+                if ( null != a ) {
+                    args = (Object[]) a;
+                    instanceThis.declaringInterpreter.unset(instance+"-args");
+                }
+            }
+
             // Find the constructor (now in the instance namespace)
             BshMethod constructor = instanceNameSpace.getMethod(getBaseName(className), Types.getTypes(args), true/*declaredOnly*/);
 
             // if args, we must have constructor
             if (args.length > 0 && constructor == null)
-                throw new InterpreterError("Can't find constructor: " + className);
+                throw new InterpreterError("Can't find constructor: " + StringUtil.methodString(className, args) );
 
             // Evaluate the constructor
             if (constructor != null)

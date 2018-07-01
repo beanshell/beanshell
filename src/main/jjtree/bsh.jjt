@@ -554,21 +554,46 @@ void ClassDeclaration() #ClassDeclaration :
 }
 {
     mods = Modifiers( Modifiers.CLASS, false )
-  (
-    "class" name=<IDENTIFIER>
-    [ "extends" AmbiguousName() { jjtThis.extend = true; } ]
-    [ "implements" numInterfaces=NameList()
+  (    (
+	    "class" { jjtThis.type = ClassGenerator.Type.CLASS; } name=<IDENTIFIER>
+	    [ "extends" AmbiguousName() { jjtThis.extend = true; } ]
+	    [ "implements" numInterfaces=NameList()
         { jjtThis.numInterfaces=numInterfaces; } ]
-  |
-    "interface" { jjtThis.isInterface=true; } name=<IDENTIFIER>
-    [ "extends" numInterfaces=NameList()
-        { jjtThis.numInterfaces=numInterfaces; } ]
-  )
+      |
+	    "interface" { jjtThis.type = ClassGenerator.Type.INTERFACE; } name=<IDENTIFIER>
+	    [ "extends" numInterfaces=NameList()
+	        { jjtThis.numInterfaces=numInterfaces; } ]
+    )
     Block()
+  |
+    "enum" { jjtThis.type = ClassGenerator.Type.ENUM; } name=<IDENTIFIER>
+    [ "implements" numInterfaces=NameList()
+    { jjtThis.numInterfaces=numInterfaces; } ]
+    EnumBlock()
+  )
     {
         if (null != mods) jjtThis.modifiers = mods;
         jjtThis.name = name.image;
     }
+}
+
+void EnumConstant() #EnumConstant:
+{
+    Token t;
+}
+{
+  t=<IDENTIFIER> [ Arguments() ] [ Block() ]
+  {
+    jjtThis.name=t.image;
+  }
+}
+
+void EnumBlock() #Block :
+{
+    Token s = null;
+}
+{
+    "{" ( EnumConstant() )? ( "," EnumConstant() )* [ ";" ( BlockStatement() )* ] "}"
 }
 
 void MethodDeclaration() #MethodDeclaration :
@@ -1177,7 +1202,7 @@ void BlockStatement() :
 {
 }
 {
-  LOOKAHEAD( Modifiers( Modifiers.FIELD, true ) ( "class" | "interface" ) )
+  LOOKAHEAD( Modifiers( Modifiers.FIELD, true ) ( "class" | "interface" | "enum" ) )
   ClassDeclaration()
 |
   LOOKAHEAD ( Modifiers( Modifiers.METHOD, true )
@@ -1194,7 +1219,6 @@ void BlockStatement() :
   TypedVariableDeclaration() ";"
 |
   Statement()
-
 |
   // Allow BeanShell imports in any block
   ImportDeclaration()
