@@ -25,6 +25,8 @@
  *****************************************************************************/
 package bsh.util;
 
+import bsh.ConsoleInterface;
+import bsh.Interpreter;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Frame;
@@ -43,9 +45,6 @@ import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.util.Vector;
-
-import bsh.ConsoleInterface;
-import bsh.Interpreter;
 
 /*
     This should go away eventually...  Native AWT sucks.
@@ -350,4 +349,9 @@ public class AWTConsole extends TextArea
     // unused
     public void keyTyped(KeyEvent e) { }
     public void keyReleased(KeyEvent e) { }
+
+    @Override
+    public void prompt(String prompt) {
+        print(prompt);
+    }
 }
