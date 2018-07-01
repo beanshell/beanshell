@@ -4,7 +4,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static bsh.TestUtil.eval;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 @RunWith(FilteredTestRunner.class)
 public class StatementsTest {
@@ -34,6 +36,23 @@ public class StatementsTest {
             "   default: return 5;",
             "}");
         assertEquals("hurzzzzz doesn't match any case", 5, result);
+    }
+
+    @Test
+    public void switch_on_enum() throws Exception {
+        Object ret = eval(
+            "enum Test { KEY1, KEY2 }",
+            "val = Test.KEY1;",
+            "switch (val) {",
+                "case KEY1:",
+                "case KEY2:",
+                    "return 'not default';",
+                    "break;",
+                "default:",
+                    "return 'default';",
+            "}"
+        );
+        assertThat("not default branch", ret, equalTo("not default"));
     }
 
 }
