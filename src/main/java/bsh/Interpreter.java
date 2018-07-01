@@ -484,7 +484,7 @@ public class Interpreter
                 Thread.yield();  // this helps a little
 
                 if ( interactive )
-                    print( getBshPrompt() );
+                    prompt(getBshPrompt());
 
                 eof = Line();
 
@@ -1292,6 +1292,11 @@ public class Interpreter
 
     public static boolean getSaveClasses()  {
         return getSaveClassesDir() != null && !getSaveClassesDir().isEmpty();
+    }
+
+    @Override
+    public void prompt(String prompt) {
+        print(prompt);
     }
 }
 
