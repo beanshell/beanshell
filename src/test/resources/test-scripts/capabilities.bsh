@@ -12,7 +12,7 @@ assertFalse("unknown.Class does not exist", classExists("unknown.Class"));
 
 assertTrue("has swing", haveSwing());
 
-assertTrue(isEvalError("ClassLoading features unavailable.", "new BshClassManager().reloadAllClasses();"));
-assertTrue(isEvalError("nada", "throw new Capabilities.Unavailable('nada', new Throwable());"));
+assert(isEvalError("ClassLoading features unavailable.", "new BshClassManager().reloadAllClasses();"));
+assert(isEvalError("nada", "throw new Capabilities.Unavailable('nada', new Throwable());"));
 
 complete();

@@ -66,22 +66,22 @@ assertEquals(String message, Object expected, Object actual) {
 assertTrue(boolean condition) {
     try {
         Assert.assertTrue(condition);
-    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+    } catch (e) { super.test_message = "Expected <TRUE> but was <FALSE> Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
 }
 assertTrue(String message, boolean condition) {
     try {
         Assert.assertTrue(message, condition);
-    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+    } catch (e) { super.test_message = e.getMessage()+" Expected <TRUE> but was <FALSE> Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
 }
 assertFalse(boolean condition) {
     try {
         Assert.assertFalse(condition);
-    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+    } catch (e) { super.test_message = "Expected <FALSE> but was <TRUE> Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
 }
 assertFalse(String message, boolean condition) {
     try {
         Assert.assertFalse(message, condition);
-    } catch (e) { super.test_message = e.getMessage()+" Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
+    } catch (e) { super.test_message = e.getMessage()+" Expected <FALSE> but was <TRUE> Line: "+this.namespace.getInvocationLine()+" : "+this.namespace.getInvocationText()+" : while evaluating file: "+getSourceFileInfo(); super.test_failed = true; }
 }
 assertNotEquals(String message, float expected, float actual, float delta) {
     try {
