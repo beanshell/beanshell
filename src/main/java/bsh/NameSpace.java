@@ -28,6 +28,8 @@ package bsh;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -111,8 +113,7 @@ public class NameSpace
      * getClass() (taking into account imports). Only unqualified class names
      * are cached here (those which might be imported). Qualified names are
      * always absolute and are cached by BshClassManager. */
-    private final transient Map<String, Class<?>> classCache = new HashMap<>();
-
+    private transient Map<String, Class<?>> classCache = new HashMap<>();
 
     /** Sets the class static.
      * @param clas the new class static */
@@ -999,10 +1000,9 @@ public class NameSpace
         final Class<?> c = this.getClassImpl(name);
         if (c != null)
             return c;
-        else if (this.parent != null)
+        if (this.parent != null)
             return this.parent.getClass(name);
-        else
-            return null;
+        return null;
     }
 
     /** Implementation of getClass() Load a class through this namespace taking
@@ -1164,13 +1164,21 @@ public class NameSpace
      * @param s the s
      * @throws IOException Signals that an I/O exception has occurred. For
      *         serialization. Don't serialize non-serializable objects. */
-    private synchronized void writeObject(final java.io.ObjectOutputStream s)
+    private synchronized void writeObject(final ObjectOutputStream s)
             throws IOException {
         // clear name resolvers... don't know if this is necessary.
         this.names.clear();
         s.defaultWriteObject();
     }
+    /** Re-initialize transient members.
+     * @param in the serializer
+     * @throws IOException mandatory throwing exception
+     * @throws ClassNotFoundException mandatory throwing exception */
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
 
+        this.classCache = new HashMap<>();
+    }
     /** Invoke a method in this namespace with the specified args and
      * interpreter reference. No caller information or call stack is required.
      * The method will appear as if called externally from Java.
