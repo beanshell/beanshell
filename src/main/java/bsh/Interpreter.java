@@ -540,7 +540,7 @@ public class Interpreter
             }
             catch(TargetError e)
             {
-                error("// Uncaught Exception: " + e );
+                error("Target Exception: " + e.getMessage() );
                 if ( e.inNativeCode() )
                     e.printStackTrace( DEBUG, err );
                 if(!interactive)
@@ -550,13 +550,11 @@ public class Interpreter
             catch (EvalError e)
             {
                 if ( interactive )
-                    error( "EvalError: "+e.getMessage() );
+                    error( "Evaluation Error: "+e.getMessage() );
                 else
-                    error( "EvalError: "+e.getRawMessage() );
-
+                    error( "Evaluation Error: "+e.getRawMessage() );
                 if(DEBUG)
                     e.printStackTrace();
-
                 if(!interactive)
                     eof = true;
             }
@@ -1226,13 +1224,17 @@ public class Interpreter
         be defined by the user as with any other method.
         Defaults to "bsh % " if the method is not defined or there is an error.
     */
+    private String prompt = null;
     private String getBshPrompt()
     {
+        if (null != prompt)
+            return prompt;
         try {
-            return (String)eval("getBshPrompt()");
+            prompt = (String)eval("getBshPrompt()");
         } catch ( Exception e ) {
-            return "bsh % ";
+            prompt = "bsh % ";
         }
+        return prompt;
     }
 
     /**
