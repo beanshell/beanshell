@@ -167,7 +167,7 @@ class BSHAllocationExpression extends SimpleNode
         Modifiers modifiers = new Modifiers(Modifiers.CLASS);
         Class clas = ClassGenerator.getClassGenerator().generateClass(
                 name, modifiers, null/*interfaces*/, type/*superClass*/,
-                block, false/*isInterface*/, callstack, interpreter );
+                block, ClassGenerator.Type.CLASS, callstack, interpreter );
         try {
             return Reflect.constructObject( clas, args );
         } catch ( Exception e ) {
