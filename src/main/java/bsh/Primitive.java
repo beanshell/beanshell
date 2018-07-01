@@ -77,33 +77,16 @@ public final class Primitive implements Serializable {
     /** The primitive value stored in its java.lang wrapper class */
     private Object value;
 
-    private static class Special implements Serializable {
-        /** default serial version id */
-        private static final long serialVersionUID = 1L;
-        private Special() { }
+    public static final Primitive TRUE = new Primitive(true);
+    public static final Primitive FALSE = new Primitive(false);
 
-        public static final Special NULL_VALUE = new Special() {
-            private static final long serialVersionUID = 1L;
-            private Object readResolve() throws ObjectStreamException {
-                return Special.NULL_VALUE;
-            }
-        };
-        public static final Special VOID_TYPE = new Special() {
-            private static final long serialVersionUID = 1L;
-            private Object readResolve() throws ObjectStreamException {
-                return Special.VOID_TYPE;
-            }
-        };
-    }
+    private enum Special { NULL_VALUE, VOID_TYPE }
 
     /*
         NULL means "no value".
         This ia a placeholder for primitive null value.
     */
     public static final Primitive NULL = new Primitive(Special.NULL_VALUE);
-
-    public static final Primitive TRUE = new Primitive(true);
-    public static final Primitive FALSE = new Primitive(false);
 
     /**
         VOID means "no type".
@@ -116,8 +99,6 @@ public final class Primitive implements Serializable {
     {
         if (value == Special.NULL_VALUE)
             return Primitive.NULL;
-        if (value == Special.VOID_TYPE)
-            return Primitive.VOID;
         return this;
     }
 
