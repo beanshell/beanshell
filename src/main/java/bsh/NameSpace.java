@@ -105,6 +105,7 @@ public class NameSpace
      * but we'll start here. */
     boolean isClass;
     boolean isInterface;
+    boolean isEnum;
     /** The class static. */
     Class<?> classStatic;
     /** The class instance. */
@@ -1155,6 +1156,7 @@ public class NameSpace
                     : this.nsName + " (" + super.toString() + ")")
                 + (this.isClass ? " (class) " : "")
                 + (this.isInterface ? " (interface) " : "")
+                + (this.isEnum ? " (enum) " : "")
                 + (this.isMethod ? " (method) " : "")
                 + (this.classStatic != null ? " (class static) " : "")
                 + (this.classInstance != null ? " (class instance) " : "");
