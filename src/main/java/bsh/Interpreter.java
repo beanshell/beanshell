@@ -1300,4 +1300,3 @@ public class Interpreter
         return getSaveClassesDir() != null && !getSaveClassesDir().isEmpty();
     }
 }
-
