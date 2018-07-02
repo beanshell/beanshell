@@ -111,7 +111,7 @@ class BSHAllocationExpression extends SimpleNode
     private Object constructObject(Class<?> type, Object[] args, CallStack callstack, Interpreter interpreter ) throws EvalError {
         final boolean isGeneratedClass = Reflect.isGeneratedClass(type);
         if (isGeneratedClass) {
-            ClassGeneratorUtil.registerConstructorContext(callstack, interpreter);
+            This.registerConstructorContext(callstack, interpreter);
         }
         Object obj;
         try {
@@ -125,7 +125,7 @@ class BSHAllocationExpression extends SimpleNode
             throw new TargetError("Object constructor", e.getTargetException(), this, callstack, true);
         } finally {
             if (isGeneratedClass) {
-                ClassGeneratorUtil.registerConstructorContext(null, null); // clean up, prevent memory leak
+                This.registerConstructorContext(null, null); // clean up, prevent memory leak
             }
         }
         String className = type.getName();

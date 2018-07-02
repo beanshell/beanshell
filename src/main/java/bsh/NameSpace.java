@@ -928,7 +928,7 @@ public class NameSpace
                 // try find inherited loose-typed instance fields
                 Class<?> supr = object.getClass();
                 while (Reflect.isGeneratedClass(supr = supr.getSuperclass())) {
-                    This ths = ClassGeneratorUtil.getClassInstanceThis(object, supr.getSimpleName());
+                    This ths = This.getClassInstanceThis(object, supr.getSimpleName());
                     if (null != ths && null != (var = ths.getNameSpace().variables.get(name)))
                         break;
                 }
