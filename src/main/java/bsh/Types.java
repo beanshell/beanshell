@@ -608,4 +608,17 @@ class Types
         return new UtilTargetError( cce );
     }
 
+    /** Return the baseName of an inner class.
+     * This should live in utilities somewhere.
+     * @param className the class name to modify
+     * @return the name before $ of a class */
+    public static String getBaseName(String className) {
+        int i = className.indexOf("$");
+        if (i == -1)
+            return className;
+
+        return className.substring(i + 1);
+    }
+
+
 }

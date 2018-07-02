@@ -40,9 +40,9 @@ import java.util.WeakHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static bsh.ClassGeneratorUtil.BSHTHIS;
-import static bsh.ClassGeneratorUtil.BSHSTATIC;
-import static bsh.ClassGeneratorUtil.BSHCLASSMODIFIERS;
+import static bsh.This.Keys.BSHTHIS;
+import static bsh.This.Keys.BSHSTATIC;
+import static bsh.This.Keys.BSHCLASSMODIFIERS;
 
 /**
  * All of the reflection API code lies here.  It is in the form of static
@@ -1258,7 +1258,7 @@ final class Reflect {
      */
     public static Modifiers getClassModifiers(Class<?> type) {
         try {
-            return (Modifiers)getVariable(type, BSHCLASSMODIFIERS).getValue();
+            return (Modifiers)getVariable(type, BSHCLASSMODIFIERS.toString()).getValue();
         } catch (Exception e) {
             return new Modifiers(Modifiers.CLASS);
         }
