@@ -25,6 +25,8 @@
  *****************************************************************************/
 package bsh;
 
+import static bsh.This.Keys.BSHSUPER;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -71,7 +73,7 @@ public final class ClassGenerator {
      */
     // This could be static
     public void setInstanceNameSpaceParent(Object instance, String className, NameSpace parent) {
-        This ithis = ClassGeneratorUtil.getClassInstanceThis(instance, className);
+        This ithis = This.getClassInstanceThis(instance, className);
         ithis.getNameSpace().setParent(parent);
     }
 
@@ -269,7 +271,7 @@ public final class ClassGenerator {
     }
 
     public static Object invokeSuperclassMethodImpl(BshClassManager bcm, Object instance, String methodName, Object[] args) throws UtilEvalError, ReflectError, InvocationTargetException {
-        String superName = ClassGeneratorUtil.BSHSUPER + methodName;
+        String superName = BSHSUPER + methodName;
 
         // look for the specially named super delegate method
         Class clas = instance.getClass();
