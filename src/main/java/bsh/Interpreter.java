@@ -32,9 +32,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FilterInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
@@ -209,6 +207,7 @@ public class Interpreter
         this.parent = parent;
         if ( parent != null )
             setStrictJava( parent.getStrictJava() );
+
         this.sourceFileInfo = sourceFileInfo;
 
         BshClassManager bcm = BshClassManager.createClassManager( this );
@@ -414,23 +413,10 @@ public class Interpreter
             }
         } else
         {
-            // Workaround for JDK bug 4071281, where system.in.available()
-            // returns too large a value. This bug has been fixed in JDK 1.2.
-            InputStream src;
-            if ( System.getProperty("os.name").startsWith("Windows")
-                && System.getProperty("java.version").startsWith("1.1."))
-            {
-                src = new FilterInputStream(System.in) {
-                    public int available() throws IOException {
-                        return 0;
-                    }
-                };
-            }
-            else
-                src = System.in;
 
             try (Interpreter interpreter =
-                new Interpreter( new CommandLineReader( new InputStreamReader(src)),
+                new Interpreter( new CommandLineReader(
+                        new InputStreamReader(System.in)),
                         System.out, System.err, true )) {
                 interpreter.run();
             } catch (IOException e) {
@@ -479,11 +465,6 @@ public class Interpreter
         {
             try
             {
-                // try to sync up the console
-                System.out.flush();
-                System.err.flush();
-                Thread.yield();  // this helps a little
-
                 if ( interactive )
                     print( getBshPrompt() );
 
@@ -491,8 +472,6 @@ public class Interpreter
 
                 if( get_jjtree().nodeArity() > 0 )  // number of child nodes
                 {
-                    if( node != null )
-                        node.lastToken.next = null;  // prevent OutOfMemoryError
 
                     node = (SimpleNode)(get_jjtree().rootNode());
 
@@ -500,8 +479,6 @@ public class Interpreter
                         node.dump(">");
 
                     Object ret = node.eval( callstack, this );
-
-                    node.lastToken.next = null;  // prevent OutOfMemoryError
 
                     // sanity check during development
                     if ( callstack.depth() > 1 )
