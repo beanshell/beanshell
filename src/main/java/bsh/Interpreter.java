@@ -487,7 +487,7 @@ public class Interpreter
                 if ( interactive )
                     print( getBshPrompt() );
 
-                eof = Line();
+                eof = isEOF();
 
                 if( get_jjtree().nodeArity() > 0 )  // number of child nodes
                 {
@@ -524,10 +524,11 @@ public class Interpreter
             }
             catch(ParseException e)
             {
-                error("Parser Error: " + e.getMessage(DEBUG));
+                if ( !interactive || !e.getMessage().contains("<EOF>") )
+                    error("Parser Error: " + e.getMessage(DEBUG));
                 if ( DEBUG )
                     e.printStackTrace();
-                if(!interactive)
+                if( !interactive )
                     eof = true;
 
                 parser.reInitInput(in);
@@ -656,7 +657,7 @@ public class Interpreter
             {
                 try
                 {
-                    eof = localInterpreter.Line();
+                    eof = localInterpreter.isEOF();
                     if (localInterpreter.get_jjtree().nodeArity() > 0)
                     {
                         if( node != null )
@@ -1034,7 +1035,7 @@ public class Interpreter
         return parser.jjtree;
     }
 
-    private boolean Line() throws ParseException {
+    private boolean isEOF() throws ParseException {
         return parser.Line();
     }
 
