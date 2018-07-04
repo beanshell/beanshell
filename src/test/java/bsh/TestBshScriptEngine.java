@@ -37,14 +37,11 @@ import javax.script.SimpleScriptContext;
 
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 
 import bsh.engine.BshScriptEngine;
 import bsh.engine.BshScriptEngineFactory;
 
-@RunWith(FilteredTestRunner.class)
 public class TestBshScriptEngine {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -179,7 +176,6 @@ public class TestBshScriptEngine {
     }
 
     @Test
-    @Category(KnownIssue.class) // fails on windows
     public void test_eval_writer_unicode() throws Exception {
         ScriptEngine engine = new BshScriptEngineFactory().getScriptEngine();
         ScriptContext ctx = new SimpleScriptContext();
@@ -187,7 +183,8 @@ public class TestBshScriptEngine {
         ctx.setWriter(sw);
         engine.setContext(ctx);
         engine.eval("print('\\u3456');");
-        assertEquals('\u3456', sw.toString().charAt(0));
+        assertEquals(new String("\u3456".getBytes(), "UTF-8").charAt(0),
+                new String(sw.toString().getBytes(), "UTF-8").charAt(0));
         sw.close();
     }
 
