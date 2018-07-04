@@ -1,0 +1,82 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+import bsh.*;
+
+sysin = System.in;
+sysout = System.out;
+syserr = System.err;
+Interpreter.redirectOutputToFile("test_interpreter.out");
+NameSpace ns = new NameSpace(null, "global");
+Interpreter i = new Interpreter(new StringReader("class ABC {\n"), System.out, System.err, false, ns);
+i.run();
+i.close();
+pout = new PipedOutputStream();
+System.setIn( new PipedInputStream(pout, 64 * 1024));
+pout.write("inter = this.interpreter;\n".getBytes());
+pout.write("inter.setExitOnEOF(false);\n".getBytes());
+pout.write("inter.getIn();\n".getBytes());
+pout.write("inter.getOut();\n".getBytes());
+pout.write("inter.getErr();\n".getBytes());
+pout.write("inter.get(null);\n".getBytes());
+pout.write("inter.set('vv',null);\n".getBytes());
+pout.write("inter.set(null, 'vv');\n".getBytes());
+pout.write("inter.set('aaf', 1L);\n".getBytes());
+pout.write("inter.set('abf', 1);\n".getBytes());
+pout.write("inter.set('auf', 1.0d);\n".getBytes());
+pout.write("inter.set('abp', 2.0f);\n".getBytes());
+pout.write("inter.set('abu', false);\n".getBytes());
+pout.write("inter.unset('vv');\n".getBytes());
+pout.write("inter.unset('vvvv');\n".getBytes());
+pout.write("inter.unset(null);\n".getBytes());
+pout.write("inter.getInterface(Map.class);\n".getBytes());
+pout.write("inter.getParent();\n".getBytes());
+pout.write("inter.setShowResults(true);\n".getBytes());
+pout.write("inter.setCompatibility(false);\n".getBytes());
+pout.write("inter.getShowResults();\n".getBytes());
+pout.write("inter.getCompatibility();\n".getBytes());
+pout.write("inter.getSaveClasses();\n".getBytes());
+pout.write("System.setProperty('bsh.debugClasses','');\n".getBytes());
+pout.write("inter.getSaveClasses();\n".getBytes());
+pout.write("inter.setClassLoader(Class.class.getClassLoader());\n".getBytes());
+pout.write("prin(oops;\n\n".getBytes());
+pout.write("throw new RuntimeException('');\n".getBytes());
+pout.write("throw new Exception('');\n".getBytes());
+pout.write("int o = 1;\no = Long.MAX_VALUE;\n!o;\n".getBytes());
+pout.write("bsh.system.desktop=true;\nmakeWorkspace('');\n".getBytes());
+pout.write("class ABC {\n;\n".getBytes());
+pout.close();
+Interpreter.main(new String[0]);
+System.setIn(sysin);
+complete();
+return;
+Interpreter.main(new String[] {"test_interpreter.out","args"});
+Interpreter.main(new String[] {"file_not_found"});
+Interpreter.main(new String[] {"src/test/resources/test-scripts/Fail.bsh"});
+i = new Interpreter();
+i.source("src/main/resources/bsh/commands/makeWorkspace.bsh");
+i.setNameSpace(new NameSpace("ditto", null));
+mainclas="""
+class AA {
+    public static void main( String [] args ) {
+        throw new InvocationTargetException(new Exception("ditto"));
+    }
+}
+""";
+fout = new FileWriter( "test_interpreter.out" );
+fout.write(mainclas);
+fout.close();
+Interpreter.main(new String[] {"test_interpreter.out"});
+fout = new FileWriter( "test_interpreter.out" );
+fout.write(mainclas.replaceFirst("throw new[^\\)]*\\)\\);",""));
+fout.close();
+Interpreter.main(new String[] {"test_interpreter.out"});
+System.setOut(sysout);
+System.setErr(syserr);
+new File("test_interpreter.out").delete();
+
+assert(isEvalError("bsh Interpreter: No stream", "new Interpreter().run();"));
+
+complete();
