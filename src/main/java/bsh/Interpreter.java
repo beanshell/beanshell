@@ -193,12 +193,10 @@ public class Interpreter
         boolean interactive, NameSpace namespace,
         Interpreter parent, String sourceFileInfo )
     {
-        //System.out.println("New Interpreter: "+this +", sourcefile = "+sourceFileInfo );
         parser = new Parser( in );
         long t1 = 0;
-        if (Interpreter.DEBUG) {
+        if (Interpreter.DEBUG)
             t1=System.currentTimeMillis();
-        }
         this.in = in;
         this.out = out;
         this.err = err;
@@ -211,36 +209,24 @@ public class Interpreter
         this.sourceFileInfo = sourceFileInfo;
 
         BshClassManager bcm = BshClassManager.createClassManager( this );
+
         if ( namespace == null ) {
             globalNameSpace = new NameSpace(namespace, bcm, "global");
             initRootSystemObject();
-        } else {
+        } else try {
             globalNameSpace = namespace;
-            try {
-                if ( ! (globalNameSpace.getVariable("bsh") instanceof This)) {
-                    initRootSystemObject();
-                }
-            } catch (final UtilEvalError e) {
-                throw new IllegalStateException(e);
-            }
+            if ( ! (globalNameSpace.getVariable("bsh") instanceof This) )
+                initRootSystemObject();
+        } catch (final UtilEvalError e) {
+            throw new IllegalStateException(e);
         }
-        // now done in NameSpace automatically when root
-        // The classes which are imported by default
-        //globalNameSpace.loadDefaultImports();
-
-        /*
-            Create the root "bsh" system object if it doesn't exist.
-        */
-        if ( ! ( getu("bsh") instanceof bsh.This ) )
-            initRootSystemObject();
 
         if ( interactive )
             loadRCFiles();
 
-        if ( Interpreter.DEBUG ) {
-            long t2=System.currentTimeMillis();
-            Interpreter.debug("Time to initialize interpreter: "+(t2-t1));
-        }
+        if ( Interpreter.DEBUG )
+            Interpreter.debug("Time to initialize interpreter: ",
+                    (System.currentTimeMillis() - t1));
     }
 
     public Interpreter(
@@ -317,17 +303,13 @@ public class Interpreter
         setu( "bsh.help", helpText );
 
         // bsh.cwd
-        try {
-            setu( "bsh.cwd", System.getProperty("user.dir") );
-        } catch ( SecurityException e ) {
-            // applets can't see sys props
-            setu( "bsh.cwd", "." );
-        }
+        setu( "bsh.cwd", System.getProperty("user.dir") );
 
         // bsh.interactive
         setu( "bsh.interactive", interactive ? Primitive.TRUE : Primitive.FALSE );
+
         // bsh.evalOnly
-        setu( "bsh.evalOnly", evalOnly ? Primitive.TRUE : Primitive.FALSE );
+        setu( "bsh.evalOnly", Primitive.FALSE );
     }
 
     /**
@@ -384,7 +366,6 @@ public class Interpreter
                 bshArgs = new String [0];
 
             try (Interpreter interpreter = new Interpreter()) {
-                //System.out.println("run i = "+interpreter);
                 interpreter.setu( "bsh.args", bshArgs );
                 Object result =
                     interpreter.source( filename, interpreter.globalNameSpace );
@@ -507,7 +488,6 @@ public class Interpreter
                     e.printStackTrace();
                 if( !interactive )
                     eof = true;
-
                 parser.reInitInput(in);
             }
             catch(InterpreterError e)
@@ -568,7 +548,7 @@ public class Interpreter
         throws FileNotFoundException, IOException, EvalError
     {
         File file = pathToFile( filename );
-        if ( Interpreter.DEBUG ) debug("Sourcing file: "+file);
+        Interpreter.debug("Sourcing file: ", file);
         Reader sourceIn = new BufferedReader( new FileReader(file) );
         try {
             return eval( sourceIn, nameSpace, filename );
@@ -616,7 +596,7 @@ public class Interpreter
         throws EvalError
     {
         Object retVal = null;
-        if ( Interpreter.DEBUG ) debug("eval: nameSpace = "+nameSpace);
+        Interpreter.debug("eval: nameSpace = ", nameSpace);
 
         /*
             Create non-interactive local interpreter for this namespace
@@ -630,7 +610,7 @@ public class Interpreter
 
             SimpleNode node = null;
             boolean eof = false;
-            while(!eof)
+            while( !Thread.interrupted() && !eof )
             {
                 try
                 {
@@ -658,17 +638,8 @@ public class Interpreter
                             retVal = ((ReturnControl)retVal).value;
                             break; // non-interactive, return control now
                         }
-
-                       // if ( localInterpreter.showResults
-                       //     && retVal != Primitive.VOID )
-                           // println("<" + retVal + ">");
                     }
                 } catch(ParseException e) {
-                    /*
-                    throw new EvalError(
-                        "Sourced file: "+sourceFileInfo+" parser Error: "
-                        + e.getMessage( DEBUG ), node, callstack );
-                    */
                     if ( DEBUG )
                         // show extra "expecting..." info
                         error( e.getMessage(DEBUG) );
@@ -676,7 +647,6 @@ public class Interpreter
                     // add the source file info and throw again
                     e.setErrorSourceFile( sourceFileInfo );
                     throw e;
-
                 } catch ( InterpreterError e ) {
                     throw new EvalError(
                         "Sourced file: "+sourceFileInfo+" internal Error: "
@@ -731,7 +701,7 @@ public class Interpreter
         Evaluate the string in this interpreter's global namespace.
     */
     public Object eval( String statements ) throws EvalError {
-        if ( Interpreter.DEBUG ) debug("eval(String): "+statements);
+        Interpreter.debug("eval(String): ", statements);
         return eval(statements, globalNameSpace);
     }
 
@@ -741,7 +711,6 @@ public class Interpreter
     public Object eval( String statements, NameSpace nameSpace )
         throws EvalError
     {
-
         String s = ( statements.endsWith(";") ? statements : statements+";" );
         return eval(
             new StringReader(s), nameSpace,
@@ -834,10 +803,14 @@ public class Interpreter
         Print a debug message on debug stream associated with this interpreter
         only if debugging is turned on.
     */
-    public final static void debug(String s)
+    public final static void debug(Object... msg)
     {
-        if ( DEBUG )
-            debug.println("// Debug: " + s);
+        if ( DEBUG ) {
+            StringBuilder sb = new StringBuilder();
+            for ( Object m : msg )
+                sb.append(m);
+            debug.println("// Debug: " + sb.toString());
+        }
     }
 
     /*
@@ -941,7 +914,6 @@ public class Interpreter
                 throw new EvalError("Can't unset, not a variable: "+name,
                     SimpleNode.JAVACODE, new CallStack());
 
-            //lhs.assign( null, false );
             lhs.nameSpace.unsetVariable( name );
         } catch ( UtilEvalError e ) {
             throw new EvalError( e.getMessage(),
@@ -1020,13 +992,13 @@ public class Interpreter
 
     void loadRCFiles() {
         try {
+            // Default is c:\windows under win98, $HOME under Unix
             String rcfile =
-                // Default is c:\windows under win98, $HOME under Unix
                 System.getProperty("user.home") + File.separator + ".bshrc";
             source( rcfile, globalNameSpace );
         } catch ( Exception e ) {
             // squeltch security exception, filenotfoundexception
-            if ( Interpreter.DEBUG ) debug("Could not find rc file: "+e);
+            Interpreter.debug("Could not find rc file: ", e);
         }
     }
 
