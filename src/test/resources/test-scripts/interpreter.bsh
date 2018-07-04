@@ -50,8 +50,6 @@ pout.write("class ABC {\n;\n".getBytes());
 pout.close();
 Interpreter.main(new String[0]);
 System.setIn(sysin);
-complete();
-return;
 Interpreter.main(new String[] {"test_interpreter.out","args"});
 Interpreter.main(new String[] {"file_not_found"});
 Interpreter.main(new String[] {"src/test/resources/test-scripts/Fail.bsh"});
