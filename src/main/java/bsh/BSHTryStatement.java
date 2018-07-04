@@ -40,22 +40,16 @@ class BSHTryStatement extends SimpleNode
         super(id);
     }
 
-    private int firstBlockNode() {
-        if (jjtGetChild(0) instanceof BSHBlock)
-                return 0;
-        return 1;
-    }
-
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
+        int i = 0;
 
-        if (jjtGetChild(0) instanceof BSHTryWithResources) {
-            this.tryWithResources = ((BSHTryWithResources) jjtGetChild(0));
+        if (jjtGetChild(i) instanceof BSHTryWithResources) {
+            this.tryWithResources = ((BSHTryWithResources) jjtGetChild(i++));
             this.tryWithResources.eval(callstack, interpreter);
         }
 
-        int i = firstBlockNode();
         BSHBlock tryBlock = (BSHBlock) jjtGetChild(i++);
 
         List<BSHMultiCatch> catchParams = new ArrayList<>();
@@ -74,9 +68,6 @@ class BSHTryStatement extends SimpleNode
         if(node != null)
             finallyBlock = (BSHBlock)node;
 
-// Why both of these?
-
-        TargetError target = null;
         Throwable thrown = null;
         Object ret = null;
 
@@ -95,14 +86,14 @@ class BSHTryStatement extends SimpleNode
             ret = tryBlock.eval(callstack, interpreter);
         }
         catch( TargetError e ) {
-            target = e;
-            String stackInfo = "Bsh Stack: ";
+            thrown = e.getTarget();
+            // clean up call stack grown due to exception interruption
             while ( callstack.depth() > callstackDepth )
-                stackInfo += "\t" + callstack.pop() +"\n";
+                callstack.pop();
         } finally {
             // unwrap the target error
-            if ( target != null )
-                thrown = target.getTarget();
+            while ( null != thrown && thrown.getCause() instanceof TargetError )
+                thrown = ((TargetError) thrown.getCause()).getTarget();
 
             // try block finished auto close try-with-resources
             if (null != this.tryWithResources) {
@@ -179,7 +170,7 @@ class BSHTryStatement extends SimpleNode
                         callstack.swap( enclosingNameSpace );
                     }
 
-                    target = null;  // handled target
+                    thrown = null;  // handled exception
                     break;
                 }
             }
@@ -192,8 +183,8 @@ class BSHTryStatement extends SimpleNode
             }
         }
         // exception fell through, throw it upward...
-        if(target != null)
-            throw target;
+        if( null != thrown )
+            throw new TargetError(thrown, this, callstack);
 
         // no exception return
         return ((ret instanceof ReturnControl)) ? ret : Primitive.VOID;
