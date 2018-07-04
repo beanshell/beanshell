@@ -1,0 +1,48 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// Test unwrapping nested target errors
+
+void bar() { throw new IllegalArgumentException(); }
+
+class foobar {
+    void foo() { bar(); }
+}
+
+class foobar2 {
+    void foo() { new foobar().foo(); }
+}
+
+class foobarbaz {
+    void foo() { new foobar2().foo(); }
+}
+
+try { bar(); }
+catch (IllegalArgumentException ex) { flag(); }
+catch (e) { fail(); }
+
+assertEquals(1, flag());
+
+try { new foobar().foo(); }
+catch (IllegalArgumentException ex) { flag(); }
+catch (e) { fail(); }
+
+assertEquals(3, flag());
+
+try { new foobar2().foo(); }
+catch (IllegalArgumentException ex) { flag(); }
+catch (e) { fail(); }
+
+assertEquals(5, flag());
+
+try { new foobarbaz().foo(); }
+catch (ClassCastException | IllegalArgumentException ex) { flag(); }
+catch (e) { fail(); }
+finally { flag(); }
+
+assertEquals(8, flag());
+
+complete();
+
