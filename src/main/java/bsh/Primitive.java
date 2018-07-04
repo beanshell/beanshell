@@ -127,7 +127,7 @@ public final class Primitive implements Serializable {
     public Primitive(double value) { this(Double.valueOf(value)); }
     public Primitive(BigInteger value) { this((Object) value); }
     public Primitive(BigDecimal value) {
-        this((Object) (value.scale() == 0 ? value.setScale(1) : value));
+        this((Object) (null != value && value.scale() == 0 ? value.setScale(1) : value));
     }
 
     /**
