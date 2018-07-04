@@ -115,7 +115,7 @@ public class SourceForgeIssuesTest {
                 "return ret;"
             );
             Interpreter.DEBUG = false;
-            assertEquals("null\n", ret);
+            assertEquals("null", ret.trim());
             assertTrue(baOut.toString().contains("args[0] = null type"));
         }
     }
