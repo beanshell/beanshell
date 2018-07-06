@@ -65,8 +65,8 @@ public class BshCanvas extends JComponent {
             try {
                 ths.invokeMethod( "paint", new Object[] { g } );
             } catch(EvalError e) {
-                if ( Interpreter.DEBUG ) Interpreter.debug(
-                    "BshCanvas: method invocation error:" + e);
+                Interpreter.debug(
+                    "BshCanvas: method invocation error:", e);
             }
         }
     }

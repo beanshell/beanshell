@@ -109,7 +109,8 @@ public class Interpreter
         reference in some way to determine the scope of the command that
         turns it on or off.
     */
-    public static boolean DEBUG, TRACE;
+    public static final ThreadLocal<Boolean> DEBUG = ThreadLocal.withInitial(()->Boolean.FALSE);
+    public static boolean TRACE;
     public static boolean COMPATIBIILTY;
 
     // This should be per instance
@@ -195,7 +196,7 @@ public class Interpreter
     {
         parser = new Parser( in );
         long t1 = 0;
-        if (Interpreter.DEBUG)
+        if (Interpreter.DEBUG.get())
             t1=System.currentTimeMillis();
         this.in = in;
         this.out = out;
@@ -224,7 +225,7 @@ public class Interpreter
         if ( interactive )
             loadRCFiles();
 
-        if ( Interpreter.DEBUG )
+        if ( Interpreter.DEBUG.get() )
             Interpreter.debug("Time to initialize interpreter: ",
                     (System.currentTimeMillis() - t1));
     }
@@ -386,7 +387,7 @@ public class Interpreter
             } catch ( TargetError e ) {
                 System.err.println("Script threw exception: "+e);
                 if ( e.inNativeCode() )
-                    e.printStackTrace( DEBUG, System.err );
+                    e.printStackTrace( DEBUG.get(), System.err );
             } catch ( EvalError e ) {
                 System.err.println("Evaluation Error: "+e);
             } catch ( IOException e ) {
@@ -456,7 +457,7 @@ public class Interpreter
 
                     node = (SimpleNode)(get_jjtree().rootNode());
 
-                    if(DEBUG)
+                    if(DEBUG.get())
                         node.dump(">");
 
                     Object ret = node.eval( callstack, this );
@@ -483,8 +484,8 @@ public class Interpreter
             catch(ParseException e)
             {
                 if ( !interactive || !e.getMessage().contains("<EOF>") )
-                    error("Parser Error: " + e.getMessage(DEBUG));
-                if ( DEBUG )
+                    error("Parser Error: " + e.getMessage(DEBUG.get()));
+                if ( DEBUG.get() )
                     e.printStackTrace();
                 if( !interactive )
                     eof = true;
@@ -500,7 +501,7 @@ public class Interpreter
             {
                 error("Target Exception: " + e.getMessage() );
                 if ( e.inNativeCode() )
-                    e.printStackTrace( DEBUG, err );
+                    e.printStackTrace( DEBUG.get(), err );
                 if(!interactive)
                     eof = true;
                 setu("$_e", e.getTarget());
@@ -511,7 +512,7 @@ public class Interpreter
                     error( "Evaluation Error: "+e.getMessage() );
                 else
                     error( "Evaluation Error: "+e.getRawMessage() );
-                if(DEBUG)
+                if(DEBUG.get())
                     e.printStackTrace();
                 if(!interactive)
                     eof = true;
@@ -519,7 +520,7 @@ public class Interpreter
             catch(Exception e)
             {
                 error("Unknown error: " + e);
-                if ( DEBUG )
+                if ( DEBUG.get() )
                     e.printStackTrace();
                 if(!interactive)
                     eof = true;
@@ -640,9 +641,9 @@ public class Interpreter
                         }
                     }
                 } catch(ParseException e) {
-                    if ( DEBUG )
+                    if ( DEBUG.get() )
                         // show extra "expecting..." info
-                        error( e.getMessage(DEBUG) );
+                        error( e.getMessage(DEBUG.get()) );
 
                     // add the source file info and throw again
                     e.setErrorSourceFile( sourceFileInfo );
@@ -657,14 +658,14 @@ public class Interpreter
                         e.setNode( node );
                     e.reThrow("Sourced file: "+sourceFileInfo);
                 } catch ( EvalError e) {
-                    if ( DEBUG)
+                    if ( DEBUG.get())
                         e.printStackTrace();
                     // failsafe, set the Line as the origin of the error.
                     if ( e.getNode()==null )
                         e.setNode( node );
                     e.reThrow( "Sourced file: "+sourceFileInfo );
                 } catch ( Exception e) {
-                    if ( DEBUG)
+                    if ( DEBUG.get())
                         e.printStackTrace();
                     throw new EvalError(
                         "Sourced file: "+sourceFileInfo+" unknown error: "
@@ -805,7 +806,7 @@ public class Interpreter
     */
     public final static void debug(Object... msg)
     {
-        if ( DEBUG ) {
+        if ( DEBUG.get() ) {
             StringBuilder sb = new StringBuilder();
             for ( Object m : msg )
                 sb.append(m);
@@ -1099,7 +1100,7 @@ public class Interpreter
         try {
             systemLineSeparator = System.getProperty("line.separator");
             debug = System.err;
-            DEBUG = Boolean.getBoolean("debug");
+            DEBUG.set(Boolean.getBoolean("debug"));
             TRACE = Boolean.getBoolean("trace");
             COMPATIBIILTY = Boolean.getBoolean("bsh.compatibility");
             String outfilename = System.getProperty("outfile");

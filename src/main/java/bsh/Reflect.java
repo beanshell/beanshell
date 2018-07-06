@@ -183,8 +183,7 @@ final class Reflect {
     public static Object getIndex(Object array, int index)
         throws ReflectError, UtilTargetError
     {
-        if ( Interpreter.DEBUG )
-            Interpreter.debug("getIndex: "+array+", index="+index);
+        Interpreter.debug("getIndex: ", array, ", index=", index);
         try {
             Object val = Array.get(array, index);
             return Primitive.wrap( val, array.getClass().getComponentType() );
@@ -544,18 +543,16 @@ final class Reflect {
     private static Method findOverloadedMethod(
         Class baseClass, String methodName, Class[] types, boolean publicOnly )
     {
-        if ( Interpreter.DEBUG )
-            Interpreter.debug( "Searching for method: "+
-                StringUtil.methodString(methodName, types)
-                + " in '" + baseClass.getName() + "'" );
+        Interpreter.debug( "Searching for method: ",
+                StringUtil.methodString(methodName, types),
+                " in '", baseClass.getName(), "'" );
 
         List<Method> publicMethods = new ArrayList<Method>();
         List<Method> nonPublicMethods = publicOnly ? null : new ArrayList<Method>();
         gatherMethodsRecursive(
             baseClass, methodName, types.length, publicMethods, nonPublicMethods );
 
-        if ( Interpreter.DEBUG )
-            Interpreter.debug("Looking for most specific method: "+methodName);
+        Interpreter.debug("Looking for most specific method: ", methodName);
         if (null != nonPublicMethods && !nonPublicMethods.isEmpty())
             publicMethods.addAll(nonPublicMethods);
 
@@ -678,8 +675,7 @@ final class Reflect {
             Capabilities.haveAccessibility() ?
                 clas.getDeclaredConstructors() : clas.getConstructors() ;
 
-        if ( Interpreter.DEBUG )
-            Interpreter.debug("Looking for most specific constructor: "+clas);
+        Interpreter.debug("Looking for most specific constructor: ", clas);
         Constructor con = findMostSpecificConstructor(types, constructors);
         if ( con == null )
             throw cantFindConstructor( clas, types );
@@ -1005,11 +1001,11 @@ final class Reflect {
     }
 
     private static void logInvokeMethod(String msg, Method method, Object[] args) {
-        if (Interpreter.DEBUG) {
-            Interpreter.debug(msg + method + " with args:");
+        if (Interpreter.DEBUG.get()) {
+            Interpreter.debug(msg, method, " with args:");
             for (int i = 0; i < args.length; i++) {
                 final Object arg = args[i];
-                Interpreter.debug("args[" + i + "] = " + arg + " type = " + (arg == null ? "<unknown>" : arg.getClass()));
+                Interpreter.debug("args[", i, "] = ", arg, " type = ", (arg == null ? "<unknown>" : arg.getClass()));
             }
         }
     }

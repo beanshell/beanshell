@@ -852,8 +852,7 @@ public class NameSpace
      *         errors loading a script that was found */
     public Object getCommand(final String name, final Class<?>[] argTypes,
             final Interpreter interpreter) throws UtilEvalError {
-        if (Interpreter.DEBUG)
-            Interpreter.debug("getCommand: " + name);
+        Interpreter.debug("getCommand: ", name);
         final BshClassManager bcm = interpreter.getClassManager();
         // loop backwards for precedence
         for (final String path : this.importedCommands) {
@@ -1042,8 +1041,7 @@ public class NameSpace
         if (c != null)
             return c;
         // Not found
-        if (Interpreter.DEBUG)
-            Interpreter.debug("getClass(): " + name + " not found in " + this);
+        Interpreter.debug("getClass(): ", name, " not found in ", this);
         return null;
     }
 
@@ -1074,9 +1072,8 @@ public class NameSpace
                 try {
                     clas = this.getNameResolver(fullname).toClass();
                 } catch (final ClassNotFoundException e) { /* not a class */ }
-            else if (Interpreter.DEBUG)
-                Interpreter.debug(
-                        "imported unpackaged name not found:" + fullname);
+            Interpreter.debug(
+                        "imported unpackaged name not found:", fullname);
             // If found cache the full name in the BshClassManager
             if (clas != null) {
                 // (should we cache info in not a class case too?)
