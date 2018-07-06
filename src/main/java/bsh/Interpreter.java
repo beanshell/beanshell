@@ -245,14 +245,22 @@ public class Interpreter
 
     /**
         Construct a new interactive interpreter attached to the specified
+        console using the specified parent namespace and parent interpreter.
+    */
+    public Interpreter(ConsoleInterface console, NameSpace globalNameSpace, Interpreter interpreter) {
+
+        this( console.getIn(), console.getOut(), console.getErr(),
+            true, globalNameSpace, interpreter, null );
+
+        setConsole( console );
+    }
+
+    /**
+        Construct a new interactive interpreter attached to the specified
         console using the specified parent namespace.
     */
     public Interpreter(ConsoleInterface console, NameSpace globalNameSpace) {
-
-        this( console.getIn(), console.getOut(), console.getErr(),
-            true, globalNameSpace );
-
-        setConsole( console );
+        this( console, globalNameSpace, null );
     }
 
     /**
@@ -260,7 +268,7 @@ public class Interpreter
         console.
     */
     public Interpreter(ConsoleInterface console) {
-        this(console, null);
+        this( console, null );
     }
 
     /**
@@ -1175,17 +1183,13 @@ public class Interpreter
         be defined by the user as with any other method.
         Defaults to "bsh % " if the method is not defined or there is an error.
     */
-    private String prompt = null;
     private String getBshPrompt()
     {
-        if (null != prompt)
-            return prompt;
         try {
-            prompt = (String)eval("getBshPrompt()");
+            return (String)eval("getBshPrompt()");
         } catch ( Exception e ) {
-            prompt = "bsh % ";
+            return "bsh % ";
         }
-        return prompt;
     }
 
     /**
