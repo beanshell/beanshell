@@ -600,7 +600,7 @@ public class ClassGeneratorUtil implements Opcodes {
         cv.visitFieldInsn(GETSTATIC, fqClassName, BSHSTATIC + className, "Lbsh/This;");
     }
 
-    // push the class static This object
+    // push the class instance This object
     private static void pushBshThis(String fqClassName, String className, MethodVisitor cv) {
         // Push 'this'
         cv.visitVarInsn(ALOAD, 0);
@@ -836,17 +836,23 @@ public class ClassGeneratorUtil implements Opcodes {
                 cv.visitTypeInsn(NEW, type);
                 cv.visitInsn(DUP);
                 cv.visitVarInsn(opcode, localVarIndex);
-                String desc = param; // ok?
-                cv.visitMethodInsn(INVOKESPECIAL, type, "<init>", "(" + desc + ")V", false);
+                cv.visitMethodInsn(INVOKESPECIAL, type, "<init>", "(" + param + ")V", false);
+                cv.visitInsn(AASTORE);
             } else {
-                // Technically incorrect here - we need to wrap null values
-                // as bsh.Primitive.NULL.  However the This.invokeMethod()
-                // will do that much for us.
-                // We need to generate a conditional here to test for null
-                // and return Primitive.NULL
+                // If null wrap value as bsh.Primitive.NULL.
                 cv.visitVarInsn(ALOAD, localVarIndex);
+                Label isnull = new Label();
+                cv.visitJumpInsn(IFNONNULL, isnull);
+                cv.visitFieldInsn(GETSTATIC, "bsh/Primitive", "NULL", "Lbsh/Primitive;");
+                cv.visitInsn(AASTORE);
+                // else store parameter as Object.
+                Label notnull = new Label();
+                cv.visitJumpInsn(GOTO, notnull);
+                cv.visitLabel(isnull);
+                cv.visitVarInsn(ALOAD, localVarIndex);
+                cv.visitInsn(AASTORE);
+                cv.visitLabel(notnull);
             }
-            cv.visitInsn(AASTORE);
             localVarIndex += ((param.equals("D") || param.equals("J")) ? 2 : 1);
         }
     }
@@ -868,19 +874,18 @@ public class ClassGeneratorUtil implements Opcodes {
             int opcode = IRETURN;
             String type;
             String meth;
-            if (returnType.equals("B")) {
-                type = "java/lang/Byte";
-                meth = "byteValue";
-            } else if (returnType.equals("I")) {
-                type = "java/lang/Integer";
-                meth = "intValue";
-            } else if (returnType.equals("Z")) {
+            if (returnType.equals("Z")) {
                 type = "java/lang/Boolean";
                 meth = "booleanValue";
-            } else if (returnType.equals("D")) {
-                opcode = DRETURN;
-                type = "java/lang/Double";
-                meth = "doubleValue";
+            } else if (returnType.equals("C")) {
+                type = "java/lang/Character";
+                meth = "charValue";
+            } else if (returnType.equals("B")) {
+                type = "java/lang/Byte";
+                meth = "byteValue";
+            } else if (returnType.equals("S") ) {
+                type = "java/lang/Short";
+                meth = "shortValue";
             } else if (returnType.equals("F")) {
                 opcode = FRETURN;
                 type = "java/lang/Float";
@@ -889,12 +894,13 @@ public class ClassGeneratorUtil implements Opcodes {
                 opcode = LRETURN;
                 type = "java/lang/Long";
                 meth = "longValue";
-            } else if (returnType.equals("C")) {
-                type = "java/lang/Character";
-                meth = "charValue";
-            } else /*if (returnType.equals("S") )*/ {
-                type = "java/lang/Short";
-                meth = "shortValue";
+            } else if (returnType.equals("D")) {
+                opcode = DRETURN;
+                type = "java/lang/Double";
+                meth = "doubleValue";
+            } else /*if (returnType.equals("I"))*/ {
+                type = "java/lang/Integer";
+                meth = "intValue";
             }
 
             String desc = returnType;

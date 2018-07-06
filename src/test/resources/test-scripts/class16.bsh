@@ -1,4 +1,5 @@
 source("TestHarness.bsh");
+source("Assert.bsh");
 
 /*
     This test case looks at binding of classes to their loose environment.
@@ -7,7 +8,7 @@ source("TestHarness.bsh");
 
 flag=false;
 
-outerMethod() { 
+outerMethod() {
 //    print("outerMethod");
     return 42; }
 
@@ -37,5 +38,28 @@ thread.join();
 assert( flag == true );
 assert( MyClass16.sint == 2 );
 assert( MyClass16.sflag == true );
+
+class A {
+    go(int i, foo, bar) {
+        if ( i == 0 )
+            return foo;
+        else if ( i == 1 )
+            return bar;
+        else
+            return i;
+    }
+}
+
+acls = new A();
+assertEquals("gogogo", acls.go(0, "gogogo", null));
+assertEquals("gogogo", acls.go(1, null, "gogogo"));
+assertEquals(5, acls.go(5, "gogogo", null));
+assertEquals(6, acls.go(6, null, "gogogo"));
+assertEquals(7, acls.go(7, null, null));
+assertNull(acls.go(1, "gogogo", null));
+assertNull(acls.go(0, null, "gogogo"));
+assertNull(acls.go(0, null, null));
+assertNull(acls.go(1, null, null));
+
 
 complete();

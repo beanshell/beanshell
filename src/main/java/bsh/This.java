@@ -367,22 +367,8 @@ public final class This implements java.io.Serializable, Runnable
         boolean declaredOnly  )
         throws EvalError
     {
-        /*
-            Wrap nulls.
-            This is a bit of a cludge to address a deficiency in the class
-            generator whereby it does not wrap nulls on method delegate.  See
-            Class Generator.java.  If we fix that then we can remove this.
-            (just have to generate the code there.)
-        */
-        if (args == null) {
+        if (args == null)
             args = new Object[0];
-        } else {
-            Object[] oa = new Object[args.length];
-            for (int i = 0; i < args.length; i++) {
-                oa[i] = (args[i] == null ? Primitive.NULL : args[i]);
-            }
-            args = oa;
-        }
 
         if ( interpreter == null )
             interpreter = declaringInterpreter;
