@@ -165,6 +165,9 @@ public class ClassGeneratorUtil implements Opcodes {
         constructors = consl.toArray(new DelayedEvalBshMethod[consl.size()]);
         methods = methodsl.toArray(new DelayedEvalBshMethod[methodsl.size()]);
 
+        Interpreter.debug("Generate class ", type, " ", fqClassName, " cons:",
+                consl.size(), " meths:", methodsl.size(), " vars:", vars.length);
+
         if (type == INTERFACE && !classModifiers.hasModifier("abstract"))
             classModifiers.addModifier("abstract");
         if (type == ENUM && !classModifiers.hasModifier("static"))

@@ -202,7 +202,7 @@ public class BshClassManager
             Interpreter.debug("Loading class from source file: " + fileName);
             declaringInterpreter.eval( new InputStreamReader((InputStream) url.getContent()) );
         } catch ( IOException | EvalError e ) {
-            if (Interpreter.DEBUG)
+            if (Interpreter.DEBUG.get())
                 e.printStackTrace();
         }
         try {
@@ -320,9 +320,8 @@ public class BshClassManager
     public void cacheResolvedMethod(
         Class clas, Class [] types, Method method )
     {
-        if ( Interpreter.DEBUG )
-            Interpreter.debug(
-                "cacheResolvedMethod putting: " + clas +" "+ method );
+        Interpreter.debug(
+                "cacheResolvedMethod putting: ", clas, " ", method );
 
         SignatureKey sk = new SignatureKey( clas, method.getName(), types );
         if ( Modifier.isStatic( method.getModifiers() ) )
@@ -347,15 +346,12 @@ public class BshClassManager
         if ( method == null && !onlyStatic)
             method = resolvedObjectMethods.get( sk );
 
-        if ( Interpreter.DEBUG )
-        {
-            if ( method == null )
-                Interpreter.debug(
-                    "getResolvedMethod cache MISS: " + clas +" - "+methodName );
-            else
-                Interpreter.debug(
-                    "getResolvedMethod cache HIT: " + clas +" - " +method );
-        }
+        if ( method == null )
+            Interpreter.debug(
+                "getResolvedMethod cache MISS: ", clas, " - ", methodName );
+        else
+            Interpreter.debug(
+                "getResolvedMethod cache HIT: ", clas, " - ", method );
         return method;
     }
 

@@ -47,7 +47,7 @@ public class SourceForgeIssuesTest {
 
     @After
     public void after() {
-        Interpreter.DEBUG = false;
+        Interpreter.DEBUG.set(false);
     }
 
 //    @Test
@@ -104,7 +104,7 @@ public class SourceForgeIssuesTest {
         try (ByteArrayOutputStream baOut = new ByteArrayOutputStream();
             PrintStream out = new PrintStream(baOut);
             Interpreter bsh = new Interpreter(new StringReader(""), out, out, false)) {
-            Interpreter.DEBUG = true;
+            Interpreter.DEBUG.set(true);
             String ret = "" + bsh.eval(
                 "ByteArrayOutputStream baOut = new ByteArrayOutputStream();" +
                 "PrintStream out = new PrintStream(baOut);" +
@@ -114,7 +114,7 @@ public class SourceForgeIssuesTest {
                 "baOut.close();" +
                 "return ret;"
             );
-            Interpreter.DEBUG = false;
+            Interpreter.DEBUG.set(false);
             assertEquals("null", ret.trim());
             assertTrue(baOut.toString().contains("args[0] = null type"));
         }
@@ -152,7 +152,6 @@ public class SourceForgeIssuesTest {
      * Overriding a method which is invoked from super-constructor issues a NPE. */
     @Test
     public void sourceforge_issue_2081602_overridden_method_called_from_super() throws Exception {
-        // Interpreter.DEBUG = true;
         Callable<?> result = (Callable<?>) eval(
                 "Object echo(msg, x) {",
                 "//   print(msg + ' ' + x);",

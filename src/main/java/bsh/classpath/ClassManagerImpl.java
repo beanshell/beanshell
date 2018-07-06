@@ -157,11 +157,11 @@ public class ClassManagerImpl extends BshClassManager
 
         // check negative cache
         if ( absoluteNonClasses.contains(name) ) {
-            if ( Interpreter.DEBUG ) Interpreter.debug("absoluteNonClass list hit: "+name);
+            Interpreter.debug("absoluteNonClass list hit: ", name);
             return null;
         }
 
-        if ( Interpreter.DEBUG ) Interpreter.debug("Trying to load class: "+name);
+        Interpreter.debug("Trying to load class: ", name);
 
         // Check explicitly mapped (reloaded) class...
         final ClassLoader overlayLoader = getLoaderForClass( name );
@@ -169,7 +169,7 @@ public class ClassManagerImpl extends BshClassManager
             try {
                 c = overlayLoader.loadClass(name);
             } catch ( Exception e ) {
-                if ( Interpreter.DEBUG ) Interpreter.debug("overlay loader failed for '" + name + "' - " + e);
+                Interpreter.debug("overlay loader failed for '", "' - ", e);
             }
             // Should be there since it was explicitly mapped
             // throw an error?
@@ -524,8 +524,8 @@ public class ClassManagerImpl extends BshClassManager
             if ( ok ) {
                 //System.err.println("cleaned up weak ref: "+deadref);
             } else {
-                if ( Interpreter.DEBUG ) Interpreter.debug(
-                    "tried to remove non-existent weak ref: "+deadref);
+                Interpreter.debug(
+                    "tried to remove non-existent weak ref: ", deadref);
             }
         }
     }
