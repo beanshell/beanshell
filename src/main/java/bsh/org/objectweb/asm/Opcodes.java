@@ -34,7 +34,7 @@ package bsh.org.objectweb.asm;
  * xSTORE_n opcodes are therefore not defined in this interface. Likewise for LDC, automatically
  * replaced by LDC_W or LDC2_W when necessary, WIDE, GOTO_W and JSR_W.
  *
- * @see <a href="https://docs.oracle.com/javase/specs/jvms/se9/html/jvms-6.html">JVMS 6</a>
+ * @see <a href="https://docs.oracle.com/javase/specs/jvms/se11/html/jvms-6.html">JVMS 6</a>
  * @author Eric Bruneton
  * @author Eugene Kuleshov
  */
@@ -46,7 +46,8 @@ public interface Opcodes {
   int ASM5 = 5 << 16 | 0 << 8;
   int ASM6 = 6 << 16 | 0 << 8;
 
-  // Java ClassFile versions (the minor version is stored in the 16 most significant bits, and the
+  // Java ClassFile versions (the minor version is stored in the 16 most
+  // significant bits, and the
   // major version in the 16 least significant bits).
 
   int V1_1 = 3 << 16 | 45;
@@ -59,6 +60,17 @@ public interface Opcodes {
   int V1_8 = 0 << 16 | 52;
   int V9 = 0 << 16 | 53;
   int V10 = 0 << 16 | 54;
+  int V11 = 0 << 16 | 55;
+
+  /**
+   * Version flag indicating that the class is using 'preview' features.
+   *
+   * <p>{@code version & V_PREVIEW_EXPERIMENTAL == V_PREVIEW_EXPERIMENTAL} tests if a version is
+   * flagged with {@code V_PREVIEW_EXPERIMENTAL}.
+   *
+   * @deprecated This API is experimental.
+   */
+  @Deprecated int V_PREVIEW_EXPERIMENTAL = 0xFFFF0000;
 
   // Access flags values, defined in
   // - https://docs.oracle.com/javase/specs/jvms/se9/html/jvms-4.html#jvms-4.1-200-E.1
