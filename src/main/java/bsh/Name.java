@@ -243,9 +243,6 @@ class Name implements java.io.Serializable
         if ( ( evalBaseObject == null || evalBaseObject instanceof This  )
             && !forceClass )
         {
-            if ( Interpreter.DEBUG )
-                Interpreter.debug("trying to resolve variable: " + varName);
-
             Object obj;
             // switch namespace and special var visibility
             if ( evalBaseObject == null ) {
@@ -260,10 +257,6 @@ class Name implements java.io.Serializable
             if ( obj != Primitive.VOID )
             {
                 // Resolved the variable
-                if ( Interpreter.DEBUG )
-                    Interpreter.debug( "resolved variable: " + varName +
-                    " in namespace: "+namespace);
-
                 return completeRound( varName, suffix(evalName), obj );
             }
         }
@@ -274,8 +267,7 @@ class Name implements java.io.Serializable
         */
         if ( evalBaseObject == null )
         {
-            if ( Interpreter.DEBUG )
-                Interpreter.debug( "trying class: " + evalName);
+            Interpreter.debug( "trying class: ", evalName);
 
             /*
                 Keep adding parts until we have a class
@@ -298,8 +290,7 @@ class Name implements java.io.Serializable
                 );
             }
             // not a class (or variable per above)
-            if ( Interpreter.DEBUG )
-                Interpreter.debug( "not a class, trying var prefix "+evalName );
+            Interpreter.debug( "not a class, trying var prefix ", evalName );
         }
 
         // No variable or class found in 'this' type ref.
@@ -387,13 +378,11 @@ class Name implements java.io.Serializable
             Object obj = null;
             // static field?
             try {
-                if ( Interpreter.DEBUG )
-                    Interpreter.debug("Name call to getStaticFieldValue, class: "
-                        +clas+", field:"+field);
+                Interpreter.debug("Name call to getStaticFieldValue, class: ",
+                        clas, ", field:", field);
                 obj = Reflect.getStaticFieldValue(clas, field);
             } catch( ReflectError e ) {
-                if ( Interpreter.DEBUG )
-                    Interpreter.debug("field reflect error: "+e);
+                Interpreter.debug("field reflect error: ", e);
             }
 
             // inner class?
@@ -848,10 +837,9 @@ class Name implements java.io.Serializable
                 // should avoid calling methods on primitive, as we do
                 // in Name (can't treat primitive like an object message)
                 // but the hole is useful right now.
-                if ( Interpreter.DEBUG )
-                    Interpreter.debug(
-                    "Attempt to access method on primitive..."
-                    + " allowing bsh.Primitive to peek through for debugging");
+                Interpreter.debug(
+                    "Attempt to access method on primitive...",
+                    " allowing bsh.Primitive to peek through for debugging");
             }
 
             // enum block members will be in namespace only
@@ -872,8 +860,7 @@ class Name implements java.io.Serializable
         // It's a class
 
         // try static method
-        if ( Interpreter.DEBUG )
-            Interpreter.debug("invokeMethod: trying static - " + targetName);
+        Interpreter.debug("invokeMethod: trying static - ", targetName);
 
         Class clas = ((ClassIdentifier)obj).getTargetClass();
 
@@ -904,8 +891,7 @@ class Name implements java.io.Serializable
     )
         throws EvalError/*, ReflectError, InvocationTargetException*/
     {
-        if ( Interpreter.DEBUG )
-            Interpreter.debug( "invokeLocalMethod: " + value );
+        Interpreter.debug( "invokeLocalMethod: ", value );
         if ( interpreter == null )
             throw new InterpreterError(
                 "invokeLocalMethod: interpreter = null");

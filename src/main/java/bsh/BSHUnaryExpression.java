@@ -59,7 +59,7 @@ class BSHUnaryExpression extends SimpleNode implements ParserConstants
     private Object lhsUnaryOperation( LHS lhs, boolean strictJava )
         throws UtilEvalError
     {
-        if ( Interpreter.DEBUG ) Interpreter.debug("lhsUnaryOperation");
+        Interpreter.debug("lhsUnaryOperation");
         Object prevalue, postvalue;
         prevalue = lhs.getValue();
         postvalue = unaryOperation(prevalue, kind);
