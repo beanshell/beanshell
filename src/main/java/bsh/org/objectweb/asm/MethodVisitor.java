@@ -52,7 +52,7 @@ public abstract class MethodVisitor {
 
   /**
    * The ASM API version implemented by this visitor. The value of this field must be one of {@link
-   * Opcodes#ASM4}, {@link Opcodes#ASM5} or {@link Opcodes#ASM6}.
+   * Opcodes#ASM4}, {@link Opcodes#ASM5}, {@link Opcodes#ASM6} or {@link Opcodes#ASM7_EXPERIMENTAL}.
    */
   protected final int api;
 
@@ -63,7 +63,8 @@ public abstract class MethodVisitor {
    * Constructs a new {@link MethodVisitor}.
    *
    * @param api the ASM API version implemented by this visitor. Must be one of {@link
-   *     Opcodes#ASM4}, {@link Opcodes#ASM5} or {@link Opcodes#ASM6}.
+   *     Opcodes#ASM4}, {@link Opcodes#ASM5}, {@link Opcodes#ASM6} or {@link
+   *     Opcodes#ASM7_EXPERIMENTAL}.
    */
   public MethodVisitor(final int api) {
     this(api, null);
@@ -73,12 +74,15 @@ public abstract class MethodVisitor {
    * Constructs a new {@link MethodVisitor}.
    *
    * @param api the ASM API version implemented by this visitor. Must be one of {@link
-   *     Opcodes#ASM4}, {@link Opcodes#ASM5} or {@link Opcodes#ASM6}.
+   *     Opcodes#ASM4}, {@link Opcodes#ASM5}, {@link Opcodes#ASM6} or {@link
+   *     Opcodes#ASM7_EXPERIMENTAL}.
    * @param methodVisitor the method visitor to which this visitor must delegate method calls. May
    *     be null.
    */
   public MethodVisitor(final int api, final MethodVisitor methodVisitor) {
-    if (api < Opcodes.ASM4 || api > Opcodes.ASM6) {
+    if (api != Opcodes.ASM6
+        && api != Opcodes.ASM5
+        && api != Opcodes.ASM4) {
       throw new IllegalArgumentException();
     }
     this.api = api;
@@ -363,8 +367,8 @@ public abstract class MethodVisitor {
    * @param bootstrapMethodHandle the bootstrap method.
    * @param bootstrapMethodArguments the bootstrap method constant arguments. Each argument must be
    *     an {@link Integer}, {@link Float}, {@link Long}, {@link Double}, {@link String}, {@link
-   *     Type} or {@link Handle} value. This method is allowed to modify the content of the array so
-   *     a caller should expect that this array may change.
+   *     Type}, {@link Handle} or {@link ConstantDynamic} value. This method is allowed to modify
+   *     the content of the array so a caller should expect that this array may change.
    */
   public void visitInvokeDynamicInsn(
       final String name,
@@ -439,6 +443,8 @@ public abstract class MethodVisitor {
    *     }
    * } else if (cst instanceof Handle) {
    *     // ...
+   * } else if (cst instanceof Condy) {
+   *     // ...
    * } else {
    *     // throw an exception
    * }
@@ -447,8 +453,9 @@ public abstract class MethodVisitor {
    * @param value the constant to be loaded on the stack. This parameter must be a non null {@link
    *     Integer}, a {@link Float}, a {@link Long}, a {@link Double}, a {@link String}, a {@link
    *     Type} of OBJECT or ARRAY sort for <tt>.class</tt> constants, for classes whose version is
-   *     49.0, a {@link Type} of METHOD sort or a {@link Handle} for MethodType and MethodHandle
-   *     constants, for classes whose version is 51.0.
+   *     49, a {@link Type} of METHOD sort for MethodType, a {@link Handle} for MethodHandle
+   *     constants, for classes whose version is 51 or a {@link ConstantDynamic} for a constant
+   *     dynamic for classes whose version is 55.
    */
   public void visitLdcInsn(final Object value) {
     if (api < Opcodes.ASM5
