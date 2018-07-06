@@ -554,15 +554,16 @@ void ClassDeclaration() #ClassDeclaration :
 }
 {
     mods = Modifiers( Modifiers.CLASS, false )
-  (    (
-	    "class" { jjtThis.type = ClassGenerator.Type.CLASS; } name=<IDENTIFIER>
-	    [ "extends" AmbiguousName() { jjtThis.extend = true; } ]
-	    [ "implements" numInterfaces=NameList()
+  (
+    (
+        "class" { jjtThis.type = ClassGenerator.Type.CLASS; } name=<IDENTIFIER>
+        [ "extends" AmbiguousName() { jjtThis.extend = true; } ]
+        [ "implements" numInterfaces=NameList()
         { jjtThis.numInterfaces=numInterfaces; } ]
       |
-	    "interface" { jjtThis.type = ClassGenerator.Type.INTERFACE; } name=<IDENTIFIER>
-	    [ "extends" numInterfaces=NameList()
-	        { jjtThis.numInterfaces=numInterfaces; } ]
+        "interface" { jjtThis.type = ClassGenerator.Type.INTERFACE; } name=<IDENTIFIER>
+        [ "extends" numInterfaces=NameList()
+            { jjtThis.numInterfaces=numInterfaces; } ]
     )
     Block()
   |
@@ -1012,9 +1013,9 @@ void Literal() #Literal :
     last = literal.length() - 1;
     ch = literal.charAt(last);
     try {
-	    if( Types.Suffix.isIntegral(ch) )
-	        jjtThis.value = parseIntegral(literal.substring(0, last))
-	              .castToType(Types.Suffix.getIntegralType(ch), 0);
+        if( Types.Suffix.isIntegral(ch) )
+            jjtThis.value = parseIntegral(literal.substring(0, last))
+                  .castToType(Types.Suffix.getIntegralType(ch), 0);
         else
             jjtThis.value = Primitive.shrinkWrap(parseIntegral(literal).getValue());
     } catch ( NumberFormatException e ) {
@@ -1028,11 +1029,11 @@ void Literal() #Literal :
     last = literal.length() - 1;
     ch = literal.charAt(last);
     try {
-	    if( Types.Suffix.isFloatingPoint(ch) )
-	        jjtThis.value = new Primitive(new java.math.BigDecimal(literal.substring(0, last)))
-	               .castToType(Types.Suffix.getFloatingPointType(ch), 0);
-	    else
-	        jjtThis.value = Primitive.shrinkWrap( new java.math.BigDecimal( literal ) );
+        if( Types.Suffix.isFloatingPoint(ch) )
+            jjtThis.value = new Primitive(new java.math.BigDecimal(literal.substring(0, last)))
+                   .castToType(Types.Suffix.getFloatingPointType(ch), 0);
+        else
+            jjtThis.value = Primitive.shrinkWrap( new java.math.BigDecimal( literal ) );
     } catch ( NumberFormatException e ) {
         throw createParseException( e.getMessage(), e );
     }
