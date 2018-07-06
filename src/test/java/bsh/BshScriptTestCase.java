@@ -21,7 +21,6 @@ package bsh;
 
 import static bsh.KnownIssue.KNOWN_FAILING_TESTS;
 import static bsh.KnownIssue.SKIP_KNOWN_ISSUES;
-import static bsh.Capabilities.setAccessibility;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assert.assertThat;
 import static org.hamcrest.Matchers.isA;
@@ -136,7 +135,7 @@ public class BshScriptTestCase {
         @Override
         @SuppressWarnings("resource")
         public void runTest() throws Throwable {
-            setAccessibility(valueOf(System.getProperty("accessibility")));
+            Capabilities.instance.accept(valueOf(System.getProperty("accessibility")));
             assumeFalse("skipping test " + getName(), SKIP_KNOWN_ISSUES
                     && KNOWN_FAILING_TESTS.contains(getName()));
 
