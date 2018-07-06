@@ -29,9 +29,10 @@ package bsh.org.objectweb.asm;
 
 /**
  * A visitor to visit a Java class. The methods of this class must be called in the following order:
- * <tt>visit</tt> [ <tt>visitSource</tt> ] [ <tt>visitModule</tt> ][ <tt>visitOuterClass</tt> ] (
- * <tt>visitAnnotation</tt> | <tt>visitTypeAnnotation</tt> | <tt>visitAttribute</tt> )* (
- * <tt>visitInnerClass</tt> | <tt>visitField</tt> | <tt>visitMethod</tt> )* <tt>visitEnd</tt>.
+ * <tt>visit</tt> [ <tt>visitSource</tt> ] [ <tt>visitModule</tt> ][ <tt>visitNestHost</tt> ][
+ * <tt>visitOuterClass</tt> ] ( <tt>visitAnnotation</tt> | <tt>visitTypeAnnotation</tt> |
+ * <tt>visitAttribute</tt> )* ( <tt>visitNestMember</tt> | <tt>visitInnerClass</tt> |
+ * <tt>visitField</tt> | <tt>visitMethod</tt> )* <tt>visitEnd</tt>.
  *
  * @author Eric Bruneton
  */
@@ -39,7 +40,7 @@ public abstract class ClassVisitor {
 
   /**
    * The ASM API version implemented by this visitor. The value of this field must be one of {@link
-   * Opcodes#ASM4}, {@link Opcodes#ASM5} or {@link Opcodes#ASM6}.
+   * Opcodes#ASM4}, {@link Opcodes#ASM5}, {@link Opcodes#ASM6} or {@link Opcodes#ASM7_EXPERIMENTAL}.
    */
   protected final int api;
 
@@ -50,7 +51,8 @@ public abstract class ClassVisitor {
    * Constructs a new {@link ClassVisitor}.
    *
    * @param api the ASM API version implemented by this visitor. Must be one of {@link
-   *     Opcodes#ASM4}, {@link Opcodes#ASM5} or {@link Opcodes#ASM6}.
+   *     Opcodes#ASM4}, {@link Opcodes#ASM5}, {@link Opcodes#ASM6} or {@link
+   *     Opcodes#ASM7_EXPERIMENTAL}.
    */
   public ClassVisitor(final int api) {
     this(api, null);
@@ -60,12 +62,15 @@ public abstract class ClassVisitor {
    * Constructs a new {@link ClassVisitor}.
    *
    * @param api the ASM API version implemented by this visitor. Must be one of {@link
-   *     Opcodes#ASM4}, {@link Opcodes#ASM5} or {@link Opcodes#ASM6}.
+   *     Opcodes#ASM4}, {@link Opcodes#ASM5}, {@link Opcodes#ASM6} or {@link
+   *     Opcodes#ASM7_EXPERIMENTAL}.
    * @param classVisitor the class visitor to which this visitor must delegate method calls. May be
    *     null.
    */
   public ClassVisitor(final int api, final ClassVisitor classVisitor) {
-    if (api < Opcodes.ASM4 || api > Opcodes.ASM6) {
+    if (api != Opcodes.ASM6
+        && api != Opcodes.ASM5
+        && api != Opcodes.ASM4) {
       throw new IllegalArgumentException();
     }
     this.api = api;
