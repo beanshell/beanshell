@@ -31,7 +31,7 @@ package bsh.org.objectweb.asm;
  * Defines additional JVM opcodes, access flags and constants which are not part of the ASM public
  * API.
  *
- * @see <a href="https://docs.oracle.com/javase/specs/jvms/se9/html/jvms-6.html">JVMS 6</a>
+ * @see <a href="https://docs.oracle.com/javase/specs/jvms/se11/html/jvms-6.html">JVMS 6</a>
  * @author Eric Bruneton
  */
 final class Constants implements Opcodes {
@@ -39,7 +39,7 @@ final class Constants implements Opcodes {
   private Constants() {}
 
   // The ClassFile attribute names, in the order they are defined in
-  // https://docs.oracle.com/javase/specs/jvms/se9/html/jvms-4.html#jvms-4.7-300.
+  // https://docs.oracle.com/javase/specs/jvms/se11/html/jvms-4.html#jvms-4.7-300.
 
   static final String CONSTANT_VALUE = "ConstantValue";
   static final String CODE = "Code";
