@@ -202,9 +202,8 @@ public final class This implements java.io.Serializable, Runnable
             } catch ( EvalError ee ) {
                 // Ease debugging...
                 // XThis.this refers to the enclosing class instance
-                if ( Interpreter.DEBUG )
-                    Interpreter.debug( "EvalError in scripted interface: "
-                    + This.this.toString() + ": "+ ee );
+                Interpreter.debug( "EvalError in scripted interface: ",
+                    This.this.toString(), ": ", ee );
                 throw ee;
             }
         }
