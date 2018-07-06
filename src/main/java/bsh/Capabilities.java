@@ -29,6 +29,8 @@ package bsh;
 import java.lang.reflect.AccessibleObject;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
     The map of extended features supported by the runtime in which we live.
@@ -41,9 +43,13 @@ import java.util.WeakHashMap;
     BshClassManager, as it may require other optional class files to be
     loaded.
 */
-public class Capabilities
+public class Capabilities implements Supplier<Boolean>, Consumer<Boolean>
 {
-    private static volatile boolean accessibility = false;
+    static final Capabilities instance = new Capabilities();
+    private volatile boolean accessibility = false;
+    private static final ThreadLocal<Boolean> ACCESSIBILITY = ThreadLocal.withInitial(Capabilities.instance);
+
+    private Capabilities() {}
 
     public static boolean haveSwing() {
         // classExists caches info for us
@@ -61,14 +67,14 @@ public class Capabilities
     */
     public static boolean haveAccessibility()
     {
-        return accessibility;
+        return ACCESSIBILITY.get();
     }
 
     public static void setAccessibility( boolean b )
     {
         if ( b == false )
         {
-            accessibility = false;
+            ACCESSIBILITY.set(Boolean.FALSE);
         } else {
             String.class.getDeclaredMethods(); // test basic access
             try {
@@ -78,7 +84,7 @@ public class Capabilities
             } catch (NoSuchFieldException e) {
                 // ignore
             }
-            accessibility = true;
+            ACCESSIBILITY.set(Boolean.TRUE);
         }
         BshClassManager.clearResolveCache();
     }
@@ -124,6 +130,16 @@ public class Capabilities
         public Unavailable( String s, Throwable cause ) {
             super(s,cause);
         }
+    }
+
+    @Override
+    public Boolean get() {
+        return this.accessibility;
+    }
+
+    @Override
+    public void accept(Boolean t) {
+        this.accessibility = t.booleanValue();
     }
 }
 
