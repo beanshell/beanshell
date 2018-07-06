@@ -132,8 +132,10 @@ public final class ClassGenerator {
 
             if (Interpreter.getSaveClasses())
                 saveClasses(className, code);
+
             // Define the new class in the classloader
             genClass = bcm.defineClass(fqClassName, code);
+            Interpreter.debug("Define ", fqClassName, " as ", genClass);
         }
         // import the unqualified class name into parent namespace
         enclosingNameSpace.importClass(fqClassName.replace('$', '.'));
@@ -141,6 +143,8 @@ public final class ClassGenerator {
         // Give the static space its class static import
         // important to do this after all classes are defined
         classStaticNameSpace.setClassStatic(genClass);
+
+        Interpreter.debug(classStaticNameSpace);
 
         bcm.doneDefiningClass(fqClassName);
 

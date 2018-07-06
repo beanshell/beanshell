@@ -44,10 +44,6 @@ public class JDemoApplet extends JFrame
     {
         super("Demo");
 
-        String debug = null; // getParameter("debug");
-        if ( debug != null && debug.equals("true") )
-            Interpreter.DEBUG=true;
-
         // String type = getParameter("type");
         if ( type != null && type.equals("desktop") )
             // start the desktop
