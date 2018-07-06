@@ -45,6 +45,11 @@ public class ClassWriter extends ClassVisitor {
    * #visitMethod} method will be ignored, and computed automatically from the signature and the
    * bytecode of each method.
    *
+   * <p><b>Note:</b> for classes whose version is {@link Opcodes#V1_7} of more, this option requires
+   * valid stack map frames. The maximum stack size is then computed from these frames, and from the
+   * bytecode instructions in between. If stack map frames are not present or must be recomputed,
+   * used {@link #COMPUTE_FRAMES} instead.
+   *
    * @see #ClassWriter(int)
    */
   public static final int COMPUTE_MAXS = 1;
@@ -116,10 +121,10 @@ public class ClassWriter extends ClassVisitor {
   private MethodWriter lastMethod;
 
   /** The number_of_classes field of the InnerClasses attribute, or 0. */
-  private int numberOfClasses;
+  private int numberOfInnerClasses;
 
   /** The 'classes' array of the InnerClasses attribute, or <tt>null</tt>. */
-  private ByteVector classes;
+  private ByteVector innerClasses;
 
   /** The class_index field of the EnclosingMethod attribute, or 0. */
   private int enclosingClassIndex;
@@ -217,6 +222,9 @@ public class ClassWriter extends ClassVisitor {
         this.interfaces[i] = symbolTable.addConstantClass(interfaces[i]).index;
       }
     }
+    if (compute == MethodWriter.COMPUTE_MAX_STACK_AND_LOCAL && (version & 0xFFFF) >= Opcodes.V1_7) {
+      compute = MethodWriter.COMPUTE_MAX_STACK_AND_LOCAL_FROM_FRAMES;
+    }
   }
 
   @Override
@@ -248,8 +256,8 @@ public class ClassWriter extends ClassVisitor {
   @Override
   public final void visitInnerClass(
       final String name, final String outerName, final String innerName, final int access) {
-    if (classes == null) {
-      classes = new ByteVector();
+    if (innerClasses == null) {
+      innerClasses = new ByteVector();
     }
     // Section 4.7.6 of the JVMS states "Every CONSTANT_Class_info entry in the constant_pool table
     // which represents a class or interface C that is not a package member must have exactly one
@@ -259,12 +267,12 @@ public class ClassWriter extends ClassVisitor {
     // the info field. This trick allows duplicate detection in O(1) time.
     Symbol nameSymbol = symbolTable.addConstantClass(name);
     if (nameSymbol.info == 0) {
-      ++numberOfClasses;
-      classes.putShort(nameSymbol.index);
-      classes.putShort(outerName == null ? 0 : symbolTable.addConstantClass(outerName).index);
-      classes.putShort(innerName == null ? 0 : symbolTable.addConstantUtf8(innerName));
-      classes.putShort(access);
-      nameSymbol.info = numberOfClasses;
+      ++numberOfInnerClasses;
+      innerClasses.putShort(nameSymbol.index);
+      innerClasses.putShort(outerName == null ? 0 : symbolTable.addConstantClass(outerName).index);
+      innerClasses.putShort(innerName == null ? 0 : symbolTable.addConstantUtf8(innerName));
+      innerClasses.putShort(access);
+      nameSymbol.info = numberOfInnerClasses;
     } else {
       // Compare the inner classes entry nameSymbol.info - 1 with the arguments of this method and
       // throw an exception if there is a difference?
@@ -341,9 +349,9 @@ public class ClassWriter extends ClassVisitor {
     }
     // For ease of reference, we use here the same attribute order as in Section 4.7 of the JVMS.
     int attributesCount = 0;
-    if (classes != null) {
+    if (innerClasses != null) {
       ++attributesCount;
-      size += 8 + classes.length;
+      size += 8 + innerClasses.length;
       symbolTable.addConstantUtf8(Constants.INNER_CLASSES);
     }
     if (enclosingClassIndex != 0) {
@@ -420,12 +428,12 @@ public class ClassWriter extends ClassVisitor {
     }
     // For ease of reference, we use here the same attribute order as in Section 4.7 of the JVMS.
     result.putShort(attributesCount);
-    if (classes != null) {
+    if (innerClasses != null) {
       result
           .putShort(symbolTable.addConstantUtf8(Constants.INNER_CLASSES))
-          .putInt(classes.length + 2)
-          .putShort(numberOfClasses)
-          .putByteArray(classes.data, 0, classes.length);
+          .putInt(innerClasses.length + 2)
+          .putShort(numberOfInnerClasses)
+          .putByteArray(innerClasses.data, 0, innerClasses.length);
     }
     if (enclosingClassIndex != 0) {
       result
@@ -464,19 +472,54 @@ public class ClassWriter extends ClassVisitor {
       firstAttribute.putAttributes(symbolTable, result);
     }
 
-    // Third step: do a ClassReader->ClassWriter round trip if the generated class contains ASM
-    // specific instructions due to large forward jumps.
+    // Third step: replace the ASM specific instructions, if any.
     if (hasAsmInstructions) {
-      firstField = null;
-      lastField = null;
-      firstMethod = null;
-      lastMethod = null;
-      firstAttribute = null;
-      compute = hasFrames ? MethodWriter.COMPUTE_INSERTED_FRAMES : MethodWriter.COMPUTE_NOTHING;
-      return toByteArray();
+      return replaceAsmInstructions(result.data, hasFrames);
     } else {
       return result.data;
     }
+  }
+
+  /**
+   * Returns the equivalent of the given class file, with the ASM specific instructions replaced
+   * with standard ones. This is done with a ClassReader -&gt; ClassWriter round trip.
+   *
+   * @param classFile a class file containing ASM specific instructions, generated by this
+   *     ClassWriter.
+   * @param hasFrames whether there is at least one stack map frames in 'classFile'.
+   * @return an equivalent of 'classFile', with the ASM specific instructions replaced with standard
+   *     ones.
+   */
+  private byte[] replaceAsmInstructions(final byte[] classFile, final boolean hasFrames) {
+    Attribute[] attributes = getAttributePrototypes();
+    firstField = null;
+    lastField = null;
+    firstMethod = null;
+    lastMethod = null;
+    firstAttribute = null;
+    compute = hasFrames ? MethodWriter.COMPUTE_INSERTED_FRAMES : MethodWriter.COMPUTE_NOTHING;
+    return toByteArray();
+  }
+
+  /**
+   * Returns the prototypes of the attributes used by this class, its fields and its methods.
+   *
+   * @return the prototypes of the attributes used by this class, its fields and its methods.
+   */
+  private Attribute[] getAttributePrototypes() {
+    Attribute.Set attributePrototypes = new Attribute.Set();
+    attributePrototypes.addAttributes(firstAttribute);
+    FieldWriter fieldWriter = firstField;
+    while (fieldWriter != null) {
+      fieldWriter.collectAttributePrototypes(attributePrototypes);
+      fieldWriter = (FieldWriter) fieldWriter.fv;
+    }
+    MethodWriter methodWriter = firstMethod;
+    while (methodWriter != null) {
+      methodWriter.collectAttributePrototypes(attributePrototypes);
+      methodWriter = (MethodWriter) methodWriter.mv;
+    }
+    return attributePrototypes.toArray();
   }
 
   // -----------------------------------------------------------------------------------------------
