@@ -37,11 +37,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.WeakHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static bsh.ClassGeneratorUtil.BSHTHIS;
-import static bsh.ClassGeneratorUtil.BSHSTATIC;
-import static bsh.ClassGeneratorUtil.BSHCLASSMODIFIERS;
+import static bsh.This.Keys.BSHTHIS;
+import static bsh.This.Keys.BSHSTATIC;
+import static bsh.This.Keys.BSHCLASSMODIFIERS;
 
 /**
  * All of the reflection API code lies here.  It is in the form of static
@@ -182,8 +183,7 @@ final class Reflect {
     public static Object getIndex(Object array, int index)
         throws ReflectError, UtilTargetError
     {
-        if ( Interpreter.DEBUG )
-            Interpreter.debug("getIndex: "+array+", index="+index);
+        Interpreter.debug("getIndex: ", array, ", index=", index);
         try {
             Object val = Array.get(array, index);
             return Primitive.wrap( val, array.getClass().getComponentType() );
@@ -446,7 +446,8 @@ final class Reflect {
 
         Class [] types = Types.getTypes(args);
         Method method = resolveJavaMethod( bcm, clas, name, types, staticOnly );
-        if (method != null && method.getDeclaringClass().isInterface()
+        if ( null != bcm && bcm.getStrictJava()
+                && method != null && method.getDeclaringClass().isInterface()
                 && method.getDeclaringClass() != clas
                 && Modifier.isStatic(method.getModifiers()))
             // static interface methods are class only
@@ -542,18 +543,16 @@ final class Reflect {
     private static Method findOverloadedMethod(
         Class baseClass, String methodName, Class[] types, boolean publicOnly )
     {
-        if ( Interpreter.DEBUG )
-            Interpreter.debug( "Searching for method: "+
-                StringUtil.methodString(methodName, types)
-                + " in '" + baseClass.getName() + "'" );
+        Interpreter.debug( "Searching for method: ",
+                StringUtil.methodString(methodName, types),
+                " in '", baseClass.getName(), "'" );
 
         List<Method> publicMethods = new ArrayList<Method>();
         List<Method> nonPublicMethods = publicOnly ? null : new ArrayList<Method>();
         gatherMethodsRecursive(
             baseClass, methodName, types.length, publicMethods, nonPublicMethods );
 
-        if ( Interpreter.DEBUG )
-            Interpreter.debug("Looking for most specific method: "+methodName);
+        Interpreter.debug("Looking for most specific method: ", methodName);
         if (null != nonPublicMethods && !nonPublicMethods.isEmpty())
             publicMethods.addAll(nonPublicMethods);
 
@@ -676,8 +675,7 @@ final class Reflect {
             Capabilities.haveAccessibility() ?
                 clas.getDeclaredConstructors() : clas.getConstructors() ;
 
-        if ( Interpreter.DEBUG )
-            Interpreter.debug("Looking for most specific constructor: "+clas);
+        Interpreter.debug("Looking for most specific constructor: ", clas);
         Constructor con = findMostSpecificConstructor(types, constructors);
         if ( con == null )
             throw cantFindConstructor( clas, types );
@@ -1003,11 +1001,11 @@ final class Reflect {
     }
 
     private static void logInvokeMethod(String msg, Method method, Object[] args) {
-        if (Interpreter.DEBUG) {
-            Interpreter.debug(msg + method + " with args:");
+        if (Interpreter.DEBUG.get()) {
+            Interpreter.debug(msg, method, " with args:");
             for (int i = 0; i < args.length; i++) {
                 final Object arg = args[i];
-                Interpreter.debug("args[" + i + "] = " + arg + " type = " + (arg == null ? "<unknown>" : arg.getClass()));
+                Interpreter.debug("args[", i, "] = ", arg, " type = ", (arg == null ? "<unknown>" : arg.getClass()));
             }
         }
     }
@@ -1256,7 +1254,7 @@ final class Reflect {
      */
     public static Modifiers getClassModifiers(Class<?> type) {
         try {
-            return (Modifiers)getVariable(type, BSHCLASSMODIFIERS).getValue();
+            return (Modifiers)getVariable(type, BSHCLASSMODIFIERS.toString()).getValue();
         } catch (Exception e) {
             return new Modifiers(Modifiers.CLASS);
         }
@@ -1301,6 +1299,23 @@ final class Reflect {
         if ( ! field.isAccessible() && Capabilities.haveAccessibility()) {
             field.setAccessible(true);
         }
+    }
+
+    /** Manually create enum values array without using enum.values().
+     * @param enm enum class to query
+     * @return array of enum values */
+    @SuppressWarnings("unchecked")
+    static <T> T[] getEnumConstants(Class<T> enm) {
+        List<T> s = Stream.of(enm.getFields())
+                .filter(f->f.getType() == enm)
+                .map(f->{
+            try {
+                return (T) f.get(null);
+            } catch (Exception e) {
+                return null;
+            }
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+        return s.toArray((T[]) Array.newInstance(enm, s.size()));
     }
 }
 

@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import static bsh.ClassGenerator.Type;
 
 /**
 */
@@ -50,7 +51,7 @@ class BSHClassDeclaration extends SimpleNode
     Modifiers modifiers = new Modifiers(Modifiers.CLASS);
     int numInterfaces;
     boolean extend;
-    boolean isInterface;
+    Type type;
     private Class<?> generatedClass;
 
     BSHClassDeclaration(int id) { super(id); }
@@ -109,7 +110,7 @@ class BSHClassDeclaration extends SimpleNode
             block = new BSHBlock( ParserTreeConstants.JJTBLOCK );
 
         Class<?> clas = ClassGenerator.getClassGenerator().generateClass(
-            name, modifiers, interfaces, superClass, block, isInterface,
+            name, modifiers, interfaces, superClass, block, type,
             callstack, interpreter );
 
         // Validate final methods should not be overridden

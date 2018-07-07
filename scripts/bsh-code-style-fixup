@@ -7,7 +7,7 @@ for i in ./**/**; do { \
     # skip directories and binary files
     grep -qI -d skip '.' "$i" && ( \
         # change CRLF to LF (dos2unix)
-        tr -d '\15\32'< "$i" | \
+        tr -d '\15\32' < "$i" | \
         # change tabs to 4 spaces
         expand -t 4 | \
         # remove space after ( and before )

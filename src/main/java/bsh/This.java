@@ -28,11 +28,25 @@
 
 package bsh;
 
+import static bsh.ClassGenerator.ClassNodeFilter.CLASSINSTANCE;
+import static bsh.ClassGenerator.ClassNodeFilter.CLASSSTATIC;
+import static bsh.ClassGeneratorUtil.DEFAULTCONSTRUCTOR;
+import static bsh.This.Keys.BSHCONSTRUCTORS;
+import static bsh.This.Keys.BSHINIT;
+import static bsh.This.Keys.BSHSTATIC;
+import static bsh.This.Keys.BSHTHIS;
+
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 
 /**
     'This' is the type of bsh scripted objects.
@@ -44,6 +58,25 @@ import java.util.Map;
 */
 public final class This implements java.io.Serializable, Runnable
 {
+    enum Keys {
+        /** The name of the static field holding the reference to the bsh
+         * static This (the callback namespace for static methods) */
+        BSHSTATIC { public String toString() { return "_bshStatic"; } },
+        /** The name of the instance field holding the reference to the bsh
+         * instance This (the callback namespace for instance methods) */
+        BSHTHIS { public String toString() { return "_bshThis"; } },
+        /** The prefix for the name of the super delegate methods. e.g.
+         * _bshSuperfoo() is equivalent to super.foo() */
+        BSHSUPER { public String toString() { return "_bshSuper"; } },
+        /** The bsh static namespace variable name of the instance initializer */
+        BSHINIT { public String toString() { return "_bshInstanceInitializer"; } },
+        /** The bsh static namespace variable that holds the constructor methods */
+        BSHCONSTRUCTORS { public String toString() { return "_bshConstructors"; } },
+        /** The bsh static namespace variable that holds the class modifiers */
+        BSHCLASSMODIFIERS { public String toString() { return "_bshClassModifiers"; } }
+    }
+
+
     /**
         The namespace that this This reference wraps.
     */
@@ -56,7 +89,7 @@ public final class This implements java.io.Serializable, Runnable
         e.g. interface proxy or event call backs from outside of bsh.
     */
     transient Interpreter declaringInterpreter;
-
+    public static final Map<String,NameSpace> contextStore = new ConcurrentHashMap<>();
     /**
         A cache of proxy interface handlers.
         Currently just one per interface.
@@ -169,9 +202,8 @@ public final class This implements java.io.Serializable, Runnable
             } catch ( EvalError ee ) {
                 // Ease debugging...
                 // XThis.this refers to the enclosing class instance
-                if ( Interpreter.DEBUG )
-                    Interpreter.debug( "EvalError in scripted interface: "
-                    + This.this.toString() + ": "+ ee );
+                Interpreter.debug( "EvalError in scripted interface: ",
+                    This.this.toString(), ": ", ee );
                 throw ee;
             }
         }
@@ -334,22 +366,8 @@ public final class This implements java.io.Serializable, Runnable
         boolean declaredOnly  )
         throws EvalError
     {
-        /*
-            Wrap nulls.
-            This is a bit of a cludge to address a deficiency in the class
-            generator whereby it does not wrap nulls on method delegate.  See
-            Class Generator.java.  If we fix that then we can remove this.
-            (just have to generate the code there.)
-        */
-        if (args == null) {
+        if (args == null)
             args = new Object[0];
-        } else {
-            Object[] oa = new Object[args.length];
-            for (int i = 0; i < args.length; i++) {
-                oa[i] = (args[i] == null ? Primitive.NULL : args[i]);
-            }
-            args = oa;
-        }
 
         if ( interpreter == null )
             interpreter = declaringInterpreter;
@@ -428,6 +446,12 @@ public final class This implements java.io.Serializable, Runnable
             callerInfo, callstack );
     }
 
+    /** Delegate method to return enum values array.
+     * @return array of enum values */
+    public Object[] enumValues() {
+        return Reflect.getEnumConstants(getNameSpace().classStatic);
+    }
+
     /**
         Bind a This reference to a parent's namespace with the specified
         declaring interpreter.  Also re-init the callstack.  It's necessary
@@ -468,5 +492,386 @@ public final class This implements java.io.Serializable, Runnable
             || name.equals("notifyAll");
     }
 
+
+    /**
+     * This method is called by the **generated class** during construction.
+     *
+     * Evaluate the arguments (if any) for the constructor specified by
+     * the constructor index. Return the ConstructorArgs object which
+     * contains the actual arguments to the alternate constructor and also the
+     * index of that constructor for the constructor switch.
+     *
+     * @param consArgs the arguments to the constructor. These are necessary in
+     * the evaluation of the alt constructor args. e.g. Foo(a) { super(a); }
+     * @return the ConstructorArgs object containing a constructor selector
+     * and evaluated arguments for the alternate constructor
+     */
+    public static ConstructorArgs getConstructorArgs(String superClassName, This classStaticThis, Object[] consArgs, int index) {
+        if (classStaticThis == null)
+            throw new InterpreterError("Unititialized class: no static");
+
+        DelayedEvalBshMethod[] constructors;
+        try {
+            Object cons = classStaticThis.getNameSpace().getVariable(BSHCONSTRUCTORS.toString());
+            if (cons == Primitive.VOID)
+                throw new InterpreterError("Unable to find constructors array in class");
+            constructors = (DelayedEvalBshMethod[]) cons;
+        } catch (Exception e) {
+            throw new InterpreterError("Unable to get instance initializers: " + e, e);
+        }
+
+        if (index == DEFAULTCONSTRUCTOR) // auto-gen default constructor
+            return ConstructorArgs.DEFAULT;
+        // use default super constructor
+
+        DelayedEvalBshMethod constructor = constructors[index];
+
+        if (constructor.methodBody.jjtGetNumChildren() == 0)
+            return ConstructorArgs.DEFAULT;
+        // use default super constructor
+
+        // Determine if the constructor calls this() or super()
+        String altConstructor = null;
+        BSHArguments argsNode = null;
+        SimpleNode firstStatement = (SimpleNode) constructor.methodBody.jjtGetChild(0);
+        if (firstStatement instanceof BSHAssignment)
+            firstStatement = (SimpleNode) firstStatement.jjtGetChild(0);
+        if (firstStatement instanceof BSHPrimaryExpression)
+            firstStatement = (SimpleNode) firstStatement.jjtGetChild(0);
+
+        if (firstStatement instanceof BSHMethodInvocation) {
+            BSHMethodInvocation methodNode = (BSHMethodInvocation) firstStatement;
+            BSHAmbiguousName methodName = methodNode.getNameNode();
+            if (methodName.text.equals("super") || methodName.text.equals("this")) {
+                altConstructor = methodName.text;
+                argsNode = methodNode.getArgsNode();
+            }
+        }
+
+        if (altConstructor == null)
+            return ConstructorArgs.DEFAULT;
+        // use default super constructor
+
+        // Make a tmp namespace to hold the original constructor args for
+        // use in eval of the parameters node
+        NameSpace consArgsNameSpace = new NameSpace(classStaticThis.getNameSpace(), "consArgs");
+        String[] consArgNames = constructor.getParameterNames();
+        Class[] consArgTypes = constructor.getParameterTypes();
+        for (int i = 0; i < consArgs.length; i++) try {
+            consArgsNameSpace.setTypedVariable(consArgNames[i], consArgTypes[i], consArgs[i], null/*modifiers*/);
+        } catch (UtilEvalError e) {
+            throw new InterpreterError("err setting local cons arg:" + e, e);
+        }
+
+        // evaluate the args
+
+        CallStack callstack = new CallStack();
+        callstack.push(consArgsNameSpace);
+        Object[] args;
+        Interpreter interpreter = classStaticThis.declaringInterpreter;
+
+        try {
+            args = argsNode.getArguments(callstack, interpreter);
+        } catch (EvalError e) {
+            throw new InterpreterError("Error evaluating constructor args: " + e, e);
+        }
+
+        Class[] argTypes = Types.getTypes(args);
+        args = Primitive.unwrap(args);
+        Class superClass = interpreter.getClassManager().classForName(superClassName);
+        if (superClass == null)
+            throw new InterpreterError("can't find superclass: " + superClassName);
+
+        Constructor[] superCons = superClass.getDeclaredConstructors();
+
+        // find the matching super() constructor for the args
+        if (altConstructor.equals("super")) {
+            int i = Reflect.findMostSpecificConstructorIndex(argTypes, superCons);
+            if (i == -1)
+                throw new InterpreterError("can't find constructor for args!");
+            return new ConstructorArgs(i, args);
+        }
+
+        // find the matching this() constructor for the args
+        Class[][] candidates = new Class[constructors.length][];
+        for (int i = 0; i < candidates.length; i++)
+            candidates[i] = constructors[i].getParameterTypes();
+        int i = Reflect.findMostSpecificSignature(argTypes, candidates);
+        if (i == -1)
+            throw new InterpreterError("can't find constructor for args 2!");
+        // this() constructors come after super constructors in the table
+
+        int selector = i + superCons.length;
+        int ourSelector = index + superCons.length;
+
+        // Are we choosing ourselves recursively through a this() reference?
+        if (selector == ourSelector)
+            throw new InterpreterError("Recusive constructor call.");
+
+        return new ConstructorArgs(selector, args);
+    }
+
+    /**
+     * Initialize an instance of the class.
+     * This method is called from the generated class constructor to evaluate
+     * the instance initializer and scripted constructor in the instance
+     * namespace.
+     */
+    public static void initInstance(GeneratedClass instance, String className, Object[] args) {
+        try {
+            This instanceThis = initClassInstanceThis(instance, className);
+            NameSpace instanceNameSpace = instanceThis.getNameSpace();
+
+            // if this is a super constructor we need to initialize the parent's instance This
+            List<String> parentNames = new ArrayList<>();
+            Class<?> clas = instance.getClass();
+            while ( null != clas && !clas.getSimpleName().equals(className) ) {
+                parentNames.add(0, clas.getSimpleName());
+                clas = clas.getSuperclass();
+            }
+            parentNames.forEach(name -> initClassInstanceThis(instance, name));
+
+            if ( instanceNameSpace.isEnum ) {
+                Object a = instanceThis.declaringInterpreter.get(instance+"-args");
+                if ( null != a ) {
+                    args = (Object[]) a;
+                    instanceThis.declaringInterpreter.unset(instance+"-args");
+                }
+            }
+
+            // Find the constructor (now in the instance namespace)
+            BshMethod constructor = instanceNameSpace.getMethod(Types.getBaseName(className), Types.getTypes(args), true/*declaredOnly*/);
+
+            // if args, we must have constructor
+            if (args.length > 0 && constructor == null)
+                throw new InterpreterError("Can't find constructor: " + StringUtil.methodString(className, args) );
+
+            // Evaluate the constructor
+            if (constructor != null)
+                constructor.invoke(args, instanceThis.declaringInterpreter);
+
+            // Validate that final variables were set
+            for (Variable var : Reflect.getVariables(instance))
+                var.validateFinalIsSet(false);
+        } catch (Exception e) {
+            if (e instanceof TargetError)
+                e = (Exception) ((TargetError) e).getTarget();
+            if (e instanceof InvocationTargetException)
+                e = (Exception) ((InvocationTargetException) e).getTargetException();
+            throw new InterpreterError("Error in class initialization: " + e, e);
+        }
+    }
+
+
+    private static final ThreadLocal<NameSpace> CONTEXT_NAMESPACE = new ThreadLocal<>();
+    private static final ThreadLocal<Interpreter> CONTEXT_INTERPRETER = new ThreadLocal<>();
+
+
+    /**
+     * Register actual context, used by generated class constructor, which calls
+     * {@link #initInstance(GeneratedClass, String, Object[])}.
+     */
+    static void registerConstructorContext(CallStack callstack, Interpreter interpreter) {
+        if (callstack != null)
+            CONTEXT_NAMESPACE.set(callstack.top());
+        else
+            CONTEXT_NAMESPACE.remove();
+        if (interpreter != null)
+            CONTEXT_INTERPRETER.set(interpreter);
+        else
+            CONTEXT_INTERPRETER.remove();
+    }
+
+    /** Initialize the class instance This field and evaluate instance init block.
+     * @param instance the instance this from class <init>
+     * @param className the name of instance relative
+     * @return instance This */
+    private static This initClassInstanceThis(Object instance, String className) {
+        This instanceThis = getClassInstanceThis(instance, className);
+        if (null == instanceThis) {
+            // Create the instance 'This' namespace, set it on the object
+            // instance and invoke the instance initializer
+
+            // Get the static This reference from the proto-instance
+            This classStaticThis = getClassStaticThis(instance.getClass(), className);
+
+            // Create the instance namespace
+            NameSpace instanceNameSpace = classStaticThis.getNameSpace().copy();
+            if (CONTEXT_NAMESPACE.get() != null)
+                instanceNameSpace.setParent(CONTEXT_NAMESPACE.get());
+
+            // Set the instance This reference on the instance
+            if (null != CONTEXT_INTERPRETER.get())
+                instanceThis = instanceNameSpace.getThis(CONTEXT_INTERPRETER.get());
+            else
+                instanceThis = instanceNameSpace.getThis(classStaticThis.declaringInterpreter);
+            try {
+                LHS lhs = Reflect.getLHSObjectField(instance, BSHTHIS + className);
+                lhs.assign(instanceThis, false/*strict*/);
+            } catch (Exception e) {
+                throw new InterpreterError("Error in class gen setup: " + e, e);
+            }
+
+            // Give the instance space its object import
+            instanceNameSpace.setClassInstance(instance);
+
+            // Get the instance initializer block from the static This
+            BSHBlock instanceInitBlock;
+            try {
+                instanceInitBlock = (BSHBlock) classStaticThis.getNameSpace().getVariable(BSHINIT.toString());
+            } catch (Exception e) {
+                throw new InterpreterError("unable to get instance initializer: " + e, e);
+            }
+
+            // evaluate the instance portion of the block in it
+            try { // Evaluate the initializer block
+                instanceInitBlock.evalBlock(new CallStack(instanceNameSpace), instanceThis.declaringInterpreter, true/*override*/, CLASSINSTANCE);
+            } catch (Exception e) {
+                throw new InterpreterError("Error in class initialization: " + e, e);
+            }
+        }
+        return instanceThis;
+    }
+
+    /** Lazy initialize static context implementation.
+     * Called from <clinit> after static This was populated we will now
+     * proceed to evaluate the static block node.
+     * @param genClass the generated class.
+     * @param className name of the class.
+     * @throws UtilEvalError combined exceptions. */
+    public static void initStatic(Class<?> genClass) throws UtilEvalError {
+        String className = genClass.getSimpleName();
+        try {
+            This staticThis = getClassStaticThis(genClass, className);
+            NameSpace classStaticNameSpace = staticThis.getNameSpace();
+            Interpreter interpreter = staticThis.declaringInterpreter;
+
+            if (null == interpreter)
+                throw new UtilEvalError("No namespace or interpreter for statitc This."
+                        +" Start interpreter for class not implemented yet.");
+                //startInterpreterForClass(genClass); ???
+
+            BSHBlock block = (BSHBlock) classStaticNameSpace.getVariable(BSHINIT.toString());
+            CallStack callstack = new CallStack(classStaticNameSpace);
+
+            // evaluate the static portion of the block in the static space
+            block.evalBlock(callstack, interpreter, true/*override*/, CLASSSTATIC);
+
+            // Validate that static final variables were set
+            for (Variable var : Reflect.getVariables(classStaticNameSpace))
+                var.validateFinalIsSet(true);
+        } catch (Exception e) {
+            throw new UtilEvalError("Exception in static init block <clinit> for class "
+                    + className + ". With message: " + e.getMessage(), e);
+        }
+    }
+
+    /** Pull provider for class static This.
+     * Called from <clinit> to initialize class BSHSTATIC.
+     * @param uuid the class unique id.
+     * @return This from static namespace. */
+    public static This pullBshStatic(String uuid) {
+        if (contextStore.containsKey(uuid))
+            return contextStore.remove(uuid).getThis(null);
+        else
+            // we lost the context, provide empty
+            // container for static final field
+            return This.getThis(null, null);
+    }
+
+    /**
+     * Get the static bsh namespace field from the class.
+     * @param className may be the name of clas itself or a superclass of clas.
+     */
+    private static This getClassStaticThis(Class clas, String className) {
+        try {
+            return (This) Reflect.getStaticFieldValue(clas, BSHSTATIC + className);
+        } catch (Exception e) {
+            throw new InterpreterError("Unable to get class static space: " + e, e);
+        }
+    }
+
+    /**
+     * Get the instance bsh namespace field from the object instance.
+     * @return the class instance This object or null if the object has not
+     * been initialized.
+     */
+    static This getClassInstanceThis(Object instance, String className) {
+        try {
+            Object o = Reflect.getObjectFieldValue(instance, BSHTHIS + className);
+            return (This) Primitive.unwrap(o); // unwrap Primitive.Null to null
+        } catch (Exception e) {
+            throw new InterpreterError("Generated class: Error getting This" + e, e);
+        }
+    }
+
+    /**
+     * A ConstructorArgs object holds evaluated arguments for a constructor
+     * call as well as the index of a possible alternate selector to invoke.
+     * This object is used by the constructor switch.
+     * @see #generateConstructor( int , String [] , int , ClassWriter)
+     */
+    public static class ConstructorArgs {
+
+        /**
+         * A ConstructorArgs which calls the default constructor
+         */
+        public static final ConstructorArgs DEFAULT = new ConstructorArgs();
+
+        public int selector = DEFAULTCONSTRUCTOR;
+        Object[] args;
+        int arg;
+
+        /**
+         * The index of the constructor to call.
+         */
+
+        ConstructorArgs() { }
+
+        ConstructorArgs(int selector, Object[] args) {
+            this.selector = selector;
+            this.args = args;
+        }
+
+        Object next() {
+            return args[arg++];
+        }
+
+        public boolean getBoolean() {
+            return (Boolean) next();
+        }
+
+        public byte getByte() {
+            return ((Number) next()).byteValue();
+        }
+
+        public char getChar() {
+            return (Character) next();
+        }
+
+        public short getShort() {
+            return ((Number) next()).shortValue();
+        }
+
+        public int getInt() {
+            return ((Number) next()).intValue();
+        }
+
+        public long getLong() {
+            return ((Number) next()).longValue();
+        }
+
+        public double getDouble() {
+            return ((Number) next()).doubleValue();
+        }
+
+        public float getFloat() {
+            return ((Number) next()).floatValue();
+        }
+
+        public Object getObject() {
+            return next();
+        }
+    }
 }
 

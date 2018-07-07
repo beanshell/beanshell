@@ -28,10 +28,14 @@
 
 package bsh;
 
+import java.util.ArrayList;
+import java.util.List;
+
 class BSHBlock extends SimpleNode
 {
     public boolean isSynchronized = false;
     public boolean isStatic = false;
+    private static final List<SimpleNode> enumBlocks = new ArrayList<>();
 
     BSHBlock(int id) { super(id); }
 
@@ -115,6 +119,7 @@ class BSHBlock extends SimpleNode
             for(int i=startChild; i<numChildren; i++)
             {
                 SimpleNode node = ((SimpleNode)jjtGetChild(i));
+
                 if ( node instanceof BSHClassDeclaration )
                     continue;
 
@@ -122,12 +127,21 @@ class BSHBlock extends SimpleNode
                 if ( nodeFilter != null && !nodeFilter.isVisible( node ) )
                     continue;
 
+                // enum blocks need to override enum class members
+                // let the class finish initializing first
+                if (node instanceof BSHEnumConstant) {
+                    enumBlocks.add(node);
+                    continue;
+                }
+
                 ret = node.eval( callstack, interpreter );
 
                 // statement or embedded block evaluated a return statement
                 if ( ret instanceof ReturnControl )
                     break;
             }
+            while (!enumBlocks.isEmpty())
+                enumBlocks.remove(0).eval( callstack, interpreter );
         } finally {
             // make sure we put the namespace back when we leave.
             if ( !overrideNamespace )

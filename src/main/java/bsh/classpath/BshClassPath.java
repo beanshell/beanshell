@@ -42,7 +42,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -100,7 +99,7 @@ public class BshClassPath
     */
     private boolean nameCompletionIncludesUnqNames = true;
 
-    Vector listeners = new Vector();
+    Vector<WeakReference<ClassPathListener>> listeners = new Vector<>();
 
     // constructors
 
@@ -670,23 +669,22 @@ public class BshClassPath
     }
 
     public void addListener( ClassPathListener l ) {
-        listeners.addElement( new WeakReference(l) );
+        listeners.addElement( new WeakReference<ClassPathListener>(l) );
     }
     public void removeListener( ClassPathListener l ) {
-        listeners.removeElement( l );
+        for ( Iterator<WeakReference<ClassPathListener>> it = listeners.iterator() ;
+                it.hasNext() ; )
+            if (it.next().get() == l)
+                it.remove();
     }
-
-    /**
-    */
     void notifyListeners() {
-        for (Enumeration e = listeners.elements(); e.hasMoreElements(); ) {
-            WeakReference wr = (WeakReference)e.nextElement();
-            ClassPathListener l = (ClassPathListener)wr.get();
-            if ( l == null )  // garbage collected
-                listeners.removeElement( wr );
+        ClassPathListener l;
+        for ( Iterator<WeakReference<ClassPathListener>> it = listeners.iterator() ;
+                it.hasNext() ; )
+            if ((l = it.next().get()) == null)
+                it.remove();
             else
                 l.classPathChanged();
-        }
     }
 
     static BshClassPath userClassPath;
@@ -714,11 +712,8 @@ public class BshClassPath
         {
             try
             {
-                URL rtjar = getRTJarPath();
-                if (null != rtjar) {
-                    bootClassPath = new BshClassPath(
-                        "Boot Class Path", new URL[] { rtjar } );
-                }
+                bootClassPath = new BshClassPath(
+                        "Boot Class Path", new URL[] { getRTJarPath() } );
             } catch ( MalformedURLException e ) {
                 throw new ClassPathException(" can't find boot jar: "+e, e);
             }
@@ -732,15 +727,8 @@ public class BshClassPath
         String urlString =
             Class.class.getResource("/java/lang/String.class").toExternalForm();
 
-        if ( urlString.startsWith("jrt:/") ) {
-            int i = urlString.indexOf('/', 5);
-            if ( i == -1 )
-                return null;
-            return new URL(urlString.substring(0, i));
-        }
-
-        if ( !urlString.startsWith("jar:file:") )
-            return null;
+        if ( urlString.startsWith("jrt:/") )
+            return new URL(urlString.substring(0, urlString.indexOf('/', 5)));
 
         return new URL(urlString.replaceFirst("[^!]*$", "/"));
     }
@@ -753,13 +741,15 @@ public class BshClassPath
     public static class JarClassSource extends ClassSource {
         JarClassSource( URL url ) { source = url; }
         public URL getURL() { return (URL)source; }
-        /*
-            Note: we should implement this for consistency, however our
-            BshClassLoader can natively load from a JAR because it is a
-            URLClassLoader... so it may be better to allow it to do it.
-        */
         public byte [] getCode( String className ) {
-            throw new Error("Unimplemented");
+            String n = '/' + className.replace( '.', '/' ) + ".class";
+            try (DataInputStream in = new DataInputStream(
+                    this.getClass().getResourceAsStream(n))) {
+                byte[] bytes = new byte[in.available()];
+                in.readFully(bytes);
+                return bytes;
+            } catch (IOException e) { /* ignore */ }
+            return new byte[0];
         }
         public String toString() { return "Jar: "+source; }
     }
@@ -808,7 +798,8 @@ public class BshClassPath
 
         public byte [] getCode( String className ) {
             String n = '/' + className.replace( '.', '/' ) + ".class";
-            try (DataInputStream in = new DataInputStream((InputStream) new URL(source + n).getContent())) {
+            try (DataInputStream in = new DataInputStream(
+                    (InputStream) new URL(source + n).getContent())) {
                 byte[] bytes = new byte[in.available()];
                 in.readFully(bytes);
                 return bytes;
@@ -825,13 +816,6 @@ public class BshClassPath
         public byte [] getCode( String className ) {
             return (byte [])source;
         }
-    }
-
-    public static void main( String [] args ) throws Exception {
-        URL [] urls = new URL [ args.length ];
-        for(int i=0; i< args.length; i++)
-            urls[i] =  new File(args[i]).toURI().toURL();
-        BshClassPath bcp = new BshClassPath( "Test", urls );
     }
 
     public String toString() {
