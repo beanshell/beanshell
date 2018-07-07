@@ -143,11 +143,12 @@ public class Interpreter
 
     /* --- Instance data --- */
 
-    transient Parser parser;
+    protected transient Parser parser;
+    protected transient Reader in;
+    protected transient PrintStream out;
+    protected transient PrintStream err;
+
     NameSpace globalNameSpace;
-    transient Reader in;
-    transient PrintStream out;
-    transient PrintStream err;
     ConsoleInterface console;
 
     /** If this interpeter is a child of another, the parent */
@@ -161,7 +162,8 @@ public class Interpreter
 
     protected boolean
         evalOnly,       // Interpreter has no input stream, use eval() only
-        interactive;    // Interpreter has a user, print prompts, etc.
+        interactive,    // Interpreter has a user, print prompts, etc.
+        interrupted;    // An external action required the Interpreter to interrupt current parsing/execution
 
     /** Control the verbose printing of results for the show() command. */
     private boolean showResults = true;
@@ -460,7 +462,7 @@ public class Interpreter
 
                 eof = isEOF();
 
-                if( get_jjtree().nodeArity() > 0 )  // number of child nodes
+                if( !interrupted && get_jjtree().nodeArity() > 0 )  // number of child nodes
                 {
 
                     node = (SimpleNode)(get_jjtree().rootNode());
@@ -491,7 +493,7 @@ public class Interpreter
             }
             catch(ParseException e)
             {
-                if ( !interactive || !e.getMessage().contains("<EOF>") )
+                if ( !interactive && !interrupted )
                     error("Parser Error: " + e.getMessage(DEBUG.get()));
                 if ( DEBUG.get() )
                     e.printStackTrace();
@@ -525,6 +527,12 @@ public class Interpreter
                 if(!interactive)
                     eof = true;
             }
+            catch (TokenMgrException e) {
+                if ( DEBUG.get() )
+                    e.printStackTrace();
+                if(!interactive)
+                    eof = true;
+            }
             catch(Exception e)
             {
                 error("Unknown error: " + e);
@@ -541,6 +549,7 @@ public class Interpreter
                     callstack.clear();
                     callstack.push( globalNameSpace );
                 }
+                interrupted = false;
             }
         }
 
@@ -1159,6 +1168,27 @@ public class Interpreter
     }
 
     /**
+     * Interrupt the current parsing even if blocked reading from the input
+     * stream. It does not stop a long operation that is being executed.
+     *
+     * Once interrupted the input stream and the parser become invalid and can
+     * not be used any more.
+     *
+     * Override this basic implementation for more sophisticated policy.
+     */
+    protected void interrupt() {
+        println("... interrupted ...");
+
+        try {
+            interrupted = true;
+            in.close();
+        } catch (IOException x) {
+            // nothing to do...
+            x.printStackTrace();
+        }
+    }
+
+    /**
         De-serialization setup.
         Default out and err streams to stdout, stderr if they are null.
     */
@@ -1254,5 +1284,14 @@ public class Interpreter
     public static boolean getSaveClasses()  {
         return getSaveClassesDir() != null && !getSaveClassesDir().isEmpty();
     }
-}
 
+    public void resetParser(Reader in) {
+        try {
+            this.in.close();
+        } catch (IOException x) {
+            // nothing to do...
+        }
+        this.in = in;
+        parser = new Parser(in);
+    }
+}

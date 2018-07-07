@@ -20,11 +20,14 @@
 
 package bsh;
 
-import org.junit.Test;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.io.StringReader;
+import java.lang.ref.WeakReference;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-
-import java.lang.ref.WeakReference;
+import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 
 public class InterpreterTest {
 
@@ -52,4 +55,61 @@ public class InterpreterTest {
         assertEquals(Boolean.FALSE, TestUtil.eval("return bsh.system.shutdownOnExit;"));
     }
 
+    @Test
+    public void interrupt_on_tokenizing() throws Exception {
+        final StringReader in = new StringReader("print(\"\n");
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        Interpreter bsh = new Interpreter(in, new PrintStream(baos), System.err, false);
+
+        Thread t = new Thread(bsh);
+        t.start();
+
+        Thread.sleep(250); // give Interpreter eom time to set itself up
+
+        //
+        // now the interpreter should be on a blocking read; we interrupt it,
+        // give it some time to make the magic and make sure it tells us about it
+        //
+        bsh.interrupt(); Thread.sleep(250);
+
+        assertTrue(baos.toString().contains("... interrupted ..."));
+        assertTrue(!baos.toString().contains("Parser Error:"));
+
+        //
+        // we should also be able to issue new statements, but this would require
+        // some more refactoring, let's defer it to the next iteration
+        //
+    }
+
+    @Test
+    public void interrupt_on_parsing() throws Exception {
+        final StringReader in = new StringReader("class A {\n"); // generate a ParseException
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final ByteArrayOutputStream err = new ByteArrayOutputStream();
+
+        Interpreter bsh = new Interpreter(in, new PrintStream(out), new PrintStream(err), false);
+
+        //
+        // A ParseException after interrupt() is most likely due to the
+        // interruption and the error should be muted
+        //
+        bsh.interrupt(); // to make it easy let's make sure we start interrupted
+
+        Thread t = new Thread(bsh);
+        t.start();
+
+        Thread.sleep(250); // give Interpreter eom time to set itself up
+
+        String stdout = out.toString();
+        String stderr = err.toString();
+        System.out.println(">>" + stdout + "<<\n>>" + stderr + "<<");
+        assertTrue(stdout.contains("... interrupted ..."));
+        assertTrue(!stderr.contains("Parser Error:"));
+
+        //
+        // we should also be able to issue new statements, but this would require
+        // some more refactoring, let's defer it to the next iteration
+        //
+    }
 }
