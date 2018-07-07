@@ -20,13 +20,9 @@
 
 package bsh;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -36,21 +32,6 @@ import org.junit.Test;
  *
  */
 public class BshSerializationTest {
-    /**
-     * Serializes and then deserializes the given Interpreter.
-     *
-     * @param origInterpreter
-     * @return
-     * @throws IOException
-     * @throws ClassNotFoundException
-     */
-    private Interpreter serDeser(Interpreter origInterpreter) throws IOException, ClassNotFoundException
-    {
-        ByteArrayOutputStream byteOS = new ByteArrayOutputStream();
-        new ObjectOutputStream(byteOS).writeObject(origInterpreter);
-        return (Interpreter) new ObjectInputStream(
-                new ByteArrayInputStream(byteOS.toByteArray())).readObject();
-    }
 
     /**
      * Tests that Special.NULL_VALUE is correctly serialized/deserialized
@@ -60,9 +41,9 @@ public class BshSerializationTest {
     public void testNullValueSerialization() throws Exception {
         final Interpreter origInterpreter = new Interpreter();
         origInterpreter.eval("myNull = null;");
-        Assert.assertNull(origInterpreter.eval("myNull"));
+        assertNull(origInterpreter.eval("myNull"));
         final Interpreter deserInterpreter = TestUtil.serDeser(origInterpreter);
-        Assert.assertNull(deserInterpreter.eval("myNull"));
+        assertNull(deserInterpreter.eval("myNull"));
         origInterpreter.close();
         deserInterpreter.close();
     }
@@ -75,9 +56,23 @@ public class BshSerializationTest {
     public void testSpecialNullSerialization() throws Exception {
         final Interpreter originalInterpreter = new Interpreter();
         originalInterpreter.eval("myNull = null;");
-        Assert.assertTrue((Boolean) originalInterpreter.eval("myNull == null"));
+        assertTrue((Boolean) originalInterpreter.eval("myNull == null"));
         final Interpreter deserInterpreter = TestUtil.serDeser(originalInterpreter);
-        Assert.assertTrue((Boolean) deserInterpreter.eval("myNull == null"));
+        assertTrue((Boolean) deserInterpreter.eval("myNull == null"));
+        originalInterpreter.close();
+        deserInterpreter.close();
+    }
+
+    /**
+     * Tests that Primitive.VOID is correctly serialized/deserialized
+     * @throws Exception in case of failure
+     */
+    @Test
+    public void testSpecialVoidSerialization() throws Exception {
+        final Interpreter originalInterpreter = new Interpreter();
+        assertTrue((Boolean) originalInterpreter.eval("myVoid == void"));
+        final Interpreter deserInterpreter = TestUtil.serDeser(originalInterpreter);
+        assertTrue((Boolean) deserInterpreter.eval("myVoid == void"));
         originalInterpreter.close();
         deserInterpreter.close();
     }

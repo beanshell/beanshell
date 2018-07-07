@@ -32,9 +32,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FilterInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
@@ -111,7 +109,8 @@ public class Interpreter
         reference in some way to determine the scope of the command that
         turns it on or off.
     */
-    public static boolean DEBUG, TRACE;
+    public static final ThreadLocal<Boolean> DEBUG = ThreadLocal.withInitial(()->Boolean.FALSE);
+    public static boolean TRACE;
     public static boolean COMPATIBIILTY;
 
     // This should be per instance
@@ -144,11 +143,12 @@ public class Interpreter
 
     /* --- Instance data --- */
 
-    transient Parser parser;
+    protected transient Parser parser;
+    protected transient Reader in;
+    protected transient PrintStream out;
+    protected transient PrintStream err;
+
     NameSpace globalNameSpace;
-    transient Reader in;
-    transient PrintStream out;
-    transient PrintStream err;
     ConsoleInterface console;
 
     /** If this interpeter is a child of another, the parent */
@@ -162,7 +162,8 @@ public class Interpreter
 
     protected boolean
         evalOnly,       // Interpreter has no input stream, use eval() only
-        interactive;    // Interpreter has a user, print prompts, etc.
+        interactive,    // Interpreter has a user, print prompts, etc.
+        interrupted;    // An external action required the Interpreter to interrupt current parsing/execution
 
     /** Control the verbose printing of results for the show() command. */
     private boolean showResults = true;
@@ -195,12 +196,10 @@ public class Interpreter
         boolean interactive, NameSpace namespace,
         Interpreter parent, String sourceFileInfo )
     {
-        //System.out.println("New Interpreter: "+this +", sourcefile = "+sourceFileInfo );
         parser = new Parser( in );
         long t1 = 0;
-        if (Interpreter.DEBUG) {
+        if (Interpreter.DEBUG.get())
             t1=System.currentTimeMillis();
-        }
         this.in = in;
         this.out = out;
         this.err = err;
@@ -209,39 +208,28 @@ public class Interpreter
         this.parent = parent;
         if ( parent != null )
             setStrictJava( parent.getStrictJava() );
+
         this.sourceFileInfo = sourceFileInfo;
 
         BshClassManager bcm = BshClassManager.createClassManager( this );
+
         if ( namespace == null ) {
             globalNameSpace = new NameSpace(namespace, bcm, "global");
             initRootSystemObject();
-        } else {
+        } else try {
             globalNameSpace = namespace;
-            try {
-                if ( ! (globalNameSpace.getVariable("bsh") instanceof This)) {
-                    initRootSystemObject();
-                }
-            } catch (final UtilEvalError e) {
-                throw new IllegalStateException(e);
-            }
+            if ( ! (globalNameSpace.getVariable("bsh") instanceof This) )
+                initRootSystemObject();
+        } catch (final UtilEvalError e) {
+            throw new IllegalStateException(e);
         }
-        // now done in NameSpace automatically when root
-        // The classes which are imported by default
-        //globalNameSpace.loadDefaultImports();
-
-        /*
-            Create the root "bsh" system object if it doesn't exist.
-        */
-        if ( ! ( getu("bsh") instanceof bsh.This ) )
-            initRootSystemObject();
 
         if ( interactive )
             loadRCFiles();
 
-        if ( Interpreter.DEBUG ) {
-            long t2=System.currentTimeMillis();
-            Interpreter.debug("Time to initialize interpreter: "+(t2-t1));
-        }
+        if ( Interpreter.DEBUG.get() )
+            Interpreter.debug("Time to initialize interpreter: ",
+                    (System.currentTimeMillis() - t1));
     }
 
     public Interpreter(
@@ -259,14 +247,22 @@ public class Interpreter
 
     /**
         Construct a new interactive interpreter attached to the specified
+        console using the specified parent namespace and parent interpreter.
+    */
+    public Interpreter(ConsoleInterface console, NameSpace globalNameSpace, Interpreter interpreter) {
+
+        this( console.getIn(), console.getOut(), console.getErr(),
+            true, globalNameSpace, interpreter, null );
+
+        setConsole( console );
+    }
+
+    /**
+        Construct a new interactive interpreter attached to the specified
         console using the specified parent namespace.
     */
     public Interpreter(ConsoleInterface console, NameSpace globalNameSpace) {
-
-        this( console.getIn(), console.getOut(), console.getErr(),
-            true, globalNameSpace );
-
-        setConsole( console );
+        this( console, globalNameSpace, null );
     }
 
     /**
@@ -274,7 +270,7 @@ public class Interpreter
         console.
     */
     public Interpreter(ConsoleInterface console) {
-        this(console, null);
+        this( console, null );
     }
 
     /**
@@ -318,17 +314,13 @@ public class Interpreter
         setu( "bsh.help", helpText );
 
         // bsh.cwd
-        try {
-            setu( "bsh.cwd", System.getProperty("user.dir") );
-        } catch ( SecurityException e ) {
-            // applets can't see sys props
-            setu( "bsh.cwd", "." );
-        }
+        setu( "bsh.cwd", System.getProperty("user.dir") );
 
         // bsh.interactive
         setu( "bsh.interactive", interactive ? Primitive.TRUE : Primitive.FALSE );
+
         // bsh.evalOnly
-        setu( "bsh.evalOnly", evalOnly ? Primitive.TRUE : Primitive.FALSE );
+        setu( "bsh.evalOnly", Primitive.FALSE );
     }
 
     /**
@@ -385,7 +377,6 @@ public class Interpreter
                 bshArgs = new String [0];
 
             try (Interpreter interpreter = new Interpreter()) {
-                //System.out.println("run i = "+interpreter);
                 interpreter.setu( "bsh.args", bshArgs );
                 Object result =
                     interpreter.source( filename, interpreter.globalNameSpace );
@@ -406,7 +397,7 @@ public class Interpreter
             } catch ( TargetError e ) {
                 System.err.println("Script threw exception: "+e);
                 if ( e.inNativeCode() )
-                    e.printStackTrace( DEBUG, System.err );
+                    e.printStackTrace( DEBUG.get(), System.err );
             } catch ( EvalError e ) {
                 System.err.println("Evaluation Error: "+e);
             } catch ( IOException e ) {
@@ -414,23 +405,10 @@ public class Interpreter
             }
         } else
         {
-            // Workaround for JDK bug 4071281, where system.in.available()
-            // returns too large a value. This bug has been fixed in JDK 1.2.
-            InputStream src;
-            if ( System.getProperty("os.name").startsWith("Windows")
-                && System.getProperty("java.version").startsWith("1.1."))
-            {
-                src = new FilterInputStream(System.in) {
-                    public int available() throws IOException {
-                        return 0;
-                    }
-                };
-            }
-            else
-                src = System.in;
 
             try (Interpreter interpreter =
-                new Interpreter( new CommandLineReader( new InputStreamReader(src)),
+                new Interpreter( new CommandLineReader(
+                        new InputStreamReader(System.in)),
                         System.out, System.err, true )) {
                 interpreter.run();
             } catch (IOException e) {
@@ -474,33 +452,25 @@ public class Interpreter
 
         SimpleNode node = null;
         boolean eof = false;
+        int idx = -1;
         while( !Thread.interrupted() && !eof )
         {
             try
             {
-                // try to sync up the console
-                System.out.flush();
-                System.err.flush();
-                Thread.yield();  // this helps a little
-
                 if ( interactive )
                     print( getBshPrompt() );
 
-                eof = Line();
+                eof = isEOF();
 
-                if( get_jjtree().nodeArity() > 0 )  // number of child nodes
+                if( !interrupted && get_jjtree().nodeArity() > 0 )  // number of child nodes
                 {
-                    if( node != null )
-                        node.lastToken.next = null;  // prevent OutOfMemoryError
 
                     node = (SimpleNode)(get_jjtree().rootNode());
 
-                    if(DEBUG)
+                    if(DEBUG.get())
                         node.dump(">");
 
                     Object ret = node.eval( callstack, this );
-
-                    node.lastToken.next = null;  // prevent OutOfMemoryError
 
                     // sanity check during development
                     if ( callstack.depth() > 1 )
@@ -513,19 +483,22 @@ public class Interpreter
                     if( ret != Primitive.VOID )
                     {
                         setu("$_", ret);
-                    }
-                    if ( showResults )
-                        println("--> " + ret + " : " + StringUtil.typeString(ret));
+                        if (interactive)
+                            setu("$"+(++idx%10), ret);
+                        if ( showResults )
+                            println("--> $" + (idx%10) + " = " + StringUtil.typeValueString(ret));
+                    } else if ( showResults )
+                        println("--> void");
                 }
             }
             catch(ParseException e)
             {
-                error("Parser Error: " + e.getMessage(DEBUG));
-                if ( DEBUG )
+                if ( !interactive && !interrupted )
+                    error("Parser Error: " + e.getMessage(DEBUG.get()));
+                if ( DEBUG.get() )
                     e.printStackTrace();
-                if(!interactive)
+                if( !interactive )
                     eof = true;
-
                 parser.reInitInput(in);
             }
             catch(InterpreterError e)
@@ -536,9 +509,9 @@ public class Interpreter
             }
             catch(TargetError e)
             {
-                error("// Uncaught Exception: " + e );
+                error("Target Exception: " + e.getMessage() );
                 if ( e.inNativeCode() )
-                    e.printStackTrace( DEBUG, err );
+                    e.printStackTrace( DEBUG.get(), err );
                 if(!interactive)
                     eof = true;
                 setu("$_e", e.getTarget());
@@ -546,20 +519,24 @@ public class Interpreter
             catch (EvalError e)
             {
                 if ( interactive )
-                    error( "EvalError: "+e.getMessage() );
+                    error( "Evaluation Error: "+e.getMessage() );
                 else
-                    error( "EvalError: "+e.getRawMessage() );
-
-                if(DEBUG)
+                    error( "Evaluation Error: "+e.getRawMessage() );
+                if(DEBUG.get())
                     e.printStackTrace();
-
+                if(!interactive)
+                    eof = true;
+            }
+            catch (TokenMgrException e) {
+                if ( DEBUG.get() )
+                    e.printStackTrace();
                 if(!interactive)
                     eof = true;
             }
             catch(Exception e)
             {
                 error("Unknown error: " + e);
-                if ( DEBUG )
+                if ( DEBUG.get() )
                     e.printStackTrace();
                 if(!interactive)
                     eof = true;
@@ -572,6 +549,7 @@ public class Interpreter
                     callstack.clear();
                     callstack.push( globalNameSpace );
                 }
+                interrupted = false;
             }
         }
 
@@ -588,7 +566,7 @@ public class Interpreter
         throws FileNotFoundException, IOException, EvalError
     {
         File file = pathToFile( filename );
-        if ( Interpreter.DEBUG ) debug("Sourcing file: "+file);
+        Interpreter.debug("Sourcing file: ", file);
         Reader sourceIn = new BufferedReader( new FileReader(file) );
         try {
             return eval( sourceIn, nameSpace, filename );
@@ -636,7 +614,7 @@ public class Interpreter
         throws EvalError
     {
         Object retVal = null;
-        if ( Interpreter.DEBUG ) debug("eval: nameSpace = "+nameSpace);
+        Interpreter.debug("eval: nameSpace = ", nameSpace);
 
         /*
             Create non-interactive local interpreter for this namespace
@@ -650,11 +628,11 @@ public class Interpreter
 
             SimpleNode node = null;
             boolean eof = false;
-            while(!eof)
+            while( !Thread.interrupted() && !eof )
             {
                 try
                 {
-                    eof = localInterpreter.Line();
+                    eof = localInterpreter.isEOF();
                     if (localInterpreter.get_jjtree().nodeArity() > 0)
                     {
                         if( node != null )
@@ -678,25 +656,15 @@ public class Interpreter
                             retVal = ((ReturnControl)retVal).value;
                             break; // non-interactive, return control now
                         }
-
-                       // if ( localInterpreter.showResults
-                       //     && retVal != Primitive.VOID )
-                           // println("<" + retVal + ">");
                     }
                 } catch(ParseException e) {
-                    /*
-                    throw new EvalError(
-                        "Sourced file: "+sourceFileInfo+" parser Error: "
-                        + e.getMessage( DEBUG ), node, callstack );
-                    */
-                    if ( DEBUG )
+                    if ( DEBUG.get() )
                         // show extra "expecting..." info
-                        error( e.getMessage(DEBUG) );
+                        error( e.getMessage(DEBUG.get()) );
 
                     // add the source file info and throw again
                     e.setErrorSourceFile( sourceFileInfo );
                     throw e;
-
                 } catch ( InterpreterError e ) {
                     throw new EvalError(
                         "Sourced file: "+sourceFileInfo+" internal Error: "
@@ -707,14 +675,14 @@ public class Interpreter
                         e.setNode( node );
                     e.reThrow("Sourced file: "+sourceFileInfo);
                 } catch ( EvalError e) {
-                    if ( DEBUG)
+                    if ( DEBUG.get())
                         e.printStackTrace();
                     // failsafe, set the Line as the origin of the error.
                     if ( e.getNode()==null )
                         e.setNode( node );
                     e.reThrow( "Sourced file: "+sourceFileInfo );
                 } catch ( Exception e) {
-                    if ( DEBUG)
+                    if ( DEBUG.get())
                         e.printStackTrace();
                     throw new EvalError(
                         "Sourced file: "+sourceFileInfo+" unknown error: "
@@ -751,7 +719,7 @@ public class Interpreter
         Evaluate the string in this interpreter's global namespace.
     */
     public Object eval( String statements ) throws EvalError {
-        if ( Interpreter.DEBUG ) debug("eval(String): "+statements);
+        Interpreter.debug("eval(String): ", statements);
         return eval(statements, globalNameSpace);
     }
 
@@ -761,7 +729,6 @@ public class Interpreter
     public Object eval( String statements, NameSpace nameSpace )
         throws EvalError
     {
-
         String s = ( statements.endsWith(";") ? statements : statements+";" );
         return eval(
             new StringReader(s), nameSpace,
@@ -854,10 +821,14 @@ public class Interpreter
         Print a debug message on debug stream associated with this interpreter
         only if debugging is turned on.
     */
-    public final static void debug(String s)
+    public final static void debug(Object... msg)
     {
-        if ( DEBUG )
-            debug.println("// Debug: " + s);
+        if ( DEBUG.get() ) {
+            StringBuilder sb = new StringBuilder();
+            for ( Object m : msg )
+                sb.append(m);
+            debug.println("// Debug: " + sb.toString());
+        }
     }
 
     /*
@@ -961,7 +932,6 @@ public class Interpreter
                 throw new EvalError("Can't unset, not a variable: "+name,
                     SimpleNode.JAVACODE, new CallStack());
 
-            //lhs.assign( null, false );
             lhs.nameSpace.unsetVariable( name );
         } catch ( UtilEvalError e ) {
             throw new EvalError( e.getMessage(),
@@ -1032,7 +1002,7 @@ public class Interpreter
         return parser.jjtree;
     }
 
-    private boolean Line() throws ParseException {
+    private boolean isEOF() throws ParseException {
         return parser.Line();
     }
 
@@ -1040,13 +1010,13 @@ public class Interpreter
 
     void loadRCFiles() {
         try {
+            // Default is c:\windows under win98, $HOME under Unix
             String rcfile =
-                // Default is c:\windows under win98, $HOME under Unix
                 System.getProperty("user.home") + File.separator + ".bshrc";
             source( rcfile, globalNameSpace );
         } catch ( Exception e ) {
             // squeltch security exception, filenotfoundexception
-            if ( Interpreter.DEBUG ) debug("Could not find rc file: "+e);
+            Interpreter.debug("Could not find rc file: ", e);
         }
     }
 
@@ -1147,7 +1117,7 @@ public class Interpreter
         try {
             systemLineSeparator = System.getProperty("line.separator");
             debug = System.err;
-            DEBUG = Boolean.getBoolean("debug");
+            DEBUG.set(Boolean.getBoolean("debug"));
             TRACE = Boolean.getBoolean("trace");
             COMPATIBIILTY = Boolean.getBoolean("bsh.compatibility");
             String outfilename = System.getProperty("outfile");
@@ -1195,6 +1165,27 @@ public class Interpreter
     }
     public void setErr( PrintStream err ) {
         this.err = err;
+    }
+
+    /**
+     * Interrupt the current parsing even if blocked reading from the input
+     * stream. It does not stop a long operation that is being executed.
+     *
+     * Once interrupted the input stream and the parser become invalid and can
+     * not be used any more.
+     *
+     * Override this basic implementation for more sophisticated policy.
+     */
+    protected void interrupt() {
+        println("... interrupted ...");
+
+        try {
+            interrupted = true;
+            in.close();
+        } catch (IOException x) {
+            // nothing to do...
+            x.printStackTrace();
+        }
     }
 
     /**
@@ -1293,5 +1284,14 @@ public class Interpreter
     public static boolean getSaveClasses()  {
         return getSaveClassesDir() != null && !getSaveClassesDir().isEmpty();
     }
-}
 
+    public void resetParser(Reader in) {
+        try {
+            this.in.close();
+        } catch (IOException x) {
+            // nothing to do...
+        }
+        this.in = in;
+        parser = new Parser(in);
+    }
+}

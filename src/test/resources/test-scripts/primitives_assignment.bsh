@@ -67,6 +67,10 @@ assertFalse(a == 1);
 assertFalse(d == 1.0);
 assertFalse(f == 1.0);
 assertFalse(l == 1L);
+assertTrue(true == true);
+assertTrue(false == false);
+assertFalse(true == false);
+assertFalse(false == true);
 
 // LE: "<="
 assertTrue(a <= 2);
@@ -114,19 +118,27 @@ assertFalse(true != true);
 
 // BOOL_OR: "||"
 assertTrue(false || true);
+assertTrue(true || false);
+assertTrue(true || true);
 assertFalse(false || false);
 
 // BOOL_ORX: "@or"
 assertTrue(false @or true);
 assertFalse(false @or false);
+assertTrue(true @or false);
+assertTrue(true @or true);
 
 // BOOL_AND: "&&"
 assertTrue(true && true);
 assertFalse(true && false);
+assertFalse(false && false);
+assertFalse(false && true);
 
 // BOOL_ANDX: "@and"
 assertTrue(true @and true);
 assertFalse(true @and false);
+assertFalse(false @and false);
+assertFalse(false @and true);
 
 // INCR: "++"
 assertEquals(3, ++a);
@@ -177,6 +189,9 @@ assertEquals(1, a - 1);
 assertEquals(1.0, d - 1.0, ddelta);
 assertEquals(1.0, f - 1.0, fdelta);
 assertEquals(1L, l - 1L);
+assertEquals(-3L, -2L - 1L);
+assertEquals(2L, 3L - 1L);
+assertEquals(-4L, -3L - 1L);
 assertEquals(-2, -a);
 assertEquals(-2.0, -d, ddelta);
 assertEquals(-2.0, -f, fdelta);
@@ -413,10 +428,6 @@ assertEquals("void", void.toString());
 
 assertEquals(0, a.numberValue());
 assertEquals(2, c.numberValue());
-assertTrue(isEvalError("Primitive not a number", "false.numberValue();"));
-assertTrue(isEvalError("Primitive not a boolean", "a.booleanValue();"));
-assertTrue(isEvalError("Primitive not a number", "false.intValue();"));
-assertTrue(isEvalError("attempt to unwrap void type", "void.getValue();"));
 
 assertFalse(Primitive.getDefaultValue(Boolean.TYPE));
 assertNull(Primitive.getDefaultValue(String.class));
@@ -431,41 +442,49 @@ assertEquals(0, Primitive.getDefaultValue(Float.TYPE), fdelta);
 assertTrue(Primitive.isWrapperType(Integer.class));
 assertFalse(Primitive.isWrapperType(Void.TYPE));
 assertFalse(Primitive.isWrapperType(String.class));
+assertFalse(Primitive.isWrapperType(null));
+
+assertFalse(void.isNumber());
 
 assertEquals(Integer.class, Primitive.boxType(Integer.TYPE));
-assertTrue(isEvalError("Not a primitive type: class java.lang.String", "Primitive.boxType(String.class);"));
-assertTrue(isEvalError("Not a primitive wrapper type: class java.lang.String", "Primitive.unboxType(String.class);"));
 assertEquals(0, a.hashCode());
 assertFalse(void.equals(1));
+assertEquals("void", void.toString());
+assertEquals("null", ""+null);
+assertEquals(Void.TYPE, void.getType());
 
-
-assertTrue(isEvalError("Use of non + operator with String LHS", "str = 'ss'; str -= 'ss';"));
-assertTrue(isEvalError("Void assignment.", "a += void;"));
-assertTrue(isEvalError("Can't assign to prefix.", "void += a;"));
-assertTrue(isEvalError("illegal use of undefined variable, class, or 'void' literal", "a + void;"));
-assertTrue(isEvalError("illegal use of undefined variable, class, or 'void' literal", "2 << void;"));
-assertTrue(isEvalError("illegal use of undefined variable, class, or 'void' literal", "void || void;"));
-assertTrue(isEvalError("illegal use of undefined object or 'void' literal", "~void;"));
-assertTrue(isEvalError("illegal use of null value or 'null' literal", "a + null;"));
-assertTrue(isEvalError("illegal use of null value or 'null' literal", "null && null;"));
-assertTrue(isEvalError("Illegal use of null object or 'null' literal", "a += null;"));
-assertTrue(isEvalError("illegal use of null object or 'null' literal", "~null;"));
-
-assertTrue(isEvalError("Can't shift floatingpoint values", "d << 2.0;"));
-assertTrue(isEvalError("Can't shift floatingpoint values", "2 << 2E606;"));
-assertTrue(isEvalError("Type mismatch in operator.", "a << true;"));
-assertTrue(isEvalError("Operator inappropriate for boolean", "~true;"));
-
-assertTrue(isEvalError("bad integer unaryOperation", "!a;"));
-assertTrue(isEvalError("bad long unaryOperation", "!l;"));
-assertTrue(isEvalError("bad double unaryOperation", "!d;"));
-assertTrue(isEvalError("bad float unaryOperation", "!f;"));
-assertTrue(isEvalError("bad big integer unaryOperation", "!9223372036854775810;"));
-assertTrue(isEvalError("bad big decimal unaryOperation", "!2E606;"));
-
-assertTrue(isEvalError("Use Primitve.NULL instead of Primitive(null)", "new Primitive(null);"));
-//new Primitive('Not It');
-//assertTrue(isEvalError("Not a wrapper type: class java.lang.String", "new Primitive('Not It');"));
+assert(isEvalError("Can only shrink wrap Number types", "Primitive.shrinkWrap('');"));
+assert(isEvalError("Not a primitive type: class java.lang.String", "Primitive.boxType(String.class);"));
+assert(isEvalError("Not a primitive wrapper type: class java.lang.String", "Primitive.unboxType(String.class);"));
+assert(isEvalError("Use of non + operator with String LHS", "str = 'ss'; str -= 'ss';"));
+assert(isEvalError("Void assignment.", "a += void;"));
+assert(isEvalError("Can't assign to prefix.", "void += a;"));
+assert(isEvalError("illegal use of undefined variable, class, or 'void' literal", "a + void;"));
+assert(isEvalError("illegal use of undefined variable, class, or 'void' literal", "2 << void;"));
+assert(isEvalError("illegal use of undefined variable, class, or 'void' literal", "void || void;"));
+assert(isEvalError("illegal use of undefined object or 'void' literal", "~void;"));
+assert(isEvalError("illegal use of null value or 'null' literal", "a + null;"));
+assert(isEvalError("illegal use of null value or 'null' literal", "null && null;"));
+assert(isEvalError("Illegal use of null object or 'null' literal", "a += null;"));
+assert(isEvalError("illegal use of null object or 'null' literal", "~null;"));
+assert(isEvalError("Cannot cast primitive value to object type java.lang.String", "String sss = true;"));
+assert(isEvalError("Cannot cast java.lang.String to boolean", "(boolean) 'true';"));
+assert(isEvalError("cannot assign number 4 to type Number", "(Number) 4s;"));
+assert(isEvalError("Primitive not a number", "false.numberValue();"));
+assert(isEvalError("Primitive not a boolean", "a.booleanValue();"));
+assert(isEvalError("Primitive not a number", "false.intValue();"));
+assert(isEvalError("attempt to unwrap void type", "void.getValue();"));
+assert(isEvalError("Can't shift floatingpoint values", "d << 2.0;"));
+assert(isEvalError("Can't shift floatingpoint values", "2 << 2E606;"));
+assert(isEvalError("Type mismatch in operator.", "a << true;"));
+assert(isEvalError("Operator inappropriate for boolean", "~true;"));
+assert(isEvalError("bad integer unaryOperation", "!a;"));
+assert(isEvalError("bad long unaryOperation", "!l;"));
+assert(isEvalError("bad double unaryOperation", "!d;"));
+assert(isEvalError("bad float unaryOperation", "!f;"));
+assert(isEvalError("bad big integer unaryOperation", "!9223372036854775810;"));
+assert(isEvalError("bad big decimal unaryOperation", "!2E606;"));
+assert(isEvalError("Use Primitve.NULL instead of Primitive(null)", "new Primitive(null);"));
 
 complete();
 

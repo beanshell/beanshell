@@ -63,7 +63,7 @@ public class TestUtil {
     }
 
     static {
-        Capabilities.setAccessibility(Boolean.valueOf(System.getProperty("accessibility")));
+        Capabilities.instance.accept(Boolean.valueOf(System.getProperty("accessibility")));
     }
 
     /**

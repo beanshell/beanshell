@@ -5,10 +5,65 @@ source("Assert.bsh");
 
 a = new int [5];
 a[0] = 1;
-assertEquals( 1, a[0] );
-assertEquals( 0, a[1] );
-assertArrayEquals( new int[] {1,0,0,0,0}, a);
+assertEquals( a[0], 1 );
+assertEquals( a[1], 0 );
+assertArrayEquals( a, new int[] {1,0,0,0,0} );
 assertThat("foo bar baz", containsString("bar"));
+
+a = new Integer[5];
+a[0] = 1;
+assertArrayEquals( a, new Integer[] {1,0,0,0,0} );
+
+a = new byte[5];
+a[0] = 1;
+assertArrayEquals( a, new byte[] {1,0,0,0,0} );
+
+a = new Byte[5];
+a[0] = 1;
+assertArrayEquals( a, new Byte[] {1,0,0,0,0} );
+
+a = new short[5];
+a[0] = 1;
+assertArrayEquals( a, new short[] {1,0,0,0,0} );
+
+a = new Short[5];
+a[0] = 1;
+assertArrayEquals( a, new Short[] {1,0,0,0,0} );
+
+a = new long[5];
+a[0] = 1;
+assertArrayEquals( a, new long[] {1,0,0,0,0} );
+
+a = new Long[5];
+a[0] = 1;
+assertArrayEquals( a, new Long[] {1,0,0,0,0} );
+
+a = new BigInteger[5];
+a[0] = BigInteger.valueOf(1);
+assertArrayEquals( a, new BigInteger[] {1,0,0,0,0});
+
+
+a = new float[5];
+a[0] = 1.0;
+assertArrayEquals( a, new float[] {1.0,0.0,0.0,0.0,0.0}, 0.0);
+
+a = new Float[5];
+a[0] = 1.0;
+assertArrayEquals( a, new Float[] {1.0,0.0,0.0,0.0,0.0} );
+
+a = new double[5];
+a[0] = 1.0;
+assertArrayEquals( a, new double[] {1.0,0.0,0.0,0.0,0.0}, 0.0 );
+
+a = new Double[5];
+a[0] = 1.0;
+assertArrayEquals( a, new Double[] {1.0,0.0,0.0,0.0,0.0} );
+
+a = new BigDecimal[5];
+a[0] = BigDecimal.valueOf(1.0);
+assertArrayEquals( a, new BigDecimal[] {1.0,0.0,0.0,0.0,0.0});
+
+
 
 a = new String[5];
 a[0] = "foo";

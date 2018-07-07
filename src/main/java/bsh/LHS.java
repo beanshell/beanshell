@@ -26,6 +26,7 @@
 package bsh;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -148,7 +149,6 @@ class LHS implements ParserConstants, Serializable {
             return nameSpace.getVariableOrProperty( varName, null );
 
         if ( type == FIELD ) try {
-            fetchField();
             Object o = field.get( object );
             return Primitive.wrap( o, field.getType() );
         } catch( ReflectiveOperationException e2 ) {
@@ -240,7 +240,6 @@ class LHS implements ParserConstants, Serializable {
             else
                 nameSpace.setVariableOrProperty( varName, val, strictJava );
         } else  if ( type == FIELD )  try {
-            fetchField();
             Object fieldVal = Primitive.unwrap(val);
 
             Reflect.setAccessible(field);
@@ -274,6 +273,11 @@ class LHS implements ParserConstants, Serializable {
             }
         }
         else if ( type == INDEX ) try {
+            if ( val != null ) try {
+                val = Types.castObject( val, object.getClass().getComponentType(),
+                    Types.ASSIGNMENT);
+            } catch (UtilEvalError e) { /*ignore*/ }
+
             Reflect.setIndex(object, index, val);
         } catch ( UtilTargetError e1 ) { // pass along target error
             throw e1;
@@ -306,15 +310,25 @@ class LHS implements ParserConstants, Serializable {
             +(nameSpace!=null ? " nameSpace = "+nameSpace.toString(): "");
     }
 
-    private void dropField() {
-        if ( null == field ) return;
-        if ( null == this.object || !(this.object instanceof Class) )
-            this.object = field.getDeclaringClass();
-        this.varName = field.getName();
-        this.field = null;
+    /** Reflect Field is not serializable, hide it.
+     * @param s serializer
+     * @throws IOException mandatory throwing exception */
+    private synchronized void writeObject(final ObjectOutputStream s) throws IOException {
+        if ( null != field ) {
+            if ( null == this.object || !(this.object instanceof Class) )
+                this.object = field.getDeclaringClass();
+            this.varName = field.getName();
+            this.field = null;
+        }
+        s.defaultWriteObject();
     }
 
-    private void fetchField() {
+    /** Fetch field removed from serializer.
+     * @param in secializer.
+     * @throws IOException mandatory throwing exception
+     * @throws ClassNotFoundException mandatory throwing exception  */
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
         if ( null != field || null == object ) return;
         Class<?> cls = this.object.getClass();
         if ( this.object instanceof Class )
@@ -322,12 +336,6 @@ class LHS implements ParserConstants, Serializable {
         try {
             this.field = cls.getField(varName);
         } catch ( NoSuchFieldException | SecurityException e ) { /* ignore */ }
-    }
-
-    private synchronized void writeObject(final ObjectOutputStream s)
-            throws IOException {
-        dropField(); // field not serializable
-        s.defaultWriteObject();
     }
 }
 
