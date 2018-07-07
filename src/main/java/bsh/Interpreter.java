@@ -110,7 +110,6 @@ public class Interpreter
         turns it on or off.
     */
     public static final ThreadLocal<Boolean> DEBUG = ThreadLocal.withInitial(()->Boolean.FALSE);
-    private boolean EOF;
     public static boolean TRACE;
     public static boolean COMPATIBIILTY;
 
@@ -157,9 +156,6 @@ public class Interpreter
     /** The name of the file or other source that this interpreter is reading */
     String sourceFileInfo;
 
-    /** thread yield time in milliseconds */
-    private int yield_for = -1;
-
     /** by default in interactive mode System.exit() on EOF */
     private boolean exitOnEOF = true;
 
@@ -201,7 +197,7 @@ public class Interpreter
         parser = new Parser( in );
         long t1 = 0;
         if (Interpreter.DEBUG.get())
-            t1=System.nanoTime();
+            t1=System.currentTimeMillis();
         this.in = in;
         this.out = out;
         this.err = err;
@@ -213,26 +209,25 @@ public class Interpreter
 
         this.sourceFileInfo = sourceFileInfo;
 
+        BshClassManager bcm = BshClassManager.createClassManager( this );
+
         if ( namespace == null ) {
-            BshClassManager bcm = BshClassManager.createClassManager( this );
             globalNameSpace = new NameSpace(namespace, bcm, "global");
             initRootSystemObject();
-            if ( interactive )
-                loadRCFiles();
         } else try {
             globalNameSpace = namespace;
-            if ( ! (globalNameSpace.getVariable("bsh") instanceof This) ) {
+            if ( ! (globalNameSpace.getVariable("bsh") instanceof This) )
                 initRootSystemObject();
-                if ( interactive )
-                    loadRCFiles();
-            }
         } catch (final UtilEvalError e) {
             throw new IllegalStateException(e);
         }
 
+        if ( interactive )
+            loadRCFiles();
+
         if ( Interpreter.DEBUG.get() )
-            Interpreter.debug("Time to initialize interpreter: interactive=",
-                    interactive, " ", (System.nanoTime() - t1), " nanoseconds.");
+            Interpreter.debug("Time to initialize interpreter: ",
+                    (System.currentTimeMillis() - t1));
     }
 
     public Interpreter(
@@ -250,29 +245,14 @@ public class Interpreter
 
     /**
         Construct a new interactive interpreter attached to the specified
-        console using the specified parent namespace and parent interpreter.
-    */
-    public Interpreter(ConsoleInterface console, NameSpace globalNameSpace, Interpreter parent) {
-        this( console.getIn(), console.getOut(), console.getErr(),
-            true, globalNameSpace, parent,
-            null == parent ? null : parent.getSourceFileInfo() );
-        this.setConsole( console );
-    }
-
-    /**
-        Construct a new interactive interpreter attached to the specified
-        console using the specified parent interpreter assumes interpreter namesepace.
-    */
-    public Interpreter(ConsoleInterface console, Interpreter parent) {
-        this( console, null == parent ? null : parent.getNameSpace(), parent );
-    }
-
-    /**
-        Construct a new interactive interpreter attached to the specified
         console using the specified parent namespace.
     */
     public Interpreter(ConsoleInterface console, NameSpace globalNameSpace) {
-        this( console, globalNameSpace, null );
+
+        this( console.getIn(), console.getOut(), console.getErr(),
+            true, globalNameSpace );
+
+        setConsole( console );
     }
 
     /**
@@ -280,7 +260,7 @@ public class Interpreter
         console.
     */
     public Interpreter(ConsoleInterface console) {
-        this( console, null, null );
+        this(console, null);
     }
 
     /**
@@ -461,29 +441,24 @@ public class Interpreter
         CallStack callstack = new CallStack( globalNameSpace );
 
         SimpleNode node = null;
-        EOF = false;
+        boolean eof = false;
         int idx = -1;
-        while( !Thread.interrupted() && !EOF )
+        while( !Thread.interrupted() && !eof )
         {
             try
             {
                 if ( interactive )
-                    prompt(getBshPrompt());
+                    print( getBshPrompt() );
 
-                EOF = readLine();
+                eof = isEOF();
 
                 if( get_jjtree().nodeArity() > 0 )  // number of child nodes
                 {
 
-                    node = (SimpleNode) (get_jjtree().rootNode());
-                    // nodes remember from where they were sourced
-                    node.setSourceFile( sourceFileInfo );
+                    node = (SimpleNode)(get_jjtree().rootNode());
 
-                    if( DEBUG.get() )
+                    if(DEBUG.get())
                         node.dump(">");
-                    if ( TRACE )
-                        println( "// " +node.getText() );
-
 
                     Object ret = node.eval( callstack, this );
 
@@ -495,32 +470,32 @@ public class Interpreter
                     if(ret instanceof ReturnControl)
                         ret = ((ReturnControl)ret).value;
 
-                    if (interactive) {
-                        if( ret != Primitive.VOID )
-                        {
-                            setu("$_", ret);
+                    if( ret != Primitive.VOID )
+                    {
+                        setu("$_", ret);
+                        if (interactive)
                             setu("$"+(++idx%10), ret);
-                            if ( showResults )
-                                println("--> $" + (idx%10) + " = " + StringUtil.typeValueString(ret));
-                        } else if ( showResults )
-                            println("--> void");
-                    }
+                        if ( showResults )
+                            println("--> $" + (idx%10) + " = " + StringUtil.typeValueString(ret));
+                    } else if ( showResults )
+                        println("--> void");
                 }
             }
             catch(ParseException e)
             {
-                error("Parser Error: " + e.getMessage(DEBUG.get()));
+                if ( !interactive || !e.getMessage().contains("<EOF>") )
+                    error("Parser Error: " + e.getMessage(DEBUG.get()));
                 if ( DEBUG.get() )
                     e.printStackTrace();
                 if( !interactive )
-                    EOF = true;
+                    eof = true;
                 parser.reInitInput(in);
             }
             catch(InterpreterError e)
             {
                 error("Internal Error: " + e.getMessage());
                 if(!interactive)
-                    EOF = true;
+                    eof = true;
             }
             catch(TargetError e)
             {
@@ -528,7 +503,7 @@ public class Interpreter
                 if ( e.inNativeCode() )
                     e.printStackTrace( DEBUG.get(), err );
                 if(!interactive)
-                    EOF = true;
+                    eof = true;
                 setu("$_e", e.getTarget());
             }
             catch (EvalError e)
@@ -540,7 +515,7 @@ public class Interpreter
                 if(DEBUG.get())
                     e.printStackTrace();
                 if(!interactive)
-                    EOF = true;
+                    eof = true;
             }
             catch(Exception e)
             {
@@ -548,7 +523,7 @@ public class Interpreter
                 if ( DEBUG.get() )
                     e.printStackTrace();
                 if(!interactive)
-                    EOF = true;
+                    eof = true;
             }
             finally
             {
@@ -631,17 +606,21 @@ public class Interpreter
         */
         try (Interpreter localInterpreter = new Interpreter(
                 in, out, err, false, nameSpace, this, sourceFileInfo  )) {
+
             CallStack callstack = new CallStack( nameSpace );
 
             SimpleNode node = null;
             boolean eof = false;
-            while( !eof )
+            while( !Thread.interrupted() && !eof )
             {
                 try
                 {
-                    eof = localInterpreter.readLine();
+                    eof = localInterpreter.isEOF();
                     if (localInterpreter.get_jjtree().nodeArity() > 0)
                     {
+                        if( node != null )
+                            node.lastToken.next = null;  // prevent OutOfMemoryError
+
                         node = (SimpleNode)localInterpreter.get_jjtree().rootNode();
                         // nodes remember from where they were sourced
                         node.setSourceFile( sourceFileInfo );
@@ -702,8 +681,6 @@ public class Interpreter
                 }
             }
             // release shared resources before auto closing.
-            if ( localInterpreter.in.equals(this.in) )
-                localInterpreter.in = null;
             localInterpreter.out = null;
             localInterpreter.err = null;
         } catch (IOException ioe) {
@@ -718,7 +695,7 @@ public class Interpreter
     */
     public Object eval( Reader in ) throws EvalError
     {
-        return eval( in, globalNameSpace, null == sourceFileInfo ? "eval stream" : sourceFileInfo );
+        return eval( in, globalNameSpace, "eval stream" );
     }
 
     /**
@@ -758,8 +735,8 @@ public class Interpreter
     */
     public final void error( Object o ) {
         if ( console != null )
-            console.error( "// Error: " + o + systemLineSeparator );
-        else if ( null != err ) {
+                console.error( "// Error: " + o +"\n" );
+        else {
             err.println("// Error: " + o );
             err.flush();
         }
@@ -792,22 +769,18 @@ public class Interpreter
     /** Attempt the release of open resources.
      * @throws IOException */
     public void close() throws IOException {
-        EOF = true;
         if ( null != err ) {
-            if ( !err.equals(System.err) )
-                err.close();
+            err.close();
             err = null;
         }
         if ( null != out ) {
-            if ( !out.equals(System.out) )
-                out.close();
+            out.close();
             out = null;
         }
         if ( null != in ) {
             in.close();
             in = null;
         }
-        console = null;
     }
 
     public final void println( Object o )
@@ -819,7 +792,7 @@ public class Interpreter
     {
         if (console != null) {
             console.print(o);
-        } else if ( null != out ) {
+        } else {
             out.print(o);
             out.flush();
         }
@@ -1012,39 +985,11 @@ public class Interpreter
         return parser.jjtree;
     }
 
-    /** Blocking call to read a line from the parser.
-     * @return true on EOF or false
-     * @throws ParseException on parser exception */
-    private boolean readLine() throws ParseException {
-        try {
-            return parser.Line();
-        } catch (ParseException e) {
-            yield();
-            if ( EOF )
-                return true;
-            throw e;
-        }
+    private boolean isEOF() throws ParseException {
+        return parser.Line();
     }
 
     /*  End methods for interacting with Parser */
-
-    /** Set thread yield delay time in milliseconds.
-     * How long to wait for closing thread @see yield();
-     * @param delay sleep time in milliseconds */
-    public void setYieldDelay(int delay) {
-        yield_for = delay;
-    }
-
-    /** Yield thread  to wait for closing.
-     * If yield delay has a value 0 or more the thread will
-     * sleep for so many milliseconds. */
-    private void yield() {
-        if ( 0 > yield_for )
-            return;
-        try {
-            Thread.sleep(yield_for);
-        } catch (InterruptedException e1) { /* ignore */ }
-    }
 
     void loadRCFiles() {
         try {
@@ -1230,13 +1175,17 @@ public class Interpreter
         be defined by the user as with any other method.
         Defaults to "bsh % " if the method is not defined or there is an error.
     */
+    private String prompt = null;
     private String getBshPrompt()
     {
+        if (null != prompt)
+            return prompt;
         try {
-            return (String)eval("getBshPrompt()");
+            prompt = (String)eval("getBshPrompt()");
         } catch ( Exception e ) {
-            return "bsh % ";
+            prompt = "bsh % ";
         }
+        return prompt;
     }
 
     /**
