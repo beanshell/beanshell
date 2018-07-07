@@ -456,7 +456,7 @@ public class Interpreter
             try
             {
                 if ( interactive )
-                    print( getBshPrompt() );
+                    prompt( getBshPrompt() );
 
                 eof = isEOF();
 
@@ -1190,6 +1190,18 @@ public class Interpreter
         } catch ( Exception e ) {
             return "bsh % ";
         }
+    }
+
+    /**
+     * Interpreter calls <code>prompt()</code> when the prompt shall be displayed
+     * on console. The default implementation is that prompt is just printed to
+     * the Console/Interpreter's output stream, but subclasses with a more
+     * sophisticated prompt handling (like terminals) can hook here their logic.
+     *
+     * @param prompt the prompt to me displayed
+     */
+    protected void prompt(String prompt) {
+        print(prompt);
     }
 
     /**
