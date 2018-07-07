@@ -61,7 +61,6 @@ public class InterpreterTest {
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         Interpreter bsh = new Interpreter(in, new PrintStream(baos), System.err, false);
-        bsh.setShutdownOnExit(false);
 
         Thread t = new Thread(bsh);
         t.start();
@@ -90,7 +89,6 @@ public class InterpreterTest {
         final ByteArrayOutputStream err = new ByteArrayOutputStream();
 
         Interpreter bsh = new Interpreter(in, new PrintStream(out), new PrintStream(err), false);
-        bsh.setShutdownOnExit(false);
 
         //
         // A ParseException after interrupt() is most likely due to the
