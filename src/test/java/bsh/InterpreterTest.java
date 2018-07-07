@@ -20,11 +20,15 @@
 
 package bsh;
 
-import org.junit.Test;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.io.StringReader;
+import java.lang.ref.WeakReference;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-
-import java.lang.ref.WeakReference;
+import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 
 public class InterpreterTest {
 
@@ -51,5 +55,32 @@ public class InterpreterTest {
         Interpreter.setShutdownOnExit(false);
         assertEquals(Boolean.FALSE, TestUtil.eval("return bsh.system.shutdownOnExit;"));
     }
+
+    @Test
+    public void prompt_displays_the_prompt() throws Exception {
+        for (String P: new String[] { "abc> ", "cde# " }) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+            Interpreter bsh = new Interpreter(new InputStreamReader(System.in), new PrintStream(baos), System.err, false);
+
+            bsh.prompt(P);
+            assertTrue(baos.toString().contains(P));
+        }
+    }
+
+     @Test
+     public void set_prompt_by_interpreter() throws Exception {
+         final StringReader in = new StringReader("\n");
+         for (String P: new String[] { "abc> ", "cde# " }) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+            Interpreter bsh = new Interpreter(in, new PrintStream(baos), System.err, true);
+            bsh.setExitOnEOF(false);
+                        bsh.set("bsh.prompt", P);
+            bsh.run();
+            System.out.println(baos.toString());
+            assertTrue(baos.toString().contains(P));
+        }
+     }
 
 }
