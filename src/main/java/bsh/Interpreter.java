@@ -162,8 +162,7 @@ public class Interpreter
 
     protected boolean
         evalOnly,       // Interpreter has no input stream, use eval() only
-        interactive,    // Interpreter has a user, print prompts, etc.
-        interrupted;    // An external action required the Interpreter to interrupt current parsing/execution
+        interactive;    // Interpreter has a user, print prompts, etc.
 
     /** Control the verbose printing of results for the show() command. */
     private boolean showResults = true;
@@ -462,7 +461,7 @@ public class Interpreter
 
                 eof = isEOF();
 
-                if( !interrupted && get_jjtree().nodeArity() > 0 )  // number of child nodes
+                if( !Thread.interrupted() && get_jjtree().nodeArity() > 0 )  // number of child nodes
                 {
 
                     node = (SimpleNode)(get_jjtree().rootNode());
@@ -493,7 +492,7 @@ public class Interpreter
             }
             catch(ParseException e)
             {
-                if ( !interactive && !interrupted )
+                if ( !interactive && !Thread.interrupted() )
                     error("Parser Error: " + e.getMessage(DEBUG.get()));
                 if ( DEBUG.get() )
                     e.printStackTrace();
@@ -549,7 +548,6 @@ public class Interpreter
                     callstack.clear();
                     callstack.push( globalNameSpace );
                 }
-                interrupted = false;
             }
         }
 
