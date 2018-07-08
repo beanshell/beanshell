@@ -201,7 +201,7 @@ public class Interpreter
         parser = new Parser( in );
         long t1 = 0;
         if (Interpreter.DEBUG.get())
-            t1=System.currentTimeMillis();
+            t1=System.nanoTime();
         this.in = in;
         this.out = out;
         this.err = err;
@@ -213,25 +213,26 @@ public class Interpreter
 
         this.sourceFileInfo = sourceFileInfo;
 
-        BshClassManager bcm = BshClassManager.createClassManager( this );
-
         if ( namespace == null ) {
+            BshClassManager bcm = BshClassManager.createClassManager( this );
             globalNameSpace = new NameSpace(namespace, bcm, "global");
             initRootSystemObject();
+            if ( interactive )
+                loadRCFiles();
         } else try {
             globalNameSpace = namespace;
-            if ( ! (globalNameSpace.getVariable("bsh") instanceof This) )
+            if ( ! (globalNameSpace.getVariable("bsh") instanceof This) ) {
                 initRootSystemObject();
+                if ( interactive )
+                    loadRCFiles();
+            }
         } catch (final UtilEvalError e) {
             throw new IllegalStateException(e);
         }
 
-        if ( interactive )
-            loadRCFiles();
-
         if ( Interpreter.DEBUG.get() )
-            Interpreter.debug("Time to initialize interpreter: ",
-                    (System.currentTimeMillis() - t1));
+            Interpreter.debug("Time to initialize interpreter: interactive=",
+                    interactive, " ", (System.nanoTime() - t1), " nanoseconds.");
     }
 
     public Interpreter(
