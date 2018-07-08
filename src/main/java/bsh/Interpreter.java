@@ -475,10 +475,15 @@ public class Interpreter
                 if( get_jjtree().nodeArity() > 0 )  // number of child nodes
                 {
 
-                    node = (SimpleNode)(get_jjtree().rootNode());
+                    node = (SimpleNode) (get_jjtree().rootNode());
+                    // nodes remember from where they were sourced
+                    node.setSourceFile( sourceFileInfo );
 
-                    if(DEBUG.get())
+                    if( DEBUG.get() )
                         node.dump(">");
+                    if ( TRACE )
+                        println( "// " +node.getText() );
+
 
                     Object ret = node.eval( callstack, this );
 
@@ -490,15 +495,16 @@ public class Interpreter
                     if(ret instanceof ReturnControl)
                         ret = ((ReturnControl)ret).value;
 
-                    if( ret != Primitive.VOID )
-                    {
-                        setu("$_", ret);
-                        if (interactive)
+                    if (interactive) {
+                        if( ret != Primitive.VOID )
+                        {
+                            setu("$_", ret);
                             setu("$"+(++idx%10), ret);
-                        if ( showResults )
-                            println("--> $" + (idx%10) + " = " + StringUtil.typeValueString(ret));
-                    } else if ( showResults )
-                        println("--> void");
+                            if ( showResults )
+                                println("--> $" + (idx%10) + " = " + StringUtil.typeValueString(ret));
+                        } else if ( showResults )
+                            println("--> void");
+                    }
                 }
             }
             catch(ParseException e)
@@ -625,7 +631,6 @@ public class Interpreter
         */
         try (Interpreter localInterpreter = new Interpreter(
                 in, out, err, false, nameSpace, this, sourceFileInfo  )) {
-
             CallStack callstack = new CallStack( nameSpace );
 
             SimpleNode node = null;
@@ -637,9 +642,6 @@ public class Interpreter
                     eof = localInterpreter.readLine();
                     if (localInterpreter.get_jjtree().nodeArity() > 0)
                     {
-                        if( node != null )
-                            node.lastToken.next = null;  // prevent OutOfMemoryError
-
                         node = (SimpleNode)localInterpreter.get_jjtree().rootNode();
                         // nodes remember from where they were sourced
                         node.setSourceFile( sourceFileInfo );
@@ -716,7 +718,7 @@ public class Interpreter
     */
     public Object eval( Reader in ) throws EvalError
     {
-        return eval( in, globalNameSpace, "eval stream" );
+        return eval( in, globalNameSpace, null == sourceFileInfo ? "eval stream" : sourceFileInfo );
     }
 
     /**
