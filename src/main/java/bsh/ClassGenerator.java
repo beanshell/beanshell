@@ -67,17 +67,6 @@ public final class ClassGenerator {
     }
 
     /**
-     * Change the parent of the class instance namespace.
-     * This is currently used for inner class support.
-     * Note: This method will likely be removed in the future.
-     */
-    // This could be static
-    public void setInstanceNameSpaceParent(Object instance, String className, NameSpace parent) {
-        This ithis = This.getClassInstanceThis(instance, className);
-        ithis.getNameSpace().setParent(parent);
-    }
-
-    /**
      * Parse the BSHBlock for for the class definition and generate the class
      * using ClassGenerator.
      */
@@ -86,7 +75,6 @@ public final class ClassGenerator {
         String packageName = enclosingNameSpace.getPackage();
         String className = enclosingNameSpace.isClass ? (enclosingNameSpace.getName() + "$" + name) : name;
         String fqClassName = packageName == null ? className : packageName + "." + className;
-
         BshClassManager bcm = interpreter.getClassManager();
         // Race condition here...
         bcm.definingClass(fqClassName);

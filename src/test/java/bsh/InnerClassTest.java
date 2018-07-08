@@ -55,6 +55,181 @@ public class InnerClassTest {
     }
 
     @Test
+    public void local_class_access_outer_class_instance_variable() throws Exception {
+        Object ret = eval(
+            "class Outer {",
+                "method() {",
+                    "class Inner {",
+                        "gogo() { return go; }",
+                    "}",
+                    "return new Inner().gogo();",
+                "}",
+                "int go = 779;",
+            "}",
+            "new Outer().method();"
+        );
+        assertEquals("Outer class instance variable is 779", 779, ret);
+    }
+
+    @Test
+    public void local_class_access_method_local_variable() throws Exception {
+        Object ret = eval(
+            "class Outer {",
+                "method() {",
+                    "int go = 788;",
+                    "class Inner {",
+                        "gogo() { return go; }",
+                    "}",
+                    "return new Inner().gogo();",
+                "}",
+            "}",
+            "new Outer().method();"
+        );
+        assertEquals("Local variable is 788", 788, ret);
+    }
+
+    @Test
+    public void local_class_access_outer_class_static_variable() throws Exception {
+        Object ret = eval(
+            "class Outer {",
+                "method() {",
+                    "class Inner {",
+                        "gogo() { return go; }",
+                    "}",
+                    "return new Inner().gogo();",
+                "}",
+                "static int go = 778;",
+            "}",
+            "new Outer().method();"
+        );
+        assertEquals("Outer class static variable is 778", 778, ret);
+    }
+
+    @Test
+    public void static_inner_class_access_outer_class_static_variable() throws Exception {
+        Object ret = eval(
+            "class Outer {",
+                "static class Inner {",
+                    "gogo() { return go; }",
+                "}",
+                "static int go = 777;",
+            "}",
+            "new Outer.Inner().gogo();"
+        );
+        assertEquals("Outer class static variable is 777", 777, ret);
+    }
+
+    @Test
+    public void static_inner_class_access_outer_class_instance_variable() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Can't reach instance field: go from static context"));
+
+        eval(
+            "class Outer {",
+                "static class Inner {",
+                    "gogo() { return go; }",
+                "}",
+                "int go = 7777;",
+            "}",
+            "new Outer.Inner().gogo();"
+        );
+    }
+
+    @Test
+    public void static_inner_class_access_outer_class_static_method() throws Exception {
+        Object ret = eval(
+            "class Outer {",
+                "static class Inner {",
+                    "gogo() { return go(); }",
+                "}",
+                "static int go() {",
+                    "return 77;",
+                "}",
+            "}",
+            "new Outer.Inner().gogo();"
+        );
+        assertEquals("Outer class static method returns 77", 77, ret);
+    }
+
+    @Test
+    public void static_inner_class_access_outer_class_instance_method() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Cannot reach instance method: go() from static context"));
+
+        eval(
+            "class Outer {",
+                "static class Inner {",
+                    "gogo() { return go(); }",
+                "}",
+                "go() {",
+                    "return 3;",
+                "}",
+            "}",
+            "new Outer.Inner().gogo();"
+        );
+    }
+
+    @Test
+    public void inner_class_access_outer_class_static_variable() throws Exception {
+        Object ret = eval(
+            "class Outer {",
+                "class Inner {",
+                    "gogo() { return go; }",
+                "}",
+                "static int go = 778;",
+            "}",
+            "new Outer().new Inner().gogo();"
+        );
+        assertEquals("Outer class static variable is 778", 778, ret);
+    }
+
+    @Test
+    public void inner_class_access_outer_class_instance_variable() throws Exception {
+        Object ret = eval(
+            "class Outer {",
+                "class Inner {",
+                    "gogo() { return go; }",
+                "}",
+                "int go = 779;",
+            "}",
+            "new Outer().new Inner().gogo();"
+        );
+        assertEquals("Outer class instance variable is 779", 779, ret);
+    }
+
+    @Test
+    public void inner_class_access_outer_class_static_method() throws Exception {
+        Object ret = eval(
+            "class Outer {",
+                "class Inner {",
+                    "gogo() { return go(); }",
+                "}",
+                "static int go() {",
+                    "return 7;",
+                "}",
+            "}",
+            "new Outer().new Inner().gogo();"
+        );
+        assertEquals("Outer class static method returns 7", 7, ret);
+    }
+
+    @Test
+    public void inner_class_access_outer_class_instance_method() throws Exception {
+        Object ret = eval(
+            "class Outer {",
+                "class Inner {",
+                    "gogo() { return go(); }",
+                "}",
+                "go() {",
+                    "return 3;",
+                "}",
+            "}",
+            "new Outer().new Inner().gogo();"
+        );
+        assertEquals("Outer class instance method returns 3", 3, ret);
+    }
+
+    @Test
     public void inner_class_instance_from_outer_method() throws Exception {
         Object ret = eval(
             "class Outer {",
