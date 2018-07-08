@@ -16,33 +16,67 @@
  * specific language governing permissions and limitations                   *
  * under the License.                                                        *
  *                                                                           *
- *                                                                           *
- * This file is part of the BeanShell Java Scripting distribution.           *
- * Documentation and updates may be found at http://www.beanshell.org/       *
- * Patrick Niemeyer (pat@pat.net)                                            *
- * Author of Learning Java, O'Reilly & Associates                            *
- *                                                                           *
- *****************************************************************************/
+/****************************************************************************/
 package bsh;
 
 import java.io.PrintStream;
 import java.io.Reader;
 
 /**
-    The capabilities of a minimal console for BeanShell.
-    Stream I/O and optimized print for output.
+ *
+ */
+public class SimpleConsole implements ConsoleInterface {
 
-    A simple console may ignore some of these or map them to trivial
-    implementations.  e.g. print() with color can be mapped to plain text.
-    @see bsh.util.GUIConsoleInterface
-*/
-public interface ConsoleInterface {
-    public Reader getIn();
-    public PrintStream getOut();
-    public PrintStream getErr();
-    public void println( Object o );
-    public void print( Object o );
-    public void error( Object o );
-    public void prompt(String prompt);
+    private Reader in;
+    private PrintStream out;
+    private PrintStream err;
+
+    public SimpleConsole(Reader in, PrintStream out, PrintStream err) {
+        if (in == null) {
+            throw new IllegalArgumentException("in can not be null");
+        }
+        if (out == null) {
+            throw new IllegalArgumentException("out can not be null");
+        }
+        if (err == null) {
+            throw new IllegalArgumentException("err can not be null");
+        }
+        this.in = in; this.out = out; this.err = err;
+    }
+
+    @Override
+    public Reader getIn() {
+        return in;
+    }
+
+    @Override
+    public PrintStream getOut() {
+        return out;
+    }
+
+    @Override
+    public PrintStream getErr() {
+        return err;
+    }
+
+    @Override
+    public void println(Object o) {
+        out.println(o);
+    }
+
+    @Override
+    public void print(Object o) {
+        out.print(o);
+    }
+
+    @Override
+    public void error(Object o) {
+        err.println(o);
+    }
+
+    @Override
+    public void prompt(String prompt) {
+        print(prompt);
+    }
+
 }
-
