@@ -1043,6 +1043,32 @@ final class Reflect {
         return null != type && type != GeneratedClass.class && GeneratedClass.class.isAssignableFrom(type);
     }
 
+    /**
+     * Get the static bsh namespace field from the class.
+     * @param className may be the name of clas itself or a superclass of clas.
+     */
+    public static This getClassStaticThis(Class clas, String className) {
+        try {
+            return (This) getStaticFieldValue(clas, BSHSTATIC + className);
+        } catch (Exception e) {
+            throw new InterpreterError("Unable to get class static space: " + e, e);
+        }
+    }
+
+    /**
+     * Get the instance bsh namespace field from the object instance.
+     * @return the class instance This object or null if the object has not
+     * been initialized.
+     */
+    public static This getClassInstanceThis(Object instance, String className) {
+        try {
+            Object o = getObjectFieldValue(instance, BSHTHIS + className);
+            return (This) Primitive.unwrap(o); // unwrap Primitive.Null to null
+        } catch (Exception e) {
+            throw new InterpreterError("Generated class: Error getting This" + e, e);
+        }
+    }
+
     /*
      * Get This namespace from the class static field BSHSTATIC
      */
@@ -1050,8 +1076,7 @@ final class Reflect {
         if (!isGeneratedClass(type))
             return null;
         try {
-            return ((This) Reflect.getStaticFieldValue(
-                    type, BSHSTATIC + type.getSimpleName())).namespace;
+            return getClassStaticThis(type, type.getSimpleName()).namespace;
         } catch (Exception e) {
             return null;
         }
@@ -1067,8 +1092,7 @@ final class Reflect {
         if (!isGeneratedClass(type))
             return null;
         try {
-            return ((This)Reflect.getObjectFieldValue(
-                    object, BSHTHIS + type.getSimpleName())).namespace;
+            return getClassInstanceThis(object, type.getSimpleName()).namespace;
         } catch (Exception e) {
             return null;
         }
