@@ -49,7 +49,6 @@ import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.util.Vector;
-
 import javax.swing.Icon;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -819,6 +818,26 @@ public class JConsole extends JScrollPane
     }
 
     private int textLength() { return text.getDocument().getLength(); }
+
+    @Override
+    public void prompt(String prompt) {
+        print(prompt);
+    }
+
+    @Override
+    public void setIn(Reader in) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void setOut(PrintStream out) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void setErr(PrintStream err) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 
 }
 

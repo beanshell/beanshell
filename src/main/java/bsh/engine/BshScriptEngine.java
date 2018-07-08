@@ -1,16 +1,5 @@
 package bsh.engine;
 
-import javax.script.AbstractScriptEngine;
-import javax.script.Bindings;
-import javax.script.Compilable;
-import javax.script.CompiledScript;
-import javax.script.Invocable;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineFactory;
-import javax.script.ScriptException;
-import javax.script.SimpleBindings;
-
 import bsh.EvalError;
 import bsh.ExternalNameSpace;
 import bsh.Interpreter;
@@ -18,7 +7,6 @@ import bsh.NameSpace;
 import bsh.ParseException;
 import bsh.PreparsedScript;
 import bsh.TargetError;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -30,6 +18,16 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import javax.script.AbstractScriptEngine;
+import javax.script.Bindings;
+import javax.script.Compilable;
+import javax.script.CompiledScript;
+import javax.script.Invocable;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
+import javax.script.ScriptException;
+import javax.script.SimpleBindings;
 
 /*
     Adopted from http://ikayzo.org/svn/beanshell/BeanShell/engine/src/bsh/engine/BshScriptEngine.java
@@ -91,8 +89,8 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
             bsh.NameSpace contextNameSpace = getEngineNameSpace(scriptContext);
             bsh.setNameSpace(contextNameSpace);
 
-            bsh.setOut(toPrintStream(scriptContext.getWriter()));
-            bsh.setErr(toPrintStream(scriptContext.getErrorWriter()));
+            bsh.getConsole().setOut(toPrintStream(scriptContext.getWriter()));
+            bsh.getConsole().setErr(toPrintStream(scriptContext.getErrorWriter()));
 
 
             if (source instanceof Reader) {
@@ -362,14 +360,14 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
         Interpreter.
     */
 
-    class WriterOutputStream extends OutputStream {
+    static public class WriterOutputStream extends OutputStream {
 
         private final ByteBuffer input;
         private final CharBuffer output;
         private final Writer writer;
         private final CharsetDecoder decoder;
 
-        WriterOutputStream(Writer writer) {
+        public WriterOutputStream(Writer writer) {
             this.writer = writer;
             this.decoder = StandardCharsets.UTF_8.newDecoder();
             int size = 16384;

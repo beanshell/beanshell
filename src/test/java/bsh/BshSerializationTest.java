@@ -20,9 +20,9 @@
 
 package bsh;
 
+import bsh.console.StandardConsole;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
 
 /**
@@ -43,6 +43,7 @@ public class BshSerializationTest {
         origInterpreter.eval("myNull = null;");
         assertNull(origInterpreter.eval("myNull"));
         final Interpreter deserInterpreter = TestUtil.serDeser(origInterpreter);
+        deserInterpreter.setConsole(new StandardConsole());
         assertNull(deserInterpreter.eval("myNull"));
         origInterpreter.close();
         deserInterpreter.close();
@@ -58,6 +59,7 @@ public class BshSerializationTest {
         originalInterpreter.eval("myNull = null;");
         assertTrue((Boolean) originalInterpreter.eval("myNull == null"));
         final Interpreter deserInterpreter = TestUtil.serDeser(originalInterpreter);
+        deserInterpreter.setConsole(new StandardConsole());
         assertTrue((Boolean) deserInterpreter.eval("myNull == null"));
         originalInterpreter.close();
         deserInterpreter.close();
@@ -72,6 +74,7 @@ public class BshSerializationTest {
         final Interpreter originalInterpreter = new Interpreter();
         assertTrue((Boolean) originalInterpreter.eval("myVoid == void"));
         final Interpreter deserInterpreter = TestUtil.serDeser(originalInterpreter);
+        deserInterpreter.setConsole(new StandardConsole());
         assertTrue((Boolean) deserInterpreter.eval("myVoid == void"));
         originalInterpreter.close();
         deserInterpreter.close();

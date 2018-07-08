@@ -37,12 +37,21 @@ import java.io.Reader;
     @see bsh.util.GUIConsoleInterface
 */
 public interface ConsoleInterface {
-    public Reader getIn();
+    public Reader       getIn();
     public PrintStream getOut();
     public PrintStream getErr();
+
     public void println( Object o );
     public void print( Object o );
     public void error( Object o );
+
     public void prompt(String prompt);
+
+    //
+    // shall we deprecate these?
+    //
+    public void setIn (Reader       in);
+    public void setOut(PrintStream out);
+    public void setErr(PrintStream err);
 }
 

@@ -20,12 +20,16 @@
 
 package bsh;
 
-import java.io.ByteArrayOutputStream;
+import bsh.console.SimpleConsole;
+import bsh.console.StandardConsole;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.io.Reader;
 import java.io.StringReader;
 import java.lang.ref.WeakReference;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
@@ -56,60 +60,46 @@ public class InterpreterTest {
     }
 
     @Test
-    public void interrupt_on_tokenizing() throws Exception {
-        final StringReader in = new StringReader("print(\"\n");
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    public void SimpleConsole_if_streams_in_constructor() throws Exception {
+        Reader      in  = new InputStreamReader(System.in);
+        PrintStream out = System.out;
+        PrintStream err = System.err;
 
-        Interpreter bsh = new Interpreter(in, new PrintStream(baos), System.err, false);
+        Interpreter bsh = new Interpreter(in, out, err, true);
+        ConsoleInterface c = bsh.getConsole();
 
-        Thread t = new Thread(bsh);
-        t.start();
+        assertTrue("not a SimpleConsole", c instanceof SimpleConsole);
+        assertSame(in, c.getIn());
+        assertSame(out, c.getOut());
+        assertSame(err, c.getErr());
 
-        Thread.sleep(250); // give Interpreter eom time to set itself up
+        bsh = new Interpreter(in, out, err, true, null);
+        c = bsh.getConsole();
 
-        //
-        // now the interpreter should be on a blocking read; we interrupt it,
-        // give it some time to make the magic and make sure it tells us about it
-        //
-        bsh.interrupt(); Thread.sleep(250);
+        assertTrue("not a SimpleConsole", c instanceof SimpleConsole);
+        assertSame(in, c.getIn());
+        assertSame(out, c.getOut());
+        assertSame(err, c.getErr());
 
-        assertTrue(baos.toString().contains("... interrupted ..."));
-        assertTrue(!baos.toString().contains("Parser Error:"));
+        bsh = new Interpreter(in, out, err, true, null, null, null);
+        c = bsh.getConsole();
 
-        //
-        // we should also be able to issue new statements, but this would require
-        // some more refactoring, let's defer it to the next iteration
-        //
+        assertTrue("not a SimpleConsole", c instanceof SimpleConsole);
+        assertSame(in, c.getIn());
+        assertSame(out, c.getOut());
+        assertSame(err, c.getErr());
     }
 
     @Test
-    public void interrupt_on_parsing() throws Exception {
-        final StringReader in = new StringReader("class A {\n"); // generate a ParseException
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        final ByteArrayOutputStream err = new ByteArrayOutputStream();
+    public void console_in_constructor() {
+        SimpleConsole simple = new SimpleConsole(new StringReader(""), System.out, System.err);
+        StandardConsole standard = new StandardConsole();
 
-        Interpreter bsh = new Interpreter(in, new PrintStream(out), new PrintStream(err), false);
+        assertSame(new Interpreter(simple).getConsole(), simple);
+        assertSame(new Interpreter(simple, null).getConsole(), simple);
+        assertSame(new Interpreter(standard).getConsole(), standard);
 
-        //
-        // A ParseException after interrupt() is most likely due to the
-        // interruption and the error should be muted
-        //
-        bsh.interrupt(); // to make it easy let's make sure we start interrupted
-
-        Thread t = new Thread(bsh);
-        t.start();
-
-        Thread.sleep(250); // give Interpreter eom time to set itself up
-
-        String stdout = out.toString();
-        String stderr = err.toString();
-        System.out.println(">>" + stdout + "<<\n>>" + stderr + "<<");
-        assertTrue(stdout.contains("... interrupted ..."));
-        assertTrue(!stderr.contains("Parser Error:"));
-
-        //
-        // we should also be able to issue new statements, but this would require
-        // some more refactoring, let's defer it to the next iteration
-        //
     }
+
+    // --------------------------------------------------------- private methods
 }

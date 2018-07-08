@@ -17,14 +17,16 @@
  * under the License.                                                        *
  *                                                                           *
 /****************************************************************************/
-package bsh;
+package bsh.console;
 
+import bsh.ConsoleInterface;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.io.StringReader;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
@@ -112,5 +114,28 @@ public class SimpleConsoleTest {
         C.prompt("bsh> "); assertEquals("bsh> ", out.toString());
         C.prompt("> "); assertEquals("bsh> > ", out.toString());
     }
+
+    @Test
+    /**
+     * Some beanshell code used to change output and error streams; we therefore
+     * support this behaviour with setters
+     */
+    public void set_streams() {
+        Reader      in  = new InputStreamReader(System.in);
+        PrintStream out = System.out;
+        PrintStream err = System.err;
+
+        ConsoleInterface C = new SimpleConsole(in, out, err);
+
+        in  = new InputStreamReader(System.in);
+        out = new PrintStream(System.out);
+        err = new PrintStream(System.err);
+
+        C.setIn ( in); assertSame(in,  C.getIn() );
+        C.setOut(out); assertSame(out, C.getOut());
+        C.setErr(err); assertSame(err, C.getErr());
+
+    }
+
 
 }

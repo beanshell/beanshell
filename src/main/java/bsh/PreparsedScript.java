@@ -1,11 +1,10 @@
 package bsh;
 
+import bsh.classpath.ClassManagerImpl;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.Map;
-
-import bsh.classpath.ClassManagerImpl;
 
 /**
  * With this class the script source is only parsed once and the resulting AST is used for
@@ -86,12 +85,12 @@ public class PreparsedScript {
 
 
     public void setOut(final PrintStream value) {
-        _interpreter.setOut(value);
+        _interpreter.console.setOut(value);
     }
 
 
     public void setErr(final PrintStream value) {
-        _interpreter.setErr(value);
+        _interpreter.console.setErr(value);
     }
 
 }

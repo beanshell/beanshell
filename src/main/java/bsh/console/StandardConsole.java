@@ -17,66 +17,73 @@
  * under the License.                                                        *
  *                                                                           *
 /****************************************************************************/
-package bsh;
+package bsh.console;
 
+import bsh.ConsoleInterface;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Reader;
+import java.io.Serializable;
+import static java.lang.System.err;
+import static java.lang.System.in;
+import static java.lang.System.out;
 
 /**
- *
+ * This is the simplest console possible: it just wraps System streams (that is
+ * why the name StandardConsole).
  */
-public class SimpleConsole implements ConsoleInterface {
+public class StandardConsole implements ConsoleInterface, Serializable {
 
-    private Reader in;
-    private PrintStream out;
-    private PrintStream err;
-
-    public SimpleConsole(Reader in, PrintStream out, PrintStream err) {
-        if (in == null) {
-            throw new IllegalArgumentException("in can not be null");
-        }
-        if (out == null) {
-            throw new IllegalArgumentException("out can not be null");
-        }
-        if (err == null) {
-            throw new IllegalArgumentException("err can not be null");
-        }
-        this.in = in; this.out = out; this.err = err;
-    }
+    final protected static Reader IN = new InputStreamReader(in);
 
     @Override
     public Reader getIn() {
-        return in;
+        return IN;
     }
 
     @Override
     public PrintStream getOut() {
-        return out;
+        return System.out;
     }
 
     @Override
     public PrintStream getErr() {
-        return err;
+        return System.err;
     }
 
     @Override
     public void println(Object o) {
-        out.println(o);
+        out.println(o); out.flush();
     }
 
     @Override
     public void print(Object o) {
-        out.print(o);
+        out.print(o); out.flush();
     }
 
     @Override
     public void error(Object o) {
-        err.println(o);
+        err.println(o); err.flush();
     }
 
     @Override
     public void prompt(String prompt) {
         print(prompt);
+    }
+
+    @Override
+    public void setIn(Reader in) {
+        throw new IllegalArgumentException("System.in can not be overriden");
+    }
+
+    @Override
+    public void setOut(PrintStream out) {
+        throw new IllegalArgumentException("System.out can not be overriden");
+    }
+
+    @Override
+    public void setErr(PrintStream err) {
+        throw new IllegalArgumentException("System.err can not be overriden");
     }
 
 }

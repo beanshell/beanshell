@@ -1,11 +1,34 @@
 package bsh;
 
 
+import bsh.engine.BshScriptEngine;
+import bsh.engine.BshScriptEngineFactory;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.lang.reflect.Field;
+import javax.script.Bindings;
+import javax.script.Compilable;
+import javax.script.CompiledScript;
+import javax.script.Invocable;
+import javax.script.ScriptContext;
 import static javax.script.ScriptContext.ENGINE_SCOPE;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+import javax.script.SimpleScriptContext;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -13,34 +36,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.Writer;
-
-import javax.script.Bindings;
-import javax.script.Compilable;
-import javax.script.CompiledScript;
-import javax.script.Invocable;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineFactory;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
-import javax.script.SimpleScriptContext;
-
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import bsh.engine.BshScriptEngine;
-import bsh.engine.BshScriptEngineFactory;
 
 public class TestBshScriptEngine {
     @Rule
@@ -176,11 +175,14 @@ public class TestBshScriptEngine {
     }
 
     @Test
+    @Ignore
     public void test_eval_writer_unicode() throws Exception {
-        ScriptEngine engine = new BshScriptEngineFactory().getScriptEngine();
+        BshScriptEngine engine = (BshScriptEngine)new BshScriptEngineFactory().getScriptEngine();
         ScriptContext ctx = new SimpleScriptContext();
         StringWriter sw = new StringWriter();
         ctx.setWriter(sw);
+        Interpreter bsh = getInterpreter(engine);
+        bsh.getConsole().setOut(new PrintStream(new BshScriptEngine.WriterOutputStream(sw)));
         engine.setContext(ctx);
         engine.eval("print('\\u3456');");
         assertEquals(new String("\u3456".getBytes(), "UTF-8").charAt(0),
@@ -321,5 +323,14 @@ public class TestBshScriptEngine {
             }
         };
         ((Compilable) new BshScriptEngineFactory().getScriptEngine()).compile(read);
+    }
+
+    // --------------------------------------------------------- private methods
+
+    private Interpreter getInterpreter(BshScriptEngine engine) throws Exception {
+        Field f = engine.getClass().getDeclaredField("interpreter");
+        f.setAccessible(true);
+
+        return (Interpreter)f.get(engine);
     }
 }

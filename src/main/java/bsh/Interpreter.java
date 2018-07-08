@@ -27,6 +27,7 @@
 
 package bsh;
 
+import bsh.console.SimpleConsole;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -95,7 +96,7 @@ import java.lang.reflect.Method;
     See the BeanShell User's Manual for more information.
 */
 public class Interpreter
-    implements Runnable, ConsoleInterface, Serializable, AutoCloseable
+    implements Runnable, Serializable, AutoCloseable
 {
     /* --- Begin static members --- */
 
@@ -143,13 +144,12 @@ public class Interpreter
 
     /* --- Instance data --- */
 
-    protected transient Parser parser;
-    protected transient Reader in;
-    protected transient PrintStream out;
-    protected transient PrintStream err;
+    transient Parser parser;
+    transient ConsoleInterface console;
 
     NameSpace globalNameSpace;
-    ConsoleInterface console;
+
+
 
     /** If this interpeter is a child of another, the parent */
     Interpreter parent;
@@ -200,10 +200,10 @@ public class Interpreter
         long t1 = 0;
         if (Interpreter.DEBUG.get())
             t1=System.currentTimeMillis();
-        this.in = in;
-        this.out = out;
-        this.err = err;
+
+        this.console = new SimpleConsole(in, out, err);
         this.interactive = interactive;
+
         debug = err;
         this.parent = parent;
         if ( parent != null )
@@ -293,10 +293,10 @@ public class Interpreter
     public void setConsole( ConsoleInterface console ) {
         this.console = console;
         setu( "bsh.console", console );
-        // redundant with constructor
-        setOut( console.getOut() );
-        setErr( console.getErr() );
-        // need to set the input stream - reinit the parser?
+    }
+
+    public ConsoleInterface getConsole() {
+        return console;
     }
 
     private void initRootSystemObject()
@@ -499,7 +499,7 @@ public class Interpreter
                     e.printStackTrace();
                 if( !interactive )
                     eof = true;
-                parser.reInitInput(in);
+                parser.reInitInput(console.getIn());
             }
             catch(InterpreterError e)
             {
@@ -511,7 +511,7 @@ public class Interpreter
             {
                 error("Target Exception: " + e.getMessage() );
                 if ( e.inNativeCode() )
-                    e.printStackTrace( DEBUG.get(), err );
+                    e.printStackTrace( DEBUG.get(), console.getErr() );
                 if(!interactive)
                     eof = true;
                 setu("$_e", e.getTarget());
@@ -622,7 +622,7 @@ public class Interpreter
             this interpreter.
         */
         try (Interpreter localInterpreter = new Interpreter(
-                in, out, err, false, nameSpace, this, sourceFileInfo  )) {
+                in, console.getOut(), console.getErr(), false, nameSpace, this, sourceFileInfo  )) {
 
             CallStack callstack = new CallStack( nameSpace );
 
@@ -697,9 +697,6 @@ public class Interpreter
                     }
                 }
             }
-            // release shared resources before auto closing.
-            localInterpreter.out = null;
-            localInterpreter.err = null;
         } catch (IOException ioe) {
             throw new EvalError("Sourced file: "+sourceFileInfo+" "
                     + ioe.toString(), null, null, ioe);
@@ -751,41 +748,16 @@ public class Interpreter
         in red, etc.
     */
     public final void error( Object o ) {
-        if ( console != null )
-                console.error( "// Error: " + o +"\n" );
-        else {
-            err.println("// Error: " + o );
-            err.flush();
-        }
+        console.print("// Error: " + o  + "\n");
     }
-
-    // ConsoleInterface
-    // The interpreter reflexively implements the console interface that it
-    // uses.  Should clean this up by using an inner class to implement the
-    // console for us.
-
-    /**
-        Get the input stream associated with this interpreter.
-        This may be be stdin or the GUI console.
-    */
-    public Reader getIn() { return in; }
-
-    /**
-        Get the outptut stream associated with this interpreter.
-        This may be be stdout or the GUI console.
-    */
-    public PrintStream getOut() { return out; }
-
-    /**
-        Get the error output stream associated with this interpreter.
-        This may be be stderr or the GUI console.
-    */
-    public PrintStream getErr() { return err; }
-
 
     /** Attempt the release of open resources.
      * @throws IOException */
     public void close() throws IOException {
+        PrintStream out = console.getOut();
+        PrintStream err = console.getErr();
+        Reader      in  = console.getIn();
+
         if ( null != err ) {
             err.close();
             err = null;
@@ -807,15 +779,8 @@ public class Interpreter
 
     public final void print( Object o )
     {
-        if (console != null) {
-            console.print(o);
-        } else {
-            out.print(o);
-            out.flush();
-        }
+        console.print(o);
     }
-
-    // End ConsoleInterface
 
     /**
         Print a debug message on debug stream associated with this interpreter
@@ -1160,34 +1125,6 @@ public class Interpreter
         return parent;
     }
 
-    public void setOut( PrintStream out ) {
-        this.out = out;
-    }
-    public void setErr( PrintStream err ) {
-        this.err = err;
-    }
-
-    /**
-     * Interrupt the current parsing even if blocked reading from the input
-     * stream. It does not stop a long operation that is being executed.
-     *
-     * Once interrupted the input stream and the parser become invalid and can
-     * not be used any more.
-     *
-     * Override this basic implementation for more sophisticated policy.
-     */
-    protected void interrupt() {
-        println("... interrupted ...");
-
-        try {
-            interrupted = true;
-            in.close();
-        } catch (IOException x) {
-            // nothing to do...
-            x.printStackTrace();
-        }
-    }
-
     /**
         De-serialization setup.
         Default out and err streams to stdout, stderr if they are null.
@@ -1197,14 +1134,10 @@ public class Interpreter
     {
         stream.defaultReadObject();
 
-        // set transient fields
-        if ( console != null ) {
-            setOut( console.getOut() );
-            setErr( console.getErr() );
-        } else {
-            setOut( System.out );
-            setErr( System.err );
-        }
+        //
+        // Note that the console can not be deserialized therefore the caller
+        // shall call setConsole().
+        //
     }
 
     /**
@@ -1283,15 +1216,5 @@ public class Interpreter
 
     public static boolean getSaveClasses()  {
         return getSaveClassesDir() != null && !getSaveClassesDir().isEmpty();
-    }
-
-    public void resetParser(Reader in) {
-        try {
-            this.in.close();
-        } catch (IOException x) {
-            // nothing to do...
-        }
-        this.in = in;
-        parser = new Parser(in);
     }
 }
