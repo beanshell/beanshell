@@ -657,7 +657,7 @@ public final class This implements java.io.Serializable, Runnable
                 e = (Exception) ((TargetError) e).getTarget();
             if (e instanceof InvocationTargetException)
                 e = (Exception) ((InvocationTargetException) e).getTargetException();
-            throw new InterpreterError("Error in class initialization: " + e, e);
+            throw new InterpreterError("Error in class instance initialization: " + e, e);
         }
     }
 
