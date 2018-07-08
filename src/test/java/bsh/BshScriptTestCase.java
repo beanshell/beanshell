@@ -21,14 +21,17 @@ package bsh;
 
 import static bsh.KnownIssue.KNOWN_FAILING_TESTS;
 import static bsh.KnownIssue.SKIP_KNOWN_ISSUES;
-import static org.junit.Assume.assumeFalse;
-import static org.junit.Assert.assertThat;
-import static org.hamcrest.Matchers.isA;
-import static org.hamcrest.Matchers.containsString;
 import static java.lang.Boolean.valueOf;
+import static java.lang.System.err;
+import static java.lang.System.out;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.isA;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assume.assumeFalse;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.Reader;
 
 import org.junit.AssumptionViolatedException;
 import org.junit.Test;
@@ -133,17 +136,18 @@ public class BshScriptTestCase {
 
         /** {@inheritDoc} */
         @Override
-        @SuppressWarnings("resource")
         public void runTest() throws Throwable {
             Capabilities.instance.accept(valueOf(System.getProperty("accessibility")));
             assumeFalse("skipping test " + getName(), SKIP_KNOWN_ISSUES
                     && KNOWN_FAILING_TESTS.contains(getName()));
 
-            try (final Interpreter interpreter = new Interpreter()) {
+            try ( final Reader in = new FileReader(this._file);
+                final Interpreter interpreter = new Interpreter(in, out, err, false) ) {
+                interpreter.sourceFileInfo = this.getName();
                 interpreter.set("bsh.cwd", test_scripts_dir.getPath());
 
                 try {
-                    interpreter.eval(new FileReader(this._file));
+                    interpreter.eval(in);
                 } catch (final Throwable e) {
                     skipAssumptions(e);
                     if (!System.getProperty("script").isEmpty())

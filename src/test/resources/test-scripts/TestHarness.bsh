@@ -13,7 +13,7 @@ assert( boolean condition )
         super.test_message += "Test FAILED: "
             +"Line: "+ this.namespace.getInvocationLine()
             +" : "+this.namespace.getInvocationText()
-            +" : while evaluating file: "+getSourceFileInfo();
+            +" : in test: "+getSourceFileInfo();
 //        print(super.test_message);
         super.test_failed = true;
     }
