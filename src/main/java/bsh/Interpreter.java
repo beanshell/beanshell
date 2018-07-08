@@ -526,12 +526,6 @@ public class Interpreter
                 if(!interactive)
                     eof = true;
             }
-            catch (TokenMgrException e) {
-                if ( DEBUG.get() )
-                    e.printStackTrace();
-                if(!interactive)
-                    eof = true;
-            }
             catch(Exception e)
             {
                 error("Unknown error: " + e);
