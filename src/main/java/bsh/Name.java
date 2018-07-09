@@ -27,6 +27,10 @@ package bsh;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
     What's in a name?  I'll tell you...
@@ -995,67 +999,80 @@ class Name implements java.io.Serializable
     // Static methods that operate on compound ('.' separated) names
     // I guess we could move these to StringUtil someday
 
+    private static class Parts {
+        private static final Map<String, Parts> PARTSCACHE = new WeakHashMap<>();
+        private final String[] prefix;
+        private final String[] suffix;
+        private final List<String> list;
+        public final int count;
+        private Parts(String value) {
+            this.list = Arrays.asList(value.split("\\."));
+            this.count = list.size();
+            this.prefix = new String[count + 1];
+            this.suffix = new String[count + 1];
+        }
+        public String prefix(int parts) {
+            if (1 > parts || count < parts)
+                return null;
+            if (null == prefix[parts])
+                prefix[parts] = String.join(".", list.subList(0, parts));
+            return prefix[parts];
+        }
+        public String suffix(int parts) {
+            if (1 > parts || count < parts)
+                return null;
+            if (null == suffix[parts])
+                suffix[parts] = String.join(".", list.subList(count - parts, count));
+            return suffix[parts];
+        }
+        public static Parts get(String value) {
+            if (PARTSCACHE.containsKey(value))
+                return PARTSCACHE.get(value);
+            Parts parts = new Parts(value);
+            PARTSCACHE.put(value, parts);
+            parts.prefix[parts.count] = value;
+            parts.suffix[parts.count] = value;
+            if (parts.count == 1)
+                return parts;
+            parts.prefix[1] = parts.list.get(0);
+            parts.suffix[1] = parts.list.get(parts.count - 1);
+            return parts;
+        }
+    }
     public static boolean isCompound(String value)
     {
-        return value.indexOf('.') != -1 ;
-        //return countParts(value) > 1;
+        return countParts(value) > 1;
     }
 
     static int countParts(String value)
     {
-        if(value == null)
+        if( value == null )
             return 0;
-
-        int count = 0;
-        int index = -1;
-        while((index = value.indexOf('.', index + 1)) != -1)
-            count++;
-        return count + 1;
+        return Parts.get(value).count;
     }
 
     static String prefix(String value)
     {
-        if(!isCompound(value))
-            return null;
-
         return prefix(value, countParts(value) - 1);
     }
 
     static String prefix(String value, int parts)
     {
-        if (parts < 1 )
+        if (null == value)
             return null;
-
-        int count = 0;
-        int index = -1;
-
-        while( ((index = value.indexOf('.', index + 1)) != -1)
-            && (++count < parts) )
-        { ; }
-
-        return (index == -1) ? value : value.substring(0, index);
+        return Parts.get(value).prefix(parts);
     }
 
-    static String suffix(String name)
+    static String suffix(String value)
     {
-        if(!isCompound(name))
-            return null;
-
-        return suffix(name, countParts(name) - 1);
+        return suffix(value, countParts(value) - 1);
     }
 
     public static String suffix(String value, int parts)
     {
-        if (parts < 1)
+        if (null == value)
             return null;
-
-        int count = 0;
-        int index = value.length() + 1;
-
-        while ( ((index = value.lastIndexOf('.', index - 1)) != -1)
-            && (++count < parts) );
-
-        return (index == -1) ? value : value.substring(index + 1);
+        return Parts.get(value).suffix(parts);
     }
 
     // end compound name routines

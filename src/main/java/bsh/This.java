@@ -33,7 +33,6 @@ import static bsh.ClassGenerator.ClassNodeFilter.CLASSSTATIC;
 import static bsh.ClassGeneratorUtil.DEFAULTCONSTRUCTOR;
 import static bsh.This.Keys.BSHCONSTRUCTORS;
 import static bsh.This.Keys.BSHINIT;
-import static bsh.This.Keys.BSHSTATIC;
 import static bsh.This.Keys.BSHTHIS;
 
 import java.lang.reflect.Constructor;
@@ -658,7 +657,7 @@ public final class This implements java.io.Serializable, Runnable
                 e = (Exception) ((TargetError) e).getTarget();
             if (e instanceof InvocationTargetException)
                 e = (Exception) ((InvocationTargetException) e).getTargetException();
-            throw new InterpreterError("Error in class initialization: " + e, e);
+            throw new InterpreterError("Error in class instance initialization: " + e, e);
         }
     }
 
@@ -687,13 +686,13 @@ public final class This implements java.io.Serializable, Runnable
      * @param className the name of instance relative
      * @return instance This */
     private static This initClassInstanceThis(Object instance, String className) {
-        This instanceThis = getClassInstanceThis(instance, className);
+        This instanceThis = Reflect.getClassInstanceThis(instance, className);
         if (null == instanceThis) {
             // Create the instance 'This' namespace, set it on the object
             // instance and invoke the instance initializer
 
             // Get the static This reference from the proto-instance
-            This classStaticThis = getClassStaticThis(instance.getClass(), className);
+            This classStaticThis = Reflect.getClassStaticThis(instance.getClass(), className);
 
             // Create the instance namespace
             NameSpace instanceNameSpace = classStaticThis.getNameSpace().copy();
@@ -727,7 +726,7 @@ public final class This implements java.io.Serializable, Runnable
             try { // Evaluate the initializer block
                 instanceInitBlock.evalBlock(new CallStack(instanceNameSpace), instanceThis.declaringInterpreter, true/*override*/, CLASSINSTANCE);
             } catch (Exception e) {
-                throw new InterpreterError("Error in class initialization: " + e, e);
+                throw new InterpreterError("Error in class instance This initialization: " + e, e);
             }
         }
         return instanceThis;
@@ -742,7 +741,7 @@ public final class This implements java.io.Serializable, Runnable
     public static void initStatic(Class<?> genClass) throws UtilEvalError {
         String className = genClass.getSimpleName();
         try {
-            This staticThis = getClassStaticThis(genClass, className);
+            This staticThis = Reflect.getClassStaticThis(genClass, className);
             NameSpace classStaticNameSpace = staticThis.getNameSpace();
             Interpreter interpreter = staticThis.declaringInterpreter;
 
@@ -777,32 +776,6 @@ public final class This implements java.io.Serializable, Runnable
             // we lost the context, provide empty
             // container for static final field
             return This.getThis(null, null);
-    }
-
-    /**
-     * Get the static bsh namespace field from the class.
-     * @param className may be the name of clas itself or a superclass of clas.
-     */
-    private static This getClassStaticThis(Class clas, String className) {
-        try {
-            return (This) Reflect.getStaticFieldValue(clas, BSHSTATIC + className);
-        } catch (Exception e) {
-            throw new InterpreterError("Unable to get class static space: " + e, e);
-        }
-    }
-
-    /**
-     * Get the instance bsh namespace field from the object instance.
-     * @return the class instance This object or null if the object has not
-     * been initialized.
-     */
-    static This getClassInstanceThis(Object instance, String className) {
-        try {
-            Object o = Reflect.getObjectFieldValue(instance, BSHTHIS + className);
-            return (This) Primitive.unwrap(o); // unwrap Primitive.Null to null
-        } catch (Exception e) {
-            throw new InterpreterError("Generated class: Error getting This" + e, e);
-        }
     }
 
     /**

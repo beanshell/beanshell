@@ -40,7 +40,7 @@ editor()
         else if ( e.getActionCommand().equals("Clear") )
             ta.setText("");
         else
-            this.interpreter.eval( ta.getText() );
+            print( this.interpreter.eval( ta.getText() ) );
     }
 
     print("Editor started...");
