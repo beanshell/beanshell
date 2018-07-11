@@ -243,4 +243,6 @@ Projects that we know of which uses BeanShell. Is your project not listed here? 
  * [jAlbum](https://jalbum.net/help/en/Scripting)
  * [LifeRay](https://dev.liferay.com/discover/portal/-/knowledge_base/7-0/using-liferays-script-engine)
  * [OpenKM](https://www.openkm.com/wiki/index.php/Scripting_-_OpenKM_6.2)
+ * [emacs jde](https://www.emacswiki.org/emacs/JavaDevelopmentEnvironment)
+ * [TestNG](https://testng.org/doc/documentation-main.html#beanshell)
 

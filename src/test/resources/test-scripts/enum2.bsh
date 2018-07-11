@@ -1,0 +1,68 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// from Java tutorial Enums
+// https://docs.oracle.com/javase/8/docs/technotes/guides/language/enums.html
+public class Card {
+    public enum Rank { DEUCE, THREE, FOUR, FIVE, SIX,
+        SEVEN, EIGHT, NINE, TEN, JACK, QUEEN, KING, ACE }
+
+    public enum Suit { CLUBS, DIAMONDS, HEARTS, SPADES }
+
+    private final Rank rank;
+    private final Suit suit;
+    // can't do private constructor
+    Card(Rank rank, Suit suit) {
+        this.rank = rank;
+        this.suit = suit;
+    }
+
+    public Rank rank() { return rank; }
+    public Suit suit() { return suit; }
+    public String toString() { return rank + " of " + suit; }
+
+    private static final List<Card> protoDeck = new ArrayList<Card>();
+
+    // Initialize prototype deck
+    static {
+        for (Suit suit : Suit.values())
+            for (Rank rank : Rank.values())
+                protoDeck.add(new Card(rank, suit));
+    }
+
+    public static ArrayList<Card> newDeck() {
+        return new ArrayList<Card>(protoDeck); // Return copy of prototype deck
+    }
+}
+
+public class Deal {
+    public static List<List<Card>> hands(int numHands, int cardsPerHand) {
+        List<Card> deck  = Card.newDeck();
+        Collections.shuffle(deck);
+        List<List<Card>> hands = new ArrayList<>();
+        for (int i=0; i < numHands; i++)
+            hands.add(deal(deck, cardsPerHand));
+        return hands;
+    }
+
+    public static ArrayList<Card> deal(List<Card> deck, int n) {
+         int deckSize = deck.size();
+         List<Card> handView = deck.subList(deckSize-n, deckSize);
+         ArrayList<Card> hand = new ArrayList<Card>(handView);
+         handView.clear();
+         return hand;
+     }
+}
+
+Object ret = Deal.hands(4, 5);
+
+assertThat("has 4 hands", ret, hasSize(4));
+assertThat("has 5 cards hand 1", ret.get(0), hasSize(5));
+assertThat("has 5 cards hand 2", ret.get(1), hasSize(5));
+assertThat("has 5 cards hand 3", ret.get(2), hasSize(5));
+assertThat("has 5 cards hand 4", ret.get(3), hasSize(5));
+
+complete();
+

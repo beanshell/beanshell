@@ -66,6 +66,7 @@ class BSHTypedVariableDeclaration extends SimpleNode {
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
+        Object value = Primitive.VOID;
         try {
             NameSpace namespace = callstack.top();
             BSHType typeNode = getTypeNode();
@@ -79,7 +80,7 @@ class BSHTypedVariableDeclaration extends SimpleNode {
 
                 // Type node is passed down the chain for array initializers
                 // which need it under some circumstances
-                Object value = dec.eval( typeNode, callstack, interpreter);
+                value = dec.eval( typeNode, callstack, interpreter);
                 try {
                     LHS lhs = null;
                     if ( namespace.isClass )
@@ -101,6 +102,7 @@ class BSHTypedVariableDeclaration extends SimpleNode {
                     } else
                         namespace.setTypedVariable(
                                 dec.name, type, value, modifiers );
+                    value = namespace.getVariable(dec.name);
                 } catch ( UtilEvalError e ) {
                     throw e.toEvalError( this, callstack );
                 }
@@ -108,8 +110,7 @@ class BSHTypedVariableDeclaration extends SimpleNode {
         } catch ( EvalError e ) {
             e.reThrow( "Typed variable declaration" );
         }
-
-        return Primitive.VOID;
+        return value;
     }
 
     public String getTypeDescriptor(

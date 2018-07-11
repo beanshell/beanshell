@@ -25,6 +25,8 @@
  *****************************************************************************/
 package bsh;
 
+import static bsh.This.Keys.BSHSUPER;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -32,8 +34,9 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public final class ClassGenerator {
+
+    enum Type { CLASS, INTERFACE, ENUM }
 
     private static ClassGenerator cg;
 
@@ -48,9 +51,9 @@ public final class ClassGenerator {
     /**
      * Parse the BSHBlock for the class definition and generate the class.
      */
-    public Class generateClass(String name, Modifiers modifiers, Class[] interfaces, Class superClass, BSHBlock block, boolean isInterface, CallStack callstack, Interpreter interpreter) throws EvalError {
+    public Class generateClass(String name, Modifiers modifiers, Class[] interfaces, Class superClass, BSHBlock block, Type type, CallStack callstack, Interpreter interpreter) throws EvalError {
         // Delegate to the static method
-        return generateClassImpl(name, modifiers, interfaces, superClass, block, isInterface, callstack, interpreter);
+        return generateClassImpl(name, modifiers, interfaces, superClass, block, type, callstack, interpreter);
     }
 
     /**
@@ -64,27 +67,14 @@ public final class ClassGenerator {
     }
 
     /**
-     * Change the parent of the class instance namespace.
-     * This is currently used for inner class support.
-     * Note: This method will likely be removed in the future.
-     */
-    // This could be static
-    public void setInstanceNameSpaceParent(Object instance, String className, NameSpace parent) {
-        This ithis = ClassGeneratorUtil.getClassInstanceThis(instance, className);
-        ithis.getNameSpace().setParent(parent);
-    }
-
-    /**
      * Parse the BSHBlock for for the class definition and generate the class
      * using ClassGenerator.
      */
-    public static Class generateClassImpl(String name, Modifiers modifiers, Class[] interfaces, Class superClass, BSHBlock block, boolean isInterface, CallStack callstack, Interpreter interpreter) throws EvalError {
-
+    public static Class generateClassImpl(String name, Modifiers modifiers, Class[] interfaces, Class superClass, BSHBlock block, Type type, CallStack callstack, Interpreter interpreter) throws EvalError {
         NameSpace enclosingNameSpace = callstack.top();
         String packageName = enclosingNameSpace.getPackage();
         String className = enclosingNameSpace.isClass ? (enclosingNameSpace.getName() + "$" + name) : name;
         String fqClassName = packageName == null ? className : packageName + "." + className;
-
         BshClassManager bcm = interpreter.getClassManager();
         // Race condition here...
         bcm.definingClass(fqClassName);
@@ -110,7 +100,7 @@ public final class ClassGenerator {
 
         // Create the class generator, which encapsulates all knowledge of the
         // structure of the class
-        ClassGeneratorUtil classGenerator = new ClassGeneratorUtil(modifiers, className, packageName, superClass, interfaces, variables, methods, classStaticNameSpace, isInterface);
+        ClassGeneratorUtil classGenerator = new ClassGeneratorUtil(modifiers, className, packageName, superClass, interfaces, variables, methods, classStaticNameSpace, type);
 
         // Let the class generator install hooks relating to the structure of
         // the class into the class static namespace.  e.g. the constructor
@@ -133,6 +123,7 @@ public final class ClassGenerator {
 
             // Define the new class in the classloader
             genClass = bcm.defineClass(fqClassName, code);
+            Interpreter.debug("Define ", fqClassName, " as ", genClass);
         }
         // import the unqualified class name into parent namespace
         enclosingNameSpace.importClass(fqClassName.replace('$', '.'));
@@ -140,6 +131,8 @@ public final class ClassGenerator {
         // Give the static space its class static import
         // important to do this after all classes are defined
         classStaticNameSpace.setClassStatic(genClass);
+
+        Interpreter.debug(classStaticNameSpace);
 
         bcm.doneDefiningClass(fqClassName);
 
@@ -166,7 +159,16 @@ public final class ClassGenerator {
         List<Variable> vars = new ArrayList<Variable>();
         for (int child = 0; child < body.jjtGetNumChildren(); child++) {
             SimpleNode node = (SimpleNode) body.jjtGetChild(child);
-            if (node instanceof BSHTypedVariableDeclaration) {
+            if (node instanceof BSHEnumConstant) {
+                BSHEnumConstant enm = (BSHEnumConstant) node;
+                try {
+                    Variable var = new Variable(enm.getName(),
+                            enm.getType(), null/*value*/, enm.mods);
+                    vars.add(var);
+                } catch (UtilEvalError e) {
+                    // value error shouldn't happen
+                }
+            } else if (node instanceof BSHTypedVariableDeclaration) {
                 BSHTypedVariableDeclaration tvd = (BSHTypedVariableDeclaration) node;
                 Modifiers modifiers = tvd.modifiers;
                 BSHVariableDeclarator[] vardec = tvd.getDeclarators();
@@ -215,28 +217,28 @@ public final class ClassGenerator {
      * members are passed, etc.
      */
     static class ClassNodeFilter implements BSHBlock.NodeFilter {
-        public static final int STATIC = 0, INSTANCE = 1, CLASSES = 2;
+        enum Context { STATIC, INSTANCE, CLASSES }
 
-        public static ClassNodeFilter CLASSSTATIC = new ClassNodeFilter(STATIC);
-        public static ClassNodeFilter CLASSINSTANCE = new ClassNodeFilter(INSTANCE);
-        public static ClassNodeFilter CLASSCLASSES = new ClassNodeFilter(CLASSES);
+        public static ClassNodeFilter CLASSSTATIC = new ClassNodeFilter(Context.STATIC);
+        public static ClassNodeFilter CLASSINSTANCE = new ClassNodeFilter(Context.INSTANCE);
+        public static ClassNodeFilter CLASSCLASSES = new ClassNodeFilter(Context.CLASSES);
 
-        int context;
+        Context context;
 
-        private ClassNodeFilter(int context) {
+        private ClassNodeFilter(Context context) {
             this.context = context;
         }
 
         @Override
         public boolean isVisible(SimpleNode node) {
-            if (context == CLASSES) return node instanceof BSHClassDeclaration;
+            if (context == Context.CLASSES) return node instanceof BSHClassDeclaration;
 
             // Only show class decs in CLASSES
             if (node instanceof BSHClassDeclaration) return false;
 
-            if (context == STATIC) return isStatic(node);
+            if (context == Context.STATIC) return isStatic(node);
 
-            if (context == INSTANCE) return !isStatic(node);
+            if (context == Context.INSTANCE) return !isStatic(node);
 
             // ALL
             return true;
@@ -244,7 +246,7 @@ public final class ClassGenerator {
 
         boolean isStatic(SimpleNode node) {
             if (null != node.jjtGetParent() && node.jjtGetParent().jjtGetParent() instanceof BSHClassDeclaration)
-                if (((BSHClassDeclaration) node.jjtGetParent().jjtGetParent()).isInterface)
+                if (((BSHClassDeclaration) node.jjtGetParent().jjtGetParent()).type == Type.INTERFACE)
                     return true;
 
             if (node instanceof BSHTypedVariableDeclaration)
@@ -261,7 +263,7 @@ public final class ClassGenerator {
     }
 
     public static Object invokeSuperclassMethodImpl(BshClassManager bcm, Object instance, String methodName, Object[] args) throws UtilEvalError, ReflectError, InvocationTargetException {
-        String superName = ClassGeneratorUtil.BSHSUPER + methodName;
+        String superName = BSHSUPER + methodName;
 
         // look for the specially named super delegate method
         Class clas = instance.getClass();

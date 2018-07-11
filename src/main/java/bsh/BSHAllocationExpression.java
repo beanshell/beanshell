@@ -111,7 +111,7 @@ class BSHAllocationExpression extends SimpleNode
     private Object constructObject(Class<?> type, Object[] args, CallStack callstack, Interpreter interpreter ) throws EvalError {
         final boolean isGeneratedClass = Reflect.isGeneratedClass(type);
         if (isGeneratedClass) {
-            ClassGeneratorUtil.registerConstructorContext(callstack, interpreter);
+            This.registerConstructorContext(callstack, interpreter);
         }
         Object obj;
         try {
@@ -125,7 +125,7 @@ class BSHAllocationExpression extends SimpleNode
             throw new TargetError("Object constructor", e.getTargetException(), this, callstack, true);
         } finally {
             if (isGeneratedClass) {
-                ClassGeneratorUtil.registerConstructorContext(null, null); // clean up, prevent memory leak
+                This.registerConstructorContext(null, null); // clean up, prevent memory leak
             }
         }
         String className = type.getName();
@@ -133,26 +133,17 @@ class BSHAllocationExpression extends SimpleNode
         if ( className.indexOf("$") == -1 )
             return obj;
 
-        // Temporary hack to support inner classes
-        // If the obj is a non-static inner class then import the context...
-        // This is not a sufficient emulation of inner classes.
-        // Replace this later...
-
         // work through to class 'this'
         This ths = callstack.top().getThis( null );
-        NameSpace instanceNameSpace =
-            Name.getClassNameSpace( ths.getNameSpace() );
+        NameSpace instanceNameSpace = ths.getNameSpace();
 
-        // Change the parent (which was the class static) to the class instance
-        // We really need to check if we're a static inner class here first...
-        // but for some reason Java won't show the static modifier on our
-        // fake inner classes...  could generate a flag field.
-        if ( instanceNameSpace != null
-            && className.startsWith( instanceNameSpace.getName() +"$")
-        )
-        {
-            ClassGenerator.getClassGenerator().setInstanceNameSpaceParent(
-                obj, className, instanceNameSpace );
+        // method and class name spaces acceptable
+        if ( null != Name.getClassNameSpace(instanceNameSpace)
+                && !Reflect.getClassModifiers(obj.getClass()).hasModifier("static") ) {
+            Reflect.getThisNS(obj).setParent(instanceNameSpace);
+        } else if ( Reflect.getClassModifiers(obj.getClass()).hasModifier("static") ) {
+            // add class static parent as instance parent
+            Reflect.getThisNS(obj).setParent(Reflect.getThisNS(obj.getClass()).getParent());
         }
 
         return obj;
@@ -167,7 +158,7 @@ class BSHAllocationExpression extends SimpleNode
         Modifiers modifiers = new Modifiers(Modifiers.CLASS);
         Class clas = ClassGenerator.getClassGenerator().generateClass(
                 name, modifiers, null/*interfaces*/, type/*superClass*/,
-                block, false/*isInterface*/, callstack, interpreter );
+                block, ClassGenerator.Type.CLASS, callstack, interpreter );
         try {
             return Reflect.constructObject( clas, args );
         } catch ( Exception e ) {
@@ -280,13 +271,31 @@ class BSHAllocationExpression extends SimpleNode
         }
 
         try {
-            return Array.newInstance(
+            Object arr = Array.newInstance(
                 type, dimensionsNode.definedDimensions);
+            arrayFillDefaultValue(arr);
+            return arr;
         } catch( NegativeArraySizeException e1 ) {
             throw new TargetError( e1, this, callstack );
         } catch( Exception e ) {
             throw new EvalError("Can't construct primitive array: " +
                 e.getMessage(), this, callstack, e);
+        }
+    }
+
+    private void arrayFillDefaultValue(Object arr) {
+        if (null == arr)
+            return;
+        Class<?> clas = arr.getClass();
+        Class<?> comp = clas.getComponentType();
+        if (!clas.isPrimitive() && clas.isArray()
+                && !comp.isPrimitive()) {
+            Object def = Primitive.getDefaultValue(comp);
+            for (int i = 0; i < Array.getLength(arr); i++)
+                if (comp.isArray())
+                    arrayFillDefaultValue(Array.get(arr, i));
+                else
+                    Array.set(arr, i, Primitive.unwrap(def));
         }
     }
 }

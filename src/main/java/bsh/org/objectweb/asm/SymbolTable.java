@@ -98,12 +98,6 @@ final class SymbolTable {
    */
   final ClassWriter classWriter;
 
-  /**
-   * The ClassReader from which this SymbolTable was constructed, or <tt>null</tt> if it was
-   * constructed from scratch.
-   */
-//  private final ClassReader sourceClassReader;
-
   /** The major version number of the class to which this symbol table belongs. */
   private int majorVersion;
 
@@ -172,7 +166,6 @@ final class SymbolTable {
    */
   SymbolTable(final ClassWriter classWriter) {
     this.classWriter = classWriter;
-//    this.sourceClassReader = null;
     this.entries = new Entry[256];
     this.constantPoolCount = 1;
     this.constantPool = new ByteVector();
@@ -298,6 +291,20 @@ final class SymbolTable {
     return entries[index] = entry;
   }
 
+  /**
+   * Adds the given entry in the {@link #entries} hash set. This method does <i>not</i> check
+   * whether {@link #entries} already contains a similar entry or not, and does <i>not</i> resize
+   * {@link #entries} if necessary.
+   *
+   * @param entry an Entry (which must not already be contained in {@link #entries}).
+   */
+  private void add(final Entry entry) {
+    entryCount++;
+    int index = entry.hashCode % entries.length;
+    entry.next = entries[index];
+    entries[index] = entry;
+  }
+
   // -----------------------------------------------------------------------------------------------
   // Constant pool entries management.
   // -----------------------------------------------------------------------------------------------
@@ -343,7 +350,11 @@ final class SymbolTable {
     } else if (value instanceof Handle) {
       Handle handle = (Handle) value;
       return addConstantMethodHandle(
-          handle.tag, handle.owner, handle.name, handle.descriptor, handle.isInterface);
+          handle.getTag(),
+          handle.getOwner(),
+          handle.getName(),
+          handle.getDesc(),
+          handle.isInterface());
     } else {
       throw new IllegalArgumentException("value " + value);
     }
@@ -421,6 +432,26 @@ final class SymbolTable {
   }
 
   /**
+   * Adds a new CONSTANT_Fieldref_info, CONSTANT_Methodref_info or CONSTANT_InterfaceMethodref_info
+   * to the constant pool of this symbol table.
+   *
+   * @param index the constant pool index of the new Symbol.
+   * @param tag one of {@link Symbol#CONSTANT_FIELDREF_TAG}, {@link Symbol#CONSTANT_METHODREF_TAG}
+   *     or {@link Symbol#CONSTANT_INTERFACE_METHODREF_TAG}.
+   * @param owner the internal name of a class.
+   * @param name a field or method name.
+   * @param descriptor a field or method descriptor.
+   */
+  private void addConstantMemberReference(
+      final int index,
+      final int tag,
+      final String owner,
+      final String name,
+      final String descriptor) {
+    add(new Entry(index, tag, owner, name, descriptor, 0, hash(tag, owner, name, descriptor)));
+  }
+
+  /**
    * Adds a CONSTANT_String_info to the constant pool of this symbol table. Does nothing if the
    * constant pool already contains a similar item.
    *
@@ -475,6 +506,18 @@ final class SymbolTable {
   }
 
   /**
+   * Adds a new CONSTANT_Integer_info or CONSTANT_Float_info to the constant pool of this symbol
+   * table.
+   *
+   * @param index the constant pool index of the new Symbol.
+   * @param tag one of {@link Symbol#CONSTANT_INTEGER_TAG} or {@link Symbol#CONSTANT_FLOAT_TAG}.
+   * @param value an int or float.
+   */
+  private void addConstantInteger(final int index, final int tag, final int value) {
+    add(new Entry(index, tag, value, hash(tag, value)));
+  }
+
+  /**
    * Adds a CONSTANT_Long_info to the constant pool of this symbol table. Does nothing if the
    * constant pool already contains a similar item.
    *
@@ -520,6 +563,17 @@ final class SymbolTable {
   }
 
   /**
+   * Adds a new CONSTANT_Double_info to the constant pool of this symbol table.
+   *
+   * @param index the constant pool index of the new Symbol.
+   * @param tag one of {@link Symbol#CONSTANT_LONG_TAG} or {@link Symbol#CONSTANT_DOUBLE_TAG}.
+   * @param value a long or double.
+   */
+  private void addConstantLong(final int index, final int tag, final long value) {
+    add(new Entry(index, tag, value, hash(tag, value)));
+  }
+
+  /**
    * Adds a CONSTANT_NameAndType_info to the constant pool of this symbol table. Does nothing if the
    * constant pool already contains a similar item.
    *
@@ -545,6 +599,18 @@ final class SymbolTable {
   }
 
   /**
+   * Adds a new CONSTANT_NameAndType_info to the constant pool of this symbol table.
+   *
+   * @param index the constant pool index of the new Symbol.
+   * @param name a field or method name.
+   * @param descriptor a field or method descriptor.
+   */
+  private void addConstantNameAndType(final int index, final String name, final String descriptor) {
+    final int tag = Symbol.CONSTANT_NAME_AND_TYPE_TAG;
+    add(new Entry(index, tag, name, descriptor, hash(tag, name, descriptor)));
+  }
+
+  /**
    * Adds a CONSTANT_Utf8_info to the constant pool of this symbol table. Does nothing if the
    * constant pool already contains a similar item.
    *
@@ -564,6 +630,16 @@ final class SymbolTable {
     }
     constantPool.putByte(Symbol.CONSTANT_UTF8_TAG).putUTF8(value);
     return put(new Entry(constantPoolCount++, Symbol.CONSTANT_UTF8_TAG, value, hashCode)).index;
+  }
+
+  /**
+   * Adds a new CONSTANT_String_info to the constant pool of this symbol table.
+   *
+   * @param index the constant pool index of the new Symbol.
+   * @param value a string.
+   */
+  private void addConstantUtf8(final int index, final String value) {
+    add(new Entry(index, Symbol.CONSTANT_UTF8_TAG, value, hash(Symbol.CONSTANT_UTF8_TAG, value)));
   }
 
   /**
@@ -613,6 +689,29 @@ final class SymbolTable {
   }
 
   /**
+   * Adds a new CONSTANT_MethodHandle_info to the constant pool of this symbol table.
+   *
+   * @param index the constant pool index of the new Symbol.
+   * @param referenceKind one of {@link Opcodes#H_GETFIELD}, {@link Opcodes#H_GETSTATIC}, {@link
+   *     Opcodes#H_PUTFIELD}, {@link Opcodes#H_PUTSTATIC}, {@link Opcodes#H_INVOKEVIRTUAL}, {@link
+   *     Opcodes#H_INVOKESTATIC}, {@link Opcodes#H_INVOKESPECIAL}, {@link
+   *     Opcodes#H_NEWINVOKESPECIAL} or {@link Opcodes#H_INVOKEINTERFACE}.
+   * @param owner the internal name of a class of interface.
+   * @param name a field or method name.
+   * @param descriptor a field or method descriptor.
+   */
+  private void addConstantMethodHandle(
+      final int index,
+      final int referenceKind,
+      final String owner,
+      final String name,
+      final String descriptor) {
+    final int tag = Symbol.CONSTANT_METHOD_HANDLE_TAG;
+    int hashCode = hash(tag, owner, name, descriptor, referenceKind);
+    add(new Entry(index, tag, owner, name, descriptor, referenceKind, hashCode));
+  }
+
+  /**
    * Adds a CONSTANT_MethodType_info to the constant pool of this symbol table. Does nothing if the
    * constant pool already contains a similar item.
    *
@@ -621,6 +720,27 @@ final class SymbolTable {
    */
   Symbol addConstantMethodType(final String methodDescriptor) {
     return addConstantUtf8Reference(Symbol.CONSTANT_METHOD_TYPE_TAG, methodDescriptor);
+  }
+
+  /**
+   * Adds a CONSTANT_Dynamic_info to the constant pool of this symbol table. Also adds the related
+   * bootstrap method to the BootstrapMethods of this symbol table. Does nothing if the constant
+   * pool already contains a similar item.
+   *
+   * @param name a method name.
+   * @param descriptor a field descriptor.
+   * @param bootstrapMethodHandle a bootstrap method handle.
+   * @param bootstrapMethodArguments the bootstrap method arguments.
+   * @return a new or already existing Symbol with the given value.
+   */
+  Symbol addConstantDynamic(
+      final String name,
+      final String descriptor,
+      final Handle bootstrapMethodHandle,
+      final Object... bootstrapMethodArguments) {
+    Symbol bootstrapMethod = addBootstrapMethod(bootstrapMethodHandle, bootstrapMethodArguments);
+    return addConstantDynamicOrInvokeDynamicReference(
+        Symbol.CONSTANT_DYNAMIC_TAG, name, descriptor, bootstrapMethod.index);
   }
 
   /**
@@ -640,21 +760,24 @@ final class SymbolTable {
       final Handle bootstrapMethodHandle,
       final Object... bootstrapMethodArguments) {
     Symbol bootstrapMethod = addBootstrapMethod(bootstrapMethodHandle, bootstrapMethodArguments);
-    return addConstantInvokeDynamic(name, descriptor, bootstrapMethod.index);
+    return addConstantDynamicOrInvokeDynamicReference(
+        Symbol.CONSTANT_INVOKE_DYNAMIC_TAG, name, descriptor, bootstrapMethod.index);
   }
 
   /**
-   * Adds a CONSTANT_InvokeDynamic_info to the constant pool of this symbol table. Does nothing if
-   * the constant pool already contains a similar item.
+   * Adds a CONSTANT_Dynamic or a CONSTANT_InvokeDynamic_info to the constant pool of this symbol
+   * table. Does nothing if the constant pool already contains a similar item.
    *
+   * @param tag one of {@link Symbol#CONSTANT_DYNAMIC_TAG} or {@link
+   *     Symbol#CONSTANT_INVOKE_DYNAMIC_TAG}.
    * @param name a method name.
-   * @param descriptor a method descriptor.
+   * @param descriptor a field descriptor for CONSTANT_DYNAMIC_TAG) or a method descriptor for
+   *     CONSTANT_INVOKE_DYNAMIC_TAG.
    * @param bootstrapMethodIndex the index of a bootstrap method in the BootstrapMethods attribute.
    * @return a new or already existing Symbol with the given value.
    */
-  private Symbol addConstantInvokeDynamic(
-      final String name, final String descriptor, final int bootstrapMethodIndex) {
-    final int tag = Symbol.CONSTANT_INVOKE_DYNAMIC_TAG;
+  private Symbol addConstantDynamicOrInvokeDynamicReference(
+      final int tag, final String name, final String descriptor, final int bootstrapMethodIndex) {
     int hashCode = hash(tag, name, descriptor, bootstrapMethodIndex);
     Entry entry = get(hashCode);
     while (entry != null) {
@@ -671,6 +794,28 @@ final class SymbolTable {
     return put(
         new Entry(
             constantPoolCount++, tag, null, name, descriptor, bootstrapMethodIndex, hashCode));
+  }
+
+  /**
+   * Adds a new CONSTANT_Dynamic_info or CONSTANT_InvokeDynamic_info to the constant pool of this
+   * symbol table.
+   *
+   * @param tag one of {@link Symbol#CONSTANT_DYNAMIC_TAG} or {@link
+   *     Symbol#CONSTANT_INVOKE_DYNAMIC_TAG}.
+   * @param index the constant pool index of the new Symbol.
+   * @param name a method name.
+   * @param descriptor a field descriptor for CONSTANT_DYNAMIC_TAG or a method descriptor for
+   *     CONSTANT_INVOKE_DYNAMIC_TAG.
+   * @param bootstrapMethodIndex the index of a bootstrap method in the BootstrapMethods attribute.
+   */
+  private void addConstantDynamicOrInvokeDynamicReference(
+      final int tag,
+      final int index,
+      final String name,
+      final String descriptor,
+      final int bootstrapMethodIndex) {
+    int hashCode = hash(tag, name, descriptor, bootstrapMethodIndex);
+    add(new Entry(index, tag, null, name, descriptor, bootstrapMethodIndex, hashCode));
   }
 
   /**
@@ -720,6 +865,21 @@ final class SymbolTable {
     return put(new Entry(constantPoolCount++, tag, value, hashCode));
   }
 
+  /**
+   * Adds a new CONSTANT_Class_info, CONSTANT_String_info, CONSTANT_MethodType_info,
+   * CONSTANT_Module_info or CONSTANT_Package_info to the constant pool of this symbol table.
+   *
+   * @param index the constant pool index of the new Symbol.
+   * @param tag one of {@link Symbol#CONSTANT_CLASS_TAG}, {@link Symbol#CONSTANT_STRING_TAG}, {@link
+   *     Symbol#CONSTANT_METHOD_TYPE_TAG}, {@link Symbol#CONSTANT_MODULE_TAG} or {@link
+   *     Symbol#CONSTANT_PACKAGE_TAG}.
+   * @param value an internal class name, an arbitrary string, a method descriptor, a module or a
+   *     package name, depending on tag.
+   */
+  private void addConstantUtf8Reference(final int index, final int tag, final String value) {
+    add(new Entry(index, tag, value, hash(tag, value)));
+  }
+
   // -----------------------------------------------------------------------------------------------
   // Bootstrap method entries management.
   // -----------------------------------------------------------------------------------------------
@@ -739,29 +899,37 @@ final class SymbolTable {
       bootstrapMethodsAttribute = bootstrapMethods = new ByteVector();
     }
 
+    // The bootstrap method arguments can be Constant_Dynamic values, which reference other
+    // bootstrap methods. We must therefore add the bootstrap method arguments to the constant pool
+    // and BootstrapMethods attribute first, so that the BootstrapMethods attribute is not modified
+    // while adding the given bootstrap method to it, in the rest of this method.
+    for (Object bootstrapMethodArgument : bootstrapMethodArguments) {
+      addConstant(bootstrapMethodArgument);
+    }
+
     // Write the bootstrap method in the BootstrapMethods table. This is necessary to be able to
     // compare it with existing ones, and will be reverted below if there is already a similar
     // bootstrap method.
     int bootstrapMethodOffset = bootstrapMethodsAttribute.length;
     bootstrapMethodsAttribute.putShort(
         addConstantMethodHandle(
-                bootstrapMethodHandle.tag,
-                bootstrapMethodHandle.owner,
-                bootstrapMethodHandle.name,
-                bootstrapMethodHandle.descriptor,
+                bootstrapMethodHandle.getTag(),
+                bootstrapMethodHandle.getOwner(),
+                bootstrapMethodHandle.getName(),
+                bootstrapMethodHandle.getDesc(),
                 bootstrapMethodHandle.isInterface())
             .index);
     int numBootstrapArguments = bootstrapMethodArguments.length;
     bootstrapMethodsAttribute.putShort(numBootstrapArguments);
-    for (int i = 0; i < numBootstrapArguments; i++) {
-      bootstrapMethodsAttribute.putShort(addConstant(bootstrapMethodArguments[i]).index);
+    for (Object bootstrapMethodArgument : bootstrapMethodArguments) {
+      bootstrapMethodsAttribute.putShort(addConstant(bootstrapMethodArgument).index);
     }
 
     // Compute the length and the hash code of the bootstrap method.
     int bootstrapMethodlength = bootstrapMethodsAttribute.length - bootstrapMethodOffset;
     int hashCode = bootstrapMethodHandle.hashCode();
-    for (int i = 0; i < numBootstrapArguments; i++) {
-      hashCode ^= bootstrapMethodArguments[i].hashCode();
+    for (Object bootstrapMethodArgument : bootstrapMethodArguments) {
+      hashCode ^= bootstrapMethodArgument.hashCode();
     }
     hashCode &= 0x7FFFFFFF;
 

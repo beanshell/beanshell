@@ -28,6 +28,8 @@ package bsh;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -103,6 +105,7 @@ public class NameSpace
      * but we'll start here. */
     boolean isClass;
     boolean isInterface;
+    boolean isEnum;
     /** The class static. */
     Class<?> classStatic;
     /** The class instance. */
@@ -111,8 +114,7 @@ public class NameSpace
      * getClass() (taking into account imports). Only unqualified class names
      * are cached here (those which might be imported). Qualified names are
      * always absolute and are cached by BshClassManager. */
-    private final transient Map<String, Class<?>> classCache = new HashMap<>();
-
+    private transient Map<String, Class<?>> classCache = new HashMap<>();
 
     /** Sets the class static.
      * @param clas the new class static */
@@ -850,8 +852,7 @@ public class NameSpace
      *         errors loading a script that was found */
     public Object getCommand(final String name, final Class<?>[] argTypes,
             final Interpreter interpreter) throws UtilEvalError {
-        if (Interpreter.DEBUG)
-            Interpreter.debug("getCommand: " + name);
+        Interpreter.debug("getCommand: ", name);
         final BshClassManager bcm = interpreter.getClassManager();
         // loop backwards for precedence
         for (final String path : this.importedCommands) {
@@ -926,7 +927,7 @@ public class NameSpace
                 // try find inherited loose-typed instance fields
                 Class<?> supr = object.getClass();
                 while (Reflect.isGeneratedClass(supr = supr.getSuperclass())) {
-                    This ths = ClassGeneratorUtil.getClassInstanceThis(object, supr.getSimpleName());
+                    This ths = Reflect.getClassInstanceThis(object, supr.getSimpleName());
                     if (null != ths && null != (var = ths.getNameSpace().variables.get(name)))
                         break;
                 }
@@ -999,10 +1000,9 @@ public class NameSpace
         final Class<?> c = this.getClassImpl(name);
         if (c != null)
             return c;
-        else if (this.parent != null)
+        if (this.parent != null)
             return this.parent.getClass(name);
-        else
-            return null;
+        return null;
     }
 
     /** Implementation of getClass() Load a class through this namespace taking
@@ -1041,8 +1041,7 @@ public class NameSpace
         if (c != null)
             return c;
         // Not found
-        if (Interpreter.DEBUG)
-            Interpreter.debug("getClass(): " + name + " not found in " + this);
+        Interpreter.debug("getClass(): ", name, " not found in ", this);
         return null;
     }
 
@@ -1073,9 +1072,8 @@ public class NameSpace
                 try {
                     clas = this.getNameResolver(fullname).toClass();
                 } catch (final ClassNotFoundException e) { /* not a class */ }
-            else if (Interpreter.DEBUG)
-                Interpreter.debug(
-                        "imported unpackaged name not found:" + fullname);
+            Interpreter.debug(
+                        "imported unpackaged name not found:", fullname);
             // If found cache the full name in the BshClassManager
             if (clas != null) {
                 // (should we cache info in not a class case too?)
@@ -1155,6 +1153,7 @@ public class NameSpace
                     : this.nsName + " (" + super.toString() + ")")
                 + (this.isClass ? " (class) " : "")
                 + (this.isInterface ? " (interface) " : "")
+                + (this.isEnum ? " (enum) " : "")
                 + (this.isMethod ? " (method) " : "")
                 + (this.classStatic != null ? " (class static) " : "")
                 + (this.classInstance != null ? " (class instance) " : "");
@@ -1164,13 +1163,21 @@ public class NameSpace
      * @param s the s
      * @throws IOException Signals that an I/O exception has occurred. For
      *         serialization. Don't serialize non-serializable objects. */
-    private synchronized void writeObject(final java.io.ObjectOutputStream s)
+    private synchronized void writeObject(final ObjectOutputStream s)
             throws IOException {
         // clear name resolvers... don't know if this is necessary.
         this.names.clear();
         s.defaultWriteObject();
     }
+    /** Re-initialize transient members.
+     * @param in the serializer
+     * @throws IOException mandatory throwing exception
+     * @throws ClassNotFoundException mandatory throwing exception */
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
 
+        this.classCache = new HashMap<>();
+    }
     /** Invoke a method in this namespace with the specified args and
      * interpreter reference. No caller information or call stack is required.
      * The method will appear as if called externally from Java.

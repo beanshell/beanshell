@@ -42,6 +42,11 @@ class BSHSwitchStatement
         SimpleNode switchExp = ((SimpleNode)jjtGetChild(child++));
         Object switchVal = switchExp.eval( callstack, interpreter );
 
+        // import enum constants
+        if ( Primitive.unwrap(switchVal) != null && switchVal.getClass().isEnum() )
+            callstack.top().importStatic( switchVal.getClass() );
+
+
         /*
             Note: this could be made clearer by adding an inner class for the
             cases and an object context for the child traversal.
@@ -111,6 +116,8 @@ class BSHSwitchStatement
         CallStack callstack, SimpleNode switchExp  )
         throws EvalError
     {
+        if (targetVal == Primitive.VOID)
+            return false;
         if ( switchVal instanceof Primitive || targetVal instanceof Primitive )
             try {
                 // binaryOperation can return Primitive or wrapper type
