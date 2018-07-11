@@ -783,11 +783,13 @@ public class Interpreter
         }
     }
 
+    @Override
     public final void println( Object o )
     {
         print( String.valueOf(o) + systemLineSeparator );
     }
 
+    @Override
     public final void print( Object o )
     {
         if (console != null) {
@@ -795,6 +797,15 @@ public class Interpreter
         } else {
             out.print(o);
             out.flush();
+        }
+    }
+
+    @Override
+    public final void prompt(String prompt) {
+        if (console != null) {
+            console.prompt(prompt);
+        } else {
+            print(prompt);
         }
     }
 
@@ -1175,7 +1186,7 @@ public class Interpreter
         be defined by the user as with any other method.
         Defaults to "bsh % " if the method is not defined or there is an error.
     */
-    private String prompt = null;
+    private String prompt = null;  // is this caching correct?
     private String getBshPrompt()
     {
         if (null != prompt)
@@ -1249,11 +1260,6 @@ public class Interpreter
 
     public static boolean getSaveClasses()  {
         return getSaveClassesDir() != null && !getSaveClassesDir().isEmpty();
-    }
-
-    @Override
-    public void prompt(String prompt) {
-        print(prompt);
     }
 }
 
