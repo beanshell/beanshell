@@ -21,8 +21,8 @@
 package bsh;
 
 import java.io.ByteArrayOutputStream;
-import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.io.Reader;
 import java.io.StringReader;
 import java.lang.ref.WeakReference;
 import static org.junit.Assert.assertEquals;
@@ -57,15 +57,60 @@ public class InterpreterTest {
     }
 
     @Test
-    public void prompt_displays_the_prompt() throws Exception {
-        for (String P: new String[] { "abc> ", "cde# " }) {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    public void displays_the_prompt_by_given_console() throws Exception {
+        final StringBuilder S = new StringBuilder();
 
-            Interpreter bsh = new Interpreter(new InputStreamReader(System.in), new PrintStream(baos), System.err, false);
+        final ConsoleInterface C  = new ConsoleInterface() {
+            @Override
+            public Reader getIn() {
+                return new StringReader("\n\n\n\n");
+            }
 
-            bsh.prompt(P);
-            assertTrue(baos.toString().contains(P));
-        }
+            @Override
+            public PrintStream getOut() {
+                return System.out;
+            }
+
+            @Override
+            public PrintStream getErr() {
+                return System.err;
+            }
+
+            @Override
+            public void println(Object o) {
+                System.out.print(o);
+            }
+
+            @Override
+            public void print(Object o) {
+                System.out.println(o);
+            }
+
+            @Override
+            public void error(Object o) {
+                System.err.println(o);
+            }
+
+            @Override
+            public void prompt(String prompt) {
+                S.append('#').append(prompt).append('#');
+            }
+        };
+
+        //
+        // default prompt
+        //
+        Interpreter bsh = new Interpreter(C); bsh.setExitOnEOF(false);
+        bsh.run();
+        assertEquals("#bsh % #", S.toString()); S.delete(0, S.length());
+
+        //
+        // custom prompt
+        //
+        bsh = new Interpreter(C);  bsh.setExitOnEOF(false);
+        bsh.set("bsh.prompt", "abc> ");
+        bsh.run();
+        assertEquals("#abc> #", S.toString()); S.delete(0, S.length());
     }
 
      @Test
@@ -76,7 +121,7 @@ public class InterpreterTest {
 
             Interpreter bsh = new Interpreter(in, new PrintStream(baos), System.err, true);
             bsh.setExitOnEOF(false);
-                        bsh.set("bsh.prompt", P);
+            bsh.set("bsh.prompt", P);
             bsh.run();
             System.out.println(baos.toString());
             assertTrue(baos.toString().contains(P));
