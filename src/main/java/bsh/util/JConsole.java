@@ -49,6 +49,7 @@ import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.util.Vector;
+
 import javax.swing.Icon;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -759,11 +760,6 @@ public class JConsole extends JScrollPane
         } else {
             run.run();
         }
-    }
-
-    @Override
-    public void prompt(String prompt) {
-        print(prompt);
     }
 
     /**
