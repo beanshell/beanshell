@@ -37,14 +37,14 @@ import java.io.Reader;
     @see bsh.util.GUIConsoleInterface
 */
 public interface ConsoleInterface {
-    public Reader getIn();
-    public PrintStream getOut();
-    public PrintStream getErr();
-    public void println( Object o );
-    public void print( Object o );
-    public void error( Object o );
+    Reader getIn();
+    PrintStream getOut();
+    PrintStream getErr();
+    void println( Object o );
+    void print( Object o );
+    void error( Object o );
 
-    default public void prompt( String prompt ) {
+    default void prompt( String prompt ) {
         print(prompt);
     }
 }
