@@ -1319,6 +1319,10 @@ final class Reflect {
         return f != null && Modifier.isStatic(f.getModifiers());
     }
 
+    public static boolean hasModifier(String name, int modifiers) {
+        return Modifier.toString(modifiers).contains(name);
+    }
+
     static void setAccessible(final Field field) {
         if ( ! field.isAccessible() && Capabilities.haveAccessibility()) {
             field.setAccessible(true);
