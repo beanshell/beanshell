@@ -2,6 +2,7 @@
 
 source("TestHarness.bsh");
 source("Assert.bsh");
+import bsh.BSHLiteral;
 
 // char is not a string
 assert('a' == 'a');
@@ -48,6 +49,14 @@ assert("abc".substring(2).equals("c"));
 assert("\"quoted\"" == '"quoted"');
 assert('\'quoted\'' == "'quoted'");
 assert('xb'.concat('xb').equals('xbxb'));
+
+assertThat("a\bcde\fg", containsString("cde"));
+assertThat("abc\8def", equalTo("abc8def"));
+assertThat("abc\78def", endsWith("8def"));
+assertThat("abc\378def", endsWith("8def"));
+BSHLiteral.internStrings = false;
+assertThat("abc\3def", endsWith("def"));
+BSHLiteral.internStrings = true;
 
 // additional edge cases
 assertEquals('\n', '\12');

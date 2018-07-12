@@ -76,28 +76,14 @@ class BSHUnaryExpression extends SimpleNode implements ParserConstants
 
     private Object unaryOperation( Object op, int kind ) throws UtilEvalError
     {
-        if (op instanceof Boolean || op instanceof Character
-            || op instanceof Number)
-            return primitiveWrapperUnaryOperation( op, kind );
+        if ( op instanceof Boolean )
+            op = (Boolean) op ? Primitive.TRUE : Primitive.FALSE;
 
         if ( !(op instanceof Primitive) )
             throw new UtilEvalError( "Unary operation " + tokenImage[kind]
                 + " inappropriate for object" );
 
-
-        return Operators.unaryOperation((Primitive)op, kind);
+        return Operators.unaryOperation((Primitive) op, kind);
     }
 
-    private Object primitiveWrapperUnaryOperation(Object val, int kind)
-        throws UtilEvalError
-    {
-        Class<?> operandType = val.getClass();
-        Object operand = Operators.promoteToInteger(val);
-
-        if ( operand instanceof Boolean )
-            return Operators.booleanUnaryOperation((Boolean)operand, kind)
-                    ? Boolean.TRUE : Boolean.FALSE;
-        else
-            return unaryOperation(val, kind);
-    }
 }
