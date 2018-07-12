@@ -3,6 +3,25 @@
 source("TestHarness.bsh");
 source("Assert.bsh");
 
+// instanceof
+nil = null;
+assertFalse(nil instanceof Object);
+assertFalse(null instanceof Object);
+assertTrue(void instanceof bsh.Primitive);
+assertTrue(5 instanceof bsh.Primitive);
+assertTrue(5w instanceof bsh.Primitive);
+assertTrue(5w instanceof BigInteger);
+assertTrue(5w instanceof Number);
+assertTrue(5 instanceof Integer);
+assertTrue(5o instanceof Byte);
+assertTrue(5s instanceof Short);
+assertTrue(5l instanceof Long);
+assertTrue(5f instanceof Float);
+assertTrue(5d instanceof Double);
+assertTrue(5.0w instanceof BigDecimal);
+assertTrue('a' instanceof Character);
+assertTrue(true instanceof Boolean);
+
 // basic
 byte b = (byte)2;
 assert( isEvalError("cannot assign number 256 to type byte", "byte b = 256") );
@@ -65,6 +84,7 @@ assert( dw == b );
 // preserve identity semantics
 // .equal wrappers don't test ==
 assert( !(iw == dw) );
+assert( dw != iw );
 
 assert( iw instanceof Integer );
 assert( iw != null );
@@ -692,9 +712,9 @@ assertThat(shrink, instanceOf(BigInteger.class));
 shrink = -92233720368547758071;
 assertThat(shrink, instanceOf(BigInteger.class));
 shrink = 3.4028235E37;
-assertThat(shrink, instanceOf(Float.class));
+assertThat(shrink, instanceOf(Double.class));
 shrink = -3.4028235E37;
-assertThat(shrink, instanceOf(Float.class));
+assertThat(shrink, instanceOf(Double.class));
 shrink = 3.4028235E57;
 assertThat(shrink, instanceOf(Double.class));
 shrink = -3.4028235E57;
