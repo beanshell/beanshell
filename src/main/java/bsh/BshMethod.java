@@ -478,6 +478,8 @@ public class BshMethod implements Serializable {
     }
 
     public boolean hasModifier( String name ) {
+        if ( javaMethod != null )
+            return Reflect.hasModifier(name, javaMethod.getModifiers());
         return modifiers != null && modifiers.hasModifier(name);
     }
 
