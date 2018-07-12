@@ -3,9 +3,12 @@ package bsh;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.List;
 
 class Operators implements ParserConstants {
 
+    private static final List<Integer> OVERFLOW_OPS = Arrays.asList(PLUS, MINUS, STAR, POWER);
+    private static final List<Integer> COMPARABLE_OPS = Arrays.asList(LT, LTX, GT, GTX, EQ, LE, LEX, GE, GEX, NE);
     /**
     Perform a binary operation on two Primitives or wrapper types.
     If both original args were Primitives return a Primitive result
@@ -48,7 +51,10 @@ class Operators implements ParserConstants {
         // else it was mixed (wrapper/primitive) return the wrapper type
         // Exception is for boolean result, return the primitive
         if ((lhsOrgType == Primitive.class && rhsOrgType == Primitive.class))
-            return Primitive.shrinkWrap( result );
+            if (Types.isFloatingpoint(result) && lhs.getClass() == BigDecimal.class)
+                return (Primitive) Primitive.wrap(result, result.getClass());
+            else
+                return Primitive.shrinkWrap( result );
 
         return Primitive.shrinkWrap( result ).getValue();
     }
@@ -58,17 +64,17 @@ class Operators implements ParserConstants {
         throws UtilEvalError
     {
         if (lhs instanceof Boolean)
-            return booleanBinaryOperation((Boolean) lhs, (Boolean) rhs, kind);
-        if (Arrays.asList(LT, LTX, GT, GTX, EQ, LE, LEX, GE, GEX, NE).contains(kind))
+            return booleanBinaryOperation( (Boolean) lhs, (Boolean) rhs, kind );
+        if (COMPARABLE_OPS.contains(kind))
             return comparableBinaryBooleanOperations((Comparable<T>) lhs, rhs, kind);
         if (lhs instanceof BigInteger)
             return bigIntegerBinaryOperation( (BigInteger) lhs, (BigInteger) rhs, kind );
         if (lhs instanceof BigDecimal)
             return bigDecimalBinaryOperation( (BigDecimal) lhs, (BigDecimal) rhs, kind );
-        if (Primitive.isFloatingpoint(lhs))
-            return doubleBinaryOperation( ((Number) lhs).doubleValue(), ((Number) rhs).doubleValue(), kind);
+        if (Types.isFloatingpoint(lhs))
+            return doubleBinaryOperation( (Double) lhs, (Double) rhs, kind );
         if (lhs instanceof Number)
-            return longBinaryOperation(((Number) lhs).longValue(), ((Number) rhs).longValue(), kind);
+            return longBinaryOperation( (Long) lhs, (Long) rhs, kind );
         throw new UtilEvalError("Invalid types in binary operator" );
     }
 
@@ -144,18 +150,18 @@ class Operators implements ParserConstants {
         {
             // arithmetic
             case PLUS:
-                if (lhs > 0 && (Long.MAX_VALUE - lhs) < rhs)
-                    return bigIntegerBinaryOperation(BigInteger.valueOf(lhs), BigInteger.valueOf(rhs), kind);
+                if ( lhs > 0 && (Long.MAX_VALUE - lhs) < rhs )
+                    break;
                 return lhs + rhs;
 
             case MINUS:
-                if (lhs < 0 && (Long.MIN_VALUE - lhs) > -rhs)
-                    return bigIntegerBinaryOperation(BigInteger.valueOf(lhs), BigInteger.valueOf(rhs), kind);
+                if ( lhs < 0 && (Long.MIN_VALUE - lhs) > -rhs )
+                    break;
                 return lhs - rhs;
 
             case STAR:
-                if (Long.MAX_VALUE / lhs < rhs)
-                    return bigIntegerBinaryOperation(BigInteger.valueOf(lhs), BigInteger.valueOf(rhs), kind);
+                if ( Long.MAX_VALUE / lhs < rhs )
+                    break;
                 return lhs * rhs;
 
             case SLASH:
@@ -167,9 +173,9 @@ class Operators implements ParserConstants {
             case POWER:
                 double check = Math.pow(lhs, rhs);
                 BigInteger bi = BigDecimal.valueOf(check).toBigInteger();
-                if (bi.compareTo(Primitive.LONG_MIN) >= 0 && bi.compareTo(Primitive.LONG_MAX) <= 0)
+                if ( bi.compareTo(Primitive.LONG_MIN) >= 0 && bi.compareTo(Primitive.LONG_MAX) <= 0 )
                     return (long) check;
-                return bigIntegerBinaryOperation(BigInteger.valueOf(lhs), BigInteger.valueOf(rhs), kind);
+                break;
 
             // bitwise
             case LSHIFT:
@@ -196,6 +202,9 @@ class Operators implements ParserConstants {
                 return lhs ^ rhs;
 
         }
+        if ( OVERFLOW_OPS.contains(kind) )
+            return bigIntegerBinaryOperation(BigInteger.valueOf(lhs), BigInteger.valueOf(rhs), kind);
+
         throw new InterpreterError(
                 "Unimplemented binary long operator");
     }
@@ -236,7 +245,7 @@ class Operators implements ParserConstants {
 
             case RUNSIGNEDSHIFT:
             case RUNSIGNEDSHIFTX:
-                if (lhs.signum() >= 0)
+                if ( lhs.signum() >= 0 )
                     return lhs.shiftRight(rhs.intValue());
                 BigInteger opener = BigInteger.ONE.shiftLeft(lhs.toString(2).length() + 1);
                 BigInteger opened = lhs.subtract(opener);
@@ -268,18 +277,18 @@ class Operators implements ParserConstants {
         {
             // arithmetic
             case PLUS:
-                if (lhs > 0d && (Double.MAX_VALUE - lhs) < rhs)
-                    return bigDecimalBinaryOperation(BigDecimal.valueOf(lhs), BigDecimal.valueOf(rhs), kind);
+                if ( lhs > 0d && (Double.MAX_VALUE - lhs) < rhs )
+                    break;
                 return lhs + rhs;
 
             case MINUS:
-                if ( lhs < 0d && (-Double.MAX_VALUE - lhs) > -rhs)
-                    return bigDecimalBinaryOperation(BigDecimal.valueOf(lhs), BigDecimal.valueOf(rhs), kind);
+                if ( lhs < 0d && (-Double.MAX_VALUE - lhs) > -rhs )
+                    break;
                 return lhs - rhs;
 
             case STAR:
-                if (Double.MAX_VALUE / lhs < rhs)
-                    return bigDecimalBinaryOperation(BigDecimal.valueOf(lhs), BigDecimal.valueOf(rhs), kind);
+                if ( Double.MAX_VALUE / lhs < rhs )
+                    break;
                 return lhs * rhs;
 
             case SLASH:
@@ -290,8 +299,8 @@ class Operators implements ParserConstants {
 
             case POWER:
                 double check = Math.pow(lhs, rhs);
-                if (Double.isInfinite(check))
-                    return bigDecimalBinaryOperation(BigDecimal.valueOf(lhs), BigDecimal.valueOf(rhs), kind);
+                if ( Double.isInfinite(check) )
+                    break;
                 return check;
 
             // can't shift floating-point values
@@ -304,6 +313,9 @@ class Operators implements ParserConstants {
                 throw new UtilEvalError("Can't shift floatingpoint values");
 
         }
+        if ( OVERFLOW_OPS.contains(kind) )
+            return bigDecimalBinaryOperation(BigDecimal.valueOf(lhs), BigDecimal.valueOf(rhs), kind);
+
         throw new InterpreterError(
                 "Unimplemented binary double operator");
     }
@@ -348,16 +360,16 @@ class Operators implements ParserConstants {
     }
 
     /**
-        Promote primitive wrapper type to to Integer wrapper type
+        Promote primitive wrapper type to Integer wrapper type
     */
-    static Object promoteToInteger(Object wrapper )
+    static Number promoteToInteger(Object wrapper )
     {
         if(wrapper instanceof Character)
-            return Integer.valueOf(((Character)wrapper).charValue());
+            return Integer.valueOf(((Character) wrapper).charValue());
         if((wrapper instanceof Byte) || (wrapper instanceof Short))
-            return Integer.valueOf(((Number)wrapper).intValue());
+            return Integer.valueOf(((Number) wrapper).intValue());
 
-        return wrapper;
+        return (Number) wrapper;
     }
 
     /**
@@ -366,50 +378,30 @@ class Operators implements ParserConstants {
     */
     static Object[] promotePrimitives(Object lhs, Object rhs)
     {
-        lhs = promoteToInteger(lhs);
-        rhs = promoteToInteger(rhs);
+        if ( Types.isNumeric(lhs) && Types.isNumeric(rhs) ) {
+            Number lnum = promoteToInteger(lhs);
+            Number rnum = promoteToInteger(rhs);
 
-        if((lhs instanceof Number) && (rhs instanceof Number))
-        {
-            Number lnum = (Number)lhs;
-            Number rnum = (Number)rhs;
-
-            boolean b;
-
-            if((b = (lnum instanceof Double)) || (rnum instanceof Double))
-            {
-                if(b)
-                    rhs = Double.valueOf(rnum.doubleValue());
-                else
+            if ( lhs instanceof BigDecimal ) {
+                if ( !(rhs instanceof BigDecimal) )
+                    rhs = Primitive.castNumber(BigDecimal.class, rnum);
+            } else if ( rhs instanceof BigDecimal ) {
+                lhs = Primitive.castNumber(BigDecimal.class, lnum);
+            } else if ( Types.isFloatingpoint(lhs) || Types.isFloatingpoint(rhs)) {
+                if ( !(lhs instanceof Double) )
                     lhs = Double.valueOf(lnum.doubleValue());
-            }
-            else if((b = (lnum instanceof Float)) || (rnum instanceof Float))
-            {
-                if(b)
-                    rhs = Float.valueOf(rnum.floatValue());
-                else
-                    lhs = Float.valueOf(lnum.floatValue());
-            }
-            else if((b = (lnum instanceof Long)) || (rnum instanceof Long))
-            {
-                if(b)
-                    rhs = Long.valueOf(rnum.longValue());
-                else
+                if ( !(rhs instanceof Double) )
+                    rhs = Double.valueOf(rnum.doubleValue());
+            } else if ( lhs instanceof BigInteger ) {
+                if ( !(rhs instanceof BigInteger) )
+                    rhs = Primitive.castNumber(BigInteger.class, rnum);
+            } else if ( rhs instanceof BigInteger ) {
+                lhs = Primitive.castNumber(BigInteger.class, lnum);
+            } else {
+                if ( !(lhs instanceof Long) )
                     lhs = Long.valueOf(lnum.longValue());
-            }
-            else if((b = (lnum instanceof BigInteger)) || (rnum instanceof BigInteger))
-            {
-                if(b)
-                    rhs = new BigInteger(""+rhs);
-                else
-                    lhs = new BigInteger(""+lhs);
-            }
-            else if((b = (lnum instanceof BigDecimal)) || (rnum instanceof BigDecimal))
-            {
-                if(b)
-                    rhs = new BigDecimal(""+rhs);
-                else
-                    lhs = new BigDecimal(""+lhs);
+                if ( !(rhs instanceof Long) )
+                    rhs = Long.valueOf(rnum.longValue());
             }
         }
 
@@ -427,38 +419,39 @@ class Operators implements ParserConstants {
                 "illegal use of undefined object or 'void' literal");
 
         Class<?> operandType = val.getType();
-        Object operand = promoteToInteger(val.getValue());
 
-        if ( operand instanceof Boolean )
-            return booleanUnaryOperation((Boolean)operand, kind)
+        if ( operandType == Boolean.TYPE )
+            return booleanUnaryOperation((Boolean) val.getValue(), kind)
                 ? Primitive.TRUE : Primitive.FALSE;
+
+        Number operand = promoteToInteger(val.getValue());
         if(operand instanceof Integer)
         {
-            int result = intUnaryOperation((Integer)operand, kind);
+            int result = intUnaryOperation((Integer) operand, kind);
 
             // ++ and -- must be cast back the original type
             if(kind == INCR || kind == DECR)
             {
                 if(operandType == Byte.TYPE)
-                    return new Primitive((byte)result);
+                    return new Primitive((byte) result);
                 if(operandType == Short.TYPE)
-                    return new Primitive((short)result);
+                    return new Primitive((short) result);
                 if(operandType == Character.TYPE)
-                    return new Primitive((char)result);
+                    return new Primitive((char) result);
             }
 
             return new Primitive(result);
         }
         if(operand instanceof Long)
-            return new Primitive(longUnaryOperation((Long)operand, kind));
+            return new Primitive(longUnaryOperation(operand.longValue(), kind));
         if(operand instanceof Float)
-            return new Primitive(floatUnaryOperation((Float)operand, kind));
+            return new Primitive(floatUnaryOperation(operand.floatValue(), kind));
         if(operand instanceof Double)
-            return new Primitive(doubleUnaryOperation((Double)operand, kind));
+            return new Primitive(doubleUnaryOperation(operand.doubleValue(), kind));
         if(operand instanceof BigInteger)
-            return new Primitive(bigIntegerUnaryOperation((BigInteger)operand, kind));
+            return new Primitive(bigIntegerUnaryOperation((BigInteger) operand, kind));
         if(operand instanceof BigDecimal)
-            return new Primitive(bigDecimalUnaryOperation((BigDecimal)operand, kind));
+            return new Primitive(bigDecimalUnaryOperation((BigDecimal) operand, kind));
 
         throw new InterpreterError(
             "An error occurred.  Please call technical support.");

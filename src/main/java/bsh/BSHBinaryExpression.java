@@ -30,7 +30,6 @@ package bsh;
 
 /**
     Implement binary expressions...
-    Note: this is too complicated... need some cleanup and simplification.
     @see Primitive.binaryOperation
 */
 class BSHBinaryExpression extends SimpleNode implements ParserConstants {
@@ -49,128 +48,70 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
         if (kind == INSTANCEOF)
         {
             // null object ref is not instance of any type
-            if ( lhs == Primitive.NULL || lhs == null )
+            if ( lhs == Primitive.NULL )
                 return Primitive.FALSE;
 
-            Class rhs = ((BSHType)jjtGetChild(1)).getType(
+            Class<?> rhs = ((BSHType)jjtGetChild(1)).getType(
                 callstack, interpreter );
-        /*
-            // primitive (number or void) cannot be tested for instanceof
-            if (lhs instanceof Primitive)
-                throw new EvalError("Cannot be instance of primitive type." );
-        */
+
             /*
                 Primitive (number or void) is not normally an instanceof
-                anything.  But for internal use we'll test true for the
+                anything.  But for convenience we'll test true for the
                 bsh.Primitive class.
                 i.e. (5 instanceof bsh.Primitive) will be true
+                otherwise unwrap the primitive and test assignable
             */
             if ( lhs instanceof Primitive )
                 if ( rhs == bsh.Primitive.class )
                     return Primitive.TRUE;
                 else
-                    return Primitive.FALSE;
+                    lhs = Primitive.unwrap(lhs);
 
-            // General case - performe the instanceof based on assignability
-            boolean ret = Types.isJavaBaseAssignable( rhs, lhs.getClass() );
-            return new Primitive(ret);
+            // General case - perform the instanceof based on assignable
+            return Types.isJavaBaseAssignable( rhs, lhs.getClass() )
+                    ? Primitive.TRUE : Primitive.FALSE;
         }
-
-
-        // The following two boolean checks were tacked on.
-        // This could probably be smoothed out.
 
         /*
             Look ahead and short circuit evaluation of the rhs if:
-                we're a boolean AND and the lhs is false.
+            we're a boolean AND and the lhs is false.
+            or we're a boolean OR and the lhs is true.
         */
-        if ( kind == BOOL_AND || kind == BOOL_ANDX ) {
-            Object obj = lhs;
-            if ( isPrimitiveValue(lhs) )
-                obj = ((Primitive)lhs).getValue();
-            if ( obj instanceof Boolean &&
-                ( ((Boolean)obj).booleanValue() == false ) )
+        if ( kind == BOOL_AND || kind == BOOL_ANDX )
+            if ( lhs == Primitive.FALSE )
                 return Primitive.FALSE;
-        }
-        /*
-            Look ahead and short circuit evaluation of the rhs if:
-                we're a boolean OR and the lhs is true.
-        */
-        if ( kind == BOOL_OR || kind == BOOL_ORX ) {
-            Object obj = lhs;
-            if ( isPrimitiveValue(lhs) )
-                obj = ((Primitive)lhs).getValue();
-            if ( obj instanceof Boolean &&
-                ( ((Boolean)obj).booleanValue() == true ) )
+        if ( kind == BOOL_OR || kind == BOOL_ORX )
+            if ( lhs == Primitive.TRUE )
                 return Primitive.TRUE;
-        }
 
-        // end stuff that was tacked on for boolean short-circuiting.
+
+        Object rhs = ((SimpleNode)jjtGetChild(1)).eval(callstack, interpreter);
+
+        // String concatenation operation
+        if ( kind == PLUS && (lhs instanceof String || rhs instanceof String) )
+            return lhs.toString() + rhs.toString();
 
         /*
             Are both the lhs and rhs either wrappers or primitive values?
             do binary op
+            preserve identity semantics for Wrapper ==/!= Wrapper
+            gets treated as arbitrary objects in comparison
         */
-        boolean isLhsWrapper = isWrapper( lhs );
-        Object rhs = ((SimpleNode)jjtGetChild(1)).eval(callstack, interpreter);
-        boolean isRhsWrapper = isWrapper( rhs );
-        if (
-            ( isLhsWrapper || isPrimitiveValue( lhs ) )
-            && ( isRhsWrapper || isPrimitiveValue( rhs ) )
-        )
-        {
-            // Special case for EQ on two wrapper objects
-            if ( (isLhsWrapper && isRhsWrapper && kind == EQ))
-            {
-                /*
-                    Don't auto-unwrap wrappers (preserve identity semantics)
-                    FALL THROUGH TO OBJECT OPERATIONS BELOW.
-                */
-            } else
-                try {
-                    return Operators.binaryOperation(lhs, rhs, kind);
-                } catch ( UtilEvalError e ) {
-                    throw e.toEvalError( this, callstack  );
-                }
+        boolean isLhsWrapper = isWrapper(lhs), isRhsWrapper = isWrapper(rhs);
+        if ( ( isLhsWrapper || isPrimitiveValue(lhs) )
+            && ( isRhsWrapper || isPrimitiveValue(rhs) ) ) try {
+            if ( !((kind == EQ || kind == NE) && isLhsWrapper && isRhsWrapper) )
+                return Operators.binaryOperation(lhs, rhs, kind);
+        } catch ( UtilEvalError e ) {
+            throw e.toEvalError(
+                "Failed operation: "+lhs+" "+tokenImage[kind]+" "+rhs,
+                this, callstack  );
         }
-    /*
-    Doing the following makes it hard to use untyped vars...
-    e.g. if ( arg == null ) ...what if arg is a primitive?
-    The answer is that we should test only if the var is typed...?
-    need to get that info here...
-
-        else
-        {
-        // Do we have a mixture of primitive values and non-primitives ?
-        // (primitiveValue = not null, not void)
-
-        int primCount = 0;
-        if ( isPrimitiveValue( lhs ) )
-            ++primCount;
-        if ( isPrimitiveValue( rhs ) )
-            ++primCount;
-
-        if ( primCount > 1 )
-            // both primitive types, should have been handled above
-            throw new InterpreterError("should not be here");
-        else
-        if ( primCount == 1 )
-            // mixture of one and the other
-            throw new EvalError("Operator: '" + tokenImage[kind]
-                +"' inappropriate for object / primitive combination.",
-                this, callstack );
-
-        // else fall through to handle both non-primitive types
-
-        // end check for primitive and non-primitive mix
-        }
-    */
 
         /*
             Treat lhs and rhs as arbitrary objects and do the operation.
             (including NULL and VOID represented by their Primitive types)
         */
-        //System.out.println("binary op arbitrary obj: {"+lhs+"}, {"+rhs+"}");
         switch(kind)
         {
             case EQ:
@@ -179,25 +120,17 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
             case NE:
                 return (lhs != rhs) ? Primitive.TRUE : Primitive.FALSE;
 
-            case PLUS:
-                if(lhs instanceof String || rhs instanceof String)
-                    return lhs.toString() + rhs.toString();
-
-            // FALL THROUGH TO DEFAULT CASE!!!
-
             default:
-                if(lhs instanceof Primitive || rhs instanceof Primitive)
-                    if ( lhs == Primitive.VOID || rhs == Primitive.VOID )
-                        throw new EvalError(
+                if ( lhs == Primitive.VOID || rhs == Primitive.VOID )
+                    throw new EvalError(
                 "illegal use of undefined variable, class, or 'void' literal",
-                            this, callstack );
-                    else
-                    if ( lhs == Primitive.NULL || rhs == Primitive.NULL )
-                        throw new EvalError(
+                        this, callstack );
+                if ( lhs == Primitive.NULL || rhs == Primitive.NULL )
+                    throw new EvalError(
                 "illegal use of null value or 'null' literal", this, callstack);
 
-                throw new EvalError("Operator: '" + tokenImage[kind] +
-                    "' inappropriate for objects", this, callstack );
+                throw new EvalError("Operator: " + tokenImage[kind] +
+                    " inappropriate for objects", this, callstack );
         }
     }
 

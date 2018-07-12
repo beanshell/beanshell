@@ -45,7 +45,7 @@ assertArrayEquals( a, new BigInteger[] {1,0,0,0,0});
 
 a = new float[5];
 a[0] = 1.0;
-assertArrayEquals( a, new float[] {1.0,0.0,0.0,0.0,0.0}, 0.0);
+assertArrayEquals( a, new float[] {1.0,0.0,0.0,0.0,0.0}, 0.0f );
 
 a = new Float[5];
 a[0] = 1.0;

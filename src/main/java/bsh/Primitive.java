@@ -169,10 +169,6 @@ public final class Primitive implements Serializable {
         return unboxType( value.getClass() );
     }
 
-    public static boolean isFloatingpoint(Object number) {
-        return number instanceof Float || number instanceof Double
-                || number instanceof BigDecimal;
-    }
     private static final BigInteger INTEGER_MAX = BigInteger.valueOf(Integer.MAX_VALUE);
     private static final BigInteger INTEGER_MIN = BigInteger.valueOf(Integer.MIN_VALUE);
     static final BigInteger LONG_MAX = BigInteger.valueOf(Long.MAX_VALUE);
@@ -181,20 +177,18 @@ public final class Primitive implements Serializable {
         if (!(number instanceof Number))
             throw new InterpreterError("Can only shrink wrap Number types");
         Number value = (Number) number;
-        if (!isFloatingpoint(number)) {
-            BigInteger bi = number instanceof BigInteger
-                    ? (BigInteger) number : BigInteger.valueOf(value.longValue());
-            if (bi.compareTo(INTEGER_MIN) >= 0 && bi.compareTo(INTEGER_MAX) <= 0)
-                return new Primitive(bi.intValue());
-            if (bi.compareTo(LONG_MIN) >= 0 && bi.compareTo(LONG_MAX) <= 0)
-                return new Primitive(bi.longValue());
-            return new Primitive(bi);
+        if ( Types.isFloatingpoint(number) ) {
+            if ( !Double.isInfinite(value.doubleValue()) )
+                return new Primitive(value.doubleValue());
+            return new Primitive((BigDecimal) number);
         }
-        if (!Float.isInfinite(value.floatValue()))
-            return new Primitive(value.floatValue());
-        if (!Double.isInfinite(value.doubleValue()))
-            return new Primitive(value.doubleValue());
-        return new Primitive((BigDecimal) number);
+        BigInteger bi = number instanceof BigInteger
+                ? (BigInteger) number : BigInteger.valueOf(value.longValue());
+        if ( bi.compareTo(INTEGER_MIN) >= 0 && bi.compareTo(INTEGER_MAX) <= 0 )
+            return new Primitive(bi.intValue());
+        if ( bi.compareTo(LONG_MIN) >= 0 && bi.compareTo(LONG_MAX) <= 0 )
+            return new Primitive(bi.longValue());
+        return new Primitive(bi);
     }
 
 
@@ -219,7 +213,7 @@ public final class Primitive implements Serializable {
     public boolean isNumber() {
         return ( !(value instanceof Boolean)
             && !(this == NULL) && !(this == VOID) )
-            && (value instanceof Number || value instanceof Character);
+            && Types.isNumeric(value);
     }
 
     public Number numberValue() throws UtilEvalError
@@ -248,12 +242,19 @@ public final class Primitive implements Serializable {
             else
                 return false;
         Primitive pobj = (Primitive) obj;
-        if (pobj.isNumber()) try {
-            if(Primitive.isFloatingpoint(pobj.getValue()))
+        if ( pobj.isNumber() ) try {
+            if ( this.getType() == BigDecimal.class )
+                return this.value.equals(castNumber(BigDecimal.class, pobj.numberValue()));
+            if ( pobj.getType() == BigDecimal.class )
+                return pobj.value.equals(castNumber(BigDecimal.class, this.numberValue()));
+            if (Types.isFloatingpoint(this.value) || Types.isFloatingpoint(pobj.value))
                 return this.numberValue().doubleValue() == pobj.numberValue().doubleValue();
-            else
-                return this.numberValue().longValue() == pobj.numberValue().longValue();
-        } catch (UtilEvalError e) { /* ignore */ }
+            if ( this.getType() == BigInteger.class )
+                return this.value.equals(castNumber(BigInteger.class, pobj.numberValue()));
+            if ( pobj.getType() == BigInteger.class )
+                return pobj.value.equals(castNumber(BigInteger.class, this.numberValue()));
+            return this.numberValue().longValue() == pobj.numberValue().longValue();
+        } catch (UtilEvalError e) { /* wont happen cause we tested isNumber */ }
         return this.value.equals( pobj.value );
     }
 
@@ -333,7 +334,7 @@ public final class Primitive implements Serializable {
             return ((Boolean)value).booleanValue() ? Primitive.TRUE :
                 Primitive.FALSE;
 
-        if ( type.isPrimitive() && isWrapperType( value.getClass() ) )
+        if ( Types.isPrimitive(type) && isWrapperType( value.getClass() ) )
             return new Primitive( value );
 
         return value;
@@ -448,14 +449,9 @@ public final class Primitive implements Serializable {
                 throw Types.castError( Reflect.normalizeClassName(toType),
                     "void value", operation );
 
-        // unwrap Primitive fromValue to its wrapper value, etc.
-        Object value = null;
-        if ( fromValue != null )
-            value = fromValue.getValue();
-
         // Do numeric cast
-        if (null != fromValue && fromValue.isNumber())
-            return castNumber(toType, fromValue.numberValue(), checkOnly);
+        if ( !checkOnly && fromValue.isNumber() )
+            return new Primitive( castNumber(toType, fromValue.numberValue()) );
 
         if ( toType.isPrimitive() )
         {
@@ -506,7 +502,7 @@ public final class Primitive implements Serializable {
         }
 
         return checkOnly ? Types.VALID_CAST :
-            new Primitive( castWrapper(toType, value) );
+            new Primitive( castWrapper(toType, fromValue.getValue()) );
     }
 
     public static boolean isWrapperType( Class<?> type )
@@ -544,59 +540,69 @@ public final class Primitive implements Serializable {
         if ( !(value instanceof Number) )
             throw new InterpreterError("bad type in cast "+StringUtil.typeValueString(value));
 
-        return Primitive.unwrap(castNumber(toType, (Number) value, false));
+        return castNumber(toType, (Number) value);
     }
 
-    static Primitive castNumber(Class<?> toType, Number number, boolean checkOnly) {
+    static Object castNumber(Class<?> toType, Number number) {
         if ((toType == Byte.class || toType == Byte.TYPE)
                 && number.shortValue() <= 0xff && number.shortValue() >= Byte.MIN_VALUE)
-            return checkOnly ? Types.VALID_CAST : new Primitive( number.byteValue() );
+            return number.byteValue();
         if ((toType == Short.class || toType == Short.TYPE)
                 && number.intValue() <= Short.MAX_VALUE && number.intValue() >= Short.MIN_VALUE)
-            return checkOnly ? Types.VALID_CAST : new Primitive( number.shortValue() );
+            return number.shortValue();
         if ((toType == Character.TYPE || toType == Character.class)
                 && number.intValue() <= (int) Character.MAX_VALUE && number.intValue() >= (int) Character.MIN_VALUE)
-            return checkOnly ? Types.VALID_CAST : new Primitive( (char) number.intValue() );
+            return (char) number.intValue();
         if ((toType == Integer.class || toType == Integer.TYPE)
                 && number.longValue() <= Integer.MAX_VALUE && number.longValue() >= Integer.MIN_VALUE)
             if (number instanceof Byte)
-                return checkOnly ? Types.VALID_CAST : new Primitive( Byte.toUnsignedInt(number.byteValue()) );
+                return Byte.toUnsignedInt(number.byteValue());
             else
-                return checkOnly ? Types.VALID_CAST : new Primitive( number.intValue() );
+                return number.intValue();
         if ((toType == Float.class || toType == Float.TYPE)
                 && !Float.isInfinite(number.floatValue()))
-            return checkOnly ? Types.VALID_CAST : new Primitive( number.floatValue() );
+            return number.floatValue();
         if ((toType == Double.class || toType == Double.TYPE)
                 && !Double.isInfinite(number.doubleValue()))
-            return checkOnly ? Types.VALID_CAST : new Primitive( number.doubleValue() );
+            return number.doubleValue();
 
-        String num = number.toString();
-        if (number.equals(0) || number.equals(0f) || "0".equals(num)) {
+        if ( number.doubleValue() == 0 ) {
             if ((toType == Long.class || toType == Long.TYPE))
-                return checkOnly ? Types.VALID_CAST : new Primitive( 0L );
+                return 0L;
             if (toType == BigInteger.class)
-                return checkOnly ? Types.VALID_CAST : new Primitive( BigInteger.ZERO );
+                return BigInteger.ZERO;
             if (toType == BigDecimal.class)
-                return checkOnly ? Types.VALID_CAST : new Primitive( BigDecimal.ZERO.setScale(1) );
-        } else if (number.equals(1) || number.equals(1f) || "1".equals(num)) {
+                return BigDecimal.ZERO.setScale(1);
+        } else if ( number.doubleValue() == 1 ) {
             if ((toType == Long.class || toType == Long.TYPE))
-                return checkOnly ? Types.VALID_CAST : new Primitive( 1L );
+                return 1L;
             if (toType == BigInteger.class)
-                return checkOnly ? Types.VALID_CAST : new Primitive( BigInteger.ONE );
+                return BigInteger.ONE;
             if (toType == BigDecimal.class)
-                return checkOnly ? Types.VALID_CAST : new Primitive( BigDecimal.ONE.setScale(1) );
+                return BigDecimal.ONE.setScale(1);
+        } else if (toType == BigDecimal.class) {
+            if ( number instanceof BigDecimal )
+                return (BigDecimal) number;
+            if ( number instanceof BigInteger )
+                return new BigDecimal((BigInteger) number).setScale(1);
+            if ( Types.isFloatingpoint(number) )
+                return BigDecimal.valueOf(number.doubleValue());
+            return new BigDecimal(number.longValue()).setScale(1);
         } else {
-            BigDecimal bd = !isFloatingpoint(number) ? new BigDecimal(num).setScale(1)
-                : number instanceof BigDecimal ? (BigDecimal) number : new BigDecimal(num);
-            if (toType == BigDecimal.class)
-                return checkOnly ? Types.VALID_CAST : new Primitive( bd );
-
-            BigInteger bi = number instanceof BigInteger ? (BigInteger) number : bd.toBigInteger();
-            if ((toType == Long.class || toType == Long.TYPE)
-                    && bi.compareTo(LONG_MIN) >= 0 && bi.compareTo(LONG_MAX) <= 0)
-                return checkOnly ? Types.VALID_CAST : new Primitive( number.longValue() );
-            if (toType == BigInteger.class)
-                return checkOnly ? Types.VALID_CAST : new Primitive(bi);
+            BigInteger bi = null;
+            if ( number instanceof BigInteger )
+                bi = (BigInteger) number;
+            else if ( number instanceof BigDecimal )
+                bi = ((BigDecimal) number).toBigInteger();
+            else if ( Types.isFloatingpoint(number) )
+                bi = BigDecimal.valueOf(number.doubleValue()).toBigInteger();
+            else
+                bi = BigInteger.valueOf(number.longValue());
+            if ( ( toType == Long.class || toType == Long.TYPE )
+                    && bi.compareTo(LONG_MIN) >= 0 && bi.compareTo(LONG_MAX) <= 0 )
+                return number.longValue();
+            if ( toType == BigInteger.class )
+                return bi;
         }
         throw new InterpreterError("cannot assign number "+number+" to type "+toType.getSimpleName());
     }
