@@ -19,7 +19,7 @@ public class BSHEnumConstant extends SimpleNode {
             return Primitive.VOID;
 
         if (hasArguments(callstack, interpreter))
-            interpreter.set(getName()+"-args", getArguments(callstack, interpreter));
+            This.CONTEXT_ARGS.get().put((Enum<?>) namespace.classInstance, getArguments(callstack, interpreter) );
 
         for ( int i = 0; i < jjtGetNumChildren(); i++ )
             if ( jjtGetChild(i) instanceof BSHBlock )
