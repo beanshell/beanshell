@@ -53,12 +53,22 @@ assertTrue(l @lt 3L);
 
 // BANG: "!"
 assertTrue( ! false );
+assertTrue( ! Boolean.valueOf(false) );
+assertFalse( ! true );
+assertFalse( ! Boolean.valueOf(true) );
+Boolean bang = false;
+assertTrue( ! bang );
+bang = true;
+assertFalse( ! bang );
 
 // TILDE: "~"
 assertEquals(-3, ~a);
 assertEquals(-3L, ~l);
 
 // EQ: "=="
+obj = new Object();
+assertTrue(obj == obj);
+assertFalse(obj == new Object());
 assertTrue(a == 2);
 assertTrue(d == 2.0);
 assertTrue(f == 2.0);
@@ -67,10 +77,38 @@ assertFalse(a == 1);
 assertFalse(d == 1.0);
 assertFalse(f == 1.0);
 assertFalse(l == 1L);
+assertTrue(Character.valueOf('*') == '*');
+assertTrue(Character.valueOf('*') == 42);
+assertTrue(Long.valueOf(1L) == Long.valueOf(1L));
+assertTrue(Boolean.valueOf(true) == Boolean.valueOf(true));
 assertTrue(true == true);
 assertTrue(false == false);
 assertFalse(true == false);
 assertFalse(false == true);
+assertTrue(2o == 2);
+assertTrue(2s == 2);
+assertTrue(2i == 2);
+assertTrue(2l == 2);
+assertTrue(2f == 2);
+assertTrue(2d == 2);
+assertTrue(2w == 2);
+assertTrue(2.0w == 2);
+assertTrue(2.0w == 2.0w);
+assertTrue(2 == 2.0w);
+assertTrue('\002' == 2);
+assertTrue('$' == 36);
+
+// Test Primitive.equals
+assertTrue(2o.equals(2));
+assertTrue(2s.equals(2));
+assertTrue(2i.equals(2));
+assertTrue(2l.equals(2));
+assertTrue(2f.equals(2));
+assertTrue(2d.equals(2));
+assertTrue(2w.equals(2));
+assertTrue(2.0w.equals(2));
+assertTrue('\002'.equals(2));
+assertTrue('$'.equals(36));
 
 // LE: "<="
 assertTrue(a <= 2);
@@ -105,6 +143,9 @@ assertTrue(f @gteq 2.0);
 assertTrue(l @gteq 2L);
 
 // NE: "!="
+obj = new Object();
+assertFalse(obj != obj);
+assertTrue(obj != new Object());
 assertTrue(a != 1);
 assertTrue(d != 1.0);
 assertTrue(f != 1.0);
@@ -121,6 +162,10 @@ assertTrue(false || true);
 assertTrue(true || false);
 assertTrue(true || true);
 assertFalse(false || false);
+assertTrue(Boolean.valueOf(false) || Boolean.valueOf(true));
+assertTrue(Boolean.valueOf(true) || Boolean.valueOf(false));
+assertTrue(Boolean.valueOf(true) || Boolean.valueOf(true));
+assertFalse(Boolean.valueOf(false) || Boolean.valueOf(false));
 
 // BOOL_ORX: "@or"
 assertTrue(false @or true);
@@ -133,6 +178,10 @@ assertTrue(true && true);
 assertFalse(true && false);
 assertFalse(false && false);
 assertFalse(false && true);
+assertTrue(Boolean.valueOf(true) && Boolean.valueOf(true));
+assertFalse(Boolean.valueOf(true) && Boolean.valueOf(false));
+assertFalse(Boolean.valueOf(false) && Boolean.valueOf(false));
+assertFalse(Boolean.valueOf(false) && Boolean.valueOf(true));
 
 // BOOL_ANDX: "@and"
 assertTrue(true @and true);
@@ -183,6 +232,7 @@ assertEquals(2, +a);
 assertEquals(2.0, +d, ddelta);
 assertEquals(2.0, +f, fdelta);
 assertEquals(2L, +l);
+assertEquals(195, 'a' + 'b');
 
 // MINUS: "-"
 assertEquals(1, a - 1);
@@ -304,11 +354,31 @@ assertEquals(3, a += 1);
 assertEquals(3, a);
 assertEquals(3.0, d += 1.0, ddelta);
 assertEquals(3.0, d, ddelta);
-//"Can't assign double to float", "f += 1.0;"
 assertEquals(3.0, f += 1.0, fdelta);
 assertEquals(3.0, f, fdelta);
 assertEquals(3L, l += 1L);
 assertEquals(3L, l);
+Double dd = 2.0;
+assertEquals(4.0, dd += dd, ddelta);
+assertEquals(6.0, dd += 2.0, ddelta);
+double ddd = 0.0;
+assertEquals(6.0, ddd += dd, ddelta);
+Long ll = 0i;
+assertEquals(1, ll += 1i);
+assertEquals(7.0, dd += ll, ddelta);
+long lll = 0i;
+assertEquals(1L, lll += 1i);
+assertEquals(2.0, ll += lll, ddelta);
+
+String ss = "a";
+assertEquals("aa", ss += ss);
+Character cc = 'a';
+char ccc = 'a';
+assertEquals(194, cc += cc);
+assertEquals(291, cc += 'a');
+assertEquals(388, ccc += cc);
+assertEquals(298.0, cc += dd, ddelta);
+assertEquals(305.0, dd += cc, ddelta);
 
 // MINUSASSIGN: "-="
 assertEquals(2, a -= 1);
@@ -419,7 +489,7 @@ assertEquals(0L, l @right_unsigned_shift_assign 1L);
 assertEquals(0L, l);
 
 import bsh.Primitive;
-// muissing null is number
+// missing null is number
 assertTrue(a.isNumber());
 assertFalse(false.isNumber());
 assertFalse(void.isNumber());
@@ -452,7 +522,16 @@ assertFalse(void.equals(1));
 assertEquals("void", void.toString());
 assertEquals("null", ""+null);
 assertEquals(Void.TYPE, void.getType());
-
+Boolean bb = true;
+Object oo = new Object();
+assert(isEvalError("Non primitive value in operator:", "oo += oo;"));
+assert(isEvalError("unimplemented binary operator", "bb += bb;"));
+assert(isEvalError("unimplemented binary operator", "bb += true;"));
+assert(isEvalError("Type mismatch in operator.", "bb += cc;"));
+assert(isEvalError("Type mismatch in operator.", "cc += bb;"));
+assert(isEvalError("Type mismatch in operator.", "bb += dd;"));
+assert(isEvalError("Type mismatch in operator.", "dd += bb;"));
+assert(isEvalError("Type mismatch in operator.", "a += bb;"));
 assert(isEvalError("Can only shrink wrap Number types", "Primitive.shrinkWrap('');"));
 assert(isEvalError("Not a primitive type: class java.lang.String", "Primitive.boxType(String.class);"));
 assert(isEvalError("Not a primitive wrapper type: class java.lang.String", "Primitive.unboxType(String.class);"));
@@ -466,6 +545,7 @@ assert(isEvalError("illegal use of undefined object or 'void' literal", "~void;"
 assert(isEvalError("illegal use of null value or 'null' literal", "a + null;"));
 assert(isEvalError("illegal use of null value or 'null' literal", "null && null;"));
 assert(isEvalError("Illegal use of null object or 'null' literal", "a += null;"));
+assert(isEvalError("Can't assign to prefix.", "null += a;"));
 assert(isEvalError("illegal use of null object or 'null' literal", "~null;"));
 assert(isEvalError("Cannot cast primitive value to object type java.lang.String", "String sss = true;"));
 assert(isEvalError("Cannot cast java.lang.String to boolean", "(boolean) 'true';"));
@@ -485,6 +565,10 @@ assert(isEvalError("bad float unaryOperation", "!f;"));
 assert(isEvalError("bad big integer unaryOperation", "!9223372036854775810;"));
 assert(isEvalError("bad big decimal unaryOperation", "!2E606;"));
 assert(isEvalError("Use Primitve.NULL instead of Primitive(null)", "new Primitive(null);"));
+assert(isEvalError("Unary operation \"!\" inappropriate for object", "!new Object();"));
+assert(isEvalError("Operator: \">=\" inappropriate for objects", "new Object() >= new Object();"));
+assert(isEvalError("Use of non + operator with String LHS", "ss -= 'aa';"));
+
 
 complete();
 

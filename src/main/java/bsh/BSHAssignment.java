@@ -44,13 +44,8 @@ class BSHAssignment extends SimpleNode implements ParserConstants
         BSHPrimaryExpression lhsNode =
             (BSHPrimaryExpression)jjtGetChild(0);
 
-        if ( lhsNode == null )
-            throw new InterpreterError( "Error, null LHSnode" );
-
         boolean strictJava = interpreter.getStrictJava();
         LHS lhs = lhsNode.toLHS( callstack, interpreter);
-        if ( lhs == null )
-            throw new InterpreterError( "Error, null LHS" );
 
         // For operator-assign operations save the lhs value before evaluating
         // the rhs.  This is correct Java behavior for postfix operations
@@ -155,31 +150,23 @@ class BSHAssignment extends SimpleNode implements ParserConstants
         /*
             Implement String += value;
             According to the JLS, value may be anything.
-            In BeanShell, we'll disallow VOID (undefined) values.
-            (or should we map them to the empty string?)
         */
-        if ( lhs instanceof String && rhs != Primitive.VOID ) {
+        if ( lhs instanceof String ) {
             if ( kind != PLUS )
                 throw new UtilEvalError(
                     "Use of non + operator with String LHS" );
 
-            return (String)lhs + rhs;
+            return lhs.toString() + rhs.toString();
         }
 
-        if ( lhs instanceof Primitive || rhs instanceof Primitive )
-            if(lhs == Primitive.VOID || rhs == Primitive.VOID)
-                throw new UtilEvalError(
-                    "Illegal use of undefined object or 'void' literal" );
-            else if ( lhs == Primitive.NULL || rhs == Primitive.NULL )
-                throw new UtilEvalError(
-                    "Illegal use of null object or 'null' literal" );
+        if ( rhs == Primitive.NULL )
+            throw new UtilEvalError(
+                "Illegal use of null object or 'null' literal" );
 
-
-        if( (lhs instanceof Boolean || lhs instanceof Character ||
-             lhs instanceof Number || lhs instanceof Primitive) &&
-            (rhs instanceof Boolean || rhs instanceof Character ||
-             rhs instanceof Number || rhs instanceof Primitive) )
-        {
+        if ( (lhs instanceof Boolean || lhs instanceof Character
+               || lhs instanceof Number || lhs instanceof Primitive)
+               && (rhs instanceof Boolean || rhs instanceof Character
+               || rhs instanceof Number || rhs instanceof Primitive) ) {
             return Operators.binaryOperation(lhs, rhs, kind);
         }
 
