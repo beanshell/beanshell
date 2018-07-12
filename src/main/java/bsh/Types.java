@@ -620,5 +620,26 @@ class Types
         return className.substring(i + 1);
     }
 
+    /** Consider BigInteger and BigDecimal as primitives.
+     * @param type the class type to inspect
+     * @return true if class isPrimitive, or BigInteger, or BigDecimal */
+    public static boolean isPrimitive(Class<?> type) {
+        return type.isPrimitive() || type == BigInteger.class || type == BigDecimal.class;
+    }
+
+    /** Consider Character as a number type.
+     * @param value the value to inspect.
+     * @return true if value is a Number or a Character. */
+    public static boolean isNumeric(Object value) {
+        return value instanceof Number || value instanceof Character;
+    }
+
+    /** Consider Float, Double and BigDecimal as floating point types.
+     * @param number the number to inspect
+     * @return true if number is a Float, or a Double, or a BigDecimal */
+    public static boolean isFloatingpoint(Object number) {
+        return number instanceof Float || number instanceof Double
+                || number instanceof BigDecimal;
+    }
 
 }

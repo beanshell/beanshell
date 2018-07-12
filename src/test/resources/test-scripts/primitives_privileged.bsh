@@ -21,30 +21,11 @@ assert(isEvalError("Unimplemented binary long operator", "Operators.longBinaryOp
 assert(isEvalError("unimplemented binary operator", "Operators.booleanBinaryOperation(B, B, 0);"));
 assert(isEvalError("Invalid types in binary operator", "Operators.binaryOperationImpl(C, C, 0);"));
 assert(isEvalError("invalid type in castWrapper: class java.lang.String", "Primitive.castWrapper(String.class, 1);"));
-assert(isEvalError("cannot assign number 0 to type String", "Primitive.castNumber(String.class, (Integer) 0, true);"));
+assert(isEvalError("cannot assign number 0 to type String", "Primitive.castNumber(String.class, (Integer) 0);"));
 assert(isEvalError("null value in castWrapper", "Primitive.castWrapper(Integer.TYPE, null);"));
 assert(isEvalError("bad wrapper cast of boolean", "Primitive.castWrapper(Integer.TYPE, B);"));
 assert(isEvalError("bad type in cast", "Primitive.castWrapper(Integer.TYPE, '');"));
 assert(isEvalError("cannot assign number 1 to type void", "Primitive.castWrapper(Void.TYPE, 1);"));
 assert(isEvalError("Not a wrapper type: class java.lang.String", "new Primitive('');"));
 
-Primitive.castNumber(Byte.class, (Integer) 1, true);
-Primitive.castNumber(Short.class, (Integer) 1, true);
-Primitive.castNumber(Integer.class, (Short) 1, true);
-Primitive.castNumber(Integer.class, (Byte) 1, true);
-Primitive.castNumber(Long.class, (Integer) 7, true);
-Primitive.castNumber(Long.class, (Integer) 1, true);
-Primitive.castNumber(Long.class, (Integer) 0, true);
-Primitive.castNumber(Character.class, (Integer) 1, true);
-Primitive.castNumber(Double.class, (Integer) 1, true);
-Primitive.castNumber(Float.class, (Integer) 1, true);
-Primitive.castNumber(BigInteger.class, (Integer) 9, true);
-Primitive.castNumber(BigInteger.class, (Integer) 1, true);
-Primitive.castNumber(BigInteger.class, (Integer) 0, true);
-Primitive.castNumber(BigDecimal.class, (Integer) 5, true);
-Primitive.castNumber(BigDecimal.class, (Integer) 1, true);
-Primitive.castNumber(BigDecimal.class, (Integer) 0, true);
-Primitive.castNumber(BigDecimal.class, (Float) 1, true);
-
 complete();
-
