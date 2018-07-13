@@ -467,8 +467,14 @@ public class Interpreter
         {
             try
             {
-                if ( interactive )
-                    print( getBshPrompt() );
+                if ( interactive ) {
+                    String p = getBshPrompt();
+                    if (console == null) {
+                        prompt(p);
+                    } else {
+                        console.prompt(p);
+                    }
+                }
 
                 EOF = readLine();
 
@@ -824,15 +830,6 @@ public class Interpreter
         } else if ( null != out ) {
             out.print(o);
             out.flush();
-        }
-    }
-
-    @Override
-    public final void prompt(String prompt) {
-        if (console != null) {
-            console.prompt(prompt);
-        } else {
-            print(prompt);
         }
     }
 
