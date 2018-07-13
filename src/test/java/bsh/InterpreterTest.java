@@ -59,8 +59,12 @@ public class InterpreterTest {
     @Test
     public void displays_the_prompt_by_given_console() throws Exception {
         final StringBuilder S = new StringBuilder();
+        ByteArrayOutputStream berr = new ByteArrayOutputStream();
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
 
         final ConsoleInterface C  = new ConsoleInterface() {
+            PrintStream err = new PrintStream(berr);
+            PrintStream out = new PrintStream(bout);
             @Override
             public Reader getIn() {
                 return new StringReader("\n\n\n\n");
@@ -68,27 +72,27 @@ public class InterpreterTest {
 
             @Override
             public PrintStream getOut() {
-                return System.out;
+                return this.out;
             }
 
             @Override
             public PrintStream getErr() {
-                return System.err;
+                return this.err;
             }
 
             @Override
             public void println(Object o) {
-                System.out.print(o);
+                getOut().println(o);
             }
 
             @Override
             public void print(Object o) {
-                System.out.println(o);
+                getOut().print(o);
             }
 
             @Override
             public void error(Object o) {
-                System.err.println(o);
+                getErr().println(o);
             }
 
             @Override
@@ -100,31 +104,35 @@ public class InterpreterTest {
         //
         // default prompt
         //
-        Interpreter bsh = new Interpreter(C); bsh.setExitOnEOF(false);
-        bsh.run();
-        assertEquals("#bsh % #", S.toString()); S.delete(0, S.length());
+        try (Interpreter bsh = new Interpreter(C)) {
+            bsh.setExitOnEOF(false);
+            bsh.run();
+            assertEquals("#bsh % #", S.toString()); S.delete(0, S.length());
+        }
 
         //
         // custom prompt
         //
-        bsh = new Interpreter(C);  bsh.setExitOnEOF(false);
-        bsh.set("bsh.prompt", "abc> ");
-        bsh.run();
-        assertEquals("#abc> #", S.toString()); S.delete(0, S.length());
+        try (Interpreter bsh = new Interpreter(C)) {
+            bsh.setExitOnEOF(false);
+            bsh.set("bsh.prompt", "abc> ");
+            bsh.run();
+            assertEquals("#abc> #", S.toString()); S.delete(0, S.length());
+        }
     }
 
      @Test
      public void set_prompt_by_interpreter() throws Exception {
          final StringReader in = new StringReader("\n");
          for (String P: new String[] { "abc> ", "cde# " }) {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-            Interpreter bsh = new Interpreter(in, new PrintStream(baos), System.err, true);
-            bsh.setExitOnEOF(false);
-            bsh.set("bsh.prompt", P);
-            bsh.run();
-            System.out.println(baos.toString());
-            assertTrue(baos.toString().contains(P));
+             try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                     Interpreter bsh = new Interpreter(in, new PrintStream(baos),
+                             new PrintStream(baos), true)) {
+                bsh.setExitOnEOF(false);
+                bsh.set("bsh.prompt", P);
+                bsh.run();
+                assertTrue(baos.toString().contains(P));
+            }
         }
      }
 
