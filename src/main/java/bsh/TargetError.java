@@ -80,7 +80,11 @@ public final class TargetError extends EvalError
             super.printStackTrace( out );
             out.println("--- Target Stack Trace ---");
         }
-        getCause().printStackTrace( out );
+        StackTraceElement[] st = getCause().getStackTrace();
+        for ( StackTraceElement ste : st )
+            if ( !ste.getClassName().contains("reflect") )
+                out.println("        at "+ste);
+            else break;
     }
 
     /** Generate a printable string showing the wrapped target exceptions.

@@ -21,50 +21,24 @@
 package bsh;
 
 import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.lang.ref.WeakReference;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.isEmptyString;
+
 import org.junit.Test;
 
 public class InterpreterTest {
-
-
-    /**
-     * <a href="http://code.google.com/p/beanshell2/issues/detail?id=50">Issue #50</a>
-     */
-    @Test(timeout = 10000)
-    public void check_for_memory_leak() throws Exception {
-        @SuppressWarnings("resource")
-        final WeakReference<Object> reference = new WeakReference<Object>(new Interpreter().eval("x = new byte[1024 * 2024]; return x;"));
-        while (reference.get() != null) {
-            System.gc();
-            Thread.sleep(100);
-        }
-    }
-
-    @Test
-    public void check_system_object() throws Exception {
-        TestUtil.eval("bsh.system.foo = \"test\";");
-        final Object result = TestUtil.eval("return bsh.system.foo;");
-        assertEquals("test", result);
-        assertNull(TestUtil.eval("return bsh.system.shutdownOnExit;"));
-        Interpreter.setShutdownOnExit(false);
-        assertEquals(Boolean.FALSE, TestUtil.eval("return bsh.system.shutdownOnExit;"));
-    }
-
-    @Test
-    public void displays_the_prompt_by_given_console() throws Exception {
-        final StringBuilder S = new StringBuilder();
-        ByteArrayOutputStream berr = new ByteArrayOutputStream();
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-
-        final ConsoleInterface C  = new ConsoleInterface() {
-            PrintStream err = new PrintStream(berr);
-            PrintStream out = new PrintStream(bout);
+    ConsoleInterface getConsole(StringBuilder S, OutputStream oout, OutputStream oerr) {
+        return new ConsoleInterface() {
+            PrintStream err = new PrintStream(oerr);
+            PrintStream out = new PrintStream(oout);
             @Override
             public Reader getIn() {
                 return new StringReader("\n\n\n\n");
@@ -100,28 +74,148 @@ public class InterpreterTest {
                 S.append('#').append(prompt).append('#');
             }
         };
+    }
 
+    /**
+     * <a href="http://code.google.com/p/beanshell2/issues/detail?id=50">Issue #50</a>
+     */
+    @Test(timeout = 10000)
+    public void check_for_memory_leak() throws Exception {
+        @SuppressWarnings("resource")
+        final WeakReference<Object> reference = new WeakReference<Object>(new Interpreter().eval("x = new byte[1024 * 2024]; return x;"));
+        while (reference.get() != null) {
+            System.gc();
+            Thread.sleep(100);
+        }
+    }
+
+    @Test
+    public void check_system_object() throws Exception {
+        TestUtil.eval("bsh.system.foo = \"test\";");
+        final Object result = TestUtil.eval("return bsh.system.foo;");
+        assertEquals("test", result);
+        assertNull(TestUtil.eval("return bsh.system.shutdownOnExit;"));
+        Interpreter.setShutdownOnExit(false);
+        assertEquals(Boolean.FALSE, TestUtil.eval("return bsh.system.shutdownOnExit;"));
+    }
+
+    @Test
+    public void displays_the_prompt_by_given_console() throws Exception {
+        ByteArrayOutputStream berr = new ByteArrayOutputStream();
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        final StringBuilder S = new StringBuilder();
+        final ConsoleInterface C  = getConsole(S, bout, berr);
         //
         // default prompt
         //
         try (Interpreter bsh = new Interpreter(C)) {
             bsh.setExitOnEOF(false);
             bsh.run();
-            assertEquals("#bsh % #", S.toString()); S.delete(0, S.length());
-        }
+            assertEquals("#bsh % #", S.toString());
+            S.delete(0, S.length());
 
-        //
-        // custom prompt
-        //
-        try (Interpreter bsh = new Interpreter(C)) {
-            bsh.setExitOnEOF(false);
-            bsh.set("bsh.prompt", "abc> ");
-            bsh.run();
-            assertEquals("#abc> #", S.toString()); S.delete(0, S.length());
+            //
+            // custom prompt
+            //
+            try (Interpreter bshc = new Interpreter(C, bsh)) {
+                bshc.setExitOnEOF(false);
+                bshc.set("bsh.prompt", "abc> ");
+                bshc.run();
+                assertEquals("#abc> #", S.toString());
+                S.delete(0, S.length());
+            }
         }
     }
 
-     @Test
+    @Test
+    public void get_the_prompt_by_command() throws Exception {
+        ByteArrayOutputStream berr = new ByteArrayOutputStream();
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        final StringBuilder S = new StringBuilder();
+        final ConsoleInterface C  = getConsole(S, bout, berr);
+
+        try (Interpreter bsh = new Interpreter(C, new NameSpace(null, "global"))) {
+            bsh.setExitOnEOF(false);
+            bsh.setConsole(C);
+            assertEquals("bsh % ", bsh.eval("getBshPrompt();"));
+        }
+    }
+
+    @Test
+    public void get_print_output() throws Exception {
+        ByteArrayOutputStream berr = new ByteArrayOutputStream();
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        final StringBuilder S = new StringBuilder();
+        final ConsoleInterface C  = getConsole(S, bout, berr);
+
+        try (Interpreter bsh = new Interpreter(C)) {
+            bsh.setExitOnEOF(false);
+            bsh.print("foo");
+            assertEquals("foo", bout.toString());
+        }
+    }
+
+    @Test
+    public void get_println_output() throws Exception {
+        ByteArrayOutputStream berr = new ByteArrayOutputStream();
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        final StringBuilder S = new StringBuilder();
+        final ConsoleInterface C  = getConsole(S, bout, berr);
+
+        try (Interpreter bsh = new Interpreter(C)) {
+            bsh.setExitOnEOF(false);
+            bsh.println("bar");
+            assertEquals("bar", bout.toString().trim());
+        }
+    }
+
+    @Test
+    public void get_error_output() throws Exception {
+        ByteArrayOutputStream berr = new ByteArrayOutputStream();
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        final StringBuilder S = new StringBuilder();
+        final ConsoleInterface C  = getConsole(S, bout, berr);
+
+        try (Interpreter bsh = new Interpreter(C)) {
+            bsh.setExitOnEOF(false);
+            bsh.error("baz");
+            assertEquals("// Error: baz", berr.toString().trim());
+        }
+    }
+
+    @Test
+    public void get_debug_output() throws Exception {
+        ByteArrayOutputStream berr = new ByteArrayOutputStream();
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        final StringBuilder S = new StringBuilder();
+        final ConsoleInterface C  = getConsole(S, bout, berr);
+
+        try (Interpreter bsh = new Interpreter(C)) {
+            bsh.setExitOnEOF(false);
+            Interpreter.Console.debug.println("bug");
+            assertEquals("bug", berr.toString().trim());
+        }
+    }
+
+
+    @Test
+    public void get_output_after_close() throws Exception {
+        ByteArrayOutputStream berr = new ByteArrayOutputStream();
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+
+        try (Interpreter bsh = new Interpreter(new StringReader(""),
+                new PrintStream(bout), new PrintStream(berr), false)) {
+            bsh.setExitOnEOF(false);
+            bsh.close();
+            bsh.print("foo");
+            bsh.println("bar");
+            bsh.error("baz");
+            assertThat(bout.toString(), isEmptyString());
+            assertThat(berr.toString(), isEmptyString());
+       }
+    }
+
+    @Test
      public void set_prompt_by_interpreter() throws Exception {
          final StringReader in = new StringReader("\n");
          for (String P: new String[] { "abc> ", "cde# " }) {
