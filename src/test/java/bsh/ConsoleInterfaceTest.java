@@ -27,25 +27,90 @@ package bsh;
 
 import java.io.PrintStream;
 import java.io.Reader;
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 /**
-    The capabilities of a minimal console for BeanShell.
-    Stream I/O and optimized print for output.
+ *
+ */
+public class ConsoleInterfaceTest {
+    @Test
+    public void default_prompt() {
+        final StringBuilder S = new StringBuilder();
 
-    A simple console may ignore some of these or map them to trivial
-    implementations.  e.g. print() with color can be mapped to plain text.
-    @see bsh.util.GUIConsoleInterface
-*/
-public interface ConsoleInterface {
-    Reader getIn();
-    PrintStream getOut();
-    PrintStream getErr();
-    void println( Object o );
-    void print( Object o );
-    void error( Object o );
+        ConsoleInterface c = new ConsoleInterface() {
+            @Override
+            public Reader getIn() {
+                return null;
+            }
 
-    default void prompt( String prompt ) {
-        print(prompt);
+            @Override
+            public PrintStream getOut() {
+                return null;
+            }
+
+            @Override
+            public PrintStream getErr() {
+                return null;
+            }
+
+            @Override
+            public void println(Object o) {
+            }
+
+            @Override
+            public void print(Object o) {
+                S.append(String.valueOf(o));
+            }
+
+            @Override
+            public void error(Object o) {
+            }
+        };
+
+        c.prompt("hello "); assertEquals("hello ", S.toString());
+        c.prompt("world"); assertEquals("hello world", S.toString());
+    }
+
+    @Test
+    public void given_prompt() {
+        final StringBuilder S = new StringBuilder();
+
+        ConsoleInterface c = new ConsoleInterface() {
+            @Override
+            public Reader getIn() {
+                return null;
+            }
+
+            @Override
+            public PrintStream getOut() {
+                return null;
+            }
+
+            @Override
+            public PrintStream getErr() {
+                return null;
+            }
+
+            @Override
+            public void println(Object o) {
+            }
+
+            @Override
+            public void print(Object o) {
+            }
+
+            @Override
+            public void error(Object o) {
+            }
+
+            @Override
+            public void prompt(String prompt) {
+                S.append('#').append(prompt).append('#');
+            }
+        };
+
+        c.prompt("hello"); assertEquals("#hello#", S.toString());
+        c.prompt("world"); assertEquals("#hello##world#", S.toString());
     }
 }
-

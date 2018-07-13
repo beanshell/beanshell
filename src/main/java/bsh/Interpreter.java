@@ -467,8 +467,14 @@ public class Interpreter
         {
             try
             {
-                if ( interactive )
-                    print( getBshPrompt() );
+                if ( interactive ) {
+                    String p = getBshPrompt();
+                    if (console == null) {
+                        prompt(p);
+                    } else {
+                        console.prompt(p);
+                    }
+                }
 
                 EOF = readLine();
 
@@ -810,11 +816,13 @@ public class Interpreter
         console = null;
     }
 
+    @Override
     public final void println( Object o )
     {
         print( String.valueOf(o) + systemLineSeparator );
     }
 
+    @Override
     public final void print( Object o )
     {
         if (console != null) {
