@@ -95,7 +95,7 @@ import java.lang.reflect.Method;
     See the BeanShell User's Manual for more information.
 */
 public class Interpreter
-    implements Runnable, ConsoleInterface, Serializable, AutoCloseable
+    implements Runnable, Serializable, AutoCloseable
 {
     /* --- Begin static members --- */
 
@@ -113,10 +113,6 @@ public class Interpreter
     private boolean EOF;
     public static boolean TRACE;
     public static boolean COMPATIBIILTY;
-
-    // This should be per instance
-    transient static PrintStream debug;
-    static String systemLineSeparator = "\n"; // default
 
     static {
         staticInit();
@@ -146,10 +142,7 @@ public class Interpreter
 
     transient Parser parser;
     NameSpace globalNameSpace;
-    transient Reader in;
-    transient PrintStream out;
-    transient PrintStream err;
-    ConsoleInterface console;
+    ConsoleAssignable console;
 
     /** If this interpeter is a child of another, the parent */
     Interpreter parent;
@@ -193,20 +186,13 @@ public class Interpreter
         or other description of the source from which this interpreter is
         reading... used for debugging.  May be null.
     */
-    public Interpreter(
-        Reader in, PrintStream out, PrintStream err,
-        boolean interactive, NameSpace namespace,
-        Interpreter parent, String sourceFileInfo )
-    {
-        parser = new Parser( in );
+    public Interpreter( ConsoleAssignable console, boolean interactive,
+            NameSpace namespace, Interpreter parent, String sourceFileInfo ) {
         long t1 = 0;
         if (Interpreter.DEBUG.get())
             t1=System.nanoTime();
-        this.in = in;
-        this.out = out;
-        this.err = err;
+
         this.interactive = interactive;
-        debug = err;
         this.parent = parent;
         if ( parent != null )
             setStrictJava( parent.getStrictJava() );
@@ -215,24 +201,24 @@ public class Interpreter
 
         if ( namespace == null ) {
             BshClassManager bcm = BshClassManager.createClassManager( this );
-            globalNameSpace = new NameSpace(namespace, bcm, "global");
-            initRootSystemObject();
-            if ( interactive )
-                loadRCFiles();
-        } else try {
-            globalNameSpace = namespace;
-            if ( ! (globalNameSpace.getVariable("bsh") instanceof This) ) {
-                initRootSystemObject();
-                if ( interactive )
-                    loadRCFiles();
-            }
-        } catch (final UtilEvalError e) {
-            throw new IllegalStateException(e);
+            namespace = new NameSpace(namespace, bcm, "global");
         }
+
+        this.setNameSpace(namespace);
+        this.setConsole(console);
 
         if ( Interpreter.DEBUG.get() )
             Interpreter.debug("Time to initialize interpreter: interactive=",
                     interactive, " ", (System.nanoTime() - t1), " nanoseconds.");
+    }
+
+
+    public Interpreter(
+            Reader in, PrintStream out, PrintStream err,
+            boolean interactive, NameSpace namespace,
+            Interpreter parent, String sourceFileInfo ) {
+        this(new Console(in , out, err), interactive, namespace,
+                parent, sourceFileInfo);
     }
 
     public Interpreter(
@@ -253,10 +239,8 @@ public class Interpreter
         console using the specified parent namespace and parent interpreter.
     */
     public Interpreter(ConsoleInterface console, NameSpace globalNameSpace, Interpreter parent) {
-        this( console.getIn(), console.getOut(), console.getErr(),
-            true, globalNameSpace, parent,
+        this( new Console(console), true, globalNameSpace, parent,
             null == parent ? null : parent.getSourceFileInfo() );
-        this.setConsole( console );
     }
 
     /**
@@ -264,7 +248,7 @@ public class Interpreter
         console using the specified parent interpreter assumes interpreter namesepace.
     */
     public Interpreter(ConsoleInterface console, Interpreter parent) {
-        this( console, null == parent ? null : parent.getNameSpace(), parent );
+        this( console, parent.getNameSpace(), parent );
     }
 
     /**
@@ -298,15 +282,16 @@ public class Interpreter
 
     /**
         Attach a console
-        Note: this method is incomplete.
     */
-    public void setConsole( ConsoleInterface console ) {
+    public void setConsole( ConsoleAssignable console ) {
         this.console = console;
+        this.parser = new Parser( getIn() );
+
         setu( "bsh.console", console );
-        // redundant with constructor
-        setOut( console.getOut() );
-        setErr( console.getErr() );
-        // need to set the input stream - reinit the parser?
+    }
+
+    public void setConsole( ConsoleInterface console ) {
+        this.setConsole(new Console(console));
     }
 
     private void initRootSystemObject()
@@ -350,6 +335,15 @@ public class Interpreter
     */
     public void setNameSpace( NameSpace globalNameSpace ) {
         this.globalNameSpace = globalNameSpace;
+        if ( null != globalNameSpace ) try {
+            if ( ! (globalNameSpace.getVariable("bsh") instanceof This) ) {
+                initRootSystemObject();
+                if ( interactive )
+                    loadRCFiles();
+            }
+        } catch (final UtilEvalError e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /**
@@ -467,14 +461,8 @@ public class Interpreter
         {
             try
             {
-                if ( interactive ) {
-                    String p = getBshPrompt();
-                    if (console == null) {
-                        prompt(p);
-                    } else {
-                        console.prompt(p);
-                    }
-                }
+                if ( interactive )
+                    console.prompt(getBshPrompt());
 
                 EOF = readLine();
 
@@ -520,7 +508,7 @@ public class Interpreter
                     e.printStackTrace();
                 if( !interactive )
                     EOF = true;
-                parser.reInitInput(in);
+                parser.reInitInput(getIn());
             }
             catch(InterpreterError e)
             {
@@ -532,7 +520,7 @@ public class Interpreter
             {
                 error("Target Exception: " + e.getMessage() );
                 if ( e.inNativeCode() )
-                    e.printStackTrace( DEBUG.get(), err );
+                    e.printStackTrace( DEBUG.get(), getErr() );
                 if(!interactive)
                     EOF = true;
                 setu("$_e", e.getTarget());
@@ -636,7 +624,7 @@ public class Interpreter
             this interpreter.
         */
         try (Interpreter localInterpreter = new Interpreter(
-                in, out, err, false, nameSpace, this, sourceFileInfo  )) {
+                in, getOut(), getErr(), false, nameSpace, this, sourceFileInfo  )) {
             CallStack callstack = new CallStack( nameSpace );
 
             SimpleNode node = null;
@@ -708,10 +696,10 @@ public class Interpreter
                 }
             }
             // release shared resources before auto closing.
-            if ( localInterpreter.in.equals(this.in) )
-                localInterpreter.in = null;
-            localInterpreter.out = null;
-            localInterpreter.err = null;
+            if ( localInterpreter.getIn().equals(this.getIn()) )
+                localInterpreter.console.setIn(null);
+            localInterpreter.setOut(null);
+            localInterpreter.setErr(null);
         } catch (IOException ioe) {
             throw new EvalError("Sourced file: "+sourceFileInfo+" "
                     + ioe.toString(), null, null, ioe);
@@ -757,79 +745,33 @@ public class Interpreter
 
     // end source and eval
 
-    /**
-        Print an error message in a standard format on the output stream
-        associated with this interpreter. On the GUI console this will appear
-        in red, etc.
-    */
-    public final void error( Object o ) {
-        if ( console != null )
-            console.error( "// Error: " + o + systemLineSeparator );
-        else if ( null != err ) {
-            err.println("// Error: " + o );
-            err.flush();
-        }
-    }
-
-    // ConsoleInterface
-    // The interpreter reflexively implements the console interface that it
-    // uses.  Should clean this up by using an inner class to implement the
-    // console for us.
-
-    /**
-        Get the input stream associated with this interpreter.
-        This may be be stdin or the GUI console.
-    */
-    public Reader getIn() { return in; }
-
-    /**
-        Get the outptut stream associated with this interpreter.
-        This may be be stdout or the GUI console.
-    */
-    public PrintStream getOut() { return out; }
-
-    /**
-        Get the error output stream associated with this interpreter.
-        This may be be stderr or the GUI console.
-    */
-    public PrintStream getErr() { return err; }
-
+    /** Console delegate methods. */
+    public Reader getIn() { return console.getIn(); }
+    public PrintStream getOut() { return console.getOut(); }
+    public PrintStream getErr() { return console.getErr(); }
+    public final void println( Object o ) { console.println(o); }
+    public final void print( Object o ) { console.print(o); }
+    public final void error( Object o ) { console.error(o); }
+    public void setOut( PrintStream out ) { console.setOut(out); }
+    public void setErr( PrintStream err ) { console.setErr(err); }
 
     /** Attempt the release of open resources.
      * @throws IOException */
     public void close() throws IOException {
         EOF = true;
-        if ( null != err ) {
-            if ( !err.equals(System.err) )
-                err.close();
-            err = null;
+        if ( null != getErr() ) {
+            if ( !getErr().equals(System.err) )
+                getErr().close();
+            setErr(null);
         }
-        if ( null != out ) {
-            if ( !out.equals(System.out) )
-                out.close();
-            out = null;
+        if ( null != getOut() ) {
+            if ( !getOut().equals(System.out) )
+                getOut().close();
+            setOut(null);
         }
-        if ( null != in ) {
-            in.close();
-            in = null;
-        }
-        console = null;
-    }
-
-    @Override
-    public final void println( Object o )
-    {
-        print( String.valueOf(o) + systemLineSeparator );
-    }
-
-    @Override
-    public final void print( Object o )
-    {
-        if (console != null) {
-            console.print(o);
-        } else if ( null != out ) {
-            out.print(o);
-            out.flush();
+        if ( null != getIn() ) {
+            getIn().close();
+            console.setIn(null);
         }
     }
 
@@ -845,7 +787,7 @@ public class Interpreter
             StringBuilder sb = new StringBuilder();
             for ( Object m : msg )
                 sb.append(m);
-            debug.println("// Debug: " + sb.toString());
+            Console.debug.println("// Debug: " + sb.toString());
         }
     }
 
@@ -1161,8 +1103,8 @@ public class Interpreter
     static void staticInit()
     {
         try {
-            systemLineSeparator = System.getProperty("line.separator");
-            debug = System.err;
+            Console.systemLineSeparator = System.getProperty("line.separator");
+            Console.debug = System.err;
             DEBUG.set(Boolean.getBoolean("debug"));
             TRACE = Boolean.getBoolean("trace");
             COMPATIBIILTY = Boolean.getBoolean("bsh.compatibility");
@@ -1204,13 +1146,6 @@ public class Interpreter
     */
     public Interpreter getParent() {
         return parent;
-    }
-
-    public void setOut( PrintStream out ) {
-        this.out = out;
-    }
-    public void setErr( PrintStream err ) {
-        this.err = err;
     }
 
     /**
@@ -1309,5 +1244,99 @@ public class Interpreter
     public static boolean getSaveClasses()  {
         return getSaveClassesDir() != null && !getSaveClassesDir().isEmpty();
     }
+
+    public static class Console implements ConsoleAssignable, Serializable {
+        private static final long serialVersionUID = 1L;
+        public static String systemLineSeparator = "\n";
+        public static transient PrintStream debug;
+
+        private transient Reader in;
+        private transient PrintStream out;
+        private transient PrintStream err;
+        private ConsoleInterface console;
+
+        public Console(ConsoleInterface console) {
+            this.console = console;
+            this.in = console.getIn();
+            this.out = console.getOut();
+            this.err = console.getErr();
+            Console.debug = this.err;
+        }
+
+        public Console(Reader in, PrintStream out, PrintStream err) {
+            this.console = null;
+            this.in = in;
+            this.out = out;
+            this.err = err;
+            Console.debug = this.err;
+        }
+
+        @Override
+        public Reader getIn() {
+            return in;
+        }
+
+        @Override
+        public PrintStream getOut() {
+            return out;
+        }
+
+        @Override
+        public PrintStream getErr() {
+            return err;
+        }
+
+        @Override
+        public void println(Object o) {
+            if ( null != console )
+                console.println(o);
+            else
+                this.print( o + systemLineSeparator );
+        }
+
+        @Override
+        public void print(Object o) {
+            if ( null != console )
+                console.print(o);
+            else if ( null != out ) {
+                out.print(o);
+                out.flush();
+            }
+        }
+
+        @Override
+        public void error(Object o) {
+            if ( null != console )
+                console.error( "// Error: " + o + systemLineSeparator );
+            else if ( null != out ) {
+                this.println( "// Error: " + o );
+            }
+        }
+
+        @Override
+        public void prompt(String p) {
+            if ( null != console )
+                console.prompt(p);
+            else
+                this.print(p);
+        }
+
+        @Override
+        public void setIn(Reader in) {
+            this.in = in;
+        }
+
+        @Override
+        public void setOut(PrintStream out) {
+            this.out = out;
+        }
+
+        @Override
+        public void setErr(PrintStream err) {
+            this.err = err;
+        }
+
+    }
+
 }
 
