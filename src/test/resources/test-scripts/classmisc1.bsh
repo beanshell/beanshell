@@ -1,4 +1,5 @@
 source("TestHarness.bsh");
+import java.awt.Image;
 
 /*
     Check the visibility of static fields inherited through interfaces.
