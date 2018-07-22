@@ -1230,14 +1230,16 @@ public class NameSpace
      * <pre>
      * importClass("bsh.EvalError");
      * importClass("bsh.Interpreter");
-     * importPackage("javax.swing.event");
-     * importPackage("javax.swing");
-     * importPackage("java.awt.event");
-     * importPackage("java.awt");
+     * importClass("bsh.Capabilities");
      * importPackage("java.net");
+     * importPackage("java.util.function");
+     * importPackage("java.util.stream");
+     * importPackage("java.util.regex");
      * importPackage("java.util");
      * importPackage("java.io");
      * importPackage("java.lang");
+     * importClass("java.math.BigInteger");
+     * importClass("java.math.BigDecimal");
      * importCommands("/bsh/commands");
      * </pre>
      */
@@ -1247,10 +1249,7 @@ public class NameSpace
          * later. */
         this.importClass("bsh.EvalError");
         this.importClass("bsh.Interpreter");
-        this.importPackage("javax.swing.event");
-        this.importPackage("javax.swing");
-        this.importPackage("java.awt.event");
-        this.importPackage("java.awt");
+        this.importClass("bsh.Capabilities");
         this.importPackage("java.net");
         this.importPackage("java.util.function");
         this.importPackage("java.util.stream");

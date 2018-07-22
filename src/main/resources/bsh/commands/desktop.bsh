@@ -8,13 +8,13 @@
  * @author Daniel Leuck
  */
 
+import java.awt.*;
+import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.border.*;
 import bsh.util.JConsole;
 import bsh.util.Util;
-import bsh.Interpreter;
-import java.awt.Component;
-import bsh.Capabilities;
 
 desktop()
 {
