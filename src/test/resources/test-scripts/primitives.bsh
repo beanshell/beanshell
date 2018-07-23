@@ -736,5 +736,13 @@ assert( f123.getType() == Float.TYPE );
 
 assert(isEvalError("d123=true"));
 assert(isEvalError("d123=null"));
+Integer nullInt = Integer.valueOf(123);
+assertEquals(123, nullInt);
+nullInt = (int)null;
+assertEquals(0, nullInt);
+nullInt = null;
+assertNull(nullInt);
+nullInt = 1 + (int)nullInt;
+assertEquals(1, nullInt);
 
 complete();
