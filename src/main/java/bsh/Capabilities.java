@@ -89,7 +89,7 @@ public class Capabilities implements Supplier<Boolean>, Consumer<Boolean>
         BshClassManager.clearResolveCache();
     }
 
-    private static Map<String, Class<?>> classes = new WeakHashMap<>();
+    private static final Map<String, Class<?>> classes = new WeakHashMap<>();
     /**
         Use direct Class.forName() to test for the existence of a class.
         We should not use BshClassManager here because:
@@ -99,19 +99,16 @@ public class Capabilities implements Supplier<Boolean>, Consumer<Boolean>
             this capabilities code must be light enough to be used by any
             system **including the remote applet**.
     */
-    public static boolean classExists( String name )
-    {
-        if ( !classes.containsKey(name) ) {
-            Class<?> c = null;
-            try {
-                /*
-                    Note: do *not* change this to
-                    BshClassManager plainClassForName() or equivalent.
-                    This class must not touch any other bsh classes.
-                */
-                c = Class.forName( name );
-            } catch ( ClassNotFoundException e ) { }
-            classes.put(name, c);
+    public static boolean classExists( String name ) {
+        if ( !classes.containsKey(name) ) try {
+            /*
+                Note: do *not* change this to
+                BshClassManager plainClassForName() or equivalent.
+                This class must not touch any other bsh classes.
+            */
+            classes.put(name, Class.forName( name ));
+        } catch ( ClassNotFoundException e ) {
+            classes.put(name, null);
         }
         return getExisting( name ) != null;
     }
