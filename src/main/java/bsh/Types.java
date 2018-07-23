@@ -359,6 +359,28 @@ class Types
         }
     }
 
+    /** Find array element type for class.
+     * Roll back component type until class is not an array anymore.
+     * @param arrType the class to inspect
+     * @return null if type is null or the class when class not array */
+    public static Class<?> arrayElementType(Class<?> arrType) {
+        if ( null == arrType )
+            return null;
+        while ( arrType.isArray() )
+            arrType = arrType.getComponentType();
+        return arrType;
+    }
+
+    /** Find the number of array dimensions for class.
+     * By counting the number of [ prefixing the class name.
+     * @param arrType the class to inspect
+     * @return number of [ name prefixes */
+    public static int arrayDimensions(Class<?> arrType) {
+        if ( null == arrType || !arrType.isArray() )
+            return 0;
+        return arrType.getName().lastIndexOf('[') + 1;
+    }
+
     /**
         Attempt to cast an object instance to a new type if possible via
      BeanShell extended syntax rules.  These rules are always a superset of
@@ -379,11 +401,20 @@ class Types
         @see #isBshAssignable( Class, Class )
     */
     public static Object castObject(
-        Object fromValue, Class toType, int operation )
+        Object fromValue, Class<?> toType, int operation )
         throws UtilEvalError
     {
-        if ( fromValue == null )
-            throw new InterpreterError("null fromValue");
+        if ( fromValue == null ) {
+            if ( operation == Types.CAST )
+                if ( !isPrimitive(toType) && !Primitive.isWrapperType(toType) )
+                    return Primitive.NULL;
+                else
+                    return Primitive.getDefaultValue(toType);
+
+            throw new InterpreterError(
+                    "Cast error: null fromValue for toType: "
+                    + toType.getSimpleName());
+        }
 
         Class fromType =
             fromValue instanceof Primitive ?

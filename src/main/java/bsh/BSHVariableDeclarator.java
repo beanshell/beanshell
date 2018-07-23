@@ -55,11 +55,13 @@ class BSHVariableDeclarator extends SimpleNode
         typeNode may be null to indicate no type information available.
     */
     public Object eval(
-        BSHType typeNode, CallStack callstack, Interpreter interpreter)
+        BSHType typeNode, Modifiers modifiers, CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
         // null value means no value
-        Object value = null;
+        Object value = modifiers.hasModifier("final")
+                ? null
+                : Primitive.getDefaultValue(typeNode.getBaseType());
 
         if ( jjtGetNumChildren() > 0 )
         {
