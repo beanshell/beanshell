@@ -73,12 +73,9 @@ class BSHVariableDeclarator extends SimpleNode
                 (This allows array initializer to handle the problem...
                 allowing for future enhancements in loosening types there).
             */
-            if ( (typeNode != null)
-                && initializer instanceof BSHArrayInitializer
-            )
-                value = ((BSHArrayInitializer)initializer).eval(
-                    typeNode.getBaseType(), typeNode.getArrayDims(),
-                    callstack, interpreter);
+            if ( initializer instanceof BSHArrayInitializer )
+                value = ((BSHArrayInitializer)initializer).eval(typeNode.getBaseType(),
+                    this.getArrayDims(typeNode), callstack, interpreter);
             else
                 value = initializer.eval( callstack, interpreter);
         }
@@ -89,5 +86,12 @@ class BSHVariableDeclarator extends SimpleNode
         return value;
     }
 
+    private int getArrayDims(BSHType typeNode) {
+        if ( dimensions > 0 )
+            return dimensions;
+        if ( typeNode.getArrayDims() > 0 )
+            return typeNode.getArrayDims();
+        return -1;
+    }
     public String toString() { return "BSHVariableDeclarator "+name; }
 }
