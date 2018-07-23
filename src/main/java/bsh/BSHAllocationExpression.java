@@ -30,6 +30,7 @@ package bsh;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 
 /**
     New object, new array, or inner class style allocation with body.
@@ -213,12 +214,12 @@ class BSHAllocationExpression extends SimpleNode
     }
 
     private Object arrayAllocation(
-        BSHArrayDimensions dimensionsNode, Class type,
+        BSHArrayDimensions dimensionsNode, Class<?> type,
         CallStack callstack, Interpreter interpreter )
         throws EvalError
     {
         /*
-            dimensionsNode can return either a fully intialized array or VOID.
+            dimensionsNode can return either a fully initialized array or VOID.
             when VOID the prescribed array dimensions (defined and undefined)
             are contained in the node.
         */
@@ -226,7 +227,7 @@ class BSHAllocationExpression extends SimpleNode
         if ( result != Primitive.VOID )
             return result;
         else
-            return arrayNewInstance( type, dimensionsNode, callstack );
+            return arrayNewInstance( type, dimensionsNode, callstack, interpreter );
     }
 
     /**
@@ -260,8 +261,9 @@ class BSHAllocationExpression extends SimpleNode
         see below.
     */
     private Object arrayNewInstance(
-        Class type, BSHArrayDimensions dimensionsNode, CallStack callstack )
-        throws EvalError
+        Class<?> type, BSHArrayDimensions dimensionsNode, CallStack callstack,
+        Interpreter interpreter )
+                throws EvalError
     {
         if ( dimensionsNode.numUndefinedDims > 0 )
         {
@@ -273,29 +275,30 @@ class BSHAllocationExpression extends SimpleNode
         try {
             Object arr = Array.newInstance(
                 type, dimensionsNode.definedDimensions);
-            arrayFillDefaultValue(arr);
+            if ( !interpreter.getStrictJava() )
+                arrayFillDefaultValue(arr);
             return arr;
         } catch( NegativeArraySizeException e1 ) {
             throw new TargetError( e1, this, callstack );
         } catch( Exception e ) {
-            throw new EvalError("Can't construct primitive array: " +
-                e.getMessage(), this, callstack, e);
+            throw new EvalError("Can't construct primitive array: "
+                    + e.getMessage(), this, callstack, e);
         }
     }
 
+    /** Fill boxed numeric types with default numbers instead of nulls.
+     * @param arr the array to fill. */
     private void arrayFillDefaultValue(Object arr) {
         if (null == arr)
             return;
         Class<?> clas = arr.getClass();
-        Class<?> comp = clas.getComponentType();
-        if (!clas.isPrimitive() && clas.isArray()
-                && !comp.isPrimitive()) {
-            Object def = Primitive.getDefaultValue(comp);
-            for (int i = 0; i < Array.getLength(arr); i++)
-                if (comp.isArray())
+        Class<?> comp = Types.arrayElementType(clas);
+        if ( !comp.isPrimitive() )
+            if ( Types.arrayDimensions(clas) > 1 )
+                for ( int i = 0; i < Array.getLength(arr); i++ )
                     arrayFillDefaultValue(Array.get(arr, i));
-                else
-                    Array.set(arr, i, Primitive.unwrap(def));
-        }
+            else
+                Arrays.fill((Object[]) arr, Primitive.unwrap(
+                    Primitive.getDefaultValue(comp)));
     }
 }
