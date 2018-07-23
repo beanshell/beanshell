@@ -31,8 +31,12 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -53,9 +57,14 @@ public class StringUtil {
      * @param clas for type
      * @return string type */
     public static String typeString(Class<?> clas) {
+        if (Map.class.isAssignableFrom(clas))
+            clas = Map.class;
+        else if (List.class.isAssignableFrom(clas))
+            clas = List.class;
+        else if (Set.class.isAssignableFrom(clas))
+            clas = Set.class;
         return clas.isArray() ? typeString(clas.getComponentType())+"[]"
-                : clas.getName().startsWith("java.lang")
-                    || clas.getName().contains("math.Big")
+                : clas.getName().startsWith("java")
                 ? clas.getSimpleName() : clas.getName();
     }
 
@@ -73,12 +82,29 @@ public class StringUtil {
     public static String valueString(final Object value) {
         StringBuilder val = new StringBuilder(""+value);
         if (null != value && value.getClass().isArray()) {
-            val = new StringBuilder("[");
+            val = new StringBuilder("{");
             for (int i = 0; i < Array.getLength(value); i++)
                 val.append(valueString(Array.get(value, i))).append(", ");
             if (val.reverse().charAt(0) == ' ')
                 val.delete(0, 2);
+            return val.reverse().append("}").toString();
+        }
+        if (value instanceof Collection) {
+            val = new StringBuilder("[");
+            for (Object v : ((Collection<?>) value))
+                val.append(valueString(v)).append(", ");
+            if (val.reverse().charAt(0) == ' ')
+                val.delete(0, 2);
             return val.reverse().append("]").toString();
+        }
+        if (value instanceof Map) {
+            val = new StringBuilder("{");
+            for (Entry<?, ?> e : ((Map<?, ?>) value).entrySet())
+                val.append(valueString(e.getKey())).append("=")
+                .append(valueString(e.getValue())).append(", ");
+            if (val.reverse().charAt(0) == ' ')
+                val.delete(0, 2);
+            return val.reverse().append("}").toString();
         }
         if (value instanceof String)
             return val.insert(0, "\"").append("\"").toString();
