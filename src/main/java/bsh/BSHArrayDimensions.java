@@ -86,12 +86,7 @@ class BSHArrayDimensions extends SimpleNode
         */
         if (child instanceof BSHArrayInitializer)
         {
-            if ( baseType == null )
-                throw new EvalError(
-                    "Internal Array Eval err:  unknown base type",
-                    this, callstack );
-
-            Object initValue = ((BSHArrayInitializer)child).eval(
+            Object initValue = ((BSHArrayInitializer) child).eval(
                 baseType, numUndefinedDims, callstack, interpreter);
 
             Class arrayClass = initValue.getClass();
