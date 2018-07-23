@@ -69,7 +69,6 @@ class BSHPrimarySuffix extends SimpleNode
                 if ( toLHS )
                     throw new EvalError("Can't assign .class",
                         this, callstack );
-                NameSpace namespace = callstack.top();
                 return ((BSHType)obj).getType( callstack, interpreter );
             } else
                 throw new EvalError(
@@ -124,11 +123,6 @@ class BSHPrimarySuffix extends SimpleNode
         {
             throw new EvalError("reflection error: " + e, this, callstack, e );
         }
-        catch(InvocationTargetException e)
-        {
-            throw new TargetError( "target exception", e.getTargetException(),
-                this, callstack, true);
-        }
     }
 
     /*
@@ -148,7 +142,7 @@ class BSHPrimarySuffix extends SimpleNode
     private Object doName(
         Object obj, boolean toLHS,
         CallStack callstack, Interpreter interpreter)
-        throws EvalError, ReflectError, InvocationTargetException
+        throws EvalError, ReflectError
     {
         try {
             // .length on array
@@ -233,7 +227,6 @@ class BSHPrimarySuffix extends SimpleNode
                 "Arrays may only be indexed by integer types.",
                 callerInfo, callstack );
         }
-
         return index;
     }
 

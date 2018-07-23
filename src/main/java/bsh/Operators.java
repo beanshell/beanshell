@@ -93,11 +93,15 @@ class Operators implements ParserConstants {
 
             case BOOL_OR:
             case BOOL_ORX:
-                return lhs || rhs;
+                // already evaluated lhs TRUE
+                // see BSHBinaryExpression
+                return false || rhs;
 
             case BOOL_AND:
             case BOOL_ANDX:
-                return lhs && rhs;
+                // already evaluated lhs FALSE
+                // see BSHBinaryExpression
+                return true && rhs;
 
             case BIT_AND:
             case BIT_ANDX:
