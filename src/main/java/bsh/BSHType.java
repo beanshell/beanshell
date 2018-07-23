@@ -194,7 +194,6 @@ class BSHType extends SimpleNode
     public int getArrayDims() {
         return arrayDims;
     }
-
     public void declaredDimensions(int dimensions) {
         if (dimensions > 0) {
             SimpleNode node = getTypeNode();
@@ -206,7 +205,6 @@ class BSHType extends SimpleNode
                 arrayDims = dimensions;
         }
     }
-
     public void classLoaderChanged() {
         type = null;
         baseType = null;

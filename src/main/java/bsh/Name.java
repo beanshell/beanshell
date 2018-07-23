@@ -596,16 +596,16 @@ class Name implements java.io.Serializable
     */
     static NameSpace getClassNameSpace( NameSpace thisNameSpace )
     {
+        if ( null == thisNameSpace )
+            return null;
+
         // is a class instance
-        //if ( thisNameSpace.classInstance != null )
         if ( thisNameSpace.isClass )
             return thisNameSpace;
 
         if ( thisNameSpace.isMethod
-            && thisNameSpace.getParent() != null
-            //&& thisNameSpace.getParent().classInstance != null
-            && thisNameSpace.getParent().isClass
-        )
+                && thisNameSpace.getParent() != null
+                && thisNameSpace.getParent().isClass )
             return thisNameSpace.getParent();
 
         return null;

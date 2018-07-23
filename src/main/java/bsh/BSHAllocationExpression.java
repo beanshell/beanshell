@@ -193,11 +193,7 @@ class BSHAllocationExpression extends SimpleNode
     )
         throws EvalError
     {
-        NameSpace namespace = callstack.top();
-        Class type = nameNode.toClass( callstack, interpreter );
-        if ( type == null )
-            throw new EvalError( "Class " + nameNode.getName(namespace)
-                + " not found.", this, callstack );
+        Class<?> type = nameNode.toClass( callstack, interpreter );
 
         return arrayAllocation( dimensionsNode, type, callstack, interpreter );
     }
