@@ -33,8 +33,8 @@ String s2 = (String)null;
 (Object)null;
 int x = (int)'a';
 
-// can't cast null to primitive type
-assert( isEvalError("(int)null"));
+// cast null to primitive default value
+assert( 0I == (int) null );
 
 // can't cast void to anything
 assert( isEvalError("(int)xyz"));

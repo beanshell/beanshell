@@ -80,7 +80,7 @@ class BSHTypedVariableDeclaration extends SimpleNode {
 
                 // Type node is passed down the chain for array initializers
                 // which need it under some circumstances
-                value = dec.eval( typeNode, callstack, interpreter);
+                value = dec.eval( typeNode, modifiers, callstack, interpreter);
                 try {
                     LHS lhs = null;
                     if ( namespace.isClass )

@@ -80,6 +80,17 @@ public final class Primitive implements Serializable {
     public static final Primitive TRUE = new Primitive(true);
     public static final Primitive FALSE = new Primitive(false);
 
+    /** Default zero value constants */
+    public static final Primitive ZERO_CHAR = new Primitive((char) 0);
+    public static final Primitive ZERO_BYTE = new Primitive((byte) 0);
+    public static final Primitive ZERO_SHORT = new Primitive((short) 0);
+    public static final Primitive ZERO_INT = new Primitive(0);
+    public static final Primitive ZERO_LONG = new Primitive(0L);
+    public static final Primitive ZERO_FLOAT = new Primitive(0f);
+    public static final Primitive ZERO_DOUBLE = new Primitive(0d);
+    public static final Primitive ZERO_BIG_INTEGER = new Primitive(BigInteger.ZERO);
+    public static final Primitive ZERO_BIG_DECIMAL = new Primitive(BigDecimal.ZERO);
+
     private enum Special { NULL_VALUE, VOID_TYPE }
 
     /*
@@ -346,17 +357,29 @@ public final class Primitive implements Serializable {
     */
     public static Primitive getDefaultValue( Class<?> type )
     {
-        if ( type == Boolean.TYPE )
-            return Primitive.FALSE;
-        if ( type == null || null == wrapperMap.get( type ) )
+        if ( type == null )
             return Primitive.NULL;
-
-        // non boolean primitive, get appropriate flavor of zero
-        try {
-            return new Primitive(0).castToType( type, Types.CAST );
-        } catch ( UtilEvalError e ) {
-            throw new InterpreterError( "bad cast" );
-        }
+        if ( Boolean.TYPE == type || Boolean.class == type )
+            return Primitive.FALSE;
+        if ( Character.TYPE == type || Character.class == type )
+            return Primitive.ZERO_CHAR;
+        if ( Byte.TYPE == type || Byte.class == type )
+            return Primitive.ZERO_BYTE;
+        if ( Short.TYPE == type || Short.class == type )
+            return Primitive.ZERO_SHORT;
+        if ( Integer.TYPE == type || Integer.class == type )
+            return Primitive.ZERO_INT;
+        if ( Long.TYPE == type || Long.class == type )
+            return Primitive.ZERO_LONG;
+        if ( Float.TYPE == type || Float.class == type )
+            return Primitive.ZERO_FLOAT;
+        if ( Double.TYPE == type || Double.class == type )
+            return Primitive.ZERO_DOUBLE;
+        if ( BigInteger.class == type )
+            return Primitive.ZERO_BIG_INTEGER;
+        if ( BigDecimal.class == type )
+            return Primitive.ZERO_BIG_DECIMAL;
+        return Primitive.NULL;
     }
 
     /**
@@ -455,14 +478,17 @@ public final class Primitive implements Serializable {
 
         if ( toType.isPrimitive() )
         {
-            // Trying to cast null to primitive type?
-            if ( fromType == null )
+            // Cast null value to primitive default value
+            if ( fromType == null ) {
+                if ( operation == Types.CAST )
+                    return checkOnly ? Types.VALID_CAST : getDefaultValue(toType);
+
                 if ( checkOnly )
                     return Types.INVALID_CAST;
                 else
                     throw Types.castError(
                         "primitive type " + toType.getSimpleName(), "null value", operation );
-
+            }
             // fall through
         } else
         {
