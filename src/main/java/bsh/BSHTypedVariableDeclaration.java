@@ -89,7 +89,7 @@ class BSHTypedVariableDeclaration extends SimpleNode {
                                 Reflect.resolveJavaField(
                                     namespace.classInstance.getClass(),
                                 dec.name, modifiers.hasModifier("static")));
-                        else if ( null != namespace.classStatic )
+                        else
                             lhs = new LHS(namespace.classStatic,
                                 Reflect.resolveJavaField(namespace.classStatic,
                                 dec.name, modifiers.hasModifier("static")));
@@ -113,10 +113,4 @@ class BSHTypedVariableDeclaration extends SimpleNode {
         return value;
     }
 
-    public String getTypeDescriptor(
-        CallStack callstack, Interpreter interpreter, String defaultPackage )
-    {
-        return getTypeNode().getTypeDescriptor(
-            callstack, interpreter, defaultPackage );
-    }
 }

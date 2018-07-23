@@ -315,8 +315,7 @@ class LHS implements ParserConstants, Serializable {
      * @throws IOException mandatory throwing exception */
     private synchronized void writeObject(final ObjectOutputStream s) throws IOException {
         if ( null != field ) {
-            if ( null == this.object || !(this.object instanceof Class) )
-                this.object = field.getDeclaringClass();
+            this.object = field.getDeclaringClass();
             this.varName = field.getName();
             this.field = null;
         }
@@ -329,7 +328,8 @@ class LHS implements ParserConstants, Serializable {
      * @throws ClassNotFoundException mandatory throwing exception  */
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        if ( null != field || null == object ) return;
+        if ( null == this.object )
+            return;
         Class<?> cls = this.object.getClass();
         if ( this.object instanceof Class )
             cls = (Class<?>) this.object;
