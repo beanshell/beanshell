@@ -1,5 +1,6 @@
 #!/bin/java bsh.Interpreter
 import org.junit.Assert;
+import static bsh.matchers.StringUtilValue.valueString;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assume.*;
 
