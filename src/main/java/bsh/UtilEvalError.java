@@ -60,7 +60,7 @@ public class UtilEvalError extends Exception
     }
 
     public UtilEvalError( String s, Throwable cause ) {
-        super(s,cause);
+        super(s, cause);
     }
 
     /**
@@ -79,8 +79,8 @@ public class UtilEvalError extends Exception
         if ( msg == null )
             msg = "";
         else
-            msg = msg + ": ";
-        return new EvalError( msg+getMessage(), node, callstack, this );
+            msg += ": ";
+        return new EvalError( msg + this.getMessage(), node, callstack, this );
     }
 
     public EvalError toEvalError ( SimpleNode node, CallStack callstack )
