@@ -186,10 +186,13 @@ final class Reflect {
         Interpreter.debug("getIndex: ", array, ", index=", index);
         try {
             Object val = Array.get(array, index);
-            return Primitive.wrap( val, array.getClass().getComponentType() );
-        }
-        catch( ArrayIndexOutOfBoundsException  e1 ) {
-            throw new UtilTargetError( e1 );
+            return Primitive.wrap( val, Types.arrayElementType(array.getClass()) );
+        } catch( IndexOutOfBoundsException e1 ) {
+            int len = array instanceof List
+                    ? ((List<?>) array).size()
+                    : Array.getLength(array);
+            throw new UtilTargetError("Index " + index
+                    + " out-of-bounds for length " + len, e1);
         } catch(Exception e) {
             throw new ReflectError("Array access:" + e, e);
         }
@@ -207,6 +210,12 @@ final class Reflect {
         } catch( IllegalArgumentException e1 ) {
             throw new UtilTargetError(
                 new ArrayStoreException( e1.toString() ) );
+        } catch( IndexOutOfBoundsException e1 ) {
+            int len = array instanceof List
+                    ? ((List<?>) array).size()
+                    : Array.getLength(array);
+            throw new UtilTargetError("Index " + index
+                    + " out-of-bounds for length " + len, e1);
         } catch(Exception e) {
             throw new ReflectError("Array access:" + e, e);
         }

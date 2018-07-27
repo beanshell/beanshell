@@ -180,7 +180,7 @@ class BSHPrimarySuffix extends SimpleNode
             } catch ( InvocationTargetException e )
             {
                 String msg = "Method Invocation "+field;
-                Throwable te = e.getTargetException();
+                Throwable te = e.getCause();
 
                 /*
                     Try to squeltch the native code stack trace if the exception
@@ -246,7 +246,7 @@ class BSHPrimarySuffix extends SimpleNode
             try {
                 return Reflect.getIndex(obj, index);
             } catch ( UtilEvalError e ) {
-                throw e.toEvalError( this, callstack );
+                throw e.toEvalError("Error array get index", this, callstack);
             }
     }
 
