@@ -280,6 +280,8 @@ class LHS implements ParserConstants, Serializable {
 
             Reflect.setIndex(object, index, val);
         } catch ( UtilTargetError e1 ) { // pass along target error
+            if ( IndexOutOfBoundsException.class.isAssignableFrom(e1.getCause().getClass()) )
+                throw new UtilEvalError("Error array set index: "+e1.getMessage(), e1);
             throw e1;
         } catch ( Exception e ) {
             throw new UtilEvalError("Assignment: " + e.getMessage(), e);
