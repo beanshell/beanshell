@@ -39,15 +39,13 @@ package bsh;
 */
 public class UtilTargetError extends UtilEvalError
 {
-    public Throwable t;
-
     public UtilTargetError( String message, Throwable t ) {
         super( message );
-        this.t = t;
+        this.initCause(t);
     }
 
     public UtilTargetError( Throwable t ) {
-        this( null, t );
+        this( t.getMessage(), t );
     }
 
     /**
@@ -56,12 +54,12 @@ public class UtilTargetError extends UtilEvalError
     public EvalError toEvalError(
         String msg, SimpleNode node, CallStack callstack  )
     {
-        if ( msg == null )
-            msg = getMessage();
+        if ( null == msg )
+            msg = this.getMessage();
         else
-            msg = msg + ": " + getMessage();
+            msg += ": " + this.getMessage();
 
-        return new TargetError( msg, t, node, callstack, false );
+        return new TargetError( msg, this.getCause(), node, callstack, false );
     }
 }
 
