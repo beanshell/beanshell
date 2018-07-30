@@ -43,6 +43,12 @@ class BSHAllocationExpression extends SimpleNode
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
+        // loose typed array initializer ex. new {1, 2, 3};
+        if ( jjtGetNumChildren() == 1 && jjtGetChild(0)
+                instanceof BSHArrayDimensions )
+                return arrayAllocation( (BSHArrayDimensions) jjtGetChild(0),
+                       Void.TYPE, callstack, interpreter );
+
         // type is either a class name or a primitive type
         SimpleNode type = (SimpleNode)jjtGetChild(0);
 

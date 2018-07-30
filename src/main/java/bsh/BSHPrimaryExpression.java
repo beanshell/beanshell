@@ -30,7 +30,28 @@ package bsh;
 
 class BSHPrimaryExpression extends SimpleNode
 {
+    private Object cached = null;
+    boolean isArrayExpression = false;
+    boolean isMapExpression = false;
+
     BSHPrimaryExpression(int id) { super(id); }
+
+    /** Called from BSHArrayInitializer during node creation informing us
+     * that we are an array expression.
+     * If parent BSHAssignment has an ASSIGN operation then this is a map
+     * expression. If the initializer reference has multiple dimensions
+     * it gets configure as being a map in array.
+     * @param init reference to the calling array initializer */
+    void setArrayExpression(BSHArrayInitializer init) {
+        this.isArrayExpression = true;
+        BSHAssignment ass = (BSHAssignment) parent;
+        if ( null != ass.operator
+                && ass.operator == ParserConstants.ASSIGN )
+            this.isMapExpression = true;
+        if ( this.isMapExpression
+                && init.jjtGetParent() instanceof BSHArrayInitializer )
+            init.setMapInArray(true);
+    }
 
     /**
         Evaluate to a value object.
@@ -47,12 +68,11 @@ class BSHPrimaryExpression extends SimpleNode
     public LHS toLHS( CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
-        Object obj = eval( true, callstack, interpreter );
-
-        if ( ! (obj instanceof LHS) )
-            throw new EvalError("Can't assign to:", this, callstack );
-        else
-            return (LHS)obj;
+        // loosely typed map expression new {a=1, b=2} are treated
+        // as non assignment (LHS) to retrieve Map.Entry key values
+        // then wrapped in a MAP_ENTRY type LHS for value assignment.
+        return (LHS) eval( interpreter.getStrictJava() || !isMapExpression,
+                callstack, interpreter );
     }
 
     /*
@@ -67,6 +87,10 @@ class BSHPrimaryExpression extends SimpleNode
         CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
+        // We can cache array expressions evaluated during type inference
+        if ( isArrayExpression && null != cached )
+            return cached;
+
         Object obj = jjtGetChild(0);
         int numChildren = jjtGetNumChildren();
 
@@ -95,18 +119,18 @@ class BSHPrimaryExpression extends SimpleNode
                 else
                     obj = ((SimpleNode)obj).eval(callstack, interpreter);
 
-        // return LHS or value object as determined by toLHS
-        if ( obj instanceof LHS )
-            if ( toLHS )
-                return obj;
-            else
-                try {
-                    return ((LHS)obj).getValue();
-                } catch ( UtilEvalError e ) {
-                    throw e.toEvalError( this, callstack );
-                }
-        else
-            return obj;
+        if ( isMapExpression ) {
+            if ( obj == Primitive.VOID )
+                throw new EvalError(
+                    "illegal use of undefined variable or 'void' literal",
+                    this, callstack );
+            // we have a valid map expression return an assignable Map.Entry
+            obj = new LHS(obj);
+        }
+
+        if ( isArrayExpression )
+            cached = obj;
+        return obj;
     }
 }
 
