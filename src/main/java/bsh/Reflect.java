@@ -932,53 +932,6 @@ final class Reflect {
     }
 
     /**
-        Return a more human readable version of the type name.
-        Specifically, array types are returned with postfix "[]" dimensions.
-        e.g. return "int []" for integer array instead of "class [I" as
-        would be returned by Class getName() in that case.
-    */
-    public static String normalizeClassName(Class type)
-    {
-        if ( !type.isArray() )
-            return type.getName();
-
-        StringBuilder className = new StringBuilder();
-        try {
-            className.append( getArrayBaseType(type).getName() +" ");
-            for(int i = 0; i < getArrayDimensions(type); i++)
-                className.append("[]");
-        } catch( ReflectError e ) { /*shouldn't happen*/ }
-
-        return className.toString();
-    }
-
-    /**
-        returns the dimensionality of the Class
-        returns 0 if the Class is not an array class
-    */
-    public static int getArrayDimensions(Class arrayClass)
-    {
-        if ( !arrayClass.isArray() )
-            return 0;
-
-        return arrayClass.getName().lastIndexOf('[') + 1;  // why so cute?
-    }
-
-    /**
-
-        Returns the base type of an array Class.
-        throws ReflectError if the Class is not an array class.
-    */
-    public static Class getArrayBaseType(Class arrayClass) throws ReflectError
-    {
-        if ( !arrayClass.isArray() )
-            throw new ReflectError("The class is not an array.");
-
-        return arrayClass.getComponentType();
-
-    }
-
-    /**
         A command may be implemented as a compiled Java class containing one or
         more static invoke() methods of the correct signature.  The invoke()
         methods must accept two additional leading arguments of the interpreter
