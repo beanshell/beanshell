@@ -1,10 +1,17 @@
 package bsh;
 
 import java.lang.reflect.Array;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
+import java.util.Map.Entry;
 
 /** Collection of array manipulation functions. */
 public class BshArray {
@@ -167,4 +174,83 @@ public class BshArray {
             copy(toType, tto, frm);
         }
     }
+
+    /** Relaxed implementation of the java 9 Map.ofEntries.
+     * LinkedHashMap ensures element order remains as supplied.
+     * @param entries array of Map.Entry elements
+     * @return a mutable, type relaxed LinkedHashMap */
+    private static Map<?, ?> mapOfEntries( Entry<?, ?>... entries ) {
+        Map<Object, Object> looseTypedMap = new LinkedHashMap<>( entries.length );
+        for (Entry<?, ?> entry : entries)
+            looseTypedMap.put(entry.getKey(), entry.getValue());
+        return looseTypedMap;
+    }
+
+    /** Cast an array to the specified element type.
+     * @param toType element type of cast array
+     * @param fromType type of from value
+     * @param fromValue the array value to cast
+     * @return a new instance of to type
+     * @throws UtilEvalError cast error */
+    static Object castArray(
+        Class<?> toType, Class<?> fromType, Object fromValue )
+        throws UtilEvalError
+    {
+        // Collection type cast from array
+        if ( Types.isJavaAssignable(Collection.class, toType) )
+            if ( Types.isJavaAssignable(List.class, toType) || Queue.class == toType ) {
+                if ( Types.isJavaAssignable(toType, ArrayList.class) )
+                    // List type is implemented as a mutable ArrayList
+                    return new ArrayList<>(Arrays.asList((Object[])
+                        Types.castObject(fromValue, Object.class, Types.CAST)));
+                else if ( Types.isJavaAssignable(toType, LinkedList.class) )
+                    // Queue type is implemented as a mutable LinkedList
+                    return new LinkedList<>(Arrays.asList((Object[])
+                        Types.castObject(fromValue, Object.class, Types.CAST)));
+            } else if ( Types.isJavaAssignable(toType, ArrayDeque.class) )
+                // Deque type is implemented as a mutable ArrayDeque
+                return new ArrayDeque<>(Arrays.asList((Object[])
+                    Types.castObject(fromValue, Object.class, Types.CAST)));
+            else if ( Types.isJavaAssignable(toType, LinkedHashSet.class) )
+                // Set type is implemented as a mutable LinkedHashSet
+                return new LinkedHashSet<>(Arrays.asList((Object[])
+                    Types.castObject(fromValue, Object.class, Types.CAST)));
+
+        // Map type gets converted to a mutable LinkedHashMap
+        if ( Types.isJavaAssignable(Map.class, toType) ) {
+            if ( Types.isJavaAssignable(Entry.class, Types.arrayElementType(fromType)) )
+                return mapOfEntries((Entry[]) fromValue);
+            if ( Types.isJavaAssignable(toType, LinkedHashMap.class) ) {
+                int length = Array.getLength(fromValue);
+                Map<Object, Object> map = new LinkedHashMap<>(
+                        (int) Math.ceil((0.0 + length) / 2));
+                for ( int i = 0; i < length; i++ )
+                    map.put(Array.get(fromValue, i),
+                        ++i < length ? Array.get(fromValue, i) : null);
+                return map;
+            }
+        }
+
+        // Entry type gets converted to LHS.MapEntry
+        if ( Types.isJavaAssignable(Entry.class, toType) ) {
+            int length = Array.getLength(fromValue);
+            if ( length == 1 )
+                return new LHS(Array.get(fromValue, 0)).assign(null);
+            else if ( length == 2 )
+                return new LHS(Array.get(fromValue, 0))
+                        .assign(Array.get(fromValue, 1));
+            else
+                throw new UtilEvalError(
+                    "Maximum array length for Map.Entry is 2, array length "
+                        + length + " exceeds.");
+        }
+
+        // cast array to element type of toType
+        toType = Types.arrayElementType(toType);
+        int[] dims = dimensions(fromValue);
+        Object toArray = Array.newInstance(toType, dims);
+        BshArray.copy(toType, toArray, fromValue);
+        return toArray;
+    }
+
 }
