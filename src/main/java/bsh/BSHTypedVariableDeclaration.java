@@ -70,7 +70,6 @@ class BSHTypedVariableDeclaration extends SimpleNode {
         try {
             NameSpace namespace = callstack.top();
             BSHType typeNode = getTypeNode();
-            typeNode.declaredDimensions(getDeclarators()[0].dimensions);
             Class<?> type = typeNode.getType( callstack, interpreter );
 
             BSHVariableDeclarator [] bvda = getDeclarators();

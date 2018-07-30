@@ -648,6 +648,7 @@ void VariableDeclarator() #VariableDeclarator :
 void VariableInitializer() :
 {}
 {
+  LOOKAHEAD(3)
   ArrayInitializer()
 |
   Expression()
@@ -912,7 +913,7 @@ void CastLookahead() : { }
 |
   LOOKAHEAD( "(" AmbiguousName() "[" ) "(" AmbiguousName() "[" "]"
 |
-  "(" AmbiguousName() ")" ( "~" | "!" | "(" | <IDENTIFIER> | /* "this" | "super" | */ "new" | Literal() )
+  "(" AmbiguousName() ")" ( "~" | "!" | "(" | <IDENTIFIER> | /* "this" | "super" | */ "new" | Literal() | ArrayDimensions() )
 }
 
 void PostfixExpression() :
@@ -1122,7 +1123,11 @@ void AllocationExpression() #AllocationExpression :
       |
         Arguments() [ LOOKAHEAD(2) Block() ]
       )
+   |
+      ArrayDimensions()
    )
+ |
+   ArrayDimensions()
 }
 
 void ArrayDimensions() #ArrayDimensions :
@@ -1135,6 +1140,9 @@ void ArrayDimensions() #ArrayDimensions :
 |
     // e.g. int [][] { {1,2}, {3,4} };
   ( "[" "]" { jjtThis.addUndefinedDimension(); } )+ ArrayInitializer()
+|
+    // e.g. { {1,2}, {3,4} };
+  ArrayInitializer() { jjtThis.numUndefinedDims = -1; }
 }
 
 
@@ -1147,6 +1155,7 @@ void Statement() : { }
   LOOKAHEAD(2)
   LabeledStatement()
 |
+  LOOKAHEAD(3)
   Block()
 |
   EmptyStatement()
