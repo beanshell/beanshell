@@ -118,20 +118,21 @@ class BSHArrayInitializer extends SimpleNode
         return initializers;
     }
 
+
+    /** Helper function to build appropriate EvalError on type exceptions.
+     * @param baseType the array's component type
+     * @param initializer current array dimension
+     * @param argNum current cell index
+     * @param callstack call stack from eval
+     * @throws EvalError the produced type exception */
     private void throwTypeError(
-        Class baseType, Object initializer, int argNum, CallStack callstack )
+        Class<?> baseType, Object initializer, int argNum, CallStack callstack )
         throws EvalError
     {
-        String rhsType;
-        if (initializer instanceof Primitive)
-            rhsType =
-                ((Primitive)initializer).getType().getName();
-        else
-            rhsType = Reflect.normalizeClassName(
-                initializer.getClass());
+        String rhsType = StringUtil.typeString(initializer);
 
         throw new EvalError ( "Incompatible type: " + rhsType
-            +" in initializer of array type: "+ baseType
+            +" in initializer of array type: "+ baseType.getSimpleName()
             +" at position: "+argNum, this, callstack );
     }
 

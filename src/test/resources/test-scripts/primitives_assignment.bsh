@@ -548,7 +548,7 @@ assert(isEvalError("Illegal use of null object or 'null' literal", "a += null;")
 assert(isEvalError("Can't assign to prefix.", "null += a;"));
 assert(isEvalError("illegal use of null object or 'null' literal", "~null;"));
 assert(isEvalError("Cannot cast primitive value to object type java.lang.String", "String sss = true;"));
-assert(isEvalError("Cannot cast java.lang.String to boolean", "(boolean) 'true';"));
+assert(isEvalError("Cannot cast String to boolean", "(boolean) 'true';"));
 assert(isEvalError("cannot assign number 4 to type Number", "(Number) 4s;"));
 assert(isEvalError("Primitive not a number", "false.numberValue();"));
 assert(isEvalError("Primitive not a boolean", "a.booleanValue();"));

@@ -88,10 +88,8 @@ class BSHArrayDimensions extends SimpleNode
         {
             Object initValue = ((BSHArrayInitializer) child).eval(
                 baseType, numUndefinedDims, callstack, interpreter);
+            definedDimensions = BshArray.dimensions(initValue);
 
-            Class arrayClass = initValue.getClass();
-            int actualDimensions = Reflect.getArrayDimensions(arrayClass);
-            definedDimensions = new int[ actualDimensions ];
 
             // Compare with number of dimensions actually created with the
             // number specified (syntax uses the undefined ones here)
@@ -99,15 +97,7 @@ class BSHArrayDimensions extends SimpleNode
                 throw new EvalError(
                 "Incompatible initializer. Allocation calls for a " +
                 numUndefinedDims+ " dimensional array, but initializer is a " +
-                    actualDimensions + " dimensional array", this, callstack );
-
-            // fill in definedDimensions [] lengths
-            Object arraySlice = initValue;
-            for ( int i = 0; i < definedDimensions.length; i++ ) {
-                definedDimensions[i] = Array.getLength( arraySlice );
-                if ( definedDimensions[i] > 0 )
-                    arraySlice = Array.get(arraySlice, 0);
-            }
+                definedDimensions.length + " dimensional array", this, callstack );
 
             return initValue;
         }

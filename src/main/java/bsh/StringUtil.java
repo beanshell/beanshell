@@ -325,12 +325,4 @@ public class StringUtil {
             .append(" ").append(field.getName());
         return sb.append(";").toString();
     }
-
-    /** Expose package private class Reflect normalizeClassName method
-     * for commands. Delegates to the Reflect class.
-     * @param type the value to delegate.
-     * @return delegated response */
-    public static String normalizeClassName( Class<?> type ) {
-        return Reflect.normalizeClassName( type );
-    }
 }
