@@ -108,6 +108,57 @@ public class EnumTest {
     }
 
     @Test
+    public void enum_values_excludes_enum_field() throws Exception {
+        try (final Interpreter bsh = new Interpreter()) {
+            Object[] obj = (Object[]) bsh.eval(script(
+                "enum E4 {",
+                    "VAL1, VAL2, VAL3, VAL4;",
+                    "E4 enm;",
+                "}",
+                "E4.values();"
+            ));
+            assertThat("array with length length is 4", obj, arrayWithSize(4));
+            assertThat("array containing VAL1, VAL2, VAL3, VAL4", obj, arrayContaining(
+                    bsh.eval("E4.VAL1"), bsh.eval("E4.VAL2"),
+                    bsh.eval("E4.VAL3"), bsh.eval("E4.VAL4")));
+        }
+    }
+
+    @Test
+    public void enum_values_excludes_enum_static_field() throws Exception {
+        try (final Interpreter bsh = new Interpreter()) {
+            Object[] obj = (Object[]) bsh.eval(script(
+                "enum E4 {",
+                    "VAL1, VAL2, VAL3, VAL4;",
+                    "static E4 enm = E4.VAL1;",
+                "}",
+                "E4.values();"
+            ));
+            assertThat("array with length length is 4", obj, arrayWithSize(4));
+            assertThat("array containing VAL1, VAL2, VAL3, VAL4", obj, arrayContaining(
+                    bsh.eval("E4.VAL1"), bsh.eval("E4.VAL2"),
+                    bsh.eval("E4.VAL3"), bsh.eval("E4.VAL4")));
+        }
+    }
+
+    @Test
+    public void enum_values_excludes_enum_static_private_field() throws Exception {
+        try (final Interpreter bsh = new Interpreter()) {
+            Object[] obj = (Object[]) bsh.eval(script(
+                "enum E4 {",
+                    "VAL1, VAL2, VAL3, VAL4;",
+                    "private static final E4 enm = E4.VAL1;",
+                "}",
+                "E4.values();"
+            ));
+            assertThat("array with length length is 4", obj, arrayWithSize(4));
+            assertThat("array containing VAL1, VAL2, VAL3, VAL4", obj, arrayContaining(
+                    bsh.eval("E4.VAL1"), bsh.eval("E4.VAL2"),
+                    bsh.eval("E4.VAL3"), bsh.eval("E4.VAL4")));
+        }
+    }
+
+    @Test
     public void enum_values_length() throws Exception {
         Object obj = eval(
             "enum E4 {",
