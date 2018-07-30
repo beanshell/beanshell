@@ -27,7 +27,9 @@ package bsh;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 class BSHPrimarySuffix extends SimpleNode
 {
@@ -41,6 +43,8 @@ class BSHPrimarySuffix extends SimpleNode
     public int operation;
     Object index;
     public String field;
+    public boolean slice = false, step = false,
+        hasLeftIndex = false, hasRightIndex = false;
 
     BSHPrimarySuffix(int id) { super(id); }
 
@@ -204,23 +208,18 @@ class BSHPrimarySuffix extends SimpleNode
 
     /**
     */
-    static int getIndexAux(
-        Object obj, CallStack callstack, Interpreter interpreter,
-        SimpleNode callerInfo )
-        throws EvalError
-    {
-        if ( !obj.getClass().isArray() )
-            throw new EvalError("Not an array", callerInfo, callstack );
-
+    static int getIndexAux(Object obj, int idx, CallStack callstack,
+        Interpreter interpreter, SimpleNode callerInfo )
+                throws EvalError {
         int index;
         try {
             Object indexVal =
-                ((SimpleNode)callerInfo.jjtGetChild(0)).eval(
+                ((SimpleNode) callerInfo.jjtGetChild(idx)).eval(
                     callstack, interpreter );
             if ( !(indexVal instanceof Primitive) )
                 indexVal = Types.castObject(
                     indexVal, Integer.TYPE, Types.ASSIGNMENT );
-            index = ((Primitive)indexVal).intValue();
+            index = ((Primitive) indexVal).intValue();
         } catch( UtilEvalError e ) {
             Interpreter.debug("doIndex: "+e);
             throw e.toEvalError(
@@ -230,24 +229,104 @@ class BSHPrimarySuffix extends SimpleNode
         return index;
     }
 
-    /**
-        array index.
-        Must handle toLHS case.
-    */
+    /** Array index or bracket expression implementation.
+     * @param obj array or list instance
+     * @param toLHS whether to return an LHS instance
+     * @param callstack the evaluation call stack
+     * @param interpreter the evaluation interpreter
+     * @return data as per index expression or LHS for assignment
+     * @throws EvalError with evaluation exceptions */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private Object doIndex(
         Object obj, boolean toLHS,
         CallStack callstack, Interpreter interpreter )
-        throws EvalError, ReflectError
-    {
-        int index = getIndexAux( obj, callstack, interpreter, this );
+                throws EvalError {
+        // Map or Entry index access not applicable to strict java
+        if ( !interpreter.getStrictJava() ) {
+            // allow index access for maps
+            if ( obj instanceof Map ) {
+                Object propName = ((SimpleNode) jjtGetChild(0))
+                        .eval(callstack, interpreter);
+                if ( toLHS )
+                    return new LHS(obj, propName);
+                return ((Map) obj).get(propName);
+            }
+            // allow index access for map entries
+            if ( obj instanceof Entry ) {
+                Object key = ((SimpleNode) jjtGetChild(0))
+                        .eval(callstack, interpreter);
+                if ( toLHS ) {
+                    if ( key.equals(((Entry) obj).getKey()) )
+                        return new LHS(obj);
+                    return new LHS(key);
+                }
+                if ( key.equals(((Entry) obj).getKey()) )
+                    return ((Entry) obj).getValue();
+                return Primitive.NULL;
+            }
+        }
+
+        if ( ( interpreter.getStrictJava() || !(obj instanceof List) )
+                && !obj.getClass().isArray() )
+            throw new EvalError("Not an array or List type", this, callstack );
+
+        int length = obj instanceof List
+                        ? ((List) obj).size()
+                        : Array.getLength(obj);
+        int index = getIndexAux( obj, 0, callstack, interpreter, this );
+        // Negative index or slice expressions not applicable to strict java
+        if ( !interpreter.getStrictJava() ) {
+            if ( 0 > index )
+                index = length + index;
+            if ( this.slice ) {
+                if ( toLHS )
+                    throw new EvalError("cannot assign to array slice",
+                            this, callstack);
+                int rindex = 0, stepby = 0;
+                if ( this.step ) {
+                    Integer step = null;
+                    if ( hasLeftIndex && hasRightIndex
+                            && jjtGetNumChildren() == 3 )
+                        step = getIndexAux(obj, 2, callstack, interpreter, this);
+                    else if ( (!hasLeftIndex || !hasRightIndex)
+                            && jjtGetNumChildren() == 2 )
+                        step = getIndexAux(obj, 1, callstack, interpreter, this);
+                    else if ( !hasLeftIndex && !hasRightIndex ) {
+                        step = getIndexAux(obj, 0, callstack, interpreter, this);
+                        index = 0;
+                    }
+                    if ( null != step ) {
+                        if ( step == 0 )
+                            throw new EvalError("array slice step cannot be zero",
+                                    this, callstack);
+                        stepby = step;
+                    }
+                }
+                if ( hasLeftIndex && hasRightIndex )
+                    rindex = getIndexAux(obj, 1, callstack, interpreter, this);
+                else if ( !hasRightIndex )
+                    rindex = length;
+                else {
+                    rindex = index;
+                    index = 0;
+                }
+                if ( 0 > rindex )
+                    rindex = length + rindex;
+                if ( obj.getClass().isArray() )
+                    return BshArray.slice(obj, index, rindex, stepby);
+                return BshArray.slice((List<Object>) obj, index, rindex, stepby);
+            }
+        } else if ( this.slice )
+            throw new EvalError("expected ']' but found ':'", this, callstack);
+
+
         if ( toLHS )
             return new LHS(obj, index);
-        else
-            try {
-                return Reflect.getIndex(obj, index);
-            } catch ( UtilEvalError e ) {
-                throw e.toEvalError("Error array get index", this, callstack);
-            }
+        else try {
+            return BshArray.getIndex(obj, index);
+        } catch ( UtilEvalError e ) {
+            throw e.toEvalError("Error array get index", this, callstack);
+        }
     }
 
     /**
