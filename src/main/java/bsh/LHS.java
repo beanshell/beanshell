@@ -194,7 +194,7 @@ class LHS implements ParserConstants, Serializable {
         if ( null != var )
             return var.getType();
         try {
-            return getValueType(getValue());
+            return Types.getType(getValue());
         } catch ( UtilEvalError e ) {
             return null;
         }
@@ -257,7 +257,7 @@ class LHS implements ParserConstants, Serializable {
         catch( IllegalArgumentException e3 )
         {
             String type = val == null ? "null"
-                : getValueType(val).getSimpleName();
+                : Types.getType(val).getSimpleName();
             throw new UtilEvalError(
                 "Argument type mismatch. " + type
                 + " not assignable to field "+field.getName(), e3);
@@ -290,19 +290,11 @@ class LHS implements ParserConstants, Serializable {
             mods.addModifier("public");
             if ( nameSpace.isInterface )
                 mods.setConstant();
-            nameSpace.setTypedVariable(varName, getValueType(val), val, mods);
+            nameSpace.setTypedVariable(varName, Types.getType(val), val, mods);
             return val;
         } else
             throw new InterpreterError("unknown lhs type");
         return val;
-    }
-
-    private Class<?> getValueType(Object val) {
-        if ( null == val )
-            return null;
-        if ( val instanceof Primitive )
-            return ((Primitive) val).getType();
-        return val.getClass();
     }
 
     public String toString() {
