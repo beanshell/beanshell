@@ -147,17 +147,8 @@ class BSHAssignment extends SimpleNode implements ParserConstants
     private Object operation( Object lhs, Object rhs, int kind )
         throws UtilEvalError
     {
-        /*
-            Implement String += value;
-            According to the JLS, value may be anything.
-        */
-        if ( lhs instanceof String ) {
-            if ( kind != PLUS )
-                throw new UtilEvalError(
-                    "Use of non + operator with String LHS" );
-
-            return lhs.toString() + rhs.toString();
-        }
+        if ( lhs instanceof String || lhs.getClass().isArray() )
+            return Operators.arbitraryObjectsBinaryOperation(lhs, rhs, kind);
 
         if ( rhs == Primitive.NULL )
             throw new UtilEvalError(
