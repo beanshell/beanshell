@@ -524,6 +524,7 @@ assertEquals("null", ""+null);
 assertEquals(Void.TYPE, void.getType());
 Boolean bb = true;
 Object oo = new Object();
+
 assert(isEvalError("Non primitive value in operator:", "oo += oo;"));
 assert(isEvalError("unimplemented binary operator", "bb += bb;"));
 assert(isEvalError("unimplemented binary operator", "bb += true;"));
@@ -535,7 +536,8 @@ assert(isEvalError("Type mismatch in operator.", "a += bb;"));
 assert(isEvalError("Can only shrink wrap Number types", "Primitive.shrinkWrap('');"));
 assert(isEvalError("Not a primitive type: class java.lang.String", "Primitive.boxType(String.class);"));
 assert(isEvalError("Not a primitive wrapper type: class java.lang.String", "Primitive.unboxType(String.class);"));
-assert(isEvalError("Use of non + operator with String LHS", "str = 'ss'; str -= 'ss';"));
+assert(isEvalError("Use of non + operator with String", "str = 'ss'; str -= 'ss';"));
+assert(isEvalError("Use of non + operator with String", "'bb' - 'aa';"));
 assert(isEvalError("Void assignment.", "a += void;"));
 assert(isEvalError("Can't assign to prefix.", "void += a;"));
 assert(isEvalError("illegal use of undefined variable, class, or 'void' literal", "a + void;"));
@@ -567,7 +569,6 @@ assert(isEvalError("bad big decimal unaryOperation", "!2E606;"));
 assert(isEvalError("Use Primitve.NULL instead of Primitive(null)", "new Primitive(null);"));
 assert(isEvalError("Unary operation \"!\" inappropriate for object", "!new Object();"));
 assert(isEvalError("Operator: \">=\" inappropriate for objects", "new Object() >= new Object();"));
-assert(isEvalError("Use of non + operator with String LHS", "ss -= 'aa';"));
 
 
 complete();

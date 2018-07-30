@@ -87,10 +87,6 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
 
         Object rhs = ((SimpleNode)jjtGetChild(1)).eval(callstack, interpreter);
 
-        // String concatenation operation
-        if ( kind == PLUS && (lhs instanceof String || rhs instanceof String) )
-            return lhs.toString() + rhs.toString();
-
         /*
             Are both the lhs and rhs either wrappers or primitive values?
             do binary op
@@ -108,29 +104,20 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
                 this, callstack  );
         }
 
+        if ( interpreter.getStrictJava() && ( kind == PLUS || kind == STAR )
+                && !( lhs instanceof String || rhs instanceof String ) )
+            throw new EvalError( "Bad operand types for binary operator "
+                + tokenImage[kind] + " first type: "  + StringUtil.typeString(lhs)
+                + " second type: " + StringUtil.typeString(rhs),
+                    this, callstack );
         /*
             Treat lhs and rhs as arbitrary objects and do the operation.
             (including NULL and VOID represented by their Primitive types)
         */
-        switch(kind)
-        {
-            case EQ:
-                return (lhs == rhs) ? Primitive.TRUE : Primitive.FALSE;
-
-            case NE:
-                return (lhs != rhs) ? Primitive.TRUE : Primitive.FALSE;
-
-            default:
-                if ( lhs == Primitive.VOID || rhs == Primitive.VOID )
-                    throw new EvalError(
-                "illegal use of undefined variable, class, or 'void' literal",
-                        this, callstack );
-                if ( lhs == Primitive.NULL || rhs == Primitive.NULL )
-                    throw new EvalError(
-                "illegal use of null value or 'null' literal", this, callstack);
-
-                throw new EvalError("Operator: " + tokenImage[kind] +
-                    " inappropriate for objects", this, callstack );
+        try {
+            return Operators.arbitraryObjectsBinaryOperation(lhs, rhs, kind);
+        } catch (UtilEvalError e) {
+            throw e.toEvalError(this, callstack);
         }
     }
 
