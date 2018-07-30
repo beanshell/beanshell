@@ -179,47 +179,6 @@ final class Reflect {
         }
     }
 
-    public static Object getIndex(Object array, int index)
-        throws ReflectError, UtilTargetError
-    {
-        Interpreter.debug("getIndex: ", array, ", index=", index);
-        try {
-            Object val = Array.get(array, index);
-            return Primitive.wrap( val, Types.arrayElementType(array.getClass()) );
-        } catch( IndexOutOfBoundsException e1 ) {
-            int len = array instanceof List
-                    ? ((List<?>) array).size()
-                    : Array.getLength(array);
-            throw new UtilTargetError("Index " + index
-                    + " out-of-bounds for length " + len, e1);
-        } catch(Exception e) {
-            throw new ReflectError("Array access:" + e, e);
-        }
-    }
-
-    public static void setIndex(Object array, int index, Object val)
-        throws ReflectError, UtilTargetError
-    {
-        try {
-            val = Primitive.unwrap(val);
-            Array.set(array, index, val);
-        }
-        catch( ArrayStoreException e2 ) {
-            throw new UtilTargetError( e2 );
-        } catch( IllegalArgumentException e1 ) {
-            throw new UtilTargetError(
-                new ArrayStoreException( e1.toString() ) );
-        } catch( IndexOutOfBoundsException e1 ) {
-            int len = array instanceof List
-                    ? ((List<?>) array).size()
-                    : Array.getLength(array);
-            throw new UtilTargetError("Index " + index
-                    + " out-of-bounds for length " + len, e1);
-        } catch(Exception e) {
-            throw new ReflectError("Array access:" + e, e);
-        }
-    }
-
     public static Object getStaticFieldValue(Class clas, String fieldName)
         throws UtilEvalError, ReflectError
     {
