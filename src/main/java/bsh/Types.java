@@ -48,7 +48,31 @@ class Types
         declarations (e.g. byte b = 42;)
     */
     static final int CAST=0, ASSIGNMENT=1;
+    /** The order of number types. */
+    private static final Map<Class<?>, Integer> NUMBER_ORDER
+        = Collections.unmodifiableMap(new HashMap<Class<?>, Integer>() {
+            private static final long serialVersionUID = 1L;
+        {
+            put(Byte.TYPE, 0);
+            put(Byte.class, 1);
+            put(Short.TYPE, 2);
+            put(Short.class, 3);
+            put(Character.TYPE, 4);
+            put(Character.class, 5);
+            put(Integer.TYPE, 6);
+            put(Integer.class, 7);
+            put(Long.TYPE, 8);
+            put(Long.class, 9);
+            put(Float.TYPE, 10);
+            put(Float.class, 11);
+            put(Double.TYPE, 12);
+            put(Double.class, 13);
+            put(BigInteger.class, 14);
+            put(BigDecimal.class, 15);
+        }
+    });
 
+    /** Helper class for type suffixes. */
     public static class Suffix {
         private static final Map<String, Class<?>> m
             = Collections.unmodifiableMap(new HashMap<String, Class<?>>() {
@@ -276,43 +300,17 @@ class Types
         if ( rhsType == null )
             return lhsType == String.class;
 
-        if ( lhsType.isPrimitive() && rhsType.isPrimitive() )
-        {
+        if ( lhsType.isPrimitive() && rhsType.isPrimitive() ) {
             if ( lhsType == rhsType )
                 return true;
 
             // handle primitive widening conversions - JLS 5.1.2
-            if ( (rhsType == Byte.TYPE) &&
-                (lhsType == Short.TYPE || lhsType == Integer.TYPE
-                || lhsType == Long.TYPE || lhsType == Float.TYPE
-                || lhsType == Double.TYPE))
-                    return true;
-
-            if ( (rhsType == Short.TYPE) &&
-                (lhsType == Integer.TYPE || lhsType == Long.TYPE ||
-                lhsType == Float.TYPE || lhsType == Double.TYPE))
-                    return true;
-
-            if ((rhsType == Character.TYPE) &&
-                (lhsType == Integer.TYPE || lhsType == Long.TYPE ||
-                lhsType == Float.TYPE || lhsType == Double.TYPE))
-                    return true;
-
-            if ((rhsType == Integer.TYPE) &&
-                (lhsType == Long.TYPE || lhsType == Float.TYPE ||
-                lhsType == Double.TYPE))
-                    return true;
-
-            if ((rhsType == Long.TYPE) &&
-                (lhsType == Float.TYPE || lhsType == Double.TYPE))
-                return true;
-
-            if ((rhsType == Float.TYPE) && (lhsType == Double.TYPE))
-                return true;
+            if ( NUMBER_ORDER.containsKey(rhsType)
+                    && NUMBER_ORDER.containsKey(lhsType) )
+                return NUMBER_ORDER.get(rhsType) < NUMBER_ORDER.get(lhsType);
         }
-        else
-            if ( lhsType.isAssignableFrom(rhsType) )
-                return true;
+        else if ( lhsType.isAssignableFrom(rhsType) )
+            return true;
 
         return false;
     }
@@ -390,6 +388,34 @@ class Types
         if ( null == arrType || !arrType.isArray() )
             return 0;
         return arrType.getName().lastIndexOf('[') + 1;
+    }
+
+    /** Find the common type between two classes.
+     * @param common most likely common class
+     * @param compare class compared with
+     * @return the class representing the most common type. */
+    public static Class<?> getCommonType(Class<?> common, Class<?> compare) {
+        if ( null == common )
+            return compare;
+        if ( null == compare || common.isAssignableFrom(compare) )
+            return common;
+
+        // pick the largest number type based on NUMBER_ORDER definitions
+        if ( NUMBER_ORDER.containsKey(common)
+                && NUMBER_ORDER.containsKey(compare) )
+            if ( NUMBER_ORDER.get(common) >= NUMBER_ORDER.get(compare) )
+                return common;
+            else
+                return compare;
+
+        // find a common super class
+        Class<?> supr = common;
+        while ( null != (supr = supr.getSuperclass()) && Object.class != supr )
+            if ( supr.isAssignableFrom(compare) )
+                return supr;
+
+        // common type can only be Object
+        return Object.class;
     }
 
     /**
