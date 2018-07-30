@@ -134,25 +134,22 @@ final class Reflect {
         Class [] types = method.getParameterTypes();
         Object [] tmpArgs = new Object [ types.length ];
         int fixedArgLen = types.length;
-        if( isVarArgs ) {
-            if( fixedArgLen==args.length && types[fixedArgLen-1].isAssignableFrom(args[fixedArgLen-1].getClass()) ) {
+        if( isVarArgs )
+            if( fixedArgLen==args.length && Types.isJavaAssignable(
+                    types[fixedArgLen-1],
+                    Types.getType(args[fixedArgLen-1])) )
                 isVarArgs = false;
-            } else {
+            else
                 fixedArgLen--;
-            }
-        }
         try {
             for (int i=0; i<fixedArgLen; i++)
-                tmpArgs[i] = Types.castObject(
-                    args[i]/*rhs*/, types[i]/*lhsType*/, Types.ASSIGNMENT );
-            if( isVarArgs ) {
-                Class varType = types[fixedArgLen].getComponentType();
-                Object varArgs = Array.newInstance( varType, args.length - fixedArgLen );
-                for( int i=fixedArgLen, j=0; i<args.length; i++, j++ )
-                    Array.set( varArgs,j, Primitive.unwrap( Types.castObject(
-                        args[i]/*rhs*/, varType/*lhsType*/, Types.ASSIGNMENT ) ) );
-                tmpArgs[fixedArgLen] = varArgs;
-            }
+                tmpArgs[i] = Types.castObject(args[i], types[i], Types.ASSIGNMENT);
+            if( isVarArgs )
+                tmpArgs[fixedArgLen] = Types.castObject(
+                        Primitive.unwrap((Object[])
+                            BshArray.slice(args, fixedArgLen, args.length, 0)),
+                        types[fixedArgLen].getComponentType(),
+                        Types.CAST);
         } catch ( UtilEvalError e ) {
             throw new InterpreterError(
                 "illegal argument type in method invocation: "+e, e);
