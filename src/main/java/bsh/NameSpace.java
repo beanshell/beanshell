@@ -1251,6 +1251,7 @@ public class NameSpace
         this.importClass("bsh.Interpreter");
         this.importClass("bsh.Capabilities");
         this.importPackage("java.net");
+        this.importClass("java.util.Map.Entry");
         this.importPackage("java.util.function");
         this.importPackage("java.util.stream");
         this.importPackage("java.util.regex");

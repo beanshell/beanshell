@@ -30,7 +30,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
     An LHS is a wrapper for an variable, field, or property.  It ordinarily
@@ -47,6 +49,16 @@ import java.util.Map;
 */
 class LHS implements ParserConstants, Serializable {
     private static final long serialVersionUID = 1L;
+
+    /** a uniquely typed Map.Entry which used solely for this purpose
+     * and identifiable as LHS.MapEntry. */
+    static class MapEntry extends SimpleEntry<Object, Object> {
+        private static final long serialVersionUID = 1L;
+        public MapEntry(Object key, Object value) {
+            super(key, value);
+        }
+    }
+
     NameSpace nameSpace;
     /** The assignment should be to a local variable */
     boolean localVar;
@@ -60,7 +72,8 @@ class LHS implements ParserConstants, Serializable {
         PROPERTY = 2,
         INDEX = 3,
         METHOD_EVAL = 4,
-        LOOSETYPE_FIELD = 5;
+        LOOSETYPE_FIELD = 5,
+        MAP_ENTRY = 6;
 
     int type;
 
@@ -127,6 +140,15 @@ class LHS implements ParserConstants, Serializable {
         type = PROPERTY;
         this.object = object;
         this.propName = propName;
+    }
+
+    /** Map Entry type LHS Constructor.
+     * The provided key is returned along with its value as a Map.Entry
+     * entity during assignment. */
+    LHS( Object key )
+    {
+        type = MAP_ENTRY;
+        this.object = key;
     }
 
     /**
@@ -225,6 +247,17 @@ class LHS implements ParserConstants, Serializable {
             this.var = Reflect.getVariable(object, getName());
         return this.var;
     }
+
+
+    /** Overloaded assign with false as strict java.
+     * @param val value to assign
+     * @return result based on type
+     * @throws UtilEvalError on exception */
+    public Object assign( Object val )
+            throws UtilEvalError {
+        return this.assign(val, false);
+    }
+
     /**
         Assign a value to the LHS.
     */
@@ -292,6 +325,11 @@ class LHS implements ParserConstants, Serializable {
                 mods.setConstant();
             nameSpace.setTypedVariable(varName, Types.getType(val), val, mods);
             return val;
+        } else if ( type == MAP_ENTRY ) {
+            if ( object instanceof Entry )
+                return ((Entry<Object, Object>) object).setValue(val);
+            // returns a Map.Entry of key and value pair
+            return new LHS.MapEntry(object, val);
         } else
             throw new InterpreterError("unknown lhs type");
         return val;
