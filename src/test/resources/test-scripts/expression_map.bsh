@@ -1,0 +1,257 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// map expressions
+map = new Map {null};
+assertThat(map, valueString('{null=null}'));
+assertThat(map, instanceOf(Map.class));
+map = {"k"=3, "l"=5};
+assertThat(map, valueString('{"k"=3I, "l"=5I}'));
+assertThat(map, instanceOf(Map.class));
+map = new {"k"=3, "l"=5};
+assertThat(map, valueString('{"k"=3I, "l"=5I}'));
+assertThat(map, instanceOf(Map.class));
+map = new Map {"k"=3, "l"=5};
+assertThat(map, valueString('{"k"=3I, "l"=5I}'));
+assertThat(map, instanceOf(Map.class));
+map = new Map {"k", 3, "l", 5};
+assertThat(map, valueString('{"k"=3I, "l"=5I}'));
+assertThat(map, instanceOf(Map.class));
+map = new Map {"k", 3, "l", 5, "m"};
+assertThat(map, valueString('{"k"=3I, "l"=5I, "m"=null}'));
+assertThat(map, instanceOf(Map.class));
+Map tmap = {"k", 3, "l", 5, "m"};
+assertThat(tmap, valueString('{"k"=3I, "l"=5I, "m"=null}'));
+assertThat(tmap, instanceOf(Map.class));
+map = (Map) {"k", 3, "l", 5};
+assertThat(map, valueString('{"k"=3I, "l"=5I}'));
+assertThat(map, instanceOf(Map.class));
+map = new Map {"map"=new {"key"=2}};
+assertThat(map, valueString('{"map"={"key"=2I}}'));
+assertThat(map, instanceOf(Map.class));
+map = new Map {"map"=new Map {"key"=2}};
+assertThat(map, valueString('{"map"={"key"=2I}}'));
+assertThat(map, instanceOf(Map.class));
+map = {"a"=true, "b"=null};
+assertThat(map, valueString('{"a"=true, "b"=null}'));
+assertThat(map, instanceOf(Map.class));
+map = new {"a"=true, "b"=null};
+assertThat(map, valueString('{"a"=true, "b"=null}'));
+assertThat(map, instanceOf(Map.class));
+map = new Map {"a"=true, "b"=null};
+assertThat(map, valueString('{"a"=true, "b"=null}'));
+assertThat(map, instanceOf(Map.class));
+list = new List {"a"=true, "b"=null};
+assertThat(list, valueString('["a"=true, "b"=null]'));
+assertThat(list, instanceOf(List.class));
+assertThat(list[0], instanceOf(Entry.class));
+
+// entry expression
+entry = new Entry {"key", "value"};
+assertThat(entry, valueString('"key"="value"'));
+assertThat(entry, instanceOf(Entry.class));
+assertThat(entry["key"], equalTo("value"));
+assertThat(entry[entry.getKey()], equalTo("value"));
+assertThat(entry["key"] = 123, equalTo("value"));
+assertThat(entry["key"], equalTo(123));
+assertThat(entry["new"], nullValue());
+assertThat(entry["new"] = 456, equalTo(new Entry {"new", 456}));
+entry = new Entry {"key"};
+assertThat(entry, valueString('"key"=null'));
+assertThat(entry, instanceOf(Entry.class));
+entry = (Entry) {"key", "value"};
+assertThat(entry, valueString('"key"="value"'));
+assertThat(entry, instanceOf(Entry.class));
+Entry tentry = {"key", "value"};
+assertThat(entry, valueString('"key"="value"'));
+assertThat(entry, instanceOf(Entry.class));
+assert(isEvalError("Maximum array length for Map.Entry is 2, array length 3 exceeds.", 'new Entry {"k1", 1, "k2"};'));
+
+
+// variable as key
+a = 123;
+map = {a=5};
+assertThat(map[a], equalTo(5));
+assertThat(map[123], equalTo(5));
+assertThat(map, valueString('{123I=5I}'));
+map[a] = 456;
+assertThat(map[a], equalTo(456));
+assertThat(map[123], equalTo(456));
+assertThat(map, valueString('{123I=456I}'));
+assertThat(map, instanceOf(Map.class));
+
+// method as key
+key() { return "ab"; }
+map = {key()=2};
+assertThat(map[key()], equalTo(2));
+assertThat(map, valueString('{"ab"=2I}'));
+assertThat(map, instanceOf(Map.class));
+map = new Map {key()=2};
+assertThat(map, valueString('{"ab"=2I}'));
+assertThat(map, instanceOf(Map.class));
+map = new Map {"m"=new {key()=2}};
+assertThat(map, valueString('{"m"={"ab"=2I}}'));
+assertThat(map, instanceOf(Map.class));
+
+// class as key
+map = {Object.class=5};
+assertThat(map[Object.class], equalTo(5));
+assertThat(map, valueString('{class java.lang.Object=5I}'));
+assertThat(map, instanceOf(Map.class));
+
+// string as key
+map = {"a"=1, "b"=3};
+assertThat(map["b"], equalTo(3));
+assertThat(map, valueString('{"a"=1I, "b"=3I}'));
+assertThat(map, instanceOf(Map.class));
+
+// char as key
+map = {'a'=1, 'b'=3};
+assertThat(map['b'], equalTo(3));
+assertThat(map, valueString("{'a'=1I, 'b'=3I}"));
+assertThat(map, instanceOf(Map.class));
+
+// number literal as key
+map = {2="a", 4="b"};
+assertThat(map[4], equalTo("b"));
+assertThat(map, valueString('{2I="a", 4I="b"}'));
+assertThat(map, instanceOf(Map.class));
+
+// boolean literal as key
+map = {true=1, false=3};
+assertThat(map[true], equalTo(1));
+assertThat(map, valueString('{true=1I, false=3I}'));
+assertThat(map, instanceOf(Map.class));
+
+// null literal as key
+map = {null=2};
+assertThat(map[null], equalTo(2));
+assertThat(map, valueString('{null=2I}'));
+assertThat(map, instanceOf(Map.class));
+
+
+// map in array
+map = {"k"=3, "l"=5};
+assertThat(map, valueString('{"k"=3I, "l"=5I}'));
+assertThat(map, instanceOf(Map.class));
+map = {{"k"=3, "l"=5}};
+assertThat(map, valueString('{{"k"=3I, "l"=5I}}'));
+assertThat(map, instanceOf(Map[].class));
+map = {{{"k"=3, "l"=5}}};
+assertThat(map, valueString('{{{"k"=3I, "l"=5I}}}'));
+assertThat(map, instanceOf(Map[][].class));
+map = {{{"k"=3, "l"=5}, 6}};
+assertThat(map, valueString('{{{"k"=3I, "l"=5I}, 6I}}'));
+assertThat(map, instanceOf(Object[][].class));
+assertThat(map[0][0], instanceOf(Map.class));
+map = {{"k"=3}, 6, {"l"=5}};
+assertThat(map, valueString('{{"k"=3I}, 6I, {"l"=5I}}'));
+assertThat(map, instanceOf(Object[].class));
+
+//mixed map Object array
+map = {6, {"k"=3}, 4};
+assertThat(map, valueString('{6I, {"k"=3I}, 4I}'));
+assertThat(map, instanceOf(Object[].class));
+map = {{6, {"k"=3}, 4}};
+assertThat(map, valueString('{{6I, {"k"=3I}, 4I}}'));
+assertThat(map, instanceOf(Object[][].class));
+map = {{{6, {"k"=3}, 4}}};
+assertThat(map, valueString('{{{6I, {"k"=3I}, 4I}}}'));
+assertThat(map, instanceOf(Object[][][].class));
+map = {{{{"k"=3}, 6, {"l"=5}}}};
+assertThat(map, valueString('{{{{"k"=3I}, 6I, {"l"=5I}}}}'));
+assertThat(map, instanceOf(Object[][][].class));
+map = {{{{6}, {{"k"=3}}, {4}}}};
+assertThat(map, valueString('{{{{6I}, {{"k"=3I}}, {4I}}}}'));
+assertThat(map, instanceOf(Object[][][][].class));
+map = {{{{{6}}, {{{"k"=3}}}, {{4}}}}};
+assertThat(map, valueString('{{{{{6I}}, {{{"k"=3I}}}, {{4I}}}}}'));
+assertThat(map, instanceOf(Object[][][][][].class));
+map = {{{6, {"k"=3}, 4}, {{"dhi"=32}, 99, {"th"=8}}}};
+assertThat(map, valueString('{{{6I, {"k"=3I}, 4I}, {{"dhi"=32I}, 99I, {"th"=8I}}}}'));
+assertThat(map, instanceOf(Object[][][].class));
+
+//nested Map arrays
+map = {"k"=3};
+assertThat(map, valueString('{"k"=3I}'));
+assertThat(map, instanceOf(Map.class));
+map = {{"k"=3}};
+assertThat(map, valueString('{{"k"=3I}}'));
+assertThat(map, instanceOf(Map[].class));
+map = {{{"k"=3}}};
+assertThat(map, valueString('{{{"k"=3I}}}'));
+assertThat(map, instanceOf(Map[][].class));
+map = {{{{"k"=3}}}};
+assertThat(map, valueString('{{{{"k"=3I}}}}'));
+assertThat(map, instanceOf(Map[][][].class));
+map = {{"k"=1, "v"=3}, {"k"=3, "v"=1}};
+assertThat(map, valueString('{{"k"=1I, "v"=3I}, {"k"=3I, "v"=1I}}'));
+assertThat(map, instanceOf(Map[].class));
+map = {{{"k"=1, "v"=3}, {"k"=3, "v"=1}}};
+assertThat(map, valueString('{{{"k"=1I, "v"=3I}, {"k"=3I, "v"=1I}}}'));
+assertThat(map, instanceOf(Map[][].class));
+map = {{{{"k"=1, "v"=3}}, {{"k"=3, "v"=1}}}};
+assertThat(map, valueString('{{{{"k"=1I, "v"=3I}}, {{"k"=3I, "v"=1I}}}}'));
+assertThat(map, instanceOf(Map[][][].class));
+map = {{{{{"k"=1, "v"=3}}}, {{{"k"=3, "v"=1}}}}};
+assertThat(map, valueString('{{{{{"k"=1I, "v"=3I}}}, {{{"k"=3I, "v"=1I}}}}}'));
+assertThat(map, instanceOf(Map[][][][].class));
+map = {{{{"k"={1, 2, 3}, "v"=3}}, {{"k"=3, "v"={"kk"=36, "vv"=9}}}}};
+assertThat(map, valueString('{{{{"k"={1I, 2I, 3I}, "v"=3I}}, {{"k"=3I, "v"={"kk"=36I, "vv"=9I}}}}}'));
+assertThat(map, instanceOf(Map[][][].class));
+map = {{{{"k"={2, {"k"=3}}, "v"=3}}, {{"k"=3, "v"={"kk"=36, "vv"=9}}}}};
+assertThat(map, valueString('{{{{"k"={2I, {"k"=3I}}, "v"=3I}}, {{"k"=3I, "v"={"kk"=36I, "vv"=9I}}}}}'));
+assertThat(map, instanceOf(Map[][][].class));
+map = {{{{"k"={2, {"k"=3}}, "v"=3}}, {{"k"=3, "v"={"kk"=36, "vv"=9}}}}};
+assertThat(map[0][0][0], instanceOf(Map.class));
+map = map[0][0][0];
+assertThat(map.get("k"), instanceOf(Object[].class));
+assertThat(map.get("k")[1], instanceOf(Map.class));
+assertThat(map.get("k")[1].get("k"), equalTo(3));
+
+//maps with new
+map = new {"k"=2, "v"=3};
+assertThat(map, valueString('{"k"=2I, "v"=3I}'));
+assertThat(map, instanceOf(Map.class));
+map = new {{"k"=2, "v"=3}};
+assertThat(map, valueString('{{"k"=2I, "v"=3I}}'));
+assertThat(map, instanceOf(Map[].class));
+map = new {{{"k"=2, "v"=3}}};
+assertThat(map, valueString('{{{"k"=2I, "v"=3I}}}'));
+assertThat(map, instanceOf(Map[][].class));
+map = new {{{"k"=2, "v"=3}, {"k"=3, "v"=4}}};
+assertThat(map, valueString('{{{"k"=2I, "v"=3I}, {"k"=3I, "v"=4I}}}'));
+assertThat(map, instanceOf(Map[][].class));
+map = new {{{{"k"=2, "v"=3}}, {{"k"=3, "v"=4}}}};
+assertThat(map, valueString('{{{{"k"=2I, "v"=3I}}, {{"k"=3I, "v"=4I}}}}'));
+assertThat(map, instanceOf(Map[][][].class));
+
+//new map nested new
+map_new = new {new {"map-new"=new Object()}};
+assertThat(map_new, instanceOf(Map[].class));
+assertThat(map_new[0], instanceOf(Map.class));
+assertThat(map_new[0].get("map-new"), instanceOf(Object.class));
+map_new = new {"map-new"=new {"key"=2}};
+assertThat(map_new, valueString('{"map-new"={"key"=2I}}'));
+assertThat(map_new, instanceOf(Map.class));
+assertThat(map_new.get("map-new"), instanceOf(Map.class));
+assertThat(map_new.get("map-new").get("key"), instanceOf(Integer.TYPE));
+assertThat(map_new.get("map-new").get("key"), equalTo(2));
+map_new = new {"k"=new {2, 3, 4}};
+assertThat(map_new, instanceOf(Map.class));
+assertThat(map_new.get("k"), instanceOf(int[].class));
+assertThat(map_new.get("k").length, equalTo(3));
+
+assert(isEvalError("Arrays may only be indexed by integer types.", '{1,2}["1"];'));
+assert(isEvalError("Can't assign array length", "{1,2,3}.length=1;"));
+assert(isEvalError("Attempt to use .class suffix on non class.", "''.class;"));
+assert(isEvalError("Can't assign .class", "Object.class=1;"));
+assert(isEvalError("Can't assign to prefix.", '"o"=3;'));
+assert(isEvalError("illegal use of undefined variable or 'void' literal", "new {xyz=1};"));
+assert(isEvalError("illegal use of undefined variable or 'void' literal", "new {void=1};"));
+
+
+complete();
+return;
