@@ -7,8 +7,83 @@ import java.util.List;
 
 class Operators implements ParserConstants {
 
-    private static final List<Integer> OVERFLOW_OPS = Arrays.asList(PLUS, MINUS, STAR, POWER);
-    private static final List<Integer> COMPARABLE_OPS = Arrays.asList(LT, LTX, GT, GTX, EQ, LE, LEX, GE, GEX, NE);
+    private static final List<Integer> OVERFLOW_OPS
+        = Arrays.asList(PLUS, MINUS, STAR, POWER);
+    private static final List<Integer> COMPARABLE_OPS
+        = Arrays.asList(LT, LTX, GT, GTX, EQ, LE, LEX, GE, GEX, NE);
+
+    /** Constructor private no instance required. */
+    private Operators() {}
+
+    /** Binary operations on arbitrary objects.
+     * @param lhs left hand side value
+     * @param rhs right hand side value
+     * @param kind operator type
+     * @return operator applied value
+     * @throws UtilEvalError evaluation error */
+    @SuppressWarnings("unchecked")
+    public static Object arbitraryObjectsBinaryOperation(
+        Object lhs, Object rhs, int kind)
+        throws UtilEvalError
+    {
+        if ( kind == EQ )
+            return (lhs == rhs) ? Primitive.TRUE : Primitive.FALSE;
+        if ( kind == NE )
+            return (lhs != rhs) ? Primitive.TRUE : Primitive.FALSE;
+        if ( kind == PLUS ) {
+            // String concatenation operation
+            if ( lhs instanceof String || rhs instanceof String )
+                return String.valueOf((Object) lhs)
+                     + String.valueOf((Object) rhs);
+            // array concatenation operation
+            if ( lhs.getClass().isArray() && rhs instanceof List )
+                rhs = ((List<?>) rhs).toArray();
+            if ( lhs.getClass().isArray()
+                    && rhs.getClass().isArray() )
+                return BshArray.concat(lhs, rhs);
+            // list concatenation operation
+            if ( lhs instanceof List && rhs.getClass().isArray() )
+                rhs = Types.castObject(rhs, List.class, Types.CAST);
+            if ( lhs instanceof List && rhs instanceof List )
+                return BshArray.concat(
+                        (List<?>) lhs, (List<?>) rhs);
+        }
+        if ( kind == STAR ) {
+            // array repeat operation
+            if ( lhs.getClass().isArray() )
+                return BshArray.repeat(lhs,
+                        (int) Primitive.unwrap(rhs));
+            if ( rhs.getClass().isArray() )
+                return BshArray.repeat(rhs,
+                        (int) Primitive.unwrap(lhs));
+            // List repeat operation
+            if ( lhs instanceof List )
+                return BshArray.repeat((List<Object>) lhs,
+                        (int) Primitive.unwrap(rhs));
+            if ( rhs instanceof List )
+                return BshArray.repeat((List<Object>) rhs,
+                        (int) Primitive.unwrap(lhs));
+        }
+
+        if ( lhs instanceof String || rhs instanceof String )
+            throw new UtilEvalError(
+                "Use of non + operator with String" );
+        if ( lhs.getClass().isArray() || rhs.getClass().isArray()
+               || lhs instanceof List || rhs instanceof List)
+            throw new UtilEvalError(
+                "Use of invalid operator " + tokenImage[kind]
+                    + " with array or List type" );
+        if ( lhs == Primitive.VOID || rhs == Primitive.VOID )
+            throw new UtilEvalError(
+                "illegal use of undefined variable, class, or"
+                    + " 'void' literal");
+        if ( lhs == Primitive.NULL || rhs == Primitive.NULL )
+            throw new UtilEvalError(
+                "illegal use of null value or 'null' literal");
+
+        throw new UtilEvalError("Operator: " + tokenImage[kind]
+                    + " inappropriate for objects");
+    }
     /**
     Perform a binary operation on two Primitives or wrapper types.
     If both original args were Primitives return a Primitive result
