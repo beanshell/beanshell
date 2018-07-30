@@ -469,7 +469,7 @@ public final class Primitive implements Serializable {
             if ( checkOnly )
                 return Types.INVALID_CAST;
             else
-                throw Types.castError( Reflect.normalizeClassName(toType),
+                throw Types.castError( StringUtil.typeString(toType),
                     "void value", operation );
 
         // Do numeric cast

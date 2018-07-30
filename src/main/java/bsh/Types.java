@@ -657,8 +657,8 @@ class Types
         Class lhsType, Class rhsType, int operation   )
     {
         return castError(
-            Reflect.normalizeClassName(lhsType),
-            Reflect.normalizeClassName(rhsType), operation  );
+            StringUtil.typeString(lhsType),
+            StringUtil.typeString(rhsType), operation  );
     }
 
     static UtilEvalError castError(
