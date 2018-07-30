@@ -40,13 +40,22 @@ public class VarargsTest {
         interpreter.close();
     }
 
-
     @Test
-    public void calling_java_varargs_wit_old_syntax_should_be_possible() throws Exception {
+    public void calling_java_varargs_with_old_syntax_should_be_possible() throws Exception {
         final Interpreter interpreter = new Interpreter();
         interpreter.set("helper", new ClassWithVarargMethods());
         @SuppressWarnings({"unchecked"})
         final List<Object> list = (List<Object>) interpreter.eval("helper.list(new Object[] {1,2,3})");
+        Assert.assertEquals(Arrays.<Object>asList(1,2,3), list);
+        interpreter.close();
+    }
+
+    @Test
+    public void calling_java_varargs_with_wrapper_type_array() throws Exception {
+        final Interpreter interpreter = new Interpreter();
+        interpreter.set("helper", new ClassWithVarargMethods());
+        @SuppressWarnings({"unchecked"})
+        final List<Object> list = (List<Object>) interpreter.eval("helper.list((Integer) {1,2,3})");
         Assert.assertEquals(Arrays.<Object>asList(1,2,3), list);
         interpreter.close();
     }
