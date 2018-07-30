@@ -93,7 +93,7 @@ public class Variable implements java.io.Serializable
 
         // TODO: should add isJavaCastable() test for strictJava
         // (as opposed to isJavaAssignable())
-        if ( type != null && value != null ) {
+        if ( type != null && type != Object.class && value != null ) {
             this.value = Types.castObject( value, type,
                 context == DECLARATION ? Types.CAST : Types.ASSIGNMENT
             );
