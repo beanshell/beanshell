@@ -28,6 +28,7 @@ package bsh;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -544,9 +545,16 @@ class Types
             throw new InterpreterError("loose toType should be null");
 
         // assignment to loose type, void type, or exactly same type
-        if ( toType == null || toType == fromType )
+        if ( toType == null || arrayElementType(toType) == arrayElementType(fromType) )
             return checkOnly ? VALID_CAST :
                 fromValue;
+
+        if ( null != fromType && fromType.isArray() )
+            if ( operation == Types.CAST
+                    || isJavaAssignable(Collection.class, toType)
+                    || isJavaAssignable(Map.class, toType) )
+                return checkOnly ? VALID_CAST : BshArray.castArray(
+                        toType, fromType, fromValue );
 
         // Casting to primitive type
         if ( toType.isPrimitive() )
