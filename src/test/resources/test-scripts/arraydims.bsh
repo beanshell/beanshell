@@ -63,6 +63,24 @@ String [][][] sa3 = new String [][][] {
 
 assert( sa3[1][0][2].equals("flag") );
 
+String [][][] sa4 = new String [][][] {
+    new String [][] {
+        new String [] { "f", "f", }, new String [] { "foo" } },
+    new String [][] {
+        new String [] { "foo", "bar", "flag" } }
+};
+
+assert( sa4[1][0][2].equals("flag") );
+
+String [][][] sa5 = new String [][][] {
+    new String [][] {
+        new String [] { "foo", "bar", "flag" } },
+    new String [][] {
+        new String [] { "f", "f", }, new String [] { "foo" } }
+};
+
+assert( sa5[0][0][2].equals("flag") );
+
 Object [][] o= new Object [][] {
     new Object [] {"me",new Integer(5),new Byte((byte)3)},
     new Object [] {"you",new Integer(6),new Byte((byte)2)} };
@@ -88,9 +106,6 @@ double [] da = { 1L, 2, (byte)3, 3.3, 3.3f, 3.3d };
 assert( da[1] == 2.0d );
 assert( da[1] == 2.0 );
 
-// partial initialization not implemented yet
-// e.g. int [][] ia = new int [1][];
-
 // Some stuff submitted in the original bug report... thought I'd throw it in.
 Object[] oo = { new Object(), new Object() };
 oo = new Object[] { new Object(), new Object() };
@@ -108,15 +123,19 @@ ov.add(0);
 ov.add("a");
 oo = ov.toArray();
 
-// new stuff to support undefined array dimensions
-
 Integer [][] ua1x = new Integer [5][0];
 assert( ua1x[0] instanceof Integer[] );
 
+// partial initialization
 Integer [][] ua1 = new Integer [5][];
 assert( ua1 instanceof Integer [][] );
 assert ( ua1[0] == null );
 ua1[0] = new Integer[5];
+
+int [][] ua1a = new int [5][];
+assert( ua1a instanceof int [][] );
+assert ( ua1a[0] == null );
+ua1a[0] = new int[5];
 
 ua2x = new Integer [3][3][3];
 assert( ua2x instanceof Integer [][][] );

@@ -1,0 +1,44 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+// enable strict java
+setStrictJava(true);
+
+// map restrictions
+Map map = new HashMap();
+map.put("key1", 1);
+map.put("key2", 2);
+assert(isEvalError("Not an array or List type", 'map["key1"];'));
+assert(isEvalError("No declared array type or dimensions.", 'new Map {"key1"=1, "key2"=2};'));
+assert(isEvalError("Typed variable declaration : Can't assign to prefix", 'Entry[] entries = {"key1"=1, "key2"=2};'));
+
+// list restrictions
+List list = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+assert(isEvalError("Not an array or List type", "list[0];"));
+
+// array restrictions
+int[] arr = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+assert(isEvalError("No declared array type or dimensions.", "{1,2};"));
+assert(isEvalError("Index -1 out-of-bounds for length 10", "arr[-1];"));
+assert(isEvalError("expected ']' but found ':'", "arr[1:2];"));
+
+Integer[] defltVals = new Integer[2];
+assert(defltVals[0] == null);
+
+// operator restrictions
+String strcat = arr + "foo";
+assert(strcat.endsWith("foo"));
+strcat = "bar" + arr;
+assert(strcat.startsWith("bar"));
+assert(isEvalError('Bad operand types for binary operator "*" first type: int[] second type: int', "arr * 3;"));
+assert(isEvalError('Bad operand types for binary operator "+" first type: Integer[] second type: int[]', "defltVals + arr;"));
+assert(isEvalError('Bad operand types for binary operator "*" first type: List second type: int', "list * 2;"));
+assert(isEvalError('Bad operand types for binary operator "+" first type: List second type: List', "list + list;"));
+assert(isEvalError('Bad operand types for binary operator "+" first type: List second type: int[]', "list + arr;"));
+
+// disable strict java
+setStrictJava(false);
+
+complete();
+return;
