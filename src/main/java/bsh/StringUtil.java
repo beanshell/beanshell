@@ -32,10 +32,12 @@ import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -60,9 +62,16 @@ public class StringUtil {
         if (Map.class.isAssignableFrom(clas))
             clas = Map.class;
         else if (List.class.isAssignableFrom(clas))
-            clas = List.class;
+            if (Queue.class.isAssignableFrom(clas))
+                clas = Queue.class;
+            else
+                clas = List.class;
+        else if (Deque.class.isAssignableFrom(clas))
+            clas = Deque.class;
         else if (Set.class.isAssignableFrom(clas))
             clas = Set.class;
+        else if (Entry.class.isAssignableFrom(clas))
+            clas = Entry.class;
         return clas.isArray() ? typeString(clas.getComponentType())+"[]"
                 : clas.getName().startsWith("java")
                 ? clas.getSimpleName() : clas.getName();
@@ -105,6 +114,13 @@ public class StringUtil {
             if (val.reverse().charAt(0) == ' ')
                 val.delete(0, 2);
             return val.reverse().append("}").toString();
+        }
+        if (value instanceof Entry) {
+            return new StringBuilder(
+                    valueString(((Entry<?, ?>) value).getKey()))
+                .append("=").append(
+                    valueString(((Entry<?, ?>) value).getValue()))
+                .toString();
         }
         if (value instanceof String)
             return val.insert(0, "\"").append("\"").toString();
