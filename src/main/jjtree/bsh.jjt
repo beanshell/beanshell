@@ -976,7 +976,10 @@ void PrimarySuffix() #PrimarySuffix :
         jjtThis.operation = BSHPrimarySuffix.CLASS;
     }
 |
-  "[" Expression() "]" {
+  "[" [ Expression() { jjtThis.hasLeftIndex = true; } ]
+     ( ":" { jjtThis.slice = true; }
+      [ Expression() { jjtThis.hasRightIndex = true; } ]
+     ( ":" { jjtThis.step = true; } [ Expression() ] )? )? "]" {
         jjtThis.operation = BSHPrimarySuffix.INDEX;
     }
 |

@@ -1,22 +1,127 @@
 package bsh;
 
 import java.lang.reflect.Array;
+import java.util.AbstractList;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Queue;
+import java.util.RandomAccess;
 import java.util.Map.Entry;
 
 /** Collection of array manipulation functions. */
 public class BshArray {
     /** Constructor private no instance required. */
     private BshArray() {}
+
+    /** Get object from array or list at index.
+     * @param array to retrieve from
+     * @param index of the element to retrieve
+     * @return Array.get for array or List.get for list
+     * @throws UtilTargetError wrapped Index out of bounds */
+    public static Object getIndex(Object array, int index)
+            throws UtilTargetError {
+        Interpreter.debug("getIndex: ", array, ", index=", index);
+        try {
+            if ( array instanceof List )
+                return ((List<?>) array).get(index);
+            Object val = Array.get(array, index);
+            return Primitive.wrap( val, Types.arrayElementType(array.getClass()) );
+        } catch( IndexOutOfBoundsException e1 ) {
+            int len = array instanceof List
+                    ? ((List<?>) array).size()
+                    : Array.getLength(array);
+            throw new UtilTargetError("Index " + index
+                    + " out-of-bounds for length " + len, e1);
+        }
+    }
+
+    /** Set element value of array or list at index.
+     * Array.set for array or List.set for list.
+     * @param array to set value for.
+     * @param index of the element to set
+     * @param val the value to set
+     * @throws UtilTargetError wrapped target exceptions */
+    @SuppressWarnings("unchecked")
+    public static void setIndex(Object array, int index, Object val)
+            throws ReflectError, UtilTargetError {
+        try {
+            val = Primitive.unwrap(val);
+            if ( array instanceof List )
+                ((List<Object>) array).set(index, val);
+            else
+                Array.set(array, index, val);
+        }
+        catch( IllegalArgumentException e1 ) {
+            // fabricated array store exception
+            throw new UtilTargetError(
+                new ArrayStoreException( e1.getMessage() ) );
+        } catch( IndexOutOfBoundsException e1 ) {
+            int len = array instanceof List
+                    ? ((List<?>) array).size()
+                    : Array.getLength(array);
+            throw new UtilTargetError("Index " + index
+                    + " out-of-bounds for length " + len, e1);
+        }
+    }
+
+    /** Slice the supplied list for range and step.
+     * @param list to slice
+     * @param from start index inclusive
+     * @param to to index exclusive
+     * @param step size of step or 0 if no step
+     * @return a sliced view of the supplied list */
+    public static Object slice(List<Object> list, int from, int to, int step) {
+        int length = list.size();
+        if ( to > length ) to = length;
+        if ( 0 > from ) from = 0;
+        length = to - from;
+        if ( 0 >= length )
+            return list.subList(0, 0);
+        if ( step == 0 || step == 1 )
+            return list.subList(from, to);
+        List<Integer> slices = new ArrayList<>();
+        for ( int i = 0; i < length; i++ )
+            if ( i % step == 0 )
+                slices.add(step < 0 ? length-1-i : i+from);
+        return new SteppedSubList(list, slices);
+    }
+
+    /** Slice the supplied array for range and step.
+     * @param arr to slice
+     * @param from start index inclusive
+     * @param to to index exclusive
+     * @param step size of step or 0 if no step
+     * @return a new array instance sliced */
+    public static Object slice(Object arr, int from, int to, int step) {
+        Class<?> toType = Types.arrayElementType(arr.getClass());
+        int length = Array.getLength(arr);
+        if ( to > length ) to = length;
+        if ( 0 > from ) from = 0;
+        length = to - from;
+        if ( 0 >= length )
+            return Array.newInstance(toType, 0);
+        if ( step == 0 || step == 1 ) {
+            Object toArray = Array.newInstance(toType, length);
+            System.arraycopy(arr, from, toArray, 0, length);
+            return toArray;
+        }
+        Object[] tmp = new Object[(int)Math.ceil((0.0+length)/Math.abs(step))];
+        for ( int i = 0, j = 0; i < length; i++ )
+            if ( i % step == 0 )
+                tmp[j++] = Array.get(arr, step < 0 ? length-1-i : i+from);
+        Object toArray = Array.newInstance(toType, tmp.length);
+        copy(toType, toArray, (Object)tmp);
+        return toArray;
+    }
 
     /** Repeat the contents of a list a number of times.
      * @param list the list to repeat
@@ -253,4 +358,180 @@ public class BshArray {
         return toArray;
     }
 
+    /** Provides a view of a parent list for a specific list of parent indexes (steps).
+     * Based on @see ArrayList.SubList. */
+    private static class SteppedSubList extends AbstractList<Object> implements RandomAccess {
+        private final List<Object> parent;
+        private final List<Integer> steps;
+
+        /** Default constructor.
+         * @param parent the referenced parent list
+         * @param steps a list of parent indexes for this view. */
+        SteppedSubList(List<Object> parent, List<Integer> steps) {
+            this.parent = parent;
+            this.steps = steps;
+        }
+
+        /** Overridden method to set the parent value for the parent index of
+         * the step at the supplied index.
+         * {@inheritDoc} */
+        @Override
+        public Object set(int index, Object e) {
+            return this.parent.set(this.steps.get(index), e);
+        }
+
+        /** Overridden method to get the parent value for the parent index of
+         * the step at the supplied index.
+         * {@inheritDoc} */
+        @Override
+        public Object get(int index) {
+            return this.parent.get(this.steps.get(index));
+        }
+
+        /** Overridden method to retrieve the size of the view.
+         * {@inheritDoc} */
+        @Override
+        public int size() {
+            return this.steps.size();
+        }
+
+        /** Overridden method to add a value to the parent at the parent index of
+         * the step at the supplied index. Update remaining step indexes moved down.
+         * {@inheritDoc} */
+        @Override
+        public void add(int index, Object e) {
+            int idx = index == this.size()
+                    ? this.steps.get(index - 1) + 1
+                    : this.steps.get(index);
+            this.parent.add(idx, e);
+            for ( int i = index; i < this.size(); i++ )
+                this.steps.set(i, this.steps.get(i) + 1);
+            this.steps.add(index, idx);
+        }
+
+        /** Overridden method to remove a value from the parent at the parent index of
+         * the step at the supplied index. Update remaining step indexes moved up.
+         * {@inheritDoc} */
+        @Override
+        public Object remove(int index) {
+            int idx = this.steps.get(index);
+            for ( int i = index + 1; i < this.size(); i++ )
+                this.steps.set(i, this.steps.get(i) - 1);
+            this.steps.remove(index);
+            return this.parent.remove(idx);
+        }
+
+        /** Overridden method delegates to addAll at index size.
+         * {@inheritDoc} */
+        @Override
+        public boolean addAll(Collection<? extends Object> c) {
+            return addAll(this.steps.size(), c);
+        }
+
+        /** Overridden method traverses supplied list and delegates to add method for each.
+         * {@inheritDoc} */
+        @Override
+        public boolean addAll(int index, Collection<? extends Object> c) {
+            int cnt = 0;
+            for ( Object e : c )
+                this.add(index + cnt++, e);
+            return cnt > 0;
+        }
+
+        /** Overridden method to retrieve a stepped sub list of a sub list of this view.
+         * {@inheritDoc} */
+        @Override
+        public List<Object> subList(int fromIndex, int toIndex) {
+            return new SteppedSubList(this.parent, this.steps.subList(fromIndex, toIndex));
+        }
+
+        /** Overridden method delegates to list iterator method.
+         * {@inheritDoc} */
+        @Override
+        public Iterator<Object> iterator() {
+            return listIterator();
+        }
+
+        /** Overridden method supplying a modifiable list iterator which delegates to methods
+         * on this view.
+         * {@inheritDoc} */
+        @Override
+        public ListIterator<Object> listIterator(final int index) {
+            /** A copy of the list iterator to avoid concurrent modification issues. */
+            ListIterator<Integer> sliceIter = new ArrayList<>(this.steps).listIterator(index);
+            return new ListIterator<Object>() {
+                int lastIndex = 0;
+                /** Overridden method delegates to the copy.
+                 * {@inheritDoc} */
+                @Override
+                public boolean hasNext() {
+                    return sliceIter.hasNext();
+                }
+
+                /** Overridden method delegates to this view get method.
+                 * {@inheritDoc} */
+                @Override
+                public Object next() {
+                    sliceIter.next();
+                    lastIndex = previousIndex();
+                    return SteppedSubList.this.get(lastIndex);
+                }
+
+                /** Overridden method delegates to the copy.
+                 * {@inheritDoc} */
+                @Override
+                public boolean hasPrevious() {
+                    return sliceIter.hasPrevious();
+                }
+
+                /** Overridden method delegates to this view get method.
+                 * {@inheritDoc} */
+                @Override
+                public Object previous() {
+                    sliceIter.previous();
+                    lastIndex = nextIndex();
+                    return SteppedSubList.this.get(lastIndex);
+                }
+
+                /** Overridden method delegates to the copy.
+                 * {@inheritDoc} */
+                @Override
+                public int nextIndex() {
+                    return sliceIter.nextIndex();
+                }
+
+                /** Overridden method delegates to the copy.
+                 * {@inheritDoc} */
+                @Override
+                public int previousIndex() {
+                    return sliceIter.previousIndex();
+                }
+
+                /** Overridden method delegates to this view remove method.
+                 * {@inheritDoc} */
+                @Override
+                public void remove() {
+                    SteppedSubList.this.remove(lastIndex);
+                    sliceIter.remove();
+                    lastIndex = -1;
+                }
+
+                /** Overridden method delegates to this view set method.
+                 * {@inheritDoc} */
+                @Override
+                public void set(Object e) {
+                    SteppedSubList.this.set(lastIndex, e);
+                }
+
+                /** Overridden method delegates to this view add method.
+                 * {@inheritDoc} */
+                @Override
+                public void add(Object e) {
+                    SteppedSubList.this.add(lastIndex, e);
+                    sliceIter.add(steps.get(lastIndex));
+                    lastIndex = -1;
+                }
+            };
+        }
+    }
 }
