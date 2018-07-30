@@ -78,7 +78,7 @@ class LHS implements ParserConstants, Serializable {
     int type;
 
     String varName;
-    String propName;
+    Object propName;
     Field field;
     Object object;
     int index;
@@ -132,7 +132,7 @@ class LHS implements ParserConstants, Serializable {
     /**
         Object property LHS Constructor.
     */
-    LHS( Object object, String propName )
+    LHS( Object object, Object propName )
     {
         if( object == null )
             throw new NullPointerException("constructed empty LHS");
@@ -156,9 +156,6 @@ class LHS implements ParserConstants, Serializable {
     */
     LHS( Object array, int index )
     {
-        if( array == null )
-            throw new NullPointerException("constructed empty LHS");
-
         type = INDEX;
         this.object = array;
         this.index = index;
@@ -183,7 +180,7 @@ class LHS implements ParserConstants, Serializable {
             if ( this.object instanceof Map )
                 return ((Map) this.object).get(this.propName);
              else try {
-                return Reflect.getObjectProperty(object, propName);
+                return Reflect.getObjectProperty(object, propName.toString());
             } catch(ReflectError e) {
                 Interpreter.debug(e.getMessage());
                 throw new UtilEvalError("No such property: " + propName, e);
@@ -191,7 +188,7 @@ class LHS implements ParserConstants, Serializable {
         }
 
         if ( type == INDEX ) try {
-            return Reflect.getIndex(object, index);
+            return BshArray.getIndex(object, index);
         } catch(Exception e) {
             throw new UtilEvalError("Array access: " + e, e);
         }
@@ -296,22 +293,23 @@ class LHS implements ParserConstants, Serializable {
                 + " not assignable to field "+field.getName(), e3);
         } else if ( type == PROPERTY ) {
             if ( this.object instanceof Map )
-                ((Map<String, Object>) this.object).put(this.propName,
+                ((Map<Object, Object>) this.object).put(this.propName,
                         Primitive.unwrap(val));
             else try {
-                Reflect.setObjectProperty(object, propName, val);
+                Reflect.setObjectProperty(object, propName.toString(), val);
             } catch(ReflectError e) {
                 Interpreter.debug("Assignment: " + e.getMessage());
                 throw new UtilEvalError("No such property: " + propName, e);
             }
         }
         else if ( type == INDEX ) try {
-            if ( val != null ) try {
-                val = Types.castObject( val, object.getClass().getComponentType(),
-                    Types.ASSIGNMENT);
-            } catch (UtilEvalError e) { /*ignore*/ }
+            if ( object.getClass().isArray() )
+                if ( val != null ) try {
+                    val = Types.castObject( val, Types.arrayElementType(object.getClass()),
+                        Types.ASSIGNMENT);
+                } catch (Exception e) { /* ignore cast exceptions */ }
 
-            Reflect.setIndex(object, index, val);
+            BshArray.setIndex(object, index, val);
         } catch ( UtilTargetError e1 ) { // pass along target error
             if ( IndexOutOfBoundsException.class.isAssignableFrom(e1.getCause().getClass()) )
                 throw new UtilEvalError("Error array set index: "+e1.getMessage(), e1);
