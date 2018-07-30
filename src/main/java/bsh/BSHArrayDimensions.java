@@ -28,8 +28,6 @@
 
 package bsh;
 
-import java.lang.reflect.Array;
-
 /**
     The name of this class is somewhat misleading.  This covers both the case
     where there is an array initializer and
@@ -45,7 +43,7 @@ class BSHArrayDimensions extends SimpleNode
         time.
     */
     public int [] definedDimensions;
-
+    private Object cached = null;
     BSHArrayDimensions(int id) { super(id); }
 
     public void addDefinedDimension() { numDefinedDims++; }
@@ -57,7 +55,9 @@ class BSHArrayDimensions extends SimpleNode
     {
         Interpreter.debug("array base type = ", type);
         baseType = type;
-        return eval( callstack, interpreter );
+        if ( null == cached )
+            cached = eval( callstack, interpreter );
+        return cached;
     }
 
     /**
@@ -90,6 +90,9 @@ class BSHArrayDimensions extends SimpleNode
                 baseType, numUndefinedDims, callstack, interpreter);
             definedDimensions = BshArray.dimensions(initValue);
 
+            // loose typed array inferred dimensions
+            if ( -1 == numUndefinedDims )
+                numUndefinedDims = definedDimensions.length;
 
             // Compare with number of dimensions actually created with the
             // number specified (syntax uses the undefined ones here)
