@@ -106,9 +106,9 @@ class Types
     static Primitive VALID_CAST = new Primitive(1);
     static Primitive INVALID_CAST = new Primitive(-1);
 
-    /**
-        Get the Java types of the arguments.
-    */
+    /** Get the Java types of the arguments.
+     * @param args object array of argument values.
+     * @return class array of argument types. */
     public static Class[] getTypes( Object[] args )
     {
         if ( args == null )
@@ -116,18 +116,29 @@ class Types
 
         Class[] types = new Class[ args.length ];
 
-        for( int i=0; i<args.length; i++ )
-        {
-            if ( args[i] == null )
-                types[i] = null;
-            else
-            if ( args[i] instanceof Primitive )
-                types[i] = ((Primitive)args[i]).getType();
-            else
-                types[i] = args[i].getClass();
-        }
+        for( int i=0; i < args.length; i++ )
+            types[i] = getType(args[i]);
 
         return types;
+    }
+
+    /** Find the type of an object.
+     * @param arg the object to query.
+     * @return null if arg null, getType if Primitive or getClass. */
+    public static Class<?> getType( Object arg ) {
+        return getType(arg, false);
+    }
+
+    /** Find the type of an object boxed or not.
+     * @param arg the object to query.
+     * @param boxed whether to get a primitive or boxed type.
+     * @return null if arg null, type of Primitive or getClass. */
+    public static Class<?> getType( Object arg, boolean boxed ) {
+        if ( null == arg || Primitive.NULL == arg )
+            return null;
+        if ( arg instanceof Primitive && !boxed )
+            return ((Primitive) arg).getType();
+       return Primitive.unwrap(arg).getClass();
     }
 
     /**
@@ -416,10 +427,7 @@ class Types
                     + toType.getSimpleName());
         }
 
-        Class fromType =
-            fromValue instanceof Primitive ?
-                ((Primitive)fromValue).getType()
-                : fromValue.getClass();
+        Class<?> fromType = getType(fromValue);
 
         return castObject(
             toType, fromType, fromValue, operation, false/*checkonly*/ );
