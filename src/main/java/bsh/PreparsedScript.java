@@ -75,13 +75,9 @@ public class PreparsedScript {
             }
         }
         final Object result = method.invoke(new Object[0], _interpreter);
-        if (result instanceof Primitive) {
-            if (( (Primitive) result).getType() == Void.TYPE) {
-                return null;
-            }
-            return ( (Primitive) result).getValue();
-        }
-        return result;
+        if ( Types.getType(result) == Void.TYPE )
+            return null;
+        return Primitive.unwrap(result);
     }
 
 
