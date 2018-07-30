@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.WeakHashMap;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static bsh.This.Keys.BSHTHIS;
@@ -1343,16 +1342,17 @@ final class Reflect {
      * @return array of enum values */
     @SuppressWarnings("unchecked")
     static <T> T[] getEnumConstants(Class<T> enm) {
-        List<T> s = Stream.of(enm.getFields())
-                .filter(f->f.getType() == enm)
-                .map(f->{
+        return Stream.of(enm.getFields())
+                .filter(f -> f.getType() == enm)
+                .map(f -> {
             try {
-                return (T) f.get(null);
+                return f.get(null);
             } catch (Exception e) {
                 return null;
             }
-        }).filter(Objects::nonNull).collect(Collectors.toList());
-        return s.toArray((T[]) Array.newInstance(enm, s.size()));
+        })
+        .filter(Objects::nonNull)
+        .toArray(len -> (T[]) Array.newInstance(enm, len));
     }
 }
 
