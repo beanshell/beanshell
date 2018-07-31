@@ -99,7 +99,6 @@ public class JConsole extends JScrollPane
 
     private JPopupMenu menu;
     private JTextPane text;
-    private DefaultStyledDocument doc;
 
     NameCompletion nameCompletion;
     final int SHOW_AMBIG_MAX = 10;
@@ -117,7 +116,7 @@ public class JConsole extends JScrollPane
 
         // Special TextPane which catches for cut and paste, both L&F keys and
         // programmatic behaviour
-        text = new JTextPane( doc=new DefaultStyledDocument() )
+        text = new JTextPane( new DefaultStyledDocument() )
             {
                 public void cut() {
                     if (text.getCaretPosition() < cmdStart) {
@@ -198,7 +197,7 @@ public class JConsole extends JScrollPane
     private synchronized void type( KeyEvent e ) {
         switch ( e.getKeyCode() )
         {
-            case ( KeyEvent.VK_ENTER ):
+            case KeyEvent.VK_ENTER:
                 if (e.getID() == KeyEvent.KEY_PRESSED) {
                     if (gotUp) {
                         enter();
@@ -210,23 +209,23 @@ public class JConsole extends JScrollPane
                 text.repaint();
                 break;
 
-            case ( KeyEvent.VK_UP ):
+            case KeyEvent.VK_UP:
                 if (e.getID() == KeyEvent.KEY_PRESSED) {
                     historyUp();
                 }
                 e.consume();
                 break;
 
-            case ( KeyEvent.VK_DOWN ):
+            case KeyEvent.VK_DOWN:
                 if (e.getID() == KeyEvent.KEY_PRESSED) {
                     historyDown();
                 }
                 e.consume();
                 break;
 
-            case ( KeyEvent.VK_LEFT ):
-            case ( KeyEvent.VK_BACK_SPACE ):
-            case ( KeyEvent.VK_DELETE ):
+            case KeyEvent.VK_LEFT:
+            case KeyEvent.VK_BACK_SPACE:
+            case KeyEvent.VK_DELETE:
                 if (text.getCaretPosition() <= cmdStart) {
                     // This doesn't work for backspace.
                     // See default case for workaround
@@ -234,16 +233,16 @@ public class JConsole extends JScrollPane
                 }
                 break;
 
-            case ( KeyEvent.VK_RIGHT ):
+            case KeyEvent.VK_RIGHT:
                 forceCaretMoveToStart();
                 break;
 
-            case ( KeyEvent.VK_HOME ):
+            case KeyEvent.VK_HOME:
                 text.setCaretPosition(cmdStart);
                 e.consume();
                 break;
 
-            case ( KeyEvent.VK_U ): // clear line
+            case KeyEvent.VK_U: // clear line
                 if ( (e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) > 0 ) {
                     replaceRange( "", cmdStart, textLength());
                     histLine = 0;
@@ -251,44 +250,43 @@ public class JConsole extends JScrollPane
                 }
                 break;
 
-            case ( KeyEvent.VK_ALT ):
-            case ( KeyEvent.VK_CAPS_LOCK ):
-            case ( KeyEvent.VK_CONTROL ):
-            case ( KeyEvent.VK_META ):
-            case ( KeyEvent.VK_SHIFT ):
-            case ( KeyEvent.VK_PRINTSCREEN ):
-            case ( KeyEvent.VK_SCROLL_LOCK ):
-            case ( KeyEvent.VK_PAUSE ):
-            case ( KeyEvent.VK_INSERT ):
-            case ( KeyEvent.VK_F1):
-            case ( KeyEvent.VK_F2):
-            case ( KeyEvent.VK_F3):
-            case ( KeyEvent.VK_F4):
-            case ( KeyEvent.VK_F5):
-            case ( KeyEvent.VK_F6):
-            case ( KeyEvent.VK_F7):
-            case ( KeyEvent.VK_F8):
-            case ( KeyEvent.VK_F9):
-            case ( KeyEvent.VK_F10):
-            case ( KeyEvent.VK_F11):
-            case ( KeyEvent.VK_F12):
-            case ( KeyEvent.VK_ESCAPE ):
+            case KeyEvent.VK_ALT:
+            case KeyEvent.VK_CAPS_LOCK:
+            case KeyEvent.VK_CONTROL:
+            case KeyEvent.VK_META:
+            case KeyEvent.VK_SHIFT:
+            case KeyEvent.VK_PRINTSCREEN:
+            case KeyEvent.VK_SCROLL_LOCK:
+            case KeyEvent.VK_PAUSE:
+            case KeyEvent.VK_INSERT:
+            case KeyEvent.VK_F1:
+            case KeyEvent.VK_F2:
+            case KeyEvent.VK_F3:
+            case KeyEvent.VK_F4:
+            case KeyEvent.VK_F5:
+            case KeyEvent.VK_F6:
+            case KeyEvent.VK_F7:
+            case KeyEvent.VK_F8:
+            case KeyEvent.VK_F9:
+            case KeyEvent.VK_F10:
+            case KeyEvent.VK_F11:
+            case KeyEvent.VK_F12:
+            case KeyEvent.VK_ESCAPE:
 
             // only modifier pressed
             break;
 
             // Control-C
-            case ( KeyEvent.VK_C ):
+            case KeyEvent.VK_C:
                 if (text.getSelectedText() == null) {
-                    if (( (e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) > 0 )
-                    && (e.getID() == KeyEvent.KEY_PRESSED)) {
+                    if ( (e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) > 0
+                            && e.getID() == KeyEvent.KEY_PRESSED )
                         append("^C");
-                    }
                     e.consume();
                 }
                 break;
 
-            case ( KeyEvent.VK_TAB ):
+            case KeyEvent.VK_TAB :
                 if (e.getID() == KeyEvent.KEY_RELEASED) {
                     String part = text.getText().substring( cmdStart );
                     doCommandCompletion( part );
@@ -310,12 +308,10 @@ public class JConsole extends JScrollPane
                     The getKeyCode function always returns VK_UNDEFINED for
                     keyTyped events, so backspace is not fully consumed.
                 */
-                if (e.paramString().indexOf("Backspace") != -1)
-                {
-                  if (text.getCaretPosition() <= cmdStart) {
-                        e.consume();
-                        break;
-                    }
+                if (e.paramString().indexOf("Backspace") != -1
+                        && text.getCaretPosition() <= cmdStart) {
+                    e.consume();
+                    break;
                 }
 
                 break;
@@ -404,9 +400,9 @@ public class JConsole extends JScrollPane
     }
 
     private void forceCaretMoveToStart() {
-        if (text.getCaretPosition() < cmdStart) {
+//        if (text.getCaretPosition() < cmdStart) {
             // move caret first!
-        }
+//        }
         text.repaint();
     }
 
@@ -605,10 +601,6 @@ public class JConsole extends JScrollPane
 
     private AttributeSet setStyle(Font font) {
         return setStyle(font, null);
-    }
-
-    private AttributeSet setStyle(Color color) {
-        return setStyle(null, color);
     }
 
     private AttributeSet setStyle( Font font, Color color)

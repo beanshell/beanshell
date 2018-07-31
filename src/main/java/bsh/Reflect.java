@@ -522,8 +522,9 @@ final class Reflect {
 
         // sort methods by class hierarchy
         publicMethods.sort((a,b) ->
-            (a.getDeclaringClass().isAssignableFrom(b.getDeclaringClass())) ? 1
-                : (a.getDeclaringClass() == b.getDeclaringClass()) ? 0 : -1);
+            a.getDeclaringClass().isAssignableFrom(b.getDeclaringClass())
+            ? 1
+            : a.getDeclaringClass() == b.getDeclaringClass() ? 0 : -1);
 
         Method method = findMostSpecificMethod( types, publicMethods );
 
@@ -767,7 +768,7 @@ final class Reflect {
                 // the new best match.
                 if ( Types.isSignatureAssignable(
                         idealMatch, targetMatch, round )
-                    && ( (bestMatch == null) || Types.areSignaturesEqual(idealMatch, targetMatch)
+                    && ( bestMatch == null || Types.areSignaturesEqual(idealMatch, targetMatch)
                         || ( Types.isSignatureAssignable( targetMatch, bestMatch,
                                 Types.JAVA_BASE_ASSIGNABLE ) &&
                         !Types.areSignaturesEqual(idealMatch, bestMatch) )
@@ -805,7 +806,7 @@ final class Reflect {
         getterName = accessorName("is", propName );
         try {
             Method m = clas.getMethod( getterName, new Class [0] );
-            return ( m.getReturnType() == Boolean.TYPE );
+            return m.getReturnType() == Boolean.TYPE;
         } catch ( NoSuchMethodException e ) {
             return false;
         }

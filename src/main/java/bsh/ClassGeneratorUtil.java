@@ -281,10 +281,11 @@ public class ClassGeneratorUtil implements Opcodes {
             if (method.hasModifier("private"))
                 continue;
 
-            if ( type == INTERFACE )
-                if ( !method.hasModifier("static") && !method.hasModifier("default") )
-                    if ( !method.hasModifier("abstract") )
-                        method.getModifiers().addModifier("abstract");
+            if ( type == INTERFACE
+                    && !method.hasModifier("static")
+                    && !method.hasModifier("default")
+                    && !method.hasModifier("abstract") )
+                method.getModifiers().addModifier("abstract");
             int modifiers = getASMModifiers(method.getModifiers());
             boolean isStatic = (modifiers & ACC_STATIC) > 0;
 
@@ -399,7 +400,7 @@ public class ClassGeneratorUtil implements Opcodes {
             if ( ICONST_5 >= ordinal )
                 cv.visitInsn(ordinal++);
             else
-                cv.visitIntInsn(BIPUSH, (ordinal++) - ICONST_0);
+                cv.visitIntInsn(BIPUSH, ordinal++ - ICONST_0);
             cv.visitMethodInsn(INVOKESPECIAL, fqClassName, "<init>", "(Ljava/lang/String;I)V", false);
             cv.visitFieldInsn(PUTSTATIC, fqClassName, var.getName(), classDescript);
         }
@@ -702,7 +703,7 @@ public class ClassGeneratorUtil implements Opcodes {
                 cv.visitVarInsn(ILOAD, localVarIndex);
             else
                 cv.visitVarInsn(ALOAD, localVarIndex);
-            localVarIndex += ((paramType.equals("D") || paramType.equals("J")) ? 2 : 1);
+            localVarIndex += paramType.equals("D") || paramType.equals("J") ? 2 : 1;
         }
 
         cv.visitMethodInsn(INVOKESPECIAL, superClassName, methodName, methodDescriptor, false);
@@ -754,7 +755,7 @@ public class ClassGeneratorUtil implements Opcodes {
         int prnt = parentModifiers & ( ACC_PUBLIC | ACC_PRIVATE | ACC_PROTECTED );
         int chld = overriddenModifiers & ( ACC_PUBLIC | ACC_PRIVATE | ACC_PROTECTED );
 
-        if ( chld == prnt || prnt == ACC_PRIVATE || chld == ACC_PUBLIC || (prnt == 0 && chld != ACC_PRIVATE) )
+        if ( chld == prnt || prnt == ACC_PRIVATE || chld == ACC_PUBLIC || prnt == 0 && chld != ACC_PRIVATE )
             return true;
 
         throw new RuntimeException("Cannot reduce the visibility of the inherited method from "
@@ -856,7 +857,7 @@ public class ClassGeneratorUtil implements Opcodes {
                 cv.visitInsn(AASTORE);
                 cv.visitLabel(notnull);
             }
-            localVarIndex += ((param.equals("D") || param.equals("J")) ? 2 : 1);
+            localVarIndex += param.equals("D") || param.equals("J") ? 2 : 1;
         }
     }
 

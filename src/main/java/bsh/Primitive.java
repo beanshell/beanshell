@@ -222,8 +222,8 @@ public final class Primitive implements Serializable {
         i.e. not boolean, null, or void (but including char)
     */
     public boolean isNumber() {
-        return ( !(value instanceof Boolean)
-            && !(this == NULL) && !(this == VOID) )
+        return !(value instanceof Boolean)
+            && this != NULL && this != VOID
             && Types.isNumeric(value);
     }
 
@@ -593,14 +593,14 @@ public final class Primitive implements Serializable {
             return number.doubleValue();
 
         if ( number.doubleValue() == 0 ) {
-            if ((toType == Long.class || toType == Long.TYPE))
+            if (toType == Long.class || toType == Long.TYPE)
                 return 0L;
             if (toType == BigInteger.class)
                 return BigInteger.ZERO;
             if (toType == BigDecimal.class)
                 return BigDecimal.ZERO.setScale(1);
         } else if ( number.doubleValue() == 1 ) {
-            if ((toType == Long.class || toType == Long.TYPE))
+            if (toType == Long.class || toType == Long.TYPE)
                 return 1L;
             if (toType == BigInteger.class)
                 return BigInteger.ONE;
