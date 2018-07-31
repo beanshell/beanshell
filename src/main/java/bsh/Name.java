@@ -228,9 +228,7 @@ class Name implements java.io.Serializable
             vs. imported class names (at least in the simple case - see
             tests/precedence1.bsh).  It should also speed things up a bit.
         */
-        if ( (evalBaseObject == null && !isCompound(evalName) )
-            && !forceClass )
-        {
+        if ( evalBaseObject == null && !isCompound(evalName) && !forceClass ) {
             Object obj = resolveThisFieldReference(
                 callstack, namespace, interpreter, evalName, false );
 
@@ -645,7 +643,7 @@ class Name implements java.io.Serializable
                 // Null interpreter and callstack references.
                 // class only resolution should not require them.
                 obj = toObject( null, null, true );
-            } catch ( UtilEvalError  e ) { }; // couldn't resolve it
+            } catch ( UtilEvalError  e ) { } // couldn't resolve it
 
             if ( obj instanceof ClassIdentifier )
                 clas = ((ClassIdentifier)obj).getTargetClass();

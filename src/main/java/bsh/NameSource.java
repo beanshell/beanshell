@@ -42,11 +42,11 @@ package bsh;
 */
 public interface NameSource
 {
-    public String [] getAllNames();
-    public void addNameSourceListener( NameSource.Listener listener );
+    String [] getAllNames();
+    void addNameSourceListener( NameSource.Listener listener );
 
     public static interface Listener {
-        public void nameSourceChanged( NameSource src );
+        void nameSourceChanged( NameSource src );
         /**
             Provide feedback on the progress of mapping a namespace
             @param msg is an update about what's happening

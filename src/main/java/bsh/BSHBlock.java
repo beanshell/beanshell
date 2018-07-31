@@ -151,7 +151,7 @@ class BSHBlock extends SimpleNode
     }
 
     public interface NodeFilter {
-        public boolean isVisible( SimpleNode node );
+        boolean isVisible( SimpleNode node );
     }
 
 }

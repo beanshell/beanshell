@@ -105,7 +105,7 @@ public class BshServlet extends HttpServlet
 
         response.setHeader( "Bsh-Return", String.valueOf(scriptResult) );
 
-        if ( (output != null && output.equalsIgnoreCase("raw"))
+        if ( ( output != null && output.equalsIgnoreCase("raw") )
                 || ( client != null && client.equals("Remote") ) )
             sendRaw(
                 request, response, scriptError, scriptResult, scriptOutput );
@@ -181,7 +181,7 @@ public class BshServlet extends HttpServlet
 
             String errString;
 
-            if ( error instanceof bsh.EvalError )
+            if ( error instanceof EvalError )
             {
                 EvalError evalError = (EvalError)error;
                 int lineNo = evalError.getErrorLineNumber();

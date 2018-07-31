@@ -117,7 +117,7 @@ class BSHClassDeclaration extends SimpleNode
         for (BshMethod m : meths)
            if (null != Reflect.getDeclaredMethod(clas, m.getName(), m.getParameterTypes()))
                throw new EvalError("Cannot override "+m.getName()+"() in " +
-                   superClass.getName() + " overridden method is final", null, null);
+                   StringUtil.typeString(superClass) + " overridden method is final", null, null);
 
         return clas;
     }

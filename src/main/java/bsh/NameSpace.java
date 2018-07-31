@@ -701,24 +701,22 @@ public class NameSpace
                 false/* recurse */);
         // Null value is just a declaration
         // Note: we might want to keep any existing value here instead of reset
-        // does the variable already exist?
-        if (existing != null)
-            // Is it typed?
-            if (existing.getType() != null)
-                // If it had a different type throw error.
-                // This allows declaring the same var again, but not with
-                // a different (even if assignable) type.
-                if (existing.getType() != type)
-                    throw new UtilEvalError("Typed variable: " + name
-                            + " was previously declared with type: "
-                            + existing.getType());
-                else {
-                    if (existing.modifiers == null)
-                        existing.modifiers = modifiers;
-                    // else set it and return
-                    existing.setValue(value, Variable.DECLARATION);
-                    return;
-                }
+        // does the variable already exist? Is it typed?
+        if (existing != null && existing.getType() != null)
+            // If it had a different type throw error.
+            // This allows declaring the same var again, but not with
+            // a different (even if assignable) type.
+            if (existing.getType() != type)
+                throw new UtilEvalError("Typed variable: " + name
+                        + " was previously declared with type: "
+                        + existing.getType());
+            else {
+                if (existing.modifiers == null)
+                    existing.modifiers = modifiers;
+                // else set it and return
+                existing.setValue(value, Variable.DECLARATION);
+                return;
+            }
         // Add the new typed var
         this.variables.put(name,
                 this.createVariable(name, type, value, modifiers));
