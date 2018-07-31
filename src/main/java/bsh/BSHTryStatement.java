@@ -57,7 +57,7 @@ class BSHTryStatement extends SimpleNode
 
         int nchild = jjtGetNumChildren();
         Node node = null;
-        while((i < nchild) && ((node = jjtGetChild(i++)) instanceof BSHMultiCatch))
+        while( i < nchild && (node = jjtGetChild(i++)) instanceof BSHMultiCatch )
         {
             catchParams.add((BSHMultiCatch) node);
             catchBlocks.add((BSHBlock) jjtGetChild(i++));
@@ -187,6 +187,6 @@ class BSHTryStatement extends SimpleNode
             throw new TargetError(thrown, this, callstack);
 
         // no exception return
-        return ((ret instanceof ReturnControl)) ? ret : Primitive.VOID;
+        return ret instanceof ReturnControl ? ret : Primitive.VOID;
     }
 }

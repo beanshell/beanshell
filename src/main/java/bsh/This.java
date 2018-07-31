@@ -211,7 +211,6 @@ public final class This implements java.io.Serializable, Runnable
             throws EvalError
         {
             String methodName = method.getName();
-            CallStack callstack = new CallStack( namespace );
 
             /*
                 If equals() is not explicitly defined we must override the
@@ -249,7 +248,7 @@ public final class This implements java.io.Serializable, Runnable
                     This.this.toString() + "\nimplements:" );
                 for(int i=0; i<ints.length; i++)
                     sb.append( " "+ ints[i].getName()
-                        + ((ints.length > 1)?",":"") );
+                        + ( ints.length > 1 ? "," :"" ) );
                 return sb.toString();
             }
 
@@ -566,10 +565,10 @@ public final class This implements java.io.Serializable, Runnable
 
         CallStack callstack = new CallStack();
         callstack.push(consArgsNameSpace);
-        Object[] args;
+        Object[] args = null;
         Interpreter interpreter = classStaticThis.declaringInterpreter;
 
-        try {
+        if ( null != argsNode ) try {
             args = argsNode.getArguments(callstack, interpreter);
         } catch (EvalError e) {
             throw new InterpreterError("Error evaluating constructor args: " + e, e);
@@ -630,9 +629,9 @@ public final class This implements java.io.Serializable, Runnable
             }
             parentNames.forEach(name -> initClassInstanceThis(instance, name));
 
-            if ( instanceNameSpace.isEnum )
-                if ( This.CONTEXT_ARGS.get().containsKey((Enum<?>) instance) )
-                    args = This.CONTEXT_ARGS.get().remove((Enum<?>) instance);
+            if ( instanceNameSpace.isEnum
+                    && This.CONTEXT_ARGS.get().containsKey((Enum<?>) instance) )
+                args = This.CONTEXT_ARGS.get().remove((Enum<?>) instance);
 
             // Find the constructor (now in the instance namespace)
             BshMethod constructor = instanceNameSpace.getMethod(Types.getBaseName(className), Types.getTypes(args), true/*declaredOnly*/);

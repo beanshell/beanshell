@@ -1153,7 +1153,7 @@ public class Interpreter
         Default out and err streams to stdout, stderr if they are null.
     */
     private void readObject(ObjectInputStream stream)
-        throws java.io.IOException, ClassNotFoundException
+        throws IOException, ClassNotFoundException
     {
         stream.defaultReadObject();
 

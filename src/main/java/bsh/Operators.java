@@ -125,8 +125,8 @@ class Operators implements ParserConstants {
         // If both original args were Primitives return a Primitive result
         // else it was mixed (wrapper/primitive) return the wrapper type
         // Exception is for boolean result, return the primitive
-        if ((lhsOrgType == Primitive.class && rhsOrgType == Primitive.class))
-            if (Types.isFloatingpoint(result) && lhs.getClass() == BigDecimal.class)
+        if ( lhsOrgType == Primitive.class && rhsOrgType == Primitive.class )
+            if ( Types.isFloatingpoint(result) && lhs.getClass() == BigDecimal.class )
                 return (Primitive) Primitive.wrap(result, result.getClass());
             else
                 return Primitive.shrinkWrap( result );
@@ -443,9 +443,9 @@ class Operators implements ParserConstants {
     */
     static Number promoteToInteger(Object wrapper )
     {
-        if(wrapper instanceof Character)
+        if ( wrapper instanceof Character )
             return Integer.valueOf(((Character) wrapper).charValue());
-        if((wrapper instanceof Byte) || (wrapper instanceof Short))
+        if ( wrapper instanceof Byte || wrapper instanceof Short )
             return Integer.valueOf(((Number) wrapper).intValue());
 
         return (Number) wrapper;

@@ -146,17 +146,17 @@ public class AWTConsole extends TextArea
 
     public void type(int code, char ch, int modifiers ) {
         switch ( code ) {
-            case ( KeyEvent.VK_BACK_SPACE ):
+            case KeyEvent.VK_BACK_SPACE:
                 if (line.length() > 0) {
                     line.setLength( line.length() - 1 );
                     replaceRange( "", textLength-1, textLength );
                     textLength--;
                 }
                 break;
-            case ( KeyEvent.VK_ENTER ):
+            case KeyEvent.VK_ENTER:
                 enter();
                 break;
-            case ( KeyEvent.VK_U ):
+            case KeyEvent.VK_U:
                 if ( (modifiers & InputEvent.CTRL_DOWN_MASK) > 0 ) {
                     int len = line.length();
                     replaceRange( "", textLength-len, textLength );
@@ -166,24 +166,24 @@ public class AWTConsole extends TextArea
                 } else
                     doChar( ch );
                 break;
-            case ( KeyEvent.VK_UP ):
+            case KeyEvent.VK_UP:
                 historyUp();
                 break;
-            case ( KeyEvent.VK_DOWN ):
+            case KeyEvent.VK_DOWN:
                 historyDown();
                 break;
-            case ( KeyEvent.VK_TAB ):
+            case KeyEvent.VK_TAB:
                 line.append("    ");
                 append("    ");
                 textLength +=4;
                 break;
 /*
-            case ( KeyEvent.VK_LEFT ):
+            case KeyEvent.VK_LEFT:
                 if (line.length() > 0) {
                 break;
 */
             // Control-C
-            case ( KeyEvent.VK_C ):
+            case KeyEvent.VK_C:
                 if ( (modifiers & InputEvent.CTRL_DOWN_MASK) > 0 ) {
                     line.append("^C");
                     append("^C");
@@ -197,7 +197,7 @@ public class AWTConsole extends TextArea
     }
 
     private void doChar( char ch ) {
-        if ( (ch >= ' ') && (ch <= '~') ) {
+        if ( ch >= ' ' && ch <= '~' ) {
             line.append( ch );
             append( String.valueOf(ch) );
             textLength++;

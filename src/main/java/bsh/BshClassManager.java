@@ -79,8 +79,6 @@ import java.util.WeakHashMap;
 */
 public class BshClassManager
 {
-    /** Identifier for no value item.  Use a hashtable as a Set. */
-    private static final Object NOVALUE = new Object();
     /**
         The interpreter which created the class manager
         This is used to load scripted classes from source files.
@@ -162,7 +160,7 @@ public class BshClassManager
     }
 
     public boolean classExists( String name ) {
-        return ( classForName( name ) != null );
+        return classForName( name ) != null ;
     }
 
     /**
@@ -578,7 +576,7 @@ public class BshClassManager
 
     public static interface Listener
     {
-        public void classLoaderChanged();
+        void classLoaderChanged();
     }
 
     /**
