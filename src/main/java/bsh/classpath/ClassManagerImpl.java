@@ -176,7 +176,7 @@ public class ClassManagerImpl extends BshClassManager
         }
 
         // insure that core classes are loaded from the same loader
-        if ((c == null) && name.startsWith(BSH_PACKAGE)) {
+        if ( c == null && name.startsWith(BSH_PACKAGE) ) {
             final ClassLoader myClassLoader = Interpreter.class.getClassLoader(); // is null if located in bootclasspath
             if (myClassLoader != null) {
                 try {
@@ -198,7 +198,7 @@ public class ClassManagerImpl extends BshClassManager
         }
 
         // Check classpath extension / reloaded classes
-        if ((c == null) && (baseLoader != null)) {
+        if ( c == null && baseLoader != null ) {
             try {
                 c = baseLoader.loadClass(name);
             } catch (ClassNotFoundException e) {
@@ -207,7 +207,7 @@ public class ClassManagerImpl extends BshClassManager
         }
 
         // Optionally try external classloader
-        if ((c == null) && (externalClassLoader != null)) {
+        if ( c == null && externalClassLoader != null ) {
             try {
                 c = externalClassLoader.loadClass(name);
             } catch (ClassNotFoundException e) {
@@ -520,13 +520,9 @@ public class ClassManagerImpl extends BshClassManager
         // clean up old listeners
         Reference deadref;
         while ( (deadref = refQueue.poll()) != null ) {
-            boolean ok = listeners.removeElement( deadref );
-            if ( ok ) {
-                //System.err.println("cleaned up weak ref: "+deadref);
-            } else {
+            if ( !listeners.removeElement( deadref ) )
                 Interpreter.debug(
                     "tried to remove non-existent weak ref: ", deadref);
-            }
         }
     }
 

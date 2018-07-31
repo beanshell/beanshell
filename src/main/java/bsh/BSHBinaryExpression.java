@@ -77,12 +77,12 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
             we're a boolean AND and the lhs is false.
             or we're a boolean OR and the lhs is true.
         */
-        if ( kind == BOOL_AND || kind == BOOL_ANDX )
-            if ( lhs == Primitive.FALSE )
-                return Primitive.FALSE;
-        if ( kind == BOOL_OR || kind == BOOL_ORX )
-            if ( lhs == Primitive.TRUE )
-                return Primitive.TRUE;
+        if ( (kind == BOOL_AND || kind == BOOL_ANDX)
+                && lhs == Primitive.FALSE )
+            return Primitive.FALSE;
+        if ( (kind == BOOL_OR || kind == BOOL_ORX)
+                && lhs == Primitive.TRUE )
+            return Primitive.TRUE;
 
 
         Object rhs = ((SimpleNode)jjtGetChild(1)).eval(callstack, interpreter);
@@ -125,15 +125,15 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
         object is a non-null and non-void Primitive type
     */
     private boolean isPrimitiveValue( Object obj ) {
-        return ( (obj instanceof Primitive)
-            && (obj != Primitive.VOID) && (obj != Primitive.NULL) );
+        return obj instanceof Primitive
+            && obj != Primitive.VOID && obj != Primitive.NULL;
     }
 
     /*
         object is a java.lang wrapper for boolean, char, or number type
     */
     private boolean isWrapper( Object obj ) {
-        return ( obj instanceof Boolean ||
-            obj instanceof Character || obj instanceof Number );
+        return obj instanceof Boolean
+            || obj instanceof Character || obj instanceof Number;
     }
 }

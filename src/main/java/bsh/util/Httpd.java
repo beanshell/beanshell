@@ -101,11 +101,10 @@ class HttpdConnection extends Thread
             if ( request == null )
                 error(400, "Empty Request");
 
-            if(request.toLowerCase().indexOf("http/1.") != -1)
+            else if (request.toLowerCase().indexOf("http/1.") != -1)
             {
                 String s;
-                while((!(s = in.readLine()).equals("")) && (s != null))
-                { ; }
+                while( !(s = in.readLine()).equals("") );
 
                 isHttp1 = true;
             }

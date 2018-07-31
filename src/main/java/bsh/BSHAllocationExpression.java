@@ -77,8 +77,6 @@ class BSHAllocationExpression extends SimpleNode
     )
         throws EvalError
     {
-        NameSpace namespace = callstack.top();
-
         Object[] args = argumentsNode.getArguments( callstack, interpreter );
         if ( args == null)
             throw new EvalError( "Null args in new.", this, callstack );

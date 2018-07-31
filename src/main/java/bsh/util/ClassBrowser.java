@@ -229,7 +229,6 @@ public class ClassBrowser extends JSplitPane
             return;
         }
 
-        Class clas;
         try {
             if ( selectedPackage.equals("<unpackaged>") )
                 selectedClass = classManager.classForName( classname );
@@ -285,11 +284,13 @@ public class ClassBrowser extends JSplitPane
         } while ( (clas = clas.getSuperclass()) != null );
         tree.setModel( new DefaultTreeModel(top) );
 
-        TreeNode tn = bottom.getParent();
-        if ( tn != null ) {
-            TreePath tp =  new TreePath (
-                ((DefaultTreeModel)tree.getModel()).getPathToRoot( tn ) );
-            tree.expandPath( tp );
+        if ( null != bottom ) {
+            TreeNode tn = bottom.getParent();
+            if ( tn != null ) {
+                TreePath tp =  new TreePath (
+                    ((DefaultTreeModel)tree.getModel()).getPathToRoot( tn ) );
+                tree.expandPath( tp );
+            }
         }
     }
 

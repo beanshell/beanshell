@@ -303,11 +303,11 @@ class LHS implements ParserConstants, Serializable {
             }
         }
         else if ( type == INDEX ) try {
-            if ( object.getClass().isArray() )
-                if ( val != null ) try {
-                    val = Types.castObject( val, Types.arrayElementType(object.getClass()),
-                        Types.ASSIGNMENT);
-                } catch (Exception e) { /* ignore cast exceptions */ }
+            if ( object.getClass().isArray() && val != null ) try {
+                val = Types.castObject( val,
+                      Types.arrayElementType(object.getClass()),
+                      Types.ASSIGNMENT);
+            } catch (Exception e) { /* ignore cast exceptions */ }
 
             BshArray.setIndex(object, index, val);
         } catch ( UtilTargetError e1 ) { // pass along target error
