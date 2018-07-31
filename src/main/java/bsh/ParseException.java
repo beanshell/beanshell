@@ -213,17 +213,12 @@ public final class ParseException extends EvalError {
         retval += " at line " + currentToken.next.beginLine + ", column " + currentToken.next.beginColumn;
     retval += "." + EOL;
     // Begin BeanShell Modification - made conditional on debug
-    if (Interpreter.DEBUG.get()) {
-        if (expectedTokenSequences.length == 0) {
-            // Nothing to add here
-        } else {
-            if (expectedTokenSequences.length == 1) {
-              retval += "Was expecting:" + EOL + "    ";
-            } else {
-              retval += "Was expecting one of:" + EOL + "    ";
-            }
-            retval += expected.toString();
-        }
+    if (Interpreter.DEBUG.get() && expectedTokenSequences.length != 0) {
+        if (expectedTokenSequences.length == 1)
+          retval += "Was expecting:" + EOL + "    ";
+        else
+          retval += "Was expecting one of:" + EOL + "    ";
+        retval += expected.toString();
     }
     // End BeanShell Modification - made conditional on debug
 

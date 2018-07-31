@@ -362,8 +362,8 @@ public class BshMethod implements Serializable {
         for(int i=0; i < argValues.length; i++)
         {
 
-            int k = (i >= lastParamIndex) ? lastParamIndex : i;
-            Class<?> paramType = (isVarArgs() && k == lastParamIndex)
+            int k = i >= lastParamIndex ? lastParamIndex : i;
+            Class<?> paramType = isVarArgs() && k == lastParamIndex
                     ? paramTypes[k].getComponentType()
                     : paramTypes[k];
 

@@ -408,7 +408,6 @@ public class BshClassPath
         // add to package map
         String [] sa = splitClassname( className );
         String pack = sa[0];
-        String clas = sa[1];
         Set set = (Set)packageMap.get( pack );
         if ( set == null ) {
             set = new HashSet();
@@ -546,22 +545,22 @@ public class BshClassPath
 
         ZipEntry ze;
         while( zip.available() == 1 )
-            if ( (ze = zip.getNextEntry()) != null )
-                if ( isClassFileName( ze.getName() ) )
-                    list.add( canonicalizeClassName( ze.getName() ) );
+            if ( (ze = zip.getNextEntry()) != null
+                    && isClassFileName( ze.getName() ) )
+                list.add( canonicalizeClassName( ze.getName() ) );
         zip.close();
 
         return list.toArray( new String[list.size()] );
     }
 
     public static boolean isClassFileName( String name ){
-        return ( name.toLowerCase().endsWith(".class") );
+        return name.toLowerCase().endsWith(".class");
             //&& (name.indexOf('$')==-1) );
     }
 
     public static boolean isArchiveFileName( String name ){
         name = name.toLowerCase();
-        return ( name.endsWith(".jar") || name.endsWith(".zip") || name.endsWith(".jmod") );
+        return name.endsWith(".jar") || name.endsWith(".zip") || name.endsWith(".jmod");
     }
 
     /**
@@ -769,7 +768,7 @@ public class BshClassPath
             String n = className.replace( '.', File.separatorChar ) + ".class";
             File file = new File( base, n );
 
-            if ( file == null || !file.exists() )
+            if ( !file.exists() )
                 return null;
 
             byte [] bytes;
@@ -923,9 +922,9 @@ public class BshClassPath
             System.err.println( "End ClassPath Mapping" );
     }
 
-    public static interface MappingFeedback
+    static interface MappingFeedback
     {
-        public void startClassMapping();
+        void startClassMapping();
 
         /**
             Provide feedback on the progress of mapping the classpath
@@ -937,11 +936,11 @@ public class BshClassPath
         /**
             Provide feedback on the progress of mapping the classpath
         */
-        public void classMapping( String msg );
+        void classMapping( String msg );
 
-        public void errorWhileMapping( String msg );
+        void errorWhileMapping( String msg );
 
-        public void endClassMapping();
+        void endClassMapping();
     }
 
 }

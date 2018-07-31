@@ -80,7 +80,7 @@ public final class BSHLiteral extends SimpleNode
     {
         int len = str.toCharArray().length;
 
-        if (len == 0 || len > 4 || ( len > 1 && str.charAt(0) != '\\' ) ) {
+        if ( len == 0 || len > 4 || len > 1 && str.charAt(0) != '\\' ) {
             stringSetup(str);
             return;
         }

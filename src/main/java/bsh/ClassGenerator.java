@@ -245,15 +245,18 @@ public final class ClassGenerator {
         }
 
         boolean isStatic(SimpleNode node) {
-            if (null != node.jjtGetParent() && node.jjtGetParent().jjtGetParent() instanceof BSHClassDeclaration)
-                if (((BSHClassDeclaration) node.jjtGetParent().jjtGetParent()).type == Type.INTERFACE)
-                    return true;
+            if ( null != node.jjtGetParent()
+                    && node.jjtGetParent().jjtGetParent() instanceof BSHClassDeclaration
+                    && ((BSHClassDeclaration) node.jjtGetParent().jjtGetParent()).type == Type.INTERFACE )
+                return true;
 
             if (node instanceof BSHTypedVariableDeclaration)
-                return ((BSHTypedVariableDeclaration) node).modifiers != null && ((BSHTypedVariableDeclaration) node).modifiers.hasModifier("static");
+                return ((BSHTypedVariableDeclaration) node).modifiers != null
+                    && ((BSHTypedVariableDeclaration) node).modifiers.hasModifier("static");
 
             if (node instanceof BSHMethodDeclaration)
-                return ((BSHMethodDeclaration) node).modifiers != null && ((BSHMethodDeclaration) node).modifiers.hasModifier("static");
+                return ((BSHMethodDeclaration) node).modifiers != null
+                    && ((BSHMethodDeclaration) node).modifiers.hasModifier("static");
 
             if (node instanceof BSHBlock)
                 return ((BSHBlock) node).isStatic;

@@ -43,7 +43,7 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
     static final String engineNameSpaceKey = "org_beanshell_engine_namespace";
 
     private BshScriptEngineFactory factory;
-    private bsh.Interpreter interpreter;
+    private Interpreter interpreter;
 
 
     public BshScriptEngine() {
@@ -59,7 +59,7 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
 
     protected Interpreter getInterpreter() {
         if (interpreter == null) {
-            this.interpreter = new bsh.Interpreter();
+            this.interpreter = new Interpreter();
             interpreter.setNameSpace(null); // should always be set by context
         }
 
@@ -88,7 +88,7 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
 
     private Object evalSource(Object source, ScriptContext scriptContext) throws ScriptException {
         try ( Interpreter bsh = getInterpreter() ) {
-            bsh.NameSpace contextNameSpace = getEngineNameSpace(scriptContext);
+            NameSpace contextNameSpace = getEngineNameSpace(scriptContext);
             bsh.setNameSpace(contextNameSpace);
 
             bsh.setOut(toPrintStream(scriptContext.getWriter()));
