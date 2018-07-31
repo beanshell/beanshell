@@ -137,6 +137,18 @@
   </distributionManagement>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <resource>
+        <directory>src/conf</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>version.properties</include>
+        </includes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>com.helger.maven</groupId>
