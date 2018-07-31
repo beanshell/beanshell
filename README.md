@@ -184,6 +184,7 @@ Projects that we know of which use BeanShell. Is your project not listed here? L
  * [CA DevTest](https://docops.ca.com/devtest-solutions/8-0-2/en/using/using-ca-application-test/using-the-workstation-and-console-with-ca-application-test/advanced-features/using-beanshell-in-devtest/using-beanshell-scripting-language)
  * [Cisco Prime Network](https://www.cisco.com/c/en/us/td/docs/net_mgmt/prime/network/5-0/customization/guide/CiscoPrimeNetwork-5-0-CustomizationGuide/appendix-commandbuilder.html)
  * [ImageJ](https://imagej.net/BeanShell_Scripting)
+ * [JDE for Emacs](https://www.emacswiki.org/emacs/JavaDevelopmentEnvironment)
  * [Joget](https://dev.joget.org/community/display/KBv6/Bean+Shell+Programming+Guide)
  * [LibreOffice](https://help.libreoffice.org/Common/Scripting_LibreOffice)
  * [Micro-Manager](https://micro-manager.org/wiki/Script_Panel_GUI)
@@ -194,7 +195,6 @@ Projects that we know of which use BeanShell. Is your project not listed here? L
  * [OpenKM](https://www.openkm.com/wiki/index.php/Scripting_-_OpenKM_6.2)
  * [Spring](https://docs.spring.io/spring-framework/docs/3.2.x/spring-framework-reference/html/dynamic-language.html)
  * [TestNG](https://testng.org/doc/documentation-main.html#beanshell)
- * [emacs jde](https://www.emacswiki.org/emacs/JavaDevelopmentEnvironment)
  * [jAlbum](https://jalbum.net/help/en/Scripting)
  * [jEdit](http://www.jedit.org/users-guide/beanshell-intro.html)
 
