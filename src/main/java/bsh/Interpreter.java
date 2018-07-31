@@ -41,6 +41,7 @@ import java.io.Serializable;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ResourceBundle;
 
 /**
     The BeanShell script interpreter.
@@ -100,7 +101,8 @@ public class Interpreter
     /* --- Begin static members --- */
 
     private static final long serialVersionUID = 1L;
-    public static final String VERSION = "2.1b0";
+    public static final String VERSION = ResourceBundle
+                        .getBundle("version").getString("release");
     /*
         Debug utils are static so that they are reachable by code that doesn't
         necessarily have an interpreter reference (e.g. tracing in utils).
