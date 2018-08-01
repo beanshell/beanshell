@@ -239,8 +239,8 @@ The current status is dormant as voted by the JCP in June 2011.
 
 ### 1999: beanshell.org
 
-BeanShell was originally maintained by Patrick Niemeyer at http://beanshell.org/ - distributed as
+BeanShell was originally developed by Patrick Niemeyer at http://beanshell.org/ - distributed as
 BeanShell (2.0b4 and earlier) were distributed under
 GNU Lesser General Public License (LGPL) and Sun Public License (SPL).
 
-In 2000 the project got [hosted on sourceforge](https://sourceforge.net/projects/beanshell/) which quickly saw interest in the new java scripting language grow.
+In 2000 the project was [hosted on sourceforge](https://sourceforge.net/projects/beanshell/) which quickly saw interest in the new java scripting language grow.
