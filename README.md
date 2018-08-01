@@ -1,4 +1,5 @@
-# BeanShell [![Build Status](https://travis-ci.org/beanshell/beanshell.svg?branch=merge-fork-beanshell2)](https://travis-ci.org/beanshell/beanshell) [![codecov](https://codecov.io/gh/beanshell/beanshell/branch/merge-fork-beanshell2/graph/badge.svg)](https://codecov.io/gh/beanshell/beanshell)
+# BeanShell [![Build Status](https://travis-ci.org/beanshell/beanshell.svg?branch=merge-fork-beanshell2)](https://travis-ci.org/beanshell/beanshell) [![codecov](https://codecov.io/gh/beanshell/beanshell/branch/merge-fork-beanshell2/graph/badge.svg)](https://codecov.io/gh/beanshell/beanshell)  [![coverity](https://scan.coverity.com/projects/16379/badge.svg)](https://scan.coverity.com/projects/beanshell-beanshell)
+
 
 ## Introduction
 
