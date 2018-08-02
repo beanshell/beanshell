@@ -28,6 +28,7 @@
 
 package bsh;
 
+import java.io.StringReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 
@@ -173,10 +174,68 @@ class BSHAllocationExpression extends SimpleNode
 	{
 		//throw new InterpreterError("constructWithClassBody unimplemented");
 
-		String name = callstack.top().getName() + "$" + (++innerClassCount);
+		String inner = "anon" + (++innerClassCount);
+		String outer = callstack.top().getName();
+		String name =  outer + "$" + inner;
 		Modifiers modifiers = new Modifiers();
 		modifiers.addModifier( Modifiers.CLASS, "public" );
 		Class clas;
+
+		// If the class was created with arguments then add a constructor that simply invokes super
+		// This fails if some args are null, due to subsequent Bsh stuff
+		if (args.length > 0) {
+		   String formal = "";
+		   String argnames = "";
+		   for (int i=0; i<args.length; i++) {
+		      if (i>0) {
+			 formal += ", ";
+			 argnames += ", ";
+		      }
+
+		      String argname = String.valueOf((char) (97+i));
+		      argnames += argname;
+
+		      String className = null;
+		      String arrayDim = "";
+		      if (args[i] instanceof Primitive) {
+			 Object arg = ((Primitive)args[i]).getValue();
+			 if (arg instanceof Boolean)
+			    className = "boolean";
+			 else if (arg instanceof Byte)
+			    className = "byte";
+			 else if (arg instanceof Character)
+			    className = "char";
+			 else if (arg instanceof Double)
+			    className = "double";
+			 else if (arg instanceof Float)
+			    className = "Float";
+			 else if (arg instanceof Integer)
+			    className = "int";
+			 else if (arg instanceof Long)
+			    className = "long";
+			 else if (arg instanceof Short)
+			    className = "short";
+			 else
+			    className = "void";
+		      } else {
+			 className= args[i].getClass().getName();
+			 while(className.startsWith("[")) {
+			    arrayDim += "[]";
+			    className = className.substring(1);
+			 }
+			 if (className.matches("L.*;")) 
+			    className = className.substring(1,className.length()-1);
+		      }
+		      formal += className+arrayDim+" "+argname;
+		   }
+		   String command = inner+"("+formal+") {super("+argnames+");}";
+		Parser p = new Parser(new StringReader(command));
+		p.Line();
+		BSHMethodDeclaration node = (BSHMethodDeclaration) p.popNode();
+		node.eval(new CallStack(), new Interpreter());
+		block.jjtAddChild(node, block.jjtGetNumChildren());
+		}
+
 		try {
 			clas = ClassGenerator.getClassGenerator() .generateClass( 
 				name, modifiers, null/*interfaces*/, type/*superClass*/,

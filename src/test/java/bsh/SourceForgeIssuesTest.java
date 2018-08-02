@@ -170,6 +170,33 @@ public class SourceForgeIssuesTest {
     }
 
 
+   /**
+    * <a href="http://sourceforge.net/tracker/?func=detail&aid=1631576&group_id=4075&atid=104075">Sourceforge issue "Cannot anonymous subclass with arguments" - ID: 1631576</a>
+    */
+   @Test
+   public void sourceforge_issue_104075() throws Exception {
+      final String CODE_104075 =
+	 "public class SubclassWithArgs {\n"+
+	 "   protected String arg1;\n"+
+	 "   public  SubclassWithArgs(String a) {\n"+
+	 "      arg1 = a;\n"+
+	 "   }\n"+
+   
+	 "   public String b() {\n"+
+	 "      return \"Goodbye\";\n"+
+	 "   }\n"+
+	 "}\n"+
+	 
+	 "scwa = new SubclassWithArgs(\"world\") {\n"+
+	 "   public String b() {\n"+
+	 "       return \"Hello \"+arg1;\n"+
+	 "   }\n"+
+	 "};\n"+
+	 // "System.err.println(scwa.b());\n"+
+	 "return scwa.b();\n";
+      assertEquals("Hello world", eval(CODE_104075));
+   }
+
     public static class A {
 
         public static String staticMethod() {
