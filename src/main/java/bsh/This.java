@@ -150,9 +150,8 @@ public final class This implements java.io.Serializable, Runnable
 
         if ( interf == null )
         {
-            ClassLoader classLoader = ca[0].getClassLoader(); // ?
             interf = Proxy.newProxyInstance(
-                classLoader, ca, invocationHandler );
+                ca[0].getClassLoader(), ca, invocationHandler );
             interfaces.put( hashKey, interf );
         }
 

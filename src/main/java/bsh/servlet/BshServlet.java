@@ -48,15 +48,11 @@ import bsh.Interpreter;
 */
 public class BshServlet extends HttpServlet
 {
-    static String bshVersion;
+    private static final String bshVersion;
     static String exampleScript = "print(\"hello!\");";
 
-    static String getBshVersion()
-    {
-        if ( bshVersion != null )
-            return bshVersion;
-
-        /*
+    static {
+            /*
             We have included a getVersion() command to detect the version
             of bsh.  If bsh is packaged in the WAR file it could access it
             directly as a bsh command.  But if bsh is in the app server's
@@ -65,16 +61,16 @@ public class BshServlet extends HttpServlet
             This command works around the lack of a coherent version number
             in the early versions.
         */
+        String tmp = "BeanShell: unknown version";
         try ( Interpreter bsh = new Interpreter() ) {
             bsh.eval( new InputStreamReader( BshServlet.class.getResource(
                 "getVersion.bsh").openStream() ) );
-            bshVersion = (String)bsh.eval( "getVersion()" );
-        } catch ( Exception e ) {
-            synchronized (bshVersion) {
-                bshVersion = "BeanShell: unknown version";
-            }
-        }
-
+            tmp = (String)bsh.eval( "getVersion()" );
+        } catch ( Exception e ) { /* ignore fall back on original value */ }
+        bshVersion = tmp;
+    }
+    static String getBshVersion()
+    {
         return bshVersion;
     }
 
