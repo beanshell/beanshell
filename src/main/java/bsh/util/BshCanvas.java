@@ -77,7 +77,9 @@ public class BshCanvas extends JComponent {
     public Graphics getBufferedGraphics() {
         Dimension dim = getSize();
         imageBuffer = createImage( dim.width, dim.height );
-        return imageBuffer.getGraphics();
+        if ( null != imageBuffer )
+            return imageBuffer.getGraphics();
+        return null;
     }
 
     public void setBounds( int x, int y, int width, int height ) {

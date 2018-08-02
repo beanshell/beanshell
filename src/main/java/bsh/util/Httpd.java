@@ -98,13 +98,15 @@ class HttpdConnection extends Thread
             pout = new PrintStream(out);
 
             String request = in.readLine();
-            if ( request == null )
+            if ( request == null ) {
                 error(400, "Empty Request");
+                request = "";
+            }
 
             else if (request.toLowerCase().indexOf("http/1.") != -1)
             {
                 String s;
-                while( !(s = in.readLine()).equals("") );
+                while( null != (s = in.readLine()) && !s.equals("") );
 
                 isHttp1 = true;
             }

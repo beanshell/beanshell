@@ -627,6 +627,8 @@ final class Reflect {
     static Object constructObject( Class clas, Object[] args )
         throws ReflectError, InvocationTargetException
     {
+        if ( null == clas )
+            return Primitive.NULL;
         if ( clas.isInterface() )
             throw new ReflectError(
                 "Can't create instance of an interface: "+clas);

@@ -38,7 +38,7 @@ class BSHAssignment extends SimpleNode implements ParserConstants
         CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
-        if (null == operator && jjtGetNumChildren() > 0)
+        if ( null == operator )
             return ((SimpleNode)jjtGetChild(0)).eval(callstack, interpreter);
 
         BSHPrimaryExpression lhsNode =

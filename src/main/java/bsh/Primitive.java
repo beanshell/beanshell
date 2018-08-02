@@ -306,6 +306,8 @@ public final class Primitive implements Serializable {
     */
     public static Object [] unwrap( Object[] args )
     {
+        if ( args == null )
+            return null;
         Object [] oa = new Object[ args.length ];
         for(int i=0; i<args.length; i++)
             oa[i] = unwrap( args[i] );

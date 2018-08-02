@@ -561,7 +561,7 @@ public class ClassBrowser extends JSplitPane
             Iterator it=packages.iterator();
             while( it.hasNext() ) {
                 String pack = (String)(it.next());
-                String [] sa = pack.split( "." );
+                String [] sa = pack.split( "\\." );
                 Map level=packageTree;
                 for (int i=0; i< sa.length; i++ ) {
                     String name = sa[i];
