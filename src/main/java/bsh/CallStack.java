@@ -54,7 +54,7 @@ import java.util.EmptyStackException;
 public final class CallStack implements Serializable {
     /** default serial version id */
     private static final long serialVersionUID = 1L;
-    private final Stack<NameSpace> stack = new Stack<NameSpace>();
+    private final Stack<NameSpace> stack = new Stack<>();
 
     public CallStack() { }
 
@@ -81,15 +81,14 @@ public final class CallStack implements Serializable {
         int size = stack.size();
         if ( depth >= size )
             return NameSpace.JAVACODE;
-        else
-            return stack.get(size-1-depth);
+        return stack.toArray(new NameSpace[size])[size-1-depth];
     }
 
     /**
         This is kind of crazy, but used by the setNameSpace command.
         zero based.
     */
-    public void set(int depth, NameSpace ns) {
+    public synchronized void set(int depth, NameSpace ns) {
         stack.set( stack.size()-1-depth, ns );
     }
 
@@ -122,7 +121,7 @@ public final class CallStack implements Serializable {
     }
 */
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        StringBuffer sb = new StringBuffer();
         sb.append("CallStack:\n");
         for( int i=stack.size()-1; i>=0; i-- )
             sb.append("\t"+stack.get(i)+"\n");

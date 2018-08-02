@@ -78,12 +78,9 @@ public class Remote
             throw new IOException( "Unrecognized URL type."
                 +"Scheme must be http:// or bsh://");
 
-        try {
+        if ( null != returnValue )
             return Integer.parseInt( returnValue );
-        } catch ( Exception e ) {
-            // this convention may change...
-            return 0;
-        }
+        return 0;
     }
 
     static String doBsh( String url, String text )

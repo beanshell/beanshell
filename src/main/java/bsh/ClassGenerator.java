@@ -144,14 +144,11 @@ public final class ClassGenerator {
 
     private static void saveClasses(String className, byte[] code) {
         String dir = Interpreter.getSaveClassesDir();
-        if (dir != null) {
-            try {
-                FileOutputStream out = new FileOutputStream(dir + "/" + className + ".class");
-                out.write(code);
-                out.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        if (dir != null) try
+        ( FileOutputStream out = new FileOutputStream(dir + "/" + className + ".class") ) {
+            out.write(code);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
