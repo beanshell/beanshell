@@ -42,7 +42,8 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 import bsh.ConsoleInterface;
 import bsh.Interpreter;
@@ -106,7 +107,7 @@ public class AWTConsole extends TextArea
     private StringBuffer line = new StringBuffer();
     private String startedLine;
     private int textLength = 0;
-    private Vector history = new Vector();
+    private List<String> history = new ArrayList<>();
     private int histLine = 0;
 
     public AWTConsole( int rows, int cols, InputStream cin, OutputStream cout ) {
@@ -210,7 +211,7 @@ public class AWTConsole extends TextArea
             s = ";\n";
         else {
             s = line +"\n";
-            history.addElement( line.toString() );
+            history.add( line.toString() );
         }
         line.setLength( 0 );
         histLine = 0;
@@ -267,7 +268,7 @@ public class AWTConsole extends TextArea
         if ( histLine == 0 )
             showline = startedLine;
         else
-            showline = (String)history.elementAt( history.size() - histLine );
+            showline = history.get( history.size() - histLine );
 
         replaceRange( showline, textLength-line.length(), textLength );
         line = new StringBuffer(showline);

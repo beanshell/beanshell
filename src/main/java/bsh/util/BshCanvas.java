@@ -27,6 +27,7 @@ package bsh.util;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.IllegalComponentStateException;
 import java.awt.Image;
 
 import javax.swing.JComponent;
@@ -77,9 +78,9 @@ public class BshCanvas extends JComponent {
     public Graphics getBufferedGraphics() {
         Dimension dim = getSize();
         imageBuffer = createImage( dim.width, dim.height );
-        if ( null != imageBuffer )
-            return imageBuffer.getGraphics();
-        return null;
+        if ( null == imageBuffer )
+            throw new IllegalComponentStateException("Cannot create Image");
+        return imageBuffer.getGraphics();
     }
 
     public void setBounds( int x, int y, int width, int height ) {
