@@ -78,7 +78,8 @@ public class DiscreteFilesClassLoader extends BshClassLoader
         if ( source != null )
         {
             byte [] code = source.getCode( name );
-            return defineClass( name, code, 0, code.length );
+            return defineClass( name, code, 0,
+                    null == code ? 0 : code.length );
         } else
             // Let superclass BshClassLoader (URLClassLoader) findClass try
             // to find the class...

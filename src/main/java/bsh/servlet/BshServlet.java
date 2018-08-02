@@ -50,7 +50,6 @@ public class BshServlet extends HttpServlet
 {
     static String bshVersion;
     static String exampleScript = "print(\"hello!\");";
-    static Interpreter bsh;
 
     static String getBshVersion()
     {
@@ -66,13 +65,14 @@ public class BshServlet extends HttpServlet
             This command works around the lack of a coherent version number
             in the early versions.
         */
-        bsh = new Interpreter();
-        try {
+        try ( Interpreter bsh = new Interpreter() ) {
             bsh.eval( new InputStreamReader( BshServlet.class.getResource(
                 "getVersion.bsh").openStream() ) );
             bshVersion = (String)bsh.eval( "getVersion()" );
         } catch ( Exception e ) {
-            bshVersion = "BeanShell: unknown version";
+            synchronized (bshVersion) {
+                bshVersion = "BeanShell: unknown version";
+            }
         }
 
         return bshVersion;
