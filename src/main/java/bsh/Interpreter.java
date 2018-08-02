@@ -1160,13 +1160,8 @@ public class Interpreter
         stream.defaultReadObject();
 
         // set transient fields
-        if ( console != null ) {
-            setOut( console.getOut() );
-            setErr( console.getErr() );
-        } else {
-            setOut( System.out );
-            setErr( System.err );
-        }
+        setOut( System.out );
+        setErr( System.err );
     }
 
     /**

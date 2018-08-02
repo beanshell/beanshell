@@ -93,9 +93,13 @@ public class BshClassLoader extends URLClassLoader
 
         // This is copied from ClassManagerImpl
         // We should refactor this somehow if it sticks around
-        if ( name.startsWith( ClassManagerImpl.BSH_PACKAGE ) ) try {
-            return bsh.Interpreter.class.getClassLoader().loadClass( name );
-        } catch ( ClassNotFoundException e ) { /* ignore */ }
+        if ( name.startsWith( ClassManagerImpl.BSH_PACKAGE ) ) {
+            final ClassLoader loader = bsh.Interpreter.class
+                    .getClassLoader();
+            if ( null != loader ) try {
+                return loader.loadClass( name );
+            } catch ( ClassNotFoundException e ) { /* ignore */ }
+        }
 
         /*
             Try to find the class using our classloading mechanism.
