@@ -85,6 +85,8 @@ public class dir
         }
 
         String [] files = file.list();
+        if ( null == files )
+            files = new String[0];
         Arrays.sort(files);
 
         for( int i=0; i< files.length; i++ ) {

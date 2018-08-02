@@ -90,12 +90,13 @@ public final class TargetError extends EvalError
     /** Generate a printable string showing the wrapped target exceptions.
      * @param t wrapped target exception
      * @return messages unwrapped */
-    private String printTargetError( Throwable t )
-    {
-        StringBuilder msgs = new StringBuilder(t.toString());
-        while (null != (t = t.getCause()))
-            msgs.append("\n").append(t.toString());
-        return msgs.toString();
+    private String printTargetError( Throwable t ) {
+            StringBuffer msgs = new StringBuffer();
+            while (null != t) synchronized (t) {
+                msgs.append(t.toString()).append("\n");
+                t = t.getCause();
+            }
+            return msgs.toString().trim();
     }
 
     /**

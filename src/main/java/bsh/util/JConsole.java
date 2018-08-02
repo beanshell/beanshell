@@ -48,7 +48,8 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.Icon;
 import javax.swing.JMenuItem;
@@ -93,7 +94,7 @@ public class JConsole extends JScrollPane
     public PrintStream getErr() { return out;   }
 
     private int cmdStart = 0;
-    private Vector history = new Vector();
+    private List<String> history = new ArrayList<>();
     private String startedLine;
     private int histLine = 0;
 
@@ -288,8 +289,10 @@ public class JConsole extends JScrollPane
 
             case KeyEvent.VK_TAB :
                 if (e.getID() == KeyEvent.KEY_RELEASED) {
-                    String part = text.getText().substring( cmdStart );
-                    doCommandCompletion( part );
+                    String part = text.getText();
+                    if ( null == part )
+                        break;
+                    doCommandCompletion( part.substring( cmdStart ) );
                 }
                 e.consume();
                 break;
@@ -356,6 +359,8 @@ public class JConsole extends JScrollPane
         // Found ambiguous, show (some of) them
 
         String line = text.getText();
+        if ( null == line )
+            line = "";
         String command = line.substring( cmdStart );
         // Find prompt
         for(i=cmdStart; line.charAt(i) != '\n' && i > 0; i--);
@@ -413,7 +418,7 @@ public class JConsole extends JScrollPane
         if ( s.length() == 0 )  // special hack for empty return!
             s = ";\n";
         else {
-            history.addElement( s );
+            history.add( s );
             s = s +"\n";
         }
 
@@ -458,7 +463,7 @@ public class JConsole extends JScrollPane
         if ( histLine == 0 )
             showline = startedLine;
         else
-            showline = (String)history.elementAt( history.size() - histLine );
+            showline = history.get( history.size() - histLine );
 
         replaceRange( showline, cmdStart, textLength() );
         text.setCaretPosition(textLength());

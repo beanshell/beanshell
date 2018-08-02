@@ -33,6 +33,7 @@ import java.lang.reflect.Field;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 /**
     An LHS is a wrapper for an variable, field, or property.  It ordinarily
@@ -168,7 +169,7 @@ class LHS implements ParserConstants, Serializable {
             return nameSpace.getVariableOrProperty( varName, null );
 
         if ( type == FIELD ) try {
-            Object o = field.get( object );
+            Object o = Objects.requireNonNull(field).get( object );
             return Primitive.wrap( o, field.getType() );
         } catch( ReflectiveOperationException e2 ) {
             throw new UtilEvalError("Can't read field: " + field, e2);
