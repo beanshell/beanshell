@@ -120,8 +120,8 @@ public final class CallStack implements Serializable {
         return nsa;
     }
 */
-    public String toString() {
-        StringBuffer sb = new StringBuffer();
+    public synchronized String toString() {
+        StringBuilder sb = new StringBuilder();
         sb.append("CallStack:\n");
         for( int i=stack.size()-1; i>=0; i-- )
             sb.append("\t"+stack.get(i)+"\n");
