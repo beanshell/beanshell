@@ -507,6 +507,10 @@ public final class This implements java.io.Serializable, Runnable
         if (classStaticThis == null)
             throw new InterpreterError("Unititialized class: no static");
 
+        if (index == DEFAULTCONSTRUCTOR) // auto-gen default constructor
+            return ConstructorArgs.DEFAULT;
+        // use default super constructor
+
         DelayedEvalBshMethod[] constructors;
         try {
             Object cons = classStaticThis.getNameSpace().getVariable(BSHCONSTRUCTORS.toString());
@@ -517,43 +521,22 @@ public final class This implements java.io.Serializable, Runnable
             throw new InterpreterError("Unable to get instance initializers: " + e, e);
         }
 
-        if (index == DEFAULTCONSTRUCTOR) // auto-gen default constructor
-            return ConstructorArgs.DEFAULT;
-        // use default super constructor
-
         DelayedEvalBshMethod constructor = constructors[index];
 
-        if (constructor.methodBody.jjtGetNumChildren() == 0)
-            return ConstructorArgs.DEFAULT;
-        // use default super constructor
-
         // Determine if the constructor calls this() or super()
-        String altConstructor = null;
-        BSHArguments argsNode = null;
-        SimpleNode firstStatement = (SimpleNode) constructor.methodBody.jjtGetChild(0);
-        if (firstStatement instanceof BSHAssignment)
-            firstStatement = (SimpleNode) firstStatement.jjtGetChild(0);
-        if (firstStatement instanceof BSHPrimaryExpression)
-            firstStatement = (SimpleNode) firstStatement.jjtGetChild(0);
-
-        if (firstStatement instanceof BSHMethodInvocation) {
-            BSHMethodInvocation methodNode = (BSHMethodInvocation) firstStatement;
-            BSHAmbiguousName methodName = methodNode.getNameNode();
-            if (methodName.text.equals("super") || methodName.text.equals("this")) {
-                altConstructor = methodName.text;
-                argsNode = methodNode.getArgsNode();
-            }
-        }
+        String altConstructor = constructor.getAltConstructor();
 
         if (altConstructor == null)
             return ConstructorArgs.DEFAULT;
         // use default super constructor
 
+        BSHArguments argsNode = constructor.getArgsNode();
+
         // Make a tmp namespace to hold the original constructor args for
         // use in eval of the parameters node
         NameSpace consArgsNameSpace = new NameSpace(classStaticThis.getNameSpace(), "consArgs");
         String[] consArgNames = constructor.getParameterNames();
-        Class[] consArgTypes = constructor.getParameterTypes();
+        Class<?>[] consArgTypes = constructor.getParameterTypes();
         for (int i = 0; i < consArgs.length; i++) try {
             consArgsNameSpace.setTypedVariable(consArgNames[i], consArgTypes[i], consArgs[i], null/*modifiers*/);
         } catch (UtilEvalError e) {
@@ -564,7 +547,7 @@ public final class This implements java.io.Serializable, Runnable
 
         CallStack callstack = new CallStack();
         callstack.push(consArgsNameSpace);
-        Object[] args = null;
+        Object[] args = constructor.getConstructorArgs();
         Interpreter interpreter = classStaticThis.declaringInterpreter;
 
         if ( null != argsNode ) try {

@@ -27,8 +27,11 @@
 
 package bsh;
 
+import java.lang.reflect.Constructor;
+
 public class DelayedEvalBshMethod extends BshMethod
 {
+    private static final long serialVersionUID = 1L;
     String returnTypeDescriptor;
     BSHReturnType returnTypeNode;
     String [] paramTypeDescriptors;
@@ -37,6 +40,10 @@ public class DelayedEvalBshMethod extends BshMethod
     // used for the delayed evaluation...
     transient CallStack callstack;
     transient Interpreter interpreter;
+    private BSHArguments argsNode = null;
+    private Constructor<?> constructor = null;
+    private Object[] constructorArgs = null;
+
 
     /**
         This constructor is used in class generation.  It supplies String type
@@ -71,9 +78,24 @@ public class DelayedEvalBshMethod extends BshMethod
         this.interpreter = interpreter;
     }
 
+    /** Wrap super constructor as a BshMethod.
+     * @param name constructor name
+     * @param con the super constructor
+     * @param declaringNameSpace the name space */
+    DelayedEvalBshMethod(String name, Constructor<?> con, NameSpace declaringNameSpace) {
+        this(name, null, null, new String[con.getParameterCount()], null,
+            null, new BSHBlock(0), declaringNameSpace, null, null, null);
+
+        this.constructor = con;
+        this.getModifiers().addModifier("public");
+        this.getParameterModifiers();
+        declaringNameSpace.setMethod(this);
+        this.constructorArgs = This.CONTEXT_ARGS.get().remove(name);
+    }
+
     public String getReturnTypeDescriptor() { return returnTypeDescriptor; }
 
-    public Class getReturnType()
+    public Class<?> getReturnType()
     {
         if ( returnTypeNode == null )
             return null;
@@ -86,15 +108,51 @@ public class DelayedEvalBshMethod extends BshMethod
         }
     }
 
-    public String [] getParamTypeDescriptors() { return paramTypeDescriptors; }
+    public String [] getParamTypeDescriptors() {
+        if ( null != this.constructor )
+            return ClassGeneratorUtil.getTypeDescriptors(
+                        this.getParameterTypes());
+        return paramTypeDescriptors;
+    }
 
-    public Class [] getParameterTypes()
+    public Class<?>[] getParameterTypes()
     {
+        if ( null != this.constructor )
+            return this.constructor.getParameterTypes();
         // BSHFormalParameters will cache the type for us
         try {
             return (Class [])paramTypesNode.eval( callstack, interpreter );
         } catch ( EvalError e ) {
             throw new InterpreterError("can't eval param types: "+e, e);
         }
+    }
+
+    public String getAltConstructor() {
+        if ( null != this.constructor )
+            return "super";
+        if ( this.methodBody.jjtGetNumChildren() == 0 )
+            return null;
+        Node firstStatement = this.methodBody.jjtGetChild(0);
+        while ( !(firstStatement instanceof BSHMethodInvocation)
+                && firstStatement.jjtGetNumChildren() > 0 )
+            firstStatement = firstStatement.jjtGetChild(0);
+
+        if ( firstStatement instanceof BSHMethodInvocation ) {
+            BSHMethodInvocation methodNode = (BSHMethodInvocation) firstStatement;
+            String methodName = methodNode.getNameNode().text;
+            if ( methodName.equals("super") || methodName.equals("this") ) {
+                this.argsNode = methodNode.getArgsNode();
+                return methodName;
+            }
+        }
+        return null;
+    }
+
+    public BSHArguments getArgsNode() {
+        return this.argsNode;
+    }
+
+    public Object[] getConstructorArgs() {
+        return constructorArgs;
     }
 }
