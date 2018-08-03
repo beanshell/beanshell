@@ -159,7 +159,9 @@ class BSHAllocationExpression extends SimpleNode
         CallStack callstack, Interpreter interpreter )
         throws EvalError
     {
-        String name = callstack.top().getName() + "$" + (++innerClassCount);
+        String anon = "anon" + (++innerClassCount);
+        String name = callstack.top().getName() + "$" + anon;
+        This.CONTEXT_ARGS.get().put(anon, args);
         Modifiers modifiers = new Modifiers(Modifiers.CLASS);
         Class clas = ClassGenerator.getClassGenerator().generateClass(
                 name, modifiers, null/*interfaces*/, type/*superClass*/,

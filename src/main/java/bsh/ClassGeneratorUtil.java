@@ -924,7 +924,10 @@ public class ClassGeneratorUtil implements Opcodes {
         return typeDescriptor.length() == 1; // right?
     }
 
-    private static String[] getTypeDescriptors(Class[] cparams) {
+    /** Returns type descriptors for the parameter types.
+     * @param cparams class list of parameter types
+     * @return String list of type descriptors */
+    static String[] getTypeDescriptors(Class<?>[] cparams) {
         String[] sa = new String[cparams.length];
         for (int i = 0; i < sa.length; i++)
             sa[i] = BSHType.getTypeDescriptor(cparams[i]);
