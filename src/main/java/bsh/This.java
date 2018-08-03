@@ -629,8 +629,8 @@ public final class This implements java.io.Serializable, Runnable
             parentNames.forEach(name -> initClassInstanceThis(instance, name));
 
             if ( instanceNameSpace.isEnum
-                    && This.CONTEXT_ARGS.get().containsKey((Enum<?>) instance) )
-                args = This.CONTEXT_ARGS.get().remove((Enum<?>) instance);
+                    && This.CONTEXT_ARGS.get().containsKey( instance.toString()) )
+                args = This.CONTEXT_ARGS.get().remove(instance.toString());
 
             // Find the constructor (now in the instance namespace)
             BshMethod constructor = instanceNameSpace.getMethod(Types.getBaseName(className), Types.getTypes(args), true/*declaredOnly*/);
@@ -658,7 +658,7 @@ public final class This implements java.io.Serializable, Runnable
 
     private static final ThreadLocal<NameSpace> CONTEXT_NAMESPACE = new ThreadLocal<>();
     private static final ThreadLocal<Interpreter> CONTEXT_INTERPRETER = new ThreadLocal<>();
-    static final ThreadLocal<Map<Enum<?>, Object[]>> CONTEXT_ARGS = ThreadLocal.withInitial(()->new HashMap<>());
+    static final ThreadLocal<Map<String, Object[]>> CONTEXT_ARGS = ThreadLocal.withInitial(()->new HashMap<>());
 
 
     /**
