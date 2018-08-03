@@ -91,7 +91,7 @@ public final class ClassGenerator {
 
         // Generate the type for our class
         Variable[] variables = getDeclaredVariables(block, callstack, interpreter, packageName);
-        DelayedEvalBshMethod[] methods = getDeclaredMethods(block, callstack, interpreter, packageName);
+        DelayedEvalBshMethod[] methods = getDeclaredMethods(block, callstack, interpreter, packageName, superClass);
 
         callstack.pop();
 
@@ -185,8 +185,18 @@ public final class ClassGenerator {
         return vars.toArray(new Variable[vars.size()]);
     }
 
-    static DelayedEvalBshMethod[] getDeclaredMethods(BSHBlock body, CallStack callstack, Interpreter interpreter, String defaultPackage) throws EvalError {
+    static DelayedEvalBshMethod[] getDeclaredMethods(BSHBlock body, CallStack callstack, Interpreter interpreter, String defaultPackage, Class superClass) throws EvalError {
         List<DelayedEvalBshMethod> methods = new ArrayList<DelayedEvalBshMethod>();
+        if ( callstack.top().getName().indexOf("$anon") > -1 ) {
+            // anonymous classes need super constructor
+            String classBaseName = Types.getBaseName(callstack.top().getName());
+            DelayedEvalBshMethod bm = new DelayedEvalBshMethod(classBaseName,
+                Reflect.findMostSpecificConstructor(
+                    Types.getTypes(This.CONTEXT_ARGS.get().get(classBaseName)),
+                    superClass.getConstructors()),
+                callstack.top());
+            methods.add(bm);
+        }
         for (int child = 0; child < body.jjtGetNumChildren(); child++) {
             SimpleNode node = (SimpleNode) body.jjtGetChild(child);
             if (node instanceof BSHMethodDeclaration) {
