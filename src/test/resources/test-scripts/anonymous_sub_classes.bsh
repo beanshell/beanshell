@@ -1,0 +1,109 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// parent class with default constructor
+class DefaultConstructor {
+    a = "";
+    cls = this.getClass();
+    DefaultConstructor() { this.a = "foo"; }
+    go() { a + " bar"; }
+}
+
+// parent class without default constructor
+class NoDefaultConstructor {
+    a = "";
+    cls = this.getClass();
+    NoDefaultConstructor(String  a) { this.a = a; }
+    go() { a + " bar"; }
+}
+
+// parent class with default and other constructor
+class OverLoadedConstructor {
+    a = "";
+    cls = this.getClass();
+    OverLoadedConstructor() { this.a = "foo"; }
+    OverLoadedConstructor(a)  { this.a = a; }
+    go() { a + " bar"; }
+}
+
+c = new DefaultConstructor();
+assertThat(c.go(), equalTo("foo bar"));
+assertThat(c.cls, equalTo(DefaultConstructor.class));
+c = new NoDefaultConstructor("foo");
+assertThat(c.go(), equalTo("foo bar"));
+assertThat(c.cls, equalTo(NoDefaultConstructor.class));
+c = new OverLoadedConstructor();
+assertThat(c.go(), equalTo("foo bar"));
+assertThat(c.cls, equalTo(OverLoadedConstructor.class));
+c = new OverLoadedConstructor("foo");
+assertThat(c.go(), equalTo("foo bar"));
+assertThat(c.cls, equalTo(OverLoadedConstructor.class));
+
+// anonymous classes
+
+// without constructor args
+anon = new DefaultConstructor() {
+    spr = this.getClass().getSuperclass();
+    go() { super.go() + " baz"; }
+};
+assertThat(anon.go(), equalTo("foo bar baz"));
+assertThat(anon.cls.getName(), startsWith("global"));
+assertThat(anon.spr, equalTo(DefaultConstructor.class));
+// with constructor args
+anon = new NoDefaultConstructor("foobar") {
+    spr = this.getClass().getSuperclass();
+    go() { super.go() + " baz"; }
+};
+assertThat(anon.go(), equalTo("foobar bar baz"));
+assertThat(anon.cls.getName(), startsWith("global"));
+assertThat(anon.spr, equalTo(NoDefaultConstructor.class));
+// without constructor args
+anon = new OverLoadedConstructor() {
+    spr = this.getClass().getSuperclass();
+    go() { super.go() + " baz"; }
+};
+assertThat(anon.go(), equalTo("foo bar baz"));
+assertThat(anon.cls.getName(), startsWith("global"));
+assertThat(anon.spr, equalTo(OverLoadedConstructor.class));
+// with constructor args
+anon = new OverLoadedConstructor("foobar") {
+    spr = this.getClass().getSuperclass();
+    go() { super.go() + " baz"; }
+};
+assertThat(anon.go(), equalTo("foobar bar baz"));
+assertThat(anon.cls.getName(), startsWith("global"));
+assertThat(anon.spr, equalTo(OverLoadedConstructor.class));
+
+// sub-classes
+
+class SubDefaultConstructor extends NoDefaultConstructor {
+    go() { super.go() + " sub"; }
+}
+assert(isEvalError("NoDefaultConstructor: method <init>()V not found", 'new SubDefaultConstructor();'));
+assert(isEvalError("Can't find constructor: SubDefaultConstructor(String) in class: SubDefaultConstructor", 'new SubDefaultConstructor("foo");'));
+
+class SubOverrideSuper extends NoDefaultConstructor {
+    spr = this.getClass().getSuperclass();
+    SubOverrideSuper(a) { super(a); }
+    go() { super.go() + " sub"; }
+}
+sub = new SubOverrideSuper("foo");
+assertThat(sub.go(), equalTo("foo bar sub"));
+assertThat(sub.cls, equalTo(SubOverrideSuper.class));
+assertThat(sub.spr, equalTo(NoDefaultConstructor.class));
+
+class SubOverloadSuper extends NoDefaultConstructor {
+    spr = this.getClass().getSuperclass();
+    SubOverloadSuper() { super("foo"); }
+    go() { super.go() + " sub"; }
+}
+sub = new SubOverloadSuper();
+assertThat(sub.go(), equalTo("foo bar sub"));
+assertThat(sub.cls, equalTo(SubOverloadSuper.class));
+assertThat(sub.spr, equalTo(NoDefaultConstructor.class));
+
+
+complete();
+
