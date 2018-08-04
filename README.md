@@ -1,1 +1,1 @@
-This Fork provides a branch beanshell-unuffical to be able to realease not snapshot version of the beanshell project (see https://github.com/beanshell/beanshell) it is used by com.github.stefanofornari:BshConsole.
+This Fork provides a branch beanshell-unuffical to be able to realease not snapshot version of the beanshell project (see https://github.com/beanshell/beanshell). It is used by com.github.stefanofornari:BshConsole.
