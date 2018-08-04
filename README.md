@@ -8,3 +8,4 @@ where:
 - X.Y.Z is the beanshell version this branch is updated to
 - YYYYMMDD is the date of the snapshuld this branch is updated to
 
+The artifact produced will be named something like bsh-2.1.0-UNOFFICIAL-20180804.jar.
