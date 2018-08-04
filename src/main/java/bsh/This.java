@@ -503,7 +503,7 @@ public final class This implements java.io.Serializable, Runnable
      * @return the ConstructorArgs object containing a constructor selector
      * and evaluated arguments for the alternate constructor
      */
-    public static ConstructorArgs getConstructorArgs(String superClassName, This classStaticThis, Object[] consArgs, int index) {
+    public static ConstructorArgs getConstructorArgs(Class<?> superClass, This classStaticThis, Object[] consArgs, int index) {
         if (classStaticThis == null)
             throw new InterpreterError("Unititialized class: no static");
 
@@ -556,29 +556,26 @@ public final class This implements java.io.Serializable, Runnable
             throw new InterpreterError("Error evaluating constructor args: " + e, e);
         }
 
-        Class[] argTypes = Types.getTypes(args);
+        Class<?>[] argTypes = Types.getTypes(args);
         args = Primitive.unwrap(args);
-        Class superClass = interpreter.getClassManager().classForName(superClassName);
-        if (superClass == null)
-            throw new InterpreterError("can't find superclass: " + superClassName);
 
-        Constructor[] superCons = superClass.getDeclaredConstructors();
+        Constructor<?>[] superCons = superClass.getDeclaredConstructors();
 
         // find the matching super() constructor for the args
         if (altConstructor.equals("super")) {
             int i = Reflect.findMostSpecificConstructorIndex(argTypes, superCons);
             if (i == -1)
-                throw new InterpreterError("can't find constructor for args!");
+                throw new InterpreterError("can't find super constructor for args!");
             return new ConstructorArgs(i, args);
         }
 
         // find the matching this() constructor for the args
-        Class[][] candidates = new Class[constructors.length][];
+        Class<?>[][] candidates = new Class[constructors.length][];
         for (int i = 0; i < candidates.length; i++)
             candidates[i] = constructors[i].getParameterTypes();
         int i = Reflect.findMostSpecificSignature(argTypes, candidates);
         if (i == -1)
-            throw new InterpreterError("can't find constructor for args 2!");
+            throw new InterpreterError("can't find this constructor for args!");
         // this() constructors come after super constructors in the table
 
         int selector = i + superCons.length;
@@ -586,7 +583,7 @@ public final class This implements java.io.Serializable, Runnable
 
         // Are we choosing ourselves recursively through a this() reference?
         if (selector == ourSelector)
-            throw new InterpreterError("Recusive constructor call.");
+            throw new InterpreterError("Recursive constructor call.");
 
         return new ConstructorArgs(selector, args);
     }
