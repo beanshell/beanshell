@@ -515,11 +515,8 @@ public class ClassGeneratorUtil implements Opcodes {
         if ( type == ENUM )
             generateEnumStaticInit(fqClassName, classDescript, cv);
 
-        // Invoke Class.forName() to get our class.
-        // We do this here, as opposed to in the bsh static init helper method
-        // in order to be sure to capture the correct classloader.
-        cv.visitLdcInsn(canonClassName);
-        cv.visitMethodInsn(INVOKESTATIC, "java/lang/Class", "forName", "(Ljava/lang/String;)Ljava/lang/Class;", false);
+        // equivalent of my.ClassName.class
+        cv.visitLdcInsn(Type.getType(classDescript));
 
         // invoke the initStatic() method
         cv.visitMethodInsn(INVOKESTATIC, "bsh/This", "initStatic", "(Ljava/lang/Class;)V", false);
@@ -555,8 +552,8 @@ public class ClassGeneratorUtil implements Opcodes {
         // Generate code to call ClassGeneratorUtil to get our switch index
         // and give us args...
 
-        // push super class name
-        cv.visitLdcInsn(superClass.getName()); // use superClassName var?
+        // push super class name .class
+        cv.visitLdcInsn(Type.getType(BSHType.getTypeDescriptor(superClass)));
 
         // Push the bsh static namespace field
         pushBshStatic(fqClassName, className, cv);
@@ -568,7 +565,7 @@ public class ClassGeneratorUtil implements Opcodes {
         cv.visitIntInsn(BIPUSH, consIndex);
 
         // invoke the ClassGeneratorUtil getConstructorsArgs() method
-        cv.visitMethodInsn(INVOKESTATIC, "bsh/This", "getConstructorArgs", "(Ljava/lang/String;Lbsh/This;[Ljava/lang/Object;I)" + "Lbsh/This$ConstructorArgs;", false);
+        cv.visitMethodInsn(INVOKESTATIC, "bsh/This", "getConstructorArgs", "(Ljava/lang/Class;Lbsh/This;[Ljava/lang/Object;I)" + "Lbsh/This$ConstructorArgs;", false);
 
         // store ConstructorArgs in consArgsVar
         cv.visitVarInsn(ASTORE, consArgsVar);
@@ -620,7 +617,7 @@ public class ClassGeneratorUtil implements Opcodes {
     */
     private void doSwitchBranch(int index, String targetClassName, String[] paramTypes, Label endLabel, Label[] labels, int consArgsVar, MethodVisitor cv) {
         cv.visitLabel(labels[index]);
-        //cv.visitLineNumber( index, labels[index] );
+
         cv.visitVarInsn(ALOAD, 0); // push this before args
 
         // Unload the arguments from the ConstructorArgs object
