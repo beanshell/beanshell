@@ -2,7 +2,9 @@ This Fork provides a branch beanshell-unofficial to be able to realease not snap
 
 beanshell-unuffical will create a version of bsh.jar with the following coordinates:
 
-org.apache-extras.beanshell:bsh:2.1.0-UNOFFICIAL-YYYYMMDD
+org.apache-extras.beanshell:bsh:X.Y.Z-UNOFFICIAL-YYYYMMDD
 
-where YYYYMMDD is the date of the snapshuld this branch is updated to.
+where:
+- X.Y.Z is the beanshell version this branch is updated to
+- YYYYMMDD is the date of the snapshuld this branch is updated to
 
