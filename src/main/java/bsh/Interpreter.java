@@ -31,9 +31,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
 import java.io.Reader;
@@ -414,8 +412,8 @@ public class Interpreter
 
             try (Interpreter interpreter =
                 new Interpreter( new CommandLineReader(
-                        new InputStreamReader(System.in)),
-                        System.out, System.err, true )) {
+                    new FileReader(System.in)),
+                    System.out, System.err, true )) {
                 interpreter.run();
             } catch (IOException e) {
                 System.err.println("I/O Error: "+e);
@@ -1035,7 +1033,7 @@ public class Interpreter
         try {
             @SuppressWarnings("resource")
             PrintStream pout = new PrintStream(
-                new FileOutputStream( filename ) );
+                new FileOutputStream( filename ), true, "UTF-8");
             System.setOut( pout );
             System.setErr( pout );
         } catch ( IOException e ) {
