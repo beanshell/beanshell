@@ -27,10 +27,8 @@ package bsh;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -40,6 +38,7 @@ import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 /**
     Remote executor class. Posts a script from the command line to a BshServlet
     or embedded  interpreter using (respectively) HTTP or the bsh telnet
@@ -85,10 +84,6 @@ public class Remote
 
     static String doBsh( String url, String text )
     {
-        OutputStream out = null;
-        InputStream in = null;
-        BufferedReader bin = null;
-        Socket s = null;
         String host = "";
         String port = "";
         String returnValue = "-1";
@@ -106,20 +101,16 @@ public class Remote
             return returnValue;
         }
 
-        try {
+        try (Socket s = new Socket(host, Integer.parseInt(port) + 1);
+             OutputStream out = s.getOutputStream();
+             InputStream in = s.getInputStream();
+             BufferedReader bin = new BufferedReader(new FileReader(in))) {
+
             System.out.println("Connecting to host : "
-                + host + " at port : " + port);
-            s = new Socket(host, Integer.parseInt(port) + 1);
-
-            out = s.getOutputStream();
-            in = s.getInputStream();
-
+                                 + host + " at port : " + port);
             sendLine( text, out );
-
-            bin = new BufferedReader(
-                new InputStreamReader(in));
-              String line;
-              while ( (line=bin.readLine()) != null )
+            String line;
+            while ( (line=bin.readLine()) != null )
                 System.out.println( line );
 
             // Need to scrape a value from the last line?
@@ -128,26 +119,13 @@ public class Remote
         } catch(Exception ex) {
             System.err.println("Error communicating with server: "+ex);
             return returnValue;
-        } finally {
-            if (null != bin) try {
-                bin.close();
-            } catch (IOException e) { /* ignore */ }
-            if (null != s) try {
-                s.close();
-            } catch (IOException e) { /* ignore */ }
-            if (null != in) try {
-                in.close();
-            } catch (IOException e) { /* ignore */ }
-            if (null != out) try {
-                out.close();
-            } catch (IOException e) { /* ignore */ }
         }
     }
 
     private static void sendLine( String line, OutputStream outPipe )
         throws IOException
     {
-        outPipe.write( line.getBytes() );
+        outPipe.write( line.getBytes(StandardCharsets.UTF_8) );
         outPipe.flush();
     }
 
@@ -194,12 +172,12 @@ public class Remote
 
           returnValue = urlcon.getHeaderField("Bsh-Return");
 
-          BufferedReader bin = new BufferedReader(
-            new InputStreamReader( urlcon.getInputStream() ) );
-          String line;
-          while ( (line=bin.readLine()) != null )
-            System.out.println( line );
-
+          try (BufferedReader bin = new BufferedReader(
+                  new FileReader(urlcon.getInputStream()) )) {
+              String line;
+              while ( (line=bin.readLine()) != null )
+                System.out.println( line );
+          }
           System.out.println( "Return Value: "+returnValue );
 
         } catch (MalformedURLException e) {
