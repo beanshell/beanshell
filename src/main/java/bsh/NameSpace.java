@@ -27,7 +27,6 @@ package bsh;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -965,9 +964,9 @@ public class NameSpace
             final String name, final Class<?>[] argTypes,
             final String resourcePath, final Interpreter interpreter)
             throws UtilEvalError {
-        try {
-            interpreter.eval(new InputStreamReader(in), this, resourcePath);
-        } catch (final EvalError e) {
+        try (FileReader reader = new FileReader(in)) {
+            interpreter.eval(reader, this, resourcePath);
+        } catch (IOException | EvalError e) {
             /* Here we catch any EvalError from the interpreter because we are
              * using it as a tool to load the command, not as part of the
              * execution path. */
@@ -1256,6 +1255,7 @@ public class NameSpace
         this.importPackage("java.util");
         this.importPackage("java.io");
         this.importPackage("java.lang");
+        this.importClass("bsh.FileReader");
         this.importClass("java.math.BigInteger");
         this.importClass("java.math.BigDecimal");
         this.importCommands("/bsh/commands");
