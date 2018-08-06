@@ -1,14 +1,19 @@
 language: java
-sudo: false
-script:
-  - jdk_switcher use oraclejdk8
-  - mvn clean install -Djacoco.skip=true -DskipTests 
-  - jdk_switcher use oraclejdk9
-  - mvn test -DargLine=--illegal-access=deny
-  - jdk_switcher use oraclejdk8
-  - mvn test -Daccessibility=true
 cache:
   directories:
-    - $HOME/.m2
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - "$HOME/.m2"
+env:
+  global:
+    secure: mZYnTm53YP5iHxPv1mpDTw+f3fW+VfZB4bT4vlmFLHRfjGjHukIvMkea/97TqwPGJjY147jS1WqPzL2wQ5tj4JzDMgPlSAT9KurD9ymy5nmetgWY5UjofQqJ/94R1kOoCfR46uH+MZ3C0N1TXdtPuTRihodC92RhxbVhcNFLrbxIg1DRtxu62t1roALlNwBu7MIhzOKYPevmtsusYN6c313NBEem7toyXomHlIRbWJzvsfSz79ldIzpHka+2dymWltprWTiiUCj5lljyr1L+UojJ7OpyNxduORXyh45uarBaQJR3mEOlx3UXJUWh8h12FAC5vpWFYexOfg19mRIRcPpCw/xp81DR0Y6zfL+0oHQgS67f3weJ+jA04HI+D84ySUJ6ZJCZkexmuORbKu+eG9VogRiGUN+8AVVTRRXB1f1VqqWpg/cWGnRTfMzvgsTa8EIzFWHt6jhFKnDaJISAYkTZdBYn8LPLln/mkVqwU0ZXulWXrzXUHOX0iLAi7126AwExi4JOyQmzaiyrNAYk0xKUuUBF7adAODD3b2YcGZG30h0P6x+ftia2ll+wMBdiIzp4ksmvTUoUyyN2wxA/mlJGCBl4M1ic5Oa4W/X6W5EhkgmGO03HVoKAXcdc1preV36PnJdd3BuY+wrB3KpSJ+JkVPZJ++tIrTWR3uik/Cw=
+before_install:
+- echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN
+  CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+addons:
+  coverity_scan:
+    project:
+      name: beanshell/beanshell
+      description: BeanShell
+    notification_email: nick@jigsoft.co.za
+    build_command_prepend: mvn clean
+    build_command: mvn -DskipTests=true compile
+    branch_pattern: coverity_scan
