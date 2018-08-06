@@ -27,10 +27,8 @@ package bsh;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -40,6 +38,7 @@ import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 /**
     Remote executor class. Posts a script from the command line to a BshServlet
     or embedded  interpreter using (respectively) HTTP or the bsh telnet
@@ -116,8 +115,7 @@ public class Remote
 
             sendLine( text, out );
 
-            bin = new BufferedReader(
-                new InputStreamReader(in));
+            bin = new BufferedReader(new FileReader(in));
               String line;
               while ( (line=bin.readLine()) != null )
                 System.out.println( line );
@@ -147,7 +145,7 @@ public class Remote
     private static void sendLine( String line, OutputStream outPipe )
         throws IOException
     {
-        outPipe.write( line.getBytes() );
+        outPipe.write( line.getBytes(StandardCharsets.UTF_8) );
         outPipe.flush();
     }
 
@@ -194,12 +192,12 @@ public class Remote
 
           returnValue = urlcon.getHeaderField("Bsh-Return");
 
-          BufferedReader bin = new BufferedReader(
-            new InputStreamReader( urlcon.getInputStream() ) );
-          String line;
-          while ( (line=bin.readLine()) != null )
-            System.out.println( line );
-
+          try (BufferedReader bin = new BufferedReader(
+                  new FileReader(urlcon.getInputStream()) )) {
+              String line;
+              while ( (line=bin.readLine()) != null )
+                System.out.println( line );
+          }
           System.out.println( "Return Value: "+returnValue );
 
         } catch (MalformedURLException e) {
