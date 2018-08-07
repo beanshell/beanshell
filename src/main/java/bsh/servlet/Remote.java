@@ -23,7 +23,7 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-package bsh;
+package bsh.servlet;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -39,6 +39,8 @@ import java.net.Socket;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+
+import bsh.FileReader;
 /**
     Remote executor class. Posts a script from the command line to a BshServlet
     or embedded  interpreter using (respectively) HTTP or the bsh telnet
