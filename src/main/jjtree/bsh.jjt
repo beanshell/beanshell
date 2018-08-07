@@ -952,7 +952,7 @@ void PrimaryPrefix() : { }
 |
   AllocationExpression()
 |
-  LOOKAHEAD( MethodInvocation() )
+  LOOKAHEAD( AmbiguousName() "(" ( Expression() | ")" ) )
     MethodInvocation()
 |
   LOOKAHEAD( Type() "." "class" )
