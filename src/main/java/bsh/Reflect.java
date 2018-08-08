@@ -213,9 +213,18 @@ final class Reflect {
     static LHS getLHSStaticField(Class clas, String fieldName)
         throws UtilEvalError, ReflectError
     {
-        Field f = resolveExpectedJavaField(
-            clas, fieldName, true/*onlystatic*/);
-        return new LHS(f);
+        try {
+            Field f = resolveExpectedJavaField(
+                clas, fieldName, true/*onlystatic*/);
+            return new LHS(f);
+        } catch ( ReflectError e )
+        {
+            // not a field, try property access
+            if ( hasObjectPropertySetter( clas, fieldName ) )
+                return new LHS( clas, fieldName );
+            else
+                throw e;
+        }
     }
 
     /**
@@ -263,14 +272,20 @@ final class Reflect {
             NameSpace ns = getThisNS(clas);
             if (isGeneratedClass(clas) && null != ns && ns.isClass)
                 if (staticOnly) {
-                    Object var = ns.getVariable(fieldName, true);
-                    if (Primitive.VOID != var)
-                        return var;
+                    Variable var = ns.getVariableImpl(fieldName, true);
+                    Object val = Primitive.VOID;
+                    if ( null != var && !var.hasModifier("private") )
+                        val = ns.unwrapVariable(var);
+                    if (Primitive.VOID != val)
+                        return val;
                 }
                 else if (null != (ns = getThisNS(object))) {
-                    Object var = ns.getVariable(fieldName, true);
-                    if (Primitive.VOID != var)
-                        return var;
+                    Variable var = ns.getVariableImpl(fieldName, true);
+                    Object val = Primitive.VOID;
+                    if ( null != var && !var.hasModifier("private") )
+                        val = ns.unwrapVariable(var);
+                    if (Primitive.VOID != val)
+                        return val;
                 }
             throw e;
         } catch( NullPointerException e ) { // shouldn't happen
@@ -836,12 +851,15 @@ final class Reflect {
 
         Interpreter.debug("property access: ");
         Method method = null;
+        Class<?> cls = obj.getClass();
+        if ( obj instanceof Class )
+            cls = (Class<?>) obj;
 
         Exception e1=null, e2=null;
         try {
             String accessorName = accessorName( "get", propName );
             method = resolveExpectedJavaMethod(
-                null/*bcm*/, obj.getClass(), obj, accessorName, args, false );
+                null/*bcm*/, cls, obj, accessorName, args, false );
         } catch ( Exception e ) {
             e1 = e;
         }
@@ -849,7 +867,7 @@ final class Reflect {
             try {
                 String accessorName = accessorName( "is", propName );
                 method = resolveExpectedJavaMethod(
-                    null/*bcm*/, obj.getClass(), obj,
+                    null/*bcm*/, cls, obj,
                     accessorName, args, false );
                 if ( method.getReturnType() != Boolean.TYPE )
                     method = null;
@@ -879,8 +897,11 @@ final class Reflect {
 
         Interpreter.debug("property access: ");
         try {
+            Class<?> cls = obj.getClass();
+            if (obj instanceof Class)
+                cls = (Class<?>) obj;
             Method method = resolveExpectedJavaMethod(
-                null/*bcm*/, obj.getClass(), obj, accessorName, args, false );
+                null/*bcm*/, cls, obj, accessorName, args, false );
             invokeMethod( method, obj, args );
         }
         catch ( InvocationTargetException e )

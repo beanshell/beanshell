@@ -1379,8 +1379,9 @@ public class NameSpace
     boolean attemptSetPropertyValue(final String propName, final Object value,
             final Interpreter interp) throws UtilEvalError {
         final String accessorName = Reflect.accessorName("set", propName);
+        Object val = Primitive.unwrap(value);
         final Class<?>[] classArray = new Class<?>[] {
-                value == null ? null : value.getClass()};
+                val == null ? null : val.getClass()};
         final BshMethod m = this.getMethod(accessorName, classArray);
         if (m != null)
             try {
@@ -1411,7 +1412,7 @@ public class NameSpace
                 return m.invoke((Object[]) null, interp);
             accessorName = Reflect.accessorName("is", propName);
             m = this.getMethod(accessorName, classArray);
-            if (m != null)
+            if (m != null && m.getReturnType() == Boolean.TYPE)
                 return m.invoke((Object[]) null, interp);
             return Primitive.VOID;
         } catch (final EvalError ee) {
