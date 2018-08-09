@@ -170,6 +170,9 @@ public class Interpreter
      */
     private boolean compatibility = COMPATIBIILTY;
 
+    /** Cached getBshPrompt for interactive mode. */
+    private String prompt = null;
+
     /* --- End instance data --- */
 
     /**
@@ -1168,13 +1171,15 @@ public class Interpreter
         be defined by the user as with any other method.
         Defaults to "bsh % " if the method is not defined or there is an error.
     */
-    private String getBshPrompt()
-    {
+    private String getBshPrompt() {
+        if ( null != prompt )
+            return prompt;
         try {
-            return (String)eval("getBshPrompt()");
+            prompt = (String) eval("getBshPrompt()");
         } catch ( Exception e ) {
-            return "bsh % ";
+            prompt = "bsh % ";
         }
+        return prompt;
     }
 
     /**
@@ -1273,11 +1278,15 @@ public class Interpreter
 
         @Override
         public PrintStream getOut() {
+            if ( null == out )
+                out = System.out;
             return out;
         }
 
         @Override
         public PrintStream getErr() {
+            if ( null == err )
+                err = System.err;
             return err;
         }
 
