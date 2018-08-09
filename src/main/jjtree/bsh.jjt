@@ -460,8 +460,11 @@ TOKEN : /* OPERATORS */
 | < BIT_OR: "|" >
 | < BIT_ORX: "@bitwise_or" >
 | < XOR: "^" >
+| < XORX: "@bitwise_xor" >
 | < MOD: "%" >
+| < MODX: "@mod" >
 | < POWER: "**" >
+| < POWERX: "@pow" >
 | < LSHIFT: "<<" >
 | < LSHIFTX: "@left_shift" >
 | < RSIGNEDSHIFT: ">>" >
@@ -477,8 +480,11 @@ TOKEN : /* OPERATORS */
 | < ORASSIGN: "|=" >
 | < ORASSIGNX: "@or_assign" >
 | < XORASSIGN: "^=" >
+| < XORASSIGNX: "@xor_assign" >
 | < MODASSIGN: "%=" >
+| < MODASSIGNX: "@mod_assign" >
 | < POWERASSIGN: "**=" >
+| < POWERASSIGNX: "@pow_assign" >
 | < LSHIFTASSIGN: "<<=" >
 | < LSHIFTASSIGNX: "@left_shift_assign" >
 | < RSIGNEDSHIFTASSIGN: ">>=" >
@@ -757,9 +763,10 @@ void Expression() #Assignment :
 int AssignmentOperator() :
 { Token t; }
 {
-    ( "=" | "*=" | "**=" | "/=" | "%=" | "+=" | "-=" | "&=" | "@and_assign" |
-     "^=" | "|=" | "@or_assign" | "<<=" | "@left_shift_assign" | ">>=" |
-     "@right_shift_assign" | ">>>=" | "@right_unsigned_shift_assign" )
+    ( "=" | "*=" | "**=" | "@pow_assign" | "/=" | "%=" | "@mod_assign" | "+="
+        | "-=" | "&=" | "@and_assign" | "^=" | "@xor_assign" | "|="
+        | "@or_assign" | "<<=" | "@left_shift_assign" | ">>="
+        | "@right_shift_assign" | ">>>=" | "@right_unsigned_shift_assign" )
     {
         t = getToken(0);
         return t.kind;
@@ -791,11 +798,12 @@ void RelationalExpression() :
 void BinaryExpression() :
 { Token t; }
 {
-  UnaryExpression() ( (t="+" | t="-" | t="*" | t="/" | t="%" | t="**"
-        | t="<<" | t="@left_shift" | t=">>" | t="@right_shift"
-        | t=">>>" | t="@right_unsigned_shift" | t="|" | t="@bitwise_or"
-        | t="^" | t="&" | t="@bitwise_and") UnaryExpression()
-    { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
+  UnaryExpression() ( (t="+" | t="-" | t="*" | t="/" | t="%" | t="@mod"
+        | t="**" | t="@pow" | t="<<" | t="@left_shift" | t=">>"
+        | t="@right_shift" | t=">>>" | t="@right_unsigned_shift" | t="|"
+        | t="@bitwise_or" | t="^" | t="@bitwise_xor" | t="&"
+        | t="@bitwise_and")
+    UnaryExpression() { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
 }
 
 void UnaryExpression() :
