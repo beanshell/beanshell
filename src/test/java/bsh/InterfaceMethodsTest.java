@@ -4,10 +4,16 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import mypackage.IFoo;
+
 import static bsh.TestUtil.eval;
 import static bsh.TestUtil.script;
+import static bsh.matchers.StringUtilValue.valueString;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import org.junit.Rule;
 
@@ -170,4 +176,38 @@ public class InterfaceMethodsTest {
         );
         assertEquals("method returns 2", 2, ret);
     }
+
+    @Test
+    public void get_interface_test_primitive_methods() throws Exception {
+        try (Interpreter bsh = new Interpreter()) {
+            bsh.eval(script(
+                    "import mypackage.IFoo;",
+                    "boolean fieldBool = false;",
+                    "int fieldInt = 0;",
+                    "Boolean fieldBool2 = false;",
+                    "List run() {",
+                        "fieldBool = ! fieldBool;",
+                        "fieldBool2 = ! fieldBool2;",
+                        "fieldInt++;",
+                        "List list = new ArrayList();",
+                        "list.add(fieldBool instanceof bsh.Primitive);",
+                        "list.add(fieldBool);",
+                        "list.add(fieldInt instanceof bsh.Primitive);",
+                        "list.add(fieldInt);",
+                        "list.add(fieldBool2 instanceof bsh.Primitive);",
+                        "list.add(fieldBool2);",
+                        "return list;",
+                    "}"
+            ));
+            IFoo foo = (IFoo) bsh.getInterface(IFoo.class);
+            assertThat(foo.run(), valueString("[true, true, true, 1I, false, true]"));
+            assertTrue("boolean field is Primitive", (Boolean)foo.run().get(0));
+            assertTrue("boolean field value is true", (Boolean)foo.run().get(1));
+            assertTrue("int field is Primitive", (Boolean)foo.run().get(2));
+            assertEquals("int field value is 5 (called 5 times)", 5, (int)foo.run().get(3));
+            assertFalse("Boolean wrapper type field is NOT Primitive", (Boolean)foo.run().get(4));
+            assertTrue("Boolean wrapper type field value is true", (Boolean)foo.run().get(5));
+        }
+    }
+
 }
