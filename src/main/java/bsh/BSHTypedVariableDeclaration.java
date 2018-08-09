@@ -98,9 +98,15 @@ class BSHTypedVariableDeclaration extends SimpleNode {
                         var.modifiers = modifiers;
                         var.setValue(value, Variable.ASSIGNMENT);
                         namespace.setVariableImpl(var);
-                    } else
+                    } else {
+                        if (interpreter.getStrictJava()
+                                && value instanceof Primitive
+                                && ((Primitive) value).isNumber())
+                            value = Primitive.castNumberStrictJava(type,
+                                    ((Primitive) value).numberValue());
                         namespace.setTypedVariable(
                                 dec.name, type, value, modifiers );
+                    }
                     value = namespace.getVariable(dec.name);
                 } catch ( UtilEvalError e ) {
                     throw e.toEvalError( this, callstack );
