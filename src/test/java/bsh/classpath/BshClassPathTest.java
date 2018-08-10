@@ -117,7 +117,7 @@ public class BshClassPathTest {
     @Test
     public void classpath_map_filesystem_exception() throws Exception {
         thrown.expect(FileSystemNotFoundException.class);
-	String unknownString = File.separator+"unknown"+File.separator+"path";
+        String unknownString = File.separator+"unknown"+File.separator+"path";
         thrown.expectMessage(containsString(unknownString));
 
         try (final Interpreter bsh = new Interpreter()) {
