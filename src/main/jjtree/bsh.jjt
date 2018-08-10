@@ -56,6 +56,9 @@ options {
     /* Print grammar debugging info as we parse
     DEBUG_PARSER=true;
     */
+    /* Print detailed lexing info
+    DEBUG_TOKEN_MANAGER=true;
+    */
     /* Print detailed lookahead debugging info
     DEBUG_LOOKAHEAD=true;
     */
@@ -364,9 +367,31 @@ TOKEN : /* LITERALS */
 |
   < #EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
 |
-  < CHARACTER_LITERAL: "'" (~["'","\n","\r"] | "\\'")* "'" >
+  < CHARACTER_LITERAL:
+      "'"
+      (   (~["'","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      "'"
+  >
 |
-  < STRING_LITERAL: "\"" (~["\"","\n","\r"] | "\\\"")* "\"" >
+  < STRING_LITERAL:
+      "\""
+      (   (~["\"","\\","\n","\r"])
+        | ("\\"
+            ( ["n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      "\""
+  >
 |
   < LONG_STRING_LITERAL: "\"\"\"" ( ~["\""] ("\"")? )* "\"\"\"" >
 |

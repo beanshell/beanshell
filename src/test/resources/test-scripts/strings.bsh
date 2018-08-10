@@ -68,6 +68,8 @@ assertEquals("?7", "\777");
 assertEquals("?77", '\7777');
 assertEquals("?77", "\7777");
 assertEquals("Is a question?", "Is a question\77");
+assertEquals("a\\b".replace("\\","F"), "aFb");
+assertEquals("a\\b".replace('\\','F'), "aFb");
 
 // Long strings
 out="\n";
