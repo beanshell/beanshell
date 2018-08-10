@@ -107,9 +107,9 @@ ghi\
 assertEquals('abc\ndef\nghi\n', line);
 
 // Long strings
-out="\n";
+out= System.getProperty("line.separator");
 for (x : 5)
-  out += x + "\n";
+  out += x + System.getProperty("line.separator");
 
 aout = """
 0
