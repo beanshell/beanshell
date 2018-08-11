@@ -572,11 +572,8 @@ public class Interpreter
     {
         File file = pathToFile( filename );
         Interpreter.debug("Sourcing file: ", file);
-        Reader sourceIn = new BufferedReader( new FileReader(file) );
-        try {
-            return eval( sourceIn, nameSpace, filename );
-        } finally {
-            sourceIn.close();
+        try ( Reader sourceIn = new BufferedReader(new FileReader(file)) ) {
+            return eval(sourceIn, nameSpace, filename);
         }
     }
 
