@@ -93,7 +93,7 @@ public final class TargetError extends EvalError
     private synchronized String printTargetError( Throwable t ) {
             StringBuilder msgs = new StringBuilder(t.toString());
             while ( null != (t = t.getCause()) )
-                msgs.append("\n").append(t.toString());
+                msgs.append('\n').append(t.toString());
             return msgs.toString();
     }
 

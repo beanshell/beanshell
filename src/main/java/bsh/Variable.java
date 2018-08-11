@@ -86,7 +86,7 @@ public class Variable implements java.io.Serializable
         // prevent final variable re-assign
         if (hasModifier("final")) {
             if (this.value != null)
-                throw new UtilEvalError("Cannot re-assign final variable "+name+".");
+                throw new UtilEvalError("Cannot re-assign final variable " + name + '.');
             if (value == null)
                 return;
         }

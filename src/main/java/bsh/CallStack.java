@@ -124,7 +124,7 @@ public final class CallStack implements Serializable {
         StringBuilder sb = new StringBuilder();
         sb.append("CallStack:\n");
         for( int i=stack.size()-1; i>=0; i-- )
-            sb.append("\t").append(stack.get(i)).append("\n");
+            sb.append('\t').append(stack.get(i)).append('\n');
 
         return sb.toString();
     }

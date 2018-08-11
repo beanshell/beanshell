@@ -50,7 +50,7 @@ public class BSHEnumConstant extends SimpleNode {
     }
 
     public String toString() {
-        return "EnumConstant: "+mods+" "+getType()+" "+name;
+        return "EnumConstant: " + mods + ' ' + getType() + ' ' + name;
     }
 
 }

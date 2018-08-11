@@ -233,7 +233,7 @@ public class ClassBrowser extends JSplitPane
                 selectedClass = classManager.classForName( classname );
             else
                 selectedClass = classManager.classForName(
-                    selectedPackage + "." + classname );
+                    selectedPackage + '.' + classname );
         } catch ( Exception e ) {
             System.err.println(e);
             return;
@@ -335,7 +335,7 @@ public class ClassBrowser extends JSplitPane
                 for(int i=1; i<oa.length; i++) {
                     selectedPackage.append( oa[i].toString() );
                     if ( i+1 < oa.length )
-                        selectedPackage.append(".");
+                        selectedPackage.append('.');
                 }
                 setClist( selectedPackage.toString() );
             }
@@ -458,10 +458,10 @@ public class ClassBrowser extends JSplitPane
             {
                 String fullClassName =
                     selectedPackage.equals("<unpackaged>") ?
-                        classname : selectedPackage+"."+classname;
+                        classname : selectedPackage + '.' + classname;
                 methodLineString =
                     fullClassName
-                    +" (from "+ classPath.getClassSource( fullClassName ) +")";
+                    + " (from " + classPath.getClassSource( fullClassName ) + ')';
             }
 
             setMethodLine( methodLineString );
@@ -623,7 +623,7 @@ public class ClassBrowser extends JSplitPane
             while( tn != root ) {
                 sb.insert(0, tn.toString() );
                 if ( tn.getParent() != root )
-                    sb.insert(0, "." );
+                    sb.insert(0, '.');
                 tn = tn.getParent();
             }
             String pack = sb.toString();

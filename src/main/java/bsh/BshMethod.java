@@ -376,7 +376,7 @@ public class BshMethod implements Serializable {
                 catch( UtilEvalError e) {
                     throw new EvalError(
                         "Invalid argument: "
-                        + "`"+paramNames[k]+"'" + " for method: "
+                        + '`' + paramNames[k] + '\'' + " for method: "
                         + name + " : " +
                         e.getMessage(), callerInfo, callstack );
                 }

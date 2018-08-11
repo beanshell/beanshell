@@ -185,8 +185,8 @@ public class BshArray {
         Class<?> rhsType = rhs.getClass();
         if ( Types.arrayDimensions(lhsType) != Types.arrayDimensions(rhsType) )
             throw new UtilEvalError("Cannot concat arrays with inconsistent dimensions."
-                + " Attempting to concat array of type " + StringUtil.typeString(lhs)
-                + " with array of type " + StringUtil.typeString(rhs) + ".");
+                                    + " Attempting to concat array of type " + StringUtil.typeString(lhs)
+                                    + " with array of type " + StringUtil.typeString(rhs) + '.');
         Class<?> toType = Types.getCommonType(
                 Types.arrayElementType(lhsType),
                 Types.arrayElementType(rhsType));

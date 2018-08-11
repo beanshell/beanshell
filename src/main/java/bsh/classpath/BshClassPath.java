@@ -821,8 +821,8 @@ public class BshClassPath
     }
 
     public String toString() {
-        return "BshClassPath "+name+"("+super.toString()+") path= "+path +"\n"
-            + "compPaths = {" + compPaths +" }";
+        return "BshClassPath " + name + '(' + super.toString() + ") path= " + path + '\n'
+               + "compPaths = {" + compPaths + " }";
     }
 
 

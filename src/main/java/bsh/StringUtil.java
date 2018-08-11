@@ -96,7 +96,7 @@ public class StringUtil {
                 val.append(valueString(Array.get(value, i))).append(", ");
             if (val.reverse().charAt(0) == ' ')
                 val.delete(0, 2);
-            return val.reverse().append("}").toString();
+            return val.reverse().append('}').toString();
         }
         if (value instanceof Collection) {
             val = new StringBuilder("[");
@@ -104,45 +104,45 @@ public class StringUtil {
                 val.append(valueString(v)).append(", ");
             if (val.reverse().charAt(0) == ' ')
                 val.delete(0, 2);
-            return val.reverse().append("]").toString();
+            return val.reverse().append(']').toString();
         }
         if (value instanceof Map) {
             val = new StringBuilder("{");
             for (Entry<?, ?> e : ((Map<?, ?>) value).entrySet())
-                val.append(valueString(e.getKey())).append("=")
+                val.append(valueString(e.getKey())).append('=')
                 .append(valueString(e.getValue())).append(", ");
             if (val.reverse().charAt(0) == ' ')
                 val.delete(0, 2);
-            return val.reverse().append("}").toString();
+            return val.reverse().append('}').toString();
         }
         if (value instanceof Entry) {
             return new StringBuilder(
                     valueString(((Entry<?, ?>) value).getKey()))
-                .append("=").append(
+                .append('=').append(
                     valueString(((Entry<?, ?>) value).getValue()))
                 .toString();
         }
         if (value instanceof String)
-            return val.insert(0, "\"").append("\"").toString();
+            return val.insert(0, '"').append('"').toString();
         if (Primitive.unwrap(value) instanceof Character)
-            return val.insert(0, "'").append("'").toString();
+            return val.insert(0, '\'').append('\'').toString();
         if (Primitive.unwrap(value) instanceof Number) {
             if (Primitive.unwrap(value) instanceof Byte)
-                return val.append("o").toString();
+                return val.append('o').toString();
             if (Primitive.unwrap(value) instanceof Short)
-                return val.append("s").toString();
+                return val.append('s').toString();
             if (Primitive.unwrap(value) instanceof Integer)
-                return val.append("I").toString();
+                return val.append('I').toString();
             if (Primitive.unwrap(value) instanceof Long)
-                return val.append("L").toString();
+                return val.append('L').toString();
             if (Primitive.unwrap(value) instanceof BigInteger)
-                return val.append("W").toString();
+                return val.append('W').toString();
             if (Primitive.unwrap(value) instanceof Float)
-                return val.append("f").toString();
+                return val.append('f').toString();
             if (Primitive.unwrap(value) instanceof Double)
-                return val.append("d").toString();
+                return val.append('d').toString();
             if (Primitive.unwrap(value) instanceof BigDecimal)
-                return val.append("w").toString();
+                return val.append('w').toString();
         }
         return val.toString();
     }
@@ -227,7 +227,7 @@ public class StringUtil {
     private static String[] getTypeNames(Class<?>[] types, String[] names) {
         Iterator<String> namesIt = Stream.of(names).iterator();
         return getTypeNamesStream(types)
-                .map(type -> type +" "+ namesIt.next())
+                .map(type -> type + ' ' + namesIt.next())
                 .toArray(String[]::new);
     }
 
@@ -266,8 +266,8 @@ public class StringUtil {
     public static String methodString(Method method) {
         String mods = Modifier.toString(method.getModifiers());
         StringBuilder sb = new StringBuilder();
-        return sb.append(mods).append(" ")
-            .append(getTypeName(method.getReturnType())).append(" ")
+        return sb.append(mods).append(' ')
+            .append(getTypeName(method.getReturnType())).append(' ')
             .append(methodString(method.getName(), method.getParameterTypes()))
             .append(mods.contains("abstract") ? ";" : " {}").toString();
     }
@@ -279,8 +279,8 @@ public class StringUtil {
     public static String methodString(BshMethod method) {
         String mods = method.getModifiers().toString().substring(11);
         StringBuilder sb = new StringBuilder();
-        return sb.append(mods).append(" ")
-            .append(getTypeName(method.getReturnType())).append(" ")
+        return sb.append(mods).append(' ')
+            .append(getTypeName(method.getReturnType())).append(' ')
             .append(methodString(method.getName(),
                     method.getParameterTypes(), method.getParameterNames()))
             .append(mods.contains("abstract") ? ";" : " {}").toString();
@@ -294,7 +294,7 @@ public class StringUtil {
         StringBuilder sb = new StringBuilder();
         sb.append(Reflect.getClassModifiers(type).toString().substring(11))
           .append(type.isInterface() ? " interface" : " class")
-          .append(" ").append(getTypeName(type))
+          .append(' ').append(getTypeName(type))
           .append(getTypeExtends(type))
           .append(getTypeImplements(type));
         return sb.append(" {").toString().trim();
@@ -312,7 +312,7 @@ public class StringUtil {
         StringBuilder sb = new StringBuilder();
         sb.append(Modifier.toString(type.getModifiers()))
             .append(type.isInterface() ? "": " class")
-            .append(" ").append(getTypeName(type))
+            .append(' ').append(getTypeName(type))
             .append(getTypeExtends(type))
             .append(getTypeImplements(type));
         return sb.append(" {").toString().trim();
@@ -325,9 +325,9 @@ public class StringUtil {
     public static String variableString(Variable var) {
         StringBuilder sb = new StringBuilder();
         sb.append(var.getModifiers().toString().substring(11))
-            .append(" ").append(getTypeName(var.getType()))
-            .append(" ").append(var.getName());
-        return sb.append(";").toString();
+            .append(' ').append(getTypeName(var.getType()))
+            .append(' ').append(var.getName());
+        return sb.append(';').toString();
     }
 
     /** Produce a string representation of a java field declaration.
@@ -337,8 +337,8 @@ public class StringUtil {
     public static String variableString(Field field) {
         StringBuilder sb = new StringBuilder();
         sb.append(Modifier.toString(field.getModifiers()))
-            .append(" ").append(getTypeName(field.getType()))
-            .append(" ").append(field.getName());
-        return sb.append(";").toString();
+            .append(' ').append(getTypeName(field.getType()))
+            .append(' ').append(field.getName());
+        return sb.append(';').toString();
     }
 }

@@ -83,7 +83,7 @@ public class BshScriptEngineFactory implements ScriptEngineFactory {
         StringBuilder sb = new StringBuilder();
         if (objectName != null)
             sb.append(objectName).append('.');
-        sb.append(StringUtil.methodString(methodName, args)).append(";");
+        sb.append(StringUtil.methodString(methodName, args)).append(';');
         return sb.toString();
     }
 
@@ -98,9 +98,9 @@ public class BshScriptEngineFactory implements ScriptEngineFactory {
         for (final String statement : statements) {
             sb.append(statement);
             if ( ! statement.endsWith(";")) {
-                sb.append(";");
+                sb.append(';');
             }
-            sb.append("\n");
+            sb.append('\n');
         }
         return sb.toString();
     }

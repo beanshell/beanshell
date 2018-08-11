@@ -108,7 +108,7 @@ public class Modifiers implements java.io.Serializable
     {
         if ( hasModifier( modifier ) )
             throw new IllegalStateException(
-                context + " cannot be declared '"+modifier+"'");
+                context + " cannot be declared '" + modifier + '\'');
     }
 
     public void setConstant() {

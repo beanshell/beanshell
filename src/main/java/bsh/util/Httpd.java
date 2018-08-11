@@ -215,9 +215,9 @@ class HttpdConnection extends Thread
         s = "<html><h1>" + s + "</h1></html>";
         if(isHttp1)
         {
-            pout.println("HTTP/1.0 " + num + " " + s);
+            pout.println("HTTP/1.0 " + num + ' ' + s);
             pout.println("Content-type: text/html");
-            pout.println("Content-length: " + s.length() + "\n");
+            pout.println("Content-length: " + s.length() + '\n');
         }
 
         pout.println(s);

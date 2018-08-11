@@ -165,6 +165,6 @@ class BSHAssignment extends SimpleNode implements ParserConstants
         }
 
         throw new UtilEvalError("Non primitive value in operator: " +
-            lhs.getClass() + " " + tokenImage[kind] + " " + rhs.getClass() );
+                                lhs.getClass() + ' ' + tokenImage[kind] + ' ' + rhs.getClass() );
     }
 }

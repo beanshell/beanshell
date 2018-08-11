@@ -436,7 +436,7 @@ final class Reflect {
             throw new ReflectError(
                 ( staticOnly ? "Static method " : "Method " )
                 + StringUtil.methodString(name, types) +
-                " not found in class'" + clas.getName() + "'");
+                " not found in class'" + clas.getName() + '\'');
 
         return method;
     }

@@ -81,7 +81,7 @@ public class dir
             return;
         }
         if ( !file.isDirectory() )  {
-            env.println("'"+dir+"' is not a directory");
+            env.println('\'' + dir + "' is not a directory");
         }
 
         String [] files = file.list();
@@ -94,24 +94,24 @@ public class dir
             StringBuilder sb = new StringBuilder();
             sb.append( f.canRead() ? "r": "-" );
             sb.append( f.canWrite() ? "w": "-" );
-            sb.append( "_" );
-            sb.append( " ");
+            sb.append('_');
+            sb.append(' ');
 
             Date d = new Date(f.lastModified());
             GregorianCalendar c = new GregorianCalendar();
             c.setTime(d);
             int day = c.get(Calendar.DAY_OF_MONTH);
-            sb.append(months[c.get(Calendar.MONTH)]).append(" ").append(day);
+            sb.append(months[c.get(Calendar.MONTH)]).append(' ').append(day);
             if ( day < 10 )
-                sb.append(" ");
+                sb.append(' ');
 
-            sb.append(" ");
+            sb.append(' ');
 
             // hack to get fixed length 'length' field
             int fieldlen = 8;
             StringBuilder len = new StringBuilder();
             for(int j=0; j<fieldlen; j++)
-                len.append(" ");
+                len.append(' ');
             len.insert(0, f.length());
             len.setLength(fieldlen);
             // hack to move the spaces to the front
@@ -124,9 +124,9 @@ public class dir
 
             sb.append( len.toString() );
 
-            sb.append(" ").append(f.getName());
+            sb.append(' ').append(f.getName());
             if ( f.isDirectory() )
-                sb.append("/");
+                sb.append('/');
 
             env.println( sb.toString() );
         }

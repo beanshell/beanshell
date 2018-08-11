@@ -73,7 +73,7 @@ public class EvalError extends Exception
             trace = ": <at unknown location>";
 
         if ( callstack != null )
-            trace = trace +"\n" + getScriptStackTrace();
+            trace = trace + '\n' + getScriptStackTrace();
 
         return getRawMessage() + trace;
     }

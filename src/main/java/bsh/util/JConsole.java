@@ -372,7 +372,7 @@ public class JConsole extends JScrollPane
         // Show ambiguous
         StringBuilder sb = new StringBuilder("\n");
         for( i=0; i<complete.length && i<SHOW_AMBIG_MAX; i++)
-            sb.append(complete[i]).append("\n");
+            sb.append(complete[i]).append('\n');
         if ( i == SHOW_AMBIG_MAX )
             sb.append("...\n");
 
@@ -422,7 +422,7 @@ public class JConsole extends JScrollPane
             s = ";\n";
         else {
             history.add( s );
-            s = s +"\n";
+            s = s + '\n';
         }
 
         append("\n");
@@ -509,7 +509,7 @@ public class JConsole extends JScrollPane
     }
 
     public void println(Object o) {
-        print( String.valueOf(o) + "\n" );
+        print(String.valueOf(o) + '\n');
         text.repaint();
     }
 
@@ -692,7 +692,7 @@ public class JConsole extends JScrollPane
         try {
             inPipeWatcher();
         } catch ( IOException e ) {
-            print("Console: I/O Error: "+e+"\n", Color.red);
+            print("Console: I/O Error: " + e + '\n', Color.red);
         }
     }
 

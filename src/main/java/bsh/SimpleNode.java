@@ -146,7 +146,7 @@ class SimpleNode implements Node, Serializable {
                 SimpleNode n = (SimpleNode)children[i];
                 if (n != null)
                 {
-                    n.dump(prefix + " ");
+                    n.dump(prefix + ' ');
                 }
             }
         }
@@ -222,7 +222,7 @@ class SimpleNode implements Node, Serializable {
         while ( t!=null ) {
             text.append(t.image);
             if ( !t.image.equals(".") )
-                text.append(" ");
+                text.append(' ');
             if ( t==lastToken ||
                 t.image.equals("{") || t.image.equals(";") )
                 break;

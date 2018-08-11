@@ -201,14 +201,14 @@ public class ParseException
                 retval += tokenImage[0];
                 break;
             }
-            retval += " " + tokenImage[tok.kind];
+            retval += ' ' + tokenImage[tok.kind];
             retval += " \"";
             retval += add_escapes(tok.image);
             retval += "\" ";
             tok = tok.next;
         }
         retval += " at line " + currentToken.next.beginLine + ", column " + currentToken.next.beginColumn;
-        retval += "." + EOL;
+        retval += '.' + EOL;
 
 // Begin BeanShell Modification - made conditional on debug
         if (Interpreter.DEBUG.get() && expectedTokenSequences.length != 0) {
@@ -311,14 +311,14 @@ public class ParseException
             retval += tokenImage[0];
             break;
           }
-          retval += " " + tokenImage[tok.kind];
+          retval += ' ' + tokenImage[tok.kind];
           retval += " ";
           retval += add_escapes(tok.image);
           retval += " ";
           tok = tok.next;
         }
         retval += " at line " + currentToken.next.beginLine + ", column " + currentToken.next.beginColumn;
-        retval += "." + EOL;
+        retval += '.' + EOL;
 
         return retval;
     }

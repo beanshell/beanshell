@@ -198,7 +198,7 @@ public class Remote
         try ( BufferedReader bin = new BufferedReader( new FileReader( name ) ) ) {
             String line;
             while ( (line=bin.readLine()) != null )
-                sb.append( line ).append( "\n" );
+                sb.append( line ).append('\n');
         }
         return sb.toString();
     }

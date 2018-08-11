@@ -816,7 +816,7 @@ public class NameSpace
         name = name.replace('.', '/');
         // absolute
         if (!name.startsWith("/"))
-            name = "/" + name;
+            name = '/' + name;
         // remove trailing (but preserve case of simple "/")
         if (name.length() > 1 && name.endsWith("/"))
             name = name.substring(0, name.length() - 1);
@@ -857,7 +857,7 @@ public class NameSpace
             if (path.equals("/"))
                 scriptPath = path + name + ".bsh";
             else
-                scriptPath = path + "/" + name + ".bsh";
+                scriptPath = path + '/' + name + ".bsh";
             Interpreter.debug("searching for script: " + scriptPath);
             URL url = bcm.getResource(scriptPath);
             if (null != url) try {
@@ -869,8 +869,8 @@ public class NameSpace
             if (path.equals("/"))
                 className = name;
             else
-                className = path.substring(1).replace('/', '.') + "."
-                        + name;
+                className = path.substring(1).replace('/', '.') + '.'
+                            + name;
             Interpreter.debug("searching for class: " + className);
             final Class<?> clas = bcm.classForName(className);
             if (clas != null)
@@ -1084,7 +1084,7 @@ public class NameSpace
         /* Try imported packages, e.g. "import foo.bar.*;" in reverse order of
          * import... (give later imports precedence...) */
         for (final String s: this.importedPackages) {
-            final Class<?> c = this.classForName(s + "." + name);
+            final Class<?> c = this.classForName(s + '.' + name);
             if (c != null)
                 return c;
         }
@@ -1147,7 +1147,7 @@ public class NameSpace
         return "NameSpace: "
                 + (this.nsName == null
                     ? super.toString()
-                    : this.nsName + " (" + super.toString() + ")")
+                    : this.nsName + " (" + super.toString() + ')')
                 + (this.isClass ? " (class) " : "")
                 + (this.isInterface ? " (interface) " : "")
                 + (this.isEnum ? " (enum) " : "")

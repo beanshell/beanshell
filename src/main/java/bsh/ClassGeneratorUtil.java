@@ -127,13 +127,13 @@ public class ClassGeneratorUtil implements Opcodes {
         this.className = className;
         this.type = type;
         if (packageName != null) {
-            this.fqClassName = packageName.replace('.', '/') + "/" + className;
-            this.canonClassName = packageName+"."+className;
+            this.fqClassName = packageName.replace('.', '/') + '/' + className;
+            this.canonClassName = packageName + '.' + className;
         } else {
             this.fqClassName = className;
             this.canonClassName = className;
         }
-        this.classDescript = "L"+fqClassName.replace('.', '/')+";";
+        this.classDescript = 'L' + fqClassName.replace('.', '/') + ';';
 
         if (superClass == null)
             if (type == ENUM)
@@ -346,7 +346,7 @@ public class ClassGeneratorUtil implements Opcodes {
     private static String getTypeParameterSignature(String[] paramTypes) {
         StringBuilder sb = new StringBuilder("<");
         for (final String pt : paramTypes)
-            sb.append(pt).append(":");
+            sb.append(pt).append(':');
         return sb.toString();
     }
 
@@ -363,7 +363,7 @@ public class ClassGeneratorUtil implements Opcodes {
         MethodVisitor cv = cw.visitMethod(ACC_PUBLIC | ACC_STATIC, "values", "()["+classDescript, null, null);
         pushBshStatic(fqClassName, className, cv);
         cv.visitMethodInsn(INVOKEVIRTUAL, "bsh/This", "enumValues", "()[Ljava/lang/Object;", false);
-        generatePlainReturnCode("["+classDescript, cv);
+        generatePlainReturnCode('[' + classDescript, cv);
         cv.visitMaxs(0, 0);
         // generate Enum.valueOf delegate method
         cv = cw.visitMethod(ACC_PUBLIC | ACC_STATIC, "valueOf", "(Ljava/lang/String;)"+classDescript, null, null);
@@ -859,7 +859,7 @@ public class ClassGeneratorUtil implements Opcodes {
                 cv.visitTypeInsn(NEW, type);
                 cv.visitInsn(DUP);
                 cv.visitVarInsn(opcode, localVarIndex);
-                cv.visitMethodInsn(INVOKESPECIAL, type, "<init>", "(" + param + ")V", false);
+                cv.visitMethodInsn(INVOKESPECIAL, type, "<init>", '(' + param + ")V", false);
                 cv.visitInsn(AASTORE);
             } else {
                 // If null wrap value as bsh.Primitive.NULL.

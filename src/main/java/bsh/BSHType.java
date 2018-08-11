@@ -119,15 +119,15 @@ class BSHType extends SimpleNode
             }else
             {
                 if ( defaultPackage == null || Name.isCompound( clasName ) )
-                    descriptor = "L" + clasName.replace('.','/') + ";";
+                    descriptor = 'L' + clasName.replace('.','/') + ';';
                 else
                     descriptor =
-                        "L"+defaultPackage.replace('.','/')+"/"+clasName + ";";
+                        'L' + defaultPackage.replace('.','/') + '/' + clasName + ';';
             }
         }
 
         for(int i=0; i<arrayDims; i++)
-            descriptor = "["+descriptor;
+            descriptor = '[' + descriptor;
 
         this.descriptor = descriptor;
     //System.out.println("BSHType: returning descriptor: "+descriptor);
@@ -218,6 +218,6 @@ class BSHType extends SimpleNode
         if ( name.startsWith("[") || name.endsWith(";") )
             return name;
         else
-            return "L"+ name.replace('.','/') +";";
+            return 'L' + name.replace('.','/') + ';';
     }
 }

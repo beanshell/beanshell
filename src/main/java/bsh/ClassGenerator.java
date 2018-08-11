@@ -73,8 +73,8 @@ public final class ClassGenerator {
     public static Class generateClassImpl(String name, Modifiers modifiers, Class[] interfaces, Class superClass, BSHBlock block, Type type, CallStack callstack, Interpreter interpreter) throws EvalError {
         NameSpace enclosingNameSpace = callstack.top();
         String packageName = enclosingNameSpace.getPackage();
-        String className = enclosingNameSpace.isClass ? (enclosingNameSpace.getName() + "$" + name) : name;
-        String fqClassName = packageName == null ? className : packageName + "." + className;
+        String className = enclosingNameSpace.isClass ? (enclosingNameSpace.getName() + '$' + name) : name;
+        String fqClassName = packageName == null ? className : packageName + '.' + className;
         BshClassManager bcm = interpreter.getClassManager();
         // Race condition here...
         bcm.definingClass(fqClassName);
@@ -145,7 +145,7 @@ public final class ClassGenerator {
     private static void saveClasses(String className, byte[] code) {
         String dir = Interpreter.getSaveClassesDir();
         if (dir != null) try
-        ( FileOutputStream out = new FileOutputStream(dir + "/" + className + ".class") ) {
+        ( FileOutputStream out = new FileOutputStream(dir + '/' + className + ".class") ) {
             out.write(code);
         } catch (IOException e) {
             e.printStackTrace();

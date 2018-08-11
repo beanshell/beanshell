@@ -290,7 +290,7 @@ public class AWTConsole extends TextArea
     }
 
     public void println( Object o ) {
-        print( String.valueOf(o)+"\n" );
+        print(String.valueOf(o) + '\n');
     }
 
     public void error( Object o ) {

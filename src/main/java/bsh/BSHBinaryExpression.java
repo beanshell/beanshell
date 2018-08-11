@@ -104,7 +104,7 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
                 return Operators.binaryOperation(lhs, rhs, kind);
         } catch ( UtilEvalError e ) {
             throw e.toEvalError(
-                "Failed operation: "+lhs+" "+tokenImage[kind]+" "+rhs,
+                "Failed operation: " + lhs + ' ' + tokenImage[kind] + ' ' + rhs,
                 this, callstack  );
         }
 

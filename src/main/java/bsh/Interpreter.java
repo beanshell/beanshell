@@ -701,8 +701,8 @@ public class Interpreter
             localInterpreter.setOut(null);
             localInterpreter.setErr(null);
         } catch (IOException ioe) {
-            throw new EvalError("Sourced file: "+sourceFileInfo+" "
-                    + ioe.toString(), null, null, ioe);
+            throw new EvalError("Sourced file: " + sourceFileInfo + ' '
+                                + ioe.toString(), null, null, ioe);
         }
         return Primitive.unwrap( retVal );
     }
@@ -729,7 +729,7 @@ public class Interpreter
     public Object eval( String statements, NameSpace nameSpace )
         throws EvalError
     {
-        String s = ( statements.endsWith(";") ? statements : statements+";" );
+        String s = ( statements.endsWith(";") ? statements : statements + ';');
         return eval(
             new StringReader(s), nameSpace,
             "inline evaluation of: ``"+ showEvalString(s)+"''" );
