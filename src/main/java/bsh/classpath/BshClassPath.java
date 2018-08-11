@@ -598,7 +598,7 @@ public class BshClassPath
     public static String [] splitClassname ( String classname ) {
         classname = canonicalizeClassName( classname );
 
-        int i=classname.lastIndexOf(".");
+        int i=classname.lastIndexOf('.');
         String classn, packn;
         if ( i == -1 )  {
             // top level class
@@ -620,7 +620,7 @@ public class BshClassPath
         Iterator it = list.iterator();
         while(it.hasNext()) {
             String name =(String)it.next();
-            if (name.indexOf("$") != -1 )
+            if ( name.indexOf('$') != -1 )
                 it.remove();
         }
         return list;

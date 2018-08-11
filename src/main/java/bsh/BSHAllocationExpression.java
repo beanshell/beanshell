@@ -135,7 +135,7 @@ class BSHAllocationExpression extends SimpleNode
         }
         String className = type.getName();
         // Is it an inner class?
-        if ( className.indexOf("$") == -1 )
+        if ( className.indexOf('$') == -1 )
             return obj;
 
         // work through to class 'this'

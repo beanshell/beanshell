@@ -138,7 +138,7 @@ public class ClassBrowser extends JSplitPane
         Iterator it = set.iterator();
         while (it.hasNext()) {
             String cname = (String)it.next();
-            if ( cname.indexOf("$") == -1 )
+            if ( cname.indexOf('$') == -1 )
                 list.add( BshClassPath.splitClassname( cname )[1] );
         }
 

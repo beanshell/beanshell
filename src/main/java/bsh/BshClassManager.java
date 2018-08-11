@@ -495,7 +495,7 @@ public class BshClassManager
     */
     protected void definingClass( String className ) {
         String baseName = Name.suffix(className,1);
-        int i = baseName.indexOf("$");
+        int i = baseName.indexOf('$');
         if ( i != -1 )
             baseName = baseName.substring(i+1);
         String cur = definingClassesBaseNames.get( baseName );

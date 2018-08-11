@@ -115,7 +115,7 @@ public class dir
             len.insert(0, f.length());
             len.setLength(fieldlen);
             // hack to move the spaces to the front
-            int si = len.toString().indexOf(" ");
+            int si = len.toString().indexOf(' ');
             if ( si != -1 ) {
                 String pad = len.toString().substring(si);
                 len.setLength(si);

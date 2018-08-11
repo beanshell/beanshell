@@ -95,7 +95,7 @@ public class Remote
         try {
             url = url.substring(6); // remove the bsh://
             // get the index of the : between the host and the port is located
-            int index = url.indexOf(":");
+            int index = url.indexOf(':');
             host = url.substring(0,index);
             port = url.substring(index+1,url.length());
         } catch ( Exception ex ) {
