@@ -279,13 +279,13 @@ public class ClassManagerImpl extends BshClassManager
     @Override
     public InputStream getResourceAsStream( String path )
     {
-        Object in = null;
+        InputStream in = null;
         if ( null != baseLoader )
             // classloader wants no leading slash
             in = baseLoader.getResourceAsStream( path.substring(1) );
         if ( null == in )
             return super.getResourceAsStream( path );
-        return (InputStream) in;
+        return in;
     }
 
     ClassLoader getLoaderForClass( String name ) {

@@ -261,14 +261,14 @@ public class BshClassManager
     */
     public InputStream getResourceAsStream( String path )
     {
-        Object in = null;
+        InputStream in = null;
         if ( externalClassLoader != null )
             // classloader wants no leading slash
             in = externalClassLoader.getResourceAsStream( path.substring(1) );
         if ( in == null )
             return Interpreter.class.getResourceAsStream( path );
 
-        return (InputStream) in;
+        return in;
     }
 
     /**
