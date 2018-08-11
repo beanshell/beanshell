@@ -545,14 +545,15 @@ public class BshClassPath
      * @throws IOException */
     static String [] searchArchiveForClasses( URL url ) throws IOException {
         List<String> list = new ArrayList<>();
-        ZipInputStream zip = new ZipInputStream(url.openStream());
-
-        ZipEntry ze;
-        while( zip.available() == 1 )
-            if ( (ze = zip.getNextEntry()) != null
-                    && isClassFileName( ze.getName() ) )
-                list.add( canonicalizeClassName( ze.getName() ) );
-        zip.close();
+        try ( ZipInputStream zip = new ZipInputStream(url.openStream()) ) {
+            ZipEntry ze;
+            while ( zip.available() == 1 ) {
+                if ( (ze = zip.getNextEntry()) != null
+                     && isClassFileName(ze.getName()) ) {
+                    list.add(canonicalizeClassName(ze.getName()));
+                }
+            }
+        }
 
         return list.toArray( new String[list.size()] );
     }
