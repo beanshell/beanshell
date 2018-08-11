@@ -81,14 +81,14 @@ public class BshClassPath
     String name;
 
     /** The URL path components */
-    private List path;
+    private List<URL> path;
     /** Ordered list of components BshClassPaths */
-    private List compPaths;
+    private List<BshClassPath> compPaths;
 
     /** Set of classes in a package mapped by package name */
     private Map packageMap;
     /** Map of source (URL or File dir) of every clas */
-    private Map classSource;
+    private Map<String, ClassSource> classSource;
     /**  The packageMap and classSource maps have been built. */
     private boolean mapsInitialized;
 
@@ -130,7 +130,7 @@ public class BshClassPath
         if (bcp == null)
             return;
         if ( compPaths == null )
-            compPaths = new ArrayList();
+            compPaths = new ArrayList<>();
         compPaths.add( bcp );
         bcp.addListener( this );
     }
@@ -171,7 +171,7 @@ public class BshClassPath
 
         if ( compPaths != null )
             for (int i=0; i<compPaths.size(); i++) {
-                c = ((BshClassPath)compPaths.get(i)).getClassesForPackage(
+                c = (compPaths.get(i)).getClassesForPackage(
                     pack );
                 if ( c != null )
                     set.addAll( c );
@@ -188,16 +188,16 @@ public class BshClassPath
         // Before triggering classpath mapping (initialization) check for
         // explicitly set class sources (e.g. generated classes).  These would
         // take priority over any found in the classpath anyway.
-        ClassSource cs = (ClassSource)classSource.get( className );
+        ClassSource cs = classSource.get( className );
         if ( cs != null )
             return cs;
 
         insureInitialized(); // trigger possible mapping
 
-        cs = (ClassSource)classSource.get( className );
+        cs = classSource.get( className );
         if ( cs == null && compPaths != null )
             for (int i=0; i<compPaths.size() && cs==null; i++)
-                cs = ((BshClassPath)compPaths.get(i)).getClassSource(className);
+                cs = (compPaths.get(i)).getClassSource(className);
         return cs;
     }
 
@@ -253,7 +253,7 @@ public class BshClassPath
         // initialize components
         if ( compPaths != null )
             for (int i=0; i< compPaths.size(); i++)
-                ((BshClassPath)compPaths.get(i)).insureInitialized( false );
+                (compPaths.get(i)).insureInitialized( false );
 
         // initialize ourself
         if ( !mapsInitialized )
@@ -270,15 +270,15 @@ public class BshClassPath
         (component paths listed first, in order)
         Duplicate path components are removed.
     */
-    protected List getFullPath()
+    protected List<URL> getFullPath()
     {
-        List list = new ArrayList();
+        List<URL> list = new ArrayList<>();
         if ( compPaths != null ) {
             for (int i=0; i<compPaths.size(); i++) {
-                List l = ((BshClassPath)compPaths.get(i)).getFullPath();
+                List<URL> l = (compPaths.get(i)).getFullPath();
                 // take care to remove dups
                 // wish we had an ordered set collection
-                for ( Object o : l ) {
+                for ( URL o : l ) {
                     if ( !list.contains(o) ) {
                         list.add(o);
                     }
@@ -327,15 +327,15 @@ public class BshClassPath
         // add component names
         if ( compPaths != null )
             for (int i=0; i<compPaths.size(); i++) {
-                Set s = ((BshClassPath)compPaths.get(i)).classSource.keySet();
-                for ( Object value : s ) {
-                    unqNameTable.add((String) value);
+                Set<String> s = (compPaths.get(i)).classSource.keySet();
+                for ( String value : s ) {
+                    unqNameTable.add(value);
                 }
             }
 
         // add ours
-        for ( Object o : classSource.keySet() ) {
-            unqNameTable.add((String) o);
+        for ( String o : classSource.keySet() ) {
+            unqNameTable.add(o);
         }
 
         return unqNameTable;
@@ -398,14 +398,14 @@ public class BshClassPath
         }
     }
 
-    private void map( String [] classes, Object source ) {
+    private void map( String [] classes, ClassSource source ) {
         for(int i=0; i< classes.length; i++) {
             //System.out.println( classes[i] +": "+ source );
             mapClass( classes[i], source );
         }
     }
 
-    private void mapClass( String className, Object source )
+    private void mapClass( String className, ClassSource source )
     {
         // add to package map
         String [] sa = splitClassname( className );
@@ -418,7 +418,7 @@ public class BshClassPath
         set.add( className );
 
         // Add to classSource map
-        Object obj = classSource.get( className );
+        ClassSource obj = classSource.get( className );
         // don't replace previously set (found earlier in classpath or
         // explicitly set via setClassSource() )
         if ( obj == null )
@@ -429,7 +429,7 @@ public class BshClassPath
         Clear everything and reset the path to empty.
     */
     synchronized private void reset() {
-        path = new ArrayList();
+        path = new ArrayList<>();
         compPaths = null;
         clearCachedStructures();
     }
@@ -440,7 +440,7 @@ public class BshClassPath
     synchronized private void clearCachedStructures() {
         mapsInitialized = false;
         packageMap = new HashMap();
-        classSource = new HashMap();
+        classSource = new HashMap<>();
         unqNameTable = null;
         nameSpaceChanged();
     }
@@ -464,14 +464,14 @@ public class BshClassPath
     static String [] traverseDirForClasses( File dir )
         throws IOException
     {
-        List list = traverseDirForClassesAux( dir, dir );
+        List<String> list = traverseDirForClassesAux( dir, dir );
         return (String[])list.toArray( new String[0] );
     }
 
-    static List traverseDirForClassesAux( File topDir, File dir )
+    static List<String> traverseDirForClassesAux( File topDir, File dir )
         throws IOException
     {
-        List list = new ArrayList();
+        List<String> list = new ArrayList<>();
         String top = topDir.getAbsolutePath();
 
         File [] children = dir.listFiles();
@@ -668,7 +668,7 @@ public class BshClassPath
         if ( compPaths != null )
             for (int i=0; i<compPaths.size(); i++)
                 set.addAll(
-                    ((BshClassPath)compPaths.get(i)).packageMap.keySet() );
+                    (compPaths.get(i)).packageMap.keySet() );
         return set;
     }
 
@@ -852,11 +852,11 @@ public class BshClassPath
     }
 
     public static class AmbiguousName {
-        List list = new ArrayList();
+        List<String> list = new ArrayList<String>();
         public void add( String name ) {
             list.add( name );
         }
-        public List get() {
+        public List<String> get() {
             //return (String[])list.toArray(new String[0]);
             return list;
         }
@@ -871,18 +871,18 @@ public class BshClassPath
             return;
 
         for(int i=0; i<nameSourceListeners.size(); i++)
-            ((NameSource.Listener)(nameSourceListeners.get(i)))
+            ((nameSourceListeners.get(i)))
                 .nameSourceChanged( this );
     }
 
-    List nameSourceListeners;
+    List<Listener> nameSourceListeners;
     /**
         Implements NameSource
         Add a listener who is notified upon changes to names in this space.
     */
     public void addNameSourceListener( NameSource.Listener listener ) {
         if ( nameSourceListeners == null )
-            nameSourceListeners = new ArrayList();
+            nameSourceListeners = new ArrayList<>();
         nameSourceListeners.add( listener );
     }
 
