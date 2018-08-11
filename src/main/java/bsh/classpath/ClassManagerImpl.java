@@ -411,9 +411,9 @@ public class ClassManagerImpl extends BshClassManager
         DiscreteFilesClassLoader.newInstance( this, map );
 
         // map those classes the loader in the overlay map
-        Iterator it = map.keySet().iterator();
-        while ( it.hasNext() )
-            loaderMap.put( it.next(), DiscreteFilesClassLoader.instance() );
+        for ( Object o : map.keySet() ) {
+            loaderMap.put(o, DiscreteFilesClassLoader.instance());
+        }
 
         classLoaderChanged();
     }

@@ -278,11 +278,10 @@ public class BshClassPath
                 List l = ((BshClassPath)compPaths.get(i)).getFullPath();
                 // take care to remove dups
                 // wish we had an ordered set collection
-                Iterator it = l.iterator();
-                while ( it.hasNext() ) {
-                    Object o = it.next();
-                    if ( !list.contains(o) )
-                        list.add( o );
+                for ( Object o : l ) {
+                    if ( !list.contains(o) ) {
+                        list.add(o);
+                    }
                 }
             }
         }
@@ -329,15 +328,15 @@ public class BshClassPath
         if ( compPaths != null )
             for (int i=0; i<compPaths.size(); i++) {
                 Set s = ((BshClassPath)compPaths.get(i)).classSource.keySet();
-                Iterator it = s.iterator();
-                while(it.hasNext())
-                    unqNameTable.add( (String)it.next() );
+                for ( Object value : s ) {
+                    unqNameTable.add((String) value);
+                }
             }
 
         // add ours
-        Iterator it = classSource.keySet().iterator();
-        while(it.hasNext())
-            unqNameTable.add( (String)it.next() );
+        for ( Object o : classSource.keySet() ) {
+            unqNameTable.add((String) o);
+        }
 
         return unqNameTable;
     }
@@ -347,11 +346,10 @@ public class BshClassPath
         insureInitialized();
 
         List names = new ArrayList();
-        Iterator it = getPackagesSet().iterator();
-        while( it.hasNext() ) {
-            String pack = (String)it.next();
+        for ( Object o : getPackagesSet() ) {
+            String pack = (String) o;
             names.addAll(
-                removeInnerClassNames( getClassesForPackage( pack ) ) );
+                removeInnerClassNames(getClassesForPackage(pack)));
         }
 
         if ( nameCompletionIncludesUnqNames )

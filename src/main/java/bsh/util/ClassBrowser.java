@@ -135,11 +135,11 @@ public class ClassBrowser extends JSplitPane
 
         // remove inner classes and shorten class names
         List list = new ArrayList();
-        Iterator it = set.iterator();
-        while (it.hasNext()) {
-            String cname = (String)it.next();
-            if ( cname.indexOf('$') == -1 )
-                list.add( BshClassPath.splitClassname( cname )[1] );
+        for ( Object aSet : set ) {
+            String cname = (String) aSet;
+            if ( cname.indexOf('$') == -1 ) {
+                list.add(BshClassPath.splitClassname(cname)[1]);
+            }
         }
 
         classesList = toSortedStrings(list);
@@ -558,18 +558,17 @@ public class ClassBrowser extends JSplitPane
         {
             Map packageTree = new HashMap();
 
-            Iterator it=packages.iterator();
-            while( it.hasNext() ) {
-                String pack = (String)(it.next());
-                String [] sa = pack.split( "\\." );
-                Map level=packageTree;
-                for (int i=0; i< sa.length; i++ ) {
+            for ( Object aPackage : packages ) {
+                String pack = (String) (aPackage);
+                String[] sa = pack.split("\\.");
+                Map level = packageTree;
+                for ( int i = 0; i < sa.length; i++ ) {
                     String name = sa[i];
-                    Map map=(Map)level.get( name );
+                    Map map = (Map) level.get(name);
 
                     if ( map == null ) {
-                        map=new HashMap();
-                        level.put( name, map );
+                        map = new HashMap();
+                        level.put(name, map);
                     }
                     level = map;
                 }
@@ -585,10 +584,9 @@ public class ClassBrowser extends JSplitPane
         {
             DefaultMutableTreeNode root =
                 new DefaultMutableTreeNode( nodeName );
-            Iterator it=map.keySet().iterator();
-            while(it.hasNext() ) {
-                String name = (String)it.next();
-                Map val = (Map)map.get(name);
+            for ( Object o : map.keySet() ) {
+                String name = (String) o;
+                Map val = (Map) map.get(name);
                 if ( val.size() == 0 ) {
                     DefaultMutableTreeNode leaf =
                         new DefaultMutableTreeNode( name );
