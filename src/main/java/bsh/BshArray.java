@@ -79,7 +79,7 @@ public class BshArray {
      * @param to to index exclusive
      * @param step size of step or 0 if no step
      * @return a sliced view of the supplied list */
-    public static List<Object> slice(List<Object> list, int from, int to, int step) {
+    public static Object slice(List<Object> list, int from, int to, int step) {
         int length = list.size();
         if ( to > length ) to = length;
         if ( 0 > from ) from = 0;
@@ -119,7 +119,7 @@ public class BshArray {
             if ( i % step == 0 )
                 tmp[j++] = Array.get(arr, step < 0 ? length-1-i : i+from);
         Object toArray = Array.newInstance(toType, tmp.length);
-        copy(toType, toArray, (Object[])tmp);
+        copy(toType, toArray, (Object)tmp);
         return toArray;
     }
 
@@ -127,7 +127,7 @@ public class BshArray {
      * @param list the list to repeat
      * @param times number of repetitions
      * @return a new list instance with repeated contents */
-    public static List<Object> repeat(List<Object> list, int times) {
+    public static Object repeat(List<Object> list, int times) {
         if ( times < 1 )
             if (list instanceof Queue)
                 return new LinkedList<>();
@@ -167,7 +167,7 @@ public class BshArray {
      * @param lhs 1st list
      * @param rhs 2nd list
      * @return a new list instance of concatenated contents. */
-    public static List<Object> concat(List<?> lhs, List<?> rhs) {
+    public static Object concat(List<?> lhs, List<?> rhs) {
         List<Object> list = lhs instanceof Queue
                         ? new LinkedList<>(lhs)
                         : new ArrayList<>(lhs);
