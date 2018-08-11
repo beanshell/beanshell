@@ -232,7 +232,7 @@ public final class Primitive implements Serializable {
 
         // Promote character to Number type for these purposes
         if (value instanceof Character)
-            value = Integer.valueOf(((Character)value).charValue());
+            value = (int) ((Character) value).charValue();
 
         if (value instanceof Number)
             return (Number)value;
@@ -562,7 +562,7 @@ public final class Primitive implements Serializable {
 
         // first promote char to Number type to avoid duplicating code
         if ( value instanceof Character )
-            value = Integer.valueOf(((Character)value).charValue());
+            value = (int) ((Character) value).charValue();
 
         if ( !(value instanceof Number) )
             throw new InterpreterError("bad type in cast "+StringUtil.typeValueString(value));

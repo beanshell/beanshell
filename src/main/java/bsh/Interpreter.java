@@ -124,7 +124,7 @@ public class Interpreter
     /** Shared system object visible under bsh.system */
     public static void setShutdownOnExit(final boolean value) {
         try {
-            SYSTEM_OBJECT.getNameSpace().setVariable("shutdownOnExit", Boolean.valueOf(value), false);
+            SYSTEM_OBJECT.getNameSpace().setVariable("shutdownOnExit", value, false);
         } catch (final UtilEvalError utilEvalError) {
             throw new IllegalStateException(utilEvalError);
         }

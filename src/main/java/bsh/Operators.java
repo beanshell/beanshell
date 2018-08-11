@@ -455,9 +455,9 @@ class Operators implements ParserConstants {
     static Number promoteToInteger(Object wrapper )
     {
         if ( wrapper instanceof Character )
-            return Integer.valueOf(((Character) wrapper).charValue());
+            return (int) ((Character) wrapper).charValue();
         if ( wrapper instanceof Byte || wrapper instanceof Short )
-            return Integer.valueOf(((Number) wrapper).intValue());
+            return ((Number) wrapper).intValue();
 
         return (Number) wrapper;
     }
@@ -479,9 +479,9 @@ class Operators implements ParserConstants {
                 lhs = Primitive.castNumber(BigDecimal.class, lnum);
             } else if ( Types.isFloatingpoint(lhs) || Types.isFloatingpoint(rhs)) {
                 if ( !(lhs instanceof Double) )
-                    lhs = Double.valueOf(lnum.doubleValue());
+                    lhs = lnum.doubleValue();
                 if ( !(rhs instanceof Double) )
-                    rhs = Double.valueOf(rnum.doubleValue());
+                    rhs = rnum.doubleValue();
             } else if ( lhs instanceof BigInteger ) {
                 if ( !(rhs instanceof BigInteger) )
                     rhs = Primitive.castNumber(BigInteger.class, rnum);
@@ -489,9 +489,9 @@ class Operators implements ParserConstants {
                 lhs = Primitive.castNumber(BigInteger.class, lnum);
             } else {
                 if ( !(lhs instanceof Long) )
-                    lhs = Long.valueOf(lnum.longValue());
+                    lhs = lnum.longValue();
                 if ( !(rhs instanceof Long) )
-                    rhs = Long.valueOf(rnum.longValue());
+                    rhs = rnum.longValue();
             }
         }
 

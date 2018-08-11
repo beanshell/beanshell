@@ -144,7 +144,7 @@ public final class This implements java.io.Serializable, Runnable
         int hash = 21;
         for(int i=0; i<ca.length; i++)
             hash *= ca[i].hashCode() + 3;
-        Integer hashKey = Integer.valueOf(hash);
+        Integer hashKey = hash;
 
         Object interf = interfaces.get( hashKey );
 
@@ -400,7 +400,7 @@ public final class This implements java.io.Serializable, Runnable
 
         // a default hashCode()
         if ( methodName.equals("hashCode") && args.length==0 )
-            return Integer.valueOf(this.hashCode());
+            return this.hashCode();
 
         // a default equals() testing for equality with the This reference
         if ( methodName.equals("equals") && args.length==1 ) {
