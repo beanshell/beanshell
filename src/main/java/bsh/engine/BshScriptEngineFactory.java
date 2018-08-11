@@ -80,7 +80,7 @@ public class BshScriptEngineFactory implements ScriptEngineFactory {
 
 
     public String getMethodCallSyntax(String objectName, String methodName, String... args) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         if (objectName != null)
             sb.append(objectName).append('.');
         sb.append(StringUtil.methodString(methodName, args)).append(";");
@@ -94,7 +94,7 @@ public class BshScriptEngineFactory implements ScriptEngineFactory {
 
 
     public String getProgram(String... statements) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for (final String statement : statements) {
             sb.append(statement);
             if ( ! statement.endsWith(";")) {

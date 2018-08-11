@@ -113,7 +113,7 @@ public class SimpleTemplate
     }
 
     public static String getStringFromStream( Reader reader ) throws IOException {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         BufferedReader br = new BufferedReader( reader );
         String line;
         while ( ( line = br.readLine() ) != null )

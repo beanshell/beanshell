@@ -215,7 +215,7 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
 
 
     private static String convertToString(Reader reader) throws IOException {
-        final StringBuffer buffer = new StringBuffer(64);
+        final StringBuilder buffer = new StringBuilder(64);
         char[] cb = new char[64];
         int len;
         while ((len = reader.read(cb)) != -1) {
