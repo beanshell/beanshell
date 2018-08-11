@@ -733,12 +733,16 @@ public class JConsole extends JScrollPane
     // handle cut, copy and paste
     public void actionPerformed(ActionEvent event) {
         String cmd = event.getActionCommand();
-        if (cmd.equals(CUT)) {
+        switch ( cmd ) {
+        case CUT:
             text.cut();
-        } else if (cmd.equals(COPY)) {
+            break;
+        case COPY:
             text.copy();
-        } else if (cmd.equals(PASTE)) {
+            break;
+        case PASTE:
             text.paste();
+            break;
         }
     }
 

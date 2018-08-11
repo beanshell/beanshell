@@ -622,24 +622,35 @@ public class ClassGeneratorUtil implements Opcodes {
         // Unload the arguments from the ConstructorArgs object
         for (String type : paramTypes) {
             final String method;
-            if (type.equals("Z"))
+            switch ( type ) {
+            case "Z":
                 method = "getBoolean";
-            else if (type.equals("B"))
+                break;
+            case "B":
                 method = "getByte";
-            else if (type.equals("C"))
+                break;
+            case "C":
                 method = "getChar";
-            else if (type.equals("S"))
+                break;
+            case "S":
                 method = "getShort";
-            else if (type.equals("I"))
+                break;
+            case "I":
                 method = "getInt";
-            else if (type.equals("J"))
+                break;
+            case "J":
                 method = "getLong";
-            else if (type.equals("D"))
+                break;
+            case "D":
                 method = "getDouble";
-            else if (type.equals("F"))
+                break;
+            case "F":
                 method = "getFloat";
-            else
+                break;
+            default:
                 method = "getObject";
+                break;
+            }
 
             // invoke the iterator method on the ConstructorArgs
             cv.visitVarInsn(ALOAD, consArgsVar); // push the ConstructorArgs
@@ -788,12 +799,18 @@ public class ClassGeneratorUtil implements Opcodes {
             cv.visitInsn(RETURN);
         else if (isPrimitive(returnType)) {
             int opcode = IRETURN;
-            if (returnType.equals("D"))
+            switch ( returnType ) {
+            case "D":
                 opcode = DRETURN;
-            else if (returnType.equals("F"))
+                break;
+            case "F":
                 opcode = FRETURN;
-            else if (returnType.equals("J")) //long
+                break;
+            case "J":
+//long
                 opcode = LRETURN;
+                break;
+            }
 
             cv.visitInsn(opcode);
         } else {
@@ -823,14 +840,20 @@ public class ClassGeneratorUtil implements Opcodes {
             cv.visitIntInsn(SIPUSH, i);
             if (isPrimitive(param)) {
                 int opcode;
-                if (param.equals("F"))
+                switch ( param ) {
+                case "F":
                     opcode = FLOAD;
-                else if (param.equals("D"))
+                    break;
+                case "D":
                     opcode = DLOAD;
-                else if (param.equals("J"))
+                    break;
+                case "J":
                     opcode = LLOAD;
-                else
+                    break;
+                default:
                     opcode = ILOAD;
+                    break;
+                }
 
                 String type = "bsh/Primitive";
                 cv.visitTypeInsn(NEW, type);
@@ -874,33 +897,44 @@ public class ClassGeneratorUtil implements Opcodes {
             int opcode = IRETURN;
             String type;
             String meth;
-            if (returnType.equals("Z")) {
+            switch ( returnType ) {
+            case "Z":
                 type = "java/lang/Boolean";
                 meth = "booleanValue";
-            } else if (returnType.equals("C")) {
+                break;
+            case "C":
                 type = "java/lang/Character";
                 meth = "charValue";
-            } else if (returnType.equals("B")) {
+                break;
+            case "B":
                 type = "java/lang/Byte";
                 meth = "byteValue";
-            } else if (returnType.equals("S") ) {
+                break;
+            case "S":
                 type = "java/lang/Short";
                 meth = "shortValue";
-            } else if (returnType.equals("F")) {
+                break;
+            case "F":
                 opcode = FRETURN;
                 type = "java/lang/Float";
                 meth = "floatValue";
-            } else if (returnType.equals("J")) {
+                break;
+            case "J":
                 opcode = LRETURN;
                 type = "java/lang/Long";
                 meth = "longValue";
-            } else if (returnType.equals("D")) {
+                break;
+            case "D":
                 opcode = DRETURN;
                 type = "java/lang/Double";
                 meth = "doubleValue";
-            } else /*if (returnType.equals("I"))*/ {
+                break;
+            default:
+                /*if (returnType.equals("I"))*/
+
                 type = "java/lang/Integer";
                 meth = "intValue";
+                break;
             }
 
             String desc = returnType;

@@ -542,18 +542,24 @@ class Name implements java.io.Serializable
 
         if ( obj == null && specialFieldsVisible )
         {
-            if (varName.equals("namespace"))
+            switch ( varName ) {
+            case "namespace":
                 obj = thisNameSpace;
-            else if (varName.equals("variables"))
+                break;
+            case "variables":
                 obj = thisNameSpace.getVariableNames();
-            else if (varName.equals("methods"))
+                break;
+            case "methods":
                 obj = thisNameSpace.getMethodNames();
-            else if ( varName.equals("interpreter") )
+                break;
+            case "interpreter":
                 if ( lastEvalName.equals("this") )
                     obj = interpreter;
                 else
                     throw new UtilEvalError(
                         "Can only call .interpreter on literal 'this'");
+                break;
+            }
         }
 
         if ( obj == null && specialFieldsVisible && varName.equals("caller") )
