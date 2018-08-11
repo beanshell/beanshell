@@ -1755,7 +1755,7 @@ final class MethodWriter extends MethodVisitor {
    */
   private void putFrameType(final Object type) {
     if (type instanceof Integer) {
-      stackMapTableEntries.putByte(((Integer) type).intValue());
+      stackMapTableEntries.putByte( (Integer) type );
     } else if (type instanceof String) {
       stackMapTableEntries
           .putByte(Frame.ITEM_OBJECT)

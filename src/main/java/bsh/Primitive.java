@@ -213,7 +213,7 @@ public final class Primitive implements Serializable {
     public boolean booleanValue() throws UtilEvalError
     {
         if(value instanceof Boolean)
-            return((Boolean)value).booleanValue();
+            return (Boolean) value;
         throw new UtilEvalError("Primitive not a boolean");
     }
 
@@ -232,7 +232,7 @@ public final class Primitive implements Serializable {
 
         // Promote character to Number type for these purposes
         if (value instanceof Character)
-            value = (int) ((Character) value).charValue();
+            value = (int) (Character) value;
 
         if (value instanceof Number)
             return (Number)value;
@@ -343,7 +343,7 @@ public final class Primitive implements Serializable {
             return Primitive.NULL;
 
         if(value instanceof Boolean)
-            return ((Boolean)value).booleanValue() ? Primitive.TRUE :
+            return (Boolean) value ? Primitive.TRUE :
                 Primitive.FALSE;
 
         if ( Types.isPrimitive(type) && isWrapperType( value.getClass() ) )
@@ -562,7 +562,7 @@ public final class Primitive implements Serializable {
 
         // first promote char to Number type to avoid duplicating code
         if ( value instanceof Character )
-            value = (int) ((Character) value).charValue();
+            value = (int) (Character) value;
 
         if ( !(value instanceof Number) )
             throw new InterpreterError("bad type in cast "+StringUtil.typeValueString(value));

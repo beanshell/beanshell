@@ -101,7 +101,7 @@ public final class BSHLiteral extends SimpleNode
                     ch = getEscapeChar(ch);
             }
 
-            value = new Primitive(Character.valueOf(ch).charValue());
+            value = new Primitive( Character.valueOf( ch ) );
         } catch (Exception e) {
             stringSetup(str);
         }

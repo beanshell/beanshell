@@ -136,7 +136,7 @@ public class Capabilities implements Supplier<Boolean>, Consumer<Boolean>
 
     @Override
     public void accept(Boolean t) {
-        this.accessibility = t.booleanValue();
+        this.accessibility = t;
     }
 }
 

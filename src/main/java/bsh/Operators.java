@@ -119,7 +119,7 @@ class Operators implements ParserConstants {
         }
 
         if(result instanceof Boolean)
-            return ((Boolean)result).booleanValue() ? Primitive.TRUE :
+            return (Boolean) result ? Primitive.TRUE :
                 Primitive.FALSE;
 
         // If both original args were Primitives return a Primitive result
@@ -155,8 +155,8 @@ class Operators implements ParserConstants {
 
     static Boolean booleanBinaryOperation(Boolean B1, Boolean B2, int kind)
     {
-        boolean lhs = B1.booleanValue();
-        boolean rhs = B2.booleanValue();
+        boolean lhs = B1;
+        boolean rhs = B2;
 
         switch(kind)
         {
@@ -455,7 +455,7 @@ class Operators implements ParserConstants {
     static Number promoteToInteger(Object wrapper )
     {
         if ( wrapper instanceof Character )
-            return (int) ((Character) wrapper).charValue();
+            return (int) (Character) wrapper;
         if ( wrapper instanceof Byte || wrapper instanceof Short )
             return ((Number) wrapper).intValue();
 
@@ -550,7 +550,7 @@ class Operators implements ParserConstants {
     static boolean booleanUnaryOperation(Boolean B, int kind)
         throws UtilEvalError
     {
-        boolean operand = B.booleanValue();
+        boolean operand = B;
         switch(kind)
         {
             case BANG:
@@ -561,7 +561,7 @@ class Operators implements ParserConstants {
 
     static int intUnaryOperation(Integer I, int kind)
     {
-        int operand = I.intValue();
+        int operand = I;
 
         switch(kind)
         {
@@ -617,7 +617,7 @@ class Operators implements ParserConstants {
 
     static long longUnaryOperation(Long L, int kind)
     {
-        long operand = L.longValue();
+        long operand = L;
 
         switch(kind)
         {
@@ -637,7 +637,7 @@ class Operators implements ParserConstants {
 
     static float floatUnaryOperation(Float F, int kind)
     {
-        float operand = F.floatValue();
+        float operand = F;
 
         switch(kind)
         {
@@ -655,7 +655,7 @@ class Operators implements ParserConstants {
 
     static double doubleUnaryOperation(Double D, int kind)
     {
-        double operand = D.doubleValue();
+        double operand = D;
 
         switch(kind)
         {

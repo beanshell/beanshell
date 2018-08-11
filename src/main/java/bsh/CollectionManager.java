@@ -205,7 +205,7 @@ public final class CollectionManager {
      * @param obj the top of the character range
      * @return the bsh iterator */
     public Iterator<String> getBshIterator(final Character obj) {
-        Integer value = (int) obj.charValue();
+        Integer value = (int) obj;
         int check = 33, start = 0;
         for (int i : unicodeBlockStarts) if (check <= value) {
             start = check;

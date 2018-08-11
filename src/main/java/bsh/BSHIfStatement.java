@@ -63,7 +63,7 @@ class BSHIfStatement extends SimpleNode
         obj = Primitive.unwrap(obj);
 
         if( obj instanceof Boolean )
-            return ((Boolean) obj).booleanValue();
+            return (Boolean) obj;
         else
             throw new EvalError(
                 "Condition must evaluate to a Boolean or boolean.",
