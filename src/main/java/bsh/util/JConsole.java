@@ -314,8 +314,8 @@ public class JConsole extends JScrollPane
                     The getKeyCode function always returns VK_UNDEFINED for
                     keyTyped events, so backspace is not fully consumed.
                 */
-                if (e.paramString().indexOf("Backspace") != -1
-                        && text.getCaretPosition() <= cmdStart) {
+                if ( e.paramString().contains("Backspace")
+                     && text.getCaretPosition() <= cmdStart) {
                     e.consume();
                     break;
                 }

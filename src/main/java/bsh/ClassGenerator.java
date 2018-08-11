@@ -187,7 +187,7 @@ public final class ClassGenerator {
 
     static DelayedEvalBshMethod[] getDeclaredMethods(BSHBlock body, CallStack callstack, Interpreter interpreter, String defaultPackage, Class superClass) throws EvalError {
         List<DelayedEvalBshMethod> methods = new ArrayList<DelayedEvalBshMethod>();
-        if ( callstack.top().getName().indexOf("$anon") > -1 ) {
+        if ( callstack.top().getName().contains("$anon") ) {
             // anonymous classes need super constructor
             String classBaseName = Types.getBaseName(callstack.top().getName());
             DelayedEvalBshMethod bm = new DelayedEvalBshMethod(classBaseName,

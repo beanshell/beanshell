@@ -103,7 +103,7 @@ class HttpdConnection extends Thread
                 request = "";
             }
 
-            else if (request.toLowerCase().indexOf("http/1.") != -1)
+            else if ( request.toLowerCase().contains("http/1.") )
             {
                 String s;
                 while( null != (s = in.readLine()) && !s.equals("") );
