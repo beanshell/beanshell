@@ -42,15 +42,8 @@ public class DiscreteFilesClassLoader extends BshClassLoader
     */
     ClassSourceMap map;
 
-    public static class ClassSourceMap extends HashMap
-    {
-        public void put( String name, ClassSource source ) {
-            super.put( name, source );
-        }
-        public ClassSource get( String name ) {
-            return (ClassSource)super.get( name );
-        }
-    }
+    public static class ClassSourceMap extends HashMap<String, ClassSource>
+    { }
 
     private static DiscreteFilesClassLoader instance;
     public static DiscreteFilesClassLoader instance() {
