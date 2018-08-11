@@ -33,8 +33,8 @@ class Operators implements ParserConstants {
         if ( kind == PLUS ) {
             // String concatenation operation
             if ( lhs instanceof String || rhs instanceof String )
-                return String.valueOf((Object) lhs)
-                     + String.valueOf((Object) rhs);
+                return String.valueOf(lhs)
+                     + String.valueOf(rhs);
             // array concatenation operation
             if ( lhs.getClass().isArray() && rhs instanceof List )
                 rhs = ((List<?>) rhs).toArray();
@@ -127,7 +127,7 @@ class Operators implements ParserConstants {
         // Exception is for boolean result, return the primitive
         if ( lhsOrgType == Primitive.class && rhsOrgType == Primitive.class )
             if ( Types.isFloatingpoint(result) && lhs.getClass() == BigDecimal.class )
-                return (Primitive) Primitive.wrap(result, result.getClass());
+                return Primitive.wrap(result, result.getClass());
             else
                 return Primitive.shrinkWrap( result );
 

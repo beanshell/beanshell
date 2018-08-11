@@ -355,7 +355,7 @@ class BSHPrimarySuffix extends SimpleNode
                 this, callstack );
 
         if ( toLHS )
-            return new LHS(obj, (String)value);
+            return new LHS(obj, value);
 
         // Property style access to Hashtable or Map
         if (obj instanceof Map) {

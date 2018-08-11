@@ -122,7 +122,7 @@ public class BshClassManager
     private static final Map<BshClassManager,Object> classManagers = Collections.synchronizedMap(new WeakHashMap<>());
 
     static void clearResolveCache() {
-        BshClassManager[] managers = (BshClassManager[])classManagers.keySet().toArray(new BshClassManager[0]);
+        BshClassManager[] managers = classManagers.keySet().toArray(new BshClassManager[0]);
         for( BshClassManager m : managers ) {
             m.resolvedObjectMethods = new Hashtable<SignatureKey,Method>();
             m.resolvedStaticMethods = new Hashtable<SignatureKey,Method>();

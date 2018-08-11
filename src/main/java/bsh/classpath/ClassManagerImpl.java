@@ -151,7 +151,7 @@ public class ClassManagerImpl extends BshClassManager
     public Class classForName( String name )
     {
         // check positive cache
-        Class c = (Class)absoluteClassCache.get(name);
+        Class c = absoluteClassCache.get(name);
         if (c != null )
             return c;
 
