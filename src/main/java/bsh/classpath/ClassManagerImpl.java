@@ -181,17 +181,13 @@ public class ClassManagerImpl extends BshClassManager
             if (myClassLoader != null) {
                 try {
                     c = myClassLoader.loadClass(name);
-                } catch (ClassNotFoundException e) {
-                    // fall through
-                } catch (NoClassDefFoundError e) {
+                } catch ( ClassNotFoundException | NoClassDefFoundError e) {
                     // fall through
                 }
             } else {
                 try {
                     c = Class.forName( name );
-                } catch ( ClassNotFoundException e ) {
-                    // fall through
-                } catch ( NoClassDefFoundError e ) {
+                } catch ( ClassNotFoundException | NoClassDefFoundError e ) {
                     // fall through
                 }
             }
@@ -225,11 +221,7 @@ public class ClassManagerImpl extends BshClassManager
                 if ( contextClassLoader != null ) {
                     c = Class.forName( name, true, contextClassLoader );
                 }
-            } catch ( ClassNotFoundException e ) {
-                // fall through
-            } catch ( NoClassDefFoundError e ) {
-                // fall through
-            } catch ( SecurityException e ) {
+            } catch ( ClassNotFoundException | SecurityException | NoClassDefFoundError e ) {
                 // fall through
             }
         }
