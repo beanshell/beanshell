@@ -659,7 +659,7 @@ public final class This implements java.io.Serializable, Runnable
      * @param instance the instance this from class <init>
      * @param className the name of instance relative
      * @return instance This */
-    private static This initClassInstanceThis(Object instance, String className) {
+    private static This initClassInstanceThis(GeneratedClass instance, String className) {
         This instanceThis = Reflect.getClassInstanceThis(instance, className);
         if (null == instanceThis) {
             // Create the instance 'This' namespace, set it on the object
