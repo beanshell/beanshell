@@ -392,7 +392,7 @@ public class Interpreter
                         invokeMain( (Class<?>)result, bshArgs );
                     } catch ( Exception e )
                     {
-                        Object o = e;
+                        Throwable o = e;
                         if ( e instanceof InvocationTargetException )
                             o = ((InvocationTargetException)e)
                                 .getTargetException();
