@@ -372,7 +372,7 @@ public class JConsole extends JScrollPane
         // Show ambiguous
         StringBuilder sb = new StringBuilder("\n");
         for( i=0; i<complete.length && i<SHOW_AMBIG_MAX; i++)
-            sb.append( complete[i] +"\n" );
+            sb.append(complete[i]).append("\n");
         if ( i == SHOW_AMBIG_MAX )
             sb.append("...\n");
 
@@ -486,7 +486,7 @@ public class JConsole extends JScrollPane
                 if(c>127) {
                     String val = Integer.toString(c, 16);
                     val=ZEROS.substring(0,4-val.length()) + val;
-                    buf.append("\\u" + val);
+                    buf.append("\\u").append(val);
                 } else {
                     buf.append(c);
                 }

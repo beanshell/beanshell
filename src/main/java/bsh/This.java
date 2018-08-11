@@ -246,8 +246,7 @@ public final class This implements java.io.Serializable, Runnable
                 StringBuilder sb = new StringBuilder(
                     This.this.toString() + "\nimplements:" );
                 for(int i=0; i<ints.length; i++)
-                    sb.append( " "+ ints[i].getName()
-                        + ( ints.length > 1 ? "," :"" ) );
+                    sb.append(" ").append(ints[i].getName()).append(ints.length > 1 ? "," : "");
                 return sb.toString();
             }
 

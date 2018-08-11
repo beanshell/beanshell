@@ -101,7 +101,7 @@ public class dir
             GregorianCalendar c = new GregorianCalendar();
             c.setTime(d);
             int day = c.get(Calendar.DAY_OF_MONTH);
-            sb.append( months[ c.get(Calendar.MONTH) ] + " " + day );
+            sb.append(months[c.get(Calendar.MONTH)]).append(" ").append(day);
             if ( day < 10 )
                 sb.append(" ");
 
@@ -124,7 +124,7 @@ public class dir
 
             sb.append( len.toString() );
 
-            sb.append( " " + f.getName() );
+            sb.append(" ").append(f.getName());
             if ( f.isDirectory() )
                 sb.append("/");
 

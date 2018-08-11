@@ -237,9 +237,10 @@ public class BshServlet extends HttpServlet
             if ( line == null )
                 break;
             if ( i == lineNo )
-                sb.append( "<font color=\"red\">"+i+": "+line +"</font><br/>" );
+                sb.append("<font color=\"red\">").append(i).append(": ").append(line)
+                    .append("</font><br/>");
             else
-                sb.append( i+": " +line +"<br/>" );
+                sb.append(i).append(": ").append(line).append("<br/>");
         }
 
         return sb.toString();
