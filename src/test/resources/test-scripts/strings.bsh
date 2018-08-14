@@ -69,6 +69,43 @@ assertEquals("?77", '\7777');
 assertEquals("?77", "\7777");
 assertEquals("Is a question?", "Is a question\77");
 
+// escape tests
+assertEquals("aFb", 'a\\b'.replace('\\','F'));
+assertEquals("aFb", "a\\b".replace('\\','F'));
+assertEquals("aFb", "a\\b".replace("\\","F"));
+
+assertEquals("aFb", 'a\'b'.replace('\'','F'));
+assertEquals("aFb", "a\'b".replace('\'','F'));
+assertEquals("aFb", "a\'b".replace("\'","F"));
+
+assertEquals("aFb", 'a\"b'.replace('\"','F'));
+assertEquals("aFb", "a\"b".replace('\"','F'));
+assertEquals("aFb", "a\"b".replace("\"","F"));
+
+assertEquals("aFb", 'a\tb'.replace('\t','F'));
+assertEquals("aFb", "a\tb".replace('\t','F'));
+assertEquals("aFb", "a\tb".replace("\t","F"));
+
+assertEquals("aFb", 'a\6b'.replace('\6','F'));
+assertEquals("aFb", "a\6b".replace('\6','F'));
+assertEquals("aFb", "a\6b".replace("\6","F"));
+
+assertEquals("aFb", 'a\nb'.replace('\n','F'));
+assertEquals("aFb", "a\nb".replace('\n','F'));
+assertEquals("aFb", "a\nb".replace("\n","F"));
+
+// escape like a boss
+line = "abc\
+def\
+ghi\
+";
+assertEquals("abc\ndef\nghi\n", line);
+line = 'abc\
+def\
+ghi\
+';
+assertEquals('abc\ndef\nghi\n', line);
+
 // Long strings
 out= System.getProperty("line.separator");
 for (x : 5)
