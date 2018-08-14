@@ -108,7 +108,7 @@ assertThat(t, instanceOf(Double.class));
 assertEquals(8.988465674311579E307, t, 0.0);
 t = 1.7976931348623167E616 / 2;
 assertThat(t, instanceOf(BigDecimal.class));
-assertEquals(8.9884656743115835E+615w, t);
+assertEquals(8.988465674311584E+615w, t);
 
 //modulus floating point
 t = 5.0 % 2;

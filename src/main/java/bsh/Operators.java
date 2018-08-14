@@ -425,7 +425,7 @@ class Operators implements ParserConstants {
                 return lhs.multiply(rhs);
 
             case SLASH:
-                return lhs.divide(rhs);
+                return lhs.divide(rhs, BigDecimal.ROUND_HALF_EVEN);
 
             case MOD:
             case MODX:
