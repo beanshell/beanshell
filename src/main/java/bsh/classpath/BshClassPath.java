@@ -587,7 +587,7 @@ public class BshClassPath
         if ( classname.startsWith("classes.") )
             classname = classname.substring(8);
         if ( classname.endsWith(".class") )
-            classname = classname.replaceFirst("\\.[^\\.]+$", "");
+            classname = classname.replaceFirst("\\.[^.]+$", "");
         return classname;
     }
 
