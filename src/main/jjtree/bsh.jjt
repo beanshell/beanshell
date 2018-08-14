@@ -363,9 +363,11 @@ TOKEN : /* LITERALS */
 |
   < #EXPONENT: ["e","E"] (["+","-"])? (["0"-"9"])+ >
 |
-  < CHARACTER_LITERAL: "'" (~["'","\n","\r"] | "\\'")* "'" >
+  < #ESCAPE: "\\" (~["\\"]|["\\"]) >
 |
-  < STRING_LITERAL: "\"" (~["\"","\n","\r"] | "\\\"")* "\"" >
+  < CHARACTER_LITERAL: "'" (~["'","\n","\r","\\"] | <ESCAPE>)* "'" >
+|
+  < STRING_LITERAL: "\"" (~["\"","\n","\r","\\"] | <ESCAPE>)* "\"" >
 |
   < LONG_STRING_LITERAL: "\"\"\"" ( ~["\""] ("\"")? )* "\"\"\"" >
 |
