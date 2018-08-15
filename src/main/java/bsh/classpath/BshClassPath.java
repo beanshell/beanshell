@@ -304,7 +304,7 @@ public class BshClassPath
 
         Object obj = unqNameTable.get( name );
         if ( obj instanceof AmbiguousName )
-            throw new ClassPathException("Ambigous class names: "+
+            throw new ClassPathException("Ambiguous class names: "+
                 ((AmbiguousName)obj).get() );
 
         return (String)obj;

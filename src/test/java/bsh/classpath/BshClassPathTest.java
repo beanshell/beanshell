@@ -186,7 +186,7 @@ public class BshClassPathTest {
     @Test
     public void classpath_get_unq_name_ambigous() throws Exception {
         thrown.expect(ClassPathException.class);
-        thrown.expectMessage(containsString("Ambigous class names"));
+        thrown.expectMessage(containsString("Ambiguous class names"));
 
         try (final Interpreter bsh = new Interpreter()) {
             ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
