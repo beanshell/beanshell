@@ -87,7 +87,10 @@ public class ClassBrowser extends JSplitPane
     // GUI
     JFrame frame;
     JInternalFrame iframe;
-    JList classlist, conslist, mlist, fieldlist;
+    JList<String> classlist;
+    JList<Object> conslist;
+    JList<Object> mlist;
+    JList fieldlist;
     PackageTree ptree;
     JTextArea methodLine;
     JTree tree;
@@ -128,14 +131,13 @@ public class ClassBrowser extends JSplitPane
     void setClist( String packagename ) {
         this.selectedPackage = packagename;
 
-        Set set = classPath.getClassesForPackage( packagename );
+        Set<String> set = classPath.getClassesForPackage( packagename );
         if ( set == null )
-            set = new HashSet();
+            set = new HashSet<>();
 
         // remove inner classes and shorten class names
-        List list = new ArrayList();
-        for ( Object aSet : set ) {
-            String cname = (String) aSet;
+        List<String> list = new ArrayList<>();
+        for ( String cname : set ) {
             if ( cname.indexOf('$') == -1 ) {
                 list.add(BshClassPath.splitClassname(cname)[1]);
             }
@@ -176,7 +178,7 @@ public class ClassBrowser extends JSplitPane
     }
 
     Constructor [] getPublicConstructors( Constructor [] constructors ) {
-        Vector v = new Vector();
+        Vector<Constructor> v = new Vector<Constructor>();
         for(int i=0; i< constructors.length; i++)
             if ( Modifier.isPublic(constructors[i].getModifiers()) )
                 v.addElement( constructors[i] );
@@ -187,7 +189,7 @@ public class ClassBrowser extends JSplitPane
     }
 
     Method [] getPublicMethods( Method [] methods ) {
-        Vector v = new Vector();
+        Vector<Method> v = new Vector<>();
         for(int i=0; i< methods.length; i++)
             if ( Modifier.isPublic(methods[i].getModifiers()) )
                 v.addElement( methods[i] );
@@ -198,7 +200,7 @@ public class ClassBrowser extends JSplitPane
     }
 
     Field[] getPublicFields( Field [] fields ) {
-        Vector v = new Vector();
+        Vector<Field> v = new Vector<>();
         for(int i=0; i< fields.length; i++)
             if ( Modifier.isPublic(fields[i].getModifiers()) )
                 v.addElement( fields[i] );
@@ -324,7 +326,7 @@ public class ClassBrowser extends JSplitPane
 
         classPath.addListener( this );
 
-        Set pset = classPath.getPackagesSet();
+        Set<String> pset = classPath.getPackagesSet();
 
         ptree = new PackageTree( pset );
         ptree.addTreeSelectionListener( new TreeSelectionListener() {
@@ -341,14 +343,14 @@ public class ClassBrowser extends JSplitPane
             }
         } );
 
-        classlist=new JList();
+        classlist=new JList<>();
         classlist.setBackground(LIGHT_BLUE);
         classlist.addListSelectionListener(this);
 
-        conslist = new JList();
+        conslist = new JList<>();
         conslist.addListSelectionListener(this);
 
-        mlist = new JList();
+        mlist = new JList<>();
         mlist.setBackground(LIGHT_BLUE);
         mlist.addListSelectionListener(this);
 
@@ -446,7 +448,7 @@ public class ClassBrowser extends JSplitPane
     {
         if ( e.getSource() == classlist )
         {
-            String classname = (String)classlist.getSelectedValue();
+            String classname = classlist.getSelectedValue();
             setMlist( classname );
 
             // hack
@@ -528,9 +530,9 @@ public class ClassBrowser extends JSplitPane
     {
         TreeNode root;
         DefaultTreeModel treeModel;
-        Map nodeForPackage = new HashMap();
+        Map<String, TreeNode> nodeForPackage = new HashMap<>();
 
-        PackageTree( Collection packages ) {
+        PackageTree( Collection<String> packages ) {
             setPackages( packages );
 
             setRootVisible(false);
@@ -548,25 +550,24 @@ public class ClassBrowser extends JSplitPane
             */
         }
 
-        public void setPackages( Collection packages ) {
+        public void setPackages( Collection<String> packages ) {
             treeModel = makeTreeModel(packages);
             setModel( treeModel );
         }
 
-        DefaultTreeModel makeTreeModel( Collection packages )
+        DefaultTreeModel makeTreeModel( Collection<String> packages )
         {
-            Map packageTree = new HashMap();
+            Map<String, Map> packageTree = new HashMap<>();
 
-            for ( Object aPackage : packages ) {
-                String pack = (String) (aPackage);
+            for ( String pack : packages ) {
                 String[] sa = pack.split("\\.");
-                Map level = packageTree;
+                Map<String, Map> level = packageTree;
                 for ( int i = 0; i < sa.length; i++ ) {
                     String name = sa[i];
-                    Map map = (Map) level.get(name);
+                    Map map = level.get(name);
 
                     if ( map == null ) {
-                        map = new HashMap();
+                        map = new HashMap<String, Object>();
                         level.put(name, map);
                     }
                     level = map;
@@ -579,13 +580,12 @@ public class ClassBrowser extends JSplitPane
         }
 
 
-        MutableTreeNode makeNode( Map map, String nodeName )
+        MutableTreeNode makeNode( Map<String, Map> map, String nodeName )
         {
             DefaultMutableTreeNode root =
                 new DefaultMutableTreeNode( nodeName );
-            for ( Object o : map.keySet() ) {
-                String name = (String) o;
-                Map val = (Map) map.get(name);
+            for ( String name : map.keySet() ) {
+                Map val = map.get(name);
                 if ( val.size() == 0 ) {
                     DefaultMutableTreeNode leaf =
                         new DefaultMutableTreeNode( name );
@@ -647,7 +647,7 @@ public class ClassBrowser extends JSplitPane
     }
 
     public void classPathChanged() {
-        Set pset = classPath.getPackagesSet();
+        Set<String> pset = classPath.getPackagesSet();
         ptree.setPackages( pset );
         setClist(null);
     }
