@@ -782,7 +782,6 @@ public class BshClassPath
                 bytes = new byte [ (int)file.length() ];
 
                 dis.readFully( bytes );
-                dis.close();
             } catch(IOException ie ) {
                 throw new RuntimeException("Couldn't load file: "+file, ie);
             }
