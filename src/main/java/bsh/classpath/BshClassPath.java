@@ -612,12 +612,7 @@ public class BshClassPath
     */
     public static Collection<String> removeInnerClassNames( Collection<String> col ) {
         List<String> list = new ArrayList<>(col);
-        Iterator<String> it = list.iterator();
-        while(it.hasNext()) {
-            String name = it.next();
-            if ( name.indexOf('$') != -1 )
-                it.remove();
-        }
+        list.removeIf(name -> name.indexOf('$') != -1);
         return list;
     }
 
