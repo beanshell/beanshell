@@ -86,7 +86,7 @@ public class BshClassPath
     private List<BshClassPath> compPaths;
 
     /** Set of classes in a package mapped by package name */
-    private Map packageMap;
+    private Map<String, Set<String>> packageMap;
     /** Map of source (URL or File dir) of every clas */
     private Map<String, ClassSource> classSource;
     /**  The packageMap and classSource maps have been built. */
@@ -155,17 +155,17 @@ public class BshClassPath
         Get the path components including any component paths.
     */
     public URL [] getPathComponents() {
-        return (URL[])getFullPath().toArray( new URL[0] );
+        return getFullPath().toArray( new URL[0] );
     }
 
     /**
         Return the set of class names in the specified package
         including all component paths.
     */
-    synchronized public Set getClassesForPackage( String pack ) {
+    synchronized public Set<String> getClassesForPackage( String pack ) {
         insureInitialized();
-        Set set = new HashSet();
-        Collection c = (Collection)packageMap.get( pack );
+        Set<String> set = new HashSet<>();
+        Collection<String> c = packageMap.get( pack );
         if ( c != null )
             set.addAll( c );
 
@@ -257,7 +257,7 @@ public class BshClassPath
 
         // initialize ourself
         if ( !mapsInitialized )
-            map( (URL[])path.toArray( new URL[0] ) );
+            map(path.toArray( new URL[0] ));
 
         if ( topPath && !mapsInitialized )
             endClassMapping();
@@ -345,9 +345,9 @@ public class BshClassPath
     {
         insureInitialized();
 
-        List names = new ArrayList();
-        for ( Object o : getPackagesSet() ) {
-            String pack = (String) o;
+        List<Object> names = new ArrayList<>();
+        for ( String o : getPackagesSet() ) {
+            String pack = o;
             names.addAll(
                 removeInnerClassNames(getClassesForPackage(pack)));
         }
@@ -355,7 +355,7 @@ public class BshClassPath
         if ( nameCompletionIncludesUnqNames )
             names.addAll( getUnqualifiedNameTable().keySet() );
 
-        return (String [])names.toArray(new String[0]);
+        return names.toArray(new String[0]);
     }
 
     /**
@@ -410,9 +410,9 @@ public class BshClassPath
         // add to package map
         String [] sa = splitClassname( className );
         String pack = sa[0];
-        Set set = (Set)packageMap.get( pack );
+        Set<String> set = packageMap.get( pack );
         if ( set == null ) {
-            set = new HashSet();
+            set = new HashSet<>();
             packageMap.put( pack, set );
         }
         set.add( className );
@@ -439,7 +439,7 @@ public class BshClassPath
     */
     synchronized private void clearCachedStructures() {
         mapsInitialized = false;
-        packageMap = new HashMap();
+        packageMap = new HashMap<>();
         classSource = new HashMap<>();
         unqNameTable = null;
         nameSpaceChanged();
@@ -465,7 +465,7 @@ public class BshClassPath
         throws IOException
     {
         List<String> list = traverseDirForClassesAux( dir, dir );
-        return (String[])list.toArray( new String[0] );
+        return list.toArray( new String[0] );
     }
 
     static List<String> traverseDirForClassesAux( File topDir, File dir )
@@ -613,12 +613,12 @@ public class BshClassPath
     /**
         Return a new collection without any inner class names
     */
-    public static Collection removeInnerClassNames( Collection col ) {
-        List list = new ArrayList();
+    public static Collection removeInnerClassNames( Collection<String> col ) {
+        List<String> list = new ArrayList<>();
         list.addAll(col);
-        Iterator it = list.iterator();
+        Iterator<String> it = list.iterator();
         while(it.hasNext()) {
-            String name =(String)it.next();
+            String name = it.next();
             if ( name.indexOf('$') != -1 )
                 it.remove();
         }
@@ -659,11 +659,10 @@ public class BshClassPath
     /**
         Get a list of all of the known packages
     */
-    public Set getPackagesSet()
+    public Set<String> getPackagesSet()
     {
         insureInitialized();
-        Set set = new HashSet();
-        set.addAll( packageMap.keySet() );
+        Set<String> set = new HashSet<>(packageMap.keySet());
 
         if ( compPaths != null )
             for (int i=0; i<compPaths.size(); i++)
@@ -673,7 +672,7 @@ public class BshClassPath
     }
 
     public void addListener( ClassPathListener l ) {
-        listeners.addElement( new WeakReference<ClassPathListener>(l) );
+        listeners.addElement(new WeakReference<>(l) );
     }
     public void removeListener( ClassPathListener l ) {
         for ( Iterator<WeakReference<ClassPathListener>> it = listeners.iterator() ;
@@ -852,7 +851,7 @@ public class BshClassPath
     }
 
     public static class AmbiguousName {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         public void add( String name ) {
             list.add( name );
         }
@@ -926,7 +925,7 @@ public class BshClassPath
             System.err.println( "End ClassPath Mapping" );
     }
 
-    static interface MappingFeedback
+    interface MappingFeedback
     {
         void startClassMapping();
 
