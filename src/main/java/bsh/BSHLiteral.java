@@ -32,8 +32,6 @@ public final class BSHLiteral extends SimpleNode
 {
     public static volatile boolean internStrings = true;
 
-    public Object value;
-
     BSHLiteral(int id) { super(id); }
 
     public Object eval( CallStack callstack, Interpreter interpreter )

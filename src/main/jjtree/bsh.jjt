@@ -920,10 +920,10 @@ void Literal() #Literal :
     ch = literal.charAt(last);
     try {
         if( Types.Suffix.isIntegral(ch) )
-            jjtThis.value = parseIntegral(literal.substring(0, last))
-                  .castToType(Types.Suffix.getIntegralType(ch), 0);
+            jjtThis.jjtSetValue(parseIntegral(literal.substring(0, last))
+                  .castToType(Types.Suffix.getIntegralType(ch), 0));
         else
-            jjtThis.value = Primitive.shrinkWrap(parseIntegral(literal).getValue());
+            jjtThis.jjtSetValue(Primitive.shrinkWrap(parseIntegral(literal).getValue()));
     } catch ( NumberFormatException e ) {
         throw createParseException( e.getMessage(), e );
     }
@@ -936,10 +936,10 @@ void Literal() #Literal :
     ch = literal.charAt(last);
     try {
         if( Types.Suffix.isFloatingPoint(ch) )
-            jjtThis.value = new Primitive(new java.math.BigDecimal(literal.substring(0, last)))
-                   .castToType(Types.Suffix.getFloatingPointType(ch), 0);
+            jjtThis.jjtSetValue(new Primitive(new java.math.BigDecimal(literal.substring(0, last)))
+                   .castToType(Types.Suffix.getFloatingPointType(ch), 0));
         else
-            jjtThis.value = Primitive.shrinkWrap( new java.math.BigDecimal( literal ) );
+            jjtThis.jjtSetValue(Primitive.shrinkWrap( new java.math.BigDecimal( literal ) ));
     } catch ( NumberFormatException e ) {
         throw createParseException( e.getMessage(), e );
     }
@@ -963,21 +963,21 @@ void Literal() #Literal :
 |
   x = <LONG_STRING_LITERAL> {
         try {
-            jjtThis.value = x.image.substring(3, x.image.length() - 3);
+            jjtThis.jjtSetValue(x.image.substring(3, x.image.length() - 3));
         } catch ( Exception e ) {
             throw createParseException("Error parsing long string: "+x.image, e);
         }
     }
 |
   b = BooleanLiteral()  {
-    jjtThis.value = b ? Primitive.TRUE : Primitive.FALSE; }
+    jjtThis.jjtSetValue(b ? Primitive.TRUE : Primitive.FALSE); }
 |
   NullLiteral() {
-    jjtThis.value = Primitive.NULL;
+    jjtThis.jjtSetValue(Primitive.NULL);
 }
 |
  VoidLiteral() {
-    jjtThis.value = Primitive.VOID; }
+    jjtThis.jjtSetValue(Primitive.VOID); }
 }
 
 boolean BooleanLiteral() :
