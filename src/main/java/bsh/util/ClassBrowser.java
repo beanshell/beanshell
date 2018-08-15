@@ -59,8 +59,6 @@ import javax.swing.SwingConstants;
 import javax.swing.border.MatteBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
@@ -329,19 +327,17 @@ public class ClassBrowser extends JSplitPane
         Set<String> pset = classPath.getPackagesSet();
 
         ptree = new PackageTree( pset );
-        ptree.addTreeSelectionListener( new TreeSelectionListener() {
-            public void valueChanged(TreeSelectionEvent e) {
-                TreePath tp = e.getPath();
-                Object [] oa = tp.getPath();
-                StringBuilder selectedPackage = new StringBuilder();
-                for(int i=1; i<oa.length; i++) {
-                    selectedPackage.append( oa[i].toString() );
-                    if ( i+1 < oa.length )
-                        selectedPackage.append('.');
-                }
-                setClist( selectedPackage.toString() );
+        ptree.addTreeSelectionListener(e -> {
+            TreePath tp = e.getPath();
+            Object [] oa = tp.getPath();
+            StringBuilder selectedPackage = new StringBuilder();
+            for(int i=1; i<oa.length; i++) {
+                selectedPackage.append( oa[i].toString() );
+                if ( i+1 < oa.length )
+                    selectedPackage.append('.');
             }
-        } );
+            setClist( selectedPackage.toString() );
+        });
 
         classlist=new JList<>();
         classlist.setBackground(LIGHT_BLUE);
@@ -390,11 +386,8 @@ public class ClassBrowser extends JSplitPane
         JPanel p = new JPanel( new BorderLayout() );
 
         tree = new JTree();
-        tree.addTreeSelectionListener( new TreeSelectionListener() {
-            public void valueChanged(TreeSelectionEvent e) {
-                driveToClass( e.getPath().getLastPathComponent().toString() );
-            }
-        } );
+        tree.addTreeSelectionListener(
+            e -> driveToClass( e.getPath().getLastPathComponent().toString() ));
 
         tree.setBorder( BorderFactory.createRaisedBevelBorder() );
         setClassTree(null);
