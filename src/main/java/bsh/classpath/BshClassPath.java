@@ -345,9 +345,8 @@ public class BshClassPath
     {
         insureInitialized();
 
-        List<Object> names = new ArrayList<>();
-        for ( String o : getPackagesSet() ) {
-            String pack = o;
+        List<String> names = new ArrayList<>();
+        for ( String pack : getPackagesSet() ) {
             names.addAll(
                 removeInnerClassNames(getClassesForPackage(pack)));
         }
@@ -613,9 +612,8 @@ public class BshClassPath
     /**
         Return a new collection without any inner class names
     */
-    public static Collection removeInnerClassNames( Collection<String> col ) {
-        List<String> list = new ArrayList<>();
-        list.addAll(col);
+    public static Collection<String> removeInnerClassNames( Collection<String> col ) {
+        List<String> list = new ArrayList<>(col);
         Iterator<String> it = list.iterator();
         while(it.hasNext()) {
             String name = it.next();
@@ -829,7 +827,7 @@ public class BshClassPath
         Note: we could probably do away with the unqualified name table
         in favor of a second name source
     */
-    static class UnqualifiedNameTable extends HashMap {
+    static class UnqualifiedNameTable extends HashMap<String, Object> {
         void add( String fullname ) {
             String name = splitClassname( fullname )[1];
             Object have = super.get( name );
