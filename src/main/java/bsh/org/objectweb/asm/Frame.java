@@ -240,7 +240,7 @@ class Frame {
    */
   static int getAbstractTypeFromApiFormat(final SymbolTable symbolTable, final Object type) {
     if (type instanceof Integer) {
-      return CONSTANT_KIND | (Integer) type;
+      return CONSTANT_KIND | ((Integer) type).intValue();
     } else if (type instanceof String) {
       String descriptor = Type.getObjectType((String) type).getDescriptor();
       return getAbstractTypeFromDescriptor(symbolTable, descriptor, 0);
