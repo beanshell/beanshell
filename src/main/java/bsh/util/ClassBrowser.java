@@ -88,9 +88,9 @@ public class ClassBrowser extends JSplitPane
     JFrame frame;
     JInternalFrame iframe;
     JList<String> classlist;
-    JList<Object> conslist;
-    JList<Object> mlist;
-    JList fieldlist;
+    JList<String> conslist;
+    JList<String> mlist;
+    JList<String> fieldlist;
     PackageTree ptree;
     JTextArea methodLine;
     JTree tree;
@@ -212,7 +212,7 @@ public class ClassBrowser extends JSplitPane
 
     void setConslist( Class clas ) {
         if ( clas == null ) {
-            conslist.setListData( new Object [] { } );
+            conslist.setListData( new String [] { } );
             return;
         }
 
@@ -224,7 +224,7 @@ public class ClassBrowser extends JSplitPane
     {
         if ( classname == null )
         {
-            mlist.setListData( new Object [] { } );
+            mlist.setListData( new String [] { } );
             setConslist( null );
             setClassTree( null );
             return;
@@ -255,7 +255,7 @@ public class ClassBrowser extends JSplitPane
 
     void setFieldList( Class clas ) {
         if ( clas == null ) {
-            fieldlist.setListData( new Object [] { } );
+            fieldlist.setListData( new String [] { } );
             return;
         }
 
@@ -354,7 +354,7 @@ public class ClassBrowser extends JSplitPane
         mlist.setBackground(LIGHT_BLUE);
         mlist.addListSelectionListener(this);
 
-        fieldlist = new JList();
+        fieldlist = new JList<>();
         fieldlist.addListSelectionListener(this);
 
         JSplitPane methodConsPane = splitPane(
