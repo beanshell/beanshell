@@ -417,11 +417,9 @@ public class BshClassPath
         set.add( className );
 
         // Add to classSource map
-        ClassSource obj = classSource.get( className );
         // don't replace previously set (found earlier in classpath or
         // explicitly set via setClassSource() )
-        if ( obj == null )
-            classSource.put( className, source );
+        classSource.putIfAbsent(className, source);
     }
 
     /**
