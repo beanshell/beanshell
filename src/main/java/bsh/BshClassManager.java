@@ -28,7 +28,6 @@ package bsh;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -196,9 +195,10 @@ public class BshClassManager
         final URL url = getResource( fileName );
         if ( url == null )
             return null;
-        try {
+        try (FileReader reader = new FileReader(
+                                        (InputStream) url.getContent())) {
             Interpreter.debug("Loading class from source file: " + fileName);
-            declaringInterpreter.eval( new InputStreamReader((InputStream) url.getContent()) );
+            declaringInterpreter.eval( reader );
         } catch ( IOException | EvalError e ) {
             if (Interpreter.DEBUG.get())
                 e.printStackTrace();

@@ -227,8 +227,7 @@ public final class Primitive implements Serializable {
             && Types.isNumeric(value);
     }
 
-    public Number numberValue() throws UtilEvalError
-    {
+    public Number numberValue() {
         Object value = this.value;
 
         // Promote character to Number type for these purposes
@@ -238,7 +237,7 @@ public final class Primitive implements Serializable {
         if (value instanceof Number)
             return (Number)value;
 
-        throw new UtilEvalError("Primitive not a number");
+        throw new InterpreterError("Primitive not a number");
     }
 
     /**
@@ -253,7 +252,7 @@ public final class Primitive implements Serializable {
             else
                 return false;
         Primitive pobj = (Primitive) obj;
-        if ( pobj.isNumber() ) try {
+        if ( pobj.isNumber() && this.isNumber() ) {
             if ( this.getType() == BigDecimal.class )
                 return this.value.equals(castNumber(BigDecimal.class, pobj.numberValue()));
             if ( pobj.getType() == BigDecimal.class )
@@ -265,7 +264,7 @@ public final class Primitive implements Serializable {
             if ( pobj.getType() == BigInteger.class )
                 return pobj.value.equals(castNumber(BigInteger.class, this.numberValue()));
             return this.numberValue().longValue() == pobj.numberValue().longValue();
-        } catch (UtilEvalError e) { /* wont happen cause we tested isNumber */ }
+        }
         return this.value.equals( pobj.value );
     }
 
@@ -578,7 +577,7 @@ public final class Primitive implements Serializable {
         if ((toType == Short.class || toType == Short.TYPE)
                 && number.intValue() <= Short.MAX_VALUE && number.intValue() >= Short.MIN_VALUE)
             return number.shortValue();
-        if ((toType == Character.TYPE || toType == Character.class)
+        if ((toType == Character.class || toType == Character.TYPE)
                 && number.intValue() <= (int) Character.MAX_VALUE && number.intValue() >= (int) Character.MIN_VALUE)
             return (char) number.intValue();
         if ((toType == Integer.class || toType == Integer.TYPE)
@@ -620,19 +619,37 @@ public final class Primitive implements Serializable {
             BigInteger bi = null;
             if ( number instanceof BigInteger )
                 bi = (BigInteger) number;
-            else if ( number instanceof BigDecimal )
+            else if (number instanceof BigDecimal)
                 bi = ((BigDecimal) number).toBigInteger();
-            else if ( Types.isFloatingpoint(number) )
+            else if (Types.isFloatingpoint(number))
                 bi = BigDecimal.valueOf(number.doubleValue()).toBigInteger();
             else
                 bi = BigInteger.valueOf(number.longValue());
-            if ( ( toType == Long.class || toType == Long.TYPE )
-                    && bi.compareTo(LONG_MIN) >= 0 && bi.compareTo(LONG_MAX) <= 0 )
+            if ((toType == Long.class || toType == Long.TYPE)
+                    && bi.compareTo(LONG_MIN) >= 0 && bi.compareTo(LONG_MAX) <= 0)
                 return number.longValue();
             if ( toType == BigInteger.class )
                 return bi;
         }
         throw new InterpreterError("cannot assign number "+number+" to type "+toType.getSimpleName());
+    }
+
+    static Object castNumberStrictJava(Class<?> toType, Number number) {
+        if (toType == Byte.class || toType == Byte.TYPE)
+            return number.byteValue();
+        if (toType == Short.class || toType == Short.TYPE)
+            return number.shortValue();
+        if (toType == Character.class || toType == Character.TYPE)
+            return (char) number.intValue();
+        if (toType == Integer.class || toType == Integer.TYPE)
+            return number.intValue();
+        if (toType == Long.class || toType == Long.TYPE)
+            return number.longValue();
+        if (toType == Float.class || toType == Float.TYPE)
+            return number.floatValue();
+        if (toType == Double.class || toType == Double.TYPE)
+            return number.doubleValue();
+        return castNumber(toType, number);
     }
 
 }
