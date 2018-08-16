@@ -41,9 +41,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import bsh.org.objectweb.asm.ClassWriter;
 import bsh.org.objectweb.asm.Label;
@@ -98,6 +98,8 @@ public class ClassGeneratorUtil implements Opcodes {
      * The value -1 will cause the default branch to be taken.
      */
     static final int DEFAULTCONSTRUCTOR = -1;
+    static final int ACCESS_MODIFIERS =
+            ACC_PUBLIC | ACC_PRIVATE | ACC_PROTECTED;
 
     private static final String OBJECT = "Ljava/lang/Object;";
 
@@ -321,7 +323,7 @@ public class ClassGeneratorUtil implements Opcodes {
         if (modifiers.hasModifier("abstract"))
             mods += ACC_ABSTRACT;
 
-        if ( ( mods & (ACC_PUBLIC | ACC_PRIVATE | ACC_PROTECTED) ) == 0 ) {
+        if ( ( mods & ACCESS_MODIFIERS ) == 0 ) {
             mods |= ACC_PUBLIC;
             modifiers.addModifier("public");
         }
@@ -711,33 +713,54 @@ public class ClassGeneratorUtil implements Opcodes {
     }
 
     /** Validate abstract method implementation.
-     * Check that class is abstract or implements all abstract methods. BSH classes are not abstract
-     * which allows us to instantiate abstract classes.
-     * Also applies inheritance rules @see checkInheritanceRules().
+     * Check that class is abstract or implements all abstract methods.
+     * BSH classes are not abstract which allows us to instantiate abstract
+     * classes. Also applies inheritance rules @see checkInheritanceRules().
      * @param type The class to check.
      * @throws RuntimException if validation fails. */
     static void checkAbstractMethodImplementation(Class<?> type) {
-        List<Method> methsp = new ArrayList<>();
-        List<Method> methso = new ArrayList<>();
-        Reflect.gatherMethodsRecursive(type, null, 0, methsp, methso);
-
-        Stream.concat(methsp.stream(), methso.stream())
-        .filter( m -> ( m.getModifiers() & ACC_ABSTRACT ) > 0 )
+        final List<Method> meths = new ArrayList<>();
+        class Reflector {
+            void gatherMethods(Class<?> type) {
+                if (null != type.getSuperclass())
+                    gatherMethods(type.getSuperclass());
+                meths.addAll(Arrays.asList(type.getDeclaredMethods()));
+                for (Class<?> i : type.getInterfaces())
+                    gatherMethods(i);
+            }
+        }
+        new Reflector().gatherMethods(type);
+        // for each filtered abstract method
+        meths.stream().filter( m -> ( m.getModifiers() & ACC_ABSTRACT ) > 0 )
         .forEach( method -> {
-            Method[] meth = Stream.concat(methsp.stream(), methso.stream())
-                .filter( m -> ( m.getModifiers() & ( ACC_ABSTRACT | ACC_PRIVATE ) ) == 0
-                    && method.getName().equals(m.getName())
-                    && Types.areSignaturesEqual(method.getParameterTypes(), m.getParameterTypes()))
-                .sorted( (a, b) -> ( a.getModifiers() & ACC_PUBLIC ) > 0 ? 1
-                        : ( a.getModifiers() & ACC_PROTECTED ) > 0 ? 0 : -1 )
+            Method[] meth = meths.stream()
+                    // find methods of the same name
+                .filter( m -> method.getName().equals(m.getName() )
+                    // not abstract nor private
+                    && ( m.getModifiers() & (ACC_ABSTRACT|ACC_PRIVATE) ) == 0
+                    // with matching parameters
+                    && Types.areSignaturesEqual(
+                            method.getParameterTypes(), m.getParameterTypes()))
+                // sort most visible methods to the top
+                // comparator: -1 if a is public or b not public or protected
+                //              0 if access modifiers for a and b are equal
+                .sorted( (a, b) -> ( a.getModifiers() & ACC_PUBLIC ) > 0
+                      || ( b.getModifiers() & (ACC_PUBLIC|ACC_PROTECTED) ) == 0
+                            ? -1 : ( a.getModifiers() & ACCESS_MODIFIERS ) ==
+                                   ( b.getModifiers() & ACCESS_MODIFIERS )
+                            ?  0 : 1 )
                 .toArray(Method[]::new);
-
-            if ( meth.length == 0 && !Reflect.getClassModifiers(type).hasModifier("abstract") )
+            // with no overriding methods class must be abstract
+            if ( meth.length == 0 && !Reflect.getClassModifiers(type)
+                    .hasModifier("abstract") )
                 throw new RuntimeException(type.getSimpleName()
-                    +" is not abstract and does not override abstract method "
-                    + method.getName() +"() in "+ method.getDeclaringClass().getSimpleName());
+                    + " is not abstract and does not override abstract method "
+                    + method.getName() + "() in "
+                    + method.getDeclaringClass().getSimpleName());
+            // apply inheritance rules to most visible method at index 0
             if ( meth.length > 0)
-                checkInheritanceRules(method.getModifiers(), meth[0].getModifiers(), method.getDeclaringClass());
+                checkInheritanceRules(method.getModifiers(),
+                        meth[0].getModifiers(), method.getDeclaringClass());
         });
     }
 
