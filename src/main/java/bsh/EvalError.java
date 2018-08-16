@@ -126,7 +126,7 @@ public class EvalError extends Exception
         if ( callstack == null )
             return "<Unknown>";
 
-        String trace = "";
+        StringBuilder trace = new StringBuilder(100);
         CallStack stack = callstack.copy();
         while ( stack.depth() > 0 )
         {
@@ -134,15 +134,15 @@ public class EvalError extends Exception
             SimpleNode node = ns.getNode();
             if ( ns.isMethod )
             {
-                trace = trace + "\nCalled from method: " + ns.getName();
+                trace.append("\nCalled from method: ").append(ns.getName());
                 if ( node != null )
-                    trace += " : at Line: "+ node.getLineNumber()
-                        + " : in file: "+ node.getSourceFile()
-                        + " : "+node.getText();
+                    trace.append(" : at Line: ").append(node.getLineNumber())
+                        .append(" : in file: ").append(node.getSourceFile())
+                        .append(" : ").append(node.getText());
             }
         }
 
-        return trace;
+        return trace.toString();
     }
 
     public String getRawMessage() { return message; }
