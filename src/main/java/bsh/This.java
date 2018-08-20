@@ -35,7 +35,6 @@ import static bsh.This.Keys.BSHCONSTRUCTORS;
 import static bsh.This.Keys.BSHINIT;
 import static bsh.This.Keys.BSHTHIS;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -45,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 
 /**
@@ -273,7 +273,7 @@ public final class This implements java.io.Serializable, Runnable
 
     public void run() {
         try {
-            invokeMethod( "run", new Object[0] );
+            invokeMethod( "run", Reflect.ZERO_ARGS );
         } catch( EvalError e ) {
             declaringInterpreter.error(
                 "Exception in runnable:" + e );
@@ -364,7 +364,7 @@ public final class This implements java.io.Serializable, Runnable
         throws EvalError
     {
         if (args == null)
-            args = new Object[0];
+            args = Reflect.ZERO_ARGS;
 
         if ( interpreter == null )
             interpreter = declaringInterpreter;
@@ -553,33 +553,35 @@ public final class This implements java.io.Serializable, Runnable
         if ( null != argsNode ) try {
             args = argsNode.getArguments(callstack, interpreter);
         } catch (EvalError e) {
-            throw new InterpreterError("Error evaluating constructor args: " + e, e);
+            throw new InterpreterError(
+                    "Error evaluating constructor args: " + e, e);
         }
 
         Class<?>[] argTypes = Types.getTypes(args);
         args = Primitive.unwrap(args);
 
-        Constructor<?>[] superCons = superClass.getDeclaredConstructors();
-
         // find the matching super() constructor for the args
         if (altConstructor.equals("super")) {
-            int i = Reflect.findMostSpecificConstructorIndex(argTypes, superCons);
+            int i = BshClassManager.memberCache.get(superClass)
+                    .findMemberIndex(superClass.getName(), argTypes);
             if (i == -1)
-                throw new InterpreterError("can't find super constructor for args!");
+                throw new InterpreterError(
+                        "can't find super constructor for args!");
             return new ConstructorArgs(i, args);
         }
 
         // find the matching this() constructor for the args
-        Class<?>[][] candidates = new Class[constructors.length][];
-        for (int i = 0; i < candidates.length; i++)
-            candidates[i] = constructors[i].getParameterTypes();
+        Class<?>[][] candidates = Stream.of(constructors)
+                .map(BshMethod::getParameterTypes).toArray(Class[][]::new);
         int i = Reflect.findMostSpecificSignature(argTypes, candidates);
         if (i == -1)
             throw new InterpreterError("can't find this constructor for args!");
         // this() constructors come after super constructors in the table
 
-        int selector = i + superCons.length;
-        int ourSelector = index + superCons.length;
+        int count = BshClassManager.memberCache.get(superClass)
+            .memberCount(superClass.getName());
+        int selector = i + count;
+        int ourSelector = index + count;
 
         // Are we choosing ourselves recursively through a this() reference?
         if (selector == ourSelector)
@@ -630,7 +632,7 @@ public final class This implements java.io.Serializable, Runnable
             if (e instanceof TargetError)
                 e = (Exception) ((TargetError) e).getTarget();
             if (e instanceof InvocationTargetException)
-                e = (Exception) ((InvocationTargetException) e).getTargetException();
+                e = (Exception) e.getCause();
             throw new InterpreterError("Error in class instance initialization: " + e, e);
         }
     }

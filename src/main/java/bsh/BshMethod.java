@@ -27,7 +27,6 @@
 
 package bsh;
 
-import java.lang.reflect.Method;
 import java.util.stream.IntStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
@@ -76,7 +75,7 @@ public class BshMethod implements Serializable {
     BSHBlock methodBody;
 
     // Java Method, for a BshObject that delegates to a real Java method
-    private Method javaMethod;
+    private Invocable javaMethod;
     private Object javaObject;
     private boolean isVarArgs;
 
@@ -113,7 +112,7 @@ public class BshMethod implements Serializable {
         Create a BshMethod that delegates to a real Java method upon invocation.
         This is used to represent imported object methods.
     */
-    BshMethod( Method method, Object object )
+    BshMethod( Invocable method, Object object )
     {
         this( method.getName(), method.getReturnType(), null/*paramNames*/,
             method.getParameterTypes(), null/*paramModifiers*/, null/*method.block*/,
@@ -122,7 +121,6 @@ public class BshMethod implements Serializable {
         this.javaMethod = method;
         this.javaObject = object;
     }
-
 
     /**
         Get the argument types of this method.
@@ -261,8 +259,7 @@ public class BshMethod implements Serializable {
 
         if ( javaMethod != null )
             try {
-                return Reflect.invokeMethod(
-                    javaMethod, javaObject, argValues );
+                return javaMethod.invoke(javaObject, argValues);
             } catch ( ReflectError e ) {
                 throw new EvalError(
                     "Error invoking Java method: "+e, callerInfo, callstack );
@@ -505,7 +502,7 @@ public class BshMethod implements Serializable {
         return true;
     }
 
-    private static boolean equal(Object obj1,Object obj2) {
+    protected static boolean equal(Object obj1,Object obj2) {
         return obj1==null ? obj2==null : obj1.equals(obj2);
     }
 

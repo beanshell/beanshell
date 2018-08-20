@@ -403,10 +403,6 @@ class Name implements java.io.Serializable
                     obj = new ClassIdentifier(c);
             }
 
-            // static method
-            if ( obj == null )
-                obj = Reflect.staticMethodForName(clas, field);
-
             // static bean property
             if ( obj == null ) try {
                 obj = Reflect.getObjectProperty(clas, field);
@@ -450,10 +446,9 @@ class Name implements java.io.Serializable
             return completeRound( field, suffix(evalName), obj );
         } catch(ReflectError e) { /* not a field */ }
 
-        // if we get here we have failed
-        throw new UtilEvalError(
-            "Cannot access field: " + field + ", on object of type: "
-                        + evalBaseObject.getClass().getName());
+        Object obj = Reflect.getObjectProperty(evalBaseObject, field);
+        return completeRound( field, suffix(evalName), obj );
+
     }
 
     /**

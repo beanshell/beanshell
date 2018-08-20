@@ -6,14 +6,11 @@ import org.junit.runner.RunWith;
 
 import static bsh.TestUtil.eval;
 import static bsh.TestUtil.script;
-import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.arrayContaining;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.anyOf;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -271,11 +268,8 @@ public class EnumTest {
 
     @Test
     public void enum_args_constructor_required() throws Exception {
-        thrown.expect(ExceptionInInitializerError.class);
-        thrown.expectCause(allOf(
-            instanceOf(InterpreterError.class),
-            hasProperty("message",
-                containsString("Can't find constructor: Name(int)"))));
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Can't find constructor: Name(int)"));
 
         eval(
             "enum Name {",
@@ -302,14 +296,16 @@ public class EnumTest {
     @Test
     public void enum_new_enum_default_enum_constructor() throws Exception {
         thrown.expect(EvalError.class);
-        thrown.expectMessage(anyOf(containsString("Can't find constructor: Name(String, int)"),
-                containsString("Constructor error: The number of arguments was wrong")));
+        thrown.expectMessage(
+                containsString("Can't find constructor: Name(String)"));
 
         eval(
             "enum Name {",
                 "VAL1, VAL2",
             "}",
-            "new Name('VAL1',3);"
+            "new Name('VAL3');",
+            // with accessibility we can use the default private constructor
+            "//new Name('VAL3',3);"
         );
     }
 

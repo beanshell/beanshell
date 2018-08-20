@@ -63,7 +63,7 @@ public final class TargetError extends EvalError
         // check for easy mistake
         final Throwable target = getCause();
         if(target instanceof InvocationTargetException)
-            return((InvocationTargetException)target).getTargetException();
+            return target.getCause();
         else
             return target;
     }
