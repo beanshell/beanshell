@@ -37,7 +37,6 @@ import static bsh.This.Keys.BSHTHIS;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
@@ -115,7 +114,6 @@ public class ClassGeneratorUtil implements Opcodes {
     private final String superClassName;
     private final Class[] interfaces;
     private final Variable[] vars;
-    private final Constructor[] superConstructors;
     private final DelayedEvalBshMethod[] constructors;
     private final DelayedEvalBshMethod[] methods;
     private final Modifiers classModifiers;
@@ -145,13 +143,12 @@ public class ClassGeneratorUtil implements Opcodes {
         this.superClass = superClass;
         this.superClassName = Type.getInternalName(superClass);
         if (interfaces == null)
-            interfaces = new Class[0];
+            interfaces = Reflect.ZERO_TYPES;
         this.interfaces = interfaces;
         this.vars = vars;
         classStaticNameSpace.isInterface = type == INTERFACE;
         classStaticNameSpace.isEnum = type == ENUM;
         This.contextStore.put(this.uuid = UUID.randomUUID().toString(), classStaticNameSpace);
-        this.superConstructors = superClass.getDeclaredConstructors();
 
         // Split the methods into constructors and regular method lists
         List<DelayedEvalBshMethod> consl = new ArrayList<>();
@@ -541,10 +538,13 @@ public class ClassGeneratorUtil implements Opcodes {
      * arguments at runtime. The getConstructorArgs() method returns the
      * actual arguments as well as the index of the constructor to call.
      */
-    void generateConstructorSwitch(int consIndex, int argsVar, int consArgsVar, MethodVisitor cv) {
+    void generateConstructorSwitch(int consIndex, int argsVar, int consArgsVar,
+            MethodVisitor cv) {
         Label defaultLabel = new Label();
         Label endLabel = new Label();
-        int cases = superConstructors.length + constructors.length;
+        List<Invocable> superConstructors = BshClassManager.memberCache
+                .get(superClass).members(superClass.getName());
+        int cases =  superConstructors.size() + constructors.length;
 
         Label[] labels = new Label[cases];
         for (int i = 0; i < cases; i++)
@@ -582,8 +582,8 @@ public class ClassGeneratorUtil implements Opcodes {
 
         // generate switch body
         int index = 0;
-        for (int i = 0; i < superConstructors.length; i++, index++)
-            doSwitchBranch(index, superClassName, getTypeDescriptors(superConstructors[i].getParameterTypes()), endLabel, labels, consArgsVar, cv);
+        for (int i = 0; i < superConstructors.size(); i++, index++)
+            doSwitchBranch(index, superClassName, superConstructors.get(i).getParamTypeDescriptors(), endLabel, labels, consArgsVar, cv);
         for (int i = 0; i < constructors.length; i++, index++)
             doSwitchBranch(index, fqClassName, constructors[i].getParamTypeDescriptors(), endLabel, labels, consArgsVar, cv);
 
