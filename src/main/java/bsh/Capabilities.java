@@ -86,7 +86,7 @@ public class Capabilities implements Supplier<Boolean>, Consumer<Boolean>
             }
             ACCESSIBILITY.set(Boolean.TRUE);
         }
-        BshClassManager.clearResolveCache();
+        BshClassManager.memberCache.clear();
     }
 
     private static final Map<String, Class<?>> classes = new WeakHashMap<>();
