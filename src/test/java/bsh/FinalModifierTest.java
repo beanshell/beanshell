@@ -5,11 +5,8 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static bsh.TestUtil.eval;
-import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.hasProperty;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
@@ -51,11 +48,8 @@ public class FinalModifierTest {
 
     @Test
     public void non_assignment_to_static_final_field_should_not_be_allowed() throws Exception {
-        thrown.expect(ExceptionInInitializerError.class);
-        thrown.expectCause(allOf(
-            instanceOf(UtilEvalError.class),
-            hasProperty("message",
-                containsString("Static final variable _staticVar is not initialized."))));
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Static final variable _staticVar is not initialized."));
 
         eval(
             "class X7 {",
@@ -66,12 +60,9 @@ public class FinalModifierTest {
     }
 
     @Test
-    public void non_assignment_to_static_final_field_late_init_should_not_be_allowed() throws Exception {
-        thrown.expect(ExceptionInInitializerError.class);
-        thrown.expectCause(allOf(
-            instanceOf(UtilEvalError.class),
-            hasProperty("message",
-                containsString("Static final variable _staticVar is not initialized."))));
+    public void non_assignment_to_static_final_field_late_init_should_not_be_allowed() throws Throwable {
+        thrown.expect(UtilEvalError.class);
+        thrown.expectMessage(containsString("Static final variable _staticVar is not initialized."));
 
         Class<?> clas = (Class<?>) eval(
             "class X7 {",
@@ -80,7 +71,11 @@ public class FinalModifierTest {
             "}",
             "X7.class;" // X7 not initialized
         );
-        clas.getField("_value").get(null); // lazy initialize
+        try {
+            clas.getField("_value").get(null); // lazy initialize
+        } catch (ExceptionInInitializerError e) {
+            throw e.getCause();
+        }
     }
 
     @Test
@@ -187,11 +182,8 @@ public class FinalModifierTest {
 
     @Test
     public void assignment_to_interface_primitive_field_default_value() throws Exception {
-        thrown.expect(ExceptionInInitializerError.class);
-        thrown.expectCause(allOf(
-            instanceOf(UtilEvalError.class),
-            hasProperty("message",
-                containsString("Static final variable _staticAssVal is not initialized."))));
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Static final variable _staticAssVal is not initialized."));
 
         eval(
             "interface X3 {",
@@ -203,11 +195,8 @@ public class FinalModifierTest {
 
     @Test
     public void assignment_to_static_final_primitive_field_default_value() throws Exception {
-        thrown.expect(ExceptionInInitializerError.class);
-        thrown.expectCause(allOf(
-            instanceOf(UtilEvalError.class),
-            hasProperty("message",
-                containsString("Static final variable _staticAssVal is not initialized."))));
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Static final variable _staticAssVal is not initialized."));
 
         eval(
             "class X3 {",

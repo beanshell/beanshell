@@ -58,7 +58,7 @@ class BSHImportDeclaration extends SimpleNode
                 String name = Name.suffix(ambigName.text, 1);
                 try { // import static method from class
                     clas = namespace.getClass(Name.prefix(ambigName.text));
-                    obj = Reflect.staticMethodForName(clas, name);
+                    obj = Reflect.staticMethodImport(clas, name);
                 } catch (Exception e) { e.printStackTrace(); /* ignore try field instead */ }
                 try { // import static field from class
                     if (null != clas && null == obj)

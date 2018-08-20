@@ -38,7 +38,6 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ResourceBundle;
 
 /**
@@ -394,8 +393,7 @@ public class Interpreter
                     {
                         Object o = e;
                         if ( e instanceof InvocationTargetException )
-                            o = ((InvocationTargetException)e)
-                                .getTargetException();
+                            o = e.getCause();
                         System.err.println(
                             "Class: "+result+" main method threw exception:"+o);
                     }
@@ -427,9 +425,8 @@ public class Interpreter
     public static void invokeMain( Class<?> clas, String [] args )
         throws Exception
     {
-        Method main = Reflect.resolveJavaMethod(
-            null/*BshClassManager*/, clas, "main",
-            new Class [] { String [].class }, true/*onlyStatic*/ );
+        Invocable main = Reflect.resolveJavaMethod(
+            clas, "main", new Class [] { String [].class }, true/*onlyStatic*/);
         if ( main != null )
             main.invoke( null, new Object [] { args } );
     }

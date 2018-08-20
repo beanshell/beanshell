@@ -27,8 +27,6 @@
 
 package bsh;
 
-import java.lang.reflect.Constructor;
-
 public class DelayedEvalBshMethod extends BshMethod
 {
     private static final long serialVersionUID = 1L;
@@ -41,7 +39,7 @@ public class DelayedEvalBshMethod extends BshMethod
     transient CallStack callstack;
     transient Interpreter interpreter;
     private BSHArguments argsNode = null;
-    private Constructor<?> constructor = null;
+    private Invocable constructor = null;
     private Object[] constructorArgs = null;
 
 
@@ -82,8 +80,10 @@ public class DelayedEvalBshMethod extends BshMethod
      * @param name constructor name
      * @param con the super constructor
      * @param declaringNameSpace the name space */
-    DelayedEvalBshMethod(String name, Constructor<?> con, NameSpace declaringNameSpace) {
-        this(name, null, null, new String[con.getParameterCount()], null,
+    DelayedEvalBshMethod(String name, Invocable con,
+            NameSpace declaringNameSpace) {
+        this(name, con.getReturnTypeDescriptor(), null,
+            new String[con.getParameterCount()], con.getParamTypeDescriptors(),
             null, new BSHBlock(0), declaringNameSpace, null, null, null);
 
         this.constructor = con;
@@ -108,12 +108,7 @@ public class DelayedEvalBshMethod extends BshMethod
         }
     }
 
-    public String [] getParamTypeDescriptors() {
-        if ( null != this.constructor )
-            return ClassGeneratorUtil.getTypeDescriptors(
-                        this.getParameterTypes());
-        return paramTypeDescriptors;
-    }
+    public String [] getParamTypeDescriptors() { return paramTypeDescriptors; }
 
     public Class<?>[] getParameterTypes()
     {
@@ -154,5 +149,32 @@ public class DelayedEvalBshMethod extends BshMethod
 
     public Object[] getConstructorArgs() {
         return constructorArgs;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null)
+            return false;
+        if (o == this)
+            return true;
+        if (o.getClass() != this.getClass())
+            return false;
+        DelayedEvalBshMethod m = (DelayedEvalBshMethod)o;
+        if( !getName().equals(m.getName())
+                || getParameterCount() != m.getParameterCount() )
+            return false;
+        for (int i = 0; i < this.getParamTypeDescriptors().length; i++)
+            if (!equal(this.getParamTypeDescriptors()[i],
+                    m.getParamTypeDescriptors()[i]))
+                return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int h = getName().hashCode() + getClass().hashCode();
+        for (final String cparamType : getParamTypeDescriptors())
+            h += 3 + (cparamType == null ? 0 : cparamType.hashCode());
+        return h + getParameterCount();
     }
 }

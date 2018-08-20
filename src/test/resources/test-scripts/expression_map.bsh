@@ -48,28 +48,6 @@ assertThat(list, valueString('["a"=true, "b"=null]'));
 assertThat(list, instanceOf(List.class));
 assertThat(list[0], instanceOf(Entry.class));
 
-// entry expression
-entry = new Entry {"key", "value"};
-assertThat(entry, valueString('"key"="value"'));
-assertThat(entry, instanceOf(Entry.class));
-assertThat(entry["key"], equalTo("value"));
-assertThat(entry[entry.getKey()], equalTo("value"));
-assertThat(entry["key"] = 123, equalTo("value"));
-assertThat(entry["key"], equalTo(123));
-assertThat(entry["new"], nullValue());
-assertThat(entry["new"] = 456, equalTo(new Entry {"new", 456}));
-entry = new Entry {"key"};
-assertThat(entry, valueString('"key"=null'));
-assertThat(entry, instanceOf(Entry.class));
-entry = (Entry) {"key", "value"};
-assertThat(entry, valueString('"key"="value"'));
-assertThat(entry, instanceOf(Entry.class));
-Entry tentry = {"key", "value"};
-assertThat(entry, valueString('"key"="value"'));
-assertThat(entry, instanceOf(Entry.class));
-assert(isEvalError("Maximum array length for Map.Entry is 2, array length 3 exceeds.", 'new Entry {"k1", 1, "k2"};'));
-
-
 // variable as key
 a = 123;
 map = {a=5};

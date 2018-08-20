@@ -6,38 +6,38 @@ source("Assert.bsh");
 public class TestClass {
     // object instance members
     // private instance field
-    private int instVar;
+    private int _instVar;
     // obfuscated instance fields
-    private int instProp;
-    private boolean instBoolProp;
+    private int _instProp;
+    private boolean _instBoolProp;
     // not boolean
-    private long instNotBoolean;
+    private long _instNotBoolean;
     // instance bean accessor methods
-    public int getInstProp() { return instProp; }
-    public void setInstProp(int instProp) { this.instProp = instProp; }
-    public boolean isInstBoolProp() { return instBoolProp; }
-    public void setInstBoolProp(boolean instBoolProp) { this.instBoolProp = instBoolProp; }
+    public int getInstProp() { return _instProp; }
+    public void setInstProp(int _instProp) { this._instProp = _instProp; }
+    public boolean isInstBoolProp() { return _instBoolProp; }
+    public void setInstBoolProp(boolean _instBoolProp) { this._instBoolProp = _instBoolProp; }
     // Not boolean illegal bean accessor
-    public long isInstNotBoolean() { return instNotBoolean; }
+    public long isInstNotBoolean() { return _instNotBoolean; }
     // force change instVar
-    public void changeInstVar() { this.instVar++; }
+    public void changeInstVar() { this._instVar++; }
     // class static members
     // private static field
-    private static int statVar;
+    private static int _statVar;
     // obfuscated static fields
-    private static int statProp;
-    private static boolean statBoolProp;
+    private static int _statProp;
+    private static boolean _statBoolProp;
     // not boolean
-    private static long statNotBoolean;
+    private static long _statNotBoolean;
     // static bean accessor methods
-    public static int getStatProp() { return statProp; }
-    public static void setStatProp(int var) { statProp = var; }
-    public static boolean isStatBoolProp() { return statBoolProp; }
-    public static void setStatBoolProp(boolean var) { statBoolProp = var; }
+    public static int getStatProp() { return _statProp; }
+    public static void setStatProp(int var) { _statProp = var; }
+    public static boolean isStatBoolProp() { return _statBoolProp; }
+    public static void setStatBoolProp(boolean var) { _statBoolProp = var; }
     // Not boolean illegal bean accessor
-    public static long isStatNotBoolean() { return statNotBoolean; }
+    public static long isStatNotBoolean() { return _statNotBoolean; }
     // force change statVar
-    public static void changeStatVar() { statVar++; }
+    public static void changeStatVar() { _statVar++; }
 }
 
 obj = new TestClass();
@@ -45,7 +45,8 @@ obj = new TestClass();
 // object instance members
 // private instance field
 assert(isEvalError("No such field: instVar", 'obj.instVar = 434;'));
-assert(isEvalError("Cannot access field: instVar, on object of type: TestClass", 'obj.instVar;'));
+assert(isEvalError("No such property getter: instVar for type: TestClass", 'obj.instVar;'));
+
 // instance bean accessor methods
 obj.setInstProp(111);
 assertThat(obj.getInstProp(), equalTo(111));
@@ -59,11 +60,12 @@ assertThat(obj.instProp, equalTo(100));
 obj.instBoolProp = false;
 assertThat(obj.instBoolProp, equalTo(false));
 // not a bean property
-assert(isEvalError("Cannot access field: instNotBoolean, on object of type: TestClass", 'obj.instNotBoolean'));
+assert(isEvalError("No such property getter: instNotBoolean for type: TestClass", 'obj.instNotBoolean'));
 
 // class static members
 // private static field
 assert(isEvalError("No such field: statVar", 'TestClass.statVar = 434;'));
+
 assert(isEvalError("No static field or inner class: statVar of class TestClass", 'TestClass.statVar;'));
 // static bean accessor methods
 TestClass.setStatProp(222);

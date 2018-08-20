@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
     Static routines supporing type comparison and conversion in BeanShell.
@@ -134,12 +135,12 @@ class Types
     /** Get the Java types of the arguments.
      * @param args object array of argument values.
      * @return class array of argument types. */
-    public static Class[] getTypes( Object[] args )
+    public static Class<?>[] getTypes( Object[] args )
     {
         if ( args == null )
-            return new Class[0];
+            return Reflect.ZERO_TYPES;
 
-        Class[] types = new Class[ args.length ];
+        Class<?>[] types = new Class[ args.length ];
 
         for( int i=0; i < args.length; i++ )
             types[i] = getType(args[i]);
@@ -349,7 +350,7 @@ class Types
         if ( Primitive.wrapperMap.get( lhsType ) == rhsType )
             return true;
 
-        return false;
+        return isJavaBaseAssignable(lhsType, rhsType);
     }
 
     /**
@@ -713,6 +714,51 @@ class Types
     public static boolean isFloatingpoint(Object number) {
         return number instanceof Float || number instanceof Double
                 || number instanceof BigDecimal;
+    }
+
+    /** Check if object is a Map type property type.
+     * @param obj to identify as a property type.
+     * @return true if object is a property type.*/
+    public static boolean isPropertyTypeMap(Object obj) {
+        return obj instanceof Map;
+    }
+
+    /** Check if class is a Map type property type.
+     * @param clas to identify as a property type.
+     * @return true if class is a property type.*/
+    public static boolean isPropertyTypeMap(Class<?> clas) {
+        return Map.class.isAssignableFrom(clas);
+    }
+
+    /** Check if object is an Entry type property type.
+     * @param obj to identify as a property type.
+     * @return true if object is a property type.*/
+    public static boolean isPropertyTypeEntry(Object obj) {
+        return obj instanceof Entry;
+    }
+
+    /** Check if class is an Entry type property type.
+     * @param clas to identify as a property type.
+     * @return true if class is a property type.*/
+    public static boolean isPropertyTypeEntry(Class<?> clas) {
+        return Entry.class.isAssignableFrom(clas);
+    }
+
+    /** Check if class is an Entry[] type property type.
+     * @param clas to identify as a property type.
+     * @return true if class is a property type.*/
+    public static boolean isPropertyTypeEntryList(Class<?> clas) {
+        return clas.isArray()
+                && isPropertyTypeEntry(clas.getComponentType());
+    }
+
+    /** Extended property types includes Map, Entry and Entry[].
+     * @param clas to identify as a property type.
+     * @return true if class is a property type.*/
+    public static boolean isPropertyType(Class<?> clas) {
+        return isPropertyTypeMap(clas)
+                || isPropertyTypeEntry(clas)
+                || isPropertyTypeEntryList(clas);
     }
 
 }

@@ -30,8 +30,6 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -770,8 +768,8 @@ public class NameSpace
             final boolean declaredOnly) throws UtilEvalError {
         BshMethod method = null;
         // Change import precedence if we are a class body/instance
-        // Get import first.
-        if (this.isClass && !declaredOnly)
+        // Get import first. Enum blocks may override class methods.
+        if (this.isClass && !this.isEnum && !declaredOnly)
             method = this.getImportedMethod(name, sig);
         if (method == null && this.methods.containsKey(name)) {
             // Apply most specific signature matching
@@ -891,17 +889,15 @@ public class NameSpace
             throws UtilEvalError {
         // Try object imports
         for (final Object object : this.importedObjects) {
-            final Method method = Reflect.resolveJavaMethod(
-                    this.getClassManager(), object.getClass(), name, sig,
-                    false/* onlyStatic */);
+            final Invocable method = Reflect.resolveJavaMethod(
+                   object.getClass(), name, sig, false/* onlyStatic */);
             if (method != null)
                 return new BshMethod(method, object);
         }
         // Try static imports
         for (final Class<?> stat : this.importedStatic) {
-            final Method method = Reflect.resolveJavaMethod(
-                    this.getClassManager(), stat, name, sig,
-                    true/* onlyStatic */);
+            final Invocable method = Reflect.resolveJavaMethod(
+                    stat, name, sig, true/* onlyStatic */);
             if (method != null)
                 return new BshMethod(method, null/* object */);
         }
@@ -916,10 +912,10 @@ public class NameSpace
         Variable var = null;
         // Try object imports
         for (final Object object : this.importedObjects) {
-            final Field field = Reflect.resolveJavaField(object.getClass(),
+            final Invocable field = Reflect.resolveJavaField(object.getClass(),
                     name, false/* onlyStatic */);
             if (field != null)
-                var = this.createVariable(name, field.getType(), new LHS(object, field));
+                var = this.createVariable(name, field.getReturnType(), new LHS(object, field));
             else if (this.isClass) {
                 // try find inherited loose-typed instance fields
                 Class<?> supr = object.getClass();
@@ -936,10 +932,10 @@ public class NameSpace
         }
         // Try static imports
         for (final Class<?> stat : this.importedStatic) {
-            final Field field = Reflect.resolveJavaField(stat,
+            final Invocable field = Reflect.resolveJavaField(stat,
                     name, true/* onlyStatic */);
             if (field != null) {
-                var = this.createVariable(name, field.getType(),
+                var = this.createVariable(name, field.getReturnType(),
                         new LHS(field));
                 this.variables.put(name, var);
                 return var;
@@ -1378,7 +1374,7 @@ public class NameSpace
      * @throws UtilEvalError the util eval error */
     boolean attemptSetPropertyValue(final String propName, final Object value,
             final Interpreter interp) throws UtilEvalError {
-        final String accessorName = Reflect.accessorName("set", propName);
+        final String accessorName = Reflect.accessorName(Reflect.SET_PREFIX, propName);
         Object val = Primitive.unwrap(value);
         final Class<?>[] classArray = new Class<?>[] {
                 val == null ? null : val.getClass()};
@@ -1404,13 +1400,13 @@ public class NameSpace
      * @throws UtilEvalError the util eval error */
     Object getPropertyValue(final String propName, final Interpreter interp)
             throws UtilEvalError {
-        String accessorName = Reflect.accessorName("get", propName);
-        final Class<?>[] classArray = new Class<?>[0];
+        String accessorName = Reflect.accessorName(Reflect.GET_PREFIX, propName);
+        final Class<?>[] classArray = Reflect.ZERO_TYPES;
         BshMethod m = this.getMethod(accessorName, classArray);
         try {
             if (m != null)
                 return m.invoke((Object[]) null, interp);
-            accessorName = Reflect.accessorName("is", propName);
+            accessorName = Reflect.accessorName(Reflect.IS_PREFIX, propName);
             m = this.getMethod(accessorName, classArray);
             if (m != null && m.getReturnType() == Boolean.TYPE)
                 return m.invoke((Object[]) null, interp);
