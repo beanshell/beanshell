@@ -46,7 +46,6 @@ package bsh;
 class BlockNameSpace extends NameSpace
 {
     public BlockNameSpace( NameSpace parent )
-        throws EvalError
     {
         super( parent, parent.getName()+ "/BlockNameSpace" );
         this.isMethod = parent.isMethod;
