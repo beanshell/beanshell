@@ -70,9 +70,9 @@ assertEquals("?77", "\7777");
 assertEquals("Is a question?", "Is a question\77");
 
 // Long strings
-out= System.getProperty("line.separator");
+out= "\n";
 for (x : 5)
-  out += x + System.getProperty("line.separator");
+  out += x + "\n";
 
 aout = """
 0
@@ -82,7 +82,7 @@ aout = """
 4
 5
 """;
-assert(aout.equals(out));
+assert(aout.replace("\r","").equals(out));
 
 assert("""
 This is a long string
