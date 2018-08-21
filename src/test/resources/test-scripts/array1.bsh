@@ -79,5 +79,11 @@ assertNull( a[1][0] );
 String [][] t = new String[5][5];
 assertTrue( t instanceof String [][] );
 
+// test postfix array operator
+iarray = new int[] {0, 1, 2, 3, 4, 5};
+for (int i=0; i<iarray.length; )
+   iarray[i++]++;
+assertArrayEquals( iarray, new int[] {1, 2, 3, 4, 5, 6});
+
 complete();
 
