@@ -1,0 +1,3 @@
+aout = `
+this raw string literal is unterminated
+;

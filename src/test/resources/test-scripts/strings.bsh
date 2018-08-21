@@ -110,4 +110,35 @@ assert( a.equals('foobar5nulla') );
 b="foo"+"bar"+5;
 assert(b.equals('foobar5'));
 
+// Raw string literals
+assertEquals(`string`, "string");
+assertEquals(`"string"`, "\"string\"");
+assertEquals(`'string'`, "'string'");
+assertEquals(`\n\t\f`, "\\n\\t\\f");
+assertEquals(`\1\2\3`, "\\1\\2\\3");
+assertEquals(``back ` tick``, "back ` tick");
+assertEquals(```back ` `` tick```, "back ` `` tick");
+assertEquals(````back ` `` ``` tick````, "back ` `` ``` tick");
+assertEquals("`string`", '`string`');
+aout = `
+0
+1
+2
+3
+4
+5
+`;
+assert(aout.equals(out));
+
+
+try { 
+   run("Data/unterminated_raw_string_literal.bsh"); 
+} catch ( Throwable e ) {
+   assertThat(e.toString(), containsString("Unterminated raw string literal"));
+   flag();
+}
+
+assert( flag() == 1 );
+
+
 complete();

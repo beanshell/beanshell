@@ -370,6 +370,62 @@ TOKEN : /* LITERALS */
 |
   < LONG_STRING_LITERAL: "\"\"\"" ( ~["\""] ("\"")? )* "\"\"\"" >
 |
+  < RAW_STRING_LITERAL: "`"> {
+      char c = 0;
+      int beginLine = input_stream.getBeginLine();
+      int beginColumn = input_stream.getBeginColumn()-1;
+
+      // reset the matched token
+      image.setLength(0);
+
+      try {
+         // Count how many backticks in the starting delimiter
+         int delimCount = 1;
+         while ((c = input_stream.readChar()) == '`')
+            delimCount++;
+
+         // save the previous character - it is not a backtick
+         boolean gotCr = (c == '\r');
+         if (!gotCr)
+            image.append(c);
+
+         int backCount = 0;
+
+         while (true) {
+            // Read a character
+            c = input_stream.readChar();
+
+            // Skip \r if in \r\n pairs
+            if (gotCr && c != '\n')
+               image.append('\r');
+            gotCr = (c == '\r');
+
+            // Add the character to the token.  Defer \r until 
+            // we see what is next
+            if (!gotCr)
+               image.append(c);
+
+            // Check to see if char is a delimiter
+            if (c == '`') 
+               backCount++;
+            else
+               backCount = 0;
+
+            // if ending delimiter then trim the ending and break
+            if (backCount == delimCount) {
+               int len = image.length();
+               image.setLength(len-delimCount);
+               break;
+            }
+         }
+
+         matchedToken.image = image.toString();
+
+      } catch (IOException ex) {
+         throw new TokenMgrException("Unterminated raw string literal starting at line "+beginLine+" column "+beginColumn, TokenMgrException.LEXICAL_ERROR);
+      }
+}
+|
    < FORMAL_COMMENT:
         "/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/"
     >
@@ -1065,6 +1121,10 @@ void Literal() #Literal :
         } catch ( Exception e ) {
             throw createParseException("Error parsing long string: "+x.image, e);
         }
+    }
+|
+  x = <RAW_STRING_LITERAL> {
+        jjtThis.value = x.image;
     }
 |
   b = BooleanLiteral()  {
