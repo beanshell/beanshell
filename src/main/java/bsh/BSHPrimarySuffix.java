@@ -28,7 +28,6 @@ package bsh;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 class BSHPrimarySuffix extends SimpleNode
@@ -244,36 +243,50 @@ class BSHPrimarySuffix extends SimpleNode
         // Map or Entry index access not applicable to strict java
         if ( !interpreter.getStrictJava() ) {
             // allow index access for maps
-            if ( obj instanceof Map ) {
-                Object propName = ((SimpleNode) jjtGetChild(0))
-                        .eval(callstack, interpreter);
-                if ( toLHS )
-                    return new LHS(obj, propName);
-                return ((Map) obj).get(propName);
+            if ( Types.isPropertyTypeMap(obj) ) {
+                Object key = ((SimpleNode)
+                    jjtGetChild(0)).eval(callstack, interpreter);
+                return toLHS ? new LHS(obj, key)
+                      : Reflect.getObjectProperty(obj, key);
             }
             // allow index access for map entries
-            if ( obj instanceof Entry ) {
+            if ( Types.isPropertyTypeEntry(obj) ) {
                 Object key = ((SimpleNode) jjtGetChild(0))
                         .eval(callstack, interpreter);
                 if ( toLHS ) {
                     if ( key.equals(((Entry) obj).getKey()) )
                         return new LHS(obj);
-                    return new LHS(key);
+                    throw new EvalError("No such property: " + key, this, callstack);
                 }
-                if ( key.equals(((Entry) obj).getKey()) )
-                    return ((Entry) obj).getValue();
-                return Primitive.NULL;
+                return Reflect.getObjectProperty(obj, key);
             }
         }
 
+        Class<?> cls = obj.getClass();
         if ( ( interpreter.getStrictJava() || !(obj instanceof List) )
-                && !obj.getClass().isArray() )
+                && !cls.isArray() )
             throw new EvalError("Not an array or List type", this, callstack );
 
         int length = obj instanceof List
-                        ? ((List) obj).size()
-                        : Array.getLength(obj);
-        int index = getIndexAux( obj, 0, callstack, interpreter, this );
+                ? ((List) obj).size() : Array.getLength(obj);
+
+        int index = length + 1;
+        // allow index access for a Map.Entry array.
+        if ( !interpreter.getStrictJava()
+                && Types.isPropertyTypeEntryList(cls) ) {
+            Object key = ((SimpleNode) jjtGetChild(0)).eval(callstack, interpreter);
+            int idx = 0;
+            if ( key instanceof Primitive && ((Primitive) key).isNumber()
+                    && length > (idx = ((Primitive) key).numberValue().intValue())
+                    && -length < idx)
+                index = idx;
+            else if (toLHS)
+                return new LHS(Reflect.getEntryForKey(key, (Entry[]) obj));
+            else
+                return Reflect.getObjectProperty(obj, key);
+        } else if ( index > length )
+            index = getIndexAux( obj, 0, callstack, interpreter, this );
+
         // Negative index or slice expressions not applicable to strict java
         if ( !interpreter.getStrictJava() ) {
             if ( 0 > index )
@@ -357,19 +370,9 @@ class BSHPrimarySuffix extends SimpleNode
         if ( toLHS )
             return new LHS(obj, (String)value);
 
-        // Property style access to Hashtable or Map
-        if (obj instanceof Map) {
-            @SuppressWarnings("rawtypes")
-            Object val = ((Map) obj).get(value);
-            return ( val == null ?  val = Primitive.NULL : val );
-        }
-
         try {
-            return Reflect.getObjectProperty( obj, (String)value );
-        }
-        catch ( UtilEvalError e)
-        {
-            throw e.toEvalError( "Property: "+value, this, callstack );
+            Object val = Reflect.getObjectProperty( obj, (String)value );
+            return null == val ?  Primitive.NULL : Primitive.unwrap(val);
         }
         catch (ReflectError e)
         {

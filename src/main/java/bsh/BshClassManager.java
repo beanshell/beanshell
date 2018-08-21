@@ -28,17 +28,28 @@ package bsh;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
+
+import bsh.util.ReferenceCache;
+
+import static bsh.Reflect.isPublic;
+import static bsh.util.ReferenceCache.Type;
+import static bsh.Reflect.isPrivate;
+import static bsh.Reflect.isPackageAccessible;
+import static bsh.Reflect.isPackageScope;
+import static bsh.Capabilities.haveAccessibility;
 
 /**
     BshClassManager manages all classloading in BeanShell.
@@ -77,8 +88,236 @@ import java.util.WeakHashMap;
     references in this package.
     <p>
 */
-public class BshClassManager
-{
+public class BshClassManager {
+    /** Class member soft key and soft value reference cache */
+    static final ReferenceCache<Class<?>, MemberCache> memberCache
+        = new ReferenceCache<Class<?>, MemberCache>(Type.Soft, Type.Soft, 50) {
+            @Override
+            protected MemberCache create(Class<?> key) {
+                return new MemberCache(key);
+            }
+    };
+
+    /** Class member cached value instance **/
+    static final class MemberCache {
+        private final Map<String,List<Invocable>> cache
+                            = new ConcurrentHashMap<>();
+        private final Map<String,Invocable> fields
+                            = new ConcurrentHashMap<>();
+
+        /** Constructor iterates through interfaces and super classes
+         * collect and cache field, constructor and method members.
+         * Members are wrapped as invocable, each class has its own
+         * member cache entry and inherited methods and constructors
+         * are stored by reference only.
+         * Ensures the package is accessible, for default package we
+         * import all non private otherwise public only unless have
+         * accessibility is true.
+         * @param clazz for whom members are collected */
+        public MemberCache(Class<?> clazz) {
+            Class<?> type = clazz;
+            while (type != null) {
+                if (isPackageAccessible(type)
+                    && ((isPackageScope(type) && !isPrivate(type))
+                        || isPublic(type) || haveAccessibility())) {
+                    for (Field f : type.getDeclaredFields())
+                        if (isPublic(f) || haveAccessibility())
+                            cacheMember(Invocable.get(f));
+                    for (Method m : type.getDeclaredMethods())
+                        if (isPublic(m) || haveAccessibility())
+                            if (clazz == type) cacheMember(Invocable.get(m));
+                            else cacheMember(memberCache.get(type)
+                            .findMethod(m.getName(), m.getParameterTypes()));
+                    for (Constructor<?> c: type.getDeclaredConstructors())
+                        if (clazz == type) cacheMember(Invocable.get(c));
+                        else cacheMember(memberCache.get(type)
+                            .findMethod(c.getName(), c.getParameterTypes()));
+                }
+                processInterfaces(type.getInterfaces());
+                type = type.getSuperclass();
+                memberCache.init(type);
+            }
+        }
+
+        /** Recursive processing of interfaces.
+         * Methods are stored by reference.
+         * @param interfaces for whom members are collected */
+        private void processInterfaces(Class<?>[] interfaces) {
+            for (Class<?> intr : interfaces) {
+                if (isPackageAccessible(intr)) {
+                    memberCache.init(intr);
+                    for (Field f : intr.getDeclaredFields())
+                            cacheMember(Invocable.get(f));
+                    for (Method m: intr.getDeclaredMethods())
+                        if (isPublic(m) || haveAccessibility())
+                            cacheMember(memberCache.get(intr)
+                            .findMethod(m.getName(), m.getParameterTypes()));
+                }
+                processInterfaces(intr.getInterfaces());
+            }
+        }
+
+        /** Cache a field member.
+         * @param member to cache
+         * @return true if this is a new member */
+        private boolean cacheMember(FieldAccess member) {
+            if (!hasField(member.getName()))
+                return null == fields.put(member.getName(), member);
+            return false;
+        }
+
+        /** Cache constructors and methods.
+         * Identifies properties and caches an additional cache entry
+         * referenced by property name, as defined by bean specification.
+         * @param member to cache
+         * @return true if the cache changed */
+        private boolean cacheMember(Invocable member) {
+            if (null == member) return false;
+            if (!member.isGetter() && !member.isSetter())
+                return cacheMember(member.getName(), member);
+            String name = member.getName();
+            String propName = name.replaceFirst("[gs]et|is", "");
+            if (propName.length() == 1 // double caps are skipped
+                    || Character.isLowerCase(name.charAt(1))) {
+                char[] ch = propName.toCharArray();
+                ch[0] = Character.toLowerCase(ch[0]);
+                propName = new String(ch);
+            }
+            return cacheMember(name, member)
+                && cacheMember(propName, member);
+        }
+
+        /** Cache name associated with a list of members.
+         * @param name of member
+         * @param member invocable instance
+         * @return true if the cache changed */
+        private boolean cacheMember(String name, Invocable member) {
+            if (!hasMember(name))
+                return null == cache.put(name,
+                        Collections.singletonList(member));
+            else if (memberCount(name) == 1)
+                cache.put(name, new ArrayList<>(members(name)));
+            return members(name).add(member);
+        }
+
+        /** Find the most specific member for the given parameter types.
+         * If there is only 1 member it will always be returned.
+         * @param list of possible members
+         * @param types of parameters
+         * @return the most specific member or null */
+        private Invocable findBest(List<Invocable> list, Class<?>[] types) {
+            if (list.isEmpty())
+                return null;
+            if (list.size() == 1)
+                return list.get(0);
+            return Reflect.findMostSpecificInvocable(types, list);
+        }
+
+        /** Find invocable for the given name and arguments.
+         * Arguments are converted to type parameters.
+         * @param name of member
+         * @param args parameter argument values
+         * @return the most specific member or null */
+        public Invocable findMethod(String name, Object... args) {
+            return findMethod(name, Types.getTypes(args));
+        }
+
+        /** Find invocable for the given name and parameter types.
+         * @param name of member
+         * @param types of parameters
+         * @return the most specific member or null */
+        public Invocable findMethod(String name, Class<?>... types) {
+            if (!hasMember(name))
+                return null;
+            return findBest(members(name), types);
+        }
+
+        /** Find static method for name. Used for static import.
+         * @param name of static member
+         * @return the most specific member or null */
+        public Invocable findStaticMethod(String name) {
+            if (!hasMember(name))
+                return null;
+            return members(name).stream()
+                .filter(Invocable::isStatic).findFirst().get();
+        }
+
+        /** Find property read method or getter for property name.
+         * No need for expensive method name conversion, member is
+         * cached by property name.
+         * @param name of property
+         * @return the property read method or null */
+        public Invocable findGetter(String propName) {
+            if (hasMember(propName))
+                for (Invocable property: members(propName))
+                    if (property.isGetter())
+                        return property;
+            return null;
+        }
+
+        /** Find property write method or setter for property name.
+         * No need for expensive method name conversion, member is
+         * cached by property name.
+         * @param name of property
+         * @return the property write method or null */
+        public Invocable findSetter(String propName) {
+            if (hasMember(propName))
+                for (Invocable property: members(propName))
+                    if (property.isSetter())
+                        return property;
+            return null;
+        }
+
+        /** Find the index of the most appropriate member.
+         * Used for class constructor switch.
+         * @param name of member
+         * @param types of parameters
+         * @return index of the most specific member or -1 */
+        public int findMemberIndex(String name, Class<?>[] types) {
+            Class<?>[][] members = members(name).stream()
+                    .map(Invocable::getParameterTypes)
+                    .toArray(Class[][]::new);
+            return Reflect.findMostSpecificSignature(types, members);
+        }
+
+        /** Retrieve list of member associated with name.
+         * @param name of member
+         * @return list of members or null */
+        public List<Invocable> members(String name) {
+            return cache.get(name);
+        }
+
+        /** Retrieve the number of members associated with name.
+         * @param name of member
+         * @return number of members */
+        public int memberCount(String name) {
+            return members(name).size();
+        }
+
+        /** Does the member exist.
+         * @param name of member
+         * @return true if members exists */
+        public boolean hasMember(String name) {
+            return cache.containsKey(name);
+        }
+
+        /** Does field exist.
+         * @param name of field
+         * @return true if field exists */
+        public boolean hasField(String name) {
+            return fields.containsKey(name);
+        }
+
+        /** Find field associated to name.
+         * @param name of field
+         * @return the field invocable or null */
+        public Invocable findField(String name) {
+            if (!hasField(name))
+                return null;
+            return fields.get(name);
+        }
+    }
+
     /**
         The interpreter which created the class manager
         This is used to load scripted classes from source files.
@@ -99,36 +338,18 @@ public class BshClassManager
         Note: these should probably be re-implemented with Soft references.
         (as opposed to strong or Weak)
     */
-    protected final transient Map<String,Class> absoluteClassCache = new Hashtable<>();
+    protected final transient Map<String,Class<?>> absoluteClassCache = new Hashtable<>();
     /**
         Global cache for things we know are *not* classes.
         Note: these should probably be re-implemented with Soft references.
         (as opposed to strong or Weak)
     */
     protected final transient Set<String> absoluteNonClasses = Collections.synchronizedSet(new HashSet<>());
-
-    /**
-        Caches for resolved object and static methods.
-        We keep these maps separate to support fast lookup in the general case
-        where the method may be either.
-    */
-    protected transient volatile Map<SignatureKey,Method> resolvedObjectMethods = new Hashtable<>();
-    protected transient volatile Map<SignatureKey,Method> resolvedStaticMethods = new Hashtable<>();
-
     private final transient Set<String> definingClasses = Collections.synchronizedSet(new HashSet<>());
     protected final transient Map<String,String> definingClassesBaseNames = new Hashtable<>();
 
     /** @see #associateClass( Class ) */
-    protected final transient Map<String, Class> associatedClasses = new Hashtable<>();
-    private static final Map<BshClassManager,Object> classManagers = Collections.synchronizedMap(new WeakHashMap<>());
-
-    static void clearResolveCache() {
-        BshClassManager[] managers = (BshClassManager[])classManagers.keySet().toArray(new BshClassManager[0]);
-        for( BshClassManager m : managers ) {
-            m.resolvedObjectMethods = new Hashtable<SignatureKey,Method>();
-            m.resolvedStaticMethods = new Hashtable<SignatureKey,Method>();
-        }
-    }
+    protected final transient Map<String, Class<?>> associatedClasses = new Hashtable<>();
 
     /**
         Create a new instance of the class manager.
@@ -155,7 +376,6 @@ public class BshClassManager
             manager = new BshClassManager();
 
         manager.declaringInterpreter = interpreter;
-        classManagers.put(manager,null);
         return manager;
     }
 
@@ -171,14 +391,13 @@ public class BshClassManager
         management package.
         @return the class or null
     */
-    public Class classForName( String name )
-    {
+    public Class<?> classForName( String name ) {
         if ( isClassBeingDefined( name ) )
             throw new InterpreterError(
                 "Attempting to load class in the process of being defined: "
                 +name );
 
-        Class clas = null;
+        Class<?> clas = null;
         try {
             clas = plainClassForName( name );
         } catch ( ClassNotFoundException e ) { /*ignore*/ }
@@ -196,9 +415,10 @@ public class BshClassManager
         final URL url = getResource( fileName );
         if ( url == null )
             return null;
-        try {
+        try (FileReader reader
+                = new FileReader((InputStream) url.getContent())) {
             Interpreter.debug("Loading class from source file: " + fileName);
-            declaringInterpreter.eval( new InputStreamReader((InputStream) url.getContent()) );
+            declaringInterpreter.eval( reader );
         } catch ( IOException | EvalError e ) {
             if (Interpreter.DEBUG.get())
                 e.printStackTrace();
@@ -225,10 +445,9 @@ public class BshClassManager
         @see #classForName( String )
         @return the class
     */
-    public Class plainClassForName( String name )
-        throws ClassNotFoundException
-    {
-        Class c = null;
+    public Class<?> plainClassForName( String name )
+            throws ClassNotFoundException {
+        Class<?> c = null;
 
         if ( externalClassLoader != null )
             c = externalClassLoader.loadClass( name );
@@ -244,8 +463,7 @@ public class BshClassManager
         Get a resource URL using the BeanShell classpath
         @param path should be an absolute path
     */
-    public URL getResource( String path )
-    {
+    public URL getResource( String path ) {
         URL url = null;
         if ( externalClassLoader != null )
             // classloader wants no leading slash
@@ -259,8 +477,7 @@ public class BshClassManager
         Get a resource stream using the BeanShell classpath
         @param path should be an absolute path
     */
-    public InputStream getResourceAsStream( String path )
-    {
+    public InputStream getResourceAsStream( String path ) {
         Object in = null;
         if ( externalClassLoader != null )
             // classloader wants no leading slash
@@ -278,9 +495,12 @@ public class BshClassManager
             if value is null, set the flag that it is *not* a class to
             speed later resolution
     */
-    public void cacheClassInfo( String name, Class value ) {
-        if ( value != null )
-            absoluteClassCache.put( name, value );
+    public void cacheClassInfo( String name, Class<?> value ) {
+        if ( value != null ) {
+            absoluteClassCache.put(name, value);
+            // eagerly start the member cache
+            memberCache.init(value);
+        }
         else
             absoluteNonClasses.add( name );
     }
@@ -297,72 +517,22 @@ public class BshClassManager
      *
      * Class associations currently last for the life of the class manager.
      */
-    public void associateClass( Class clas )
-    {
-        // TODO should check to make sure it's a generated class here
-        // just need to add a method to classgenerator API to test it
-        associatedClasses.put( clas.getName(), clas );
+    public void associateClass( Class<?> clas ) {
+        if ( Reflect.isGeneratedClass(clas) )
+            associatedClasses.put( clas.getName(), clas );
     }
 
-    public Class getAssociatedClass( String name )
-    {
+    public Class<?> getAssociatedClass( String name ) {
         return associatedClasses.get( name );
-    }
-
-    /**
-        Cache a resolved (possibly overloaded) method based on the
-        argument types used to invoke it, subject to classloader change.
-        Static and Object methods are cached separately to support fast lookup
-        in the general case where either will do.
-    */
-    public void cacheResolvedMethod(
-        Class clas, Class [] types, Method method )
-    {
-        Interpreter.debug(
-                "cacheResolvedMethod putting: ", clas, " ", method );
-
-        SignatureKey sk = new SignatureKey( clas, method.getName(), types );
-        if ( Modifier.isStatic( method.getModifiers() ) )
-            resolvedStaticMethods.put( sk, method );
-        else
-            resolvedObjectMethods.put( sk, method );
-    }
-
-    /**
-        Return a previously cached resolved method.
-        @param onlyStatic specifies that only a static method may be returned.
-        @return the Method or null
-    */
-    protected Method getResolvedMethod(
-        Class clas, String methodName, Class [] types, boolean onlyStatic  )
-    {
-        SignatureKey sk = new SignatureKey( clas, methodName, types );
-
-        // Try static and then object, if allowed
-        // Note that the Java compiler should not allow both.
-        Method method = resolvedStaticMethods.get( sk );
-        if ( method == null && !onlyStatic)
-            method = resolvedObjectMethods.get( sk );
-
-        if ( method == null )
-            Interpreter.debug(
-                "getResolvedMethod cache MISS: ", clas, " - ", methodName );
-        else
-            Interpreter.debug(
-                "getResolvedMethod cache HIT: ", clas, " - ", method );
-        return method;
     }
 
     /**
         Clear the caches in BshClassManager
         @see public void #reset() for external usage
     */
-    protected void clearCaches()
-    {
+    protected void clearCaches() {
         absoluteNonClasses.clear();
         absoluteClassCache.clear();
-        resolvedObjectMethods.clear();
-        resolvedStaticMethods.clear();
     }
 
     /**
@@ -376,15 +546,12 @@ public class BshClassManager
         However BeanShell is not currently able to reload
         classes supplied through the external classloader.
     */
-    public void setClassLoader( ClassLoader externalCL )
-    {
+    public void setClassLoader( ClassLoader externalCL ) {
         externalClassLoader = externalCL;
         classLoaderChanged();
     }
 
-    public void addClassPath( URL path )
-        throws IOException {
-    }
+    public void addClassPath( URL path ) throws IOException { }
 
     /**
         Clear all loaders and start over.  No class loading.
@@ -397,9 +564,7 @@ public class BshClassManager
         Set a new base classpath and create a new base classloader.
         This means all types change.
     */
-    public void setClassPath( URL [] cp )
-        throws UtilEvalError
-    {
+    public void setClassPath( URL [] cp ) throws UtilEvalError {
         throw cmUnavailable();
     }
 
@@ -418,9 +583,7 @@ public class BshClassManager
         whenever we are asked for classes in the appropriate space.
         For this we use a DiscreteFilesClassLoader
     */
-    public void reloadClasses( String [] classNames )
-        throws UtilEvalError
-    {
+    public void reloadClasses( String [] classNames ) throws UtilEvalError {
         throw cmUnavailable();
     }
 
@@ -430,35 +593,22 @@ public class BshClassManager
         The special package name "<unpackaged>" can be used to refer
         to unpackaged classes.
     */
-    public void reloadPackage( String pack )
-        throws UtilEvalError
-    {
+    public void reloadPackage( String pack ) throws UtilEvalError {
         throw cmUnavailable();
     }
-
-    /**
-        This has been removed from the interface to shield the core from the
-        rest of the classpath package. If you need the classpath you will have
-        to cast the classmanager to its impl.
-
-        public BshClassPath getClassPath() throws ClassPathException;
-    */
 
     /**
         Support for "import *;"
         Hide details in here as opposed to NameSpace.
     */
-    protected void doSuperImport()
-        throws UtilEvalError
-    {
+    protected void doSuperImport() throws UtilEvalError {
         throw cmUnavailable();
     }
 
     /**
         A "super import" ("import *") operation has been performed.
     */
-    protected boolean hasSuperImport()
-    {
+    protected boolean hasSuperImport() {
         return false;
     }
 
@@ -467,8 +617,7 @@ public class BshClassManager
         Throw an ClassPathException containing detail if name is ambigous.
     */
     protected String getClassNameByUnqName( String name )
-        throws UtilEvalError
-    {
+            throws UtilEvalError {
         throw cmUnavailable();
     }
 
@@ -536,35 +685,9 @@ public class BshClassManager
         The real implementation in the classpath.ClassManagerImpl handles
         reloading of the generated classes.
     */
-    public Class defineClass( String name, byte [] code )
-    {
+    public Class<?> defineClass( String name, byte [] code ) {
         throw new InterpreterError("Can't create class ("+name
             +") without class manager package.");
-    /*
-        Old implementation injected classes into the parent classloader.
-        This was incorrect behavior for several reasons.  The biggest problem
-        is that classes could therefore only be defined once across all
-        executions of the script...
-
-        ClassLoader cl = this.getClass().getClassLoader();
-        Class clas;
-        try {
-            clas = (Class)Reflect.invokeObjectMethod(
-                cl, "defineClass",
-                new Object [] {
-                    name, code,
-                    new Primitive( (int)0 )/offset/,
-                    new Primitive( code.length )/len/
-                },
-                (Interpreter)null, (CallStack)null, (SimpleNode)null
-            );
-        } catch ( Exception e ) {
-            e.printStackTrace();
-            throw new InterpreterError("Unable to define class: "+ e );
-        }
-        absoluteNonClasses.remove( name ); // may have been axed previously
-        return clas;
-    */
     }
 
     protected void classLoaderChanged() { }
@@ -574,76 +697,8 @@ public class BshClassManager
             "ClassLoading features unavailable.");
     }
 
-    public static interface Listener
-    {
+    public static interface Listener {
         void classLoaderChanged();
     }
 
-    /**
-        SignatureKey serves as a hash of a method signature on a class
-        for fast lookup of overloaded and general resolved Java methods.
-        <p>
-    */
-    /*
-        Note: is using SignatureKey in this way dangerous?  In the pathological
-        case a user could eat up memory caching every possible combination of
-        argument types to an untyped method.  Maybe we could be smarter about
-        it by ignoring the types of untyped parameter positions?  The method
-        resolver could return a set of "hints" for the signature key caching?
-
-        There is also the overhead of creating one of these for every method
-        dispatched.  What is the alternative?
-    */
-    static class SignatureKey
-    {
-        Class clas;
-        Class [] types;
-        String methodName;
-        int hashCode = 0;
-
-        SignatureKey( Class clas, String methodName, Class [] types ) {
-            this.clas = clas;
-            this.methodName = methodName;
-            this.types = types;
-        }
-
-        public int hashCode()
-        {
-            if ( hashCode == 0 )
-            {
-                hashCode = clas.hashCode() * methodName.hashCode();
-                if ( types == null ) // no args method
-                    return hashCode;
-                for( int i =0; i < types.length; i++ ) {
-                    int hc = types[i] == null ? 21 : types[i].hashCode();
-                    hashCode = hashCode*(i+1) + hc;
-                }
-            }
-            return hashCode;
-        }
-
-        public boolean equals( Object o ) {
-            SignatureKey target = (SignatureKey)o;
-            if ( types == null )
-                return target.types == null;
-            if ( clas != target.clas )
-                return false;
-            if ( !methodName.equals( target.methodName ) )
-                return false;
-            if ( types.length != target.types.length )
-                return false;
-            for( int i =0; i< types.length; i++ )
-            {
-                if ( types[i]==null )
-                {
-                    if ( !(target.types[i]==null) )
-                        return false;
-                } else
-                    if ( !types[i].equals( target.types[i] ) )
-                        return false;
-            }
-
-            return true;
-        }
-    }
 }

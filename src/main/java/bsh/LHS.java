@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -80,7 +79,7 @@ class LHS implements ParserConstants, Serializable {
 
     String varName;
     Object propName;
-    Field field;
+    Invocable field;
     Object object;
     int index;
     Variable var;
@@ -110,7 +109,7 @@ class LHS implements ParserConstants, Serializable {
         Static field LHS Constructor.
         This simply calls Object field constructor with null object.
     */
-    LHS( Field field )
+    LHS( Invocable field )
     {
         type = FIELD;
         this.object = null;
@@ -120,7 +119,7 @@ class LHS implements ParserConstants, Serializable {
     /**
         Object field LHS Constructor.
     */
-    LHS( Object object, Field field )
+    LHS( Object object, Invocable field )
     {
         if ( object == null)
             throw new NullPointerException("constructed empty LHS");
@@ -169,8 +168,7 @@ class LHS implements ParserConstants, Serializable {
             return nameSpace.getVariableOrProperty( varName, null );
 
         if ( type == FIELD ) try {
-            Object o = Objects.requireNonNull(field).get( object );
-            return Primitive.wrap( o, field.getType() );
+            return Objects.requireNonNull(field).invoke(object);
         } catch( ReflectiveOperationException e2 ) {
             throw new UtilEvalError("Can't read field: " + field, e2);
         }
@@ -210,7 +208,7 @@ class LHS implements ParserConstants, Serializable {
 
     public Class<?> getType() {
         if ( null != field )
-            return field.getType();
+            return field.getReturnType();
         if ( null != var )
             return var.getType();
         try {
@@ -222,7 +220,7 @@ class LHS implements ParserConstants, Serializable {
 
     public boolean isStatic() {
         if ( null != field )
-            return Reflect.isStatic(field);
+            return field.isStatic();
         if ( null == this.var )
             return false;
         return var.hasModifier("static");
@@ -271,10 +269,7 @@ class LHS implements ParserConstants, Serializable {
             else
                 nameSpace.setVariableOrProperty( varName, val, strictJava );
         } else  if ( type == FIELD )  try {
-            Object fieldVal = Primitive.unwrap(val);
-
-            Reflect.setAccessible(field);
-            field.set( object, fieldVal );
+            Objects.requireNonNull(field).invoke( object, val );
             return val;
         }
         catch( NullPointerException e ) {
@@ -364,9 +359,7 @@ class LHS implements ParserConstants, Serializable {
         Class<?> cls = this.object.getClass();
         if ( this.object instanceof Class )
             cls = (Class<?>) this.object;
-        try {
-            this.field = cls.getField(varName);
-        } catch ( NoSuchFieldException | SecurityException e ) { /* ignore */ }
+        this.field = BshClassManager.memberCache.get(cls).findField(varName);
     }
 }
 

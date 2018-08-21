@@ -7,7 +7,7 @@ import bsh.StringUtil;
 
 /** Custom matcher comparing to the result of StringUtil valueString.
  * @see StringUtil.valueString */
-public class StringUtilValue extends IsEqual<String> {
+public class StringUtilValue extends IsEqual<Object> {
     private final String expectedValue;
 
     /** Initialize super with expected value.
@@ -41,7 +41,7 @@ public class StringUtilValue extends IsEqual<String> {
     /** Static function to retrieve this Matcher instance.
      * @param value the expected value
      * @return new Matcher instance for expected value */
-    public static Matcher<String> valueString(String value) {
+    public static Matcher<Object> valueString(String value) {
         return new StringUtilValue(value);
     }
 }

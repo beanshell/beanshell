@@ -1,3 +1,16 @@
+/** Copyright 2018 Nick nickl- Lombard
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. */
 package bsh;
 
 import java.math.BigDecimal;
@@ -187,6 +200,7 @@ class Operators implements ParserConstants {
                 return lhs | rhs;
 
             case XOR:
+            case XORX:
                 return lhs ^ rhs;
 
         }
@@ -247,9 +261,11 @@ class Operators implements ParserConstants {
                 return lhs / rhs;
 
             case MOD:
+            case MODX:
                 return lhs % rhs;
 
             case POWER:
+            case POWERX:
                 double check = Math.pow(lhs, rhs);
                 BigInteger bi = BigDecimal.valueOf(check).toBigInteger();
                 if ( bi.compareTo(Primitive.LONG_MIN) >= 0 && bi.compareTo(Primitive.LONG_MAX) <= 0 )
@@ -278,6 +294,7 @@ class Operators implements ParserConstants {
                 return lhs | rhs;
 
             case XOR:
+            case XORX:
                 return lhs ^ rhs;
 
         }
@@ -308,9 +325,11 @@ class Operators implements ParserConstants {
                 return lhs.divide(rhs);
 
             case MOD:
+            case MODX:
                 return lhs.mod(rhs);
 
             case POWER:
+            case POWERX:
                 return lhs.pow(rhs.intValue());
 
             // bitwise
@@ -341,6 +360,7 @@ class Operators implements ParserConstants {
                 return lhs.or(rhs);
 
             case XOR:
+            case XORX:
                 return lhs.xor(rhs);
 
         }
@@ -374,9 +394,11 @@ class Operators implements ParserConstants {
                 return lhs / rhs;
 
             case MOD:
+            case MODX:
                 return lhs % rhs;
 
             case POWER:
+            case POWERX:
                 double check = Math.pow(lhs, rhs);
                 if ( Double.isInfinite(check) )
                     break;
@@ -419,9 +441,11 @@ class Operators implements ParserConstants {
                 return lhs.divide(rhs);
 
             case MOD:
+            case MODX:
                 return lhs.remainder(rhs);
 
             case POWER:
+            case POWERX:
                 return lhs.pow(rhs.intValue());
 
             // can't shift floats

@@ -30,7 +30,6 @@ import static bsh.This.Keys.BSHSUPER;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,7 +50,7 @@ public final class ClassGenerator {
     /**
      * Parse the BSHBlock for the class definition and generate the class.
      */
-    public Class generateClass(String name, Modifiers modifiers, Class[] interfaces, Class superClass, BSHBlock block, Type type, CallStack callstack, Interpreter interpreter) throws EvalError {
+    public Class<?> generateClass(String name, Modifiers modifiers, Class<?>[] interfaces, Class<?> superClass, BSHBlock block, Type type, CallStack callstack, Interpreter interpreter) throws EvalError {
         // Delegate to the static method
         return generateClassImpl(name, modifiers, interfaces, superClass, block, type, callstack, interpreter);
     }
@@ -70,7 +69,7 @@ public final class ClassGenerator {
      * Parse the BSHBlock for for the class definition and generate the class
      * using ClassGenerator.
      */
-    public static Class generateClassImpl(String name, Modifiers modifiers, Class[] interfaces, Class superClass, BSHBlock block, Type type, CallStack callstack, Interpreter interpreter) throws EvalError {
+    public static Class<?> generateClassImpl(String name, Modifiers modifiers, Class<?>[] interfaces, Class<?> superClass, BSHBlock block, Type type, CallStack callstack, Interpreter interpreter) throws EvalError {
         NameSpace enclosingNameSpace = callstack.top();
         String packageName = enclosingNameSpace.getPackage();
         String className = enclosingNameSpace.isClass ? (enclosingNameSpace.getName() + "$" + name) : name;
@@ -109,7 +108,7 @@ public final class ClassGenerator {
         classGenerator.initStaticNameSpace(classStaticNameSpace, block/*instance initializer*/);
 
         // Check for existing class (saved class file)
-        Class genClass = bcm.getAssociatedClass(fqClassName);
+        Class<?> genClass = bcm.getAssociatedClass(fqClassName);
 
         // If the class isn't there then generate it.
         // Else just let it be initialized below.
@@ -185,16 +184,17 @@ public final class ClassGenerator {
         return vars.toArray(new Variable[vars.size()]);
     }
 
-    static DelayedEvalBshMethod[] getDeclaredMethods(BSHBlock body, CallStack callstack, Interpreter interpreter, String defaultPackage, Class superClass) throws EvalError {
-        List<DelayedEvalBshMethod> methods = new ArrayList<DelayedEvalBshMethod>();
+    static DelayedEvalBshMethod[] getDeclaredMethods(BSHBlock body,
+            CallStack callstack, Interpreter interpreter, String defaultPackage,
+            Class<?> superClass) throws EvalError {
+        List<DelayedEvalBshMethod> methods = new ArrayList<>();
         if ( callstack.top().getName().indexOf("$anon") > -1 ) {
             // anonymous classes need super constructor
             String classBaseName = Types.getBaseName(callstack.top().getName());
-            DelayedEvalBshMethod bm = new DelayedEvalBshMethod(classBaseName,
-                Reflect.findMostSpecificConstructor(
-                    Types.getTypes(This.CONTEXT_ARGS.get().get(classBaseName)),
-                    superClass.getConstructors()),
-                callstack.top());
+            Invocable con = BshClassManager.memberCache.get(superClass)
+                    .findMethod(superClass.getName(),
+                        This.CONTEXT_ARGS.get().get(classBaseName));
+            DelayedEvalBshMethod bm = new DelayedEvalBshMethod(classBaseName, con, callstack.top());
             methods.add(bm);
         }
         for (int child = 0; child < body.jjtGetNumChildren(); child++) {
@@ -272,19 +272,24 @@ public final class ClassGenerator {
         }
     }
 
-    public static Object invokeSuperclassMethodImpl(BshClassManager bcm, Object instance, String methodName, Object[] args) throws UtilEvalError, ReflectError, InvocationTargetException {
+    public static Object invokeSuperclassMethodImpl(BshClassManager bcm,
+            Object instance, String methodName, Object[] args)
+                throws UtilEvalError, ReflectError, InvocationTargetException {
         String superName = BSHSUPER + methodName;
 
         // look for the specially named super delegate method
-        Class clas = instance.getClass();
-        Method superMethod = Reflect.resolveJavaMethod(bcm, clas, superName, Types.getTypes(args), false/*onlyStatic*/);
-        if (superMethod != null) return Reflect.invokeMethod(superMethod, instance, args);
+        Class<?> clas = instance.getClass();
+        Invocable superMethod = Reflect.resolveJavaMethod(clas, superName,
+                Types.getTypes(args), false/*onlyStatic*/);
+        if (superMethod != null) return superMethod.invoke(instance, args);
+
 
         // No super method, try to invoke regular method
         // could be a superfluous "super." which is legal.
-        Class superClass = clas.getSuperclass();
-        superMethod = Reflect.resolveExpectedJavaMethod(bcm, superClass, instance, methodName, args, false/*onlyStatic*/);
-        return Reflect.invokeMethod(superMethod, instance, args);
+        Class<?> superClass = clas.getSuperclass();
+        superMethod = Reflect.resolveExpectedJavaMethod(bcm, superClass, instance,
+                methodName, args, false/*onlyStatic*/);
+        return superMethod.invoke(instance, args);
     }
 
 }
