@@ -132,10 +132,15 @@ class BSHPrimarySuffix extends SimpleNode
         Instance.new InnerClass() implementation
     */
     private Object doNewInner(Object obj, boolean toLHS,
-        CallStack callstack, Interpreter interpreter) throws EvalError {
-        callstack.pop();
-        callstack.push(Reflect.getThisNS(obj));
-        return ((BSHAllocationExpression)jjtGetChild(0)).eval(callstack, interpreter);
+            CallStack callstack, Interpreter interpreter) throws EvalError {
+        BSHAllocationExpression alloc = (BSHAllocationExpression) jjtGetChild(0);
+        if (Reflect.isGeneratedClass(obj.getClass())) {
+            callstack.pop();
+            callstack.push(Reflect.getThisNS(obj));
+            return alloc.eval(callstack, interpreter);
+        }
+
+        return alloc.constructFromEnclosingInstance(obj, callstack, interpreter);
     }
 
     /*

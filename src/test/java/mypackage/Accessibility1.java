@@ -2,6 +2,14 @@ package mypackage;
 
 class Accessibility1 {
 
+    private class AccessibilityChild {
+        private String str = "in";
+        public AccessibilityChild() { }
+        private AccessibilityChild(String s) {
+            str = s;
+        }
+    }
+
     private Accessibility1(int a, int b, int c) { }
     Accessibility1(int a, int b) { }
     protected Accessibility1(int a ) { }

@@ -2,6 +2,14 @@ package mypackage;
 
 public class Accessibility2 extends Accessibility1
 {
+    private static class AccessibilityChild2 {
+        private String str = "in";
+        public AccessibilityChild2() { }
+        private AccessibilityChild2(String s) {
+            str = s;
+        }
+    }
+
     private Accessibility2(int a, int b, int c) { }
     Accessibility2(int a, int b) { }
     protected Accessibility2(int a ) { }
