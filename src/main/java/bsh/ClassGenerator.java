@@ -192,7 +192,7 @@ public final class ClassGenerator {
                           var = new Variable(name, typeString, null/*value*/, modifiers );
                        vars.add(var);
                     } catch (UtilEvalError e) {
-                       // value error shouldn't happen because it is null
+                       // value error shouldn't happen because value is null
                     } 
                 }
             }
