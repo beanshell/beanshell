@@ -1,0 +1,11 @@
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+/*
+    This test case looks at local references to the containing class
+*/
+
+source("Data/LocalClassReference.java");
+LocalClassReference.main(new String[0]);
+
+complete();

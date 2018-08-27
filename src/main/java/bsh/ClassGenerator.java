@@ -168,16 +168,32 @@ public final class ClassGenerator {
             } else if (node instanceof BSHTypedVariableDeclaration) {
                 BSHTypedVariableDeclaration tvd = (BSHTypedVariableDeclaration) node;
                 Modifiers modifiers = tvd.modifiers;
+
+                /*
+                 * Try to look up the class.  If this fails then get
+                 * the class name.
+                 */
+                Class<?> type = null;
+                String typeString = null;
+                try {
+                   type = tvd.evalType(callstack, interpreter);
+                } catch (EvalError e) {
+                   typeString = tvd.getTypeDescriptor(callstack, interpreter, defaultPackage );
+                }
+                
                 BSHVariableDeclarator[] vardec = tvd.getDeclarators();
                 for (BSHVariableDeclarator aVardec : vardec) {
                     String name = aVardec.name;
                     try {
-                        Class<?> type = tvd.evalType(callstack, interpreter);
-                        Variable var = new Variable(name, type, null/*value*/, modifiers);
-                        vars.add(var);
-                    } catch (UtilEvalError | EvalError e) {
-                        // value error shouldn't happen
-                    }
+                       Variable var = null;
+                       if (type != null)
+                          var = new Variable(name, type, null/*value*/, modifiers);
+                       else
+                          var = new Variable(name, typeString, null/*value*/, modifiers );
+                       vars.add(var);
+                    } catch (UtilEvalError e) {
+                       // value error shouldn't happen because it is null
+                    } 
                 }
             }
         }
