@@ -1284,7 +1284,7 @@ final class Reflect {
             } catch (Exception e) {
                 return null;
             }
-                      } else 
+                      } else
                          return null;
         })
         .filter(Objects::nonNull)
