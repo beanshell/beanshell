@@ -180,7 +180,7 @@ public final class ClassGenerator {
                 } catch (EvalError e) {
                    typeString = tvd.getTypeDescriptor(callstack, interpreter, defaultPackage );
                 }
-                
+
                 BSHVariableDeclarator[] vardec = tvd.getDeclarators();
                 for (BSHVariableDeclarator aVardec : vardec) {
                     String name = aVardec.name;
@@ -193,7 +193,7 @@ public final class ClassGenerator {
                        vars.add(var);
                     } catch (UtilEvalError e) {
                        // value error shouldn't happen because value is null
-                    } 
+                    }
                 }
             }
         }
