@@ -1278,11 +1278,14 @@ final class Reflect {
         return Stream.of(enm.getFields())
                 .filter(f -> f.getType() == enm)
                 .map(f -> {
+                      if (f.isEnumConstant()) {
             try {
                 return f.get(null);
             } catch (Exception e) {
                 return null;
             }
+                      } else 
+                         return null;
         })
         .filter(Objects::nonNull)
         .toArray(len -> (T[]) Array.newInstance(enm, len));

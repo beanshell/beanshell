@@ -138,6 +138,8 @@ public class EnumTest {
             assertThat("array containing VAL1, VAL2, VAL3, VAL4", obj, arrayContaining(
                     bsh.eval("E4.VAL1"), bsh.eval("E4.VAL2"),
                     bsh.eval("E4.VAL3"), bsh.eval("E4.VAL4")));
+            assertThat("enm is a VAL1", bsh.eval("E4.enm"), equalTo(bsh.eval("E4.VAL1"))); 
+            assertThat("enm is a VAL1", bsh.eval("E4.enm.toString()"), equalTo("VAL1")); 
         }
     }
 
