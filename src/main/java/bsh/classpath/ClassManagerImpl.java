@@ -151,7 +151,7 @@ public class ClassManagerImpl extends BshClassManager
     public Class classForName( String name )
     {
         // check positive cache
-        Class c = (Class)absoluteClassCache.get(name);
+        Class<?> c = absoluteClassCache.get(name);
         if (c != null )
             return c;
 
@@ -368,6 +368,8 @@ public class ClassManagerImpl extends BshClassManager
     public void reloadClasses( String [] classNames )
         throws ClassPathException
     {
+        clearCaches();
+
         // validate that it is a class here?
 
         // init base class loader if there is none...
@@ -571,9 +573,6 @@ public class ClassManagerImpl extends BshClassManager
     @Override
     protected void classLoaderChanged()
     {
-        // clear the static caches in BshClassManager
-        clearCaches();
-
         Vector toRemove = new Vector(); // safely remove
         for ( Enumeration e = listeners.elements(); e.hasMoreElements(); )
         {

@@ -77,7 +77,7 @@ class BSHMethodInvocation extends SimpleNode
         } catch ( InvocationTargetException e )
         {
             String msg = "Method Invocation "+name;
-            Throwable te = e.getTargetException();
+            Throwable te = e.getCause();
 
             /*
                 Try to squeltch the native code stack trace if the exception

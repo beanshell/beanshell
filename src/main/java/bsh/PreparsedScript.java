@@ -53,7 +53,7 @@ public class PreparsedScript {
         _interpreter = new Interpreter(new StringReader(""), System.out, System.err, false, nameSpace, null, null);
         try {
             final This callable = (This) _interpreter.eval("__execute() { " + source + "\n" + "}\n" + "return this;");
-            _method = callable.getNameSpace().getMethod("__execute", new Class[0], false);
+            _method = callable.getNameSpace().getMethod("__execute", Reflect.ZERO_TYPES, false);
         } catch (final UtilEvalError e) {
             throw new IllegalStateException(e);
         }
@@ -74,7 +74,7 @@ public class PreparsedScript {
                 throw new EvalError("cannot set variable '" + entry.getKey() + '\'', null, null, e);
             }
         }
-        final Object result = method.invoke(new Object[0], _interpreter);
+        final Object result = method.invoke(Reflect.ZERO_ARGS, _interpreter);
         if ( Types.getType(result) == Void.TYPE )
             return null;
         return Primitive.unwrap(result);

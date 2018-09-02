@@ -402,7 +402,7 @@ assertTrue(b == Boolean.valueOf(true));
 assertTrue(b == Boolean.TRUE);
 assertFalse(null == b);
 assertFalse(b == null);
-assertFalse(b == new Boolean(true));
+assertTrue(b == new Boolean(true));
 assertFalse(b != b);
 b = null;
 assert(isEvalError('bad operand types for binary operator "+"', 'b + true'));
