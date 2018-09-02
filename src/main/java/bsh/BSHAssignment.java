@@ -108,17 +108,14 @@ class BSHAssignment extends SimpleNode implements ParserConstants
                         operation(lhsValue, rhs, BIT_OR), strictJava );
 
                 case XORASSIGN:
-                case XORASSIGNX:
                     return lhs.assign(
                         operation(lhsValue, rhs, XOR), strictJava );
 
                 case MODASSIGN:
-                case MODASSIGNX:
                     return lhs.assign(
                         operation(lhsValue, rhs, MOD), strictJava );
 
                 case POWERASSIGN:
-                case POWERASSIGNX:
                     return lhs.assign(
                             operation(lhsValue, rhs, POWER), strictJava );
 

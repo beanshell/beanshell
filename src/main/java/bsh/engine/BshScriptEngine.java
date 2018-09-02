@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -118,10 +117,9 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
     }
 
 
-    private PrintStream toPrintStream(final Writer writer)
-            throws UnsupportedEncodingException {
+    private PrintStream toPrintStream(final Writer writer) {
         // This is a big hack, convert writer to PrintStream
-        return new PrintStream(new WriterOutputStream(writer), true, "UTF-8");
+        return new PrintStream(new WriterOutputStream(writer));
     }
 
 
@@ -180,12 +178,10 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
 
                 @Override
                 public Object eval(ScriptContext context) throws ScriptException {
+                    preparsed.setOut(toPrintStream(context.getWriter()));
+                    preparsed.setErr(toPrintStream(context.getErrorWriter()));
                     try {
-                        preparsed.setOut(toPrintStream(context.getWriter()));
-                        preparsed.setErr(toPrintStream(context.getErrorWriter()));
                         return preparsed.invoke(new ScriptContextEngineView(context));
-                    } catch (final UnsupportedEncodingException e) {
-                        throw new ScriptException(e.toString(), script, -1);
                     } catch (final EvalError e) {
                         throw constructScriptException(e);
                     } finally {

@@ -16,6 +16,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
@@ -184,30 +185,13 @@ public class TestBshScriptEngine {
         engine.eval("print('\\u3456');");
         assertEquals(new String("\u3456".getBytes(), "UTF-8").charAt(0),
                 new String(sw.toString().getBytes(), "UTF-8").charAt(0));
-    }
-
-    @Test
-    public void test_method_invocation() throws Exception {
-        ScriptEngine engine = new BshScriptEngineFactory().getScriptEngine();
-        ScriptContext ctx = new SimpleScriptContext();
-        StringWriter sw = new StringWriter();
-        ctx.setWriter(sw);
-        engine.setContext(ctx);
-        engine.eval(
-                "this.interpreter.print(new Object() {"
-                 + "public String toString() {"
-                      +"return \"hello BeanShell\";"
-                 + "}"
-              + "});"
-            );
-        assertEquals("hello BeanShell", sw.toString());
         sw.close();
     }
 
     @Test
     public void check_parse_exception_line_number() throws Exception {
         thrown.expect(ScriptException.class);
-        thrown.expectMessage(containsString("Encountered:  \";\" \";\"  at line 1, column 13"));
+        thrown.expectMessage(containsString("Encountered:  \"(\" \"(\"  at line 1, column 6"));
 
         final String script = "print(\"test\";";
         new BshScriptEngineFactory().getScriptEngine().eval(script);
@@ -311,7 +295,7 @@ public class TestBshScriptEngine {
     @Test
     public void check_script_exception_compile_parse_exception() throws Exception {
         thrown.expect(ScriptException.class);
-        thrown.expectMessage(containsString("Encountered:  \";\" \";\"  at line 1, column 27"));
+        thrown.expectMessage(containsString("Encountered:  \"(\" \"(\"  at line 1, column 20"));
 
         final String script = "print(\"test\";";
         ((Compilable) new BshScriptEngineFactory().getScriptEngine()).compile(script);

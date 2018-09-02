@@ -294,13 +294,6 @@ assertEquals(0L, l ^ 2L);
 assertEquals(3L, l ^ 1L);
 assertTrue(true ^ false);
 
-// XORX: "@bitwise_xor"
-assertEquals(0, a @bitwise_xor 2);
-assertEquals(3, a @bitwise_xor 1);
-assertEquals(0L, l @bitwise_xor 2L);
-assertEquals(3L, l @bitwise_xor 1L);
-assertTrue(true @bitwise_xor false);
-
 // MOD: "%"
 assertEquals(0, 2 % a);
 assertEquals(1, 3 % a);
@@ -311,29 +304,11 @@ assertEquals(1.0, 3.0 % f, fdelta);
 assertEquals(0L, 2L % l);
 assertEquals(1L, 3L % l);
 
-// MODX: "@mod"
-assertEquals(0, 2 @mod a);
-assertEquals(1, 3 @mod a);
-assertEquals(0.0, 2.0 @mod d, ddelta);
-assertEquals(1.0, 3.0 @mod d, ddelta);
-assertEquals(0.0, 2.0 @mod f, fdelta);
-assertEquals(1.0, 3.0 @mod f, fdelta);
-assertEquals(0L, 2L @mod l);
-assertEquals(1L, 3L @mod l);
-
 // POWER: "**"
 assertEquals(4, a ** 2);
 
-// POWERX: "@pow"
-assertEquals(4, a @pow 2);
-
 // POWERASSIGN: "**="
 assertEquals(4, a **= 2);
-assertEquals(4, a);
-assertEquals(2, a /= 2);
-
-// POWERASSIGNX: "@pow_assign"
-assertEquals(4, a @pow_assign 2);
 assertEquals(4, a);
 assertEquals(2, a /= 2);
 
@@ -467,14 +442,6 @@ assertEquals(3L, l ^= 1L);
 assertEquals(2L, l ^= 1L);
 assertEquals(2L, l);
 
-// XORASSIGNX: "@xor_assign"
-assertEquals(3, a @xor_assign 1);
-assertEquals(2, a @xor_assign 1);
-assertEquals(2, a);
-assertEquals(3L, l @xor_assign 1L);
-assertEquals(2L, l @xor_assign 1L);
-assertEquals(2L, l);
-
 // MODASSIGN: "%="
 assertEquals(2, a %= 3);
 assertEquals(2, a);
@@ -483,16 +450,6 @@ assertEquals(2.0, d, ddelta);
 assertEquals(2.0, f %= 3, fdelta);
 assertEquals(2.0, f, fdelta);
 assertEquals(2L, l %= 3L);
-assertEquals(2L, l);
-
-//MODASSIGNX: "@mod_assign"
-assertEquals(2, a @mod_assign 3);
-assertEquals(2, a);
-assertEquals(2.0, d @mod_assign 3.0, ddelta);
-assertEquals(2.0, d, ddelta);
-assertEquals(2.0, f @mod_assign 3, fdelta);
-assertEquals(2.0, f, fdelta);
-assertEquals(2L, l @mod_assign 3L);
 assertEquals(2L, l);
 
 // LSHIFTASSIGN: "<<="

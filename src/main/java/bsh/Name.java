@@ -313,14 +313,13 @@ class Name implements java.io.Serializable
             If we didn't find a class or variable name (or prefix) above
             there are two possibilities:
 
-            - If we are a simple name then we can check if we are an imported
-              property or pass as a void variable reference.
+            - If we are a simple name then we can pass as a void variable
+            reference.
             - If we are compound then we must fail at this point.
         */
         if ( evalBaseObject == null ) {
             if ( !isCompound(evalName) ) {
-                Object obj = namespace.getPropertyValue(varName, interpreter);
-                return completeRound( evalName, FINISHED, obj );
+                return completeRound( evalName, FINISHED, Primitive.VOID );
             } else
                 throw new UtilEvalError(
                     "Class or variable not found: " + evalName);
@@ -403,12 +402,8 @@ class Name implements java.io.Serializable
                     obj = new ClassIdentifier(c);
             }
 
-            // static bean property
-            if ( obj == null ) try {
-                obj = Reflect.getObjectProperty(clas, field);
-            } catch (ReflectError e) {
-                Interpreter.debug("field reflect error: ", e);
-            }
+            if ( obj == null )
+                obj = Reflect.staticMethodForName(clas, field);
 
             if ( obj == null )
                 throw new UtilEvalError(
@@ -446,9 +441,9 @@ class Name implements java.io.Serializable
             return completeRound( field, suffix(evalName), obj );
         } catch(ReflectError e) { /* not a field */ }
 
-        Object obj = Reflect.getObjectProperty(evalBaseObject, field);
-        return completeRound( field, suffix(evalName), obj );
-
+        // if we get here we have failed
+        throw new UtilEvalError(
+            "Cannot access field: " + field + ", on object: " + evalBaseObject);
     }
 
     /**
@@ -583,6 +578,7 @@ class Name implements java.io.Serializable
                 throw new UtilEvalError(
                 "Can only call .callstack on literal 'this'");
         }
+
 
         if ( obj == null )
             obj = thisNameSpace.getVariable(varName, evalBaseObject == null);

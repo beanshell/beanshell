@@ -28,6 +28,7 @@ package bsh.servlet;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
@@ -38,7 +39,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import bsh.EvalError;
-import bsh.FileReader;
 import bsh.Interpreter;
 
 /**
@@ -62,10 +62,9 @@ public class BshServlet extends HttpServlet
             in the early versions.
         */
         String tmp = "BeanShell: unknown version";
-        try ( FileReader reader = new FileReader(
-                BshServlet.class.getResource("getVersion.bsh").openStream());
-                Interpreter bsh = new Interpreter() ) {
-            bsh.eval( reader );
+        try ( Interpreter bsh = new Interpreter() ) {
+            bsh.eval( new InputStreamReader( BshServlet.class.getResource(
+                "getVersion.bsh").openStream() ) );
             tmp = (String)bsh.eval( "getVersion()" );
         } catch ( Exception e ) { /* ignore fall back on original value */ }
         bshVersion = tmp;
@@ -256,37 +255,41 @@ public class BshServlet extends HttpServlet
         HttpServletRequest request, HttpServletResponse response )
         throws EvalError
     {
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             PrintStream pout = new PrintStream( baos, true, "UTF-8" );
-             // Create an interpreter instance with a null inputstream,
-             // the capture out/err stream, non-interactive
-             Interpreter bsh = new Interpreter( null, pout, pout, false )) {
+        // Create a PrintStream to capture output
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream pout = new PrintStream( baos );
 
-            // set up interpreter
-            bsh.set( "bsh.httpServletRequest", request );
-            bsh.set( "bsh.httpServletResponse", response );
+        // Create an interpreter instance with a null inputstream,
+        // the capture out/err stream, non-interactive
+        Interpreter bsh = new Interpreter( null, pout, pout, false );
 
-            // Eval the text, gathering the return value or any error.
-            Object result = null;
-            PrintStream sout = System.out;
-            PrintStream serr = System.err;
+        // set up interpreter
+        bsh.set( "bsh.httpServletRequest", request );
+        bsh.set( "bsh.httpServletResponse", response );
+
+        // Eval the text, gathering the return value or any error.
+        Object result = null;
+        PrintStream sout = System.out;
+        PrintStream serr = System.err;
+        if ( captureOutErr ) {
+            System.setOut( pout );
+            System.setErr( pout );
+        }
+        try {
+            // Eval the user text
+            result = bsh.eval( script );
+        } finally {
             if ( captureOutErr ) {
-                System.setOut( pout );
-                System.setErr( pout );
+                System.setOut( sout );
+                System.setErr( serr );
             }
-            try {
-                // Eval the user text
-                result = bsh.eval( script );
-            } finally {
-                if ( captureOutErr ) {
-                    System.setOut( sout );
-                    System.setErr( serr );
-                }
-            }
-            scriptOutput.append( baos.toString("UTF-8") );
-            return result;
+        }
+        pout.flush();
+        scriptOutput.append( baos.toString() );
+        try {
+            bsh.close();
         } catch (IOException e) { /* ignore */ }
-        throw new EvalError("Script evaluation failed", null, null);
+        return result;
     }
 
     /**

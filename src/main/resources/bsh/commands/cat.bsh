@@ -29,7 +29,7 @@ cat( URL url )
 
 cat( InputStream ins )
 {
-    this.bin = new BufferedReader( new FileReader( ins ) );
+    this.bin = new BufferedReader( new InputStreamReader( ins ) );
     cat( bin );
 }
 

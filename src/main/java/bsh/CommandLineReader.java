@@ -30,6 +30,7 @@ package bsh;
 
 import java.io.FilterReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 
 /**
@@ -95,7 +96,7 @@ class CommandLineReader extends FilterReader {
     // Test it
     public static void main( String [] args ) throws Exception {
         @SuppressWarnings("resource")
-        Reader in = new CommandLineReader( new FileReader(System.in) );
+        Reader in = new CommandLineReader( new InputStreamReader(System.in) );
         while ( true )
             System.out.println( in.read() );
     }

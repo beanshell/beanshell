@@ -31,7 +31,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
 import java.io.Reader;
@@ -168,9 +170,6 @@ public class Interpreter
      * "bsh.compatibility" to "true".
      */
     private boolean compatibility = COMPATIBIILTY;
-
-    /** Cached getBshPrompt for interactive mode. */
-    private String prompt = null;
 
     /* --- End instance data --- */
 
@@ -413,8 +412,8 @@ public class Interpreter
 
             try (Interpreter interpreter =
                 new Interpreter( new CommandLineReader(
-                    new FileReader(System.in)),
-                    System.out, System.err, true )) {
+                        new InputStreamReader(System.in)),
+                        System.out, System.err, true )) {
                 interpreter.run();
             } catch (IOException e) {
                 System.err.println("I/O Error: "+e);
@@ -1033,7 +1032,7 @@ public class Interpreter
         try {
             @SuppressWarnings("resource")
             PrintStream pout = new PrintStream(
-                new FileOutputStream( filename ), true, "UTF-8");
+                new FileOutputStream( filename ) );
             System.setOut( pout );
             System.setErr( pout );
         } catch ( IOException e ) {
@@ -1168,15 +1167,13 @@ public class Interpreter
         be defined by the user as with any other method.
         Defaults to "bsh % " if the method is not defined or there is an error.
     */
-    private String getBshPrompt() {
-        if ( null != prompt )
-            return prompt;
+    private String getBshPrompt()
+    {
         try {
-            prompt = (String) eval("getBshPrompt()");
+            return (String)eval("getBshPrompt()");
         } catch ( Exception e ) {
-            prompt = "bsh % ";
+            return "bsh % ";
         }
-        return prompt;
     }
 
     /**
@@ -1275,15 +1272,11 @@ public class Interpreter
 
         @Override
         public PrintStream getOut() {
-            if ( null == out )
-                out = System.out;
             return out;
         }
 
         @Override
         public PrintStream getErr() {
-            if ( null == err )
-                err = System.err;
             return err;
         }
 

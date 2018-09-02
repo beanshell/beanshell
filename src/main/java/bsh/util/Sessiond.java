@@ -26,12 +26,12 @@
 package bsh.util;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import bsh.FileReader;
 import bsh.Interpreter;
 import bsh.NameSpace;
 
@@ -84,9 +84,10 @@ class SessiondConnection extends Thread
 
     public void run()
     {
-        try (Reader in = new FileReader(client.getInputStream())) {
-            PrintStream out = new PrintStream(
-                    client.getOutputStream(), true, "UTF-8");
+        try
+        {
+            Reader in = new InputStreamReader(client.getInputStream());
+            PrintStream out = new PrintStream(client.getOutputStream());
             i = new Interpreter(
                 in, out, out, true, globalNameSpace);
             i.setExitOnEOF( false ); // don't exit interpreter

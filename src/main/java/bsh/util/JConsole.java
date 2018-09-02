@@ -41,13 +41,13 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,8 +64,6 @@ import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
-
-import bsh.FileReader;
 
 /**
     A JFC/Swing based console for the BeanShell desktop.
@@ -91,7 +89,7 @@ public class JConsole extends JScrollPane
     private PrintStream out;
 
     public InputStream getInputStream() { return in; }
-    public Reader getIn() { return new FileReader(in); }
+    public Reader getIn() { return new InputStreamReader(in); }
     public PrintStream getOut() { return out;   }
     public PrintStream getErr() { return out;   }
 
@@ -119,9 +117,8 @@ public class JConsole extends JScrollPane
 
         // Special TextPane which catches for cut and paste, both L&F keys and
         // programmatic behaviour
-        text = new JTextPane( new DefaultStyledDocument() ) {
-                private static final long serialVersionUID = 1L;
-
+        text = new JTextPane( new DefaultStyledDocument() )
+            {
                 public void cut() {
                     if (text.getCaretPosition() < cmdStart) {
                         super.copy();
@@ -167,8 +164,8 @@ public class JConsole extends JScrollPane
         inPipe = cin;
         if ( inPipe == null ) {
             PipedOutputStream pout = new PipedOutputStream();
+            out = new PrintStream( pout );
             try {
-                out = new PrintStream( pout, true, "UTF-8" );
                 inPipe = new BlockingPipedInputStream(pout);
             } catch ( IOException e ) { print("Console internal error: "+e); }
         }
@@ -499,7 +496,7 @@ public class JConsole extends JScrollPane
             print("Console internal error: cannot output ...", Color.red);
         else
             try {
-                outPipe.write( line.getBytes(StandardCharsets.UTF_8) );
+                outPipe.write( line.getBytes() );
                 outPipe.flush();
             } catch ( IOException e ) {
                 outPipe = null;
@@ -607,6 +604,10 @@ public class JConsole extends JScrollPane
         });
     }
 
+    private AttributeSet setStyle(Font font) {
+        return setStyle(font, null);
+    }
+
     private AttributeSet setStyle( Font font, Color color)
     {
         if (font!=null)
@@ -681,7 +682,7 @@ public class JConsole extends JScrollPane
         byte [] ba = new byte [256]; // arbitrary blocking factor
         int read;
         while ( (read = inPipe.read(ba)) != -1 ) {
-            print( new String(ba, 0, read, StandardCharsets.UTF_8) );
+            print( new String(ba, 0, read) );
             //text.repaint();
         }
 
