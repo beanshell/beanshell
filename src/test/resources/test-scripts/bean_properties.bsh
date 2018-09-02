@@ -1,0 +1,154 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+public class TestClass {
+    // object instance members
+    // private instance field
+    private int _instVar;
+    // obfuscated instance fields
+    private int _instProp;
+    private boolean _instBoolProp;
+    // not boolean
+    private long _instNotBoolean;
+    // instance bean accessor methods
+    public int getInstProp() { return _instProp; }
+    public void setInstProp(int _instProp) { this._instProp = _instProp; }
+    public boolean isInstBoolProp() { return _instBoolProp; }
+    public void setInstBoolProp(boolean _instBoolProp) { this._instBoolProp = _instBoolProp; }
+    // Not boolean illegal bean accessor
+    public long isInstNotBoolean() { return _instNotBoolean; }
+    // force change instVar
+    public void changeInstVar() { this._instVar++; }
+    // class static members
+    // private static field
+    private static int _statVar;
+    // obfuscated static fields
+    private static int _statProp;
+    private static boolean _statBoolProp;
+    // not boolean
+    private static long _statNotBoolean;
+    // static bean accessor methods
+    public static int getStatProp() { return _statProp; }
+    public static void setStatProp(int var) { _statProp = var; }
+    public static boolean isStatBoolProp() { return _statBoolProp; }
+    public static void setStatBoolProp(boolean var) { _statBoolProp = var; }
+    // Not boolean illegal bean accessor
+    public static long isStatNotBoolean() { return _statNotBoolean; }
+    // force change statVar
+    public static void changeStatVar() { _statVar++; }
+}
+
+obj = new TestClass();
+
+// object instance members
+// private instance field
+assert(isEvalError("No such field: instVar", 'obj.instVar = 434;'));
+assert(isEvalError("No such property getter: instVar for type: TestClass", 'obj.instVar;'));
+
+// instance bean accessor methods
+obj.setInstProp(111);
+assertThat(obj.getInstProp(), equalTo(111));
+obj.setInstBoolProp(true);
+assertThat(obj.isInstBoolProp(), equalTo(true));
+// legal method
+assertThat(obj.isInstNotBoolean(), equalTo(0L));
+// instance property
+obj.instProp = 100;
+assertThat(obj.instProp, equalTo(100));
+obj.instBoolProp = false;
+assertThat(obj.instBoolProp, equalTo(false));
+// not a bean property
+assert(isEvalError("No such property getter: instNotBoolean for type: TestClass", 'obj.instNotBoolean'));
+
+// class static members
+// private static field
+assert(isEvalError("No such field: statVar", 'TestClass.statVar = 434;'));
+
+assert(isEvalError("No static field or inner class: statVar of class TestClass", 'TestClass.statVar;'));
+// static bean accessor methods
+TestClass.setStatProp(222);
+assertThat(TestClass.getStatProp(), equalTo(222));
+TestClass.setStatBoolProp(true);
+assertThat(TestClass.isStatBoolProp(), equalTo(true));
+// legal method
+assertThat(TestClass.isStatNotBoolean(), equalTo(0L));
+// static property
+TestClass.statProp = 200;
+assertThat(TestClass.statProp, equalTo(200));
+TestClass.statBoolProp = false;
+assertThat(TestClass.statBoolProp, equalTo(false));
+// not a bean property
+assert(isEvalError("No static field or inner class: statNotBoolean of class TestClass", 'TestClass.statNotBoolean;'));
+
+// object instance import
+this.interpreter.nameSpace.importObject(obj);
+// imported instance bean accessor methods
+setInstProp(321);
+assertThat(getInstProp(), equalTo(321));
+setInstBoolProp(true);
+assertThat(isInstBoolProp(), equalTo(true));
+// legal method imported
+assertThat(isInstNotBoolean(), equalTo(0L));
+
+// private object instance field NOT imported
+assertTrue(instVar == void);
+// new local variable
+instVar = 1;
+assertThat(instVar, equalTo(1));
+// force private instance field change value
+changeInstVar();
+// local variable unchanged
+assertThat(instVar, equalTo(1));
+
+// imported object instance property
+assertFalse(instProp == void);
+instProp = 123;
+assertThat(instProp, equalTo(123));
+// force private obfuscated instance field change value
+obj.setInstProp(321);
+// imported instance property value changed
+assertThat(instProp, equalTo(321));
+// boolean instance bean property
+instBoolProp = false;
+assertThat(instBoolProp, equalTo(false));
+//not a bean property
+assertTrue(instNotBoolean == void);
+
+// class static import
+this.interpreter.nameSpace.importStatic(TestClass.class);
+// imported static bean accessor methods
+setStatProp(654);
+assertThat(getStatProp(), equalTo(654));
+setStatBoolProp(true);
+assertThat(isStatBoolProp(), equalTo(true));
+// legal method imported
+assertThat(isStatNotBoolean(), equalTo(0L));
+
+// private class static field NOT imported
+assertTrue(statVar == void);
+// new local variable
+statVar = 1;
+assertThat(statVar, equalTo(1));
+// force private static field change value
+changeStatVar();
+// local variable unchanged
+assertThat(statVar, equalTo(1));
+
+// imported class static property
+assertFalse(statProp == void);
+statProp = 456;
+assertThat(statProp, equalTo(456));
+// force private obfuscated static field change value
+TestClass.setStatProp(321);
+// imported static property value changed
+assertThat(statProp, equalTo(321));
+// imported static boolean property
+statBoolProp = false;
+assertThat(statBoolProp, equalTo(false));
+//not a bean property
+assertTrue(statNotBoolean == void);
+
+
+complete();

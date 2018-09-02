@@ -200,6 +200,7 @@ class Operators implements ParserConstants {
                 return lhs | rhs;
 
             case XOR:
+            case XORX:
                 return lhs ^ rhs;
 
         }
@@ -260,9 +261,11 @@ class Operators implements ParserConstants {
                 return lhs / rhs;
 
             case MOD:
+            case MODX:
                 return lhs % rhs;
 
             case POWER:
+            case POWERX:
                 double check = Math.pow(lhs, rhs);
                 BigInteger bi = BigDecimal.valueOf(check).toBigInteger();
                 if ( bi.compareTo(Primitive.LONG_MIN) >= 0 && bi.compareTo(Primitive.LONG_MAX) <= 0 )
@@ -291,6 +294,7 @@ class Operators implements ParserConstants {
                 return lhs | rhs;
 
             case XOR:
+            case XORX:
                 return lhs ^ rhs;
 
         }
@@ -321,9 +325,11 @@ class Operators implements ParserConstants {
                 return lhs.divide(rhs);
 
             case MOD:
+            case MODX:
                 return lhs.mod(rhs);
 
             case POWER:
+            case POWERX:
                 return lhs.pow(rhs.intValue());
 
             // bitwise
@@ -354,6 +360,7 @@ class Operators implements ParserConstants {
                 return lhs.or(rhs);
 
             case XOR:
+            case XORX:
                 return lhs.xor(rhs);
 
         }
@@ -387,9 +394,11 @@ class Operators implements ParserConstants {
                 return lhs / rhs;
 
             case MOD:
+            case MODX:
                 return lhs % rhs;
 
             case POWER:
+            case POWERX:
                 double check = Math.pow(lhs, rhs);
                 if ( Double.isInfinite(check) )
                     break;
@@ -432,9 +441,11 @@ class Operators implements ParserConstants {
                 return lhs.divide(rhs);
 
             case MOD:
+            case MODX:
                 return lhs.remainder(rhs);
 
             case POWER:
+            case POWERX:
                 return lhs.pow(rhs.intValue());
 
             // can't shift floats

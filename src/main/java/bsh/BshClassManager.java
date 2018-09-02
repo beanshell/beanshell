@@ -28,7 +28,6 @@ package bsh;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -416,14 +415,10 @@ public class BshClassManager {
         final URL url = getResource( fileName );
         if ( url == null )
             return null;
-<<<<<<< HEAD
         try (FileReader reader
                 = new FileReader((InputStream) url.getContent())) {
-=======
-        try {
->>>>>>> parent of 1297628... Merge branch 'merge-fork-beanshell2' of https://github.com/beanshell/beanshell into merge-fork-beanshell2
             Interpreter.debug("Loading class from source file: " + fileName);
-            declaringInterpreter.eval( new InputStreamReader((InputStream) url.getContent()) );
+            declaringInterpreter.eval( reader );
         } catch ( IOException | EvalError e ) {
             if (Interpreter.DEBUG.get())
                 e.printStackTrace();

@@ -36,7 +36,6 @@ import static bsh.This.Keys.BSHSTATIC;
 import static bsh.This.Keys.BSHTHIS;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -987,10 +986,9 @@ public class ClassGeneratorUtil implements Opcodes {
         if (null == url)
             throw new InterpreterError("Script (" + resName + ") for BeanShell generated class: " + genClass + " not found.");
 
-        Reader reader = new InputStreamReader(genClass.getResourceAsStream(resName));
-
         // Set up the interpreter
-        try (Interpreter bsh = new Interpreter()) {
+        try (Reader reader = new FileReader(genClass.getResourceAsStream(resName));
+                Interpreter bsh = new Interpreter()) {
             NameSpace globalNS = bsh.getNameSpace();
             globalNS.setName("class_" + baseName + "_global");
             globalNS.getClassManager().associateClass(genClass);
