@@ -36,16 +36,17 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 import bsh.ConsoleInterface;
+import bsh.FileReader;
 import bsh.Interpreter;
 
 /*
@@ -100,7 +101,7 @@ public class AWTConsole extends TextArea
     private PrintStream out;
     private static Interpreter interpreter;
 
-    public Reader getIn() { return new InputStreamReader(in); }
+    public Reader getIn() { return new FileReader(in); }
     public PrintStream getOut() { return out; }
     public PrintStream getErr() { return out; }
 
@@ -228,7 +229,7 @@ public class AWTConsole extends TextArea
         let us set us set a caret position greater than the text length.
         Great.  What a piece of crap.
     */
-    public void setCaretPosition( int pos ) {
+    public synchronized void setCaretPosition( int pos ) {
         super.setCaretPosition( pos + countNLs() );
     }
 
@@ -280,7 +281,7 @@ public class AWTConsole extends TextArea
             print("Console internal error...");
         else
             try {
-                outPipe.write( line.getBytes() );
+                outPipe.write( line.getBytes(StandardCharsets.UTF_8) );
                 outPipe.flush();
             } catch ( IOException e ) {
                 outPipe = null;
@@ -309,13 +310,13 @@ public class AWTConsole extends TextArea
     private void inPipeWatcher() throws IOException {
         if ( inPipe == null ) {
             PipedOutputStream pout = new PipedOutputStream();
-            out = new PrintStream( pout );
+            out = new PrintStream( pout, true, "UTF-8" );
             inPipe = new PipedInputStream(pout);
         }
         byte [] ba = new byte [256]; // arbitrary blocking factor
         int read;
         while ( (read = inPipe.read(ba)) != -1 )
-            print( new String(ba, 0, read) );
+            print( new String(ba, 0, read, StandardCharsets.UTF_8) );
 
         println("Console: Input closed...");
     }
