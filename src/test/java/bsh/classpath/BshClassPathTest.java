@@ -17,6 +17,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.net.URL;
 import java.nio.file.FileSystemNotFoundException;
 import java.util.ArrayList;
@@ -116,7 +117,8 @@ public class BshClassPathTest {
     @Test
     public void classpath_map_filesystem_exception() throws Exception {
         thrown.expect(FileSystemNotFoundException.class);
-        thrown.expectMessage(containsString("/unknown/path"));
+        String unknownString = File.separator+"unknown"+File.separator+"path";
+        thrown.expectMessage(containsString(unknownString));
 
         try (final Interpreter bsh = new Interpreter()) {
             ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
