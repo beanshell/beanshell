@@ -415,6 +415,16 @@ public class Interpreter
                 new Interpreter( new CommandLineReader(
                     new FileReader(System.in)),
                     System.out, System.err, true )) {
+                /*
+                    We'll print our banner using eval(String) in order to
+                    exercise the parser and get the basic expression classes loaded...
+                    This ameliorates the delay after typing the first statement.
+                 */
+                try {
+                    interpreter.eval("printBanner();");
+                } catch ( EvalError e ) {
+                    interpreter.console.println("BeanShell " + VERSION + " - by Pat Niemeyer (pat@pat.net)");
+                }
                 interpreter.run();
             } catch (IOException e) {
                 System.err.println("I/O Error: "+e);
@@ -438,18 +448,6 @@ public class Interpreter
     {
         if(evalOnly)
             throw new RuntimeException("bsh Interpreter: No stream");
-
-        /*
-          We'll print our banner using eval(String) in order to
-          exercise the parser and get the basic expression classes loaded...
-          This ameliorates the delay after typing the first statement.
-        */
-        if ( interactive && null == getParent() ) try {
-            eval("printBanner();");
-        } catch ( EvalError e ) {
-            println(
-                "BeanShell "+VERSION+" - by Pat Niemeyer (pat@pat.net)");
-        }
 
         // init the callstack.
         CallStack callstack = new CallStack( globalNameSpace );
