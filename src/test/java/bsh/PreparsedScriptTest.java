@@ -102,10 +102,7 @@ public class PreparsedScriptTest {
     
     @Test
     public void testZero() throws Exception {
-        final PreparsedScript f = new PreparsedScript(
-                "return 0 * 2;",
-                _classLoader
-        );
+        final PreparsedScript f = new PreparsedScript("return 0 * 2;",_classLoader);
         assertEquals(0, f.invoke(Collections.emptyMap()));
     }
 }
