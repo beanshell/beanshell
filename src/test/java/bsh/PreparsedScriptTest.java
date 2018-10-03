@@ -99,7 +99,7 @@ public class PreparsedScriptTest {
         f.invoke(Collections.singletonMap("result", result));
         Assert.assertEquals(84, result.get());
     }
-    
+
     @Test
     public void testZero() throws Exception {
         final PreparsedScript f = new PreparsedScript("return 0 * 2;",_classLoader);
