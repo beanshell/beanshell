@@ -109,6 +109,6 @@ public class PreparsedScriptTest {
     @Test
     public void testZeroFloat() throws Exception {
         final PreparsedScript f = new PreparsedScript("double d = 0.0;float f = (float) d; return f * 2;",_classLoader);
-        assertEquals(0, f.invoke(Collections.emptyMap()));
+        assertEquals(0.0, f.invoke(Collections.emptyMap()));
     }
 }
