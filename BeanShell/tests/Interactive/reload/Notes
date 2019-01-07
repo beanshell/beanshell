@@ -1,7 +1,0 @@
-
-a classloader will only load a class once...
-even if you punt on findLoadedClass it will fail to link
-
-so no way to get loaded class to freshen its view of other classes...
-
-
