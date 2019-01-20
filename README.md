@@ -12,11 +12,8 @@ BeanShell is small and embeddable, so you can call BeanShell from your Java appl
 
 ## License
 
-BeanShell is licensed under the
+Starting with version 2.0b5, BeanShell is licensed under the
 [Apache License, version 2.0](http://www.apache.org/licenses/LICENSE-2.0). See [LICENSE](LICENSE) for details, and the [NOTICE](NOTICE) file for required attributions.
-
-Earlier versions of BeanShell (2.0b4 and earlier) were distributed under
-GNU Lesser General Public License (LGPL) and Sun Public License (SPL).
 
 ## Download
 
