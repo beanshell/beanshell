@@ -20,7 +20,7 @@ Starting with version 2.0b5, BeanShell is licensed under the
 
 ### Source code
 
-The currently active development snapshot branch is merge-fork-beanshell2, project default branch. To bulid, pull the project and run the maven command.
+The currently active development snapshot branch is merge-fork-beanshell2, project default branch. To build, pull the project and run the maven command.
 
 ```shell
 $ mvn install
