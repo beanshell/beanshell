@@ -57,6 +57,8 @@ import java.util.stream.Stream;
 */
 public final class This implements java.io.Serializable, Runnable
 {
+    public static final String PROPERTY_MISSING_HOOK = "propertyMissing";
+
     enum Keys {
         /** The name of the static field holding the reference to the bsh
          * static This (the callback namespace for static methods) */
@@ -384,6 +386,14 @@ public final class This implements java.io.Serializable, Runnable
 
         if ( bshMethod != null )
             return bshMethod.invoke( args, interpreter, callstack, callerInfo );
+
+        // Do NOT forward on to invoke for missingProperty
+        if (methodName.equals(This.PROPERTY_MISSING_HOOK) && args.length == 1) {
+            throw new EvalError("Method " +
+                    StringUtil.methodString( methodName, types ) +
+                    " not found in bsh scripted object: "+ namespace.getName(),
+                    callerInfo, callstack );
+        }
 
         /*
             No scripted method of that name.

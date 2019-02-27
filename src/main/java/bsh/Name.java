@@ -178,7 +178,6 @@ class Name implements java.io.Serializable
     }
 
     /**
-        @see toObject()
         @param forceClass if true then resolution will only produce a class.
         This is necessary to disambiguate in cases where the grammar knows
         that we want a class; where in general the var path may be taken.
@@ -464,7 +463,7 @@ class Name implements java.io.Serializable
         @param callstack may be null, but this is only legitimate in special
         cases where we are sure resolution will not involve this.caller.
 
-        @param namespace the namespace of the this reference (should be the
+        @param thisNameSpace the namespace of the this reference (should be the
         same as the top of the stack?
     */
     Object resolveThisFieldReference(
@@ -584,8 +583,21 @@ class Name implements java.io.Serializable
                 "Can only call .callstack on literal 'this'");
         }
 
-        if ( obj == null )
+        if ( obj == null ) {
             obj = thisNameSpace.getVariable(varName, evalBaseObject == null);
+            // If the result is a void, check to see if the property missing hook method is defined; use the result if so
+            if (obj == Primitive.VOID) {
+                try {
+                    obj = thisNameSpace.invokeMethod(This.PROPERTY_MISSING_HOOK, new Object[] { varName }, interpreter);
+                } catch(EvalError e) {
+                    /* Ignore, no such method */
+                }
+            }
+        }
+
+        if (obj == Primitive.VOID && Capabilities.haveVoidToNull()) {
+            obj = null;
+        }
 
         if ( obj == null )
             obj = Primitive.NULL;

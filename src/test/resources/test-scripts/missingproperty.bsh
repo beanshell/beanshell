@@ -1,0 +1,17 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+/*
+ * Define a missing property hook to return the value 'missing'
+ */
+propertyMissing(name) {
+    return "missing";
+}
+
+a = "found";
+
+assert(a.equals("found"));
+assert(b.equals("missing"));
+
+complete();

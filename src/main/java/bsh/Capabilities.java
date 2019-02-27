@@ -48,12 +48,21 @@ public class Capabilities implements Supplier<Boolean>, Consumer<Boolean>
     static final Capabilities instance = new Capabilities();
     private volatile boolean accessibility = false;
     private static final ThreadLocal<Boolean> ACCESSIBILITY = ThreadLocal.withInitial(Capabilities.instance);
+    private static final ThreadLocal<Boolean> VOID_TO_NULL = ThreadLocal.withInitial(() -> false);
 
     private Capabilities() {}
 
     public static boolean haveSwing() {
         // classExists caches info for us
         return classExists( "javax.swing.JButton" );
+    }
+
+    public static boolean haveVoidToNull() {
+        return VOID_TO_NULL.get();
+    }
+
+    public static void setVoidToNull(final boolean b) {
+        VOID_TO_NULL.set(b);
     }
 
     /**
