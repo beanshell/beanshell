@@ -64,7 +64,7 @@ public class BeanShellBSFEngine extends BSFEngineImpl
 
     public void setDebug (boolean debug)
     {
-        interpreter.DEBUG=debug;
+        interpreter.DEBUG.set(debug);
     }
 
     /**
