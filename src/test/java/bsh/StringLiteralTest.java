@@ -79,9 +79,8 @@ public class StringLiteralTest {
 
 
     private void assertStringParsing(final String expected, final String source, final DelimiterMode mode) throws Exception {
-        try (final Interpreter interpreter = new Interpreter() ) {
-            Assert.assertEquals(expected, interpreter.eval("return " + mode.delimiter() + source + mode.delimiter() + ""));
-        }
+        final Interpreter interpreter = new Interpreter();
+        Assert.assertEquals(expected, interpreter.eval("return " + mode.delimiter() + source + mode.delimiter() + ""));
     }
 
 }

@@ -76,17 +76,16 @@ public class InterfaceMethodsTest {
     public void static_interface_method_from_class_static_fails() throws Exception {
         thrown.expect(EvalError.class);
         thrown.expectMessage(containsString("Static method ab() not found in class'AAC'"));
-        try ( Interpreter interpreter = new Interpreter() ) {
-            interpreter.setStrictJava(true);
-            interpreter.eval(script(
-                "import bsh.Reflect;",
-                "interface AA {",
-                    "static int ab() { 2; }",
-                "}",
-                "class AAC implements AA {}",
-                "AAC.ab();"
-            ));
-        }
+        Interpreter interpreter = new Interpreter();
+        interpreter.setStrictJava(true);
+        interpreter.eval(script(
+            "import bsh.Reflect;",
+            "interface AA {",
+                "static int ab() { 2; }",
+            "}",
+            "class AAC implements AA {}",
+            "AAC.ab();"
+        ));
     }
 
     @Test
@@ -107,15 +106,14 @@ public class InterfaceMethodsTest {
         thrown.expect(EvalError.class);
         thrown.expectMessage(containsString("ZZC is not abstract and does not override abstract method ab() in ZZ"));
 
-        try (final Interpreter interpreter = new Interpreter()) {
-            interpreter.setStrictJava(true);
-            interpreter.eval(script(
-                "interface ZZ {",
-                    "int ab();",
-                "}",
-                "class ZZC implements ZZ { }"
-            ));
-        }
+        final Interpreter interpreter = new Interpreter();
+        interpreter.setStrictJava(true);
+        interpreter.eval(script(
+            "interface ZZ {",
+                "int ab();",
+            "}",
+            "class ZZC implements ZZ { }"
+        ));
     }
 
     @Test
@@ -123,15 +121,14 @@ public class InterfaceMethodsTest {
         thrown.expect(EvalError.class);
         thrown.expectMessage(containsString("Cannot reduce the visibility of the inherited method from ZZ"));
 
-        try (final Interpreter interpreter = new Interpreter()) {
-            interpreter.setStrictJava(true);
-            interpreter.eval(script(
-                "interface ZZ {",
-                    "int ab();",
-                "}",
-                "class ZZC implements ZZ { protected int ab() { 1; } }"
-            ));
-        }
+        final Interpreter interpreter = new Interpreter();
+        interpreter.setStrictJava(true);
+        interpreter.eval(script(
+            "interface ZZ {",
+                "int ab();",
+            "}",
+            "class ZZC implements ZZ { protected int ab() { 1; } }"
+        ));
     }
 
     @Test
@@ -179,35 +176,34 @@ public class InterfaceMethodsTest {
 
     @Test
     public void get_interface_test_primitive_methods() throws Exception {
-        try (Interpreter bsh = new Interpreter()) {
-            bsh.eval(script(
-                    "import mypackage.IFoo;",
-                    "boolean fieldBool = false;",
-                    "int fieldInt = 0;",
-                    "Boolean fieldBool2 = false;",
-                    "List run() {",
-                        "fieldBool = ! fieldBool;",
-                        "fieldBool2 = ! fieldBool2;",
-                        "fieldInt++;",
-                        "List list = new ArrayList();",
-                        "list.add(fieldBool instanceof bsh.Primitive);",
-                        "list.add(fieldBool);",
-                        "list.add(fieldInt instanceof bsh.Primitive);",
-                        "list.add(fieldInt);",
-                        "list.add(fieldBool2 instanceof bsh.Primitive);",
-                        "list.add(fieldBool2);",
-                        "return list;",
-                    "}"
-            ));
-            IFoo foo = (IFoo) bsh.getInterface(IFoo.class);
-            assertThat(foo.run(), valueString("[true, true, true, 1I, false, true]"));
-            assertTrue("boolean field is Primitive", (Boolean)foo.run().get(0));
-            assertTrue("boolean field value is true", (Boolean)foo.run().get(1));
-            assertTrue("int field is Primitive", (Boolean)foo.run().get(2));
-            assertEquals("int field value is 5 (called 5 times)", 5, (int)foo.run().get(3));
-            assertFalse("Boolean wrapper type field is NOT Primitive", (Boolean)foo.run().get(4));
-            assertTrue("Boolean wrapper type field value is true", (Boolean)foo.run().get(5));
-        }
+        final Interpreter bsh = new Interpreter();
+        bsh.eval(script(
+                "import mypackage.IFoo;",
+                "boolean fieldBool = false;",
+                "int fieldInt = 0;",
+                "Boolean fieldBool2 = false;",
+                "List run() {",
+                    "fieldBool = ! fieldBool;",
+                    "fieldBool2 = ! fieldBool2;",
+                    "fieldInt++;",
+                    "List list = new ArrayList();",
+                    "list.add(fieldBool instanceof bsh.Primitive);",
+                    "list.add(fieldBool);",
+                    "list.add(fieldInt instanceof bsh.Primitive);",
+                    "list.add(fieldInt);",
+                    "list.add(fieldBool2 instanceof bsh.Primitive);",
+                    "list.add(fieldBool2);",
+                    "return list;",
+                "}"
+        ));
+        IFoo foo = (IFoo) bsh.getInterface(IFoo.class);
+        assertThat(foo.run(), valueString("[true, true, true, 1I, false, true]"));
+        assertTrue("boolean field is Primitive", (Boolean)foo.run().get(0));
+        assertTrue("boolean field value is true", (Boolean)foo.run().get(1));
+        assertTrue("int field is Primitive", (Boolean)foo.run().get(2));
+        assertEquals("int field value is 5 (called 5 times)", 5, (int)foo.run().get(3));
+        assertFalse("Boolean wrapper type field is NOT Primitive", (Boolean)foo.run().get(4));
+        assertTrue("Boolean wrapper type field value is true", (Boolean)foo.run().get(5));
     }
 
 }

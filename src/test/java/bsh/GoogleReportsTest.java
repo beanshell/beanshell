@@ -95,7 +95,6 @@ public class GoogleReportsTest {
         assertEquals("public-Number", interpreter.eval("return x.issue6(new Integer(9));"));
         setAccessibility(true);
         assertTrue("accessibility remains true", haveAccessibility());
-        interpreter.close();
     }
 
     /**
@@ -111,7 +110,6 @@ public class GoogleReportsTest {
         setAccessibility(true);
         assertEquals("private-Integer", interpreter.eval("return x.issue6(new Integer(9));"));
         assertTrue("accessibility remains true", haveAccessibility());
-        interpreter.close();
     }
 
     /*

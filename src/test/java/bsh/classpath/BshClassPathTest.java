@@ -82,28 +82,26 @@ public class BshClassPathTest {
 
     @Test
     public void classpath_mapping_feedback() throws Exception {
-        try (final Interpreter bsh = new Interpreter()) {
-            ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
-            BshClassPath bcp =  cm.getClassPath();
-            bcp.getAllNames();
-            assertTrue("Got feedback start", cpmf.start);
-            assertTrue("Got feedback end", cpmf.end);
-            assertThat("Got feedback FILESYSTEM jrt or rt.jar", cpmf.fs,
-                    anyOf(containsString("jrt:/java.base"), containsString("rt.jar!/")));
-        }
+        final Interpreter bsh = new Interpreter();
+        ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
+        BshClassPath bcp =  cm.getClassPath();
+        bcp.getAllNames();
+        assertTrue("Got feedback start", cpmf.start);
+        assertTrue("Got feedback end", cpmf.end);
+        assertThat("Got feedback FILESYSTEM jrt or rt.jar", cpmf.fs,
+                anyOf(containsString("jrt:/java.base"), containsString("rt.jar!/")));
     }
 
     @Test
     public void classpath_mapping_feedback_error() throws Exception {
-        try (final Interpreter bsh = new Interpreter()) {
-            ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
-            BshClassPath bcp =  cm.getClassPath();
-            bcp.insureInitialized();
-            bcp.add(new URL[] { new URL("file:/unknown/path") });
-            bcp.add(new URL("file:/unknown/path"));
-            assertThat("Got feedback error", cpmf.err,
-                    equalTo("Not a classpath component: /unknown/path"));
-        }
+        final Interpreter bsh = new Interpreter();
+        ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
+        BshClassPath bcp =  cm.getClassPath();
+        bcp.insureInitialized();
+        bcp.add(new URL[] { new URL("file:/unknown/path") });
+        bcp.add(new URL("file:/unknown/path"));
+        assertThat("Got feedback error", cpmf.err,
+                equalTo("Not a classpath component: /unknown/path"));
     }
 
     @Test
@@ -120,69 +118,64 @@ public class BshClassPathTest {
         String unknownString = File.separator+"unknown"+File.separator+"path";
         thrown.expectMessage(containsString(unknownString));
 
-        try (final Interpreter bsh = new Interpreter()) {
-            ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
-            BshClassPath bcp =  cm.getClassPath();
-            bcp.map(new URL[] { new URL("jar:file:/unknown/path!/") });
-        }
+        final Interpreter bsh = new Interpreter();
+        ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
+        BshClassPath bcp =  cm.getClassPath();
+        bcp.map(new URL[] { new URL("jar:file:/unknown/path!/") });
     }
 
     @Test
     public void classpath_listener() throws Exception {
-        try (final Interpreter bsh = new Interpreter()) {
-            ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
-            BshClassPath bcp =  cm.getClassPath();
-            ClassPathListenerImpl listener = new ClassPathListenerImpl();
-            bcp.addListener(listener);
-            assertFalse("has not changed", listener.changed);
-            bcp.classPathChanged();
-            assertTrue("has changed", listener.changed);
-            ClassPathListenerImpl listener2 = new ClassPathListenerImpl();
-            bcp.addListener(listener2);
-            bcp.removeListener(listener2);
-            bcp.notifyListeners();
-            assertFalse("has not changed", listener2.changed);
-            assertThat(bcp.listeners, hasSize(1));
-            listener = null;
-            System.gc();
-            bcp.classPathChanged();
-            assertThat(bcp.listeners, hasSize(0));
-        }
+        final Interpreter bsh = new Interpreter();
+        ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
+        BshClassPath bcp =  cm.getClassPath();
+        ClassPathListenerImpl listener = new ClassPathListenerImpl();
+        bcp.addListener(listener);
+        assertFalse("has not changed", listener.changed);
+        bcp.classPathChanged();
+        assertTrue("has changed", listener.changed);
+        ClassPathListenerImpl listener2 = new ClassPathListenerImpl();
+        bcp.addListener(listener2);
+        bcp.removeListener(listener2);
+        bcp.notifyListeners();
+        assertFalse("has not changed", listener2.changed);
+        assertThat(bcp.listeners, hasSize(1));
+        listener = null;
+        System.gc();
+        bcp.classPathChanged();
+        assertThat(bcp.listeners, hasSize(0));
     }
 
     @Test
     public void classpath_namesource_listener() throws Exception {
-        try (final Interpreter bsh = new Interpreter()) {
-            ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
-            BshClassPath bcp =  cm.getClassPath();
-            NameSourceListener listener = new NameSourceListener();
-            bcp.addNameSourceListener(new NameSourceListener());
-            bcp.addNameSourceListener(listener);
-            assertThat("names 0 length", listener.getAllNames(), arrayWithSize(0));
-            bcp.nameSpaceChanged();
-            assertThat("names 1 length", listener.getAllNames(), arrayWithSize(1));
-            assertThat("names has BshClassPath", listener.getAllNames(), arrayContaining("BshClassPath"));
-        }
+        final Interpreter bsh = new Interpreter();
+        ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
+        BshClassPath bcp =  cm.getClassPath();
+        NameSourceListener listener = new NameSourceListener();
+        bcp.addNameSourceListener(new NameSourceListener());
+        bcp.addNameSourceListener(listener);
+        assertThat("names 0 length", listener.getAllNames(), arrayWithSize(0));
+        bcp.nameSpaceChanged();
+        assertThat("names 1 length", listener.getAllNames(), arrayWithSize(1));
+        assertThat("names has BshClassPath", listener.getAllNames(), arrayContaining("BshClassPath"));
     }
 
     @Test
     public void classpath_get_unq_name() throws Exception {
-        try (final Interpreter bsh = new Interpreter()) {
-            ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
-            BshClassPath bcp =  cm.getClassPath();
-            assertThat("Short is java.lang.Short",
-                    bcp.getClassNameByUnqName("Short"), equalTo("java.lang.Short"));
-        }
+        final Interpreter bsh = new Interpreter();
+        ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
+        BshClassPath bcp =  cm.getClassPath();
+        assertThat("Short is java.lang.Short",
+                bcp.getClassNameByUnqName("Short"), equalTo("java.lang.Short"));
     }
 
     @Test
     public void classpath_to_string() throws Exception {
-        try (final Interpreter bsh = new Interpreter()) {
-            ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
-            BshClassPath bcp =  cm.getClassPath();
-            assertThat("to string start with BshClassPath",
-                    bcp.toString(), startsWith("BshClassPath"));
-        }
+        final Interpreter bsh = new Interpreter();
+        ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
+        BshClassPath bcp =  cm.getClassPath();
+        assertThat("to string start with BshClassPath",
+                bcp.toString(), startsWith("BshClassPath"));
     }
 
     @Test
@@ -190,49 +183,46 @@ public class BshClassPathTest {
         thrown.expect(ClassPathException.class);
         thrown.expectMessage(containsString("Ambigous class names"));
 
-        try (final Interpreter bsh = new Interpreter()) {
-            ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
-            BshClassPath bcp =  cm.getClassPath();
-            bcp.getClassNameByUnqName("Handler");
-        }
+        final Interpreter bsh = new Interpreter();
+        ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
+        BshClassPath bcp =  cm.getClassPath();
+        bcp.getClassNameByUnqName("Handler");
     }
 
     @Test
     public void classpath_get_full_path() throws Exception {
-        try (final Interpreter bsh = new Interpreter()) {
-            ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
-            BshClassPath bcp =  cm.getClassPath();
-            assertThat(Arrays.asList(BshClassPath.getBootClassPath().getFullPath().toArray()), hasSize(1));
-            assertThat(Arrays.asList(bcp.getFullPath().toArray()),
-                    hasItem(BshClassPath.getBootClassPath().getFullPath().get(0)));
-        }
+        final Interpreter bsh = new Interpreter();
+        ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
+        BshClassPath bcp =  cm.getClassPath();
+        assertThat(Arrays.asList(BshClassPath.getBootClassPath().getFullPath().toArray()), hasSize(1));
+        assertThat(Arrays.asList(bcp.getFullPath().toArray()),
+                hasItem(BshClassPath.getBootClassPath().getFullPath().get(0)));
     }
 
     @Test
     public void classpath_get_class_source() throws Exception {
-        try (final Interpreter bsh = new Interpreter()) {
-            ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
+        final Interpreter bsh = new Interpreter();
+        ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
 
-            BshClassPath bcp =  cm.getClassPath();
-            bcp.addComponent(null);
-            assertThat(bcp.getClassSource("VeryUnknown"), nullValue());
-            ClassSource rtSrc = bcp.getClassSource("java.lang.String");
-            assertThat(rtSrc, anyOf(instanceOf(JrtClassSource.class), instanceOf(JarClassSource.class)));
-            assertThat(rtSrc.toString(),
-                    containsString(""+BshClassPath.getBootClassPath().getFullPath().get(0)));
-            assertThat(rtSrc.getClass().getMethod("getURL", new Class[0]).invoke(rtSrc, new Object[0]),
-                    equalTo(BshClassPath.getBootClassPath().getFullPath().get(0)));
-            assertThat(rtSrc.getCode("java.lang.String"), instanceOf(byte[].class));
-            ClassSource dirSrc = bcp.getClassSource(this.getClass().getName());
-            assertThat(dirSrc, instanceOf(DirClassSource.class));
-            assertThat(dirSrc.toString(), endsWith("test-classes"));
-            assertThat(((DirClassSource) dirSrc).getDir().getAbsolutePath(), endsWith("test-classes"));
-            assertThat(dirSrc.getCode(this.getClass().getName()), instanceOf(byte[].class));
-            bsh.eval("class ABC {}");
-            ClassSource genSrc = bcp.getClassSource("ABC");
-            assertThat(genSrc, instanceOf(GeneratedClassSource.class));
-            assertThat(genSrc.getCode(""), instanceOf(byte[].class));
-        }
+        BshClassPath bcp =  cm.getClassPath();
+        bcp.addComponent(null);
+        assertThat(bcp.getClassSource("VeryUnknown"), nullValue());
+        ClassSource rtSrc = bcp.getClassSource("java.lang.String");
+        assertThat(rtSrc, anyOf(instanceOf(JrtClassSource.class), instanceOf(JarClassSource.class)));
+        assertThat(rtSrc.toString(),
+                containsString(""+BshClassPath.getBootClassPath().getFullPath().get(0)));
+        assertThat(rtSrc.getClass().getMethod("getURL", new Class[0]).invoke(rtSrc, new Object[0]),
+                equalTo(BshClassPath.getBootClassPath().getFullPath().get(0)));
+        assertThat(rtSrc.getCode("java.lang.String"), instanceOf(byte[].class));
+        ClassSource dirSrc = bcp.getClassSource(this.getClass().getName());
+        assertThat(dirSrc, instanceOf(DirClassSource.class));
+        assertThat(dirSrc.toString(), endsWith("test-classes"));
+        assertThat(((DirClassSource) dirSrc).getDir().getAbsolutePath(), endsWith("test-classes"));
+        assertThat(dirSrc.getCode(this.getClass().getName()), instanceOf(byte[].class));
+        bsh.eval("class ABC {}");
+        ClassSource genSrc = bcp.getClassSource("ABC");
+        assertThat(genSrc, instanceOf(GeneratedClassSource.class));
+        assertThat(genSrc.getCode(""), instanceOf(byte[].class));
     }
 
     @Test

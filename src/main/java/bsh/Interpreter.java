@@ -93,7 +93,7 @@ import java.util.ResourceBundle;
     See the BeanShell User's Manual for more information.
 */
 public class Interpreter
-    implements Runnable, Serializable, AutoCloseable
+    implements Runnable, Serializable
 {
     /* --- Begin static members --- */
 
@@ -290,8 +290,6 @@ public class Interpreter
     public void setConsole( ConsoleAssignable console ) {
         this.console = console;
         this.parser = new Parser( getIn() );
-
-        setu( "bsh.console", console );
     }
 
     public void setConsole( ConsoleInterface console ) {
@@ -384,7 +382,8 @@ public class Interpreter
             } else
                 bshArgs = new String [0];
 
-            try (Interpreter interpreter = new Interpreter()) {
+            try {
+                Interpreter interpreter = new Interpreter();
                 interpreter.setu( "bsh.args", bshArgs );
                 Object result =
                     interpreter.source( filename, interpreter.globalNameSpace );
@@ -410,17 +409,13 @@ public class Interpreter
             } catch ( IOException e ) {
                 System.err.println("I/O Error: "+e);
             }
-        } else
-        {
-
-            try (Interpreter interpreter =
-                new Interpreter( new CommandLineReader(
-                    new FileReader(System.in)),
-                    System.out, System.err, true )) {
-                interpreter.run();
-            } catch (IOException e) {
-                System.err.println("I/O Error: "+e);
-            }
+        } else {
+            @SuppressWarnings("resource")
+            Interpreter interpreter =
+            new Interpreter(new CommandLineReader(
+                new FileReader(System.in)),
+                System.out, System.err, true );
+            interpreter.run();
         }
     }
 
@@ -624,86 +619,77 @@ public class Interpreter
             with source from the input stream and out/err same as
             this interpreter.
         */
-        try (Interpreter localInterpreter = new Interpreter(
-                in, getOut(), getErr(), false, nameSpace, this, sourceFileInfo  )) {
-            CallStack callstack = new CallStack( nameSpace );
+        Interpreter localInterpreter = new Interpreter(
+            in, getOut(), getErr(), false, nameSpace, this, sourceFileInfo  );
+        CallStack callstack = new CallStack( nameSpace );
 
-            SimpleNode node = null;
-            boolean eof = false;
-            while( !eof )
+        SimpleNode node = null;
+        boolean eof = false;
+        while( !eof )
+        {
+            try
             {
-                try
+                eof = localInterpreter.readLine();
+                if (localInterpreter.get_jjtree().nodeArity() > 0)
                 {
-                    eof = localInterpreter.readLine();
-                    if (localInterpreter.get_jjtree().nodeArity() > 0)
-                    {
-                        node = (SimpleNode)localInterpreter.get_jjtree().rootNode();
-                        // nodes remember from where they were sourced
-                        node.setSourceFile( sourceFileInfo );
+                    node = (SimpleNode)localInterpreter.get_jjtree().rootNode();
+                    // nodes remember from where they were sourced
+                    node.setSourceFile( sourceFileInfo );
 
-                        if ( TRACE )
-                            println( "// " +node.getText() );
+                    if ( TRACE )
+                        println( "// " +node.getText() );
 
-                        retVal = node.eval( callstack, localInterpreter );
+                    retVal = node.eval( callstack, localInterpreter );
 
-                        // sanity check during development
-                        if ( callstack.depth() > 1 )
-                            throw new InterpreterError(
-                                "Callstack growing: "+callstack);
+                    // sanity check during development
+                    if ( callstack.depth() > 1 )
+                        throw new InterpreterError(
+                            "Callstack growing: "+callstack);
 
-                        if ( retVal instanceof ReturnControl ) {
-                            retVal = ((ReturnControl)retVal).value;
-                            break; // non-interactive, return control now
-                        }
-                    }
-                } catch(ParseException e) {
-                    if ( DEBUG.get() )
-                        // show extra "expecting..." info
-                        error( e.getMessage(DEBUG.get()) );
-
-                    // add the source file info and throw again
-                    e.setErrorSourceFile( sourceFileInfo );
-                    throw e;
-                } catch ( InterpreterError e ) {
-                    throw new EvalError(
-                        "Sourced file: "+sourceFileInfo+" internal Error: "
-                        + e.getMessage(), node, callstack, e);
-                } catch ( TargetError e ) {
-                    // failsafe, set the Line as the origin of the error.
-                    if ( e.getNode()==null )
-                        e.setNode( node );
-                    e.reThrow("Sourced file: "+sourceFileInfo);
-                } catch ( EvalError e) {
-                    if ( DEBUG.get())
-                        e.printStackTrace();
-                    // failsafe, set the Line as the origin of the error.
-                    if ( e.getNode()==null )
-                        e.setNode( node );
-                    e.reThrow( "Sourced file: "+sourceFileInfo );
-                } catch ( Exception e) {
-                    if ( DEBUG.get())
-                        e.printStackTrace();
-                    throw new EvalError(
-                        "Sourced file: "+sourceFileInfo+" unknown error: "
-                        + e.getMessage(), node, callstack, e);
-                } finally {
-                    localInterpreter.get_jjtree().reset();
-
-                    // reinit the callstack
-                    if ( callstack.depth() > 1 ) {
-                        callstack.clear();
-                        callstack.push( nameSpace );
+                    if ( retVal instanceof ReturnControl ) {
+                        retVal = ((ReturnControl)retVal).value;
+                        break; // non-interactive, return control now
                     }
                 }
+            } catch(ParseException e) {
+                if ( DEBUG.get() )
+                    // show extra "expecting..." info
+                    error( e.getMessage(DEBUG.get()) );
+
+                // add the source file info and throw again
+                e.setErrorSourceFile( sourceFileInfo );
+                throw e;
+            } catch ( InterpreterError e ) {
+                throw new EvalError(
+                    "Sourced file: "+sourceFileInfo+" internal Error: "
+                    + e.getMessage(), node, callstack, e);
+            } catch ( TargetError e ) {
+                // failsafe, set the Line as the origin of the error.
+                if ( e.getNode()==null )
+                    e.setNode( node );
+                e.reThrow("Sourced file: "+sourceFileInfo);
+            } catch ( EvalError e) {
+                if ( DEBUG.get())
+                    e.printStackTrace();
+                // failsafe, set the Line as the origin of the error.
+                if ( e.getNode()==null )
+                    e.setNode( node );
+                e.reThrow( "Sourced file: "+sourceFileInfo );
+            } catch ( Exception e) {
+                if ( DEBUG.get())
+                    e.printStackTrace();
+                throw new EvalError(
+                    "Sourced file: "+sourceFileInfo+" unknown error: "
+                    + e.getMessage(), node, callstack, e);
+            } finally {
+                localInterpreter.get_jjtree().reset();
+
+                // reinit the callstack
+                if ( callstack.depth() > 1 ) {
+                    callstack.clear();
+                    callstack.push( nameSpace );
+                }
             }
-            // release shared resources before auto closing.
-            if ( localInterpreter.getIn().equals(this.getIn()) )
-                localInterpreter.console.setIn(null);
-            localInterpreter.setOut(null);
-            localInterpreter.setErr(null);
-        } catch (IOException ioe) {
-            throw new EvalError("Sourced file: "+sourceFileInfo+" "
-                    + ioe.toString(), null, null, ioe);
         }
         return Primitive.unwrap( retVal );
     }
@@ -755,26 +741,6 @@ public class Interpreter
     public final void error( Object o ) { console.error(o); }
     public void setOut( PrintStream out ) { console.setOut(out); }
     public void setErr( PrintStream err ) { console.setErr(err); }
-
-    /** Attempt the release of open resources.
-     * @throws IOException */
-    public void close() throws IOException {
-        EOF = true;
-        if ( null != getErr() ) {
-            if ( !getErr().equals(System.err) )
-                getErr().close();
-            setErr(null);
-        }
-        if ( null != getOut() ) {
-            if ( !getOut().equals(System.out) )
-                getOut().close();
-            setOut(null);
-        }
-        if ( null != getIn() ) {
-            getIn().close();
-            console.setIn(null);
-        }
-    }
 
     // End ConsoleInterface
 
@@ -1016,16 +982,14 @@ public class Interpreter
     public File pathToFile( String fileName )
         throws IOException
     {
+        String cwd = (String)getu("bsh.cwd");
         File file = new File( fileName );
 
         // if relative, fix up to bsh.cwd
         if ( !file.isAbsolute() ) {
-            String cwd = (String)getu("bsh.cwd");
             file = new File( cwd + File.separator + fileName );
         }
 
-        // The canonical file name is also absolute.
-        // No need for getAbsolutePath() here...
         return new File( file.getCanonicalPath() );
     }
 

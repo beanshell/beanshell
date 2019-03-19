@@ -30,8 +30,10 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeFalse;
 
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 
 import org.junit.AssumptionViolatedException;
 import org.junit.Test;
@@ -61,6 +63,11 @@ public class BshScriptTestCase {
             assertThat("test expected to fail", e, isA(Error.class));
             assertThat("with message", e.getMessage(),
                     containsString("Test FAILED: Line: 11 : assert ( false )"));
+            if (valueOf(System.getProperty("verbose")))
+                System.out.println("Success");
+        } catch (Throwable t) {
+            t.printStackTrace();
+            throw t;
         }
     }
     /** Suite.
@@ -130,8 +137,11 @@ public class BshScriptTestCase {
         private void skipAssumptions(Throwable assumption) throws Throwable {
             while (null != assumption)
                 if ((assumption = assumption.getCause())
-                        instanceof AssumptionViolatedException)
+                        instanceof AssumptionViolatedException) {
+                    if (valueOf(System.getProperty("verbose")))
+                        System.out.println("Skipped");
                     throw assumption;
+                }
         }
 
         /** {@inheritDoc} */
@@ -141,24 +151,37 @@ public class BshScriptTestCase {
             assumeFalse("skipping test " + getName(), SKIP_KNOWN_ISSUES
                     && KNOWN_FAILING_TESTS.contains(getName()));
 
-            try ( final Reader in = new FileReader(this._file);
-                final Interpreter interpreter = new Interpreter(in, out, err, false) ) {
+            long tStart = 0;
+            if (valueOf(System.getProperty("verbose"))) {
+                System.out.print(this.getName()+" - ");
+                tStart = System.nanoTime();
+            }
+
+            try ( final Reader in = new InputStreamReader(
+                    new FileInputStream(this._file), StandardCharsets.UTF_8) ) {
+                final Interpreter interpreter = new Interpreter(in, out, err, false);
                 interpreter.sourceFileInfo = this.getName();
                 interpreter.set("bsh.cwd", test_scripts_dir.getPath());
 
                 try {
                     interpreter.eval(in);
+                    if (valueOf(System.getProperty("verbose")))
+                        System.out.print(((System.nanoTime()-tStart)/1000000)+"ms - ");
                 } catch (final Throwable e) {
                     skipAssumptions(e);
                     if (!System.getProperty("script").isEmpty())
                         e.printStackTrace(System.out);
                     throw new RuntimeException(getName(), e);
                 }
+
                 assertTrue("Test did not complete."+interpreter.get("test_message"),
                         (Boolean) interpreter.get("test_completed"));
                 assertFalse(""+interpreter.get("test_message"),
                         (Boolean) interpreter.get("test_failed"));
             }
+
+            if (valueOf(System.getProperty("verbose")))
+                System.out.println("Success");
         }
     }
 }

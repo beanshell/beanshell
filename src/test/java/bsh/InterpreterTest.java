@@ -108,23 +108,21 @@ public class InterpreterTest {
         //
         // default prompt
         //
-        try (Interpreter bsh = new Interpreter(C)) {
-            bsh.setExitOnEOF(false);
-            bsh.run();
-            assertEquals("#bsh % #", S.toString());
-            S.delete(0, S.length());
+        Interpreter bsh = new Interpreter(C);
+        bsh.setExitOnEOF(false);
+        bsh.run();
+        assertEquals("#bsh % #", S.toString());
+        S.delete(0, S.length());
 
-            //
-            // custom prompt
-            //
-            try (Interpreter bshc = new Interpreter(C, bsh)) {
-                bshc.setExitOnEOF(false);
-                bshc.set("bsh.prompt", "abc> ");
-                bshc.run();
-                assertEquals("#abc> #", S.toString());
-                S.delete(0, S.length());
-            }
-        }
+        //
+        // custom prompt
+        //
+        Interpreter bshc = new Interpreter(C, bsh);
+        bshc.setExitOnEOF(false);
+        bshc.set("bsh.prompt", "abc> ");
+        bshc.run();
+        assertEquals("#abc> #", S.toString());
+        S.delete(0, S.length());
     }
 
     @Test
@@ -134,11 +132,10 @@ public class InterpreterTest {
         final StringBuilder S = new StringBuilder();
         final ConsoleInterface C  = getConsole(S, bout, berr);
 
-        try (Interpreter bsh = new Interpreter(C, new NameSpace(null, "global"))) {
-            bsh.setExitOnEOF(false);
-            bsh.setConsole(C);
-            assertEquals("bsh % ", bsh.eval("getBshPrompt();"));
-        }
+        Interpreter bsh = new Interpreter(C, new NameSpace(null, "global"));
+        bsh.setExitOnEOF(false);
+        bsh.setConsole(C);
+        assertEquals("bsh % ", bsh.eval("getBshPrompt();"));
     }
 
     @Test
@@ -148,11 +145,10 @@ public class InterpreterTest {
         final StringBuilder S = new StringBuilder();
         final ConsoleInterface C  = getConsole(S, bout, berr);
 
-        try (Interpreter bsh = new Interpreter(C)) {
-            bsh.setExitOnEOF(false);
-            bsh.print("foo");
-            assertEquals("foo", bout.toString());
-        }
+        Interpreter bsh = new Interpreter(C);
+        bsh.setExitOnEOF(false);
+        bsh.print("foo");
+        assertEquals("foo", bout.toString());
     }
 
     @Test
@@ -162,11 +158,10 @@ public class InterpreterTest {
         final StringBuilder S = new StringBuilder();
         final ConsoleInterface C  = getConsole(S, bout, berr);
 
-        try (Interpreter bsh = new Interpreter(C)) {
-            bsh.setExitOnEOF(false);
-            bsh.println("bar");
-            assertEquals("bar", bout.toString().trim());
-        }
+        Interpreter bsh = new Interpreter(C);
+        bsh.setExitOnEOF(false);
+        bsh.println("bar");
+        assertEquals("bar", bout.toString().trim());
     }
 
     @Test
@@ -176,11 +171,10 @@ public class InterpreterTest {
         final StringBuilder S = new StringBuilder();
         final ConsoleInterface C  = getConsole(S, bout, berr);
 
-        try (Interpreter bsh = new Interpreter(C)) {
-            bsh.setExitOnEOF(false);
-            bsh.error("baz");
-            assertEquals("// Error: baz", berr.toString().trim());
-        }
+        Interpreter bsh = new Interpreter(C);
+        bsh.setExitOnEOF(false);
+        bsh.error("baz");
+        assertEquals("// Error: baz", berr.toString().trim());
     }
 
     @Test
@@ -190,11 +184,10 @@ public class InterpreterTest {
         final StringBuilder S = new StringBuilder();
         final ConsoleInterface C  = getConsole(S, bout, berr);
 
-        try (Interpreter bsh = new Interpreter(C)) {
-            bsh.setExitOnEOF(false);
-            Interpreter.Console.debug.println("bug");
-            assertEquals("bug", berr.toString().trim());
-        }
+        Interpreter bsh = new Interpreter(C);
+        bsh.setExitOnEOF(false);
+        Interpreter.Console.debug.println("bug");
+        assertEquals("bug", berr.toString().trim());
     }
 
 
@@ -203,25 +196,25 @@ public class InterpreterTest {
         ByteArrayOutputStream berr = new ByteArrayOutputStream();
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
 
-        try (Interpreter bsh = new Interpreter(new StringReader(""),
-                new PrintStream(bout), new PrintStream(berr), false)) {
-            bsh.setExitOnEOF(false);
-            bsh.close();
-            bsh.print("foo");
-            bsh.println("bar");
-            bsh.error("baz");
-            assertThat(bout.toString(), isEmptyString());
-            assertThat(berr.toString(), isEmptyString());
-       }
+        Interpreter bsh = new Interpreter(new StringReader(""),
+                new PrintStream(bout), new PrintStream(berr), false);
+        bsh.setExitOnEOF(false);
+        bsh.getErr().close();
+        bsh.getOut().close();
+        bsh.print("foo");
+        bsh.println("bar");
+        bsh.error("baz");
+        assertThat(bout.toString(), isEmptyString());
+        assertThat(berr.toString(), isEmptyString());
     }
 
     @Test
      public void set_prompt_by_interpreter() throws Exception {
          final StringReader in = new StringReader("\n");
          for (String P: new String[] { "abc> ", "cde# " }) {
-             try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                     Interpreter bsh = new Interpreter(in, new PrintStream(baos),
-                             new PrintStream(baos), true)) {
+             try (ByteArrayOutputStream baos = new ByteArrayOutputStream() ) {
+                Interpreter bsh = new Interpreter(in, new PrintStream(baos),
+                    new PrintStream(baos), true);
                 bsh.setExitOnEOF(false);
                 bsh.set("bsh.prompt", P);
                 bsh.run();

@@ -90,69 +90,65 @@ public class EnumTest {
 
     @Test
     public void enum_values() throws Exception {
-        try (final Interpreter bsh = new Interpreter()) {
-            Object[] obj = (Object[]) bsh.eval(script(
-                "enum E4 {",
-                    "VAL1, VAL2, VAL3, VAL4",
-                "}",
-                "E4.values();"
-            ));
-            assertThat("array with length length is 4", obj, arrayWithSize(4));
-            assertThat("array containing VAL1, VAL2, VAL3, VAL4", obj, arrayContaining(
-                    bsh.eval("E4.VAL1"), bsh.eval("E4.VAL2"),
-                    bsh.eval("E4.VAL3"), bsh.eval("E4.VAL4")));
-        }
+        final Interpreter bsh = new Interpreter();
+        Object[] obj = (Object[]) bsh.eval(script(
+            "enum E4 {",
+                "VAL1, VAL2, VAL3, VAL4",
+            "}",
+            "E4.values();"
+        ));
+        assertThat("array with length length is 4", obj, arrayWithSize(4));
+        assertThat("array containing VAL1, VAL2, VAL3, VAL4", obj, arrayContaining(
+                bsh.eval("E4.VAL1"), bsh.eval("E4.VAL2"),
+                bsh.eval("E4.VAL3"), bsh.eval("E4.VAL4")));
     }
 
     @Test
     public void enum_values_excludes_enum_field() throws Exception {
-        try (final Interpreter bsh = new Interpreter()) {
-            Object[] obj = (Object[]) bsh.eval(script(
-                "enum E4 {",
-                    "VAL1, VAL2, VAL3, VAL4;",
-                    "E4 enm;",
-                "}",
-                "E4.values();"
-            ));
-            assertThat("array with length length is 4", obj, arrayWithSize(4));
-            assertThat("array containing VAL1, VAL2, VAL3, VAL4", obj, arrayContaining(
-                    bsh.eval("E4.VAL1"), bsh.eval("E4.VAL2"),
-                    bsh.eval("E4.VAL3"), bsh.eval("E4.VAL4")));
-        }
+        final Interpreter bsh = new Interpreter();
+        Object[] obj = (Object[]) bsh.eval(script(
+            "enum E4 {",
+                "VAL1, VAL2, VAL3, VAL4;",
+                "E4 enm;",
+            "}",
+            "E4.values();"
+        ));
+        assertThat("array with length length is 4", obj, arrayWithSize(4));
+        assertThat("array containing VAL1, VAL2, VAL3, VAL4", obj, arrayContaining(
+                bsh.eval("E4.VAL1"), bsh.eval("E4.VAL2"),
+                bsh.eval("E4.VAL3"), bsh.eval("E4.VAL4")));
     }
 
     @Test
     public void enum_values_excludes_enum_static_field() throws Exception {
-        try (final Interpreter bsh = new Interpreter()) {
-            Object[] obj = (Object[]) bsh.eval(script(
-                "enum E4 {",
-                    "VAL1, VAL2, VAL3, VAL4;",
-                    "static E4 enm = E4.VAL1;",
-                "}",
-                "E4.values();"
-            ));
-            assertThat("array with length length is 4", obj, arrayWithSize(4));
-            assertThat("array containing VAL1, VAL2, VAL3, VAL4", obj, arrayContaining(
-                    bsh.eval("E4.VAL1"), bsh.eval("E4.VAL2"),
-                    bsh.eval("E4.VAL3"), bsh.eval("E4.VAL4")));
-        }
+        final Interpreter bsh = new Interpreter();
+        Object[] obj = (Object[]) bsh.eval(script(
+            "enum E4 {",
+                "VAL1, VAL2, VAL3, VAL4;",
+                "static E4 enm = E4.VAL1;",
+            "}",
+            "E4.values();"
+        ));
+        assertThat("array with length length is 4", obj, arrayWithSize(4));
+        assertThat("array containing VAL1, VAL2, VAL3, VAL4", obj, arrayContaining(
+                bsh.eval("E4.VAL1"), bsh.eval("E4.VAL2"),
+                bsh.eval("E4.VAL3"), bsh.eval("E4.VAL4")));
     }
 
     @Test
     public void enum_values_excludes_enum_static_private_field() throws Exception {
-        try (final Interpreter bsh = new Interpreter()) {
-            Object[] obj = (Object[]) bsh.eval(script(
-                "enum E4 {",
-                    "VAL1, VAL2, VAL3, VAL4;",
-                    "private static final E4 enm = E4.VAL1;",
-                "}",
-                "E4.values();"
-            ));
-            assertThat("array with length length is 4", obj, arrayWithSize(4));
-            assertThat("array containing VAL1, VAL2, VAL3, VAL4", obj, arrayContaining(
-                    bsh.eval("E4.VAL1"), bsh.eval("E4.VAL2"),
-                    bsh.eval("E4.VAL3"), bsh.eval("E4.VAL4")));
-        }
+        final Interpreter bsh = new Interpreter();
+        Object[] obj = (Object[]) bsh.eval(script(
+            "enum E4 {",
+                "VAL1, VAL2, VAL3, VAL4;",
+                "private static final E4 enm = E4.VAL1;",
+            "}",
+            "E4.values();"
+        ));
+        assertThat("array with length length is 4", obj, arrayWithSize(4));
+        assertThat("array containing VAL1, VAL2, VAL3, VAL4", obj, arrayContaining(
+                bsh.eval("E4.VAL1"), bsh.eval("E4.VAL2"),
+                bsh.eval("E4.VAL3"), bsh.eval("E4.VAL4")));
     }
 
     @Test
@@ -243,27 +239,26 @@ public class EnumTest {
 
     @Test
     public void enum_switch() throws Exception {
-        try (final Interpreter bsh = new Interpreter()) {
-            bsh.eval(script(
-                "enum Name { VAL1, VAL2 }",
-                "switchit(val) {",
-                    "switch (val) {",
-                        "case VAL1:",
-                            "return 'val1';",
-                            "break;",
-                        "case VAL2:",
-                            "return 'val2';",
-                            "break;",
-                        "default:",
-                            "return 'default';",
-                    "}",
-                "}"
-            ));
-            assertThat("val2 switched", bsh.eval("switchit(Name.VAL2);"), equalTo("val2"));
-            assertThat("val1 switched", bsh.eval("switchit(Name.VAL1);"), equalTo("val1"));
-            assertThat("default switched null", bsh.eval("switchit(null);"), equalTo("default"));
-            assertThat("default switched string", bsh.eval("switchit('VAL1');"), equalTo("default"));
-        }
+        final Interpreter bsh = new Interpreter();
+        bsh.eval(script(
+            "enum Name { VAL1, VAL2 }",
+            "switchit(val) {",
+                "switch (val) {",
+                    "case VAL1:",
+                        "return 'val1';",
+                        "break;",
+                    "case VAL2:",
+                        "return 'val2';",
+                        "break;",
+                    "default:",
+                        "return 'default';",
+                "}",
+            "}"
+        ));
+        assertThat("val2 switched", bsh.eval("switchit(Name.VAL2);"), equalTo("val2"));
+        assertThat("val1 switched", bsh.eval("switchit(Name.VAL1);"), equalTo("val1"));
+        assertThat("default switched null", bsh.eval("switchit(null);"), equalTo("default"));
+        assertThat("default switched string", bsh.eval("switchit('VAL1');"), equalTo("default"));
     }
 
     @Test
@@ -326,27 +321,26 @@ public class EnumTest {
 
     @Test
     public void enum_args_constructor_multi() throws Exception {
-        try (final Interpreter bsh = new Interpreter()) {
-            bsh.eval(script(
-                "enum Name {",
-                    "VAL1(1, 1.0, 'v1'), VAL2(2, 2.0, 'v2');",
-                    "int i;",
-                    "double d;",
-                    "String s;",
-                    "Name(int i, double d, String s) {",
-                        "this.i = i;",
-                        "this.d = d;",
-                        "this.s = s;",
-                    "}",
-                "}"
-            ));
-            assertThat("enum args VAL1 constructor set value i", bsh.eval("Name.VAL1.i"), equalTo(1));
-            assertThat("enum args VAL1 constructor set value d", bsh.eval("Name.VAL1.d"), equalTo(1.0));
-            assertThat("enum args VAL1 constructor set value s", bsh.eval("Name.VAL1.s"), equalTo("v1"));
-            assertThat("enum args VAL2 constructor set value i", bsh.eval("Name.VAL2.i"), equalTo(2));
-            assertThat("enum args VAL2 constructor set value d", bsh.eval("Name.VAL2.d"), equalTo(2.0));
-            assertThat("enum args VAL2 constructor set value s", bsh.eval("Name.VAL2.s"), equalTo("v2"));
-        }
+        final Interpreter bsh = new Interpreter();
+        bsh.eval(script(
+            "enum Name {",
+                "VAL1(1, 1.0, 'v1'), VAL2(2, 2.0, 'v2');",
+                "int i;",
+                "double d;",
+                "String s;",
+                "Name(int i, double d, String s) {",
+                    "this.i = i;",
+                    "this.d = d;",
+                    "this.s = s;",
+                "}",
+            "}"
+        ));
+        assertThat("enum args VAL1 constructor set value i", bsh.eval("Name.VAL1.i"), equalTo(1));
+        assertThat("enum args VAL1 constructor set value d", bsh.eval("Name.VAL1.d"), equalTo(1.0));
+        assertThat("enum args VAL1 constructor set value s", bsh.eval("Name.VAL1.s"), equalTo("v1"));
+        assertThat("enum args VAL2 constructor set value i", bsh.eval("Name.VAL2.i"), equalTo(2));
+        assertThat("enum args VAL2 constructor set value d", bsh.eval("Name.VAL2.d"), equalTo(2.0));
+        assertThat("enum args VAL2 constructor set value s", bsh.eval("Name.VAL2.s"), equalTo("v2"));
     }
 
     @Test
@@ -393,79 +387,75 @@ public class EnumTest {
 
     @Test
     public void enum_block_variables() throws Exception {
-        try (final Interpreter bsh = new Interpreter()) {
-            bsh.eval(script(
-                "enum Name {",
-                    "VAL1 {",
-                        "val = 'val1';",
-                    "},",
-                    "VAL2 {",
-                        "val = 'val2';",
-                    "}",
-                "}"
-            ));
-            assertThat("enum block variable VAL2", bsh.eval("Name.VAL2.val"), equalTo("val2"));
-            assertThat("enum block variable VAL1", bsh.eval("Name.VAL1.val"), equalTo("val1"));
-        }
+        final Interpreter bsh = new Interpreter();
+        bsh.eval(script(
+            "enum Name {",
+                "VAL1 {",
+                    "val = 'val1';",
+                "},",
+                "VAL2 {",
+                    "val = 'val2';",
+                "}",
+            "}"
+        ));
+        assertThat("enum block variable VAL2", bsh.eval("Name.VAL2.val"), equalTo("val2"));
+        assertThat("enum block variable VAL1", bsh.eval("Name.VAL1.val"), equalTo("val1"));
     }
 
     @Test
     public void enum_block_method() throws Exception {
-        try (final Interpreter bsh = new Interpreter()) {
-            bsh.eval(script(
-                "enum Name {",
-                    "VAL1 {",
-                        "get() { 'val1'; }",
-                    "},",
-                    "VAL2 {",
-                        "get() { 'val2'; }",
-                    "}",
-                "}"
-            ));
-            assertThat("enum block variable VAL2", bsh.eval("Name.VAL2.get()"), equalTo("val2"));
-            assertThat("enum block variable VAL1", bsh.eval("Name.VAL1.get()"), equalTo("val1"));
-        }
+        final Interpreter bsh = new Interpreter();
+        bsh.eval(script(
+            "enum Name {",
+                "VAL1 {",
+                    "get() { 'val1'; }",
+                "},",
+                "VAL2 {",
+                    "get() { 'val2'; }",
+                "}",
+            "}"
+        ));
+        assertThat("enum block variable VAL2", bsh.eval("Name.VAL2.get()"), equalTo("val2"));
+        assertThat("enum block variable VAL1", bsh.eval("Name.VAL1.get()"), equalTo("val1"));
     }
 
     @Test
     public void enum_block_method_override() throws Exception {
-        try (final Interpreter bsh = new Interpreter()) {
-            bsh.eval(script(
-                "enum Name {",
-                    "VAL1 {",
-                        "get() { 'val1'; }",
-                    "},",
-                    "VAL2 {",
-                        "get() { 'val2'; }",
-                    "};",
-                    "abstract String get();",
-                "}"
-            ));
-            assertThat("enum block variable VAL2", bsh.eval("Name.VAL2.get()"), equalTo("val2"));
-            assertThat("enum block variable VAL1", bsh.eval("Name.VAL1.get()"), equalTo("val1"));
-        }
+        final Interpreter bsh = new Interpreter();
+        bsh.eval(script(
+            "enum Name {",
+                "VAL1 {",
+                    "get() { 'val1'; }",
+                "},",
+                "VAL2 {",
+                    "get() { 'val2'; }",
+                "};",
+                "abstract String get();",
+            "}"
+        ));
+        assertThat("enum block variable VAL2", bsh.eval("Name.VAL2.get()"), equalTo("val2"));
+        assertThat("enum block variable VAL1", bsh.eval("Name.VAL1.get()"), equalTo("val1"));
     }
 
     @Test
     public void enum_block_method_and_constructor() throws Exception {
-        try (final Interpreter bsh = new Interpreter()) {
-            bsh.eval(script(
-                "enum Name {",
-                    "VAL1('1val') {",
-                        "get() { str + '1'; }",
-                    "},",
-                    "VAL2('2val') {",
-                        "get() { str + '2'; }",
-                    "};",
-                    "String str = '';",
-                    "Name(String s) {",
-                        "str = s;",
-                    "}",
-                "}"
-            ));
-            assertThat("enum block variable VAL2", bsh.eval("Name.VAL2.get()"), equalTo("2val2"));
-            assertThat("enum block variable VAL1", bsh.eval("Name.VAL1.get()"), equalTo("1val1"));
-        }
+        final Interpreter bsh = new Interpreter();
+        bsh.eval(script(
+            "enum Name {",
+                "VAL1('1val') {",
+                    "get() { str + '1'; }",
+                "},",
+                "VAL2('2val') {",
+                    "get() { str + '2'; }",
+                "};",
+                "String str = '';",
+                "Name(String s) {",
+                    "str = s;",
+                "}",
+            "}"
+        ));
+        assertThat("enum block variable VAL2", bsh.eval("Name.VAL2.get()"), equalTo("2val2"));
+        assertThat("enum block variable VAL1", bsh.eval("Name.VAL1.get()"), equalTo("1val1"));
     }
 
 }
