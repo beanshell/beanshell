@@ -87,8 +87,10 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
     */
 
 
+    @SuppressWarnings("resource")
     private Object evalSource(Object source, ScriptContext scriptContext) throws ScriptException {
-        try ( Interpreter bsh = getInterpreter() ) {
+        try {
+            Interpreter bsh = getInterpreter();
             NameSpace contextNameSpace = getEngineNameSpace(scriptContext);
             bsh.setNameSpace(contextNameSpace);
 
