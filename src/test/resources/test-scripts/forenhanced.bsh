@@ -76,6 +76,19 @@ for ( a : new StringBuilder("abcdef").reverse() )
 assert(a.equals("a"));
 assert(b.equals('a'));
 
+// iterate over String
+for (a:"ABCD")
+    b = a;
+
+assert(a.equals("a"));
+assert(b.equals('D'));
+
+// iterate over Object[]
+for (a: new Object {1,2,3})
+    b = a;
+assert(a.equals("a"));
+assert(b.equals(3));
+
 // iterate over number range 0 up to 42 inclusive
 count = 0;
 for ( a : 42 )
