@@ -26,12 +26,12 @@ assert(Accessibility2.sfield4==4);
     Should 'field' of non-public A be accessible through public class B?
     javac would allow this, but reflection API only works with accessibility on
 */
-assert(isEvalError("No static field or inner class: supersfield4 of class mypackage.Accessibility2", 'Accessibility2.supersfield4==4'));
+assert(Accessibility2.supersfield4 == void);
 
 javax.swing.JInternalFrame.DO_NOTHING_ON_CLOSE;
 
 assert( isEvalError("a.get1()") );
-assert( isEvalError("a.field1") );
+assert( a.field1 == void );
 
 //
 // With accessibility

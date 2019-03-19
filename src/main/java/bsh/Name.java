@@ -404,16 +404,8 @@ class Name implements java.io.Serializable
             }
 
             // static bean property
-            if ( obj == null ) try {
-                obj = Reflect.getObjectProperty(clas, field);
-            } catch (ReflectError e) {
-                Interpreter.debug("field reflect error: ", e);
-            }
-
             if ( obj == null )
-                throw new UtilEvalError(
-                    "No static field or inner class: "
-                    + field + " of " + clas );
+                obj = Reflect.getObjectProperty(clas, field);
 
             return completeRound( field, suffix(evalName), obj );
         }

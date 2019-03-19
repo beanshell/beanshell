@@ -313,9 +313,13 @@ public final class This implements java.io.Serializable, Runnable
         SimpleNode node = namespace.getNode();
         namespace.setNode(null);
         try {
-            return Primitive.unwrap(invokeMethod(
+            Object ret = invokeMethod(
                     methodName, args, declaringInterpreter,
-                    callstack, node, declaredOnly));
+                    callstack, node, declaredOnly);
+            // manually unwrap primitives excluding void
+            if (ret instanceof Primitive && ret != Primitive.VOID)
+                return ((Primitive)ret).getValue();
+            return ret;
         } catch (Exception e) {
             throw new EvalError(e.getMessage(), node, callstack, e);
         }

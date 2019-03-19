@@ -140,7 +140,7 @@ public class ParseException extends EvalError {
             .append(currentToken.next.beginColumn);
         if (null != sourceFile)
             retval.append(" in: ").append(sourceFile);
-        
+
         if (Interpreter.DEBUG.get() && expectedTokenSequences.length != 0) {
             retval.append(System.getProperty("line.separator", "\n")).append("Exppected");
             if (expectedTokenSequences.length > 1)

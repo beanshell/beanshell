@@ -581,7 +581,7 @@ assert(isEvalError("Not a primitive type: class java.lang.String", "Primitive.bo
 assert(isEvalError("Not a primitive wrapper type: class java.lang.String", "Primitive.unboxType(String.class);"));
 assert(isEvalError("Use of non + operator with String", "str = 'ss'; str -= 'ss';"));
 assert(isEvalError("Use of non + operator with String", "'bb' - 'aa';"));
-assert(isEvalError("Void assignment.", "a += void;"));
+assert(isEvalError("illegal void assignment", "a += void;"));
 assert(isEvalError("Can't assign to prefix.", "void += a;"));
 assert(isEvalError("illegal use of undefined variable, class, or 'void' literal", "a + void;"));
 assert(isEvalError("illegal use of undefined variable, class, or 'void' literal", "2 << void;"));
