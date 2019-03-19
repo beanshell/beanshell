@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Map.Entry;
 
 /**
@@ -41,8 +42,17 @@ import java.util.Map.Entry;
 
 
 */
-class Types
-{
+class Types {
+
+    /** a uniquely typed Map.Entry which used solely for the purpose
+     * of building map expressions and identifiable as Types.MapEntry. */
+    static class MapEntry extends SimpleEntry<Object, Object> {
+        private static final long serialVersionUID = 1L;
+        public MapEntry(Object key, Object value) {
+            super(key, value);
+        }
+    }
+
     /*
         Type conversion identifiers.  An ASSIGNMENT allows conversions that would
         normally happen on assignment.  A CAST performs numeric conversions to smaller

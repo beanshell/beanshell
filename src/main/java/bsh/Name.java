@@ -745,7 +745,7 @@ class Name implements java.io.Serializable
                     return lhs;
                 }
             } catch(ReflectError e) {
-                throw new UtilEvalError("Field access: "+e, e);
+                return new LHS(obj, evalName);
             }
         }
 

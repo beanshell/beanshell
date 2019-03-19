@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.lang.reflect.Array;
 
+import bsh.Types.MapEntry;
+
 class BSHArrayInitializer extends SimpleNode {
     private static final long serialVersionUID = 1L;
     boolean isMapInArray = false;
@@ -113,7 +115,7 @@ class BSHArrayInitializer extends SimpleNode {
             dimensions++;
         }
 
-        if ( LHS.MapEntry.class == baseType
+        if ( MapEntry.class == baseType
                 && ( originalBaseType == baseType
                 || originalBaseType == Void.TYPE) )
             originalBaseType = Map.class;
@@ -140,7 +142,7 @@ class BSHArrayInitializer extends SimpleNode {
                     if ( isMapInArray((BSHArrayInitializer) node) )
                         currentInitializer =
                             ((BSHArrayInitializer) node).eval(
-                            LHS.MapEntry.class, 1, callstack, interpreter);
+                            MapEntry.class, 1, callstack, interpreter);
                     else
                         // this is an invalid dimension, raise error
                         throw new EvalError(
@@ -262,8 +264,8 @@ class BSHArrayInitializer extends SimpleNode {
      * @throws EvalError thrown at node evaluation  */
     private Class<?> inferCommonType(Class<?> common, Node node,
             CallStack callstack, Interpreter interpreter ) throws EvalError {
-        // Object is already the most common type and maps are typed LHS.MapEntry
-        if ( Object.class == common || LHS.MapEntry.class == common )
+        // Object is already the most common type and maps are typed MapEntry
+        if ( Object.class == common || MapEntry.class == common )
             return common;
         // inspect value elements for common type
         if ( !(node instanceof BSHArrayInitializer) ) {
