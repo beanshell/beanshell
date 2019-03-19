@@ -73,8 +73,9 @@ class BSHImportDeclaration extends SimpleNode
                     namespace.setMethod( (BshMethod) obj );
                     return Primitive.VOID;
                 }
-                // import static field from Name
-                obj = ambigName.toLHS( callstack, interpreter );
+                if ( !(obj instanceof LHS) )
+                    // import static field from Name
+                    obj = ambigName.toLHS( callstack, interpreter );
                 // do we have a field
                 if ( obj instanceof LHS && ((LHS) obj).isStatic() ) {
                     namespace.setVariableImpl( ((LHS) obj).getVariable() );

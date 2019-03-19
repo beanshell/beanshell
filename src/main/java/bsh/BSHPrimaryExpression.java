@@ -44,13 +44,15 @@ class BSHPrimaryExpression extends SimpleNode
      * @param init reference to the calling array initializer */
     void setArrayExpression(BSHArrayInitializer init) {
         this.isArrayExpression = true;
-        BSHAssignment ass = (BSHAssignment) parent;
-        if ( null != ass.operator
-                && ass.operator == ParserConstants.ASSIGN )
-            this.isMapExpression = true;
-        if ( this.isMapExpression
+        if (parent instanceof BSHAssignment) {
+            BSHAssignment ass = (BSHAssignment) parent;
+            if ( null != ass.operator
+                    && ass.operator == ParserConstants.ASSIGN )
+                this.isMapExpression = true;
+            if ( this.isMapExpression
                 && init.jjtGetParent() instanceof BSHArrayInitializer )
             init.setMapInArray(true);
+        }
     }
 
     /**
