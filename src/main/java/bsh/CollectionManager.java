@@ -47,13 +47,6 @@ public final class CollectionManager {
         return manager;
     }
 
-    /** Checks if supplied value is iterable.
-     * @param obj the value to iterate
-     * @return true, everything is iterable */
-    public boolean isBshIterable(final Object obj) {
-        return true;
-    }
-
     /** An empty iterator with hasNext always false.
      * @param <T> generic type,
      * since java can't infer it will be Object

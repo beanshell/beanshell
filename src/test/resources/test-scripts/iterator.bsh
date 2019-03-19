@@ -16,9 +16,6 @@ while( iterator.hasNext() )
 }
 assert( flag() == 2 );
 
-assert( cm.isBshIterable( new int[5] ) );
-assert( cm.isBshIterable( new Vector().elements() ) );
-
 //print("Doing collections tests..");
 al = new ArrayList();
 al.add("foo");
