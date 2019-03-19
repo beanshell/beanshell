@@ -63,8 +63,8 @@ public class BshServlet extends HttpServlet
         */
         String tmp = "BeanShell: unknown version";
         try ( FileReader reader = new FileReader(
-                BshServlet.class.getResource("getVersion.bsh").openStream());
-                Interpreter bsh = new Interpreter() ) {
+                BshServlet.class.getResource("getVersion.bsh").openStream()) ) {
+            Interpreter bsh = new Interpreter();
             bsh.eval( reader );
             tmp = (String)bsh.eval( "getVersion()" );
         } catch ( Exception e ) { /* ignore fall back on original value */ }
@@ -257,10 +257,10 @@ public class BshServlet extends HttpServlet
         throws EvalError
     {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             PrintStream pout = new PrintStream( baos, true, "UTF-8" );
-             // Create an interpreter instance with a null inputstream,
-             // the capture out/err stream, non-interactive
-             Interpreter bsh = new Interpreter( null, pout, pout, false )) {
+             PrintStream pout = new PrintStream( baos, true, "UTF-8" )) {
+            // Create an interpreter instance with a null input stream,
+            // the capture out/err stream, non-interactive
+            Interpreter bsh = new Interpreter( null, pout, pout, false );
 
             // set up interpreter
             bsh.set( "bsh.httpServletRequest", request );

@@ -12,7 +12,6 @@ Interpreter.redirectOutputToFile("test_interpreter.out");
 NameSpace ns = new NameSpace(null, "global");
 Interpreter i = new Interpreter(new StringReader("class ABC {\n"), System.out, System.err, false, ns);
 i.run();
-i.close();
 pout = new PipedOutputStream();
 System.setIn( new PipedInputStream(pout, 64 * 1024));
 pout.write("inter = this.interpreter;\n".getBytes());

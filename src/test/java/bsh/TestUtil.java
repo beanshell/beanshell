@@ -137,11 +137,10 @@ public class TestUtil {
     }
 
     public static Object eval(final Map<String, ?> params, final String ... code) throws Exception {
-        try (final Interpreter interpreter = new Interpreter()) {
-            for (final Map.Entry<String, ?> entry : params.entrySet())
-                interpreter.set(entry.getKey(), entry.getValue());
-            return interpreter.eval(script(code));
-        }
+        final Interpreter interpreter = new Interpreter();
+        for (final Map.Entry<String, ?> entry : params.entrySet())
+            interpreter.set(entry.getKey(), entry.getValue());
+        return interpreter.eval(script(code));
     }
 
     public static <K,E> Map<K,E> toMap(K key, E value) {

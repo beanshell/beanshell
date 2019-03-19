@@ -980,7 +980,7 @@ public class ClassGeneratorUtil implements Opcodes {
      * cache the correct class in the class manager for the interpreter to
      * insure that it is found and associated with the scripted body.
      */
-    public static void startInterpreterForClass(Class genClass) {
+    public static void startInterpreterForClass(Class<?> genClass) {
         String fqClassName = genClass.getName();
         String baseName = Name.suffix(fqClassName, 1);
         String resName = baseName + ".bsh";
@@ -990,8 +990,8 @@ public class ClassGeneratorUtil implements Opcodes {
             throw new InterpreterError("Script (" + resName + ") for BeanShell generated class: " + genClass + " not found.");
 
         // Set up the interpreter
-        try (Reader reader = new FileReader(genClass.getResourceAsStream(resName));
-                Interpreter bsh = new Interpreter()) {
+        try (Reader reader = new FileReader(genClass.getResourceAsStream(resName))) {
+            Interpreter bsh = new Interpreter();
             NameSpace globalNS = bsh.getNameSpace();
             globalNS.setName("class_" + baseName + "_global");
             globalNS.getClassManager().associateClass(genClass);

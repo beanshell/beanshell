@@ -13,7 +13,6 @@ public class callFromJava {
             System.out.println("FAILED...");
         else
             System.out.println("passed...");
-        interpreter.close();
     }
 }
 

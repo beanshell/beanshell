@@ -99,10 +99,9 @@ public class ClassGeneratorTest {
     public void class_with_abstract_method_must_be_abstract() throws Exception {
         thrown.expect(EvalError.class);
         thrown.expectMessage(containsString("Test is not abstract and does not override abstract method x() in Test"));
-        try (final Interpreter interpreter = new Interpreter()) {
-            interpreter.setStrictJava(true);
-            interpreter.eval("class Test { abstract void x(); }");
-        }
+        final Interpreter interpreter = new Interpreter();
+        interpreter.setStrictJava(true);
+        interpreter.eval("class Test { abstract void x(); }");
     }
 
     @Test

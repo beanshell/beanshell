@@ -102,8 +102,8 @@ public class SourceForgeIssuesTest {
     @Test
     public void sourceforge_issue_2562805_debug_nullpointerexception() throws Exception {
         try (ByteArrayOutputStream baOut = new ByteArrayOutputStream();
-            PrintStream out = new PrintStream(baOut);
-            Interpreter bsh = new Interpreter(new StringReader(""), out, out, false)) {
+            PrintStream out = new PrintStream(baOut)) {
+            Interpreter bsh = new Interpreter(new StringReader(""), out, out, false);
             Interpreter.DEBUG.set(true);
             String ret = "" + bsh.eval(
                 "ByteArrayOutputStream baOut = new ByteArrayOutputStream();" +
@@ -260,7 +260,6 @@ public class SourceForgeIssuesTest {
         bsh.eval(script);
         Runnable runnable = (Runnable) bsh.getInterface(Runnable.class);
         runnable.run();
-        bsh.close();
     }
 
 
