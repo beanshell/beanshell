@@ -235,4 +235,9 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
         }
         return false;
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + ": " + tokenImage[kind];
+    }
 }

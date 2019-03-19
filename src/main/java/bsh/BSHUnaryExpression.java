@@ -86,4 +86,8 @@ class BSHUnaryExpression extends SimpleNode implements ParserConstants
         return Operators.unaryOperation((Primitive) op, kind);
     }
 
+    @Override
+    public String toString() {
+        return super.toString() + ": " + tokenImage[kind];
+    }
 }

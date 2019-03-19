@@ -152,4 +152,9 @@ public final class BSHLiteral extends SimpleNode
             s = s.intern();
         value = s;
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + ": " + value;
+    }
 }

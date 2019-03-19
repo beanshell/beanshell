@@ -133,5 +133,10 @@ class BSHSwitchStatement
         else
             return switchVal.equals( targetVal );
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + ": switch";
+    }
 }
 
