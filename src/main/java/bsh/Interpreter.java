@@ -447,8 +447,7 @@ public class Interpreter
         if ( interactive && null == getParent() ) try {
             eval("printBanner();");
         } catch ( EvalError e ) {
-            println(
-                "BeanShell "+VERSION+" - by Pat Niemeyer (pat@pat.net)");
+            println( "BeanShell " + VERSION );
         }
 
         // init the callstack.
