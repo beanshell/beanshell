@@ -20,13 +20,8 @@
 
 package bsh;
 
-import static bsh.TestUtil.eval;
-import static org.hamcrest.Matchers.containsString;
-
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 public class BshMethodTest {
 
@@ -76,16 +71,4 @@ public class BshMethodTest {
              method2.hashCode(), method1.hashCode());
     }
 
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
-    @Test
-    public void constructor_invoke_private_member() throws Exception {
-        thrown.expect(EvalError.class);
-        thrown.expectMessage(
-                containsString("member is private: java.lang.Class.<init>(ClassLoader)"));
-        eval(
-            "new Class(ClassLoader.getSystemClassLoader());"
-        );
-    }
 }
