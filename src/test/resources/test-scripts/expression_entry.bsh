@@ -1,0 +1,256 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// entry expressions
+entry = new Entry {null};
+assertThat(entry, valueString('null=null'));
+assertThat(entry, instanceOf(Entry.class));
+entries = new Entry {"k"=3, "l"=5};
+assertThat(entries, valueString('{"k"=3I, "l"=5I}'));
+assertThat(entries, instanceOf(Entry[].class));
+entries = new Entry {"k"=3, "l"=5};
+assertThat(entries, valueString('{"k"=3I, "l"=5I}'));
+assertThat(entries, instanceOf(Entry[].class));
+entries = new Entry {"k"=3, "l"=5};
+assertThat(entries, valueString('{"k"=3I, "l"=5I}'));
+assertThat(entries, instanceOf(Entry[].class));
+entries = new Entry {"k", 3, "l", 5};
+assertThat(entries, valueString('{"k"=3I, "l"=5I}'));
+assertThat(entries, instanceOf(Entry[].class));
+entries = new Entry {"k", 3, "l", 5, "m"};
+assertThat(entries, valueString('{"k"=3I, "l"=5I, "m"=null}'));
+assertThat(entries, instanceOf(Entry[].class));
+Entry tentries = new Entry {"k", 3, "l", 5, "m"};
+assertThat(tentries, valueString('{"k"=3I, "l"=5I, "m"=null}'));
+assertThat(tentries, instanceOf(Entry[].class));
+entries = (Entry) {"k", 3, "l", 5};
+assertThat(entries, valueString('{"k"=3I, "l"=5I}'));
+assertThat(entries, instanceOf(Entry[].class));
+entries = new Entry {"entries"=new Entry {"key"=2}};
+assertThat(entries, valueString('{"entries"={"key"=2I}}'));
+assertThat(entries, instanceOf(Entry[].class));
+entries = new Entry {"entries"=new Entry {"key"=2}};
+assertThat(entries, valueString('{"entries"={"key"=2I}}'));
+assertThat(entries, instanceOf(Entry[].class));
+entries = new Entry {"a"=true, "b"=null};
+assertThat(entries, valueString('{"a"=true, "b"=null}'));
+assertThat(entries, instanceOf(Entry[].class));
+entries = new Entry {"a"=true, "b"=null};
+assertThat(entries, valueString('{"a"=true, "b"=null}'));
+assertThat(entries, instanceOf(Entry[].class));
+entries = new Entry {"a"=true, "b"=null};
+assertThat(entries, valueString('{"a"=true, "b"=null}'));
+assertThat(entries, instanceOf(Entry[].class));
+entries = new Entry  {"a"=true, "b"=null};
+assertThat(entries, valueString('{"a"=true, "b"=null}'));
+assertThat(entries, instanceOf(Entry[].class));
+assertThat(entries[0], instanceOf(Entry.class));
+
+// entry expression
+entry = new Entry {"key", "value"};
+assertThat(entry, valueString('"key"="value"'));
+assertThat(entry, instanceOf(Entry.class));
+assertThat(entry["key"], equalTo("value"));
+assertThat(entry[entry.getKey()], equalTo("value"));
+assertThat(entry["key"] = 123, equalTo("value"));
+assertThat(entry["key"], equalTo(123));
+assertTrue(entry["unknown"] == void);
+entry = new Entry {"key"};
+assertThat(entry, valueString('"key"=null'));
+assertThat(entry, instanceOf(Entry.class));
+entry = (Entry) {"key", "value"};
+assertThat(entry, valueString('"key"="value"'));
+assertThat(entry, instanceOf(Entry.class));
+Entry tentry = {"key", "value"};
+assertThat(tentry, valueString('"key"="value"'));
+assertThat(tentry, instanceOf(Entry.class));
+entry = new Entry {"k1", 1, "k2"};
+assertThat(entry, valueString('{"k1"=1I, "k2"=null}'));
+assertThat(entry, instanceOf(Entry[].class));
+
+
+// variable as key
+a = 123;
+entries = new Entry {a=5};
+assertThat(entries[a], equalTo(5));
+assertThat(entries[123], equalTo(5));
+assertThat(entries, valueString('{123I=5I}'));
+entries[a] = 456;
+assertThat(entries[a], equalTo(456));
+assertThat(entries[123], equalTo(456));
+assertThat(entries, valueString('{123I=456I}'));
+assertThat(entries, instanceOf(Entry[].class));
+
+// method as key
+key() { return "ab"; }
+entries = new Entry {key()=2};
+assertThat(entries[key()], equalTo(2));
+assertThat(entries, valueString('{"ab"=2I}'));
+assertThat(entries, instanceOf(Entry[].class));
+entries = new Entry {key()=2};
+assertThat(entries, valueString('{"ab"=2I}'));
+assertThat(entries, instanceOf(Entry[].class));
+entries = new Entry {"m"=new Entry {key()=2}};
+assertThat(entries, valueString('{"m"={"ab"=2I}}'));
+assertThat(entries, instanceOf(Entry[].class));
+assertThat(entries["m"], valueString('{"ab"=2I}'));
+assertThat(entries["m"], instanceOf(Entry[].class));
+
+// class as key
+entries = new Entry {Object.class=5};
+assertThat(entries[Object.class], equalTo(5));
+assertThat(entries, valueString('{class java.lang.Object=5I}'));
+assertThat(entries, instanceOf(Entry[].class));
+
+
+// string as key
+entries = new Entry {"a"=1, "b"=3};
+assertThat(entries["b"], equalTo(3));
+assertThat(entries, valueString('{"a"=1I, "b"=3I}'));
+assertThat(entries, instanceOf(Entry[].class));
+
+// char as key
+entries = new Entry {'a'=1, 'b'=3};
+assertThat(entries['b'], equalTo(3));
+assertThat(entries, valueString("{'a'=1I, 'b'=3I}"));
+assertThat(entries, instanceOf(Entry[].class));
+
+// number literal as key
+entries = new Entry {2="a", 4="b"};
+assertThat(entries[4], equalTo("b"));
+assertThat(entries, valueString('{2I="a", 4I="b"}'));
+assertThat(entries, instanceOf(Entry[].class));
+
+// boolean literal as key
+entries = new Entry {true=1, false=3};
+assertThat(entries[true], equalTo(1));
+assertThat(entries, valueString('{true=1I, false=3I}'));
+assertThat(entries, instanceOf(Entry[].class));
+
+// null literal as key
+entries = new Entry {null=2};
+assertThat(entries[null], equalTo(2));
+assertThat(entries, valueString('{null=2I}'));
+assertThat(entries, instanceOf(Entry[].class));
+
+
+// entry in array
+entries = new Entry {"k"=3, "l"=5};
+assertThat(entries, valueString('{"k"=3I, "l"=5I}'));
+assertThat(entries, instanceOf(Entry[].class));
+entries = {new Entry {"k"=3, "l"=5}};
+assertThat(entries, valueString('{{"k"=3I, "l"=5I}}'));
+assertThat(entries, instanceOf(Entry[][].class));
+entries = {{new Entry {"k"=3, "l"=5}}};
+assertThat(entries, valueString('{{{"k"=3I, "l"=5I}}}'));
+assertThat(entries, instanceOf(Entry[][][].class));
+entries = {{new Entry {"k"=3, "l"=5}, {6}}};
+assertThat(entries, valueString('{{{"k"=3I, "l"=5I}, {6I}}}'));
+assertThat(entries, instanceOf(Object[][].class));
+assertThat(entries[0][0][0], instanceOf(Entry.class));
+entries = {new Entry {"k"=3}, {6}, new Entry {"l"=5}};
+assertThat(entries, valueString('{{"k"=3I}, {6I}, {"l"=5I}}'));
+assertThat(entries, instanceOf(Object[].class));
+
+
+// nested entry arrays
+entries = new Entry {"k"=3};
+assertThat(entries, valueString('{"k"=3I}'));
+assertThat(entries, instanceOf(Entry[].class));
+entries = {new Entry {"k"=3}};
+assertThat(entries, valueString('{{"k"=3I}}'));
+assertThat(entries, instanceOf(Entry[][].class));
+entries = {{new Entry {"k"=3}}};
+assertThat(entries, valueString('{{{"k"=3I}}}'));
+assertThat(entries, instanceOf(Entry[][][].class));
+entries = {{{new Entry {"k"=3}}}};
+assertThat(entries, valueString('{{{{"k"=3I}}}}'));
+assertThat(entries, instanceOf(Entry[][][][].class));
+entries = {new Entry {"k"=1, "v"=3}, new Entry {"k"=3, "v"=1}};
+assertThat(entries, valueString('{{"k"=1I, "v"=3I}, {"k"=3I, "v"=1I}}'));
+assertThat(entries, instanceOf(Entry[][].class));
+entries = {{new Entry {"k"=1, "v"=3}, new Entry {"k"=3, "v"=1}}};
+assertThat(entries, valueString('{{{"k"=1I, "v"=3I}, {"k"=3I, "v"=1I}}}'));
+assertThat(entries, instanceOf(Entry[][][].class));
+entries = {{{new Entry {"k"=1, "v"=3}}, {new Entry {"k"=3, "v"=1}}}};
+assertThat(entries, valueString('{{{{"k"=1I, "v"=3I}}, {{"k"=3I, "v"=1I}}}}'));
+assertThat(entries, instanceOf(Entry[][][][].class));
+entries = {{{{new Entry {"k"=1, "v"=3}}}, {{new Entry {"k"=3, "v"=1}}}}};
+assertThat(entries, valueString('{{{{{"k"=1I, "v"=3I}}}, {{{"k"=3I, "v"=1I}}}}}'));
+assertThat(entries, instanceOf(Entry[][][][][].class));
+entries = {{{new Entry {"k"={1, 2, 3}, "v"=3}}, {new Entry {"k"=3, "v"=new Entry {"kk"=36, "vv"=9}}}}};
+assertThat(entries, valueString('{{{{"k"={1I, 2I, 3I}, "v"=3I}}, {{"k"=3I, "v"={"kk"=36I, "vv"=9I}}}}}'));
+assertThat(entries, instanceOf(Entry[][][][].class));
+entries = {{{new Entry {"k"={new Entry {"k"=3}}, "v"=3}}, {new Entry {"k"=3, "v"=new Entry {"kk"=36, "vv"=9}}}}};
+assertThat(entries, valueString('{{{{"k"={{"k"=3I}}, "v"=3I}}, {{"k"=3I, "v"={"kk"=36I, "vv"=9I}}}}}'));
+assertThat(entries, instanceOf(Entry[][][][].class));
+entries = {{{new Entry {"k"={{2}, new Entry {"k"=3}}, "v"=3}}, {new Entry {"k"=3, "v"=new Entry {"kk"=36, "vv"=9}}}}};
+assertThat(entries[0][0][0], instanceOf(Entry[].class));
+entries = entries[0][0][0];
+
+assertThat(entries["k"], instanceOf(Object[][].class));
+assertThat(entries["k"][1], instanceOf(Object[].class));
+assertThat(entries["k"][1][0], instanceOf(Entry.class));
+assertThat(entries["k"][1][0]["k"], equalTo(3));
+entries = (Entry) entries["k"][1];
+assertThat(entries, instanceOf(Entry[].class));
+assertThat(entries["k"], equalTo(3));
+
+
+// more entry in arrays
+entries = new Entry {"k"=2, "v"=3};
+assertThat(entries, valueString('{"k"=2I, "v"=3I}'));
+assertThat(entries, instanceOf(Entry[].class));
+entries = {new Entry{"k"=2, "v"=3}};
+assertThat(entries, valueString('{{"k"=2I, "v"=3I}}'));
+assertThat(entries, instanceOf(Entry[][].class));
+entries = {{new Entry{"k"=2, "v"=3}}};
+assertThat(entries, valueString('{{{"k"=2I, "v"=3I}}}'));
+assertThat(entries, instanceOf(Entry[][][].class));
+entries = {{new Entry{"k"=2, "v"=3}, new Entry{"k"=3, "v"=4}}};
+assertThat(entries, valueString('{{{"k"=2I, "v"=3I}, {"k"=3I, "v"=4I}}}'));
+assertThat(entries, instanceOf(Entry[][][].class));
+entries = {{{new Entry {"k"=2, "v"=3}}, {new Entry{"k"=3, "v"=4}}}};
+assertThat(entries, valueString('{{{{"k"=2I, "v"=3I}}, {{"k"=3I, "v"=4I}}}}'));
+assertThat(entries, instanceOf(Entry[][][][].class));
+
+// new entry nested new
+entry = {new Entry {"entry_new"=new Object()}};
+assertThat(entry, instanceOf(Entry[][].class));
+assertThat(entry[0], instanceOf(Entry[].class));
+assertThat(entry[0].entry_new, instanceOf(Object.class));
+entry = new Entry {"entry_new"=new Entry {"key"=2}};
+assertThat(entry, valueString('{"entry_new"={"key"=2I}}'));
+assertThat(entry, instanceOf(Entry[].class));
+assertThat(entry.entry_new, instanceOf(Entry[].class));
+assertThat(entry.entry_new.key, instanceOf(Integer.TYPE));
+assertThat(entry.entry_new.key, equalTo(2));
+entry.entry_new.key = 1234;
+assertThat(entry.entry_new.key, equalTo(1234));
+entry = new Entry {"k"= {2, 3, 4}};
+assertThat(entry, instanceOf(Entry[].class));
+assertThat(entry.k, instanceOf(int[].class));
+assertThat(entry.k.length, equalTo(3));
+assertThat(entry[0].key, equalTo("k"));
+assertArrayEquals({2,3,4}, entry[0].val);
+assertArrayEquals({2,3,4}, entry[0].value);
+
+// entry items
+
+entry = new Entry {"k", 1};
+assertThat(entry, instanceOf(Entry.class));
+assertThat(entry.key, equalTo("k"));
+assertThat(entry.val, equalTo(1));
+entry.val = 1111;
+assertThat(entry.val, equalTo(1111));
+assertThat(entry.value, equalTo(1111));
+entry.value = 111111;
+assertThat(entry.value, equalTo(111111));
+assertThat(entry.k, equalTo(111111));
+entry.k = 11;
+assertThat(entry.k, equalTo(11));
+
+complete();
+
