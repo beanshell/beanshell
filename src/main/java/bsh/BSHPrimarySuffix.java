@@ -152,62 +152,61 @@ class BSHPrimarySuffix extends SimpleNode
         CallStack callstack, Interpreter interpreter)
         throws EvalError, ReflectError
     {
-        try {
-            // .length on array
-            if ( field.equals("length") && obj.getClass().isArray() )
-                if ( toLHS )
-                    throw new EvalError(
-                        "Can't assign array length", this, callstack );
-                else
-                    return new Primitive(Array.getLength(obj));
-
-            // field access
-            if ( jjtGetNumChildren() == 0 )
-                if ( toLHS )
-                    return Reflect.getLHSObjectField(obj, field);
-                else
-                    return Reflect.getObjectFieldValue( obj, field );
-
-            // Method invocation
-            // (LHS or non LHS evaluation can both encounter method calls)
-            Object[] oa = ((BSHArguments)jjtGetChild(0)).getArguments(
-                callstack, interpreter);
-
-        // TODO:
-        // Note: this try/catch block is copied from BSHMethodInvocation
-        // we need to factor out this common functionality and make sure
-        // we handle all cases ... (e.g. property style access, etc.)
-        // maybe move this to Reflect ?
-            try {
-                return Reflect.invokeObjectMethod(
-                    obj, field, oa, interpreter, callstack, this );
-            } catch ( ReflectError e ) {
+        // .length on array
+        if ( field.equals("length") && obj.getClass().isArray() )
+            if ( toLHS )
                 throw new EvalError(
-                    "Error in method invocation: " + e.getMessage(),
-                    this, callstack, e );
-            } catch ( InvocationTargetException e )
-            {
-                String msg = "Method Invocation "+field;
-                Throwable te = e.getCause();
-
-                /*
-                    Try to squeltch the native code stack trace if the exception
-                    was caused by a reflective call back into the bsh interpreter
-                    (e.g. eval() or source()
-                */
-                boolean isNative = true;
-                if ( te instanceof EvalError )
-                    if ( te instanceof TargetError )
-                        isNative = ((TargetError)te).inNativeCode();
-                    else
-                        isNative = false;
-
-                throw new TargetError( msg, te, this, callstack, isNative );
+                    "Can't assign array length", this, callstack );
+            else
+                return new Primitive(Array.getLength(obj));
+        // field access
+        if ( jjtGetNumChildren() == 0 )
+            if ( toLHS ) try {
+                return Reflect.getLHSObjectField(obj, field);
+            } catch (Throwable t) {
+                return new LHS(obj, field);
             }
+            else try {
+                return Reflect.getObjectFieldValue( obj, field );
+            } catch (Throwable t) {
+                try {
+                    return Reflect.getObjectProperty( obj, field );
+                } catch (Throwable tt) {
+                    return Primitive.VOID;
+                }
+            }
+        // Method invocation
+        // (LHS or non LHS evaluation can both encounter method calls)
+        Object[] oa = ((BSHArguments)jjtGetChild(0)).getArguments(
+            callstack, interpreter);
 
-        } catch ( UtilEvalError e ) {
-            throw e.toEvalError( this, callstack );
+        try {
+            return Reflect.invokeObjectMethod(
+                obj, field, oa, interpreter, callstack, this );
+        } catch ( ReflectError e ) {
+            throw new EvalError(
+                "Error in method invocation: " + e.getMessage(),
+                this, callstack, e );
+        } catch ( InvocationTargetException e )
+        {
+            String msg = "Method Invocation "+field;
+            Throwable te = e.getCause();
+
+            /*
+                Try to squeltch the native code stack trace if the exception
+                was caused by a reflective call back into the bsh interpreter
+                (e.g. eval() or source()
+            */
+            boolean isNative = true;
+            if ( te instanceof EvalError )
+                if ( te instanceof TargetError )
+                    isNative = ((TargetError)te).inNativeCode();
+                else
+                    isNative = false;
+
+            throw new TargetError( msg, te, this, callstack, isNative );
         }
+
     }
 
     /**
