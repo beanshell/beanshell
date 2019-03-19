@@ -18,14 +18,12 @@ printBanner()
         this.jconsole = bsh.console;
         jconsole.println(
             new javax.swing.ImageIcon( getResource("/bsh/util/lib/small_bean_shell.gif")) );
-        jconsole.print(
-            Interpreter.VERSION + " - by Pat Niemeyer (pat@pat.net)",
+        jconsole.print( Interpreter.VERSION,
             new java.awt.Font("SansSerif", java.awt.Font.BOLD, 12),
             new java.awt.Color(20,100,20) );
         jconsole.println();
 
     } else
-        print( "BeanShell "
-            + Interpreter.VERSION +" - by Pat Niemeyer (pat@pat.net)");
+        print( "BeanShell " + Interpreter.VERSION );
 
 }
