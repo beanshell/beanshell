@@ -632,7 +632,7 @@ public class BshClassPath
     */
 
     static URL [] userClassPathComp;
-    public static URL [] getUserClassPathComponents()
+    public synchronized static URL [] getUserClassPathComponents()
         throws ClassPathException
     {
         if ( userClassPathComp != null )
@@ -697,7 +697,7 @@ public class BshClassPath
         A BshClassPath initialized to the user path
         from java.class.path
     */
-    public static BshClassPath getUserClassPath()
+    public synchronized static BshClassPath getUserClassPath()
         throws ClassPathException
     {
         if ( userClassPath == null )
@@ -710,7 +710,7 @@ public class BshClassPath
     /**
         Get the boot path including the lib/rt.jar if possible.
     */
-    public static BshClassPath getBootClassPath()
+    public synchronized static BshClassPath getBootClassPath()
         throws ClassPathException
     {
         if ( bootClassPath == null )

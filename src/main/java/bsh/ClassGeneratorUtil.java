@@ -202,9 +202,12 @@ public class ClassGeneratorUtil implements Opcodes {
             classMods |= ACC_INTERFACE | ACC_ABSTRACT;
         else if (type == ENUM)
             classMods |= ACC_FINAL | ACC_SUPER | ACC_ENUM;
-        else if ( (classMods & ACC_ABSTRACT) > 0 )
-            // bsh classes are not abstract
-            classMods -= ACC_ABSTRACT;
+        else {
+            classMods |= ACC_SUPER;
+            if ( (classMods & ACC_ABSTRACT) > 0 )
+                // bsh classes are not abstract
+                classMods -= ACC_ABSTRACT;
+        }
 
         String[] interfaceNames = new String[interfaces.length + 1]; // +1 for GeneratedClass
         for (int i = 0; i < interfaces.length; i++) {
