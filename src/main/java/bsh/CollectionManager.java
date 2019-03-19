@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -83,7 +84,11 @@ public final class CollectionManager {
             }
             @Override
             public Object next() {
-                return Array.get(array, this.index++);
+                try {
+                    return Array.get(array, this.index++);
+                } catch (Throwable t) {
+                    throw new NoSuchElementException(t.getMessage());
+                }
             }
         };
     }
