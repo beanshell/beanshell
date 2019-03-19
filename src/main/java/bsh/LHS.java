@@ -29,11 +29,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 
+import bsh.Types.MapEntry;
 /**
     An LHS is a wrapper for an variable, field, or property.  It ordinarily
     holds the "left hand side" of an assignment and may be either resolved to
@@ -49,15 +48,6 @@ import java.util.Objects;
 */
 class LHS implements ParserConstants, Serializable {
     private static final long serialVersionUID = 1L;
-
-    /** a uniquely typed Map.Entry which used solely for this purpose
-     * and identifiable as LHS.MapEntry. */
-    static class MapEntry extends SimpleEntry<Object, Object> {
-        private static final long serialVersionUID = 1L;
-        public MapEntry(Object key, Object value) {
-            super(key, value);
-        }
-    }
 
     NameSpace nameSpace;
     /** The assignment should be to a local variable */
@@ -130,7 +120,7 @@ class LHS implements ParserConstants, Serializable {
     }
 
     /**
-        Object property LHS Constructor.
+        Object property LHS Constructor with Object property.
     */
     LHS( Object object, Object propName )
     {
@@ -161,7 +151,6 @@ class LHS implements ParserConstants, Serializable {
         this.index = index;
     }
 
-    @SuppressWarnings("rawtypes")
     public Object getValue() throws UtilEvalError
     {
         if ( type == VARIABLE )
@@ -173,17 +162,11 @@ class LHS implements ParserConstants, Serializable {
             throw new UtilEvalError("Can't read field: " + field, e2);
         }
 
-        if ( type == PROPERTY ) {
-            // return the raw type here... we don't know what it's supposed
-            // to be...
-            if ( this.object instanceof Map )
-                return ((Map) this.object).get(this.propName);
-             else try {
-                return Reflect.getObjectProperty(object, propName.toString());
-            } catch(ReflectError e) {
-                Interpreter.debug(e.getMessage());
-                throw new UtilEvalError("No such property: " + propName, e);
-            }
+        if ( type == PROPERTY ) try {
+            return Reflect.getObjectProperty(object, this.propName);
+        } catch(ReflectError e) {
+            Interpreter.debug(e.getMessage());
+            throw new UtilEvalError("No such property: " + propName, e);
         }
 
         if ( type == INDEX ) try {
@@ -238,9 +221,14 @@ class LHS implements ParserConstants, Serializable {
         if ( null != nameSpace )
             this.var = Reflect.getVariable(nameSpace, getName());
         else if ( isStatic() )
-            this.var = Reflect.getVariable(field.getDeclaringClass(), getName());
-        else
+            if ( Reflect.isGeneratedClass(field.getDeclaringClass()) )
+                this.var = Reflect.getVariable(field.getDeclaringClass(), getName());
+            else
+                this.var = new Variable(field.getName(), field.getReturnType(), this);
+        else if ( Reflect.isGeneratedClass(object.getClass()) )
             this.var = Reflect.getVariable(object, getName());
+        else if ( null != field )
+            this.var = new Variable(field.getName(), field.getReturnType(), this);
         return this.var;
     }
 
@@ -257,7 +245,7 @@ class LHS implements ParserConstants, Serializable {
     /**
         Assign a value to the LHS.
     */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public Object assign( Object val, boolean strictJava )
         throws UtilEvalError
     {
@@ -287,16 +275,13 @@ class LHS implements ParserConstants, Serializable {
             throw new UtilEvalError(
                 "Argument type mismatch. " + type
                 + " not assignable to field "+field.getName(), e3);
-        } else if ( type == PROPERTY ) {
-            if ( this.object instanceof Map )
-                ((Map<Object, Object>) this.object).put(this.propName,
-                        Primitive.unwrap(val));
-            else try {
-                Reflect.setObjectProperty(object, propName.toString(), val);
-            } catch(ReflectError e) {
-                Interpreter.debug("Assignment: " + e.getMessage());
-                throw new UtilEvalError("No such property: " + propName, e);
-            }
+        } else if ( type == PROPERTY ) try {
+            if (propName instanceof String)
+                return  Reflect.setObjectProperty(object, (String) propName, val);
+            return  Reflect.setObjectProperty(object, propName, val);
+        } catch(ReflectError e) {
+            Interpreter.debug("Assignment: " + e.getMessage());
+            throw new UtilEvalError("No such property: " + propName, e);
         }
         else if ( type == INDEX ) try {
             if ( object.getClass().isArray() && val != null ) try {
@@ -321,9 +306,9 @@ class LHS implements ParserConstants, Serializable {
             return val;
         } else if ( type == MAP_ENTRY ) {
             if ( object instanceof Entry )
-                return ((Entry<Object, Object>) object).setValue(val);
+                return ((Entry) object).setValue(val);
             // returns a Map.Entry of key and value pair
-            return new LHS.MapEntry(object, val);
+            return new MapEntry(object, val);
         } else
             throw new InterpreterError("unknown lhs type");
         return val;

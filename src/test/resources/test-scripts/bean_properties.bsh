@@ -44,7 +44,7 @@ obj = new TestClass();
 
 // object instance members
 // private instance field
-assert(isEvalError("No such field: instVar", 'obj.instVar = 434;'));
+assert(isEvalError("No such property: instVar", 'obj.instVar = 434;'));
 assert(isEvalError("No such property getter: instVar for type: TestClass", 'obj.instVar;'));
 
 // instance bean accessor methods
@@ -64,7 +64,7 @@ assert(isEvalError("No such property getter: instNotBoolean for type: TestClass"
 
 // class static members
 // private static field
-assert(isEvalError("No such field: statVar", 'TestClass.statVar = 434;'));
+assert(isEvalError("No such property: statVar", 'TestClass.statVar = 434;'));
 
 assert(isEvalError("No static field or inner class: statVar of class TestClass", 'TestClass.statVar;'));
 // static bean accessor methods

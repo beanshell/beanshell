@@ -1,16 +1,3 @@
-/** Copyright 2018 Nick nickl- Lombard
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License. */
 package bsh;
 
 import java.lang.reflect.Array;
@@ -28,7 +15,12 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.RandomAccess;
+import java.util.function.IntSupplier;
+
+
 import java.util.Map.Entry;
+
+import static bsh.Types.MapEntry;
 
 /** Collection of array manipulation functions. */
 public class BshArray {
@@ -334,9 +326,11 @@ public class BshArray {
                 return new LinkedHashSet<>(Arrays.asList((Object[])
                     Types.castObject(fromValue, Object.class, Types.CAST)));
 
+        Class<?> baseType = Types.arrayElementType(fromType);
+
         // Map type gets converted to a mutable LinkedHashMap
         if ( Types.isJavaAssignable(Map.class, toType) ) {
-            if ( Types.isJavaAssignable(Entry.class, Types.arrayElementType(fromType)) )
+            if ( Types.isJavaAssignable(Entry.class, baseType) )
                 return mapOfEntries((Entry[]) fromValue);
             if ( Types.isJavaAssignable(toType, LinkedHashMap.class) ) {
                 int length = Array.getLength(fromValue);
@@ -349,26 +343,60 @@ public class BshArray {
             }
         }
 
+        int[] dims = dimensions(fromValue);
+        int length = dims[0];
+        if (length == 0)
+            return Array.newInstance(toType, dims);
+        // if we have an Object[] try and find a more specific type
+        baseType = commonType(baseType, fromValue, () -> length);
+
         // Entry type gets converted to LHS.MapEntry
         if ( Types.isJavaAssignable(Entry.class, toType) ) {
-            int length = Array.getLength(fromValue);
+            if ( Types.isJavaAssignable(Entry.class, baseType) ) {
+                if ( MapEntry.class != baseType )
+                    return fromValue;
+                // Cast to Map.Entry so as not to confuse it with maps
+                Entry<?, ?>[] toArray = new Entry[Array.getLength(fromValue)];
+                copy(Entry.class, (Object) toArray, fromValue);
+                return toArray;
+            }
             if ( length == 1 )
-                return new LHS(Array.get(fromValue, 0)).assign(null);
-            else if ( length == 2 )
-                return new LHS(Array.get(fromValue, 0))
-                        .assign(Array.get(fromValue, 1));
-            else
-                throw new UtilEvalError(
-                    "Maximum array length for Map.Entry is 2, array length "
-                        + length + " exceeds.");
+                return new MapEntry(Array.get(fromValue, 0), null);
+            if ( length == 2 )
+                return new MapEntry(Array.get(fromValue, 0), Array.get(fromValue, 1));
+            int size = (int) Math.ceil((0.0 + length) / 2);
+            // Using Map.Entry array so as not to confuse it with maps
+            Entry<?, ?>[] toArray = new Entry[size];
+            for ( int i = 0, j = 0; i < length; i++ )
+                toArray[j++] = new MapEntry(Array.get(fromValue, i),
+                    ++i < length ? Array.get(fromValue, i) : null);
+            return toArray;
         }
 
         // cast array to element type of toType
         toType = Types.arrayElementType(toType);
-        int[] dims = dimensions(fromValue);
         Object toArray = Array.newInstance(toType, dims);
         BshArray.copy(toType, toArray, fromValue);
         return toArray;
+    }
+
+    /** Find a more specific type if the element type is Object.class.
+     * @param baseType the element type
+     * @param fromValue the array to inspect
+     * @param length the length of the array
+     * @return baseType unless baseType is Object.class and common is not */
+    public static Class<?> commonType(Class<?> baseType, Object fromValue, IntSupplier length) {
+        if ( Object.class != baseType )
+            return baseType;
+        Class<?> common = null;
+        int len = length.getAsInt();
+        for (int i = 0; i < len; i++)
+            if ( Object.class == (common = Types.getCommonType(common,
+                    Types.getType(Array.get(fromValue, 0)))) )
+                break;
+        if ( null != common && common != baseType )
+            return common;
+        return baseType;
     }
 
     /** Provides a view of a parent list for a specific list of parent indexes (steps).
