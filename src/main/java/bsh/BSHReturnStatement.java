@@ -45,5 +45,10 @@ class BSHReturnStatement extends SimpleNode implements ParserConstants
 
         return new ReturnControl( kind, value, this );
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + ": " + tokenImage[kind];
+    }
 }
 

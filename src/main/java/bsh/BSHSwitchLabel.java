@@ -40,4 +40,9 @@ class BSHSwitchLabel extends SimpleNode {
         SimpleNode label = ((SimpleNode)jjtGetChild(0));
         return label.eval( callstack, interpreter );
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + (isDefault ? ": default" : ": case");
+    }
 }
