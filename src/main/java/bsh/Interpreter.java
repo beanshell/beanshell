@@ -98,8 +98,7 @@ public class Interpreter
     /* --- Begin static members --- */
 
     private static final long serialVersionUID = 1L;
-    public static final String VERSION = ResourceBundle
-                        .getBundle("version").getString("release");
+
     /*
         Debug utils are static so that they are reachable by code that doesn't
         necessarily have an interpreter reference (e.g. tracing in utils).
@@ -112,8 +111,11 @@ public class Interpreter
     private boolean EOF;
     public static boolean TRACE;
     public static boolean COMPATIBIILTY;
+    public static final String VERSION;
 
     static {
+        ResourceBundle b = ResourceBundle.getBundle("version");
+        VERSION = b.getString("release") + "." + b.getString("build");
         staticInit();
     }
 
