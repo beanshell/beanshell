@@ -145,7 +145,6 @@ public class TestBshScriptEngine {
         final String script = "a = null; return \"a=\" + a;\n";
         final Interpreter bsh = new Interpreter();
         final Object interpreterResult = bsh.eval(script);
-        bsh.close();
         final BshScriptEngine bse = new BshScriptEngine();
         final ScriptEngineFactory bsef = bse.getFactory();
         final Object scriptEngineResult = bsef.getScriptEngine().eval(script);
@@ -292,20 +291,6 @@ public class TestBshScriptEngine {
             }
         };
         ((Compilable) new ScriptEngineManager().getEngineByName("beanshell")).compile(read);
-    }
-
-    @Test
-    public void check_script_exception_eval_close_ioe() throws Exception {
-        thrown.expect(ScriptException.class);
-        thrown.expectMessage(containsString("Test Close IOE"));
-
-        @SuppressWarnings("resource")
-        Reader read = new BufferedReader( new StringReader("return 42;") ) {
-            public void close() throws IOException {
-                throw new IOException("Test Close IOE");
-            }
-        };
-        new ScriptEngineManager().getEngineByName("beanshell").eval(read);
     }
 
     @Test
