@@ -72,9 +72,6 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
         }
         final Object iteratee = expression.eval(callstack, interpreter);
         CollectionManager cm = CollectionManager.getCollectionManager();
-        if (!cm.isBshIterable(iteratee)) {
-            throw new EvalError("Can't iterate over type: " + iteratee.getClass(), this, callstack);
-        }
         Iterator iterator = cm.getBshIterator(iteratee);
         Object returnControl = Primitive.VOID;
         while ( !Thread.interrupted() && iterator.hasNext() ) {
