@@ -69,7 +69,7 @@ class BSHAssignment extends SimpleNode implements ParserConstants
         rhs = rhsNode.eval(callstack, interpreter);
 
         if ( rhs == Primitive.VOID )
-            throw new EvalError("Void assignment.", this, callstack );
+            throw new EvalError("illegal void assignment", this, callstack );
 
         try {
             switch(operator)

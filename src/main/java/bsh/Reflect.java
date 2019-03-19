@@ -573,19 +573,19 @@ public final class Reflect {
             return Primitive.VOID;
         }
 
-        Interpreter.debug("property access: ");
         if ( obj instanceof Class )
             cls = (Class) obj;
         Invocable getter = BshClassManager.memberCache.get(cls)
                 .findGetter(propName.toString());
-        if ( null == getter )
-            throw new ReflectError("No such property getter: " + propName
-                    + " for type: " + StringUtil.typeString(cls));
+        if ( null == getter ) {
+            Interpreter.debug("property getter not found");
+            return Primitive.VOID;
+        }
         try {
             return getter.invoke(obj);
         } catch(InvocationTargetException e) {
-            throw new ReflectError("Property accessor threw exception: "
-                + e.getCause(),  e.getCause());
+            Interpreter.debug("Property accessor threw exception");
+            return Primitive.VOID;
         }
     }
 

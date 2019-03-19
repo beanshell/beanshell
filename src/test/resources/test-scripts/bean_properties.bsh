@@ -45,8 +45,7 @@ obj = new TestClass();
 // object instance members
 // private instance field
 assert(isEvalError("No such property: instVar", 'obj.instVar = 434;'));
-assert(isEvalError("No such property getter: instVar for type: TestClass", 'obj.instVar;'));
-
+assertTrue(obj.instVar == void);
 // instance bean accessor methods
 obj.setInstProp(111);
 assertThat(obj.getInstProp(), equalTo(111));
@@ -60,13 +59,13 @@ assertThat(obj.instProp, equalTo(100));
 obj.instBoolProp = false;
 assertThat(obj.instBoolProp, equalTo(false));
 // not a bean property
-assert(isEvalError("No such property getter: instNotBoolean for type: TestClass", 'obj.instNotBoolean'));
+assertTrue(obj.instNotBoolean == void);
 
 // class static members
 // private static field
 assert(isEvalError("No such property: statVar", 'TestClass.statVar = 434;'));
+assertTrue(TestClass.statVar == void);
 
-assert(isEvalError("No static field or inner class: statVar of class TestClass", 'TestClass.statVar;'));
 // static bean accessor methods
 TestClass.setStatProp(222);
 assertThat(TestClass.getStatProp(), equalTo(222));
@@ -80,7 +79,7 @@ assertThat(TestClass.statProp, equalTo(200));
 TestClass.statBoolProp = false;
 assertThat(TestClass.statBoolProp, equalTo(false));
 // not a bean property
-assert(isEvalError("No static field or inner class: statNotBoolean of class TestClass", 'TestClass.statNotBoolean;'));
+assertTrue(TestClass.statNotBoolean == void);
 
 // object instance import
 this.interpreter.nameSpace.importObject(obj);
