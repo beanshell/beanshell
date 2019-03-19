@@ -38,7 +38,7 @@ Latest release: (it is highly recommended to rather use the development snapshot
 
 ### Maven
 
-Beanshell releases are published to [Maven Central](http://central.maven.org/maven2/org/apache-extras/beanshell/bsh/). To use Beanshell with Maven, add to to your `pom.xml`:
+Beanshell releases are published to [Maven Central](http://central.maven.org/maven2/org/apache-extras/beanshell/bsh/). To use Beanshell with Maven, add this to your `pom.xml`:
 
 ```xml
     <dependencies>
