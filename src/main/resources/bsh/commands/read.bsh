@@ -1,0 +1,50 @@
+/**
+    Read the contents of filename, url, or stream
+*/
+
+bsh.help.read = "usage: read( filename )";
+
+
+rdlf = System.getProperty("line.separator");
+
+/**
+    read comment
+*/
+read( String filename )
+{
+    this.file = pathToFile( filename );
+
+    if ( !file.exists() || !file.canRead() ) {
+        print( "Can't read " + file );
+        return;
+    }
+
+    return read( new FileReader( file ) );
+}
+
+/**
+    read comment
+*/
+read( URL url )
+{
+    return read( url.openStream() );
+}
+
+read( InputStream ins )
+{
+    this.bin = new BufferedReader( new FileReader( ins ) );
+    return read( bin );
+}
+
+read( Reader reader )
+{
+    rdout = new StringBuilder();
+    try {
+        this.bin = new BufferedReader( reader );
+        while ( (this.line=bin.readLine() ) != null )
+            rdout.append( line ).append( rdlf );
+    } catch ( Exception e ) {
+        print( "Error reading stream:"+ e);
+    }
+    return rdout.toString();
+}
