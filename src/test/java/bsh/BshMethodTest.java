@@ -20,8 +20,13 @@
 
 package bsh;
 
+import static bsh.TestUtil.eval;
+import static org.hamcrest.Matchers.containsString;
+
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class BshMethodTest {
 
@@ -34,8 +39,8 @@ public class BshMethodTest {
     public void testEqualsObject_subclassEquality() {
        // define a simple subclass of BshMethod:
        class SubMethod extends BshMethod {
-          public SubMethod(String name, Class returnType, String[] paramNames,
-                Class[] paramTypes, Modifiers[] paramModifiers, BSHBlock methodBody,
+          public SubMethod(String name, Class<?> returnType, String[] paramNames,
+                Class<?>[] paramTypes, Modifiers[] paramModifiers, BSHBlock methodBody,
                 NameSpace declaringNameSpace, Modifiers modifiers) {
              super(name, returnType, paramNames, paramTypes, paramModifiers,
                      methodBody, declaringNameSpace, modifiers);
@@ -69,5 +74,18 @@ public class BshMethodTest {
              method2.equals(method1));
        Assert.assertEquals("Equal classes should have equal hashcodes",
              method2.hashCode(), method1.hashCode());
+    }
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
+    @Test
+    public void constructor_invoke_private_member() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(
+                containsString("member is private: java.lang.Class.<init>(ClassLoader)"));
+        eval(
+            "new Class(ClassLoader.getSystemClassLoader());"
+        );
     }
 }
