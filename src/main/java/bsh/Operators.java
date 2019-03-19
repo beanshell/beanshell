@@ -43,6 +43,12 @@ class Operators implements ParserConstants {
             return (lhs == rhs) ? Primitive.TRUE : Primitive.FALSE;
         if ( kind == NE )
             return (lhs != rhs) ? Primitive.TRUE : Primitive.FALSE;
+
+        if ( lhs == Primitive.VOID || rhs == Primitive.VOID )
+            throw new UtilEvalError(
+                "illegal use of undefined variable, class, or"
+                    + " 'void' literal");
+
         if ( kind == PLUS ) {
             // String concatenation operation
             if ( lhs instanceof String || rhs instanceof String )
@@ -86,10 +92,6 @@ class Operators implements ParserConstants {
             throw new UtilEvalError(
                 "Use of invalid operator " + tokenImage[kind]
                     + " with array or List type" );
-        if ( lhs == Primitive.VOID || rhs == Primitive.VOID )
-            throw new UtilEvalError(
-                "illegal use of undefined variable, class, or"
-                    + " 'void' literal");
         if ( lhs == Primitive.NULL || rhs == Primitive.NULL )
             throw new UtilEvalError(
                 "illegal use of null value or 'null' literal");
