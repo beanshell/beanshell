@@ -40,5 +40,11 @@ assert( m.constructedWith == String.class );
 m=new MethodSelection( new Object() );
 assert( m.constructedWith == Object.class );
 
+// Test method selection with null parameter
+// Issue #132
+Object x = null;
+String str = String.valueOf(x);
+assert("null".equals(str));
+ 
 complete();
 
