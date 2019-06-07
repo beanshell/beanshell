@@ -3,6 +3,24 @@
 [![Build Status](https://travis-ci.org/beanshell/beanshell.svg?branch=master)](https://travis-ci.org/beanshell/beanshell) [![codecov](https://codecov.io/gh/beanshell/beanshell/branch/master/graph/badge.svg)](https://codecov.io/gh/beanshell/beanshell)
 [![coverity](https://scan.coverity.com/projects/16379/badge.svg)](https://scan.coverity.com/projects/beanshell-beanshell)
 
+The **official** and **active** project home for BeanShell.
+
+## NOTICE: Pending new release
+
+The only reccomended version is a manual build of the master branch. Support for legacy releases reached end of line, only issues and pull requests against master can be accepted.
+
+The next release will be BeanShell 3.0 as outlined in the [development roadmap](/beanshell/beanshell#development-road-map). It [was decided](/beanshell/beanshell/issues/81) that the next release will be a production ready major version with all outstanding issues resolved to encourage community envolvement and testing.
+
+Most of the outstanding issues were imported from sourceforge, reported many years ago and now orphaned without owners. The majority will already be resolved in master, the valid ones need to be identified to the developers. An earnest call goes out for assistance in processing these issues to verify if they are still valid, reproducible or already resolved.
+
+New language enhancement remain open for [comments and discussion](/beanshell/beanshell/labels/discussion).
+
+Items identified as [out of scope](/beanshell/beanshell/labels/Out%20Of%20Scope%20v3.0) for 3.0 are scheduled for the next release.
+ * `StrictJava` compliance, unit tests and issues
+ * Updated [documentation](http://beanshell.org/manual/contents.html). The [discussions](/beanshell/beanshell/labels/discussion) double as future documentation.
+
+Lets make BeanShell 3.0 a reality togther!
+
 ## Introduction
 
 BeanShell is a small, free, embeddable Java source interpreter with object scripting language features, written in Java. BeanShell dynamically executes standard Java syntax and extends it with common scripting conveniences such as loose types, commands, and method closures like those in Perl and JavaScript.
@@ -20,7 +38,7 @@ Starting with version 2.0b5, BeanShell is licensed under the
 
 ### Source code
 
-The currently active development snapshot branch is merge-fork-beanshell2, project default branch. To build, pull the project and run the maven command.
+The development snapshot branch is master, the currently recommended version for use. To build, pull the project and run the maven command.
 
 ```shell
 $ mvn install
@@ -31,7 +49,7 @@ Requires as a minimum JDK 8 but will build with Java 9 and Java 10 as well.
 The source code releases can be downloaded from [GitHub releases](https://github.com/beanshell/beanshell/releases)
 or [Bintray](https://bintray.com/beanshell/Beanshell/bsh/view).
 
-Latest release: (it is highly recommended to rather use the development snapshot)
+Latest release: **not supported** (use the recommended development snapshot)
 
  - [BeanShell 2.0b6](https://github.com/beanshell/beanshell/releases/tag/2.0b6) - [bsh-2.0b6-src.zip](http://dl.bintray.com/beanshell/Beanshell/org/apache-extras/beanshell/bsh/2.0b6/bsh-2.0b6-src.zip)
 
@@ -154,7 +172,7 @@ The old documentation available at [http://beanshell.org](http://www.beanshell.o
 
 ## Development road map
 
-Current development effort is going towards the next major BeanShell release. The following road map serves as a guide to gauge progress to the next release.
+Current development effort is focused towards releasing BeanShell 3.0. The following road map serves as a guide to gauge progress to the next release.
 
  - [x] Merge fork BeanShell2
  - [x] Support for Java 9/10 with illegal access denied
@@ -166,10 +184,10 @@ Current development effort is going towards the next major BeanShell release. Th
  - [x] Implement final modifier
  - [x] Implement BigInteger/BigDecimal and number coercion
  - [x] Make all current unit tests pass
- - [ ] Resolve all outstanding issues
+ - [x] Increase unit tests code coverage 70%
+ - [ ] Resolve all outstanding issues and process pull requests
  - [ ] Apply uniform code style and javadocs
- - [ ] Fix obvious bugs and parser errors
- - [ ] Increase unit tests code coverage
+ - [ ] Consider feedback from [community discussions](/beanshell/beanshell/labels/discussion)
 
 ## Projects using BeanShell
 
