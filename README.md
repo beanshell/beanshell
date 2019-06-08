@@ -19,8 +19,6 @@ Items identified as [out of scope](/beanshell/beanshell/labels/Out%20Of%20Scope%
  * `StrictJava` compliance, unit tests and issues
  * Updated [documentation](http://beanshell.org/manual/contents.html). The [discussions](/beanshell/beanshell/labels/discussion) double as future documentation.
 
-Lets make BeanShell 3.0 a reality togther!
-
 ## Introduction
 
 BeanShell is a small, free, embeddable Java source interpreter with object scripting language features, written in Java. BeanShell dynamically executes standard Java syntax and extends it with common scripting conveniences such as loose types, commands, and method closures like those in Perl and JavaScript.
