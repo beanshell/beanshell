@@ -286,6 +286,40 @@ arr = new {new {1, 2, 3}};
 assertThat(arr, valueString('{{1I, 2I, 3I}}'));
 assertThat(arr, instanceOf(int[][].class));
 
+// arrays in blocks
+function_block(a) {
+  arr = new Object[(int)a];
+  assertThat(arr, arrayWithSize(a));
+}
+for ( a:3 ) {
+  function_block(a);
+}
+for ( a:3 ) {
+  arr = new Object[(int)a];
+  assertThat(arr, arrayWithSize(a));
+}
+alist = new ArrayList();
+for ( a:3 ) {
+  alist.add(new Object[] { "a"+a });
+}
+assertThat(alist, valueString('[{"a0"}, {"a1"}, {"a2"}, {"a3"}]'));
+alist = new ArrayList();
+for ( a:3 ) {
+  alist.add(new Object { "a"+a });
+}
+assertThat(alist, valueString('[{"a0"}, {"a1"}, {"a2"}, {"a3"}]'));
+alist = new ArrayList();
+for ( a:3 ) {
+  alist.add(new { "a"+a });
+}
+assertThat(alist, valueString('[{"a0"}, {"a1"}, {"a2"}, {"a3"}]'));
+alist = new ArrayList();
+for ( a:3 ) {
+  alist.add({ "a"+a });
+}
+assertThat(alist, valueString('[{"a0"}, {"a1"}, {"a2"}, {"a3"}]'));
+
+
 assert(isEvalError("Error array set index: Index 3 out-of-bounds for length 2", "{1,2}[3]=5;"));
 assert(isEvalError("Error array set index: Index 3 out-of-bounds for length 2", "((List) {1,2})[3]=5;"));
 assert(isEvalError("Error array get index: Index 3 out-of-bounds for length 2", "{1,2}[3];"));

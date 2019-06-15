@@ -222,6 +222,39 @@ assertThat(map_new, instanceOf(Map.class));
 assertThat(map_new.get("k"), instanceOf(int[].class));
 assertThat(map_new.get("k").length, equalTo(3));
 
+//maps in blocks
+function_block(a) {
+  map = {"key"=a};
+  assertThat(map["key"], equalTo(a));
+}
+for ( a:3 ) {
+  function_block(a);
+}
+for ( a:3 ) {
+  map = new Map {"key"=a};
+  assertThat(map["key"], equalTo(a));
+}
+for ( a:3 ) {
+  map = new Map {"key", a};
+  assertThat(map["key"], equalTo(a));
+}
+alist = new ArrayList();
+for ( a:3 ) {
+  alist.add(new Map {"key", a});
+}
+assertThat(alist, valueString('[{"key"=0I}, {"key"=1I}, {"key"=2I}, {"key"=3I}]'));
+alist = new ArrayList();
+for ( a:3 ) {
+  alist.add({"key"=a});
+}
+assertThat(alist, valueString('[{"key"=0I}, {"key"=1I}, {"key"=2I}, {"key"=3I}]'));
+alist = new ArrayList();
+for ( a:3 ) {
+  alist.add({"key"={"id"=a}});
+}
+assertThat(alist, valueString('[{"key"={"id"=0I}}, {"key"={"id"=1I}}, {"key"={"id"=2I}}, {"key"={"id"=3I}}]'));
+
+
 assert(isEvalError("Arrays may only be indexed by integer types.", '{1,2}["1"];'));
 assert(isEvalError("Can't assign array length", "{1,2,3}.length=1;"));
 assert(isEvalError("Attempt to use .class suffix on non class.", "''.class;"));

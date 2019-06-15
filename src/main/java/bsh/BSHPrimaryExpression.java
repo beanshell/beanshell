@@ -30,11 +30,17 @@ package bsh;
 
 class BSHPrimaryExpression extends SimpleNode
 {
+    private static final long serialVersionUID = 1L;
     private Object cached = null;
     boolean isArrayExpression = false;
     boolean isMapExpression = false;
 
     BSHPrimaryExpression(int id) { super(id); }
+
+    /** Clear the eval cache.  */
+    public void clearCache() {
+        cached = null;
+    }
 
     /** Called from BSHArrayInitializer during node creation informing us
      * that we are an array expression.
