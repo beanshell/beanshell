@@ -123,6 +123,7 @@ class SimpleNode implements Node, Serializable {
         children = c;
         children[cursor++] = e;
         lastRet = -1;
+        e.jjtSetParent(this);
     }
 
     /** {@inheritDoc} */

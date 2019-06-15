@@ -62,5 +62,34 @@ while (node.hasPrevious()) node.previous();
 assert(isEvalError("NoSuchElementException", 'node.previous();'));
 assert(isEvalError("Unimplemented or inappropriate for bsh.Node", 'node.eval(null, null);'));
 
+
+node.jjtAddChild(Node.JAVACODE, 2);
+node2 = node.jjtGetChild(2);
+assertThat(node2, equalTo(Node.JAVACODE));
+assertThat(node2.getSourceFile(), equalTo("<Called from Java Code>"));
+assertThat(node2.getLineNumber(), equalTo(-1));
+assertThat(node2.getText(), equalTo("<Compiled Java Code>"));
+assertThat(node2.toString(), equalTo("JavaCode"));
+assertThat(node2.toString(">"), equalTo(">JavaCode"));
+assertThat(node2.jjtGetParent(), nullValue());
+node2.jjtSetParent(node);
+assertThat(node2.jjtGetParent(), equalTo(node));
+node.jjtSetParent(Node.JAVACODE);
+assertThat(node.jjtGetParent(), equalTo(node2));
+
+lastIdx = node.jjtGetNumChildren() -1 ;
+lastNode = node.jjtGetChild(lastIdx);
+node.jjtAddChild(Node.JAVACODE, node.jjtGetNumChildren());
+assertThat(node.jjtGetChild(lastIdx), equalTo(lastNode));
+lastIdx = node.jjtGetNumChildren() -1 ;
+assertThat(node.jjtGetChild(lastIdx), not(lastNode));
+assertThat(node.jjtGetChild(lastIdx), equalTo(Node.JAVACODE));
+
+node0 = node.jjtGetChild(0);
+assertThat(node0.getSourceFile(), equalTo("<Called from Java Code>"));
+node0.jjtSetParent(null);
+assertThat(node0.getSourceFile(), equalTo("<unknown file>"));
+
+
 complete();
 
