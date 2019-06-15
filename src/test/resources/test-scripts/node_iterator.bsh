@@ -1,0 +1,66 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+package bsh;
+
+Node node = Node.JAVACODE;
+node.add(new SimpleNode(0));
+assertThat(node.jjtGetChild(0).getId(), equalTo(0));
+node.add(new SimpleNode(1));
+assertThat(node.jjtGetChild(1).getId(), equalTo(1));
+node.add(new SimpleNode(2));
+assertThat(node.jjtGetChild(2).getId(), equalTo(2));
+node.add(new SimpleNode(3));
+assertThat(node.jjtGetChild(3).getId(), equalTo(3));
+node.add(new SimpleNode(4));
+assertThat(node.jjtGetChild(4).getId(), equalTo(4));
+node.add(new SimpleNode(5));
+assertThat(node.jjtGetChild(5).getId(), equalTo(5));
+
+list = new ArrayList(Arrays.asList(node.jjtGetChildren()));
+iter = list.listIterator(6);
+
+assertThat(node.hasNext(), equalTo(iter.hasNext()));
+assertThat(node.nextIndex(), equalTo(iter.nextIndex()));
+assertThat(node.hasPrevious(), equalTo(iter.hasPrevious()));
+assertThat(node.previousIndex(), equalTo(iter.previousIndex()));
+assertThat(node.previous().getId(), equalTo(iter.previous().getId()));
+assertThat(node.next().getId(), equalTo(iter.next().getId()));
+iter.add(new SimpleNode(6));
+node.add(new SimpleNode(6));
+assertThat(node.jjtGetChild(6).getId(), equalTo(list.get(6).getId()));
+assertThat(node.previous().getId(), equalTo(iter.previous().getId()));
+iter.remove();
+node.remove();
+assertThat(node.jjtGetChild(5).getId(), equalTo(list.get(5).getId()));
+assertThat(node.previous().getId(), equalTo(iter.previous().getId()));
+assertThat(node.previous().getId(), equalTo(iter.previous().getId()));
+assertThat(node.previous().getId(), equalTo(iter.previous().getId()));
+assertThat(node.previous().getId(), equalTo(iter.previous().getId()));
+iter.set(new SimpleNode(7));
+node.set(new SimpleNode(7));
+assertThat(node.jjtGetChild(node.nextIndex()).getId(), equalTo(7));
+assertThat(node.next().getId(), equalTo(iter.next().getId()));
+assertThat(node.jjtGetChild(node.previousIndex()).getId(), equalTo(7));
+iter.add(new SimpleNode(8));
+node.add(new SimpleNode(8));
+assert(isEvalError("IllegalStateException", 'node.remove();'));
+assertThat(node.jjtGetChild(node.previousIndex()).getId(), equalTo(8));
+assertThat(node.previous().getId(), equalTo(8));
+assertThat(node.jjtGetNumChildren(), equalTo(list.size()));
+assertThat((List) node.jjtGetChildren(),
+    valueString("[void, ClassDeclaration, VariableDeclarator, ArrayInitializer, Block, MethodDeclaration, PackageDeclaration]"));
+assertThat(list,
+    valueString("[void, ClassDeclaration, VariableDeclarator, ArrayInitializer, Block, MethodDeclaration, PackageDeclaration]"));
+node.remove();
+assert(isEvalError("IllegalStateException", 'node.set(new SimpleNode(8));'));
+while (node.hasNext()) node.next();
+assert(isEvalError("NoSuchElementException", 'node.next();'));
+while (node.hasPrevious()) node.previous();
+assert(isEvalError("NoSuchElementException", 'node.previous();'));
+assert(isEvalError("Unimplemented or inappropriate for bsh.Node", 'node.eval(null, null);'));
+
+complete();
+
