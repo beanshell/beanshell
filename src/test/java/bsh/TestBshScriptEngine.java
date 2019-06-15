@@ -141,6 +141,16 @@ public class TestBshScriptEngine {
     }
 
     @Test
+    public void test_bsh_script_engine_compile_args() throws Throwable {
+        ScriptEngine engine = new ScriptEngineManager().getEngineByName( "beanshell" );
+        assertNotNull( engine );
+        CompiledScript square = ((Compilable) engine).compile("return x*x;");
+        ScriptContext ctx = engine.getContext();
+        ctx.setAttribute("x", 5, ENGINE_SCOPE);
+        assertEquals(25, square.eval(ctx));
+    }
+
+    @Test
     public void check_BshScriptEngineFactory() throws Exception {
         final String script = "a = null; return \"a=\" + a;\n";
         final Interpreter bsh = new Interpreter();
