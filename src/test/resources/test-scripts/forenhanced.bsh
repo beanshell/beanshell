@@ -217,8 +217,8 @@ for ( a : 4 ) {
 }
 assert(count == 1);
 funk() {
-    for (a:2) { 
-        count = a; 
+    for (a:2) {
+        count = a;
         return;
         // should not reach here
         assert(false);
