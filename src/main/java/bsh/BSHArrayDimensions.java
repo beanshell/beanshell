@@ -34,7 +34,8 @@ package bsh;
 */
 class BSHArrayDimensions extends SimpleNode
 {
-    public Class baseType;
+    private static final long serialVersionUID = 1L;
+    public Class<?> baseType;
     public int numDefinedDims;
     public int numUndefinedDims;
     /**
@@ -43,19 +44,26 @@ class BSHArrayDimensions extends SimpleNode
         time.
     */
     public int [] definedDimensions;
+    private boolean ignoreCache = true;
     private Object cached = null;
     BSHArrayDimensions(int id) { super(id); }
 
+    /** Toggle and clear eval cache. */
+    public void toggleIgnoreCache() {
+        if ( !ignoreCache )
+            cached = null;
+        ignoreCache = !ignoreCache;
+    }
     public void addDefinedDimension() { numDefinedDims++; }
     public void addUndefinedDimension() { numUndefinedDims++; }
 
     public Object eval(
-            Class type, CallStack callstack, Interpreter interpreter )
+            Class<?> type, CallStack callstack, Interpreter interpreter )
         throws EvalError
     {
         Interpreter.debug("array base type = ", type);
         baseType = type;
-        if ( null == cached )
+        if ( ignoreCache || null == cached )
             cached = eval( callstack, interpreter );
         return cached;
     }
@@ -88,6 +96,11 @@ class BSHArrayDimensions extends SimpleNode
         {
             Object initValue = ((BSHArrayInitializer) child).eval(
                 baseType, numUndefinedDims, callstack, interpreter);
+
+            // eval may return Map, MapEntry, Collection types
+            if ( !initValue.getClass().isArray() )
+                return initValue;
+
             definedDimensions = BshArray.dimensions(initValue);
 
             // loose typed array inferred dimensions

@@ -255,6 +255,38 @@ assertThat(set, valueString('[1.0w, 2.0w, 3.0w, 4.0w, 5.0w, 6.0w, 7.0w, 8.0w, 9.
 assertThat(set.iterator().next(), instanceOf(BigDecimal.class));
 assertThat(set, instanceOf(Set.class));
 
+// collections in blocks
+function_block(a) {
+  list = new List {a};
+  assertThat(list[0], equalTo(a));
+}
+for ( a:3 ) {
+  function_block(a);
+}
+for ( a:3 ) {
+  set = new Set {a};
+  assertTrue(set.contains(a));
+}
+alist = new ArrayList();
+for ( a:3 ) {
+  alist.add(new List { "a"+a });
+}
+assertThat(alist, valueString('[["a0"], ["a1"], ["a2"], ["a3"]]'));
+alist = new ArrayList();
+for ( a:3 ) {
+  alist.add(new Set { "a"+a });
+}
+assertThat(alist, valueString('[["a0"], ["a1"], ["a2"], ["a3"]]'));
+alist = new ArrayList();
+for ( a:3 ) {
+  alist.add(new Queue { "a"+a });
+}
+assertThat(alist, valueString('[["a0"], ["a1"], ["a2"], ["a3"]]'));
+alist = new ArrayList();
+for ( a:3 ) {
+  alist.add(new Deque { "a"+a });
+}
+assertThat(alist, valueString('[["a0"], ["a1"], ["a2"], ["a3"]]'));
 
 complete();
 return;

@@ -252,5 +252,34 @@ assertThat(entry.k, equalTo(111111));
 entry.k = 11;
 assertThat(entry.k, equalTo(11));
 
+// entries in blocks
+function_block(a) {
+  entry = new Entry {"k", a};
+  assertThat(entry.value, equalTo(a));
+}
+for ( a:3 ) {
+  function_block(a);
+}
+for ( a:3 ) {
+  entries = new Entry {"k"=a};
+  assertThat(entries.k, equalTo(a));
+}
+alist = new ArrayList();
+for ( a:3 ) {
+  alist.add(new Entry {"k", a});
+}
+assertThat(alist, valueString('["k"=0I, "k"=1I, "k"=2I, "k"=3I]'));
+alist = new ArrayList();
+for ( a:3 ) {
+  alist.add(new Entry {"k"=a});
+}
+assertThat(alist, valueString('[{"k"=0I}, {"k"=1I}, {"k"=2I}, {"k"=3I}]'));
+alist = new ArrayList();
+for ( a:3 ) {
+  alist.add(new Entry {"k"=new Entry {"s"=a}});
+}
+assertThat(alist, valueString('[{"k"={"s"=0I}}, {"k"={"s"=1I}}, {"k"={"s"=2I}}, {"k"={"s"=3I}}]'));
+
 complete();
+return;
 
