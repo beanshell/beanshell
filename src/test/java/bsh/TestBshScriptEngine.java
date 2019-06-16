@@ -22,6 +22,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.reflect.Method;
 
 import javax.script.Bindings;
 import javax.script.Compilable;
@@ -148,6 +149,40 @@ public class TestBshScriptEngine {
         ScriptContext ctx = engine.getContext();
         ctx.setAttribute("x", 5, ENGINE_SCOPE);
         assertEquals(25, square.eval(ctx));
+    }
+
+    @Test
+    public void test_bsh_script_engine_compile_return_this() throws Throwable {
+        class CompiledMethod {
+            Object bshThis;
+            Method invokeMethod;
+            CompiledMethod() throws Throwable {
+                Compilable engine = (Compilable) new ScriptEngineManager().getEngineByName( "beanshell" );
+                assertNotNull( engine );
+                CompiledScript script = engine.compile("square(x) { return x*x; } return this;");
+                bshThis = script.eval();
+                invokeMethod = bshThis.getClass().getMethod("invokeMethod", new Class[] {String.class, Object[].class});
+            }
+            int square(int x) throws Throwable {
+                return (int) invokeMethod.invoke(bshThis, new Object[] {"square", new Object[] {x}});
+            }
+        }
+        CompiledMethod cm = new CompiledMethod();
+        assertEquals(16, cm.square(4));
+        assertEquals(25, cm.square(5));
+    }
+
+    @Test
+    public void test_bsh_script_engine_compile_set_return_this() throws Throwable {
+        ScriptEngine engine = new ScriptEngineManager().getEngineByName( "beanshell" );
+        assertNotNull( engine );
+        CompiledScript script = ((Compilable) engine).compile("square(x) { return x*x; } return this;");
+        engine.getContext().setAttribute("script", script.eval(), ENGINE_SCOPE);
+        assertEquals(16, engine.eval("script.square(4);"));
+        assertEquals(25, engine.eval("script.square(5);"));
+        engine.eval("square(x) { return script.square(x); }");
+        assertEquals(16, engine.eval("square(4);"));
+        assertEquals(25, engine.eval("square(5);"));
     }
 
     @Test
