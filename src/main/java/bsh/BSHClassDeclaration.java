@@ -88,9 +88,6 @@ class BSHClassDeclaration extends SimpleNode
             }
         }
 
-        if (modifiers == null)
-            modifiers = new Modifiers(Modifiers.CLASS);
-
         // Get interfaces
         Class [] interfaces = new Class[numInterfaces];
         for( int i=0; i<numInterfaces; i++) {
@@ -102,12 +99,7 @@ class BSHClassDeclaration extends SimpleNode
                     this, callstack );
         }
 
-        BSHBlock block;
-        // Get the class body BSHBlock
-        if ( child < jjtGetNumChildren() )
-            block = (BSHBlock) jjtGetChild(child);
-        else
-            block = new BSHBlock( ParserTreeConstants.JJTBLOCK );
+        BSHBlock block = (BSHBlock) jjtGetChild(child);
 
         Class<?> clas = ClassGenerator.getClassGenerator().generateClass(
             name, modifiers, interfaces, superClass, block, type,

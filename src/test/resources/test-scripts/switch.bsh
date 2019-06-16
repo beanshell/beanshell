@@ -112,6 +112,18 @@ assert(flag()==1);
 val=eval("switch(1){ case 1: return 5; default: return 10; }; return 10; ");
 assert(val == 5);
 
+tswitch() {
+    switch(10) {
+        case 1:
+            return 5;
+        default:
+            return 10;
+    };
+    return 20;
+}
+assert(tswitch() == 10);
+
+assert(isEvalError("Empty switch statement", "switch (1) {}"));
 complete();
 
 
