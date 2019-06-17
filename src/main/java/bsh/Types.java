@@ -562,8 +562,7 @@ class Types {
 
         if ( null != fromType && fromType.isArray() )
             if ( operation == Types.CAST
-                    || isJavaAssignable(Collection.class, toType)
-                    || isJavaAssignable(Map.class, toType) )
+                    || Collection.class.isAssignableFrom(toType) )
                 return checkOnly ? VALID_CAST : BshArray.castArray(
                         toType, fromType, fromValue );
 
@@ -771,4 +770,12 @@ class Types {
                 || isPropertyTypeEntryList(clas);
     }
 
+    /** Collection types include Collection, Map or Entry.
+     * @param clas to identify as a property type.
+     * @return true if class is a collection type.*/
+    public static boolean isCollectionType(Class<?> clas) {
+        return Collection.class.isAssignableFrom(clas)
+            || Map.class.isAssignableFrom(clas)
+            || Entry.class.isAssignableFrom(clas);
+    }
 }

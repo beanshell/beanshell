@@ -4,6 +4,9 @@ source("TestHarness.bsh");
 source("Assert.bsh");
 
 // map expressions
+map = new Map {};
+assertThat(map, valueString('{}'));
+assertThat(map, instanceOf(Map.class));
 map = new Map {null};
 assertThat(map, valueString('{null=null}'));
 assertThat(map, instanceOf(Map.class));
@@ -22,9 +25,15 @@ assertThat(map, instanceOf(Map.class));
 map = new Map {"k", 3, "l", 5, "m"};
 assertThat(map, valueString('{"k"=3I, "l"=5I, "m"=null}'));
 assertThat(map, instanceOf(Map.class));
+Map tmap = {};
+assertThat(tmap, valueString('{}'));
+assertThat(tmap, instanceOf(Map.class));
 Map tmap = {"k", 3, "l", 5, "m"};
 assertThat(tmap, valueString('{"k"=3I, "l"=5I, "m"=null}'));
 assertThat(tmap, instanceOf(Map.class));
+map = (Map) {};
+assertThat(map, valueString('{}'));
+assertThat(map, instanceOf(Map.class));
 map = (Map) {"k", 3, "l", 5};
 assertThat(map, valueString('{"k"=3I, "l"=5I}'));
 assertThat(map, instanceOf(Map.class));
@@ -253,7 +262,6 @@ for ( a:3 ) {
   alist.add({"key"={"id"=a}});
 }
 assertThat(alist, valueString('[{"key"={"id"=0I}}, {"key"={"id"=1I}}, {"key"={"id"=2I}}, {"key"={"id"=3I}}]'));
-
 
 assert(isEvalError("Arrays may only be indexed by integer types.", '{1,2}["1"];'));
 assert(isEvalError("Can't assign array length", "{1,2,3}.length=1;"));

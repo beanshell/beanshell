@@ -302,26 +302,24 @@ public class BshArray {
      * @param fromValue the array value to cast
      * @return a new instance of to type
      * @throws UtilEvalError cast error */
-    static Object castArray(
-        Class<?> toType, Class<?> fromType, Object fromValue )
-        throws UtilEvalError
-    {
+    static Object castArray( Class<?> toType, Class<?> fromType, Object fromValue
+            ) throws UtilEvalError {
         // Collection type cast from array
-        if ( Types.isJavaAssignable(Collection.class, toType) )
-            if ( Types.isJavaAssignable(List.class, toType) || Queue.class == toType ) {
-                if ( Types.isJavaAssignable(toType, ArrayList.class) )
+        if ( Collection.class.isAssignableFrom(toType) )
+            if ( List.class.isAssignableFrom(toType) || Queue.class == toType ) {
+                if ( toType.isAssignableFrom(ArrayList.class) )
                     // List type is implemented as a mutable ArrayList
                     return new ArrayList<>(Arrays.asList((Object[])
                         Types.castObject(fromValue, Object.class, Types.CAST)));
-                else if ( Types.isJavaAssignable(toType, LinkedList.class) )
+                else if ( toType.isAssignableFrom(LinkedList.class) )
                     // Queue type is implemented as a mutable LinkedList
                     return new LinkedList<>(Arrays.asList((Object[])
                         Types.castObject(fromValue, Object.class, Types.CAST)));
-            } else if ( Types.isJavaAssignable(toType, ArrayDeque.class) )
+            } else if ( toType.isAssignableFrom(ArrayDeque.class) )
                 // Deque type is implemented as a mutable ArrayDeque
                 return new ArrayDeque<>(Arrays.asList((Object[])
                     Types.castObject(fromValue, Object.class, Types.CAST)));
-            else if ( Types.isJavaAssignable(toType, LinkedHashSet.class) )
+            else if ( toType.isAssignableFrom(LinkedHashSet.class) )
                 // Set type is implemented as a mutable LinkedHashSet
                 return new LinkedHashSet<>(Arrays.asList((Object[])
                     Types.castObject(fromValue, Object.class, Types.CAST)));
@@ -329,10 +327,10 @@ public class BshArray {
         Class<?> baseType = Types.arrayElementType(fromType);
 
         // Map type gets converted to a mutable LinkedHashMap
-        if ( Types.isJavaAssignable(Map.class, toType) ) {
-            if ( Types.isJavaAssignable(Entry.class, baseType) )
+        if ( Map.class.isAssignableFrom(toType) ) {
+            if ( Entry.class.isAssignableFrom(baseType) )
                 return mapOfEntries((Entry[]) fromValue);
-            if ( Types.isJavaAssignable(toType, LinkedHashMap.class) ) {
+            if ( toType.isAssignableFrom(LinkedHashMap.class) ) {
                 int length = Array.getLength(fromValue);
                 Map<Object, Object> map = new LinkedHashMap<>(
                         (int) Math.ceil((0.0 + length) / 2));
@@ -351,8 +349,8 @@ public class BshArray {
         baseType = commonType(baseType, fromValue, () -> length);
 
         // Entry type gets converted to LHS.MapEntry
-        if ( Types.isJavaAssignable(Entry.class, toType) ) {
-            if ( Types.isJavaAssignable(Entry.class, baseType) ) {
+        if ( Entry.class.isAssignableFrom(toType) ) {
+            if ( Entry.class.isAssignableFrom(baseType) ) {
                 if ( MapEntry.class != baseType )
                     return fromValue;
                 // Cast to Map.Entry so as not to confuse it with maps
