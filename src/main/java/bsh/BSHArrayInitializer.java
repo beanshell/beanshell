@@ -25,9 +25,7 @@
  *****************************************************************************/
 package bsh;
 
-import java.util.Collection;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.lang.reflect.Array;
 
 import bsh.Types.MapEntry;
@@ -68,24 +66,22 @@ class BSHArrayInitializer extends SimpleNode {
      * @param callstack default eval call stack
      * @param interpreter default eval interpreter
      * @return array initializer
-     * @throws EvalError produced by throwTypeError */
-    public Object eval( Class<?> baseType, int dimensions,
-                        CallStack callstack, Interpreter interpreter )
-        throws EvalError
-    {
-        int numInitializers = jjtGetNumChildren();
-        if ( 0 == numInitializers )
+     * @throws EvalError produced by thrown type errors */
+    public Object eval( Class<?> baseType, int dimensions, CallStack callstack,
+            Interpreter interpreter ) throws EvalError {
+        if ( 0 == jjtGetNumChildren() )
             dimensions = 0;
+
+        // we may infer the baseType, assume they are the same
+        Class<?> inferType = baseType;
 
         // if dimensions are 0 then our work here is done
         if ( 0 == dimensions ) {
-            if ( baseType == Void.TYPE )
-                baseType = Object.class;
-            return Array.newInstance(baseType, 0);
+            if ( baseType == Void.TYPE || Types.isCollectionType(baseType) )
+                inferType = Object.class;
+            Object emptyArray = Array.newInstance(inferType, 0);
+            return toCollection(emptyArray, baseType, callstack);
         }
-
-        // we may infer the baseType, reference the original to not be lost
-        Class<?> originalBaseType = baseType;
 
         // loose typed arrays ex. a = {1, 2, 3}
         if ( -1 == dimensions ) {
@@ -94,54 +90,66 @@ class BSHArrayInitializer extends SimpleNode {
                 throw new EvalError("No declared array type or dimensions.",
                         this, callstack );
 
-            toggleEvalCache(this);
-            clearEvalCache = true;
+            // cache node evaluation
+            enableEvalCache();
 
             // infer dimensions starting with 1 dimension, this initializer node
             dimensions = this.inferDimensions(1, 0, this, callstack, interpreter);
 
-            // we still do type inference for List and Map types
-            if ( Types.isJavaAssignable(Collection.class, baseType)
-                    || Types.isJavaAssignable(Map.class, baseType)
-                    || Types.isJavaAssignable(Entry.class, baseType) )
-                baseType = Void.TYPE;
-
+            // ensure type inference for List and Map types
+            if ( Types.isCollectionType(inferType) )
+                inferType = Void.TYPE;
         }
 
         // infer the element type
-        if ( baseType == Void.TYPE ) {
-            if ( !clearEvalCache ) {
-                toggleEvalCache(this);
-                clearEvalCache = true;
-            }
-            baseType = inferCommonType(null, this, callstack, interpreter);
+        if ( inferType == Void.TYPE ) {
+            // cache node evaluation if not cached already
+            enableEvalCache();
+            inferType = inferCommonType(null, this, callstack, interpreter);
         }
 
+        // force MapEntry to Map output
+        if ( MapEntry.class == inferType && Void.TYPE == baseType
+                || MapEntry.class == baseType )
+            baseType = Map.class;
+
         // no common type was inferred
-        if ( null == baseType ) {
-            baseType = Object.class;
+        if ( null == inferType ) {
+            inferType = Object.class;
             // assume null value indicates undefined dimension
             // example: {null} makes Object[][]
             dimensions++;
         }
 
-        if ( MapEntry.class == baseType
-                && ( originalBaseType == baseType
-                || originalBaseType == Void.TYPE) )
-            originalBaseType = Map.class;
+        // evaluate the child nodes and build the array
+        Object array = buildArray(dimensions, inferType, callstack, interpreter);
 
+        // clear evaluation cache
+        disableEvalCache();
+
+        return toCollection(array, baseType, callstack);
+    }
+
+    /** Evaluate child nodes and build the array.
+     * @param dimensions array dimensions
+     * @param baseType array base type
+     * @param callstack default eval call stack
+     * @param interpreter default eval interpreter
+     * @return an evaluated array
+     * @throws EvalError produced by thrown type errors */
+    private Object buildArray(int dimensions, Class<?> baseType,
+            CallStack callstack, Interpreter interpreter) throws EvalError {
         // allocate the array to store the initializers
         int [] dims = new int [dimensions]; // description of the array
         // The other dimensions default to zero and are assigned when
         // the values are set.
-        dims[0] = numInitializers;
-        Object initializers =  Array.newInstance( baseType, dims );
+        dims[0] = jjtGetNumChildren();
+        Object array =  Array.newInstance( baseType, dims );
 
         // Evaluate the child nodes
-        for (int i = 0; i < numInitializers; i++)
-        {
-            SimpleNode node = (SimpleNode)jjtGetChild(i);
-            Object currentInitializer;
+        for ( int i = 0; i < jjtGetNumChildren(); i++ ) {
+            final Node node = jjtGetChild(i);
+            final Object entry;
             if ( node instanceof BSHArrayInitializer )
                 // nested arrays needs at least 2 dimensions to be valid
                 if ( dimensions < 2 )
@@ -150,8 +158,7 @@ class BSHArrayInitializer extends SimpleNode {
                     // assignable by java.util.Map and evaluate the initializer as
                     // a 1 dimensional array of type LHS.MapEntry
                     if ( isMapInArray((BSHArrayInitializer) node) )
-                        currentInitializer =
-                            ((BSHArrayInitializer) node).eval(
+                        entry = ((BSHArrayInitializer) node).eval(
                             MapEntry.class, 1, callstack, interpreter);
                     else
                         // this is an invalid dimension, raise error
@@ -160,56 +167,66 @@ class BSHArrayInitializer extends SimpleNode {
                             this, callstack );
                 else
                     // multidimensional array is supported by dimension size
-                    currentInitializer =
-                        ((BSHArrayInitializer) node).eval(
+                    entry = ((BSHArrayInitializer) node).eval(
                         baseType, dimensions-1, callstack, interpreter);
             else
                 // evaluate array element node for value
-                currentInitializer = node.eval( callstack, interpreter);
+                entry = node.eval( callstack, interpreter);
 
-            if ( currentInitializer == Primitive.VOID )
+            if ( entry == Primitive.VOID )
                 throw new EvalError(
                     "Void in array initializer, position "+i, this, callstack );
 
-            Object value = currentInitializer;
-            try {
-                // If the dimensionality of the array is 1 the value element
-                // can be Primitive or Object types otherwise we expect an array.
-                // Null elements indicate undefined dimensions, we do not want to
-                // cast those values unless they are value elements.
-                if ( dimensions == 1 || value != Primitive.NULL )
-                    value = Types.castObject(
-                        currentInitializer, baseType, Types.CAST );
-            } catch ( UtilEvalError e ) {
-                throw e.toEvalError(
-                    "Error in array initializer", this, callstack );
-            }
-            // unwrap any primitive, map voids to null, etc.
-            value = Primitive.unwrap( value );
             try {
                 // store the value in the array
-                Array.set(initializers, i, value);
+                Array.set(array, i,
+                        normalizeEntry(entry, baseType, dimensions, callstack));
             } catch( IllegalArgumentException e ) {
                 Interpreter.debug("illegal arg", e);
-                throwTypeError( baseType, value, i, callstack );
+                throwTypeError( baseType, entry, i, callstack );
             }
         }
+        return array;
+    }
 
-        // cast List and Map type
-        if ( Types.isJavaAssignable(Collection.class, originalBaseType)
-                || Types.isJavaAssignable(Map.class, originalBaseType)
-                || Types.isJavaAssignable(Entry.class, originalBaseType) ) try {
-            initializers = Types.castObject(initializers, originalBaseType, Types.CAST);
+    /** Cast the array entry value to type and unwrap an primitives.
+     * If the dimensionality of the array is 1 the value element can be
+     * Primitive or Object types otherwise we expect an array.
+     * @param value the array entry
+     * @param baseType base type of the array and expected type of value
+     * @param dimensions array dimensions
+     * @param callstack the evaluation call stack
+     * @return a normalized value for the entry
+     * @throws EvalError thrown on cast exceptions */
+    private Object normalizeEntry(Object value, Class<?> baseType, int dimensions,
+            CallStack callstack) throws EvalError {
+        // Null elements indicate undefined dimensions, we do not want to
+        // cast those values unless they are value elements.
+        if ( dimensions == 1 || value != Primitive.NULL ) try {
+            return Primitive.unwrap(
+                    Types.castObject(value, baseType, Types.CAST));
+        } catch ( UtilEvalError e ) {
+            throw e.toEvalError(
+                "Error in array initializer", this, callstack );
+        }
+        // unwrap any primitive, map voids to null, etc.
+        return Primitive.unwrap(value);
+    }
+
+    /** Cast the produced array if collection type or return array.
+     * @param value the resulting array
+     * @param type inferred array base type
+     * @param callstack the evaluation call stack
+     * @return array cast to Map, List or compatible collection types.
+     * @throws EvalError thrown on cast exceptions */
+    private Object toCollection(Object value, Class<?> type, CallStack callstack)
+            throws EvalError {
+        if ( Types.isCollectionType(type) ) try {
+            return Types.castObject(value, type, Types.CAST);
         } catch (UtilEvalError e) {
             e.toEvalError(this, callstack);
         }
-
-        // clear evaluated cache
-        if ( clearEvalCache )
-            toggleEvalCache(this);
-        clearEvalCache = false;
-
-        return initializers;
+        return value;
     }
 
     /** Maps are not array dimensions they are type java.util.Map.
@@ -268,6 +285,20 @@ class BSHArrayInitializer extends SimpleNode {
         return dimensions;
     }
 
+    /** Enable eval cache if disabled */
+    private void enableEvalCache() {
+        if ( !clearEvalCache )
+            toggleEvalCache(this);
+        clearEvalCache = true;
+    }
+
+    /** Disable eval cache if enabled */
+    private void disableEvalCache() {
+        if ( clearEvalCache )
+            toggleEvalCache(this);
+        clearEvalCache = false;
+    }
+
     /** Toggle eval cache between enabled and disabled.
      * Nodes are evaluated when it is required to infer unknown base types and
      * dimensions which can be cached to avoid redundancy but needs to clear
@@ -322,13 +353,11 @@ class BSHArrayInitializer extends SimpleNode {
      * @throws EvalError the produced type exception */
     private void throwTypeError(
         Class<?> baseType, Object initializer, int argNum, CallStack callstack )
-        throws EvalError
-    {
+        throws EvalError {
         String rhsType = StringUtil.typeString(initializer);
 
         throw new EvalError ( "Incompatible type: " + rhsType
             +" in initializer of array type: "+ baseType.getSimpleName()
             +" at position: "+argNum, this, callstack );
     }
-
 }
