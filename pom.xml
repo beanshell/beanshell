@@ -121,6 +121,12 @@
       <organization>Apache Extras</organization>
       <organizationUrl>http://www.apache-extras.org/</organizationUrl>
     </developer>
+    <developer>
+      <id>nickl-</id>
+      <name>Nick (nickl-) Lombard</name>
+      <email>github@jigsoft.co.za</email>
+      <url>http://linkedin.com/in/n1ckl/</url>
+    </developer>
   </developers>
 
   <issueManagement>
