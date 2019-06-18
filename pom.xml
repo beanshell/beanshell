@@ -29,11 +29,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.beanshell</groupId>
-  <artifactId>bsh</artifactId>
+  <artifactId>bsh-project</artifactId>
   <version>3.0.0-SNAPSHOT</version>
-  <packaging>bundle</packaging>
+  <packaging>pom</packaging>
 
-  <name>BeanShell</name>
+  <name>BeanShell Project</name>
   <description>BeanShell is a small, free, embeddable Java source interpreter
     with object scripting language features, written in Java. BeanShell
     dynamically executes standard Java syntax and extends it with common
@@ -48,6 +48,10 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
+
+  <modules>
+    <module>bsh-core</module>
+  </modules>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -143,182 +147,75 @@
   </distributionManagement>
 
   <build>
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-      </resource>
-      <resource>
-        <directory>src/conf</directory>
-        <filtering>true</filtering>
-        <includes>
-          <include>version.properties</include>
-        </includes>
-      </resource>
-    </resources>
-    <plugins>
-      <plugin>
-        <groupId>com.helger.maven</groupId>
-        <artifactId>ph-javacc-maven-plugin</artifactId>
-        <version>4.0.3</version>
-        <executions>
-          <execution>
-            <id>javacc</id>
-            <goals>
-              <goal>jjtree-javacc</goal>
-            </goals>
-            <configuration>
-              <jdkVersion>${version.jdk}</jdkVersion>
-              <javadocFriendlyComments>true</javadocFriendlyComments>
-              <static>false</static>
-              <usercharstream>true</usercharstream>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.1.1</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <mainClass>bsh.Console</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>3.0.0</version>
-        <dependencies>
-          <dependency>
-            <groupId>com.puppycrawl.tools</groupId>
-            <artifactId>checkstyle</artifactId>
-            <version>8.18</version>
-          </dependency>
-        </dependencies>
-        <executions>
-          <execution>
-            <id>validate</id>
-            <phase>verify</phase>
-            <configuration>
-              <encoding>UTF-8</encoding>
-              <failsOnViolation>true</failsOnViolation>
-              <includeTestSourceDirectory>true</includeTestSourceDirectory>
-              <sourceDirectories>
-                <sourceDirectory>src/main/java</sourceDirectory>
-              </sourceDirectories>
-            </configuration>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <version>3.5.1</version>
-        <extensions>true</extensions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>3.0.1</version>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-            <phase>verify</phase>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.22.1</version>
-        <configuration>
-          <argLine>-XX:+UseSerialGC ${surefireArgLine}</argLine>
-          <systemPropertyVariables>
-            <bsh.debugClasses></bsh.debugClasses>
-            <accessibility>false</accessibility>
-            <script></script>
-            <verbose>false</verbose>
-            <skip_known_issues>true</skip_known_issues>
-          </systemPropertyVariables>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.3</version>
-        <configuration>
-          <skip>false</skip>
-        </configuration>
-        <executions>
-          <execution>
-            <id>default-prepare-agent</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>prepare-agent</goal>
-            </goals>
-            <configuration>
-              <propertyName>surefireArgLine</propertyName>
-              <append>true</append>
-              <excludes>
-                <exclude>bsh/org/objectweb/**/*</exclude>
-                <exclude>bsh/Token*</exclude>
-                <exclude>bsh/JavaCharStream*</exclude>
-                <exclude>bsh/*Parser*</exclude>
-              </excludes>
-            </configuration>
-          </execution>
-          <execution>
-            <id>default-report</id>
-            <phase>test</phase>
-            <goals>
-              <goal>report</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
-              <excludes>
-                <exclude>bsh/org/objectweb/**/*</exclude>
-                <exclude>bsh/Token*</exclude>
-                <exclude>bsh/JavaCharStream*</exclude>
-                <exclude>bsh/*Parser*</exclude>
-              </excludes>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>com.helger.maven</groupId>
+          <artifactId>ph-javacc-maven-plugin</artifactId>
+          <version>4.0.3</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.1.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>3.0.0</version>
+          <dependencies>
+            <dependency>
+              <groupId>com.puppycrawl.tools</groupId>
+              <artifactId>checkstyle</artifactId>
+              <version>8.18</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.felix</groupId>
+          <artifactId>maven-bundle-plugin</artifactId>
+          <version>3.5.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>3.0.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.22.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>0.8.3</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
 
-
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.12</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-all</artifactId>
-      <version>1.3</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
-      <version>4.0.1</version>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-
-  </dependencies>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.12</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest-all</artifactId>
+        <version>1.3</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>javax.servlet-api</artifactId>
+        <version>4.0.1</version>
+        <scope>provided</scope>
+        <optional>true</optional>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 </project>

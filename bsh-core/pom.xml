@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   ====================================================================
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.
+   ====================================================================
+
+  This software consists of voluntary contributions made by many
+  individuals on behalf of the Apache Software Foundation.  For more
+  information on the Apache Software Foundation, please see
+  <http://www.apache.org />.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.beanshell</groupId>
+    <artifactId>bsh-project</artifactId>
+    <version>3.0.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>bsh-core</artifactId>
+  <packaging>bundle</packaging>
+
+  <name>BeanShell Core</name>
+
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <resource>
+        <directory>src/conf</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>version.properties</include>
+        </includes>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>com.helger.maven</groupId>
+        <artifactId>ph-javacc-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>javacc</id>
+            <goals>
+              <goal>jjtree-javacc</goal>
+            </goals>
+            <configuration>
+              <jdkVersion>${version.jdk}</jdkVersion>
+              <javadocFriendlyComments>true</javadocFriendlyComments>
+              <static>false</static>
+              <usercharstream>true</usercharstream>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>bsh.Console</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>validate</id>
+            <phase>verify</phase>
+            <configuration>
+              <encoding>UTF-8</encoding>
+              <failsOnViolation>true</failsOnViolation>
+              <includeTestSourceDirectory>true</includeTestSourceDirectory>
+              <sourceDirectories>
+                <sourceDirectory>src/main/java</sourceDirectory>
+              </sourceDirectories>
+            </configuration>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <phase>verify</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>${surefireArgLine}</argLine>
+          <systemPropertyVariables>
+            <bsh.debugClasses></bsh.debugClasses>
+            <accessibility>false</accessibility>
+            <script></script>
+            <verbose>false</verbose>
+            <skip_known_issues>true</skip_known_issues>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <configuration>
+          <skip>false</skip>
+        </configuration>
+        <executions>
+          <execution>
+            <id>default-prepare-agent</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+            <configuration>
+              <propertyName>surefireArgLine</propertyName>
+              <append>true</append>
+              <excludes>
+                <exclude>bsh/org/objectweb/**/*</exclude>
+                <exclude>bsh/Token*</exclude>
+                <exclude>bsh/JavaCharStream*</exclude>
+                <exclude>bsh/*Parser*</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>default-report</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
+              <excludes>
+                <exclude>bsh/org/objectweb/**/*</exclude>
+                <exclude>bsh/Token*</exclude>
+                <exclude>bsh/JavaCharStream*</exclude>
+                <exclude>bsh/*Parser*</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+    </dependency>
+  </dependencies>
+</project>
