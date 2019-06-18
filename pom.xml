@@ -255,9 +255,13 @@
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>0.8.3</version>
+        <configuration>
+          <skip>false</skip>
+        </configuration>
         <executions>
           <execution>
             <id>default-prepare-agent</id>
+            <phase>generate-resources</phase>
             <goals>
               <goal>prepare-agent</goal>
             </goals>
