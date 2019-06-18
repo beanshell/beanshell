@@ -6,7 +6,7 @@ script:
   - jdk_switcher use oraclejdk9
   - mvn test -DargLine=--illegal-access=deny
   - jdk_switcher use oraclejdk8
-  - mvn test -Daccessibility=true
+  - mvn test -Daccessibility=true -Dverbose=true
 cache:
   directories:
     - $HOME/.m2

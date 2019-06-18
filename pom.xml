@@ -240,6 +240,7 @@
             <bsh.debugClasses></bsh.debugClasses>
             <accessibility>false</accessibility>
             <script></script>
+            <verbose>false</verbose>
             <skip_known_issues>true</skip_known_issues>
           </systemPropertyVariables>
         </configuration>
