@@ -34,104 +34,65 @@
     <version>3.0.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>bsh-core</artifactId>
-  <packaging>bundle</packaging>
-
-  <name>BeanShell Core</name>
+  <artifactId>bsh-test</artifactId>
+  <name>BeanShell Test</name>
+  <packaging>jar</packaging>
 
   <build>
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-      </resource>
-      <resource>
-        <directory>src/conf</directory>
-        <filtering>true</filtering>
-        <includes>
-          <include>version.properties</include>
-        </includes>
-      </resource>
-    </resources>
     <plugins>
       <plugin>
-        <groupId>com.helger.maven</groupId>
-        <artifactId>ph-javacc-maven-plugin</artifactId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>${surefireArgLine}</argLine>
+          <systemPropertyVariables>
+            <bsh.debugClasses></bsh.debugClasses>
+            <accessibility>false</accessibility>
+            <script></script>
+            <verbose>false</verbose>
+            <skip_known_issues>true</skip_known_issues>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <configuration>
+          <skip>false</skip>
+        </configuration>
         <executions>
           <execution>
-            <id>javacc</id>
+            <id>default-prepare-agent</id>
+            <phase>generate-resources</phase>
             <goals>
-              <goal>jjtree-javacc</goal>
+              <goal>prepare-agent</goal>
             </goals>
             <configuration>
-              <jdkVersion>${version.jdk}</jdkVersion>
-              <javadocFriendlyComments>true</javadocFriendlyComments>
-              <static>false</static>
-              <usercharstream>true</usercharstream>
+              <propertyName>surefireArgLine</propertyName>
+              <append>true</append>
+              <excludes>
+                <exclude>bsh/org/objectweb/**/*</exclude>
+                <exclude>bsh/Token*</exclude>
+                <exclude>bsh/JavaCharStream*</exclude>
+                <exclude>bsh/*Parser*</exclude>
+              </excludes>
             </configuration>
           </execution>
         </executions>
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <archive>
-            <manifest>
-              <mainClass>bsh.Console</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-checkstyle-plugin</artifactId>
         <executions>
           <execution>
-            <id>validate</id>
-            <phase>verify</phase>
-            <configuration>
-              <encoding>UTF-8</encoding>
-              <failsOnViolation>true</failsOnViolation>
-              <includeTestSourceDirectory>true</includeTestSourceDirectory>
-              <sourceDirectories>
-                <sourceDirectory>src/main/java</sourceDirectory>
-              </sourceDirectories>
-            </configuration>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <extensions>true</extensions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-source-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-            <phase>verify</phase>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>default-test</id>
+            <id>default-jar</id>
             <phase/>
           </execution>
         </executions>
       </plugin>
       <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
+        <artifactId>maven-install-plugin</artifactId>
         <executions>
           <execution>
-            <id>default-testCompile</id>
+            <id>default-install</id>
             <phase/>
           </execution>
         </executions>
@@ -140,7 +101,16 @@
         <artifactId>maven-resources-plugin</artifactId>
         <executions>
           <execution>
-            <id>default-testResources</id>
+            <id>default-resources</id>
+            <phase/>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-compile</id>
             <phase/>
           </execution>
         </executions>
@@ -149,6 +119,20 @@
   </build>
 
   <dependencies>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>bsh</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+    </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>

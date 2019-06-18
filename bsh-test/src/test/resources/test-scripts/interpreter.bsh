@@ -53,7 +53,7 @@ Interpreter.main(new String[] {"test_interpreter.out","args"});
 Interpreter.main(new String[] {"file_not_found"});
 Interpreter.main(new String[] {"src/test/resources/test-scripts/Fail.bsh"});
 i = new Interpreter();
-i.source("src/main/resources/bsh/commands/makeWorkspace.bsh");
+//i.source("/commands/makeWorkspace.bsh");
 i.setNameSpace(new NameSpace("ditto", null));
 mainclas="""
 class AA {
