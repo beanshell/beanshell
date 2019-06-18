@@ -51,6 +51,7 @@
 
   <modules>
     <module>bsh-core</module>
+    <module>bsh</module>
   </modules>
 
   <properties>
