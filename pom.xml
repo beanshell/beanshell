@@ -167,7 +167,7 @@
               <goal>jjtree-javacc</goal>
             </goals>
             <configuration>
-              <jdkVersion>1.8</jdkVersion>
+              <jdkVersion>${version.jdk}</jdkVersion>
               <javadocFriendlyComments>true</javadocFriendlyComments>
               <static>false</static>
               <usercharstream>true</usercharstream>
