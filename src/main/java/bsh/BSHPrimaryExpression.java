@@ -50,15 +50,12 @@ class BSHPrimaryExpression extends SimpleNode
      * @param init reference to the calling array initializer */
     void setArrayExpression(BSHArrayInitializer init) {
         this.isArrayExpression = true;
-        if (parent instanceof BSHAssignment) {
-            BSHAssignment ass = (BSHAssignment) parent;
-            if ( null != ass.operator
-                    && ass.operator == ParserConstants.ASSIGN )
-                this.isMapExpression = true;
-            if ( this.isMapExpression
+        if ( parent instanceof BSHAssignment
+                && ((BSHAssignment) parent).operator != null
+                && (isMapExpression = (((BSHAssignment) parent).operator
+                        == ParserConstants.ASSIGN))
                 && init.jjtGetParent() instanceof BSHArrayInitializer )
             init.setMapInArray(true);
-        }
     }
 
     /**
@@ -100,23 +97,22 @@ class BSHPrimaryExpression extends SimpleNode
             return cached;
 
         Object obj = jjtGetChild(0);
-        int numChildren = jjtGetNumChildren();
 
-        for(int i=1; i<numChildren; i++)
-            obj = ((BSHPrimarySuffix)jjtGetChild(i)).doSuffix(
+        for( int i=1; i < jjtGetNumChildren(); i++ )
+            obj = ((BSHPrimarySuffix) jjtGetChild(i)).doSuffix(
                 obj, toLHS, callstack, interpreter);
 
         /*
             If the result is a Node eval() it to an object or LHS
             (as determined by toLHS)
         */
-        if ( obj instanceof SimpleNode )
+        if ( obj instanceof Node )
             if ( obj instanceof BSHAmbiguousName )
                 if ( toLHS )
-                    obj = ((BSHAmbiguousName)obj).toLHS(
+                    obj = ((BSHAmbiguousName) obj).toLHS(
                         callstack, interpreter);
                 else
-                    obj = ((BSHAmbiguousName)obj).toObject(
+                    obj = ((BSHAmbiguousName) obj).toObject(
                         callstack, interpreter);
             else
                 // Some arbitrary kind of node
@@ -125,7 +121,7 @@ class BSHPrimaryExpression extends SimpleNode
                     throw new EvalError("Can't assign to prefix.",
                         this, callstack );
                 else
-                    obj = ((SimpleNode)obj).eval(callstack, interpreter);
+                    obj = ((Node) obj).eval(callstack, interpreter);
 
         if ( isMapExpression ) {
             if ( obj == Primitive.VOID )

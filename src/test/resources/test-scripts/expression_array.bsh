@@ -298,26 +298,31 @@ for ( a:3 ) {
   arr = new Object[(int)a];
   assertThat(arr, arrayWithSize(a));
 }
-alist = new ArrayList();
+alist = new List {};
 for ( a:3 ) {
   alist.add(new Object[] { "a"+a });
 }
 assertThat(alist, valueString('[{"a0"}, {"a1"}, {"a2"}, {"a3"}]'));
-alist = new ArrayList();
-for ( a:3 ) {
-  alist.add(new Object { "a"+a });
+List list = {};
+for ( a:alist ) {
+  list.add(new Object { "a"+alist.indexOf(a) });
 }
-assertThat(alist, valueString('[{"a0"}, {"a1"}, {"a2"}, {"a3"}]'));
-alist = new ArrayList();
-for ( a:3 ) {
-  alist.add(new { "a"+a });
+assertThat(list, valueString('[{"a0"}, {"a1"}, {"a2"}, {"a3"}]'));
+list = {};
+for ( a:alist ) {
+  list.add(new { a[0] });
 }
-assertThat(alist, valueString('[{"a0"}, {"a1"}, {"a2"}, {"a3"}]'));
-alist = new ArrayList();
-for ( a:3 ) {
-  alist.add({ "a"+a });
+assertThat(list, valueString('[{"a0"}, {"a1"}, {"a2"}, {"a3"}]'));
+list = {};
+for ( a:alist ) {
+  list.add({ a[0] });
 }
-assertThat(alist, valueString('[{"a0"}, {"a1"}, {"a2"}, {"a3"}]'));
+assertThat(list, valueString('[{"a0"}, {"a1"}, {"a2"}, {"a3"}]'));
+list = {};
+for ( a:alist ) {
+  list.add(new Object[] { a[0] });
+}
+assertThat(list, valueString('[{"a0"}, {"a1"}, {"a2"}, {"a3"}]'));
 
 
 assert(isEvalError("Error array set index: Index 3 out-of-bounds for length 2", "{1,2}[3]=5;"));
