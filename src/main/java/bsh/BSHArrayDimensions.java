@@ -44,16 +44,8 @@ class BSHArrayDimensions extends SimpleNode
         time.
     */
     public int [] definedDimensions;
-    private boolean ignoreCache = true;
-    private Object cached = null;
     BSHArrayDimensions(int id) { super(id); }
 
-    /** Toggle and clear eval cache. */
-    public void toggleIgnoreCache() {
-        if ( !ignoreCache )
-            cached = null;
-        ignoreCache = !ignoreCache;
-    }
     public void addDefinedDimension() { numDefinedDims++; }
     public void addUndefinedDimension() { numUndefinedDims++; }
 
@@ -63,9 +55,8 @@ class BSHArrayDimensions extends SimpleNode
     {
         Interpreter.debug("array base type = ", type);
         baseType = type;
-        if ( ignoreCache || null == cached )
-            cached = eval( callstack, interpreter );
-        return cached;
+
+        return eval( callstack, interpreter );
     }
 
     /**

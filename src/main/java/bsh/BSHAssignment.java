@@ -28,21 +28,19 @@
 
 package bsh;
 
-class BSHAssignment extends SimpleNode implements ParserConstants
-{
+class BSHAssignment extends SimpleNode implements ParserConstants {
+    private static final long serialVersionUID = 1L;
     public Integer operator;
 
     BSHAssignment(int id) { super(id); }
 
-    public Object eval(
-        CallStack callstack, Interpreter interpreter)
-        throws EvalError
-    {
+    public Object eval(CallStack callstack, Interpreter interpreter)
+            throws EvalError {
         if ( null == operator )
-            return ((SimpleNode)jjtGetChild(0)).eval(callstack, interpreter);
+            return jjtGetChild(0).eval(callstack, interpreter);
 
         BSHPrimaryExpression lhsNode =
-            (BSHPrimaryExpression)jjtGetChild(0);
+            (BSHPrimaryExpression) jjtGetChild(0);
 
         boolean strictJava = interpreter.getStrictJava();
         LHS lhs = lhsNode.toLHS( callstack, interpreter);
@@ -51,66 +49,57 @@ class BSHAssignment extends SimpleNode implements ParserConstants
         // the rhs.  This is correct Java behavior for postfix operations
         // e.g. i=1; i+=i++; // should be 2 not 3
         Object lhsValue = null;
-        if ( operator != ASSIGN ) // assign doesn't need the pre-value
-            try {
-                lhsValue = lhs.getValue();
-            } catch ( UtilEvalError e ) {
-                throw e.toEvalError( this, callstack );
-            }
+        if ( operator != ASSIGN ) try { // assign doesn't need the lhs value
+            lhsValue = lhs.getValue();
+        } catch ( UtilEvalError e ) {
+            throw e.toEvalError( this, callstack );
+        }
 
-        SimpleNode rhsNode = (SimpleNode)jjtGetChild(1);
-
-        Object rhs;
-
-        // implement "blocks" foo = { };
-        // if ( rhsNode instanceof BSHBlock )
-        //    rsh =
-        // else
-        rhs = rhsNode.eval(callstack, interpreter);
+        // evaluate the right hand side
+        Object rhs = jjtGetChild(1).eval(callstack, interpreter);
 
         if ( rhs == Primitive.VOID )
-            throw new EvalError("illegal void assignment", this, callstack );
+            throw new EvalError("illegal void assignment", this, callstack);
 
         try {
-            switch(operator)
-            {
+            switch( operator ) {
                 case ASSIGN:
                     if (lhs.isFinal()) {
-                        lhs.getVariable().setValue( rhs, Variable.ASSIGNMENT );
+                        lhs.getVariable().setValue(rhs, Variable.ASSIGNMENT);
                         return rhs;
                     }
-                    return lhs.assign( rhs, strictJava );
+                    return lhs.assign(rhs, strictJava);
 
                 case PLUSASSIGN:
                     return lhs.assign(
-                        operation(lhsValue, rhs, PLUS), strictJava );
+                        operation(lhsValue, rhs, PLUS), strictJava);
 
                 case MINUSASSIGN:
                     return lhs.assign(
-                        operation(lhsValue, rhs, MINUS), strictJava );
+                        operation(lhsValue, rhs, MINUS), strictJava);
 
                 case STARASSIGN:
                     return lhs.assign(
-                        operation(lhsValue, rhs, STAR), strictJava );
+                        operation(lhsValue, rhs, STAR), strictJava);
 
                 case SLASHASSIGN:
                     return lhs.assign(
-                        operation(lhsValue, rhs, SLASH), strictJava );
+                        operation(lhsValue, rhs, SLASH), strictJava);
 
                 case ANDASSIGN:
                 case ANDASSIGNX:
                     return lhs.assign(
-                        operation(lhsValue, rhs, BIT_AND), strictJava );
+                        operation(lhsValue, rhs, BIT_AND), strictJava);
 
                 case ORASSIGN:
                 case ORASSIGNX:
                     return lhs.assign(
-                        operation(lhsValue, rhs, BIT_OR), strictJava );
+                        operation(lhsValue, rhs, BIT_OR), strictJava);
 
                 case XORASSIGN:
                 case XORASSIGNX:
                     return lhs.assign(
-                        operation(lhsValue, rhs, XOR), strictJava );
+                        operation(lhsValue, rhs, XOR), strictJava);
 
                 case MODASSIGN:
                 case MODASSIGNX:
@@ -120,23 +109,23 @@ class BSHAssignment extends SimpleNode implements ParserConstants
                 case POWERASSIGN:
                 case POWERASSIGNX:
                     return lhs.assign(
-                            operation(lhsValue, rhs, POWER), strictJava );
+                            operation(lhsValue, rhs, POWER), strictJava);
 
                 case LSHIFTASSIGN:
                 case LSHIFTASSIGNX:
                     return lhs.assign(
-                        operation(lhsValue, rhs, LSHIFT), strictJava );
+                        operation(lhsValue, rhs, LSHIFT), strictJava);
 
                 case RSIGNEDSHIFTASSIGN:
                 case RSIGNEDSHIFTASSIGNX:
                     return lhs.assign(
-                    operation(lhsValue, rhs, RSIGNEDSHIFT ), strictJava );
+                    operation(lhsValue, rhs, RSIGNEDSHIFT ), strictJava);
 
                 case RUNSIGNEDSHIFTASSIGN:
                 case RUNSIGNEDSHIFTASSIGNX:
                     return lhs.assign(
                         operation(lhsValue, rhs, RUNSIGNEDSHIFT),
-                        strictJava );
+                        strictJava);
 
                 default:
                     throw new InterpreterError(
@@ -147,9 +136,15 @@ class BSHAssignment extends SimpleNode implements ParserConstants
         }
     }
 
+    /** Convenience method to shuffle the different types off to
+     * the correct helper classes for application.
+     * @param lhs the assignee
+     * @param rhs the assigner
+     * @param kind the operation kind
+     * @return the operated result
+     * @throws UtilEvalError of invalidation */
     private Object operation( Object lhs, Object rhs, int kind )
-        throws UtilEvalError
-    {
+            throws UtilEvalError {
         if ( lhs instanceof String || lhs.getClass().isArray() )
             return Operators.arbitraryObjectsBinaryOperation(lhs, rhs, kind);
 
@@ -165,7 +160,7 @@ class BSHAssignment extends SimpleNode implements ParserConstants
         }
 
         throw new UtilEvalError("Non primitive value in operator: " +
-            lhs.getClass() + " " + tokenImage[kind] + " " + rhs.getClass() );
+            lhs.getClass() + " " + tokenImage[kind] + " " + rhs.getClass());
     }
 
     @Override

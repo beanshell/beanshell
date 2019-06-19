@@ -25,6 +25,8 @@
  *****************************************************************************/
 package bsh;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Map;
 import java.lang.reflect.Array;
 
@@ -32,9 +34,8 @@ import bsh.Types.MapEntry;
 
 class BSHArrayInitializer extends SimpleNode {
     private static final long serialVersionUID = 1L;
-    private boolean clearEvalCache = false;
     boolean isMapInArray = false;
-
+    Deque<BSHPrimaryExpression> expressionQueue = new ArrayDeque<>();
     BSHArrayInitializer(int id) { super(id); }
 
     /** Hook into node creation to apply additional configurations.
@@ -46,8 +47,10 @@ class BSHArrayInitializer extends SimpleNode {
         parent = n;
         if ( null != children ) for ( Node c : children )
             if ( c.jjtGetNumChildren() > 0
-                    && c.jjtGetChild(0) instanceof BSHPrimaryExpression )
-            ((BSHPrimaryExpression) c.jjtGetChild(0)).setArrayExpression(this);
+                    && c.jjtGetChild(0) instanceof BSHPrimaryExpression ) {
+                expressionQueue.push((BSHPrimaryExpression) c.jjtGetChild(0));
+                expressionQueue.peek().setArrayExpression(this);
+            }
     }
 
     /** Default node eval is disabled for this node type.
@@ -83,15 +86,15 @@ class BSHArrayInitializer extends SimpleNode {
             return toCollection(emptyArray, baseType, callstack);
         }
 
+//        // cache node evaluation
+//        toggleEvalCache(this);
+
         // loose typed arrays ex. a = {1, 2, 3}
         if ( -1 == dimensions ) {
             // apply strict java when loose type arrays or maps are invalid
             if ( interpreter.getStrictJava() )
                 throw new EvalError("No declared array type or dimensions.",
                         this, callstack );
-
-            // cache node evaluation
-            enableEvalCache();
 
             // infer dimensions starting with 1 dimension, this initializer node
             dimensions = this.inferDimensions(1, 0, this, callstack, interpreter);
@@ -102,11 +105,8 @@ class BSHArrayInitializer extends SimpleNode {
         }
 
         // infer the element type
-        if ( inferType == Void.TYPE ) {
-            // cache node evaluation if not cached already
-            enableEvalCache();
+        if ( inferType == Void.TYPE )
             inferType = inferCommonType(null, this, callstack, interpreter);
-        }
 
         // force MapEntry to Map output
         if ( MapEntry.class == inferType && Void.TYPE == baseType
@@ -125,7 +125,7 @@ class BSHArrayInitializer extends SimpleNode {
         Object array = buildArray(dimensions, inferType, callstack, interpreter);
 
         // clear evaluation cache
-        disableEvalCache();
+        clearEvalCache();
 
         return toCollection(array, baseType, callstack);
     }
@@ -223,7 +223,7 @@ class BSHArrayInitializer extends SimpleNode {
             throws EvalError {
         if ( Types.isCollectionType(type) ) try {
             return Types.castObject(value, type, Types.CAST);
-        } catch (UtilEvalError e) {
+        } catch ( UtilEvalError e ) {
             e.toEvalError(this, callstack);
         }
         return value;
@@ -244,7 +244,18 @@ class BSHArrayInitializer extends SimpleNode {
         return init.isMapInArray;
     }
 
+    /** Clear evaluation cache on primary expression references.
+     * Nodes are evaluated when it is required to infer unknown base types and
+     * dimensions which can be cached to avoid redundancies but needs to clear
+     * for block repetitions.*/
+    private void clearEvalCache() {
+        for ( final BSHPrimaryExpression expression : expressionQueue )
+            expression.clearCache();
+    }
+
     /** Infer array dimensions for loose typed array expressions.
+     * We traverse down the hierarchy looking only at the first entry unless
+     * we find a null or empty value then one up to inspect the next index.
      * @param dimensions the current dimension count
      * @param idx the child node index
      * @param node the node to query
@@ -262,17 +273,14 @@ class BSHArrayInitializer extends SimpleNode {
             dimensions++;
             idx = 0;
         }
-
         // certain value elements may require more inference
         if ( !(node instanceof BSHArrayInitializer) ) {
             Object ot = ((SimpleNode) node).eval(callstack, interpreter);
-
             // if the value element is null look for more dimensions
             // example: {null, {1, 2}} makes int[][]
             if ( ot == Primitive.NULL )
                 return inferDimensions(dimensions, ++idx, node.jjtGetParent(),
                         callstack, interpreter);
-
             // if the value element is an array we can append dimensions
             // example: new {new {1, 2}} makes int[][]
             dimensions += Types.arrayDimensions(Types.getType(ot));
@@ -285,38 +293,9 @@ class BSHArrayInitializer extends SimpleNode {
         return dimensions;
     }
 
-    /** Enable eval cache if disabled */
-    private void enableEvalCache() {
-        if ( !clearEvalCache )
-            toggleEvalCache(this);
-        clearEvalCache = true;
-    }
-
-    /** Disable eval cache if enabled */
-    private void disableEvalCache() {
-        if ( clearEvalCache )
-            toggleEvalCache(this);
-        clearEvalCache = false;
-    }
-
-    /** Toggle eval cache between enabled and disabled.
-     * Nodes are evaluated when it is required to infer unknown base types and
-     * dimensions which can be cached to avoid redundancy but needs to clear
-     * for blocks.
-     * @param node recursive node children */
-    private void toggleEvalCache(Node node) {
-        for ( Node child : node.jjtGetChildren() ) {
-            if ( child instanceof BSHArrayDimensions )
-                ((BSHArrayDimensions) child).toggleIgnoreCache();
-            else if ( clearEvalCache && child instanceof BSHPrimaryExpression )
-                ((BSHPrimaryExpression) child).clearCache();
-            if ( child.jjtGetNumChildren() > 0 )
-                toggleEvalCache(child);
-        }
-    }
-    /** Helper function to traverse array dimensions to find the common type.
-     * Recursive calling for each element in an array initializer or finds the
-     * common type relative to a value cell.
+    /** Helper function to traverse array elements to find the common base type.
+     * Recursive calling for each element in the array across all dimensions.
+     * Abort if we already inferred Object type or found a MapEntry.
      * @param common the current common type
      * @param node the node to query
      * @param callstack the evaluation call stack
@@ -329,19 +308,18 @@ class BSHArrayInitializer extends SimpleNode {
         if ( Object.class == common || MapEntry.class == common )
             return common;
         // inspect value elements for common type
-        if ( !(node instanceof BSHArrayInitializer) ) {
+        if ( node instanceof BSHAssignment ) {
             Object value = ((SimpleNode) node).eval(callstack, interpreter);
             Class<?> type = Types.getType(value, Primitive.isWrapperType(common));
             return Types.getCommonType(common, Types.arrayElementType(type));
         }
         // avoid traversing maps as arrays when nested in array
-        if ( isMapInArray((BSHArrayInitializer) node) )
+        if ( node instanceof BSHArrayInitializer
+                && isMapInArray((BSHArrayInitializer) node) )
             return Types.getCommonType(common, Map.class);
         // recurse through nested array initializer nodes
-        int count = node.jjtGetNumChildren();
-        for ( int i = 0; i < count; i++ )
-            common = this.inferCommonType(common, node.jjtGetChild(i),
-                        callstack, interpreter);
+        for ( Node child : node.jjtGetChildren() )
+            common = this.inferCommonType(common, child, callstack, interpreter);
         return common;
     }
 
