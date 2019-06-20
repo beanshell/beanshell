@@ -53,19 +53,28 @@
         </configuration>
       </plugin>
       <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
+        <artifactId>maven-source-plugin</artifactId>
         <executions>
           <execution>
-            <id>default-jar</id>
-            <phase/>
+            <id>attach-sources</id>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+            <phase>verify</phase>
           </execution>
         </executions>
       </plugin>
       <plugin>
-        <artifactId>maven-install-plugin</artifactId>
+        <artifactId>maven-jar-plugin</artifactId>
         <executions>
           <execution>
-            <id>default-install</id>
+            <id>default-testJar</id>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>default-jar</id>
             <phase/>
           </execution>
         </executions>
