@@ -51,6 +51,7 @@
 
   <modules>
     <module>bsh-core</module>
+    <module>bsh-commands</module>
     <module>bsh</module>
     <module>bsh-test</module>
   </modules>

@@ -47,5 +47,10 @@
       <artifactId>bsh-core</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>bsh-commands</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 </project>
