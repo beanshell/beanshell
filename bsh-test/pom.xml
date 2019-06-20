@@ -56,19 +56,15 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <configuration>
-          <skip>false</skip>
-        </configuration>
         <executions>
           <execution>
-            <id>default-prepare-agent</id>
-            <phase>generate-resources</phase>
+            <id>default-report</id>
+            <phase>test</phase>
             <goals>
-              <goal>prepare-agent</goal>
+              <goal>report-aggregate</goal>
             </goals>
             <configuration>
-              <propertyName>surefireArgLine</propertyName>
-              <append>true</append>
+              <outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
               <excludes>
                 <exclude>bsh/org/objectweb/**/*</exclude>
                 <exclude>bsh/Token*</exclude>
@@ -121,7 +117,7 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>bsh</artifactId>
+      <artifactId>bsh-core</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
