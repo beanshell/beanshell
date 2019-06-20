@@ -43,7 +43,6 @@
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <argLine>${surefireArgLine}</argLine>
           <systemPropertyVariables>
             <bsh.debugClasses></bsh.debugClasses>
             <accessibility>false</accessibility>
@@ -52,28 +51,6 @@
             <skip_known_issues>true</skip_known_issues>
           </systemPropertyVariables>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>default-report</id>
-            <phase>test</phase>
-            <goals>
-              <goal>report-aggregate</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
-              <excludes>
-                <exclude>bsh/org/objectweb/**/*</exclude>
-                <exclude>bsh/Token*</exclude>
-                <exclude>bsh/JavaCharStream*</exclude>
-                <exclude>bsh/*Parser*</exclude>
-              </excludes>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>

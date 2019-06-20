@@ -2,7 +2,7 @@ language: java
 sudo: false
 script:
   - jdk_switcher use oraclejdk8
-  - mvn clean install -Djacoco.skip=true -DskipTests 
+  - mvn clean install -DskipTests 
   - jdk_switcher use oraclejdk9
   - mvn test -DargLine=--illegal-access=deny
   - jdk_switcher use oraclejdk8
@@ -10,5 +10,4 @@ script:
 cache:
   directories:
     - $HOME/.m2
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+
