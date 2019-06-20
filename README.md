@@ -9,15 +9,15 @@ The **official** and **active** project home for BeanShell.
 
 The only reccomended version is a manual build of the master branch. Support for legacy releases reached end of line, only issues and pull requests against master can be accepted.
 
-The next release will be BeanShell 3.0 as outlined in the [development roadmap](/beanshell/beanshell#development-road-map). It [was decided](/beanshell/beanshell/issues/81) that the next release will be a production ready major version with all outstanding issues resolved to encourage community envolvement and testing.
+The next release will be BeanShell 3.0 as outlined in the [development roadmap](https://github.com/beanshell/beanshell#development-road-map). It [was decided](https://github.com/beanshell/beanshell/issues/81) that the next release will be a production ready major version with all outstanding issues resolved to encourage community envolvement and testing.
 
-Most of the outstanding issues were imported from sourceforge, reported many years ago and now orphaned without owners. The majority will already be resolved in master, the valid ones need to be identified to the developers. An earnest call goes out for assistance in processing these issues to verify if they are still valid, reproducible or already resolved.
+Most of the outstanding issues were [imported from sourceforge](https://github.com/beanshell/beanshell/labels/auto-migrated%20sourceforge), reported many years ago and now orphaned without owners. The majority will already be resolved in master, the valid ones need to be identified to the developers. **An earnest call goes out for assistance in processing these issues to verify if they are still valid, reproducible or already resolved.**
 
-New language enhancement remain open for [comments and discussion](/beanshell/beanshell/labels/discussion).
+New language enhancement remain open for [comments and discussion](https://github.com/beanshell/beanshell/labels/discussion).
 
-Items identified as [out of scope](/beanshell/beanshell/labels/Out%20Of%20Scope%20v3.0) for 3.0 are scheduled for the next release.
- * `StrictJava` compliance, unit tests and issues
- * Updated [documentation](http://beanshell.org/manual/contents.html). The [discussions](/beanshell/beanshell/labels/discussion) double as future documentation.
+Items identified as [out of scope for 3.0](https://github.com/beanshell/beanshell/labels/out%20of%20scope%20v3.0) are scheduled for the next release.
+ * `StrictJava` compliance, unit tests and outstanding issues
+ * Updated [documentation](http://beanshell.org/manual/contents.html). The [discussions](https://github.com/beanshell/beanshell/labels/discussion) double as future documentation.
 
 ## Introduction
 
