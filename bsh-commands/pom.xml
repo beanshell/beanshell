@@ -47,26 +47,6 @@
     </resources>
     <plugins>
       <plugin>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>validate</id>
-            <phase>verify</phase>
-            <configuration>
-              <encoding>UTF-8</encoding>
-              <failsOnViolation>true</failsOnViolation>
-              <includeTestSourceDirectory>true</includeTestSourceDirectory>
-              <sourceDirectories>
-                <sourceDirectory>src/main/java</sourceDirectory>
-              </sourceDirectories>
-            </configuration>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <configuration>
           <archive>

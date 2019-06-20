@@ -115,12 +115,12 @@ public class TestBshScriptEngine {
         assertEquals( 42, engine.get("foo") );
 
         // Try redirecting output
-        String fname = "testBshScriptEngine.out";
-        String outString = "checkstyle-supressions.xml";
+        String fname = "target/testBshScriptEngine.out";
+        String outString = "test/";
         Writer fout = new FileWriter( fname );
         engine.getContext().setWriter( fout );
         engine.put( "outString", outString );
-        engine.eval(new StringReader("dir('src/conf');"));
+        engine.eval(new StringReader("dir('src');"));
         BufferedReader bin = new BufferedReader( new FileReader( fname ) );
         String line = bin.readLine();
         assertNotNull(line);

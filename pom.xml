@@ -219,6 +219,30 @@
         </plugin>
       </plugins>
     </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>validate</id>
+            <phase>verify</phase>
+            <configuration>
+              <encoding>${project.build.sourceEncoding}</encoding>
+              <suppressionsLocation>bsh/checkstyle-supressions.xml</suppressionsLocation>
+              <failsOnViolation>true</failsOnViolation>
+              <includeTestSourceDirectory>true</includeTestSourceDirectory>
+              <sourceDirectories>
+                <sourceDirectory>src/main/java</sourceDirectory>
+              </sourceDirectories>
+            </configuration>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 
   <dependencyManagement>
