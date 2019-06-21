@@ -281,14 +281,11 @@ public class Interpreter
         this( console, null, null );
     }
 
-    /**
-        Create an interpreter for evaluation only.
-    */
-    public Interpreter()
-    {
-        this( new StringReader(""),
-            System.out, System.err, false, null );
-        evalOnly = true;
+    /** A non interactive interpreter for evaluation purposes only.
+     * Uses system standard output and error with input deferred to eval. */
+    public Interpreter() {
+        this( null, System.out, System.err, false, null );
+        this.evalOnly = true;
         setu( "bsh.evalOnly", Primitive.TRUE );
     }
 
