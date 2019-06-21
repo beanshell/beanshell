@@ -339,7 +339,7 @@ assert(isEvalError("Error in array initializer: Cannot cast boolean to int", "ne
 assert(isEvalError("Error in array initializer: Cannot cast String to int", "new int {'11'};"));
 assert(isEvalError("Void in array initializer, position 0", "new Object {void};"));
 assert(isEvalError("Invalid Intializer for int, at position: 0", "new int[] {{1}};"));
-assert(isEvalError("array element type mismatch", 'store={"foo"}; store[0]=1;'));
+assert(isEvalError("ArrayStoreException", 'store={"foo"}; store[0]=1;'));
 
 
 complete();

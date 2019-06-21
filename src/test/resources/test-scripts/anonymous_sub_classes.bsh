@@ -81,7 +81,7 @@ assertThat(anon.spr, equalTo(OverLoadedConstructor.class));
 class SubDefaultConstructor extends NoDefaultConstructor {
     go() { super.go() + " sub"; }
 }
-assert(isEvalError("NoDefaultConstructor: method <init>()V not found", 'new SubDefaultConstructor();'));
+assert(isEvalError("NoDefaultConstructor", 'new SubDefaultConstructor();'));
 assert(isEvalError("Can't find constructor: SubDefaultConstructor(String) in class: SubDefaultConstructor", 'new SubDefaultConstructor("foo");'));
 
 class SubOverrideSuper extends NoDefaultConstructor {
