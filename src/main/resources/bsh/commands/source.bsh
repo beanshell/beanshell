@@ -15,7 +15,9 @@ Object source( String filename ) {
 }
 
 Object source( URL url ) {
-    return this.interpreter.eval(new FileReader(url.openStream()),
-            this.caller.namespace, "URL: "+url.toString());
+    return this.interpreter.source( url, this.caller.namespace );
 }
 
+Object source( File file ) {
+    return this.interpreter.source( file, this.caller.namespace );
+}

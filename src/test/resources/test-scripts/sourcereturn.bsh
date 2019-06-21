@@ -4,6 +4,11 @@ source("TestHarness.bsh");
 
 // Note: no import needed here because the source() handled it.
 assert( source("Data/actionHandler.bsh") instanceof ActionListener );
+assert( source(pathToFile("Data/actionHandler.bsh")) instanceof ActionListener );
+assert( source(getResource("/test-scripts/Data/actionHandler.bsh")) instanceof ActionListener );
+assert( this.interpreter.source("Data/actionHandler.bsh") instanceof ActionListener );
+assert( this.interpreter.source(pathToFile("Data/actionHandler.bsh")) instanceof ActionListener );
+assert( this.interpreter.source(getResource("/test-scripts/Data/actionHandler.bsh")) instanceof ActionListener );
 
 // check source scope
 a=0;
