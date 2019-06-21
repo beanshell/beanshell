@@ -177,20 +177,15 @@ public class Interpreter
 
     /* --- End instance data --- */
 
-    /**
-        The main constructor.
-        All constructors should now pass through here.
-
-        @param namespace If namespace is non-null then this interpreter's
-        root namespace will be set to the one provided.  If it is null a new
-        one will be created for it.
-        @param parent The parent interpreter if this interpreter is a child
-            of another.  May be null.  Children share a BshClassManager with
-            their parent instance.
-        @param sourceFileInfo An informative string holding the filename
-        or other description of the source from which this interpreter is
-        reading... used for debugging.  May be null.
-    */
+    /** The main constructor, all other constructors should pass through here.
+     * If namespace is not null it becomes this interpreter's global namespace
+     * otherwise a new instance is created. A parent interpreter allows values
+     * to be inherited like a shared class manager.
+     * @param console assignable collection of input output streams.
+     * @param interactive whether attached to user input.
+     * @param namespace global name space or null.
+     * @param parent interpreter or null.
+     * @param sourceFileInfo source file info for debugging or null. */
     public Interpreter( ConsoleAssignable console, boolean interactive,
             NameSpace namespace, Interpreter parent, String sourceFileInfo ) {
         long t1 = 0;
@@ -218,6 +213,14 @@ public class Interpreter
     }
 
 
+    /** Wraps individual input output streams as a console collection.
+     * @param in input stream.
+     * @param out standard output stream.
+     * @param err error output stream.
+     * @param interactive whether attached to user input.
+     * @param namespace global name space or null.
+     * @param parent interpreter or null.
+     * @param sourceFileInfo source file info for debugging or null. */
     public Interpreter(
             Reader in, PrintStream out, PrintStream err,
             boolean interactive, NameSpace namespace,
@@ -226,48 +229,54 @@ public class Interpreter
                 parent, sourceFileInfo);
     }
 
+    /** Interpreter instance without a parent interpreter and source file.
+     * @param in input stream.
+     * @param out standard output stream.
+     * @param err error output stream.
+     * @param interactive whether attached to user input.
+     * @param namespace global name space or null. */
     public Interpreter(
         Reader in, PrintStream out, PrintStream err,
-        boolean interactive, NameSpace namespace)
-    {
+        boolean interactive, NameSpace namespace) {
         this( in, out, err, interactive, namespace, null, null );
     }
 
+    /** Interpreter instance without a namespace, parent and source file.
+     * @param in input stream.
+     * @param out standard output stream.
+     * @param err error output stream.
+     * @param interactive whether attached to user input. */
     public Interpreter(
         Reader in, PrintStream out, PrintStream err, boolean interactive)
     {
         this(in, out, err, interactive, null);
     }
 
-    /**
-        Construct a new interactive interpreter attached to the specified
-        console using the specified parent namespace and parent interpreter.
-    */
-    public Interpreter(ConsoleInterface console, NameSpace globalNameSpace, Interpreter parent) {
-        this( new Console(console), true, globalNameSpace, parent,
+    /** An interactive interpreter attached to the specified console.
+     * @param console read only collection of input output streams.
+     * @param namespace global name space or null.
+     * @param parent interpreter or null. */
+    public Interpreter(ConsoleInterface console, NameSpace namespace, Interpreter parent) {
+        this( new Console(console), true, namespace, parent,
             null == parent ? null : parent.getSourceFileInfo() );
     }
 
-    /**
-        Construct a new interactive interpreter attached to the specified
-        console using the specified parent interpreter assumes interpreter namesepace.
-    */
+    /** An interactive interpreter attached to a console using parent namesepace.
+     * @param console read only collection of input output streams.
+     * @param parent interpreter or null. */
     public Interpreter(ConsoleInterface console, Interpreter parent) {
         this( console, parent.getNameSpace(), parent );
     }
 
-    /**
-        Construct a new interactive interpreter attached to the specified
-        console using the specified parent namespace.
-    */
+    /** An interactive interpreter attached to a console with supplied namespace.
+     * @param console read only collection of input output streams.
+     * @param namespace global name space or null. */
     public Interpreter(ConsoleInterface console, NameSpace globalNameSpace) {
         this( console, globalNameSpace, null );
     }
 
-    /**
-        Construct a new interactive interpreter attached to the specified
-        console.
-    */
+    /** An interactive interpreter attached to a console, no namespace or parent.
+     * @param console read only collection of input output streams. */
     public Interpreter(ConsoleInterface console) {
         this( console, null, null );
     }
@@ -285,20 +294,21 @@ public class Interpreter
 
     // End constructors
 
-    /**
-        Attach a console
-    */
+    /** Attach an assignable console and initialize a new parser.
+     * @param console assignable collection of input output streams. */
     public void setConsole( ConsoleAssignable console ) {
         this.console = console;
         this.parser = new Parser( getIn() );
     }
 
+    /** Overloaded to accept a read only console.
+     * @param console read only collection of input output streams. */
     public void setConsole( ConsoleInterface console ) {
         this.setConsole(new Console(console));
     }
 
-    private void initRootSystemObject()
-    {
+    /** Initialize the BeanShell root system objects and help system. */
+    private void initRootSystemObject() {
         BshClassManager bcm = getClassManager();
         // bsh
         setu("bsh", new NameSpace(null, bcm, "Bsh Object" ).getThis( this ) );
@@ -321,25 +331,18 @@ public class Interpreter
         setu( "bsh.evalOnly", Primitive.FALSE );
     }
 
-    /**
-        Set the global namespace for this interpreter.
-        <p>
-
-        Note: This is here for completeness.  If you're using this a lot
-        it may be an indication that you are doing more work than you have
-        to.  For example, caching the interpreter instance rather than the
-        namespace should not add a significant overhead.  No state other
-        than the debug status is stored in the interpreter.
-        <p>
-
-        All features of the namespace can also be accessed using the
-        interpreter via eval() and the script variable 'this.namespace'
-        (or global.namespace as necessary).
-    */
-    public void setNameSpace( NameSpace globalNameSpace ) {
-        this.globalNameSpace = globalNameSpace;
-        if ( null != globalNameSpace ) try {
-            if ( ! (globalNameSpace.getVariable("bsh") instanceof This) ) {
+    /** Assign the global namespace for this interpreter.
+     * <p> Note: It is preferred to keep the interpreter as long reference
+     * and use it to create discardable instances which can inherit from the
+     * parent and be dereferenced for collection. This method is only here
+     * for completeness.<p>
+     * The global namespace can be accessed in scripts using the variable
+     * 'this.namespace' or global.namespace as necessary.
+     * @param namespace global name space. */
+    public void setNameSpace( NameSpace namespace ) {
+        this.globalNameSpace = namespace;
+        if ( null != namespace ) try {
+            if ( ! (namespace.getVariable("bsh") instanceof This) ) {
                 initRootSystemObject();
                 if ( interactive )
                     loadRCFiles();
@@ -349,30 +352,20 @@ public class Interpreter
         }
     }
 
-    /**
-        Get the global namespace of this interpreter.
-        <p>
-
-        Note: This is here for completeness.  If you're using this a lot
-        it may be an indication that you are doing more work than you have
-        to.  For example, caching the interpreter instance rather than the
-        namespace should not add a significant overhead.  No state other than
-        the debug status is stored in the interpreter.
-        <p>
-
-        All features of the namespace can also be accessed using the
-        interpreter via eval() and the script variable 'this.namespace'
-        (or global.namespace as necessary).
-    */
+    /** Retrieve the global namespace for this interpreter.
+     * <p> Note: It is preferred to keep the interpreter as long reference
+     * and use it to create discardable instances which can inherit from the
+     * parent and be dereferenced for collection. This method is only here
+     * for completeness.<p>
+     * The global namespace can be accessed in scripts using the variable
+     * 'this.namespace' or global.namespace as necessary. */
     public NameSpace getNameSpace() {
         return globalNameSpace;
     }
 
-    /**
-        Run the text only interpreter on the command line or specify a file.
-    */
-    public static void main( String [] args )
-    {
+    /** Interactive interpreter command line execution.
+     * @param args optional file name for interpretation. */
+    public static void main( String [] args ) {
         if ( args.length > 0 ) {
             String filename = args[0];
 
@@ -420,20 +413,20 @@ public class Interpreter
         }
     }
 
+    /** Convenience method for invoking the main method of a class.
+     * @param clas with static main method.
+     * @param args the string arguments.
+     * @throws Exception thrown if something fails. */
     public static void invokeMain( Class<?> clas, String [] args )
-        throws Exception
-    {
-        Invocable main = Reflect.resolveJavaMethod(
-            clas, "main", new Class [] { String [].class }, true/*onlyStatic*/);
+            throws Exception {
+        Invocable main = Reflect.resolveJavaMethod( clas, "main",
+                new Class [] { String [].class }, true/*onlyStatic*/);
         if ( main != null )
             main.invoke( null, new Object [] { args } );
     }
 
-    /**
-        Run interactively.  (printing prompts, etc.)
-    */
-    public void run()
-    {
+    /** Run interactively. (printing prompts, etc.) */
+    public void run() {
         if(evalOnly)
             throw new RuntimeException("bsh Interpreter: No stream");
 
@@ -1018,9 +1011,8 @@ public class Interpreter
         Localize a path to the file name based on the bsh.cwd interpreter
         working directory.
     */
-    public File pathToFile( String fileName )
-        throws IOException
-    {
+    public File pathToFile(String fileName)
+            throws IOException {
         String cwd = (String)getu("bsh.cwd");
         File file = new File( fileName );
 
