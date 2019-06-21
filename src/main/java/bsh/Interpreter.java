@@ -38,6 +38,7 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
 import java.util.ResourceBundle;
 
 /**
@@ -557,29 +558,67 @@ public class Interpreter
 
     // begin source and eval
 
-    /**
-        Read text from fileName and eval it.
-    */
-    public Object source( String filename, NameSpace nameSpace )
-        throws FileNotFoundException, IOException, EvalError
-    {
-        File file = pathToFile( filename );
-        Interpreter.debug("Sourcing file: ", file);
-        Reader sourceIn = new BufferedReader( new FileReader(file) );
-        try {
-            return eval( sourceIn, nameSpace, filename );
-        } finally {
-            sourceIn.close();
+    /** Source a script from a url for interpretation.
+     * @param url the source url.
+     * @param namespace effective namespace.
+     * @return the return result from the script execution.
+     * @throws EvalError if a script error occurred.
+     * @throws IOException if a file read error occurred. */
+    public Object source(URL url, NameSpace namespace)
+            throws EvalError, IOException {
+        Interpreter.debug("Sourcing file: ", url.toString());
+        try (Reader fileRead = new FileReader(url.openStream());
+             Reader sourceIn = new BufferedReader(fileRead)) {
+            return eval( sourceIn, namespace, url.toString() );
         }
     }
 
-    /**
-        Read text from fileName and eval it.
-        Convenience method.  Use the global namespace.
-    */
-    public Object source( String filename )
-        throws FileNotFoundException, IOException, EvalError
-    {
+    /** Source a script from a file for interpretation.
+     * @param file the source file.
+     * @param namespace effective namespace.
+     * @return the return result from the script execution.
+     * @throws EvalError if a script error occurred.
+     * @throws IOException if a file read error occurred. */
+    public Object source(File file, NameSpace namespace)
+            throws EvalError, IOException {
+        return source(file.toURI().toURL(), namespace);
+    }
+
+    /** Source a script from a filename for interpretation.
+     * @param filename the source file name.
+     * @param namespace effective namespace.
+     * @return the return result from the script execution.
+     * @throws EvalError if a script error occurred.
+     * @throws IOException if a file read error occurred. */
+    public Object source(String filename, NameSpace namespace)
+            throws EvalError, IOException {
+        return source(pathToFile(filename), namespace);
+    }
+
+    /** Source a script from a url for interpretation.
+     * @param url the source url.
+     * @return the return result from the script execution.
+     * @throws EvalError if a script error occurred.
+     * @throws IOException if a file read error occurred. */
+    public Object source(URL url) throws EvalError, IOException {
+        return source(url, globalNameSpace);
+    }
+
+    /** Source a script from a file for interpretation.
+     * @param file the source file.
+     * @return the return result from the script execution.
+     * @throws EvalError if a script error occurred.
+     * @throws IOException if a file read error occurred. */
+    public Object source(File file) throws EvalError, IOException {
+        return source(file, globalNameSpace);
+    }
+
+    /** Source a script from a filename for interpretation.
+     * @param filename the source file name.
+     * @return the return result from the script execution.
+     * @throws EvalError if a script error occurred.
+     * @throws IOException if a file read error occurred. */
+    public Object source( String filename ) throws EvalError, IOException {
         return source( filename, globalNameSpace );
     }
 
