@@ -50,10 +50,10 @@ public class BshScriptTestCase {
 
     /** System property verbose */
     public static final boolean _VERBOSE =
-            Boolean.valueOf(System.getProperty("verbose"));
+        Boolean.valueOf(System.getProperty("verbose"));
     /** System property accessibility */
     public static final boolean _ACCESSIBILITY =
-            Boolean.valueOf(System.getProperty("accessibility"));
+        Boolean.valueOf(System.getProperty("accessibility"));
     /** System property script */
     public static final String _SCRIPT = System.getProperty("script");
     /** The Constant baseDir. */

@@ -195,7 +195,7 @@ public class Interpreter
         this.interactive = interactive;
         this.parent = parent;
         if ( parent != null )
-            setStrictJava( parent.getStrictJava() );
+            setStrictJava( parent.strictJava );
 
         this.sourceFileInfo = sourceFileInfo;
 
@@ -238,7 +238,7 @@ public class Interpreter
     public Interpreter(
         Reader in, PrintStream out, PrintStream err,
         boolean interactive, NameSpace namespace) {
-        this( in, out, err, interactive, namespace, null, null );
+        this(in, out, err, interactive, namespace, null, null);
     }
 
     /** Interpreter instance without a namespace, parent and source file.
@@ -257,28 +257,28 @@ public class Interpreter
      * @param namespace global name space or null.
      * @param parent interpreter or null. */
     public Interpreter(ConsoleInterface console, NameSpace namespace, Interpreter parent) {
-        this( new Console(console), true, namespace, parent,
-            null == parent ? null : parent.getSourceFileInfo() );
+        this(new Console(console), true, namespace, parent,
+            null == parent ? null : parent.sourceFileInfo);
     }
 
     /** An interactive interpreter attached to a console using parent namesepace.
      * @param console read only collection of input output streams.
      * @param parent interpreter or null. */
     public Interpreter(ConsoleInterface console, Interpreter parent) {
-        this( console, parent.getNameSpace(), parent );
+        this(console, parent.globalNameSpace, parent);
     }
 
     /** An interactive interpreter attached to a console with supplied namespace.
      * @param console read only collection of input output streams.
      * @param namespace global name space or null. */
     public Interpreter(ConsoleInterface console, NameSpace globalNameSpace) {
-        this( console, globalNameSpace, null );
+        this(console, globalNameSpace, null);
     }
 
     /** An interactive interpreter attached to a console, no namespace or parent.
      * @param console read only collection of input output streams. */
     public Interpreter(ConsoleInterface console) {
-        this( console, null, null );
+        this(console, null, null);
     }
 
     /** A non interactive interpreter for evaluation purposes only.
@@ -362,50 +362,46 @@ public class Interpreter
 
     /** Interactive interpreter command line execution.
      * @param args optional file name for interpretation. */
-    public static void main( String [] args ) {
+    public static void main(String[] args) {
         if ( args.length > 0 ) {
             String filename = args[0];
 
-            String [] bshArgs;
+            String[] bshArgs;
             if ( args.length > 1 ) {
-                bshArgs = new String [ args.length -1 ];
-                System.arraycopy( args, 1, bshArgs, 0, args.length-1 );
+                bshArgs = new String[args.length - 1];
+                System.arraycopy(args, 1, bshArgs, 0, args.length - 1);
             } else
-                bshArgs = new String [0];
+                bshArgs = new String[0];
 
             try {
                 Interpreter interpreter = new Interpreter();
-                interpreter.setu( "bsh.args", bshArgs );
+                interpreter.setu("bsh.args", bshArgs);
                 Object result =
-                    interpreter.source( filename, interpreter.globalNameSpace );
-                if ( result instanceof Class )
-                    try {
-                        invokeMain( (Class<?>)result, bshArgs );
-                    } catch ( Exception e )
-                    {
-                        Object o = e;
-                        if ( e instanceof InvocationTargetException )
-                            o = e.getCause();
-                        System.err.println(
-                            "Class: "+result+" main method threw exception:"+o);
-                    }
-            } catch ( FileNotFoundException e ) {
-                System.err.println("File not found: "+e);
-            } catch ( TargetError e ) {
-                System.err.println("Script threw exception: "+e);
+                    interpreter.source(filename, interpreter.globalNameSpace);
+                if ( result instanceof Class ) try {
+                    invokeMain((Class<?>) result, bshArgs);
+                } catch (Exception e) {
+                    Object o = e;
+                    if ( e instanceof InvocationTargetException )
+                        o = e.getCause();
+                    System.err.println("Class: " + result
+                            + " main method threw exception:" + o);
+                }
+            } catch (FileNotFoundException e) {
+                System.err.println("File not found: " + e);
+            } catch (TargetError e) {
+                System.err.println("Script threw exception: " + e);
                 if ( e.inNativeCode() )
-                    e.printStackTrace( DEBUG.get(), System.err );
-            } catch ( EvalError e ) {
-                System.err.println("Evaluation Error: "+e);
-            } catch ( IOException e ) {
-                System.err.println("I/O Error: "+e);
+                    e.printStackTrace(DEBUG.get(), System.err);
+            } catch (EvalError e) {
+                System.err.println("Evaluation Error: " + e);
+            } catch (IOException e) {
+                System.err.println("I/O Error: " + e);
             }
         } else {
             @SuppressWarnings("resource")
-            Interpreter interpreter =
-            new Interpreter(new CommandLineReader(
-                new FileReader(System.in)),
-                System.out, System.err, true );
+            Interpreter interpreter = new Interpreter(new CommandLineReader(
+                new FileReader(System.in)), System.out, System.err, true);
             interpreter.run();
         }
     }
@@ -414,17 +410,17 @@ public class Interpreter
      * @param clas with static main method.
      * @param args the string arguments.
      * @throws Exception thrown if something fails. */
-    public static void invokeMain( Class<?> clas, String [] args )
+    public static void invokeMain(Class<?> clas, String[] args)
             throws Exception {
-        Invocable main = Reflect.resolveJavaMethod( clas, "main",
-                new Class [] { String [].class }, true/*onlyStatic*/);
-        if ( main != null )
-            main.invoke( null, new Object [] { args } );
+        Invocable main = Reflect.resolveJavaMethod(clas, "main",
+                new Class[] {String[].class}, true/*onlyStatic*/);
+        if ( null != main )
+            main.invoke(null, new Object[] {args});
     }
 
     /** Run interactively. (printing prompts, etc.) */
     public void run() {
-        if(evalOnly)
+        if ( evalOnly )
             throw new RuntimeException("bsh Interpreter: No stream");
 
         /*
@@ -435,50 +431,46 @@ public class Interpreter
         if ( interactive && null == getParent() ) try {
             eval("printBanner();");
         } catch ( EvalError e ) {
-            println( "BeanShell " + VERSION );
+            println("BeanShell " + VERSION);
         }
 
         // init the callstack.
-        CallStack callstack = new CallStack( globalNameSpace );
+        CallStack callstack = new CallStack(globalNameSpace);
 
         SimpleNode node = null;
         EOF = false;
         int idx = -1;
-        while( !Thread.interrupted() && !EOF )
-        {
-            try
-            {
+        while( !Thread.interrupted() && !EOF ) {
+            try {
                 if ( interactive )
                     console.prompt(getBshPrompt());
 
                 EOF = readLine();
 
-                if( get_jjtree().nodeArity() > 0 )  // number of child nodes
-                {
+                if ( get_jjtree().nodeArity() > 0 )  { // number of child nodes
 
                     node = (SimpleNode) (get_jjtree().rootNode());
                     // nodes remember from where they were sourced
                     node.setSourceFile( sourceFileInfo );
 
-                    if( DEBUG.get() )
+                    if ( DEBUG.get() )
                         node.dump(">");
                     if ( TRACE )
-                        println( "// " +node.getText() );
+                        println("// " + node.getText());
 
 
-                    Object ret = node.eval( callstack, this );
+                    Object ret = node.eval(callstack, this);
 
                     // sanity check during development
                     if ( callstack.depth() > 1 )
                         throw new InterpreterError(
                             "Callstack growing: "+callstack);
 
-                    if(ret instanceof ReturnControl)
-                        ret = ((ReturnControl)ret).value;
+                    if ( ret instanceof ReturnControl )
+                        ret = ((ReturnControl) ret).value;
 
-                    if (interactive) {
-                        if( ret != Primitive.VOID )
-                        {
+                    if ( interactive ) {
+                        if ( ret != Primitive.VOID ) {
                             setu("$_", ret);
                             setu("$"+(++idx%10), ret);
                             if ( showResults )
@@ -487,52 +479,40 @@ public class Interpreter
                             println("--> void");
                     }
                 }
-            }
-            catch(ParseException e)
-            {
+            } catch (ParseException e) {
                 error("Parser Error: " + e.getMessage(DEBUG.get()));
                 if ( DEBUG.get() )
                     e.printStackTrace();
-                if( !interactive )
+                if ( !interactive )
                     EOF = true;
                 parser.reInitInput(getIn());
-            }
-            catch(InterpreterError e)
-            {
+            } catch (InterpreterError e) {
                 error("Internal Error: " + e.getMessage());
-                if(!interactive)
+                if ( !interactive )
                     EOF = true;
-            }
-            catch(TargetError e)
-            {
+            } catch (TargetError e) {
                 error("Target Exception: " + e.getMessage() );
                 if ( e.inNativeCode() )
                     e.printStackTrace( DEBUG.get(), getErr() );
-                if(!interactive)
+                if ( !interactive )
                     EOF = true;
                 setu("$_e", e.getTarget());
-            }
-            catch (EvalError e)
-            {
+            } catch (EvalError e) {
                 if ( interactive )
                     error( "Evaluation Error: "+e.getMessage() );
                 else
                     error( "Evaluation Error: "+e.getRawMessage() );
-                if(DEBUG.get())
+                if ( DEBUG.get() )
                     e.printStackTrace();
-                if(!interactive)
+                if ( !interactive )
                     EOF = true;
-            }
-            catch(Exception e)
-            {
+            } catch (Exception e) {
                 error("Unknown error: " + e);
                 if ( DEBUG.get() )
                     e.printStackTrace();
-                if(!interactive)
+                if ( !interactive )
                     EOF = true;
-            }
-            finally
-            {
+            } finally {
                 get_jjtree().reset();
                 // reinit the callstack
                 if ( callstack.depth() > 1 ) {
@@ -559,7 +539,7 @@ public class Interpreter
         Interpreter.debug("Sourcing file: ", url.toString());
         try (Reader fileRead = new FileReader(url.openStream());
              Reader sourceIn = new BufferedReader(fileRead)) {
-            return eval( sourceIn, namespace, url.toString() );
+            return eval(sourceIn, namespace, url.toString());
         }
     }
 
@@ -608,8 +588,8 @@ public class Interpreter
      * @return the return result from the script execution.
      * @throws EvalError if a script error occurred.
      * @throws IOException if a file read error occurred. */
-    public Object source( String filename ) throws EvalError, IOException {
-        return source( filename, globalNameSpace );
+    public Object source(String filename) throws EvalError, IOException {
+        return source(filename, globalNameSpace);
     }
 
     /**
@@ -649,8 +629,8 @@ public class Interpreter
             this interpreter.
         */
         Interpreter localInterpreter = new Interpreter(
-            in, getOut(), getErr(), false, nameSpace, this, sourceFileInfo  );
-        CallStack callstack = new CallStack( nameSpace );
+            in, getOut(), getErr(), false, nameSpace, this, sourceFileInfo);
+        CallStack callstack = new CallStack(nameSpace);
 
         SimpleNode node = null;
         boolean eof = false;
@@ -668,7 +648,7 @@ public class Interpreter
                     if ( TRACE )
                         println( "// " +node.getText() );
 
-                    retVal = node.eval( callstack, localInterpreter );
+                    retVal = node.eval(callstack, localInterpreter);
 
                     // sanity check during development
                     if ( callstack.depth() > 1 )
