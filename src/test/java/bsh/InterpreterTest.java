@@ -132,7 +132,7 @@ public class InterpreterTest {
         final StringBuilder S = new StringBuilder();
         final ConsoleInterface C  = getConsole(S, bout, berr);
 
-        Interpreter bsh = new Interpreter(C, new NameSpace(null, "global"));
+        Interpreter bsh = new Interpreter(C, new NameSpace("global"));
         bsh.setExitOnEOF(false);
         bsh.setConsole(C);
         assertEquals("bsh % ", bsh.eval("getBshPrompt();"));
