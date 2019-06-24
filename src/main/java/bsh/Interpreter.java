@@ -194,8 +194,11 @@ public class Interpreter
 
         this.interactive = interactive;
         this.parent = parent;
-        if ( parent != null )
+        if ( parent != null ) {
             setStrictJava( parent.strictJava );
+            this.parser = parent.parser;
+            this.evalOnly = parent.evalOnly;
+        }
 
         this.sourceFileInfo = sourceFileInfo;
 
@@ -295,7 +298,11 @@ public class Interpreter
      * @param console assignable collection of input output streams. */
     public void setConsole( ConsoleAssignable console ) {
         this.console = console;
-        this.parser = new Parser( getIn() );
+        if ( null == this.parser || get_jjtree().nodeArity() != 0
+                || (null != parent && parent.interactive) )
+            this.parser = new Parser(getIn());
+        else
+            this.parser.ReInit(getIn());
     }
 
     /** Overloaded to accept a read only console.
