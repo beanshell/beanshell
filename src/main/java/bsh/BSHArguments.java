@@ -56,10 +56,10 @@ class BSHArguments extends SimpleNode
         Object[] args = new Object[jjtGetNumChildren()];
         for(int i = 0; i < args.length; i++)
         {
-            args[i] = ((SimpleNode)jjtGetChild(i)).eval(callstack, interpreter);
+            args[i] = jjtGetChild(i).eval(callstack, interpreter);
             if ( args[i] == Primitive.VOID )
                 throw new EvalError( "Undefined argument: " +
-                    ((SimpleNode)jjtGetChild(i)).getText(), this, callstack );
+                    jjtGetChild(i).getText(), this, callstack );
         }
 
         return args;

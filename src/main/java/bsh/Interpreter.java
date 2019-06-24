@@ -437,7 +437,7 @@ public class Interpreter
         // init the callstack.
         CallStack callstack = new CallStack(globalNameSpace);
 
-        SimpleNode node = null;
+        Node node = null;
         EOF = false;
         int idx = -1;
         while( !Thread.interrupted() && !EOF ) {
@@ -449,7 +449,7 @@ public class Interpreter
 
                 if ( get_jjtree().nodeArity() > 0 )  { // number of child nodes
 
-                    node = (SimpleNode) (get_jjtree().rootNode());
+                    node = get_jjtree().rootNode();
                     // nodes remember from where they were sourced
                     node.setSourceFile( sourceFileInfo );
 
@@ -632,7 +632,7 @@ public class Interpreter
             in, getOut(), getErr(), false, nameSpace, this, sourceFileInfo);
         CallStack callstack = new CallStack(nameSpace);
 
-        SimpleNode node = null;
+        Node node = null;
         boolean eof = false;
         while( !eof )
         {
@@ -641,7 +641,7 @@ public class Interpreter
                 eof = localInterpreter.readLine();
                 if (localInterpreter.get_jjtree().nodeArity() > 0)
                 {
-                    node = (SimpleNode)localInterpreter.get_jjtree().rootNode();
+                    node = localInterpreter.get_jjtree().rootNode();
                     // nodes remember from where they were sourced
                     node.setSourceFile( sourceFileInfo );
 
@@ -779,7 +779,7 @@ public class Interpreter
             Object ret = globalNameSpace.get( name, this );
             return Primitive.unwrap( ret );
         } catch ( UtilEvalError e ) {
-            throw e.toEvalError( SimpleNode.JAVACODE, new CallStack() );
+            throw e.toEvalError( Node.JAVACODE, new CallStack() );
         }
     }
 
@@ -815,7 +815,7 @@ public class Interpreter
             } else // optimization for common case
                 globalNameSpace.setVariable( name, value, false );
         } catch ( UtilEvalError e ) {
-            throw e.toEvalError( SimpleNode.JAVACODE, callstack );
+            throw e.toEvalError( Node.JAVACODE, callstack );
         }
     }
 
@@ -864,12 +864,12 @@ public class Interpreter
 
             if ( lhs.type != LHS.VARIABLE )
                 throw new EvalError("Can't unset, not a variable: "+name,
-                    SimpleNode.JAVACODE, new CallStack());
+                    Node.JAVACODE, new CallStack());
 
             lhs.nameSpace.unsetVariable( name );
         } catch ( UtilEvalError e ) {
             throw new EvalError( e.getMessage(),
-                SimpleNode.JAVACODE, new CallStack(), e);
+                Node.JAVACODE, new CallStack(), e);
         }
     }
 
@@ -1095,9 +1095,9 @@ public class Interpreter
         Specify the source of the text from which this interpreter is reading.
         Note: there is a difference between what file the interrpeter is
         sourcing and from what file a method was originally parsed.  One
-        file may call a method sourced from another file.  See SimpleNode
+        file may call a method sourced from another file.  See Node
         for origination file info.
-        @see bsh.SimpleNode#getSourceFile()
+        @see bsh.Node#getSourceFile()
     */
     public String getSourceFileInfo() {
         if ( sourceFileInfo != null )

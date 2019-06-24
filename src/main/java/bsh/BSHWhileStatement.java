@@ -47,15 +47,15 @@ class BSHWhileStatement extends SimpleNode implements ParserConstants {
     public Object eval(CallStack callstack, Interpreter interpreter) throws EvalError {
         int numChild = jjtGetNumChildren();
         // Order of body and condition is swapped for do / while
-        final SimpleNode condExp;
-        final SimpleNode body;
+        final Node condExp;
+        final Node body;
         if (isDoStatement) {
-            condExp = (SimpleNode) jjtGetChild(1);
-            body = (SimpleNode) jjtGetChild(0);
+            condExp = jjtGetChild(1);
+            body = jjtGetChild(0);
         } else {
-            condExp = (SimpleNode) jjtGetChild(0);
+            condExp = jjtGetChild(0);
             if (numChild > 1) {
-                body = (SimpleNode) jjtGetChild(1);
+                body = jjtGetChild(1);
             } else {
                 body = null;
             }

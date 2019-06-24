@@ -92,7 +92,7 @@ public class NameSpace
     private Map<String, Name> names = new HashMap<>();
     /** The node associated with the creation of this namespace. This is used
      * support getInvocationLine() and getInvocationText(). */
-    SimpleNode callerInfoNode;
+    Node callerInfoNode;
     /** Note that the namespace is a method body namespace. This is used for
      * printing stack traces in exceptions. */
     boolean isMethod;
@@ -195,13 +195,13 @@ public class NameSpace
      * used in debugging and to support the getInvocationLine() and
      * getInvocationText() methods.
      * @param node the new node */
-    void setNode(final SimpleNode node) {
+    void setNode(final Node node) {
         this.callerInfoNode = node;
     }
 
     /** Gets the node.
      * @return the node */
-    SimpleNode getNode() {
+    Node getNode() {
         if (this.callerInfoNode != null)
             return this.callerInfoNode;
         if (this.parent != null)
@@ -1181,7 +1181,7 @@ public class NameSpace
      * @return the object
      * @throws EvalError the eval error
      * @see bsh.This.invokeMethod(String methodName, Object [] args,
-     *      Interpreter interpreter, CallStack callstack, SimpleNode callerInfo,
+     *      Interpreter interpreter, CallStack callstack, Node callerInfo,
      *      boolean) */
     public Object invokeMethod(final String methodName, final Object[] args,
             final Interpreter interpreter) throws EvalError {
@@ -1198,11 +1198,11 @@ public class NameSpace
      * @return the object
      * @throws EvalError the eval error
      * @see bsh.This.invokeMethod(String methodName, Object [] args,
-     *      Interpreter interpreter, CallStack callstack, SimpleNode
+     *      Interpreter interpreter, CallStack callstack, Node
      *      callerInfo) */
     public Object invokeMethod(final String methodName, final Object[] args,
             final Interpreter interpreter, final CallStack callstack,
-            final SimpleNode callerInfo) throws EvalError {
+            final Node callerInfo) throws EvalError {
         return this.getThis(interpreter).invokeMethod(methodName, args,
                 interpreter, callstack, callerInfo, false/* declaredOnly */);
     }
@@ -1283,7 +1283,7 @@ public class NameSpace
     /** Gets the invocation line.
      * @return the invocation line */
     public int getInvocationLine() {
-        final SimpleNode node = this.getNode();
+        final Node node = this.getNode();
         if (node != null)
             return node.getLineNumber();
         else
@@ -1293,7 +1293,7 @@ public class NameSpace
     /** Gets the invocation text.
      * @return the invocation text */
     public String getInvocationText() {
-        final SimpleNode node = this.getNode();
+        final Node node = this.getNode();
         if (node != null)
             return node.getText();
         else

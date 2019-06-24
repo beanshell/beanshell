@@ -154,7 +154,7 @@ public final class ClassGenerator {
     static Variable[] getDeclaredVariables(BSHBlock body, CallStack callstack, Interpreter interpreter, String defaultPackage) {
         List<Variable> vars = new ArrayList<Variable>();
         for (int child = 0; child < body.jjtGetNumChildren(); child++) {
-            SimpleNode node = (SimpleNode) body.jjtGetChild(child);
+            Node node = body.jjtGetChild(child);
             if (node instanceof BSHEnumConstant) {
                 BSHEnumConstant enm = (BSHEnumConstant) node;
                 try {
@@ -198,7 +198,7 @@ public final class ClassGenerator {
             methods.add(bm);
         }
         for (int child = 0; child < body.jjtGetNumChildren(); child++) {
-            SimpleNode node = (SimpleNode) body.jjtGetChild(child);
+            Node node = body.jjtGetChild(child);
             if (node instanceof BSHMethodDeclaration) {
                 BSHMethodDeclaration md = (BSHMethodDeclaration) node;
                 md.insureNodesParsed();
@@ -237,7 +237,7 @@ public final class ClassGenerator {
         }
 
         @Override
-        public boolean isVisible(SimpleNode node) {
+        public boolean isVisible(Node node) {
             if (context == Context.CLASSES) return node instanceof BSHClassDeclaration;
 
             // Only show class decs in CLASSES
@@ -251,7 +251,7 @@ public final class ClassGenerator {
             return true;
         }
 
-        boolean isStatic(SimpleNode node) {
+        boolean isStatic(Node node) {
             if ( null != node.jjtGetParent()
                     && node.jjtGetParent().jjtGetParent() instanceof BSHClassDeclaration
                     && ((BSHClassDeclaration) node.jjtGetParent().jjtGetParent()).type == Type.INTERFACE )

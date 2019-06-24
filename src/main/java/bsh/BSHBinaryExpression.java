@@ -40,7 +40,7 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
-        Object lhs = ((SimpleNode)jjtGetChild(0)).eval(callstack, interpreter);
+        Object lhs = jjtGetChild(0).eval(callstack, interpreter);
 
         /*
             Doing instanceof?  Next node is a type.
@@ -85,7 +85,7 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
             return Primitive.TRUE;
 
 
-        Object rhs = ((SimpleNode)jjtGetChild(1)).eval(callstack, interpreter);
+        Object rhs = jjtGetChild(1).eval(callstack, interpreter);
 
         // Handle null values and apply null rules.
         lhs = checkNullValues(lhs, rhs, 0, callstack);

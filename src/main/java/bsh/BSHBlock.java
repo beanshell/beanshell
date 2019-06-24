@@ -39,7 +39,7 @@ class BSHBlock extends SimpleNode
     public boolean isSynchronized = false;
     public boolean isStatic = false;
     private boolean hasClassDeclaration = false, isFirst = true;
-    private static final List<SimpleNode> enumBlocks = new ArrayList<>();
+    private static final List<Node> enumBlocks = new ArrayList<>();
     private static final ReferenceCache<NameSpace,NameSpace> blockspaces
         = new ReferenceCache<NameSpace, NameSpace>(Type.Weak, Type.Weak, 4000) {
             protected NameSpace create(NameSpace key) {
@@ -74,7 +74,7 @@ class BSHBlock extends SimpleNode
         if ( isSynchronized )
         {
             // First node is the expression on which to sync
-            SimpleNode exp = ((SimpleNode)jjtGetChild(0));
+            Node exp = jjtGetChild(0);
             syncValue = exp.eval(callstack, interpreter);
         }
 
@@ -114,7 +114,7 @@ class BSHBlock extends SimpleNode
             if (isFirst || hasClassDeclaration)
             for(int i=startChild; i<numChildren; i++)
             {
-                SimpleNode node = ((SimpleNode)jjtGetChild(i));
+                Node node = jjtGetChild(i);
 
                 if ( nodeFilter != null && !nodeFilter.isVisible( node ) )
                     continue;
@@ -126,7 +126,7 @@ class BSHBlock extends SimpleNode
             }
             for(int i=startChild; i<numChildren; i++)
             {
-                SimpleNode node = ((SimpleNode)jjtGetChild(i));
+                Node node = jjtGetChild(i);
 
                 if ( node instanceof BSHClassDeclaration )
                     continue;
@@ -163,7 +163,7 @@ class BSHBlock extends SimpleNode
     }
 
     public interface NodeFilter {
-        boolean isVisible( SimpleNode node );
+        boolean isVisible( Node node );
     }
 
 }

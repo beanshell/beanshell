@@ -39,7 +39,7 @@ class BSHSwitchStatement
     {
         int numchild = jjtGetNumChildren();
         int child = 0;
-        SimpleNode switchExp = ((SimpleNode)jjtGetChild(child++));
+        Node switchExp = jjtGetChild(child++);
         Object switchVal = switchExp.eval( callstack, interpreter );
 
         // import enum constants
@@ -53,7 +53,7 @@ class BSHSwitchStatement
         */
         // first label
         BSHSwitchLabel label;
-        Object node;
+        Node node;
         ReturnControl returnControl=null;
 
         // get the first label
@@ -79,7 +79,7 @@ class BSHSwitchStatement
                         continue;
                     // eval it
                     Object value =
-                        ((SimpleNode)node).eval( callstack, interpreter );
+                        node.eval( callstack, interpreter );
 
                     // should check to disallow continue here?
                     if ( value instanceof ReturnControl ) {
@@ -113,7 +113,7 @@ class BSHSwitchStatement
     */
     private boolean primitiveEquals(
         Object switchVal, Object targetVal,
-        CallStack callstack, SimpleNode switchExp  )
+        CallStack callstack, Node switchExp  )
         throws EvalError
     {
         if (targetVal == Primitive.VOID)
