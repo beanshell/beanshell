@@ -220,7 +220,7 @@ public class BshMethod implements Serializable {
     */
     public Object invoke(
         Object[] argValues, Interpreter interpreter, CallStack callstack,
-            SimpleNode callerInfo )
+            Node callerInfo )
         throws EvalError
     {
         return invoke( argValues, interpreter, callstack, callerInfo, false );
@@ -249,7 +249,7 @@ public class BshMethod implements Serializable {
     */
     Object invoke(
         Object[] argValues, Interpreter interpreter, CallStack callstack,
-            SimpleNode callerInfo, boolean overrideNameSpace )
+            Node callerInfo, boolean overrideNameSpace )
         throws EvalError
     {
         if ( argValues != null )
@@ -300,7 +300,7 @@ public class BshMethod implements Serializable {
 
     private Object invokeImpl(
         Object[] argValues, Interpreter interpreter, CallStack callstack,
-            SimpleNode callerInfo, boolean overrideNameSpace )
+            Node callerInfo, boolean overrideNameSpace )
         throws EvalError
     {
         if (hasModifier("abstract"))
@@ -462,7 +462,7 @@ public class BshMethod implements Serializable {
             } catch( UtilEvalError e ) {
                 // Point to return statement point if we had one.
                 // (else it was implicit return? What's the case here?)
-                SimpleNode node = callerInfo;
+                Node node = callerInfo;
                 if ( retControl != null )
                     node = retControl.returnPoint;
                 throw e.toEvalError(

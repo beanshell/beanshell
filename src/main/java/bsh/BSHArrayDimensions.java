@@ -74,7 +74,7 @@ class BSHArrayDimensions extends SimpleNode
     public Object eval( CallStack callstack, Interpreter interpreter )
         throws EvalError
     {
-        SimpleNode child = (SimpleNode)jjtGetChild(0);
+        Node child = jjtGetChild(0);
 
         /*
             Child is array initializer.  Evaluate it and fill in the
@@ -116,8 +116,7 @@ class BSHArrayDimensions extends SimpleNode
             for(int i = 0; i < numDefinedDims; i++)
             {
                 try {
-                    Object length = ((SimpleNode)jjtGetChild(i)).eval(
-                        callstack, interpreter);
+                    Object length = jjtGetChild(i).eval(callstack, interpreter);
                     definedDimensions[i] = ((Primitive)length).intValue();
                 }
                 catch(Exception e)

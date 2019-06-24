@@ -46,14 +46,14 @@ public final class TargetError extends EvalError
     private final boolean inNativeCode;
 
     public TargetError(
-        String msg, Throwable t, SimpleNode node, CallStack callstack,
+        String msg, Throwable t, Node node, CallStack callstack,
         boolean inNativeCode )
     {
         super( msg, node, callstack, t );
         this.inNativeCode = inNativeCode;
     }
 
-    public TargetError( Throwable t, SimpleNode node, CallStack callstack )
+    public TargetError( Throwable t, Node node, CallStack callstack )
     {
         this("TargetError", t, node, callstack, false);
     }

@@ -37,10 +37,10 @@ class BSHForStatement extends SimpleNode implements ParserConstants
     public boolean hasExpression;
     public boolean hasForUpdate;
 
-    private SimpleNode forInit;
-    private SimpleNode expression;
-    private SimpleNode forUpdate;
-    private SimpleNode statement;
+    private Node forInit;
+    private Node expression;
+    private Node forUpdate;
+    private Node statement;
 
     BSHForStatement(int id) { super(id); }
 
@@ -49,13 +49,13 @@ class BSHForStatement extends SimpleNode implements ParserConstants
     {
         int i = 0;
         if(hasForInit)
-            forInit = ((SimpleNode)jjtGetChild(i++));
+            forInit = jjtGetChild(i++);
         if(hasExpression)
-            expression = ((SimpleNode)jjtGetChild(i++));
+            expression = jjtGetChild(i++);
         if(hasForUpdate)
-            forUpdate = ((SimpleNode)jjtGetChild(i++));
+            forUpdate = jjtGetChild(i++);
         if(i < jjtGetNumChildren()) // should normally be
-            statement = ((SimpleNode)jjtGetChild(i));
+            statement = jjtGetChild(i);
 
         NameSpace enclosingNameSpace= callstack.top();
         BlockNameSpace forNameSpace = new BlockNameSpace( enclosingNameSpace );

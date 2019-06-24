@@ -275,7 +275,7 @@ class BSHArrayInitializer extends SimpleNode {
         }
         // certain value elements may require more inference
         if ( !(node instanceof BSHArrayInitializer) ) {
-            Object ot = ((SimpleNode) node).eval(callstack, interpreter);
+            Object ot = node.eval(callstack, interpreter);
             // if the value element is null look for more dimensions
             // example: {null, {1, 2}} makes int[][]
             if ( ot == Primitive.NULL )
@@ -309,7 +309,7 @@ class BSHArrayInitializer extends SimpleNode {
             return common;
         // inspect value elements for common type
         if ( node instanceof BSHAssignment ) {
-            Object value = ((SimpleNode) node).eval(callstack, interpreter);
+            Object value = node.eval(callstack, interpreter);
             Class<?> type = Types.getType(value, Primitive.isWrapperType(common));
             return Types.getCommonType(common, Types.arrayElementType(type));
         }

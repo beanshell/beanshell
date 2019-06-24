@@ -310,7 +310,7 @@ public final class This implements java.io.Serializable, Runnable
             throws EvalError
     {
         CallStack callstack = new CallStack(namespace);
-        SimpleNode node = namespace.getNode();
+        Node node = namespace.getNode();
         namespace.setNode(null);
         try {
             Object ret = invokeMethod(
@@ -346,7 +346,7 @@ public final class This implements java.io.Serializable, Runnable
         have to script them directly.
         <p>
 
-        @see bsh.This#invokeMethod(String, Object[], Interpreter, CallStack, SimpleNode, boolean)
+        @see bsh.This#invokeMethod(String, Object[], Interpreter, CallStack, Node, boolean)
         @param callstack if callStack is null a new CallStack will be created and
             initialized with this namespace.
         @param declaredOnly if true then only methods declared directly in the
@@ -363,7 +363,7 @@ public final class This implements java.io.Serializable, Runnable
     */
     public Object invokeMethod(
         String methodName, Object [] args,
-        Interpreter interpreter, CallStack callstack, SimpleNode callerInfo,
+        Interpreter interpreter, CallStack callstack, Node callerInfo,
         boolean declaredOnly  )
         throws EvalError
     {
@@ -375,7 +375,7 @@ public final class This implements java.io.Serializable, Runnable
         if ( callstack == null )
             callstack = new CallStack( namespace );
         if ( callerInfo == null )
-            callerInfo = SimpleNode.JAVACODE;
+            callerInfo = Node.JAVACODE;
 
         // Find the bsh method
         Class [] types = Types.getTypes( args );
@@ -423,7 +423,7 @@ public final class This implements java.io.Serializable, Runnable
                     ns.setMethod(method);
                 }
             } catch ( UtilEvalError e ) {
-                throw e.toEvalError( SimpleNode.JAVACODE, callstack );
+                throw e.toEvalError( Node.JAVACODE, callstack );
             }
             return ns.getThis(declaringInterpreter);
         }

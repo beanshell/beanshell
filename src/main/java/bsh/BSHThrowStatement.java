@@ -35,7 +35,7 @@ class BSHThrowStatement extends SimpleNode
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
-        Object obj = ((SimpleNode) jjtGetChild(0)).eval(callstack, interpreter);
+        Object obj = jjtGetChild(0).eval(callstack, interpreter);
 
         if(!(obj instanceof Throwable))
             throw new EvalError("Expression in 'throw' must be Throwable type",

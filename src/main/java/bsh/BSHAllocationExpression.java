@@ -50,10 +50,10 @@ class BSHAllocationExpression extends SimpleNode
                        Void.TYPE, callstack, interpreter );
 
         // type is either a class name or a primitive type
-        SimpleNode type = (SimpleNode)jjtGetChild(0);
+        Node type = jjtGetChild(0);
 
         // args is either constructor arguments or array dimensions
-        SimpleNode args = (SimpleNode)jjtGetChild(1);
+        Node args = jjtGetChild(1);
 
         if ( type instanceof BSHAmbiguousName )
         {

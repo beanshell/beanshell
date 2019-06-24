@@ -64,8 +64,8 @@ class BSHType extends SimpleNode
         arrayDims++;
     }
 
-    SimpleNode getTypeNode() {
-        return (SimpleNode)jjtGetChild(0);
+    Node getTypeNode() {
+        return jjtGetChild(0);
     }
 
     /**
@@ -84,7 +84,7 @@ class BSHType extends SimpleNode
 
         String descriptor;
         //  first node will either be PrimitiveType or AmbiguousName
-        SimpleNode node = getTypeNode();
+        Node node = getTypeNode();
         if ( node instanceof BSHPrimitiveType )
             descriptor = getTypeDescriptor( ((BSHPrimitiveType)node).type );
         else
@@ -142,7 +142,7 @@ class BSHType extends SimpleNode
             return type;
 
         //  first node will either be PrimitiveType or AmbiguousName
-        SimpleNode node = getTypeNode();
+        Node node = getTypeNode();
         if ( node instanceof BSHPrimitiveType )
             baseType = ((BSHPrimitiveType)node).getType();
         else

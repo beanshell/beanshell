@@ -51,23 +51,23 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
         if (this.isFinal)
             modifiers.addModifier("final");
         Class elementType = null;
-        SimpleNode expression;
-        SimpleNode statement = null;
+        Node expression;
+        Node statement = null;
         NameSpace enclosingNameSpace = callstack.top();
-        SimpleNode firstNode = ((SimpleNode) jjtGetChild(0));
+        Node firstNode = jjtGetChild(0);
         int nodeCount = jjtGetNumChildren();
         if (firstNode instanceof BSHType) {
             elementType = ((BSHType) firstNode).getType(callstack, interpreter);
             if (elementType == null)
                 elementType = Object.class;
-            expression = ((SimpleNode) jjtGetChild(1));
+            expression = jjtGetChild(1);
             if (nodeCount > 2) {
-                statement = ((SimpleNode) jjtGetChild(2));
+                statement = jjtGetChild(2);
             }
         } else {
             expression = firstNode;
             if (nodeCount > 1) {
-                statement = ((SimpleNode) jjtGetChild(1));
+                statement = jjtGetChild(1);
             }
         }
         final Object iteratee = expression.eval(callstack, interpreter);

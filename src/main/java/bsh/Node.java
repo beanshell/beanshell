@@ -22,7 +22,7 @@ import java.util.ListIterator;
  * between nodes. */
 public interface Node extends ListIterator<Node> {
     //  ---- start BeanShell specific stuff ----  //
-    SimpleNode JAVACODE = new SimpleNode( -1 ) {
+    Node JAVACODE = new SimpleNode( -1 ) {
         private static final long serialVersionUID = 1L;
         public String getSourceFile() {
             return "<Called from Java Code>";

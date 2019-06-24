@@ -82,7 +82,7 @@ public final class Reflect {
     public static Object invokeObjectMethod(
             Object object, String methodName, Object[] args,
             Interpreter interpreter, CallStack callstack,
-            SimpleNode callerInfo ) throws ReflectError, EvalError,
+            Node callerInfo ) throws ReflectError, EvalError,
             InvocationTargetException {
         // Bsh scripted object
         if ( object instanceof This && !This.isExposedThisMethod(methodName) )
@@ -114,7 +114,7 @@ public final class Reflect {
     */
     public static Object invokeStaticMethod(
             BshClassManager bcm, Class<?> clas, String methodName,
-            Object [] args, SimpleNode callerInfo )
+            Object [] args, Node callerInfo )
                     throws ReflectError, UtilEvalError,
                            InvocationTargetException {
         Interpreter.debug("invoke static Method");
@@ -652,7 +652,7 @@ public final class Reflect {
     */
     public static Object invokeCompiledCommand(
         Class<?> commandClass, Object [] args, Interpreter interpreter,
-        CallStack callstack, SimpleNode callerInfo )
+        CallStack callstack, Node callerInfo )
         throws UtilEvalError
     {
         // add interpereter and namespace to args list
