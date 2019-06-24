@@ -34,6 +34,7 @@ import java.io.FilenameFilter;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 import org.junit.AssumptionViolatedException;
 import org.junit.Test;
@@ -111,6 +112,8 @@ public class BshScriptTestCase {
                             && !"Fail.bsh".equals(name);
                     }
                 });
+            if ( _VERBOSE )
+                Arrays.sort(files);
             if ( null != files ) for ( final File file : files )
                 if ( file.isFile() )
                     suite.addTest(new Script(file));
