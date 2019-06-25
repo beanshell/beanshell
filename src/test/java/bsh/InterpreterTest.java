@@ -27,7 +27,9 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.lang.ref.WeakReference;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.hamcrest.Matchers.isEmptyString;
@@ -81,12 +83,50 @@ public class InterpreterTest {
      */
     @Test(timeout = 10000)
     public void check_for_memory_leak() throws Exception {
-        @SuppressWarnings("resource")
         final WeakReference<Object> reference = new WeakReference<Object>(new Interpreter().eval("x = new byte[1024 * 2024]; return x;"));
         while (reference.get() != null) {
             System.gc();
-            Thread.sleep(100);
+            Thread.sleep(1);
         }
+    }
+
+
+    @Test
+    public void test_constructors() throws Exception {
+        Interpreter one = new Interpreter();
+        assertTrue(one.evalOnly);
+        assertNull(one.getParent());
+        assertEquals("<unknown source>", one.getSourceFileInfo());
+        assertEquals("global", one.globalNameSpace.getName());
+        NameSpace ns = new NameSpace("twoSpace");
+        Interpreter two = new Interpreter(ns);
+        assertTrue(two.evalOnly);
+        assertNull(two.getParent());
+        assertEquals("<unknown source>", two.getSourceFileInfo());
+        assertEquals("twoSpace", two.globalNameSpace.getName());
+        Interpreter three = new Interpreter(two);
+        assertTrue(three.evalOnly);
+        assertNotNull(three.getParent());
+        assertSame(two, three.getParent());
+        assertEquals("<unknown source>", three.getSourceFileInfo());
+        assertEquals("twoSpace", three.globalNameSpace.getName());
+        Interpreter four = new Interpreter(ns, one);
+        assertTrue(four.evalOnly);
+        assertNotNull(four.getParent());
+        assertSame(one, four.getParent());
+        assertEquals("<unknown source>", four.getSourceFileInfo());
+        assertEquals("twoSpace", four.globalNameSpace.getName());
+        Interpreter five = new Interpreter(ns, "known source");
+        assertTrue(five.evalOnly);
+        assertNull(five.getParent());
+        assertEquals("known source", five.getSourceFileInfo());
+        assertEquals("twoSpace", five.globalNameSpace.getName());
+        Interpreter six = new Interpreter(ns, one, "known source");
+        assertTrue(six.evalOnly);
+        assertNotNull(six.getParent());
+        assertSame(one, six.getParent());
+        assertEquals("known source", six.getSourceFileInfo());
+        assertEquals("twoSpace", six.globalNameSpace.getName());
     }
 
     @Test
