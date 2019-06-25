@@ -43,6 +43,7 @@
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
+          <argLine>-XX:+UseSerialGC</argLine>
           <systemPropertyVariables>
             <bsh.debugClasses></bsh.debugClasses>
             <accessibility>false</accessibility>
