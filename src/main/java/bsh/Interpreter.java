@@ -287,9 +287,49 @@ public class Interpreter
     /** A non interactive interpreter for evaluation purposes only.
      * Uses system standard output and error with input deferred to eval. */
     public Interpreter() {
-        this( null, System.out, System.err, false, null );
+        this(null, null, "");
+        this.sourceFileInfo = null;
+    }
+
+    /** A non interactive interpreter for namespace.
+     * Uses system standard output and error with input deferred to eval.
+     * @param namespace global name space. */
+    public Interpreter(NameSpace namespace) {
+        this(namespace, null, null);
+    }
+
+    /** A non interactive interpreter for namespace and source file.
+     * Uses system standard output and error with input deferred to eval.
+     * @param namespace global name space.
+     * @param sourceFileInfo source file info for debugging. */
+    public Interpreter(NameSpace namespace, String sourceFileInfo) {
+        this(namespace, null, sourceFileInfo);
+    }
+
+    /** A non interactive interpreter for namespace and parent.
+     * Uses system standard output and error with input deferred to eval.
+     * @param namespace global name space.
+     * @param parent interpreter. */
+    public Interpreter(NameSpace namespace, Interpreter parent) {
+        this(namespace, parent, null);
+    }
+
+    /** A non interactive interpreter for namespace, parent and source file.
+     * Uses system standard output and error with input deferred to eval.
+     * @param namespace global name space.
+     * @param parent interpreter.
+     * @param sourceFileInfo source file info for debugging. */
+    public Interpreter(NameSpace namespace, Interpreter parent, String sourceFileInfo) {
+        this(null, System.out, System.err, false, namespace, parent, sourceFileInfo);
         this.evalOnly = true;
         setu( "bsh.evalOnly", Primitive.TRUE );
+    }
+
+    /** Extend existing interpreter.
+     * @param parent interpreter. */
+    public Interpreter(Interpreter parent) {
+        this(parent.console, parent.interactive, parent.globalNameSpace,
+                parent, parent.sourceFileInfo);
     }
 
     // End constructors
