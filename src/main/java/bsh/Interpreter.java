@@ -774,13 +774,21 @@ public class Interpreter
     {
         return eval(
             new StringReader(terminatedScript(statements)), nameSpace,
-            "inline evaluation of: ``"+ showEvalString(statements)+"''" );
+            showEvalString("inline evaluation", statements) );
     }
 
-    private String showEvalString( String s ) {
-        if ( s.length() > 80 )
-            s = s.substring( 0, 80 ) + " . . . ";
-        return s.replace('\n', ' ').replace('\r', ' ');
+    /** Produce source file info from the supplied statements.
+     * The script statements are truncated to 80 characters and new lines
+     * removed for use in error message output.
+     * @param type of file / evaluation.
+     * @param statement of script.
+     * @return snippet of the script for debug info. */
+    String showEvalString( String type, String statement ) {
+        if ( statement.length() > 80 )
+            statement = statement.substring( 0, 80 ) + " . . . ";
+        return type.concat(" of: ``")
+                .concat(statement.replace('\n', ' ').replace('\r', ' '))
+                .concat("''");
     }
 
     /** Convenience termination of unterminated script statements.
@@ -852,24 +860,17 @@ public class Interpreter
         Assign the value to the name.
         name may evaluate to anything assignable. e.g. a variable or field.
     */
-    public void set( String name, Object value )
-        throws EvalError
-    {
-        // map null to Primtive.NULL coming in...
-        if ( value == null )
-            value = Primitive.NULL;
-
-        CallStack callstack = new CallStack();
+    public void set(String name, Object value)
+            throws EvalError {
+        CallStack callstack = new CallStack(globalNameSpace);
         try {
-            if ( Name.isCompound( name ) )
-            {
-                LHS lhs = globalNameSpace.getNameResolver( name ).toLHS(
-                    callstack, this );
-                lhs.assign( value, false );
-            } else // optimization for common case
-                globalNameSpace.setVariable( name, value, false );
-        } catch ( UtilEvalError e ) {
-            throw e.toEvalError( Node.JAVACODE, callstack );
+            if ( Name.isCompound(name) )
+                globalNameSpace.getNameResolver(name).toLHS(
+                    callstack, this).assign(value, false);
+            else // optimization for common case
+                globalNameSpace.setVariable(name, value, false);
+        } catch (UtilEvalError e) {
+            throw e.toEvalError(Node.JAVACODE, callstack);
         }
     }
 

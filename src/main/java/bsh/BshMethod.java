@@ -315,7 +315,7 @@ public class BshMethod implements Serializable {
             callstack = new CallStack( declaringNameSpace );
 
         if ( argValues == null )
-            argValues = new Object [] { };
+            argValues = Reflect.ZERO_ARGS;
 
         // Cardinality (number of args) mismatch
         if ( !isVarArgs() && argValues.length != getParameterCount() ) {
