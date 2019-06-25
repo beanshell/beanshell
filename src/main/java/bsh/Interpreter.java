@@ -772,10 +772,9 @@ public class Interpreter
     public Object eval( String statements, NameSpace nameSpace )
         throws EvalError
     {
-        String s = ( statements.endsWith(";") ? statements : statements+";" );
         return eval(
-            new StringReader(s), nameSpace,
-            "inline evaluation of: ``"+ showEvalString(s)+"''" );
+            new StringReader(terminatedScript(statements)), nameSpace,
+            "inline evaluation of: ``"+ showEvalString(statements)+"''" );
     }
 
     private String showEvalString( String s ) {
@@ -784,6 +783,14 @@ public class Interpreter
         return s.replace('\n', ' ').replace('\r', ' ');
     }
 
+    /** Convenience termination of unterminated script statements.
+     * @param statements with possible unterminated line.
+     * @return a properly line terminated statement. */
+    String terminatedScript(String statements) {
+        if ( statements.endsWith(";") )
+            return statements;
+        return statements + ";";
+    }
     // end source and eval
 
     /** Console delegate methods. */
