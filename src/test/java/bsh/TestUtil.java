@@ -26,6 +26,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -143,8 +144,24 @@ public class TestUtil {
         return interpreter.eval(script(code));
     }
 
+    public static <K,E> Map<K,E> emptyMap() {
+        return Collections.<K,E>emptyMap();
+    }
+
     public static <K,E> Map<K,E> toMap(K key, E value) {
         return Collections.singletonMap(key, value);
+    }
+
+    public static <K,E> Map<K,E> mapOf(Object... input) {
+        Map<K,E> map = new HashMap<>(input.length >> 1);
+        for ( int i = 0; i < input.length; i += 2 ) {
+            @SuppressWarnings("unchecked")
+            K key = (K) input[i];
+            @SuppressWarnings("unchecked")
+            E value = (E) input[i+1];
+            map.put(key, value);
+        }
+        return Collections.unmodifiableMap(map);
     }
 
     static class MeasureRunnable implements Runnable {

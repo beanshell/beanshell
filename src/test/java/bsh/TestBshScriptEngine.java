@@ -142,6 +142,14 @@ public class TestBshScriptEngine {
     }
 
     @Test
+    public void test_bsh_script_engine_compile_no_line_terminator() throws Throwable {
+        Compilable engine = (Compilable) new ScriptEngineManager().getEngineByName( "beanshell" );
+        assertNotNull( engine );
+        CompiledScript script = engine.compile("37+5");
+        assertEquals(42, script.eval());
+    }
+
+    @Test
     public void test_bsh_script_engine_compile_args() throws Throwable {
         ScriptEngine engine = new ScriptEngineManager().getEngineByName( "beanshell" );
         assertNotNull( engine );

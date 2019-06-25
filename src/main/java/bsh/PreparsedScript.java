@@ -4,78 +4,89 @@ import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.Map;
 
-import bsh.classpath.ClassManagerImpl;
-
-/**
- * With this class the script source is only parsed once and the resulting AST is used for
- * {@link #invoke(java.util.Map) every invocation}. This class is designed to be thread-safe.
- */
+/** With this class the script source is only parsed once and the resulting
+ * AST is used for {@link #invoke(java.util.Map) every invocation}. This class
+ * is designed to be thread-safe. */
 public class PreparsedScript {
 
-    private final BshMethod _method;
-    private final Interpreter _interpreter;
+    /** Prepared script reference. */
+    private final BshMethod prepared;
+    /** Local interpreter reference. */
+    private final Interpreter interpreter;
 
+    /** Constructor without a supplied class loader.
+     * Delegate to overloaded constructor while attempting to locate a
+     * default class loader.
+     * @param source to be prepared.
+     * @throws EvalError thrown on script error.*/
     public PreparsedScript(final String source) throws EvalError {
         this(source, getDefaultClassLoader());
     }
 
+    /** Instance of a prepared script for the supplied source and class loader.
+     * @param source to be prepared.
+     * @param classLoader
+     * @throws EvalError thrown on script error.*/
     public PreparsedScript(final String source, final ClassLoader classLoader) throws EvalError {
-        final ClassManagerImpl classManager = new ClassManagerImpl();
-        classManager.setClassLoader(classLoader);
-        final NameSpace nameSpace = new NameSpace("global", classManager);
-        _interpreter = new Interpreter(new StringReader(""), System.out, System.err, false, nameSpace, null, null);
+        interpreter = new Interpreter();
+        interpreter.setClassLoader(classLoader);
         try {
-            final This callable = (This) _interpreter.eval("__execute() { " + source + "\n" + "}\n" + "return this;");
-            _method = callable.getNameSpace().getMethod("__execute", Reflect.ZERO_TYPES, false);
+            final This callable = (This) interpreter.eval(new StringReader(
+                    "__execute() {"
+                    + interpreter.terminatedScript(source)
+                    + "} return this;"),
+                interpreter.globalNameSpace,
+                interpreter.showEvalString("pre-parsed script", source));
+            prepared = callable.getNameSpace()
+                        .getMethod("__execute", Reflect.ZERO_TYPES, false);
         } catch (final UtilEvalError e) {
             throw new IllegalStateException(e);
         }
     }
 
+    /** Find the default system class loader.
+     * @return a class loader or null. */
     private static ClassLoader getDefaultClassLoader() {
-        ClassLoader cl = null;
+        ClassLoader classLoader = null;
         try {
-            cl = Thread.currentThread().getContextClassLoader();
-        } catch (final SecurityException e) {
-            // ignore
-        }
-        if (cl == null) {
-            cl = PreparsedScript.class.getClassLoader();
-        }
-        if (cl != null) {
-            return cl;
-        }
-        return ClassLoader.getSystemClassLoader();
+            classLoader = Thread.currentThread().getContextClassLoader();
+        } catch (final SecurityException e) { }
+        // fall through
+        if ( null == classLoader )
+            classLoader = PreparsedScript.class.getClassLoader();
+        if ( null == classLoader )
+            return ClassLoader.getSystemClassLoader();
+        return classLoader;
     }
 
-    public Object invoke(final Map<String, ?> context) throws EvalError {
-        final NameSpace nameSpace = new NameSpace("BeanshellExecutable", _interpreter.getClassManager());
-        nameSpace.setParent(_interpreter.getNameSpace());
-        final BshMethod method = new BshMethod(_method.getName(), _method.getReturnType(),
-                _method.getParameterNames(), _method.getParameterTypes(), _method.getParameterModifiers(),
-                _method.methodBody, nameSpace, _method.getModifiers());
-        for (final Map.Entry<String, ?> entry : context.entrySet()) {
-            try {
-                final Object value = entry.getValue();
-                nameSpace.setVariable(entry.getKey(), value != null ? value : Primitive.NULL, false);
-            } catch (final UtilEvalError e) {
-                throw new EvalError("cannot set variable '" + entry.getKey() + '\'', null, null, e);
-            }
-        }
-        final Object result = method.invoke(Reflect.ZERO_ARGS, _interpreter);
-        if ( Types.getType(result) == Void.TYPE )
-            return null;
-        return Primitive.unwrap(result);
+    /** Invoke the prepared script with the supplied arguments exposed.
+     * @param context map of arguments
+     * @return of the script execution
+     * @throws EvalError thrown on script error.*/
+    public Object invoke(final Map<String,?> context) throws EvalError {
+        final NameSpace scope = new NameSpace(interpreter.globalNameSpace,
+                interpreter.getClassManager(), "BeanshellExecutable");
+        scope.isMethod = true;
+        final Interpreter local = new Interpreter(scope, interpreter);
+
+        for ( final Map.Entry<String,?> entry : context.entrySet() )
+            local.set(entry.getKey(), entry.getValue());
+
+        return Primitive.unwrap(prepared.invoke(Reflect.ZERO_ARGS,
+                local, new CallStack(scope), Node.JAVACODE, true));
     }
 
-
-    public void setOut(final PrintStream value) {
-        _interpreter.setOut(value);
+    /** Attach a standard output stream.
+     * @param out the stream. */
+    public void setOut(final PrintStream out) {
+        interpreter.setOut(out);
     }
 
 
-    public void setErr(final PrintStream value) {
-        _interpreter.setErr(value);
+    /** Attach a standard error stream.
+     * @param err the stream. */
+    public void setErr(final PrintStream err) {
+        interpreter.setErr(err);
     }
 
 }
