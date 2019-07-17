@@ -33,11 +33,13 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-import java.util.Vector;
+import java.util.Set;
 
 import bsh.BshClassManager;
 import bsh.ClassPathException;
@@ -121,8 +123,8 @@ public class ClassManagerImpl extends BshClassManager
     private BshClassPath fullClassPath;
 
     // ClassPath Change listeners
-    private Vector listeners = new Vector();
-    private ReferenceQueue refQueue = new ReferenceQueue();
+    private Set<WeakReference<Listener>> listeners = new LinkedHashSet<>();
+    private ReferenceQueue<Listener> refQueue = new ReferenceQueue<>();
 
     /**
         This handles extension / modification of the base classpath
@@ -516,15 +518,14 @@ public class ClassManagerImpl extends BshClassManager
     }
 
     @Override
-    public void addListener( Listener l ) {
-        listeners.addElement( new WeakReference( l, refQueue) );
+    public void addListener(Listener l) {
+        listeners.add(new WeakReference<Listener>(l, refQueue));
 
         // clean up old listeners
-        Reference deadref;
-        while ( (deadref = refQueue.poll()) != null ) {
-            if ( !listeners.removeElement( deadref ) )
-                Interpreter.debug(
-                    "tried to remove non-existent weak ref: ", deadref);
+        Reference<? extends Listener> deadref;
+        while ((deadref = refQueue.poll()) != null) {
+            if (!listeners.remove(deadref))
+                Interpreter.debug("tried to remove non-existent weak ref: ", deadref);
         }
     }
 
@@ -571,20 +572,18 @@ public class ClassManagerImpl extends BshClassManager
         will not keep every namespace in existence forever.
     */
     @Override
-    protected void classLoaderChanged()
-    {
-        Vector toRemove = new Vector(); // safely remove
-        for ( Enumeration e = listeners.elements(); e.hasMoreElements(); )
-        {
-            WeakReference wr = (WeakReference)e.nextElement();
-            Listener l = (Listener)wr.get();
-            if ( l == null )  // garbage collected
-              toRemove.add( wr );
+    protected void classLoaderChanged() {
+        List<WeakReference<Listener>> toRemove = new LinkedList<>(); // safely remove
+        for (WeakReference<Listener> wr : listeners) {
+            Listener l = wr.get();
+            if (l == null) // garbage collected
+                toRemove.add(wr);
             else
-              l.classLoaderChanged();
+                l.classLoaderChanged();
         }
-        for( Enumeration e = toRemove.elements(); e.hasMoreElements(); )
-            listeners.removeElement( e.nextElement() );
+
+        for (WeakReference<Listener> wr : toRemove)
+            listeners.remove(wr);
     }
 
     @Override
