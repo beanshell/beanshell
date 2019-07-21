@@ -3,13 +3,11 @@
 source("TestHarness.bsh");
 source("Assert.bsh");
 
-//null == null;
-//complete();
-//return;
-
 // null String
 String s = null;
-
+s += "1";
+assertEquals("null1", s);
+s = null;
 assertEquals("null1", null + "1");
 assertEquals("null1", s + 1);
 assertEquals("1null", "1" + null);

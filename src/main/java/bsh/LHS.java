@@ -192,7 +192,7 @@ class LHS implements ParserConstants, Serializable {
     public Class<?> getType() {
         if ( null != field )
             return field.getReturnType();
-        if ( null != var )
+        if ( null != getVariable() )
             return var.getType();
         try {
             return Types.getType(getValue());
