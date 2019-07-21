@@ -106,47 +106,43 @@ class Operators implements ParserConstants {
     The exception is for boolean operations where we will return the
     primitive type either way.
     */
-    public static Object binaryOperation(
-        Object obj1, Object obj2, int kind)
-        throws UtilEvalError
-    {
-        // keep track of the original types
-        Class<?> lhsOrgType = obj1.getClass();
-        Class<?> rhsOrgType = obj2.getClass();
+    public static Object binaryOperation(Object obj1, Object obj2, int kind)
+            throws UtilEvalError {
 
         // Unwrap primitives
-        obj1 = Primitive.unwrap(obj1);
-        obj2 = Primitive.unwrap(obj2);
+        Object lhs = Primitive.unwrap(obj1);
+        Object rhs = Primitive.unwrap(obj2);
 
-        Object[] operands = promotePrimitives(obj1, obj2);
-        Object lhs = operands[0];
-        Object rhs = operands[1];
+        if ( Types.isNumeric(lhs) && Types.isNumeric(rhs) ) {
+            Object[] operands = promotePrimitives(lhs, rhs);
+            lhs = operands[0];
+            rhs = operands[1];
+        }
 
-        if(lhs.getClass() != rhs.getClass())
+        if ( lhs.getClass() != rhs.getClass() )
             throw new UtilEvalError("Type mismatch in operator.  "
-            + lhs.getClass() + " cannot be used with " + rhs.getClass() );
+                    + lhs.getClass() + " cannot be used with " + rhs.getClass());
 
         Object result;
         try {
             result = binaryOperationImpl( lhs, rhs, kind );
-        } catch ( ArithmeticException e ) {
-            throw new UtilTargetError( "Arithemetic Exception in binary op", e);
+        } catch (ArithmeticException e) {
+            throw new UtilTargetError("Arithemetic Exception in binary op", e);
         }
 
-        if(result instanceof Boolean)
-            return ((Boolean)result).booleanValue() ? Primitive.TRUE :
-                Primitive.FALSE;
+        if ( result instanceof Boolean )
+            return ((Boolean) result).booleanValue() ? Primitive.TRUE : Primitive.FALSE;
 
         // If both original args were Primitives return a Primitive result
         // else it was mixed (wrapper/primitive) return the wrapper type
         // Exception is for boolean result, return the primitive
-        if ( lhsOrgType == Primitive.class && rhsOrgType == Primitive.class )
+        if ( obj1 instanceof Primitive && obj2 instanceof Primitive )
             if ( Types.isFloatingpoint(result) && lhs.getClass() == BigDecimal.class )
-                return (Primitive) Primitive.wrap(result, result.getClass());
+                return Primitive.wrap(result, result.getClass());
             else
-                return Primitive.shrinkWrap( result );
+                return Primitive.shrinkWrap(result);
 
-        return Primitive.shrinkWrap( result ).getValue();
+        return Primitive.shrinkWrap(result).getValue();
     }
 
     @SuppressWarnings("unchecked")
@@ -483,31 +479,29 @@ class Operators implements ParserConstants {
     */
     static Object[] promotePrimitives(Object lhs, Object rhs)
     {
-        if ( Types.isNumeric(lhs) && Types.isNumeric(rhs) ) {
-            Number lnum = promoteToInteger(lhs);
-            Number rnum = promoteToInteger(rhs);
+        Number lnum = promoteToInteger(lhs);
+        Number rnum = promoteToInteger(rhs);
 
-            if ( lhs instanceof BigDecimal ) {
-                if ( !(rhs instanceof BigDecimal) )
-                    rhs = Primitive.castNumber(BigDecimal.class, rnum);
-            } else if ( rhs instanceof BigDecimal ) {
-                lhs = Primitive.castNumber(BigDecimal.class, lnum);
-            } else if ( Types.isFloatingpoint(lhs) || Types.isFloatingpoint(rhs)) {
-                if ( !(lhs instanceof Double) )
-                    lhs = Double.valueOf(lnum.doubleValue());
-                if ( !(rhs instanceof Double) )
-                    rhs = Double.valueOf(rnum.doubleValue());
-            } else if ( lhs instanceof BigInteger ) {
-                if ( !(rhs instanceof BigInteger) )
-                    rhs = Primitive.castNumber(BigInteger.class, rnum);
-            } else if ( rhs instanceof BigInteger ) {
-                lhs = Primitive.castNumber(BigInteger.class, lnum);
-            } else {
-                if ( !(lhs instanceof Long) )
-                    lhs = Long.valueOf(lnum.longValue());
-                if ( !(rhs instanceof Long) )
-                    rhs = Long.valueOf(rnum.longValue());
-            }
+        if ( lhs instanceof BigDecimal ) {
+            if ( !(rhs instanceof BigDecimal) )
+                rhs = Primitive.castNumber(BigDecimal.class, rnum);
+        } else if ( rhs instanceof BigDecimal ) {
+            lhs = Primitive.castNumber(BigDecimal.class, lnum);
+        } else if ( Types.isFloatingpoint(lhs) || Types.isFloatingpoint(rhs)) {
+            if ( !(lhs instanceof Double) )
+                lhs = Double.valueOf(lnum.doubleValue());
+            if ( !(rhs instanceof Double) )
+                rhs = Double.valueOf(rnum.doubleValue());
+        } else if ( lhs instanceof BigInteger ) {
+            if ( !(rhs instanceof BigInteger) )
+                rhs = Primitive.castNumber(BigInteger.class, rnum);
+        } else if ( rhs instanceof BigInteger ) {
+            lhs = Primitive.castNumber(BigInteger.class, lnum);
+        } else {
+            if ( !(lhs instanceof Long) )
+                lhs = Long.valueOf(lnum.longValue());
+            if ( !(rhs instanceof Long) )
+                rhs = Long.valueOf(rnum.longValue());
         }
 
         return new Object[] { lhs, rhs };
