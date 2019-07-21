@@ -77,11 +77,9 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
             we're a boolean AND and the lhs is false.
             or we're a boolean OR and the lhs is true.
         */
-        if ( (kind == BOOL_AND || kind == BOOL_ANDX)
-                && lhs == Primitive.FALSE )
+        if ( lhs == Primitive.FALSE && (kind == BOOL_AND || kind == BOOL_ANDX) )
             return Primitive.FALSE;
-        if ( (kind == BOOL_OR || kind == BOOL_ORX)
-                && lhs == Primitive.TRUE )
+        if ( lhs == Primitive.TRUE && (kind == BOOL_OR || kind == BOOL_ORX) )
             return Primitive.TRUE;
 
 
@@ -97,15 +95,15 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
             preserve identity semantics for Wrapper ==/!= Wrapper
             gets treated as arbitrary objects in comparison
         */
-        boolean isLhsWrapper = isWrapper(lhs), isRhsWrapper = isWrapper(rhs);
-        if ( ( isLhsWrapper || isPrimitiveValue(lhs) )
-            && ( isRhsWrapper || isPrimitiveValue(rhs) ) ) try {
-            if ( !((kind == EQ || kind == NE) && isLhsWrapper && isRhsWrapper) )
-                return Operators.binaryOperation(lhs, rhs, kind);
-        } catch ( UtilEvalError e ) {
-            throw e.toEvalError(
-                "Failed operation: "+lhs+" "+tokenImage[kind]+" "+rhs,
-                this, callstack  );
+        if ( !((kind == EQ || kind == NE) && isWrapper(lhs) && isWrapper(rhs)) ) {
+            if ( (isWrapper(lhs) || isPrimitiveValue(lhs))
+                && (isWrapper(rhs) || isPrimitiveValue(rhs)) ) try {
+                    return Operators.binaryOperation(lhs, rhs, kind);
+            } catch ( UtilEvalError e ) {
+                throw e.toEvalError(
+                    "Failed operation: "+lhs+" "+tokenImage[kind]+" "+rhs,
+                    this, callstack  );
+            }
         }
 
         if ( interpreter.getStrictJava() && ( kind == PLUS || kind == STAR )
@@ -125,16 +123,17 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
         }
     }
 
-    /** Get Variable for value at specified index.
+    /** Get Variable from namespace for value at specified index.
+     * Used to identify the type of non-dynamic variables with null value.
      * @param index 0 for lhs val1 else 1
      * @param callstack the evaluation call stack
      * @return the variable in call stack name space for the ambiguous node text
      * @throws UtilEvalError thrown by getVariableImpl. */
     private Variable getVariableAtNode(int index, CallStack callstack) throws UtilEvalError {
         Node nameNode = null;
-        if (jjtGetChild(index).jjtGetNumChildren() > 0
+        if ( jjtGetChild(index).jjtGetNumChildren() > 0
                 && (nameNode = jjtGetChild(index).jjtGetChild(0))
-                    instanceof BSHAmbiguousName)
+                    instanceof BSHAmbiguousName )
             return callstack.top().getVariableImpl(
                     ((BSHAmbiguousName) nameNode).text, true);
         return null;
@@ -143,43 +142,33 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
     /** Apply null rules to operator values.
      * @param val1 value to inspect for null
      * @param val2 value to compare to
-     * @param index 0 for lhs val1 else 1
+     * @param index 0 for lhs val1 else 1 for rhs val1
      * @param callstack the evaluation call stack
      * @return the value modified or not
      * @throws EvalError if operation cause an error */
     private Object checkNullValues(Object val1, Object val2, int index,
             CallStack callstack) throws EvalError {
-        if ( Primitive.NULL == val1 && Primitive.VOID != val2
-                && jjtGetChild(index).jjtGetChild(0)
-                    instanceof BSHAmbiguousName) try {
+        if ( Primitive.NULL != val1 )
+            return val1;
+        if ( Primitive.VOID == val2 )
+            return val1;
+        try {
             Variable var = null;
             boolean val2IsString = val2 instanceof String;
             Class<?> val2Class = null;
-            if ( Primitive.NULL == val2 )
-                if ( null != (var
-                        = getVariableAtNode(index == 0 ? 1 : 0, callstack)) ) {
+            if ( Primitive.NULL == val2 ) {
+                if ( null != (var = getVariableAtNode(index ^ 1, callstack)) ) {
                     val2IsString = var.getType() == String.class;
                     val2Class = var.getType();
-                    var = null;
                 }
+            } else
+                val2Class = Primitive.unwrap(val2).getClass();
             if ( null == (var = getVariableAtNode(index, callstack)) )
                 return val1;
-            switch ( kind ) {
-                case EQ: case NE:
-                if ( (Primitive.NULL == val2 && val2Class == null)
-                        || val2Class == var.getType()
-                        || (val2Class != null && (
-                            var.getType().isAssignableFrom(val2Class)
-                        || val2Class.isAssignableFrom(var.getType()))) )
-                    return val1;
-                else if ( null != val2Class )
-                    throw new EvalError("incomparable types: "
-                            + StringUtil.typeString(var.getType()) + " and "
-                            + StringUtil.typeString(val2Class),
-                            this, callstack);
-            }
-            if ( kind == PLUS
-                    && (val2IsString || var.getType() == String.class) )
+            if ( (kind == EQ || kind == NE)
+                    && isComparableTypes(var.getType(), val2Class, callstack) )
+                return val1;
+            if ( kind == PLUS && (val2IsString || var.getType() == String.class) )
                 return "null";
             if ( isWrapper(var.getType()) )
                 throw new NullPointerException(
@@ -195,42 +184,65 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
         return val1;
     }
 
-    /*
-        object is a non-null and non-void Primitive type
-    */
+    /** Whether two types are comparable.
+     * @param val1Class first type
+     * @param val2Class second type
+     * @param callstack for error location in source
+     * @return if types are comparable
+     * @throws EvalError if types are incomparable */
+    private boolean isComparableTypes(Class<?> val1Class,
+            Class<?> val2Class, CallStack callstack) throws EvalError {
+        if ( val2Class == val1Class
+                || isSimilarTypes(val1Class, val2Class) )
+            return true;
+        throw new EvalError("incomparable types: "
+            + StringUtil.typeString(val1Class) + " and "
+            + StringUtil.typeString(val2Class),
+            this, callstack);
+    }
+
+    /** Whether there exists a similarity between two types.
+     * @param type1 first type to compare
+     * @param type2 second type to compare
+     * @return types are similar */
+    private boolean isSimilarTypes(Class<?> type1, Class<?> type2) {
+        return null == type2 || type1.isAssignableFrom(type2)
+                    || type2.isAssignableFrom(type1);
+    }
+
+    /** Object is a non-null and non-void Primitive type.
+     * @param obj the value to inspect
+     * @return is a primitive value */
     private boolean isPrimitiveValue( Object obj ) {
         return obj instanceof Primitive
-            && obj != Primitive.VOID && obj != Primitive.NULL;
+            && obj != Primitive.NULL && obj != Primitive.VOID;
     }
 
-    /*
-        object is a java.lang wrapper for boolean, char, or number type
-    */
+    /** Object is a java.lang wrapper for boolean, char, or number type.
+     * @param obj the value to inspect
+     * @return is a wrapper type */
     private boolean isWrapper( Object obj ) {
-        return obj instanceof Boolean
-            || obj instanceof Character || obj instanceof Number;
+        return obj instanceof Number
+            || obj instanceof Boolean || obj instanceof Character;
     }
 
-    /** Is the class a wrapper type.
-     * Also apply valid operator type to response.
+    /** Values of type class is relative to the operator kind.
      * @param cls the type to inspect
-     * @return is a wrapper type with valid operators */
+     * @return is a wrapper type relative to operator */
     private boolean isWrapper( Class<?> cls ) {
         if ( null == cls )
             return false;
+        if ( Number.class.isAssignableFrom(cls)
+            || Character.class.isAssignableFrom(cls)) switch ( kind ) {
+            case BOOL_AND: case BOOL_ANDX: case BOOL_OR: case BOOL_ORX:
+                return false;
+            default:
+                return true;
+        }
         if ( Boolean.class.isAssignableFrom(cls) ) switch ( kind ) {
             case EQ: case NE: case BOOL_OR: case BOOL_ORX: case BOOL_AND:
             case BOOL_ANDX: case BIT_AND: case BIT_ANDX: case BIT_OR:
             case BIT_ORX: case XOR: case XORX:
-                return true;
-            default:
-                return false;
-        }
-        if (Character.class.isAssignableFrom(cls)
-            || Number.class.isAssignableFrom(cls)) switch ( kind ) {
-            case BOOL_AND: case BOOL_ANDX: case BOOL_OR: case BOOL_ORX:
-                return false;
-            default:
                 return true;
         }
         return false;
