@@ -212,15 +212,20 @@ public class ClassManagerImpl extends BshClassManager
         if ( c == null && externalClassLoader != null ) {
             try {
                 c = externalClassLoader.loadClass(name);
+
+                // Don't try any more ClassLoaders if forceExternalClassLoader is true
+                if (forceExternalClassLoader) {
+                    return c;
+                }
             } catch (ClassNotFoundException e) {
-                // fall through
+                // If forceExternalClassLoader is true, there is no reason to return a class here
+                if (forceExternalClassLoader) {
+                    return null;
+                }
             }
         }
 
         // Optionally try context classloader
-        // Note that this might be a security violation
-        // is catching the SecurityException sufficient for all environments?
-        // or do we need a way to turn this off completely?
         if ( c ==  null ) {
             try {
                 final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
