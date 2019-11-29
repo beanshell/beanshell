@@ -247,13 +247,13 @@ public class ClassManagerImpl extends BshClassManager
                 // fall through
 */
             } catch ( NoClassDefFoundError nce ) {
-               
+
                /*
                 * This error can happen when the internal class name has a different
                 * spelling or capitalization than the external name of the resource
                 * that was loaded.  This can happen in a number or ways, but a common
-                * situation is case insensitive files systems like Windows, where a 
-                * request to load a class named 'a' may load a resource 'A.class' 
+                * situation is case insensitive files systems like Windows, where a
+                * request to load a class named 'a' may load a resource 'A.class'
                 * where the internal class name of 'A' does not match 'a'.
                 *
                 * This can also happen on Windows OS when trying to reference a non-existing
@@ -265,25 +265,25 @@ public class ClassManagerImpl extends BshClassManager
                 * was looking for foo.
                 *
                 * What to do about this?  It is fundamentally a Java/Windows mismatch
-                * issue and BeanShell should not have to do anything.  However not 
+                * issue and BeanShell should not have to do anything.  However not
                 * catching the Error causes the Interpreter to blow up which is unfriendly.
                 * I can think of three options of what to do:
                 *
                 * 1) Catch the error and silently fall through.  The next step after this
-                * will try to load the class by name from a Java source file, and maybe this 
-                * is what was intended.  If a matching java source file is not found then 
+                * will try to load the class by name from a Java source file, and maybe this
+                * is what was intended.  If a matching java source file is not found then
                 * ultimately an EvalError is thrown.
                 *
                 * 2) Same as above, but write a line to System.err indicating that a class
                 * resource had an mismatching internal name.  This might help to shed light
                 * when things are mysteriously not workig as expected.
-                * 
-                * 3) Wrap the exception in an EvalError.  This wont do any magic and will 
-                * put the burden on the developer to fix their problem if it is a Windows 
+                *
+                * 3) Wrap the exception in an EvalError.  This wont do any magic and will
+                * put the burden on the developer to fix their problem if it is a Windows
                 * case insensitivty problem.  However if there is a java source file that
-                * could be loaded then it wont happen, so this breaks things.  
+                * could be loaded then it wont happen, so this breaks things.
                 */
-               
+
                System.err.println("The class named '"+name+"' could not be found, either because it no longer exists or it is not contained in the class file of the same name. Caused by: "+nce.getMessage());
             }
 
