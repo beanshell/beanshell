@@ -8,4 +8,9 @@ assert( ( false ? 1 : 2 ) == 2 );
 assert( ( true ? "foo" : new Integer(1) ) instanceof String );
 assert( ( false ? "foo" : new Integer(1) ) instanceof Integer );
 
+assert( ( true || false ? "True" : "False" ).equals("True") );
+
+assert( ( "ab".equals("a"+"b")?22:33==33?"Y":"N" ) == 22 );
+assert( ( !"ab".equals("a"+"b")?22:33==33?"Y":"N" ).equals("Y") );
+
 complete();

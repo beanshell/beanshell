@@ -775,14 +775,19 @@ int AssignmentOperator() :
     }
 }
 
+
+
 void ConditionalExpression() :
 { Token t; }
 {
-  RelationalExpression() (  "?" ConditionalExpression() ":" ConditionalExpression() #TernaryExpression(3)
-  |
-  ( (t="||" | t="@or" | t="&&" | t="@and") RelationalExpression()
+  OrExpression() [ "?" ConditionalExpression() ":" ConditionalExpression() #TernaryExpression(3) ]
+}
+
+void OrExpression() :
+{ Token t; }
+{
+  RelationalExpression() ( (t="||" | t="@or" | t="&&" | t="@and") RelationalExpression()
         { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
-  )
 }
 
 void RelationalExpression() :
