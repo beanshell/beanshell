@@ -1,0 +1,24 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+import mypackage.*;
+
+unset("myClass");
+
+try {
+   print("do MyClass");
+   a = new MyClass();
+   flag();
+} catch (Exception ex) {
+}
+
+if (isEvalError("b = new myClass();")) {
+   flag();
+}
+
+assert(flag() == 2);
+
+print("Done");
+
+
+complete();
