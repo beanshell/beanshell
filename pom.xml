@@ -24,13 +24,12 @@
   information on the Apache Software Foundation, please see
   <http://www.apache.org />.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.beanshell</groupId>
   <artifactId>bsh</artifactId>
-  <version>3.0.0-SNAPSHOT</version>
+  <version>3.0-alpha-1</version>
   <packaging>bundle</packaging>
 
   <name>BeanShell</name>
@@ -62,7 +61,7 @@
     <connection>scm:git:git://github.com/beanshell/beanshell.git</connection>
     <developerConnection>scm:git:git@github.com:beanshell/beanshell.git</developerConnection>
     <url>https://github.com/beanshell/beanshell/</url>
-    <tag>HEAD</tag>
+    <tag>3.0-alpha-1</tag>
   </scm>
   <developers>
     <!-- Current maintainers according to https://github.com/beanshell/ -->
@@ -243,9 +242,9 @@
         <configuration>
           <argLine>-XX:+UseSerialGC ${surefireArgLine}</argLine>
           <systemPropertyVariables>
-            <bsh.debugClasses></bsh.debugClasses>
+            <bsh.debugClasses />
             <accessibility>false</accessibility>
-            <script></script>
+            <script />
             <verbose>false</verbose>
             <skip_known_issues>true</skip_known_issues>
           </systemPropertyVariables>
