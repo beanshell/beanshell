@@ -134,10 +134,13 @@
   </issueManagement>
 
   <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
     <repository>
-      <id>bintray-beanshell-Beanshell-bsh</id>
-      <name>beanshell-Beanshell-bsh</name>
-      <url>https://api.bintray.com/maven/beanshell/Beanshell/bsh</url>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
     </repository>
   </distributionManagement>
 
