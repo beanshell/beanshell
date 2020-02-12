@@ -24,8 +24,7 @@
   information on the Apache Software Foundation, please see
   <http://www.apache.org />.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.beanshell</groupId>
@@ -135,10 +134,13 @@
   </issueManagement>
 
   <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
     <repository>
-      <id>bintray-beanshell-Beanshell-bsh</id>
-      <name>beanshell-Beanshell-bsh</name>
-      <url>https://api.bintray.com/maven/beanshell/Beanshell/bsh</url>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
     </repository>
   </distributionManagement>
 
@@ -243,9 +245,9 @@
         <configuration>
           <argLine>-XX:+UseSerialGC ${surefireArgLine}</argLine>
           <systemPropertyVariables>
-            <bsh.debugClasses></bsh.debugClasses>
+            <bsh.debugClasses />
             <accessibility>false</accessibility>
-            <script></script>
+            <script />
             <verbose>false</verbose>
             <skip_known_issues>true</skip_known_issues>
           </systemPropertyVariables>

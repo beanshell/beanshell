@@ -1,13 +1,22 @@
 language: java
-dist: trusty
-sudo: false
-script:
-  - jdk_switcher use oraclejdk8
-  - mvn clean install -Djacoco.skip=true -DskipTests 
-  - jdk_switcher use oraclejdk9
-  - mvn test -DargLine=--illegal-access=deny
-  - jdk_switcher use oraclejdk8
-  - mvn test -Daccessibility=true -Dverbose=true
+dist: xenial
+
+jdk:
+  - oraclejdk11
+  - oraclejdk13
+  - openjdk8
+  - openjdk11
+
+# How to do multiple JDKs keep changing, jdk_switcher is no longer found
+#     https://docs.travis-ci.com/user/languages/java/    
+
+#script:
+#  - jdk_switcher use oraclejdk8
+#  - mvn clean install -Djacoco.skip=true -DskipTests 
+#  - jdk_switcher use oraclejdk9
+#  - mvn test -DargLine=--illegal-access=deny
+#  - jdk_switcher use oraclejdk8
+#  - mvn test -Daccessibility=true -Dverbose=true
 cache:
   directories:
     - $HOME/.m2
