@@ -334,12 +334,6 @@ public class BshClassManager {
     protected ClassLoader externalClassLoader;
 
     /**
-        Indicates whether or not bsh should use the internal ClassLoader if
-        the external ClassLoader fails
-     */
-    protected boolean forceExternalClassLoader = false;
-
-    /**
         Global cache for things we know are classes.
         Note: these should probably be re-implemented with Soft references.
         (as opposed to strong or Weak)
@@ -554,18 +548,6 @@ public class BshClassManager {
     */
     public void setClassLoader(ClassLoader externalCL) {
         externalClassLoader = externalCL;
-        forceExternalClassLoader = false;
-        classLoaderChanged();
-    }
-
-    /**
-     * @see BshClassManager#setClassLoader(ClassLoader)
-     * @param forceClassLoader if true, bsh will not try to use the internal ClassLoader
-     *                        if the external ClassLoader fails
-     */
-    public void setClassLoader(ClassLoader externalCL, boolean forceClassLoader) {
-        externalClassLoader = externalCL;
-        forceExternalClassLoader = forceClassLoader;
         classLoaderChanged();
     }
 

@@ -1094,15 +1094,6 @@ public class Interpreter
     }
 
     /**
-     * @see Interpreter#setClassLoader(ClassLoader)
-     * @param forceClassLoader if true, bsh will not try to use the internal ClassLoader
-     *                         if the external ClassLoader fails
-     */
-    public void setClassLoader (ClassLoader externalCL, boolean forceClassLoader) {
-        getClassManager().setClassLoader(externalCL, forceClassLoader);
-    }
-
-    /**
         Get the class manager associated with this interpreter
         (the BshClassManager of this interpreter's global namespace).
         This is primarily a convenience method.
