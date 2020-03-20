@@ -3,7 +3,7 @@ dist: xenial
 
 jdk:
   - oraclejdk11
-  - oraclejdk13
+  - oraclejdk14
   - openjdk8
   - openjdk11
 
