@@ -2,6 +2,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Build Status](https://travis-ci.org/beanshell/beanshell.svg?branch=master)](https://travis-ci.org/beanshell/beanshell) [![codecov](https://codecov.io/gh/beanshell/beanshell/branch/master/graph/badge.svg)](https://codecov.io/gh/beanshell/beanshell)
 [![coverity](https://scan.coverity.com/projects/16379/badge.svg)](https://scan.coverity.com/projects/beanshell-beanshell)
+[![SourceSpy Dashboard](https://sourcespy.com/shield.svg)](https://sourcespy.com/github/beanshellbeanshell/)
 
 The **official** and **active** project home for BeanShell.
 
