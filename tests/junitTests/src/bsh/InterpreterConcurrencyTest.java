@@ -64,8 +64,7 @@ public class InterpreterConcurrencyTest {
 	@Test
 	public void multi_threaded_callable() throws Exception {
 		final AtomicInteger counter = new AtomicInteger();
-		final String script =
-				"call(v) {"+
+        final String script = "call(v) {" +
 				"	return v;" +
 				"}" +
 				"return this;";
