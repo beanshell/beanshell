@@ -1,0 +1,28 @@
+source("TestHarness.bsh");
+
+class Foo15 {
+	Foo15 getFoo() { return null; }
+	void putFoo( Foo15 foo ) { }
+	static Foo15 getFooStatic() { return null; }
+	static void putFooStatic( Foo15 foo ) { }
+}
+
+interface Bar15 {
+	Bar15 getBar();
+	void putBar( Bar15 foo );
+}
+
+assert(new Foo15() instanceof Foo15);
+assert(Bar15.class.getName().equals("Bar15"));
+assert(Bar15.class.isInterface());
+
+class Baz15 implements Bar15 {}
+
+assert(new Baz15() instanceof Baz15);
+assert(new Baz15() instanceof Bar15);
+assert(Bar15.class.isInstance(new Baz15()));
+assert(Baz15.class.isInstance(new Baz15()));
+
+//assert(isEvalError("Type: Foo15 is not an interface", "class Baz15 implements Foo15 {}"));
+
+complete();

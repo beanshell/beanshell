@@ -1,0 +1,12 @@
+/*****************************************************************************
+ *                                                                           *
+ *  This is BeanShell2, a fork of beanshell found at                         *
+ *        http://www.beanshell.org/                                          *
+ *                                                                           *
+ *  BeanShell2 is hosted at Google-Code at                                   *
+ *        https://github.com/beanshell/beanshell                                *
+ *                                                                           *
+ *  BeanShell2 is licensed under GNU Lesser GPL v3                           *
+ *  See http://www.gnu.org/licenses/lgpl.html                                *
+ *                                                                           *
+/*****************************************************************************
