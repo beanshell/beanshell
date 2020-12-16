@@ -1,22 +1,36 @@
-/.metadata/
-.recommenders
-.gitignore
-.classpath
-.settings
-.project
+classes/*
+tests/junit-reports/*
+dist/*
 
-classes
-dist
-javadoc
-docs/manual/bshcommands-bshdoc.xml
-target
+# compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
 
-nb-configuration.xml
-nbproject
-nbactions.xml
+# Logs and databases #
+######################
+*.log
+*.sql
+*.sqlite
 
-BeanShell.iml
-BeanShell.ipr
-BeanShell.iws
-*gradle*
-*.ser
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+
+# IDE files #
+#############
+*.ipr
+*.iws
+*.iml
+

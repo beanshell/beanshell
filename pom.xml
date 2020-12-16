@@ -19,26 +19,26 @@
    under the License.
    ====================================================================
 
-  This software consists of voluntary contributions made by many
-  individuals on behalf of the Apache Software Foundation.  For more
-  information on the Apache Software Foundation, please see
-  <http://www.apache.org />.
--->
+   This software consists of voluntary contributions made by many
+   individuals on behalf of the Apache Software Foundation.  For more
+   information on the Apache Software Foundation, please see
+   <http://www.apache.org />.
+ -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.apache-extras.beanshell</groupId>
   <artifactId>bsh</artifactId>
-  <version>2.1.0-SNAPSHOT</version>
-  <packaging>bundle</packaging>
+  <version>2.0b6</version>
+  <packaging>jar</packaging>
 
   <name>BeanShell</name>
   <description>BeanShell is a small, free, embeddable Java source interpreter
     with object scripting language features, written in Java. BeanShell
     dynamically executes standard Java syntax and extends it with common
     scripting conveniences such as loose types, commands, and method closures
-    like those in Perl and JavaScript.
+    like those in Perl and JavaScript. 
   </description>
   <url>https://github.com/beanshell/beanshell/</url>
   <licenses>
@@ -52,10 +52,6 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <checkstyle.suppressions.location>src/conf/checkstyle-supressions.xml</checkstyle.suppressions.location>
-    <version.jdk>1.8</version.jdk>
-    <maven.compiler.source>${version.jdk}</maven.compiler.source>
-    <maven.compiler.target>${version.jdk}</maven.compiler.target>
   </properties>
 
   <scm>
@@ -65,32 +61,28 @@
     <tag>HEAD</tag>
   </scm>
   <developers>
-    <!-- Current maintainers according to
+    <!-- Current maintainers according to 
          https://github.com/beanshell/
     -->
     <developer>
-      <id>patniemeyer</id>
       <name>Patrick Niemeyer</name>
       <email>patniemeyer@gmail.com</email>
       <organization>Apache Extras</organization>
       <organizationUrl>http://www.apache-extras.org/</organizationUrl>
     </developer>
     <developer>
-      <id>dleuck</id>
       <name>Daniel Leuck</name>
       <email>dan@ikayzo.com</email>
       <organization>Apache Extras</organization>
       <organizationUrl>http://www.apache-extras.org/</organizationUrl>
     </developer>
     <developer>
-      <id>simonetripodi</id>
       <name>Simone Tripodi</name>
       <email>simonetripodi@apache.org</email>
       <organization>Apache Extras</organization>
       <organizationUrl>http://www.apache-extras.org/</organizationUrl>
     </developer>
     <developer>
-      <id>pgiffuni</id>
       <name>Pedro Giffuni</name>
       <email>pfg@apache.org</email>
       <organization>Apache Extras</organization>
@@ -103,23 +95,14 @@
       <organizationUrl>http://www.apache-extras.org/</organizationUrl>
     </developer>
     <developer>
-      <id>stain</id>
       <name>Stian Soiland-Reyes</name>
       <email>stain@apache.org</email>
       <organization>Apache Extras</organization>
       <organizationUrl>http://www.apache-extras.org/</organizationUrl>
     </developer>
     <developer>
-      <id>alaninmcr</id>
       <name>Alan R Williams</name>
       <email>alaninmcr@apache.org</email>
-      <organization>Apache Extras</organization>
-      <organizationUrl>http://www.apache-extras.org/</organizationUrl>
-    </developer>
-    <developer>
-      <id>mjwall</id>
-      <name>Michael Wall</name>
-      <email>mjwall@gmail.com</email>
       <organization>Apache Extras</organization>
       <organizationUrl>http://www.apache-extras.org/</organizationUrl>
     </developer>
@@ -132,124 +115,11 @@
 
   <distributionManagement>
     <repository>
-      <id>bintray-beanshell-Beanshell-bsh</id>
-      <name>beanshell-Beanshell-bsh</name>
-      <url>https://api.bintray.com/maven/beanshell/Beanshell/bsh</url>
+    <id>bintray-beanshell-Beanshell-bsh</id>
+    <name>beanshell-Beanshell-bsh</name>
+    <url>https://api.bintray.com/maven/beanshell/Beanshell/bsh</url>
     </repository>
   </distributionManagement>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>com.helger.maven</groupId>
-        <artifactId>ph-javacc-maven-plugin</artifactId>
-        <version>2.8.2</version>
-        <executions>
-          <execution>
-            <id>javacc</id>
-            <goals>
-              <!-- jjtree disabled due to manual changes
-                                               in the previously generated bsh.jj :- -->
-              <goal>jjtree-javacc</goal>
-              <!-- disabled due to manual changes in the
-                   generated files in src/main/java
-              <goal>javacc</goal>
-              -->
-            </goals>
-            <configuration>
-                <jdkVersion>1.8</jdkVersion>
-                <javadocFriendlyComments>true</javadocFriendlyComments>
-                <static>false</static>
-                <usercharstream>true</usercharstream>
-                <!--packageName>bsh.parser</packageName>
-                <sourceDirectory>src/main/java/</sourceDirectory>
-                <outputDirectory>${project.build.directory}/generated-sources/javacc</outputDirectory-->
-
-            </configuration>
-          </execution>
-        </executions>
-      <dependencies>
-        <dependency>
-          <groupId>net.java.dev.javacc</groupId>
-          <artifactId>javacc</artifactId>
-          <version>7.0.2</version>
-        </dependency>
-      </dependencies>
-      </plugin>
-      <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.4</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <mainClass>bsh.Console</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>2.17</version>
-        <dependencies>
-            <dependency>
-                <groupId>com.puppycrawl.tools</groupId>
-                <artifactId>checkstyle</artifactId>
-                <version>8.2</version>
-            </dependency>
-        </dependencies>
-        <executions>
-         <execution>
-           <id>validate</id>
-           <phase>verify</phase>
-           <configuration>
-             <encoding>UTF-8</encoding>
-             <failsOnViolation>true</failsOnViolation>
-             <includeTestSourceDirectory>true</includeTestSourceDirectory>
-             <sourceDirectories>
-                 <sourceDirectory>src/main/java</sourceDirectory>
-             </sourceDirectories>
-           </configuration>
-           <goals>
-             <goal>check</goal>
-           </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <version>3.0.1</version>
-        <extensions>true</extensions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>2.4</version>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-            <phase>verify</phase>
-          </execution>
-        </executions>
-    </plugin>
-    <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-surefire-plugin</artifactId>
-      <version>2.20.1</version>
-      <configuration>
-        <systemPropertyVariables>
-          <accessibility>false</accessibility>
-          <skip_known_issues>true</skip_known_issues>
-         </systemPropertyVariables>
-        </configuration>
-    </plugin>
-    </plugins>
-  </build>
-
 
   <dependencies>
     <dependency>
@@ -258,44 +128,5 @@
       <version>4.12</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-        <groupId>org.hamcrest</groupId>
-        <artifactId>hamcrest-all</artifactId>
-        <version>1.3</version>
-        <scope>test</scope>
-    </dependency>
-    <!-- TODO: Replace src/main/java/bsh/org/objectweb/asm/
-      with a shadowed asm
-    <dependency>
-     <groupId>asm</groupId>
-     <artifactId>asm</artifactId>
-     <version>1.3.5</version>
-     <scope>provided</scope>
-    </dependency>
-    -->
-
-    <!-- TODO: Support BSF 3.1
-    <dependency>
-     <groupId>org.apache.bsf</groupId>
-     <artifactId>bsf-api</artifactId>
-     <version>3.1</version>
-     <optional>true</optional>
-    </dependency>
-    -->
-    <dependency>
-      <groupId>bsf</groupId>
-      <artifactId>bsf</artifactId>
-      <version>2.4.0</version>
-      <optional>true</optional>
-    </dependency>
-
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-
   </dependencies>
 </project>
