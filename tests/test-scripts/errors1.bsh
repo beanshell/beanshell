@@ -23,4 +23,7 @@ assert( isEvalError("System.booga;") );
 // should be ok
 assert( ! isEvalError("System.out;") );
 
+//This was causing strange parser failures... should be simple parser exception
+assert( isEvalError("static import Foo.*;" ) );
+
 complete();

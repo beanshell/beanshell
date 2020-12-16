@@ -49,12 +49,8 @@ public class BshMethodTest {
       }
 
       final String name = "testMethod";
-      final BshMethod subInst =
-            new SubMethod(name, Integer.class, new String[] {}, new Class[] {},
-                  null, null, null);
-      final BshMethod supInst =
-            new BshMethod(name, Integer.class, new String[] {}, new Class[] {},
-                  null, null, null);
+        final BshMethod subInst = new SubMethod(name, Integer.class, new String[]{}, new Class[]{}, null, null, null);
+        final BshMethod supInst = new BshMethod(name, Integer.class, new String[]{}, new Class[]{}, null, null, null);
 
         Assert.assertFalse("Subclasses should not be equal to super classes", supInst.equals(subInst));
    }
