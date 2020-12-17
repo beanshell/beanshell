@@ -582,7 +582,7 @@ public class BshClassPath
 				// Java deals with relative paths for it's bootstrap loader
 				// but JARClassLoader doesn't.
 				urls[i] = new File( 
-					new File(paths[i]).getCanonicalPath() ).toURL();
+					new File(paths[i]).getCanonicalPath() ).toURI().toURL();
 		} catch ( IOException e ) {
 			throw new ClassPathException("can't parse class path: "+e);
 		}
