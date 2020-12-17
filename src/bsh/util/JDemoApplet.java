@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations                   *
  * under the License.                                                        *
  *                                                                           *
+ *                                                                           *
  * This file is part of the BeanShell Java Scripting distribution.           *
  * Documentation and updates may be found at http://www.beanshell.org/       *
  * Patrick Niemeyer (pat@pat.net)                                            *
@@ -23,25 +24,46 @@
  *                                                                           *
  *****************************************************************************/
 
+
 package bsh.util;
 
-import bsh.ConsoleInterface;
-import java.awt.Color;
+import javax.swing.*;
+import java.awt.*;
+import bsh.*;
+import bsh.util.*;
 
 /**
-	Additional capabilities of an interactive console for BeanShell.
-	Although this is called "GUIConsoleInterface" it might just as well be 
-	used by a more sophisticated text-only command line.
-	<p>
-	Note: we may want to express the command line history, editing, 
-	and cut & paste functionality here as well at some point. 
+	Run bsh as an applet for demo purposes.
 */
-public interface GUIConsoleInterface extends ConsoleInterface 
+public class JDemoApplet extends JApplet
 {
-	public void print( Object o, Color color );
-	public void setNameCompletion( NameCompletion nc );
-	
-	/** e.g. the wait cursor */
-	public void setWaitFeedback( boolean on );
+	public void init()
+	{
+		String debug = getParameter("debug");
+		if ( debug != null && debug.equals("true") )
+			Interpreter.DEBUG=true;
+
+		String type = getParameter("type");
+		if ( type != null && type.equals("desktop") )
+			// start the desktop
+			try {
+				new Interpreter().eval( "desktop()" );
+			} catch ( TargetError te ) {
+				te.printStackTrace();
+				System.out.println( te.getTarget() );
+				te.getTarget().printStackTrace();
+			} catch ( EvalError evalError ) {
+				System.out.println( evalError );
+				evalError.printStackTrace();
+			}
+		else
+		{
+			getContentPane().setLayout(new BorderLayout());
+			JConsole console = new JConsole();
+			getContentPane().add("Center", console);
+			Interpreter interpreter = new Interpreter( console );
+			new Thread(interpreter).start();
+		}
+	}
 }
 

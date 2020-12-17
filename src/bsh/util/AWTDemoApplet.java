@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations                   *
  * under the License.                                                        *
  *                                                                           *
+ *                                                                           *
  * This file is part of the BeanShell Java Scripting distribution.           *
  * Documentation and updates may be found at http://www.beanshell.org/       *
  * Patrick Niemeyer (pat@pat.net)                                            *
@@ -23,25 +24,26 @@
  *                                                                           *
  *****************************************************************************/
 
+
 package bsh.util;
 
-import bsh.ConsoleInterface;
-import java.awt.Color;
+import java.applet.Applet;
+import java.awt.*;
+import bsh.*;
+import bsh.util.*;
 
 /**
-	Additional capabilities of an interactive console for BeanShell.
-	Although this is called "GUIConsoleInterface" it might just as well be 
-	used by a more sophisticated text-only command line.
-	<p>
-	Note: we may want to express the command line history, editing, 
-	and cut & paste functionality here as well at some point. 
+	Run bsh as an applet for demo purposes.
 */
-public interface GUIConsoleInterface extends ConsoleInterface 
+public class AWTDemoApplet extends Applet
 {
-	public void print( Object o, Color color );
-	public void setNameCompletion( NameCompletion nc );
-	
-	/** e.g. the wait cursor */
-	public void setWaitFeedback( boolean on );
+	public void init()
+	{
+		setLayout(new BorderLayout());
+		ConsoleInterface console = new AWTConsole();
+		add("Center", (Component)console);
+		Interpreter interpreter = new Interpreter( console );
+		new Thread(interpreter).start();
+	}
 }
 
