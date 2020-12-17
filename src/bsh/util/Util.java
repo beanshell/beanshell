@@ -26,6 +26,9 @@
 package bsh.util;
 
 import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.util.Vector;
 import bsh.*;
 
 
@@ -63,7 +66,7 @@ public class Util
 			dim.width/2-width/2, dim.height/2-height/2, width, height );
         win.add("Center", can);
         Image img=tk.getImage( 
-			Interpreter.class.getResource("/bsh/util/lib/splash.jpg") );
+			Interpreter.class.getResource("/bsh/util/lib/splash.gif") );
         MediaTracker mt=new MediaTracker(can);
         mt.addImage(img,0);
         try { mt.waitForAll(); } catch ( Exception e ) { }

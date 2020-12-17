@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations                   *
  * under the License.                                                        *
  *                                                                           *
+ *                                                                           *
  * This file is part of the BeanShell Java Scripting distribution.           *
  * Documentation and updates may be found at http://www.beanshell.org/       *
  * Patrick Niemeyer (pat@pat.net)                                            *
@@ -23,25 +24,73 @@
  *                                                                           *
  *****************************************************************************/
 
+
 package bsh.util;
 
-import bsh.ConsoleInterface;
-import java.awt.Color;
+import java.io.*;
+
+import java.net.Socket;
+import java.net.ServerSocket;
+import bsh.*;
 
 /**
-	Additional capabilities of an interactive console for BeanShell.
-	Although this is called "GUIConsoleInterface" it might just as well be 
-	used by a more sophisticated text-only command line.
-	<p>
-	Note: we may want to express the command line history, editing, 
-	and cut & paste functionality here as well at some point. 
+	BeanShell remote session server.
+	Starts instances of bsh for client connections.
+	Note: the sessiond effectively maps all connections to the same interpreter
+	(shared namespace).
 */
-public interface GUIConsoleInterface extends ConsoleInterface 
+public class Sessiond extends Thread
 {
-	public void print( Object o, Color color );
-	public void setNameCompletion( NameCompletion nc );
-	
-	/** e.g. the wait cursor */
-	public void setWaitFeedback( boolean on );
+	private ServerSocket ss;
+	NameSpace globalNameSpace;
+
+	/*
+	public static void main(String argv[]) throws IOException
+	{
+		new Sessiond( Integer.parseInt(argv[0])).start();
+	}
+	*/
+
+	public Sessiond(NameSpace globalNameSpace, int port) throws IOException
+	{
+		ss = new ServerSocket(port);
+		this.globalNameSpace = globalNameSpace;
+	}
+
+	public void run()
+	{
+		try
+		{
+			while(true)
+				new SessiondConnection(globalNameSpace, ss.accept()).start();
+		}
+		catch(IOException e) { System.out.println(e); }
+	}
+}
+
+class SessiondConnection extends Thread
+{
+	NameSpace globalNameSpace;
+	Socket client;
+
+	SessiondConnection(NameSpace globalNameSpace, Socket client)
+	{
+		this.client = client;
+		this.globalNameSpace = globalNameSpace;
+	}
+
+	public void run()
+	{
+		try
+		{
+			InputStream in = client.getInputStream();
+			PrintStream out = new PrintStream(client.getOutputStream());
+			Interpreter i = new Interpreter( 
+				new InputStreamReader(in), out, out, true, globalNameSpace);
+			i.setExitOnEOF( false ); // don't exit interp
+			i.run();
+		}
+		catch(IOException e) { System.out.println(e); }
+	}
 }
 

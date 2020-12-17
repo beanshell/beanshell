@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations                   *
  * under the License.                                                        *
  *                                                                           *
+ *                                                                           *
  * This file is part of the BeanShell Java Scripting distribution.           *
  * Documentation and updates may be found at http://www.beanshell.org/       *
  * Patrick Niemeyer (pat@pat.net)                                            *
@@ -23,25 +24,42 @@
  *                                                                           *
  *****************************************************************************/
 
+
 package bsh.util;
 
-import bsh.ConsoleInterface;
-import java.awt.Color;
+import javax.swing.*;
+import java.awt.*;
+import java.io.*;
+import java.net.*;
 
 /**
-	Additional capabilities of an interactive console for BeanShell.
-	Although this is called "GUIConsoleInterface" it might just as well be 
-	used by a more sophisticated text-only command line.
-	<p>
-	Note: we may want to express the command line history, editing, 
-	and cut & paste functionality here as well at some point. 
+	A lightweight console applet for remote display of a Beanshell session.
 */
-public interface GUIConsoleInterface extends ConsoleInterface 
+
+public class JRemoteApplet extends JApplet
 {
-	public void print( Object o, Color color );
-	public void setNameCompletion( NameCompletion nc );
-	
-	/** e.g. the wait cursor */
-	public void setWaitFeedback( boolean on );
+	OutputStream out;
+	InputStream in;
+
+	public void init() 
+	{
+		getContentPane().setLayout(new BorderLayout());
+
+		try {
+			URL base = getDocumentBase();
+
+			// connect to session server on port (httpd + 1)
+			Socket s = new Socket(base.getHost(), base.getPort() + 1);
+			out = s.getOutputStream();
+			in = s.getInputStream();
+		} catch(IOException e) {
+			getContentPane().add("Center", 
+				new Label("Remote Connection Failed", Label.CENTER));
+			return;
+		}
+
+		Component console = new JConsole(in, out);
+		getContentPane().add("Center", console);
+	}
 }
 
