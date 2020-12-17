@@ -16,8 +16,8 @@
 
 <property name="file" value=""/>
 
-    <property name="ant.build.javac.target" value="1.6" />
-    <property name="ant.build.javac.source" value="1.6" />
+	<property name="ant.build.javac.target" value="1.6" />
+	<property name="ant.build.javac.source" value="1.6" />
 	<property name="version" value="2.0.0b7"/>
 	<property name="deprecation" value="on"/>
 	<property name="Specification-Title" value="BeanShell" />
@@ -39,9 +39,9 @@
 	<property name="test-src-dir" value="tests/src" />
 	<property name="javadoc-dir" value="javadoc" />
 	<property name="bsf-src-dir" value="bsf/src" />
-    <property name="engine-src-dir" value="engine/src" />
-    <property name="engine-config"
-        value="engine/config/javax.script.ScriptEngineFactory" />
+	<property name="engine-src-dir" value="engine/src" />
+	<property name="engine-config"
+		value="engine/config/javax.script.ScriptEngineFactory" />
 	<property name="classgen-src-dir" value="src/bsh/org/objectweb/asm" />
 
 	<property name="javacc-lib" 
@@ -68,9 +68,9 @@
 		value="bsh/util/BeanShellBSFEngine.java,TestBshBSF.java"/>
 	-->
 
-    <!-- Uncomment to build without making the javax.script (JSR223) adapter
-    <property name="exclude-engine" value="bsh/engine/**"/>
-    -->
+	<!-- Uncomment to build without making the javax.script (JSR223) adapter
+	<property name="exclude-engine" value="bsh/engine/**"/>
+	-->
 
 	<!-- Uncomment to build without the ASM class generator code.
 	<property name="exclude-classgen" 
@@ -113,7 +113,7 @@
 		value="${dist-dir}/bsh-reflect-${version}.jar"/>
 	<property name="util-jar" value="${dist-dir}/bsh-util-${version}.jar"/>
 	<property name="bsf-jar" value="${dist-dir}/bsh-bsf-${version}.jar"/>
-    <property name="engine-jar" value="${dist-dir}/bsh-engine-${version}.jar"/>
+	<property name="engine-jar" value="${dist-dir}/bsh-engine-${version}.jar"/>
 	<property name="classgen-jar" value="${dist-dir}/bsh-classgen-${version}.jar"/>
 	<property name="bshservlet-wbsh-war" 
 		value="${dist-dir}/bshservlet-wbsh.war"/>
@@ -240,8 +240,8 @@
 			</fileset>
 		</copy>
 
-        <!-- Install the javax.script engine factory config -->
-        <copy file="${engine-config}" todir="${build-dir}/META-INF/services" />
+		<!-- Install the javax.script engine factory config -->
+		<copy file="${engine-config}" todir="${build-dir}/META-INF/services" />
 
 		<tstamp>
 			<format property="DATE" pattern="yyyy-MM-dd hh:mm:ss" />
@@ -255,8 +255,8 @@
 			 destdir="${javadoc-dir}"
 			 author="true"
 			 version="true"
-       source="1.6"
-       target="1.6"
+	   source="1.6"
+	   target="1.6"
 			 use="true"
 			 windowtitle="BeanShell ${version}"
 			 doctitle="&lt;h1&gt;BeanShell ${version}&lt;h1&gt;"
@@ -291,7 +291,7 @@
 		<delete quiet="true" file="${commands-jar}"/>
 		<delete quiet="true" file="${reflect-jar}"/>
 		<delete quiet="true" file="${bsf-jar}"/>
-        <delete quiet="true" file="${engine-jar}"/>
+		<delete quiet="true" file="${engine-jar}"/>
 		<delete quiet="true" file="${classgen-jar}"/>
 		<delete quiet="true" file="${bshservlet-wbsh-war}"/>
 		<delete quiet="true" file="${bshservlet-war}"/>
@@ -350,12 +350,12 @@
 		</patternset>
 	</fileset>
 
-    <fileset id="engine-fileset" dir="${build-dir}">
-        <patternset>
-            <include name="bsh/engine/**.class"/>
-            <include name="META-INF/services/javax.script*"/>
-        </patternset>
-    </fileset>
+	<fileset id="engine-fileset" dir="${build-dir}">
+		<patternset>
+			<include name="bsh/engine/**.class"/>
+			<include name="META-INF/services/javax.script*"/>
+		</patternset>
+	</fileset>
 
 	<fileset id="classgen-fileset" dir="${build-dir}">
 		<patternset>
@@ -403,15 +403,15 @@
 
 	<target name="jarcore" depends="compile,_distdir">
 	<!--
-        <fail message="Please use ant 1.6">
-            <condition>
-                <not>
-                    <contains string="${ant.version}" substring="1.6"/>
-                </not>
-            </condition>
-        </fail>
-    -->
-    <delete file="${core-jar}"/>
+		<fail message="Please use ant 1.6">
+			<condition>
+				<not>
+					<contains string="${ant.version}" substring="1.6"/>
+				</not>
+			</condition>
+		</fail>
+	-->
+	<delete file="${core-jar}"/>
 		<jar jarfile="${core-jar}">
 			<manifest>
 				<attribute name="Main-Class" value="bsh.Interpreter" />
@@ -422,7 +422,7 @@
 				<attribute name="Implementation-Vendor" value="${Implementation-Vendor}" />
 			</manifest>
 			<!--
-            <service type="javax.script.ScriptEngineFactory" provider="bsh.BshScriptEngineFactory"/>
+			<service type="javax.script.ScriptEngineFactory" provider="bsh.BshScriptEngineFactory"/>
 			-->
 			<fileset refid="core-fileset"/>
 		</jar>
@@ -440,7 +440,7 @@
 				<attribute name="Implementation-Vendor" value="${Implementation-Vendor}" />
 			</manifest>
 			<!--
-            <service type="javax.script.ScriptEngineFactory" provider="bsh.BshScriptEngineFactory"/>
+			<service type="javax.script.ScriptEngineFactory" provider="bsh.BshScriptEngineFactory"/>
 			-->
 			<fileset refid="core-fileset"/>
 			<fileset refid="classpath-fileset"/>
@@ -449,7 +449,7 @@
 			<fileset refid="util-fileset"/>
 			<fileset refid="commands-fileset"/>
 			<fileset refid="bsf-fileset"/>
-            <fileset refid="engine-fileset"/>
+			<fileset refid="engine-fileset"/>
 			<fileset refid="classgen-fileset"/>
 			<fileset refid="bshservlet-fileset"/>
 <!-- hack, see core-fileset -->
@@ -547,12 +547,12 @@
 		</antcall>
 
 		<antcall target="jarfileset">
-            <param name="target-jar" value="${engine-jar}"/>
-            <param name="specification-title" value="BeanShell JSR223 Engine"/>
-            <param name="fileset" value="engine-fileset"/>
-        </antcall>
+			<param name="target-jar" value="${engine-jar}"/>
+			<param name="specification-title" value="BeanShell JSR223 Engine"/>
+			<param name="fileset" value="engine-fileset"/>
+		</antcall>
 
-        <antcall target="jarfileset">
+		<antcall target="jarfileset">
 			<param name="target-jar" value="${classgen-jar}"/>
 			<param name="specification-title" value="BeanShell classgen"/>
 			<param name="fileset" value="classgen-fileset"/>
@@ -560,13 +560,13 @@
 
 		<delete file="${javadoc-zip}"/>
 		<zip zipfile="${javadoc-zip}" basedir="${javadoc-dir}"/>
-                <checksum fileext=".sha1" algorithm="SHA" forceoverwrite="true">
-                   <fileset dir="${dist-dir}">
-                     <include name="*.zip" />
-                     <include name="*.jar" />
-                     <include name="*.pom" />
-                   </fileset>
-                </checksum>
+				<checksum fileext=".sha1" algorithm="SHA" forceoverwrite="true">
+				   <fileset dir="${dist-dir}">
+					 <include name="*.zip" />
+					 <include name="*.jar" />
+					 <include name="*.pom" />
+				   </fileset>
+				</checksum>
 
 		<!-- Build the documentation -->
 		<!-- Don't build the documentation right now.
@@ -621,7 +621,7 @@
 
 		The output goes in the docs area, which has its own build file.
 	-->
-	<target name="bshdoc" depends="jarall">     
+	<target name="bshdoc" depends="jarall">	 
 		<!-- 
 			I'd like to use the java target, but there seems to be no way
 			to supply a fileset in an arg argument.
@@ -696,7 +696,7 @@
 	  <mkdir dir="${junit-reports}" />
 	  
 	  <junit printsummary="yes" haltonfailure="no" fork="yes">
-         <sysproperty key="skip_known_issues" value=""/>
+		 <sysproperty key="skip_known_issues" value=""/>
 		 <classpath>
 			<path refid="test-classpath"/>
 		 </classpath>
