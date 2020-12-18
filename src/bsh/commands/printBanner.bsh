@@ -23,7 +23,7 @@ printBanner()
 
 	    this.jconsole = bsh.console;
 	    jconsole.println( 
-			new ImageIcon( getResource("/bsh/util/lib/small_bean_shell.png")) );
+			new ImageIcon( getResource("/bsh/util/lib/small_bean_shell.gif")) );
 	    jconsole.print(
 			Interpreter.VERSION + " - https://github.com/beanshell/beanshell",
 			new Font("SansSerif", Font.BOLD, 12), 
