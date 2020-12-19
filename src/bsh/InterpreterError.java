@@ -22,8 +22,6 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-// part of beanshell fork at https://github.com/beanshell/beanshell
-// licensed unter GNU Lesser GPL, see http://www.gnu.org/licenses/lgpl.html
 package bsh;
 
 /**
