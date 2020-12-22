@@ -1,16 +1,43 @@
 # BeanShell changelog
 
+## 2.1.0
+
+This release formalizes the merge of 2.0b6 with suitable backports from
+the development (HEAD) version of BeanShell (3). Also included are
+are some ALv2 contributions to the BeanShell2 fork that had not been
+folded into BeanShell but are still applicable to this version. For
+backwards compatibility purposes, the 2.x branch of BeanShell still
+supports a minimum Java version of 1.6.
+
 ## 2.0 beta 6
 
 ### Security fix
 
-This release fixes a remote code execution vulnerability that was identified in BeanShell by [Alvaro Muñoz](https://twitter.com/pwntester) and [Christian Schneider](https://twitter.com/cschneider4711). The BeanShell team would like to thank them for their help and contributions to this fix!
+This release fixes a remote code execution vulnerability that was
+identified in BeanShell by [Alvaro Muñoz](https://twitter.com/pwntester)
+and [Christian Schneider](https://twitter.com/cschneider4711). The
+BeanShell team would like to thank them for their help and contributions
+to this fix!
 
-An application that includes BeanShell on the classpath may be vulnerable if another part of the application uses [Java serialization](https://docs.oracle.com/javase/tutorial/jndi/objects/serial.html) or [XStream](http://x-stream.github.io/) to deserialize data from an untrusted source.
+An application that includes BeanShell on the classpath may be vulnerable
+if another part of the application uses [Java
+serialization](https://docs.oracle.com/javase/tutorial/jndi/objects/
+serial.html) or [XStream](http://x-stream.github.io/) to deserialize data
+from an untrusted source.
 
-A vulnerable application could be exploited for remote code execution, including executing arbitrary shell commands.
+A vulnerable application could be exploited for remote code execution,
+including executing arbitrary shell commands.
 
-This update fixes the vulnerability in BeanShell, but it is worth noting that applications doing such deserialization might still be insecure through other libraries. It is recommended that application developers take further measures such as using a restricted class loader when deserializing. See notes on [Java serialization security](http://www.oracle.com/technetwork/java/seccodeguide-139067.html#8),  [XStream security](http://x-stream.github.io/security.html) and [How to secure deserialization from untrusted input without using encryption or sealing](http://www.ibm.com/developerworks/library/se-lookahead/).
+This update fixes the vulnerability in BeanShell, but it is worth noting
+that applications doing such deserialization might still be insecure
+through other libraries. It is recommended that application developers
+take further measures such as using a restricted class loader when
+deserializing. See notes on [Java serialization
+security](http://www.oracle.com/technetwork/java/seccodeguide-139067.html
+#8),  [XStream security](http://x-stream.github.io/security.html) and
+[How to secure deserialization from untrusted input without using
+encryption or
+sealing](http://www.ibm.com/developerworks/library/se-lookahead/).
 
 A [CVE number](http://cve.mitre.org/cve/) will be requested.
 
