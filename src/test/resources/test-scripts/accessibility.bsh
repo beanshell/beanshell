@@ -3,8 +3,6 @@
 source("TestHarness.bsh");
 source("Assert.bsh");
 
-assumeTrue("testing illegal access assumes accessibility", haveAccessibility());
-
 import mypackage.*;
 
 a=new Accessibility2();
@@ -30,8 +28,19 @@ assert(Accessibility2.supersfield4 == void);
 
 javax.swing.JInternalFrame.DO_NOTHING_ON_CLOSE;
 
+// Method doest not exist
 assert( isEvalError("a.get1()") );
+// Method is private
+assert( isEvalError("a.getB1()") );
+// Method is package protected
+assert( isEvalError("a.getB2()") );
+// Field is private
 assert( a.field1 == void );
+// Field is package protected
+assert( a.field2 == void );
+
+
+assumeTrue("testing illegal access assumes accessibility", haveAccessibility());
 
 //
 // With accessibility
