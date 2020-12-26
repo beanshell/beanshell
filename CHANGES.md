@@ -1,5 +1,9 @@
 # BeanShell changelog
 
+## 2.1.1
+
+Fix src/bsh/util/AWTConsole.java breakage with newer Java versions
+
 ## 2.1.0
 
 This release formalizes the merge of 2.0b6 with suitable backports from
