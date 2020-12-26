@@ -209,14 +209,10 @@ public class AWTConsole extends TextArea
 
 	/* 
 		Here's the really disguisting hack.
-		We have to get to the peer because TextComponent will refuse to
-		let us set us set a caret position greater than the text length.
-		Great.  What a piece of crap.
 	*/
-	public void setCaretPosition( int pos ) {
-		((java.awt.peer.TextComponentPeer)getPeer()).setCaretPosition( 
-			pos + countNLs() );
-	}
+    public synchronized void setCaretPosition( int pos ) {
+        super.setCaretPosition( pos + countNLs() );
+    }
 
 	/*
 		This is part of a hack to fix the setCaretPosition() bug
