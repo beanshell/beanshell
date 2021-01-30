@@ -89,7 +89,7 @@ printComment( String text )
 /**
 	bshdoc file comment.
 */
-bshdoc( filename ) 
+bshdoc( String filename ) 
 {
 	print("<File>");
 	tab();
