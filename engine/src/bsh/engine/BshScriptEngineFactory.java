@@ -1,5 +1,6 @@
-package bsh;
+package bsh.engine;
 
+import bsh.Interpreter;
 import javax.script.ScriptEngine;
 import java.util.List;
 import java.util.Arrays;

@@ -1,4 +1,4 @@
-package bsh;
+package bsh.engine;
 
 import javax.script.ScriptContext;
 import java.util.Collection;

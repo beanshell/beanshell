@@ -1,5 +1,6 @@
-package bsh;
+package bsh.engine;
 
+import bsh.*;
 import javax.script.AbstractScriptEngine;
 import javax.script.Bindings;
 import javax.script.Compilable;
