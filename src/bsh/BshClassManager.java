@@ -130,8 +130,8 @@ public class BshClassManager
 		Create a new instance of the class manager.  
 		Class manager instnaces are now associated with the interpreter.
 
-		@see bsh.Interpreter.getClassManager()
-		@see bsh.Interpreter.setClassLoader( ClassLoader )
+		@see bsh.Interpreter#getClassManager()
+		@see bsh.Interpreter#setClassLoader( ClassLoader )
 	*/
 	public static BshClassManager createClassManager( Interpreter interpreter ) 
 	{
@@ -363,7 +363,7 @@ public class BshClassManager
 
 	/**
 		Clear the caches in BshClassManager
-		@see public void #reset() for external usage
+		@see #reset() for external usage
 	*/
 	protected void clearCaches() 
 	{
