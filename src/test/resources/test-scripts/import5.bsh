@@ -1,0 +1,28 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+/*
+    Test wildcard import
+*/
+
+// mypackage is not imported yet
+assert( this.namespace.getClass("MyClass") == null );
+
+foo() {
+	// Use a superImport to import all classes in all packages
+    import *;
+    assert( this.namespace.getClass("MyClass") != null );
+}
+
+foo();
+
+/*
+ * superImport will be invoked in context of the parent class manager
+ * and will be visible in all parent namespaces.
+ */
+assert( this.namespace.getClass("MyClass") != null );
+
+
+
+complete();
