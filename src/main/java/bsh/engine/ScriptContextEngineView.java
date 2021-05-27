@@ -111,7 +111,8 @@ public class ScriptContextEngineView implements Map<String, Object> {
 
 
     /**
-     * Set the key, value binding in the ENGINE_SCOPE of the context.
+     * Set the key, value binding in the scope where the key is found, or
+     * in the ENGINE_SCOPE if the key is not found.
      *
      * @param key   key with which the specified value is to be associated.
      * @param value value to be associated with the specified key.
@@ -130,8 +131,19 @@ public class ScriptContextEngineView implements Map<String, Object> {
      */
     @Override
     public Object put(String key, Object value) {
-        Object oldValue = context.getAttribute(key, ENGINE_SCOPE);
-        context.setAttribute(key, value, ENGINE_SCOPE);
+       /*
+        * Check the scope for this key.  If not found then set the scope to
+        * ENGINE_SCOPE
+        */
+       int scope = context.getAttributesScope(key);
+       if (scope<0)
+          scope = ENGINE_SCOPE;
+        Object oldValue = context.getAttribute(key);
+
+        /*
+         * Update the value in the correct scope
+         */
+        context.setAttribute(key, value, scope);
         return oldValue;
     }
 
