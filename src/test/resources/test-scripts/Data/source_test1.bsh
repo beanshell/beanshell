@@ -1,0 +1,8 @@
+/*
+ * Testing if the soureRelative command works.
+ */
+sourceRelative("source_test2.bsh");
+
+/*
+ * That's all
+ */
