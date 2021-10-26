@@ -598,7 +598,14 @@ public class Interpreter
      * @throws IOException if a file read error occurred. */
     public Object source(File file, NameSpace namespace)
             throws EvalError, IOException {
-        return source(file.toURI().toURL(), namespace);
+       
+        Interpreter.debug("Sourcing file: ", file);
+        Reader sourceIn = new BufferedReader( new FileReader(file) );
+        try {
+           return eval( sourceIn, namespace, file.getPath() );
+        } finally {
+            sourceIn.close();
+        }
     }
 
     /** Source a script from a filename for interpretation.
