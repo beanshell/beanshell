@@ -431,15 +431,56 @@ class MethodInvocable extends ExecutingInvocable {
      * {@inheritDoc} */
     @Override
     protected MethodHandle lookup(MethodHandle m) {
+       assert(m == null);
+       assert(method != null);
+       
         try {
-            return super.lookup(MethodHandles.lookup().unreflect(method));
+           return super.lookup(getHandle(method));
         } catch (Exception e) {
-            throw new RuntimeException(e);
+           throw new RuntimeException(e);
         } finally {
             // release object reference
             method = null;
         }
     }
+
+   /**
+    * Resolve an accessible MethodHandle from a Method by climbing the
+    * class hierarchy until found.
+    */
+   private static MethodHandle getHandle(Method method) {
+      String methodName = method.getName();
+      Class[] types = method.getParameterTypes();
+      Class origClz = method.getDeclaringClass();
+      MethodHandles.Lookup lookup = MethodHandles.lookup();
+      MethodHandle handle = null;
+      Class clz = origClz;
+      while (clz != null && handle == null) {
+         try {
+            if (method != null)
+               return lookup.unreflect(method);
+         } catch (IllegalAccessException ex) {
+         }
+         for (Class intf : clz.getInterfaces()) {
+            try {
+               method = intf.getDeclaredMethod(methodName, types);
+               return lookup.unreflect(method);
+            } catch (Exception ex2) {
+            }
+         }
+         
+         clz = clz.getSuperclass();
+         if (clz != null) {
+            try {
+               method = clz.getDeclaredMethod(methodName, types);
+            } catch (Exception ex3) {
+               method = null;
+            }
+         }
+      }
+      throw new RuntimeException("MethodHandle lookup failed to find a "+methodName+" in "+origClz.getName());
+   }
+   
 
     /** Pull the cascade inheritance chain for parameter collection.
      *  {@inheritDoc} */
