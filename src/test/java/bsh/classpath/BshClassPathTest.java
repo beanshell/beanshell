@@ -240,12 +240,5 @@ public class BshClassPathTest {
         assertEquals("abc.ABC", BshClassPath.canonicalizeClassName("abc/ABC.class"));
         assertEquals("abc.ABC", BshClassPath.canonicalizeClassName("modules/some.mod/abc.ABC"));
     }
-
-   public static void main(String[] args) {
-      try {
-         new BshClassPathTest().classpath_map_filesystem_exception();
-      } catch (Exception ex) {
-      }
-   }
 }
 
