@@ -781,15 +781,8 @@ public class NameSpace
         // Get import first. Enum blocks may override class methods.
         if (this.isClass && !this.isEnum && !declaredOnly)
             method = this.getImportedMethod(name, sig);
-        if (method == null && this.methods.containsKey(name)) {
-            // Apply most specific signature matching
-            final Class<?>[][] candidates = this.methods.get(name)
-                    .stream().map(m -> m.getParameterTypes())
-                    .toArray(Class<?>[][]::new);
-            int idx = Reflect.findMostSpecificSignature(sig, candidates);
-            if (idx != -1)
-                method = this.methods.get(name).get(idx);
-        }
+        if (method == null && this.methods.containsKey(name))
+            method = Reflect.findMostSpecificBshMethod(sig, methods.get(name));
         if (method == null && !this.isClass && !declaredOnly)
             method = this.getImportedMethod(name, sig);
         // try parent

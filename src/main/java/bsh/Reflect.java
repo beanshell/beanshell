@@ -416,44 +416,211 @@ public final class Reflect {
         }
     }
 
+
     /**
-        Find the best match for signature idealMatch.
-        It is assumed that the methods array holds only valid candidates
-        (e.g. method name and number of args already matched).
-        This method currently does not take into account Java 5 covariant
-        return types... which I think will require that we find the most
-        derived return type of otherwise identical best matches.
+     * Find the best match for signature idealMatch and return the method.
+     * This method anticipates receiving the full list of BshMethods of 
+     * the same name, regardless of the potential arity/validity of 
+     * each method.
+     *
+     * @param idealMatch the signature to look for
+     * @param methods the set of candidate {@link BshMethod}s which 
+     * differ only in the types of their arguments.
+     */
+    public static BshMethod findMostSpecificBshMethod(
+            Class<?>[] idealMatch, List<BshMethod> methods ) {
+        Interpreter.debug("find most specific BshMethod for: "+
+                          Arrays.toString(idealMatch));
+        int match = findMostSpecificBshMethodIndex( idealMatch, methods );
+        return match == -1 ? null : methods.get(match);
+    }
+   
 
-        @see #findMostSpecificSignature(Class[], Class[][])
-        @param methods the set of candidate method which differ only in the
-            types of their arguments.
-    */
-    public static Invocable findMostSpecificInvocable(
-            Class<?>[] idealMatch, List<Invocable> methods )
-        {
-            // copy signatures into array for findMostSpecificMethod()
-            List<Class<?>[]> candidateSigs = new ArrayList<>();
-            List<Invocable> methodList = new ArrayList<>();
-            for( Invocable method : methods ) {
-                Class<?>[] parameterTypes = method.getParameterTypes();
-                methodList.add( method );
+    /**
+     * Find the best match for signature idealMatch and return the position
+     * of the matching signature within the list.
+     * This method anticipates receiving the full list of BshMethods of the 
+     * same name,regardless of the potential arity/validity of each method.
+     * Filter the list of methods for only valid candidates
+     * before performing the comparison (e.g. method name and 
+     * number of args match).  Also expand the parameter type list
+     * for VarArgs methods.
+     *
+     * @param idealMatch the signature to look for
+     * @param methods the set of candidate BshMethods which differ only in the
+     * types of their arguments.
+     */
+    public static int findMostSpecificBshMethodIndex(Class<?>[] idealMatch,
+                                                      List<BshMethod> methods) {
+        for (int i=0; i<methods.size(); i++) 
+            Interpreter.debug("  "+i+":"+methods.get(i).toString()+" "+methods.get(i).getClass().getName());
+
+        /*
+         * Filter for non-varArgs method signatures of the same arity
+         */
+        List<Class<?>[]> candidateSigs = new ArrayList<>();
+
+        // array to remap the index in the new list
+        ArrayList<Integer> remap = new ArrayList<>();
+
+        int i=0;
+        for( BshMethod m : methods ) {
+            Class<?>[] parameterTypes = m.getParameterTypes();
+            if (idealMatch.length == parameterTypes.length) {
+                remap.add(i);
                 candidateSigs.add( parameterTypes );
-                if( method.isVarArgs()
-                        && idealMatch.length >= parameterTypes.length ) {
-                    Class<?>[] candidateSig = new Class[idealMatch.length];
-                    System.arraycopy(parameterTypes, 0, candidateSig, 0,
-                            parameterTypes.length-1);
-                    Arrays.fill(candidateSig, parameterTypes.length-1,
-                        idealMatch.length, method.getVarArgsComponentType());
-                    methodList.add( method );
-                    candidateSigs.add( candidateSig );
-                }
             }
-
-            int match = findMostSpecificSignature( idealMatch,
-                    candidateSigs.toArray(new Class[candidateSigs.size()][]) );
-            return match == -1 ? null : methodList.get(match);
+            i++;
         }
+        Class[][] sigs = candidateSigs.toArray(new Class[candidateSigs.size()][]);
+        
+        int match = findMostSpecificSignature( idealMatch, sigs );
+        if (match >= 0) {
+            match = remap.get(match);
+            Interpreter.debug(" remap: "+remap);
+            Interpreter.debug(" match:"+match);
+            return match;
+        } 
+            
+        /*
+         * If did not get a match then try VarArgs methods
+         * Filter for varArgs method signatures of sufficient arity
+         * Expand out the vararg parameters.
+         */
+        candidateSigs.clear();
+        remap.clear();
+        i=0;
+        for( BshMethod m : methods ) {
+            Class<?>[] parameterTypes = m.getParameterTypes();
+            if (m.isVarArgs()
+                && idealMatch.length >= parameterTypes.length-1 ) {
+                Class<?>[] candidateSig = new Class[idealMatch.length];
+                System.arraycopy(parameterTypes, 0, candidateSig, 0,
+                                 parameterTypes.length-1);
+                Class<?> arrayCompType = parameterTypes[parameterTypes.length-1].getComponentType();
+                Arrays.fill(candidateSig, parameterTypes.length-1,
+                            idealMatch.length, arrayCompType);
+                remap.add(i);
+                candidateSigs.add( candidateSig );
+            }
+            i++;
+        }
+
+        sigs = candidateSigs.toArray(new Class[candidateSigs.size()][]);
+        match = findMostSpecificSignature( idealMatch, sigs);
+        if (match >= 0) {
+            match = remap.get(match);
+            Interpreter.debug(" remap (varargs): "+Arrays.toString(remap.toArray(new Integer[0])));
+            Interpreter.debug(" match (varargs):"+match);
+        }
+        
+        return match;
+    }
+    
+    /**
+     * Find the best match for signature idealMatch and return the method.
+     * This method anticipates receiving the full list of methods of 
+     * the same name, regardless of the potential arity/validity of 
+     * each method.
+     *
+     * @param idealMatch the signature to look for
+     * @param methods the set of candidate {@link Invocable}s which 
+     * differ only in the types of their arguments.
+     */
+    public static Invocable findMostSpecificInvocable(
+            Class<?>[] idealMatch, List<Invocable> methods ) {
+        Interpreter.debug("find most specific Invocable for: "+
+                          Arrays.toString(idealMatch));
+        
+        int match = findMostSpecificInvocableIndex( idealMatch, methods );
+        return match == -1 ? null : methods.get(match);
+    }
+   
+    /**
+     * Find the best match for signature idealMatch and return the position
+     * of the matching signature within the list.
+     * This method anticipates receiving the full list of methods of the 
+     * same name,regardless of the potential arity/validity of each method.
+     * Filter the list of methods for only valid candidates
+     * before performing the comparison (e.g. method name and 
+     * number of args match).  Also expand the parameter type list
+     * for VarArgs methods.
+     *
+     * This method currently does not take into account Java 5 covariant
+     * return types... which I think will require that we find the most
+     * derived return type of otherwise identical best matches.
+     *
+     * @param idealMatch the signature to look for
+     * @param methods the set of candidate method which differ only in the
+     * types of their arguments.
+     */
+    public static int findMostSpecificInvocableIndex(Class<?>[] idealMatch,
+                                                      List<Invocable> methods) {
+        for (int i=0; i<methods.size(); i++) 
+            Interpreter.debug("  "+i+"="+methods.get(i).toString());
+
+        /*
+         * Filter for non-varArgs method signatures of the same arity
+         */
+        List<Class<?>[]> candidateSigs = new ArrayList<>();
+        // array to remap the index in the new list
+        ArrayList<Integer> remap = new ArrayList<>();
+        int i=0;
+        for( Invocable method : methods ) {
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            if (idealMatch.length == parameterTypes.length) {
+                remap.add(i);
+                candidateSigs.add( parameterTypes );
+            }
+            i++;
+        }
+        Class[][] sigs = candidateSigs.toArray(new Class[candidateSigs.size()][]);
+        
+        int match = findMostSpecificSignature( idealMatch, sigs );
+        if (match >= 0) {
+            match = remap.get(match);
+            Interpreter.debug(" remap="+Arrays.toString(remap.toArray(new Integer[0])));
+            Interpreter.debug(" match="+match);
+            return match;
+        }
+
+        
+        /*
+         * If did not get a match then try VarArgs methods
+         * Filter for varArgs method signatures of sufficient arity
+         */
+        candidateSigs.clear();
+        remap.clear();
+        i=0;
+        for( Invocable method : methods ) {
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            if (method.isVarArgs()
+                && idealMatch.length >= parameterTypes.length-1 ) {
+                Class<?>[] candidateSig = new Class[idealMatch.length];
+                System.arraycopy(parameterTypes, 0, candidateSig, 0,
+                                 parameterTypes.length-1);
+                Arrays.fill(candidateSig, parameterTypes.length-1,
+                            idealMatch.length, method.getVarArgsComponentType());
+                remap.add(i);
+                candidateSigs.add( candidateSig );
+            }
+            i++;
+        }
+
+        sigs = candidateSigs.toArray(new Class[candidateSigs.size()][]);
+        match = findMostSpecificSignature( idealMatch, sigs);
+
+        /*
+         * return the remaped value so that the index is relative
+         * to the original list
+         */
+        if (match >= 0)
+            match = remap.get(match);
+        Interpreter.debug(" remap (varargs) ="+Arrays.toString(remap.toArray(new Integer[0])));
+        Interpreter.debug(" match (varargs) ="+match);
+        return match;
+    }
+    
     /**
         Implement JLS 15.11.2
         Return the index of the most specific arguments match or -1 if no

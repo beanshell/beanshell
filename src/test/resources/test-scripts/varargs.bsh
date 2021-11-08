@@ -1,0 +1,47 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+class VarArgsClass {
+
+   public int consType = -1;
+   VarArgsClass(String a) {
+      consType = 1;
+   }
+   VarArgsClass(String a, String b) {
+      consType = 2;
+   }
+   VarArgsClass(String... a) {
+      consType = 3;
+   }
+
+   int method1(String a) {
+      return 1;
+   }
+   int method1(String a, String b) {
+      return 2;
+   }
+   int method1(String... a) {
+      return 3;
+   }
+}
+
+va = new VarArgsClass("A");
+assert(va.consType == 1);
+va = new VarArgsClass("A", "B");
+assert(va.consType == 2);
+va = new VarArgsClass("A", "B", "C");
+assert(va.consType == 3);
+va = new VarArgsClass(new String[] {"A", "B", "C"});
+assert(va.consType == 3);
+va = new VarArgsClass();
+assert(va.consType == 3);
+
+assert(va.method1("A") == 1);
+assert(va.method1("A", "B") == 2);
+assert(va.method1("A", "B", "C") == 3);
+assert(va.method1(new String[] {"A", "B", "C"}) == 3);
+assert(va.method1() == 3);
+
+complete();
