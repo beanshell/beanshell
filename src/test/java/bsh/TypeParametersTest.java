@@ -194,7 +194,7 @@ public class TypeParametersTest {
     @Test
     public void generics_wildcard_error_works() throws Exception {
         final Object ret = eval(
-            "public class WildcardError {",
+           "public class WildcardError {",
                 "void foo(List<?> i) {",
                     "i.set(0, i.get(0));",
                 "}",
@@ -212,7 +212,7 @@ public class TypeParametersTest {
     @Test
     public void generics_varargs() throws Exception {
         final Object ret = eval(
-            "public static <T> void addToList (List<T> listArg, T... elements) {",
+             "public static <T> void addToList (List<T> listArg, T... elements) {",
                 "for (T x : elements)",
                     "listArg.add(x);",
             "}",
