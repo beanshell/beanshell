@@ -161,12 +161,12 @@ public abstract class Invocable implements Member {
     }
 
     /** Basic parameter collection with pulling inherited cascade chaining. */
-    public List<Object> collectParamaters(Object base, Object[] params)
+    public ParameterType collectParamaters(Object base, Object[] params)
             throws Throwable {
         parameters.clear();
         for (int i = 0; i < getLastParameterIndex(); i++)
             parameters.add(coerceToType(params[i], getParameterTypes()[i]));
-        return parameters;
+        return new ParameterType(parameters, false);
     }
 
     /** Coerce parameter values to parameter type and unwrap primitives.
@@ -189,10 +189,15 @@ public abstract class Invocable implements Member {
     private synchronized Object invokeTarget(Object base, Object[] pars)
             throws Throwable {
         Reflect.logInvokeMethod("Invoking method (entry): ", this, pars);
-        List<Object> params = collectParamaters(base, pars);
+        ParameterType pt = collectParamaters(base, pars);
+        List<Object> params = pt.params;
         Reflect.logInvokeMethod("Invoking method (after): ", this, params);
-        if (getParameterCount() > 0)
-            return getMethodHandle().invokeWithArguments(params);
+        if (getParameterCount() > 0) {
+            MethodHandle mh = getMethodHandle();
+            if (pt.isFixedArity)
+                mh = mh.asFixedArity();
+            return mh.invokeWithArguments(params);
+        }
         if (isStatic() || this instanceof ConstructorInvocable)
             return getMethodHandle().invoke();
         return getMethodHandle().invoke(params.get(0));
@@ -249,6 +254,15 @@ public abstract class Invocable implements Member {
                   .map(t -> null == t ? 39 : t.hashCode())
                   .reduce(75, (a, b) -> a ^ b).intValue();
     }
+
+    static class ParameterType {
+        List<Object> params;
+        boolean isFixedArity;
+        ParameterType(List<Object> params, boolean isFixedArity) {
+            this.params = params;
+            this.isFixedArity = isFixedArity;
+        }
+    }
 }
 
 /** Executable extension for invocable members includes varargs support. */
@@ -300,7 +314,7 @@ abstract class ExecutingInvocable extends Invocable {
     @Override
     protected MethodHandle lookup(MethodHandle m) {
         if (isVarArgs() && null != m)
-            return m.asFixedArity().asVarargsCollector(getVarArgsType());
+            return m.asVarargsCollector(getVarArgsType());
         return m;
     }
 
@@ -309,26 +323,30 @@ abstract class ExecutingInvocable extends Invocable {
      * as separate args.
      *  {@inheritDoc} */
     @Override
-    public List<Object> collectParamaters(Object base, Object[] params)
+    public ParameterType collectParamaters(Object base, Object[] params)
             throws Throwable {
         super.collectParamaters(base, params);
+        boolean isFixedArity = false;
         if (isVarArgs()) {
             if (getLastParameterIndex() < params.length) {
                 Object[] varargs;
                 if (getParameterCount() == params.length
-                        && params[getLastParameterIndex()] instanceof Object[])
-                    varargs = (Object[]) params[getLastParameterIndex()];
-                else
+                    && params[getLastParameterIndex()].getClass().isArray()
+                    && getVarArgsComponentType().isAssignableFrom(params[getLastParameterIndex()].getClass().getComponentType())) {
+                    isFixedArity = true;
+                    parameters.add(params[getLastParameterIndex()]);
+                } else {
                     varargs = Arrays.copyOfRange(
                             params, getLastParameterIndex(), params.length);
-                for (int i = 0; i < varargs.length; i++)
-                    parameters.add(super.coerceToType(
+                    for (int i = 0; i < varargs.length; i++)
+                        parameters.add(super.coerceToType(
                             varargs[i], getVarArgsComponentType()));
+                }
             }
         } else if (null != params && getLastParameterIndex() < params.length)
             parameters.add(super.coerceToType(params[getLastParameterIndex()],
                     getParameterTypes()[getLastParameterIndex()]));
-        return parameters;
+        return new ParameterType(parameters, isFixedArity);
     }
 }
 
@@ -379,7 +397,7 @@ class ConstructorInvocable extends ExecutingInvocable {
      * Applies inner class mappings as required.
      * {@inheritDoc} */
     @Override
-    public List<Object> collectParamaters(Object base, Object[] params)
+    public ParameterType collectParamaters(Object base, Object[] params)
             throws Throwable {
         if (isInnerClass() && !isStatic())
             params = Stream.concat(
@@ -444,12 +462,12 @@ class MethodInvocable extends ExecutingInvocable {
     /** Pull the cascade inheritance chain for parameter collection.
      *  {@inheritDoc} */
     @Override
-    public List<Object> collectParamaters(Object base, Object[] params)
+    public ParameterType collectParamaters(Object base, Object[] params)
             throws Throwable {
-        super.collectParamaters(base, params);
+        ParameterType pt = super.collectParamaters(base, params);
         if (!isStatic())
             parameters.add(0, base);
-        return parameters;
+        return new ParameterType(parameters, pt.isFixedArity);
     }
 
 }

@@ -4,6 +4,7 @@ public class MethodSelection {
 
     public Class constructedWith;
     public String which;
+    public String[] varargs;
 
     // constructors
 
@@ -133,14 +134,17 @@ public class MethodSelection {
     // for testing VarArgs and most specific method selection
     public String method2(String str) {
         // most specific for method2("Hello")
+        varargs = new String[] {str};
         return "one";
     }
     public String method2(String str, String str1) {
         // most specific for method2("Hello", "World")
+        varargs = new String[] {str, str1};
         return "two";
     }
     public String method2(String str, String... str2) {
         // most specific for method2("Hello", "World", "This", "is", "me")
+        varargs = str2;
         return "three";
     }
    
