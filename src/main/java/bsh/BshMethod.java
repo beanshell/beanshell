@@ -435,7 +435,7 @@ public class BshMethod implements Serializable {
             }
         }
 
-        if (isVarArgs()) try {
+        if (varArgs != null) try {
             localNameSpace.setTypedVariable(
                     paramNames[lastParamIndex],
                     paramTypes[lastParamIndex],
