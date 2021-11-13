@@ -30,13 +30,7 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
@@ -51,13 +45,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.Icon;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
@@ -77,9 +65,8 @@ import bsh.FileReader;
     Improvements by: Daniel Leuck
         including Color and Image support, key press bug workaround
 */
-public class JConsole extends JScrollPane
-    implements GUIConsoleInterface, Runnable, KeyListener,
-    MouseListener, ActionListener, PropertyChangeListener
+public class JConsole extends JPanel
+    implements GUIConsoleInterface, Runnable, MouseListener, ActionListener, PropertyChangeListener
 {
     private final static String CUT = "Cut";
     private final static String COPY = "Copy";
@@ -101,7 +88,7 @@ public class JConsole extends JScrollPane
     private int histLine = 0;
 
     private JPopupMenu menu;
-    private JTextPane text;
+    private de.netsysit.ui.text.AugmentedJEditTextArea text;
 
     NameCompletion nameCompletion;
     final int SHOW_AMBIG_MAX = 10;
@@ -109,15 +96,69 @@ public class JConsole extends JScrollPane
     // hack to prevent key repeat for some reason?
     private boolean gotUp = true;
 
-    public JConsole() {
+   public JConsole() {
         this(null, null);
     }
 
     public JConsole( InputStream cin, OutputStream cout )
     {
-        super();
+        super(new java.awt.BorderLayout());
 
-        // Special TextPane which catches for cut and paste, both L&F keys and
+        de.netsysit.ui.text.JavaEditor je=new de.netsysit.ui.text.JavaEditor();
+        de.netsysit.ui.text.AugmentedJEditTextArea jta=je.getTextField();
+        text=jta;
+        add(text);
+        text.getInputHandler().addKeyBinding("ENTER", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                enter();
+                resetCommandStart();
+                text.setCaretPosition(cmdStart);
+            }
+        });
+        text.getInputHandler().addKeyBinding("UP", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                historyUp();
+            }
+        });
+        text.getInputHandler().addKeyBinding("DOWN", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                historyDown();
+            }
+        });
+        text.getInputHandler().addKeyBinding("TAB", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                String part = text.getText();
+                if ( null == part )
+                    ;
+                else
+                    doCommandCompletion( part.substring( cmdStart ) );
+            }
+        });
+        text.getInputHandler().addKeyBinding("BACK_SPACE", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                if(text.getCaretPosition()>cmdStart)
+                    org.syntax.jedit.InputHandler.BACKSPACE.actionPerformed(e);
+                else
+                    java.awt.Toolkit.getDefaultToolkit().beep();
+            }
+        });
+
+/*        // Special TextPane which catches for cut and paste, both L&F keys and
         // programmatic behaviour
         text = new JTextPane( new DefaultStyledDocument() ) {
                 private static final long serialVersionUID = 1L;
@@ -135,22 +176,22 @@ public class JConsole extends JScrollPane
                     super.paste();
                 }
             };
-
+*/
         Font font = new Font("Monospaced",Font.PLAIN,14);
         text.setText("");
         text.setFont( font );
-        text.setMargin( new Insets(7,5,7,5) );
-        text.addKeyListener(this);
-        setViewportView(text);
+//        text.setMargin( new Insets(7,5,7,5) );
+//        text.addKeyListener(this);
+//        setViewportView(text);
 
-        // create popup menu
+/*        // create popup menu
         menu = new JPopupMenu("JConsole Menu");
         menu.add(new JMenuItem(CUT)).addActionListener(this);
         menu.add(new JMenuItem(COPY)).addActionListener(this);
         menu.add(new JMenuItem(PASTE)).addActionListener(this);
 
         text.addMouseListener(this);
-
+*/
         // make sure popup menu follows Look & Feel
         UIManager.addPropertyChangeListener(this);
 
@@ -176,157 +217,24 @@ public class JConsole extends JScrollPane
         new Thread( this ).start();
 
         requestFocus();
+        text.addComponentListener(new ComponentAdapter()
+        {
+            @Override
+            public void componentResized(ComponentEvent e)
+            {
+                //This is needed to get the Component focused!!
+                super.componentResized(e);
+                text.requestFocusInWindow();
+            }
+
+        });
     }
 
     public void requestFocus()
     {
         super.requestFocus();
         text.requestFocus();
-    }
-
-    public void keyPressed( KeyEvent e ) {
-        type( e );
-        gotUp=false;
-    }
-
-    public void keyTyped(KeyEvent e) {
-        type( e );
-    }
-
-    public void keyReleased(KeyEvent e) {
-        gotUp=true;
-        type( e );
-    }
-
-    private synchronized void type( KeyEvent e ) {
-        switch ( e.getKeyCode() )
-        {
-            case KeyEvent.VK_ENTER:
-                if (e.getID() == KeyEvent.KEY_PRESSED) {
-                    if (gotUp) {
-                        enter();
-                        resetCommandStart();
-                        text.setCaretPosition(cmdStart);
-                    }
-                }
-                e.consume();
-                text.repaint();
-                break;
-
-            case KeyEvent.VK_UP:
-                if (e.getID() == KeyEvent.KEY_PRESSED) {
-                    historyUp();
-                }
-                e.consume();
-                break;
-
-            case KeyEvent.VK_DOWN:
-                if (e.getID() == KeyEvent.KEY_PRESSED) {
-                    historyDown();
-                }
-                e.consume();
-                break;
-
-            case KeyEvent.VK_LEFT:
-            case KeyEvent.VK_BACK_SPACE:
-                if (text.getCaretPosition() <= cmdStart) {
-                    // This doesn't work for backspace.
-                    // See default case for workaround
-                    e.consume();
-                }
-                break;
-
-            case KeyEvent.VK_DELETE:
-                if (text.getCaretPosition() < cmdStart) {
-                    e.consume();
-                }
-                break;
-
-            case KeyEvent.VK_RIGHT:
-                forceCaretMoveToStart();
-                break;
-
-            case KeyEvent.VK_HOME:
-                text.setCaretPosition(cmdStart);
-                e.consume();
-                break;
-
-            case KeyEvent.VK_U: // clear line
-                if ( (e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) > 0 ) {
-                    replaceRange( "", cmdStart, textLength());
-                    histLine = 0;
-                    e.consume();
-                }
-                break;
-
-            case KeyEvent.VK_ALT:
-            case KeyEvent.VK_CAPS_LOCK:
-            case KeyEvent.VK_CONTROL:
-            case KeyEvent.VK_META:
-            case KeyEvent.VK_SHIFT:
-            case KeyEvent.VK_PRINTSCREEN:
-            case KeyEvent.VK_SCROLL_LOCK:
-            case KeyEvent.VK_PAUSE:
-            case KeyEvent.VK_INSERT:
-            case KeyEvent.VK_F1:
-            case KeyEvent.VK_F2:
-            case KeyEvent.VK_F3:
-            case KeyEvent.VK_F4:
-            case KeyEvent.VK_F5:
-            case KeyEvent.VK_F6:
-            case KeyEvent.VK_F7:
-            case KeyEvent.VK_F8:
-            case KeyEvent.VK_F9:
-            case KeyEvent.VK_F10:
-            case KeyEvent.VK_F11:
-            case KeyEvent.VK_F12:
-            case KeyEvent.VK_ESCAPE:
-
-            // only modifier pressed
-            break;
-
-            // Control-C
-            case KeyEvent.VK_C:
-                if (text.getSelectedText() == null) {
-                    if ( (e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) > 0
-                            && e.getID() == KeyEvent.KEY_PRESSED )
-                        append("^C");
-                    e.consume();
-                }
-                break;
-
-            case KeyEvent.VK_TAB :
-                if (e.getID() == KeyEvent.KEY_RELEASED) {
-                    String part = text.getText();
-                    if ( null == part )
-                        break;
-                    doCommandCompletion( part.substring( cmdStart ) );
-                }
-                e.consume();
-                break;
-
-            default:
-                if (
-                    (e.getModifiersEx() &
-                    (InputEvent.CTRL_DOWN_MASK
-                    | InputEvent.ALT_DOWN_MASK | InputEvent.META_DOWN_MASK)) == 0 )
-                {
-                    // plain character
-                    forceCaretMoveToEnd();
-                }
-
-                /*
-                    The getKeyCode function always returns VK_UNDEFINED for
-                    keyTyped events, so backspace is not fully consumed.
-                */
-                if (e.paramString().indexOf("Backspace") != -1
-                        && text.getCaretPosition() <= cmdStart) {
-                    e.consume();
-                    break;
-                }
-
-                break;
-        }
+        text.requestFocusInWindow();
     }
 
     private void doCommandCompletion( String part ) {
@@ -393,13 +301,13 @@ public class JConsole extends JScrollPane
     private void append(String string) {
         int slen = textLength();
         text.select(slen, slen);
-        text.replaceSelection(string);
+        text.setSelectedText(string);
     }
 
     private String replaceRange(Object s, int start, int    end) {
         String st = s.toString();
         text.select(start, end);
-        text.replaceSelection(st);
+        text.setSelectedText(st);
         //text.repaint();
         return st;
     }
@@ -438,13 +346,13 @@ public class JConsole extends JScrollPane
 
     private String getCmd() {
         String s = "";
-        try {
+//        try {
             s = text.getText(cmdStart, textLength() - cmdStart);
-        } catch (BadLocationException e) {
+/*        } catch (BadLocationException e) {
             // should not happen
             System.out.println("Internal JConsole Error: "+e);
         }
-        return s;
+*/        return s;
     }
 
     private void historyUp() {
@@ -552,7 +460,7 @@ public class JConsole extends JScrollPane
 
         invokeAndWait(new Runnable() {
             public void run() {
-                text.insertIcon(icon);
+//                text.insertIcon(icon);
                 resetCommandStart();
                 text.setCaretPosition(cmdStart);
             }
@@ -668,11 +576,11 @@ public class JConsole extends JScrollPane
     }
 
     private void setStyle(AttributeSet attributes, boolean overWrite) {
-        text.setCharacterAttributes(attributes, overWrite);
+        //text.setCharacterAttributes(attributes, overWrite);
     }
 
     private AttributeSet getStyle() {
-        return text.getCharacterAttributes();
+        return null;//text.getCharacterAttributes();
     }
 
     public void setFont( Font font ) {

@@ -300,6 +300,47 @@
   </build>
 
 
+  <repositories>
+    <!--repository>
+        <releases>
+            <enabled>true</enabled>
+            <updatePolicy>always</updatePolicy>
+            <checksumPolicy>fail</checksumPolicy>
+        </releases>
+        <id>EL BOSSO - SNAPSHOTS</id>
+        <name>Juergen Key</name>
+        <url>https://elbosso.github.io/maven2</url>
+        <layout>default</layout>
+    </repository>
+    <repository>
+        <releases>
+            <enabled>true</enabled>
+            <updatePolicy>always</updatePolicy>
+            <checksumPolicy>fail</checksumPolicy>
+        </releases>
+        <id>EL BOSSO - RELEASES</id>
+        <name>Juergen Key</name>
+        <url>https://elbosso.github.io/maven2-releases</url>
+        <layout>default</layout>
+    </repository-->
+    <repository>
+      <id>repsy</id>
+      <name>EL BOSSOs (https://elbosso.github.io/index.html) Maven Repository on Repsy</name>
+      <url>https://repo.repsy.io/mvn/elbosso/default</url>
+    </repository>
+    <repository>
+      <id>central</id>
+      <url>https://repo1.maven.org/maven2</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </repository>
+    <!--BeanShell-->
+    <repository>
+      <id>Boundless Repository</id>
+      <url>	https://repo.boundlessgeo.com/main/</url>
+    </repository>
+  </repositories>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -320,6 +361,66 @@
       <version>4.0.1</version>
       <scope>provided</scope>
       <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>de.elbosso</groupId>
+      <artifactId>jedittextarea</artifactId>
+      <version>1.3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>de.elbosso</groupId>
+      <artifactId>util</artifactId>
+      <version>1.3.0</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>de.elbosso</groupId>
+      <artifactId>util_i18n</artifactId>
+      <version>1.3.0</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>de.elbosso</groupId>
+      <artifactId>ui</artifactId>
+      <version>1.3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>de.elbosso</groupId>
+      <artifactId>ui_i18n</artifactId>
+      <version>1.3.0</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>de.elbosso</groupId>
+      <artifactId>documents</artifactId>
+      <version>1.3.0</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>de.elbosso</groupId>
+      <artifactId>model</artifactId>
+      <version>1.3.0</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>de.elbosso</groupId>
+      <artifactId>gfx</artifactId>
+      <version>1.3.0</version>
+      <scope>runtime</scope>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache.velocity/velocity -->
+    <dependency>
+      <groupId>org.apache.velocity</groupId>
+      <artifactId>velocity</artifactId>
+      <version>1.7</version>
+      <scope>runtime</scope>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/log4j/log4j -->
+    <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>1.2.17</version>
+      <scope>runtime</scope>
     </dependency>
 
   </dependencies>
