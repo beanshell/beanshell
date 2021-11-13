@@ -21,3 +21,4 @@ BeanShell.iws
 *gradle*
 *.ser
 /.idea/
+/bsh.iml
