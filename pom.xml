@@ -55,6 +55,7 @@
     <version.jdk>1.8</version.jdk>
     <maven.compiler.source>${version.jdk}</maven.compiler.source>
     <maven.compiler.target>${version.jdk}</maven.compiler.target>
+    <de.elbosso.artifacts.version>1.4.0-SNAPSHOT</de.elbosso.artifacts.version>
   </properties>
 
   <scm>
@@ -370,47 +371,47 @@
     <dependency>
       <groupId>de.elbosso</groupId>
       <artifactId>jedittextarea</artifactId>
-      <version>1.3.0</version>
+      <version>${de.elbosso.artifacts.version}</version>
     </dependency>
     <dependency>
       <groupId>de.elbosso</groupId>
       <artifactId>util</artifactId>
-      <version>1.3.0</version>
+      <version>${de.elbosso.artifacts.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>de.elbosso</groupId>
       <artifactId>util_i18n</artifactId>
-      <version>1.3.0</version>
+      <version>${de.elbosso.artifacts.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>de.elbosso</groupId>
       <artifactId>ui</artifactId>
-      <version>1.3.0</version>
+      <version>${de.elbosso.artifacts.version}</version>
     </dependency>
     <dependency>
       <groupId>de.elbosso</groupId>
       <artifactId>ui_i18n</artifactId>
-      <version>1.3.0</version>
+      <version>${de.elbosso.artifacts.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>de.elbosso</groupId>
       <artifactId>documents</artifactId>
-      <version>1.3.0</version>
+      <version>${de.elbosso.artifacts.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>de.elbosso</groupId>
       <artifactId>model</artifactId>
-      <version>1.3.0</version>
+      <version>${de.elbosso.artifacts.version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>de.elbosso</groupId>
       <artifactId>gfx</artifactId>
-      <version>1.3.0</version>
+      <version>${de.elbosso.artifacts.version}</version>
       <scope>runtime</scope>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.apache.velocity/velocity -->

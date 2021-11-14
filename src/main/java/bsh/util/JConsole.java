@@ -61,6 +61,7 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 
 import bsh.FileReader;
+import org.syntax.jedit.InputHandler;
 
 /**
     A JFC/Swing based console for the BeanShell desktop.
@@ -162,6 +163,103 @@ public class JConsole extends JPanel
                     org.syntax.jedit.InputHandler.BACKSPACE.actionPerformed(e);
                 else
                     java.awt.Toolkit.getDefaultToolkit().beep();
+            }
+        });
+        text.getInputHandler().addKeyBinding("C+BACK_SPACE", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                if(text.getCaretPosition()>cmdStart)
+                    InputHandler.BACKSPACE_WORD.actionPerformed(e);
+                else
+                    java.awt.Toolkit.getDefaultToolkit().beep();
+            }
+        });
+        text.getInputHandler().addKeyBinding("LEFT", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                if(text.getCaretPosition()>cmdStart)
+                    InputHandler.PREV_CHAR.actionPerformed(e);
+                else
+                    java.awt.Toolkit.getDefaultToolkit().beep();
+            }
+        });
+        text.getInputHandler().addKeyBinding("S+LEFT", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                if(text.getCaretPosition()>cmdStart)
+                    InputHandler.SELECT_PREV_CHAR.actionPerformed(e);
+                else
+                    java.awt.Toolkit.getDefaultToolkit().beep();
+            }
+        });
+        text.getInputHandler().addKeyBinding("C+LEFT", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                if(text.getCaretPosition()>cmdStart)
+                    InputHandler.PREV_WORD.actionPerformed(e);
+                else
+                    java.awt.Toolkit.getDefaultToolkit().beep();
+            }
+        });
+        text.getInputHandler().addKeyBinding("CS+LEFT", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                if(text.getCaretPosition()>cmdStart)
+                    InputHandler.SELECT_PREV_WORD.actionPerformed(e);
+                else
+                    java.awt.Toolkit.getDefaultToolkit().beep();
+            }
+        });
+        text.getInputHandler().addKeyBinding("HOME", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                text.setCaretPosition(cmdStart);
+            }
+        });
+        text.getInputHandler().addKeyBinding("C+HOME", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                text.setCaretPosition(cmdStart);
+            }
+        });
+        text.getInputHandler().addKeyBinding("S+HOME", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                if(cmdStart==text.getCaretPosition())
+                    java.awt.Toolkit.getDefaultToolkit().beep();
+                else
+                {
+                    text.select(text.getMarkPosition(),cmdStart);
+                }
+            }
+        });
+        text.getInputHandler().addKeyBinding("CS+HOME", new AbstractAction()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                if(cmdStart==text.getCaretPosition())
+                    java.awt.Toolkit.getDefaultToolkit().beep();
+                else
+                {
+                    text.select(text.getMarkPosition(),cmdStart);
+                }
             }
         });
 
