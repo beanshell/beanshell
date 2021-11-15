@@ -56,6 +56,7 @@
     <maven.compiler.source>${version.jdk}</maven.compiler.source>
     <maven.compiler.target>${version.jdk}</maven.compiler.target>
     <de.elbosso.artifacts.version>1.4.0-SNAPSHOT</de.elbosso.artifacts.version>
+    <project.main.class>bsh.Console</project.main.class>
   </properties>
 
   <scm>
@@ -301,6 +302,25 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>java</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <mainClass>${project.main.class}</mainClass>
+          <!--arguments>
+              <argument>foo</argument>
+              <argument>bar</argument>
+          </arguments-->
+        </configuration>
       </plugin>
     </plugins>
   </build>
