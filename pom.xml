@@ -55,7 +55,7 @@
     <version.jdk>1.8</version.jdk>
     <maven.compiler.source>${version.jdk}</maven.compiler.source>
     <maven.compiler.target>${version.jdk}</maven.compiler.target>
-    <de.elbosso.artifacts.version>1.6.0-SNAPSHOT</de.elbosso.artifacts.version>
+    <de.elbosso.artifacts.version>1.6.0</de.elbosso.artifacts.version>
     <project.main.class>bsh.Console</project.main.class>
   </properties>
 
