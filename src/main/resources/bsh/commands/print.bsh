@@ -20,11 +20,10 @@ bsh.help.print = "usage: print( value )";
 
 void print( arg )
 {
-	// Other packages are known to define a String class so best practice here to disambiguate
-    if ( arg instanceof java.lang.String
+    if ( arg instanceof String
             || (arg instanceof Primitive && arg.getType() == Character.TYPE)
             || arg instanceof CharSequence )
-        this.interpreter.println( java.lang.String.valueOf(arg) );
+        this.interpreter.println( String.valueOf(arg) );
     else
         this.interpreter.println( valueString(arg) + " :" + typeString(arg) );
 }
