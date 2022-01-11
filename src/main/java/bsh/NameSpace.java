@@ -1140,12 +1140,12 @@ public class NameSpace
         this.nameSourceListeners.add(listener);
     }
 
-    /** 
+    /**
      * Perform "import *;" causing the entire classpath to be mapped. This can
      * take a while.
      * <p>
      * Super imports are different than regular imports.
-     * They are done in the context of the ClassManager 
+     * They are done in the context of the ClassManager
      * rather than the NameSpace and thus their effects
      * may persist after the NameSpace is released.
      *
