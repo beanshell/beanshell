@@ -83,11 +83,6 @@ public class BshClassPathTest {
         final Interpreter bsh = new Interpreter();
         ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
         BshClassPath bcp =  cm.getClassPath();
-        /*
-         * Since this is a unit test we will need to clear
-         * cached values for this test to work reliably
-         */
-        bcp.getBootClassPath().classPathChanged();
         bcp.getAllNames();
         assertTrue("Got feedback start", cpmf.start);
         assertTrue("Got feedback end", cpmf.end);
