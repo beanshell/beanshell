@@ -19,7 +19,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.net.URL;
-import java.nio.file.FileSystemNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -114,9 +113,8 @@ public class BshClassPathTest {
 
     @Test
     public void classpath_map_filesystem_exception() throws Exception {
-        thrown.expect(FileSystemNotFoundException.class);
-        String unknownString = File.separator+"unknown"+File.separator+"path";
-        thrown.expectMessage(containsString(unknownString));
+        thrown.expect(RuntimeException.class);
+        thrown.expectMessage(containsString("Failed to map"));
 
         final Interpreter bsh = new Interpreter();
         ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
@@ -242,6 +240,5 @@ public class BshClassPathTest {
         assertEquals("abc.ABC", BshClassPath.canonicalizeClassName("abc/ABC.class"));
         assertEquals("abc.ABC", BshClassPath.canonicalizeClassName("modules/some.mod/abc.ABC"));
     }
-
 }
 
