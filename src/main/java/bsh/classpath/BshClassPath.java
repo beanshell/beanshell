@@ -368,9 +368,10 @@ public class BshClassPath
         for(int i=0; i< urls.length; i++)
             try{
                 map( urls[i] );
-            } catch ( IOException e ) {
+            } catch ( Exception e ) {
                 String s = "Error constructing classpath: " +urls[i]+": "+e;
                 errorWhileMapping( s );
+                throw new RuntimeException("Failed to map class path "+i, e);
             }
     }
 
