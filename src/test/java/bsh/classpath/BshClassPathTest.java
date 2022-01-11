@@ -17,9 +17,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.net.URL;
-import java.nio.file.FileSystemNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -85,6 +83,11 @@ public class BshClassPathTest {
         final Interpreter bsh = new Interpreter();
         ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
         BshClassPath bcp =  cm.getClassPath();
+        /*
+         * Since this is a unit test we will need to clear
+         * cached values for this test to work reliably
+         */
+        bcp.getBootClassPath().classPathChanged();
         bcp.getAllNames();
         assertTrue("Got feedback start", cpmf.start);
         assertTrue("Got feedback end", cpmf.end);
@@ -114,9 +117,8 @@ public class BshClassPathTest {
 
     @Test
     public void classpath_map_filesystem_exception() throws Exception {
-        thrown.expect(FileSystemNotFoundException.class);
-        String unknownString = File.separator+"unknown"+File.separator+"path";
-        thrown.expectMessage(containsString(unknownString));
+        thrown.expect(RuntimeException.class);
+        thrown.expectMessage(containsString("Failed to map"));
 
         final Interpreter bsh = new Interpreter();
         ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
@@ -242,6 +244,5 @@ public class BshClassPathTest {
         assertEquals("abc.ABC", BshClassPath.canonicalizeClassName("abc/ABC.class"));
         assertEquals("abc.ABC", BshClassPath.canonicalizeClassName("modules/some.mod/abc.ABC"));
     }
-
 }
 
