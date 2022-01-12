@@ -91,7 +91,7 @@ public class TestBshScriptEngine {
         engine.eval("e=\"hello\"");
         assertEquals("hello", manager.get("e"));
         assertEquals("hello", engine.eval("e"));
-        
+
         // install and invoke a method
         engine.eval("foo() { return foo+1; }");
         // invoke a method
