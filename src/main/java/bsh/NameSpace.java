@@ -1131,9 +1131,21 @@ public class NameSpace
         this.nameSourceListeners.add(listener);
     }
 
-    /** Perform "import *;" causing the entire classpath to be mapped. This can
-     * take a while.
-     * @throws UtilEvalError the util eval error */
+    /**
+     * Perform "import *;" causing the entire classpath to be mapped.
+     * This can take a while.
+     * <p>
+     * Super imports are different than regular imports.
+     * They are done in the context of the ClassManager
+     * rather than the NameSpace and thus their effects
+     * may persist after the NameSpace is released.
+     *
+     * It seems irregular that named imports are 'local' to the
+     * namespace but super imports are 'global' to the class manager
+     * but I suppose for performance reasons it is a good idea
+     * to scan the super class path only once and store the results.
+     * @throws UtilEvalError the util eval error
+     */
     public void doSuperImport() throws UtilEvalError {
         this.getClassManager().doSuperImport();
     }
