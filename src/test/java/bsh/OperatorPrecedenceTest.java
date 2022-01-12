@@ -30,7 +30,7 @@ import static org.junit.Assert.assertEquals;
 public class OperatorPrecedenceTest {
 
    private Interpreter i = new Interpreter();
-   
+
     @Test
     public void issue_568() throws Exception {
 
@@ -69,4 +69,3 @@ public class OperatorPrecedenceTest {
        assertEquals("\"a\"+\"b\".equals(\"b\")", i.eval("\"a\"+\"b\".equals(\"b\")"), "a"+"b".equals("b"));
     }
 }
-
