@@ -176,8 +176,14 @@ public abstract class Invocable implements Member {
      * @throws Throwable on cast errors */
     protected Object coerceToType(Object param, Class<?> type)
             throws Throwable {
-        if (type != Object.class)
-            param = Types.castObject(param, type, Types.CAST);
+       if (type != Object.class) {
+          /*
+           * If type is the same or a superclass of param then
+           * there is no need to cast the object.  Issue #613
+           */
+          if (!type.isAssignableFrom(param.getClass()))
+              param = Types.castObject(param, type, Types.CAST);
+       }
         return Primitive.unwrap(param);
     }
 
