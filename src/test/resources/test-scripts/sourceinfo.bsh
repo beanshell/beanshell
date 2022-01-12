@@ -1,0 +1,11 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+/*
+ * Test that the sourceRelative command can resolve the relative path
+ */
+sourceRelative("Data/source_test1.bsh");
+
+complete();
+
