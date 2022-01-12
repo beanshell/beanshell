@@ -1141,7 +1141,7 @@ public class NameSpace
     }
 
     /**
-     * Perform "import *;" causing the entire classpath to be mapped. 
+     * Perform "import *;" causing the entire classpath to be mapped.
      * This can take a while.
      * <p>
      * Super imports are different than regular imports.
