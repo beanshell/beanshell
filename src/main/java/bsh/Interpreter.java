@@ -598,7 +598,7 @@ public class Interpreter
      * @throws IOException if a file read error occurred. */
     public Object source(File file, NameSpace namespace)
             throws EvalError, IOException {
-       
+
         Interpreter.debug("Sourcing file: ", file);
         Reader sourceIn = new BufferedReader( new FileReader(file) );
         try {
@@ -1373,4 +1373,3 @@ public class Interpreter
     }
 
 }
-
