@@ -251,7 +251,7 @@ public class ClassManagerImpl extends BshClassManager
                /*
                 * This error can happen when the internal class name has a different
                 * spelling or capitalization than the external name of the resource
-                * that was loaded.  This can happen in a number or ways, but a common
+                * that was loaded. This can happen in a number or ways, but a common
                 * situation is case insensitive files systems like Windows, where a
                 * request to load a class named 'a' may load a resource 'A.class'
                 * where the internal class name of 'A' does not match 'a'.
