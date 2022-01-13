@@ -27,7 +27,6 @@
 
 package bsh;
 
-import java.util.Arrays;
 import java.util.stream.IntStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
@@ -361,15 +360,15 @@ public class BshMethod implements Serializable {
             // Interpreter.debug("varArgs= "+name+" "+varArgs.getClass().getName());
             // Interpreter.debug("Varargs processing for "+name+" "+Arrays.toString(argValues));
             // Interpreter.debug(" parameter types "+Arrays.toString(paramTypes));
-            // Interpreter.debug(" varArg comp type="+lastP.getComponentType());            
+            // Interpreter.debug(" varArg comp type="+lastP.getComponentType());
             if ((getParameterCount() == argValues.length) &&
                 (argValues[lastParamIndex] == null ||
                  (argValues[lastParamIndex].getClass().isArray() &&
                   lastP.getComponentType().isAssignableFrom(argValues[lastParamIndex].getClass().getComponentType())))) {
                 /*
-                 * This is the case that the final argument is 
-                 * a null or it contains an array of the component 
-                 * type of the vararg.  In either case the argument 
+                 * This is the case that the final argument is
+                 * a null or it contains an array of the component
+                 * type of the vararg.  In either case the argument
                  * is passed as is without packing in to an array.
                  */
                 varArgs = null;
@@ -383,7 +382,7 @@ public class BshMethod implements Serializable {
                                             argValues.length-lastParamIndex);
             }
        }
-        
+
         // set the method parameters in the local namespace
         for(int i=0; i < argValues.length; i++)
         {

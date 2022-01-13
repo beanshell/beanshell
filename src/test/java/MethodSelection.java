@@ -47,7 +47,7 @@ public class MethodSelection {
         which = "three";
 //        System.out.println("var args constr");
     }
-    
+
 
     // static method selection
 
@@ -147,7 +147,7 @@ public class MethodSelection {
         varargs = str2;
         return "three";
     }
-   
+
     /*
         If we try to invoke an instance method through a static context
         javac will error... rather than take the widening match.

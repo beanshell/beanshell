@@ -506,7 +506,7 @@ public class ReflectTest {
 
     /**
      * See {@link bsh.SourceForgeIssuesTest#sourceforge_issue_2562805()}.
-     * This test checks the resolving of PrintStream.println(null). 
+     * This test checks the resolving of PrintStream.println(null).
      * This may be resolved to {@link java.io.PrintStream#println(char[])},
      * depending on the ordering of the methods when using reflection.
      * This will result in a {@code NullPointerException}.
@@ -517,8 +517,8 @@ public class ReflectTest {
      * NUmber.class, which is also more specific than Object.class.
      *
      * However Integer.class is not more specific than Double.class.
-     * In this case the Java compiler cannot decide which to choose since 
-     * they both match, so an error is emitted that the reference is 
+     * In this case the Java compiler cannot decide which to choose since
+     * they both match, so an error is emitted that the reference is
      * ambiguous.  The solution to this problem in Java is to add a cast
      * to the null to indicate what to match to.
      */
