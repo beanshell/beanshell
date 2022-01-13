@@ -274,10 +274,7 @@ public class BshClassManager {
          * @param types of parameters
          * @return index of the most specific member or -1 */
         public int findMemberIndex(String name, Class<?>[] types) {
-            Class<?>[][] members = members(name).stream()
-                    .map(Invocable::getParameterTypes)
-                    .toArray(Class[][]::new);
-            return Reflect.findMostSpecificSignature(types, members);
+           return Reflect.findMostSpecificInvocableIndex(types, members(name));
         }
 
         /** Retrieve list of member associated with name.

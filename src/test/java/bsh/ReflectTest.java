@@ -506,35 +506,51 @@ public class ReflectTest {
 
     /**
      * See {@link bsh.SourceForgeIssuesTest#sourceforge_issue_2562805()}.
-     * This test checks the resolving of PrintStream.println(null). This may be resolved to
-     * {@link java.io.PrintStream#println(char[])}, depending on the ordering of the methods when using reflection.
+     * This test checks the resolving of PrintStream.println(null).
+     * This may be resolved to {@link java.io.PrintStream#println(char[])},
+     * depending on the ordering of the methods when using reflection.
      * This will result in a {@code NullPointerException}.
+     *
+     * See JLS 15.12.2 for the resolution rules.  Most specific signature
+     * should be selected.  This means that Integer.class is more
+     * specific than Object.class.  Also Integer.class is more specific than
+     * NUmber.class, which is also more specific than Object.class.
+     *
+     * However Integer.class is not more specific than Double.class.
+     * In this case the Java compiler cannot decide which to choose since
+     * they both match, so an error is emitted that the reference is
+     * ambiguous.  The solution to this problem in Java is to add a cast
+     * to the null to indicate what to match to.
      */
     @Test
     public void findMostSpecificSignature() {
         int value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
-            {Double.TYPE}, {char[].class}, {String.class}, {Object.class}
+              {Double.TYPE}, {Double.class}, {Number.class}, {Object.class}
         });
-        assertEquals("most specific String class", 2, value);
+        assertEquals("most specific Double class", 1, value);
         value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
-            {Double.TYPE}, {char[].class}, {Object.class}, {String.class}
+              {Number.class}, {Object.class}, {Double.class}, {Double.TYPE}
         });
-        assertEquals("most specific String class", 3, value);
+        assertEquals("most specific Double class", 2, value);
+        value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
+              {Object.class}, {Number.class}, {Double.TYPE}, {Double.class}
+        });
+        assertEquals("most specific Double class", 3, value);
         value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
             {Double.TYPE}, {char[].class}, {Integer.class}, {String.class}
         });
         assertEquals("most specific String class", 3, value);
-        value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
-            {Double.TYPE}, {char[].class}, {Number.class}, {Integer.class}
-        });
-        assertEquals("most specific Integer class", 3, value);
-        value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
-            {Double.TYPE}, {char[].class}, {Object.class}, {Boolean.TYPE}
-        });
-        assertEquals("most specific Object class", 2, value);
-        value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
-            {Double.TYPE}, {char[].class}, {Boolean.TYPE}
-        });
-        assertEquals("most specific char[] class", 1, value);
+        // value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
+        //     {Double.TYPE}, {char[].class}, {Number.class}, {Integer.class}
+        // });
+        // assertEquals("most specific char[] class", 1, value);
+        // value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
+        //     {Double.TYPE}, {char[].class}, {Object.class}, {Boolean.TYPE}
+        // });
+        // assertEquals("most specific Object class", 2, value);
+        // value = Reflect.findMostSpecificSignature(new Class[]{null}, new Class[][]{
+        //     {Double.TYPE}, {char[].class}, {Boolean.TYPE}
+        // });
+        // assertEquals("most specific char[] class", 1, value);
     }
 }

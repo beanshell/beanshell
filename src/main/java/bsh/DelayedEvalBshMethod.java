@@ -63,10 +63,11 @@ public class DelayedEvalBshMethod extends BshMethod
         String [] paramTypeDescriptors, BSHFormalParameters paramTypesNode,
         BSHBlock methodBody,
         NameSpace declaringNameSpace, Modifiers modifiers,
+        boolean isVarArgs,
         CallStack callstack, Interpreter interpreter
     ) {
         super( name, null/*returnType*/, paramNames, null/*paramTypes*/,
-            null/*paramModifiers*/, methodBody, declaringNameSpace, modifiers );
+               null/*paramModifiers*/, methodBody, declaringNameSpace, modifiers, isVarArgs );
 
         this.returnTypeDescriptor = returnTypeDescriptor;
         this.returnTypeNode = returnTypeNode;
@@ -84,7 +85,8 @@ public class DelayedEvalBshMethod extends BshMethod
             NameSpace declaringNameSpace) {
         this(name, con.getReturnTypeDescriptor(), null,
             new String[con.getParameterCount()], con.getParamTypeDescriptors(),
-            null, new BSHBlock(0), declaringNameSpace, null, null, null);
+             null, new BSHBlock(0), declaringNameSpace, null, con.isVarArgs(),
+             null, null);
 
         this.constructor = con;
         this.getModifiers().addModifier("public");
@@ -167,6 +169,8 @@ public class DelayedEvalBshMethod extends BshMethod
             if (!equal(this.getParamTypeDescriptors()[i],
                     m.getParamTypeDescriptors()[i]))
                 return false;
+        if (isVarArgs != m.isVarArgs)
+           return false;
         return true;
     }
 
