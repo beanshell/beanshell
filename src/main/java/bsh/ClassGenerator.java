@@ -209,7 +209,7 @@ public final class ClassGenerator {
                 BSHFormalParameters paramTypesNode = md.paramsNode;
                 String[] paramTypes = paramTypesNode.getTypeDescriptors(callstack, interpreter, defaultPackage);
 
-                DelayedEvalBshMethod bm = new DelayedEvalBshMethod(name, returnType, returnTypeNode, md.paramsNode.getParamNames(), paramTypes, paramTypesNode, md.blockNode, null/*declaringNameSpace*/, modifiers, callstack, interpreter);
+                DelayedEvalBshMethod bm = new DelayedEvalBshMethod(name, returnType, returnTypeNode, md.paramsNode.getParamNames(), paramTypes, paramTypesNode, md.blockNode, null/*declaringNameSpace*/, modifiers, md.isVarArgs, callstack, interpreter);
 
                 methods.add(bm);
             }
