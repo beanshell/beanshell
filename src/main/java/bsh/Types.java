@@ -202,7 +202,8 @@ class Types {
                         return false;
                 return true;
             case JAVA_VARARGS_ASSIGNABLE:
-                return isSignatureVarargsAssignable( from, to );
+                return false;
+                // return isSignatureVarargsAssignable( from, to );
             case BSH_ASSIGNABLE:
                 for( int i=0; i<from.length; i++ )
                     if ( !isBshAssignable( to[i], from[i] ) )

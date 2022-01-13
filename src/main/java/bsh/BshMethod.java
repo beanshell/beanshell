@@ -77,7 +77,7 @@ public class BshMethod implements Serializable {
     // Java Method, for a BshObject that delegates to a real Java method
     private Invocable javaMethod;
     private Object javaObject;
-    private boolean isVarArgs;
+    protected boolean isVarArgs;
 
     // End method components
 
@@ -87,14 +87,13 @@ public class BshMethod implements Serializable {
     {
         this( method.name, method.returnType, method.paramsNode.getParamNames(),
             method.paramsNode.paramTypes, method.paramsNode.getParamModifiers(),
-            method.blockNode, declaringNameSpace, modifiers );
-        this.isVarArgs = method.isVarArgs;
+            method.blockNode, declaringNameSpace, modifiers, method.isVarArgs );
     }
 
     BshMethod(
         String name, Class<?> returnType, String [] paramNames,
         Class<?> [] paramTypes, Modifiers [] paramModifiers, BSHBlock methodBody,
-        NameSpace declaringNameSpace, Modifiers modifiers
+        NameSpace declaringNameSpace, Modifiers modifiers, boolean isVarArgs
     ) {
         this.name = name;
         this.creturnType = returnType;
@@ -106,6 +105,7 @@ public class BshMethod implements Serializable {
         this.methodBody = methodBody;
         this.declaringNameSpace = declaringNameSpace;
         this.modifiers = modifiers;
+        this.isVarArgs = isVarArgs;
     }
 
     /*
@@ -116,7 +116,7 @@ public class BshMethod implements Serializable {
     {
         this( method.getName(), method.getReturnType(), null/*paramNames*/,
             method.getParameterTypes(), null/*paramModifiers*/, null/*method.block*/,
-            null/*declaringNameSpace*/, null/*modifiers*/ );
+            null/*declaringNameSpace*/, null/*modifiers*/, method.isVarArgs() );
 
         this.javaMethod = method;
         this.javaObject = object;
@@ -350,17 +350,45 @@ public class BshMethod implements Serializable {
         // should we do this for both cases above?
         localNameSpace.setNode( callerInfo );
 
+        /*
+         * Check for VarArgs processing
+         */
         int lastParamIndex = getParameterCount() - 1;
-        Object varArgs = !isVarArgs() ? null
-            : Array.newInstance(
-                paramTypes[lastParamIndex].getComponentType(),
-                argValues.length-lastParamIndex);
+        Object varArgs = null;
+        if (isVarArgs()) {
+            Class lastP = paramTypes[lastParamIndex];
+            // Interpreter.debug("varArgs= "+name+" "+varArgs.getClass().getName());
+            // Interpreter.debug("Varargs processing for "+name+" "+Arrays.toString(argValues));
+            // Interpreter.debug(" parameter types "+Arrays.toString(paramTypes));
+            // Interpreter.debug(" varArg comp type="+lastP.getComponentType());
+            if ((getParameterCount() == argValues.length) &&
+                (argValues[lastParamIndex] == null ||
+                 (argValues[lastParamIndex].getClass().isArray() &&
+                  lastP.getComponentType().isAssignableFrom(argValues[lastParamIndex].getClass().getComponentType())))) {
+                /*
+                 * This is the case that the final argument is
+                 * a null or it contains an array of the component
+                 * type of the vararg.  In either case the argument
+                 * is passed as is without packing in to an array.
+                 */
+                varArgs = null;
+            } else if (argValues.length >= (getParameterCount()-1)) {
+                /*
+                 * This is the case that the final varargs need
+                 * to be packed in to an array.  Allow for 0 to many
+                 * additional arguments.
+                 */
+                varArgs = Array.newInstance(paramTypes[lastParamIndex].getComponentType(),
+                                            argValues.length-lastParamIndex);
+            }
+       }
+
         // set the method parameters in the local namespace
         for(int i=0; i < argValues.length; i++)
         {
 
             int k = i >= lastParamIndex ? lastParamIndex : i;
-            Class<?> paramType = isVarArgs() && k == lastParamIndex
+            Class<?> paramType = varArgs != null && k == lastParamIndex
                     ? paramTypes[k].getComponentType()
                     : paramTypes[k];
 
@@ -376,9 +404,9 @@ public class BshMethod implements Serializable {
                         + "`"+paramNames[k]+"'" + " for method: "
                         + name + " : " +
                         e.getMessage(), callerInfo, callstack );
-                }
+               }
                 try {
-                    if (isVarArgs() && i >= lastParamIndex)
+                    if (varArgs != null && i >= lastParamIndex)
                         Array.set(varArgs, i-k, Primitive.unwrap(argValues[i]));
                     else
                         localNameSpace.setTypedVariable( paramNames[k],
@@ -406,7 +434,7 @@ public class BshMethod implements Serializable {
             }
         }
 
-        if (isVarArgs()) try {
+        if (varArgs != null) try {
             localNameSpace.setTypedVariable(
                     paramNames[lastParamIndex],
                     paramTypes[lastParamIndex],

@@ -39,12 +39,46 @@ m=new MethodSelection( "foo" );
 assert( m.constructedWith == String.class );
 m=new MethodSelection( new Object() );
 assert( m.constructedWith == Object.class );
+m=new MethodSelection( "Hello", "World" );
+assert( m.constructedWith == (new String[0]).getClass() );
+assert( "two".equals(m.which) );
+m=new MethodSelection( "Hello", "World", "This", "is", "me" );
+assert( m.constructedWith == (new String[0]).getClass() );
+assert( "three".equals(m.which) );
 
-// Test method selection with null parameter
-// Issue #132
+
+// Test methods with VarArgs
+m=new MethodSelection();
+assert( m.method2("Hello").equals("one") );
+assert( m.method2("Hello", "World").equals("two") );
+assert( m.method2("Hello", "World", "This", "is", "me").equals("three") );
+
+
+// Test method selection with varying argument lists
+m=new MethodSelection();
+sb = new StringBuilder();
+al = new ArrayList();
+ia = new int[2];
+strs = new String[2];
+assert( m.method1("Hello").equals("one") );
+assert( m.method1("Hello", strs).equals("two") );
+assert( m.method1(sb, "Hello", al, ia).equals("three") );
+assert( m.method1(sb, "Hello", al, ia, 2, "last").equals("four") );
+assert( m.method1(sb, "Hello", strs, ia, 2, "last").equals("five") );
+
+// Same as above but use some null values
+assert( m.method1(sb, "Hello", al, null, 2, "last").equals("four") );
+assert( m.method1(null, "Hello", al, null, 2, "last").equals("four") );
+
+
+/*
+ * Test method selection with null parameter
+ * Related to issue #132
+ */
 Object x = null;
 String str = String.valueOf(x);
 assert("null".equals(str));
- 
+
+
 complete();
 

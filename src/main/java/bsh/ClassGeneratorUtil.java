@@ -267,6 +267,8 @@ public class ClassGeneratorUtil implements Opcodes {
                 continue;
 
             int modifiers = getASMModifiers(constructors[i].getModifiers());
+            if (constructors[i].isVarArgs())
+               modifiers |= ACC_VARARGS;
             generateConstructor(i, constructors[i].getParamTypeDescriptors(), modifiers, cw);
             hasConstructor = true;
         }
@@ -288,6 +290,8 @@ public class ClassGeneratorUtil implements Opcodes {
                     && !method.hasModifier("abstract") )
                 method.getModifiers().addModifier("abstract");
             int modifiers = getASMModifiers(method.getModifiers());
+            if (method.isVarArgs())
+               modifiers |= ACC_VARARGS;
             boolean isStatic = (modifiers & ACC_STATIC) > 0;
 
             generateMethod(className, fqClassName, method.getName(), method.getReturnTypeDescriptor(),

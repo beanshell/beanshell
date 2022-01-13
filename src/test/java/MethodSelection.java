@@ -1,7 +1,10 @@
+import java.util.ArrayList;
 
 public class MethodSelection {
 
     public Class constructedWith;
+    public String which;
+    public String[] varargs;
 
     // constructors
 
@@ -11,6 +14,7 @@ public class MethodSelection {
     }
     public MethodSelection( String o ) {
         constructedWith = o.getClass();
+        which = "one";
 //        System.out.println("selected string constr");
     }
     public MethodSelection( long o ) {
@@ -33,6 +37,17 @@ public class MethodSelection {
         constructedWith = Void.TYPE;
 //        System.out.println("no args constr");
     }
+    public MethodSelection(String arg1, String arg2) {
+        constructedWith = (new String[0]).getClass();
+        which = "two";
+//        System.out.println("two String argument constr");
+    }
+    public MethodSelection(String... args) {
+        constructedWith = (new String[0]).getClass();
+        which = "three";
+//        System.out.println("var args constr");
+    }
+
 
     // static method selection
 
@@ -94,6 +109,43 @@ public class MethodSelection {
     public Class get_dynamic() {
 //        System.out.println("selected no args method");
         return Void.TYPE;
+    }
+
+    // for testing most specific method selection
+    public String method1(String str) {
+        return "one";
+    }
+    public String method1(String str, String[] strs) {
+        return "two";
+    }
+    public String method1(StringBuilder sb, String string, ArrayList list,
+                        int[] ints) {
+        return "three";
+    }
+    public String method1(StringBuilder sb, String string, ArrayList list,
+                        int[] ints, int int2, String last) {
+        return "four";
+    }
+    public String method1(StringBuilder sb, String string, String[] strs,
+                        int[] ints, int int2, String last) {
+        return "five";
+    }
+
+    // for testing VarArgs and most specific method selection
+    public String method2(String str) {
+        // most specific for method2("Hello")
+        varargs = new String[] {str};
+        return "one";
+    }
+    public String method2(String str, String str1) {
+        // most specific for method2("Hello", "World")
+        varargs = new String[] {str, str1};
+        return "two";
+    }
+    public String method2(String str, String... str2) {
+        // most specific for method2("Hello", "World", "This", "is", "me")
+        varargs = str2;
+        return "three";
     }
 
     /*
