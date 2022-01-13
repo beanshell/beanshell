@@ -419,12 +419,12 @@ public final class Reflect {
 
     /**
      * Find the best match for signature idealMatch and return the method.
-     * This method anticipates receiving the full list of BshMethods of 
-     * the same name, regardless of the potential arity/validity of 
+     * This method anticipates receiving the full list of BshMethods of
+     * the same name, regardless of the potential arity/validity of
      * each method.
      *
      * @param idealMatch the signature to look for
-     * @param methods the set of candidate {@link BshMethod}s which 
+     * @param methods the set of candidate {@link BshMethod}s which
      * differ only in the types of their arguments.
      */
     public static BshMethod findMostSpecificBshMethod(
@@ -434,15 +434,15 @@ public final class Reflect {
         int match = findMostSpecificBshMethodIndex( idealMatch, methods );
         return match == -1 ? null : methods.get(match);
     }
-   
+
 
     /**
      * Find the best match for signature idealMatch and return the position
      * of the matching signature within the list.
-     * This method anticipates receiving the full list of BshMethods of the 
+     * This method anticipates receiving the full list of BshMethods of the
      * same name,regardless of the potential arity/validity of each method.
      * Filter the list of methods for only valid candidates
-     * before performing the comparison (e.g. method name and 
+     * before performing the comparison (e.g. method name and
      * number of args match).  Also expand the parameter type list
      * for VarArgs methods.
      *
@@ -452,7 +452,7 @@ public final class Reflect {
      */
     public static int findMostSpecificBshMethodIndex(Class<?>[] idealMatch,
                                                       List<BshMethod> methods) {
-        for (int i=0; i<methods.size(); i++) 
+        for (int i=0; i<methods.size(); i++)
             Interpreter.debug("  "+i+":"+methods.get(i).toString()+" "+methods.get(i).getClass().getName());
 
         /*
@@ -473,15 +473,15 @@ public final class Reflect {
             i++;
         }
         Class[][] sigs = candidateSigs.toArray(new Class[candidateSigs.size()][]);
-        
+
         int match = findMostSpecificSignature( idealMatch, sigs );
         if (match >= 0) {
             match = remap.get(match);
             Interpreter.debug(" remap: "+remap);
             Interpreter.debug(" match:"+match);
             return match;
-        } 
-            
+        }
+
         /*
          * If did not get a match then try VarArgs methods
          * Filter for varArgs method signatures of sufficient arity
@@ -513,36 +513,36 @@ public final class Reflect {
             Interpreter.debug(" remap (varargs): "+Arrays.toString(remap.toArray(new Integer[0])));
             Interpreter.debug(" match (varargs):"+match);
         }
-        
+
         return match;
     }
-    
+
     /**
      * Find the best match for signature idealMatch and return the method.
-     * This method anticipates receiving the full list of methods of 
-     * the same name, regardless of the potential arity/validity of 
+     * This method anticipates receiving the full list of methods of
+     * the same name, regardless of the potential arity/validity of
      * each method.
      *
      * @param idealMatch the signature to look for
-     * @param methods the set of candidate {@link Invocable}s which 
+     * @param methods the set of candidate {@link Invocable}s which
      * differ only in the types of their arguments.
      */
     public static Invocable findMostSpecificInvocable(
             Class<?>[] idealMatch, List<Invocable> methods ) {
         Interpreter.debug("find most specific Invocable for: "+
                           Arrays.toString(idealMatch));
-        
+
         int match = findMostSpecificInvocableIndex( idealMatch, methods );
         return match == -1 ? null : methods.get(match);
     }
-   
+
     /**
      * Find the best match for signature idealMatch and return the position
      * of the matching signature within the list.
-     * This method anticipates receiving the full list of methods of the 
+     * This method anticipates receiving the full list of methods of the
      * same name,regardless of the potential arity/validity of each method.
      * Filter the list of methods for only valid candidates
-     * before performing the comparison (e.g. method name and 
+     * before performing the comparison (e.g. method name and
      * number of args match).  Also expand the parameter type list
      * for VarArgs methods.
      *
@@ -556,7 +556,7 @@ public final class Reflect {
      */
     public static int findMostSpecificInvocableIndex(Class<?>[] idealMatch,
                                                       List<Invocable> methods) {
-        for (int i=0; i<methods.size(); i++) 
+        for (int i=0; i<methods.size(); i++)
             Interpreter.debug("  "+i+"="+methods.get(i).toString());
 
         /*
@@ -575,7 +575,7 @@ public final class Reflect {
             i++;
         }
         Class[][] sigs = candidateSigs.toArray(new Class[candidateSigs.size()][]);
-        
+
         int match = findMostSpecificSignature( idealMatch, sigs );
         if (match >= 0) {
             match = remap.get(match);
@@ -584,7 +584,7 @@ public final class Reflect {
             return match;
         }
 
-        
+
         /*
          * If did not get a match then try VarArgs methods
          * Filter for varArgs method signatures of sufficient arity
@@ -620,7 +620,7 @@ public final class Reflect {
         Interpreter.debug(" match (varargs) ="+match);
         return match;
     }
-    
+
     /**
         Implement JLS 15.11.2
         Return the index of the most specific arguments match or -1 if no
@@ -1204,4 +1204,3 @@ public final class Reflect {
         .toArray(len -> (T[]) Array.newInstance(enm, len));
     }
 }
-
