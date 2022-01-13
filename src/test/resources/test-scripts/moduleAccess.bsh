@@ -1,0 +1,41 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+/*
+ * Project Jigsaw introduced modules and the access issues that come 
+ * with them.  Things changed again in Java 16 as strongly encapsulated
+ * internals became the default.  Interfaces can be included in a 
+ * module that is exported, but the implementation might be in a module 
+ * that is not exported.
+ *
+ * The method invocation resolution mechanism within BeanShell
+ * needs to handle these kind of cases.  This test case uses an
+ * accessible factory to get a protected implementation.
+ * Test that methods from the accessible interface can be called
+ * with a problem.
+ *
+ * This test succeeded on Java versions 8 to 15, but failed on
+ * Java 16+ without a patch to bsh/Invocable.java
+ *
+ */
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.xml.sax.InputSource;
+
+input = pathToFile(dirname(getSourceFileInfo())+File.separator+"Data/moduleAccess.xml").getPath();
+
+dbf = DocumentBuilderFactory.newInstance();
+dbf.setValidating(false);
+dbf.setNamespaceAware(true);
+dbf.setFeature("http://xml.org/sax/features/namespaces", false);
+dbf.setFeature("http://xml.org/sax/features/validation", false);
+dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
+dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+docBuilder = dbf.newDocumentBuilder();
+doc = docBuilder.parse(new InputSource(input));
+nodes = doc.getElementsByTagName("mapID");
+
+assert(nodes.getLength() == 4);
+
+complete();
