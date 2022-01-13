@@ -433,7 +433,7 @@ class MethodInvocable extends ExecutingInvocable {
     protected MethodHandle lookup(MethodHandle m) {
        assert(m == null);
        assert(method != null);
-       
+
         try {
            return super.lookup(getHandle(method));
         } catch (Exception e) {
@@ -468,7 +468,7 @@ class MethodInvocable extends ExecutingInvocable {
             } catch (Exception ex2) {
             }
          }
-         
+
          clz = clz.getSuperclass();
          if (clz != null) {
             try {
@@ -480,7 +480,7 @@ class MethodInvocable extends ExecutingInvocable {
       }
       throw new RuntimeException("MethodHandle lookup failed to find a "+methodName+" in "+origClz.getName());
    }
-   
+
 
     /** Pull the cascade inheritance chain for parameter collection.
      *  {@inheritDoc} */
