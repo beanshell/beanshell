@@ -87,11 +87,11 @@ class BSHTryStatement extends SimpleNode
             ret = tryBlock.eval(callstack, interpreter);
         }
         catch( TargetError e ) {
-            originalException = e;
             thrown = e.getTarget();
             // clean up call stack grown due to exception interruption
             while ( callstack.depth() > callstackDepth )
                 callstack.pop();
+            originalException = new TargetError(e, this, callstack);
         } finally {
             // unwrap the target error
             while ( null != thrown && thrown.getCause() instanceof TargetError )
