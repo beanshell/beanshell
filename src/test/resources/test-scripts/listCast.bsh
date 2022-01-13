@@ -1,0 +1,12 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+/*
+ * Test converting lists to arrays
+ */
+list = new ArrayList(Arrays.asList(new Integer[] {1,2,3,4}));
+arr = list.toArray(new Integer[0]);
+
+complete();
+

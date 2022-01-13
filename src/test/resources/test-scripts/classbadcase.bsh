@@ -1,0 +1,27 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+/*
+ * Test what happens when loading a class using incorrect
+ * capitalization of the class name.  On the Windows 
+ * case insensitive file system this causes confusion.
+ */
+
+import mypackage.*;
+
+unset("myClass");
+
+try {
+   a = new MyClass();
+   flag();
+} catch (Exception ex) {
+}
+
+if (isEvalError("b = new myClass();")) {
+   flag();
+}
+
+assert(flag() == 2);
+
+complete();
