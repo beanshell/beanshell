@@ -1,6 +1,8 @@
 # BeanShell - Simple Java Scripting
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE) [![Build workflow](https://github.com/beanshell/beanshell/actions/workflows/maven.yml/badge.svg?branch=master)](https://github.com/beanshell/beanshell/actions/workflows/maven.yml) [![codecov](https://codecov.io/gh/beanshell/beanshell/branch/master/graph/badge.svg)](https://codecov.io/gh/beanshell/beanshell)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Build workflow](https://github.com/beanshell/beanshell/actions/workflows/maven.yml/badge.svg?branch=master)](https://github.com/beanshell/beanshell/actions/workflows/maven.yml) [![codecov](https://codecov.io/gh/beanshell/beanshell/branch/master/graph/badge.svg)](https://codecov.io/gh/beanshell/beanshell)
 [![coverity](https://scan.coverity.com/projects/16379/badge.svg)](https://scan.coverity.com/projects/beanshell-beanshell)
+[![Known Vulnerabilities](https://snyk.io/test/github/beanshell/beanshell/badge.svg)](https://snyk.io/test/github/beanshell/beanshell)
 
 The **official** and **active** project home for BeanShell.
 
