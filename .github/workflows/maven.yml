@@ -32,7 +32,7 @@ jobs:
   codecov:
     name: Push to Codecov
     steps:
-      uses: codecov/codecov-action@v2
+    - uses: codecov/codecov-action@v2
       with:
         files: target/site/jacoco/jacoco.xml
         flags: unittests # optional
