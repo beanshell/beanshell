@@ -29,10 +29,9 @@ jobs:
     - name: Build with Maven
       run: mvn -B verify package --file pom.xml
 
-  codecov:
-    name: Push to Codecov
-    steps:
-    - uses: codecov/codecov-action@v2
+    - name Codecov
+      uses: codecov/codecov-action@v2
+      if: ${{ matrix.java == '8' }}
       with:
         files: target/site/jacoco/jacoco.xml
         flags: unittests # optional
