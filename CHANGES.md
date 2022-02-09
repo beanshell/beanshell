@@ -58,7 +58,7 @@ ordinary Java class and invoked from ordinary Java code.  Upon being
 loaded it will automatically create a BeanShell interpreter instance
 to load and execute its corresponding Foo.bsh script file.  The script
 is expected to correspond to the structure of the class: to initialize
-static instance members and implement all static and instancee methods
+static instance members and implement all static and instance methods
 required by the class.  Beyond that, the script is free to change and
 include additional script body outside the scripted class definition.
 
@@ -356,7 +356,7 @@ print( get("foo") ); // "bar"
 - Added "bsh" target to build.xml for running a script from the current
     build.  e.g. ant -Dfile=foo.bsh bsh
 
-- Stopped squeltching NoClassDefFound errors... This was the source of
+- Stopped squelching NoClassDefFound errors... This was the source of
 much frustration where BeanShell would indicate that a class was not found
 when it was really a dependent class that was missing.  We now catch
 NoClassDefFoundError and add a message specifying which class was being
@@ -369,7 +369,7 @@ loaded when the missing class was encountered.
 
 - Enhanced bsh shell script launcher to add a default bsh JAR if none
     is in the classpath (as determined by a simplistic name test).  Works
-    on cygwin and unix.
+    on Cygwin and Unix.
 
 - added sourceRelative() command, which sources the file relative to the
   caller's directory, not the working directory. (See the bshdoc for
@@ -378,7 +378,7 @@ loaded when the missing class was encountered.
 - Upgraded to JavaCC 3.0 available from:
   http://www.experimentalstuff.com/Technologies/JavaCC/index.html
   (Let's see, how many places have owned JavaCC now?  Sun Test, then
-  meta-mata, then webgain, then Sun "experimental stuff"?  Sun has
+  Metamata, then WebGain, then Sun "experimental stuff"?  Sun has
   promised to open source this... I hope they follow through).
   Modified build.xml to use the new package name (no package) and to assume
   that the jar is in the classpath for now.
@@ -457,7 +457,7 @@ loaded when the missing class was encountered.
   e.g. you can switch on Strings, Dates, or any objects that test properly
   with equals().  The only comparison that is not allowed is primitive to
   arbitrary (non wrapper) object type.  e.g. compare 2 to a "two".  This
-  will cause a primtiive / object mismatch error.
+  will cause a primitive / object mismatch error.
 
 - Did some minor refactoring and cleanup in Reflect.java.
 
@@ -678,7 +678,7 @@ loaded when the missing class was encountered.
     absolute path by prepending "/".  Later imports take precedence over
     earlier ones.
 
-    Imported commands are scoped just like imported clases.
+    Imported commands are scoped just like imported classes.
 
     See news about the invoke() meta-method for information about how you
     could implement your own, arbitrary command loading.
@@ -689,7 +689,7 @@ loaded when the missing class was encountered.
   - The BshClassManager now contains the methods getResource() and
     getResourceAsStream().
 
-  - The invoke() meta method is now allowed directly in scope, e.g.
+  - The invoke() meta-method is now allowed directly in scope, e.g.
 
         invoke( String methodName, Object [] arguments ) { ... }
 
@@ -700,7 +700,7 @@ loaded when the missing class was encountered.
     reference, e.g. a scripted interface.
 
     One could use this capability to implement arbitrary command loading
-    capabilites.  You would simply have to handle wrapping/ unwrapping
+    capabilities.  You would simply have to handle wrapping/ unwrapping
     of primitive value argument and return types with bsh.Primitive.
 
   - Fixed bug in bsh.util.Httpd causing class format errors
@@ -753,7 +753,7 @@ loaded when the missing class was encountered.
     - Made bsh.Parser public and added a main() method allowing users to
     call the parser on files for simple validity checking.
     - Made a small addition to grammar to provide an option to retain
-    formal (javadoc style) comments in the parse tree.
+    formal (JavaDoc style) comments in the parse tree.
     - Fixed accessibility bug in finding fields
     - Fixed minor bugs in bsh.servlet.BshServlet
     - Fixed scoping on catch blocks such that untyped variables
@@ -764,7 +764,7 @@ loaded when the missing class was encountered.
     - Fixed bug in accessibility affecting access to package
         hidden superclasses
     - Added bshdoc.bsh script and bshdoc.xsl stylesheet to the scripts dir.
-    These can be used to support javadoc style documentation of bsh files
+    These can be used to support JavaDoc style documentation of bsh files
     and commands.
     - Exposed bsh.BshMethod and added a public invoke() method.
     - Added getMethod() method to namespace to enumerate methods
@@ -801,7 +801,7 @@ loaded when the missing class was encountered.
     classes when available.  This allows bsh to be installed in the
     jre/lib/ext directory (previously user classes wouldn't be seen).  Yeah!
     This may also allow bsh to see user classpath in application servers
-    like Weblogic, which include it in the core classpath.
+    like WebLogic, which include it in the core classpath.
     - added the clear() command to clear variables and methods from a namespace.
     - added setOut() and setErr() methods to Interpreter.
     - added new bsh.servlet package to the main distribution
@@ -812,12 +812,12 @@ loaded when the missing class was encountered.
 
     - Fixed nasty bug in grammar, added test cases to expression.bsh
     Note: this bug was preventing the latest version of bsh from being used
-    with Weblogic 6.1 (which uses bsh internally and was failing).
+    with WebLogic 6.1 (which uses bsh internally and was failing).
     - Handled the "single line comment with no terminating linefeed" issue.
     - Added getInterface() method to Interpreter.
     - Fixed issue with identity semantics for this in cast case, e.g.:
         ((ActionListener)this == (ActionListener)this) is now true.
-    - cat() command will now print files, urls, streams, and readers
+    - cat() command will now print files, URLs, streams, and readers
     - Exceptions in native (compiled) user classes will now print with
         both the BeanShell script trace and native Java stack trace.
         Exceptions generated directly from scripts continue to show only the
@@ -909,7 +909,7 @@ loaded when the missing class was encountered.
     - Added a parent ref to the interpreter for future use by the child
     eval interpreters.
     - Added new form of source() command that takes a URL.
-    - Tenatively added new feature to get the text of a method invocation
+    - Tentatively added new feature to get the text of a method invocation
     from within the method body...  may be useful along with this.caller.
     See namespace.getInovcationText() namespace.getInvocationLine().
 </pre>
@@ -929,7 +929,7 @@ loaded when the missing class was encountered.
     know that a variable is final and optimize the resolution.  Or a long
     chain of names (java.lang.Integer.MAX_INTEGER) could be optimized.
     - .class on array types now working. e.g.  "int [][].class"
-    - Fixed bugs in grammar which dissallowed certain simple expressions
+    - Fixed bugs in grammar which disallowed certain simple expressions
     unless they were parenthesized.
     - Fixed related case relating to expressions with assignment to a
     throw-away method invocation.
@@ -942,15 +942,15 @@ loaded when the missing class was encountered.
         java -Dtrace=true bsh.Interpreter or trace() command.
         turns on printing of each line before it is executed.  Note that
         this currently prints only top level lines as they are parsed and
-        executed by the interpreter.  trace skips over method exectutions
+        executed by the interpreter.  Trace skips over method executions
         (including bsh commands) etc.  We may enhance this in the future.
     - Fixed bugs in primitive handling:
         primitives smaller than int are now properly assigned in declarations:
             e.g.: byte b = 5;
-        primitive are internally promoted to the correct type on assignment
+        primitives are internally promoted to the correct type on assignment
         to a typed variable,
             e.g.:  long l = (byte)5;  // l is a long value internally
-    - Cleanup in cast operation.. re-factored the cast code into two types
+    - Cleanup in cast operation: re-factored the cast code into two types
         of cast operations.
     - Tightened up re-declaration of typed variables...  You can only redeclare
         a typed var with the same type, else you can an error.  Previously
@@ -977,7 +977,7 @@ loaded when the missing class was encountered.
             NameSpace [] this.callstack
     - Some commands now behave correctly, some slight changes- see notes.
 
-    - made change to insure that pathToFile always returns canonical path
+    - made change to ensure that pathToFile always returns canonical path
     this fixed bug in addClassPath
 </pre>
 
@@ -992,7 +992,7 @@ loaded when the missing class was encountered.
     - Redefined scoping behavior in for-init to act like java.  See notes
     elsewhere.
     - Added switch statement.
-    - made sure Ctrl-d in interctive mode shuts down interpreter.
+    - made sure Ctrl-d in interactive mode shuts down interpreter.
     - Fixed cleanup of weak references in bsh class manager
 </pre>
 
@@ -1005,8 +1005,8 @@ loaded when the missing class was encountered.
         - fixed bug causing stack overflow
 
     - Internal restructuring - made Interpreter its own class rather than being
-        auto-generated by javacc.  This allows us to generate decent javadoc
-        without hundreds of parser methods.  Improved javadoc.
+        auto-generated by JavaCC.  This allows us to generate decent JavaDoc
+        without hundreds of parser methods.  Improved JavaDoc.
 
     - Fixed the precedence of name resolution to be consistent with Java.
         variables now always trump class name resolution.  This simplifies
@@ -1209,7 +1209,7 @@ or attach your web browser to port.  Note that the web browser must support
 swing to run the remote JConsole.  We could supply the AWTConsole back for
 compatibility with old browsers...  but I'd like to move on.
 
-<li>Internall trivia - changed the prefix of the names of all of the parser
+<li>Internal trivia - changed the prefix of the names of all of the parser
 node classes from AST to BSH.
 
 <li>Fixed a bug which caused ClassCastException during (ironically) a bsh
