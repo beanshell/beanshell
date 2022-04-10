@@ -48,7 +48,6 @@ class BlockNameSpace extends NameSpace
     public BlockNameSpace( NameSpace parent )
     {
         super( parent, parent.getName()+ "/BlockNameSpace" );
-        this.isMethod = parent.isMethod;
     }
 
     /**
