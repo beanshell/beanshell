@@ -82,15 +82,21 @@ class BSHTryStatement extends SimpleNode
             to exception message?
         */
         int callstackDepth = callstack.depth();
+        NameSpace enclosingNameSpaceTry = null;
         try {
-            ret = tryBlock.eval(callstack, interpreter);
+            enclosingNameSpaceTry = callstack.swap(new BlockNameSpace(callstack.top()));
+            ret = tryBlock.eval(callstack, interpreter, true);
         }
         catch( TargetError e ) {
             thrown = e.getTarget();
             // clean up call stack grown due to exception interruption
             while ( callstack.depth() > callstackDepth )
-                callstack.pop();
+                callstack.pop().clear();
         } finally {
+            // cleanup try namespace
+            callstack.top().clear();
+            callstack.swap(enclosingNameSpaceTry);
+
             // unwrap the target error
             while ( null != thrown && thrown.getCause() instanceof TargetError )
                 thrown = ((TargetError) thrown.getCause()).getTarget();
