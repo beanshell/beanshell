@@ -479,15 +479,6 @@ public class NameSpace
         return this.parent;
     }
 
-    /** Check if this namespace is a child of the given namespace.
-     * @param parent the possible parent
-     * @return true if this is child of parent */
-    public boolean isChildOf(NameSpace parent) {
-        return null != this.getParent() && (
-                this.getParent().equals(parent)
-             || this.getParent().isChildOf(parent));
-    }
-
     /** Get the parent namespace' This reference or this namespace' This
      * reference if we are the top.
      * @param declaringInterpreter the declaring interpreter
