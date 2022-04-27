@@ -83,8 +83,11 @@ class BSHTryStatement extends SimpleNode
         */
         int callstackDepth = callstack.depth();
         NameSpace enclosingNameSpaceTry = null;
+        BlockNameSpace tryBlockNamespace = null;
         try {
-            enclosingNameSpaceTry = callstack.swap(new BlockNameSpace(callstack.top()));
+            tryBlockNamespace = new BlockNameSpace(callstack.top());
+            //tryBlockNamespace.setName(tryBlockNamespace.getName() + "(tryBlock)");
+            enclosingNameSpaceTry = callstack.swap(tryBlockNamespace);
             ret = tryBlock.eval(callstack, interpreter, true);
         }
         catch( TargetError e ) {

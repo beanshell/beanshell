@@ -43,11 +43,17 @@ class BSHBlock extends SimpleNode
     private static final ReferenceCache<NameSpace,NameSpace> blockspaces
         = new ReferenceCache<NameSpace, NameSpace>(Type.Weak, Type.Weak, 4000) {
             protected NameSpace create(NameSpace key) {
+                //System.out.print("blockspaces.size=" + blockspaces.size());
                 return new BlockNameSpace(key);
             }
     };
 
     BSHBlock(int id) { super(id); }
+
+    static void removeNamespaceFromBlockspacesCache(NameSpace ns)
+    {
+        blockspaces.remove(ns);
+    }
 
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError

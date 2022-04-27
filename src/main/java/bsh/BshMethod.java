@@ -458,7 +458,10 @@ public class BshMethod implements Serializable {
 
         // Get back to caller namespace
         if ( !overrideNameSpace )
+        {
+            BSHBlock.removeNamespaceFromBlockspacesCache(localNameSpace);
             callstack.pop();
+        }
 
         ReturnControl retControl = null;
         if ( ret instanceof ReturnControl ) {
