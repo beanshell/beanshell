@@ -343,11 +343,9 @@ public class BshMethod implements Serializable {
         if ( overrideNameSpace )
             localNameSpace = callstack.top();
         else
-        {
             localNameSpace = new NameSpace( declaringNameSpace, name );
-            localNameSpace.isMethod = true;
-        }
-        // should we do this for both cases above?
+
+        localNameSpace.isMethod = true;
         localNameSpace.setNode( callerInfo );
 
         /*
