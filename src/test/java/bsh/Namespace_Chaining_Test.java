@@ -48,8 +48,9 @@ public class Namespace_Chaining_Test {
         assertEquals(42, root.getVariable("bar"));
     }
 
-   @Test
-   public void override_child_namespace() throws Exception {
+
+    @Test
+    public void override_child_namespace() throws Exception {
         Interpreter root = new Interpreter();
         Interpreter child = new Interpreter(new StringReader(""), System.out, System.err, false, new NameSpace(root.getNameSpace(), "child"));
 
@@ -63,7 +64,7 @@ public class Namespace_Chaining_Test {
         root.eval("int foo() { return bar; }");
 
         assertEquals(42, root.eval("foo();"));
-        assertEquals(42, child.eval("foo();"));
+        assertEquals(4711, child.eval("foo();"));
     }
 
     @Test
@@ -84,8 +85,8 @@ public class Namespace_Chaining_Test {
         root.eval("int foo() { return bar; }");
 
         assertEquals(42, root.eval("foo();"));
-        assertEquals(42, child.eval("foo();"));
-        assertEquals(42, child2.eval("foo();"));
+        assertEquals(4711, child.eval("foo();"));
+        assertEquals(5, child2.eval("foo();"));
     }
 
     @Test
