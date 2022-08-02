@@ -776,171 +776,67 @@ int AssignmentOperator() :
 }
 
 void ConditionalExpression() :
-{ }
+{ Token t; }
 {
-  ConditionalOrExpression() [ "?" Expression() ":" ConditionalExpression()
-    #TernaryExpression(3) ]
-}
-
-void ConditionalOrExpression() :
-{ Token t=null; }
-{
-  ConditionalAndExpression()
-  ( ( t = "||" | t = "@or" )
-    ConditionalAndExpression()
+  RelationalExpression() (  "?" ConditionalExpression() ":" ConditionalExpression() #TernaryExpression(3)
+  |
+  ( (t="||" | t="@or" | t="&&" | t="@and") RelationalExpression()
         { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
-}
-
-void ConditionalAndExpression() :
-{ Token t=null; }
-{
-  InclusiveOrExpression()
-  ( ( t = "&&" | t = "@and" )
-    InclusiveOrExpression()
-    { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
-}
-
-void InclusiveOrExpression() :
-{ Token t=null; }
-{
-  ExclusiveOrExpression()
-  ( ( t = "|" | t = "@bitwise_or" )
-    ExclusiveOrExpression()
-    { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
-}
-
-void ExclusiveOrExpression() :
-{ Token t=null; }
-{
-  AndExpression() ( (t="^" | t = "@bitwise_xor") AndExpression()
-    { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
-}
-
-void AndExpression() :
-{ Token t=null; }
-{
-  EqualityExpression()
-  ( ( t = "&" | t = "@bitwise_and" )
-    EqualityExpression()
-    { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
-}
-
-void EqualityExpression() :
-{ Token t = null; }
-{
-  InstanceOfExpression() ( ( t= "==" | t= "!=" ) InstanceOfExpression()
-    { jjtThis.kind = t.kind; } #BinaryExpression(2)
-  )*
-}
-
-void InstanceOfExpression() :
-{ Token t = null; }
-{
-  RelationalExpression()
-  [ t = "instanceof" Type() { jjtThis.kind = t.kind; } #BinaryExpression(2) ]
+  )
 }
 
 void RelationalExpression() :
-{ Token t = null; }
+{ Token t; }
 {
-  ShiftExpression()
-  ( ( t = "<" | t = "@lt" | t = ">" | t = "@gt" |
-      t = "<=" | t = "@lteq" | t = ">=" | t = "@gteq" )
-  ShiftExpression()
+  BinaryExpression() (
+    t="instanceof" Type() { jjtThis.kind = t.kind; } #BinaryExpression(2)
+    |
+    ((t="==" | t="!=" | t="<" | t="@lt" | t=">" | t="@gt" | t="<="
+            | t="@lteq" | t=">=" | t="@gteq") BinaryExpression()
         { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
+  )
 }
 
-void ShiftExpression() :
-{ Token t = null; }
+void BinaryExpression() :
+{ Token t; }
 {
-  AdditiveExpression()
-  ( ( t = "<<" | t = "@left_shift" | t = ">>" | t = "@right_shift" |
-      t = ">>>" | t = "@right_unsigned_shift" )
-  AdditiveExpression()
-  { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
-}
-
-void AdditiveExpression() :
-{ Token t = null; }
-{
-  MultiplicativeExpression()
-  ( ( t= "+" | t= "-" ) MultiplicativeExpression() { jjtThis.kind = t.kind; }
-    #BinaryExpression(2)
-  )*
-}
-
-void MultiplicativeExpression() :
-{ Token t = null; }
-{
-  UnaryExpression() ( ( t= "*" | t= "/" | t= "%" | t = "@mod" | t= "**" | t = "@pow")
-  UnaryExpression() { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
+  UnaryExpression() ( (t="+" | t="-" | t="*" | t="/" | t="%" | t="@mod"
+        | t="**" | t="@pow" | t="<<" | t="@left_shift" | t=">>"
+        | t="@right_shift" | t=">>>" | t="@right_unsigned_shift" | t="|"
+        | t="@bitwise_or" | t="^" | t="@bitwise_xor" | t="&"
+        | t="@bitwise_and")
+    UnaryExpression() { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
 }
 
 void UnaryExpression() :
-{ Token t = null; }
+{ Token t; }
 {
-  ( t="+" | t="-" ) UnaryExpression()
+  (t="+" | t="-" | t="~" | t="!") UnaryExpression()
     { jjtThis.kind = t.kind; } #UnaryExpression(1)
 |
-  PreIncrementExpression()
-|
-  PreDecrementExpression()
-|
-  UnaryExpressionNotPlusMinus()
-}
-
-void PreIncrementExpression() :
-{ Token t = null; }
-{
-  t="++" PrimaryExpression()
-    { jjtThis.kind = t.kind; } #UnaryExpression(1)
-}
-
-void PreDecrementExpression() :
-{ Token t = null; }
-{
-  t="--" PrimaryExpression()
-    { jjtThis.kind = t.kind; } #UnaryExpression(1)
-}
-
-void UnaryExpressionNotPlusMinus() :
-{ Token t = null; }
-{
-  ( t="~" | t="!" ) UnaryExpression()
+  (t="++" | t="--") PrimaryExpression()
     { jjtThis.kind = t.kind; } #UnaryExpression(1)
 |
   LOOKAHEAD( CastLookahead() ) CastExpression()
 |
-  PostfixExpression()
+  PrimaryExpression() [ (t="++" | t="--")
+    { jjtThis.kind = t.kind; jjtThis.postfix = true; } #UnaryExpression(1) ]
 }
 
 // This production is to determine lookahead only.
-void CastLookahead() : { }
+void CastLookahead() :
+{ }
 {
-  LOOKAHEAD(2) "(" PrimitiveType()
-|
-  LOOKAHEAD( "(" AmbiguousName() "[" ) "(" AmbiguousName() "[" "]"
-|
-  "(" AmbiguousName() ")" ( "~" | "!" | "(" | <IDENTIFIER> | /* "this" | "super" | */ "new" | Literal() | ArrayDimensions() )
-}
-
-void PostfixExpression() :
-{ Token t = null; }
-{
-  LOOKAHEAD( PrimaryExpression() ("++"|"--") )
-  PrimaryExpression()
-      ( t="++" | t="--" ) {
-        jjtThis.kind = t.kind; jjtThis.postfix = true; } #UnaryExpression(1)
-|
-  PrimaryExpression()
+  "(" ( PrimitiveType()
+  | AmbiguousName() ( "[" | ")"
+    ("~" | "!" | "(" | <IDENTIFIER> | "new" | Literal() | ArrayDimensions()))
+  )
 }
 
 void CastExpression() #CastExpression :
 { }
 {
-  LOOKAHEAD( "(" PrimitiveType() ) "(" Type() ")" UnaryExpression()
-|
-  "(" Type() ")" UnaryExpressionNotPlusMinus()
+  "(" Type() ")" UnaryExpression()
 }
 
 void PrimaryExpression() #PrimaryExpression : { }
