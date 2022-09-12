@@ -40,11 +40,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Stream;
 
 
 /**
@@ -575,9 +575,7 @@ public final class This implements java.io.Serializable, Runnable
         }
 
         // find the matching this() constructor for the args
-        Class<?>[][] candidates = Stream.of(constructors)
-                .map(BshMethod::getParameterTypes).toArray(Class[][]::new);
-        int i = Reflect.findMostSpecificSignature(argTypes, candidates);
+        int i = Reflect.findMostSpecificBshMethodIndex(argTypes, Arrays.asList(constructors));
         if (i == -1)
             throw new InterpreterError("can't find this constructor for args!");
         // this() constructors come after super constructors in the table
@@ -828,4 +826,3 @@ public final class This implements java.io.Serializable, Runnable
         }
     }
 }
-

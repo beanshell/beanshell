@@ -64,7 +64,9 @@ public class TestBshScriptEngine {
 
         // bsh primitives stay primitive internally
         engine.eval( "int fooInt=42" );
-        assertEquals( 42, engine.get("foo") );
+        assertEquals( 42, engine.get("fooInt") );
+        engine.eval("fooInt++");
+        assertEquals( 43, engine.get("fooInt"));
         assertSame( engine.eval("fooInt.getClass();"), Primitive.class );
         assertThat( engine.getContext().getAttribute( "fooInt", ENGINE_SCOPE ),
             instanceOf( Integer.class ) );
@@ -78,6 +80,17 @@ public class TestBshScriptEngine {
         // get() and eval() for us should be equivalent in this case
         assertEquals( "gee", engine.get("bar") );
         assertEquals( "gee", engine.eval("bar") );
+
+        // Test variables in global scope
+        manager.put("e", 44);
+        assertEquals(44, manager.get("e"));
+        assertEquals(44, engine.eval("e"));
+        engine.eval("e=45");
+        assertEquals(45, manager.get("e"));
+        assertEquals(45, engine.eval("e"));
+        engine.eval("e=\"hello\"");
+        assertEquals("hello", manager.get("e"));
+        assertEquals("hello", engine.eval("e"));
 
         // install and invoke a method
         engine.eval("foo() { return foo+1; }");

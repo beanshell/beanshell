@@ -781,15 +781,8 @@ public class NameSpace
         // Get import first. Enum blocks may override class methods.
         if (this.isClass && !this.isEnum && !declaredOnly)
             method = this.getImportedMethod(name, sig);
-        if (method == null && this.methods.containsKey(name)) {
-            // Apply most specific signature matching
-            final Class<?>[][] candidates = this.methods.get(name)
-                    .stream().map(m -> m.getParameterTypes())
-                    .toArray(Class<?>[][]::new);
-            int idx = Reflect.findMostSpecificSignature(sig, candidates);
-            if (idx != -1)
-                method = this.methods.get(name).get(idx);
-        }
+        if (method == null && this.methods.containsKey(name))
+            method = Reflect.findMostSpecificBshMethod(sig, methods.get(name));
         if (method == null && !this.isClass && !declaredOnly)
             method = this.getImportedMethod(name, sig);
         // try parent
@@ -1140,9 +1133,21 @@ public class NameSpace
         this.nameSourceListeners.add(listener);
     }
 
-    /** Perform "import *;" causing the entire classpath to be mapped. This can
-     * take a while.
-     * @throws UtilEvalError the util eval error */
+    /**
+     * Perform "import *;" causing the entire classpath to be mapped.
+     * This can take a while.
+     * <p>
+     * Super imports are different than regular imports.
+     * They are done in the context of the ClassManager
+     * rather than the NameSpace and thus their effects
+     * may persist after the NameSpace is released.
+     *
+     * It seems irregular that named imports are 'local' to the
+     * namespace but super imports are 'global' to the class manager
+     * but I suppose for performance reasons it is a good idea
+     * to scan the super class path only once and store the results.
+     * @throws UtilEvalError the util eval error
+     */
     public void doSuperImport() throws UtilEvalError {
         this.getClassManager().doSuperImport();
     }

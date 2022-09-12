@@ -1,0 +1,39 @@
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: Java CI with Maven
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ '8', '11', '17' ]
+
+    name: Java ${{ matrix.java }} build
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Java
+      uses: actions/setup-java@v2
+      with:
+        java-version: ${{ matrix.java }}
+        distribution: 'adopt'
+        cache: maven
+    - name: Build with Maven
+      run: mvn -B verify package --file pom.xml
+
+    - name: Codecov
+      uses: codecov/codecov-action@v2
+      if: ${{ matrix.java == '8' }}
+      with:
+        files: target/site/jacoco/jacoco.xml
+        flags: unittests # optional
+        fail_ci_if_error: false # optional (default = false)
+        verbose: true # optional (default = false)

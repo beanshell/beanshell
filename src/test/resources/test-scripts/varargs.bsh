@@ -1,0 +1,242 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+/*
+ * VarArgs with generated classes
+ */
+class VarArgsClass {
+
+   public int consType = -1;
+   public Object inputs;
+   
+   VarArgsClass(String a) {
+      consType = 1;
+      inputs = a;
+   }
+   VarArgsClass(String a, String b) {
+      consType = 2;
+      inputs = new String[] {a, b};
+   }
+   VarArgsClass(String... a) {
+      consType = 3;
+      inputs = a;
+   }
+   VarArgsClass(int a) {
+      consType = 4;
+      inputs = new int[] {a};
+   }
+   VarArgsClass(int a, int b) {
+      consType = 5;
+      inputs = new int[] {a,b};
+   }
+   VarArgsClass(int a, int... b) {
+      consType = 6;
+      inputs = new Object[] {a, b};
+   }
+   VarArgsClass(double a) {
+      consType = 7;
+      inputs = new double[] {a};
+   }
+   VarArgsClass(double a, double b) {
+      consType = 8;
+      inputs = new double[] {a,b};
+   }
+   VarArgsClass(double a, double... b) {
+      consType = 9;
+      inputs = new Object[] {a, b};
+   }
+
+   int method1(String a) {
+      inputs = a;
+      return 1;
+   }
+   int method1(String a, String b) {
+      inputs = new String[] {a, b};
+      return 2;
+   }
+   int method1(String... a) {
+      inputs = a;
+      return 3;
+   }
+   int method1(int a) {
+      inputs = new int[] {a};
+      return 4;
+   }
+   int method1(int a, int b) {
+      inputs = new int[] {a,b};
+      return 5;
+   }
+   int method1(int a, int... b) {
+      inputs = new Object[] {a, b};
+      return 6;
+   }
+   int method1(double a) {
+      inputs = new double[] {a};
+      return 7;
+   }
+   int method1(double a, double b) {
+      inputs = new double[] {a,b};
+      return 8;
+   }
+   int method1(double a, double... b) {
+      inputs = new Object[] {a, b};
+      return 9;
+   }
+}
+
+va = new VarArgsClass("A");
+assert(va.consType == 1);
+assert(va.inputs.equals("A"));
+va = new VarArgsClass("A", "B");
+assert(va.consType == 2);
+assertArrayEquals(va.inputs, new String[] {"A","B"});
+va = new VarArgsClass("A", "B", "C");
+assert(va.consType == 3);
+assertArrayEquals(va.inputs, new String[] {"A","B","C"});
+va = new VarArgsClass(new String[] {"A", "B", "C"});
+assert(va.consType == 3);
+assertArrayEquals(va.inputs, new String[] {"A","B","C"});
+va = new VarArgsClass();
+assert(va.consType == 3);
+assertArrayEquals(va.inputs, new String[] {});
+
+va = new VarArgsClass(1);
+assert(va.consType == 4);
+assertArrayEquals(va.inputs, new int[] {1});
+va = new VarArgsClass(1, 2);
+assert(va.consType == 5);
+assertArrayEquals(va.inputs, new int[] {1,2});
+va = new VarArgsClass(1, 2, 3);
+assert(va.consType == 6);
+assertArrayEquals(va.inputs, new Object[] {1, new int[] {2,3}});
+va = new VarArgsClass(1, new int[] {1, 2, 3});
+assert(va.consType == 6);
+assertArrayEquals(va.inputs, new Object[] {1, new int[] {1,2,3}});
+
+va = new VarArgsClass(1.0);
+assert(va.consType == 7);
+assertArrayEquals(va.inputs, new double[] {1}, 0);
+va = new VarArgsClass(1.0, 2);
+assert(va.consType == 8);
+assertArrayEquals(va.inputs, new double[] {1,2}, 0);
+va = new VarArgsClass(1.0, 2, 3);
+assert(va.consType == 9);
+assertArrayEquals(va.inputs, new Object[] {1.0, new double[] {2,3}});
+va = new VarArgsClass(1, new double[] {1, 2, 3});
+assert(va.consType == 9);
+assertArrayEquals(va.inputs, new Object[] {1.0, new double[] {1,2,3}});
+
+assert(va.method1("A") == 1);
+assert(va.inputs.equals("A"));
+assert(va.method1("A", "B") == 2);
+assertArrayEquals(va.inputs, new String[] {"A","B"});
+assert(va.method1("A", "B", "C") == 3);
+assertArrayEquals(va.inputs, new String[] {"A","B","C"});
+assert(va.method1(new String[] {"A", "B", "C"}) == 3);
+assertArrayEquals(va.inputs, new String[] {"A","B","C"});
+assert(va.method1() == 3);
+assertArrayEquals(va.inputs, new String[] {});
+
+assert(va.method1(1) == 4);
+assertArrayEquals(va.inputs, new int[] {1});
+assert(va.method1(1, 2) == 5);
+assertArrayEquals(va.inputs, new int[] {1,2});
+assert(va.method1(1, 2, 3) == 6);
+assertArrayEquals(va.inputs, new Object[] {1, new int[] {2,3}});
+assert(va.method1(1, new int[] {1,2,3}) == 6);
+assertArrayEquals(va.inputs, new Object[] {1, new int[] {1,2,3}});
+
+assert(va.method1(1.0) == 7);
+assertArrayEquals(va.inputs, new double[] {1}, 0);
+assert(va.method1(1.0, 2) == 8);
+assertArrayEquals(va.inputs, new double[] {1,2}, 0);
+assert(va.method1(1.0, 2, 3) == 9);
+assertArrayEquals(va.inputs, new Object[] {1.0, new double[] {2,3}});
+assert(va.method1(1.0, new double[] {1,2,3}) == 9);
+assertArrayEquals(va.inputs, new Object[] {1.0, new double[] {1,2,3}});
+
+/*
+ * Test VarArgs with Java class
+ */
+m=new MethodSelection();
+assert( m.method2("Hello").equals("one") );
+assertArrayEquals(m.varargs, new String[] {"Hello"});
+assert( m.method2("Hello", "World").equals("two") );
+assertArrayEquals(m.varargs, new String[] {"Hello","World"});
+assert( m.method2("Hello", "World", "This", "is", "me").equals("three") );
+assertArrayEquals(m.varargs, new String[] {"World", "This", "is", "me"});
+assert( m.method2("Hello", new String[] {"World", "This", "is", "me"}).equals("three") );
+assertArrayEquals(m.varargs, new String[] {"World", "This", "is", "me"});
+
+/*
+ * Test VarArgs with scripted methods
+ */
+methodinputs = null;
+method3(String str) {
+   methodinputs = str;
+   return 1;
+}
+method3(String str, String str2) {
+   methodinputs = new String[] {str, str2};
+   return 2;
+}
+method3(String... strs) {
+   methodinputs = strs;
+   return 3;
+}
+method3(int a) {
+   methodinputs = new int[] {a};
+   return 4;
+}
+method3(int a, int b) {
+   methodinputs = new int[] {a, b};
+   return 5;
+}
+method3(int a, int... b) {
+   methodinputs = new Object[] {a, b};
+   return 6;
+}
+method3(double a) {
+   methodinputs = new double[] {a};
+   return 7;
+}
+method3(double a, double b) {
+   methodinputs = new double[] {a, b};
+   return 8;
+}
+method3(double a, double... b) {
+   methodinputs = new Object[] {a, b};
+   return 9;
+}
+assert(method3("Hello") == 1);
+assert(methodinputs.equals("Hello"));
+assert(method3("Hello", "World") == 2);
+assertArrayEquals(methodinputs, new String[] {"Hello", "World"});
+assert(method3("Hello", "World", "this", "is", "me") == 3);
+assertArrayEquals(methodinputs, new String[] {"Hello", "World", "this", "is", "me"});
+assert(method3(new String[] {"Hello", "World", "this", "is", "me"}) == 3);
+assertArrayEquals(methodinputs, new String[] {"Hello", "World", "this", "is", "me"});
+
+assert(method3(1) == 4);
+assertArrayEquals(methodinputs, new int[] {1});
+assert(method3(1,2) == 5);
+assertArrayEquals(methodinputs, new int[] {1,2});
+assert(method3(1,2,3) == 6);
+assertArrayEquals(methodinputs, new Object[] {1, new int[] {2,3}});
+assert(method3(1,new int[]{1,2,3}) == 6);
+assertArrayEquals(methodinputs, new Object[] {1, new int[] {1,2,3}});
+
+assert(method3(1.0) == 7);
+assertArrayEquals(methodinputs, new double[] {1}, 0);
+assert(method3(1.0,2) == 8);
+assertArrayEquals(methodinputs, new double[] {1,2}, 0);
+assert(method3(1.0,2.0,3) == 9);
+assertArrayEquals(methodinputs, new Object[] {1.0, new double[] {2,3}});
+assert(method3(1.0,new double[]{1,2,3}) == 9);
+assertArrayEquals(methodinputs, new Object[] {1.0, new double[] {1,2,3}});
+
+
+
+complete();
