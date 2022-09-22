@@ -151,18 +151,18 @@ environment.  These demos are very rough and need some work.
 
 - The `show()` command now works in both interactive and non-interactive
 modes.  This means that for experimentation, instead of doing things like:
-    ```java
-    print( myObject instanceof Blah );
-    print( myObject.getFoo() );
-    print( myObject.somethingElse() );
-    ```
-    .. now you can simply do:
-    ```java
-    show();
-    myObject instanceof Blah;
-    myObject.getFoo();
-    myObject.somethingElse();
-    ```
+  ```java
+  print( myObject instanceof Blah );
+  print( myObject.getFoo() );
+  print( myObject.somethingElse() );
+  ```
+  .. now you can simply do:
+  ```java
+  show();
+  myObject instanceof Blah;
+  myObject.getFoo();
+  myObject.somethingElse();
+  ```
   This can be combined with the trace property `-Dtrace=true` (currently a
   static, interpreter wide flag) to display line by line execution and
   results.
