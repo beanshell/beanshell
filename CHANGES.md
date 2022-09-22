@@ -98,7 +98,7 @@ construction (instance creation... along with any constructor).
 ### Added JSR223 javax.script adapter engine implementation in a new bsh.engine package
 
 This implementation of the spec supports pluggable ScriptContext.  Please
-see the `TestBshScriptEngine.java` file (and the spec) for a starting point
+see the [TestBshScriptEngine.java](src/test/java/bsh/TestBshScriptEngine.java) file (and the spec) for a starting point
 on how to use this.
 
 BeanShell maintains all of its info on variables (type, modifiers,
@@ -289,7 +289,7 @@ a BeanShell namespace.  e.g.
     any longer by default share classpath or cached class information.
     (This will help in application server deployments).
     Added the method: Interpreter `getClassManager()`
-    %% some minor incompatible changes in `NameSpace.java` api.
+    %% some minor incompatible changes in [NameSpace.java](src/main/java/bsh/NameSpace.java) api.
     The NameSpace constructor now requires a BshClassManager instance.
 
 - Fixed bug where using `reloadClasses()` with no arguments (to reload
@@ -318,7 +318,7 @@ a BeanShell namespace.  e.g.
     calling a Java method on an object or class this results in about a
     40% speedup.
 
-- Consolidated bsh scripted method dispatching code into `This.java`.
+- Consolidated bsh scripted method dispatching code into [This.java](src/main/java/bsh/This.java).
 
 - All scripted objects now implement the standard object protocol of
     `toString()`, `hashcode()` and `equals()`.  Scripted object behavior is now
@@ -402,7 +402,7 @@ loaded when the missing class was encountered.
 - Fixed import caching bugs.
 
 - Fixed problems with the method resolution caching: added hashcode to
-  `Primitive.java`, fixed null argument issue, separated caches into object
+  [Primitive.java](src/main/java/bsh/Primitive.java), fixed null argument issue, separated caches into object
   and static, removed side-effect from resolveJavaMethod in Reflect.  Did
   some initial profiling.  Overall I'm seeing about a 50% speedup in code
   that does primarily method dispatching.
@@ -454,7 +454,7 @@ loaded when the missing class was encountered.
   arbitrary (non wrapper) object type.  e.g. compare 2 to a "two".  This
   will cause a primitive / object mismatch error.
 
-- Did some minor refactoring and cleanup in `Reflect.java`.
+- Did some minor refactoring and cleanup in [Reflect.java](src/main/java/bsh/Reflect.java).
 
 - Added enhanced for loop as per JDK 1.5.  (Belated thanks to Daniel Leuck
   for submitting his "each" statement long, long ago.)
@@ -587,7 +587,7 @@ loaded when the missing class was encountered.
  - The old scoping rules have been preserved and can be switched on by
   setting the system property `oldscoping` to `true`.
   See `newscoping.bsh` in the test suite for more examples.
-  Note: There is exactly *one* line of code in `NameSpace.java` that looks
+  Note: There is exactly *one* line of code in [NameSpace.java](src/main/java/bsh/NameSpace.java) that looks
   at the `Interpreter.LOCALSCOPING` flag to determine what to do.
   Everything else happens naturally.  So there should be no fear that we
   are accumulating legacy baggage.  On the contrary, BeanShell refactoring
