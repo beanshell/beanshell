@@ -36,4 +36,15 @@ assert(b==6); // sanity check
 assert(s.a==5);
 assert(a==6);
 
+// block namespace calling method twice #508
+y = 22;
+try { eval("yval=y;"); }
+catch (e) { assert(false); }
+assert(yval==y);
+yval=0;
+try { eval("yval=y;"); }
+catch (e) { assert(false); }
+assert(yval==22);
+
+
 complete();
