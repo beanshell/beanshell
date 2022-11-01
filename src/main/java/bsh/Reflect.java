@@ -68,11 +68,16 @@ public final class Reflect {
     private static final Map<String,String> ACCESSOR_NAMES = new WeakHashMap<>();
     private static final Pattern DEFAULT_PACKAGE
         = Pattern.compile("[^\\.]+|bsh\\..*");
-    private static final String PACKAGE_ACCESS_STR = Security.getProperty("package.access");
-    private static final Pattern PACKAGE_ACCESS
-        = Pattern.compile("(?:"+ ((PACKAGE_ACCESS_STR != null) ? PACKAGE_ACCESS_STR : "sun.misc.notexist")
-            .replace(',', '|')+").*");
+    private static final Pattern PACKAGE_ACCESS = getPackageAccess();
 
+
+    private static Pattern getPackageAccess() {
+            String packageAccessProperty = Security.getProperty("package.access");
+            if (packageAccessProperty == null) {
+                    return null;
+            }
+            return Pattern.compile("(?:"+ packageAccessProperty.replace(',', '|')+").*");
+    }
 
     /**
         Invoke method on arbitrary object instance.
@@ -1184,7 +1189,7 @@ public final class Reflect {
 
     public static boolean isPackageAccessible(Class<?> clazz) {
         return haveAccessibility()
-                || !PACKAGE_ACCESS.matcher(clazz.getName()).matches();
+                || (PACKAGE_ACCESS != null && !PACKAGE_ACCESS.matcher(clazz.getName()).matches());
     }
 
     /** Manually create enum values array without using enum.values().
