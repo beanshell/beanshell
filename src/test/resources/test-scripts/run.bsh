@@ -15,6 +15,7 @@ assert( r.g == 6 );
 // Note: this could fail legitimately if we're not in the test dir...
 assert( r.cwd != void );
 assert( !r.cwd.equals( bsh.cwd) );
+assert( r.cwd.endsWith("resources") );
 
 arg = object();
 arg.foo=1;
@@ -28,6 +29,16 @@ assert( r.c == 5 );
 assert( isEvalError("new AddClass()") );
 // should show no class loading...
 //this.namespace.getClassManager().dump( new PrintWriter(System.out,true));
+
+// block namespace calling method twice #508
+try {
+    r = run("Data/run_aux.bsh");
+    assert( r.cwd.endsWith("resources") );
+} catch (e) { assert(false); }
+try {
+    r = run("Data/run_aux.bsh");
+    assert( r.cwd.endsWith("resources") );
+} catch (e) { assert(false); }
 
 complete();
 
