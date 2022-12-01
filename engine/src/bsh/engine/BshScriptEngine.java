@@ -211,7 +211,7 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
 		return buffer.toString();
 	}
 
-	
+
 	/**
 	 * Compiles the script (source read from {@code Reader}) for later
 	 * execution.  Functionality is identical to {@code compile(String)} other
