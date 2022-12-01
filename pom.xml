@@ -126,6 +126,12 @@
       <email>github@jigsoft.co.za</email>
       <url>http://linkedin.com/in/n1ckl/</url>
     </developer>
+    <developer>
+      <id>jimjag</id>
+      <name>Jim Jagielski</name>
+      <email>jimjag@gmail.com</email>
+      <url>http://linkedin.com/in/jimjag/</url>
+    </developer>
   </developers>
 
   <issueManagement>
