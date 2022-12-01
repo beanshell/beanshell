@@ -19,7 +19,7 @@ A [CVE number](http://cve.mitre.org/cve/) will be requested.
 
 ### Persistent Scriptable Classes! (Experimental Feature)
 
-Using the system property ``-DsaveClasses=<savedir>`` you can instruct
+Using the system property `-DsaveClasses=<savedir>` you can instruct
 BeanShell to write out persistent class files for class definitions found
 in the script.  In this mode BeanShell will not execute code, but will
 generate and store a class files for each class definition it finds.
@@ -29,9 +29,9 @@ initializer code that allows them to bootstrap an instance of the BeanShell
 interpreter to execute their scripted body if the class is used from
 an external application.
 
-Currently we are using a simple convention whereby a class "Foo.class"
+Currently we are using a simple convention whereby a class `Foo.class`
 expects to find its associated scripted class definition in a file
-"Foo.bsh" in the same location as the class file.  Each stored class
+`Foo.bsh` in the same location as the class file.  Each stored class
 must have a corresponding script definition.  The scripts itself may
 contain any amount of BeanShell code beyond the class definition
 and may refer to other scripted classes or saved classes.  However each
@@ -46,23 +46,23 @@ definition:
     }
 ```
 
-you could place the script into a file "Foo.bsh" in the current directory
+you could place the script into a file `Foo.bsh` in the current directory
 and execute:
 
 ```sh
     java -DsaveClasses=. bsh.Interpreter Foo.bsh
 ```
 
-This will create the class Foo.class.  The Foo class may be used like any
+This will create the class `Foo.class`.  The Foo class may be used like any
 ordinary Java class and invoked from ordinary Java code.  Upon being
 loaded it will automatically create a BeanShell interpreter instance
-to load and execute its corresponding Foo.bsh script file.  The script
+to load and execute its corresponding `Foo.bsh` script file.  The script
 is expected to correspond to the structure of the class: to initialize
-static instance members and implement all static and instancee methods
+static instance members and implement all static and instance methods
 required by the class.  Beyond that, the script is free to change and
 include additional script body outside the scripted class definition.
 
-For example, we might later change the Foo.bsh script to the following:
+For example, we might later change the `Foo.bsh` script to the following:
 
 ```java
     welcomeMessage = "Hello World!";
@@ -98,7 +98,7 @@ construction (instance creation... along with any constructor).
 ### Added JSR223 javax.script adapter engine implementation in a new bsh.engine package
 
 This implementation of the spec supports pluggable ScriptContext.  Please
-see the TestBshScriptEngine.java file (and the spec) for a starting point
+see the [TestBshScriptEngine.java](src/test/java/bsh/TestBshScriptEngine.java) file (and the spec) for a starting point
 on how to use this.
 
 BeanShell maintains all of its info on variables (type, modifiers,
@@ -115,12 +115,10 @@ however there is no dependency in the core on this class, so you can
 exclude it in the usual way.
 
 - Fixed static import syntax.  It's now the same as Java 5:
-
-```java
+    ```java
     import static Foo.*;
-```
-
-(previously was `static import ...`` )
+    ```
+    (previously was `static import` ... )
 
 ### Static blocks in scripted classes are now working.
 
@@ -132,20 +130,17 @@ Added test case.
 - Source compiles under JDK 1.5
 
 - Better defined classloading precedence:
-
-    in-script evaluated class (scripted class)
-    in-script added / modified classpath
-
-    optionally, external classloader
-    optionally, thread context classloader
-
-    plain Class.forName()
-    source class (.java file in classpath)
+    * in-script evaluated class (scripted class)
+    * in-script added / modified classpath
+    * optionally, external classloader
+    * optionally, thread context classloader
+    * plain `Class.forName()`
+    * source class (.java file in classpath)
 
 - Method selection code has been rewritten to move towards Java 5 rules.
 This should correct a number of problems where inaccessible methods are
 selected and also correct security problems in applets and other secure
-environments.  Method selection should no longer call getDeclaredMethods()
+environments.  Method selection should no longer call `getDeclaredMethods()`
 unless accessibility is explicitly activated.  The same is true for
 constructors and fields.
 
@@ -154,36 +149,35 @@ now run in untrusted environment, with limitations.  Applets cannot
 create classloaders, so BeanShell cannot script classes in the unsigned
 environment.  These demos are very rough and need some work.
 
-- The show() command now works in both interactive and non-interactive
+- The `show()` command now works in both interactive and non-interactive
 modes.  This means that for experimentation, instead of doing things like:
-```java
-print( myObject instanceof Blah );
-print( myObject.getFoo() );
-print( myObject.somethingElse() );
-```
-    .. now you can simply do:
-```java
-        show();
-        myObject instanceof Blah;
-        myObject.getFoo();
-        myObject.somethingElse();
-        ```
+  ```java
+  print( myObject instanceof Blah );
+  print( myObject.getFoo() );
+  print( myObject.somethingElse() );
+  ```
+  .. now you can simply do:
+  ```java
+  show();
+  myObject instanceof Blah;
+  myObject.getFoo();
+  myObject.somethingElse();
+  ```
+  This can be combined with the trace property `-Dtrace=true` (currently a
+  static, interpreter wide flag) to display line by line execution and
+  results.
 
-    This can be combined with the trace property -Dtrace=true (currently a
-    static, interpreter wide flag) to display line by line execution and
-    results.
+- The `bsh.show` variable is gone and has been replaced with a property
+on the interpreter.
 
-    The bsh.show variable is gone and has been replaced with a property
-    on the interpreter.
+- Fixed bug in `super.method()` resolution inside nested blocks.
 
-    - Fixed bug in super.method() resolution inside nested blocks.
+- Added workaround for `load()` command to use the BshClassManager for
+    deserializing classes.
 
-    - Added workaround for load() command to use the BshClassManager for
-        deserializing classes.
+- Fixed some cases where SecurityException could not be caught by scripts
+  and handled.
 
-    - Fixed some cases where SecurityException could not be caught by scripts
-      and handled.
-```
 
 ## Changes in 2.0 beta 3
 
@@ -203,7 +197,7 @@ been supported.
 
 ## Changes in 2.0 beta 1
 
-- With release 2.0 BeanShell supports the full Java syntax.
+With release 2.0 BeanShell supports the full Java syntax.
 You can now script Java classes that serve as real Java types.
 Scripted classes may extend ordinary Java classes, abstract classes, and
 implement interfaces as usual.  Constructors and methods invoked on the
@@ -242,51 +236,51 @@ Current Limitations:
 You can import the static methods and fields of a java Class into a
 BeanShell namespace. e.g.
 
-```java
-static import java.lang.Math.*;
-sqrt(4.0);
-```
+   ```java
+   static import java.lang.Math.*;
+   sqrt(4.0);
+   ```
 
-- Instance object imports (mix-ins) with the importObject() command.
+- Instance object imports (mix-ins) with the `importObject()` command.
 You can import the methods and fields of a Java object instance into
 a BeanShell namespace.  e.g.
 
-```java
-Map map = new HashMap();
-importObject( map );
-put("foo", "bar");
-print( get("foo") ); // "bar"
-```
+  ```java
+  Map map = new HashMap();
+  importObject( map );
+  put("foo", "bar");
+  print( get("foo") ); // "bar"
+  ```
 
 
 ## Changes in 1.3 beta 2
 
-- Added reserved Java keywords.  Added: "strictfp", "implements",
-  "extends", "package", and the new Java 1.5 keyword "enum".  strictfp
+- Added reserved Java keywords.  Added: `strictfp`, `implements`,
+  `extends`, `package`, and the new Java 1.5 keyword `enum`.  `strictfp`
   is now accepted as a modifier and ignored.  The rest are not supported
   (yet).
 
 - Properties style auto-allocation of variables.
-```java
-     // foo is initially undefined
-     foo.bar.gee = 42;
-     print( foo.bar.gee ); // 42
-     print( foo.bar ); 'this' reference (XThis) to Bsh object: auto: bar
-     print( foo ); 'this' reference (XThis) to Bsh object: auto: foo
-```
+  ```java
+  // foo is initially undefined
+  foo.bar.gee = 42;
+  print( foo.bar.gee ); // 42
+  print( foo.bar ); //'this' reference (XThis) to Bsh object: auto: bar
+  print( foo ); //'this' reference (XThis) to Bsh object: auto: foo
+  ```
 
   When assigning to a compound name, undefined components being resolved
-  relative to a scripted object (bsh 'this' type reference) will be
+  relative to a scripted object (bsh `this` type reference) will be
   auto-allocated as scripted objects.
 
   This means that you can use BeanShell scripts just like properties
   files for initialization parameters.
 
-- BeanShell 'this' type references can now implement more than one
-  interface.  Use getInterface( Class[] ).
+- BeanShell `this` type references can now implement more than one
+  interface.  Use `getInterface( Class[] )`.
 
-- BshMethod getReturnType() now returns Void.TYPE for voids, rather than
-  the (incorrect) wrapper value Primitive.VOID.
+- BshMethod `getReturnType()` now returns `Void.TYPE` for voids, rather than
+  the (incorrect) wrapper value `Primitive.VOID`.
 
 ## Changes in 1.3 beta 1
 
@@ -294,28 +288,28 @@ print( get("foo") ); // "bar"
     (per-global namespace) basis.  Multiple interpreter instances do not
     any longer by default share classpath or cached class information.
     (This will help in application server deployments).
-    Added the method: Interpreter getClassManager()
-    %% some minor incompatible changes in NameSpace.java api.
+    Added the method: Interpreter `getClassManager()`
+    %% some minor incompatible changes in [NameSpace.java](src/main/java/bsh/NameSpace.java) api.
     The NameSpace constructor now requires a BshClassManager instance.
 
-- Fixed bug where using reloadClasses() with no arguments (to reload
+- Fixed bug where using `reloadClasses()` with no arguments (to reload
     the entire classpath) did not work properly when user classpath
     included components with relative paths.
 
-- Scripts executed with the run() command (as opposed to eval() or
-    source()) now have their own class manager and therefore classpath.
-    Any namespace the is disconnected from its parent ( pruned() ) now
-    creates a new class manager.  In the case of the run() command we
+- Scripts executed with the `run()` command (as opposed to `eval()` or
+    `source()`) now have their own class manager and therefore classpath.
+    Any namespace the is disconnected from its parent ( `pruned()` ) now
+    creates a new class manager.  In the case of the `run()` command we
     inherit the old classpath explicitly.  This behavior **may evolve**
     to cover all cases of a namespace with no class manager or parent.
     **Note:** the test suite runs a bit slower now because each test is
-    run() and starts with a clean class cache.  Note that creating
-    variants on the run() behavior (e.g. the old behavior) is trivial...
-    See run.bsh.
+    `run()` and starts with a clean class cache.  Note that creating
+    variants on the `run()` behavior (e.g. the old behavior) is trivial...
+    See `run.bsh`.
 
-- The bsh.system object which is shared across Interpreter instances
-    has been renamed "bsh.shared".  For backwards compatibility it is
-    still referenced as bsh.system as well.
+- The `bsh.system` object which is shared across Interpreter instances
+    has been renamed `bsh.shared`.  For backwards compatibility it is
+    still referenced as `bsh.system` as well.
 
 - Implemented some experimental caching of class method resolution for
     performance.  When a method (overloaded or single) is resolved
@@ -324,13 +318,13 @@ print( get("foo") ); // "bar"
     calling a Java method on an object or class this results in about a
     40% speedup.
 
-- Consolidated bsh scripted method dispatching code into This.java.
+- Consolidated bsh scripted method dispatching code into [This.java](src/main/java/bsh/This.java).
 
 - All scripted objects now implement the standard object protocol of
-    toString(), hashcode() and equals().  Scripted object behavior is now
+    `toString()`, `hashcode()` and `equals()`.  Scripted object behavior is now
     more consistent.
-    %% One minor incompatible change: the invoke() meta-method no longer
-    intercepts toString(), hashcode() or equals().  If you wish to
+    %% One minor incompatible change: the `invoke()` meta-method no longer
+    intercepts `toString()`, `hashcode()` or `equals()`.  If you wish to
     override these you must script them directly in the object.
 
 - All normal error messages should now include line numbers and invocation
@@ -341,7 +335,7 @@ print( get("foo") ); // "bar"
 
 - Added script stack trace to error messages (e.g. method a() called
     method b(), etc.).  EvalError and TargeError now require callstack.
-    Added getScriptStackTrace() method to EvalError API.  toString()
+    Added `getScriptStackTrace()` method to EvalError API.  `toString()`
     prints the script stack trace by default.
 
 - Errors indicating bad return control or return type from method now
@@ -354,31 +348,31 @@ print( get("foo") ); // "bar"
 - Remote client can now utilize bsh:// URLs to talk to embedded bsh server.
 
 - Added "bsh" target to build.xml for running a script from the current
-    build.  e.g. ant -Dfile=foo.bsh bsh
+    build.  e.g. `ant -Dfile=foo.bsh bsh`
 
-- Stopped squeltching NoClassDefFound errors... This was the source of
+- Stopped squelching NoClassDefFound errors... This was the source of
 much frustration where BeanShell would indicate that a class was not found
 when it was really a dependent class that was missing.  We now catch
 NoClassDefFoundError and add a message specifying which class was being
 loaded when the missing class was encountered.
 
-- Added catch block in bshdoc.bsh script to report the file it was
+- Added catch block in `bshdoc.bsh` script to report the file it was
     processing when an error occurs.
 
-- Fixed bug allowing try { } without catch or finally.
+- Fixed bug allowing `try { }` without `catch` or `finally`.
 
 - Enhanced bsh shell script launcher to add a default bsh JAR if none
     is in the classpath (as determined by a simplistic name test).  Works
-    on cygwin and unix.
+    on Cygwin and Unix.
 
-- added sourceRelative() command, which sources the file relative to the
+- added `sourceRelative()` command, which sources the file relative to the
   caller's directory, not the working directory. (See the bshdoc for
   more explanation).
 
 - Upgraded to JavaCC 3.0 available from:
   http://www.experimentalstuff.com/Technologies/JavaCC/index.html
   (Let's see, how many places have owned JavaCC now?  Sun Test, then
-  meta-mata, then webgain, then Sun "experimental stuff"?  Sun has
+  Metamata, then WebGain, then Sun "experimental stuff"?  Sun has
   promised to open source this... I hope they follow through).
   Modified build.xml to use the new package name (no package) and to assume
   that the jar is in the classpath for now.
@@ -389,7 +383,7 @@ loaded when the missing class was encountered.
   assignment expression) but it is now created based on context rather than
   via a special part of the grammar.  Perhaps no one but the author will
   care about this but this always bugged me.  This also fixes some corner
-  cases in assignments that were broken (tests fields1.bsh fields2.bsh).
+  cases in assignments that were broken (tests `fields1.bsh` `fields2.bsh`).
 
 - Switched to BSF 2.3 package name by default.  BSF was donated from
   IBM to Jakarta and changed its package name with 2.3.  If you want to use
@@ -397,17 +391,18 @@ loaded when the missing class was encountered.
   classpath ahead of your bsh 1.3 dist.
 
 - Enhanced array creation to support undefined array dimensions as in Java.
-  e.g. int [][][] foo = new int [3][][];
+  e.g. `int [][][] foo = new int [3][][];`
 
 - Enhanced array creation to support auto-casting in array initializers,
   e.g.  even though a primitive number is an int by default, the following
   work (as in Java):
-    long [] la = { 1, 2 };  float [] fa = { 1, 2 }; byte [] ba = { 1, 2 };
-
+  ```java
+  long [] la = { 1, 2 };  float [] fa = { 1, 2 }; byte [] ba = { 1, 2 };
+  ```
 - Fixed import caching bugs.
 
 - Fixed problems with the method resolution caching: added hashcode to
-  Primitive.java, fixed null argument issue, separated caches into object
+  [Primitive.java](src/main/java/bsh/Primitive.java), fixed null argument issue, separated caches into object
   and static, removed side-effect from resolveJavaMethod in Reflect.  Did
   some initial profiling.  Overall I'm seeing about a 50% speedup in code
   that does primarily method dispatching.
@@ -418,32 +413,32 @@ loaded when the missing class was encountered.
   servlet results show the offending line highlighted (html) red with four
   lines of context and line numbers.  Tweaked the template html just a bit.
 
-- Removed deprecated overloaded NameSpace.getImportedClasses()
+- Removed deprecated overloaded `NameSpace.getImportedClasses()`
 
-- Moved Name.ClassIdentifier to bsh.ClassIdentifier top level class.
-  ClassIdentifier allows scripted methods to accept plain class names as
-  arguments.  e.g.  javap( java.lang.String );
+- Moved `Name.ClassIdentifier` to `bsh.ClassIdentifier` top level class.
+  `ClassIdentifier` allows scripted methods to accept plain class names as
+  arguments.  e.g.  `javap( java.lang.String )`;
 
 - Enhanced error message for undefined argument to method - now prints the
   argument text instead of the method parameter name and position.
 
 - Clarified the scoping of closures and blocks and fixed related bugs.
-  This should now work as expected.  A 'this' reference always refers to
+  This should now work as expected.  A `this` reference always refers to
   the nearest enclosing method or the root scope.  This is true even when
-  the expression returning or assigning the 'this' reference is inside one
+  the expression returning or assigning the `this` reference is inside one
   or more nested Java blocks. e.g.
-```
-      myMethod() {
-          if ( true ) { /* inside block */ } else { /* */ }
-          { /* gratuitous block */ }
-      }
-```
+    ```java
+    myMethod() {
+        if ( true ) { /* inside block */ } else { /* */ }
+        { /* gratuitous block */ }
+    }
+    ```
 
-  Returning or assigning 'this' from inside myMethod() or inside any of
-  the blocks all use the same 'this' reference (myMethod).  You may
-  refer to local, typed variables declared in the block this.varname as
+  Returning or assigning `this` from inside `myMethod()` or inside any of
+  the blocks all use the same `this` reference (myMethod).  You may
+  refer to local, typed variables declared in the block `this.varname` as
   expected, but they are not visible outside of the block (as in Java).
-  See tests/this.bsh.
+  See `tests/this.bsh`.
 
   Methods defined inside a block are now set in the parent block, as
   is consistent now with everything else blocks do.
@@ -455,16 +450,16 @@ loaded when the missing class was encountered.
   wrapper will serve as the switch value and auto-boxing/unboxing occur as
   elsewhere in BeanShell.  Switch statements also work with object types -
   e.g. you can switch on Strings, Dates, or any objects that test properly
-  with equals().  The only comparison that is not allowed is primitive to
+  with `equals()`.  The only comparison that is not allowed is primitive to
   arbitrary (non wrapper) object type.  e.g. compare 2 to a "two".  This
-  will cause a primtiive / object mismatch error.
+  will cause a primitive / object mismatch error.
 
-- Did some minor refactoring and cleanup in Reflect.java.
+- Did some minor refactoring and cleanup in [Reflect.java](src/main/java/bsh/Reflect.java).
 
 - Added enhanced for loop as per JDK 1.5.  (Belated thanks to Daniel Leuck
   for submitting his "each" statement long, long ago.)
   So you can now do things like:
-
+    ```java
     List foo = getSomeList();
 
     for ( untypedElement : foo )
@@ -480,21 +475,21 @@ loaded when the missing class was encountered.
 
     for( char c : "a string" )
         print( c );
-
+    ```
   Supported iterable types include all the obvious things.  See the new
   BshIterator API addition below for specifics.
 
 - Added BshIterator interface and bsh CollectionManager.  BeanShell now
   supports a unified API for iteration over composite types including:
 
-    JDK 1.1+ (no collections): Enumeration, arrays, Vector, String,
-    StringBuffer
-    JDK 1.2+ (w/collections): Collections, Iterator
+   JDK 1.1+ (no collections): Enumeration, arrays, Vector, String,
+   StringBuffer
+   JDK 1.2+ (w/collections): Collections, Iterator
 
   This was added to support the enhanced for loop above, but can also be
   used in BeanShell commands that wish to loop over composite objects to
   display them.  Usage e.g.:
-
+    ```java
     cm = CollectionManager.getCollectionManager();
     if ( cm.isBshIterable( myObject ) )
     {
@@ -502,16 +497,16 @@ loaded when the missing class was encountered.
         while ( iterator.hasNext() )
             i = iterator.next();
     }
-
+    ```
   If this proves to be useful we could add additional syntactic magic
   later such as making all composite types implement the magic interface
   BshIterable, etc.
 
 - Maps can now be used with the hashtable style accessor syntax.  e.g.
-
+    ```java
     Map map = new HashMap();
     map{"foo"} = "bar":
-
+    ```
   This is another feature of the new CollectionManager (1.1 compatibility
   is preserved).
 
@@ -519,37 +514,37 @@ loaded when the missing class was encountered.
   allowed.
 
 - Refactored variable management a bit - all variables (both typed and
-  untyped) are now wrapped in the wrapper NameSpace.Variable.  We could put
+  untyped) are now wrapped in the wrapper `NameSpace.Variable`.  We could put
   a listener API on there if we wanted to "watch" variables.
 
 - Implemented BeanShell 1.3 scoping changes and preserved backwards
-  compatibility with the -Doldscoping=true switch.
+  compatibility with the `-Doldscoping=true` switch.
 
-  Variable assignments now search up the parent chain for the variable
+- Variable assignments now search up the parent chain for the variable
   definition rather than defaulting to local scope.  Variable assignments
   will therefore find the nearest enclosing variable definition - as one
   would expect in Java.  Prior to BeanShell 1.3 this was only true when
   "strict Java" mode was enabled.
 
   So, for example, the following idiomatic things now work as expected:
+    ```java
+    incrementX() { x=x+1; }
+    x=1;
+    incrementX();
+    assert( x == 2 ); // true!
 
-      incrementX() { x=x+1; }
-      x=1;
-      incrementX();
-      assert( x == 2 ); // true!
-
-      setFlag() { flag=true; }
-      setFlag();
-      assert( flag == true ); // true!
-
-  A typed variable declaration will define the variable as usual in Java.
+    setFlag() { flag=true; }
+    setFlag();
+    assert( flag == true ); // true!
+    ```
+ - A typed variable declaration will define the variable as usual in Java.
   An untyped variable assignment - for which there is no definition in any
   enclosing scope - will end up as a global variable assignment. e.g.
+    ```java
+    int x = 1; // parent scope
 
-      int x = 1; // parent scope
-
-      foo()
-      {
+    foo()
+    {
         // foo scope
         x = 2; // x assigned in parent scope
 
@@ -557,53 +552,53 @@ loaded when the missing class was encountered.
         y = 2; // y assigned in foo scope
 
         z = 99; // z has no enclosing scope, assigned global
-      }
-
-  An untyped variable can be made local in scope by assigning it with
-  the qualifier 'this' (as usual) or by using the new keyword 'var' to
+    }
+    ```
+ - An untyped variable can be made local in scope by assigning it with
+  the qualifier `this` (as usual) or by using the new keyword `var` to
   explicitly declare it as an untyped variable.
-
-      foo()
-      {
+    ```java
+    foo()
+    {
         // secret1 and secret2 are local to foo()
         this.secret1 = 42;
         var secret2 = 42;
-      }
-
-  The qualifier 'super' may be used, as in Java, to begin the search for a
+    }
+    ```
+ - The qualifier `super` may be used, as in Java, to begin the search for a
   variable definition in the parent scope.
-
-      int y = 1; // parent scope
-      foo()
-      {
+    ```java
+    int y = 1; // parent scope
+    foo()
+    {
         int y = 2;
         super.y = 3; // y assigned in parent scope
-      }
-
-      Object closures (scripted objects created by returning 'this' from a
-      method) may be assigned variables as usual:
-
-      foo() { return this; }
-      foo=foo();
-      foo.a=1;
-      print( foo.a ); // 1
-      print( a ); // ERROR 'a' undefined here
-
-  The old scoping rules have been preserved and can be switched on by
-  setting the system property "oldscoping" to "true".
-  See newscoping.bsh in the test suite for more examples.
-
-  Note: There is exactly *one* line of code in NameSpace.java that looks
-  at the Interpreter.LOCALSCOPING flag to determine what to do.
+    }
+    ```
+ - Object closures (scripted objects created by returning `this` from a
+   method) may be assigned variables as usual:
+    ```java
+    foo() { return this; }
+    foo=foo();
+    foo.a=1;
+    print( foo.a ); // 1
+    print( a ); // ERROR 'a' undefined here
+    ```
+ - The old scoping rules have been preserved and can be switched on by
+  setting the system property `oldscoping` to `true`.
+  See `newscoping.bsh` in the test suite for more examples.
+  Note: There is exactly *one* line of code in [NameSpace.java](src/main/java/bsh/NameSpace.java) that looks
+  at the `Interpreter.LOCALSCOPING` flag to determine what to do.
   Everything else happens naturally.  So there should be no fear that we
   are accumulating legacy baggage.  On the contrary, BeanShell refactoring
   is making it more powerful and simpler.
 
   - Fixed bug in evaluation of operator-assignments with postfix in the
     RHS.  (Java behavior seems strange to me.) e.g.
-        i=1; i+=i++; // should be 2 apparently
-        i=1; i+=i++ + i++; // should be 4 apparently
-
+    ```java
+    i=1; i+=i++; // should be 2 apparently
+    i=1; i+=i++ + i++; // should be 4 apparently
+    ```
   - BeanShell now supports modifiers (e.g. public, private, static, etc.)
     on methods and typed variable declarations.  Basic sanity checks are
     done at parse time (e.g. you can't apply volatile to a method, mix
@@ -615,95 +610,94 @@ loaded when the missing class was encountered.
     Synchronized methods lock their parent namespace's This reference, so
     for purposes of serialization (executing exclusively one one at a time)
     they work as in Java.
-
-      // The following synchronize on the same lock
-      synchronized ( this ) { }     // block
-      synchronized int foo () { }   // method foo
-      synchronized int bar () { }   // method bar
-      int gee() {
-         synchronized( super ) { }  // inside gee()
-      }
-
+    ```java
+    // The following synchronize on the same lock
+    synchronized ( this ) { }     // block
+    synchronized int foo () { }   // method foo
+    synchronized int bar () { }   // method bar
+    int gee() {
+        synchronized( super ) { }  // inside gee()
+    }
+    ```
   - The "throws" clause on methods is now supported.  Throws clause names
     are validated to insure that they are known class types, however they
     are not enforced beyond that.
 
-  - Field style object property access now supports isFoo() style getters
+  - Field style object property access now supports `isFoo()` style getters
     for boolean properties. e.g.
-
-        Float flot = new Float(0f);
-        print( flot.infinite ); // float.isInifinite()
-
+    ```java
+    Float flot = new Float(0f);
+    print( flot.infinite ); // float.isInifinite()
+    ```
   - Improved error message on attempting to access private/protected
     members without setAccessibility(true).  Error now shows non-public
     method and suggests turning on accessibility.
 
   - User defined command prompt in interactive mode.  The user may set the
-    value for the prompt string using the variable bsh.prompt or by
-    defining the scripted method (or command) getBshPrompt().
-
-    If the command or method getBshPrompt() is defined it will be called to
+    value for the prompt string using the variable `bsh.prompt` or by
+    defining the scripted method (or command) `getBshPrompt()`.
+    If the command or method `getBshPrompt()` is defined it will be called to
     get a string to display as the user prompt.  For example, one could
     define the following method to place the current working directory into
     their command prompt:
-
-        getBshPrompt() { return bsh.cwd + " % "; }
-
-    The default getBshPrompt() command returns the value of the variable
-    bsh.prompt if it is defined or the string "bsh % " if not.  If the
-    getBshPrompt() method does not exist, throws an exception, or does not
-    return a String, a default prompt of "bsh % " will be used.
+    ```java
+    getBshPrompt() { return bsh.cwd + " % "; }
+    ```
+   The default `getBshPrompt()` command returns the value of the variable
+   `bsh.prompt` if it is defined or the string "bsh % " if not.  If the
+   `getBshPrompt()` method does not exist, throws an exception, or does not
+   return a String, a default prompt of "bsh % " will be used.
 
   - Fixed JConsole backspace through prompt bug.
 
   - User Command Path - You may now import BeanShell scripted or compiled
-    commands from any package path using the importCommands() method.
+    commands from any package path using the `importCommands()` method.
     You may use either "/" path or "." package notation.  e.g.
+    ```java
+    // equivalent
+    importCommands("/bsh/commands")
+    importCommands("bsh.commands")
+    importCommands("/mypackage/commands")
+    ```
+ -  When searching for a command each path will be checked for first, a file
+   named `'command'.bsh` and second a class file named `'command'.class`.
 
-        // equivalent
-        importCommands("/bsh/commands")
-        importCommands("bsh.commands")
-        importCommands("/mypackage/commands")
+  - You may add to the BeanShell classpath using the `addClassPath()` or
+   `setClassPath()` commands and then import them as usual.
+    ```java
+    addClassPath("mycommands.jar");
+    importCommands("/mypackage/commands");
+    ```
+  - If a relative path style specifier is used then it is made into an
+   absolute path by prepending "/".  Later imports take precedence over
+   earlier ones.
 
-    When searching for a command each path will be checked for first, a file
-    named 'command'.bsh and second a class file named 'command'.class.
+  - Imported commands are scoped just like imported classes.
 
-    You may add to the BeanShell classpath using the addClassPath() or
-    setClassPath() commands and then import them as usual.
+  - See news about the `invoke()` meta-method for information about how you
+   could implement your own, arbitrary command loading.
 
-        addClassPath("mycommands.jar");
-        importCommands("/mypackage/commands");
+  - The `getResource()` command now utilizes the BeanShell classpath. i.e.
+    you can get resources from paths added with `addClassPath()`, etc.
 
-    If a relative path style specifier is used then it is made into an
-    absolute path by prepending "/".  Later imports take precedence over
-    earlier ones.
+  - The BshClassManager now contains the methods `getResource()` and
+    `getResourceAsStream()`.
 
-    Imported commands are scoped just like imported clases.
+  - The `invoke()` meta-method is now allowed directly in scope, e.g.
+    ```java
+    invoke( String methodName, Object [] arguments ) { ... }
 
-    See news about the invoke() meta-method for information about how you
-    could implement your own, arbitrary command loading.
-
-  - The getResource() command now utilizes the BeanShell classpath. i.e.
-    you can get resources from paths added with addClassPath(), etc.
-
-  - The BshClassManager now contains the methods getResource() and
-    getResourceAsStream().
-
-  - The invoke() meta method is now allowed directly in scope, e.g.
-
-        invoke( String methodName, Object [] arguments ) { ... }
-
-        // invoke() will be called to handle noSuchMethod()
-        noSuchMethod("foo");
-
-    Previously invoke() was only allowed when called through a 'this' type
+    // invoke() will be called to handle noSuchMethod()
+    noSuchMethod("foo");
+    ```
+    Previously `invoke()` was only allowed when called through a `this` type
     reference, e.g. a scripted interface.
 
-    One could use this capability to implement arbitrary command loading
-    capabilites.  You would simply have to handle wrapping/ unwrapping
-    of primitive value argument and return types with bsh.Primitive.
+ - One could use this capability to implement arbitrary command loading
+   capabilities.  You would simply have to handle wrapping/ unwrapping
+   of primitive value argument and return types with `bsh.Primitive`.
 
-  - Fixed bug in bsh.util.Httpd causing class format errors
+  - Fixed bug in `bsh.util.Httpd` causing class format errors
   - Changed BshServlet redirect to a relative path rather than absolute URL
 
 
@@ -713,8 +707,8 @@ loaded when the missing class was encountered.
     Strict Java mode now functions on a per-interpreter basis.  The
     static strictJava variable is gone (it was always labeled as
     experimental) and is replaced by the instance method Interpreter
-    setStrictJava().  Interpreter set() methods now work (untyped
-    assignments using Interpreter set() is allowed and existing untyped
+    `setStrictJava()`.  Interpreter `set()` methods now work (untyped
+    assignments using Interpreter `set()` is allowed and existing untyped
     variables can be assigned in scripts in either mode).
     +Added a test case.
     Most bsh commands still fail in strict Java mode for simple reasons.
@@ -723,16 +717,16 @@ loaded when the missing class was encountered.
 - Added check for return of value from void method.  Fixed a couple of
     places where we made this mistake.
 
-- Added dirname() command
+- Added `dirname()` command
 
-- Added "test" target to build file (runs tests/RunAllTests.bsh).  Modified
-    RunAllTests.bsh to cd() to the directory containing the RunAllTests.bsh
+- Added "test" target to build file (runs `tests/RunAllTests.bsh`).  Modified
+    `RunAllTests.bsh` to `cd()` to the directory containing the `RunAllTests.bsh`
     script before executing the tests.
 
 - Certain return type errors now point to specific locations, rather
     than the method declaration.
 
-- Fixed Interpreter setErr() bug
+- Fixed Interpreter `setErr()` bug
 
 - Exceptions thrown from proxy interfaces are now unwrapped.
     If your script throws an exception (or causes one to be thrown) that is
@@ -753,7 +747,7 @@ loaded when the missing class was encountered.
     - Made bsh.Parser public and added a main() method allowing users to
     call the parser on files for simple validity checking.
     - Made a small addition to grammar to provide an option to retain
-    formal (javadoc style) comments in the parse tree.
+    formal (JavaDoc style) comments in the parse tree.
     - Fixed accessibility bug in finding fields
     - Fixed minor bugs in bsh.servlet.BshServlet
     - Fixed scoping on catch blocks such that untyped variables
@@ -764,7 +758,7 @@ loaded when the missing class was encountered.
     - Fixed bug in accessibility affecting access to package
         hidden superclasses
     - Added bshdoc.bsh script and bshdoc.xsl stylesheet to the scripts dir.
-    These can be used to support javadoc style documentation of bsh files
+    These can be used to support JavaDoc style documentation of bsh files
     and commands.
     - Exposed bsh.BshMethod and added a public invoke() method.
     - Added getMethod() method to namespace to enumerate methods
@@ -801,7 +795,7 @@ loaded when the missing class was encountered.
     classes when available.  This allows bsh to be installed in the
     jre/lib/ext directory (previously user classes wouldn't be seen).  Yeah!
     This may also allow bsh to see user classpath in application servers
-    like Weblogic, which include it in the core classpath.
+    like WebLogic, which include it in the core classpath.
     - added the clear() command to clear variables and methods from a namespace.
     - added setOut() and setErr() methods to Interpreter.
     - added new bsh.servlet package to the main distribution
@@ -812,12 +806,12 @@ loaded when the missing class was encountered.
 
     - Fixed nasty bug in grammar, added test cases to expression.bsh
     Note: this bug was preventing the latest version of bsh from being used
-    with Weblogic 6.1 (which uses bsh internally and was failing).
+    with WebLogic 6.1 (which uses bsh internally and was failing).
     - Handled the "single line comment with no terminating linefeed" issue.
     - Added getInterface() method to Interpreter.
     - Fixed issue with identity semantics for this in cast case, e.g.:
         ((ActionListener)this == (ActionListener)this) is now true.
-    - cat() command will now print files, urls, streams, and readers
+    - cat() command will now print files, URLs, streams, and readers
     - Exceptions in native (compiled) user classes will now print with
         both the BeanShell script trace and native Java stack trace.
         Exceptions generated directly from scripts continue to show only the
@@ -909,7 +903,7 @@ loaded when the missing class was encountered.
     - Added a parent ref to the interpreter for future use by the child
     eval interpreters.
     - Added new form of source() command that takes a URL.
-    - Tenatively added new feature to get the text of a method invocation
+    - Tentatively added new feature to get the text of a method invocation
     from within the method body...  may be useful along with this.caller.
     See namespace.getInovcationText() namespace.getInvocationLine().
 </pre>
@@ -929,7 +923,7 @@ loaded when the missing class was encountered.
     know that a variable is final and optimize the resolution.  Or a long
     chain of names (java.lang.Integer.MAX_INTEGER) could be optimized.
     - .class on array types now working. e.g.  "int [][].class"
-    - Fixed bugs in grammar which dissallowed certain simple expressions
+    - Fixed bugs in grammar which disallowed certain simple expressions
     unless they were parenthesized.
     - Fixed related case relating to expressions with assignment to a
     throw-away method invocation.
@@ -942,15 +936,15 @@ loaded when the missing class was encountered.
         java -Dtrace=true bsh.Interpreter or trace() command.
         turns on printing of each line before it is executed.  Note that
         this currently prints only top level lines as they are parsed and
-        executed by the interpreter.  trace skips over method exectutions
+        executed by the interpreter.  Trace skips over method executions
         (including bsh commands) etc.  We may enhance this in the future.
     - Fixed bugs in primitive handling:
         primitives smaller than int are now properly assigned in declarations:
             e.g.: byte b = 5;
-        primitive are internally promoted to the correct type on assignment
+        primitives are internally promoted to the correct type on assignment
         to a typed variable,
             e.g.:  long l = (byte)5;  // l is a long value internally
-    - Cleanup in cast operation.. re-factored the cast code into two types
+    - Cleanup in cast operation: re-factored the cast code into two types
         of cast operations.
     - Tightened up re-declaration of typed variables...  You can only redeclare
         a typed var with the same type, else you can an error.  Previously
@@ -977,7 +971,7 @@ loaded when the missing class was encountered.
             NameSpace [] this.callstack
     - Some commands now behave correctly, some slight changes- see notes.
 
-    - made change to insure that pathToFile always returns canonical path
+    - made change to ensure that pathToFile always returns canonical path
     this fixed bug in addClassPath
 </pre>
 
@@ -992,7 +986,7 @@ loaded when the missing class was encountered.
     - Redefined scoping behavior in for-init to act like java.  See notes
     elsewhere.
     - Added switch statement.
-    - made sure Ctrl-d in interctive mode shuts down interpreter.
+    - made sure Ctrl-d in interactive mode shuts down interpreter.
     - Fixed cleanup of weak references in bsh class manager
 </pre>
 
@@ -1005,8 +999,8 @@ loaded when the missing class was encountered.
         - fixed bug causing stack overflow
 
     - Internal restructuring - made Interpreter its own class rather than being
-        auto-generated by javacc.  This allows us to generate decent javadoc
-        without hundreds of parser methods.  Improved javadoc.
+        auto-generated by JavaCC.  This allows us to generate decent JavaDoc
+        without hundreds of parser methods.  Improved JavaDoc.
 
     - Fixed the precedence of name resolution to be consistent with Java.
         variables now always trump class name resolution.  This simplifies
@@ -1209,7 +1203,7 @@ or attach your web browser to port.  Note that the web browser must support
 swing to run the remote JConsole.  We could supply the AWTConsole back for
 compatibility with old browsers...  but I'd like to move on.
 
-<li>Internall trivia - changed the prefix of the names of all of the parser
+<li>Internal trivia - changed the prefix of the names of all of the parser
 node classes from AST to BSH.
 
 <li>Fixed a bug which caused ClassCastException during (ironically) a bsh
