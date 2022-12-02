@@ -117,15 +117,7 @@ class BSHArrayDimensions extends SimpleNode
             {
                 try {
                     Object length = jjtGetChild(i).eval(callstack, interpreter);
-                    // Expect this to be a primitive, but also unbox numbers
-                    int dim;
-                    if (length instanceof Integer ||
-                        length instanceof Short ||
-                        length instanceof Byte)
-                       dim = ((Number)length).intValue();
-                    else
-                       dim = ((Primitive)length).intValue();
-                    definedDimensions[i] = dim;
+                    definedDimensions[i] = ((Primitive)length).intValue();
                 }
                 catch(Exception e)
                 {
