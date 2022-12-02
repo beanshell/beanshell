@@ -151,9 +151,4 @@ String[][] array2dim1 = new String[10][];
 int[][][] primi3 = new int [3][][];
 assert( primi3 instanceof int[][][] );
 
-// Assert that reference objects in array dimensions can be unboxed and widened
-assert(new int[Integer.valueOf(3)].length == 3);
-assert(new int[Byte.valueOf((byte)3)].length == 3);
-assert(new int[Short.valueOf((short)3)].length == 3);
-
 complete();
