@@ -1,5 +1,6 @@
 package bsh.engine;
 
+import bsh.Interpreter;
 import javax.script.ScriptContext;
 import java.util.Collection;
 import java.util.Collections;

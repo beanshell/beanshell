@@ -18,7 +18,7 @@
 
 	<property name="ant.build.javac.target" value="1.6" />
 	<property name="ant.build.javac.source" value="1.6" />
-	<property name="version" value="2.1.1-dev"/>
+	<property name="version" value="2.1.1"/>
 	<property name="deprecation" value="on"/>
 	<property name="Specification-Title" value="BeanShell" />
 	<property name="Specification-Version" value="${version}" />

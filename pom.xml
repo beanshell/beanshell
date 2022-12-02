@@ -30,7 +30,7 @@
 
   <groupId>org.apache-extras.beanshell</groupId>
   <artifactId>bsh</artifactId>
-  <version>2.1.1-dev</version>
+  <version>2.1.1</version>
   <packaging>jar</packaging>
 
   <name>BeanShell</name>
