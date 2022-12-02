@@ -1,5 +1,18 @@
 # BeanShell changelog
 
+## 2.1.1
+
+Fix src/bsh/util/AWTConsole.java breakage with newer Java versions
+
+## 2.1.0
+
+This release formalizes the merge of 2.0b6 with suitable backports from
+the development (HEAD) version of BeanShell (3). Also included are
+are some ALv2 contributions to the BeanShell2 fork that had not been
+folded into BeanShell but are still applicable to this version. For
+backwards compatibility purposes, the 2.x branch of BeanShell still
+supports a minimum Java version of 1.6.
+
 ## 2.0 beta 6
 
 ### Security fix
