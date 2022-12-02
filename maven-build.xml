@@ -15,7 +15,7 @@
 <!--                                                                        -->
 <!-- ====================================================================== -->
 
-<project name="bsh-from-maven" default="package" basedir=".">
+<project name="beanshell" default="package" basedir=".">
 
   <!-- ====================================================================== -->
   <!-- Build environment properties                                           -->
@@ -68,15 +68,15 @@
 
   <target name="compile" depends="get-deps" description="Compile the code">
     <mkdir dir="${maven.build.outputDir}"/>
-    <javac destdir="${maven.build.outputDir}" 
-           nowarn="false" 
-           debug="true" 
-           optimize="false" 
-           deprecation="true" 
-           target="1.1" 
-           verbose="false" 
-           fork="false" 
-           source="1.3">
+    <javac destdir="${maven.build.outputDir}"
+           nowarn="false"
+           debug="true"
+           optimize="false"
+           deprecation="true"
+           target="1.8"
+           verbose="false"
+           fork="false"
+           source="1.8">
       <src>
         <pathelement location="${maven.build.srcDir.0}"/>
       </src>
@@ -96,20 +96,20 @@
   <!-- Test-compilation target                                                -->
   <!-- ====================================================================== -->
 
-  <target name="compile-tests" 
-          depends="compile" 
-          description="Compile the test code" 
+  <target name="compile-tests"
+          depends="compile"
+          description="Compile the test code"
           unless="maven.test.skip">
     <mkdir dir="${maven.build.testOutputDir}"/>
-    <javac destdir="${maven.build.testOutputDir}" 
-           nowarn="false" 
-           debug="true" 
-           optimize="false" 
-           deprecation="true" 
-           target="1.1" 
-           verbose="false" 
-           fork="false" 
-           source="1.3">
+    <javac destdir="${maven.build.testOutputDir}"
+           nowarn="false"
+           debug="true"
+           optimize="false"
+           deprecation="true"
+           target="1.8"
+           verbose="false"
+           fork="false"
+           source="1.8">
       <src>
         <pathelement location="${maven.build.testDir.0}"/>
       </src>
@@ -127,9 +127,9 @@
   <!-- Run all tests                                                          -->
   <!-- ====================================================================== -->
 
-  <target name="test" 
-          depends="compile-tests, junit-missing" 
-          unless="junit.skipped" 
+  <target name="test"
+          depends="compile-tests, junit-missing"
+          unless="junit.skipped"
           description="Run the test cases">
     <mkdir dir="${maven.test.reports}"/>
     <junit printSummary="yes" haltonerror="true" haltonfailure="true" fork="true" dir=".">
@@ -162,7 +162,7 @@
     <available classname="junit.framework.Test" property="junit.present" classpathref="build.test.classpath"/>
   </target>
 
-  <target name="test-junit-status" 
+  <target name="test-junit-status"
           depends="test-junit-present">
     <condition property="junit.missing">
       <and>
@@ -178,8 +178,8 @@
     </condition>
   </target>
 
-  <target name="junit-missing" 
-          depends="test-junit-status" 
+  <target name="junit-missing"
+          depends="test-junit-status"
           if="junit.missing">
     <echo>=================================== WARNING ===================================</echo>
     <echo> JUnit is not present in the test classpath or your $ANT_HOME/lib directory. Tests not executed.</echo>
@@ -191,25 +191,25 @@
   <!-- ====================================================================== -->
 
   <target name="javadoc" description="Generates the Javadoc of the application">
-    <javadoc sourcepath="${maven.build.srcDir.0}" 
-             packagenames="*" 
-             destdir="${maven.reporting.outputDirectory}/apidocs" 
-             access="protected" 
-             old="false" 
-             verbose="false" 
-             version="true" 
-             use="true" 
-             author="true" 
-             splitindex="false" 
-             nodeprecated="false" 
-             nodeprecatedlist="false" 
-             notree="false" 
-             noindex="false" 
-             nohelp="false" 
-             nonavbar="false" 
-             serialwarn="false" 
-             charset="ISO-8859-1" 
-             linksource="false" 
+    <javadoc sourcepath="${maven.build.srcDir.0}"
+             packagenames="*"
+             destdir="${maven.reporting.outputDirectory}/apidocs"
+             access="protected"
+             old="false"
+             verbose="false"
+             version="true"
+             use="true"
+             author="true"
+             splitindex="false"
+             nodeprecated="false"
+             nodeprecatedlist="false"
+             notree="false"
+             noindex="false"
+             nohelp="false"
+             nonavbar="false"
+             serialwarn="false"
+             charset="ISO-8859-1"
+             linksource="false"
              breakiterator="false"/>
   </target>
 
@@ -218,13 +218,13 @@
   <!-- ====================================================================== -->
 
   <target name="package" depends="compile,test" description="Package the application">
-    <jar jarfile="${maven.build.dir}/${maven.build.finalName}.jar" 
-         compress="true" 
-         index="false" 
-         basedir="${maven.build.outputDir}" 
+    <jar jarfile="${maven.build.dir}/${maven.build.finalName}.jar"
+         compress="true"
+         index="false"
+         basedir="${maven.build.outputDir}"
          excludes="**/package.html">
       <manifest>
-        <attribute name="Main-Class" 
+        <attribute name="Main-Class"
                    value="bsh.Console"/>
       </manifest>
     </jar>
@@ -246,30 +246,30 @@
     </condition>
   </target>
 
-  <target name="get-deps" 
-          depends="test-offline" 
-          description="Download all dependencies" 
+  <target name="get-deps"
+          depends="test-offline"
+          description="Download all dependencies"
           unless="maven.mode.offline">
     <mkdir dir="${maven.repo.local}"/>
     <mkdir dir="${maven.repo.local}/junit/junit/4.13.1"/>
-    <get src="https://repo.maven.apache.org/maven2/junit/junit/4.13.1/junit-4.13.1.jar" 
-         dest="${maven.repo.local}/junit/junit/4.13.1/junit-4.13.1.jar" 
-         usetimestamp="false" 
+    <get src="https://repo.maven.apache.org/maven2/junit/junit/4.13.1/junit-4.13.1.jar"
+         dest="${maven.repo.local}/junit/junit/4.13.1/junit-4.13.1.jar"
+         usetimestamp="false"
          ignoreerrors="true"/>
     <mkdir dir="${maven.repo.local}/org/hamcrest/hamcrest-core/1.3"/>
-    <get src="https://repo.maven.apache.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar" 
-         dest="${maven.repo.local}/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar" 
-         usetimestamp="false" 
+    <get src="https://repo.maven.apache.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
+         dest="${maven.repo.local}/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
+         usetimestamp="false"
          ignoreerrors="true"/>
     <mkdir dir="${maven.repo.local}/org/hamcrest/hamcrest-all/1.3"/>
-    <get src="https://repo.maven.apache.org/maven2/org/hamcrest/hamcrest-all/1.3/hamcrest-all-1.3.jar" 
-         dest="${maven.repo.local}/org/hamcrest/hamcrest-all/1.3/hamcrest-all-1.3.jar" 
-         usetimestamp="false" 
+    <get src="https://repo.maven.apache.org/maven2/org/hamcrest/hamcrest-all/1.3/hamcrest-all-1.3.jar"
+         dest="${maven.repo.local}/org/hamcrest/hamcrest-all/1.3/hamcrest-all-1.3.jar"
+         usetimestamp="false"
          ignoreerrors="true"/>
     <mkdir dir="${maven.repo.local}/javax/servlet/javax.servlet-api/4.0.1"/>
-    <get src="https://repo.maven.apache.org/maven2/javax/servlet/javax.servlet-api/4.0.1/javax.servlet-api-4.0.1.jar" 
-         dest="${maven.repo.local}/javax/servlet/javax.servlet-api/4.0.1/javax.servlet-api-4.0.1.jar" 
-         usetimestamp="false" 
+    <get src="https://repo.maven.apache.org/maven2/javax/servlet/javax.servlet-api/4.0.1/javax.servlet-api-4.0.1.jar"
+         dest="${maven.repo.local}/javax/servlet/javax.servlet-api/4.0.1/javax.servlet-api-4.0.1.jar"
+         usetimestamp="false"
          ignoreerrors="true"/>
   </target>
 
