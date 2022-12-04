@@ -759,7 +759,7 @@ public final class Reflect {
     @SuppressWarnings("rawtypes")
     public static Entry getEntryForKey(Object key, Entry[] entries) {
         for ( Entry ntre : entries )
-            if ( null != ntre && key.equals(ntre.getKey()) )
+            if ( key.equals(ntre.getKey()) )
                 return ntre;
         throw new ReflectError("No such property: " + key);
     }

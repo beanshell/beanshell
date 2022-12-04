@@ -277,8 +277,9 @@ class BSHPrimarySuffix extends SimpleNode
                 && Types.isPropertyTypeEntryList(cls) ) {
             Object key = jjtGetChild(0).eval(callstack, interpreter);
             int idx = 0;
-            if ( key instanceof Primitive && ((Primitive) key).isNumber()
-                    && length > (idx = ((Primitive) key).intValue())
+            if ( ((key instanceof Primitive && ((Primitive) key).isNumber())
+                        || Primitive.isWrapperType(key.getClass()))
+                    && length > (idx = (int) Primitive.castWrapper(Integer.TYPE, key))
                     && -length < idx)
                 index = idx;
             else if (toLHS)
