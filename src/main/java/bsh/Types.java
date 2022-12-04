@@ -619,9 +619,7 @@ class Types {
             {
                 // primitive to wrapper type
                 return checkOnly ? VALID_CAST :
-                    Primitive.castWrapper(
-                        Primitive.unboxType(toType),
-                        ((Primitive)fromValue).getValue() );
+                    Primitive.castWrapper(Primitive.unboxType(toType), fromValue);
             }
 
             // Primitive (not null or void) to Object.class type
@@ -629,8 +627,7 @@ class Types {
                 && fromType != Void.TYPE && fromType != null )
             {
                 // box it
-                return checkOnly ? VALID_CAST :
-                    ((Primitive)fromValue).getValue();
+                return checkOnly ? VALID_CAST : Primitive.unwrap(fromValue);
             }
 
             // Primitive to arbitrary object type.

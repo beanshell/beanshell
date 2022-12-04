@@ -203,11 +203,9 @@ public final class Primitive implements Serializable {
     }
 
 
-    public int intValue() throws UtilEvalError
+    public int intValue()
     {
-        if(value instanceof Number)
-            return((Number)value).intValue();
-        throw new UtilEvalError("Primitive not a number");
+        return (int) castNumber(Integer.TYPE, numberValue());
     }
 
     public boolean booleanValue() throws UtilEvalError
@@ -391,7 +389,7 @@ public final class Primitive implements Serializable {
     public static Class<?> boxType( Class<?> primitiveType )
     {
         Class<?> c = wrapperMap.get( primitiveType );
-        if ( c != null )
+        if ( c != null && !c.isPrimitive() )
             return c;
         throw new InterpreterError(
             "Not a primitive type: "+ primitiveType );
@@ -405,7 +403,7 @@ public final class Primitive implements Serializable {
     public static Class<?> unboxType( Class<?> wrapperType )
     {
         Class<?> c = wrapperMap.get( wrapperType );
-        if ( c != null )
+        if ( c != null && (c.isPrimitive() || c == wrapperType) )
             return c;
         throw new InterpreterError(
             "Not a primitive wrapper type: "+wrapperType );
@@ -571,6 +569,8 @@ public final class Primitive implements Serializable {
     }
 
     static Object castNumber(Class<?> toType, Number number) {
+        if (toType == number.getClass() || toType == unboxType(number.getClass()))
+            return number;
         if ((toType == Byte.class || toType == Byte.TYPE)
                 && number.shortValue() <= 0xff && number.shortValue() >= Byte.MIN_VALUE)
             return number.byteValue();
