@@ -1,6 +1,7 @@
 #!/bin/java bsh.Interpreter
 
 source("TestHarness.bsh");
+source("Assert.bsh");
 
 oa = new Object [] { "foo", "bar" };
 assert( oa.length == 2 && oa[0] instanceof String );
@@ -150,5 +151,25 @@ String[][] array2dim1 = new String[10][];
 
 int[][][] primi3 = new int [3][][];
 assert( primi3 instanceof int[][][] );
+
+// Verify array dimensions set by various number types
+assertArrayEquals({0, 0, 0}, new int[Integer.valueOf(3i)]);
+assertArrayEquals({0, 0, 0}, new int[Byte.valueOf(3o)]);
+assertArrayEquals({0, 0, 0}, new int[Short.valueOf(3s)]);
+assertArrayEquals({0, 0, 0}, new int[Float.valueOf(3.0f)]);
+assertArrayEquals({0, 0, 0}, new int[Double.valueOf(3.0d)]);
+assertArrayEquals({0, 0, 0}, new int[3i]);
+assertArrayEquals({0, 0, 0}, new int[3o]);
+assertArrayEquals({0, 0, 0}, new int[3s]);
+assertArrayEquals({0, 0, 0}, new int[3.0f]);
+assertArrayEquals({0, 0, 0}, new int[3.0d]);
+assertArrayEquals({0, 0, 0}, new int[3w]);
+assertArrayEquals({0, 0, 0}, new int[3.0w]);
+
+// Verify overflow protection of narrowed types
+assert(isEvalError("cannot assign number 2147483648 to type int", 'new int[2147483648];'));
+assert(isEvalError("cannot assign number 2147483648 to type int", 'new int[2147483648l];'));
+assert(isEvalError("cannot assign number 2147483648 to type int", 'new int[2147483648w];'));
+assert(isEvalError("cannot assign number 2147483648.0 to type int", 'new int[2147483648.0w];'));
 
 complete();

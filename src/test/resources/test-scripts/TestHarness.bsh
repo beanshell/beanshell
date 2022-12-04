@@ -28,9 +28,14 @@ isEvalError( String... text )
         // eval in the namespace of whomever sourced this file.
         this.interpreter.eval( text[idx], this.caller.namespace );
     } catch ( bsh.EvalError e ) {
-        if ( idx > 0 && !e.getMessage().contains(text[0]) ) {
+        if ( idx > 0 && null != e.getCause() && null != e.getCause().getMessage()
+                && e.getCause().getMessage().contains(text[0]))
+            flag = true;
+        else if ( idx > 0 && !e.getMessage().contains(text[0])) {
             super.test_message = "\nExpected message: "+text[0]
-                    +"\nbut found: "+e.getMessage() + ".\n";
+                    +"\nbut found: "+e.getMessage() + "\n";
+            if (null != e.getCause() && null != e.getCause().getMessage())
+                super.test_message += "Caused by: " + e.getCause().getMessage() + "\n";
             super.test_failed = true;
         } else
             flag = true;

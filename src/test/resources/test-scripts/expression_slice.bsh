@@ -17,6 +17,36 @@ arr[-4] = 99;
 assertThat(arr[-4], equalTo(99));
 arr[-4] = 6;
 
+// array index by various number types
+assertEquals(1, arr[Integer.valueOf(1i)]);
+assertEquals(1, arr[Byte.valueOf(1o)]);
+assertEquals(1, arr[Short.valueOf(1s)]);
+assertEquals(1, arr[Float.valueOf(1.0f)]);
+assertEquals(1, arr[Double.valueOf(1.0d)]);
+assertEquals(1, arr[1i]);
+assertEquals(1, arr[1o]);
+assertEquals(9, arr[-1o]);
+assertEquals(1, arr[1s]);
+assertEquals(1, arr[1.0f]);
+assertEquals(1, arr[1.0d]);
+assertEquals(1, arr[1w]);
+assertEquals(1, arr[1.0w]);
+
+// slice by various number types
+assertArrayEquals(new Integer {0, 1}, arr[Integer.valueOf(0i):Integer.valueOf(2i):Integer.valueOf(1i)]);
+assertArrayEquals(new Integer {0, 1}, arr[Byte.valueOf(0o):Byte.valueOf(2o):Byte.valueOf(1o)]);
+assertArrayEquals(new Integer {0, 1}, arr[Short.valueOf(0s):Short.valueOf(2s):Short.valueOf(1s)]);
+assertArrayEquals(new Integer {0, 1}, arr[Float.valueOf(0.0f):Float.valueOf(2.0f):Float.valueOf(1.0f)]);
+assertArrayEquals(new Integer {0, 1}, arr[Double.valueOf(0.0d):Double.valueOf(2.0d):Double.valueOf(1.0d)]);
+assertArrayEquals(new Integer {0, 1}, arr[0i:2i:1i]);
+assertArrayEquals(new Integer {0, 1}, arr[0o:2o:1o]);
+assertArrayEquals(new Integer {0, 1}, arr[0o:2s:1i]);
+assertArrayEquals(new Integer {0, 1}, arr[0s:2s:1s]);
+assertArrayEquals(new Integer {0, 1}, arr[0.0f:2.0f:1.0f]);
+assertArrayEquals(new Integer {0, 1}, arr[0.0d:2.0d:1.0d]);
+assertArrayEquals(new Integer {0, 1}, arr[0w:2w:1w]);
+assertArrayEquals(new Integer {0, 1}, arr[0.0w:2.0w:1.0w]);
+
 // array range slice
 slice = arr[0:];
 assertThat(slice, valueString('{0I, 1I, 2I, 3I, 4I, 5I, 6I, 7I, 8I, 9I}'));
@@ -265,6 +295,20 @@ list[-4] = 99;
 assertThat(list[-4], equalTo(99));
 list[-4] = 6;
 
+// list index by various number types
+assertEquals(1, list[Integer.valueOf(1i)]);
+assertEquals(1, list[Byte.valueOf(1o)]);
+assertEquals(1, list[Short.valueOf(1s)]);
+assertEquals(1, list[Float.valueOf(1.0f)]);
+assertEquals(1, list[Double.valueOf(1.0d)]);
+assertEquals(1, list[1i]);
+assertEquals(1, list[1o]);
+assertEquals(1, list[1s]);
+assertEquals(1, list[1.0f]);
+assertEquals(1, list[1.0d]);
+assertEquals(1, list[1w]);
+assertEquals(1, list[1.0w]);
+
 // list range slice
 slice = list[0:];
 assertThat(slice, valueString('[0I, 1I, 2I, 3I, 4I, 5I, 6I, 7I, 8I, 9I]'));
@@ -449,6 +493,20 @@ assertThat(queue[-4], equalTo(6));
 queue[-4] = 99;
 assertThat(queue[-4], equalTo(99));
 queue[-4] = 6;
+
+// queue index by various number types
+assertEquals(1, queue[Integer.valueOf(1i)]);
+assertEquals(1, queue[Byte.valueOf(1o)]);
+assertEquals(1, queue[Short.valueOf(1s)]);
+assertEquals(1, queue[Float.valueOf(1.0f)]);
+assertEquals(1, queue[Double.valueOf(1.0d)]);
+assertEquals(1, queue[1i]);
+assertEquals(1, queue[1o]);
+assertEquals(1, queue[1s]);
+assertEquals(1, queue[1.0f]);
+assertEquals(1, queue[1.0d]);
+assertEquals(1, queue[1w]);
+assertEquals(1, queue[1.0w]);
 
 // queue range slice
 slice = queue[0::];
@@ -695,6 +753,15 @@ list[1::2][1:2].clear();
 assertThat(list[::1], contains(0, 1, 2, 4, 5, 6, 7, 8, 9));
 
 // slice exceptions
+assert(isEvalError("cannot assign number 2147483648 to type int", '{1,2}[2147483648];'));
+assert(isEvalError("cannot assign number 2147483648 to type int", '{1,2}[2147483648l];'));
+assert(isEvalError("cannot assign number 2147483648 to type int", '{1,2}[2147483648w];'));
+assert(isEvalError("cannot assign number 2147483648.0 to type int", '{1,2}[2147483648.0w];'));
+assert(isEvalError("cannot assign number 2147483648 to type int", '{1,2}[2147483648:];'));
+assert(isEvalError("cannot assign number 2147483648 to type int", '{1,2}[2147483648l:];'));
+assert(isEvalError("cannot assign number 2147483648 to type int", '{1,2}[2147483648w:];'));
+assert(isEvalError("cannot assign number 2147483648.0 to type int", '{1,2}[2147483648.0w:];'));
+assert(isEvalError("Array index does not evaluate to an integer.", '{1,2}["1"];'));
 assert(isEvalError('Use of invalid operator "/" with array', "arr /= 3;"));
 assert(isEvalError("cannot assign to array slice", "{1,2}[0:1] = 1;"));
 assert(isEvalError("array slice step cannot be zero", "{1,2}[::0];"));
