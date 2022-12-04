@@ -608,8 +608,6 @@ public final class Primitive implements Serializable {
             if (toType == BigDecimal.class)
                 return BigDecimal.ONE.setScale(1);
         } else if (toType == BigDecimal.class) {
-            if ( number instanceof BigDecimal )
-                return (BigDecimal) number;
             if ( number instanceof BigInteger )
                 return new BigDecimal((BigInteger) number).setScale(1);
             if ( Types.isFloatingpoint(number) )

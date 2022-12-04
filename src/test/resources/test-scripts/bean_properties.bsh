@@ -47,6 +47,9 @@ obj = new TestClass();
 assert(isEvalError("No such property: instVar", 'obj.instVar = 434;'));
 assertTrue(obj.instVar == void);
 // instance bean accessor methods
+assertThat(obj.instProp, equalTo(0));
+assertThat(obj.statProp, equalTo(0));
+assertThat(obj.statBoolProp, equalTo(false));
 obj.setInstProp(111);
 assertThat(obj.getInstProp(), equalTo(111));
 obj.setInstBoolProp(true);
