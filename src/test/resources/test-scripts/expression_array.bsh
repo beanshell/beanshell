@@ -331,7 +331,7 @@ assert(isEvalError("Error array get index: Index 3 out-of-bounds for length 2", 
 assert(isEvalError("Error array get index: Index 3 out-of-bounds for length 2", "((List) {1,2})[3];"));
 assert(isEvalError("Not an array or List type", "''[1];"));
 assert(isEvalError("Class: Unknow.ObjectType not found in namespace", "new Unknow.ObjectType[0];"));
-assert(isEvalError("Array index: 0 does not evaluate to an integer", 'new int["0"];'));
+assert(isEvalError("Array index: 0 length does not evaluate to an integer", 'new int["0"];'));
 assert(isEvalError("Incompatible initializer. Allocation calls for a 2 dimensional array, but initializer is a 1 dimensional array", "new int[][] {};"));
 assert(isEvalError("Incompatible type: boolean in initializer of array type: boolean", "new {{false}, true};"));
 assert(isEvalError("Incompatible type: Object[] in initializer of array type: Object at position: 1", "new {{{new Object()}}, new {new Object()}};"));
