@@ -117,13 +117,13 @@ class BSHArrayDimensions extends SimpleNode
             {
                 try {
                     Object length = jjtGetChild(i).eval(callstack, interpreter);
-                    definedDimensions[i] = ((Primitive)length).intValue();
+                    definedDimensions[i] = (int) Primitive.castWrapper(Integer.TYPE, length);
                 }
                 catch(Exception e)
                 {
                     throw new EvalError(
                         "Array index: " + i +
-                        " does not evaluate to an integer", this, callstack );
+                        " length does not evaluate to an integer", this, callstack, e );
                 }
             }
         }

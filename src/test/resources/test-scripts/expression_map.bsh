@@ -263,7 +263,6 @@ for ( a:3 ) {
 }
 assertThat(alist, valueString('[{"key"={"id"=0I}}, {"key"={"id"=1I}}, {"key"={"id"=2I}}, {"key"={"id"=3I}}]'));
 
-assert(isEvalError("Arrays may only be indexed by integer types.", '{1,2}["1"];'));
 assert(isEvalError("Can't assign array length", "{1,2,3}.length=1;"));
 assert(isEvalError("Attempt to use .class suffix on non class.", "''.class;"));
 assert(isEvalError("Can't assign .class", "Object.class=1;"));
