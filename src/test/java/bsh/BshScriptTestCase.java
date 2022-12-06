@@ -23,9 +23,9 @@ import static bsh.KnownIssue.KNOWN_FAILING_TESTS;
 import static bsh.KnownIssue.SKIP_KNOWN_ISSUES;
 import static java.lang.System.err;
 import static java.lang.System.out;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.isA;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeFalse;
 
 import java.io.File;
