@@ -31,6 +31,7 @@ package bsh;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.concurrent.CompletionException;
 
 /**
     New object, new array, or inner class style allocation with body.
@@ -152,7 +153,7 @@ class BSHAllocationExpression extends SimpleNode
         } catch ( ReflectError e) {
             throw new EvalError(
                 "Constructor error: " + e.getMessage(), this, callstack, e);
-        } catch (InvocationTargetException e) {
+        } catch (InvocationTargetException | CompletionException e) {
             // No need to wrap this debug
             Interpreter.debug("The constructor threw an exception:\n\t"
                     + e.getCause());
