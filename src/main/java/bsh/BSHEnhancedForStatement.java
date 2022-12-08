@@ -113,4 +113,8 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
         return returnControl;
     }
 
+    @Override
+    public String toString() {
+        return super.toString() + ": " + varName + ", final=" + isFinal;
+    }
 }

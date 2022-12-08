@@ -56,5 +56,9 @@ class BSHReturnType extends SimpleNode
         else
             return getTypeNode().getType( callstack, interpreter );
     }
-}
 
+    @Override
+    public String toString() {
+        return super.toString() + ": void=" + isVoid;
+    }
+}

@@ -118,4 +118,7 @@ class BSHTypedVariableDeclaration extends SimpleNode {
         return value;
     }
 
+    public String toString() {
+        return super.toString() + ": " + modifiers;
+    }
 }

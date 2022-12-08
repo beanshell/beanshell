@@ -58,5 +58,10 @@ public class BSHMultiCatch extends SimpleNode {
     public Class<?>[] getTypes() {
         return this.types;
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + ": " + name + ", final=" + isFinal;
+    }
 }
 /* JavaCC - OriginalChecksum=cc337eefa5f343b6ba168cc49758c10a (do not edit this line) */

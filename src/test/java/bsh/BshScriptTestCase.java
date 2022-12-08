@@ -127,7 +127,7 @@ public class BshScriptTestCase {
      * @return true, if is under scrutiny */
     private static boolean isUnderScrutiny(final TestSuite suite) {
         // test file(s) under scrutiny
-        final String trouble_maker = _SCRIPT;
+        final String trouble_maker = null == _SCRIPT ? "" : _SCRIPT;
         if (trouble_maker.isEmpty())
             return false;
         for (String f:trouble_maker.split(","))
