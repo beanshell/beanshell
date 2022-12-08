@@ -35,11 +35,8 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import bsh.BshClassManager;
 import bsh.ClassPathException;
@@ -123,7 +120,7 @@ public class ClassManagerImpl extends BshClassManager
     private BshClassPath fullClassPath;
 
     // ClassPath Change listeners
-    private Set<WeakReference<Listener>> listeners = new LinkedHashSet<>();
+    private ConcurrentLinkedQueue<WeakReference<Listener>> listeners = new ConcurrentLinkedQueue<>();
     private ReferenceQueue<Listener> refQueue = new ReferenceQueue<>();
 
     /**
@@ -577,12 +574,6 @@ public class ClassManagerImpl extends BshClassManager
         return baseLoader;
     }
 
-    /**
-        Get the BeanShell classloader.
-    public ClassLoader getClassLoader() {
-    }
-    */
-
     /*
         Impl Notes:
         We add the bytecode source and the "reload" the class, which causes the
@@ -612,7 +603,7 @@ public class ClassManagerImpl extends BshClassManager
     */
     @Override
     protected void classLoaderChanged() {
-        List<WeakReference<Listener>> toRemove = new LinkedList<>(); // safely remove
+        ConcurrentLinkedQueue<WeakReference<Listener>> toRemove = new ConcurrentLinkedQueue<>(); // safely remove
         for (WeakReference<Listener> wr : listeners) {
             Listener l = wr.get();
             if (l == null) // garbage collected

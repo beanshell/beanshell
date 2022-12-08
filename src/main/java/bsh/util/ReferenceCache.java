@@ -95,6 +95,7 @@ public abstract class ReferenceCache<K,V> {
      * If key is null or key already exist will do nothing.
      * Wraps the create method in a future task and starts a new process.
      * @param key associated with cache value */
+    @SuppressWarnings("FutureReturnValueIgnored") // see dereferenceValue
     public void init(K key) {
         if (null == key)
             return;

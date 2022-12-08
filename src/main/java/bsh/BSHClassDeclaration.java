@@ -115,6 +115,6 @@ class BSHClassDeclaration extends SimpleNode
     }
 
     public String toString() {
-        return "ClassDeclaration: " + name;
+        return super.toString() + ": " + name;
     }
 }

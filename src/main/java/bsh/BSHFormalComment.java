@@ -35,4 +35,8 @@ public class BSHFormalComment extends SimpleNode
         super(id);
     }
 
+    @Override
+    public String toString() {
+        return super.toString() + ": " + text;
+    }
 }
