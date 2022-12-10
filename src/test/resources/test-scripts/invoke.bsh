@@ -36,4 +36,36 @@ assert( !isEvalError("donotignore().nomethod()") );
 // Special case: direct invocation in scope is not handled
 assert( !isEvalError("nomethod()") );
 
+// Test magic invoke on class loaded interface
+r = new Runnable() {
+    invoke( method, args ) {}
+};
+
+assert( !isEvalError("r.run()") );
+
+//cast this to class loaded interface type
+invoke( method, args ) {}
+rt = (Runnable) this;
+
+assert( !isEvalError("rt.run()") );
+
+// Test magic invoke on generated interface
+interface MyRunnable {
+    String run();
+}
+
+mr = new MyRunnable() {
+    invoke( method, args ) { return "foo"; }
+};
+
+assert( !isEvalError("mr.run()") );
+assert( "foo" == mr.run() );
+
+// cast this to generated interface type
+invoke( method, args ) { return "bar"; }
+mrt = (MyRunnable) this;
+
+assert( !isEvalError("mr.run()") );
+assert( "bar" == mrt.run() );
+
 complete();
