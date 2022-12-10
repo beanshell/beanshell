@@ -474,18 +474,18 @@ class MethodInvocable extends ExecutingInvocable {
     */
    private static MethodHandle getHandle(Method method) {
       String methodName = method.getName();
-      Class[] types = method.getParameterTypes();
-      Class origClz = method.getDeclaringClass();
+      Class<?>[] types = method.getParameterTypes();
+      Class<?> origClz = method.getDeclaringClass();
       MethodHandles.Lookup lookup = MethodHandles.lookup();
       MethodHandle handle = null;
-      Class clz = origClz;
+      Class<?> clz = origClz;
       while (clz != null && handle == null) {
          try {
             if (method != null)
                return lookup.unreflect(method);
          } catch (IllegalAccessException ex) {
          }
-         for (Class intf : clz.getInterfaces()) {
+         for (Class<?> intf : clz.getInterfaces()) {
             try {
                method = intf.getDeclaredMethod(methodName, types);
                return lookup.unreflect(method);
