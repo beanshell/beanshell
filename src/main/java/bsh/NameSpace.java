@@ -1222,6 +1222,65 @@ public class NameSpace
                 interpreter, callstack, callerInfo, false/* declaredOnly */);
     }
 
+
+    /**
+     * Invoke an imported command scoped by namespace hierarchy.
+     * Protected package internal method, use invokeMethod instead.
+     * @param commandName the command name
+     * @param args the args
+     * @param interpreter the interpreter
+     * @param callstack the callstack
+     * @param callerInfo the caller info
+     * @return the object
+     * @throws EvalError the eval error */
+    protected Object invokeCommand(final String commandName, final Object[] args,
+            final Interpreter interpreter, final CallStack callstack,
+            final Node callerInfo) throws EvalError {
+        Class<?>[] argTypes = Types.getTypes( args );
+        Object commandObject;
+        try {
+            commandObject = getCommand(
+                commandName, argTypes, interpreter );
+        } catch ( UtilEvalError e ) {
+            throw e.toEvalError("Error loading command: ",
+                callerInfo, callstack );
+        }
+
+        // should try to print usage here if nothing found
+        if ( commandObject == null )
+        {
+            // Look for a default invoke() handler method in the namespace
+            BshMethod invokeMethod = null;
+            try {
+                invokeMethod = getMethod(
+                    "invoke", new Class [] { null, null } );
+            } catch ( UtilEvalError e ) {
+                throw e.toEvalError(
+                    "Local method invocation", callerInfo, callstack );
+            }
+
+            if ( invokeMethod != null )
+                return invokeMethod.invoke(
+                    new Object [] { commandName, args },
+                    interpreter, callstack, callerInfo );
+
+            throw new EvalError( "Command not found: "
+                +StringUtil.methodString( commandName, argTypes ),
+                callerInfo, callstack );
+        }
+
+        if ( commandObject instanceof BshMethod )
+            return ((BshMethod)commandObject).invoke(
+                args, interpreter, callstack, callerInfo );
+
+        try {
+            return Reflect.invokeCompiledCommand(
+                ((Class<?>)commandObject), args, interpreter, callstack, callerInfo );
+        } catch ( UtilEvalError e ) {
+            throw e.toEvalError("Error invoking compiled command: ",
+                    callerInfo, callstack );
+        }
+    }
     /** Clear all cached classes and names. */
     public void classLoaderChanged() {
         this.nameSpaceChanged();
