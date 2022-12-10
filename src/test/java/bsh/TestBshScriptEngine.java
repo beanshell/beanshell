@@ -4,15 +4,17 @@ package bsh;
 import static javax.script.ScriptContext.ENGINE_SCOPE;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThrows;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -35,16 +37,12 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.script.SimpleScriptContext;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import bsh.engine.BshScriptEngine;
 import bsh.engine.BshScriptEngineFactory;
 
 public class TestBshScriptEngine {
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void test_bsh_script_engine( ) throws Throwable {
@@ -194,6 +192,56 @@ public class TestBshScriptEngine {
     }
 
     @Test
+    public void test_bsh_script_engine_this_invoke_method() throws Throwable {
+        ScriptEngine engine = new ScriptEngineManager().getEngineByName( "beanshell" );
+        ScriptContext ctx = new SimpleScriptContext();
+        StringWriter sw = new StringWriter();
+        ctx.setWriter(sw);
+        engine.setContext(ctx);
+        String outString = "checkstyle-supressions.xml";
+        This bshThis = (This) engine.eval("square(x) { return x*x; } return this;");
+
+        assertEquals(16, bshThis.invokeMethod("square", new Object[] {4}));
+        assertEquals(25, bshThis.invokeMethod("square", new Object[] {5}));
+        assertEquals(bshThis.hashCode(), bshThis.invokeMethod("hashCode", null));
+        assertEquals(bshThis.toString(), bshThis.invokeMethod("toString", null));
+        assertTrue((boolean)bshThis.invokeMethod("equals", new Object[] {bshThis}));
+        assertFalse((boolean)bshThis.invokeMethod("equals", new Object[] {this}));
+        assertThat(""+bshThis.invokeMethod("clone", null),
+                startsWith("'this' reference to Bsh object: NameSpace: javax_script_context clone"));
+
+        bshThis.invokeMethod("dir", new Object[] {"src/conf"});
+        assertThat(sw.toString(), containsString(outString));
+        bshThis.invokeMethod("print", new Object[] {"foo bar"});
+        assertThat(sw.toString(), endsWith("foo bar\n"));
+
+        EvalError e = assertThrows(EvalError.class, () -> bshThis.invokeMethod("unknown", null));
+        assertThat(e.getMessage(), containsString("Method unknown() not found in bsh scripted object"));
+        assertThat(e.getCause().getMessage(), containsString("Command not found: unknown()"));
+        e = assertThrows(EvalError.class, () -> bshThis.invokeMethod("equals", null));
+        assertThat(e.getMessage(), containsString("Method equals() not found in bsh scripted object"));
+        assertThat(e.getCause().getMessage(), containsString("Command not found: equals()"));
+        e = assertThrows(EvalError.class, () -> bshThis.invokeMethod("hashCode", new Object[] {2}));
+        assertThat(e.getMessage(), containsString("Method hashCode(Integer) not found in bsh scripted object"));
+        assertThat(e.getCause().getMessage(), containsString("Command not found: hashCode(Integer)"));
+        e = assertThrows(EvalError.class, () -> bshThis.invokeMethod("toString", new Object[] {2}));
+        assertThat(e.getMessage(), containsString("Method toString(Integer) not found in bsh scripted object"));
+        assertThat(e.getCause().getMessage(), containsString("Command not found: toString(Integer)"));
+        e = assertThrows(EvalError.class, () -> bshThis.invokeMethod("clone", new Object[] {2}));
+        assertThat(e.getMessage(), containsString("Method clone(Integer) not found in bsh scripted object"));
+        assertThat(e.getCause().getMessage(), containsString("Command not found: clone(Integer)"));
+        e = assertThrows(EvalError.class, () -> bshThis.invokeMethod("dir", new Object[] {2}));
+        assertThat(e.getMessage(), containsString("Method dir(Integer) not found in bsh scripted object"));
+        assertThat(e.getCause().getMessage(), containsString("Error invoking compiled command"));
+        e = assertThrows(EvalError.class, () -> bshThis.invokeMethod("cd", new Object[] {2}));
+        assertThat(e.getMessage(), containsString("Method cd(Integer) not found in bsh scripted object"));
+        assertThat(e.getCause().getMessage(), containsString("Command not found: cd(Integer)"));
+        e = assertThrows(EvalError.class, () -> bshThis.invokeMethod("square", new Object[] {""}));
+        assertThat(e.getMessage(), containsString("Use of non + operator with String"));
+        assertThat(e.getCause().getMessage(), containsString("Use of non + operator with String"));
+    }
+
+    @Test
     public void test_bsh_script_engine_compile_set_return_this() throws Throwable {
         ScriptEngine engine = new ScriptEngineManager().getEngineByName( "beanshell" );
         assertNotNull( engine );
@@ -271,122 +319,110 @@ public class TestBshScriptEngine {
 
     @Test
     public void check_parse_exception_line_number() throws Exception {
-        thrown.expect(ScriptException.class);
-        thrown.expectMessage(containsString("Encountered: ;"));
-
         final String script = "print(\"test\";";
-        new BshScriptEngineFactory().getScriptEngine().eval(script);
+        ScriptException e = assertThrows(ScriptException.class, () ->
+            new BshScriptEngineFactory().getScriptEngine().eval(script));
+        assertThat(e.getMessage(), containsString("Encountered: ;"));
     }
 
     @Test
     public void check_script_exception_eval_error() throws Exception {
-        thrown.expect(ScriptException.class);
-        thrown.expectMessage(containsString("Unknown class: Unknown"));
-
         final String script = "new Unknown();";
-        new BshScriptEngineFactory().getScriptEngine().eval(script);
+        ScriptException e = assertThrows(ScriptException.class, () ->
+            new BshScriptEngineFactory().getScriptEngine().eval(script));
+        assertThat(e.getMessage(), containsString("Unknown class: Unknown"));
     }
 
     @Test
     public void check_exception_thrown_in_script() throws Exception {
-        thrown.expect(ScriptException.class);
-        thrown.expectMessage(containsString("Caused by: java.lang.Exception: test exception"));
-
         final String script = "throw new Exception('test exception');";
-        new BshScriptEngineFactory().getScriptEngine().eval(script);
+        ScriptException e = assertThrows(ScriptException.class, () ->
+            new BshScriptEngineFactory().getScriptEngine().eval(script));
+        assertThat(e.getMessage(), containsString("Caused by: java.lang.Exception: test exception"));
     }
 
     @Test
     public void check_script_exception_get_interface_null_this() throws Exception {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage(containsString("Illegal object type: null"));
-
-        ((Invocable) new BshScriptEngine()).getInterface(null, null);
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () ->
+            ((Invocable) new BshScriptEngine()).getInterface(null, null));
+        assertThat(e.getMessage(), containsString("Illegal object type: null"));
     }
 
     @Test
     public void check_script_exception_get_interface_illegal_this() throws Exception {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage(containsString("Illegal object type: class java.lang.Object"));
-
-        ((Invocable) new BshScriptEngine()).getInterface(new Object(), null);
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () ->
+            ((Invocable) new BshScriptEngine()).getInterface(new Object(), null));
+        assertThat(e.getMessage(), containsString("Illegal object type: class java.lang.Object"));
     }
 
     @Test
     public void check_script_exception_invoke_method_null_this() throws Exception {
-        thrown.expect(ScriptException.class);
-        thrown.expectMessage(containsString("Illegal object type: null"));
-
-        ((Invocable) new BshScriptEngine()).invokeMethod(null, null);
+        ScriptException e = assertThrows(ScriptException.class, () ->
+            ((Invocable) new BshScriptEngine()).invokeMethod(null, null));
+        assertThat(e.getMessage(), containsString("Illegal object type: null"));
     }
 
     @Test
     public void check_script_exception_invoke_method_illegal_this() throws Exception {
-        thrown.expect(ScriptException.class);
-        thrown.expectMessage(containsString("Illegal object type: class java.lang.Object"));
-
-        ((Invocable) new BshScriptEngine()).invokeMethod(new Object(), null);
+        ScriptException e = assertThrows(ScriptException.class, () ->
+            ((Invocable) new BshScriptEngine()).invokeMethod(new Object(), null));
+        assertThat(e.getMessage(), containsString("Illegal object type: class java.lang.Object"));
     }
 
     @Test
     public void check_script_exception_invoke_function_unknown() throws Exception {
-        thrown.expect(ScriptException.class);
-        thrown.expectMessage(containsString("Method unknown() not found in bsh scripted object"));
-
-        ((Invocable) new BshScriptEngine()).invokeFunction("unknown");
-    }
+        ScriptException e = assertThrows(ScriptException.class, () ->
+            ((Invocable) new BshScriptEngine()).invokeFunction("unknown"));
+        assertThat(e.getMessage(), containsString("Method unknown() not found in bsh scripted object"));
+     }
 
     @Test
     public void check_script_exception_invoke_function_throws_exception() throws Exception {
-        thrown.expect(ScriptException.class);
-        thrown.expectMessage(containsString("Caused by: java.lang.Exception: test exception"));
-
         ScriptEngine engine =  new ScriptEngineManager().getEngineByName("beanshell");
         engine.eval("foo() { throw new Exception('test exception'); }");
-        ((Invocable) engine).invokeFunction("foo");
+         ScriptException e = assertThrows(ScriptException.class, () ->
+            ((Invocable) engine).invokeFunction("foo"));
+        assertThat(e.getMessage(), containsString("Caused by: java.lang.Exception: test exception"));
     }
 
     @Test
     public void check_script_exception_compile_close_ioe() throws Exception {
-        thrown.expect(ScriptException.class);
-        thrown.expectMessage(containsString("Test Close IOE"));
-
         Reader read = new BufferedReader( new StringReader("return 42;") ) {
             public void close() throws IOException {
                 throw new IOException("Test Close IOE");
             }
         };
-        ((Compilable) new ScriptEngineManager().getEngineByName("beanshell")).compile(read);
+        ;
+        ScriptException e = assertThrows(ScriptException.class, () ->
+            ((Compilable) new ScriptEngineManager().getEngineByName("beanshell")).compile(read));
+        assertThat(e.getMessage(), containsString("Test Close IOE"));
     }
 
     @Test
     public void check_script_exception_compile_parse_exception() throws Exception {
-        thrown.expect(ScriptException.class);
-        thrown.expectMessage(containsString("Encountered: ;"));
-
         final String script = "print(\"test\";";
-        ((Compilable) new BshScriptEngineFactory().getScriptEngine()).compile(script);
+        ScriptException e = assertThrows(ScriptException.class, () ->
+            ((Compilable) new BshScriptEngineFactory().getScriptEngine()).compile(script));
+        assertThat(e.getMessage(), containsString("Encountered: ;"));
     }
 
     @Test
     public void check_script_exception_compile_eval_error() throws Exception {
-        thrown.expect(ScriptException.class);
-        thrown.expectMessage(containsString("Unknown class: Unknown"));
-
         final String script = "new Unknown();";
-        ((Compilable) new ScriptEngineManager().getEngineByName("beanshell")).compile(script).eval();
+        ScriptException e = assertThrows(ScriptException.class, () ->
+            ((Compilable) new ScriptEngineManager().getEngineByName("beanshell")).compile(script).eval());
+        assertThat(e.getMessage(), containsString("Unknown class: Unknown"));
     }
 
     @Test
     public void check_script_exception_compile_reader_ioe() throws Exception {
-        thrown.expect(ScriptException.class);
-        thrown.expectMessage(containsString("Test IOE"));
-
         Reader read = new StringReader("") {
             public int read(char cbuf[]) throws IOException {
                 throw new IOException("Test IOE");
             }
         };
-        ((Compilable) new BshScriptEngineFactory().getScriptEngine()).compile(read);
+        ScriptException e = assertThrows(ScriptException.class, () ->
+            ((Compilable) new BshScriptEngineFactory().getScriptEngine()).compile(read));
+        assertThat(e.getMessage(), containsString("Test IOE"));
     }
 }
