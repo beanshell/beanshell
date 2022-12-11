@@ -29,6 +29,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -354,6 +355,7 @@ public final class Reflect {
 
         Invocable method = BshClassManager.memberCache
                 .get(clas).findMethod(name, types);
+        Interpreter.debug("resolved java method: ", method);
         checkFoundStaticMethod( method, staticOnly, clas );
         return method;
     }
@@ -472,7 +474,7 @@ public final class Reflect {
             }
             i++;
         }
-        Class[][] sigs = candidateSigs.toArray(new Class[candidateSigs.size()][]);
+        Class<?>[][] sigs = candidateSigs.toArray(new Class[candidateSigs.size()][]);
 
         int match = findMostSpecificSignature( idealMatch, sigs );
         if (match >= 0) {
@@ -574,7 +576,7 @@ public final class Reflect {
             }
             i++;
         }
-        Class[][] sigs = candidateSigs.toArray(new Class[candidateSigs.size()][]);
+        Class<?>[][] sigs = candidateSigs.toArray(new Class[candidateSigs.size()][]);
 
         int match = findMostSpecificSignature( idealMatch, sigs );
         if (match >= 0) {
@@ -940,6 +942,8 @@ public final class Reflect {
         if (!isGeneratedClass(type))
             return null;
         try {
+            if (object instanceof Proxy)
+                return getThisNS(type.getInterfaces()[0]);
             return getClassInstanceThis(object, type.getSimpleName()).namespace;
         } catch (Exception e) {
             return null;

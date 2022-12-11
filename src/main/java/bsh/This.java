@@ -372,19 +372,19 @@ public final class This implements java.io.Serializable, Runnable
 
         if ( interpreter == null )
             interpreter = declaringInterpreter;
+        if ( interpreter.getNameSpace() == null )
+            interpreter.setNameSpace( namespace );
         if ( callstack == null )
             callstack = new CallStack( namespace );
         if ( callerInfo == null )
             callerInfo = Node.JAVACODE;
 
         // Find the bsh method
-        Class [] types = Types.getTypes( args );
+        Class<?>[] types = Types.getTypes( args );
         BshMethod bshMethod = null;
         try {
             bshMethod = namespace.getMethod( methodName, types, declaredOnly );
-        } catch ( UtilEvalError e ) {
-            // leave null
-        }
+        } catch ( UtilEvalError e ) { /*leave null*/ }
 
         if ( bshMethod != null )
             return bshMethod.invoke( args, interpreter, callstack, callerInfo );
@@ -414,10 +414,11 @@ public final class This implements java.io.Serializable, Runnable
 
         // a default clone()
         if ( methodName.equals("clone") && args.length==0 ) {
-            NameSpace ns = new NameSpace(namespace,namespace.getName()+" clone");
+            NameSpace ns = new NameSpace(namespace, namespace.getName()+" clone");
             try {
                 for( String varName : namespace.getVariableNames() ) {
-                    ns.setLocalVariable(varName,namespace.getVariable(varName,false),false);
+                    ns.setLocalVariable(varName,
+                            namespace.getVariable(varName, false), false);
                 }
                 for( BshMethod method : namespace.getMethods() ) {
                     ns.setMethod(method);
@@ -429,22 +430,22 @@ public final class This implements java.io.Serializable, Runnable
         }
 
         // Look for a default invoke() handler method in the namespace
-        // Note: this code duplicates that in NameSpace getCommand()
-        // is that ok?
+        boolean[] outHasMethod = new boolean[1];
+        Object result = namespace.invokeDefaultInvokeMethod(methodName, args,
+                interpreter, callstack, callerInfo, outHasMethod);
+        if ( outHasMethod[0] )
+            return result;
+
+        // Finally look for any command in this namespace that might qualify
         try {
-            bshMethod = namespace.getMethod(
-                "invoke", new Class [] { null, null } );
-        } catch ( UtilEvalError e ) { /*leave null*/ }
-
-        // Call script "invoke( String methodName, Object [] args );
-        if ( bshMethod != null )
-            return bshMethod.invoke( new Object [] { methodName, args },
-                interpreter, callstack, callerInfo );
-
-        throw new EvalError("Method " +
-            StringUtil.methodString( methodName, types ) +
-            " not found in bsh scripted object: "+ namespace.getName(),
-            callerInfo, callstack );
+            return namespace.invokeCommand(
+                    methodName, args, interpreter, callstack, callerInfo, true);
+          } catch (EvalError e) {
+             throw new EvalError("Method " +
+                    StringUtil.methodString( methodName, types ) +
+                    " not found in bsh scripted object: "+ namespace.getName(),
+                    callerInfo, callstack, e );
+        }
     }
 
     /** Delegate method to return enum values array.
