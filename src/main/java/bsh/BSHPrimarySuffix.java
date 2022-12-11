@@ -380,5 +380,18 @@ class BSHPrimarySuffix extends SimpleNode
             throw new EvalError("No such property: " + value, this, callstack, e);
         }
     }
+
+    @Override
+    public String toString() {
+        if (operation == INDEX)
+            return super.toString() + ": [" + hasLeftIndex + ":" + slice + " " + hasRightIndex + ":" + step + "]";
+        if (operation == NAME)
+            return super.toString() + ": " + field;
+        if (operation == PROPERTY)
+            return super.toString() + ": {}";
+        if (operation == NEW)
+            return super.toString() + ": new";
+        return super.toString() + ": class"; // CLASS == 0
+    }
 }
 

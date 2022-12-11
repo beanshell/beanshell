@@ -1020,8 +1020,12 @@ class Name implements java.io.Serializable
             return suffix[parts];
         }
         public static Parts get(String value) {
-            if (PARTSCACHE.containsKey(value))
-                return PARTSCACHE.get(value);
+            if (PARTSCACHE.containsKey(value)) {
+                Parts parts = PARTSCACHE.get(value);
+                if (null != parts)
+                    return parts;
+                PARTSCACHE.remove(value);
+            }
             Parts parts = new Parts(value);
             PARTSCACHE.put(value, parts);
             parts.prefix[parts.count] = value;

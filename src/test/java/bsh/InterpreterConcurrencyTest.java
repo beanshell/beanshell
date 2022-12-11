@@ -25,6 +25,7 @@ import static bsh.TestUtil.script;
 import static bsh.TestUtil.measureConcurrentTime;
 import org.junit.Test;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class InterpreterConcurrencyTest {
@@ -84,6 +85,27 @@ public class InterpreterConcurrencyTest {
         measureConcurrentTime(runnable, 30, 30, 100);
     }
 
+    @Test
+    public void multi_threaded_class_generation_garbage_collected() throws Exception {
+        final Interpreter interpreter = new Interpreter();
+        final This callable = (This) interpreter.eval(script);
+        final AtomicInteger counter = new AtomicInteger();
+        final ConcurrentLinkedQueue<byte[]> heap = new ConcurrentLinkedQueue<>();
+        final Runnable runnable = new Runnable() {
+            public void run() {
+                try {
+                    final int i = counter.incrementAndGet();
+                    final Object o = callable.invokeMethod("call", new Object[]{i});
+                    assertEquals(i, o);
+                    heap.add(new byte[1024*1000]);
+                    try { interpreter.eval("System.gc();"); } catch (Exception e) {/*ignore*/};
+                } catch (final EvalError evalError) {
+                    throw new RuntimeException(evalError);
+                }
+            }
+        };
+        measureConcurrentTime(runnable, 3, 3, 100);
+    }
 
     @Test
     public void multi_threaded_class_generation() throws Exception {

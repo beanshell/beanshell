@@ -12,6 +12,10 @@ public class TestClass {
     private boolean _instBoolProp;
     // not boolean
     private long _instNotBoolean;
+    // has no getter
+    private int _noGet;
+    // has no setter
+    private int _noSet;
     // instance bean accessor methods
     public int getInstProp() { return _instProp; }
     public void setInstProp(int _instProp) { this._instProp = _instProp; }
@@ -38,6 +42,11 @@ public class TestClass {
     public static long isStatNotBoolean() { return _statNotBoolean; }
     // force change statVar
     public static void changeStatVar() { _statVar++; }
+
+    // test null find proprety
+    public static void setNoGet(int var) { _noGet = var; }
+    public static int getNoSet() { return _noSet; }
+
 }
 
 obj = new TestClass();
@@ -63,6 +72,9 @@ obj.instBoolProp = false;
 assertThat(obj.instBoolProp, equalTo(false));
 // not a bean property
 assertTrue(obj.instNotBoolean == void);
+//test null find proprety
+assert(isEvalError("No such property: noSet", 'obj.noSet = 1;'));
+assert(isEvalError("illegal void assignment", 'a = obj.noGet;'));
 
 // class static members
 // private static field
@@ -151,6 +163,5 @@ statBoolProp = false;
 assertThat(statBoolProp, equalTo(false));
 //not a bean property
 assertTrue(statNotBoolean == void);
-
 
 complete();

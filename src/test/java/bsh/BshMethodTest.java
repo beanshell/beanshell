@@ -71,5 +71,4 @@ public class BshMethodTest {
        Assert.assertEquals("Equal classes should have equal hashcodes",
              method2.hashCode(), method1.hashCode());
     }
-
 }
