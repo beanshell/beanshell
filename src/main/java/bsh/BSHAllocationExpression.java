@@ -82,14 +82,10 @@ class BSHAllocationExpression extends SimpleNode
         if ( args == null)
             throw new EvalError( "Null args in new.", this, callstack );
 
-        // Look for scripted class object
+        // Lookup class
         Object obj = nameNode.toObject(
-            callstack, interpreter, false/* force class*/ );
+            callstack, interpreter, true /*force class*/ );
 
-        // Try regular class
-
-        obj = nameNode.toObject(
-            callstack, interpreter, true/*force class*/ );
 
         Class<?> type = null;
         if ( obj instanceof ClassIdentifier )

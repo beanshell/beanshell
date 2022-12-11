@@ -1,6 +1,7 @@
 #!/bin/java bsh.Interpreter
 
 source("TestHarness.bsh");
+source("Assert.bsh");
 
 ignore() {
     invoke( method, args ) {
@@ -35,5 +36,54 @@ assert( !isEvalError("donotignore().nomethod()") );
 //assert( isEvalError("nomethod()") );
 // Special case: direct invocation in scope is not handled
 assert( !isEvalError("nomethod()") );
+
+// Test magic invoke on class loaded interface
+r = new Runnable() {
+    invoke( method, args ) {}
+};
+
+assert( !isEvalError("r.run()") );
+
+//cast this to class loaded interface type
+invoke( method, args ) {}
+rt = (Runnable) this;
+
+assert( !isEvalError("rt.run()") );
+
+// Test magic invoke on generated interface
+interface MyRunnable {
+    String run();
+}
+
+mr = new MyRunnable() {
+    invoke( method, args ) { return "foo"; }
+};
+
+assert( !isEvalError("mr.run()") );
+assertEquals("foo", mr.run());
+
+// cast this to generated interface type
+invoke( method, args ) { return "bar"; }
+mrt = (MyRunnable) this;
+
+assert( !isEvalError("mr.run()") );
+assertEquals("bar", mrt.run());
+
+// call invoke before commands
+out = this.interpreter.getOut();
+buffer = new ByteArrayOutputStream();
+this.interpreter.setOut(new PrintStream(buffer));
+
+interface P { void print(String); }
+p = new P() { invoke(n, a) { this.interpreter.print("foo "+a[0]); } };
+p.print("bar");
+
+assertEquals("foo bar", buffer.toString());
+
+print(" baz");
+assertEquals("foo bar baz\n", buffer.toString());
+
+this.interpreter.setOut(out);
+buffer.close();
 
 complete();
