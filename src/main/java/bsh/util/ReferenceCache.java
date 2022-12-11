@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License. */
 package bsh.util;
-
 import static java.util.Objects.requireNonNull;
-
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 
@@ -32,6 +33,7 @@ import java.util.concurrent.FutureTask;
  * @param <K> the type of keys maintained by this cache
  * @param <V> the type of cached values */
 public abstract class ReferenceCache<K,V> {
+    private static final ExecutorService async = Executors.newCachedThreadPool();
     private final ConcurrentMap<CacheReference<K>,
                          Future<CacheReference<V>>> cache;
     private final ReferenceFactory<K,V> keyFactory;
@@ -93,6 +95,7 @@ public abstract class ReferenceCache<K,V> {
      * If key is null or key already exist will do nothing.
      * Wraps the create method in a future task and starts a new process.
      * @param key associated with cache value */
+    @SuppressWarnings("FutureReturnValueIgnored") // see dereferenceValue
     public void init(K key) {
         if (null == key)
             return;
@@ -100,11 +103,12 @@ public abstract class ReferenceCache<K,V> {
         if (cache.containsKey(refKey))
             return;
         FutureTask<CacheReference<V>> task = new FutureTask<>(()-> {
-            V created = requireNonNull(create(key));
+            V created = requireNonNull(create(key),
+                "Reference cache create value may not return null.");
             return valueFactory.createValue(created, queue);
         });
         cache.put(refKey, task);
-        task.run();
+        async.submit(task);
     }
 
     /** Remove cache entry associated with the given key.
@@ -152,7 +156,7 @@ public abstract class ReferenceCache<K,V> {
         try {
             return dereferenceValue(futureValue.get());
         } catch (final Throwable e) {
-            return null;
+            throw new CompletionException(e.getCause());
         }
     }
 
@@ -336,9 +340,9 @@ public abstract class ReferenceCache<K,V> {
         @Override
         public void run() {
             for (;;) try {
-                Reference<? extends T> ref = super.remove();
-                if (ref != null) ref.clear();
-            } catch (InterruptedException e) { /* ignore try again */ System.out.println(e+" ooops");}
+                Reference<? extends T> reference = super.remove();
+                reference.clear();
+            } catch (InterruptedException e) { /* ignore try again */ }
         }
     }
 }

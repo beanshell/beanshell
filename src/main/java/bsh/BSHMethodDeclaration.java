@@ -168,6 +168,6 @@ class BSHMethodDeclaration extends SimpleNode
     }
 
     public String toString() {
-        return "MethodDeclaration: "+name;
+        return super.toString() + ": " + name;
     }
 }
