@@ -1,6 +1,7 @@
 #!/bin/java bsh.Interpreter
 
 source("TestHarness.bsh");
+source("Assert.bsh");
 
 ignore() {
     invoke( method, args ) {
@@ -59,13 +60,30 @@ mr = new MyRunnable() {
 };
 
 assert( !isEvalError("mr.run()") );
-assert( "foo" == mr.run() );
+assertEquals("foo", mr.run());
 
 // cast this to generated interface type
 invoke( method, args ) { return "bar"; }
 mrt = (MyRunnable) this;
 
 assert( !isEvalError("mr.run()") );
-assert( "bar" == mrt.run() );
+assertEquals("bar", mrt.run());
+
+// call invoke before commands
+out = this.interpreter.getOut();
+buffer = new ByteArrayOutputStream();
+this.interpreter.setOut(new PrintStream(buffer));
+
+interface P { void print(String); }
+p = new P() { invoke(n, a) { this.interpreter.print("foo "+a[0]); } };
+p.print("bar");
+
+assertEquals("foo bar", buffer.toString());
+
+print(" baz");
+assertEquals("foo bar baz\n", buffer.toString());
+
+this.interpreter.setOut(out);
+buffer.close();
 
 complete();

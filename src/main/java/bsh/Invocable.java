@@ -483,23 +483,19 @@ class MethodInvocable extends ExecutingInvocable {
          try {
             if (method != null)
                return lookup.unreflect(method);
-         } catch (IllegalAccessException ex) {
-         }
-         for (Class<?> intf : clz.getInterfaces()) {
-            try {
-               method = intf.getDeclaredMethod(methodName, types);
-               return lookup.unreflect(method);
-            } catch (Exception ex2) {
-            }
-         }
+         } catch (IllegalAccessException ex) { /*do nothing*/ }
+
+         for (Class<?> intf : clz.getInterfaces()) try {
+             method = intf.getDeclaredMethod(methodName, types);
+             return lookup.unreflect(method);
+         } catch (NoSuchMethodException | SecurityException
+                 | IllegalAccessException e) { /*do nothing*/ }
 
          clz = clz.getSuperclass();
-         if (clz != null) {
-            try {
-               method = clz.getDeclaredMethod(methodName, types);
-            } catch (Exception ex3) {
-               method = null;
-            }
+         if (clz != null) try {
+             method = clz.getDeclaredMethod(methodName, types);
+         } catch (NoSuchMethodException | SecurityException e) {
+             method = null;
          }
       }
       throw new RuntimeException("MethodHandle lookup failed to find a "+methodName+" in "+origClz.getName());

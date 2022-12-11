@@ -414,10 +414,11 @@ public final class This implements java.io.Serializable, Runnable
 
         // a default clone()
         if ( methodName.equals("clone") && args.length==0 ) {
-            NameSpace ns = new NameSpace(namespace,namespace.getName()+" clone");
+            NameSpace ns = new NameSpace(namespace, namespace.getName()+" clone");
             try {
                 for( String varName : namespace.getVariableNames() ) {
-                    ns.setLocalVariable(varName,namespace.getVariable(varName,false),false);
+                    ns.setLocalVariable(varName,
+                            namespace.getVariable(varName, false), false);
                 }
                 for( BshMethod method : namespace.getMethods() ) {
                     ns.setMethod(method);
@@ -428,8 +429,17 @@ public final class This implements java.io.Serializable, Runnable
             return ns.getThis(declaringInterpreter);
         }
 
+        // Look for a default invoke() handler method in the namespace
+        boolean[] outHasMethod = new boolean[1];
+        Object result = namespace.invokeDefaultInvokeMethod(methodName, args,
+                interpreter, callstack, callerInfo, outHasMethod);
+        if ( outHasMethod[0] )
+            return result;
+
+        // Finally look for any command in this namespace that might qualify
         try {
-            return namespace.invokeCommand(methodName, args, interpreter, callstack, callerInfo);
+            return namespace.invokeCommand(
+                    methodName, args, interpreter, callstack, callerInfo, true);
           } catch (EvalError e) {
              throw new EvalError("Method " +
                     StringUtil.methodString( methodName, types ) +
