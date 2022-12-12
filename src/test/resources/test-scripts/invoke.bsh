@@ -81,7 +81,7 @@ p.print("bar");
 assertEquals("foo bar", buffer.toString());
 
 print(" baz");
-assertEquals("foo bar baz\n", buffer.toString());
+assertEquals("foo bar baz"+System.lineSeparator(), buffer.toString());
 
 this.interpreter.setOut(out);
 buffer.close();
