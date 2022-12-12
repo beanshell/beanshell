@@ -35,8 +35,10 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentHashMap;
 
 import bsh.BshClassManager;
 import bsh.ClassPathException;
@@ -120,7 +122,8 @@ public class ClassManagerImpl extends BshClassManager
     private BshClassPath fullClassPath;
 
     // ClassPath Change listeners
-    private ConcurrentLinkedQueue<WeakReference<Listener>> listeners = new ConcurrentLinkedQueue<>();
+    private ConcurrentHashMap.KeySetView<WeakReference<Listener>,Boolean> listeners
+        = ConcurrentHashMap.newKeySet();
     private ReferenceQueue<Listener> refQueue = new ReferenceQueue<>();
 
     /**
@@ -603,7 +606,7 @@ public class ClassManagerImpl extends BshClassManager
     */
     @Override
     protected void classLoaderChanged() {
-        ConcurrentLinkedQueue<WeakReference<Listener>> toRemove = new ConcurrentLinkedQueue<>(); // safely remove
+        List<WeakReference<Listener>> toRemove = new LinkedList<>(); // safely remove
         for (WeakReference<Listener> wr : listeners) {
             Listener l = wr.get();
             if (l == null) // garbage collected
