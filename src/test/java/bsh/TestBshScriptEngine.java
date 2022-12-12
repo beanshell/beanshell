@@ -213,7 +213,7 @@ public class TestBshScriptEngine {
         bshThis.invokeMethod("dir", new Object[] {"src/conf"});
         assertThat(sw.toString(), containsString(outString));
         bshThis.invokeMethod("print", new Object[] {"foo bar"});
-        assertThat(sw.toString(), endsWith("foo bar"+System.lineSeparator()));
+        assertThat(sw.toString(), endsWith("foo bar\n"));
 
         EvalError e = assertThrows(EvalError.class, () -> bshThis.invokeMethod("unknown", null));
         assertThat(e.getMessage(), containsString("Method unknown() not found in bsh scripted object"));
