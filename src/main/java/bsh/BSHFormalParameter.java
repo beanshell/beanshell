@@ -71,5 +71,10 @@ class BSHFormalParameter extends SimpleNode
 
         return type;
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + ": " + name + ", final=" + isFinal + ", varargs=" + isVarArgs;
+    }
 }
 

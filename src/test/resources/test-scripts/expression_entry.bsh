@@ -154,6 +154,29 @@ entries = {new Entry {"k"=3}, {6}, new Entry {"l"=5}};
 assertThat(entries, valueString('{{"k"=3I}, {6I}, {"l"=5I}}'));
 assertThat(entries, instanceOf(Object[].class));
 
+// entry array index by various number types
+entries = new Entry {"k"=3, "l"=5, "m"=null};
+assertThat(entries[Integer.valueOf(0i)], valueString('"k"=3I'));
+assertThat(entries[Byte.valueOf(0o)], valueString('"k"=3I'));
+assertThat(entries[Short.valueOf(0s)], valueString('"k"=3I'));
+assertThat(entries[Float.valueOf(0.0f)], valueString('"k"=3I'));
+assertThat(entries[Double.valueOf(0.0d)], valueString('"k"=3I'));
+assertThat(entries[0i], valueString('"k"=3I'));
+assertThat(entries[0o], valueString('"k"=3I'));
+assertThat(entries[0s], valueString('"k"=3I'));
+assertThat(entries[0.0f], valueString('"k"=3I'));
+assertThat(entries[0.0d], valueString('"k"=3I'));
+assertThat(entries[0w], valueString('"k"=3I'));
+assertThat(entries[0.0w], valueString('"k"=3I'));
+assertNull(entries["m"]);
+assertNull(entries["m"] = 4);
+assertNotNull(entries["m"]);
+assertEquals(4, entries["m"]);
+assertEquals(3, entries.length);
+assert(isEvalError("cannot assign number 2147483648 to type int", "entries[2147483648]"));
+assert(isEvalError("No such property: xx", "entries['xx']"));
+assert(isEvalError("No such property: 5", "entries[5]"));
+assert(isEvalError("No such property: -5", "entries[-5]"));
 
 // nested entry arrays
 entries = new Entry {"k"=3};

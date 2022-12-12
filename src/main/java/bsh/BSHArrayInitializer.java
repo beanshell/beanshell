@@ -338,4 +338,9 @@ class BSHArrayInitializer extends SimpleNode {
             +" in initializer of array type: "+ baseType.getSimpleName()
             +" at position: "+argNum, this, callstack );
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + ": " + isMapInArray;
+    }
 }

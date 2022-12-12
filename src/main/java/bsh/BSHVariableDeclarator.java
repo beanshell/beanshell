@@ -93,5 +93,9 @@ class BSHVariableDeclarator extends SimpleNode
             return typeNode.getArrayDims();
         return -1;
     }
-    public String toString() { return "BSHVariableDeclarator "+name; }
+
+    @Override
+    public String toString() {
+        return super.toString() + ": " + name;
+    }
 }

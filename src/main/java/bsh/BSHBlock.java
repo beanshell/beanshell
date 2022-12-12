@@ -166,5 +166,9 @@ class BSHBlock extends SimpleNode
         boolean isVisible( Node node );
     }
 
+    @Override
+    public String toString() {
+        return super.toString() + ": static=" + isStatic + ", synchronized=" + isSynchronized;
+    }
 }
 

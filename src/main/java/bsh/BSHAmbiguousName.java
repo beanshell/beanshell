@@ -93,7 +93,7 @@ class BSHAmbiguousName extends SimpleNode
     }
 
     public String toString() {
-        return "AmbigousName: "+text;
+        return super.toString() + ": " + text;
     }
 }
 
