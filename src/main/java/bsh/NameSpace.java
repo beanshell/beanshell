@@ -1222,6 +1222,108 @@ public class NameSpace
                 interpreter, callstack, callerInfo, false/* declaredOnly */);
     }
 
+
+    /** Invoke an imported command scoped by namespace hierarchy.
+     * When no commands were found attempt to invoke the default invoke
+     * method if it is present in the namespace.
+     * @param commandName the command name
+     * @param args the args
+     * @param interpreter the interpreter
+     * @param callstack the callstack
+     * @param callerInfo the caller info
+     * @return the method return data object
+     * @throws EvalError the eval error */
+    protected Object invokeCommand(final String commandName, final Object[] args,
+            final Interpreter interpreter, final CallStack callstack,
+            final Node callerInfo) throws EvalError {
+        return invokeCommand(commandName, args, interpreter, callstack, callerInfo, false);
+    }
+
+    /** Invoke an imported command scoped by namespace hierarchy.
+     * Unless ignore invoke is true, when no commands were found attempt to
+     * invoke the default invoke method if it is present in the namespace.
+     * @param commandName the command name
+     * @param args the args
+     * @param interpreter the interpreter
+     * @param callstack the callstack
+     * @param callerInfo the caller info
+     * @param ignoreInvoke do not call default invoke if no commands found
+     * @return the method return data object
+     * @throws EvalError the eval error */
+    protected Object invokeCommand(final String commandName, final Object[] args,
+            final Interpreter interpreter, final CallStack callstack,
+            final Node callerInfo, final boolean ignoreInvoke) throws EvalError {
+        Class<?>[] argTypes = Types.getTypes( args );
+        Object commandObject;
+        try {
+            commandObject = getCommand(
+                commandName, argTypes, interpreter );
+        } catch ( UtilEvalError e ) {
+            throw e.toEvalError("Error loading command: ",
+                callerInfo, callstack );
+        }
+
+        // should try to print usage here if nothing found
+        if ( null == commandObject )
+        {
+            if ( !ignoreInvoke ) {
+                // Look for a default invoke() handler method in the namespace
+                boolean[] outHasMethod = new boolean[1];
+                Object result = invokeDefaultInvokeMethod(commandName, args, interpreter,
+                        callstack, callerInfo, outHasMethod);
+                if ( outHasMethod[0] )
+                    return result;
+            }
+            throw new EvalError( "Command not found: " +
+                StringUtil.methodString( commandName, argTypes ),
+                callerInfo, callstack );
+        }
+
+        if ( commandObject instanceof BshMethod )
+            return ((BshMethod)commandObject).invoke(
+                args, interpreter, callstack, callerInfo );
+
+        try {
+            return Reflect.invokeCompiledCommand(
+                ((Class<?>)commandObject), args, interpreter, callstack, callerInfo );
+        } catch ( UtilEvalError e ) {
+            throw e.toEvalError("Error invoking compiled command: ",
+                    callerInfo, callstack );
+        }
+    }
+
+    /** Invoke the default invoke method if found in the namespace,
+     * Updates the outHasMethod array index 0 by reference, if false then method was
+     * not found and the return result is meaningless.
+     * @param commandName the command name
+     * @param args the args
+     * @param interpreter the interpreter
+     * @param callstack the callstack
+     * @param callerInfo the caller info
+     * @param outHasMethod update array by reference if method found
+     * @return the method return data object
+     * @throws EvalError the eval error */
+    @SuppressWarnings("LogicalAssignment")
+    protected Object invokeDefaultInvokeMethod(final String commandName, final Object[] args,
+            final Interpreter interpreter, final CallStack callstack, final Node callerInfo,
+            final boolean[] outHasMethod) throws EvalError {
+
+        BshMethod invokeMethod = null;
+        try {
+            invokeMethod = getMethod(
+                "invoke", new Class [] { null, null } );
+        } catch ( UtilEvalError e ) {
+            throw e.toEvalError(
+                "Local method invocation", callerInfo, callstack );
+        }
+
+        if ( outHasMethod[0] = ( invokeMethod != null ))
+            return invokeMethod.invoke(
+                new Object [] { commandName, args },
+                interpreter, callstack, callerInfo );
+
+        return null;
+    }
     /** Clear all cached classes and names. */
     public void classLoaderChanged() {
         this.nameSpaceChanged();

@@ -34,5 +34,10 @@ class BSHPrimitiveType extends SimpleNode
 
     BSHPrimitiveType(int id) { super(id); }
     public Class getType() { return type; }
+
+    @Override
+    public String toString() {
+        return super.toString() + ": " + type;
+    }
 }
 

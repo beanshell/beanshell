@@ -132,4 +132,8 @@ class BSHForStatement extends SimpleNode implements ParserConstants
         return returnControl;
     }
 
+    @Override
+    public String toString() {
+        return super.toString() + ": " + hasForInit + " ; " + hasExpression + " ; " + hasForUpdate;
+    }
 }

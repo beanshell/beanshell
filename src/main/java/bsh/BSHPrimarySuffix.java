@@ -221,12 +221,12 @@ class BSHPrimarySuffix extends SimpleNode
             if ( !(indexVal instanceof Primitive) )
                 indexVal = Types.castObject(
                     indexVal, Integer.TYPE, Types.ASSIGNMENT );
-            index = ((Primitive) indexVal).intValue();
-        } catch( UtilEvalError e ) {
+            index = (int) Primitive.castWrapper(Integer.TYPE, indexVal);
+        } catch( Exception e ) {
             Interpreter.debug("doIndex: "+e);
-            throw e.toEvalError(
-                "Arrays may only be indexed by integer types.",
-                callerInfo, callstack );
+            throw new EvalError(
+                "Array index does not evaluate to an integer.",
+                callerInfo, callstack, e);
         }
         return index;
     }
@@ -277,8 +277,9 @@ class BSHPrimarySuffix extends SimpleNode
                 && Types.isPropertyTypeEntryList(cls) ) {
             Object key = jjtGetChild(0).eval(callstack, interpreter);
             int idx = 0;
-            if ( key instanceof Primitive && ((Primitive) key).isNumber()
-                    && length > (idx = ((Primitive) key).numberValue().intValue())
+            if ( ((key instanceof Primitive && ((Primitive) key).isNumber())
+                        || Primitive.isWrapperType(key.getClass()))
+                    && length > (idx = (int) Primitive.castWrapper(Integer.TYPE, key))
                     && -length < idx)
                 index = idx;
             else if (toLHS)
@@ -378,6 +379,19 @@ class BSHPrimarySuffix extends SimpleNode
         {
             throw new EvalError("No such property: " + value, this, callstack, e);
         }
+    }
+
+    @Override
+    public String toString() {
+        if (operation == INDEX)
+            return super.toString() + ": [" + hasLeftIndex + ":" + slice + " " + hasRightIndex + ":" + step + "]";
+        if (operation == NAME)
+            return super.toString() + ": " + field;
+        if (operation == PROPERTY)
+            return super.toString() + ": {}";
+        if (operation == NEW)
+            return super.toString() + ": new";
+        return super.toString() + ": class"; // CLASS == 0
     }
 }
 

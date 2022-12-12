@@ -97,5 +97,10 @@ class BSHImportDeclaration extends SimpleNode
         }
         return Primitive.VOID;
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + ": static=" + staticImport + ", *=" + importPackage + ", super import=" + superImport;
+    }
 }
 

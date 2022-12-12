@@ -117,25 +117,22 @@ class BSHArrayDimensions extends SimpleNode
             {
                 try {
                     Object length = jjtGetChild(i).eval(callstack, interpreter);
-                    // Expect this to be a primitive, but also unbox numbers
-                    int dim;
-                    if (length instanceof Integer ||
-                        length instanceof Short ||
-                        length instanceof Byte)
-                       dim = ((Number)length).intValue();
-                    else
-                       dim = ((Primitive)length).intValue();
-                    definedDimensions[i] = dim;
+                    definedDimensions[i] = (int) Primitive.castWrapper(Integer.TYPE, length);
                 }
                 catch(Exception e)
                 {
                     throw new EvalError(
                         "Array index: " + i +
-                        " does not evaluate to an integer", this, callstack );
+                        " length does not evaluate to an integer", this, callstack, e );
                 }
             }
         }
 
         return Primitive.VOID;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + ": " + numDefinedDims + ", " + numUndefinedDims;
     }
 }

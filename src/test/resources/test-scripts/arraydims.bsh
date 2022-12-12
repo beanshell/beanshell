@@ -1,6 +1,7 @@
 #!/bin/java bsh.Interpreter
 
 source("TestHarness.bsh");
+source("Assert.bsh");
 
 oa = new Object [] { "foo", "bar" };
 assert( oa.length == 2 && oa[0] instanceof String );

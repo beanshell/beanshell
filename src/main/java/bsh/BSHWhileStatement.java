@@ -85,4 +85,8 @@ class BSHWhileStatement extends SimpleNode implements ParserConstants {
         return Primitive.VOID;
     }
 
+    @Override
+    public String toString() {
+        return super.toString() + ": do=" + isDoStatement;
+    }
 }

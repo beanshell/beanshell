@@ -559,7 +559,12 @@ assertFalse(Primitive.isWrapperType(null));
 
 assertFalse(void.isNumber());
 
+assertEquals(1i, Primitive.wrap(1l, Long.TYPE).intValue());
 assertEquals(Integer.class, Primitive.boxType(Integer.TYPE));
+assertEquals(Integer.TYPE, Primitive.unboxType(Integer.class));
+assertEquals(BigDecimal.class, Primitive.unboxType(BigDecimal.class));
+assert(isEvalError("Not a primitive type: class java.lang.Integer", "Primitive.boxType(Integer.class);"));
+assert(isEvalError("Not a primitive wrapper type: int", "Primitive.unboxType(Integer.TYPE);"));
 assertEquals(0, a.hashCode());
 assertFalse(void.equals(1));
 assertEquals("void", void.toString());
