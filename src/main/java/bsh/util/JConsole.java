@@ -173,7 +173,9 @@ public class JConsole extends JScrollPane
             } catch ( IOException e ) { print("Console internal error: "+e); }
         }
         // Start the inpipe watcher
-        new Thread( this ).start();
+        Thread thread = new Thread( this );
+        thread.setDaemon(true);
+        thread.start();
 
         requestFocus();
     }
