@@ -9,9 +9,9 @@ import mypackage.IFoo;
 import static bsh.TestUtil.eval;
 import static bsh.TestUtil.script;
 import static bsh.matchers.StringUtilValue.valueString;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
@@ -86,6 +86,7 @@ public class InterfaceMethodsTest {
             "class AAC implements AA {}",
             "AAC.ab();"
         ));
+        interpreter.getNameSpace().clear();
     }
 
     @Test
@@ -114,6 +115,7 @@ public class InterfaceMethodsTest {
             "}",
             "class ZZC implements ZZ { }"
         ));
+        interpreter.getNameSpace().clear();
     }
 
     @Test
@@ -129,6 +131,7 @@ public class InterfaceMethodsTest {
             "}",
             "class ZZC implements ZZ { protected int ab() { 1; } }"
         ));
+        interpreter.getNameSpace().clear();
     }
 
     @Test
@@ -204,6 +207,7 @@ public class InterfaceMethodsTest {
         assertEquals("int field value is 5 (called 5 times)", 5, (int)foo.run().get(3));
         assertFalse("Boolean wrapper type field is NOT Primitive", (Boolean)foo.run().get(4));
         assertTrue("Boolean wrapper type field value is true", (Boolean)foo.run().get(5));
+        bsh.getNameSpace().clear();
     }
 
 }

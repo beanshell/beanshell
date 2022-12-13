@@ -32,10 +32,10 @@ import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -606,7 +606,7 @@ public class ClassManagerImpl extends BshClassManager
     */
     @Override
     protected void classLoaderChanged() {
-        List<WeakReference<Listener>> toRemove = new LinkedList<>(); // safely remove
+        List<WeakReference<Listener>> toRemove = new ArrayList<>(); // safely remove
         for (WeakReference<Listener> wr : listeners) {
             Listener l = wr.get();
             if (l == null) // garbage collected

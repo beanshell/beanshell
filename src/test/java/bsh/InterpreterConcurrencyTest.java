@@ -25,6 +25,7 @@ import static bsh.TestUtil.script;
 import static bsh.TestUtil.measureConcurrentTime;
 import org.junit.Test;
 
+import java.lang.ref.WeakReference;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -55,9 +56,11 @@ public class InterpreterConcurrencyTest {
 
     @Test
     public void single_threaded() throws Exception {
-        final This callable = createCallable();
+        final Interpreter interpreter = new Interpreter();
+        final This callable = (This) interpreter.eval(script);
         assertEquals("foo", callable.invokeMethod("call", new Object[] { "foo" }));
         assertEquals(42, callable.invokeMethod("call", new Object[] { 42 }));
+        interpreter.getNameSpace().clear();
     }
 
 
@@ -83,6 +86,7 @@ public class InterpreterConcurrencyTest {
             }
         };
         measureConcurrentTime(runnable, 30, 30, 100);
+        interpreter.getNameSpace().clear();
     }
 
     @Test
@@ -90,14 +94,14 @@ public class InterpreterConcurrencyTest {
         final Interpreter interpreter = new Interpreter();
         final This callable = (This) interpreter.eval(script);
         final AtomicInteger counter = new AtomicInteger();
-        final ConcurrentLinkedQueue<byte[]> heap = new ConcurrentLinkedQueue<>();
+        final ConcurrentLinkedQueue<WeakReference<byte[]>> heap = new ConcurrentLinkedQueue<>();
         final Runnable runnable = new Runnable() {
             public void run() {
                 try {
                     final int i = counter.incrementAndGet();
                     final Object o = callable.invokeMethod("call", new Object[]{i});
                     assertEquals(i, o);
-                    heap.add(new byte[1024*1000]);
+                    heap.add(new WeakReference<byte[]>(new byte[1024*1000]));
                     try { interpreter.eval("System.gc();"); } catch (Exception e) {/*ignore*/};
                 } catch (final EvalError evalError) {
                     throw new RuntimeException(evalError);
@@ -105,11 +109,13 @@ public class InterpreterConcurrencyTest {
             }
         };
         measureConcurrentTime(runnable, 3, 3, 100);
+        interpreter.getNameSpace().clear();
     }
 
     @Test
     public void multi_threaded_class_generation() throws Exception {
-        final This callable = createCallable();
+        final Interpreter interpreter = new Interpreter();
+        final This callable = (This) interpreter.eval(script);
         final AtomicInteger counter = new AtomicInteger();
         final Runnable runnable = new Runnable() {
             public void run() {
@@ -123,12 +129,7 @@ public class InterpreterConcurrencyTest {
             }
         };
         measureConcurrentTime(runnable, 30, 30, 100);
-    }
-
-
-    private This createCallable() throws Exception {
-        final Interpreter interpreter = new Interpreter();
-        return (This) interpreter.eval(script);
+        interpreter.getNameSpace().clear();
     }
 
 }

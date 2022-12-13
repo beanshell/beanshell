@@ -11,4 +11,5 @@ exec( String arg )
     this.din = new DataInputStream( proc.getInputStream() );
     while( (line=din.readLine()) != null )
         print(line);
+    return this.proc.exitValue();
 }

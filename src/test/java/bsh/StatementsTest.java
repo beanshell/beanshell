@@ -4,9 +4,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static bsh.TestUtil.eval;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 @RunWith(FilteredTestRunner.class)
 public class StatementsTest {

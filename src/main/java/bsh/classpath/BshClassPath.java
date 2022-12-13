@@ -35,6 +35,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -49,6 +50,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -81,14 +85,14 @@ public class BshClassPath
     String name;
 
     /** The URL path components */
-    private List path;
+    private final ArrayList<URL> path = new ArrayList<>();
     /** Ordered list of components BshClassPaths */
-    private List compPaths;
+    private final ArrayList<BshClassPath> compPaths = new ArrayList<>();
 
     /** Set of classes in a package mapped by package name */
-    private Map packageMap;
+    private final Map<String, Set<String>> packageMap = new ConcurrentHashMap<>();
     /** Map of source (URL or File dir) of every clas */
-    private Map classSource;
+    private final Map<String, ClassSource> classSource = new ConcurrentHashMap<>();
     /**  The packageMap and classSource maps have been built. */
     private boolean mapsInitialized;
 
@@ -108,7 +112,7 @@ public class BshClassPath
         reset();
     }
 
-    public BshClassPath(  String name, URL [] urls ) {
+    public BshClassPath(  String name, URL[] urls ) {
         this( name );
         add( urls );
     }
@@ -130,22 +134,22 @@ public class BshClassPath
         if (bcp == null)
             return;
         if ( compPaths == null )
-            compPaths = new ArrayList();
+            compPaths.clear();
         compPaths.add( bcp );
         bcp.addListener( this );
     }
 
-    public void add( URL [] urls ) {
-        path.addAll( Arrays.asList(urls) );
+    public void add( URL[] urls ) {
         synchronized (this) {
+            path.addAll( Arrays.asList(urls) );
             if ( mapsInitialized )
                 map( urls );
         }
     }
 
     public void add( URL url ) throws IOException {
-        path.add(url);
         synchronized (this) {
+            path.add(url);
             if ( mapsInitialized )
                 map( url );
         }
@@ -154,7 +158,7 @@ public class BshClassPath
     /**
         Get the path components including any component paths.
     */
-    public URL [] getPathComponents() {
+    public URL[] getPathComponents() {
         return (URL[])getFullPath().toArray( new URL[0] );
     }
 
@@ -162,17 +166,16 @@ public class BshClassPath
         Return the set of class names in the specified package
         including all component paths.
     */
-    synchronized public Set getClassesForPackage( String pack ) {
+    synchronized public Set<String> getClassesForPackage( String pack ) {
         insureInitialized();
-        Set set = new HashSet();
-        Collection c = (Collection)packageMap.get( pack );
+        Set<String> set = new HashSet<>();
+        Collection<String> c = packageMap.get( pack );
         if ( c != null )
             set.addAll( c );
 
         if ( compPaths != null )
             for (int i=0; i<compPaths.size(); i++) {
-                c = ((BshClassPath)compPaths.get(i)).getClassesForPackage(
-                    pack );
+                c = compPaths.get(i).getClassesForPackage( pack );
                 if ( c != null )
                     set.addAll( c );
             }
@@ -188,16 +191,16 @@ public class BshClassPath
         // Before triggering classpath mapping (initialization) check for
         // explicitly set class sources (e.g. generated classes).  These would
         // take priority over any found in the classpath anyway.
-        ClassSource cs = (ClassSource)classSource.get( className );
+        ClassSource cs = classSource.get( className );
         if ( cs != null )
             return cs;
 
         insureInitialized(); // trigger possible mapping
 
-        cs = (ClassSource)classSource.get( className );
+        cs = classSource.get( className );
         if ( cs == null && compPaths != null )
             for (int i=0; i<compPaths.size() && cs==null; i++)
-                cs = ((BshClassPath)compPaths.get(i)).getClassSource(className);
+                cs = compPaths.get(i).getClassSource(className);
         return cs;
     }
 
@@ -239,10 +242,10 @@ public class BshClassPath
         insureInitialized( true );
     }
 
-    /**
-        @param topPath indicates that this is the top level classpath
-        component and it should send the startClassMapping message
-    */
+     /**
+     * This is the top level classpath component.
+     * @param topPath the start Class Mapping message
+     */
     protected synchronized void insureInitialized( boolean topPath )
     {
         // If we are the top path and haven't been initialized before
@@ -253,7 +256,7 @@ public class BshClassPath
         // initialize components
         if ( compPaths != null )
             for (int i=0; i< compPaths.size(); i++)
-                ((BshClassPath)compPaths.get(i)).insureInitialized( false );
+                compPaths.get(i).insureInitialized( false );
 
         // initialize ourself
         if ( !mapsInitialized )
@@ -270,17 +273,17 @@ public class BshClassPath
         (component paths listed first, in order)
         Duplicate path components are removed.
     */
-    protected List getFullPath()
+    protected List<URL> getFullPath()
     {
-        List list = new ArrayList();
+        List<URL> list = new ArrayList<>();
         if ( compPaths != null ) {
             for (int i=0; i<compPaths.size(); i++) {
-                List l = ((BshClassPath)compPaths.get(i)).getFullPath();
+                List<URL> l = compPaths.get(i).getFullPath();
                 // take care to remove dups
                 // wish we had an ordered set collection
-                Iterator it = l.iterator();
+                Iterator<URL> it = l.iterator();
                 while ( it.hasNext() ) {
-                    Object o = it.next();
+                    URL o = it.next();
                     if ( !list.contains(o) )
                         list.add( o );
                 }
@@ -297,18 +300,19 @@ public class BshClassPath
         classpath.  Returns either the String name or an AmbiguousName object
         encapsulating the various names.
     */
-    public String getClassNameByUnqName( String name )
+    public synchronized String getClassNameByUnqName( String name )
         throws ClassPathException
     {
         insureInitialized();
-        UnqualifiedNameTable unqNameTable = getUnqualifiedNameTable();
+        AmbiguousName aName = getUnqualifiedNameTable().get( name );
 
-        Object obj = unqNameTable.get( name );
-        if ( obj instanceof AmbiguousName )
-            throw new ClassPathException("Ambigous class names: "+
-                ((AmbiguousName)obj).get() );
+        if (null == aName) return null;
 
-        return (String)obj;
+        List<String> names = aName.get();
+        if (names.size() != 1)
+          throw new ClassPathException("Ambiguous class names: "+ names);
+
+        return names.get(0);
     }
 
     /*
@@ -328,26 +332,26 @@ public class BshClassPath
         // add component names
         if ( compPaths != null )
             for (int i=0; i<compPaths.size(); i++) {
-                Set s = ((BshClassPath)compPaths.get(i)).classSource.keySet();
-                Iterator it = s.iterator();
+                Set<String> s = compPaths.get(i).classSource.keySet();
+                Iterator<String> it = s.iterator();
                 while(it.hasNext())
-                    unqNameTable.add( (String)it.next() );
+                    unqNameTable.add( it.next() );
             }
 
         // add ours
-        Iterator it = classSource.keySet().iterator();
+        Iterator<String> it = classSource.keySet().iterator();
         while(it.hasNext())
-            unqNameTable.add( (String)it.next() );
+            unqNameTable.add( it.next() );
 
         return unqNameTable;
     }
 
-    public String [] getAllNames()
+    public synchronized String[] getAllNames()
     {
         insureInitialized();
 
-        List names = new ArrayList();
-        Iterator it = getPackagesSet().iterator();
+        List<String> names = new ArrayList<>();
+        Iterator<String> it = getPackagesSet().iterator();
         while( it.hasNext() ) {
             String pack = (String)it.next();
             names.addAll(
@@ -357,13 +361,13 @@ public class BshClassPath
         if ( nameCompletionIncludesUnqNames )
             names.addAll( getUnqualifiedNameTable().keySet() );
 
-        return (String [])names.toArray(new String[0]);
+        return (String[])names.toArray(new String[0]);
     }
 
     /**
         call map(url) for each url in the array
     */
-    synchronized void map( URL [] urls )
+    synchronized void map( URL[] urls )
     {
         for(int i=0; i< urls.length; i++)
             try{
@@ -401,21 +405,21 @@ public class BshClassPath
         }
     }
 
-    private void map( String [] classes, Object source ) {
+    private void map( String[] classes, ClassSource source ) {
         for(int i=0; i< classes.length; i++) {
             //System.out.println( classes[i] +": "+ source );
             mapClass( classes[i], source );
         }
     }
 
-    private void mapClass( String className, Object source )
+    private void mapClass( String className, ClassSource source )
     {
         // add to package map
-        String [] sa = splitClassname( className );
+        String[] sa = splitClassname( className );
         String pack = sa[0];
-        Set set = (Set)packageMap.get( pack );
+        Set<String> set = packageMap.get( pack );
         if ( set == null ) {
-            set = new HashSet();
+            set = new HashSet<>();
             packageMap.put( pack, set );
         }
         set.add( className );
@@ -432,8 +436,8 @@ public class BshClassPath
         Clear everything and reset the path to empty.
     */
     synchronized private void reset() {
-        path = new ArrayList();
-        compPaths = null;
+        path.clear();
+        compPaths.clear();
         clearCachedStructures();
     }
 
@@ -442,8 +446,8 @@ public class BshClassPath
     */
     synchronized private void clearCachedStructures() {
         mapsInitialized = false;
-        packageMap = new HashMap();
-        classSource = new HashMap();
+        packageMap.clear();
+        classSource.clear();
         unqNameTable = null;
         nameSpaceChanged();
     }
@@ -453,31 +457,22 @@ public class BshClassPath
         notifyListeners();
     }
 
-/*
-    public void setNameCompletionIncludeUnqNames( boolean b ) {
-        if ( nameCompletionIncludesUnqNames != b ) {
-            nameCompletionIncludesUnqNames = b;
-            nameSpaceChanged();
-        }
-    }
-*/
-
     // Begin Static stuff
 
-    static String [] traverseDirForClasses( File dir )
+    static String[] traverseDirForClasses( File dir )
         throws IOException
     {
-        List list = traverseDirForClassesAux( dir, dir );
-        return (String[])list.toArray( new String[0] );
+        List<String> list = traverseDirForClassesAux( dir, dir );
+        return list.toArray(new String[list.size()]);
     }
 
-    static List traverseDirForClassesAux( File topDir, File dir )
+    static List<String> traverseDirForClassesAux( File topDir, File dir )
         throws IOException
     {
-        List list = new ArrayList();
+        List<String> list = new ArrayList<>();
         String top = topDir.getAbsolutePath();
 
-        File [] children = dir.listFiles();
+        File[] children = dir.listFiles();
         if ( null == children )
             children = new File[0];
         for (int i=0; i< children.length; i++)  {
@@ -507,46 +502,48 @@ public class BshClassPath
     }
 
     /** Search jrt file system for module classes.
-     * @param the jrt: file system url
+     * @param url the jrt file system url
      * @return array of class names found
-     * @throws IOException */
-    static String [] searchJrtFSForClasses( URL url ) throws IOException {
+     * @throws IOException if any reading problems  */
+    static String[] searchJrtFSForClasses( URL url ) throws IOException {
         try {
             Path path = FileSystems.getFileSystem(new URI("jrt:/")).getPath("modules", url.getPath());
-
-            return Files.walk(path).map(Path::toString)
-                    .filter(BshClassPath::isClassFileName)
-                    .map(BshClassPath::canonicalizeClassName)
-                    .toArray(String[]::new);
+            try (Stream<Path> stream = Files.walk(path)) {
+                return stream.map(Path::toString)
+                        .filter(BshClassPath::isClassFileName)
+                        .map(BshClassPath::canonicalizeClassName)
+                        .toArray(String[]::new);
+            } catch (Exception e) { throw e; }
         } catch (URISyntaxException e) { /* ignore */ }
         return new String[0];
     }
 
     /** Search jar file system for classes.
-     * @param the jar: file system url
+     * @param url the jar file system url
      * @return array of class names found
-     * @throws IOException */
-    static String [] searchJarFSForClasses( URL url ) throws IOException {
+     * @throws IOException if any reading problems  */
+    static String[] searchJarFSForClasses( URL url ) throws IOException {
         try {
             try {
                 FileSystems.newFileSystem(url.toURI(), new HashMap<>());
             } catch (FileSystemAlreadyExistsException e) { /* ignore */ }
 
             Path path = FileSystems.getFileSystem(url.toURI()).getPath("/");
-
-            return Files.walk(path).map(Path::toString)
-                    .filter(BshClassPath::isClassFileName)
-                    .map(BshClassPath::canonicalizeClassName)
-                    .toArray(String[]::new);
+            try (Stream<Path> stream = Files.walk(path)) {
+                return stream.map(Path::toString)
+                        .filter(BshClassPath::isClassFileName)
+                        .map(BshClassPath::canonicalizeClassName)
+                        .toArray(String[]::new);
+            } catch (Exception e) { throw e; }
         } catch (URISyntaxException e) { /* ignore */ }
         return new String[0];
     }
 
     /** Search Archive for classes.
-     * @param the archive file location
+     * @param url the archive file location
      * @return array of class names found
-     * @throws IOException */
-    static String [] searchArchiveForClasses( URL url ) throws IOException {
+     * @throws IOException if any reading problems  */
+    static String[] searchArchiveForClasses( URL url ) throws IOException {
         List<String> list = new ArrayList<>();
         ZipInputStream zip = new ZipInputStream(url.openStream());
 
@@ -569,19 +566,22 @@ public class BshClassPath
         name = name.toLowerCase();
         return name.endsWith(".jar") || name.endsWith(".zip") || name.endsWith(".jmod");
     }
-
     /**
         Create a proper class name from a messy thing.
         Turn / or \ into .,  remove leading class and trailing .class
 
         Note: this makes lots of strings... could be faster.
     */
+    private static final Pattern slashDot = Pattern.compile("[/\\\\]");
+    private static final Pattern moduleName = Pattern.compile("^modules/[^/]+/");
+    private static final Pattern dotClass = Pattern.compile("\\.[^\\.]+$");
     public static String canonicalizeClassName( String name )
     {
         String classname = name;
         if ( classname.startsWith("modules/"))
-            classname = classname.replaceFirst("^modules/[^/]+/", "");
-        classname = classname.replaceAll("[/\\\\]", ".");
+            classname = moduleName.matcher(classname).replaceFirst("");
+        if (classname.indexOf('/') >= 0 || classname.indexOf('\\') >= 0)
+            classname = slashDot.matcher(classname).replaceAll(".");
         if ( classname.startsWith(".") )
             classname = classname.substring(1);
         if ( classname.startsWith("class ") )
@@ -589,39 +589,31 @@ public class BshClassPath
         if ( classname.startsWith("classes.") )
             classname = classname.substring(8);
         if ( classname.endsWith(".class") )
-            classname = classname.replaceFirst("\\.[^\\.]+$", "");
+            classname = dotClass.matcher(classname).replaceFirst("");
         return classname;
     }
 
     /**
         Split class name into package and name
     */
-    public static String [] splitClassname ( String classname ) {
+    private static final Pattern splitClass = Pattern.compile("\\.(?=[^.]+$)");
+    public static String[] splitClassname ( String classname ) {
         classname = canonicalizeClassName( classname );
 
-        int i=classname.lastIndexOf(".");
-        String classn, packn;
-        if ( i == -1 )  {
-            // top level class
-            classn = classname;
-            packn="<unpackaged>";
-        } else {
-            packn = classname.substring(0,i);
-            classn = classname.substring(i+1);
-        }
-        return new String [] { packn, classn };
+        if (classname.indexOf('.') == -1)
+            return new String[] { "<unpackaged>", classname };
+        return splitClass.split(classname);
     }
 
     /**
         Return a new collection without any inner class names
     */
-    public static Collection removeInnerClassNames( Collection col ) {
-        List list = new ArrayList();
+    public static Collection<String> removeInnerClassNames( Collection<String> col ) {
+        List<String> list = new ArrayList<>();
         list.addAll(col);
-        Iterator it = list.iterator();
-        while(it.hasNext()) {
-            String name =(String)it.next();
-            if (name.indexOf("$") != -1 )
+        Iterator<String> it = list.iterator();
+        while (it.hasNext()) {
+             if (it.next().indexOf("$") != -1 )
                 it.remove();
         }
         return list;
@@ -632,17 +624,17 @@ public class BshClassPath
             java.class.path
     */
 
-    static URL [] userClassPathComp;
-    public synchronized static URL [] getUserClassPathComponents()
+    static URL[] userClassPathComp;
+    public synchronized static URL[] getUserClassPathComponents()
         throws ClassPathException
     {
         if ( userClassPathComp != null )
             return userClassPathComp;
 
-        String cp=System.getProperty("java.class.path");
-        String [] paths = cp.split(File.pathSeparator);
+        String cp = System.getProperty("java.class.path");
+        String[] paths = null == cp ? new String[0] : cp.split(File.pathSeparator);
 
-        URL [] urls = new URL[ paths.length ];
+        URL[] urls = new URL[ paths.length ];
         try {
             for ( int i=0; i<paths.length; i++)
                 // We take care to get the canonical path first.
@@ -661,16 +653,15 @@ public class BshClassPath
     /**
         Get a list of all of the known packages
     */
-    public Set getPackagesSet()
+    public synchronized Set<String> getPackagesSet()
     {
         insureInitialized();
-        Set set = new HashSet();
+        Set<String> set = new HashSet<>();
         set.addAll( packageMap.keySet() );
 
         if ( compPaths != null )
             for (int i=0; i<compPaths.size(); i++)
-                set.addAll(
-                    ((BshClassPath)compPaths.get(i)).packageMap.keySet() );
+                set.addAll( compPaths.get(i).packageMap.keySet() );
         return set;
     }
 
@@ -741,20 +732,21 @@ public class BshClassPath
 
     public abstract static class ClassSource {
         Object source;
-        abstract byte [] getCode( String className );
+        abstract byte[] getCode( String className );
     }
 
     public static class JarClassSource extends ClassSource {
         JarClassSource( URL url ) { source = url; }
         public URL getURL() { return (URL)source; }
-        public byte [] getCode( String className ) {
+        public byte[] getCode( String className ) {
             String n = '/' + className.replace( '.', '/' ) + ".class";
-            try (DataInputStream in = new DataInputStream(
-                    this.getClass().getResourceAsStream(n))) {
+            try (URLClassLoader urlc = new URLClassLoader(new URL[] { getURL() });
+                DataInputStream in = new DataInputStream(
+                    urlc.loadClass(className).getResourceAsStream(n))) {
                 byte[] bytes = new byte[in.available()];
                 in.readFully(bytes);
                 return bytes;
-            } catch (IOException e) { /* ignore */ }
+            } catch (IOException | ClassNotFoundException e) { /* ignore */ }
             return new byte[0];
         }
         public String toString() { return "Jar: "+source; }
@@ -766,11 +758,11 @@ public class BshClassPath
         public File getDir() { return (File)source; }
         public String toString() { return "Dir: "+source; }
 
-        public byte [] getCode( String className ) {
+        public byte[] getCode( String className ) {
             return readBytesFromFile( getDir(), className );
         }
 
-        public static byte [] readBytesFromFile( File base, String className )
+        public static byte[] readBytesFromFile( File base, String className )
         {
             String n = className.replace( '.', File.separatorChar ) + ".class";
             File file = new File( base, n );
@@ -778,7 +770,7 @@ public class BshClassPath
             if ( !file.exists() )
                 return null;
 
-            byte [] bytes;
+            byte[] bytes;
             try ( FileInputStream fis = new FileInputStream(file);
                     DataInputStream dis = new DataInputStream( fis ) ) {
 
@@ -801,7 +793,7 @@ public class BshClassPath
 
         public URL getURL() { return (URL) source; }
 
-        public byte [] getCode( String className ) {
+        public byte[] getCode( String className ) {
             String n = '/' + className.replace( '.', '/' ) + ".class";
             try (DataInputStream in = new DataInputStream(
                     (InputStream) new URL(source + n).getContent())) {
@@ -817,9 +809,9 @@ public class BshClassPath
 
     public static class GeneratedClassSource extends ClassSource
     {
-        GeneratedClassSource( byte [] bytecode ) { source = bytecode; }
-        public byte [] getCode( String className ) {
-            return (byte [])source;
+        GeneratedClassSource( byte[] bytecode ) { source = bytecode; }
+        public byte[] getCode( String className ) {
+            return (byte[])source;
         }
     }
 
@@ -833,32 +825,28 @@ public class BshClassPath
         Note: we could probably do away with the unqualified name table
         in favor of a second name source
     */
-    static class UnqualifiedNameTable extends HashMap {
+    static class UnqualifiedNameTable extends HashMap<String, AmbiguousName> {
+        private static final long serialVersionUID = 1L;
+
         void add( String fullname ) {
             String name = splitClassname( fullname )[1];
-            Object have = super.get( name );
 
-            if ( have == null )
-                super.put( name, fullname );
+            if ( !super.containsKey(name))
+                super.put( name, new AmbiguousName(fullname) );
             else
-                if ( have instanceof AmbiguousName )
-                    ((AmbiguousName)have).add( fullname );
-                else  // String
-                {
-                    AmbiguousName an = new AmbiguousName();
-                    an.add( (String)have );
-                    an.add( fullname );
-                    super.put( name, an );
-                }
+                super.get(name).add(fullname);
         }
     }
 
     public static class AmbiguousName {
-        List list = new ArrayList();
+        List<String> list = new ArrayList<>();
+        public AmbiguousName(String name) {
+            list.add(name);
+        }
         public void add( String name ) {
             list.add( name );
         }
-        public List get() {
+        public List<String> get() {
             //return (String[])list.toArray(new String[0]);
             return list;
         }
@@ -877,14 +865,14 @@ public class BshClassPath
                 .nameSourceChanged( this );
     }
 
-    List nameSourceListeners;
+    List<NameSource.Listener> nameSourceListeners;
     /**
         Implements NameSource
         Add a listener who is notified upon changes to names in this space.
     */
     public void addNameSourceListener( NameSource.Listener listener ) {
         if ( nameSourceListeners == null )
-            nameSourceListeners = new ArrayList();
+            nameSourceListeners = new ArrayList<>();
         nameSourceListeners.add( listener );
     }
 
@@ -935,13 +923,7 @@ public class BshClassPath
         /**
             Provide feedback on the progress of mapping the classpath
             @param msg is a message about the path component being mapped
-            @perc is an integer in the range 0-100 indicating percentage done
-        public void classMapping( String msg, int perc );
-        */
-
-        /**
-            Provide feedback on the progress of mapping the classpath
-        */
+       */
         void classMapping( String msg );
 
         void errorWhileMapping( String msg );

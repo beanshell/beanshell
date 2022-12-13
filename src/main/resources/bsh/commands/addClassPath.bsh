@@ -23,7 +23,7 @@ addClassPath( path ) {
     if ( path instanceof URL )
         url = path;
     else
-        url = pathToFile( path ).toURL();
+        url = pathToFile( path ).toURI().toURL();
 
     this.caller.namespace.getClassManager().addClassPath( url );
 }
