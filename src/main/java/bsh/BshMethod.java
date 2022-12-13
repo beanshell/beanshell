@@ -345,6 +345,11 @@ public class BshMethod implements Serializable {
         else
             localNameSpace = new NameSpace( declaringNameSpace, name );
 
+        // This look dubious because in the case of overrideNameSpace
+        // because will clobber the previous value.  OverrideNameSpace==true
+        // is only used in this codebase by PreparsedScripts and there it is
+        // safe but any other usage might cause problems.  This should be
+        // cleaned up.It was changed as part of #508 but that fix was wrong.
         localNameSpace.isMethod = true;
         localNameSpace.setNode( callerInfo );
 
@@ -447,16 +452,19 @@ public class BshMethod implements Serializable {
         if ( !overrideNameSpace )
             callstack.push( localNameSpace );
 
-        // Invoke the block, overriding namespace with localNameSpace
-        Object ret = methodBody.eval(
-            callstack, interpreter, true/*override*/ );
 
-        // save the callstack including the called method, just for error mess
-        CallStack returnStack = callstack.copy();
-
-        // Get back to caller namespace
-        if ( !overrideNameSpace )
-            callstack.pop();
+        // Invoke the block
+        Object ret = null;
+        CallStack returnStack = null;
+        try {
+           ret = methodBody.eval(callstack, interpreter, true/*override*/ );
+           // save the callstack including the called method, just for error mess
+           returnStack = callstack.copy();
+        } finally {
+           // Get back to caller namespace
+           if ( !overrideNameSpace )
+              callstack.pop();
+        }
 
         ReturnControl retControl = null;
         if ( ret instanceof ReturnControl ) {
