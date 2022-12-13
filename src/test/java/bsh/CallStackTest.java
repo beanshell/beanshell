@@ -36,5 +36,7 @@ public class CallStackTest {
         nameSpace.setLocalVariable("test", "test", false);
         final CallStack stack = TestUtil.serDeser(new CallStack(nameSpace));
         Assert.assertEquals("test", stack.top().get("test", null));
+        stack.clear();
+        nameSpace.clear();
     }
 }

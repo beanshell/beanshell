@@ -30,8 +30,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.isEmptyString;
 
 import org.junit.Test;
@@ -83,7 +83,7 @@ public class InterpreterTest {
      */
     @Test(timeout = 10000)
     public void check_for_memory_leak() throws Exception {
-        final WeakReference<Object> reference = new WeakReference<Object>(new Interpreter().eval("x = new byte[1024 * 2024]; return x;"));
+        final WeakReference<Object> reference = new WeakReference<Object>(new Interpreter().eval("x = new byte[1024 * 1000]; return x;"));
         while (reference.get() != null) {
             System.gc();
             Thread.sleep(1);
@@ -127,6 +127,7 @@ public class InterpreterTest {
         assertSame(one, six.getParent());
         assertEquals("known source", six.getSourceFileInfo());
         assertEquals("twoSpace", six.globalNameSpace.getName());
+        one.getNameSpace().clear();
     }
 
     @Test

@@ -44,6 +44,8 @@ public class BshSerializationTest {
         assertNull(origInterpreter.eval("myNull"));
         final Interpreter deserInterpreter = TestUtil.serDeser(origInterpreter);
         assertNull(deserInterpreter.eval("myNull"));
+        origInterpreter.getNameSpace().clear();
+        deserInterpreter.getNameSpace().clear();
     }
 
     /**
@@ -57,6 +59,8 @@ public class BshSerializationTest {
         assertTrue((Boolean) originalInterpreter.eval("myNull == null"));
         final Interpreter deserInterpreter = TestUtil.serDeser(originalInterpreter);
         assertTrue((Boolean) deserInterpreter.eval("myNull == null"));
+        originalInterpreter.getNameSpace().clear();
+        deserInterpreter.getNameSpace().clear();
     }
 
     /**
@@ -69,5 +73,7 @@ public class BshSerializationTest {
         assertTrue((Boolean) originalInterpreter.eval("myVoid == void"));
         final Interpreter deserInterpreter = TestUtil.serDeser(originalInterpreter);
         assertTrue((Boolean) deserInterpreter.eval("myVoid == void"));
+        originalInterpreter.getNameSpace().clear();
+        deserInterpreter.getNameSpace().clear();
     }
 }

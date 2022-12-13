@@ -1,5 +1,6 @@
 package bsh.classpath;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.arrayWithSize;
@@ -10,23 +11,28 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThrows;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import bsh.ClassPathException;
+import bsh.EvalError;
 import bsh.Interpreter;
 import bsh.NameSource;
 import bsh.classpath.BshClassPath.ClassSource;
@@ -38,9 +44,6 @@ import bsh.classpath.BshClassPath.MappingFeedback;
 
 
 public class BshClassPathTest {
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
     static class ClassPathListenerImpl implements ClassPathListener {
         public boolean changed = false;
         @Override
@@ -79,7 +82,7 @@ public class BshClassPathTest {
     }
 
     @Test
-    public void classpath_mapping_feedback() throws Exception {
+    public void classpath_mapping_feedback() throws ClassPathException {
         final Interpreter bsh = new Interpreter();
         ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
         BshClassPath bcp =  cm.getClassPath();
@@ -87,7 +90,7 @@ public class BshClassPathTest {
          * Since this is a unit test we will need to clear
          * cached values for this test to work  reliably
          */
-        bcp.getBootClassPath().classPathChanged();
+        BshClassPath.getBootClassPath().classPathChanged();
         bcp.getAllNames();
         assertTrue("Got feedback start", cpmf.start);
         assertTrue("Got feedback end", cpmf.end);
@@ -96,7 +99,7 @@ public class BshClassPathTest {
     }
 
     @Test
-    public void classpath_mapping_feedback_error() throws Exception {
+    public void classpath_mapping_feedback_error() throws ClassPathException, MalformedURLException, IOException {
         final Interpreter bsh = new Interpreter();
         ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
         BshClassPath bcp =  cm.getClassPath();
@@ -108,26 +111,56 @@ public class BshClassPathTest {
     }
 
     @Test
-    public void classpath_mapping_feedback_null() throws Exception {
-        thrown.expect(RuntimeException.class);
-        thrown.expectMessage(containsString("Unimplemented: already a listener"));
-
-        BshClassPath.addMappingFeedback(null);
+    public void classpath_mapping_feedback_null() {
+        RuntimeException e = assertThrows(RuntimeException.class, () ->
+            BshClassPath.addMappingFeedback(null));
+        assertThat(e.getMessage(), containsString("Unimplemented: already a listener"));
     }
 
     @Test
-    public void classpath_map_filesystem_exception() throws Exception {
-        thrown.expect(RuntimeException.class);
-        thrown.expectMessage(containsString("Failed to map"));
+    public void classpath_map_filesystem_exception() throws ClassPathException {
 
         final Interpreter bsh = new Interpreter();
         ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
         BshClassPath bcp =  cm.getClassPath();
-        bcp.map(new URL[] { new URL("jar:file:/unknown/path!/") });
+        RuntimeException e = assertThrows(RuntimeException.class, () ->
+            bcp.map(new URL[] { new URL("jar:file:/unknown/path!/") }));
+        assertThat(e.getMessage(), containsString("Failed to map"));
     }
 
     @Test
-    public void classpath_listener() throws Exception {
+    public void classpath_map_jar_filesystem() throws IOException, ClassPathException {
+        final Interpreter bsh = new Interpreter();
+        File jarFile = bsh.pathToFile("src/test/resources/test-scripts/Data/addclass.jar");
+        URL jarURL = new URL("jar:file:"+jarFile.toString()+"!/");
+        ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
+
+        BshClassPath bcp =  cm.getClassPath();
+        bcp.map(new URL[] { jarURL });
+        assertThat(cpmf.fs, containsString("addclass.jar"));
+    }
+
+    @Test
+    public void classpath_get_jar_source() throws IOException, ClassPathException {
+        final Interpreter bsh = new Interpreter();
+        File jarFile = bsh.pathToFile("src/test/resources/test-scripts/Data/addclass.jar");
+        URL jarURL = new URL("jar:file:"+jarFile.toString()+"!/");
+        ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
+
+        BshClassPath bcp =  cm.getClassPath();
+        bcp.map(new URL[] { jarURL });
+
+        JarClassSource jarSrc = (JarClassSource)bcp.getClassSource("AddClass");
+        assertThat(jarSrc, notNullValue());
+        assertThat(jarSrc, instanceOf(JarClassSource.class));
+        assertThat(jarSrc.toString(), containsString("addclass.jar"));
+        assertThat(jarSrc.getURL(), equalTo(jarURL));
+        assertThat(jarSrc.getCode("AddClass"), instanceOf(byte[].class));
+        assertThat(jarSrc.getCode("Unknown"), equalTo(new byte[0]));
+    }
+
+    @Test
+    public void classpath_listener() throws ClassPathException {
         final Interpreter bsh = new Interpreter();
         ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
         BshClassPath bcp =  cm.getClassPath();
@@ -149,7 +182,7 @@ public class BshClassPathTest {
     }
 
     @Test
-    public void classpath_namesource_listener() throws Exception {
+    public void classpath_namesource_listener() throws ClassPathException {
         final Interpreter bsh = new Interpreter();
         ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
         BshClassPath bcp =  cm.getClassPath();
@@ -163,7 +196,7 @@ public class BshClassPathTest {
     }
 
     @Test
-    public void classpath_get_unq_name() throws Exception {
+    public void classpath_get_unq_name() throws ClassPathException {
         final Interpreter bsh = new Interpreter();
         ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
         BshClassPath bcp =  cm.getClassPath();
@@ -172,7 +205,7 @@ public class BshClassPathTest {
     }
 
     @Test
-    public void classpath_to_string() throws Exception {
+    public void classpath_to_string() throws ClassPathException {
         final Interpreter bsh = new Interpreter();
         ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
         BshClassPath bcp =  cm.getClassPath();
@@ -181,18 +214,17 @@ public class BshClassPathTest {
     }
 
     @Test
-    public void classpath_get_unq_name_ambigous() throws Exception {
-        thrown.expect(ClassPathException.class);
-        thrown.expectMessage(containsString("Ambigous class names"));
-
+    public void classpath_get_unq_name_ambigous() throws ClassPathException {
         final Interpreter bsh = new Interpreter();
         ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
         BshClassPath bcp =  cm.getClassPath();
-        bcp.getClassNameByUnqName("Handler");
+        ClassPathException e = assertThrows(ClassPathException.class, () ->
+            bcp.getClassNameByUnqName("Handler"));
+        assertThat(e.getMessage(), containsString("Ambiguous class names"));
     }
 
     @Test
-    public void classpath_get_full_path() throws Exception {
+    public void classpath_get_full_path() throws ClassPathException {
         final Interpreter bsh = new Interpreter();
         ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
         BshClassPath bcp =  cm.getClassPath();
@@ -202,7 +234,8 @@ public class BshClassPathTest {
     }
 
     @Test
-    public void classpath_get_class_source() throws Exception {
+    public void classpath_get_class_source() throws ClassPathException, IllegalAccessException,
+            InvocationTargetException, NoSuchMethodException, SecurityException, EvalError {
         final Interpreter bsh = new Interpreter();
         ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
 
@@ -216,11 +249,13 @@ public class BshClassPathTest {
         assertThat(rtSrc.getClass().getMethod("getURL", new Class[0]).invoke(rtSrc, new Object[0]),
                 equalTo(BshClassPath.getBootClassPath().getFullPath().get(0)));
         assertThat(rtSrc.getCode("java.lang.String"), instanceOf(byte[].class));
+        assertThat(rtSrc.getCode("Unknown"), equalTo(new byte[0]));
         ClassSource dirSrc = bcp.getClassSource(this.getClass().getName());
         assertThat(dirSrc, instanceOf(DirClassSource.class));
         assertThat(dirSrc.toString(), endsWith("test-classes"));
         assertThat(((DirClassSource) dirSrc).getDir().getAbsolutePath(), endsWith("test-classes"));
         assertThat(dirSrc.getCode(this.getClass().getName()), instanceOf(byte[].class));
+        assertThat(dirSrc.getCode("Unknown"), nullValue());
         bsh.eval("class ABC {}");
         ClassSource genSrc = bcp.getClassSource("ABC");
         assertThat(genSrc, instanceOf(GeneratedClassSource.class));
@@ -228,7 +263,7 @@ public class BshClassPathTest {
     }
 
     @Test
-    public void classpath_is_archive_filename() throws Exception {
+    public void classpath_is_archive_filename() {
         assertTrue(BshClassPath.isArchiveFileName("abc.zip"));
         assertTrue(BshClassPath.isArchiveFileName("abc.jar"));
         assertTrue(BshClassPath.isArchiveFileName("abc.jmod"));
@@ -236,13 +271,70 @@ public class BshClassPathTest {
     }
 
     @Test
-    public void classpath_canon_classname() throws Exception {
+    public void classpath_canon_classname() {
         assertEquals(String.class.getName(), BshClassPath.canonicalizeClassName(""+String.class));
         assertEquals("abc.ABC", BshClassPath.canonicalizeClassName("classes.abc.ABC"));
         assertEquals("abc.ABC", BshClassPath.canonicalizeClassName("abc/ABC"));
         assertEquals("abc.ABC", BshClassPath.canonicalizeClassName("abc\\ABC"));
+        assertEquals("abc.ABC", BshClassPath.canonicalizeClassName("/abc/ABC"));
+        assertEquals("abc.ABC", BshClassPath.canonicalizeClassName("\\abc\\ABC"));
         assertEquals("abc.ABC", BshClassPath.canonicalizeClassName("abc/ABC.class"));
         assertEquals("abc.ABC", BshClassPath.canonicalizeClassName("modules/some.mod/abc.ABC"));
+    }
+
+    @Test
+    public void classpath_name_completion_includes_unq_names() throws ClassPathException {
+        final Interpreter bsh = new Interpreter();
+        ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
+
+        BshClassPath bcp =  cm.getClassPath();
+        assertTrue(bcp.isNameCompletionIncludesUnqNames());
+        assertThat(Arrays.asList(bcp.getAllNames()), hasItem("BSHCastExpression"));
+        bcp.setNameCompletionIncludesUnqNames(false);
+        assertFalse(bcp.isNameCompletionIncludesUnqNames());
+        assertThat(Arrays.asList(bcp.getAllNames()), not(hasItem("BSHCastExpression")));
+        bcp.setNameCompletionIncludesUnqNames(true);
+    }
+
+    @Test
+    public void classpath_map_initialized() throws ClassPathException {
+        final Interpreter bsh = new Interpreter();
+        ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
+
+        BshClassPath bcp =  cm.getClassPath();
+        bcp.insureInitialized();
+        assertTrue(bcp.isMapsInitialized());
+        bcp.setPath(new URL[0]);
+        assertFalse(bcp.isMapsInitialized());
+        bcp.setMapsInitialized(true);
+        assertTrue(bcp.isMapsInitialized());
+    }
+
+    @Test
+    public void classpath_unq_name_table() throws ClassPathException {
+        final Interpreter bsh = new Interpreter();
+        ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
+
+        BshClassPath bcp =  cm.getClassPath();
+
+        assertThat(bcp.getUnqNameTable(), nullValue());
+        bcp.getClassNameByUnqName("");
+        assertThat(bcp.getUnqNameTable(), notNullValue());
+        bcp.setUnqNameTable(null);
+        assertThat(bcp.getUnqNameTable(), nullValue());
+    }
+
+    @Test
+    public void classpath_name_source_listeners() throws ClassPathException {
+        final Interpreter bsh = new Interpreter();
+        ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
+
+        BshClassPath bcp =  cm.getClassPath();
+        assertThat(bcp.getNameSourceListeners(), nullValue());
+        bcp.addNameSourceListener(new NameSourceListener());
+        assertThat(bcp.getNameSourceListeners(), notNullValue());
+        bcp.setNameSourceListeners(null);
+        assertThat(bcp.getNameSourceListeners(), nullValue());
     }
 }
 
