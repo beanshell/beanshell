@@ -32,12 +32,12 @@ import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import bsh.BshClassManager;
@@ -122,9 +122,8 @@ public class ClassManagerImpl extends BshClassManager
     private BshClassPath fullClassPath;
 
     // ClassPath Change listeners
-    private ConcurrentHashMap.KeySetView<WeakReference<Listener>,Boolean> listeners
-        = ConcurrentHashMap.newKeySet();
-    private ReferenceQueue<Listener> refQueue = new ReferenceQueue<>();
+    private final Set<WeakReference<Listener>> listeners = ConcurrentHashMap.newKeySet();
+    private final ReferenceQueue<Listener> refQueue = new ReferenceQueue<>();
 
     /**
         This handles extension / modification of the base classpath
@@ -137,7 +136,7 @@ public class ClassManagerImpl extends BshClassManager
     /**
         Map by classname of loaders to use for reloaded classes
     */
-    private Map loaderMap;
+    private final Map<String, DiscreteFilesClassLoader> loaderMap = new ConcurrentHashMap<>();
 
     /**
         Used by BshClassManager singleton constructor
@@ -150,7 +149,7 @@ public class ClassManagerImpl extends BshClassManager
         @return the class or null
     */
     @Override
-    public Class classForName( String name )
+    public Class<?> classForName( String name )
     {
         // check positive cache
         Class<?> c = absoluteClassCache.get(name);
@@ -360,7 +359,7 @@ public class ClassManagerImpl extends BshClassManager
     {
         baseClassPath = new BshClassPath("baseClassPath");
         baseLoader = null;
-        loaderMap = new HashMap();
+        loaderMap.clear();
         classLoaderChanged(); // calls clearCaches() for us.
     }
 
@@ -372,7 +371,7 @@ public class ClassManagerImpl extends BshClassManager
     public void setClassPath( URL [] cp ) {
         baseClassPath.setPath( cp );
         initBaseLoader();
-        loaderMap = new HashMap();
+        loaderMap.clear();
         classLoaderChanged();
     }
 
@@ -454,10 +453,9 @@ public class ClassManagerImpl extends BshClassManager
         DiscreteFilesClassLoader.newInstance( this, map );
 
         // map those classes the loader in the overlay map
-        Iterator it = map.keySet().iterator();
+        Iterator<String> it = map.keySet().iterator();
         while ( it.hasNext() )
             loaderMap.put( it.next(), DiscreteFilesClassLoader.instance() );
-
         classLoaderChanged();
     }
 
@@ -471,7 +469,7 @@ public class ClassManagerImpl extends BshClassManager
     public void reloadPackage( String pack )
         throws ClassPathException
     {
-        Collection classes =
+        Collection<String> classes =
             baseClassPath.getClassesForPackage( pack );
 
         if ( classes == null )
@@ -483,7 +481,7 @@ public class ClassManagerImpl extends BshClassManager
         if ( classes == null )
             throw new ClassPathException("No classes found for package: "+pack);
 
-        reloadClasses( (String[])classes.toArray( new String[0] ) );
+        reloadClasses( classes.toArray( new String[classes.size()] ) );
     }
 
     /**
@@ -586,11 +584,11 @@ public class ClassManagerImpl extends BshClassManager
         @exception ClassPathException can be thrown by reloadClasses
     */
     @Override
-    public Class defineClass( String name, byte [] code )
+    public Class<?> defineClass( String name, byte [] code )
     {
         baseClassPath.setClassSource( name, new GeneratedClassSource( code ) );
         try {
-            reloadClasses( new String [] { name } );
+             reloadClasses( new String [] { name } );
         } catch ( ClassPathException e ) {
             throw new bsh.InterpreterError("defineClass: "+e, e);
         }
@@ -606,7 +604,7 @@ public class ClassManagerImpl extends BshClassManager
     */
     @Override
     protected void classLoaderChanged() {
-        List<WeakReference<Listener>> toRemove = new LinkedList<>(); // safely remove
+        List<WeakReference<Listener>> toRemove = new ArrayList<>(); // safely remove
         for (WeakReference<Listener> wr : listeners) {
             Listener l = wr.get();
             if (l == null) // garbage collected

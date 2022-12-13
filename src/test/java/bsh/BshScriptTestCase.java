@@ -25,7 +25,7 @@ import static java.lang.System.err;
 import static java.lang.System.out;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.isA;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assume.assumeFalse;
 
 import java.io.File;
@@ -56,7 +56,8 @@ public class BshScriptTestCase {
     public static final boolean _ACCESSIBILITY =
         Boolean.valueOf(System.getProperty("accessibility"));
     /** System property script */
-    public static final String _SCRIPT = System.getProperty("script");
+    public static final String _SCRIPT =
+        (null == System.getProperty("script") ? "" : System.getProperty("script"));
     /** The Constant baseDir. */
     public static final File _TEST_SCRIPTS_DIR = new File(
         "src/test/resources/test-scripts").getAbsoluteFile();
@@ -75,18 +76,13 @@ public class BshScriptTestCase {
 
     @Test
     public void testFailScript() throws Throwable {
-        try {
-            new Script("Fail.bsh").runTest();
-        } catch (final AssertionError e) {
-            assertThat("test expected to fail", e, isA(Error.class));
-            assertThat("with message", e.getMessage(),
-                    containsString("Test FAILED: Line: 11 : assert ( false )"));
-            if ( _VERBOSE )
-                System.out.println("success");
-        } catch (Throwable t) {
-            t.printStackTrace();
-            throw t;
-        }
+        Error e = assertThrows("test expected to fail", Error.class,
+                () -> new Script("Fail.bsh").runTest());
+        assertThat("with message: ", e.getMessage(),
+                containsString("Test FAILED: Line: 11 : assert ( false )"));
+
+        if ( _VERBOSE )
+            System.out.println("success");
     }
 
     /** Test suite entry method for framework.
@@ -127,7 +123,7 @@ public class BshScriptTestCase {
      * @return true, if is under scrutiny */
     private static boolean isUnderScrutiny(final TestSuite suite) {
         // test file(s) under scrutiny
-        final String trouble_maker = null == _SCRIPT ? "" : _SCRIPT;
+        final String trouble_maker = _SCRIPT;
         if (trouble_maker.isEmpty())
             return false;
         for (String f:trouble_maker.split(","))
@@ -191,9 +187,10 @@ public class BshScriptTestCase {
                 _start = System.nanoTime();
             }
 
+            Interpreter interpreter = null;
             try ( final Reader in = new InputStreamReader(
                     new FileInputStream(_file), StandardCharsets.UTF_8) ) {
-                final Interpreter interpreter = new Interpreter(in, out, err, false);
+                interpreter = new Interpreter(in, out, err, false);
                 try {
                     assumeFalse("skipping test " + getName(), SKIP_KNOWN_ISSUES
                             && KNOWN_FAILING_TESTS.contains(getName()));
@@ -223,6 +220,13 @@ public class BshScriptTestCase {
                     _skipped = false;
                 }
                 throw failed_exception;
+            } finally {
+                if (null != interpreter) {
+                    interpreter.getNameSpace().clear();
+                    interpreter = null;
+                    System.gc();
+                    Thread.sleep(1);
+                }
             }
 
             if ( _VERBOSE )
