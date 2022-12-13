@@ -899,13 +899,15 @@ class Name implements java.io.Serializable
                 "Local method invocation", callerInfo, callstack );
         }
 
-        // If defined, invoke it
-        if ( meth != null ) {
-            boolean overrideChild = !namespace.isMethod
-                    && namespace.isChildOf(meth.declaringNameSpace);
-
-            return meth.invoke( args, interpreter, callstack, callerInfo, overrideChild );
-        }
+        /*
+         * If method has been found invoke it.  Note it is important to
+         * not pass in the overrideChild flag because method invocations
+         * need to have a new namespace parented by the declaring
+         * namespace pushed on to the stack.  This is the basis for
+         * scripted objects and how closures are implemented.
+         */
+        if ( meth != null )
+           return meth.invoke( args, interpreter, callstack, callerInfo);
 
         // Look for a BeanShell command
         return namespace.invokeCommand(methodName, args, interpreter, callstack, callerInfo);

@@ -64,7 +64,11 @@ public class Namespace_Chaining_Test {
         root.eval("int foo() { return bar; }");
 
         assertEquals(42, root.eval("foo();"));
-        assertEquals(4711, child.eval("foo();"));
+        /*
+         * foo is a closure and will look up names in it's declaring namespace,
+         * not in the child namespace
+         */
+        assertEquals(42, child.eval("foo();"));
     }
 
     @Test
@@ -84,9 +88,13 @@ public class Namespace_Chaining_Test {
         // Method foo declared in parent namespace returns bar
         root.eval("int foo() { return bar; }");
 
+        /*
+         * foo is a closure and will look up names in it's declaring namespace,
+         * not in the child namespaces
+         */
         assertEquals(42, root.eval("foo();"));
-        assertEquals(4711, child.eval("foo();"));
-        assertEquals(5, child2.eval("foo();"));
+        assertEquals(42, child.eval("foo();"));
+        assertEquals(42, child2.eval("foo();"));
     }
 
     @Test

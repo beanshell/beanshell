@@ -1,0 +1,39 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+/*
+ * Test that variable lookups in scripted objects work correctly
+ * Related to #659
+ */
+
+test1(String c) {
+   return this;
+}
+
+container() {
+   ylds = new ArrayList();
+   return this;
+}
+
+Object c = null;
+{
+   {
+      c = container();
+   }
+   c.ylds.add(test1("hello"));
+}
+assert("hello".equals(c.ylds.get(0).c));
+Object d = null;
+{
+   {
+      d = container();
+   }
+   d.ylds.add(test1("goodbye"));
+}
+assert(c.ylds.size() == 1);
+assert("hello".equals(c.ylds.get(0).c));
+assert(d.ylds.size() == 1);
+assert("goodbye".equals(d.ylds.get(0).c));
+
+complete();
