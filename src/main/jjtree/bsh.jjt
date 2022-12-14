@@ -775,62 +775,164 @@ int AssignmentOperator() :
     }
 }
 
+/*
+ * Here follows the productions for Java expressions.
+ * JavaCC implements operator precedence using the cascade of
+ * productions.  It is important to maintain these as separate
+ * independent productions in the reverse sequence of the order of
+ * precedence. Do not flatten these in to fewer productions in an
+ * attempt to make the parser go faster because:
+ * - it will lose all the BEMDAS/PEMDAS order of operations.
+ * - it probably wont go faster.  Don't forget JavaCC will emit java
+ * code that still has all of the conditional tests.  All flattening
+ * will do is rearrange them in to a different order.  The java code 
+ * will be compiled, jitted and inlined by c2 so you wont even know
+ * what the performance impact is unless you do micro benchmarks.
+ */
 void ConditionalExpression() :
-{ Token t; }
+{ }
 {
-  RelationalExpression() (  "?" ConditionalExpression() ":" ConditionalExpression() #TernaryExpression(3)
-  |
-  ( (t="||" | t="@or" | t="&&" | t="@and") RelationalExpression()
-        { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
-  )
+  ConditionalOrExpression() [ <HOOK> Expression() <COLON> ConditionalExpression()
+    #TernaryExpression(3) ]
+}
+
+void ConditionalOrExpression() :
+{ Token t=null; }
+{
+  ConditionalAndExpression()
+  ( ( t = <BOOL_OR> | t = <BOOL_ORX> )
+    ConditionalAndExpression()
+    { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
+}
+
+void ConditionalAndExpression() :
+{ Token t=null; }
+{
+  InclusiveOrExpression()
+  ( ( t = <BOOL_AND> | t = <BOOL_ANDX> )
+    InclusiveOrExpression()
+    { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
+}
+
+void InclusiveOrExpression() :
+{ Token t=null; }
+{
+  ExclusiveOrExpression()
+  ( ( t = <BIT_OR> | t = <BIT_ORX> )
+    ExclusiveOrExpression()
+    { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
+}
+
+void ExclusiveOrExpression() :
+{ Token t=null; }
+{
+   AndExpression()
+      ( ( t = <XOR> | t = <XORX> )
+        AndExpression()
+    { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
+}
+
+void AndExpression() :
+{ Token t=null; }
+{
+   EqualityExpression()
+  (( t = <BIT_AND> | t = <BIT_ANDX> )
+    EqualityExpression()
+    { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
+}
+
+void EqualityExpression() :
+{ Token t = null; }
+{
+  InstanceOfExpression()
+     (LOOKAHEAD(2) ( t = <EQ> | t= <NE> )
+      InstanceOfExpression()
+    { jjtThis.kind = t.kind; } #BinaryExpression(2)
+  )*
+}
+
+void InstanceOfExpression() :
+{ Token t = null; }
+{
+  RelationalExpression()
+  [t = <INSTANCEOF> Type() { jjtThis.kind = t.kind; } #BinaryExpression(2) ]
 }
 
 void RelationalExpression() :
-{ Token t; }
+{ Token t = null; }
 {
-  BinaryExpression() (
-    t="instanceof" Type() { jjtThis.kind = t.kind; } #BinaryExpression(2)
-    |
-    ((t="==" | t="!=" | t="<" | t="@lt" | t=">" | t="@gt" | t="<="
-            | t="@lteq" | t=">=" | t="@gteq") BinaryExpression()
-        { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
-  )
+  ShiftExpression()
+  (( t = <LT> | t = <LTX> | t = <GT> | t = <GTX> |
+      t = <LE> | t = <LEX> | t = <GE> | t = <GEX> )
+  ShiftExpression()
+  { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
 }
 
-void BinaryExpression() :
-{ Token t; }
+void ShiftExpression() :
+{ Token t = null; }
 {
-  UnaryExpression() ( (t="+" | t="-" | t="*" | t="/" | t="%" | t="@mod"
-        | t="**" | t="@pow" | t="<<" | t="@left_shift" | t=">>"
-        | t="@right_shift" | t=">>>" | t="@right_unsigned_shift" | t="|"
-        | t="@bitwise_or" | t="^" | t="@bitwise_xor" | t="&"
-        | t="@bitwise_and")
-    UnaryExpression() { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
+  AdditiveExpression()
+  (( t = <LSHIFT> | t = <LSHIFTX> | t = <RSIGNEDSHIFT> |
+      t = <RSIGNEDSHIFTX> | t = <RUNSIGNEDSHIFT> | t = <RUNSIGNEDSHIFTX> )
+  AdditiveExpression()
+  { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
+}
+
+void AdditiveExpression() :
+{ Token t = null; }
+{
+  MultiplicativeExpression()
+   ( ( t = <PLUS> | t = <MINUS> )
+  MultiplicativeExpression()
+    { jjtThis.kind = t.kind; } #BinaryExpression(2)  )*
+}
+
+void MultiplicativeExpression() :
+{ Token t = null; }
+{
+  PowerExpression()
+     (( t = <STAR> | t = <SLASH> )
+      PowerExpression()
+    { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
+}
+
+void PowerExpression() :
+{ Token t = null; }
+{
+  UnaryExpression()
+     (( t = <MOD> | t = <MODX> |
+        t = <POWER> | t = <POWERX> )
+      UnaryExpression()
+    { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
 }
 
 void UnaryExpression() :
-{ Token t; }
+{ Token t = null; }
 {
-  (t="+" | t="-" | t="~" | t="!") UnaryExpression()
+   // prefix sign
+  ( t = <PLUS> | t = <MINUS> | t = <TILDE> | t = <BANG> ) UnaryExpression()
     { jjtThis.kind = t.kind; } #UnaryExpression(1)
 |
-  (t="++" | t="--") PrimaryExpression()
+  // prefix incr/decr
+  (t = <INCR> | t = <DECR>) PrimaryExpression()
     { jjtThis.kind = t.kind; } #UnaryExpression(1)
 |
+  // cast
   LOOKAHEAD( CastLookahead() ) CastExpression()
 |
-  PrimaryExpression() [ (t="++" | t="--")
+  // postfix incr/decr
+  PrimaryExpression() [ (t = <INCR> | t = <DECR>)
     { jjtThis.kind = t.kind; jjtThis.postfix = true; } #UnaryExpression(1) ]
 }
 
-// This production is to determine lookahead only.
-void CastLookahead() :
-{ }
+// This production only looks ahead to see if the next matches a cast.
+void CastLookahead() : { }
 {
-  "(" ( PrimitiveType()
-  | AmbiguousName() ( "[" | ")"
-    ("~" | "!" | "(" | <IDENTIFIER> | "new" | Literal() | ArrayDimensions()))
-  )
+  LOOKAHEAD(2) <LPAREN> PrimitiveType()
+|
+  LOOKAHEAD( <LPAREN> AmbiguousName() <LBRACKET> ) <LPAREN> AmbiguousName() <LBRACKET> <RBRACKET>
+|
+ <LPAREN> AmbiguousName() <RPAREN> ( <TILDE> | <BANG> | <LPAREN> | <IDENTIFIER> | <NEW> | Literal() | ArrayDimensions() )
 }
 
 void CastExpression() #CastExpression :
