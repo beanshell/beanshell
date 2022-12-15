@@ -144,7 +144,7 @@ public class BshClassPathTest {
     public void classpath_get_jar_source() throws IOException, ClassPathException {
         final Interpreter bsh = new Interpreter();
         File jarFile = bsh.pathToFile("src/test/resources/test-scripts/Data/addclass.jar");
-        URL jarURL = new URL("jar:file:"+jarFile.toString()+"!/");
+        URL jarURL = new URL("jar:"+jarFile.toURI().toURL()+"!/");
         ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
 
         BshClassPath bcp =  cm.getClassPath();
