@@ -28,11 +28,11 @@ import org.junit.runner.RunWith;
 import static bsh.Capabilities.haveAccessibility;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static bsh.TestUtil.eval;
 
@@ -117,6 +117,7 @@ public class SourceForgeIssuesTest {
             Interpreter.DEBUG.set(false);
             assertEquals("null", ret.trim());
             assertTrue(baOut.toString().contains("args[0] = null type"));
+            bsh.getNameSpace().clear();
         }
     }
 
@@ -245,16 +246,17 @@ public class SourceForgeIssuesTest {
             assertTrue(e.getTarget().getClass() == RuntimeException.class);
         }
         assertEquals("foobar", eval("String a=null;", "try {", " a = \"foobar\";", "} catch (Exception e) {", "  throw e;", "}", "return a;"));
-        String script = "boolean fieldBool = false;\n" +
+        String script = "import org.junit.Assert;\n" +
+                "boolean fieldBool = false;\n" +
                 "int fieldInt = 0;\n" +
                 "Boolean fieldBool2 = false;\n" +
                 "void run() {\n" +
                 "fieldBool = ! fieldBool;\n" +
                 "fieldBool2 = ! fieldBool2;\n" +
                 "fieldInt++;\n" +
-                "//System.out.println(\"fieldBool: \"+fieldBool);\n" +
-                "//System.out.println(\"fieldBool2: \"+fieldBool2);\n" +
-                "//System.out.println(\"fieldInt: \"+fieldInt);\n" +
+                "Assert.assertTrue(fieldBool);\n" +
+                "Assert.assertTrue(fieldBool2);\n" +
+                "Assert.assertTrue(fieldInt == 1);\n" +
                 "}\n";
         Interpreter bsh = new Interpreter();
         bsh.eval(script);
