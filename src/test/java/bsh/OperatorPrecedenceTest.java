@@ -83,7 +83,7 @@ public class OperatorPrecedenceTest {
 
        // mult/mod
        assertEquals("2*5%3", i.eval("2*5%3"), (int)(2*5%3));
-      
+
        // mod/power
        assertEquals("5%3**4", i.eval("5%3**4"), (int)(5%Math.pow(3,4)));
        assertEquals("5**3%4", i.eval("5**3%4"), (int)(Math.pow(5,3)%4));
@@ -98,4 +98,3 @@ public class OperatorPrecedenceTest {
                     true && false ? true : true && false ? true : false);
     }
 }
-
