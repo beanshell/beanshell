@@ -24,12 +24,12 @@ import static bsh.TestUtil.eval;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.Callable;
 import java.util.function.IntSupplier;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 
@@ -102,6 +102,7 @@ public class ClassGeneratorTest {
         final Interpreter interpreter = new Interpreter();
         interpreter.setStrictJava(true);
         interpreter.eval("class Test { abstract void x(); }");
+        interpreter.getNameSpace().clear();
     }
 
     @Test

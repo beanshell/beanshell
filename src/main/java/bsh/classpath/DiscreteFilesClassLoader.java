@@ -42,13 +42,16 @@ public class DiscreteFilesClassLoader extends BshClassLoader
     */
     ClassSourceMap map;
 
-    public static class ClassSourceMap extends HashMap
+    public static class ClassSourceMap extends HashMap<String, ClassSource>
     {
-        public void put( String name, ClassSource source ) {
-            super.put( name, source );
+        private static final long serialVersionUID = 1L;
+        @Override
+        public ClassSource put( String name, ClassSource source ) {
+            return super.put( name, source );
         }
-        public ClassSource get( String name ) {
-            return (ClassSource)super.get( name );
+        @Override
+        public ClassSource get( Object name ) {
+            return super.get( name );
         }
     }
 

@@ -6,12 +6,12 @@ import org.junit.runner.RunWith;
 
 import static bsh.TestUtil.eval;
 import static bsh.TestUtil.script;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.arrayContaining;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Rule;
@@ -101,6 +101,7 @@ public class EnumTest {
         assertThat("array containing VAL1, VAL2, VAL3, VAL4", obj, arrayContaining(
                 bsh.eval("E4.VAL1"), bsh.eval("E4.VAL2"),
                 bsh.eval("E4.VAL3"), bsh.eval("E4.VAL4")));
+        bsh.getNameSpace().clear();
     }
 
     @Test
@@ -117,6 +118,7 @@ public class EnumTest {
         assertThat("array containing VAL1, VAL2, VAL3, VAL4", obj, arrayContaining(
                 bsh.eval("E4.VAL1"), bsh.eval("E4.VAL2"),
                 bsh.eval("E4.VAL3"), bsh.eval("E4.VAL4")));
+        bsh.getNameSpace().clear();
     }
 
     @Test
@@ -133,6 +135,7 @@ public class EnumTest {
         assertThat("array containing VAL1, VAL2, VAL3, VAL4", obj, arrayContaining(
                 bsh.eval("E4.VAL1"), bsh.eval("E4.VAL2"),
                 bsh.eval("E4.VAL3"), bsh.eval("E4.VAL4")));
+        bsh.getNameSpace().clear();
     }
 
     @Test
@@ -149,6 +152,7 @@ public class EnumTest {
         assertThat("array containing VAL1, VAL2, VAL3, VAL4", obj, arrayContaining(
                 bsh.eval("E4.VAL1"), bsh.eval("E4.VAL2"),
                 bsh.eval("E4.VAL3"), bsh.eval("E4.VAL4")));
+        bsh.getNameSpace().clear();
     }
 
     @Test
@@ -259,6 +263,7 @@ public class EnumTest {
         assertThat("val1 switched", bsh.eval("switchit(Name.VAL1);"), equalTo("val1"));
         assertThat("default switched null", bsh.eval("switchit(null);"), equalTo("default"));
         assertThat("default switched string", bsh.eval("switchit('VAL1');"), equalTo("default"));
+        bsh.getNameSpace().clear();
     }
 
     @Test
@@ -341,6 +346,7 @@ public class EnumTest {
         assertThat("enum args VAL2 constructor set value i", bsh.eval("Name.VAL2.i"), equalTo(2));
         assertThat("enum args VAL2 constructor set value d", bsh.eval("Name.VAL2.d"), equalTo(2.0));
         assertThat("enum args VAL2 constructor set value s", bsh.eval("Name.VAL2.s"), equalTo("v2"));
+        bsh.getNameSpace().clear();
     }
 
     @Test
@@ -400,6 +406,7 @@ public class EnumTest {
         ));
         assertThat("enum block variable VAL2", bsh.eval("Name.VAL2.val"), equalTo("val2"));
         assertThat("enum block variable VAL1", bsh.eval("Name.VAL1.val"), equalTo("val1"));
+        bsh.getNameSpace().clear();
     }
 
     @Test
@@ -417,6 +424,7 @@ public class EnumTest {
         ));
         assertThat("enum block variable VAL2", bsh.eval("Name.VAL2.get()"), equalTo("val2"));
         assertThat("enum block variable VAL1", bsh.eval("Name.VAL1.get()"), equalTo("val1"));
+        bsh.getNameSpace().clear();
     }
 
     @Test
@@ -435,6 +443,7 @@ public class EnumTest {
         ));
         assertThat("enum block variable VAL2", bsh.eval("Name.VAL2.get()"), equalTo("val2"));
         assertThat("enum block variable VAL1", bsh.eval("Name.VAL1.get()"), equalTo("val1"));
+        bsh.getNameSpace().clear();
     }
 
     @Test
@@ -456,6 +465,7 @@ public class EnumTest {
         ));
         assertThat("enum block variable VAL2", bsh.eval("Name.VAL2.get()"), equalTo("2val2"));
         assertThat("enum block variable VAL1", bsh.eval("Name.VAL1.get()"), equalTo("1val1"));
+        bsh.getNameSpace().clear();
     }
 
 }

@@ -5,10 +5,10 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import static bsh.TestUtil.eval;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 import org.junit.Rule;
 
