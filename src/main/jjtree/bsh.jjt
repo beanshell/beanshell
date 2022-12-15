@@ -776,18 +776,13 @@ int AssignmentOperator() :
 }
 
 /*
- * Here follows the productions for Java expressions.
+ * Here follows the productions for Java operators.
  * JavaCC implements operator precedence using the cascade of
  * productions.  It is important to maintain these as separate
  * independent productions in the reverse sequence of the order of
  * precedence. Do not flatten these in to fewer productions in an
- * attempt to make the parser go faster because:
- * - it will lose all the BEMDAS/PEMDAS order of operations.
- * - it probably wont go faster.  Don't forget JavaCC will emit java
- * code that still has all of the conditional tests.  All flattening
- * will do is rearrange them in to a different order.  The java code 
- * will be compiled, jitted and inlined by c2 so you wont even know
- * what the performance impact is unless you do micro benchmarks.
+ * attempt to make the parser go faster because it will lose all
+ * the BEMDAS/PEMDAS order of operations.
  */
 void ConditionalExpression() :
 { }
@@ -891,7 +886,7 @@ void MultiplicativeExpression() :
 { Token t = null; }
 {
   PowerExpression()
-     (( t = <STAR> | t = <SLASH> )
+     (( t = <STAR> | t = <SLASH> | t = <MOD> | t = <MODX> )
       PowerExpression()
     { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
 }
@@ -900,8 +895,7 @@ void PowerExpression() :
 { Token t = null; }
 {
   UnaryExpression()
-     (( t = <MOD> | t = <MODX> |
-        t = <POWER> | t = <POWERX> )
+     (( t = <POWER> | t = <POWERX> )
       UnaryExpression()
     { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
 }
