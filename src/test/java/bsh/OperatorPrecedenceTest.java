@@ -91,6 +91,11 @@ public class OperatorPrecedenceTest {
        // casting
        assertEquals("(int)(5.0/2.0)", i.eval("(int)(5.0/2.0)"), (int)(5.0/2.0));
        assertEquals("(int)-(5.0/2.0)", i.eval("(int)-(5.0/2.0)"), (int)-(5.0/2.0));
+
+       // Trinary
+       assertEquals("true && false ? true : true && false ? true : false;",
+                    i.eval("true && false ? true : true && false ? true : false;"),
+                    true && false ? true : true && false ? true : false);
     }
 }
 
