@@ -65,6 +65,12 @@ public class ClassWriter extends ClassVisitor {
    */
   public static final int COMPUTE_FRAMES = 2;
 
+  /**
+   * The flags passed to the constructor. Must be zero or more of {@link #COMPUTE_MAXS} and {@link
+   * #COMPUTE_FRAMES}.
+   */
+  private final int flags;
+
   // Note: fields are ordered as in the ClassFile structure, and those related to attributes are
   // ordered as in Section 4.7 of the JVMS.
 
@@ -79,8 +85,8 @@ public class ClassWriter extends ClassVisitor {
 
   /**
    * The access_flags field of the JVMS ClassFile structure. This field can contain ASM specific
-   * access flags, such as {@link Opcodes#ACC_DEPRECATED}, which are removed when generating the
-   * ClassFile structure.
+   * access flags, such as {@link Opcodes#ACC_DEPRECATED} or {@link Opcodes#ACC_RECORD}, which are
+   * removed when generating the ClassFile structure.
    */
   private int accessFlags;
 
@@ -123,7 +129,7 @@ public class ClassWriter extends ClassVisitor {
   /** The number_of_classes field of the InnerClasses attribute, or 0. */
   private int numberOfInnerClasses;
 
-  /** The 'classes' array of the InnerClasses attribute, or <tt>null</tt>. */
+  /** The 'classes' array of the InnerClasses attribute, or {@literal null}. */
   private ByteVector innerClasses;
 
   /** The class_index field of the EnclosingMethod attribute, or 0. */
@@ -138,12 +144,27 @@ public class ClassWriter extends ClassVisitor {
   /** The source_file_index field of the SourceFile attribute, or 0. */
   private int sourceFileIndex;
 
-  /** The debug_extension field of the SourceDebugExtension attribute, or <tt>null</tt>. */
+  /** The debug_extension field of the SourceDebugExtension attribute, or {@literal null}. */
   private ByteVector debugExtension;
+
+  /** The host_class_index field of the NestHost attribute, or 0. */
+  private int nestHostClassIndex;
+
+  /** The number_of_classes field of the NestMembers attribute, or 0. */
+  private int numberOfNestMemberClasses;
+
+  /** The 'classes' array of the NestMembers attribute, or {@literal null}. */
+  private ByteVector nestMemberClasses;
+
+  /** The number_of_classes field of the PermittedSubclasses attribute, or 0. */
+  private int numberOfPermittedSubclasses;
+
+  /** The 'classes' array of the PermittedSubclasses attribute, or {@literal null}. */
+  private ByteVector permittedSubclasses;
 
   /**
    * The first non standard attribute of this class. The next ones can be accessed with the {@link
-   * Attribute#nextAttribute} field. May be <tt>null</tt>.
+   * Attribute#nextAttribute} field. May be {@literal null}.
    *
    * <p><b>WARNING</b>: this list stores the attributes in the <i>reverse</i> order of their visit.
    * firstAttribute is actually the last attribute visited in {@link #visitAttribute}. The {@link
@@ -179,21 +200,40 @@ public class ClassWriter extends ClassVisitor {
    *       from a {@link ClassWriter} (and not from any other {@link ClassVisitor} instance).
    * </ul>
    *
-   * @param flags option flags that can be used to modify the default behavior of this class.Must be
-   *     zero or more of {@link #COMPUTE_MAXS} and {@link #COMPUTE_FRAMES}. <i>These option flags do
-   *     not affect methods that are copied as is in the new class. This means that neither the
+   * @param classReader the {@link ClassReader} used to read the original class. It will be used to
+   *     copy the entire constant pool and bootstrap methods from the original class and also to
+   *     copy other fragments of original bytecode where applicable.
+   * @param flags option flags that can be used to modify the default behavior of this class. Must
+   *     be zero or more of {@link #COMPUTE_MAXS} and {@link #COMPUTE_FRAMES}. <i>These option flags
+   *     do not affect methods that are copied as is in the new class. This means that neither the
    *     maximum stack size nor the stack frames will be computed for these methods</i>.
    */
   public ClassWriter(final int flags) {
-    super(Opcodes.ASM6);
+    super(/* latest api = */ Opcodes.ASM9);
+    this.flags = flags;
     symbolTable = new SymbolTable(this);
     if ((flags & COMPUTE_FRAMES) != 0) {
-      this.compute = MethodWriter.COMPUTE_ALL_FRAMES;
+      compute = MethodWriter.COMPUTE_ALL_FRAMES;
     } else if ((flags & COMPUTE_MAXS) != 0) {
-      this.compute = MethodWriter.COMPUTE_MAX_STACK_AND_LOCAL;
+      compute = MethodWriter.COMPUTE_MAX_STACK_AND_LOCAL;
     } else {
-      this.compute = MethodWriter.COMPUTE_NOTHING;
+      compute = MethodWriter.COMPUTE_NOTHING;
     }
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // Accessors
+  // -----------------------------------------------------------------------------------------------
+
+  /**
+   * Returns true if all the given flags were passed to the constructor.
+   *
+   * @param flags some option flags. Must be zero or more of {@link #COMPUTE_MAXS} and {@link
+   *     #COMPUTE_FRAMES}.
+   * @return true if all the given flags, or more, were passed to the constructor.
+   */
+  public boolean hasFlags(final int flags) {
+    return (this.flags & flags) == flags;
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -233,8 +273,13 @@ public class ClassWriter extends ClassVisitor {
       sourceFileIndex = symbolTable.addConstantUtf8(file);
     }
     if (debug != null) {
-      debugExtension = new ByteVector().encodeUTF8(debug, 0, Integer.MAX_VALUE);
+      debugExtension = new ByteVector().encodeUtf8(debug, 0, Integer.MAX_VALUE);
     }
+  }
+
+  @Override
+  public final void visitNestHost(final String nestHost) {
+    nestHostClassIndex = symbolTable.addConstantClass(nestHost).index;
   }
 
   @Override
@@ -251,6 +296,24 @@ public class ClassWriter extends ClassVisitor {
     // Store the attributes in the <i>reverse</i> order of their visit by this method.
     attribute.nextAttribute = firstAttribute;
     firstAttribute = attribute;
+  }
+
+  @Override
+  public final void visitNestMember(final String nestMember) {
+    if (nestMemberClasses == null) {
+      nestMemberClasses = new ByteVector();
+    }
+    ++numberOfNestMemberClasses;
+    nestMemberClasses.putShort(symbolTable.addConstantClass(nestMember).index);
+  }
+
+  @Override
+  public final void visitPermittedSubclass(final String permittedSubclass) {
+    if (permittedSubclasses == null) {
+      permittedSubclasses = new ByteVector();
+    }
+    ++numberOfPermittedSubclasses;
+    permittedSubclasses.putShort(symbolTable.addConstantClass(permittedSubclass).index);
   }
 
   @Override
@@ -273,10 +336,9 @@ public class ClassWriter extends ClassVisitor {
       innerClasses.putShort(innerName == null ? 0 : symbolTable.addConstantUtf8(innerName));
       innerClasses.putShort(access);
       nameSymbol.info = numberOfInnerClasses;
-    } else {
-      // Compare the inner classes entry nameSymbol.info - 1 with the arguments of this method and
-      // throw an exception if there is a difference?
     }
+    // Else, compare the inner classes entry nameSymbol.info - 1 with the arguments of this method
+    // and throw an exception if there is a difference?
   }
 
   @Override
@@ -326,6 +388,8 @@ public class ClassWriter extends ClassVisitor {
    * Returns the content of the class file that was built by this ClassWriter.
    *
    * @return the binary content of the JVMS ClassFile structure that was built by this ClassWriter.
+   * @throws ClassTooLargeException if the constant pool of the class is too large.
+   * @throws MethodTooLargeException if the Code attribute of a method is too large.
    */
   public byte[] toByteArray() {
     // First step: compute the size in bytes of the ClassFile structure.
@@ -347,6 +411,7 @@ public class ClassWriter extends ClassVisitor {
       size += methodWriter.computeMethodInfoSize();
       methodWriter = (MethodWriter) methodWriter.mv;
     }
+
     // For ease of reference, we use here the same attribute order as in Section 4.7 of the JVMS.
     int attributesCount = 0;
     if (innerClasses != null) {
@@ -388,6 +453,21 @@ public class ClassWriter extends ClassVisitor {
       ++attributesCount;
       size += symbolTable.computeBootstrapMethodsSize();
     }
+    if (nestHostClassIndex != 0) {
+      ++attributesCount;
+      size += 8;
+      symbolTable.addConstantUtf8(Constants.NEST_HOST);
+    }
+    if (nestMemberClasses != null) {
+      ++attributesCount;
+      size += 8 + nestMemberClasses.length;
+      symbolTable.addConstantUtf8(Constants.NEST_MEMBERS);
+    }
+    if (permittedSubclasses != null) {
+      ++attributesCount;
+      size += 8 + permittedSubclasses.length;
+      symbolTable.addConstantUtf8(Constants.PERMITTED_SUBCLASSES);
+    }
     if (firstAttribute != null) {
       attributesCount += firstAttribute.getAttributeCount();
       size += firstAttribute.computeAttributesSize(symbolTable);
@@ -395,8 +475,9 @@ public class ClassWriter extends ClassVisitor {
     // IMPORTANT: this must be the last part of the ClassFile size computation, because the previous
     // statements can add attribute names to the constant pool, thereby changing its size!
     size += symbolTable.getConstantPoolLength();
-    if (symbolTable.getConstantPoolCount() > 0xFFFF) {
-      throw new IndexOutOfBoundsException("Class file too large!");
+    int constantPoolCount = symbolTable.getConstantPoolCount();
+    if (constantPoolCount > 0xFFFF) {
+      throw new ClassTooLargeException(symbolTable.getClassName(), constantPoolCount);
     }
 
     // Second step: allocate a ByteVector of the correct size (in order to avoid any array copy in
@@ -468,6 +549,26 @@ public class ClassWriter extends ClassVisitor {
       result.putShort(symbolTable.addConstantUtf8(Constants.DEPRECATED)).putInt(0);
     }
     symbolTable.putBootstrapMethods(result);
+    if (nestHostClassIndex != 0) {
+      result
+          .putShort(symbolTable.addConstantUtf8(Constants.NEST_HOST))
+          .putInt(2)
+          .putShort(nestHostClassIndex);
+    }
+    if (nestMemberClasses != null) {
+      result
+          .putShort(symbolTable.addConstantUtf8(Constants.NEST_MEMBERS))
+          .putInt(nestMemberClasses.length + 2)
+          .putShort(numberOfNestMemberClasses)
+          .putByteArray(nestMemberClasses.data, 0, nestMemberClasses.length);
+    }
+    if (permittedSubclasses != null) {
+      result
+          .putShort(symbolTable.addConstantUtf8(Constants.PERMITTED_SUBCLASSES))
+          .putInt(permittedSubclasses.length + 2)
+          .putShort(numberOfPermittedSubclasses)
+          .putByteArray(permittedSubclasses.data, 0, permittedSubclasses.length);
+    }
     if (firstAttribute != null) {
       firstAttribute.putAttributes(symbolTable, result);
     }
@@ -491,11 +592,16 @@ public class ClassWriter extends ClassVisitor {
    *     ones.
    */
   private byte[] replaceAsmInstructions(final byte[] classFile, final boolean hasFrames) {
-    Attribute[] attributes = getAttributePrototypes();
+    final Attribute[] attributes = getAttributePrototypes();
     firstField = null;
     lastField = null;
     firstMethod = null;
     lastMethod = null;
+    nestHostClassIndex = 0;
+    numberOfNestMemberClasses = 0;
+    nestMemberClasses = null;
+    numberOfPermittedSubclasses = 0;
+    permittedSubclasses = null;
     firstAttribute = null;
     compute = hasFrames ? MethodWriter.COMPUTE_INSERTED_FRAMES : MethodWriter.COMPUTE_NOTHING;
     return toByteArray();
@@ -547,6 +653,7 @@ public class ClassWriter extends ClassVisitor {
    * @param value the String value.
    * @return the index of a new or already existing UTF8 item.
    */
+  // DontCheck(AbbreviationAsWordInName): can't be renamed (for backward binary compatibility).
   public int newUTF8(final String value) {
     return symbolTable.addConstantUtf8(value);
   }
@@ -556,7 +663,7 @@ public class ClassWriter extends ClassVisitor {
    * constant pool already contains a similar item. <i>This method is intended for {@link Attribute}
    * sub classes, and is normally not needed by class generators or adapters.</i>
    *
-   * @param value the internal name of the class.
+   * @param value the internal name of the class (see {@link Type#getInternalName()}).
    * @return the index of a new or already existing class reference item.
    */
   public int newClass(final String value) {
@@ -608,7 +715,8 @@ public class ClassWriter extends ClassVisitor {
    *     Opcodes#H_GETSTATIC}, {@link Opcodes#H_PUTFIELD}, {@link Opcodes#H_PUTSTATIC}, {@link
    *     Opcodes#H_INVOKEVIRTUAL}, {@link Opcodes#H_INVOKESTATIC}, {@link Opcodes#H_INVOKESPECIAL},
    *     {@link Opcodes#H_NEWINVOKESPECIAL} or {@link Opcodes#H_INVOKEINTERFACE}.
-   * @param owner the internal name of the field or method owner class.
+   * @param owner the internal name of the field or method owner class (see {@link
+   *     Type#getInternalName()}).
    * @param name the name of the field or method.
    * @param descriptor the descriptor of the field or method.
    * @return the index of a new or already existing method type reference item.
@@ -630,7 +738,8 @@ public class ClassWriter extends ClassVisitor {
    *     Opcodes#H_GETSTATIC}, {@link Opcodes#H_PUTFIELD}, {@link Opcodes#H_PUTSTATIC}, {@link
    *     Opcodes#H_INVOKEVIRTUAL}, {@link Opcodes#H_INVOKESTATIC}, {@link Opcodes#H_INVOKESPECIAL},
    *     {@link Opcodes#H_NEWINVOKESPECIAL} or {@link Opcodes#H_INVOKEINTERFACE}.
-   * @param owner the internal name of the field or method owner class.
+   * @param owner the internal name of the field or method owner class (see {@link
+   *     Type#getInternalName()}).
    * @param name the name of the field or method.
    * @param descriptor the descriptor of the field or method.
    * @param isInterface true if the owner is an interface.
@@ -643,6 +752,27 @@ public class ClassWriter extends ClassVisitor {
       final String descriptor,
       final boolean isInterface) {
     return symbolTable.addConstantMethodHandle(tag, owner, name, descriptor, isInterface).index;
+  }
+
+  /**
+   * Adds a dynamic constant reference to the constant pool of the class being build. Does nothing
+   * if the constant pool already contains a similar item. <i>This method is intended for {@link
+   * Attribute} sub classes, and is normally not needed by class generators or adapters.</i>
+   *
+   * @param name name of the invoked method.
+   * @param descriptor field descriptor of the constant type.
+   * @param bootstrapMethodHandle the bootstrap method.
+   * @param bootstrapMethodArguments the bootstrap method constant arguments.
+   * @return the index of a new or already existing dynamic constant reference item.
+   */
+  public int newConstantDynamic(
+      final String name,
+      final String descriptor,
+      final Handle bootstrapMethodHandle,
+      final Object... bootstrapMethodArguments) {
+    return symbolTable.addConstantDynamic(
+            name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments)
+        .index;
   }
 
   /**
@@ -671,7 +801,7 @@ public class ClassWriter extends ClassVisitor {
    * constant pool already contains a similar item. <i>This method is intended for {@link Attribute}
    * sub classes, and is normally not needed by class generators or adapters.</i>
    *
-   * @param owner the internal name of the field's owner class.
+   * @param owner the internal name of the field's owner class (see {@link Type#getInternalName()}).
    * @param name the field's name.
    * @param descriptor the field's descriptor.
    * @return the index of a new or already existing field reference item.
@@ -685,10 +815,11 @@ public class ClassWriter extends ClassVisitor {
    * constant pool already contains a similar item. <i>This method is intended for {@link Attribute}
    * sub classes, and is normally not needed by class generators or adapters.</i>
    *
-   * @param owner the internal name of the method's owner class.
+   * @param owner the internal name of the method's owner class (see {@link
+   *     Type#getInternalName()}).
    * @param name the method's name.
    * @param descriptor the method's descriptor.
-   * @param isInterface <tt>true</tt> if <tt>owner</tt> is an interface.
+   * @param isInterface {@literal true} if {@code owner} is an interface.
    * @return the index of a new or already existing method reference item.
    */
   public int newMethod(
@@ -721,22 +852,23 @@ public class ClassWriter extends ClassVisitor {
    * currently being generated by this ClassWriter, which can of course not be loaded since it is
    * under construction.
    *
-   * @param type1 the internal name of a class.
-   * @param type2 the internal name of another class.
-   * @return the internal name of the common super class of the two given classes.
+   * @param type1 the internal name of a class (see {@link Type#getInternalName()}).
+   * @param type2 the internal name of another class (see {@link Type#getInternalName()}).
+   * @return the internal name of the common super class of the two given classes (see {@link
+   *     Type#getInternalName()}).
    */
   protected String getCommonSuperClass(final String type1, final String type2) {
-    ClassLoader classLoader = getClass().getClassLoader();
+    ClassLoader classLoader = getClassLoader();
     Class<?> class1;
     try {
       class1 = Class.forName(type1.replace('/', '.'), false, classLoader);
-    } catch (Exception e) {
+    } catch (ClassNotFoundException e) {
       throw new TypeNotPresentException(type1, e);
     }
     Class<?> class2;
     try {
       class2 = Class.forName(type2.replace('/', '.'), false, classLoader);
-    } catch (Exception e) {
+    } catch (ClassNotFoundException e) {
       throw new TypeNotPresentException(type2, e);
     }
     if (class1.isAssignableFrom(class2)) {
@@ -753,5 +885,16 @@ public class ClassWriter extends ClassVisitor {
       } while (!class1.isAssignableFrom(class2));
       return class1.getName().replace('.', '/');
     }
+  }
+
+  /**
+   * Returns the {@link ClassLoader} to be used by the default implementation of {@link
+   * #getCommonSuperClass(String, String)}, that of this {@link ClassWriter}'s runtime type by
+   * default.
+   *
+   * @return ClassLoader
+   */
+  protected ClassLoader getClassLoader() {
+    return getClass().getClassLoader();
   }
 }
