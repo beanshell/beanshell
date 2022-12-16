@@ -1,0 +1,43 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// Test for #662
+enum Level {HIGH, MEDIUM, LOW};
+
+Level level = Level.HIGH;
+assertThat("variable type", level, equalTo(Level.HIGH));
+
+Level getLevel(Level level) {
+    return level;
+}
+assertThat("function return and parameter", getLevel(Level.LOW), equalTo(Level.LOW));
+
+class LevelClass {
+    static Level levelStatic = Level.HIGH;
+    Level levelInstance = Level.MEDIUM;
+    static Level getLevelStatic(Level level) {
+        return level;
+    }
+    Level getLevelInstance(Level level) {
+        return level;
+    }
+}
+assertThat("static class field type", LevelClass.levelStatic, equalTo(Level.HIGH));
+assertThat("static class method return and parameter", LevelClass.getLevelStatic(Level.LOW), equalTo(Level.LOW));
+levelClass = new LevelClass();
+assertThat("class instance field type", levelClass.levelInstance, equalTo(Level.MEDIUM));
+assertThat("class instance method return and parameter", levelClass.getLevelInstance(Level.LOW), equalTo(Level.LOW));
+
+interface LevelInterface {
+    static Level level = Level.HIGH;
+    static Level getLevelStatic(Level level) {
+        return level;
+    }
+}
+assertThat("static interface field type", LevelInterface.level, equalTo(Level.HIGH));
+assertThat("static interface method return and parameter", LevelInterface.getLevelStatic(Level.LOW), equalTo(Level.LOW));
+
+complete();
+
