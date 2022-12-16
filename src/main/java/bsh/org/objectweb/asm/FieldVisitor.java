@@ -29,50 +29,64 @@ package bsh.org.objectweb.asm;
 
 /**
  * A visitor to visit a Java field. The methods of this class must be called in the following order:
- * ( <tt>visitAnnotation</tt> | <tt>visitTypeAnnotation</tt> | <tt>visitAttribute</tt> )*
- * <tt>visitEnd</tt>.
+ * ( {@code visitAnnotation} | {@code visitTypeAnnotation} | {@code visitAttribute} )* {@code
+ * visitEnd}.
  *
  * @author Eric Bruneton
  */
 public abstract class FieldVisitor {
 
   /**
-   * The ASM API version implemented by this visitor. The value of this field must be one of {@link
-   * Opcodes#ASM4}, {@link Opcodes#ASM5}, {@link Opcodes#ASM6} or {@link Opcodes#ASM7_EXPERIMENTAL}.
+   * The ASM API version implemented by this visitor. The value of this field must be one of the
+   * {@code ASM}<i>x</i> values in {@link Opcodes}.
    */
   protected final int api;
 
-  /** The field visitor to which this visitor must delegate method calls. May be null. */
+  /** The field visitor to which this visitor must delegate method calls. May be {@literal null}. */
   protected FieldVisitor fv;
 
   /**
    * Constructs a new {@link FieldVisitor}.
    *
-   * @param api the ASM API version implemented by this visitor. Must be one of {@link
-   *     Opcodes#ASM4}, {@link Opcodes#ASM5}, {@link Opcodes#ASM6} or {@link
-   *     Opcodes#ASM7_EXPERIMENTAL}.
+   * @param api the ASM API version implemented by this visitor. Must be one of the {@code
+   *     ASM}<i>x</i> values in {@link Opcodes}.
    */
-  public FieldVisitor(final int api) {
+  protected FieldVisitor(final int api) {
     this(api, null);
   }
 
   /**
    * Constructs a new {@link FieldVisitor}.
    *
-   * @param api the ASM API version implemented by this visitor. Must be one of {@link
-   *     Opcodes#ASM4}, {@link Opcodes#ASM5}, {@link Opcodes#ASM6} or {@link
-   *     Opcodes#ASM7_EXPERIMENTAL}.
+   * @param api the ASM API version implemented by this visitor. Must be one of the {@code
+   *     ASM}<i>x</i> values in {@link Opcodes}.
    * @param fieldVisitor the field visitor to which this visitor must delegate method calls. May be
    *     null.
    */
-  public FieldVisitor(final int api, final FieldVisitor fieldVisitor) {
-    if (api != Opcodes.ASM6
+  protected FieldVisitor(final int api, final FieldVisitor fieldVisitor) {
+    if (api != Opcodes.ASM9
+        && api != Opcodes.ASM8
+        && api != Opcodes.ASM7
+        && api != Opcodes.ASM6
         && api != Opcodes.ASM5
-        && api != Opcodes.ASM4) {
-      throw new IllegalArgumentException();
+        && api != Opcodes.ASM4
+        && api != Opcodes.ASM10_EXPERIMENTAL) {
+      throw new IllegalArgumentException("Unsupported api " + api);
+    }
+    if (api == Opcodes.ASM10_EXPERIMENTAL) {
+      Constants.checkAsmExperimental(this);
     }
     this.api = api;
     this.fv = fieldVisitor;
+  }
+
+  /**
+   * The field visitor to which this visitor must delegate method calls. May be {@literal null}.
+   *
+   * @return the field visitor to which this visitor must delegate method calls, or {@literal null}.
+   */
+  public FieldVisitor getDelegate() {
+    return fv;
   }
 
   /**

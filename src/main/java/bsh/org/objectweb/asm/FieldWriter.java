@@ -70,7 +70,7 @@ final class FieldWriter extends FieldVisitor {
 
   /**
    * The first non standard attribute of this field. The next ones can be accessed with the {@link
-   * Attribute#nextAttribute} field. May be <tt>null</tt>.
+   * Attribute#nextAttribute} field. May be {@literal null}.
    *
    * <p><b>WARNING</b>: this list stores the attributes in the <i>reverse</i> order of their visit.
    * firstAttribute is actually the last attribute visited in {@link #visitAttribute}. The {@link
@@ -90,8 +90,8 @@ final class FieldWriter extends FieldVisitor {
    * @param access the field's access flags (see {@link Opcodes}).
    * @param name the field's name.
    * @param descriptor the field's descriptor (see {@link Type}).
-   * @param signature the field's signature. May be <tt>null</tt>.
-   * @param constantValue the field's constant value. May be <tt>null</tt>.
+   * @param signature the field's signature. May be {@literal null}.
+   * @param constantValue the field's constant value. May be {@literal null}.
    */
   FieldWriter(
       final SymbolTable symbolTable,
@@ -100,7 +100,7 @@ final class FieldWriter extends FieldVisitor {
       final String descriptor,
       final String signature,
       final Object constantValue) {
-    super(Opcodes.ASM6);
+    super(/* latest api = */ Opcodes.ASM9);
     this.symbolTable = symbolTable;
     this.accessFlags = access;
     this.nameIndex = symbolTable.addConstantUtf8(name);
@@ -148,24 +148,7 @@ final class FieldWriter extends FieldVisitor {
       symbolTable.addConstantUtf8(Constants.CONSTANT_VALUE);
       size += 8;
     }
-    // Before Java 1.5, synthetic fields are represented with a Synthetic attribute.
-    if ((accessFlags & Opcodes.ACC_SYNTHETIC) != 0
-        && symbolTable.getMajorVersion() < Opcodes.V1_5) {
-      // Synthetic attributes always use 6 bytes.
-      symbolTable.addConstantUtf8(Constants.SYNTHETIC);
-      size += 6;
-    }
-    if (signatureIndex != 0) {
-      // Signature attributes always use 8 bytes.
-      symbolTable.addConstantUtf8(Constants.SIGNATURE);
-      size += 8;
-    }
-    // ACC_DEPRECATED is ASM specific, the ClassFile format uses a Deprecated attribute instead.
-    if ((accessFlags & Opcodes.ACC_DEPRECATED) != 0) {
-      // Deprecated attributes always use 6 bytes.
-      symbolTable.addConstantUtf8(Constants.DEPRECATED);
-      size += 6;
-    }
+    size += Attribute.computeAttributesSize(symbolTable, accessFlags, signatureIndex);
     if (firstAttribute != null) {
       size += firstAttribute.computeAttributesSize(symbolTable);
     }
@@ -210,18 +193,7 @@ final class FieldWriter extends FieldVisitor {
           .putInt(2)
           .putShort(constantValueIndex);
     }
-    if ((accessFlags & Opcodes.ACC_SYNTHETIC) != 0 && useSyntheticAttribute) {
-      output.putShort(symbolTable.addConstantUtf8(Constants.SYNTHETIC)).putInt(0);
-    }
-    if (signatureIndex != 0) {
-      output
-          .putShort(symbolTable.addConstantUtf8(Constants.SIGNATURE))
-          .putInt(2)
-          .putShort(signatureIndex);
-    }
-    if ((accessFlags & Opcodes.ACC_DEPRECATED) != 0) {
-      output.putShort(symbolTable.addConstantUtf8(Constants.DEPRECATED)).putInt(0);
-    }
+    Attribute.putAttributes(symbolTable, accessFlags, signatureIndex, output);
     if (firstAttribute != null) {
       firstAttribute.putAttributes(symbolTable, output);
     }

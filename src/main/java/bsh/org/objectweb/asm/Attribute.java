@@ -28,12 +28,12 @@
 package bsh.org.objectweb.asm;
 
 /**
- * A non standard class, field, method or code attribute, as defined in the Java Virtual Machine
+ * A non standard class, field, method or Code attribute, as defined in the Java Virtual Machine
  * Specification (JVMS).
  *
- * @see <a href="https://docs.oracle.com/javase/specs/jvms/se9/html/jvms-4.html#jvms-4.7">JVMS
+ * @see <a href= "https://docs.oracle.com/javase/specs/jvms/se9/html/jvms-4.html#jvms-4.7">JVMS
  *     4.7</a>
- * @see <a href="https://docs.oracle.com/javase/specs/jvms/se9/html/jvms-4.html#jvms-4.7.3">JVMS
+ * @see <a href= "https://docs.oracle.com/javase/specs/jvms/se9/html/jvms-4.html#jvms-4.7.3">JVMS
  *     4.7.3</a>
  * @author Eric Bruneton
  * @author Eugene Kuleshov
@@ -52,7 +52,7 @@ public class Attribute {
 
   /**
    * The next attribute in this attribute list (Attribute instances can be linked via this field to
-   * store a list of class, field, method or code attributes). May be <tt>null</tt>.
+   * store a list of class, field, method or Code attributes). May be {@literal null}.
    */
   Attribute nextAttribute;
 
@@ -66,23 +66,23 @@ public class Attribute {
   }
 
   /**
-   * Returns <tt>true</tt> if this type of attribute is unknown. This means that the attribute
+   * Returns {@literal true} if this type of attribute is unknown. This means that the attribute
    * content can't be parsed to extract constant pool references, labels, etc. Instead, the
    * attribute content is read as an opaque byte array, and written back as is. This can lead to
    * invalid attributes, if the content actually contains constant pool references, labels, or other
    * symbolic references that need to be updated when there are changes to the constant pool, the
-   * method bytecode, etc. The default implementation of this method always returns <tt>true</tt>.
+   * method bytecode, etc. The default implementation of this method always returns {@literal true}.
    *
-   * @return <tt>true</tt> if this type of attribute is unknown.
+   * @return {@literal true} if this type of attribute is unknown.
    */
   public boolean isUnknown() {
     return true;
   }
 
   /**
-   * Returns <tt>true</tt> if this type of attribute is a code attribute.
+   * Returns {@literal true} if this type of attribute is a Code attribute.
    *
-   * @return <tt>true</tt> if this type of attribute is a code attribute.
+   * @return {@literal true} if this type of attribute is a Code attribute.
    */
   public boolean isCodeAttribute() {
     return false;
@@ -91,8 +91,8 @@ public class Attribute {
   /**
    * Returns the labels corresponding to this attribute.
    *
-   * @return the labels corresponding to this attribute, or <tt>null</tt> if this attribute is not a
-   *     code attribute that contains labels.
+   * @return the labels corresponding to this attribute, or {@literal null} if this attribute is not
+   *     a Code attribute that contains labels.
    */
   protected Label[] getLabels() {
     return new Label[0];
@@ -105,16 +105,16 @@ public class Attribute {
    *
    * @param classWriter the class to which this attribute must be added. This parameter can be used
    *     to add the items that corresponds to this attribute to the constant pool of this class.
-   * @param code the bytecode of the method corresponding to this code attribute, or <tt>null</tt>
-   *     if this attribute is not a code attribute. Corresponds to the 'code' field of the Code
+   * @param code the bytecode of the method corresponding to this Code attribute, or {@literal null}
+   *     if this attribute is not a Code attribute. Corresponds to the 'code' field of the Code
    *     attribute.
    * @param codeLength the length of the bytecode of the method corresponding to this code
-   *     attribute, or 0 if this attribute is not a code attribute. Corresponds to the 'code_length'
+   *     attribute, or 0 if this attribute is not a Code attribute. Corresponds to the 'code_length'
    *     field of the Code attribute.
-   * @param maxStack the maximum stack size of the method corresponding to this code attribute, or
-   *     -1 if this attribute is not a code attribute.
+   * @param maxStack the maximum stack size of the method corresponding to this Code attribute, or
+   *     -1 if this attribute is not a Code attribute.
    * @param maxLocals the maximum number of local variables of the method corresponding to this code
-   *     attribute, or -1 if this attribute is not a code attribute.
+   *     attribute, or -1 if this attribute is not a Code attribute.
    * @return the byte array form of this attribute.
    */
   protected ByteVector write(
@@ -164,15 +164,16 @@ public class Attribute {
    * attribute_length) per attribute. Also adds the attribute type names to the constant pool.
    *
    * @param symbolTable where the constants used in the attributes must be stored.
-   * @param code the bytecode of the method corresponding to these code attributes, or <tt>null</tt>
-   *     if they are not code attributes. Corresponds to the 'code' field of the Code attribute.
+   * @param code the bytecode of the method corresponding to these Code attributes, or {@literal
+   *     null} if they are not Code attributes. Corresponds to the 'code' field of the Code
+   *     attribute.
    * @param codeLength the length of the bytecode of the method corresponding to these code
-   *     attributes, or 0 if they are not code attributes. Corresponds to the 'code_length' field of
+   *     attributes, or 0 if they are not Code attributes. Corresponds to the 'code_length' field of
    *     the Code attribute.
-   * @param maxStack the maximum stack size of the method corresponding to these code attributes, or
-   *     -1 if they are not code attributes.
+   * @param maxStack the maximum stack size of the method corresponding to these Code attributes, or
+   *     -1 if they are not Code attributes.
    * @param maxLocals the maximum number of local variables of the method corresponding to these
-   *     code attributes, or -1 if they are not code attribute.
+   *     Code attributes, or -1 if they are not Code attribute.
    * @return the size of all the attributes in this attribute list. This size includes the size of
    *     the attribute headers.
    */
@@ -189,6 +190,42 @@ public class Attribute {
       symbolTable.addConstantUtf8(attribute.type);
       size += 6 + attribute.write(classWriter, code, codeLength, maxStack, maxLocals).length;
       attribute = attribute.nextAttribute;
+    }
+    return size;
+  }
+
+  /**
+   * Returns the total size in bytes of all the attributes that correspond to the given field,
+   * method or class access flags and signature. This size includes the 6 header bytes
+   * (attribute_name_index and attribute_length) per attribute. Also adds the attribute type names
+   * to the constant pool.
+   *
+   * @param symbolTable where the constants used in the attributes must be stored.
+   * @param accessFlags some field, method or class access flags.
+   * @param signatureIndex the constant pool index of a field, method of class signature.
+   * @return the size of all the attributes in bytes. This size includes the size of the attribute
+   *     headers.
+   */
+  static int computeAttributesSize(
+      final SymbolTable symbolTable, final int accessFlags, final int signatureIndex) {
+    int size = 0;
+    // Before Java 1.5, synthetic fields are represented with a Synthetic attribute.
+    if ((accessFlags & Opcodes.ACC_SYNTHETIC) != 0
+        && symbolTable.getMajorVersion() < Opcodes.V1_5) {
+      // Synthetic attributes always use 6 bytes.
+      symbolTable.addConstantUtf8(Constants.SYNTHETIC);
+      size += 6;
+    }
+    if (signatureIndex != 0) {
+      // Signature attributes always use 8 bytes.
+      symbolTable.addConstantUtf8(Constants.SIGNATURE);
+      size += 8;
+    }
+    // ACC_DEPRECATED is ASM specific, the ClassFile format uses a Deprecated attribute instead.
+    if ((accessFlags & Opcodes.ACC_DEPRECATED) != 0) {
+      // Deprecated attributes always use 6 bytes.
+      symbolTable.addConstantUtf8(Constants.DEPRECATED);
+      size += 6;
     }
     return size;
   }
@@ -215,15 +252,16 @@ public class Attribute {
    * attribute.
    *
    * @param symbolTable where the constants used in the attributes must be stored.
-   * @param code the bytecode of the method corresponding to these code attributes, or <tt>null</tt>
-   *     if they are not code attributes. Corresponds to the 'code' field of the Code attribute.
+   * @param code the bytecode of the method corresponding to these Code attributes, or {@literal
+   *     null} if they are not Code attributes. Corresponds to the 'code' field of the Code
+   *     attribute.
    * @param codeLength the length of the bytecode of the method corresponding to these code
-   *     attributes, or 0 if they are not code attributes. Corresponds to the 'code_length' field of
+   *     attributes, or 0 if they are not Code attributes. Corresponds to the 'code_length' field of
    *     the Code attribute.
-   * @param maxStack the maximum stack size of the method corresponding to these code attributes, or
-   *     -1 if they are not code attributes.
+   * @param maxStack the maximum stack size of the method corresponding to these Code attributes, or
+   *     -1 if they are not Code attributes.
    * @param maxLocals the maximum number of local variables of the method corresponding to these
-   *     code attributes, or -1 if they are not code attribute.
+   *     Code attributes, or -1 if they are not Code attribute.
    * @param output where the attributes must be written.
    */
   final void putAttributes(
@@ -242,6 +280,37 @@ public class Attribute {
       output.putShort(symbolTable.addConstantUtf8(attribute.type)).putInt(attributeContent.length);
       output.putByteArray(attributeContent.data, 0, attributeContent.length);
       attribute = attribute.nextAttribute;
+    }
+  }
+
+  /**
+   * Puts all the attributes that correspond to the given field, method or class access flags and
+   * signature, in the given byte vector. This includes the 6 header bytes (attribute_name_index and
+   * attribute_length) per attribute.
+   *
+   * @param symbolTable where the constants used in the attributes must be stored.
+   * @param accessFlags some field, method or class access flags.
+   * @param signatureIndex the constant pool index of a field, method of class signature.
+   * @param output where the attributes must be written.
+   */
+  static void putAttributes(
+      final SymbolTable symbolTable,
+      final int accessFlags,
+      final int signatureIndex,
+      final ByteVector output) {
+    // Before Java 1.5, synthetic fields are represented with a Synthetic attribute.
+    if ((accessFlags & Opcodes.ACC_SYNTHETIC) != 0
+        && symbolTable.getMajorVersion() < Opcodes.V1_5) {
+      output.putShort(symbolTable.addConstantUtf8(Constants.SYNTHETIC)).putInt(0);
+    }
+    if (signatureIndex != 0) {
+      output
+          .putShort(symbolTable.addConstantUtf8(Constants.SIGNATURE))
+          .putInt(2)
+          .putShort(signatureIndex);
+    }
+    if ((accessFlags & Opcodes.ACC_DEPRECATED) != 0) {
+      output.putShort(symbolTable.addConstantUtf8(Constants.DEPRECATED)).putInt(0);
     }
   }
 
