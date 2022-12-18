@@ -19,6 +19,15 @@ container() {
 Object c = null;
 {
    {
+      Object c = container();
+      c.ylds.add(test1("hello"));
+      assert("hello".equals(c.ylds.get(0).c));
+   }
+   assert(c == null);
+}
+
+{
+   {
       c = container();
    }
    c.ylds.add(test1("hello"));
