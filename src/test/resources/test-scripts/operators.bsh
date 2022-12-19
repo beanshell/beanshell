@@ -1,6 +1,7 @@
 #!/bin/java bsh.Interpreter
 
 source("TestHarness.bsh");
+source("Assert.bsh");
 
 /**
     I'm just taking a shotgun approach here... we need better tests.
@@ -48,6 +49,11 @@ assert( "foo" != void );
 assert( isEvalError("void instanceof 5") );
 assert( isEvalError("new Object() instanceof void") );
 assert( isEvalError("null instanceof void") );
+
+// related to #390
+assertEquals("( true ? false : ( false ? true : false ))", ( true ? false : ( false ? true : false )), false);
+assertEquals("( true && false ? true : ( true && false ? true : false ))", ( true && false ? true : ( true && false ? true : false )), false);
+assertEquals("(( true && false ) ? true : (( true && false ) ? false : true ))", (( true && false ) ? true : (( true && false ) ? false : true )), true);
 
 /*
     Uncomment these if we start enforcing operations on primitive/non-prim
