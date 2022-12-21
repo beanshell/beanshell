@@ -36,15 +36,50 @@ assert(b==6); // sanity check
 assert(s.a==5);
 assert(a==6);
 
-// block namespace calling method twice #508
-y = 22;
+/*
+ * Test that eval can look up and set in the parent global namespace.
+ * Eval is performed with it's own namespace, but it will share the
+ * global namespace as a parent.  In order to communicate between eval and
+ * current context the only common namespace is the global namespace.
+ *
+ * Test that this works by setting a value in the global namespace in
+ * this intepreter, then having the eval read and set another variable
+ * in the global namespace.
+ *
+ * Need to explicitly use the global namespace here the first time
+ * the variables are referenced because the test framework is running
+ * in it's own namespace and new variables will be local by default.
+ * After they are set global the first time then lookups will work correctly.
+ *
+ * As reported in #508
+ */
+// set y in global not local
+global.y = 22;
+// assign y to yval
 try { eval("yval=y;"); }
-catch (e) { assert(false); }
+catch (e) { e.printStackTrace(); assert(false); }
+// assert that the variables are equal by looking up from current
 assert(yval==y);
+
+// Repeated lookup should work
 yval=0;
 try { eval("yval=y;"); }
 catch (e) { assert(false); }
 assert(yval==22);
 
+// remove unused variables from global namespace
+unset("y");
+unset("yval");
+
+// Test that eval'ed variables in blocks are not seen in global
+// make sure x does not exist at start
+assert(x == void);
+try { eval("{x=55;}"); }
+catch (e) { assert(false); }
+assert(x == void);
+try { eval("{global.x=55;}"); }
+catch (e) { assert(false); }
+assert(x == 55);
+unset("x");
 
 complete();

@@ -27,6 +27,11 @@
 
 package bsh;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
+import bsh.util.ReferenceCache;
+import bsh.util.ReferenceCache.Type;
+
 /**
     A specialized namespace for Blocks (e.g. the body of a "for" statement).
     The Block acts like a child namespace but only for typed variables
@@ -45,9 +50,59 @@ package bsh;
 */
 class BlockNameSpace extends NameSpace
 {
-    public BlockNameSpace( NameSpace parent )
+    /** Atomic block count of unique block instances. */
+    public static final AtomicInteger blockCount = new AtomicInteger();
+
+    /** Unique key for cached name spaces. */
+    private static class UniqueBlock {
+        NameSpace ns;
+        int id;
+        /** Unique block consists of a namespace and unique id.
+         * @param ns the Namespace parent
+         * @param id a unique id for block namespaces */
+        UniqueBlock(NameSpace ns, int id) {
+            this.ns = ns;
+            this.id = id;
+        }
+
+        /** Compares the calculated hash code with object for equality.
+         *  {@inheritDoc} */
+        @Override
+        public boolean equals(final Object obj) {
+            return null != obj && hashCode() == obj.hashCode();
+        }
+
+        /** Return a calculated hash code from name space and block id.
+         * {@inheritDoc} */
+        @Override
+        public int hashCode() { return ns.hashCode() + id; }
+    }
+
+    /** Weak reference cache for reusable block namespaces */
+    private static final ReferenceCache<UniqueBlock,NameSpace> blockspaces
+        = new ReferenceCache<UniqueBlock, NameSpace>(Type.Weak, Type.Weak, 4000) {
+            /** Create block namespace based on unique block key as required */
+            protected NameSpace create(UniqueBlock key) {
+                return new BlockNameSpace(key.ns, key.id);
+            }
+    };
+
+    /** Static method to get a unique block name space. With the
+     * supplied namespace as parent and unique block id obtained
+     * from blockCount.
+     * @param parent name space
+     * @param blockId unique id for block
+     * @return new or cached instance of a unique block name space */
+    public static NameSpace getInstance(NameSpace parent, int blockId ) {
+        return blockspaces.get(new UniqueBlock(parent, blockId));
+    }
+
+    /** Public constructor to create a non cached instance.
+     * @param parent name space
+     * @param blockId unique id for block */
+    public BlockNameSpace( NameSpace parent, int blockId )
     {
-        super( parent, parent.getName()+ "/BlockNameSpace" );
+        super( parent, parent.getName()+ "/BlockNameSpace" + blockId );
         this.isMethod = parent.isMethod;
     }
 

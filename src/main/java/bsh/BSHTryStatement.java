@@ -33,11 +33,13 @@ import java.util.List;
 
 class BSHTryStatement extends SimpleNode
 {
+    final int blockId;
     BSHTryWithResources tryWithResources = null;
 
     BSHTryStatement(int id)
     {
         super(id);
+        blockId = BlockNameSpace.blockCount.incrementAndGet();
     }
 
     public Object eval( CallStack callstack, Interpreter interpreter)
@@ -145,8 +147,8 @@ class BSHTryStatement extends SimpleNode
                     // parameter and swap it on the stack after initializing it.
 
                     NameSpace enclosingNameSpace = callstack.top();
-                    BlockNameSpace cbNameSpace =
-                        new BlockNameSpace( enclosingNameSpace );
+                    BlockNameSpace cbNameSpace = (BlockNameSpace)
+                        BlockNameSpace.getInstance( enclosingNameSpace, blockId );
 
                     try {
                         if ( mcType == BSHMultiCatch.UNTYPED )

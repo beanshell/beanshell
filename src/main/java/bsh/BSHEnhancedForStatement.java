@@ -37,12 +37,14 @@ import java.util.Iterator;
  */
 class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
 
+    final int blockId;
     String varName;
     boolean isFinal = false;
 
 
     BSHEnhancedForStatement(int id) {
         super(id);
+        blockId = BlockNameSpace.blockCount.incrementAndGet();
     }
 
 
@@ -76,7 +78,8 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
         Object returnControl = Primitive.VOID;
         while ( !Thread.interrupted() && iterator.hasNext() ) {
             try {
-                BlockNameSpace eachNameSpace = new BlockNameSpace(enclosingNameSpace);
+                NameSpace eachNameSpace = BlockNameSpace.getInstance(enclosingNameSpace, blockId);
+                eachNameSpace.clear();
                 callstack.swap(eachNameSpace);
                 Object value = iterator.next();
                 if ( value == null )
