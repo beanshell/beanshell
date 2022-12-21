@@ -127,15 +127,15 @@ public final class This implements java.io.Serializable, Runnable
     /**
         Get dynamic proxy for interface, caching those it creates.
     */
-    public Object getInterface( Class clas )
+    public Object getInterface( Class<?> clas )
     {
-        return getInterface( new Class[] { clas } );
+        return getInterface( new Class<?>[] { clas } );
     }
 
     /**
         Get dynamic proxy for interface, caching those it creates.
     */
-    public Object getInterface( Class [] ca )
+    public Object getInterface( Class<?>[] ca )
     {
         if ( interfaces == null )
             interfaces = new HashMap<Integer,Object>();
@@ -222,7 +222,7 @@ public final class This implements java.io.Serializable, Runnable
             BshMethod equalsMethod = null;
             try {
                 equalsMethod = namespace.getMethod(
-                    "equals", new Class [] { Object.class } );
+                    "equals", new Class<?>[] { Object.class } );
             } catch ( UtilEvalError e ) {/*leave null*/ }
             if ( methodName.equals("equals" ) && equalsMethod == null ) {
                 Object obj = args[0];
@@ -236,12 +236,12 @@ public final class This implements java.io.Serializable, Runnable
             BshMethod toStringMethod = null;
             try {
                 toStringMethod =
-                    namespace.getMethod( "toString", new Class [] { } );
+                    namespace.getMethod( "toString", new Class<?>[] { } );
             } catch ( UtilEvalError e ) {/*leave null*/ }
 
             if ( methodName.equals("toString" ) && toStringMethod == null)
             {
-                Class [] ints = proxy.getClass().getInterfaces();
+                Class<?>[] ints = proxy.getClass().getInterfaces();
                 // XThis.this refers to the enclosing class instance
                 StringBuilder sb = new StringBuilder(
                     This.this.toString() + "\nimplements:" );
@@ -251,7 +251,7 @@ public final class This implements java.io.Serializable, Runnable
                 return sb.toString();
             }
 
-            Class [] paramTypes = method.getParameterTypes();
+            Class<?>[] paramTypes = method.getParameterTypes();
             return Primitive.unwrap(
                 invokeMethod( methodName, Primitive.wrap(args, paramTypes) ) );
         }

@@ -1,0 +1,60 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+/*
+ * Test that variable lookups in scripted objects work correctly
+ * Related to #659
+ */
+
+test1(String c) {
+   return this;
+}
+
+assertEquals("This access, parameter", test1("bar").c, "bar");
+
+container() {
+   ylds = new ArrayList();
+   return this;
+}
+
+assertEquals("This access, method variable", 0, container().ylds.size());
+{
+   assertEquals("This access, method variable from block scope", 0, container().ylds.size());
+}
+
+Object c = container();
+assertThat("This access, method variable through reference", c.ylds, iterableWithSize(0));
+
+Object c = null;
+{
+   {
+      Object c = container();
+      c.ylds.add(test1("hello"));
+      assertEquals("Shadowed reference in block scope", "hello", c.ylds.get(0).c);
+   }
+   assertNull("Parent scope hidden variable retains value", c);
+}
+
+{
+   {
+      c = container();
+   }
+   c.ylds.add(test1("hello"));
+}
+assertEquals("Global reference assigned and populated in block scope", "hello", c.ylds.get(0).c);
+Object d = null;
+{
+   {
+      d = container();
+   }
+   d.ylds.add(test1("goodbye"));
+}
+assertEquals("Previous reference still accessible", "hello", c.ylds.get(0).c);
+assertThat("This access, method variable list size remains", c.ylds, iterableWithSize(1));
+assertThat("Test equality of list item", c.ylds, hasItem(c.ylds.get(0)));
+assertThat("New reference only has one item in list", d.ylds, iterableWithSize(1));
+assertEquals("New reference assigned value", "goodbye", d.ylds.get(0).c);
+
+complete();
