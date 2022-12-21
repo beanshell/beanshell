@@ -1,0 +1,22 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+/** Late binding or namespace chaining support as per #676  */
+int bar = 42;
+int getBar() { return bar; }
+{
+   {
+      int bar = 4711;
+      {
+         int bar = 5;
+         assertEquals("Bind method to new declaration value", 5, getBar());
+      }
+      assertEquals("Bind method to previous declared value", 4711, getBar());
+   }
+   assertEquals("Bind method to original declared value from parent scope", 42, getBar());
+}
+assertEquals("Bind method to declared variable from mehod declared scope", 42, getBar());
+
+complete();

@@ -69,6 +69,16 @@ public class PreparsedScriptTest {
     }
 
     @Test
+    public void return_method_invocation() throws Exception {
+        final PreparsedScript f = new PreparsedScript(script(
+                "int foo() { return bar; }",
+                "return foo();"), _classLoader);
+        assertEquals(42, f.invoke(toMap("bar", 42)));
+        assertEquals(4711,  f.invoke(toMap("bar", 4711)));
+        assertEquals(5,  f.invoke(toMap("bar", 5)));
+    }
+
+    @Test
     public void inner_class() throws Exception {
         final PreparsedScript f = new PreparsedScript(script(
                 "import javax.crypto.*;",

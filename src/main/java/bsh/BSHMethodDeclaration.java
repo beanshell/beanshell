@@ -47,6 +47,7 @@ class BSHMethodDeclaration extends SimpleNode
     Class returnType;  // null (none), Void.TYPE, or a Class
     int numThrows = 0;
     boolean isVarArgs;
+    boolean isThisContext;
 
     BSHMethodDeclaration(int id) { super(id); }
 
@@ -74,6 +75,15 @@ class BSHMethodDeclaration extends SimpleNode
             paramsNode = (BSHFormalParameters)jjtGetChild(0);
             blockNode = (BSHBlock)jjtGetChild(1+numThrows); // skip throws
         }
+
+        if (null != blockNode && blockNode.jjtGetNumChildren() > 0) {
+            Node crnt = blockNode.jjtGetChild(blockNode.jjtGetNumChildren() - 1);
+            if (crnt instanceof BSHReturnStatement)
+                while (crnt.hasNext())
+                    if ((crnt = crnt.next()) instanceof BSHAmbiguousName)
+                        isThisContext = "this".equals(((BSHAmbiguousName)crnt).text);
+        }
+
         paramsNode.insureParsed();
         isVarArgs = paramsNode.isVarArgs;
     }
@@ -127,6 +137,7 @@ class BSHMethodDeclaration extends SimpleNode
 // look into this
 
         NameSpace namespace = callstack.top();
+        namespace.isMethod = isThisContext;
         BshMethod bshMethod = new BshMethod( this, namespace, modifiers );
 
         namespace.setMethod( bshMethod );

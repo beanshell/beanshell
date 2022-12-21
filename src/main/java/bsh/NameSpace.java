@@ -623,6 +623,7 @@ public class NameSpace
     public Object getVariable(final String name, final boolean recurse)
             throws UtilEvalError {
         final Variable var = this.getVariableImpl(name, recurse);
+        Interpreter.debug("Get variable: ", name, " = ", var);
         return this.unwrapVariable(var);
     }
 
@@ -777,6 +778,7 @@ public class NameSpace
     public BshMethod getMethod(final String name, final Class<?>[] sig,
             final boolean declaredOnly) throws UtilEvalError {
         BshMethod method = null;
+        Interpreter.debug("Get method: ", name, " ", this );
         // Change import precedence if we are a class body/instance
         // Get import first. Enum blocks may override class methods.
         if (this.isClass && !this.isEnum && !declaredOnly)
@@ -850,7 +852,7 @@ public class NameSpace
      *         errors loading a script that was found */
     public Object getCommand(final String name, final Class<?>[] argTypes,
             final Interpreter interpreter) throws UtilEvalError {
-        Interpreter.debug("getCommand: ", name);
+        Interpreter.debug("Get command: ", name);
         final BshClassManager bcm = interpreter.getClassManager();
         // loop backwards for precedence
         for (final String path : this.importedCommands) {
