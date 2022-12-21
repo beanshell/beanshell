@@ -212,8 +212,11 @@ class BSHAllocationExpression extends SimpleNode
         NameSpace namespace = callstack.top();
         NameSpace local = new NameSpace(namespace, "AnonymousBlock");
         callstack.push(local);
-        body.eval( callstack, interpreter, true/*overrideNamespace*/ );
-        callstack.pop();
+        try {
+            body.eval( callstack, interpreter, true/*overrideNamespace*/ );
+        } finally {
+            callstack.pop();
+        }
         // statical import fields from the interface so that code inside
         // can refer to the fields directly (e.g. HEIGHT)
         local.importStatic( type );

@@ -252,6 +252,7 @@ public class BshMethod implements Serializable {
             Node callerInfo, boolean overrideNameSpace )
         throws EvalError
     {
+        Interpreter.debug("Bsh method invoke: ", this.name, " overrideNameSpace: ", overrideNameSpace);
         if ( argValues != null )
             for (int i=0; i<argValues.length; i++)
                 if ( argValues[i] == null )
@@ -342,10 +343,10 @@ public class BshMethod implements Serializable {
         NameSpace localNameSpace;
         if ( overrideNameSpace )
             localNameSpace = callstack.top();
-        else
+        else {
             localNameSpace = new NameSpace( declaringNameSpace, name );
-
-        localNameSpace.isMethod = true;
+            localNameSpace.isMethod = true;
+        }
         localNameSpace.setNode( callerInfo );
 
         /*
@@ -382,8 +383,7 @@ public class BshMethod implements Serializable {
        }
 
         // set the method parameters in the local namespace
-        for(int i=0; i < argValues.length; i++)
-        {
+        for (int i=0; i < argValues.length; i++) {
 
             int k = i >= lastParamIndex ? lastParamIndex : i;
             Class<?> paramType = varArgs != null && k == lastParamIndex
@@ -402,7 +402,7 @@ public class BshMethod implements Serializable {
                         + "`"+paramNames[k]+"'" + " for method: "
                         + name + " : " +
                         e.getMessage(), callerInfo, callstack );
-               }
+                }
                 try {
                     if (varArgs != null && i >= lastParamIndex)
                         Array.set(varArgs, i-k, Primitive.unwrap(argValues[i]));
@@ -448,15 +448,17 @@ public class BshMethod implements Serializable {
             callstack.push( localNameSpace );
 
         // Invoke the block, overriding namespace with localNameSpace
-        Object ret = methodBody.eval(
-            callstack, interpreter, true/*override*/ );
-
-        // save the callstack including the called method, just for error mess
-        CallStack returnStack = callstack.copy();
-
-        // Get back to caller namespace
-        if ( !overrideNameSpace )
-            callstack.pop();
+        Object ret = null;
+        CallStack returnStack = null;
+        try {
+            ret = methodBody.eval(callstack, interpreter, true/*override*/ );
+            // save the callstack including the called method, just for error mess
+            returnStack = callstack.copy();
+        } finally {
+            // Get back to caller namespace
+            if ( !overrideNameSpace )
+                callstack.pop();
+        }
 
         ReturnControl retControl = null;
         if ( ret instanceof ReturnControl ) {

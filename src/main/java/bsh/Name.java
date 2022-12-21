@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.regex.Pattern;
 
 /**
     What's in a name?  I'll tell you...
@@ -123,12 +124,12 @@ class Name implements java.io.Serializable
     /**
         The result is a class
     */
-    Class asClass;
+    Class<?> asClass;
 
     /**
         The result is a static method call on the following class
     */
-    Class classOfStaticMethod;
+    Class<?> classOfStaticMethod;
 
     // End Cached result structures
 
@@ -274,7 +275,7 @@ class Name implements java.io.Serializable
             /*
                 Keep adding parts until we have a class
             */
-            Class clas = null;
+            Class<?> clas = null;
             int i = 1;
             String className = null;
             for(; i <= countParts(evalName); i++)
@@ -355,7 +356,7 @@ class Name implements java.io.Serializable
         */
         if ( evalBaseObject instanceof ClassIdentifier )
         {
-            Class clas = ((ClassIdentifier)evalBaseObject).getTargetClass();
+            Class<?> clas = ((ClassIdentifier)evalBaseObject).getTargetClass();
             String field = prefix(evalName, 1);
 
             // Class qualified 'this' reference from inner class.
@@ -391,7 +392,7 @@ class Name implements java.io.Serializable
             // inner class?
             if ( obj == null ) {
                 String iclass = clas.getName()+"$"+field;
-                Class c = namespace.getClass( iclass );
+                Class<?> c = namespace.getClass( iclass );
 
                 if (null == namespace.classInstance
                         && Reflect.isGeneratedClass(c)
@@ -475,23 +476,21 @@ class Name implements java.io.Serializable
             if ( specialFieldsVisible )
                 throw new UtilEvalError("Redundant to call .this on This type");
 
-            // Allow getThis() to work through BlockNameSpace to the method
-            // namespace
-    // XXX re-eval this... do we need it?
-            This ths = thisNameSpace.getThis( interpreter );
-            thisNameSpace= ths.getNameSpace();
-            Object result = ths;
+            // Init this for block namespace and methods
+            This thiz = thisNameSpace.getThis( interpreter );
+            thisNameSpace = thiz.getNameSpace();
 
+            // This is class namespace or instance reference
             NameSpace classNameSpace = getClassNameSpace( thisNameSpace );
             if ( classNameSpace != null )
             {
                 if ( isCompound( evalName ) )
-                    result = classNameSpace.getThis( interpreter );
+                    return classNameSpace.getThis( interpreter );
                 else
-                    result = classNameSpace.getClassInstance();
+                    return classNameSpace.getClassInstance();
             }
 
-            return result;
+            return thiz;
         }
 
         /*
@@ -501,25 +500,18 @@ class Name implements java.io.Serializable
         */
         if ( varName.equals("super") )
         {
-            //if ( specialFieldsVisible )
-            //throw new UtilEvalError("Redundant to call .this on This type");
 
-            // Allow getSuper() to through BlockNameSpace to the method's super
-            This ths = thisNameSpace.getSuper( interpreter );
-            thisNameSpace = ths.getNameSpace();
+            // Allow getSuper() to go through BlockNameSpace to the method's super
+            This zuper = thisNameSpace.getSuper( interpreter );
+            thisNameSpace = zuper.getNameSpace();
             // super is now the closure's super or class instance
 
-    // XXXX re-evaluate this
-    // can getSuper work by itself now?
             // If we're a class instance and the parent is also a class instance
             // then super means our parent.
-            if (
-                thisNameSpace.getParent() != null
-                && thisNameSpace.getParent().isClass
-            )
-                ths = thisNameSpace.getParent().getThis( interpreter );
+            if ( thisNameSpace.getParent() != null && thisNameSpace.getParent().isClass )
+                return thisNameSpace.getSuper( interpreter );
 
-            return ths;
+            return zuper;
         }
 
         Object obj = null;
@@ -597,6 +589,7 @@ class Name implements java.io.Serializable
         if ( thisNameSpace.isClass )
             return thisNameSpace;
 
+        // is a method parent is a class
         if ( thisNameSpace.isMethod
                 && thisNameSpace.getParent() != null
                 && thisNameSpace.getParent().isClass )
@@ -613,7 +606,7 @@ class Name implements java.io.Serializable
         @throws ClassPathException (type of EvalError) on special case of
         ambiguous unqualified name after super import.
     */
-    synchronized public Class toClass()
+    synchronized public Class<?> toClass()
         throws ClassNotFoundException, UtilEvalError
     {
         if ( asClass != null )
@@ -626,7 +619,7 @@ class Name implements java.io.Serializable
             return asClass = null;
 
         /* Try straightforward class name first */
-        Class clas = namespace.getClass( evalName );
+        Class<?> clas = namespace.getClass( evalName );
 
         if ( clas == null )
         {
@@ -729,7 +722,7 @@ class Name implements java.io.Serializable
             try {
                 if ( obj instanceof ClassIdentifier )
                 {
-                    Class clas = ((ClassIdentifier)obj).getTargetClass();
+                    Class<?> clas = ((ClassIdentifier)obj).getTargetClass();
                     lhs = Reflect.getLHSStaticField(clas, evalName);
                     return lhs;
                 } else {
@@ -860,7 +853,7 @@ class Name implements java.io.Serializable
         // try static method
         Interpreter.debug("invokeMethod: trying static - ", targetName);
 
-        Class clas = ((ClassIdentifier)obj).getTargetClass();
+        Class<?> clas = ((ClassIdentifier)obj).getTargetClass();
 
         // cache the fact that this is a static method invocation on this class
         classOfStaticMethod = clas;
@@ -878,7 +871,8 @@ class Name implements java.io.Serializable
         to load it as a resource from the imported command path (e.g.
         /bsh/commands)
     */
-     private Object invokeLocalMethod(
+    private static final Pattern noOverride = Pattern.compile("eval|extend|source|exec|assert|isEvalError");
+    private Object invokeLocalMethod(
         Interpreter interpreter, Object[] args, CallStack callstack, Node callerInfo)
         throws EvalError
     {
@@ -901,8 +895,12 @@ class Name implements java.io.Serializable
 
         // If defined, invoke it
         if ( meth != null ) {
+            // whether to use callstack.top or new child of declared name space
+            // enables late binding for closures and namespace chaining #676
             boolean overrideChild = !namespace.isMethod
-                    && namespace.isChildOf(meth.declaringNameSpace);
+                    && namespace.isChildOf(meth.declaringNameSpace)
+                    && !namespace.getParent().isClass
+                    && !noOverride.matcher(meth.getName()).matches();
 
             return meth.invoke( args, interpreter, callstack, callerInfo, overrideChild );
         }
@@ -913,7 +911,6 @@ class Name implements java.io.Serializable
 
     // Static methods that operate on compound ('.' separated) names
     // I guess we could move these to StringUtil someday
-
     private static class Parts {
         private static final Map<String, Parts> PARTSCACHE = new WeakHashMap<>();
         private final String[] prefix;

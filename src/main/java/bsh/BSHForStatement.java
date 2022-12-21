@@ -33,6 +33,7 @@ package bsh;
 */
 class BSHForStatement extends SimpleNode implements ParserConstants
 {
+    final int blockId;
     public boolean hasForInit;
     public boolean hasExpression;
     public boolean hasForUpdate;
@@ -42,7 +43,10 @@ class BSHForStatement extends SimpleNode implements ParserConstants
     private Node forUpdate;
     private Node statement;
 
-    BSHForStatement(int id) { super(id); }
+    BSHForStatement(int id) {
+        super(id);
+        blockId = BlockNameSpace.blockCount.incrementAndGet();
+    }
 
     public Object eval(CallStack callstack , Interpreter interpreter)
         throws EvalError
@@ -58,7 +62,7 @@ class BSHForStatement extends SimpleNode implements ParserConstants
             statement = jjtGetChild(i);
 
         NameSpace enclosingNameSpace= callstack.top();
-        BlockNameSpace forNameSpace = new BlockNameSpace( enclosingNameSpace );
+        NameSpace forNameSpace = new BlockNameSpace(enclosingNameSpace, blockId);
 
         /*
             Note: some interesting things are going on here.

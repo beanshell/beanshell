@@ -31,23 +31,28 @@ package bsh;
 import java.util.ArrayList;
 import java.util.List;
 
-import bsh.util.ReferenceCache;
-import bsh.util.ReferenceCache.Type;
+/** A node reprresenting a code block */
+class BSHBlock extends SimpleNode {
+    /** Unique block id for this instance */
+    final int blockId;
 
-class BSHBlock extends SimpleNode
-{
+    /** Whether the block needs to be synchronized */
     public boolean isSynchronized = false;
-    public boolean isStatic = false;
-    private boolean hasClassDeclaration = false, isFirst = true;
-    private static final List<Node> enumBlocks = new ArrayList<>();
-    private static final ReferenceCache<NameSpace,NameSpace> blockspaces
-        = new ReferenceCache<NameSpace, NameSpace>(Type.Weak, Type.Weak, 4000) {
-            protected NameSpace create(NameSpace key) {
-                return new BlockNameSpace(key);
-            }
-    };
 
-    BSHBlock(int id) { super(id); }
+    /** This block has a static modifier. To be used as a static
+     * initialization block within a class. */
+    public boolean isStatic = false;
+
+    /** A flag for skipping class declarations when there are none. */
+    private boolean hasClassDeclaration = false;
+
+    /** Only check for class declarations the first time through. */
+    private boolean isFirst = true;
+
+    BSHBlock(int id) {
+        super(id);
+        blockId = BlockNameSpace.blockCount.incrementAndGet();
+    }
 
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError
@@ -55,77 +60,81 @@ class BSHBlock extends SimpleNode
         return eval( callstack, interpreter, false );
     }
 
-    /**
-        @param overrideNamespace if set to true the block will be executed
-        in the current namespace (not a subordinate one).
-        <p>
-        If true *no* new BlockNamespace will be swapped onto the stack and
-        the eval will happen in the current
-        top namespace.  This is used by BshMethod, TryStatement, etc.
-        which must intialize the block first and also for those that perform
-        multiple passes in the same block.
-    */
-    public Object eval(
-        CallStack callstack, Interpreter interpreter,
-        boolean overrideNamespace )
-        throws EvalError
-    {
-        Object syncValue = null;
-        if ( isSynchronized )
-        {
+    /** Evaluate this block and resolve names in the given interpreter context.
+    * <p>
+    * In the normal course of events each eval will allocate a namespace object
+    * swapped with and using call stack top as the parent.During evaluation this
+    * new namespace will be used for local variables. When the block is finished
+    * the new namespace is released and the old namespace restored.
+    * <p>
+    * There are some situations where a new name space is not desired, for
+    * example:
+    * <ul>
+    * <li>BshMethod.invokeImpl()
+    * <br>The method namespace has already been set up containing
+    * the formal parameters.
+    * <li>BSHAllocationExpression.constructWithInterfaceBody()
+    * <br>The caller sets up a namespace the same as if it would be
+    * done using overrideChild=false.
+    * <li>BSHEnumConstant.eval()
+    * <br>The enum constants should be set within the current namespace.
+    * <li>BSHTryStatement.eval()
+    * <br>Holds the catch parameter and swaps it on the stack after initializing
+    * </ul>
+    * In these situations where the overrideChild flag has been set to true *no*
+    * new BlockNamespace will be swapped onto the stack and the eval will happen
+    * in the current top namespace.
+    * @param callstack the stack of namespace chains used to resolve names
+    * @param interpreter the interpreter object used for evaluation
+    * @param overrideNamespace whether a new namespace is required
+    * @return the result from evaluating the block
+    * @throws EvalError rolls exceptions back up to the user */
+    public Object eval( CallStack callstack, Interpreter interpreter,
+            boolean overrideNamespace ) throws EvalError {
+
+        if ( isSynchronized ) {
             // First node is the expression on which to sync
             Node exp = jjtGetChild(0);
-            syncValue = exp.eval(callstack, interpreter);
-        }
-
-        Object ret;
-        if ( isSynchronized ) // Do the actual synchronization
-            synchronized( syncValue )
-            {
-                ret = evalBlock(
+            Object syncValue = exp.eval(callstack, interpreter);
+            synchronized( syncValue ) { // Do the actual synchronization
+                return evalBlock(
                     callstack, interpreter, overrideNamespace, null/*filter*/);
             }
-        else
-                ret = evalBlock(
-                    callstack, interpreter, overrideNamespace, null/*filter*/);
-
-        return ret;
+        }
+        return evalBlock(
+                callstack, interpreter, overrideNamespace, null/*filter*/);
     }
 
-    Object evalBlock(
-        CallStack callstack, Interpreter interpreter,
-        boolean overrideNamespace, NodeFilter nodeFilter )
-        throws EvalError
-    {
+    Object evalBlock( CallStack callstack, Interpreter interpreter,
+            boolean overrideNamespace, NodeFilter nodeFilter ) throws EvalError {
+
         Object ret = Primitive.VOID;
         NameSpace enclosingNameSpace = null;
         if ( !overrideNamespace )
             enclosingNameSpace = callstack.swap(
-                    blockspaces.get(callstack.top()));
+                    BlockNameSpace.getInstance(callstack.top(), blockId));
 
         int startChild = isSynchronized ? 1 : 0;
         int numChildren = jjtGetNumChildren();
 
         try {
-            /*
-                Evaluate block in two passes:
-                First do class declarations then do everything else.
-            */
+            // Evaluate block in two passes:
+            // First do class declarations then do everything else.
             if (isFirst || hasClassDeclaration)
-            for(int i=startChild; i<numChildren; i++)
-            {
-                Node node = jjtGetChild(i);
+                for(int i = startChild; i < numChildren; i++) {
+                    Node node = jjtGetChild(i);
 
-                if ( nodeFilter != null && !nodeFilter.isVisible( node ) )
-                    continue;
+                    if ( nodeFilter != null && !nodeFilter.isVisible( node ) )
+                        continue;
 
-                if ( node instanceof BSHClassDeclaration ) {
-                    hasClassDeclaration = true;
-                    node.eval( callstack, interpreter );
+                    if ( node instanceof BSHClassDeclaration ) {
+                        hasClassDeclaration = true;
+                        node.eval( callstack, interpreter );
+                    }
                 }
-            }
-            for(int i=startChild; i<numChildren; i++)
-            {
+
+            List<Node> enumBlocks = null;
+            for(int i = startChild; i < numChildren; i++) {
                 Node node = jjtGetChild(i);
 
                 if ( node instanceof BSHClassDeclaration )
@@ -138,6 +147,8 @@ class BSHBlock extends SimpleNode
                 // enum blocks need to override enum class members
                 // let the class finish initializing first
                 if (node instanceof BSHEnumConstant) {
+                    if (enumBlocks == null)
+                        enumBlocks = new ArrayList<>();
                     enumBlocks.add(node);
                     continue;
                 }
@@ -148,11 +159,15 @@ class BSHBlock extends SimpleNode
                 if ( ret instanceof ReturnControl )
                     break;
             }
-            while (!enumBlocks.isEmpty())
-                enumBlocks.remove(0).eval( callstack, interpreter );
+
+            // evaluate the enum constants blocks if any.
+            if (enumBlocks != null)
+                while (!enumBlocks.isEmpty())
+                    enumBlocks.remove(0).eval( callstack, interpreter );
+
         } finally {
-            // make sure we put the namespace back when we leave.
-            // clear cached block name space, store as empty
+            // Make sure we put the namespace back when we leave.
+            // Clear cached block name space, contents can be gc'ed away
             if ( !overrideNamespace ) {
                 callstack.top().clear();
                 callstack.swap( enclosingNameSpace );
