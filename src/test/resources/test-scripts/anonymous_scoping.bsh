@@ -1,0 +1,35 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+/*
+ * Test that lexical scoping works correctly
+ */
+public interface Internal {
+    int doit();
+}
+
+public class ClosureExample {
+
+    public static void main(String[] args) {
+
+        Internal doer;
+
+        {
+            int x = 4;
+            doer = new Internal() {
+                    public int doit() {
+                        System.out.println("doing x="+x);
+                        return x;
+                    }
+                };
+        }
+        assert(doer.doit() == 4);
+        int x = 5;
+        assert(doer.doit() == 4);
+    }
+}
+ClosureExample.main(new String[0]);
+
+
+complete();

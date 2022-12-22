@@ -45,4 +45,27 @@ assert("hello".equals(c.ylds.get(0).c));
 assert(d.ylds.size() == 1);
 assert("goodbye".equals(d.ylds.get(0).c));
 
+
+/*
+ * Test that lexical scoping works
+ */
+doer = null;
+{
+    int x = 4;
+    internal() {
+        doit() {
+            System.out.println("doing x="+x);
+            return x;
+        }
+        return this;
+    }
+    doer = internal();
+}
+
+assert(doer.doit()==4);
+x = 5;
+assert(doer.doit()==4);
+
+
+
 complete();
