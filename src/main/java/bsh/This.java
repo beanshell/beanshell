@@ -412,21 +412,9 @@ public final class This implements java.io.Serializable, Runnable
             return this == obj ? Boolean.TRUE : Boolean.FALSE;
         }
 
-        // a default clone()
+        // a default clone() method
         if ( methodName.equals("clone") && args.length==0 ) {
-            NameSpace ns = new NameSpace(namespace, namespace.getName()+" clone");
-            try {
-                for( String varName : namespace.getVariableNames() ) {
-                    ns.setLocalVariable(varName,
-                            namespace.getVariable(varName, false), false);
-                }
-                for( BshMethod method : namespace.getMethods() ) {
-                    ns.setMethod(method);
-                }
-            } catch ( UtilEvalError e ) {
-                throw e.toEvalError( Node.JAVACODE, callstack );
-            }
-            return ns.getThis(declaringInterpreter);
+            return cloneMethodImpl(callerInfo, callstack);
         }
 
         // Look for a default invoke() handler method in the namespace
@@ -446,6 +434,77 @@ public final class This implements java.io.Serializable, Runnable
                     " not found in bsh scripted object: "+ namespace.getName(),
                     callerInfo, callstack, e );
         }
+    }
+
+    /** Clone method implementation overload called with no cloned instance.
+     * @param callerInfo for error context
+     * @param callstack for error context
+     * @return returns a cloned instances with deep copied This reference
+     * @throws EvalError rolled up exceptions to user */
+    Object cloneMethodImpl(Node callerInfo, CallStack callstack) throws EvalError {
+        return cloneMethodImpl(callerInfo, callstack, null);
+    }
+
+    /** Clone method implementation called with cloned class instance. This
+     * method was extracted from invokeMethod to facilitate its reuse when
+     * generated classes implement Cloneable. The standard implementation
+     * succesfully produces a new instance object but it also copies This
+     * reference rendering two unique instances with the same context.#421
+     * A deep copy of everything is required to produce two independent
+     * instances, as would be expected, after a clone.
+     * Will also attempt to produce a clone if called from This context.
+     * @param callerInfo for error context
+     * @param callstack for error context
+     * @param clonedInstance a cloned instance or null to clone from This
+     * @return returns a cloned instances with deep copied This reference
+     * @throws EvalError rolled up exceptions to user */
+    Object cloneMethodImpl(Node callerInfo, CallStack callstack, Object clonedInstance) throws EvalError {
+        NameSpace ns = new NameSpace(namespace.getParent(), namespace.getName()+" clone");
+        try {
+            if (null == clonedInstance) { // no clone instance, attempt manual clone
+                if (null == namespace.classStatic) // thats not going to work, lets
+                    return ns.getThis(declaringInterpreter); // just return This.
+                // instantiate "clone" available class with empty constructor
+                clonedInstance = namespace.classStatic.getConstructor(new Class<?>[0])
+                    .newInstance(new Object[0]);
+            }
+            ns.setClassInstance(clonedInstance);
+            ns.setClassStatic(namespace.classStatic);
+            ns.isClass = true;
+            ns.isMethod = true;
+
+            for (Variable var : namespace.getVariables()) {
+                ns.setVariableImpl(var);
+            }
+
+            NameSpace declaringNS = new NameSpace(ns, null);
+            declaringNS.setClassInstance(clonedInstance);
+            declaringNS.setClassStatic(ns.classStatic);
+            declaringNS.isClass = true;
+            declaringNS.isMethod = true;
+
+            for (BshMethod method : namespace.getMethods()) {
+                BshMethod cloneM = method.clone();
+                cloneM.declaringNameSpace = declaringNS;
+                ns.setMethod(cloneM);
+            }
+
+            // update This reference in cloned instance
+            Reflect.getLHSObjectField(clonedInstance,
+                BSHTHIS + ns.classStatic.getSimpleName())
+                    .assign(ns.getThis(declaringInterpreter));
+
+        } catch (NoSuchMethodException | SecurityException | InstantiationException
+                | IllegalAccessException | IllegalArgumentException
+                | InvocationTargetException e) {
+            throw new EvalError("Unable to clone from This reference: "
+                + e.getMessage(), callerInfo, callstack);
+        } catch (UtilEvalError e) {
+            throw e.toEvalError("Unable to assign clone instance This: "
+                + e.getMessage(), callerInfo, callstack);
+        }
+
+        return clonedInstance;
     }
 
     /** Delegate method to return enum values array.
