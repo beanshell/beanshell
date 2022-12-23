@@ -24,7 +24,6 @@
  *                                                                           *
  *****************************************************************************/
 
-
 package bsh;
 
 import java.util.stream.IntStream;
@@ -47,7 +46,7 @@ import java.lang.reflect.InvocationTargetException;
     Note: this method incorrectly caches the method structure.  It needs to
     be cleared when the classloader changes.
 */
-public class BshMethod implements Serializable {
+public class BshMethod implements Serializable, Cloneable {
 
     private static final long serialVersionUID = 1L;
 
@@ -120,6 +119,17 @@ public class BshMethod implements Serializable {
 
         this.javaMethod = method;
         this.javaObject = object;
+    }
+
+    /** Cloneable clone method implementation, delegated to parent.
+     * {@inheritDoc} */
+    @Override
+    public BshMethod clone() {
+        BshMethod returnClone = null;
+        try {
+            returnClone = (BshMethod) super.clone();
+        } catch (CloneNotSupportedException e) { /* is cloneable */ }
+        return returnClone;
     }
 
     /**
@@ -497,6 +507,14 @@ public class BshMethod implements Serializable {
                     "Incorrect type returned from method: "
                     + name + e.getMessage(), node, callstack );
             }
+        }
+
+        // when cloning a generated class deep copy This reference #421
+        if ("clone".equals(getName())) {
+            String className = ret.getClass().getSimpleName();
+            This thiz = Reflect.getClassInstanceThis(ret, className);
+            if (null != thiz) // not a generated class instance
+                return thiz.cloneMethodImpl(callerInfo, callstack, ret);
         }
 
         return ret;

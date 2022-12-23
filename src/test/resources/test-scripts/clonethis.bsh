@@ -1,0 +1,56 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+
+public class CannotClone {
+    String name = "original";
+
+    String whoami() {
+        return "I am " + this + " my name is " + name;
+    }
+
+    Object getThis() {
+       return this;
+    }
+ }
+
+ cclne = new CannotClone();
+ clne = cclne._bshThisCannotClone.clone();
+
+ assertNotEquals("Clones are not the same", cclne, clne);
+ assertEquals("Clones are of the same type", cclne.getClass(), clne.getClass());
+
+ assertNotEquals("Clones have different This", cclne._bshThisCannotClone, clne._bshThisCannotClone);
+ assertNotEquals("Clones have different This namespace", cclne._bshThisCannotClone.namespace, clne._bshThisCannotClone.namespace);
+ assertNotEquals("Clones have different whoami", cclne.whoami(), clne.whoami());
+ assertNotEquals("Clones have different this", cclne.getThis(), clne.getThis());
+
+ assertEquals("Clone's instance equals this", clne, clne.getThis());
+ assertNotEquals("Clone's instance not equal to other clone's this", clne, cclne.getThis());
+ assertThat("Clone's whoami contains instance string", clne.whoami(), containsString(clne.toString()));
+ assertThat("Clone's whoami ends with name string", clne.whoami(), endsWith(clne.name));
+
+ assertEquals("Clones have the same field values", cclne.name, clne.name);
+ clne.name = "iClone";
+ assertNotEquals("Clones can change fields independently", cclne.name, clne.name);
+ assertEquals("Name is what we expect", "iClone", clne.name);
+ assertThat("Name in method output", clne.whoami(), endsWith(clne.name));
+ assertThat("Name still in other method output", cclne.whoami(), endsWith(cclne.name));
+ cclne.name = "oClone";
+ assertNotEquals("Clones can change fields independently", clne.name, cclne.name);
+ assertEquals("Name is what we expect", "oClone", cclne.name);
+ assertThat("Name in method output", cclne.whoami(), endsWith(cclne.name));
+ assertThat("Name still in other method output", clne.whoami(), endsWith(clne.name));
+
+ // cannot create new instance without empty constructor
+
+class NoEmpty {
+    NoEmpty(no) {}
+}
+
+ne = new NoEmpty(1);
+assert(isEvalError("Unable to clone from This reference: NoEmpty", "ne._bshThisNoEmpty.clone();"));
+
+complete();
