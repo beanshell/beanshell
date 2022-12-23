@@ -133,14 +133,12 @@ public class NameSpace
     Object getClassInstance() throws UtilEvalError {
         if (this.classInstance != null)
             return this.classInstance;
-        if (this.classStatic != null
-        // || (getParent()!=null && getParent().classStatic != null)
-       )
+        if (this.classStatic != null)
             throw new UtilEvalError(
-                    "Can't refer to class instance from static context.");
+                "Can't refer to class instance from static context.");
         else
             throw new InterpreterError(
-                    "Can't resolve class instance 'this' in: " + this);
+                "Can't resolve class instance 'this' in: " + this);
     }
     // End instance data
 
@@ -452,6 +450,14 @@ public class NameSpace
     */
     public String [] getVariableNames() {
         return this.variables.keySet().stream().toArray(String[]::new);
+    }
+
+    /**
+        Get the variables defined in this namespace.
+        (This does not show variables in parent namespaces).
+    */
+    public Variable [] getVariables() {
+        return this.variables.values().stream().toArray(Variable[]::new);
     }
 
     /**
