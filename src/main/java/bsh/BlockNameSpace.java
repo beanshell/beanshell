@@ -53,6 +53,9 @@ class BlockNameSpace extends NameSpace
     /** Atomic block count of unique block instances. */
     public static final AtomicInteger blockCount = new AtomicInteger();
 
+    /** Atomic reuse count per instance. */
+    public final AtomicInteger used = new AtomicInteger(1);
+
     /** Unique key for cached name spaces. */
     private static class UniqueBlock {
         NameSpace ns;
@@ -94,7 +97,10 @@ class BlockNameSpace extends NameSpace
      * @param blockId unique id for block
      * @return new or cached instance of a unique block name space */
     public static NameSpace getInstance(NameSpace parent, int blockId ) {
-        return blockspaces.get(new UniqueBlock(parent, blockId));
+        BlockNameSpace ns = (BlockNameSpace) blockspaces.get(
+                new UniqueBlock(parent, blockId));
+        if (null != ns && 1 < ns.used.getAndIncrement()) ns.clear();
+        return ns;
     }
 
     /** Public constructor to create a non cached instance.

@@ -1,0 +1,48 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+// JAVA anonymous class as closure
+public interface Internal {
+    int doit();
+}
+
+public class ClosureExample {
+
+    public static void main(String[] args) {
+
+        Internal doer;
+
+        {
+            int x = 4;
+            doer = new Internal() {
+                    public int doit() {
+                        return x;
+                    }
+                };
+        }
+        assert(doer.doit() == 4);
+        int x = 5;
+        assert(doer.doit() == 4);
+    }
+}
+ClosureExample.main(new String[0]);
+
+// BSH scripted class equivalent
+doer = null;
+{
+    int x = 4;
+    internal() {
+        doit() {
+            return x;
+        }
+        return this;
+    }
+    doer = internal();
+}
+
+assert(doer.doit()==4);
+x = 5;
+assert(doer.doit()==4);
+
+complete();
