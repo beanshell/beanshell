@@ -955,6 +955,13 @@ class Name implements java.io.Serializable
             return parts;
         }
     }
+
+    static void clearParts() {
+        synchronized (Parts.PARTSCACHE) {
+            Parts.PARTSCACHE.clear();
+        }
+    }
+
     public static boolean isCompound(String value)
     {
         return countParts(value) > 1;
