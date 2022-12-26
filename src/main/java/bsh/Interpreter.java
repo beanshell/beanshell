@@ -757,6 +757,16 @@ public class Interpreter
         return Primitive.unwrap( retVal );
     }
 
+    /** Optional method to release additional resources. The interpreter
+     * allows for multiple eval calls and therefor maintains certain state
+     * for subsequent calls. Only use this if completely done with current
+     * interpreter and desperate to clear as much resources as possible. */
+    public void reset() {
+        getClassManager().reset();
+        globalNameSpace.clear();
+        Name.clearParts();
+    }
+
     /**
         Evaluate the inputstream in this interpreter's global namespace.
     */
