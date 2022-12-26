@@ -114,11 +114,11 @@ public class ReferenceCacheTest {
     @Test
     public void weak_reference_key_gced() {
         ReferenceCache<String,byte[]> cache = new ReferenceCache<String,byte[]>(Weak, Weak) {
-            protected byte[] create(String key) { return new byte[1024*10000]; }};
+            protected byte[] create(String key) { return new byte[1024*1000]; }};
         cache.init("foo");
         TestUtil.cleanUp();
         assertThat(cache.size(), equalTo(1));
-        assertArrayEquals(new byte[1024*10000], cache.get("foo"));
+        assertArrayEquals(new byte[1024*1000], cache.get("foo"));
         assertTrue(cache.remove("foo"));
         System.gc();
     }

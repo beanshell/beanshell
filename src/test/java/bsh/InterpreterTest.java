@@ -33,6 +33,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.isEmptyString;
+import static org.hamcrest.Matchers.lessThan;
 
 import org.junit.Test;
 
@@ -250,10 +251,10 @@ public class InterpreterTest {
     }
 
     @Test
-     public void set_prompt_by_interpreter() throws Exception {
-         final StringReader in = new StringReader("\n");
-         for (String P: new String[] { "abc> ", "cde# " }) {
-             try (ByteArrayOutputStream baos = new ByteArrayOutputStream() ) {
+    public void set_prompt_by_interpreter() throws Exception {
+        final StringReader in = new StringReader("\n");
+        for (String P: new String[] { "abc> ", "cde# " }) {
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream() ) {
                 Interpreter bsh = new Interpreter(in, new PrintStream(baos),
                     new PrintStream(baos), true);
                 bsh.setExitOnEOF(false);
@@ -262,6 +263,16 @@ public class InterpreterTest {
                 assertTrue(baos.toString().contains(P));
             }
         }
-     }
+    }
+
+    @Test
+    public void reset_interpreter() throws Exception {
+        final Interpreter bsh = new Interpreter();
+        assertEquals("test123", bsh.eval("'test' + (100 + 20 + 3)"));
+        long b4 = Runtime.getRuntime().freeMemory();
+        bsh.reset();
+        System.gc();
+        assertThat(b4, lessThan(Runtime.getRuntime().freeMemory()));
+    }
 
 }
