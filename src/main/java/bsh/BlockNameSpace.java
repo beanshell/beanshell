@@ -57,7 +57,7 @@ class BlockNameSpace extends NameSpace
     public final AtomicInteger used = new AtomicInteger(1);
 
     /** Unique key for cached name spaces. */
-    private static class UniqueBlock {
+    private static final class UniqueBlock {
         NameSpace ns;
         int id;
         /** Unique block consists of a namespace and unique id.
@@ -83,7 +83,7 @@ class BlockNameSpace extends NameSpace
 
     /** Weak reference cache for reusable block namespaces */
     private static final ReferenceCache<UniqueBlock,NameSpace> blockspaces
-        = new ReferenceCache<UniqueBlock, NameSpace>(Type.Weak, Type.Weak, 4000) {
+        = new ReferenceCache<UniqueBlock, NameSpace>(Type.Soft, Type.Soft, 4000) {
             /** Create block namespace based on unique block key as required */
             protected NameSpace create(UniqueBlock key) {
                 return new BlockNameSpace(key.ns, key.id);
