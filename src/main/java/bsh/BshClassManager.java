@@ -35,8 +35,6 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -335,18 +333,18 @@ public class BshClassManager {
         Note: these should probably be re-implemented with Soft references.
         (as opposed to strong or Weak)
     */
-    protected final transient Map<String,Class<?>> absoluteClassCache = new Hashtable<>();
+    protected final transient Map<String,Class<?>> absoluteClassCache = new ConcurrentHashMap<>();
     /**
         Global cache for things we know are *not* classes.
         Note: these should probably be re-implemented with Soft references.
         (as opposed to strong or Weak)
     */
-    protected final transient Set<String> absoluteNonClasses = Collections.synchronizedSet(new HashSet<>());
-    private final transient Set<String> definingClasses = Collections.synchronizedSet(new HashSet<>());
-    protected final transient Map<String,String> definingClassesBaseNames = new Hashtable<>();
+    protected final transient Set<String> absoluteNonClasses = ConcurrentHashMap.newKeySet();
+    private final transient Set<String> definingClasses =  ConcurrentHashMap.newKeySet();
+    protected final transient Map<String,String> definingClassesBaseNames = new ConcurrentHashMap<>();
 
     /** @see #associateClass( Class ) */
-    protected final transient Map<String, Class<?>> associatedClasses = new Hashtable<>();
+    protected final transient Map<String, Class<?>> associatedClasses = new ConcurrentHashMap<>();
 
     /**
         Create a new instance of the class manager.
@@ -530,6 +528,7 @@ public class BshClassManager {
     protected void clearCaches() {
         absoluteNonClasses.clear();
         absoluteClassCache.clear();
+        memberCache.clear();
     }
 
     /**
