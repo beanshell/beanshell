@@ -21,8 +21,12 @@ import java.lang.ref.WeakReference;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.ThreadFactory;
 
 /** Asynchronous reference cache with weak, soft and hard reference support.
  * Implementations supply values via the abstract create method, which is
@@ -37,6 +41,8 @@ public abstract class ReferenceCache<K,V> {
     private final ReferenceFactory<K,V> valueFactory;
     private final ReferenceFactory<K,V> lookupFactory;
     private final ReferenceQueueMonitor<? super Object> queue;
+    private static final ExecutorService taskService
+        = Executors.newCachedThreadPool(new DaemonThreadFactory());
 
     /** Definition of reference types. */
     public static enum Type { Weak, Soft, Hard }
@@ -105,7 +111,7 @@ public abstract class ReferenceCache<K,V> {
             return valueFactory.createValue(created, queue);
         });
         cache.put(refKey, task);
-        task.run();
+        taskService.execute(task);
     }
 
     /** Remove cache entry associated with the given key.
@@ -150,6 +156,7 @@ public abstract class ReferenceCache<K,V> {
      * @param futureValue a future value
      * @return dereferenced value */
     private V dereferenceValue(Future<CacheReference<V>> futureValue) {
+        if (null == futureValue) return null;
         try {
             return dereferenceValue(futureValue.get());
         } catch (final Throwable e) {
@@ -340,6 +347,27 @@ public abstract class ReferenceCache<K,V> {
                 Reference<? extends T> reference = super.remove();
                 reference.clear();
             } catch (InterruptedException e) { /* ignore try again */ }
+        }
+    }
+
+    /** For auto shutdown cached threadpool service. A max priority daemon
+     * thread factory to ensure java vm will shutdown and zombie processes
+     * cleaned up naturally. @see Executors$DefaultThreadFactory */
+    private static final class DaemonThreadFactory implements ThreadFactory {
+        private final ThreadGroup group = Thread.currentThread().getThreadGroup();
+        private final AtomicInteger threadNumber = new AtomicInteger(1);
+        private final String namePrefix = "pool-referencecache-futuretask-thread-";
+
+        /** {@inheritDoc} */
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(group, r,
+                                  namePrefix + threadNumber.getAndIncrement(), 0);
+            if (!t.isDaemon())
+                t.setDaemon(true);
+            if (t.getPriority() != Thread.MAX_PRIORITY)
+                t.setPriority(Thread.MAX_PRIORITY);
+            return t;
         }
     }
 }
