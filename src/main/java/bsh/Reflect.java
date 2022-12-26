@@ -355,7 +355,7 @@ public final class Reflect {
 
         Invocable method = BshClassManager.memberCache
                 .get(clas).findMethod(name, types);
-        Interpreter.debug("resolved java method: ", method);
+        Interpreter.debug("resolved java method: ", method, " on class: ", clas);
         checkFoundStaticMethod( method, staticOnly, clas );
         return method;
     }
