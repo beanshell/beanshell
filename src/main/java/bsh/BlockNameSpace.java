@@ -99,7 +99,7 @@ class BlockNameSpace extends NameSpace
     public static NameSpace getInstance(NameSpace parent, int blockId ) {
         BlockNameSpace ns = (BlockNameSpace) blockspaces.get(
                 new UniqueBlock(parent, blockId));
-        if (null != ns && 1 < ns.used.getAndIncrement()) ns.clear();
+        if (1 < ns.used.getAndIncrement()) ns.clear();
         return ns;
     }
 
