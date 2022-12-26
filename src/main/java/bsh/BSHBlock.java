@@ -168,10 +168,9 @@ class BSHBlock extends SimpleNode {
         } finally {
             // Make sure we put the namespace back when we leave.
             // Clear cached block name space, contents can be gc'ed away
-            if ( !overrideNamespace ) {
-                callstack.top().clear();
+            if ( !overrideNamespace )
                 callstack.swap( enclosingNameSpace );
-            }
+
         }
         isFirst = false;
         return ret;
