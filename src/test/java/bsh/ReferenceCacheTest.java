@@ -31,6 +31,7 @@ public class ReferenceCacheTest {
 
         assertThat(cache.size(), equalTo(1));
         assertThat(cache.get("foo"), equalTo(0));
+        assertTrue(cache.remove("foo"));
         System.gc();
     }
 
@@ -56,6 +57,7 @@ public class ReferenceCacheTest {
 
         assertThat(cache.size(), equalTo(1));
         assertThat(cache.get("foo"), equalTo("bar"));
+        assertTrue(cache.remove("foo"));
         System.gc();
     }
 
@@ -67,6 +69,7 @@ public class ReferenceCacheTest {
 
         assertThat(cache.size(), equalTo(1));
         assertThat(cache.get("foo"), equalTo(0));
+        assertTrue(cache.remove("foo"));
         System.gc();
     }
 
@@ -92,6 +95,7 @@ public class ReferenceCacheTest {
 
         assertThat(cache.size(), equalTo(1));
         assertThat(cache.get("foo"), equalTo("bar"));
+        assertTrue(cache.remove("foo"));
         System.gc();
     }
 
@@ -103,6 +107,19 @@ public class ReferenceCacheTest {
 
         assertThat(cache.size(), equalTo(1));
         assertThat(cache.get("foo"), equalTo(0));
+        assertTrue(cache.remove("foo"));
+        System.gc();
+    }
+
+    @Test
+    public void weak_reference_key_gced() {
+        ReferenceCache<String,byte[]> cache = new ReferenceCache<String,byte[]>(Weak, Weak) {
+            protected byte[] create(String key) { return new byte[1024*10000]; }};
+        cache.init("foo");
+        TestUtil.cleanUp();
+        assertThat(cache.size(), equalTo(1));
+        assertArrayEquals(new byte[1024*10000], cache.get("foo"));
+        assertTrue(cache.remove("foo"));
         System.gc();
     }
 
@@ -117,6 +134,7 @@ public class ReferenceCacheTest {
         assertThat(e.getCause(), instanceOf(NullPointerException.class));
         assertThat(e.getCause().getMessage(),
             containsString("Reference cache create value may not return null."));
+        assertTrue(cache.remove("foo"));
         System.gc();
     }
 
@@ -128,6 +146,7 @@ public class ReferenceCacheTest {
 
         assertThat(cache.size(), equalTo(1));
         assertThat(cache.get("foo"), equalTo("bar"));
+        assertTrue(cache.remove("foo"));
         System.gc();
     }
 
@@ -165,11 +184,11 @@ public class ReferenceCacheTest {
         while (cnt[0]++ < 10) {
             cache.init(cnt[0]);
             System.gc();
-            assertArrayEquals(cache.get(cnt[0]), new byte[1024*100]);
+            assertArrayEquals(new byte[1024*100], cache.get(cnt[0]));
         }
         System.gc();
         assertNotEquals(cache.size(), cnt[0]);
-        assertArrayEquals(cache.get(cnt[0]), new byte[1024*100]);
+        assertArrayEquals(new byte[1024*100], cache.get(cnt[0]));
     }
 
     @Test
@@ -180,11 +199,11 @@ public class ReferenceCacheTest {
         while (cnt[0]++ < 10) {
             cache.init(cnt[0]);
             System.gc();
-            assertArrayEquals(cache.get(cnt[0]), new byte[1024*100]);
+            assertArrayEquals(new byte[1024*100], cache.get(cnt[0]));
         }
         System.gc();
         assertNotEquals(cache.size(), cnt[0]);
-        assertArrayEquals(cache.get(cnt[0]), new byte[1024*100]);
+        assertArrayEquals(new byte[1024*100], cache.get(cnt[0]));
     }
 
     @Test
@@ -195,11 +214,11 @@ public class ReferenceCacheTest {
         while (cnt[0]++ < 10) {
             cache.init(cnt[0]);
             System.gc();
-            assertArrayEquals(cache.get(cnt[0]), new byte[1024*100]);
+            assertArrayEquals(new byte[1024*100], cache.get(cnt[0]));
         }
         System.gc();
         assertNotEquals(cache.size(), cnt[0]);
-        assertArrayEquals(cache.get(cnt[0]), new byte[1024*100]);
+        assertArrayEquals(new byte[1024*100], cache.get(cnt[0]));
     }
 }
 
