@@ -1,0 +1,83 @@
+#!/bin/java bsh.Interpreter50
+/*
+ * Test OutOfMemoryError OME in try block
+ */
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// skip this test if not within the correct heap size parameters
+assumeThat("Needs more than 480MB and less than 1000MB heap to pass",
+    Long.valueOf(Runtime.getRuntime().totalMemory()/1024/1024),
+    allOf(greaterThan(Long.valueOf(480)), lessThanOrEqualTo(Long.valueOf(700))));
+
+data = new Hashtable();
+
+// catch OutOfMemoryError check exception message
+count = 0;
+while (count++ < 3 ) try {
+    data.put(count, new byte[1024*1024*300]);
+} catch (OutOfMemoryError e) {
+    data.clear();
+    assertThat("OutOfMemoryError has message: Java heap space", e.getMessage(), containsString("Java heap space"));
+    break;
+}
+assertThat("while was aborted", count, not(equalTo(4)));
+complete();
+
+// catch Error check instance of OutOfMemoryError
+count = 0;
+while (count++ < 3 ) try {
+    data.put(count, new byte[1024*1024*300]);
+} catch (Error e) {
+    data.clear();
+    assertThat("Error is OutOfMemoryError", e, instanceOf(OutOfMemoryError.class));
+    break;
+}
+assertThat("while was aborted", count, not(equalTo(4)));
+
+// catch Throwable check instance of OutOfMemoryError
+count = 0;
+while (count++ < 3 ) try {
+    data.put(count, new byte[1024*1024*300]);
+} catch (Throwable e) {
+    data.clear();
+    assertThat("Throwable is OutOfMemoryError", e, instanceOf(OutOfMemoryError.class));
+    break;
+}
+assertThat("while was aborted", count, not(equalTo(4)));
+
+// catch untyped exception check instance of OutOfMemoryError
+count = 0;
+while (count++ < 3 ) try {
+    data.put(count, new byte[1024*1024*300]);
+} catch (e) {
+    data.clear();
+    assertThat("Untyped exception is OutOfMemoryError", e, instanceOf(OutOfMemoryError.class));
+    break;
+}
+assertThat("while was aborted", count, not(equalTo(4)));
+
+// handle OutOfMemoryError process all records
+putIt(count) {
+    try {
+        data.put(count, new byte[1024*1024*300]);
+    } catch (OutOfMemoryError e) {
+        data.clear();
+        putIt(count);
+    }
+}
+count = 0;
+while (count++ < 3)
+    putIt(count);
+assertThat("OutOfMemoryError was handled all records processed", count, equalTo(4));
+
+// expect EvalError with cause OutOfMemoryError if we don't catch the try block
+count = 0;
+assert(isEvalError("OutOfMemoryError: Java heap space", "while (count++ < 3) try { data.put(count, new byte[1024*1024*300]); } finally {}"));
+
+// expect EvalError with cause OutOfMemoryError if we catch RuntimeException
+count = 0;
+assert(isEvalError("OutOfMemoryError: Java heap space", "while (count++ < 3) try { data.put(count, new byte[1024*1024*300]); } catch (RuntimeException e) {}"));
+
+complete();

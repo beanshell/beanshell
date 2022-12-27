@@ -249,7 +249,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.0.0-M5</version>
         <configuration>
-          <argLine>-XX:+UseSerialGC ${surefireArgLine}</argLine>
+          <argLine>-Xmx1000M -Xms500M -XX:+UseSerialGC ${surefireArgLine}</argLine>
           <systemPropertyVariables>
             <bsh.debugClasses />
             <accessibility>false</accessibility>
