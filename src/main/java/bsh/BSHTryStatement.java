@@ -85,9 +85,15 @@ class BSHTryStatement extends SimpleNode
         */
         int callstackDepth = callstack.depth();
         try {
-            ret = tryBlock.eval(callstack, interpreter);
+            Interpreter.debug("Evaluate try block");
+            try {
+                ret = tryBlock.eval(callstack, interpreter);
+            } catch ( OutOfMemoryError ome ) {
+                throw new TargetError(ome.toString(), ome, tryBlock, callstack, false);
+            }
         }
         catch( TargetError e ) {
+            Interpreter.debug("Exception from try block: ", e);
             thrown = e.getTarget();
             // clean up call stack grown due to exception interruption
             while ( callstack.depth() > callstackDepth )
@@ -99,6 +105,7 @@ class BSHTryStatement extends SimpleNode
 
             // try block finished auto close try-with-resources
             if (null != this.tryWithResources) {
+                Interpreter.debug("Try with resources: autoClose");
                 List<Throwable> tlist = this.tryWithResources.autoClose();
                 for (Throwable t: tlist) // Java 9/10 treats this differently from 8
                     if (null != thrown && thrown != t)
@@ -111,6 +118,7 @@ class BSHTryStatement extends SimpleNode
         try {
             if (thrown != null)
             {
+                Interpreter.debug("Try catch thrown: ", thrown);
                 Class<?> thrownType = thrown.getClass();
                 int n = catchParams.size();
                 for(i=0; i<n; i++)
@@ -147,8 +155,7 @@ class BSHTryStatement extends SimpleNode
                     // parameter and swap it on the stack after initializing it.
 
                     NameSpace enclosingNameSpace = callstack.top();
-                    BlockNameSpace cbNameSpace = (BlockNameSpace)
-                        BlockNameSpace.getInstance( enclosingNameSpace, blockId );
+                    BlockNameSpace cbNameSpace = new BlockNameSpace(callstack.top(), blockId);
 
                     try {
                         if ( mcType == BSHMultiCatch.UNTYPED )
@@ -166,7 +173,7 @@ class BSHTryStatement extends SimpleNode
                     // put cbNameSpace on the top of the stack
                     callstack.swap( cbNameSpace );
                     try {
-                        ret = cb.eval( callstack, interpreter );
+                        ret = cb.eval( callstack, interpreter, true );
                     } finally {
                         // put it back
                         callstack.swap( enclosingNameSpace );
