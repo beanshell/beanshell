@@ -91,10 +91,11 @@ public final class TargetError extends EvalError
      * @param t wrapped target exception
      * @return messages unwrapped */
     private synchronized String printTargetError( Throwable t ) {
-            StringBuilder msgs = new StringBuilder(t.toString());
-            while ( null != (t = t.getCause()) )
-                msgs.append("\n").append(t.toString());
-            return msgs.toString();
+        if (null == t) return "Cause is null";
+        StringBuilder msgs = new StringBuilder(t.toString());
+        while ( null != (t = t.getCause()) )
+            msgs.append("\n").append(t.toString());
+        return msgs.toString();
     }
 
     /**

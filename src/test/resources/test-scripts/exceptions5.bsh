@@ -4,14 +4,20 @@ source("TestHarness.bsh");
 import bsh.ParseException;
 
 // Check that ParseException info is filled out, issue #395
-try { 
+try {
   // Deliberate syntax error
   eval("Number num = (Number a;");
-} catch ( ParseException pe ) { 
+} catch ( ParseException pe ) {
   flag();
   assert( pe.getErrorLineNumber() == 1 );
 }
 
 assert( flag() == 1 );
+
+// Test NPE exception fix on TargetError with null cause. #498
+import bsh.TargetError;
+
+te = new TargetError(null, null, null);
+assert(te.getMessage().contains("Cause is null"));
 
 complete();

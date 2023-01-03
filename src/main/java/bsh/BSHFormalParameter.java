@@ -41,6 +41,7 @@ class BSHFormalParameter extends SimpleNode
     public Class type;
     boolean isFinal = false;
     boolean isVarArgs = false;
+    int dimensions = 0;
 
     BSHFormalParameter(int id) { super(id); }
 

@@ -165,6 +165,21 @@ class Types {
         return getType(arg, false);
     }
 
+    /** Determine type of primitives via JAVAs dynamic method lookup.
+     * JAVA will choose the most appropriate overloaded method based
+     * on paramater types and we return the corresponding primitive
+     * type.
+     * @param arg the primitive variable
+     * @return the primitive class of type */
+    public static Class<?> getType( boolean arg ) { return Boolean.TYPE; }
+    public static Class<?> getType( byte arg ) { return Byte.TYPE; }
+    public static Class<?> getType( char arg ) { return Character.TYPE; }
+    public static Class<?> getType( int arg ) { return Integer.TYPE; }
+    public static Class<?> getType( long arg ) { return Long.TYPE; }
+    public static Class<?> getType( short arg ) { return Short.TYPE; }
+    public static Class<?> getType( double arg ) { return Double.TYPE; }
+    public static Class<?> getType( float arg ) { return Float.TYPE; }
+
     /** Find the type of an object boxed or not.
      * @param arg the object to query.
      * @param boxed whether to get a primitive or boxed type.
@@ -184,7 +199,7 @@ class Types {
      indicating a loose type and matching anything.
      */
     /* Should check for strict java here and limit to isJavaAssignable() */
-    static boolean isSignatureAssignable( Class[] from, Class[] to, int round )
+    static boolean isSignatureAssignable( Class<?>[] from, Class<?>[] to, int round )
     {
         if ( round != JAVA_VARARGS_ASSIGNABLE && from.length != to.length )
             return false;
@@ -218,7 +233,7 @@ class Types {
      * Are the two signatures exactly equal? This is checked for a special
      * case in overload resolution.
      */
-    static boolean areSignaturesEqual(Class[] from, Class[] to)
+    static boolean areSignaturesEqual(Class<?>[] from, Class<?>[] to)
     {
         if (from.length != to.length)
             return false;
@@ -286,7 +301,7 @@ class Types {
         @param lhsType assigning from rhsType to lhsType
         @param rhsType assigning from rhsType to lhsType
     */
-    static boolean isJavaAssignable( Class lhsType, Class rhsType ) {
+    static boolean isJavaAssignable( Class<?> lhsType, Class<?> rhsType ) {
         return isJavaBaseAssignable( lhsType, rhsType )
             || isJavaBoxTypesAssignable( lhsType, rhsType );
     }
@@ -296,7 +311,7 @@ class Types {
         assignment rules, not including auto-boxing/unboxing.
      @param rhsType may be null to indicate primitive null value
     */
-    static boolean isJavaBaseAssignable( Class<?> lhsType, Class<?> rhsType )
+    public static boolean isJavaBaseAssignable( Class<?> lhsType, Class<?> rhsType )
     {
         /*
             Assignment to loose type, defer to bsh extensions
@@ -320,8 +335,12 @@ class Types {
             // handle primitive widening conversions - JLS 5.1.2
             if ( NUMBER_ORDER.containsKey(rhsType)
                     && NUMBER_ORDER.containsKey(lhsType) )
-                return NUMBER_ORDER.get(rhsType) < NUMBER_ORDER.get(lhsType);
+                return (NUMBER_ORDER.get(rhsType) < NUMBER_ORDER.get(lhsType));
         }
+        // need to properly incorporate auto narrowing and widening this is just
+        // a quick fix to auto wide for magic math methods
+        else if ((lhsType == BigInteger.class||lhsType == BigDecimal.class) && Types.isNumeric(rhsType))
+            return true;
         else if ( lhsType.isAssignableFrom(rhsType) )
             return true;
 
@@ -332,7 +351,7 @@ class Types {
         Determine if the type is assignable via Java boxing/unboxing rules.
     */
     static boolean isJavaBoxTypesAssignable(
-        Class lhsType, Class rhsType )
+        Class<?> lhsType, Class<?> rhsType )
     {
         // Assignment to loose type... defer to bsh extensions
         if ( lhsType == null )
@@ -368,7 +387,7 @@ class Types {
      Test if a type can be converted to another type via BeanShell
      extended syntax rules (a superset of Java conversion rules).
      */
-    static boolean isBshAssignable( Class toType, Class fromType )
+    static boolean isBshAssignable( Class<?> toType, Class<?> fromType )
     {
         try {
             return castObject(
@@ -579,13 +598,20 @@ class Types {
                     checkOnly, operation );
             } else
             {
-                if ( Primitive.isWrapperType( fromType ) )
+                if (Types.isNumeric(fromType) && Types.isNumeric(toType)) {
+                    // Auto widening and narrowing of primitive numeric types
+                    if (checkOnly)
+                        return VALID_CAST;
+                    else
+                        return Primitive.wrap(
+                            Primitive.castWrapper(toType, fromValue), toType);
+                } else if ( Primitive.isWrapperType( fromType ) )
                 {
                     // wrapper to primitive
                     // Convert value to Primitive and check/cast it.
 
                     //Object r = checkOnly ? VALID_CAST :
-                    Class unboxedFromType = Primitive.unboxType( fromType );
+                    Class<?> unboxedFromType = Primitive.unboxType( fromType );
                     Primitive primFromValue;
                     if ( checkOnly )
                         primFromValue = null; // must be null in checkOnly
@@ -670,7 +696,7 @@ class Types {
         describing an illegal assignment or illegal cast, respectively.
     */
     static UtilEvalError castError(
-        Class lhsType, Class rhsType, int operation   )
+        Class<?> lhsType, Class<?> rhsType, int operation   )
     {
         return castError(
             StringUtil.typeString(lhsType),
@@ -713,6 +739,16 @@ class Types {
      * @return true if value is a Number or a Character. */
     public static boolean isNumeric(Object value) {
         return value instanceof Number || value instanceof Character;
+    }
+
+    /** Overload of isNumeric to evaluate if class is numeric.
+     * @param type the class to inspect.
+     * @return true if type is a Number or a Character. */
+    public static boolean isNumeric(Class<?> type) {
+        return Number.class.isAssignableFrom(
+            type.isPrimitive() ? Primitive.boxType(type) : type)
+            || Character.class.isAssignableFrom(
+                type.isPrimitive() ? Primitive.boxType(type) : type);
     }
 
     /** Consider Float, Double and BigDecimal as floating point types.

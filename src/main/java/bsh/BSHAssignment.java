@@ -36,8 +36,11 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
 
     public Object eval(CallStack callstack, Interpreter interpreter)
             throws EvalError {
-        if ( null == operator )
+        if ( null == operator ) try {
             return jjtGetChild(0).eval(callstack, interpreter);
+        } catch (SafeNavigate aborted) {
+            return Primitive.NULL;
+        }
 
         BSHPrimaryExpression lhsNode =
             (BSHPrimaryExpression) jjtGetChild(0);
@@ -55,6 +58,9 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
             throw e.toEvalError( this, callstack );
         }
 
+        if ( operator == NULLCOALESCEASSIGN &&  Primitive.NULL != lhsValue )
+            return lhsValue; // return non null lhs before evaluating rhs
+
         // evaluate the right hand side
         Object rhs = jjtGetChild(1).eval(callstack, interpreter);
 
@@ -68,6 +74,10 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
                         lhs.getVariable().setValue(rhs, Variable.ASSIGNMENT);
                         return rhs;
                     }
+                    return lhs.assign(rhs, strictJava);
+
+                case NULLCOALESCEASSIGN:
+                    // we already know lhs is null
                     return lhs.assign(rhs, strictJava);
 
                 case PLUSASSIGN:

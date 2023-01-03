@@ -77,13 +77,17 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
             we're a boolean AND and the lhs is false.
             or we're a boolean OR and the lhs is true.
         */
-        if ( lhs == Primitive.FALSE && (kind == BOOL_AND || kind == BOOL_ANDX) )
+        if ( Primitive.FALSE.equals(lhs) && (kind == BOOL_AND || kind == BOOL_ANDX) )
             return Primitive.FALSE;
-        if ( lhs == Primitive.TRUE && (kind == BOOL_OR || kind == BOOL_ORX) )
+        if ( Primitive.TRUE.equals(lhs) && (kind == BOOL_OR || kind == BOOL_ORX || kind == ELVIS) )
             return Primitive.TRUE;
-
+        if ( Primitive.NULL != lhs && kind == NULLCOALESCE )
+            return lhs;
 
         Object rhs = jjtGetChild(1).eval(callstack, interpreter);
+
+        if ( kind == NULLCOALESCE || kind == ELVIS )
+            return rhs;
 
         // Handle null values and apply null rules.
         lhs = checkNullValues(lhs, rhs, 0, callstack);

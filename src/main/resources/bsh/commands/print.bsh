@@ -15,6 +15,7 @@
 import static bsh.StringUtil.valueString;
 import bsh.StringUtil;
 import bsh.Primitive;
+import bsh.Types;
 
 bsh.help.print = "usage: print( value )";
 
@@ -22,7 +23,7 @@ void print( arg )
 {
     // Other packages are known to define a String class so best practice here to disambiguate
     if ( arg instanceof java.lang.String
-            || (arg instanceof Primitive && arg.getType() == Character.TYPE)
+            || Character.class.isInstance(arg)
             || arg instanceof CharSequence )
         this.interpreter.println( java.lang.String.valueOf(arg) );
     else
@@ -36,7 +37,7 @@ String typeValueString(value) {
 String typeString(value) {
     if ( null == value || Primitive.NULL == value )
         return "null";
-    if ( value instanceof Primitive )
-        return value.getType().getSimpleName();
+    if ( Types.getType(value).isPrimitive() )
+        return Types.getType(value).getSimpleName();
     return StringUtil.typeString(value.getClass());
 }

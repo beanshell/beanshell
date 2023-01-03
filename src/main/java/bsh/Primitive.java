@@ -120,11 +120,6 @@ public final class Primitive implements Serializable {
             throw new InterpreterError(
                 "Use Primitve.NULL instead of Primitive(null)");
 
-        if ( value != Special.NULL_VALUE
-            && value != Special.VOID_TYPE &&
-            !isWrapperType( value.getClass() ) )
-            throw new InterpreterError( "Not a wrapper type: "+value.getClass());
-
         this.value = value;
     }
 
@@ -200,19 +195,6 @@ public final class Primitive implements Serializable {
         if ( bi.compareTo(LONG_MIN) >= 0 && bi.compareTo(LONG_MAX) <= 0 )
             return new Primitive(bi.longValue());
         return new Primitive(bi);
-    }
-
-
-    public int intValue()
-    {
-        return (int) castNumber(Integer.TYPE, numberValue());
-    }
-
-    public boolean booleanValue() throws UtilEvalError
-    {
-        if(value instanceof Boolean)
-            return((Boolean)value).booleanValue();
-        throw new UtilEvalError("Primitive not a boolean");
     }
 
     /**
@@ -340,12 +322,13 @@ public final class Primitive implements Serializable {
         if ( value == null )
             return Primitive.NULL;
 
-        if(value instanceof Boolean)
-            return ((Boolean)value).booleanValue() ? Primitive.TRUE :
-                Primitive.FALSE;
+        if (Types.isPrimitive(type))
+            if ( value instanceof Boolean )
+                return ((Boolean)value).booleanValue()
+                    ? Primitive.TRUE : Primitive.FALSE;
 
-        if ( Types.isPrimitive(type) && isWrapperType( value.getClass() ) )
-            return new Primitive( value );
+            else if ( isWrapperType( value.getClass() ) )
+                return new Primitive( value );
 
         return value;
     }
@@ -447,22 +430,6 @@ public final class Primitive implements Serializable {
         boolean checkOnly, int operation )
         throws UtilEvalError
     {
-        /*
-            Lots of preconditions checked here...
-            Once things are running smoothly we might comment these out
-            (That's what assertions are for).
-        */
-        if ( checkOnly && fromValue != null )
-            throw new InterpreterError("bad cast param 1");
-        if ( !checkOnly && fromValue == null )
-            throw new InterpreterError("bad cast param 2");
-        if ( fromType != null && !(isWrapperType(fromType)||fromType.isPrimitive()) )
-            throw new InterpreterError("bad fromType:" +fromType);
-        if ( fromValue == Primitive.NULL && fromType != null )
-            throw new InterpreterError("inconsistent args 1");
-        if ( fromValue == Primitive.VOID && fromType != Void.TYPE )
-            throw new InterpreterError("inconsistent args 2");
-
         // can't cast void to anything
         if ( fromType == Void.TYPE )
             if ( checkOnly )
@@ -569,7 +536,7 @@ public final class Primitive implements Serializable {
     }
 
     static Object castNumber(Class<?> toType, Number number) {
-        if (toType == number.getClass() || toType == unboxType(number.getClass()))
+        if (toType.isInstance(number) || toType == unboxType(number.getClass()))
             return number;
         if ((toType == Byte.class || toType == Byte.TYPE)
                 && number.shortValue() <= 0xff && number.shortValue() >= Byte.MIN_VALUE)

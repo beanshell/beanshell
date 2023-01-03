@@ -1350,14 +1350,15 @@ public class NameSpace
      * importClass("bsh.Interpreter");
      * importClass("bsh.Capabilities");
      * importPackage("java.net");
+     * importClass("java.util.Map.Entry");
      * importPackage("java.util.function");
      * importPackage("java.util.stream");
      * importPackage("java.util.regex");
      * importPackage("java.util");
      * importPackage("java.io");
      * importPackage("java.lang");
-     * importClass("java.math.BigInteger");
-     * importClass("java.math.BigDecimal");
+     * importClass("bsh.FileReader");
+     * importPackage("java.math");
      * importCommands("/bsh/commands");
      * </pre>
      */
@@ -1377,8 +1378,7 @@ public class NameSpace
         this.importPackage("java.io");
         this.importPackage("java.lang");
         this.importClass("bsh.FileReader");
-        this.importClass("java.math.BigInteger");
-        this.importClass("java.math.BigDecimal");
+        this.importPackage("java.math");
         this.importCommands("/bsh/commands");
     }
 
