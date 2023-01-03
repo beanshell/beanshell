@@ -816,22 +816,11 @@ class Name implements java.io.Serializable
 
         // if we've got an object, resolve the method
         if ( !(obj instanceof ClassIdentifier) ) {
-
-            if (obj instanceof Primitive) {
-
+            if (obj instanceof Primitive)
                 if (obj == Primitive.NULL)
                     throw new UtilTargetError( new NullPointerException(
                         "Null Pointer in Method Invocation of " +methodName
                             +"() on variable: "+targetName) );
-
-                // some other primitive
-                // should avoid calling methods on primitive, as we do
-                // in Name (can't treat primitive like an object message)
-                // but the hole is useful right now.
-                Interpreter.debug(
-                    "Attempt to access method on primitive...",
-                    " allowing bsh.Primitive to peek through for debugging");
-            }
 
             // enum block members will be in namespace only
             if ( obj.getClass().isEnum() ) {

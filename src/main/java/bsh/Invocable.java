@@ -163,6 +163,8 @@ public abstract class Invocable implements Member {
     /** Basic parameter collection with pulling inherited cascade chaining. */
     public ParameterType collectParamaters(Object base, Object[] params)
             throws Throwable {
+        if (getLastParameterIndex() > params.length)
+            throw new InvocationTargetException(null, "Insufficient parameters passed for method: " + getName() + Arrays.asList(getParameterTypes()));
         parameters.clear();
         for (int i = 0; i < getLastParameterIndex(); i++)
             parameters.add(coerceToType(params[i], getParameterTypes()[i]));
@@ -176,14 +178,9 @@ public abstract class Invocable implements Member {
      * @throws Throwable on cast errors */
     protected Object coerceToType(Object param, Class<?> type)
             throws Throwable {
-       if (type != Object.class) {
-          /*
-           * If type is the same or a superclass of param then
-           * there is no need to cast the object.  Issue #613
-           */
-          if (!type.isAssignableFrom(param.getClass()))
-              param = Types.castObject(param, type, Types.CAST);
-       }
+        Class<?> pClass = Types.getType(param);
+        if (null != pClass && !type.isAssignableFrom(pClass))
+            param = Types.castObject(param, type, Types.CAST);
         return Primitive.unwrap(param);
     }
 

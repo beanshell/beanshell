@@ -20,4 +20,9 @@ URL foo11() { }
 URL [] foo12() { }
 URL [][] foo13() { }
 
+assert(isEvalError("Insufficient parameters passed for method", "10.0w.max();"));
+assert(isEvalError("Rounding necessary", "10.4353536365345f.setScale(1);"));
+assert(isEvalError("not found in class'float'", "10.4353536365345f.setScale(true);"));
+assert(isEvalError("Method found on BigDecimal", "10.435f.compareTo(null);"));
+
 complete();

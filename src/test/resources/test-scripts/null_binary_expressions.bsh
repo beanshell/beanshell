@@ -178,7 +178,7 @@ assert(isEvalError('bad operand types for binary operator "@or"', '1 @or o'));
 assert(isEvalError('bad operand types for binary operator "&&"', '1 && o'));
 assert(isEvalError('bad operand types for binary operator "@and"', '1 @and o'));
 
-// null Integer wrapper class, represents all Number types 
+// null Integer wrapper class, represents all Number types
 Integer i = null;
 assert(isEvalError('incomparable types: String and Integer', 's == i'));
 assertEquals("null1", i + "1");
@@ -417,7 +417,8 @@ assertTrue(b == Boolean.valueOf(true));
 assertTrue(b == Boolean.TRUE);
 assertFalse(null == b);
 assertFalse(b == null);
-assertTrue(b == new Boolean(true));
+assertFalse(b == new Boolean(true)); // now works like JAVA does, false not the same instance (deprecated)
+assertTrue(b.booleanValue() == true.booleanValue());
 assertFalse(b != b);
 b = null;
 assert(isEvalError('bad operand types for binary operator "+"', 'b + true'));

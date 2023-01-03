@@ -20,7 +20,7 @@ assertEquals( 42, myMap.get("foo") );
 
 // primitives get mapped back to prims inside the interpreter
 interpreter.eval("int fooint=42");
-assertSame( bsh.Primitive.class, interpreter.eval("fooint.getClass()") );
+assertTrue( interpreter.eval("fooint.getType().isPrimitive()") );
 assertThat( myMap.get("fooint"), instanceOf(Integer.class) );
 
 interpreter.eval("Integer fooInt=42");
@@ -41,12 +41,12 @@ assertFalse( myMap.get("flag").booleanValue() );
 
 interpreter.eval("int bar = 43");
 // it's a primitive to bsh
-assertTrue( interpreter.eval("bar.getClass() == bsh.Primitive.class") );
+assertTrue( interpreter.eval("bar.getType().isPrimitive()") );
 // it's an Integer to the map
 assertThat( myMap.get("bar"), instanceOf(Integer.class) );
 assertEquals( 43, myMap.get("bar") );
 // check again
-assertTrue( interpreter.eval("bar.getClass() == bsh.Primitive.class") );
+assertTrue( interpreter.eval("bar.getType().isPrimitive()") );
 
 assertNull( interpreter.get("e1") );
 

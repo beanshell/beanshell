@@ -365,7 +365,7 @@ public class BshMethod implements Serializable, Cloneable {
         int lastParamIndex = getParameterCount() - 1;
         Object varArgs = null;
         if (isVarArgs()) {
-            Class lastP = paramTypes[lastParamIndex];
+            Class<?> lastP = paramTypes[lastParamIndex];
             // Interpreter.debug("varArgs= "+name+" "+varArgs.getClass().getName());
             // Interpreter.debug("Varargs processing for "+name+" "+Arrays.toString(argValues));
             // Interpreter.debug(" parameter types "+Arrays.toString(paramTypes));

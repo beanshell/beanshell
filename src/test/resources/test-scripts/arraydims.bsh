@@ -3,6 +3,18 @@
 source("TestHarness.bsh");
 source("Assert.bsh");
 
+// Test on identifier defined arraydims on formal parameters #663
+main(String args[]) {
+    assertArrayEquals({"foo", "bar", "baz"}, args);
+}
+main({"foo", "bar", "baz"});
+pars(int a[], int b[][], int c[][][]) {
+    assertArrayEquals({0, 0, 0}, a);
+    assertArrayEquals({{0, 0}, {0, 0}}, b);
+    assertArrayEquals({{{0}}}, c);
+}
+pars(new int[3], new int[2][2], new int[1][1][1]);
+
 oa = new Object [] { "foo", "bar" };
 assert( oa.length == 2 && oa[0] instanceof String );
 
