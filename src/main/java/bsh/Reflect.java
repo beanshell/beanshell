@@ -113,8 +113,11 @@ public final class Reflect {
                 NameSpace ns = getThisNS(object);
                 if (null != ns) ns.setNode(callerInfo);
                 return method.invoke(object, args); // script engine exposed instance call
-            } catch (ReflectError re) { // Handle primitive's method not found. Autoboxing
-                // and magic math method lookup. Errors rolled up, not found deferred back.
+            } catch (ReflectError re) { // Void has overstayed its welcome round about here
+                if (object == Primitive.VOID) throw new EvalError("Attempt to invoke method: "
+                    + methodName + "() on undefined", callerInfo, callstack, re);
+                // Handle primitive method not found. Autoboxing or magic math method lookup.
+                // Errors gets rolled up, and not found is deferred back to exposed type.
                 if (isPrimitive && !interpreter.getStrictJava()) try { // mitigate recursion
                     if (!Types.isNumeric(object)) return invokeObjectMethod( // autobox type
                         object, methodName, args, interpreter, callstack, callerInfo);

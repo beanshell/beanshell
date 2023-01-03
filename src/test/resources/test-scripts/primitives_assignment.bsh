@@ -684,6 +684,7 @@ assert(isEvalError("Use of non + operator with String", "str = 'ss'; str -= 'ss'
 assert(isEvalError("Use of non + operator with String", "'bb' - 'aa';"));
 assert(isEvalError("illegal void assignment", "a += void;"));
 assert(isEvalError("Can't assign to prefix.", "void += a;"));
+assert(isEvalError("Attempt to invoke method: notDefined() on undefined", "void.notDefined();"));
 assert(isEvalError("illegal use of undefined variable, class, or 'void' literal", "a + void;"));
 assert(isEvalError("illegal use of undefined variable, class, or 'void' literal", "2 << void;"));
 assert(isEvalError("illegal use of undefined variable, class, or 'void' literal", "void || void;"));
