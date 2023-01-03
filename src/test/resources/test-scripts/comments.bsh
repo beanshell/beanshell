@@ -18,3 +18,17 @@ complete();
 
 // to trigger in this file
 // Use a binary editor to remove the trailing linefeed and see this -->
+
+// As per #322
+if (1 == 2)
+    assert(false);
+/***
+This code is commented
+***/
+else if (2 == 2)
+    assert(true);
+/*******
+This is more comments
+*******/
+else
+    assert(false);

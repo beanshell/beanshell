@@ -1,4 +1,5 @@
 #!/bin/java bsh.Interpreter
+import bsh.Types;
 
 source("TestHarness.bsh");
 source("Assert.bsh");
@@ -13,6 +14,7 @@ float fdelta = 0.000001f;
 short s = 2;
 byte b = 2;
 char c = 2;
+Number n = 2;
 
 assertEquals(2, a);
 assertEquals(2.0, d, ddelta);
@@ -24,32 +26,38 @@ assertTrue(a > 1);
 assertTrue(d > 1.0);
 assertTrue(f > 1.0);
 assertTrue(l > 1L);
+assertTrue(n > 1);
 assertFalse(a > 3);
 assertFalse(d > 3.0);
 assertFalse(f > 3.0);
 assertFalse(l > 3L);
+assertFalse(n > 3);
 
 // GTX: "@gt"
 assertTrue(a @gt 1);
 assertTrue(d @gt 1.0);
 assertTrue(f @gt 1.0);
 assertTrue(l @gt 1L);
+assertTrue(n @gt 1);
 
 // LT: "<"
 assertTrue(a < 3);
 assertTrue(d < 3.0);
 assertTrue(f < 3.0);
 assertTrue(l < 3L);
+assertTrue(n < 3);
 assertFalse(a < 1);
 assertFalse(d < 1.0);
 assertFalse(f < 1.0);
 assertFalse(l < 1L);
+assertFalse(n < 1);
 
 // LTX: "@lt"
 assertTrue(a @lt 3);
 assertTrue(d @lt 3.0);
 assertTrue(f @lt 3.0);
 assertTrue(l @lt 3L);
+assertTrue(n @lt 3);
 
 // BANG: "!"
 assertTrue( ! false );
@@ -73,10 +81,12 @@ assertTrue(a == 2);
 assertTrue(d == 2.0);
 assertTrue(f == 2.0);
 assertTrue(l == 2L);
+assertTrue(n == 2);
 assertFalse(a == 1);
 assertFalse(d == 1.0);
 assertFalse(f == 1.0);
 assertFalse(l == 1L);
+assertFalse(n == 1);
 assertTrue(Character.valueOf('*') == '*');
 assertTrue(Character.valueOf('*') == 42);
 assertTrue(Long.valueOf(1L) == Long.valueOf(1L));
@@ -115,32 +125,38 @@ assertTrue(a <= 2);
 assertTrue(d <= 2.0);
 assertTrue(f <= 2.0);
 assertTrue(l <= 2L);
+assertTrue(n <= 2);
 assertFalse(a <= 1);
 assertFalse(d <= 1.0);
 assertFalse(f <= 1.0);
 assertFalse(l <= 1L);
+assertFalse(n <= 1);
 
 // LEX: "@lteq"
 assertTrue(a @lteq 2);
 assertTrue(d @lteq 2.0);
 assertTrue(f @lteq 2.0);
 assertTrue(l @lteq 2L);
+assertTrue(n @lteq 2);
 
 // GE: ">="
 assertTrue(a >= 2);
 assertTrue(d >= 2.0);
 assertTrue(f >= 2.0);
 assertTrue(l >= 2L);
+assertTrue(n >= 2);
 assertFalse(a >= 3);
 assertFalse(d >= 3.0);
 assertFalse(f >= 3.0);
 assertFalse(l >= 3L);
+assertFalse(n >= 3);
 
 // GEX: "@gteq"
 assertTrue(a @gteq 2);
 assertTrue(d @gteq 2.0);
 assertTrue(f @gteq 2.0);
 assertTrue(l @gteq 2L);
+assertTrue(n @gteq 2);
 
 // NE: "!="
 obj = new Object();
@@ -150,11 +166,13 @@ assertTrue(a != 1);
 assertTrue(d != 1.0);
 assertTrue(f != 1.0);
 assertTrue(l != 1L);
+assertTrue(n != 1);
 assertTrue(true != false);
 assertFalse(a != 2);
 assertFalse(d != 2.0);
 assertFalse(f != 2.0);
 assertFalse(l != 2L);
+assertFalse(n != 2);
 assertFalse(true != true);
 
 // BOOL_OR: "||"
@@ -202,6 +220,9 @@ assertEquals(4.0, f, fdelta);
 assertEquals(3L, ++l);
 assertEquals(3L, l++);
 assertEquals(4L, l);
+assertEquals(3, ++n);
+assertEquals(3, n++);
+assertEquals(4, n);
 assertEquals(3, ++b);
 assertEquals(3, ++s);
 assertEquals(3, ++c);
@@ -219,6 +240,9 @@ assertEquals(2.0, f, fdelta);
 assertEquals(3L, --l);
 assertEquals(3L, l--);
 assertEquals(2L, l);
+assertEquals(3, --n);
+assertEquals(3, n--);
+assertEquals(2, n);
 assertEquals(2, --b);
 assertEquals(2, --s);
 assertEquals(2, --c);
@@ -228,10 +252,12 @@ assertEquals(3, a + 1);
 assertEquals(3.0, d + 1.0, ddelta);
 assertEquals(3.0, f + 1.0, fdelta);
 assertEquals(3L, l + 1L);
+assertEquals(3, n + 1);
 assertEquals(2, +a);
 assertEquals(2.0, +d, ddelta);
 assertEquals(2.0, +f, fdelta);
 assertEquals(2L, +l);
+assertEquals(2, +n);
 assertEquals(195, 'a' + 'b');
 
 // MINUS: "-"
@@ -239,6 +265,7 @@ assertEquals(1, a - 1);
 assertEquals(1.0, d - 1.0, ddelta);
 assertEquals(1.0, f - 1.0, fdelta);
 assertEquals(1L, l - 1L);
+assertEquals(1, n - 1);
 assertEquals(-3L, -2L - 1L);
 assertEquals(2L, 3L - 1L);
 assertEquals(-4L, -3L - 1L);
@@ -246,24 +273,28 @@ assertEquals(-2, -a);
 assertEquals(-2.0, -d, ddelta);
 assertEquals(-2.0, -f, fdelta);
 assertEquals(-2L, -l);
+assertEquals(-2, -n);
 
 // STAR: "*"
 assertEquals(2, a * 1);
 assertEquals(2.0, d * 1.0, ddelta);
 assertEquals(2.0, f * 1.0, fdelta);
 assertEquals(2L, l * 1L);
+assertEquals(2, n * 1);
 
 // SLASH: "/"
 assertEquals(2, a / 1);
 assertEquals(2.0, d / 1.0, ddelta);
 assertEquals(2.0, f / 1.0, fdelta);
 assertEquals(2L, l / 1L);
+assertEquals(2, n / 1);
 
 // BIT_AND: "&"
 assertEquals(2, a & 2);
 assertEquals(0, a & 1);
 assertEquals(2L, l & 2L);
 assertEquals(0L, l & 1L);
+assertEquals(0, n & 1);
 assertTrue(true & true);
 
 // BIT_ANDX: "@bitwise_and"
@@ -271,6 +302,8 @@ assertEquals(2, a @bitwise_and 2);
 assertEquals(0, a @bitwise_and 1);
 assertEquals(2L, l @bitwise_and 2L);
 assertEquals(0L, l @bitwise_and 1L);
+assertEquals(2, n @bitwise_and 2);
+assertEquals(0, n @bitwise_and 1);
 assertTrue(true @bitwise_and true);
 
 // BIT_OR: "|"
@@ -278,6 +311,8 @@ assertEquals(2, a | 2);
 assertEquals(3, a | 1);
 assertEquals(2L, l | 2L);
 assertEquals(3L, l | 1L);
+assertEquals(2, n | 2);
+assertEquals(3, n | 1);
 assertTrue(true | false);
 
 // BIT_ORX: "@bitwise_or"
@@ -285,6 +320,8 @@ assertEquals(2, a @bitwise_or 2);
 assertEquals(3, a @bitwise_or 1);
 assertEquals(2L, l @bitwise_or 2L);
 assertEquals(3L, l @bitwise_or 1L);
+assertEquals(2, n @bitwise_or 2);
+assertEquals(3, n @bitwise_or 1);
 assertTrue(true @bitwise_or false);
 
 // XOR: "^"
@@ -292,6 +329,8 @@ assertEquals(0, a ^ 2);
 assertEquals(3, a ^ 1);
 assertEquals(0L, l ^ 2L);
 assertEquals(3L, l ^ 1L);
+assertEquals(0, n ^ 2);
+assertEquals(3, n ^ 1);
 assertTrue(true ^ false);
 
 // XORX: "@bitwise_xor"
@@ -299,6 +338,8 @@ assertEquals(0, a @bitwise_xor 2);
 assertEquals(3, a @bitwise_xor 1);
 assertEquals(0L, l @bitwise_xor 2L);
 assertEquals(3L, l @bitwise_xor 1L);
+assertEquals(0, n @bitwise_xor 2);
+assertEquals(3, n @bitwise_xor 1);
 assertTrue(true @bitwise_xor false);
 
 // MOD: "%"
@@ -310,6 +351,8 @@ assertEquals(0.0, 2.0 % f, fdelta);
 assertEquals(1.0, 3.0 % f, fdelta);
 assertEquals(0L, 2L % l);
 assertEquals(1L, 3L % l);
+assertEquals(0, 2 % n);
+assertEquals(1, 3 % n);
 
 // MODX: "@mod"
 assertEquals(0, 2 @mod a);
@@ -320,6 +363,8 @@ assertEquals(0.0, 2.0 @mod f, fdelta);
 assertEquals(1.0, 3.0 @mod f, fdelta);
 assertEquals(0L, 2L @mod l);
 assertEquals(1L, 3L @mod l);
+assertEquals(0, 2 @mod n);
+assertEquals(1, 3 @mod n);
 
 // POWER: "**"
 assertEquals(4, a ** 2);
@@ -343,36 +388,48 @@ assertEquals(8, a << 2);
 assertEquals(4, a << 1);
 assertEquals(8L, l << 2L);
 assertEquals(4L, l << 1L);
+assertEquals(8, n << 2);
+assertEquals(4, n << 1);
 
 // LSHIFTX: "@left_shift"
 assertEquals(8, a @left_shift 2);
 assertEquals(4, a @left_shift 1);
 assertEquals(8L, l @left_shift 2L);
 assertEquals(4L, l @left_shift 1L);
+assertEquals(8, n @left_shift 2);
+assertEquals(4, n @left_shift 1);
 
 // RSIGNEDSHIFT: ">>"
 assertEquals(0, a >> 2);
 assertEquals(1, a >> 1);
 assertEquals(0L, l >> 2L);
 assertEquals(1L, l >> 1L);
+assertEquals(0, n >> 2);
+assertEquals(1, n >> 1);
 
 // RSIGNEDSHIFTX: "@right_shift"
 assertEquals(0, a @right_shift 2);
 assertEquals(1, a @right_shift 1);
 assertEquals(0L, l @right_shift 2L);
 assertEquals(1L, l @right_shift 1L);
+assertEquals(0, n @right_shift 2);
+assertEquals(1, n @right_shift 1);
 
 // RUNSIGNEDSHIFT: ">>>" >
 assertEquals(0, a >>> 2);
 assertEquals(1, a >>> 1);
 assertEquals(0L, l >>> 2L);
 assertEquals(1L, l >>> 1L);
+assertEquals(0, n >>> 2);
+assertEquals(1, n >>> 1);
 
 // RUNSIGNEDSHIFTX: "@right_unsigned_shift" >
 assertEquals(0, a @right_unsigned_shift 2);
 assertEquals(1, a @right_unsigned_shift 1);
 assertEquals(0L, l @right_unsigned_shift 2L);
 assertEquals(1L, l @right_unsigned_shift 1L);
+assertEquals(0, n @right_unsigned_shift 2);
+assertEquals(1, n @right_unsigned_shift 1);
 
 // PLUSASSIGN: "+="
 assertEquals(3, a += 1);
@@ -383,6 +440,8 @@ assertEquals(3.0, f += 1.0, fdelta);
 assertEquals(3.0, f, fdelta);
 assertEquals(3L, l += 1L);
 assertEquals(3L, l);
+assertEquals(3, n += 1);
+assertEquals(3, n);
 Double dd = 2.0;
 assertEquals(4.0, dd += dd, ddelta);
 assertEquals(6.0, dd += 2.0, ddelta);
@@ -414,6 +473,8 @@ assertEquals(2.0, f -= 1.0, fdelta);
 assertEquals(2.0, f, fdelta);
 assertEquals(2L, l -= 1L);
 assertEquals(2L, l);
+assertEquals(2, n -= 1);
+assertEquals(2, n);
 
 // STARASSIGN: "*="
 assertEquals(4, a *= 2);
@@ -424,6 +485,8 @@ assertEquals(4.0, f *= 2.0, fdelta);
 assertEquals(4.0, f, fdelta);
 assertEquals(4L, l *= 2L);
 assertEquals(4L, l);
+assertEquals(4, n *= 2);
+assertEquals(4, n);
 
 // SLASHASSIGN: "/="
 assertEquals(2, a /= 2);
@@ -434,30 +497,40 @@ assertEquals(2.0, f /= 2.0, fdelta);
 assertEquals(2.0, f, fdelta);
 assertEquals(2L, l /= 2L);
 assertEquals(2L, l);
+assertEquals(2, n /= 2);
+assertEquals(2, n);
 
 // ANDASSIGN: "&="
 assertEquals(2, a &= 2);
 assertEquals(2, a);
 assertEquals(2L, l &= 2L);
 assertEquals(2L, l);
+assertEquals(2, n &= 2);
+assertEquals(2, n);
 
 // ANDASSIGNX: "@and_assign"
 assertEquals(2, a @and_assign 2);
 assertEquals(2, a);
 assertEquals(2L, l @and_assign 2L);
 assertEquals(2L, l);
+assertEquals(2, n @and_assign 2);
+assertEquals(2, n);
 
 // ORASSIGN: "|=" >
 assertEquals(2, a |= 2);
 assertEquals(2, a);
 assertEquals(2L, l |= 2L);
 assertEquals(2L, l);
+assertEquals(2, n |= 2);
+assertEquals(2, n);
 
 // ORASSIGNX: "@or_assign"
 assertEquals(2, a @or_assign 2);
 assertEquals(2, a);
 assertEquals(2L, l @or_assign 2L);
 assertEquals(2L, l);
+assertEquals(2, n @or_assign 2);
+assertEquals(2, n);
 
 // XORASSIGN: "^="
 assertEquals(3, a ^= 1);
@@ -466,6 +539,9 @@ assertEquals(2, a);
 assertEquals(3L, l ^= 1L);
 assertEquals(2L, l ^= 1L);
 assertEquals(2L, l);
+assertEquals(3, n ^= 1);
+assertEquals(2, n ^= 1);
+assertEquals(2, n);
 
 // XORASSIGNX: "@xor_assign"
 assertEquals(3, a @xor_assign 1);
@@ -474,6 +550,9 @@ assertEquals(2, a);
 assertEquals(3L, l @xor_assign 1L);
 assertEquals(2L, l @xor_assign 1L);
 assertEquals(2L, l);
+assertEquals(3, n @xor_assign 1);
+assertEquals(2, n @xor_assign 1);
+assertEquals(2, n);
 
 // MODASSIGN: "%="
 assertEquals(2, a %= 3);
@@ -484,6 +563,8 @@ assertEquals(2.0, f %= 3, fdelta);
 assertEquals(2.0, f, fdelta);
 assertEquals(2L, l %= 3L);
 assertEquals(2L, l);
+assertEquals(2, n %= 3);
+assertEquals(2, n);
 
 //MODASSIGNX: "@mod_assign"
 assertEquals(2, a @mod_assign 3);
@@ -494,53 +575,68 @@ assertEquals(2.0, f @mod_assign 3, fdelta);
 assertEquals(2.0, f, fdelta);
 assertEquals(2L, l @mod_assign 3L);
 assertEquals(2L, l);
+assertEquals(2, n @mod_assign 3);
+assertEquals(2, n);
 
 // LSHIFTASSIGN: "<<="
 assertEquals(8, a <<= 2);
 assertEquals(8, a);
 assertEquals(8L, l <<= 2L);
 assertEquals(8L, l);
+assertEquals(8, n <<= 2);
+assertEquals(8, n);
 
 // LSHIFTASSIGNX: "@left_shift_assign"
 assertEquals(32, a @left_shift_assign 2);
 assertEquals(32, a);
 assertEquals(32L, l @left_shift_assign 2L);
 assertEquals(32L, l);
+assertEquals(32, n @left_shift_assign 2);
+assertEquals(32, n);
 
 // RSIGNEDSHIFTASSIGN: ">>=" >
 assertEquals(8, a >>= 2);
 assertEquals(8, a);
 assertEquals(8L, l >>= 2L);
 assertEquals(8L, l);
+assertEquals(8, n >>= 2);
+assertEquals(8, n);
 
 // RSIGNEDSHIFTASSIGNX: "@right_shift_assign" >
 assertEquals(2, a @right_shift_assign 2);
 assertEquals(2, a);
 assertEquals(2L, l @right_shift_assign 2L);
 assertEquals(2L, l);
+assertEquals(2, n @right_shift_assign 2);
+assertEquals(2, n);
 
 // RUNSIGNEDSHIFTASSIGN: ">>>=" >
 assertEquals(1, a >>>= 1);
 assertEquals(1, a);
 assertEquals(1L, l >>>= 1L);
 assertEquals(1L, l);
+assertEquals(1, n >>>= 1);
+assertEquals(1, n);
 
 // RUNSIGNEDSHIFTASSIGNX: "@right_unsigned_shift_assign"
 assertEquals(0, a @right_unsigned_shift_assign 1);
 assertEquals(0, a);
 assertEquals(0L, l @right_unsigned_shift_assign 1L);
 assertEquals(0L, l);
+assertEquals(0, n @right_unsigned_shift_assign 1);
+assertEquals(0, n);
 
 import bsh.Primitive;
 // missing null is number
-assertTrue(a.isNumber());
-assertFalse(false.isNumber());
+assertTrue(Types.isNumeric(a));
+assertFalse(Types.isNumeric(false));
 assertFalse(void.isNumber());
 
 assertEquals("void", void.toString());
 
-assertEquals(0, a.numberValue());
-assertEquals(2, c.numberValue());
+assertEquals(0, (Number)a);
+assertEquals(2, (Number)c);
+assertEquals(0, n);
 
 assertFalse(Primitive.getDefaultValue(Boolean.TYPE));
 assertNull(Primitive.getDefaultValue(String.class));
@@ -609,10 +705,11 @@ assert(isEvalError("Can't assign to prefix.", "null += a;"));
 assert(isEvalError("illegal use of null object or 'null' literal", "~null;"));
 assert(isEvalError("Cannot cast primitive value to object type java.lang.String", "String sss = true;"));
 assert(isEvalError("Cannot cast String to boolean", "(boolean) 'true';"));
-assert(isEvalError("cannot assign number 4 to type Number", "(Number) 4s;"));
-assert(isEvalError("Primitive not a number", "false.numberValue();"));
-assert(isEvalError("Primitive not a boolean", "a.booleanValue();"));
-assert(isEvalError("Primitive not a number", "false.intValue();"));
+//assert(isEvalError("cannot assign number 4 to type Number", "(Number) 4s;")); // work like java does #684
+assert(isEvalError("numberValue() not found in class'boolean'", "false.numberValue();"));
+assert(isEvalError("booleanValue() not found in class'int'", "a.booleanValue();"));
+assert(isEvalError("intValue() not found in class'boolean'", "false.intValue();"));
+assert(isEvalError("Primitive not a number", "void.numberValue();"));
 assert(isEvalError("attempt to unwrap void type", "void.getValue();"));
 assert(isEvalError("Can't shift floatingpoint values", "d << 2.0;"));
 assert(isEvalError("Can't shift floatingpoint values", "2 << 2E606;"));

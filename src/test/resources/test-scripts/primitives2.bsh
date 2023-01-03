@@ -5,26 +5,26 @@ source("Assert.bsh");
 
 check(s, a, val, java.lang.Class cl) {
     // we're looking at the Primitive here
-    assertEquals( s, cl, a.getValue().getClass() );
-    assertTrue( s, a.getValue() == val );
+    assertEquals( s, cl, a.getClass() );
+    assertTrue( s, a == val );
 }
 
 // Promotion tests
 // Should be integer
-check("check 5 5 Integer", 5, 5, Integer.class);
-check("check 5+5 10 Integer", 5+5, 10, Integer.class);
-check("check 5/2 2 Integer", 5/2, 2, Integer.class);
+check("check 5 5 Integer", 5, 5, Integer.TYPE);
+check("check 5+5 10 Integer", 5+5, 10, Integer.TYPE);
+check("check 5/2 2 Integer", 5/2, 2, Integer.TYPE);
 
 // Should be double
-check("check 4.0 4.0 Long", 4.0, 4.0, Double.class);
-check("check 5.0+5.0 10.0 Long", 5.0+5.0, 10.0, Double.class);
-check("check 1+1.0 2.0 Long", 1+1.0, 2.0, Double.class);
+check("check 4.0 4.0 Double", 4.0, 4.0, Double.TYPE);
+check("check 5.0+5.0 10.0 Double", 5.0+5.0, 10.0, Double.TYPE);
+check("check 1+1.0 2.0 Double", 1+1.0, 2.0, Double.TYPE);
 
-check("check (byte)5 5 Byte", (byte)5, 5, Byte.class);
-check("check (short)5 5 Short", (short)5, 5, Short.class);
-check("check (long)5 5 Long", (long)5, 5, Long.class);
-check("check '5' '5' Character", '5', '5', Character.class);
-check("check (float)5.0 5.0 Float", (float)5.0, 5.0, Float.class );
+check("check (byte)5 5 Byte", (byte)5, 5, Byte.TYPE);
+check("check (short)5 5 Short", (short)5, 5, Short.TYPE);
+check("check (long)5 5 Long", (long)5, 5, Long.TYPE);
+check("check '5' '5' Character", '5', '5', Character.TYPE);
+check("check (float)5.0 5.0 Float", (float)5.0, 5.0, Float.TYPE );
 
 assertThat(3.4028235E38, instanceOf(Double.TYPE));
 assertThat(3.4028236E38, instanceOf(Double.TYPE));
@@ -42,5 +42,10 @@ Byte [] bwa = { 1, 2 };
 byte [] ba1 = { new Byte((byte)1), new Byte((byte)2) };
 byte [] ba2 = { 1, 2 };
 byte [] ba2 = { 1L, 2L };
+
+var c = 1;
+assertEquals(c.getType(), Integer.TYPE);
+assertEquals(c.getClass(), Integer.TYPE);
+assertThat(c, instanceOf(Integer.TYPE));
 
 complete();

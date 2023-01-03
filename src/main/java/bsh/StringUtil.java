@@ -52,7 +52,7 @@ public class StringUtil {
             ? "null"
             : value instanceof Primitive
                 ? ((Primitive) value).getType().getSimpleName()
-                : typeString(value.getClass());
+                : typeString(Types.getType(value));
     }
 
     /** Type from class to string.

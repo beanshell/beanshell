@@ -1,0 +1,71 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+o = 5o;
+o = o.add(2).subtract(6).pow(2).divide(1).multiply(1);
+assertThat("The mathematical chaining sum should total 1", o, equalTo(1o));
+assertThat("The math equation sum should remain a byte", o, instanceOf(Byte.TYPE));
+s = 5s;
+s = s.add(2).subtract(6).pow(2).divide(1).multiply(1);
+assertThat("The mathematical chaining sum should total 1", s, equalTo(1s));
+assertThat("The math equation sum should remain a short", s, instanceOf(Short.TYPE));
+c = 'e';
+c = c.add(2).subtract(6).pow(1).divide(1).multiply(1);
+assertThat("The mathematical chaining sum should total 1", c, equalTo('a'));
+assertThat("The math equation sum should remain an int", c, instanceOf(Character.TYPE));
+i = 5i;
+i = i.add(2).subtract(6).pow(2).divide(1).multiply(1);
+assertThat("The mathematical chaining sum should total 1", i, equalTo(1));
+assertThat("The math equation sum should remain a char", i, instanceOf(Integer.TYPE));
+l = 5l;
+l = l.add(2).subtract(6).pow(2).divide(1).multiply(1);
+assertThat("The mathematical chaining sum should total 1", l, equalTo(1l));
+assertThat("The math equation sum should remain a long", l, instanceOf(Long.TYPE));
+iw = 5w;
+iw = iw.add(2).subtract(6).pow(2).divide(1).multiply(1);
+assertThat("The mathematical chaining sum should total 1", iw, equalTo(1w));
+assertThat("The math equation sum should remain a wide int", iw, instanceOf(BigInteger.class));
+f = 5f;
+f = f.add(2).subtract(6).pow(2).divide(1).multiply(1);
+assertThat("The mathematical chaining sum should total 1", f, equalTo(1.0f));
+assertThat("The math equation sum should remain a float", f, instanceOf(Float.TYPE));
+d = 5d;
+d = d.add(2).subtract(6).pow(2).divide(1).multiply(1);
+assertThat("The mathematical chaining sum should total 1", d, equalTo(1.0));
+assertThat("The math equation sum should remain a long", d, instanceOf(Double.TYPE));
+dw = 5.00w;
+dw = dw.add(2).subtract(6).pow(2).divide(1).multiply(1);
+assertThat("The mathematical chaining sum should total 1", dw, equalTo(1.0000w));
+assertThat("The math equation sum should remain a wide decimal", dw, instanceOf(BigDecimal.class));
+
+
+assertTrue("Test if bit 0 for value 1 is hi for byte", o.testBit(0));
+assertTrue("Test if bit 0 for value 1 is hi for short", s.testBit(0));
+assertTrue("Test if bit 0 for value 1 is hi for char", c.testBit(0));
+assertTrue("Test if bit 0 for value 1 is hi for int", i.testBit(0));
+assertTrue("Test if bit 0 for value 1 is hi for long", l.testBit(0));
+assertTrue("Test if bit 0 for value 1 is hi for wide int", iw.testBit(0));
+assertTrue("Test if bit 0 for value 1 is hi for float", f.testBit(0));
+assertTrue("Test if bit 0 for value 1 is hi for double", d.testBit(0));
+assertTrue("Test if bit 0 for value 1 is hi for wide decimal", dw.testBit(0));
+
+assertEquals("Test move decimal point to the right by 1 byte", 10o,  o.movePointRight(1));
+assertEquals("Test move decimal point to the right by 1 short", 10s,  s.movePointRight(1));
+assertEquals("Test move decimal point to the right by 1 char", 'ϊ',  c.movePointRight(1));
+assertEquals("Test move decimal point to the right by 1 int", 10,  i.movePointRight(1));
+assertEquals("Test move decimal point to the right by 1 long", 10l,  l.movePointRight(1));
+assertEquals("Test move decimal point to the right by 1 wide int", 10w,  iw.movePointRight(1));
+assertEquals("Test move decimal point to the right by 1 float", 10.0f,  f.movePointRight(1), 1);
+assertEquals("Test move decimal point to the right by 1 double", 10.0d,  d.movePointRight(1), 1);
+assertEquals("Test move decimal point to the right by 1 wide decimal", 10.000w,  dw.movePointRight(1));
+
+assertEquals("Test return string method", "1.0", i.toPlainString());
+assertEquals("Test return string method", "1.0", f.toEngineeringString());
+
+assert(isEvalError("Method nonExist() not found", "iw.nonExist()"));
+assert(isEvalError("Method nonExist() not found", "dw.nonExist()"));
+
+complete();
+

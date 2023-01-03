@@ -25,9 +25,8 @@ class Foo
     void method()
     {
         assert( a == 5 );
-        assert( a.getClass() == bsh.Primitive.class );
-//        print( a.getClass() );
-        assert( b.getClass() == bsh.Primitive.class );
+        assert( a.getClass().isPrimitive() );
+        assert( b.getType().isPrimitive() );
         new byte[a];
         assert( q == 5 );
         assert( this == instanceThis );
@@ -82,7 +81,7 @@ assert(Foo.a == 5);
 assert(isEvalError("print(Foo.b)"));
 Foo.smethod();
 assert(isEvalError("Foo.method()"));
-assert( Foo.a.getClass() == bsh.Primitive.class );
+assert( Foo.a.getType().isPrimitive() );
 
 // instance
 foo = new Foo();
