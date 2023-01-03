@@ -65,33 +65,15 @@ class BSHMethodInvocation extends SimpleNode
         Name name = nameNode.getName(namespace);
         Object[] args = getArgsNode().getArguments(callstack, interpreter);
 
-// This try/catch block is replicated is BSHPrimarySuffix... need to
-// factor out common functionality...
-// Move to Reflect?
         try {
             return name.invokeMethod( interpreter, args, callstack, this);
-        } catch ( ReflectError e ) {
+        } catch (ReflectError e) {
             throw new EvalError(
                 "Error in method invocation: " + e.getMessage(),
-                this, callstack, e );
-        } catch ( InvocationTargetException e )
-        {
-            String msg = "Method Invocation "+name;
-            Throwable te = e.getCause();
-
-            /*
-                Try to squeltch the native code stack trace if the exception
-                was caused by a reflective call back into the bsh interpreter
-                (e.g. eval() or source()
-            */
-            boolean isNative = true;
-            if ( te instanceof EvalError )
-                if ( te instanceof TargetError )
-                    isNative = ((TargetError)te).inNativeCode();
-                else
-                    isNative = false;
-
-            throw new TargetError( msg, te, this, callstack, isNative );
+                    this, callstack, e);
+        } catch (InvocationTargetException e) {
+            throw Reflect.targetErrorFromTargetException(
+                e, name.toString(), callstack, this);
         } catch ( UtilEvalError e ) {
             throw e.toEvalError( this, callstack );
         }

@@ -113,7 +113,7 @@ class BSHTypedVariableDeclaration extends SimpleNode {
                 }
             }
         } catch ( EvalError e ) {
-            e.reThrow( "Typed variable declaration" );
+            throw e.reThrow( "Typed variable declaration" );
         }
         return value;
     }

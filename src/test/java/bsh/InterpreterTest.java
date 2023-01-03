@@ -271,7 +271,7 @@ public class InterpreterTest {
         assertEquals("test123", bsh.eval("'test' + (100 + 20 + 3)"));
         long b4 = Runtime.getRuntime().freeMemory();
         bsh.reset();
-        System.gc();
+        TestUtil.cleanUp();
         assertThat(b4, lessThan(Runtime.getRuntime().freeMemory()));
     }
 

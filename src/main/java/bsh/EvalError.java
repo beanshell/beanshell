@@ -79,13 +79,12 @@ public class EvalError extends Exception
     }
 
     /**
-        Re-throw the error, prepending the specified message.
+        Return the error to re-throw, prepending the specified message.
+        Method does not throw itself as this messes with the tooling.
     */
-    public void reThrow( String msg )
-        throws EvalError
-    {
+    public EvalError reThrow( String msg ) {
         prependMessage( msg );
-        throw this;
+        return this;
     }
 
     /**

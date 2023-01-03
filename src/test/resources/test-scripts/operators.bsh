@@ -3,10 +3,6 @@
 source("TestHarness.bsh");
 source("Assert.bsh");
 
-/**
-    I'm just taking a shotgun approach here... we need better tests.
-*/
-
 a=5;
 a*=2;
 assert(a==10);
@@ -55,8 +51,146 @@ assertEquals("( true ? false : ( false ? true : false ))", ( true ? false : ( fa
 assertEquals("( true && false ? true : ( true && false ? true : false ))", ( true && false ? true : ( true && false ? true : false )), false);
 assertEquals("(( true && false ) ? true : (( true && false ) ? false : true ))", (( true && false ) ? true : (( true && false ) ? false : true )), true);
 
+//Space Ship operator
+// a < b == -1
+assertEquals(-1, 0 <=> 1);
+assertEquals(-1, 0o <=> 1o);
+assertEquals(-1, 0s <=> 1s);
+assertEquals(-1, 0i <=> 1i);
+assertEquals(-1, 0l <=> 1l);
+assertEquals(-1, 0w <=> 1w);
+assertEquals(-1, "0" <=> "1");
+assertEquals(-1, null<=> "0");
+assertEquals(-1, null <=> "1");
+assertEquals(-1, 0.0 <=> 1.0);
+assertEquals(-1, 0.0f <=> 1.0f);
+assertEquals(-1, 0.0d <=> 1.0d);
+assertEquals(-1, 0.0w <=> 1.0w);
+assertEquals(-1, null <=> 0l);
+assertEquals(-1, null <=> 0.0f);
+// a == b == 0
+assertEquals(0, 1 <=> 1);
+assertEquals(0, 1o <=> 1o);
+assertEquals(0, 1s <=> 1s);
+assertEquals(0, 1i <=> 1i);
+assertEquals(0, 1l <=> 1l);
+assertEquals(0, 1w <=> 1w);
+assertEquals(0, "1" <=> "1");
+assertEquals(0, 1.0 <=> 1.0);
+assertEquals(0, 1.0f <=> 1.0f);
+assertEquals(0, 1.0d <=> 1.0d);
+assertEquals(0, 1.0w <=> 1.0w);
+assertEquals(0, null <=> null);
+assertEquals(0, null <=> null);
+// a > b == 1
+assertEquals(1, 2 <=> 1);
+assertEquals(1, 2o <=> 1o);
+assertEquals(1, 2s <=> 1s);
+assertEquals(1, 2i <=> 1i);
+assertEquals(1, 2l <=> 1l);
+assertEquals(1, 2w <=> 1w);
+assertEquals(1, "2" <=> "1");
+assertEquals(1, "2" <=> null);
+assertEquals(1, "1" <=> null);
+assertEquals(1, 2.0 <=> 1.0);
+assertEquals(1, 2.0f <=> 1.0f);
+assertEquals(1, 2.0d <=> 1.0d);
+assertEquals(1, 2.0w <=> 1.0w);
+assertEquals(1, 0l <=> null);
+assertEquals(1, 0.0f <=> null);
+// non comparible
+Object a = "a";
+var b = "b";
+assertEquals(-1, a <=> b);
+assertEquals(-1, null <=> a);
+assertEquals(-1, null <=> b);
+assertEquals(1, b <=> a);
+assertEquals(1, a <=> null);
+assertEquals(1, b <=> null);
+assertEquals(0, a <=> a);
+assertEquals(0, b <=> b);
+
+// Elvis Operator
+// returns true on true
+assertTrue(true ?: false);
+assertTrue(true ?: true);
+assertTrue(true ?: 1o);
+assertTrue(true ?: 1s);
+assertTrue(true ?: 1i);
+assertTrue(true ?: 1l);
+assertTrue(true ?: 1w);
+assertTrue(true ?: 1.0f);
+assertTrue(true ?: 1.0d);
+assertTrue(true ?: 1.0w);
+assertTrue(true ?: "1");
+assertTrue(true ?: a);
+// returns value on false
+assertFalse(false ?: false);
+assertTrue(false ?: true);
+assertEquals(1o, false ?: 1o);
+assertEquals(1s, false ?: 1s);
+assertEquals(1i, false ?: 1i);
+assertEquals(1l, false ?: 1l);
+assertEquals(1w, false ?: 1w);
+assertEquals(1.0f, false ?: 1.0f, 1);
+assertEquals(1.0d, false ?: 1.0d, 1);
+assertEquals(1.0w, false ?: 1.0w);
+assertEquals("1", false ?: "1");
+assertEquals(a, false ?: a);
+
+// Null Coalesce Operator
+assertEquals(9, 9 ?? 8 ?? 7 ?? 6 ?? 5 ?? 4 ?? 3 ?? 2 ?? 1);
+assertEquals(8, null ?? 8 ?? 7 ?? 6 ?? 5 ?? 4 ?? 3 ?? 2 ?? 1);
+assertEquals(7, null ?? null ?? 7 ?? 6 ?? 5 ?? 4 ?? 3 ?? 2 ?? 1);
+assertEquals(6, null ?? null ?? null ?? 6 ?? 5 ?? 4 ?? 3 ?? 2 ?? 1);
+assertEquals(5, null ?? null ?? null ?? null ?? 5 ?? 4 ?? 3 ?? 2 ?? 1);
+assertEquals(4, null ?? null ?? null ?? null ?? null ?? 4 ?? 3 ?? 2 ?? 1);
+assertEquals(3, null ?? null ?? null ?? null ?? null ?? null ?? 3 ?? 2 ?? 1);
+assertEquals(2, null ?? null ?? null ?? null ?? null ?? null ?? null ?? 2 ?? 1);
+assertEquals(1, null ?? null ?? null ?? null ?? null ?? null ?? null ?? null ?? 1);
+assertEquals("1", null ?? null ?? null ?? null ?? null ?? null ?? null ?? null ?? "1");
+assertEquals(a, null ?? null ?? null ?? null ?? null ?? null ?? null ?? null ?? a);
+assertNull(null ?? null ?? null ?? null ?? null ?? null ?? null ?? null ?? null);
+
+// Null Coalesce Assign Operator
+a = null;
+assertNull(a);
+a ??= 1;
+assertEquals(1, a);
+a ??= 2;
+assertEquals(1, a);
+a = null;
+a ??= null ?? 2;
+assertEquals(2, a);
+
+// Safe Navigate Operator
+class R {
+    int v;
+    g(r, v) {
+        if (null != r)
+            r.v = v;
+        return r;
+    }
+}
+r = new R();
+assertEquals(1, r?.g(r, 1)?.v);
+assertEquals(2, r?.g(r, 1)?.g(r, 2)?.v);
+assertEquals(3, r?.g(r, 1)?.g(r, 2)?.g(r, 3)?.v);
+assertEquals(4, r?.g(r, 1)?.g(r, 2)?.g(r, 3)?.g(r, 4)?.v);
+assertNull(r?.g(r, 1)?.g(r, 2)?.g(r, 3)?.g(null, 4)?.v);
+assertEquals(3, r.v);
+assertNull(r?.g(r, 1)?.g(r, 2)?.g(null, 3)?.g(r, 4)?.v);
+assertEquals(2, r.v);
+assertNull(r?.g(r, 1)?.g(null, 2)?.g(r, 3)?.g(r, 4)?.v);
+assertEquals(1, r.v);
+r.v = 0;
+assertNull(r?.g(null, 1)?.g(r, 2)?.g(r, 3)?.g(r, 4)?.v);
+assertEquals(0, r.v);
+
+
 /*
     Uncomment these if we start enforcing operations on primitive/non-prim
+    Added: Are we sure we want to inforce these? BeanShell doesn't break like JAVA does.
 */
 
 /*

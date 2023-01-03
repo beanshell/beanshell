@@ -34,7 +34,6 @@
 
 options {
     JAVA_UNICODE_ESCAPE=true;
-    STATIC=false;
     JDK_VERSION="1.8";
 
     MULTI=true;
@@ -202,8 +201,7 @@ public class Parser
     boolean isRegularForStatement()
     {
         int curTok = 1;
-        Token tok;
-        tok = getToken(curTok++);
+        Token tok = getToken(curTok++);
         if ( tok.kind != FOR ) return false;
         tok = getToken(curTok++);
         if ( tok.kind != LPAREN ) return false;
@@ -215,6 +213,37 @@ public class Parser
                     return false;
                 case SEMICOLON:
                     return true;
+                case EOF:
+                    return false;
+            }
+        }
+    }
+
+    /**
+        Lookahead for trailing dimensions on formal paramater.
+        Expect "[]" and then see whether we hit "," or a ")" first.
+        Abort on "=" or ";" which will indicate assignment.
+    */
+    boolean isFormalParameterDimensions()
+    {
+        int curTok = 1;
+        Token tok = getToken(curTok++);
+        if ( tok.kind != LBRACKET ) return false;
+        tok = getToken(curTok++);
+        if ( tok.kind != RBRACKET ) return false;
+        while (true)
+        {
+            tok = getToken(curTok++);
+            switch (tok.kind) {
+                case LBRACKET:
+                case RBRACKET:
+                    continue;
+                case RPAREN:
+                case COMMA:
+                    return true;
+                case ASSIGN:
+                case SEMICOLON:
+                case LBRACE:
                 case EOF:
                     return false;
             }
@@ -263,7 +292,7 @@ SKIP : /* WHITE SPACE and TYPE PARAMATERS */
     " " | "\t" | "\r" | "\f"
     | "\n"
     | < NONPRINTABLE: (["\u0000"-"\u0020", "\u0080"-"\u00ff"])+ >
-    | < TYPE_PARAMATERS: "<" ( (~[">",";","|","&","\n","\r"])* ("& "|">,")? )* ([">"])+ >
+    | < TYPE_PARAMATERS: "<" ( (~[">",";","|","&","\n","\r","="])* ("& "|">,")? )* ([">"])+ >
 }
 
 SPECIAL_TOKEN : /* COMMENTS */
@@ -280,7 +309,7 @@ SPECIAL_TOKEN : /* COMMENTS */
  /* Moved FORMAL_COMMENT to a real token.  Modified MULTI_LINE_COMMENT to not
     catch formal comments (require no star after star) */
 | <MULTI_LINE_COMMENT:
-    "/*" (~["*"])+ "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+    ("/***" (["*"])* | "/*") (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
 }
 
 TOKEN : /* RESERVED WORDS AND LITERALS */
@@ -288,6 +317,7 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 < ABSTRACT : "abstract" >
 | < BOOLEAN: "boolean" >
 | < BREAK: "break" >
+| < YIELD: "yield" >
 | < CLASS: "class" >
 | < BYTE: "byte" >
 | < CASE: "case" >
@@ -493,6 +523,11 @@ TOKEN : /* OPERATORS */
 | < RSIGNEDSHIFTASSIGNX: "@right_shift_assign" >
 | < RUNSIGNEDSHIFTASSIGN: ">>>=" >
 | < RUNSIGNEDSHIFTASSIGNX: "@right_unsigned_shift_assign" >
+| < ARROW: "->" >
+| < SPACESHIP: "<=>" >
+| < NULLCOALESCEASSIGN: "??=" >
+| < NULLCOALESCE: "??" >
+| < ELVIS: "?:" >
 | < HOOK: "?" >
 | < COLON: ":" >
 | < ELLIPSIS: "..." >
@@ -679,11 +714,13 @@ void FormalParameter() #FormalParameter :
   Token t;
 }
 {
-  LOOKAHEAD(2) [ "final" { jjtThis.isFinal = true; } ]
+( LOOKAHEAD(2) [ "final" { jjtThis.isFinal = true; } ]
   Type()[ <ELLIPSIS> { jjtThis.isVarArgs = true; } ]
   t=<IDENTIFIER> { jjtThis.name = t.image; }
 |
   t=<IDENTIFIER> { jjtThis.name = t.image; }
+)
+  ( LOOKAHEAD({ isFormalParameterDimensions() }) "[" "]" { jjtThis.dimensions++; } )*
 }
 
 
@@ -767,7 +804,7 @@ int AssignmentOperator() :
 {
     ( "=" | "*=" | "**=" | "@pow_assign" | "/=" | "%=" | "@mod_assign" | "+="
         | "-=" | "&=" | "@and_assign" | "^=" | "@xor_assign" | "|="
-        | "@or_assign" | "<<=" | "@left_shift_assign" | ">>="
+        | "@or_assign" | "<<=" | "@left_shift_assign" | ">>=" | "??="
         | "@right_shift_assign" | ">>>=" | "@right_unsigned_shift_assign" )
     {
         t = getToken(0);
@@ -775,20 +812,20 @@ int AssignmentOperator() :
     }
 }
 
-/*
- * Here follows the productions for Java operators.
- * JavaCC implements operator precedence using the cascade of
- * productions.  It is important to maintain these as separate
- * independent productions in the reverse sequence of the order of
- * precedence. Do not flatten these in to fewer productions in an
- * attempt to make the parser go faster because it will lose all
- * the BEMDAS/PEMDAS order of operations.
- */
 void ConditionalExpression() :
 { }
 {
-  ConditionalOrExpression() [ <HOOK> Expression() <COLON> ConditionalExpression()
+  NullCoalesceElvisSpaceShipExpression() [ <HOOK> Expression() <COLON> ConditionalExpression()
     #TernaryExpression(3) ]
+}
+
+void NullCoalesceElvisSpaceShipExpression() :
+{ Token t=null; }
+{
+  ConditionalOrExpression()
+  ( ( t = <NULLCOALESCE> | t = <ELVIS> | t = <SPACESHIP> )
+    ConditionalOrExpression()
+    { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
 }
 
 void ConditionalOrExpression() :
@@ -840,7 +877,7 @@ void EqualityExpression() :
 { Token t = null; }
 {
   InstanceOfExpression()
-     (LOOKAHEAD(2) ( t = <EQ> | t= <NE> )
+     (( t = <EQ> | t= <NE> )
       InstanceOfExpression()
     { jjtThis.kind = t.kind; } #BinaryExpression(2)
   )*
@@ -982,6 +1019,14 @@ void PrimarySuffix() #PrimarySuffix :
       [ Expression() { jjtThis.hasRightIndex = true; } ]
      ( ":" { jjtThis.step = true; } [ Expression() ] )? )? "]" {
         jjtThis.operation = BSHPrimarySuffix.INDEX;
+    }
+|
+    // Safe navigate field access or method invocation
+  LOOKAHEAD(2)
+  "?." t = <IDENTIFIER> [ Arguments() ] {
+        jjtThis.operation = BSHPrimarySuffix.NAME;
+        jjtThis.field = t.image;
+        jjtThis.safeNavigate = true;
     }
 |
     // Field access or method invocation

@@ -65,7 +65,9 @@ public class TestBshScriptEngine {
         assertEquals( 42, engine.get("fooInt") );
         engine.eval("fooInt++");
         assertEquals( 43, engine.get("fooInt"));
-        assertSame( engine.eval("fooInt.getClass();"), Primitive.class );
+        assertTrue( (boolean)engine.eval("fooInt.getClass().isPrimitive();") );
+        assertSame( Integer.TYPE, engine.eval("fooInt.getClass();") );
+        assertSame( Integer.TYPE, engine.eval("fooInt.getType();") );
         assertThat( engine.getContext().getAttribute( "fooInt", ENGINE_SCOPE ),
             instanceOf( Integer.class ) );
 

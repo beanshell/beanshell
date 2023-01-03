@@ -730,14 +730,14 @@ public class Interpreter
                 // failsafe, set the Line as the origin of the error.
                 if ( e.getNode()==null )
                     e.setNode( node );
-                e.reThrow("Sourced file: "+sourceFileInfo);
+                throw e.reThrow("Sourced file: "+sourceFileInfo);
             } catch ( EvalError e) {
                 if ( DEBUG.get())
                     e.printStackTrace();
                 // failsafe, set the Line as the origin of the error.
                 if ( e.getNode()==null )
                     e.setNode( node );
-                e.reThrow( "Sourced file: "+sourceFileInfo );
+                throw e.reThrow( "Sourced file: "+sourceFileInfo );
             } catch ( Exception e) {
                 if ( DEBUG.get())
                     e.printStackTrace();

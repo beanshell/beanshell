@@ -16,6 +16,7 @@ package bsh;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 class Operators implements ParserConstants {
@@ -48,6 +49,20 @@ class Operators implements ParserConstants {
             throw new UtilEvalError(
                 "illegal use of undefined variable, class, or"
                     + " 'void' literal");
+
+        if (kind == SPACESHIP) {
+            int comp = 0; // used to ensure only -1, 0, and 1 is returned.
+            if (lhs instanceof Comparable || rhs instanceof Comparable)
+                comp = Comparator.nullsFirst( // nullsFirst Comparable Comparator
+                    Comparator.<Comparable<Object>>naturalOrder())
+                        .compare((Comparable<Object>)Primitive.unwrap(lhs),
+                            (Comparable<Object>)Primitive.unwrap(rhs));
+            else
+                comp = Comparator.nullsFirst( // nullsFirst toString Comparator
+                    Comparator.comparing(Object::toString))
+                    .compare(Primitive.unwrap(lhs), Primitive.unwrap(rhs));
+            return Primitive.wrap(comp < 0 ? -1 : comp > 0 ? 1 : 0, Integer.TYPE);
+        }
 
         if ( kind == PLUS ) {
             // String concatenation operation
@@ -149,6 +164,8 @@ class Operators implements ParserConstants {
     static <T> Object binaryOperationImpl( T lhs, T rhs, int kind )
         throws UtilEvalError
     {
+        if (kind == SPACESHIP) // compares two non null numbers
+            return ((Comparable<T>)lhs).compareTo(rhs);
         if (lhs instanceof Boolean)
             return booleanBinaryOperation( (Boolean) lhs, (Boolean) rhs, kind );
         if (COMPARABLE_OPS.contains(kind))

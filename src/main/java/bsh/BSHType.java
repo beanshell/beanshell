@@ -153,7 +153,7 @@ class BSHType extends SimpleNode
                         && e.getCause() instanceof ClassNotFoundException)
                     baseType = Object.class;
                 else
-                    e.reThrow("");
+                    throw e; // roll up unhandled error
             }
 
         if ( arrayDims > 0 ) {

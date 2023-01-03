@@ -30,6 +30,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,6 +54,7 @@ import static bsh.Capabilities.haveAccessibility;
  *
  * @author Pat Niemeyer
  * @author Daniel Leuck
+ * @author Nick nickl- Lombard
  */
 /*
     Note: This class is messy.  The method and field resolution need to be
@@ -69,43 +72,115 @@ public final class Reflect {
     private static final Map<String,String> ACCESSOR_NAMES = new WeakHashMap<>();
     private static final Pattern DEFAULT_PACKAGE
         = Pattern.compile("[^\\.]+|bsh\\..*");
-    private static final Pattern PACKAGE_ACCESS
-        = Pattern.compile("(?:"+Security.getProperty("package.access")
-            .replace(',', '|')+").*");
+    private static final Pattern PACKAGE_ACCESS;
+    static {
+        String packageAccess = Security.getProperty("package.access");
+        if (null == packageAccess) packageAccess = "null";
+        PACKAGE_ACCESS = Pattern.compile("(?:"+packageAccess.replace(',', '|')+").*");
+    }
 
 
-    /**
-        Invoke method on arbitrary object instance.
-        invocation may be static (through the object instance) or dynamic.
-        Object may be a bsh scripted object (bsh.This type).
-        @return the result of the method call
-    */
+    /** Invoke method on arbitrary object instance. May be static (through the object
+     * instance) or dynamic. Object may be a bsh scripted object (bsh.This type).
+     * @return the result of the method call */
     public static Object invokeObjectMethod(
             Object object, String methodName, Object[] args,
             Interpreter interpreter, CallStack callstack,
-            Node callerInfo ) throws ReflectError, EvalError,
-            InvocationTargetException {
+            Node callerInfo) throws EvalError {
         // Bsh scripted object
-        if ( object instanceof This && !This.isExposedThisMethod(methodName) )
-            return ((This)object).invokeMethod(
-                methodName, args, interpreter, callstack, callerInfo,
-                false/*delcaredOnly*/);
-
-        // Plain Java object, find the java method
-        try {
-            BshClassManager bcm =
-                interpreter == null ? null : interpreter.getClassManager();
-            Class<?> clas = object.getClass();
-
-            Invocable method = resolveExpectedJavaMethod(
-                bcm, clas, object, methodName, args, false );
-            NameSpace ns = getThisNS(object);
-            if (null != ns)
-                ns.setNode(callerInfo);
-            return method.invoke(object, args);
-        } catch ( UtilEvalError e ) {
-            throw e.toEvalError( callerInfo, callstack );
+        if (object instanceof This && !This.isExposedThisMethod(methodName))
+            return ((This) object).invokeMethod(
+                    methodName, args, interpreter, callstack, callerInfo,
+                    false/* declaredOnly */);
+        // Plain Java object, script engine exposed instance and find java method to invoke
+        BshClassManager bcm = interpreter.getClassManager();
+        // Flag primitive for overwrites, value/type exposure and recursion loop metigation.
+        boolean isPrimitive = object instanceof Primitive;
+        try { // The type exposed to script engine and used for method lookup
+            Class<?> type = object.getClass();
+            if (isPrimitive) { // Overwrite methods cosmetically deferred to bsh.Primitive
+                if (methodName.equals("equals")) return ((Primitive)object).equals(args[0]);
+                // NULL and VOID remain Primitive the rest are value/primitive type exposed
+                if (object != Primitive.NULL && object != Primitive.VOID) {
+                    type = ((Primitive)object).getType();
+                    object = Primitive.unwrap(object);
+                } // Cosmetic Void.TYPE returned while internal type remains bsh.Primitive
+                if (methodName.equals("getType") || methodName.equals("getClass"))
+                    return (object == Primitive.VOID) ? ((Primitive)object).getType() : type;
+            } try { // Script engine exposed instance for method lookup and invocation here
+                Invocable method = resolveExpectedJavaMethod(
+                        bcm, type, object, methodName, args, false);
+                NameSpace ns = getThisNS(object);
+                if (null != ns) ns.setNode(callerInfo);
+                return method.invoke(object, args); // script engine exposed instance call
+            } catch (ReflectError re) { // Handle primitive's method not found. Autoboxing
+                // and magic math method lookup. Errors rolled up, not found deferred back.
+                if (isPrimitive && !interpreter.getStrictJava()) try { // mitigate recursion
+                    if (!Types.isNumeric(object)) return invokeObjectMethod( // autobox type
+                        object, methodName, args, interpreter, callstack, callerInfo);
+                    return numericMathMethod( // find magic math method on all numeric types
+                        object, type, methodName, args, interpreter, callstack, callerInfo);
+                } catch (TargetError te) { throw te; // method found but errored throw it up
+                } catch (EvalError ee) { /* not found deffered fall through to exposed type */ }
+                throw new EvalError( // Deferred/unhandled method not found on exposed type
+                    "Error in method invocation: " + re.getMessage(), callerInfo, callstack, re);
+            } catch (InvocationTargetException e) {
+                throw targetErrorFromTargetException(e, methodName, callstack, callerInfo);
+            }
+        } catch (UtilEvalError e) {
+            throw e.toEvalError(callerInfo, callstack);
         }
+    }
+
+    /** Package scoped target error, extracted as a method, to prevent duplication.
+     * Due to the two paths leading to method invocation, via BSHMethodInvocation and
+     * BSHPrimarySuffix, gets consolidated here.
+     * @return error instance to throw */
+    static TargetError targetErrorFromTargetException(InvocationTargetException e,
+            String methodName, CallStack callstack, Node callerInfo) {
+        String msg = "Method Invocation " + methodName;
+        Throwable te = e.getCause();
+        // Try to squeltch the native code stack trace if the exception was caused by
+        // a reflective call back into the bsh interpreter (e.g. eval() or source()
+        boolean isNative = true;
+        if (te instanceof EvalError)
+            isNative = (te instanceof TargetError) && ((TargetError) te).inNativeCode();
+
+        return new TargetError(msg, te, callerInfo, callstack, isNative);
+    }
+
+    /** Determine which math class to call first, based on the floating point flag.
+     * If the method is not found on the primary class, attempt using alternative.
+     * Errors and exceptions will abort and get rolled up.
+     * @return the result of the method call */
+    private static Object numericMathMethod(Object object, Class<?> type, String methodName,
+            Object[] args, Interpreter interpreter, CallStack callstack, Node callerInfo)
+            throws EvalError {
+        Class<?> mathType = Types.isFloatingpoint(object) ? BigDecimal.class : BigInteger.class;
+        try {
+            return invokeMathMethod(mathType,
+                    object, type, methodName, args, interpreter, callstack, callerInfo);
+        } catch (TargetError te) { // method found but errored lets throw it back up
+            throw te.reThrow("Method found on " + mathType.getSimpleName() + " but with error");
+        } catch (EvalError ee) { // method not found try alternative math provider
+            return invokeMathMethod(
+                Types.isFloatingpoint(object) ? BigInteger.class : BigDecimal.class,
+                    object, type, methodName, args, interpreter, callstack, callerInfo);
+        }
+    }
+
+    /** Cast object up to math type, and invoke the math method with the supplied
+     * arguments. Assess the method return, if mathType, cast return back down to
+     * return type and complete the magic. Otherwise return non chaining result.
+     * @return the result of the method call */
+    private static Object invokeMathMethod(Class<?> mathType, Object object, Class<?> returnType,
+        String methodName, Object[] args, Interpreter interpreter, CallStack callstack,
+            Node callerInfo) throws EvalError {
+        Object retrn = invokeObjectMethod(Primitive.castWrapper(mathType, object),
+            methodName, args, interpreter, callstack, callerInfo);
+        if (retrn instanceof Primitive && ((Primitive)retrn).getType() == mathType)
+            return Primitive.wrap(Primitive.castWrapper(returnType, retrn), returnType);
+        return retrn;
     }
 
     /**
