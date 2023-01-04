@@ -317,7 +317,6 @@ TOKEN : /* RESERVED WORDS AND LITERALS */
 < ABSTRACT : "abstract" >
 | < BOOLEAN: "boolean" >
 | < BREAK: "break" >
-| < YIELD: "yield" >
 | < CLASS: "class" >
 | < BYTE: "byte" >
 | < CASE: "case" >
