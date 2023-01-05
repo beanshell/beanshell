@@ -1020,6 +1020,13 @@ void PrimarySuffix() #PrimarySuffix :
         jjtThis.operation = BSHPrimarySuffix.INDEX;
     }
 |
+  LOOKAHEAD(2)
+  "::" ( t = <IDENTIFIER>| t = "new" ) {
+      jjtThis.operation = BSHPrimarySuffix.METHODREF;
+      jjtThis.field = t.image;
+      jjtThis.doubleColon = true;
+  }
+|
     // Safe navigate field access or method invocation
   LOOKAHEAD(2)
   "?." t = <IDENTIFIER> [ Arguments() ] {

@@ -9,8 +9,8 @@ bsh.help.unset = "usage: unset( name )";
 
 void unset( String name )
 {
-    if ( arg == null ) // ???
+    if ( name == null )
         return;
 
-    this.caller.namespace.unsetVariable( name );
+    this.interpreter.unset( name );
 }

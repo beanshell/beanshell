@@ -36,14 +36,15 @@ class BSHPrimarySuffix extends SimpleNode
         INDEX = 1,
         NAME = 2,
         PROPERTY = 3,
-        NEW = 4;
+        NEW = 4,
+        METHODREF = 5;
 
     public int operation;
     Object index;
     public String field;
     public boolean slice = false, step = false,
         hasLeftIndex = false, hasRightIndex = false,
-        safeNavigate = false;
+        safeNavigate = false, doubleColon = false;
 
     BSHPrimarySuffix(int id) { super(id); }
 
@@ -117,6 +118,10 @@ class BSHPrimarySuffix extends SimpleNode
 
                 case NEW:
                     return doNewInner(obj, toLHS, callstack, interpreter);
+
+                case METHODREF:
+                    return doMethodReference(obj, toLHS, callstack, interpreter);
+
                 default:
                     throw new InterpreterError( "Unknown suffix type" );
             }
@@ -125,6 +130,23 @@ class BSHPrimarySuffix extends SimpleNode
         {
             throw new EvalError("reflection error: " + e, this, callstack, e );
         }
+    }
+
+    /*
+        Instance.new InnerClass() implementation
+    */
+    private Object doMethodReference(Object obj, boolean toLHS,
+            CallStack callstack, Interpreter interpreter) throws EvalError {
+        if (obj instanceof ClassIdentifier)
+                if (toLHS)
+                    return new LHS(new LambdaMethodReference(
+                        ((ClassIdentifier)obj).getTargetClass(), field), field);
+                else
+                    return new LambdaMethodReference(
+                        ((ClassIdentifier)obj).getTargetClass(), field);
+        if (toLHS)
+            return new LHS(new LambdaMethodReference(obj, field), field);
+        return new LambdaMethodReference(obj, field);
     }
 
     /*
@@ -369,6 +391,8 @@ class BSHPrimarySuffix extends SimpleNode
             return super.toString() + ":PROPERTY {}";
         if (operation == NEW)
             return super.toString() + ":NEW new";
+        if (operation == METHODREF)
+            return super.toString() + ":METHODREF " + field;
         if (operation == CLASS)
             return super.toString() + ":CLASS class";
         return super.toString() + ":NO OPERATION";
