@@ -179,15 +179,17 @@ public class NodeStringTest {
     @Test
     public void test_primary_suffix_string() {
         BSHPrimarySuffix node = new BSHPrimarySuffix(ParserTreeConstants.JJTPRIMARYSUFFIX);
-        assertEquals("PrimarySuffix: class", node.toString());
+        assertEquals("PrimarySuffix:NO OPERATION", node.toString());
+        node.operation = BSHPrimarySuffix.CLASS;
+        assertEquals("PrimarySuffix:CLASS class", node.toString());
         node.operation = BSHPrimarySuffix.INDEX;
-        assertEquals("PrimarySuffix: [false:false false:false]", node.toString());
+        assertEquals("PrimarySuffix:INDEX [false:false false:false]", node.toString());
         node.operation = BSHPrimarySuffix.NAME;
-        assertEquals("PrimarySuffix: null", node.toString());
+        assertEquals("PrimarySuffix:NAME null", node.toString());
         node.operation = BSHPrimarySuffix.PROPERTY;
-        assertEquals("PrimarySuffix: {}", node.toString());
+        assertEquals("PrimarySuffix:PROPERTY {}", node.toString());
         node.operation = BSHPrimarySuffix.NEW;
-        assertEquals("PrimarySuffix: new", node.toString());
+        assertEquals("PrimarySuffix:NEW new", node.toString());
     }
 
     /**
