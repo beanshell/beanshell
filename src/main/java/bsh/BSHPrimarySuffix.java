@@ -32,7 +32,7 @@ import java.util.Map.Entry;
 class BSHPrimarySuffix extends SimpleNode
 {
     public static final int
-        CLASS = 0,
+        CLASS = 6,
         INDEX = 1,
         NAME = 2,
         PROPERTY = 3,
@@ -96,12 +96,11 @@ class BSHPrimarySuffix extends SimpleNode
             else
                 obj = ((Node)obj).eval(callstack, interpreter);
         else
-            if ( obj instanceof LHS )
-                try {
-                    obj = ((LHS)obj).getValue();
-                } catch ( UtilEvalError e ) {
-                    throw e.toEvalError( this, callstack );
-                }
+            if ( obj instanceof LHS ) try {
+                obj = ((LHS)obj).getValue();
+            } catch ( UtilEvalError e ) {
+                throw e.toEvalError( this, callstack );
+            }
 
         try
         {
@@ -363,14 +362,16 @@ class BSHPrimarySuffix extends SimpleNode
     @Override
     public String toString() {
         if (operation == INDEX)
-            return super.toString() + ": [" + hasLeftIndex + ":" + slice + " " + hasRightIndex + ":" + step + "]";
+            return super.toString() + ":INDEX [" + hasLeftIndex + ":" + slice + " " + hasRightIndex + ":" + step + "]";
         if (operation == NAME)
-            return super.toString() + ": " + field;
+            return super.toString() + ":NAME " + field;
         if (operation == PROPERTY)
-            return super.toString() + ": {}";
+            return super.toString() + ":PROPERTY {}";
         if (operation == NEW)
-            return super.toString() + ": new";
-        return super.toString() + ": class"; // CLASS == 0
+            return super.toString() + ":NEW new";
+        if (operation == CLASS)
+            return super.toString() + ":CLASS class";
+        return super.toString() + ":NO OPERATION";
     }
 }
 
