@@ -123,9 +123,7 @@ public class Variable implements java.io.Serializable
         A Variable can represent an LHS for the case of an imported class or
         object field.
     */
-    Object getValue()
-        throws UtilEvalError
-    {
+    Object getValue() throws UtilEvalError {
         if ( lhs != null )
             return type == null ?
                 lhs.getValue() : Primitive.wrap( lhs.getValue(), type );

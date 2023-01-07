@@ -499,10 +499,17 @@ public class NameSpace
      * @param declaringInterpreter the declaring interpreter
      * @return the super */
     public This getSuper(final Interpreter declaringInterpreter) {
-        if (this.parent != null)
+        if (isClass && null != classStatic) { // get class super instance This
+            Class<?> zuper = classStatic.getSuperclass();
+            if (Reflect.isGeneratedClass(zuper))
+                return Reflect.getClassInstanceThis(classInstance, zuper.getSimpleName());
+        }
+        if (this.parent != null) {
+            if (this.parent.isClass)
+                return this.parent.getSuper(declaringInterpreter);
             return this.parent.getThis(declaringInterpreter);
-        else
-            return this.getThis(declaringInterpreter);
+        }
+        return this.getThis(declaringInterpreter);
     }
 
     /** Get the top level namespace or this namespace if we are the top. Note:

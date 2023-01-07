@@ -86,7 +86,7 @@ class BSHTypedVariableDeclaration extends SimpleNode {
                         if ( null != namespace.classInstance )
                             lhs = new LHS(namespace.classInstance,
                                 Reflect.resolveJavaField(
-                                    namespace.classInstance.getClass(),
+                                    namespace.classStatic,
                                 dec.name, modifiers.hasModifier("static")));
                         else
                             lhs = new LHS(namespace.classStatic,

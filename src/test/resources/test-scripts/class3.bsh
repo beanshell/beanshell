@@ -93,8 +93,10 @@ assert( bar2.a == 5 );
 assert( bar2.q == 5 );
 assert( bar2.b2 == 99 );
 
-// Version 1.3 doesn't support this.
-assertEquals(99, ((Foo33)bar2).b2 );
+// Version 1.3 doesn't support this. Defunct since 3.0.0+
+//assertEquals(99, ((Foo33)bar2).b2 );
+// should return hidden field on Foo33 like JAVA does see #358
+assertEquals(42, ((Foo33)bar2).b2 );
 
 // subclass tests
 bar.barMethod();
