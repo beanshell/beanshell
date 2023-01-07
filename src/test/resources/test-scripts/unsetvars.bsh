@@ -1,0 +1,25 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// Test that variables can be unset
+
+bsh.system.abcd = 2;
+assertEquals(2, bsh.system.abcd);
+assert(isEvalError("Can't unset, not a variable: bsh.system.abcd.xyz", "unset('bsh.system.abcd.xyz');"));
+
+unset("bsh.system.abcd");
+assertTrue(bsh.system.abcd == void);
+
+bsh.system.abcd.xyz = 22;
+assertEquals(22, bsh.system.abcd.xyz);
+
+unset("bsh.system.abcd.xyz");
+assertTrue(bsh.system.abcd.xyz == void);
+assertFalse(bsh.system.abcd == void);
+
+unset("bsh.system.abcd");
+assertTrue(bsh.system.abcd == void);
+
+complete();
