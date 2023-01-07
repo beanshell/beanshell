@@ -1210,10 +1210,14 @@ public class Interpreter
         Defaults to "bsh % " if the method is not defined or there is an error.
     */
     private String getBshPrompt() {
+        boolean dbg = DEBUG.get();
+        if (dbg) DEBUG.set(false);
         try {
             return (String) eval("getBshPrompt()");
         } catch ( Exception e ) {
             return "bsh % ";
+        } finally {
+            if (dbg) DEBUG.set(dbg);
         }
     }
 
