@@ -251,6 +251,21 @@ public class InterpreterTest {
     }
 
     @Test
+    public void get_default_output() throws Exception {
+        PrintStream berr = new PrintStream(new ByteArrayOutputStream());
+        PrintStream bout = new PrintStream(new ByteArrayOutputStream());
+
+        Interpreter bsh = new Interpreter(new StringReader(""), bout, berr, false);
+        bsh.setExitOnEOF(false);
+        assertEquals(berr, bsh.getErr());
+        assertEquals(bout, bsh.getOut());
+        bsh.setErr(null);
+        bsh.setOut(null);
+        assertEquals(System.err, bsh.getErr());
+        assertEquals(System.out, bsh.getOut());
+    }
+
+    @Test
     public void set_prompt_by_interpreter() throws Exception {
         final StringReader in = new StringReader("\n");
         for (String P: new String[] { "abc> ", "cde# " }) {
@@ -262,6 +277,34 @@ public class InterpreterTest {
                 bsh.run();
                 assertTrue(baos.toString().contains(P));
             }
+        }
+    }
+
+    @Test
+    public void overwrite_get_prompt_by_interpreter() throws Exception {
+        final StringReader in = new StringReader("\n");
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream() ) {
+            Interpreter bsh = new Interpreter(in, new PrintStream(baos),
+                new PrintStream(baos), true);
+
+            bsh.setExitOnEOF(false);
+            bsh.eval("getBshPrompt() { return 'abc>'; }");
+            bsh.run();
+            assertTrue(baos.toString().contains("abc>"));
+        }
+    }
+
+    @Test
+    public void overwrite_get_prompt_exception() throws Exception {
+        final StringReader in = new StringReader("\n");
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream() ) {
+            Interpreter bsh = new Interpreter(in, new PrintStream(baos),
+                new PrintStream(baos), true);
+
+            bsh.setExitOnEOF(false);
+            bsh.eval("getBshPrompt() { throw new Exception('prompt exception'); }");
+            bsh.run();
+            assertTrue(baos.toString().contains("bsh %"));
         }
     }
 
