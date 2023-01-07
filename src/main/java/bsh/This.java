@@ -395,9 +395,14 @@ public final class This implements java.io.Serializable, Runnable
                 public int hashCode();
                 public boolean equals(java.lang.Object);
                 public java.lang.String toString();
+                public java.lang.Class getClass();
             if these were not handled by scripted methods we must provide
             a default impl.
         */
+        // a default getClass() that returns the namespace instance class
+        if ( methodName.equals("getClass") && args.length==0 )
+            return This.class;
+
         // a default toString() that shows the interfaces we implement
         if ( methodName.equals("toString") && args.length==0 )
             return toString();
