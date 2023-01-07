@@ -1,8 +1,10 @@
 #!/bin/java bsh.Interpreter
 
 source("TestHarness.bsh");
+source("Assert.bsh");
 
 import java.math.BigDecimal;
+import bsh.This;
 
 ths = this;
 assert( !(this.namespace instanceof bsh.BlockNameSpace) );
@@ -66,6 +68,22 @@ void method1()
 //     print(this);
   }
 }
+
+getThis() {
+  return this;
+}
+assertEquals(This.class, getThis().getClass());
+assertNull(getThis().getClass('mine'));
+assert(isEvalError("Method getClass(boolean) not found in bsh scripted object", "getThis().getClass(true)"));
+assertEquals(This.class, this.getClass());
+class T {
+  getThis() {
+    return this;
+  }
+}
+assertEquals(T.class, new T().getThis().getClass());
+
+
 
 // dissallow assignment to magic members
 assert( isEvalError("this.namespace=5") );
