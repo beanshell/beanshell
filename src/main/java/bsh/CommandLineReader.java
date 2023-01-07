@@ -40,7 +40,7 @@ import java.io.Reader;
 
     This is *not* used when text is sourced from a file non-interactively.
 */
-class CommandLineReader extends FilterReader {
+public class CommandLineReader extends FilterReader {
 
     public CommandLineReader( Reader in ) {
         super(in);
