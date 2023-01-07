@@ -26,6 +26,7 @@
 
 package bsh;
 
+import java.lang.reflect.Proxy;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Collection;
@@ -666,9 +667,17 @@ class Types {
         // If type already assignable no cast necessary
         // We do this last to allow various errors above to be caught.
         // e.g cast Primitive.Void to Object would pass this
+        // returns class instance This for generated super types
         if ( toType.isAssignableFrom( fromType ) )
-            return checkOnly ? VALID_CAST :
-                fromValue;
+            return checkOnly ? VALID_CAST
+                : Reflect.isGeneratedClass(toType) && !Proxy.isProxyClass(fromType)
+                ? Reflect.getClassInstanceThis(fromValue, toType.getSimpleName())
+                : fromValue;
+
+        // Allow This to pass as typed variable if classStatic is toType
+        if (This.class.isInstance(fromValue)
+                && ((This)fromValue).getNameSpace().classStatic == toType)
+            return checkOnly ? VALID_CAST : fromValue;
 
         // Can we use the proxy mechanism to cast a bsh.This to
         // the correct interface?
