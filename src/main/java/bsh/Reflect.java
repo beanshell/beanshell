@@ -990,7 +990,7 @@ public final class Reflect {
             Object o = getObjectFieldValue(instance, BSHTHIS + className);
             return (This) Primitive.unwrap(o); // unwrap Primitive.Null to null
         } catch (Exception e) {
-            throw new InterpreterError("Generated class: Error getting This" + e, e);
+            throw new InterpreterError("Generated class: Error getting This " + e, e);
         }
     }
 
