@@ -103,10 +103,9 @@ public class Interpreter
     /*
         Debug utils are static so that they are reachable by code that doesn't
         necessarily have an interpreter reference (e.g. tracing in utils).
-        In the future we may want to allow debug/trace to be turned on on
-        a per interpreter basis, in which case we'll need to use the parent
-        reference in some way to determine the scope of the command that
-        turns it on or off.
+        The DEBUG flag is thread local and would allow for enabling debug for
+        any Interpreter specifically assuming different Interpreters are isolated
+        on separate threads.
     */
     public static final ThreadLocal<Boolean> DEBUG = ThreadLocal.withInitial(()->Boolean.FALSE);
     private boolean EOF;
@@ -172,9 +171,6 @@ public class Interpreter
      */
     private boolean compatibility = COMPATIBIILTY;
 
-    /** Cached getBshPrompt for interactive mode. */
-    private String prompt = null;
-
     /* --- End instance data --- */
 
     /** The main constructor, all other constructors should pass through here.
@@ -207,8 +203,8 @@ public class Interpreter
             namespace = new NameSpace(namespace, bcm, "global");
         }
 
-        this.setNameSpace(namespace);
         this.setConsole(console);
+        this.setNameSpace(namespace);
 
         if ( Interpreter.DEBUG.get() )
             Interpreter.debug("Time to initialize interpreter: interactive=",
@@ -446,10 +442,12 @@ public class Interpreter
                 System.err.println("I/O Error: " + e);
             }
         } else {
-            @SuppressWarnings("resource")
-            Interpreter interpreter = new Interpreter(new CommandLineReader(
-                new FileReader(System.in)), System.out, System.err, true);
-            interpreter.run();
+            try (FileReader readr = new FileReader(System.in);
+                Reader repl = new CommandLineReader(readr)) {
+                new Interpreter(repl, System.out, System.err, true).run();
+            } catch (IOException e) {
+                System.err.println("I/O Error closing command line reader: " + e);
+            }
         }
     }
 
@@ -938,7 +936,7 @@ public class Interpreter
                 throw new EvalError("Can't unset, not a variable: "+name,
                     Node.JAVACODE, new CallStack());
 
-            lhs.nameSpace.unsetVariable( name );
+            lhs.nameSpace.unsetVariable( lhs.getName() );
         } catch ( UtilEvalError e ) {
             throw new EvalError( e.getMessage(),
                 Node.JAVACODE, new CallStack(), e);
@@ -1212,14 +1210,11 @@ public class Interpreter
         Defaults to "bsh % " if the method is not defined or there is an error.
     */
     private String getBshPrompt() {
-        if ( null != prompt )
-            return prompt;
         try {
-            prompt = (String) eval("getBshPrompt()");
+            return (String) eval("getBshPrompt()");
         } catch ( Exception e ) {
-            prompt = "bsh % ";
+            return "bsh % ";
         }
-        return prompt;
     }
 
     /**
@@ -1288,7 +1283,7 @@ public class Interpreter
     public static class Console implements ConsoleAssignable, Serializable {
         private static final long serialVersionUID = 1L;
         public static String systemLineSeparator = "\n";
-        public static transient PrintStream debug;
+        public static transient PrintStream debug = System.err;
 
         private transient Reader in;
         private transient PrintStream out;
