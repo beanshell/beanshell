@@ -544,8 +544,7 @@ public final class This implements java.io.Serializable, Runnable
     static boolean isExposedThisMethod( String name )
     {
         return
-            name.equals("getClass")
-            || name.equals("invokeMethod")
+            name.equals("invokeMethod")
             || name.equals("getInterface")
             // These are necessary to let us test synchronization from scripts
             || name.equals("wait")

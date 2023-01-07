@@ -1,0 +1,76 @@
+source("TestHarness.bsh");
+source("Assert.bsh");
+/*
+    Make sure we can access super hidden fields
+*/
+
+class A {
+    String b = "abc"; // A.b
+    override() {
+        return "abc";
+    }
+}
+
+class B extends A {
+    String b = "xyz";   // hides super.b B.b
+    String a = super.b; // fetches super.b A.b
+    override() {
+        return "xyz";
+    }
+}
+
+class C extends B {
+    String b = "jkl";   // hides super.b C.b
+    String a = super.b; // hides super.a fetches super.b B.b
+    String c = super.a; // fetches super.a B.a which fetches super.b A.b
+    override() {
+        return "jkl";
+    }
+}
+
+class D extends C {
+    String b = ""; // hides super.b D.b
+    String a = ""; // hides super.a D.b
+    String c = ""; // hides super.c D.b
+
+    getB() {
+        return super.b; // C.b
+    }
+
+    getA() {
+        return super.a; // B.b
+    }
+
+    getC() {
+        return super.c; // A.b
+    }
+}
+
+c = new C();
+assertEquals("C's b field is C.b = jkl", "jkl", c.b);
+assertEquals("C's super.b field is B.b = xyz", "xyz", c.a);
+assertEquals("C's super.a B's super.b is A.b = abc", "abc", c.c);
+
+d = new D();
+assertEquals("D hides b", "", d.b);
+assertEquals("D hides a", "", d.a);
+assertEquals("D hides c", "", d.c);
+assertEquals("D get super.b via method is jkl", "jkl", d.getB());
+assertEquals("D get super.a via method is xyz", "xyz", d.getA());
+assertEquals("D get super.c via method is abc", "abc", d.getC());
+
+a = (A)new C();
+assertEquals("C cast as A so b = A.b = abc", "abc", a.b);
+assertEquals("C cast as A so a = C.a = xyz", "xyz", a.a);
+assertEquals("C cast as A so c = C.c = abc", "abc", a.c);
+assertEquals("C cast as A override() is C.override", "jkl", a.override());
+assertEquals("a.getClass = instance class", C.class, a.getClass());
+
+B b = (B)new C();
+assertEquals("C cast as B so b = B.b = xyz", "xyz", b.b);
+assertEquals("C cast as B so a = B.a = abc", "abc", b.a);
+assertEquals("C cast as B so c = C.c = abc", "abc", b.c);
+assertEquals("C cast as B override() is C.override", "jkl", b.override());
+assertEquals("b.getClass = instance class", C.class, b.getClass());
+
+complete();

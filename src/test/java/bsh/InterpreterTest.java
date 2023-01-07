@@ -295,6 +295,22 @@ public class InterpreterTest {
     }
 
     @Test
+    public void no_debug_prompt_interpreter() throws Exception {
+        final StringReader in = new StringReader("\nInterpreter.DEBUG.set(true);\n");
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            CommandLineReader repl = new CommandLineReader(in) ) {
+            Interpreter bsh = new Interpreter(repl, new PrintStream(baos),
+                new PrintStream(baos), true);
+
+            bsh.setExitOnEOF(false);
+            bsh.run();
+            Interpreter.DEBUG.set(false);
+            assertTrue(baos.toString().contains("bsh %"));
+            assertEquals(2, baos.toString().split("Debug:").length);
+        }
+    }
+
+    @Test
     public void overwrite_get_prompt_exception() throws Exception {
         final StringReader in = new StringReader("\n");
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream() ) {
