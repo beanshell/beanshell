@@ -473,6 +473,12 @@ public class ReflectTest {
     }
 
     @Test
+    public void get_class_modifiers_for_interfage() throws Exception {
+        assertTrue("Modifiers of context INTERFACE",
+            Reflect.getClassModifiers(Runnable.class).isAppliedContext(Modifiers.INTERFACE));
+    }
+
+    @Test
     public void get_declared_variables_from_class() throws Exception {
         Class<?> type = (Class<?>) eval(
                 "class T20 {",

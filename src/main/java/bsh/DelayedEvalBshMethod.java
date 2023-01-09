@@ -89,6 +89,7 @@ public class DelayedEvalBshMethod extends BshMethod
              null, null);
 
         this.constructor = con;
+        this.modifiers = new Modifiers(Modifiers.CONSTRUCTOR);
         this.getModifiers().addModifier("public");
         this.getParameterModifiers();
         declaringNameSpace.setMethod(this);

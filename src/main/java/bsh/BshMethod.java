@@ -182,8 +182,9 @@ public class BshMethod implements Serializable, Cloneable {
     }
 
     public Modifiers getModifiers() {
-        if (this.modifiers == null)
+        if (this.modifiers == null) synchronized (this) {
             this.modifiers = new Modifiers(Modifiers.METHOD);
+        }
         return this.modifiers;
     }
 
@@ -523,7 +524,7 @@ public class BshMethod implements Serializable, Cloneable {
     public boolean hasModifier( String name ) {
         if ( javaMethod != null )
             return Reflect.hasModifier(name, javaMethod.getModifiers());
-        return modifiers != null && modifiers.hasModifier(name);
+        return getModifiers().hasModifier(name);
     }
 
     public String toString() {

@@ -1210,7 +1210,7 @@ public final class Reflect {
         try {
             return (Modifiers)getVariable(type, BSHCLASSMODIFIERS.toString()).getValue();
         } catch (Exception e) {
-            return new Modifiers(Modifiers.CLASS);
+            return new Modifiers(type.isInterface() ? Modifiers.INTERFACE : Modifiers.CLASS);
         }
     }
 
