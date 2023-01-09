@@ -130,17 +130,18 @@ public class ParseException extends EvalError {
      */
     private static String initialise(Token currentToken, int[][] expectedTokenSequences, String[] tokenImage) {
         StringBuilder retval = new StringBuilder("Unable to parse code syntax. Encountered:");
-        Token tok = currentToken;
-        while (null != (tok = tok.next))
-            retval.append(" ").append(add_escapes(tok.image));
+        if (null != currentToken) {
+            Token tok = currentToken;
+            while (null != (tok = tok.next))
+                retval.append(" ").append(add_escapes(tok.image));
 
-        retval.append(" at line ")
-            .append(currentToken.next.beginLine)
-            .append(", column ")
-            .append(currentToken.next.beginColumn);
-        if (null != sourceFile)
-            retval.append(" in: ").append(sourceFile);
-
+            retval.append(" at line ")
+                .append(currentToken.next.beginLine)
+                .append(", column ")
+                .append(currentToken.next.beginColumn);
+            if (null != sourceFile)
+                retval.append(" in: ").append(sourceFile);
+        }
         if (Interpreter.DEBUG.get() && expectedTokenSequences.length != 0) {
             retval.append(System.getProperty("line.separator", "\n")).append("Exppected");
             if (expectedTokenSequences.length > 1)

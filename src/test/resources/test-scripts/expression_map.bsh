@@ -66,6 +66,7 @@ assertThat(map, valueString('{123I=5I}'));
 map[a] = 456;
 assertThat(map[a], equalTo(456));
 assertThat(map[123], equalTo(456));
+assert(map["123"] == void);
 assertThat(map, valueString('{123I=456I}'));
 assertThat(map, instanceOf(Map.class));
 

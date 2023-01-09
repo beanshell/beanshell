@@ -145,9 +145,11 @@ public class ClassGeneratorUtil implements Opcodes {
         List<DelayedEvalBshMethod> methodsl = new ArrayList<>();
         String classBaseName = Types.getBaseName(className); // for inner classes
         for (DelayedEvalBshMethod bshmethod : bshmethods)
-            if (bshmethod.getName().equals(classBaseName))
+            if (bshmethod.getName().equals(classBaseName)) {
+                if (!bshmethod.modifiers.isAppliedContext(Modifiers.CONSTRUCTOR))
+                    bshmethod.modifiers.changeContext(Modifiers.CONSTRUCTOR);
                 consl.add(bshmethod);
-            else
+            } else
                 methodsl.add(bshmethod);
 
         constructors = consl.toArray(new DelayedEvalBshMethod[consl.size()]);
@@ -298,28 +300,28 @@ public class ClassGeneratorUtil implements Opcodes {
 
     /**
      * Translate bsh.Modifiers into ASM modifier bitflags.
+     * Only a subset of modifiers are baked into classes.
      */
     private static int getASMModifiers(Modifiers modifiers) {
         int mods = 0;
-        if (modifiers == null)
-            return mods;
 
-        if (modifiers.hasModifier("public"))
-            mods += ACC_PUBLIC;
-        if (modifiers.hasModifier("private"))
-            mods += ACC_PRIVATE;
-        if (modifiers.hasModifier("protected"))
-            mods += ACC_PROTECTED;
-        if (modifiers.hasModifier("static"))
-            mods += ACC_STATIC;
-        if (modifiers.hasModifier("synchronized"))
-            mods += ACC_SYNCHRONIZED;
-        if (modifiers.hasModifier("abstract"))
-            mods += ACC_ABSTRACT;
-
-        if ( ( mods & ACCESS_MODIFIERS ) == 0 ) {
+        if (modifiers.hasModifier(ACC_PUBLIC))
             mods |= ACC_PUBLIC;
-            modifiers.addModifier("public");
+        if (modifiers.hasModifier(ACC_PRIVATE))
+            mods |= ACC_PRIVATE;
+        if (modifiers.hasModifier(ACC_PROTECTED))
+            mods |= ACC_PROTECTED;
+        if (modifiers.hasModifier(ACC_STATIC))
+            mods |= ACC_STATIC;
+        if (modifiers.hasModifier(ACC_SYNCHRONIZED))
+            mods |= ACC_SYNCHRONIZED;
+        if (modifiers.hasModifier(ACC_ABSTRACT))
+            mods |= ACC_ABSTRACT;
+
+        // if no access modifiers declared then we make it public
+        if ( ( modifiers.getModifiers() & ACCESS_MODIFIERS ) == 0 ) {
+            mods |= ACC_PUBLIC;
+            modifiers.addModifier(ACC_PUBLIC);
         }
 
         return mods;

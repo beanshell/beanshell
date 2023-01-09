@@ -8,15 +8,20 @@ import org.junit.runner.RunWith;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayWithSize;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -470,6 +475,166 @@ public class ReflectTest {
         assertThat("variables has [sv3, v3]",
                 Stream.of(vars).map(Variable::getName).collect(Collectors.toList()),
                 hasItems("sv3", "v3"));
+    }
+
+    @Test
+    public void get_method_from_null_namespace() throws Exception {
+        assertThat("null namespace", Reflect.getMethod(
+            (NameSpace)null, null, null), nullValue());
+    }
+
+    @Test
+    public void get_method_names_from_null_namespace() throws Exception {
+        assertThat("null namespace", Reflect.getMethodNames(
+            (NameSpace)null), arrayWithSize(0));
+    }
+
+    @Test
+    public void get_variable_names_from_null_namespace() throws Exception {
+        assertThat("null namespace", Reflect.getVariableNames(
+            (NameSpace)null), arrayWithSize(0));
+    }
+
+    @Test
+    public void get_declared_method_from_null_class() throws Exception {
+        assertThat("null class", Reflect.getDeclaredMethod(
+            (Class<?>)null, null, null), nullValue());
+    }
+
+    @Test
+    public void get_declared_method_from_java_class() throws Exception {
+        assertThat("java class", Reflect.getDeclaredMethod(
+            Object.class, null, null), nullValue());
+    }
+
+    @Test
+    public void get_declared_method_from_generated_class() throws Exception {
+        assertThat("null mehdod", Reflect.getDeclaredMethod(
+            GeneratedClass.class, null, null), nullValue());
+    }
+
+    @Test
+    public void get_declared_methods_from_generated_class() throws Exception {
+        assertThat("list of mehods", Reflect.getDeclaredMethods(
+            GeneratedClass.class), arrayWithSize(0));
+    }
+
+    @Test
+    public void get_declared_method_from_generated_interface() throws Exception {
+        Class<?> claz = (Class<?>) eval(
+            "interface Intr {}",
+            "return Intr.class;"
+        );
+        assertThat("null method", Reflect.getDeclaredMethod(
+            claz, "abc", new Class<?>[0]), nullValue());
+    }
+
+    @Test
+    public void get_declared_variable_from_generated_class() throws Exception {
+        assertThat("null variable", Reflect.getDeclaredVariable(
+            GeneratedClass.class, null), nullValue());
+    }
+
+    @Test
+    public void get_declared_variables_from_generated_class() throws Exception {
+        assertThat("list of variables", Reflect.getDeclaredVariables(
+            GeneratedClass.class), arrayWithSize(0));
+    }
+
+    @Test
+    public void get_declared_variable_from_generated_interface() throws Exception {
+        Class<?> claz = (Class<?>) eval(
+            "interface Intr {}",
+            "return Intr.class;"
+        );
+        assertThat("null variable", Reflect.getDeclaredVariable(
+            claz, "abc"), nullValue());
+    }
+
+    @Test
+    public void get_declared_variables_from_null_namespace() throws Exception {
+        assertThat("list of variables", Reflect.getVariables(
+            null, null), arrayWithSize(0));
+    }
+
+    public void get_declared_variables_from_null_names() throws Exception {
+        assertThat("list of variables", Reflect.getVariables(
+            new NameSpace("abc"), null), arrayWithSize(0));
+    }
+
+    public void is_private_from_to_string() throws Exception {
+        assertFalse("to string is not private",
+            Reflect.isPrivate(getClass().getMethod("toString", new Class<?>[0])));
+    }
+
+    @Test
+    public void constuct_objuct_from_null_class() throws Exception {
+        Object out = Reflect.constructObject((Class<?>)null, null, null);
+        assertThat("object is primitive null", out, equalTo(Primitive.NULL));
+    }
+
+    @Test
+    public void resolve_java_method_from_null_class() throws Exception {
+        Exception e = assertThrows(InterpreterError.class, () ->
+            Reflect.resolveJavaMethod(null, null, null, false));
+        assertThat("exception message contains", e.getMessage(),
+            containsString("null class"));
+    }
+
+    @Test
+    public void constuct_objuct_from_interface() throws Exception {
+        Exception e = assertThrows(ReflectError.class, () ->
+            Reflect.constructObject(Runnable.class, null, null));
+        assertThat("exception message contains", e.getMessage(),
+            containsString("Can't create instance of an interface"));
+    }
+
+    @Test
+    public void resolve_java_method_null_object() throws Exception {
+        Exception e = assertThrows(UtilTargetError.class, () ->
+            Reflect.getObjectFieldValue(Primitive.NULL, "abc"));
+        assertThat("exception message contains", e.getMessage(),
+            containsString("Attempt to access field 'abc' on null value"));
+    }
+
+    @Test
+    @SuppressWarnings("rawtypes")
+    public void set_object_property_no_entry_key() throws Exception {
+        Entry entr = (Entry) eval("return new Entry {'efg'=4}[0];");
+        Exception e = assertThrows(ReflectError.class, () ->
+            Reflect.setObjectProperty(entr, "abc", 2));
+        assertThat("exception message contains", e.getMessage(),
+            containsString("No such property setter: abc"));
+    }
+
+    @Test
+    public void modifier_unknown() throws Exception {
+        Exception e = assertThrows(IllegalStateException.class, () ->
+            new Modifiers(Modifiers.PARAMETER).addModifier("snazzy"));
+        assertThat("exception message contains", e.getMessage(),
+            containsString("Unknown modifier: 'snazzy'"));
+    }
+
+    @Test
+    public void modifier_cannot_declare() throws Exception {
+        Exception e = assertThrows(IllegalStateException.class, () ->
+            new Modifiers(Modifiers.PARAMETER).addModifier(0));
+        assertThat("exception message contains", e.getMessage(),
+            containsString("Parameter cannot be declared '0'"));
+    }
+
+    @Test
+    public void modifier_unknown_cannot_declare() throws Exception {
+        Exception e = assertThrows(IllegalStateException.class, () ->
+            new Modifiers(99).addModifier("public"));
+        assertThat("exception message contains", e.getMessage(),
+            containsString("Unknown cannot be declared 'public'"));
+    }
+
+    @Test
+    public void get_class_modifiers_for_interfage() throws Exception {
+        assertTrue("Modifiers of context INTERFACE",
+            Reflect.getClassModifiers(Runnable.class).isAppliedContext(Modifiers.INTERFACE));
     }
 
     @Test

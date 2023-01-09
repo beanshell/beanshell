@@ -56,7 +56,7 @@ class BSHFormalParameters extends SimpleNode
             BSHFormalParameter param = (BSHFormalParameter)jjtGetChild(i);
             isVarArgs = param.isVarArgs;
             paramNames[i] = param.name;
-            paramModifiers[i] = new Modifiers(Modifiers.FIELD);
+            paramModifiers[i] = new Modifiers(Modifiers.PARAMETER);
             if (param.isFinal)
                 paramModifiers[i].addModifier("final");
         }
