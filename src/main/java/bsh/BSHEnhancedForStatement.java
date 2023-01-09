@@ -49,7 +49,7 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
 
 
     public Object eval(CallStack callstack, Interpreter interpreter) throws EvalError {
-        Modifiers modifiers = new Modifiers(Modifiers.FIELD);
+        Modifiers modifiers = new Modifiers(Modifiers.PARAMETER);
         if (this.isFinal)
             modifiers.addModifier("final");
         Class elementType = null;

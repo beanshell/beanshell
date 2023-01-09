@@ -101,6 +101,9 @@ class BSHClassDeclaration extends SimpleNode
 
         BSHBlock block = (BSHBlock) jjtGetChild(child);
 
+        if (type == Type.INTERFACE) // this should ideally happen in the parser
+                modifiers.changeContext(Modifiers.INTERFACE);
+
         Class<?> clas = ClassGenerator.getClassGenerator().generateClass(
             name, modifiers, interfaces, superClass, block, type,
             callstack, interpreter );
