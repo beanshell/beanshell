@@ -841,7 +841,7 @@ public final class Reflect {
         for ( Entry ntre : entries )
             if ( key.equals(ntre.getKey()) )
                 return ntre;
-        throw new ReflectError("No such property: " + key);
+        return null;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

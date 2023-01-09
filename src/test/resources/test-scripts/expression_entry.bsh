@@ -174,9 +174,9 @@ assertNotNull(entries["m"]);
 assertEquals(4, entries["m"]);
 assertEquals(3, entries.length);
 assert(isEvalError("cannot assign number 2147483648 to type int", "entries[2147483648]"));
-assert(isEvalError("No such property: xx", "entries['xx']"));
-assert(isEvalError("No such property: 5", "entries[5]"));
-assert(isEvalError("No such property: -5", "entries[-5]"));
+assert(void == entries['xx']);
+assert(void == entries[5]);
+assert(void == entries[-5]);
 
 // nested entry arrays
 entries = new Entry {"k"=3};
