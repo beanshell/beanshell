@@ -841,7 +841,7 @@ public final class Reflect {
         for ( Entry ntre : entries )
             if ( key.equals(ntre.getKey()) )
                 return ntre;
-        throw new ReflectError("No such property: " + key);
+        return null;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -1064,13 +1064,20 @@ public final class Reflect {
     }
 
     /*
-     * Get method from namespace
+     * Get declared method from namespace
      */
     public static BshMethod getMethod(NameSpace ns, String name, Class<?>[] sig) {
+        return getMethod(ns, name, sig, true);
+    }
+
+    /*
+     * Get method from namespace
+     */
+    public static BshMethod getMethod(NameSpace ns, String name, Class<?>[] sig, boolean declaredOnly) {
         if (null == ns)
             return null;
         try {
-            return ns.getMethod(name, sig, true);
+            return ns.getMethod(name, sig, declaredOnly);
         } catch (Exception e) {
             return null;
         }
@@ -1210,7 +1217,7 @@ public final class Reflect {
         try {
             return (Modifiers)getVariable(type, BSHCLASSMODIFIERS.toString()).getValue();
         } catch (Exception e) {
-            return new Modifiers(Modifiers.CLASS);
+            return new Modifiers(type.isInterface() ? Modifiers.INTERFACE : Modifiers.CLASS);
         }
     }
 
@@ -1248,11 +1255,11 @@ public final class Reflect {
     }
 
     public static boolean isStatic(Member member) {
-        return member != null && Modifier.isStatic(member.getModifiers());
+        return Modifier.isStatic(member.getModifiers());
     }
 
     public static boolean isStatic(Class<?> clazz) {
-        return clazz != null && Modifier.isStatic(clazz.getModifiers());
+        return Modifier.isStatic(clazz.getModifiers());
     }
 
     public static boolean hasModifier(String name, int modifiers) {

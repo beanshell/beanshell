@@ -57,4 +57,14 @@ assertThat("Test equality of list item", c.ylds, hasItem(c.ylds.get(0)));
 assertThat("New reference only has one item in list", d.ylds, iterableWithSize(1));
 assertEquals("New reference assigned value", "goodbye", d.ylds.get(0).c);
 
+// scripted object overwrite toString #371
+
+overwriteToString() {
+   toString() {
+      return "I am overwriteToString";
+   }
+   return this;
+}
+assertEquals("I am overwriteToString", "" + overwriteToString());
+
 complete();

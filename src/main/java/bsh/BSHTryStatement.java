@@ -125,7 +125,7 @@ class BSHTryStatement extends SimpleNode
                 {
                     // Get catch block
                     BSHMultiCatch mc = catchParams.get(i);
-                    Modifiers modifiers = new Modifiers(Modifiers.FIELD);
+                    Modifiers modifiers = new Modifiers(Modifiers.PARAMETER);
                     if (mc.isFinal())
                         modifiers.addModifier("final");
 
