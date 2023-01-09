@@ -1255,11 +1255,11 @@ public final class Reflect {
     }
 
     public static boolean isStatic(Member member) {
-        return member != null && Modifier.isStatic(member.getModifiers());
+        return Modifier.isStatic(member.getModifiers());
     }
 
     public static boolean isStatic(Class<?> clazz) {
-        return clazz != null && Modifier.isStatic(clazz.getModifiers());
+        return Modifier.isStatic(clazz.getModifiers());
     }
 
     public static boolean hasModifier(String name, int modifiers) {
