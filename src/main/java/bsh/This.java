@@ -219,11 +219,8 @@ public final class This implements java.io.Serializable, Runnable
                 otherwise callers from outside in Java will not see a the
                 proxy object as equal to itself.
             */
-            BshMethod equalsMethod = null;
-            try {
-                equalsMethod = namespace.getMethod(
-                    "equals", new Class<?>[] { Object.class } );
-            } catch ( UtilEvalError e ) {/*leave null*/ }
+            BshMethod equalsMethod = Reflect.getMethod(
+                namespace, "equals", new Class<?>[] { Object.class } );
             if ( methodName.equals("equals" ) && equalsMethod == null ) {
                 Object obj = args[0];
                 return proxy == obj;
@@ -233,14 +230,10 @@ public final class This implements java.io.Serializable, Runnable
                 If toString() is not explicitly defined override the default
                 to show the proxy interfaces.
             */
-            BshMethod toStringMethod = null;
-            try {
-                toStringMethod =
-                    namespace.getMethod( "toString", new Class<?>[] { } );
-            } catch ( UtilEvalError e ) {/*leave null*/ }
+            BshMethod toStringMethod = Reflect.getMethod(
+                namespace, "toString", new Class<?>[] { } );
 
-            if ( methodName.equals("toString" ) && toStringMethod == null)
-            {
+            if ( methodName.equals("toString" ) && toStringMethod == null) {
                 Class<?>[] ints = proxy.getClass().getInterfaces();
                 // XThis.this refers to the enclosing class instance
                 StringBuilder sb = new StringBuilder(
@@ -268,6 +261,10 @@ public final class This implements java.io.Serializable, Runnable
     }
 
     public String toString() {
+        BshMethod toString = Reflect.getMethod(namespace, "toString", new Class<?>[0]);
+        if (null != toString) try {
+            return (String)toString.invoke(new Object[0], declaringInterpreter);
+        } catch (EvalError e) { /* ignore we tried */ }
         return "'this' reference to Bsh object: " + namespace;
     }
 
@@ -381,10 +378,8 @@ public final class This implements java.io.Serializable, Runnable
 
         // Find the bsh method
         Class<?>[] types = Types.getTypes( args );
-        BshMethod bshMethod = null;
-        try {
-            bshMethod = namespace.getMethod( methodName, types, declaredOnly );
-        } catch ( UtilEvalError e ) { /*leave null*/ }
+        BshMethod bshMethod = Reflect.getMethod(
+            namespace, methodName, types, declaredOnly );
 
         if ( bshMethod != null )
             return bshMethod.invoke( args, interpreter, callstack, callerInfo );
@@ -401,7 +396,7 @@ public final class This implements java.io.Serializable, Runnable
         */
         // a default getClass() that returns the namespace instance class
         if ( methodName.equals("getClass") && args.length==0 )
-            return This.class;
+            return getClass();
 
         // a default toString() that shows the interfaces we implement
         if ( methodName.equals("toString") && args.length==0 )
@@ -418,22 +413,20 @@ public final class This implements java.io.Serializable, Runnable
         }
 
         // a default clone() method
-        if ( methodName.equals("clone") && args.length==0 ) {
+        if ( methodName.equals("clone") && args.length==0 )
             return cloneMethodImpl(callerInfo, callstack);
-        }
 
         // Look for a default invoke() handler method in the namespace
         boolean[] outHasMethod = new boolean[1];
         Object result = namespace.invokeDefaultInvokeMethod(methodName, args,
                 interpreter, callstack, callerInfo, outHasMethod);
-        if ( outHasMethod[0] )
-            return result;
+        if ( outHasMethod[0] ) return result;
 
         // Finally look for any command in this namespace that might qualify
         try {
             return namespace.invokeCommand(
                     methodName, args, interpreter, callstack, callerInfo, true);
-          } catch (EvalError e) {
+        } catch (EvalError e) {
              throw new EvalError("Method " +
                     StringUtil.methodString( methodName, types ) +
                     " not found in bsh scripted object: "+ namespace.getName(),
@@ -681,7 +674,8 @@ public final class This implements java.io.Serializable, Runnable
                 args = This.CONTEXT_ARGS.get().remove(instance.toString());
 
             // Find the constructor (now in the instance namespace)
-            BshMethod constructor = instanceNameSpace.getMethod(Types.getBaseName(className), Types.getTypes(args), true/*declaredOnly*/);
+            BshMethod constructor = instanceNameSpace.getMethod(
+                Types.getBaseName(className), Types.getTypes(args), true/*declaredOnly*/);
 
             // if args, we must have constructor
             if (args.length > 0 && constructor == null)
