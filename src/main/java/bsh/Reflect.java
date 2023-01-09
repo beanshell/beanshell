@@ -1064,13 +1064,20 @@ public final class Reflect {
     }
 
     /*
-     * Get method from namespace
+     * Get declared method from namespace
      */
     public static BshMethod getMethod(NameSpace ns, String name, Class<?>[] sig) {
+        return getMethod(ns, name, sig, true);
+    }
+
+    /*
+     * Get method from namespace
+     */
+    public static BshMethod getMethod(NameSpace ns, String name, Class<?>[] sig, boolean declaredOnly) {
         if (null == ns)
             return null;
         try {
-            return ns.getMethod(name, sig, true);
+            return ns.getMethod(name, sig, declaredOnly);
         } catch (Exception e) {
             return null;
         }
