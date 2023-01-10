@@ -791,18 +791,17 @@ class Name implements java.io.Serializable
         String prefix = Name.prefix(value);
 
         // Superclass method invocation? (e.g. super.foo())
-        if ( prefix.equals("super") && Name.countParts(value) == 2 )
-        {
+        if ( prefix.equals("super") && Name.countParts(value) == 2 ) {
             // Allow getThis() to work through block namespaces first
             This ths = namespace.getThis( interpreter );
             NameSpace thisNameSpace = ths.getNameSpace();
             thisNameSpace.setNode(callerInfo);
             NameSpace classNameSpace = getClassNameSpace( thisNameSpace );
-            if ( classNameSpace != null )
-            {
+            if ( classNameSpace != null ) {
                 Object instance = classNameSpace.getClassInstance();
+                Class<?> classStatic = classNameSpace.classStatic;
                 return ClassGenerator.getClassGenerator()
-                    .invokeSuperclassMethod( bcm, instance, methodName, args );
+                    .invokeSuperclassMethod( bcm, instance, classStatic, methodName, args );
             }
         }
 
