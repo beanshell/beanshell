@@ -291,7 +291,7 @@ public class ClassGeneratorUtil implements Opcodes {
 
             // check if method overrides existing method and generate super delegate.
             if ( null != classContainsMethod(superClass, method.getName(), method.getParamTypeDescriptors()) && !isStatic )
-                generateSuperDelegateMethod(superClassName, method.getName(), method.getReturnTypeDescriptor(),
+                generateSuperDelegateMethod(superClass, superClassName, method.getName(), method.getReturnTypeDescriptor(),
                         method.getParamTypeDescriptors(), ACC_PUBLIC, cw);
         }
 
@@ -684,7 +684,7 @@ public class ClassGeneratorUtil implements Opcodes {
      * normally does not allow).
      */
     // Maybe combine this with generateMethod()
-    private void generateSuperDelegateMethod(String superClassName, String methodName, String returnType, String[] paramTypes, int modifiers, ClassWriter cw) {
+    private void generateSuperDelegateMethod(Class<?> superClass, String superClassName, String methodName, String returnType, String[] paramTypes, int modifiers, ClassWriter cw) {
         String[] exceptions = null;
 
         if (returnType == null) // map loose return to Object
@@ -695,7 +695,7 @@ public class ClassGeneratorUtil implements Opcodes {
         String paramTypesSig = getTypeParameterSignature(paramTypes);
 
         // Add method body
-        MethodVisitor cv = cw.visitMethod(modifiers, "_bshSuper" + methodName, methodDescriptor, paramTypesSig, exceptions);
+        MethodVisitor cv = cw.visitMethod(modifiers, "_bshSuper" + superClass.getSimpleName() + methodName, methodDescriptor, paramTypesSig, exceptions);
 
         cv.visitVarInsn(ALOAD, 0);
         // Push vars

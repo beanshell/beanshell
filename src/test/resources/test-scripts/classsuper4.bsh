@@ -1,0 +1,91 @@
+source("TestHarness.bsh");
+source("Assert.bsh");
+/*
+    Make sure we can access super overriden methods
+*/
+
+class A {
+    public String foo() {
+        return "A";
+    }
+    public String bar() {
+        return "bar";
+    }
+    public String baz() {
+        return foo() + bar();
+    }
+}
+
+class B extends A {
+    public String foo() {
+        return super.foo() + "B";
+    }
+    public String bar() {
+        return super.foo() + super.bar();
+    }
+    public String baz() {
+        return foo() + bar() + super.foo() + super.bar() + super.baz();
+    }
+}
+
+class C extends B {
+    public String foo() {
+        return super.foo() + "C";
+    }
+    public String bar() {
+        return super.foo() + super.bar();
+    }
+    public String baz() {
+        return foo() + bar() + super.foo() + super.bar() + super.baz();
+    }
+}
+
+class D extends C {
+    public String foo() {
+        return super.foo() + "D";
+    }
+    public String bar() {
+        return super.foo() + super.bar();
+    }
+    public String baz() {
+        return foo() + bar() + super.foo() + super.bar() + super.baz();
+    }
+}
+
+class E extends D {
+    public String foo() {
+        return super.foo() + "E";
+    }
+    public String bar() {
+        return super.foo() + super.bar();
+    }
+    public String baz() {
+        return foo() + bar() + super.foo() + super.bar() + super.baz();
+    }
+}
+
+class F extends E {
+    public String foo() {
+        return super.foo() + "F";
+    }
+    public String bar() {
+        return foo() + super.foo() + super.bar();
+    }
+    public String baz() {
+        return foo() + bar() + super.foo() + super.bar() + super.baz();
+    }
+}
+
+
+f = new F();
+assertEquals("Can call all the super class methods", "ABCDEF", f.foo());
+assertEquals("Can call multiple super class methods", "ABCDEFABCDEABCDABCABAbar", f.bar());
+assertEquals("Can call multiple local and multiple super class methods",
+"ABCDEFABCDEFABCDEABCDABCABAbarABCDEABCDABCABAbar" +
+"ABCDEFABCDEFABCDEABCDABCABAbarABCDABCABAbar" +
+"ABCDEFABCDEFABCDEABCDABCABAbarABCABAbar" +
+"ABCDEFABCDEFABCDEABCDABCABAbarABAbar" +
+"ABCDEFABCDEFABCDEABCDABCABAbarAbar" +
+"ABCDEFABCDEFABCDEABCDABCABAbar", f.baz());
+
+complete();

@@ -61,7 +61,7 @@ class Bar33 extends Foo33 {
         smethod();
         assert( this == barThis );
         assert( method2().equals("bar") );
-        assert( _bshSupermethod2().equals("foo") );
+        assert( _bshSuperFoo33method2().equals("foo") );
         assert( super.method2().equals("foo") );
     }
     method2() { return "bar"; }
