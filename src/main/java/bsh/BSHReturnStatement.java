@@ -31,12 +31,15 @@ package bsh;
 class BSHReturnStatement extends SimpleNode implements ParserConstants
 {
     public int kind;
+    public String label;
 
     BSHReturnStatement(int id) { super(id); }
 
     public Object eval(CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
+        if (null != label)
+            return new ReturnControl(kind, label, this);
         Object value;
         if(jjtGetNumChildren() > 0)
             value = jjtGetChild(0).eval(callstack, interpreter);
@@ -48,6 +51,6 @@ class BSHReturnStatement extends SimpleNode implements ParserConstants
 
     @Override
     public String toString() {
-        return super.toString() + ": " + tokenImage[kind];
+        return super.toString() + ": " + tokenImage[kind] + " " + label + ":";
     }
 }

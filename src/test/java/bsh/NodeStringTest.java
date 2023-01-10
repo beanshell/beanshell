@@ -106,7 +106,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_enhanced_for_statement_string() {
-        assertEquals("EnhancedForStatement: null, final=false", new BSHEnhancedForStatement(ParserTreeConstants.JJTENHANCEDFORSTATEMENT).toString());
+        assertEquals("EnhancedForStatement: null: null, final=false", new BSHEnhancedForStatement(ParserTreeConstants.JJTENHANCEDFORSTATEMENT).toString());
     }
 
     /**
@@ -138,7 +138,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_for_statement_string() {
-        assertEquals("ForStatement: false ; false ; false", new BSHForStatement(ParserTreeConstants.JJTFORSTATEMENT).toString());
+        assertEquals("ForStatement: null: false ; false ; false", new BSHForStatement(ParserTreeConstants.JJTFORSTATEMENT).toString());
     }
 
     /**
@@ -205,7 +205,15 @@ public class NodeStringTest {
      */
     @Test
     public void test_return_statement_string() {
-        assertEquals("ReturnStatement: <EOF>", new BSHReturnStatement(ParserTreeConstants.JJTRETURNSTATEMENT).toString());
+        assertEquals("ReturnStatement: <EOF> null:", new BSHReturnStatement(ParserTreeConstants.JJTRETURNSTATEMENT).toString());
+    }
+
+    /**
+     * Verify labeled statement to string.
+     */
+    @Test
+    public void test_labeled_statement_string() {
+        assertEquals("LabeledStatement: null:", new BSHLabeledStatement(ParserTreeConstants.JJTLABELEDSTATEMENT).toString());
     }
 
     /**
@@ -256,6 +264,6 @@ public class NodeStringTest {
      */
     @Test
     public void test_while_statement_string() {
-        assertEquals("WhileStatement: do=false", new BSHWhileStatement(ParserTreeConstants.JJTWHILESTATEMENT).toString());
+        assertEquals("WhileStatement: null: do=false", new BSHWhileStatement(ParserTreeConstants.JJTWHILESTATEMENT).toString());
     }
 }
