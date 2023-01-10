@@ -38,7 +38,7 @@ import java.util.Iterator;
 class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
 
     final int blockId;
-    String varName;
+    String varName, label;
     boolean isFinal = false;
 
 
@@ -52,7 +52,7 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
         Modifiers modifiers = new Modifiers(Modifiers.PARAMETER);
         if (this.isFinal)
             modifiers.addModifier("final");
-        Class elementType = null;
+        Class<?> elementType = null;
         Node expression;
         Node statement = null;
         NameSpace enclosingNameSpace = callstack.top();
@@ -74,7 +74,7 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
         }
         final Object iteratee = expression.eval(callstack, interpreter);
         CollectionManager cm = CollectionManager.getCollectionManager();
-        Iterator iterator = cm.getBshIterator(iteratee);
+        Iterator<?> iterator = cm.getBshIterator(iteratee);
         Object returnControl = Primitive.VOID;
         while ( !Thread.interrupted() && iterator.hasNext() ) {
             try {
@@ -95,7 +95,13 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
                 // not empty statement
                 Object ret = statement.eval(callstack, interpreter);
                 if (ret instanceof ReturnControl) {
-                    switch (((ReturnControl) ret).kind) {
+                    ReturnControl control = (ReturnControl)ret;
+
+                    if (null != control.label)
+                        if (null == label || !label.equals(control.label))
+                            return ret;
+
+                    switch (control.kind) {
                         case RETURN:
                             returnControl = ret;
                             breakout = true;
@@ -118,6 +124,6 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
 
     @Override
     public String toString() {
-        return super.toString() + ": " + varName + ", final=" + isFinal;
+        return super.toString() + ": " + label + ": " + varName + ", final=" + isFinal;
     }
 }

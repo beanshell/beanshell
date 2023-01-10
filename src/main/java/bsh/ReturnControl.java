@@ -33,7 +33,8 @@ package bsh;
 */
 class ReturnControl implements ParserConstants {
     public int kind;
-    public Object value;
+    public String label = null;
+    public Object value = Primitive.VOID;
     /** The node where we returned... for printing error messages correctly */
     public Node returnPoint;
 
@@ -41,6 +42,17 @@ class ReturnControl implements ParserConstants {
         this.kind = kind;
         this.value = value;
         this.returnPoint = returnPoint;
+    }
+
+    public ReturnControl( int kind, String label, Node returnPoint ) {
+        this.kind = kind;
+        this.label = label;
+        this.returnPoint = returnPoint;
+    }
+
+    public String toString() {
+        return "ReturnControl: " + (kind == BREAK ? "BREAK " : kind == RETURN ? "RETURN " : kind == CONTINUE ? "CONTINUE " : "DUNNO?? "+kind)
+                + label + ": from: " + returnPoint;
     }
 }
 
