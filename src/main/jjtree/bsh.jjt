@@ -1232,10 +1232,11 @@ void Statement() : { }
   TryStatement()
 }
 
-void LabeledStatement() :
-{}
+void LabeledStatement() #LabeledStatement :
+{ Token t = null; }
 {
-  <IDENTIFIER> ":" Statement()
+  t=<IDENTIFIER> ":" Statement()
+  { jjtThis.label=t.image; }
 }
 
 void Block() #Block :
@@ -1439,15 +1440,15 @@ void ForUpdate() :
 }
 
 void BreakStatement() #ReturnStatement :
-{}
+{ Token t = null; }
 {
-  "break" [ <IDENTIFIER> ] ";" { jjtThis.kind = BREAK; }
+  "break" [ t=<IDENTIFIER> { jjtThis.label = t.image; } ] ";" { jjtThis.kind = BREAK; }
 }
 
 void ContinueStatement() #ReturnStatement :
-{}
+{ Token t = null; }
 {
-  "continue" [ <IDENTIFIER> ] ";" { jjtThis.kind = CONTINUE; }
+  "continue" [ t=<IDENTIFIER> { jjtThis.label = t.image; } ] ";" { jjtThis.kind = CONTINUE; }
 }
 
 void ReturnStatement() #ReturnStatement :

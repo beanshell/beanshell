@@ -1,0 +1,89 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+first : {
+    second : {
+        third : {
+            assert(true);
+            break second;
+            assert(false);
+        }
+        assert(false);
+    }
+    assert(true);
+}
+assert(true);
+
+one : {
+    two : {
+        three : {
+            assert(true);
+            break one;
+            assert(false);
+        }
+        assert(false);
+    }
+    assert(false);
+}
+assert(true);
+
+i = j = 0;
+assertEquals("start at zero i", 0, i);
+assertEquals("start at zero j", 0, j);
+
+iloop: for (; i < 10; i++)
+    jloop: for (; j < 10; j++)
+        continue iloop;
+
+assertEquals("iloop completed 10 ", 10, i);
+assertEquals("jloop did none", 0, j);
+
+nochildlabel:;
+
+returnForLabels() {
+    aloop: for (i = 0; i < 10000; i++)
+        bloop: for (j = 0; j < 10000; j++)
+            for (k = 0; k < 10000; k++)
+                if (i < 1)
+                    continue aloop;
+                else if (i == 1)
+                    break bloop;
+                else
+                    return i + j + k;
+}
+assertEquals("return sum from for loop method is 2", 2, returnForLabels());
+
+returnForEnhancedLabels() {
+    ar = {0,1,2,3,4,5,6,7,8,9};
+    aloop: for (i:ar)
+        bloop: for (j:ar)
+            for (k:ar)
+                if (i < 1)
+                    continue aloop;
+                else if (i == 1)
+                    break bloop;
+                else
+                    return i + j + k;
+}
+assertEquals("return sum from for enhanced loop method is 2", 2, returnForEnhancedLabels());
+
+returnWhileLabels() {
+    i = j = k = 0;
+    aloop: while (i++ < 10000)
+        bloop: while (j++ < 10000)
+            while (k++ < 10000)
+                if (i < 2)
+                    continue aloop;
+                else if (i == 2)
+                    break bloop;
+                else
+                    return i + j + k;
+}
+assertEquals("return sum from while loop method is 9", 9, returnWhileLabels());
+
+
+assert(isEvalError("Continue cannot be used outside of a loop", "noloop : { continue noloop; }"));
+
+complete();

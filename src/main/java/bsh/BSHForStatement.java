@@ -42,6 +42,7 @@ class BSHForStatement extends SimpleNode implements ParserConstants
     private Node expression;
     private Node forUpdate;
     private Node statement;
+    String label;
 
     BSHForStatement(int id) {
         super(id);
@@ -106,10 +107,14 @@ class BSHForStatement extends SimpleNode implements ParserConstants
                 // do *not* invoke special override for block... (see above)
                 Object ret = statement.eval( callstack, interpreter );
 
-                if (ret instanceof ReturnControl)
-                {
-                    switch(((ReturnControl)ret).kind)
-                    {
+                if (ret instanceof ReturnControl) {
+                    ReturnControl control = (ReturnControl)ret;
+
+                    if (null != control.label)
+                        if (null == label || !label.equals(control.label))
+                            return ret;
+
+                    switch(control.kind) {
                         case RETURN:
                             returnControl = ret;
                             breakout = true;
@@ -138,6 +143,6 @@ class BSHForStatement extends SimpleNode implements ParserConstants
 
     @Override
     public String toString() {
-        return super.toString() + ": " + hasForInit + " ; " + hasExpression + " ; " + hasForUpdate;
+        return super.toString() + ": " + label + ": " + hasForInit + " ; " + hasExpression + " ; " + hasForUpdate;
     }
 }
