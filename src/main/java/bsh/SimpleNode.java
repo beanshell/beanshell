@@ -27,6 +27,7 @@ package bsh;
 
 import java.io.Serializable;
 import java.util.NoSuchElementException;
+import bsh.congo.parser.BaseNode;
 
 /*
     Note: great care (and lots of typing) were taken to insure that the
@@ -43,7 +44,7 @@ import java.util.NoSuchElementException;
     data produced by the last eval()... data that is used immediately. We'll
     try to remember to mark these as transient to highlight them.
 */
-class SimpleNode extends bsh.congo.parser.BaseNode implements Node, Serializable {
+class SimpleNode extends BaseNode implements Node, Serializable {
 
     /** Serialization ID */
     private static final long serialVersionUID = 1L;
@@ -54,15 +55,23 @@ class SimpleNode extends bsh.congo.parser.BaseNode implements Node, Serializable
     /** the source of the text from which this was parsed */
     private String sourceFile;
 
-    protected Node parent;
-    protected Node[] children;
+    Node parent;
+    Node[] children;
+
     private int id;
-    private Parser parser;
+//    private Parser parser;
     private int cursor = 0, lastRet = -1;
+
+    private bsh.congo.parser.Node wrappedNode;
 
     /** Default constructor supplying the node with its type id.
      * @param i type index of ParserTreeConstants.jjtNodeName */
     public SimpleNode(int i) { id = i; }
+
+    public SimpleNode(int id, bsh.congo.parser.Node wrappedNode) {
+        this.id = id;
+        this.wrappedNode = wrappedNode;
+    }
 
     /** {@inheritDoc} */
     @Override
@@ -207,6 +216,9 @@ class SimpleNode extends bsh.congo.parser.BaseNode implements Node, Serializable
     /** {@inheritDoc} */
     @Override
     public String getSourceFile() {
+        if (wrappedNode != null) {
+            return wrappedNode.getInputSource();
+        }
         if ( sourceFile == null )
             if ( parent != null )
                 return parent.getSourceFile();
@@ -218,12 +230,16 @@ class SimpleNode extends bsh.congo.parser.BaseNode implements Node, Serializable
 
     /** {@inheritDoc} */
     @Override
-    public int getLineNumber() { return firstToken.beginLine; }
+    public int getLineNumber() { 
+        if (wrappedNode != null) return wrappedNode.getBeginLine();
+        return firstToken.beginLine; 
+    }
 
     /** {@inheritDoc} */
     @Override
     public String getText()
     {
+        if (wrappedNode != null) return wrappedNode.getSource();
         StringBuilder text = new StringBuilder();
         Token t = firstToken;
         while ( t!=null ) {

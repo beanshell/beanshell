@@ -36,9 +36,10 @@ class BSHWhileStatement extends SimpleNode implements ParserConstants {
     boolean isDoStatement;
     String label;
 
+    BSHWhileStatement(int id) {super(id);}
 
-    BSHWhileStatement(int id) {
-        super(id);
+    BSHWhileStatement(bsh.congo.tree.WhileStatement ws) {
+        super(ParserTreeConstants.JJTWHILESTATEMENT, ws);
     }
 
 
