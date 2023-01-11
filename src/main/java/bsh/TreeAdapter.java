@@ -1,21 +1,26 @@
 package bsh;
 
-import bsh.congo.parser.Node;
+import bsh.congo.parser.BaseNode;
 import bsh.congo.tree.*;
 
-public class TreeAdapter extends Node.Visitor {
-    private Node root;
-    private bsh.Node legacyRoot, currentLegacyNode;
+public class TreeAdapter extends BaseNode.Visitor {
+    private BaseNode root;
+    private SimpleNode legacyRoot, currentLegacyNode;
 
-    static public bsh.Node convert(Node root) {
+    static public SimpleNode convert(BaseNode root) {
         TreeAdapter adapter = new TreeAdapter(root);
         adapter.visit(root);
         return adapter.legacyRoot;
     }
 
-    TreeAdapter(Node root) {this.root = root;}
+    TreeAdapter(BaseNode root) {this.root = root;}
 
-    Node getRootNode() {return root;} 
+    BaseNode getRootNode() {return root;}
+    
+    void visit(ImportDeclaration idecl) {
+        BSHImportDeclaration legacyImport = new BSHImportDeclaration(idecl);
+        currentLegacyNode.add(legacyImport);
+    }
 
     void visit(WhileStatement ws) {
         BSHWhileStatement legacyWs = new BSHWhileStatement(ws);
