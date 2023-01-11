@@ -1,0 +1,117 @@
+// For the moment, you can just generate the 
+// sources in ../java/bsh/congo/* by 
+// running:
+//  java -jar javacc-full.jar Beanshell.ccc
+// on the command line.
+//
+
+JAVA_UNICODE_ESCAPE=true;
+DEFAULT_LEXICAL_STATE=JAVA;
+BASE_NAME="Beanshell";
+PARSER_PACKAGE=bsh.congo.parser;
+NODE_PACKAGE=bsh.congo.tree;
+ENSURE_FINAL_EOL=true;
+BASE_SRC_DIR="../java";
+LEGACY_GLITCHY_LOOKAHEAD=false;
+
+INCLUDE JAVA
+
+UNPARSED : /* COMMENTS */
+ <HASH_BANG_COMMENT: "#!" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+// | <MULTI_LINE_COMMENT:
+//    ("/***" (["*"])* | "/*") (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+;
+
+// A redefinition of some operators from the Java grammar
+// to admit an alternative form. Also, some extra operators, such
+// as SPACESHIP and ELVIS that do not exist in Java.
+TOKEN #Operator :
+  < GT: ">" | "@gt" >
+  | 
+  < LT: "<" | "@lt" >
+  | 
+  < LE: "<=" | "@lteq" >
+  | 
+  < GE: ">=" | "@gteq" >
+  | 
+  < SC_OR : "||" | "@or" >
+  | 
+  < SC_AND : "&&" | "@and" >
+  | 
+  < BIT_AND: "&" | "@bitwise_and" >
+  | 
+  < BIT_OR: "|" | "@bitwise_or" >
+  | 
+  < XOR: "^" | "@bitwise_xor" >
+  | 
+  < REM : "%" | "@mod" >
+  | 
+  < POWER: "**" | "@pow" >
+  | 
+  < LSHIFT: "<<" | "@left_shift" >
+  | 
+  < RSIGNEDSHIFT: ">>" | "@right_shift" >
+  | 
+  < RUNSIGNEDSHIFT: ">>" | "@right_unsigned_shift" >
+  | 
+  < ANDASSIGN: "&=" | "@and_assign" >
+  | 
+  < ORASSIGN: "|=" | "@or_assign" >
+  | 
+  < XORASSIGN: "^=" | "@xor_assign" >
+  | 
+  < REMASSIGN: "%=" | "@mod_assign" >
+  | 
+  < POWERASSIGN: "**=" | "@pow_assign" >
+  | 
+  < LSHIFTASSIGN: "<<=" | "@left_shift_assign" >
+  | 
+  < RSIGNEDSHIFTASSIGN: ">>=" | "@right_shift_assign" >
+  | 
+  < RUNSIGNEDSHIFTASSIGN: ">>>=" | "@right_unsigned_shift_assign" >
+  | 
+  < SPACESHIP: "<=>" >
+  | 
+  < NULLCOALESCEASSIGN: "??=" >
+  | 
+  < NULLCOALESCE: "??" >
+  | 
+  < ELVIS: "?:" >
+;
+
+
+boolean Line :
+  <EOF> {
+//    Interpreter.debug("End of File!");
+    return true;
+  }
+  |
+  BlockStatement {
+    return false;
+  }
+;
+
+ConditionalExpression :
+  NullCoalesceElvisSpaceShipExpression [ <HOOK> Expression <COLON> ConditionalExpression]
+;
+
+NullCoalesceElvisSpaceShipExpression :
+  ConditionalOrExpression
+  ( ( <NULLCOALESCE> | <ELVIS> | <SPACESHIP> )
+    ConditionalOrExpression )*
+;
+
+AllocationExpression :
+  ["new"] =>|+1 (ArrayDimsAndInits | ArrayInitializer)
+  |
+  "new" PrimitiveType =>|| ArrayDimsAndInits
+  |
+  "new" [TypeArguments] ObjectType [ PossiblyEmptyTypeArguments ]
+    (
+      ArrayDimsAndInits
+      |
+      InvocationArguments [ ClassOrInterfaceBody ]
+    )
+;
+
+
