@@ -42,9 +42,8 @@ import java.util.NoSuchElementException;
     Exceptions would be public fields of simple classes that just publish
     data produced by the last eval()... data that is used immediately. We'll
     try to remember to mark these as transient to highlight them.
-
 */
-class SimpleNode implements Node, Serializable {
+class SimpleNode extends bsh.congo.parser.BaseNode implements Node, Serializable {
 
     /** Serialization ID */
     private static final long serialVersionUID = 1L;
@@ -57,8 +56,8 @@ class SimpleNode implements Node, Serializable {
 
     protected Node parent;
     protected Node[] children;
-    protected int id;
-    protected Parser parser;
+    private int id;
+    private Parser parser;
     private int cursor = 0, lastRet = -1;
 
     /** Default constructor supplying the node with its type id.
