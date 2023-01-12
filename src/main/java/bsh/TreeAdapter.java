@@ -213,6 +213,14 @@ public class TreeAdapter extends BaseNode.Visitor {
         currentLegacyNode = legacyEqualityExpression.jjtGetParent();
     }
 
+    void visit(AndExpression andExpression) {
+        BSHBinaryExpression legacyAndExpression = new BSHBinaryExpression(andExpression);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyAndExpression);
+        currentLegacyNode = legacyAndExpression;
+        recurse(andExpression);
+        currentLegacyNode = legacyAndExpression.jjtGetParent();
+    }
+
     void visit(RelationalExpression relationalExpression) {
         BSHBinaryExpression legacyRelationalExpression = new BSHBinaryExpression(relationalExpression);
         if (currentLegacyNode != null) currentLegacyNode.add(legacyRelationalExpression);
@@ -227,5 +235,21 @@ public class TreeAdapter extends BaseNode.Visitor {
         currentLegacyNode = legacyShiftExpression;
         recurse(shiftExpression);
         currentLegacyNode = legacyShiftExpression.jjtGetParent();
+    }
+
+    void visit(InstanceOfExpression instanceOfExpression) {
+        BSHBinaryExpression legacyInstanceOfExpression = new BSHBinaryExpression(instanceOfExpression);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyInstanceOfExpression);
+        currentLegacyNode = legacyInstanceOfExpression;
+        recurse(instanceOfExpression);
+        currentLegacyNode = legacyInstanceOfExpression.jjtGetParent();
+    }
+
+    void visit(NullCoalesceElvisSpaceShipExpression nullCoalesceElvisSpaceShipExpression) {
+        BSHBinaryExpression legacyNullCoalesceElvisSpaceShipExpression = new BSHBinaryExpression(nullCoalesceElvisSpaceShipExpression);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyNullCoalesceElvisSpaceShipExpression);
+        currentLegacyNode = legacyNullCoalesceElvisSpaceShipExpression;
+        recurse(nullCoalesceElvisSpaceShipExpression);
+        currentLegacyNode = legacyNullCoalesceElvisSpaceShipExpression.jjtGetParent();
     }
 }

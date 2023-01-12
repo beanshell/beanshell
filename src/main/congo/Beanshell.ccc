@@ -166,7 +166,7 @@ AndExpression :
 ;
 
 ExclusiveOrExpression :
-  AndExpression ((<BIT_AND> AndExpression) #ExclusiveOrExpression(+1))*
+  AndExpression ((<XOR> AndExpression) #ExclusiveOrExpression(+1))*
 ;
 
 NullCoalesceElvisSpaceShipExpression :

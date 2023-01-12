@@ -74,6 +74,11 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
         kind = XOR; 
     }
 
+    BSHBinaryExpression(bsh.congo.tree.AndExpression andExpression) {
+        super(ParserTreeConstants.JJTBINARYEXPRESSION, andExpression);
+        kind = BIT_AND;
+    }
+
     BSHBinaryExpression(bsh.congo.tree.EqualityExpression equalityExpression) {
         super(ParserTreeConstants.JJTBINARYEXPRESSION, equalityExpression);
         kind = equalityExpression.firstChildOfType(TokenType.EQ) != null ? EQ : NE;
@@ -88,7 +93,6 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
             case LE : kind = LE; break;
             default:break;
         }
-
     }
 
     BSHBinaryExpression(bsh.congo.tree.ShiftExpression shiftExpression) {
@@ -99,6 +103,21 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
             case RUNSIGNEDSHIFT : kind = RUNSIGNEDSHIFT; break;
             case LE : kind = LE; break;
             default:break;
+        }
+    }
+
+    BSHBinaryExpression(bsh.congo.tree.InstanceOfExpression instanceOfExpression) {
+        super(ParserTreeConstants.JJTBINARYEXPRESSION, instanceOfExpression);
+        kind = INSTANCEOF;
+    }
+
+    BSHBinaryExpression(bsh.congo.tree.NullCoalesceElvisSpaceShipExpression nullCoalesceElvisSpaceShipExpression) {
+        super(ParserTreeConstants.JJTBINARYEXPRESSION, nullCoalesceElvisSpaceShipExpression);
+        switch(nullCoalesceElvisSpaceShipExpression.firstChildOfType(bsh.congo.parser.Token.class).getType()) {
+            case NULLCOALESCE : kind = NULLCOALESCE; break;
+            case ELVIS : kind = ELVIS; break;
+            case SPACESHIP : kind = SPACESHIP; break;
+            default : break;
         }
     }
 
