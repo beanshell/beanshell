@@ -43,4 +43,23 @@ else
 
 assert(flag()==1);
 
+// test if closed statements #342
+if (true); else assert(false);
+if (false); else if (true); else assert(false);
+a=0;
+if (false); else a=1;
+assert(a == 1);
+if (false); else if (false); else a=2;
+assert(a == 2);
+if (a == 1)
+    ;
+else if (a == 2)
+    a = 22;
+else
+    a = 33;
+assert(a == 22);
+
+assert(isEvalError("Condition evaluates to void type", "if (unsetVar);"));
+assert(isEvalError("Condition must evaluate to a Boolean or boolean", "if ('not a boolean');"));
+
 complete();
