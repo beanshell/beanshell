@@ -28,8 +28,10 @@
 
 package bsh;
 
-import static bsh.ClassGenerator.ClassNodeFilter.CLASSINSTANCE;
-import static bsh.ClassGenerator.ClassNodeFilter.CLASSSTATIC;
+import static bsh.ClassGenerator.ClassNodeFilter.CLASSINSTANCEFIELDS;
+import static bsh.ClassGenerator.ClassNodeFilter.CLASSINSTANCEMETHODS;
+import static bsh.ClassGenerator.ClassNodeFilter.CLASSSTATICFIELDS;
+import static bsh.ClassGenerator.ClassNodeFilter.CLASSSTATICMETHODS;
 import static bsh.ClassGeneratorUtil.DEFAULTCONSTRUCTOR;
 import static bsh.This.Keys.BSHCONSTRUCTORS;
 import static bsh.This.Keys.BSHINIT;
@@ -760,8 +762,9 @@ public final class This implements java.io.Serializable, Runnable
             }
 
             // evaluate the instance portion of the block in it
-            try { // Evaluate the initializer block
-                instanceInitBlock.evalBlock(new CallStack(instanceNameSpace), instanceThis.declaringInterpreter, true/*override*/, CLASSINSTANCE);
+            try { // Evaluate the initializer block methods first
+                instanceInitBlock.evalBlock(new CallStack(instanceNameSpace), instanceThis.declaringInterpreter, true/*override*/, CLASSINSTANCEMETHODS);
+                instanceInitBlock.evalBlock(new CallStack(instanceNameSpace), instanceThis.declaringInterpreter, true/*override*/, CLASSINSTANCEFIELDS);
             } catch (Exception e) {
                 throw new InterpreterError("Error in class instance This initialization: " + e, e);
             }
@@ -790,8 +793,9 @@ public final class This implements java.io.Serializable, Runnable
             BSHBlock block = (BSHBlock) classStaticNameSpace.getVariable(BSHINIT.toString());
             CallStack callstack = new CallStack(classStaticNameSpace);
 
-            // evaluate the static portion of the block in the static space
-            block.evalBlock(callstack, interpreter, true/*override*/, CLASSSTATIC);
+            // evaluate the static portion of the block in the static space methods first
+            block.evalBlock(callstack, interpreter, true/*override*/, CLASSSTATICMETHODS);
+            block.evalBlock(callstack, interpreter, true/*override*/, CLASSSTATICFIELDS);
 
             // Validate that static final variables were set
             for (Variable var : Reflect.getVariables(classStaticNameSpace))
