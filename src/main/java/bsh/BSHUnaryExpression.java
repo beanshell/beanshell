@@ -28,12 +28,23 @@
 
 package bsh;
 
+import bsh.congo.parser.BeanshellConstants.TokenType;
+
 class BSHUnaryExpression extends SimpleNode implements ParserConstants
 {
     public int kind;
     public boolean postfix = false;
 
     BSHUnaryExpression(int id) { super(id); }
+    
+    BSHUnaryExpression(bsh.congo.tree.UnaryExpression ue) { 
+        super(ParserTreeConstants.JJTUNARYEXPRESSION, ue);
+        if (ue.firstChildOfType(TokenType.PLUS) != null) {
+            kind = bsh.ParserConstants.PLUS;
+        } else {
+            kind = bsh.ParserConstants.MINUS;
+        }
+    }
 
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError

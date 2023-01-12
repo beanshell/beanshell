@@ -33,9 +33,27 @@ public class TreeAdapter extends BaseNode.Visitor {
         currentLegacyNode.add(legacyImport);
     }
 
+    void visit(ObjectType ot) {
+        BSHAmbiguousName legacyName = new BSHAmbiguousName(ot);
+        currentLegacyNode.add(legacyName);
+    }
+
     void visit(PackageDeclaration pdecl) {
         BSHPackageDeclaration legacyPackageDeclaration = new BSHPackageDeclaration(pdecl);
         currentLegacyNode.add(legacyPackageDeclaration);
+    }
+
+    void visit(PrimitiveArrayType pat) {
+        BSHType legacyType = new BSHType(bsh.ParserTreeConstants.JJTTYPE);
+        currentLegacyNode.add(legacyType);
+        currentLegacyNode = legacyType;
+        visit(pat.firstChildOfType(PrimitiveType.class));
+        currentLegacyNode = currentLegacyNode.jjtGetParent();
+    }    
+
+    void visit(PrimitiveType pt) {
+        BSHPrimitiveType legacyPrimitiveType = new BSHPrimitiveType(pt);
+        currentLegacyNode.add(legacyPrimitiveType);
     }
 
     void visit(ReturnStatement rs) {
@@ -64,6 +82,14 @@ public class TreeAdapter extends BaseNode.Visitor {
         currentLegacyNode = legacyThrowStatement;
         recurse(throwStatement);
         currentLegacyNode = legacyThrowStatement.jjtGetParent();
+    }
+
+    void visit(UnaryExpression ue) {
+        BSHUnaryExpression legacyUe = new BSHUnaryExpression(ue);
+        currentLegacyNode.add(legacyUe);
+        currentLegacyNode = legacyUe;
+        visit(ue.firstChildOfType(Expression.class));
+        currentLegacyNode = legacyUe.jjtGetParent();
     }
 
     void visit(DoStatement ds) {

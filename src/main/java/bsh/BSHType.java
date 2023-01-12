@@ -29,6 +29,7 @@
 package bsh;
 
 import java.lang.reflect.Array;
+import bsh.congo.parser.BeanshellConstants.TokenType;;
 
 class BSHType extends SimpleNode implements BshClassManager.Listener {
     private static final long serialVersionUID = 1L;
@@ -53,6 +54,11 @@ class BSHType extends SimpleNode implements BshClassManager.Listener {
 
     BSHType(int id) {
         super(id);
+    }
+
+    BSHType(bsh.congo.tree.PrimitiveArrayType pat) {
+        super(ParserTreeConstants.JJTTYPE, pat);
+        arrayDims = (int) pat.children().stream().filter(t->t.getTokenType()==TokenType.LBRACKET).count();
     }
 
     /**

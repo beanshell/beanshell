@@ -30,10 +30,27 @@ package bsh;
 
 class BSHPrimitiveType extends SimpleNode
 {
-    public Class type;
+    public Class<?> type;
 
     BSHPrimitiveType(int id) { super(id); }
-    public Class getType() { return type; }
+
+    BSHPrimitiveType(bsh.congo.tree.PrimitiveType pt) {
+        super(ParserTreeConstants.JJTPRIMITIVETYPE, pt);
+        switch(pt.firstChildOfType(Token.class).getType()) {
+            case BOOLEAN : type = Boolean.TYPE; break;
+            case BYTE : type = Byte.TYPE; break;
+            case CHAR : type = Character.TYPE; break;
+            case INT : type = Integer.TYPE; break;
+            case LONG : type = Long.TYPE; break;
+            case FLOAT : type = Float.TYPE; break;
+            case DOUBLE : type = Double.TYPE; break;
+            case SHORT : type = Short.TYPE; break;
+            default : break;
+        }        
+    }
+
+    public Class<?> getType() { return type; }
+
 
     @Override
     public String toString() {
