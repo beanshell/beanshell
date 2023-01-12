@@ -104,6 +104,10 @@ assertThat(sub.go(), equalTo("foo bar sub"));
 assertThat(sub.cls, equalTo(SubOverloadSuper.class));
 assertThat(sub.spr, equalTo(NoDefaultConstructor.class));
 
+// anonymous class in blocks #334
+testAn = null;
+{{{{ testAn = new Object() {}; }}}}
+assertThat("IllegalName global/... changed to global_...", testAn.getClass().getName(), startsWith("global_"));
 
 complete();
 
