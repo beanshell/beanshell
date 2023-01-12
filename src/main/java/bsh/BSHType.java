@@ -30,9 +30,7 @@ package bsh;
 
 import java.lang.reflect.Array;
 
-class BSHType extends SimpleNode
-    //implements BshClassManager.Listener
-{
+class BSHType extends SimpleNode implements BshClassManager.Listener {
     private static final long serialVersionUID = 1L;
     /**
         baseType is used during evaluation of full type and retained for the
@@ -171,17 +169,8 @@ class BSHType extends SimpleNode
         } else
             type = baseType;
 
-        // hack... sticking to first interpreter that resolves this
-        // see comments on type instance variable (in header on SimpleNode)
-        // -------
-        // This has been here since the first commit, not sure if it is only
-        // theoretical or an actual concern. Yes some blocks are reiterated
-        // processing nodes again but what would make a previously scripted,
-        // interpreted, and executed type change on the fly?
-        // Leaving this commented here for now as a reference if things go
-        // wrong but should it be removed one day it must go with the interface
-        // BshClassManager.Listener and contract method classLoaderChanged()
-//         interpreter.getClassManager().addListener(this);
+        // add listener to reload type if class is reloaded see #699
+        interpreter.getClassManager().addListener(this);
 
         return type;
     }
@@ -202,10 +191,11 @@ class BSHType extends SimpleNode
         return arrayDims;
     }
 
-//    public void classLoaderChanged() {
-//        type = null;
-//        baseType = null;
-//    }
+    /** Clear instance cache to reload types on class loader change #699 */
+    public void classLoaderChanged() {
+        type = null;
+        baseType = null;
+    }
 
     public static String getTypeDescriptor( Class<?> clas )
     {

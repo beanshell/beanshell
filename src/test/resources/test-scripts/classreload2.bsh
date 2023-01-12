@@ -1,0 +1,14 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+class A {}
+class A {
+    static A INSTANCE = new A();
+}
+
+// Works because BSHType listens for class reload events #699
+assertSame("A.class is A.class reloaded", A.class, A.INSTANCE.getClass());
+
+complete();
