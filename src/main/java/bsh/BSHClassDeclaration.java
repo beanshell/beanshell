@@ -71,7 +71,7 @@ class BSHClassDeclaration extends SimpleNode
         int child = 0;
 
         // resolve superclass if any
-        Class superClass = null;
+        Class<?> superClass = null;
         final List<BshMethod> meths = new ArrayList<>(0);
         if ( extend ) {
             BSHAmbiguousName superNode = (BSHAmbiguousName)jjtGetChild(child++);
@@ -89,7 +89,7 @@ class BSHClassDeclaration extends SimpleNode
         }
 
         // Get interfaces
-        Class [] interfaces = new Class[numInterfaces];
+        Class<?>[] interfaces = new Class[numInterfaces];
         for( int i=0; i<numInterfaces; i++) {
             BSHAmbiguousName node = (BSHAmbiguousName)jjtGetChild(child++);
             interfaces[i] = node.toClass(callstack, interpreter);
