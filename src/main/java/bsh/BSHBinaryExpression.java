@@ -51,7 +51,17 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
 
     BSHBinaryExpression(bsh.congo.tree.PowerExpression powExp) {
         super(ParserTreeConstants.JJTBINARYEXPRESSION, powExp);
-        kind = ParserConstants.POWER;
+        kind = POWER;
+    }
+
+    BSHBinaryExpression(bsh.congo.tree.ConditionalOrExpression condOrExp) {
+        super(ParserTreeConstants.JJTBINARYEXPRESSION, condOrExp);
+        kind = BOOL_OR;
+    }
+
+    BSHBinaryExpression(bsh.congo.tree.ConditionalAndExpression condAndExp) {
+        super(ParserTreeConstants.JJTBINARYEXPRESSION, condAndExp);
+        kind = BOOL_AND;
     }
 
     public Object eval( CallStack callstack, Interpreter interpreter)

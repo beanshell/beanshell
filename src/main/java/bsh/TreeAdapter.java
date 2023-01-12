@@ -4,8 +4,6 @@ import bsh.congo.parser.BaseNode;
 import bsh.congo.tree.*;
 import bsh.congo.parser.BeanshellConstants.TokenType;
 
-import java.util.List;
-
 public class TreeAdapter extends BaseNode.Visitor {
     private BaseNode root;
     private Node legacyRoot, currentLegacyNode;
@@ -22,17 +20,17 @@ public class TreeAdapter extends BaseNode.Visitor {
 
     void visit(BreakStatement bs) {
         BSHReturnStatement legacyBreakStatement = new BSHReturnStatement(bs);
-        currentLegacyNode.add(legacyBreakStatement);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyBreakStatement);
     }
 
     void visit(ContinueStatement cs) {
         BSHReturnStatement legacyContinueStatement = new BSHReturnStatement(cs);
-        currentLegacyNode.add(legacyContinueStatement);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyContinueStatement);
     }
 
     void visit(FormalParameter param) {
         BSHFormalParameter legacyParam = new BSHFormalParameter(param);
-        currentLegacyNode.add(legacyParam);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyParam);
         currentLegacyNode = legacyParam;
         recurse(param);
         currentLegacyNode = legacyParam.jjtGetParent();
@@ -40,7 +38,7 @@ public class TreeAdapter extends BaseNode.Visitor {
     
     void visit(FormalParameters params) {
         BSHFormalParameters legacyFormalParameters = new BSHFormalParameters(params);
-        currentLegacyNode.add(legacyFormalParameters);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyFormalParameters);
         currentLegacyNode = legacyFormalParameters;
         recurse(params);
         currentLegacyNode = legacyFormalParameters.jjtGetParent();
@@ -48,12 +46,12 @@ public class TreeAdapter extends BaseNode.Visitor {
 
     void visit(ImportDeclaration idecl) {
         BSHImportDeclaration legacyImport = new BSHImportDeclaration(idecl);
-        currentLegacyNode.add(legacyImport);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyImport);
     }
 
     void visit(InvocationArguments arguments) {
         BSHArguments legacyArguments = new BSHArguments(arguments);
-        currentLegacyNode.add(legacyArguments);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyArguments);
         currentLegacyNode = legacyArguments;
         recurse(arguments);
         currentLegacyNode = legacyArguments.jjtGetParent();
@@ -66,12 +64,12 @@ public class TreeAdapter extends BaseNode.Visitor {
 
     void visit(PackageDeclaration pdecl) {
         BSHPackageDeclaration legacyPackageDeclaration = new BSHPackageDeclaration(pdecl);
-        currentLegacyNode.add(legacyPackageDeclaration);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyPackageDeclaration);
     }
 
     void visit(PrimitiveArrayType pat) {
         BSHType legacyType = new BSHType(bsh.ParserTreeConstants.JJTTYPE);
-        currentLegacyNode.add(legacyType);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyType);
         currentLegacyNode = legacyType;
         visit(pat.firstChildOfType(PrimitiveType.class));
         currentLegacyNode = currentLegacyNode.jjtGetParent();
@@ -79,12 +77,12 @@ public class TreeAdapter extends BaseNode.Visitor {
 
     void visit(PrimitiveType pt) {
         BSHPrimitiveType legacyPrimitiveType = new BSHPrimitiveType(pt);
-        currentLegacyNode.add(legacyPrimitiveType);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyPrimitiveType);
     }
 
     void visit(ReturnStatement rs) {
         BSHReturnStatement legacyReturnStatement = new BSHReturnStatement(rs);
-        currentLegacyNode.add(legacyReturnStatement);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyReturnStatement);
         currentLegacyNode = legacyReturnStatement;
         recurse(rs);
         currentLegacyNode = legacyReturnStatement.jjtGetParent();
@@ -92,7 +90,7 @@ public class TreeAdapter extends BaseNode.Visitor {
     
     void visit(ReturnType rt) {
         BSHReturnType legacyReturnType = new BSHReturnType(rt);
-        currentLegacyNode.add(legacyReturnType);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyReturnType);
         if (rt.firstChildOfType(TokenType.VOID) != null) {
             legacyReturnType.isVoid = true;
         } else {
@@ -104,7 +102,7 @@ public class TreeAdapter extends BaseNode.Visitor {
 
     void visit(ThrowStatement throwStatement) {
         BSHThrowStatement legacyThrowStatement = new BSHThrowStatement(throwStatement);
-        currentLegacyNode.add(legacyThrowStatement);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyThrowStatement);
         currentLegacyNode = legacyThrowStatement;
         recurse(throwStatement);
         currentLegacyNode = legacyThrowStatement.jjtGetParent();
@@ -112,7 +110,7 @@ public class TreeAdapter extends BaseNode.Visitor {
 
     void visit(UnaryExpression ue) {
         BSHUnaryExpression legacyUe = new BSHUnaryExpression(ue);
-        currentLegacyNode.add(legacyUe);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyUe);
         currentLegacyNode = legacyUe;
         visit(ue.firstChildOfType(Expression.class));
         currentLegacyNode = legacyUe.jjtGetParent();
@@ -120,7 +118,7 @@ public class TreeAdapter extends BaseNode.Visitor {
 
     void visit(VariableDeclarator vd) {
         BSHVariableDeclarator legacyVd = new BSHVariableDeclarator(vd);
-        currentLegacyNode.add(legacyVd);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyVd);
         bsh.congo.parser.Token equals = vd.firstChildOfType(TokenType.ASSIGN);
         if (equals != null) {
             currentLegacyNode = legacyVd;
@@ -134,9 +132,7 @@ public class TreeAdapter extends BaseNode.Visitor {
         if (legacyRoot == null) {
             legacyRoot = legacyDoStatement;
         }
-        if (currentLegacyNode != null) {
-            currentLegacyNode.add(legacyDoStatement);
-        }
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyDoStatement);
         currentLegacyNode = legacyDoStatement;
         recurse(ds);
         currentLegacyNode = legacyDoStatement.jjtGetParent();
@@ -147,9 +143,7 @@ public class TreeAdapter extends BaseNode.Visitor {
         if (legacyRoot == null) {
             legacyRoot = legacyWhileStatement;
         }
-        if (currentLegacyNode != null) {
-            currentLegacyNode.add(legacyWhileStatement);
-        }
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyWhileStatement);
         currentLegacyNode = legacyWhileStatement;
         recurse(ws);
         currentLegacyNode = legacyWhileStatement.jjtGetParent();
@@ -157,7 +151,7 @@ public class TreeAdapter extends BaseNode.Visitor {
 
     void visit(AdditiveExpression addExp) {
         BSHBinaryExpression legacyAdditiveExpession = new BSHBinaryExpression(addExp);
-        currentLegacyNode.add(legacyAdditiveExpession);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyAdditiveExpession);
         currentLegacyNode = legacyAdditiveExpession;
         recurse(addExp);
         currentLegacyNode = legacyAdditiveExpession.jjtGetParent();
@@ -165,7 +159,7 @@ public class TreeAdapter extends BaseNode.Visitor {
 
     void visit(MultiplicativeExpression multExp) {
         BSHBinaryExpression legacyMultiplicativeExpression = new BSHBinaryExpression(multExp);
-        currentLegacyNode.add(legacyMultiplicativeExpression);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyMultiplicativeExpression);
         currentLegacyNode = legacyMultiplicativeExpression;
         recurse(multExp);
         currentLegacyNode = legacyMultiplicativeExpression.jjtGetParent();
@@ -173,9 +167,25 @@ public class TreeAdapter extends BaseNode.Visitor {
 
     void visit(PowerExpression powExp) {
         BSHBinaryExpression legacyPowerExpression = new BSHBinaryExpression(powExp);
-        currentLegacyNode.add(legacyPowerExpression);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyPowerExpression);
         currentLegacyNode = legacyPowerExpression;
         recurse(powExp);
         currentLegacyNode = legacyPowerExpression.jjtGetParent();
+    }
+
+    void visit(ConditionalOrExpression condOrExpression) {
+        BSHBinaryExpression legacyConditionalOrExpression = new BSHBinaryExpression(condOrExpression);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyConditionalOrExpression);
+        currentLegacyNode = legacyConditionalOrExpression;
+        recurse(condOrExpression);
+        currentLegacyNode = legacyConditionalOrExpression.jjtGetParent();
+    }
+
+    void visit(ConditionalAndExpression condAndExpression) {
+        BSHBinaryExpression legacyConditionalAndExpression = new BSHBinaryExpression(condAndExpression);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyConditionalAndExpression);
+        currentLegacyNode = legacyConditionalAndExpression;
+        recurse(condAndExpression);
+        currentLegacyNode = legacyConditionalAndExpression.jjtGetParent();
     }
 }
