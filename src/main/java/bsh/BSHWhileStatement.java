@@ -42,6 +42,11 @@ class BSHWhileStatement extends SimpleNode implements ParserConstants {
         super(ParserTreeConstants.JJTWHILESTATEMENT, ws);
     }
 
+    BSHWhileStatement(bsh.congo.tree.DoStatement ds) {
+        super(ParserTreeConstants.JJTWHILESTATEMENT, ds);
+        isDoStatement = true;
+    }
+
 
     public Object eval(CallStack callstack, Interpreter interpreter) throws EvalError {
         int numChild = jjtGetNumChildren();

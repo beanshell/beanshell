@@ -66,16 +66,29 @@ public class TreeAdapter extends BaseNode.Visitor {
         currentLegacyNode = legacyThrowStatement.jjtGetParent();
     }
 
-    void visit(WhileStatement ws) {
-        BSHWhileStatement legacyWs = new BSHWhileStatement(ws);
+    void visit(DoStatement ds) {
+        BSHWhileStatement legacyDoStatement = new BSHWhileStatement(ds);
         if (legacyRoot == null) {
-            legacyRoot = legacyWs;
+            legacyRoot = legacyDoStatement;
         }
         if (currentLegacyNode != null) {
-            currentLegacyNode.add(legacyWs);
+            currentLegacyNode.add(legacyDoStatement);
         }
-        currentLegacyNode = legacyWs;
+        currentLegacyNode = legacyDoStatement;
+        recurse(ds);
+        currentLegacyNode = legacyDoStatement.jjtGetParent();
+    }
+
+    void visit(WhileStatement ws) {
+        BSHWhileStatement legacyWhileStatement = new BSHWhileStatement(ws);
+        if (legacyRoot == null) {
+            legacyRoot = legacyWhileStatement;
+        }
+        if (currentLegacyNode != null) {
+            currentLegacyNode.add(legacyWhileStatement);
+        }
+        currentLegacyNode = legacyWhileStatement;
         recurse(ws);
-        currentLegacyNode = legacyWs.jjtGetParent();
+        currentLegacyNode = legacyWhileStatement.jjtGetParent();
     }
 }
