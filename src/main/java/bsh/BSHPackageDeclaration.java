@@ -31,9 +31,13 @@ package bsh;
 public class BSHPackageDeclaration extends SimpleNode
 {
 
-  public BSHPackageDeclaration(int id) {
-    super(id);
-  }
+    public BSHPackageDeclaration(int id) {
+        super(id);
+    }
+
+    public BSHPackageDeclaration(bsh.congo.tree.PackageDeclaration pdecl) {
+        super(ParserTreeConstants.JJTPACKAGEDECLARATION, pdecl);
+    }
 
     public Object eval( CallStack callstack, Interpreter interpreter )
         throws EvalError
