@@ -28,6 +28,8 @@
 
 package bsh;
 
+import bsh.congo.parser.BeanshellConstants.TokenType;;
+
 /**
     name [ = initializer ]
     evaluate name and return optional initializer
@@ -39,6 +41,12 @@ class BSHVariableDeclarator extends SimpleNode
     public int dimensions = 0;
 
     BSHVariableDeclarator(int id) { super(id); }
+
+    BSHVariableDeclarator(bsh.congo.tree.VariableDeclarator vd) { 
+        super(ParserTreeConstants.JJTVARIABLEDECLARATOR, vd); 
+        name = vd.firstChildOfType(TokenType.IDENTIFIER).getImage();
+        dimensions = (int) vd.children().stream().filter(t->t.getTokenType() == TokenType.LBRACKET).count();
+    }
 
     /**
         Evaluate the optional initializer value.

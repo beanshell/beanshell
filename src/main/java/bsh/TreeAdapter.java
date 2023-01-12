@@ -33,6 +33,14 @@ public class TreeAdapter extends BaseNode.Visitor {
         currentLegacyNode.add(legacyImport);
     }
 
+    void visit(InvocationArguments arguments) {
+        BSHArguments legacyArguments = new BSHArguments(arguments);
+        currentLegacyNode.add(legacyArguments);
+        currentLegacyNode = legacyArguments;
+        recurse(arguments);
+        currentLegacyNode = legacyArguments.jjtGetParent();
+    }
+
     void visit(ObjectType ot) {
         BSHAmbiguousName legacyName = new BSHAmbiguousName(ot);
         currentLegacyNode.add(legacyName);
@@ -90,6 +98,17 @@ public class TreeAdapter extends BaseNode.Visitor {
         currentLegacyNode = legacyUe;
         visit(ue.firstChildOfType(Expression.class));
         currentLegacyNode = legacyUe.jjtGetParent();
+    }
+
+    void visit(VariableDeclarator vd) {
+        BSHVariableDeclarator legacyVd = new BSHVariableDeclarator(vd);
+        currentLegacyNode.add(legacyVd);
+        bsh.congo.parser.Token equals = vd.firstChildOfType(TokenType.ASSIGN);
+        if (equals != null) {
+            currentLegacyNode = legacyVd;
+            visit(equals.nextSibling());
+            currentLegacyNode = legacyVd.jjtGetParent();
+        }
     }
 
     void visit(DoStatement ds) {

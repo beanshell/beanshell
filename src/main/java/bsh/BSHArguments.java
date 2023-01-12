@@ -31,6 +31,10 @@ package bsh;
 class BSHArguments extends SimpleNode
 {
     BSHArguments(int id) { super(id); }
+    
+    BSHArguments(bsh.congo.tree.InvocationArguments args) { 
+        super(ParserTreeConstants.JJTARGUMENTS, args); 
+    }
 
     /**
         This node holds a set of arguments for a method invocation or
