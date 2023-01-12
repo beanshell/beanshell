@@ -30,20 +30,23 @@ package bsh;
 
 class BSHIfStatement extends SimpleNode
 {
+    boolean isClosed;
+
     BSHIfStatement(int id) { super(id); }
 
     public Object eval(CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
         Object ret = null;
-
-        if( evaluateCondition(
-            jjtGetChild(0), callstack, interpreter ) )
-            ret = jjtGetChild(1).eval(callstack, interpreter);
-        else
-            if(jjtGetNumChildren() > 2)
+        if(evaluateCondition(jjtGetChild(0), callstack, interpreter)) {
+            if (!isClosed)
+                ret = jjtGetChild(1).eval(callstack, interpreter);
+        } else {
+            if (jjtGetNumChildren() > 2)
                 ret = jjtGetChild(2).eval(callstack, interpreter);
-
+            else if (isClosed)
+                ret = jjtGetChild(1).eval(callstack, interpreter);
+        }
         if(ret instanceof ReturnControl)
             return ret;
         else
