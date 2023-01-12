@@ -188,4 +188,28 @@ public class TreeAdapter extends BaseNode.Visitor {
         recurse(condAndExpression);
         currentLegacyNode = legacyConditionalAndExpression.jjtGetParent();
     }
+
+    void visit(InclusiveOrExpression inclusiveOrExpression) {
+        BSHBinaryExpression legacyInclusiveOrExpression = new BSHBinaryExpression(inclusiveOrExpression);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyInclusiveOrExpression);
+        currentLegacyNode = legacyInclusiveOrExpression;
+        recurse(inclusiveOrExpression);
+        currentLegacyNode = legacyInclusiveOrExpression.jjtGetParent();
+    }
+
+    void visit(ExclusiveOrExpression exclusiveOrExpression) {
+        BSHBinaryExpression legacyExclusiveOrExpression = new BSHBinaryExpression(exclusiveOrExpression);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyExclusiveOrExpression);
+        currentLegacyNode = legacyExclusiveOrExpression;
+        recurse(exclusiveOrExpression);
+        currentLegacyNode = legacyExclusiveOrExpression.jjtGetParent();
+    }
+
+    void visit(EqualityExpression equalityExpression) {
+        BSHBinaryExpression legacyEqualityExpression = new BSHBinaryExpression(equalityExpression);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyEqualityExpression);
+        currentLegacyNode = legacyEqualityExpression;
+        recurse(equalityExpression);
+        currentLegacyNode = legacyEqualityExpression.jjtGetParent();
+    }
 }

@@ -64,6 +64,21 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
         kind = BOOL_AND;
     }
 
+    BSHBinaryExpression(bsh.congo.tree.InclusiveOrExpression inclusiveOrExpression) {
+        super(ParserTreeConstants.JJTBINARYEXPRESSION, inclusiveOrExpression);
+        kind = BIT_OR; 
+    }
+
+    BSHBinaryExpression(bsh.congo.tree.ExclusiveOrExpression exclusiveOrExpression) {
+        super(ParserTreeConstants.JJTBINARYEXPRESSION, exclusiveOrExpression);
+        kind = XOR; 
+    }
+
+    BSHBinaryExpression(bsh.congo.tree.EqualityExpression equalityExpression) {
+        super(ParserTreeConstants.JJTBINARYEXPRESSION, equalityExpression);
+        kind = equalityExpression.firstChildOfType(TokenType.EQ) != null ? EQ : NE;
+    }
+
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
