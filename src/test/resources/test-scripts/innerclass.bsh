@@ -1,15 +1,35 @@
 #!/bin/java bsh.Interpreter
 
 source("TestHarness.bsh");
+source("Assert.bsh");
 
-assert( java.awt.geom.Rectangle2D.Float.class instanceof Class );
+assertThat(java.awt.geom.Rectangle2D.Float.class, instanceOf(Class.class));
 
-assert( InnerClass.Inner.y == 6 );
-assert( new InnerClass.Inner() instanceof Object );
-assert( new InnerClass.Inner().x == 5 );
+// static inner class
+assertEquals(6, InnerClass.Inner.y);
+inner = new InnerClass.Inner();
+assertThat(inner, instanceOf(Object.class));
+assertThat(inner, instanceOf(InnerClass.Inner.class));
+assertEquals(5, inner.x);
 
-assert( InnerClass.Inner.Inner2.class instanceof Class );
-assert( new InnerClass.Inner.Inner2() instanceof Object );
+inner2 = new InnerClass.Inner.Inner2();
+assertThat(InnerClass.Inner.Inner2.class, instanceOf(Class.class));
+assertThat(inner2, instanceOf(Object.class));
+assertThat(inner2, instanceOf(InnerClass.Inner.Inner2.class));
+assertEquals(7, inner2.z);
+
+// non static inner class
+innerClass = new InnerClass();
+assertThat(InnerClass.NonStaticInner.class, instanceOf(Class.class));
+nonStaticInner = innerClass.new NonStaticInner();
+assertThat(nonStaticInner , instanceOf(Object.class));
+assertThat(nonStaticInner , instanceOf(InnerClass.NonStaticInner.class));
+assertEquals(5, nonStaticInner.x);
+
+nonStaticInner2 = nonStaticInner.new NonStaticInner2();
+assertThat(InnerClass.NonStaticInner.NonStaticInner2.class, instanceOf(Class.class));
+assertThat(nonStaticInner2, instanceOf(Object.class));
+assertThat(nonStaticInner2, instanceOf(InnerClass.NonStaticInner.NonStaticInner2.class));
+assertEquals(7, nonStaticInner2.z);
 
 complete();
-
