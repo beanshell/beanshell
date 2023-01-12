@@ -34,6 +34,10 @@ class BSHReturnType extends SimpleNode
 
     BSHReturnType(int id) { super(id); }
 
+    BSHReturnType(bsh.congo.tree.ReturnType rt) {
+        super(ParserTreeConstants.JJTRETURNTYPE, rt);
+    }
+
     BSHType getTypeNode() {
         return (BSHType)jjtGetChild(0);
     }

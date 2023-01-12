@@ -2,6 +2,7 @@ package bsh;
 
 import bsh.congo.parser.BaseNode;
 import bsh.congo.tree.*;
+import bsh.congo.parser.BeanshellConstants.TokenType;
 
 public class TreeAdapter extends BaseNode.Visitor {
     private BaseNode root;
@@ -25,6 +26,18 @@ public class TreeAdapter extends BaseNode.Visitor {
     void visit(ImportDeclaration idecl) {
         BSHImportDeclaration legacyImport = new BSHImportDeclaration(idecl);
         currentLegacyNode.add(legacyImport);
+    }
+
+    void visit(ReturnType rt) {
+        BSHReturnType legacyReturnType = new BSHReturnType(rt);
+        currentLegacyNode.add(legacyReturnType);
+        if (rt.firstChildOfType(TokenType.VOID) != null) {
+            legacyReturnType.isVoid = true;
+        } else {
+            currentLegacyNode = legacyReturnType;
+            recurse(rt);
+            currentLegacyNode = legacyReturnType.jjtGetParent();
+        }
     }
 
     void visit(ThrowStatement throwStatement) {
