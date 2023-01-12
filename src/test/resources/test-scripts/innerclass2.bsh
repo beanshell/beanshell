@@ -1,12 +1,44 @@
 #!/bin/java bsh.Interpreter
 
 source("TestHarness.bsh");
-
+source("Assert.bsh");
 // import inner class
 import InnerClass.Inner;
 
-assert( Inner instanceof bsh.ClassIdentifier );
-assert( new Inner() instanceof Object );
+assert(Inner instanceof bsh.ClassIdentifier);
+assert(new Inner() instanceof Object);
+
+// name space variables accessible as fields
+public class AA {
+    public AA() {}
+    i = 6;
+    public int inst = 3;
+    public static String stat = "hello BeanShell";
+
+    public class BB {
+        BB() {}
+        BB(boolean b) { isInner = b; }
+        public boolean isInner = true;
+    }
+}
+
+assertEquals("hello BeanShell", AA.stat);
+AA.stat = "foo";
+assertEquals("foo", AA.stat);
+
+aa = new AA();
+assertEquals(6, aa.i);
+assertEquals(3, aa.inst);
+
+aa.i = 66;
+aa.inst = 33;
+
+assertEquals(66, aa.i);
+assertEquals(33, aa.inst);
+
+assertTrue(aa.new BB().isInner);
+assertTrue(new AA.BB().isInner);
+assertFalse(new AA.BB(false).isInner);
+assertFalse(aa.new BB(false).isInner);
 
 complete();
-

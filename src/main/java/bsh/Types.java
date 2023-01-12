@@ -729,7 +729,7 @@ class Types {
      * @param className the class name to modify
      * @return the name before $ of a class */
     public static String getBaseName(String className) {
-        int i = className.indexOf("$");
+        int i = className.lastIndexOf("$");
         if (i == -1)
             return className;
 
