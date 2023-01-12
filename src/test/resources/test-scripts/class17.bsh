@@ -1,0 +1,50 @@
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+/*
+    This test case looks at method references declared after referenced in fields. #359
+*/
+
+class MyStatic {
+    static int g = get();
+    static String f;
+    static {
+        f = fetch();
+    }
+    static int get() {
+        return 22;
+    }
+    static String fetch() {
+        return "22";
+    }
+}
+
+assertEquals("Integer g is 22", 22, MyStatic.g);
+assertNotNull("String f is set through static block and should not be null", MyStatic.f);
+assertEquals("String f is '22'", "22", MyStatic.f);
+assertEquals("String fetch is '22'", "22", MyStatic.fetch());
+assertEquals("Integer get is 22", 22, MyStatic.get());
+
+class MyInstance {
+    int g = get();
+    String f;
+    MyInstance() {
+        f = fetch();
+    }
+    int get() {
+        return 22;
+    }
+    String fetch() {
+        return "22";
+    }
+}
+
+myInstance = new MyInstance();
+assertEquals("Integer g is 22", 22, myInstance.g);
+assertNotNull("String f is set through constructor and should not be null", myInstance.f);
+assertEquals("String f is '22'", "22", myInstance.f);
+assertEquals("String fetch is '22'", "22", myInstance.fetch());
+assertEquals("Integer get is 22", 22, myInstance.get());
+
+complete();
+
