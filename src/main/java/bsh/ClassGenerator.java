@@ -220,16 +220,24 @@ public final class ClassGenerator {
      * members are passed, etc.
      */
     static class ClassNodeFilter implements BSHBlock.NodeFilter {
-        enum Context { STATIC, INSTANCE, CLASSES }
-
-        public static ClassNodeFilter CLASSSTATIC = new ClassNodeFilter(Context.STATIC);
-        public static ClassNodeFilter CLASSINSTANCE = new ClassNodeFilter(Context.INSTANCE);
+        private enum Context { STATIC, INSTANCE, CLASSES }
+        private enum Types { ALL, METHODS, FIELDS }
+        public static ClassNodeFilter CLASSSTATICFIELDS = new ClassNodeFilter(Context.STATIC, Types.FIELDS);
+        public static ClassNodeFilter CLASSSTATICMETHODS = new ClassNodeFilter(Context.STATIC, Types.METHODS);
+        public static ClassNodeFilter CLASSINSTANCEFIELDS = new ClassNodeFilter(Context.INSTANCE, Types.FIELDS);
+        public static ClassNodeFilter CLASSINSTANCEMETHODS = new ClassNodeFilter(Context.INSTANCE, Types.METHODS);
         public static ClassNodeFilter CLASSCLASSES = new ClassNodeFilter(Context.CLASSES);
 
         Context context;
+        Types types = Types.ALL;
 
         private ClassNodeFilter(Context context) {
             this.context = context;
+        }
+
+        private ClassNodeFilter(Context context, Types types) {
+            this.context = context;
+            this.types = types;
         }
 
         @Override
@@ -239,31 +247,42 @@ public final class ClassGenerator {
             // Only show class decs in CLASSES
             if (node instanceof BSHClassDeclaration) return false;
 
-            if (context == Context.STATIC) return isStatic(node);
+            if (context == Context.STATIC)
+                return types == Types.METHODS ? isStaticMethod(node) : isStatic(node);
 
-            if (context == Context.INSTANCE) return !isStatic(node);
-
-            // ALL
-            return true;
+            // context == Context.INSTANCE cannot be anything else
+            return types == Types.METHODS ? isInstanceMethod(node) : isNonStatic(node);
         }
 
-        boolean isStatic(Node node) {
-            if ( null != node.jjtGetParent()
-                    && node.jjtGetParent().jjtGetParent() instanceof BSHClassDeclaration
+        private boolean isStatic(Node node) {
+            if ( node.jjtGetParent().jjtGetParent() instanceof BSHClassDeclaration
                     && ((BSHClassDeclaration) node.jjtGetParent().jjtGetParent()).type == Type.INTERFACE )
                 return true;
 
             if (node instanceof BSHTypedVariableDeclaration)
-                return ((BSHTypedVariableDeclaration) node).modifiers != null
-                    && ((BSHTypedVariableDeclaration) node).modifiers.hasModifier("static");
-
-            if (node instanceof BSHMethodDeclaration)
-                return ((BSHMethodDeclaration) node).modifiers != null
-                    && ((BSHMethodDeclaration) node).modifiers.hasModifier("static");
+                return ((BSHTypedVariableDeclaration) node).modifiers.hasModifier("static");
 
             if (node instanceof BSHBlock)
                 return ((BSHBlock) node).isStatic;
 
+            return false;
+        }
+
+        private boolean isNonStatic(Node node) {
+            if (node instanceof BSHMethodDeclaration)
+                return false;
+            return !isStatic(node);
+        }
+
+        private boolean isStaticMethod(Node node) {
+            if (node instanceof BSHMethodDeclaration)
+                return ((BSHMethodDeclaration) node).modifiers.hasModifier("static");
+            return false;
+        }
+
+        private boolean isInstanceMethod(Node node) {
+            if (node instanceof BSHMethodDeclaration)
+                return !((BSHMethodDeclaration) node).modifiers.hasModifier("static");
             return false;
         }
     }
