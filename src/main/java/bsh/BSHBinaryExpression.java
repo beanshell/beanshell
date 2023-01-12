@@ -28,6 +28,8 @@
 
 package bsh;
 
+import bsh.congo.parser.BeanshellConstants.TokenType;
+
 /**
     Implement binary expressions...
     @see Primitive.binaryOperation
@@ -36,6 +38,21 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
     public int kind;
 
     BSHBinaryExpression(int id) { super(id); }
+
+    BSHBinaryExpression(bsh.congo.tree.AdditiveExpression addExp) {
+        super(ParserTreeConstants.JJTBINARYEXPRESSION, addExp);
+        kind = addExp.firstChildOfType(TokenType.PLUS) != null ? PLUS : MINUS;
+    }
+
+    BSHBinaryExpression(bsh.congo.tree.MultiplicativeExpression multExp) {
+        super(ParserTreeConstants.JJTBINARYEXPRESSION, multExp);
+        kind = multExp.firstChildOfType(TokenType.STAR) != null ? STAR : SLASH;
+    }
+
+    BSHBinaryExpression(bsh.congo.tree.PowerExpression powExp) {
+        super(ParserTreeConstants.JJTBINARYEXPRESSION, powExp);
+        kind = ParserConstants.POWER;
+    }
 
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError

@@ -95,11 +95,6 @@ ConditionalExpression :
   NullCoalesceElvisSpaceShipExpression [ <HOOK> Expression <COLON> ConditionalExpression]
 ;
 
-NullCoalesceElvisSpaceShipExpression :
-  ConditionalOrExpression
-  ( ( <NULLCOALESCE> | <ELVIS> | <SPACESHIP> )
-    ConditionalOrExpression )*
-;
 
 AllocationExpression :
   ["new"] =>|+1 (ArrayDimsAndInits | ArrayInitializer)
@@ -114,4 +109,67 @@ AllocationExpression :
     )
 ;
 
+// For now, redefining the following to generate binary expressions.
 
+AdditiveExpression :
+   MultiplicativeExpression (((<PLUS>|<MINUS>) MultiplicativeExpression) #AdditiveExpression(+1))*
+;
+
+MultiplicativeExpression : 
+   PowerExpression (((<STAR>|<SLASH>|<REM>) PowerExpression) #MultiplicativeExpression(+1))*
+;
+
+PowerExpression :
+   UnaryExpression ((<POWER>UnaryExpression)#PowerExpression(+1))*
+;
+
+ConditionalOrExpression :
+  ConditionalAndExpression ((<SC_OR> ConditionalAndExpression) #ConditionalOrExpression(+1))*
+;
+
+ConditionalAndExpression :
+  InclusiveOrExpression ((<SC_AND> InclusiveOrExpression) #ConditionalAndExpression(+1))*
+;
+
+InclusiveOrExpression :
+  ExclusiveOrExpression ((<BIT_OR> ExclusiveOrExpression) #InclusiveOrExpression(+1))*
+;
+
+ExclusiveOrExpression :
+  AndExpression ((<XOR> AndExpression) #ExclusiveOrExpression(+1))*
+;
+
+EqualityExpression :
+  InstanceOfExpression (((<EQ>|<NE>) InstanceOfExpression) #EqualityExpression(+1))*
+;
+
+RelationalExpression :
+  ShiftExpression (((<LT>|<GT>|<LE>|<GT>) ShiftExpression) #RelationalExpression(+1))*
+;
+
+ShiftExpression :
+   AdditiveExpression
+   [
+     // Under certain conditions we scanned forward
+     // and (incorrectly) scanned a >>, so we uncache
+     // the tokens and end up rescanning!
+     SCAN <GT> (<GT>|<RSIGNEDSHIFT>) => UNCACHE_TOKENS
+   ]
+   (
+      ((<LSHIFT> | <RSIGNEDSHIFT> | <RUNSIGNEDSHIFT>)
+      AdditiveExpression) #ShiftExpression(+1)
+   )*
+;
+
+AndExpression :
+  EqualityExpression ((<BIT_AND> EqualityExpression) #AndExpression(+1))*
+;
+
+ExclusiveOrExpression :
+  AndExpression ((<BIT_AND> AndExpression) #ExclusiveOrExpression(+1))*
+;
+
+NullCoalesceElvisSpaceShipExpression :
+  ConditionalOrExpression
+  (((<NULLCOALESCE>|<ELVIS>|<SPACESHIP>) ConditionalOrExpression) #NullCoalesceElvisSpaceShipExpression(+1) )*
+;

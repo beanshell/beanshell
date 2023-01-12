@@ -4,6 +4,8 @@ import bsh.congo.parser.BaseNode;
 import bsh.congo.tree.*;
 import bsh.congo.parser.BeanshellConstants.TokenType;
 
+import java.util.List;
+
 public class TreeAdapter extends BaseNode.Visitor {
     private BaseNode root;
     private Node legacyRoot, currentLegacyNode;
@@ -151,5 +153,29 @@ public class TreeAdapter extends BaseNode.Visitor {
         currentLegacyNode = legacyWhileStatement;
         recurse(ws);
         currentLegacyNode = legacyWhileStatement.jjtGetParent();
+    }
+
+    void visit(AdditiveExpression addExp) {
+        BSHBinaryExpression legacyAdditiveExpession = new BSHBinaryExpression(addExp);
+        currentLegacyNode.add(legacyAdditiveExpession);
+        currentLegacyNode = legacyAdditiveExpession;
+        recurse(addExp);
+        currentLegacyNode = legacyAdditiveExpession.jjtGetParent();
+    }
+
+    void visit(MultiplicativeExpression multExp) {
+        BSHBinaryExpression legacyMultiplicativeExpression = new BSHBinaryExpression(multExp);
+        currentLegacyNode.add(legacyMultiplicativeExpression);
+        currentLegacyNode = legacyMultiplicativeExpression;
+        recurse(multExp);
+        currentLegacyNode = legacyMultiplicativeExpression.jjtGetParent();
+    }
+
+    void visit(PowerExpression powExp) {
+        BSHBinaryExpression legacyPowerExpression = new BSHBinaryExpression(powExp);
+        currentLegacyNode.add(legacyPowerExpression);
+        currentLegacyNode = legacyPowerExpression;
+        recurse(powExp);
+        currentLegacyNode = legacyPowerExpression.jjtGetParent();
     }
 }
