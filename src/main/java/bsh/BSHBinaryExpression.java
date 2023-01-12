@@ -78,6 +78,30 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
         super(ParserTreeConstants.JJTBINARYEXPRESSION, equalityExpression);
         kind = equalityExpression.firstChildOfType(TokenType.EQ) != null ? EQ : NE;
     }
+    
+    BSHBinaryExpression(bsh.congo.tree.RelationalExpression relationalExpression) {
+        super(ParserTreeConstants.JJTBINARYEXPRESSION, relationalExpression);
+        switch(relationalExpression.firstChildOfType(bsh.congo.parser.Token.class).getType()) {
+            case LT : kind = LT; break;
+            case GT : kind = GT; break;
+            case GE : kind = GE; break;
+            case LE : kind = LE; break;
+            default:break;
+        }
+
+    }
+
+    BSHBinaryExpression(bsh.congo.tree.ShiftExpression shiftExpression) {
+        super(ParserTreeConstants.JJTBINARYEXPRESSION, shiftExpression);
+        switch(shiftExpression.firstChildOfType(bsh.congo.parser.Token.class).getType()) {
+            case LSHIFT : kind = LSHIFT; break;
+            case RSIGNEDSHIFT : kind = RSIGNEDSHIFT; break;
+            case RUNSIGNEDSHIFT : kind = RUNSIGNEDSHIFT; break;
+            case LE : kind = LE; break;
+            default:break;
+        }
+    }
+
 
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError

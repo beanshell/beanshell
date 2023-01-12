@@ -212,4 +212,20 @@ public class TreeAdapter extends BaseNode.Visitor {
         recurse(equalityExpression);
         currentLegacyNode = legacyEqualityExpression.jjtGetParent();
     }
+
+    void visit(RelationalExpression relationalExpression) {
+        BSHBinaryExpression legacyRelationalExpression = new BSHBinaryExpression(relationalExpression);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyRelationalExpression);
+        currentLegacyNode = legacyRelationalExpression;
+        recurse(relationalExpression);
+        currentLegacyNode = legacyRelationalExpression.jjtGetParent();
+    }
+
+    void visit(ShiftExpression shiftExpression) {
+        BSHBinaryExpression legacyShiftExpression = new BSHBinaryExpression(shiftExpression);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyShiftExpression);
+        currentLegacyNode = legacyShiftExpression;
+        recurse(shiftExpression);
+        currentLegacyNode = legacyShiftExpression.jjtGetParent();
+    }
 }
