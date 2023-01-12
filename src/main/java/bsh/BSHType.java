@@ -89,32 +89,22 @@ class BSHType extends SimpleNode implements BshClassManager.Listener {
         else
         {
             String clasName = ((BSHAmbiguousName)node).text;
-            BshClassManager bcm = interpreter.getClassManager();
-            // Note: incorrect here - we are using the hack in bsh class
-            // manager that allows lookup by base name.  We need to eliminate
-            // this limitation by working through imports.  See notes in class
-            // manager.
-            String definingClass = bcm.getClassBeingDefined( clasName );
+            String innerClass = callstack.top().importedClasses.get(clasName);
 
             Class<?> clas = null;
-            if ( definingClass == null )
-            {
-                try {
-                    clas = ((BSHAmbiguousName)node).toClass(
-                        callstack, interpreter );
-                } catch ( EvalError e ) {
-                    // Lets assume we have a generics raw type
-                    if (clasName.length() == 1)
-                        clasName = "java.lang.Object";
-                }
+            if ( innerClass == null ) try {
+                clas = ((BSHAmbiguousName)node).toClass(
+                    callstack, interpreter );
+            } catch ( EvalError e ) {
+                // Lets assume we have a generics raw type
+                if (clasName.length() == 1)
+                    clasName = "java.lang.Object";
             } else
-                clasName = definingClass;
+                clasName = innerClass.replace('.', '$');
 
-            if ( clas != null )
-            {
+            if ( clas != null ) {
                 descriptor = getTypeDescriptor( clas );
-            }else
-            {
+            } else {
                 if ( defaultPackage == null || Name.isCompound( clasName ) )
                     descriptor = "L" + clasName.replace('.','/') + ";";
                 else

@@ -3,7 +3,16 @@
 source("TestHarness.bsh");
 source("Assert.bsh");
 
+// TODO: this should somehow not throw exception see #696
+assert(isEvalError("Class: A not found in namespace", "class A { class B extends A {} }"));
+
+// Avoid class not found by generating it empty first #701
 class A {}
+class A { class B extends A {} }
+
+// TODO: this should be the same #698
+assertNotSame("Incorrectly, A.class is not the same as A.class", A.class, A$B.class.getSuperclass());
+
 class A {
     static A INSTANCE = new A();
 }

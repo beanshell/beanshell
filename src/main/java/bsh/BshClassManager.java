@@ -340,8 +340,6 @@ public class BshClassManager {
         (as opposed to strong or Weak)
     */
     protected final transient Set<String> absoluteNonClasses = ConcurrentHashMap.newKeySet();
-    private final transient Set<String> definingClasses =  ConcurrentHashMap.newKeySet();
-    protected final transient Map<String,String> definingClassesBaseNames = new ConcurrentHashMap<>();
 
     /** @see #associateClass( Class ) */
     protected final transient Map<String, Class<?>> associatedClasses = new ConcurrentHashMap<>();
@@ -387,11 +385,6 @@ public class BshClassManager {
         @return the class or null
     */
     public Class<?> classForName( String name ) {
-        if ( isClassBeingDefined( name ) )
-            throw new InterpreterError(
-                "Attempting to load class in the process of being defined: "
-                +name );
-
         Class<?> clas = null;
         try {
             clas = plainClassForName( name );
@@ -623,58 +616,6 @@ public class BshClassManager {
 
     public void dump( PrintWriter pw ) {
         pw.println("BshClassManager: no class manager.");
-    }
-
-    /**
-        Flag the class name as being in the process of being defined.
-        The class manager will not attempt to load it.
-    */
-    /*
-        Note: this implementation is temporary. We currently keep a flat
-        namespace of the base name of classes.  i.e. BeanShell cannot be in the
-        process of defining two classes in different packages with the same
-        base name.  To remove this limitation requires that we work through
-        namespace imports in an analogous (or using the same path) as regular
-        class import resolution.  This workaround should handle most cases
-        so we'll try it for now.
-    */
-    protected void definingClass( String className ) {
-        String baseName = Name.suffix(className,1);
-        int i = baseName.indexOf("$");
-        if ( i != -1 )
-            baseName = baseName.substring(i+1);
-        String cur = definingClassesBaseNames.get( baseName );
-        if ( cur != null )
-            throw new InterpreterError("Defining class problem: "+className
-                +": BeanShell cannot yet simultaneously define two or more "
-                +"dependent classes of the same name.  Attempt to define: "
-                + className +" while defining: "+cur
-            );
-        definingClasses.add( className );
-        definingClassesBaseNames.put( baseName, className );
-    }
-
-    protected boolean isClassBeingDefined( String className ) {
-        return definingClasses.contains( className );
-    }
-
-    /**
-        This method is a temporary workaround used with definingClass.
-        It is to be removed at some point.
-    */
-    protected String getClassBeingDefined( String className ) {
-        String baseName = Name.suffix(className,1);
-        return definingClassesBaseNames.get( baseName );
-    }
-
-    /**
-        Indicate that the specified class name has been defined and may be
-        loaded normally.
-    */
-    protected void doneDefiningClass( String className ) {
-        String baseName = Name.suffix(className,1);
-        definingClasses.remove( className );
-        definingClassesBaseNames.remove( baseName );
     }
 
     /*

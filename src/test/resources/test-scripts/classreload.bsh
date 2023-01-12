@@ -1,19 +1,31 @@
 #!/bin/java bsh.Interpreter
 
 source("TestHarness.bsh");
+source("Assert.bsh");
 
-assert( FooR == void );
+assertTrue( FooR == void );
 
 class FooR {
     public int get() { return 42; }
 }
-assert( new FooR().get() == 42 );
+assertEquals(42, new FooR().get());
 
 class FooR {
     public int get() { return 43; }
 }
-assert( new FooR().get() == 43 );
+assertEquals(43, new FooR().get());
 
 class BarR extends FooR { }
+
+assertEquals(43, new BarR().get());
+
+class FooR {
+    public int get() { return 44; }
+}
+assertEquals(44, new FooR().get());
+// TODO: this is wrong should be 44 #697
+assertEquals(43, new BarR().get());
+// TODO: this is wrong classes should be the same #697
+assertNotSame("FooR.class is same as FooR.class", FooR.class, BarR.class.getSuperclass());
 
 complete();
