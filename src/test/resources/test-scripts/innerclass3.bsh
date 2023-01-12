@@ -1,0 +1,50 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// extend static inner class
+class StaticInnerChild extends InnerClass.Inner {}
+
+assertEquals(6, StaticInnerChild.y);
+inner = new StaticInnerChild();
+assertThat(inner, instanceOf(Object.class));
+assertThat(inner, instanceOf(InnerClass.Inner.class));
+assertThat(inner, instanceOf(StaticInnerChild.class));
+assertEquals(5, inner.x);
+
+class StaticInnerChild2 extends InnerClass.Inner.Inner2 {}
+
+inner2 = new StaticInnerChild2();
+assertThat(inner2, instanceOf(Object.class));
+assertThat(inner2, instanceOf(InnerClass.Inner.Inner2.class));
+assertThat(inner2, instanceOf(StaticInnerChild2.class));
+assertEquals(7, inner2.z);
+
+// extend non static inner class
+class NonStaticInnerChild extends InnerClass.NonStaticInner {
+    NonStaticInnerChild(InnerClass in) {
+        super(in);
+    }
+}
+
+innerClass = new InnerClass();
+nonStaticInner = new NonStaticInnerChild(innerClass);
+assertThat(nonStaticInner , instanceOf(Object.class));
+assertThat(nonStaticInner , instanceOf(InnerClass.NonStaticInner.class));
+assertThat(nonStaticInner , instanceOf(NonStaticInnerChild.class));
+assertEquals(5, nonStaticInner.x);
+
+class NonStaticInnerChild2 extends InnerClass.NonStaticInner.NonStaticInner2 {
+    NonStaticInnerChild2(InnerClass.NonStaticInner in) {
+        super(in);
+    }
+}
+
+nonStaticInner2 = new NonStaticInnerChild2(nonStaticInner);
+assertThat(nonStaticInner2, instanceOf(Object.class));
+assertThat(nonStaticInner2, instanceOf(InnerClass.NonStaticInner.NonStaticInner2.class));
+assertThat(nonStaticInner2, instanceOf(NonStaticInnerChild2.class));
+assertEquals(7, nonStaticInner2.z);
+
+complete();
