@@ -28,12 +28,37 @@
 
 package bsh;
 
+import bsh.congo.parser.BeanshellConstants.TokenType;
+
 class BSHReturnStatement extends SimpleNode implements ParserConstants
 {
     public int kind;
     public String label;
 
     BSHReturnStatement(int id) { super(id); }
+
+    BSHReturnStatement(bsh.congo.tree.ReturnStatement rs) {
+        super(ParserTreeConstants.JJTRETURNSTATEMENT, rs);
+        this.kind = ParserConstants.RETURN;
+    }
+
+    BSHReturnStatement(bsh.congo.tree.BreakStatement bs) {
+        super(ParserTreeConstants.JJTRETURNSTATEMENT, bs);
+        this.kind = ParserConstants.BREAK;
+        bsh.congo.parser.Token labelToken = bs.firstChildOfType(TokenType.IDENTIFIER);
+        if (labelToken != null) {
+            this.label = labelToken.getImage();
+        }
+    }
+
+    BSHReturnStatement(bsh.congo.tree.ContinueStatement cs) {
+        super(ParserTreeConstants.JJTRETURNSTATEMENT, cs);
+        this.kind = ParserConstants.CONTINUE;
+        bsh.congo.parser.Token labelToken = cs.firstChildOfType(TokenType.IDENTIFIER);
+        if (labelToken != null) {
+            this.label = labelToken.getImage();
+        }
+    }
 
     public Object eval(CallStack callstack, Interpreter interpreter)
         throws EvalError

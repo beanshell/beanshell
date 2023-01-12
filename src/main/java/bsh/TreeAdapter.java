@@ -18,16 +18,34 @@ public class TreeAdapter extends BaseNode.Visitor {
 
     BaseNode getRootNode() {return root;}
 
-    void visit(PackageDeclaration pdecl) {
-        BSHPackageDeclaration legacyPackageDeclaration = new BSHPackageDeclaration(pdecl);
-        currentLegacyNode.add(legacyPackageDeclaration);
+    void visit(BreakStatement bs) {
+        BSHReturnStatement legacyBreakStatement = new BSHReturnStatement(bs);
+        currentLegacyNode.add(legacyBreakStatement);
     }
-    
+
+    void visit(ContinueStatement cs) {
+        BSHReturnStatement legacyContinueStatement = new BSHReturnStatement(cs);
+        currentLegacyNode.add(legacyContinueStatement);
+    }
+
     void visit(ImportDeclaration idecl) {
         BSHImportDeclaration legacyImport = new BSHImportDeclaration(idecl);
         currentLegacyNode.add(legacyImport);
     }
 
+    void visit(PackageDeclaration pdecl) {
+        BSHPackageDeclaration legacyPackageDeclaration = new BSHPackageDeclaration(pdecl);
+        currentLegacyNode.add(legacyPackageDeclaration);
+    }
+
+    void visit(ReturnStatement rs) {
+        BSHReturnStatement legacyReturnStatement = new BSHReturnStatement(rs);
+        currentLegacyNode.add(legacyReturnStatement);
+        currentLegacyNode = legacyReturnStatement;
+        recurse(rs);
+        currentLegacyNode = legacyReturnStatement.jjtGetParent();
+    }
+    
     void visit(ReturnType rt) {
         BSHReturnType legacyReturnType = new BSHReturnType(rt);
         currentLegacyNode.add(legacyReturnType);
