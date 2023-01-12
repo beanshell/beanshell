@@ -75,8 +75,6 @@ public final class ClassGenerator {
         String className = enclosingNameSpace.isClass ? (enclosingNameSpace.getName() + "$" + name) : name;
         String fqClassName = packageName == null ? className : packageName + "." + className;
         BshClassManager bcm = interpreter.getClassManager();
-        // Race condition here...
-        bcm.definingClass(fqClassName);
 
         // Create the class static namespace
         NameSpace classStaticNameSpace = new NameSpace(enclosingNameSpace, className);
@@ -132,8 +130,6 @@ public final class ClassGenerator {
         classStaticNameSpace.setClassStatic(genClass);
 
         Interpreter.debug(classStaticNameSpace);
-
-        bcm.doneDefiningClass(fqClassName);
 
         if (interpreter.getStrictJava())
             ClassGeneratorUtil.checkAbstractMethodImplementation(genClass);
