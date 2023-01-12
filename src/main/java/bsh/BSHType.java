@@ -30,9 +30,7 @@ package bsh;
 
 import java.lang.reflect.Array;
 
-class BSHType extends SimpleNode
-    //implements BshClassManager.Listener
-{
+class BSHType extends SimpleNode implements BshClassManager.Listener {
     private static final long serialVersionUID = 1L;
     /**
         baseType is used during evaluation of full type and retained for the
@@ -91,32 +89,22 @@ class BSHType extends SimpleNode
         else
         {
             String clasName = ((BSHAmbiguousName)node).text;
-            BshClassManager bcm = interpreter.getClassManager();
-            // Note: incorrect here - we are using the hack in bsh class
-            // manager that allows lookup by base name.  We need to eliminate
-            // this limitation by working through imports.  See notes in class
-            // manager.
-            String definingClass = bcm.getClassBeingDefined( clasName );
+            String innerClass = callstack.top().importedClasses.get(clasName);
 
             Class<?> clas = null;
-            if ( definingClass == null )
-            {
-                try {
-                    clas = ((BSHAmbiguousName)node).toClass(
-                        callstack, interpreter );
-                } catch ( EvalError e ) {
-                    // Lets assume we have a generics raw type
-                    if (clasName.length() == 1)
-                        clasName = "java.lang.Object";
-                }
+            if ( innerClass == null ) try {
+                clas = ((BSHAmbiguousName)node).toClass(
+                    callstack, interpreter );
+            } catch ( EvalError e ) {
+                // Lets assume we have a generics raw type
+                if (clasName.length() == 1)
+                    clasName = "java.lang.Object";
             } else
-                clasName = definingClass;
+                clasName = innerClass.replace('.', '$');
 
-            if ( clas != null )
-            {
+            if ( clas != null ) {
                 descriptor = getTypeDescriptor( clas );
-            }else
-            {
+            } else {
                 if ( defaultPackage == null || Name.isCompound( clasName ) )
                     descriptor = "L" + clasName.replace('.','/') + ";";
                 else
@@ -171,17 +159,8 @@ class BSHType extends SimpleNode
         } else
             type = baseType;
 
-        // hack... sticking to first interpreter that resolves this
-        // see comments on type instance variable (in header on SimpleNode)
-        // -------
-        // This has been here since the first commit, not sure if it is only
-        // theoretical or an actual concern. Yes some blocks are reiterated
-        // processing nodes again but what would make a previously scripted,
-        // interpreted, and executed type change on the fly?
-        // Leaving this commented here for now as a reference if things go
-        // wrong but should it be removed one day it must go with the interface
-        // BshClassManager.Listener and contract method classLoaderChanged()
-//         interpreter.getClassManager().addListener(this);
+        // add listener to reload type if class is reloaded see #699
+        interpreter.getClassManager().addListener(this);
 
         return type;
     }
@@ -202,10 +181,11 @@ class BSHType extends SimpleNode
         return arrayDims;
     }
 
-//    public void classLoaderChanged() {
-//        type = null;
-//        baseType = null;
-//    }
+    /** Clear instance cache to reload types on class loader change #699 */
+    public void classLoaderChanged() {
+        type = null;
+        baseType = null;
+    }
 
     public static String getTypeDescriptor( Class<?> clas )
     {

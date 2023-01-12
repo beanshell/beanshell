@@ -57,7 +57,7 @@ class BSHAmbiguousName extends SimpleNode
         }
     }
 
-    public Class toClass( CallStack callstack, Interpreter interpreter )
+    public Class<?> toClass( CallStack callstack, Interpreter interpreter )
         throws EvalError
     {
         try {

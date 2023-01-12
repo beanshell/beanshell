@@ -177,7 +177,7 @@ class BSHBlock extends SimpleNode {
     }
 
     public interface NodeFilter {
-        boolean isVisible( Node node );
+        public boolean isVisible( Node node );
     }
 
     @Override
