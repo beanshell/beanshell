@@ -35,12 +35,16 @@ class BSHFormalParameters extends SimpleNode
         For loose type parameters the paramTypes are null.
     */
     // unsafe caching of types
-    Class [] paramTypes;
+    Class<?> [] paramTypes;
     int numArgs;
     String [] typeDescriptors;
     boolean isVarArgs;
 
     BSHFormalParameters(int id) { super(id); }
+
+    BSHFormalParameters(bsh.congo.tree.FormalParameters params) {
+        super(ParserTreeConstants.JJTFORMALPARAMETERS, params);
+    }
 
     void insureParsed()
     {

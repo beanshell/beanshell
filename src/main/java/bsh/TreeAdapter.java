@@ -28,6 +28,22 @@ public class TreeAdapter extends BaseNode.Visitor {
         currentLegacyNode.add(legacyContinueStatement);
     }
 
+    void visit(FormalParameter param) {
+        BSHFormalParameter legacyParam = new BSHFormalParameter(param);
+        currentLegacyNode.add(legacyParam);
+        currentLegacyNode = legacyParam;
+        recurse(param);
+        currentLegacyNode = legacyParam.jjtGetParent();
+    }
+    
+    void visit(FormalParameters params) {
+        BSHFormalParameters legacyFormalParameters = new BSHFormalParameters(params);
+        currentLegacyNode.add(legacyFormalParameters);
+        currentLegacyNode = legacyFormalParameters;
+        recurse(params);
+        currentLegacyNode = legacyFormalParameters.jjtGetParent();
+    }
+
     void visit(ImportDeclaration idecl) {
         BSHImportDeclaration legacyImport = new BSHImportDeclaration(idecl);
         currentLegacyNode.add(legacyImport);

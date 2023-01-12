@@ -29,6 +29,8 @@ package bsh;
 
 import java.lang.reflect.Array;
 
+import bsh.congo.parser.BeanshellConstants.TokenType;
+
 /**
     A formal parameter declaration.
     For loose variable declaration type is null.
@@ -38,12 +40,19 @@ class BSHFormalParameter extends SimpleNode
     public static final Class UNTYPED = null;
     public String name;
     // unsafe caching of type here
-    public Class type;
+    public Class<?> type;
     boolean isFinal = false;
     boolean isVarArgs = false;
     int dimensions = 0;
 
     BSHFormalParameter(int id) { super(id); }
+    
+    BSHFormalParameter(bsh.congo.tree.FormalParameter param) { 
+        super(ParserTreeConstants.JJTFORMALPARAMETER, param);
+        isFinal = param.firstDescendantOfType(TokenType.FINAL) != null;
+        isVarArgs = param.firstChildOfType(TokenType.VAR_ARGS) != null;
+    }
+
 
     public String getTypeDescriptor(
         CallStack callstack, Interpreter interpreter, String defaultPackage )
