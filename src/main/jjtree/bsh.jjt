@@ -1354,7 +1354,7 @@ void IfStatement() #IfStatement :
  */
 {}
 {
-  "if" "(" Expression() ")" Statement() [ LOOKAHEAD(1) "else" Statement() ]
+  "if" "(" Expression() ")" (LOOKAHEAD(1) ";" { jjtThis.isClosed = true; } | Statement()) [ LOOKAHEAD(1) "else" Statement() ]
 }
 
 void WhileStatement() #WhileStatement :
