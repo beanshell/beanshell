@@ -44,10 +44,12 @@ class BSHMethodDeclaration extends SimpleNode
     public Modifiers modifiers = new Modifiers(Modifiers.METHOD);
 
     // Unsafe caching of type here.
-    Class returnType;  // null (none), Void.TYPE, or a Class
+    Class<?> returnType;  // null (none), Void.TYPE, or a Class
     int numThrows = 0;
     boolean isVarArgs;
-    boolean isThisContext;
+    private boolean isScriptedObject;
+    private transient CallStack callstack;
+    private transient Interpreter interpreter;
 
     BSHMethodDeclaration(int id) { super(id); }
 
@@ -81,18 +83,37 @@ class BSHMethodDeclaration extends SimpleNode
             if (crnt instanceof BSHReturnStatement)
                 while (crnt.hasNext())
                     if ((crnt = crnt.next()) instanceof BSHAmbiguousName)
-                        isThisContext = "this".equals(((BSHAmbiguousName)crnt).text);
+                        isScriptedObject = ((BSHAmbiguousName)crnt).text.startsWith("this");
         }
 
         paramsNode.insureParsed();
         isVarArgs = paramsNode.isVarArgs;
     }
 
+    /** Used to reevaluate the parameter types on class loader changed.
+     * @return reevaluated types */
+    Class<?>[] reevalParamTypes() {
+        try {
+            paramsNode.paramTypes = null;
+            paramsNode.eval(callstack, interpreter);
+            return paramsNode.paramTypes;
+        } catch (EvalError e) { return paramsNode.paramTypes; }
+    }
+
+    /** Used to reevaluate the return type on class loader changed.
+     * @return a reevaluated type */
+    Class<?> reevalReturnType() {
+        try {
+            returnType = evalReturnType(callstack, interpreter);
+            return returnType;
+        } catch (EvalError e) { return returnType; }
+    }
+
     /**
         Evaluate the return type node.
         @return the type or null indicating loosely typed return
     */
-    Class evalReturnType( CallStack callstack, Interpreter interpreter )
+    Class<?> evalReturnType( CallStack callstack, Interpreter interpreter )
         throws EvalError
     {
         insureNodesParsed();
@@ -125,6 +146,8 @@ class BSHMethodDeclaration extends SimpleNode
     public Object eval( CallStack callstack, Interpreter interpreter )
         throws EvalError
     {
+        this.interpreter = interpreter;
+        this.callstack = callstack;
         returnType = evalReturnType( callstack, interpreter );
         evalNodes( callstack, interpreter );
 
@@ -135,10 +158,9 @@ class BSHMethodDeclaration extends SimpleNode
 // need a way to update eval without re-installing...
 // so that we can re-eval params, etc. when classloader changes
 // look into this
-
         NameSpace namespace = callstack.top();
-        namespace.isMethod = isThisContext;
-        BshMethod bshMethod = new BshMethod( this, namespace, modifiers );
+        BshMethod bshMethod = new BshMethod( this, namespace, modifiers, isScriptedObject );
+        interpreter.getClassManager().addListener(bshMethod);
 
         namespace.setMethod( bshMethod );
 

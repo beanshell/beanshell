@@ -48,7 +48,7 @@ class BSHReturnType extends SimpleNode
                 callstack, interpreter, defaultPackage );
     }
 
-    public Class evalReturnType(
+    public Class<?> evalReturnType(
         CallStack callstack, Interpreter interpreter ) throws EvalError
     {
         if ( isVoid )
