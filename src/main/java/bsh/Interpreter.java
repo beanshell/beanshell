@@ -94,7 +94,7 @@ import java.util.ResourceBundle;
     See the BeanShell User's Manual for more information.
 */
 public class Interpreter
-    implements Runnable, Serializable
+    implements Runnable, Serializable, BshClassManager.Listener
 {
     /* --- Begin static members --- */
 
@@ -202,9 +202,9 @@ public class Interpreter
             BshClassManager bcm = BshClassManager.createClassManager( this );
             namespace = new NameSpace(namespace, bcm, "global");
         }
-
         this.setConsole(console);
         this.setNameSpace(namespace);
+        this.getClassManager().addListener(this);
 
         if ( Interpreter.DEBUG.get() )
             Interpreter.debug("Time to initialize interpreter: interactive=",
@@ -760,9 +760,10 @@ public class Interpreter
      * for subsequent calls. Only use this if completely done with current
      * interpreter and desperate to clear as much resources as possible. */
     public void reset() {
-        getClassManager().reset();
-        globalNameSpace.clear();
+        this.getClassManager().reset();
+        this.globalNameSpace.clear();
         Name.clearParts();
+        Reflect.instanceCache.clear();
     }
 
     /**
@@ -1379,6 +1380,12 @@ public class Interpreter
             this.err = err;
         }
 
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void classLoaderChanged() {
+        Reflect.instanceCache.clear();
     }
 
 }

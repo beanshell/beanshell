@@ -229,5 +229,16 @@ funk() {
 funk();
 assert(count == 0);
 
+// test interrupt loop
+repetition=0;
+for (i:2) {
+  repetition++;
+  Thread.currentThread().interrupt();
+}
+assert(1 == repetition);
+
+// no statement for coverage
+for (i:2);
+for (int i:2);
 
 complete();

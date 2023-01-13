@@ -1221,7 +1221,7 @@ public final class Reflect {
         }
     }
 
-    private static final Map<Class<?>,Object> instanceCache = new WeakHashMap<>();
+    static final Map<Class<?>,Object> instanceCache = new WeakHashMap<>();
 
     /*
      * Class new instance or null, wrap exception handling and
