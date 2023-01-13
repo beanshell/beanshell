@@ -67,8 +67,9 @@ class Operators implements ParserConstants {
         if ( kind == PLUS ) {
             // String concatenation operation
             if ( lhs instanceof String || rhs instanceof String )
-                return String.valueOf((Object) lhs)
-                     + String.valueOf((Object) rhs);
+                return BSHLiteral.internStrings
+                    ? (String.valueOf((Object) lhs) + String.valueOf((Object) rhs)).intern()
+                    : String.valueOf((Object) lhs) + String.valueOf((Object) rhs);
             // array concatenation operation
             if ( lhs.getClass().isArray() && rhs instanceof List )
                 rhs = ((List<?>) rhs).toArray();
