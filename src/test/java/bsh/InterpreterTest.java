@@ -26,6 +26,8 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.lang.ref.WeakReference;
+import java.util.stream.IntStream;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -328,10 +330,17 @@ public class InterpreterTest {
     public void reset_interpreter() throws Exception {
         final Interpreter bsh = new Interpreter();
         assertEquals("test123", bsh.eval("'test' + (100 + 20 + 3)"));
+        for (String cls:IntStream.range(65, 65+10) // A - Z
+                .boxed().map(n->String.valueOf((char) n.intValue()))
+                .toArray(String[]::new)) {
+            assertEquals(cls, bsh.eval("class "+cls+" { static "+cls+" a(){ return new "+cls+"(); }"
+            +" b(){} static "+cls+" c=a(); d=2; } return new "+cls+"().getClass().getName();"));
+        }
         long b4 = Runtime.getRuntime().freeMemory();
         bsh.reset();
         TestUtil.cleanUp();
         assertThat(b4, lessThan(Runtime.getRuntime().freeMemory()));
+        System.out.println(b4+ " "+Runtime.getRuntime().freeMemory() );
     }
 
 }

@@ -26,6 +26,7 @@
 
 package bsh;
 
+import java.util.Arrays;
 import java.util.stream.IntStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
@@ -46,7 +47,7 @@ import java.lang.reflect.InvocationTargetException;
     Note: this method incorrectly caches the method structure.  It needs to
     be cleared when the classloader changes.
 */
-public class BshMethod implements Serializable, Cloneable {
+public class BshMethod implements Serializable, Cloneable, BshClassManager.Listener {
 
     private static final long serialVersionUID = 1L;
 
@@ -71,22 +72,25 @@ public class BshMethod implements Serializable, Cloneable {
     private Modifiers [] paramModifiers;
 
     // Scripted method body
-    BSHBlock methodBody;
-
+    protected BSHBlock methodBody;
+    private BSHMethodDeclaration methodNode;
     // Java Method, for a BshObject that delegates to a real Java method
     private Invocable javaMethod;
     private Object javaObject;
     protected boolean isVarArgs;
+    boolean isScriptedObject = false;
 
     // End method components
 
     BshMethod(
         BSHMethodDeclaration method,
-        NameSpace declaringNameSpace, Modifiers modifiers )
+        NameSpace declaringNameSpace, Modifiers modifiers, boolean isScriptedObject )
     {
         this( method.name, method.returnType, method.paramsNode.getParamNames(),
             method.paramsNode.paramTypes, method.paramsNode.getParamModifiers(),
             method.blockNode, declaringNameSpace, modifiers, method.isVarArgs );
+        this.isScriptedObject = isScriptedObject;
+        this.methodNode = method;
     }
 
     BshMethod(
@@ -142,8 +146,10 @@ public class BshMethod implements Serializable, Cloneable {
         This is broken.
     */
     public Class<?> [] getParameterTypes() {
-        if (null == this.javaMethod)
+        if (null == this.javaMethod) {
+            reloadTypes();
             return cparamTypes;
+        }
         return this.javaMethod.getParameterTypes();
     }
 
@@ -176,8 +182,10 @@ public class BshMethod implements Serializable, Cloneable {
         This is broken.
     */
     public Class<?> getReturnType() {
-        if (null == this.javaMethod)
+        if (null == this.javaMethod) {
+            reloadTypes();
             return creturnType;
+        }
         return this.javaMethod.getReturnType();
     }
 
@@ -263,6 +271,7 @@ public class BshMethod implements Serializable, Cloneable {
         throws EvalError
     {
         Interpreter.debug("Bsh method invoke: ", this.name, " overrideNameSpace: ", overrideNameSpace);
+        reloadTypes();
         if ( argValues != null )
             for (int i=0; i<argValues.length; i++)
                 if ( argValues[i] == null )
@@ -558,5 +567,27 @@ public class BshMethod implements Serializable, Cloneable {
         for (final Class<?> cparamType : getParameterTypes())
             h += 3 + (cparamType == null ? 0 : cparamType.hashCode());
         return h + getParameterCount();
+    }
+
+    private boolean reload = false;
+
+    /** Reload types if reload is true */
+    private void reloadTypes() {
+        if (reload) synchronized (this) {
+            reload = false;
+            creturnType = methodNode.reevalReturnType();
+            cparamTypes = methodNode.reevalParamTypes();
+        }
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void classLoaderChanged() {
+        boolean hasGeneratedType = Reflect.isGeneratedClass(creturnType)
+            || Arrays.asList(cparamTypes).stream()
+                .anyMatch(Reflect::isGeneratedClass);
+        synchronized (this) {
+            reload = hasGeneratedType;
+        }
     }
 }

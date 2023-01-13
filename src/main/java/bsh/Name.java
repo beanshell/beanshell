@@ -859,7 +859,7 @@ class Name implements java.io.Serializable
         to load it as a resource from the imported command path (e.g.
         /bsh/commands)
     */
-    private static final Pattern noOverride = Pattern.compile("eval|extend|source|exec|assert|isEvalError");
+    private static final Pattern noOverride = Pattern.compile("eval|assert");
     private Object invokeLocalMethod(
         Interpreter interpreter, Object[] args, CallStack callstack, Node callerInfo)
         throws EvalError
@@ -886,6 +886,7 @@ class Name implements java.io.Serializable
             // whether to use callstack.top or new child of declared name space
             // enables late binding for closures and namespace chaining #676
             boolean overrideChild = !namespace.isMethod
+                    && !meth.isScriptedObject
                     && namespace.isChildOf(meth.declaringNameSpace)
                     && !namespace.getParent().isClass
                     && !noOverride.matcher(meth.getName()).matches();

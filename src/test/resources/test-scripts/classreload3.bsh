@@ -1,0 +1,57 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// method return and parameter types reload
+
+// return type #707
+class A {}
+A returnA(a) {
+    return a;
+}
+a = new A();
+b4 = a.getClass();
+assertSame("Returns the same typed instance untyped parameter", a, returnA(a));
+class A {}
+a = new A();
+assertSame("Returns the same typed instance untyped parameter reloaded", a, returnA(a));
+assertNotSame("A and A before is not the same", b4, a.getClass());
+
+// parameter type #708
+paramA(A a) {
+    return a;
+}
+a = new A();
+b4 = a.getClass();
+assertSame("Returns the same untyped instance typed parameter", a, paramA(a));
+class A {}
+a = new A();
+assertSame("Returns the same untyped instance typed parameter reloaded", a, paramA(a));
+assertNotSame("A and A before is not the same", b4, a.getClass());
+
+// return and parameter type
+A returnParamA(A a) {
+    return a;
+}
+a = new A();
+b4 = a.getClass();
+assertSame("Returns the same typed instance typed parameter", a, returnParamA(a));
+class A {}
+a = new A();
+assertSame("Returns the same typed instance typed parameter reloaded", a, returnParamA(a));
+assertNotSame("A and A before is not the same", b4, a.getClass());
+
+// non generated types
+Object objectA(final Object a) {
+    return a;
+}
+a = new A();
+b4 = a.getClass();
+assertSame("Returns the same typed instance untyped parameter", a, objectA(a));
+class A {}
+a = new A();
+assertSame("Returns the same typed instance untyped parameter reloaded", a, objectA(a));
+assertNotSame("A and A before is not the same", b4, a.getClass());
+
+complete();
