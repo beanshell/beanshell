@@ -187,7 +187,7 @@ class BSHAllocationExpression extends SimpleNode
         throws EvalError
     {
         String anon = "anon" + (++innerClassCount);
-        String name = callstack.top().getName() + "$" + anon;
+        String name = callstack.top().getName().replace('/', '_') + "$" + anon;
         This.CONTEXT_ARGS.get().put(anon, args);
         Modifiers modifiers = new Modifiers(Modifiers.CLASS);
         Class<?> clas = ClassGenerator.getClassGenerator().generateClass(

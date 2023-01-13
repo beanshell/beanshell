@@ -83,14 +83,15 @@ class BSHBlock extends SimpleNode {
     * </ul>
     * In these situations where the overrideChild flag has been set to true *no*
     * new BlockNamespace will be swapped onto the stack and the eval will happen
-    * in the current top namespace.
+    * in the current top namespace. If override namespace is null a cached block
+    * will be swapped instead of a new instance.
     * @param callstack the stack of namespace chains used to resolve names
     * @param interpreter the interpreter object used for evaluation
     * @param overrideNamespace whether a new namespace is required
     * @return the result from evaluating the block
     * @throws EvalError rolls exceptions back up to the user */
     public Object eval( CallStack callstack, Interpreter interpreter,
-            boolean overrideNamespace ) throws EvalError {
+            Boolean overrideNamespace ) throws EvalError {
 
         if ( isSynchronized ) {
             // First node is the expression on which to sync
@@ -106,13 +107,17 @@ class BSHBlock extends SimpleNode {
     }
 
     Object evalBlock( CallStack callstack, Interpreter interpreter,
-            boolean overrideNamespace, NodeFilter nodeFilter ) throws EvalError {
+            Boolean overrideNamespace, NodeFilter nodeFilter ) throws EvalError {
 
         Object ret = Primitive.VOID;
-        NameSpace enclosingNameSpace = null;
-        if ( !overrideNamespace )
+        final NameSpace enclosingNameSpace;
+        if ( null == overrideNamespace )
             enclosingNameSpace = callstack.swap(
-                    BlockNameSpace.getInstance(callstack.top(), blockId));
+                BlockNameSpace.getInstance(callstack.top(), blockId));
+        else if ( !overrideNamespace )
+            enclosingNameSpace = callstack.swap(
+                new BlockNameSpace(callstack.top(), blockId));
+        else enclosingNameSpace = null;
 
         int startChild = isSynchronized ? 1 : 0;
         int numChildren = jjtGetNumChildren();
@@ -121,7 +126,7 @@ class BSHBlock extends SimpleNode {
             // Evaluate block in two passes:
             // First do class declarations then do everything else.
             if (isFirst || hasClassDeclaration)
-                for(int i = startChild; i < numChildren; i++) {
+                for (int i = startChild; i < numChildren; i++) {
                     Node node = jjtGetChild(i);
 
                     if ( nodeFilter != null && !nodeFilter.isVisible( node ) )
@@ -165,15 +170,12 @@ class BSHBlock extends SimpleNode {
                 while (!enumBlocks.isEmpty())
                     enumBlocks.remove(0).eval( callstack, interpreter );
 
+            return ret;
         } finally {
+            isFirst = false;
             // Make sure we put the namespace back when we leave.
-            // Clear cached block name space, contents can be gc'ed away
-            if ( !overrideNamespace )
-                callstack.swap( enclosingNameSpace );
-
+            if (null != enclosingNameSpace) callstack.swap(enclosingNameSpace);
         }
-        isFirst = false;
-        return ret;
     }
 
     public interface NodeFilter {
