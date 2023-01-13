@@ -52,21 +52,16 @@ class BSHWhileStatement extends SimpleNode implements ParserConstants {
             body = jjtGetChild(0);
         } else {
             condExp = jjtGetChild(0);
-            if (numChild > 1) {
-                body = jjtGetChild(1);
-            } else {
-                body = null;
-            }
+            body = numChild > 1 ? jjtGetChild(1) : null;
         }
         boolean doOnceFlag = isDoStatement;
         while ( !Thread.interrupted()
                 && ( doOnceFlag || BSHIfStatement.evaluateCondition(condExp, callstack, interpreter)) ) {
             doOnceFlag = false;
-            // no body?
-            if (body == null) {
-                continue;
-            }
-            Object ret = body.eval(callstack, interpreter);
+            if (body == null) continue; // no body
+            Object ret = body instanceof BSHBlock
+                ? ((BSHBlock)body).eval(callstack, interpreter, null)
+                : body.eval(callstack, interpreter);
             if (ret instanceof ReturnControl) {
                 ReturnControl control = (ReturnControl)ret;
 
@@ -74,16 +69,11 @@ class BSHWhileStatement extends SimpleNode implements ParserConstants {
                     if (null == label || !label.equals(control.label))
                         return ret;
 
-                switch (control.kind) {
-                    case RETURN:
-                        return ret;
-
-                    case CONTINUE:
-                        break;
-
-                    case BREAK:
-                        return Primitive.VOID;
-                }
+                if (control.kind == RETURN)
+                    return ret;
+                else if (control.kind == BREAK)
+                    break;
+                // if CONTINUE we just carry on
             }
         }
         return Primitive.VOID;

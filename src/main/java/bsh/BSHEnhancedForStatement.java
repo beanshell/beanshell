@@ -53,47 +53,39 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
         if (this.isFinal)
             modifiers.addModifier("final");
         Class<?> elementType = null;
-        Node expression;
-        Node statement = null;
-        NameSpace enclosingNameSpace = callstack.top();
-        Node firstNode = jjtGetChild(0);
-        int nodeCount = jjtGetNumChildren();
+        final Node expression;
+        final Node statement;
+        final NameSpace enclosingNameSpace = callstack.top();
+        final Node firstNode = jjtGetChild(0);
+        final int nodeCount = jjtGetNumChildren();
         if (firstNode instanceof BSHType) {
             elementType = ((BSHType) firstNode).getType(callstack, interpreter);
-            if (elementType == null)
-                elementType = Object.class;
             expression = jjtGetChild(1);
-            if (nodeCount > 2) {
-                statement = jjtGetChild(2);
-            }
+            statement = nodeCount > 2 ? jjtGetChild(2) : null;
         } else {
             expression = firstNode;
-            if (nodeCount > 1) {
-                statement = jjtGetChild(1);
-            }
+            statement = nodeCount > 1 ? jjtGetChild(1) : null;
         }
         final Object iteratee = expression.eval(callstack, interpreter);
-        CollectionManager cm = CollectionManager.getCollectionManager();
-        Iterator<?> iterator = cm.getBshIterator(iteratee);
-        Object returnControl = Primitive.VOID;
-        while ( !Thread.interrupted() && iterator.hasNext() ) {
-            try {
-                NameSpace eachNameSpace = BlockNameSpace.getInstance(enclosingNameSpace, blockId);
-                eachNameSpace.clear();
-                callstack.swap(eachNameSpace);
-                Object value = iterator.next();
-                if ( value == null )
-                    value = Primitive.NULL;
-                eachNameSpace.setTypedVariable(
-                    varName, elementType, value, modifiers);
-            } catch ( UtilEvalError e ) {
-                throw e.toEvalError(
-                    "for loop iterator variable:"+ varName, this, callstack );
-            }
-            boolean breakout = false; // switch eats a multi-level break here?
-            if (statement != null) {
-                // not empty statement
-                Object ret = statement.eval(callstack, interpreter);
+        final CollectionManager cm = CollectionManager.getCollectionManager();
+        final Iterator<?> iterator = cm.getBshIterator(iteratee);
+        try {
+            while ( !Thread.interrupted() && iterator.hasNext() ) {
+                try {
+                    NameSpace eachNameSpace = BlockNameSpace.getInstance(enclosingNameSpace, blockId);
+                    callstack.swap(eachNameSpace);
+                    Object value = iterator.next();
+                    if ( value == null ) value = Primitive.NULL;
+                    eachNameSpace.setTypedVariable(
+                        varName, elementType, value, modifiers);
+                } catch ( UtilEvalError e ) {
+                    throw e.toEvalError(
+                        "for loop iterator variable:"+ varName, this, callstack );
+                }
+                if (statement == null) continue; // not empty statement
+                Object ret = statement instanceof BSHBlock
+                    ? ((BSHBlock)statement).eval(callstack, interpreter, null)
+                    : statement.eval(callstack, interpreter);
                 if (ret instanceof ReturnControl) {
                     ReturnControl control = (ReturnControl)ret;
 
@@ -101,25 +93,17 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
                         if (null == label || !label.equals(control.label))
                             return ret;
 
-                    switch (control.kind) {
-                        case RETURN:
-                            returnControl = ret;
-                            breakout = true;
-                            break;
-                        case CONTINUE:
-                            break;
-                        case BREAK:
-                            breakout = true;
-                            break;
-                    }
+                    if (control.kind == RETURN)
+                        return ret;
+                    else if (control.kind == BREAK)
+                        break;
+                    // if CONTINUE we just carry on
                 }
             }
-            if (breakout) {
-                break;
-            }
+            return Primitive.VOID;
+        } finally {
+            callstack.swap(enclosingNameSpace);
         }
-        callstack.swap(enclosingNameSpace);
-        return returnControl;
     }
 
     @Override
