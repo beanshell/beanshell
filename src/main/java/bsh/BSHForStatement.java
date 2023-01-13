@@ -38,10 +38,6 @@ class BSHForStatement extends SimpleNode implements ParserConstants
     public boolean hasExpression;
     public boolean hasForUpdate;
 
-    private Node forInit;
-    private Node expression;
-    private Node forUpdate;
-    private Node statement;
     String label;
 
     BSHForStatement(int id) {
@@ -49,21 +45,14 @@ class BSHForStatement extends SimpleNode implements ParserConstants
         blockId = BlockNameSpace.blockCount.incrementAndGet();
     }
 
-    public Object eval(CallStack callstack , Interpreter interpreter)
-        throws EvalError
-    {
+    public Object eval(CallStack callstack , Interpreter interpreter) throws EvalError {
         int i = 0;
-        if(hasForInit)
-            forInit = jjtGetChild(i++);
-        if(hasExpression)
-            expression = jjtGetChild(i++);
-        if(hasForUpdate)
-            forUpdate = jjtGetChild(i++);
-        if(i < jjtGetNumChildren()) // should normally be
-            statement = jjtGetChild(i);
-
-        NameSpace enclosingNameSpace= callstack.top();
-        NameSpace forNameSpace = new BlockNameSpace(enclosingNameSpace, blockId);
+        final Node forInit = hasForInit ? jjtGetChild(i++) : null;
+        final Node expression = hasExpression ? jjtGetChild(i++) : null;
+        final Node forUpdate = hasForUpdate ? jjtGetChild(i++) : null;
+        final Node statement = i < jjtGetNumChildren() ? jjtGetChild(i) : null;
+        final NameSpace enclosingNameSpace= callstack.top();
+        final NameSpace forNameSpace = new BlockNameSpace(enclosingNameSpace, blockId);
 
         /*
             Note: some interesting things are going on here.
@@ -80,65 +69,40 @@ class BSHForStatement extends SimpleNode implements ParserConstants
             (which is correct Java behavior... see forscope4.bsh)
         */
 
-        // put forNameSpace it on the top of the stack
-        // Note: it's important that there is only one exit point from this
-        // method so that we can swap back the namespace.
+        // put forNameSpace on the top of the stack
         callstack.swap( forNameSpace );
-
-        // Do the for init
-        if ( hasForInit )
-            forInit.eval( callstack, interpreter );
-
-        Object returnControl = Primitive.VOID;
-        while( !Thread.interrupted() )
-        {
-            if ( hasExpression )
-            {
-                boolean cond = BSHIfStatement.evaluateCondition(
-                    expression, callstack, interpreter );
-
-                if ( !cond )
+        try {
+            if ( hasForInit ) forInit.eval( callstack, interpreter );
+            while( !Thread.interrupted() ) {
+                if (hasExpression && !BSHIfStatement.evaluateCondition(
+                        expression, callstack, interpreter))
                     break;
-            }
 
-            boolean breakout = false; // switch eats a multi-level break here?
-            if ( statement != null ) // not empty statement
-            {
-                // do *not* invoke special override for block... (see above)
-                Object ret = statement.eval( callstack, interpreter );
+                if ( statement != null ) { // not empty statement
+                    Object ret = statement instanceof BSHBlock
+                        ? ((BSHBlock)statement).eval( callstack, interpreter, null)
+                        : statement.eval( callstack, interpreter );
 
-                if (ret instanceof ReturnControl) {
-                    ReturnControl control = (ReturnControl)ret;
+                    if (ret instanceof ReturnControl) {
+                        ReturnControl control = (ReturnControl)ret;
 
-                    if (null != control.label)
-                        if (null == label || !label.equals(control.label))
+                        if (null != control.label)
+                            if (null == label || !label.equals(control.label))
+                                return ret;
+
+                        if (control.kind == RETURN)
                             return ret;
-
-                    switch(control.kind) {
-                        case RETURN:
-                            returnControl = ret;
-                            breakout = true;
+                        else if (control.kind == BREAK)
                             break;
-
-                        case CONTINUE:
-                            break;
-
-                        case BREAK:
-                            breakout = true;
-                            break;
+                        // if CONTINUE we just carry on
                     }
                 }
+                if ( hasForUpdate ) forUpdate.eval( callstack, interpreter );
             }
-
-            if ( breakout )
-                break;
-
-            if ( hasForUpdate )
-                forUpdate.eval( callstack, interpreter );
+            return Primitive.VOID;
+        } finally {
+            callstack.swap( enclosingNameSpace );  // put it back
         }
-
-        callstack.swap( enclosingNameSpace );  // put it back
-        return returnControl;
     }
 
     @Override

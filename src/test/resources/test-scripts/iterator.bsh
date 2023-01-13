@@ -41,4 +41,10 @@ while ( javait.hasNext() )
 }
 assert( flag() == 10 );
 
+// test interrupt loop
+repetition=0;
+while (repetition++ <= 2)
+  Thread.currentThread().interrupt();
+assert(1 == repetition);
+
 complete();
