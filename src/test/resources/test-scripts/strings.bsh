@@ -4,6 +4,9 @@ source("TestHarness.bsh");
 source("Assert.bsh");
 import bsh.BSHLiteral;
 
+boolean currentInternStrings = BSHLiteral.internStrings;
+BSHLiteral.internStrings = true;
+
 // char is not a string
 assert('a' == 'a');
 assert('a' != "a");
@@ -148,5 +151,41 @@ assert( a.equals('foobar5nulla') );
 
 b="foo"+"bar"+5;
 assert(b.equals('foobar5'));
+
+// String constants comparison (intern strings on) see #343
+BSHLiteral.internStrings = true;
+String s0 = "dcba";
+String s1 = "dcb"+"a";
+String s2 = new String("dcba");
+String s3 = "dc";
+s3 += "ba";
+assertTrue("s0.equals(s1) is true", s0.equals(s1));
+assertTrue("s0.equals(s2) is true", s0.equals(s2));
+assertTrue("s0.equals(s3) is true", s0.equals(s3));
+assertTrue("s0 == s1 is true", s0 == s1);
+assertFalse("s0 == s2 is false", s0 == s2);
+assertTrue("s0 == s3 is true", s0 == s3);
+assertTrue("'h'+'gfe' == 'hg'+'fe' is true", 'h'+'gfe' == 'hg'+'fe');
+assertTrue('"lkj"+"i" == "lk"+"ji" is true', "lkj"+"i" == "lk"+"ji");
+
+// without string constant comparison (intern strings off)
+BSHLiteral.internStrings = false;
+String s0 = "ponm";
+String s1 = "pon"+"m";
+String s2 = new String("ponm");
+String s3 = "po";
+s3 += "nm";
+assertTrue("s0.equals(s1) is true", s0.equals(s1));
+assertTrue("s0.equals(s2) is true", s0.equals(s2));
+assertTrue("s0.equals(s3) is true", s0.equals(s3));
+assertFalse("s0 == s1 is false", s0 == s1);
+assertFalse("s0 == s2 is false", s0 == s2);
+assertFalse("s0 == s3 is false", s0 == s3);
+assertFalse("'t'+'srq' == 'ts'+'rq' is false", 't'+'srq' == 'ts'+'rq');
+assertFalse('"xwv"+"u" == "xw"+"vu" is false', "xwv"+"u" == "xw"+"vu");
+BSHLiteral.internStrings = true;
+
+// reset intern strings flag the way we found it
+BSHLiteral.internStrings = currentInternStrings;
 
 complete();
