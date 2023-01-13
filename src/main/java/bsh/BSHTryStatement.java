@@ -30,6 +30,8 @@ package bsh;
 import java.util.ArrayList;
 import java.util.List;
 
+import bsh.congo.tree.TryWithResources;
+
 
 class BSHTryStatement extends SimpleNode
 {
@@ -40,6 +42,14 @@ class BSHTryStatement extends SimpleNode
     {
         super(id);
         blockId = BlockNameSpace.blockCount.incrementAndGet();
+    }
+
+    BSHTryStatement(bsh.congo.tree.TryStatement tryStatement) {
+        super(ParserTreeConstants.JJTTRYSTATEMENT, tryStatement);
+        blockId = BlockNameSpace.blockCount.incrementAndGet();
+        if (tryStatement instanceof TryWithResources) {
+            tryWithResources = new BSHTryWithResources((TryWithResources) tryStatement);
+        }
     }
 
     public Object eval( CallStack callstack, Interpreter interpreter)

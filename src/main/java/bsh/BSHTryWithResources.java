@@ -22,6 +22,10 @@ public class BSHTryWithResources extends SimpleNode {
     private static final long serialVersionUID = 1L;
     public BSHTryWithResources(int id) { super(id); }
 
+    public BSHTryWithResources(bsh.congo.tree.TryWithResources tryWithResources) {
+        super(ParserTreeConstants.JJTTRYWITHRESOURCES, tryWithResources);
+    }
+
     public Object eval( CallStack callstack, Interpreter interpreter)
             throws EvalError {
         for (int i=0; i < jjtGetNumChildren(); i++)

@@ -38,6 +38,10 @@ class BSHAmbiguousName extends SimpleNode
         text=ot.toString();
     }
 
+    BSHAmbiguousName(bsh.congo.tree.ReferenceType rt) {
+        super(ParserTreeConstants.JJTAMBIGUOUSNAME, rt);
+    }
+
     public Name getName( NameSpace namespace )
     {
         return namespace.getNameResolver( text );

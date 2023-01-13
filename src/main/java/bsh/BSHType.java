@@ -61,6 +61,15 @@ class BSHType extends SimpleNode implements BshClassManager.Listener {
         arrayDims = (int) pat.children().stream().filter(t->t.getTokenType()==TokenType.LBRACKET).count();
     }
 
+    BSHType(bsh.congo.tree.ReferenceType rt) {
+        super(ParserTreeConstants.JJTTYPE, rt);
+        arrayDims = (int) rt.children().stream().filter(t->t.getTokenType()==TokenType.LBRACKET).count();
+    }
+
+    BSHType(bsh.congo.tree.ObjectType ot) {
+        super(ParserTreeConstants.JJTTYPE, ot);
+    }
+
     /**
         Used by the grammar to indicate dimensions of array types
         during parsing.

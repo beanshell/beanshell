@@ -58,8 +58,8 @@ public class TreeAdapter extends BaseNode.Visitor {
     }
 
     void visit(ObjectType ot) {
-        BSHAmbiguousName legacyName = new BSHAmbiguousName(ot);
-        currentLegacyNode.add(legacyName);
+        BSHType legacyType = new BSHType(ot);
+        currentLegacyNode.add(legacyType);
     }
 
     void visit(PackageDeclaration pdecl) {
@@ -68,12 +68,20 @@ public class TreeAdapter extends BaseNode.Visitor {
     }
 
     void visit(PrimitiveArrayType pat) {
-        BSHType legacyType = new BSHType(bsh.ParserTreeConstants.JJTTYPE);
+        BSHType legacyType = new BSHType(pat);
         if (currentLegacyNode != null) currentLegacyNode.add(legacyType);
         currentLegacyNode = legacyType;
         visit(pat.firstChildOfType(PrimitiveType.class));
         currentLegacyNode = currentLegacyNode.jjtGetParent();
-    }    
+    }
+    
+    void visit(ReferenceType rt) {
+        BSHType legacyReferenceType = new BSHType(rt);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyReferenceType);
+        currentLegacyNode = legacyReferenceType;
+        recurse(rt);
+        currentLegacyNode = legacyReferenceType.jjtGetParent();
+    }
 
     void visit(PrimitiveType pt) {
         BSHPrimitiveType legacyPrimitiveType = new BSHPrimitiveType(pt);
@@ -106,6 +114,22 @@ public class TreeAdapter extends BaseNode.Visitor {
         currentLegacyNode = legacyThrowStatement;
         recurse(throwStatement);
         currentLegacyNode = legacyThrowStatement.jjtGetParent();
+    }
+
+    void visit(TryStatement tryStatement) {
+        BSHTryStatement legacyTryStatement = new BSHTryStatement(tryStatement);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyTryStatement);
+        currentLegacyNode = legacyTryStatement;
+        recurse(tryStatement);
+        currentLegacyNode = legacyTryStatement.jjtGetParent();
+    }
+
+    void visit(TryWithResources tryWithResources) {
+        BSHTryWithResources legacyTryWithResources = new BSHTryWithResources(tryWithResources);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyTryWithResources);
+        currentLegacyNode = legacyTryWithResources;
+        recurse(tryWithResources);
+        currentLegacyNode = legacyTryWithResources.jjtGetParent();
     }
 
     void visit(UnaryExpression ue) {
