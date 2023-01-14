@@ -1,0 +1,28 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+public class TestClass {
+  private static int statProp;
+  private int instProp;
+  private boolean instBoolProp;
+
+  public int getInstProp() { return instProp; }
+  public void setInstProp(int instProp) { this.instProp = instProp; }
+  public boolean isInstBoolProp() { return instBoolProp; }
+  public void setInstBoolProp(boolean instBoolProp) { this.instBoolProp = instBoolProp; }
+  public static int getStatProp() { return statProp; }
+  public static void setStatProp(int var) { statProp = var; }
+}
+
+// bean expression #94
+bean = new TestClass { statProp=2, instBoolProp=true, instProp=23 };
+assertEquals("statProp property set", 2, bean.statProp);
+assertTrue("instBoolProp property set", bean.instBoolProp);
+assertEquals("instProp property set", 23, bean.instProp);
+
+assert(isEvalError("Class: TestClass2 not found", "new TestClass2 { unknowProp=4 };"));
+assert(isEvalError("Cannot cast String to int", 'new TestClass { statProp="2" };'));
+
+complete();

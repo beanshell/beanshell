@@ -86,15 +86,15 @@ class BSHArrayInitializer extends SimpleNode {
             return toCollection(emptyArray, baseType, callstack);
         }
 
-//        // cache node evaluation
-//        toggleEvalCache(this);
-
         // loose typed arrays ex. a = {1, 2, 3}
         if ( -1 == dimensions ) {
             // apply strict java when loose type arrays or maps are invalid
             if ( interpreter.getStrictJava() )
                 throw new EvalError("No declared array type or dimensions.",
                         this, callstack );
+            // beans don't have dimensions, check if we can get out of here
+            if (isBeanType(baseType))
+                return buildBean(baseType, callstack, interpreter);
 
             // infer dimensions starting with 1 dimension, this initializer node
             dimensions = this.inferDimensions(1, 0, this, callstack, interpreter);
@@ -189,6 +189,34 @@ class BSHArrayInitializer extends SimpleNode {
         return array;
     }
 
+    /** Evaluate child nodes as a bean type instance.
+     * @param baseType bean base type
+     * @param callstack default eval call stack
+     * @param interpreter default eval interpreter
+     * @return an evaluated bean with properties set
+     * @throws EvalError produced by thrown type errors */
+    private Object buildBean(Class<?> baseType,
+            CallStack callstack, Interpreter interpreter) throws EvalError {
+        callstack.push(new NameSpace(callstack.top(), baseType.getName()));
+        callstack.top().setClassStatic(baseType);
+        callstack.top().getThis(interpreter);
+        try {
+            Object bean = baseType.getConstructor().newInstance();
+            callstack.top().setClassInstance(bean);
+            for (int i = 0; i < jjtGetNumChildren(); i++) {
+                BSHAssignment asNode = (BSHAssignment)this.jjtGetChild(i);
+                BSHPrimaryExpression peNode = (BSHPrimaryExpression)asNode.jjtGetChild(0);
+                peNode.isArrayExpression = peNode.isMapExpression = false;
+                asNode.eval(callstack, interpreter);
+            }
+            return bean;
+        } catch (Throwable t) {
+            throw new EvalError(t.getMessage(), this, callstack, t);
+        } finally {
+            callstack.pop();
+        }
+    }
+
     /** Cast the array entry value to type and unwrap an primitives.
      * If the dimensionality of the array is 1 the value element can be
      * Primitive or Object types otherwise we expect an array.
@@ -237,10 +265,20 @@ class BSHArrayInitializer extends SimpleNode {
         isMapInArray = is;
     }
 
+    /** Determine whether type or current node can be expressed as a bean.
+     * @return if this is a bean type */
+    private boolean isBeanType(Class<?> type) {
+        return Void.TYPE != type && !Types.isCollectionType(type)
+            && jjtGetChild(0) instanceof BSHAssignment
+            && jjtGetChild(0).jjtGetChild(0) instanceof BSHPrimaryExpression
+            && ((BSHPrimaryExpression)jjtGetChild(0).jjtGetChild(0)).isMapExpression
+            && jjtGetChild(0).jjtGetChild(0).jjtGetChild(0) instanceof BSHAmbiguousName;
+    }
+
     /** Convenience method to query the provided node's map in array flag.
      * @param init the BSHArrayInitializer to query
      * @return the given initializer's isMapInArray state  */
-    boolean isMapInArray(BSHArrayInitializer init) {
+    private boolean isMapInArray(BSHArrayInitializer init) {
         return init.isMapInArray;
     }
 
