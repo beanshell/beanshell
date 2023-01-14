@@ -88,7 +88,7 @@ class BSHArrayDimensions extends SimpleNode
             Object initValue = ((BSHArrayInitializer) child).eval(
                 baseType, numUndefinedDims, callstack, interpreter);
 
-            // eval may return Map, MapEntry, Collection types
+            // eval may return Map, MapEntry, Collection, or Bean types
             if ( !initValue.getClass().isArray() )
                 return initValue;
 
