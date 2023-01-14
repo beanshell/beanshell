@@ -390,7 +390,8 @@ public class NameSpace
                         "(Strict Java mode) Assignment to undeclared variable: "
                                 + name);
             final boolean setProp = this.attemptSetPropertyValue(name, value,
-                    null);
+                    null != thisReference ? thisReference.declaringInterpreter
+                    : null);
             if (setProp)
                 return;
             // If recurse, set global untyped var, else set it here.
