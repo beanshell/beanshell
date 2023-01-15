@@ -26,6 +26,7 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.lang.ref.WeakReference;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -328,6 +329,10 @@ public class InterpreterTest {
     public void reset_interpreter() throws Exception {
         final Interpreter bsh = new Interpreter();
         assertEquals("test123", bsh.eval("'test' + (100 + 20 + 3)"));
+        for (String cls:new String[] {"A","B","C","D","E"}) {
+            assertEquals(cls, bsh.eval("class "+cls+" { a(){ return new Object(); }"
+            +" b(){} c=a(); d=2; } return new "+cls+"().getClass().getName();"));
+        }
         long b4 = Runtime.getRuntime().freeMemory();
         bsh.reset();
         TestUtil.cleanUp();

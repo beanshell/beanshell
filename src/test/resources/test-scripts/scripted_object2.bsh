@@ -1,0 +1,46 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+/*
+ * closure called from block with additional method does not break
+ * Related to #659
+ */
+
+Object closure1() {
+   list = new ArrayList();
+   this.list.add(1);
+
+   return this;
+}
+
+double doesntMatter() {
+    return 1;
+}
+
+try {
+    t = closure1();
+    assertEquals("list size is equal te 1", 1, t.list.size());
+} catch (Exception ex) {
+    assert(false);
+}
+
+/*
+ * sudo scripted object returning from this reported #659
+ */
+closure2() {
+   list = new ArrayList();
+   this.list.add(1);
+
+   return this.list;
+}
+
+assertEquals("has one element from global", 1, closure2().size());
+{ assertEquals("has one element from block", 1, closure2().size()); }
+{
+   t = closure2();
+   assertEquals("has one element from block assigned", 1, t.size());
+}
+
+complete();

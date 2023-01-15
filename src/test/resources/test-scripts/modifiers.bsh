@@ -42,8 +42,10 @@ assert( isEvalError("public/private/protected cannot be used in combination.", "
 
 foo(final int bar) {
     assert( Reflect.getVariable(this.namespace, 'bar').getModifiers().hasModifier('final'));
+    assert( isEvalError("Cannot re-assign final variable bar", "bar = 2;"));
 }
 foo(1);
+assert( Reflect.getMethod(this.namespace, 'foo', {Integer.TYPE}).getParameterModifiers()[0].hasModifier('final'));
 
 assert( isEvalError("Constructor cannot be declared 'static'", "class A { public static A() {} }"));
 assert( isEvalError("Constructor cannot be declared 'synchronized'", "class B { synchronized B() {} }"));

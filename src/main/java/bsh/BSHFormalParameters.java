@@ -109,12 +109,12 @@ class BSHFormalParameters extends SimpleNode
             return paramTypes;
 
         insureParsed();
-        Class [] paramTypes = new Class[numArgs];
+        Class<?> [] paramTypes = new Class[numArgs];
 
         for(int i=0; i<numArgs; i++)
         {
             BSHFormalParameter param = (BSHFormalParameter)jjtGetChild(i);
-            paramTypes[i] = (Class)param.eval( callstack, interpreter );
+            paramTypes[i] = (Class<?>)param.eval( callstack, interpreter );
         }
 
         this.paramTypes = paramTypes;
