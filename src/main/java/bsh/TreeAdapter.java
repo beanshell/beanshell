@@ -1,5 +1,7 @@
 package bsh;
 
+import java.security.cert.CRLReason;
+
 import bsh.congo.parser.BaseNode;
 import bsh.congo.tree.*;
 import bsh.congo.parser.BeanshellConstants.TokenType;
@@ -304,5 +306,13 @@ public class TreeAdapter extends BaseNode.Visitor {
         currentLegacyNode = legacyMethodInvocation;
         recurse(methodCall);
         currentLegacyNode = legacyMethodInvocation.jjtGetParent();
+    }
+
+    void visit(AssignmentExpression assignmentExpression) {
+        BSHAssignment legacyAssignment = new BSHAssignment(assignmentExpression);
+        if (currentLegacyNode !=null) currentLegacyNode.add(legacyAssignment);
+        currentLegacyNode =legacyAssignment;
+        recurse(assignmentExpression);
+        currentLegacyNode = legacyAssignment.jjtGetParent();
     }
 }

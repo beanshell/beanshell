@@ -34,6 +34,28 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
 
     BSHAssignment(int id) { super(id); }
 
+    BSHAssignment(bsh.congo.tree.AssignmentExpression assignmentExpression) {
+        super(ParserTreeConstants.JJTASSIGNMENT, assignmentExpression);
+        bsh.congo.parser.Token tok = assignmentExpression.firstChildOfType(bsh.congo.tree.Operator.class);
+        switch(tok.getType()) {
+            case ASSIGN : operator = ASSIGN; break;
+            case PLUSASSIGN : operator = PLUSASSIGN; break;
+            case MINUSASSIGN : operator = MINUSASSIGN; break;
+            case STARASSIGN : operator = STARASSIGN; break;
+            case SLASHASSIGN : operator = SLASHASSIGN; break;
+            case REMASSIGN : operator = MODASSIGN; break;
+            case LSHIFTASSIGN : operator = LSHIFTASSIGN; break;
+            case RSIGNEDSHIFTASSIGN : operator = RSIGNEDSHIFTASSIGN; break;
+            case RUNSIGNEDSHIFTASSIGN : operator = RUNSIGNEDSHIFTASSIGN; break;
+            case ANDASSIGN :operator = ANDASSIGN; break;
+            case XORASSIGN : operator = XORASSIGN; break;
+            case ORASSIGN : operator = ORASSIGN; break;
+            case POWERASSIGN : operator = POWERASSIGN; break;
+            case NULLCOALESCEASSIGN : operator = NULLCOALESCEASSIGN; break;
+            default: break;
+        }
+    }
+    
     public Object eval(CallStack callstack, Interpreter interpreter)
             throws EvalError {
         if ( null == operator ) try {
