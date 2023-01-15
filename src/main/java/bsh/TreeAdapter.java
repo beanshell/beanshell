@@ -335,4 +335,12 @@ public class TreeAdapter extends BaseNode.Visitor {
         currentLegacyNode.add(multiCatch);
         visit(catchBlock.getBlock());
     }
+
+    void visit(IfStatement ifStatement) {
+        BSHIfStatement legacyIfStatement = new BSHIfStatement(ifStatement);
+        if (currentLegacyNode!=null) currentLegacyNode.add(legacyIfStatement);
+        currentLegacyNode = legacyIfStatement;
+        recurse(ifStatement);
+        currentLegacyNode = legacyIfStatement.jjtGetParent();
+    }
 }

@@ -28,11 +28,19 @@
 
 package bsh;
 
+import bsh.congo.tree.EmptyStatement;
+import bsh.congo.tree.Statement;
+
 class BSHIfStatement extends SimpleNode
 {
     boolean isClosed;
 
     BSHIfStatement(int id) { super(id); }
+
+    BSHIfStatement(bsh.congo.tree.IfStatement ifStatement) {
+        super(ParserTreeConstants.JJTIFSTATEMENT, ifStatement);
+        isClosed = ifStatement.firstChildOfType(Statement.class) instanceof EmptyStatement;
+    }
 
     public Object eval(CallStack callstack, Interpreter interpreter)
         throws EvalError
