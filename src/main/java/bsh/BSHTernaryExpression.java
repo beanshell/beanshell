@@ -37,6 +37,10 @@ class BSHTernaryExpression extends SimpleNode {
 
     BSHTernaryExpression(int id) { super(id); }
 
+    BSHTernaryExpression(bsh.congo.tree.ConditionalExpression exp) {
+        super(ParserTreeConstants.JJTTERNARYEXPRESSION, exp);
+    }
+
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError
     {

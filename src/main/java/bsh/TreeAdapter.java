@@ -289,4 +289,20 @@ public class TreeAdapter extends BaseNode.Visitor {
         BSHTypedVariableDeclaration legacyVarDeclaration = new BSHTypedVariableDeclaration(varDeclaration);
         if (currentLegacyNode != null) currentLegacyNode.add(legacyVarDeclaration);
     }
+
+    void visit(ConditionalExpression conditionalExpression) {
+        BSHTernaryExpression legacyTernaryExpression = new BSHTernaryExpression(conditionalExpression);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyTernaryExpression);
+        currentLegacyNode = legacyTernaryExpression;
+        recurse(conditionalExpression);
+        currentLegacyNode = legacyTernaryExpression.jjtGetParent();
+    }
+
+    void visit(MethodCall methodCall) {
+        BSHMethodInvocation legacyMethodInvocation = new BSHMethodInvocation(methodCall);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyMethodInvocation);
+        currentLegacyNode = legacyMethodInvocation;
+        recurse(methodCall);
+        currentLegacyNode = legacyMethodInvocation.jjtGetParent();
+    }
 }
