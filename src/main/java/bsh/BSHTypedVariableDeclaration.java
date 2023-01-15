@@ -34,6 +34,15 @@ class BSHTypedVariableDeclaration extends SimpleNode {
 
     BSHTypedVariableDeclaration(int id) { super(id); }
 
+    BSHTypedVariableDeclaration(bsh.congo.tree.NoVarDeclaration varDeclaration) {
+        super(ParserTreeConstants.JJTTYPEDVARIABLEDECLARATION, varDeclaration);
+        java.util.List<bsh.congo.tree.VariableDeclarator> declarators = varDeclaration.childrenOfType(bsh.congo.tree.VariableDeclarator.class);
+        bvda = new BSHVariableDeclarator[declarators.size()];
+        for (int i = 0; i< declarators.size(); i++) {
+            bvda[i] = new BSHVariableDeclarator(declarators.get(i));
+        }
+    }
+
     private BSHType getTypeNode() {
         return ((BSHType)jjtGetChild(0));
     }

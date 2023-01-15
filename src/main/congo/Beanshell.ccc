@@ -173,3 +173,21 @@ NullCoalesceElvisSpaceShipExpression :
   ConditionalOrExpression
   (((<NULLCOALESCE>|<ELVIS>|<SPACESHIP>) ConditionalOrExpression) #NullCoalesceElvisSpaceShipExpression(+1) )*
 ;
+
+INJECT TryWithResources : 
+    import java.util.List;
+    import java.util.ArrayList;
+{
+    public List<Node> getResources() {
+        List<Node> result = new ArrayList<>();
+        for (Node n : children()) {
+            if (n instanceof LocalVariableDeclaration
+                || n instanceof Name
+                || n instanceof DotName) {
+                  result.add(n);
+                }
+            if (n.getTokenType() == RPAREN) break;
+        }
+        return result;
+    }
+}

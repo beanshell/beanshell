@@ -276,4 +276,12 @@ public class TreeAdapter extends BaseNode.Visitor {
         recurse(nullCoalesceElvisSpaceShipExpression);
         currentLegacyNode = legacyNullCoalesceElvisSpaceShipExpression.jjtGetParent();
     }
+
+    void visit(CodeBlock block) {
+        BSHBlock legacyBlock = new BSHBlock(block);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyBlock);
+        currentLegacyNode = legacyBlock;
+        recurse(block);
+        currentLegacyNode = legacyBlock.jjtGetParent();
+    }
 }

@@ -54,6 +54,11 @@ class BSHBlock extends SimpleNode {
         blockId = BlockNameSpace.blockCount.incrementAndGet();
     }
 
+    BSHBlock(bsh.congo.tree.CodeBlock block) {
+        super(ParserTreeConstants.JJTBLOCK, block);
+        blockId = BlockNameSpace.blockCount.incrementAndGet();
+    }
+
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
