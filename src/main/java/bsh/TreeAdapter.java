@@ -343,4 +343,12 @@ public class TreeAdapter extends BaseNode.Visitor {
         recurse(ifStatement);
         currentLegacyNode = legacyIfStatement.jjtGetParent();
     }
+
+    void visit(EnhancedForStatement enhancedForStatement) {
+        BSHEnhancedForStatement legacyEnhancedForStatement = new BSHEnhancedForStatement(enhancedForStatement);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyEnhancedForStatement);
+        currentLegacyNode = legacyEnhancedForStatement;
+        recurse(enhancedForStatement);
+        currentLegacyNode = legacyEnhancedForStatement.jjtGetParent();
+    }
 }

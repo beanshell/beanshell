@@ -27,6 +27,9 @@ package bsh;
 
 import java.util.Iterator;
 
+import bsh.congo.parser.BeanshellConstants.TokenType;
+import bsh.congo.tree.LocalVariableDeclaration;
+
 /**
  * Implementation of the enhanced for(:) statement.
  *  This statement uses Iterator to support iteration over a wide variety
@@ -45,6 +48,13 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
     BSHEnhancedForStatement(int id) {
         super(id);
         blockId = BlockNameSpace.blockCount.incrementAndGet();
+    }
+
+    BSHEnhancedForStatement(bsh.congo.tree.EnhancedForStatement enhancedForStatement) {
+        super(ParserTreeConstants.JJTENHANCEDFORSTATEMENT, enhancedForStatement);
+        blockId = BlockNameSpace.blockCount.incrementAndGet();
+        isFinal = enhancedForStatement.firstChildOfType(LocalVariableDeclaration.class).firstChildOfType(TokenType.FINAL) != null;
+        //TODO varName and label
     }
 
 
