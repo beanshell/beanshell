@@ -284,4 +284,9 @@ public class TreeAdapter extends BaseNode.Visitor {
         recurse(block);
         currentLegacyNode = legacyBlock.jjtGetParent();
     }
+
+    void visit(NoVarDeclaration varDeclaration) {
+        BSHTypedVariableDeclaration legacyVarDeclaration = new BSHTypedVariableDeclaration(varDeclaration);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyVarDeclaration);
+    }
 }

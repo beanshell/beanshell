@@ -24,6 +24,9 @@ public class BSHTryWithResources extends SimpleNode {
 
     public BSHTryWithResources(bsh.congo.tree.TryWithResources tryWithResources) {
         super(ParserTreeConstants.JJTTRYWITHRESOURCES, tryWithResources);
+        for (bsh.congo.parser.Node n : tryWithResources.getResources()) {
+            add(new BSHAutoCloseable((bsh.congo.tree.NoVarDeclaration) n));
+        }
     }
 
     public Object eval( CallStack callstack, Interpreter interpreter)

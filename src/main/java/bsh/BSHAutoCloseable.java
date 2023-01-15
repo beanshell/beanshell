@@ -25,6 +25,10 @@ public class BSHAutoCloseable extends BSHTypedVariableDeclaration {
 
     public BSHAutoCloseable(int id) { super(id);  }
 
+    BSHAutoCloseable(bsh.congo.tree.NoVarDeclaration n) {
+        super(n);
+    }
+
     public Object eval(CallStack callstack, Interpreter interpreter)
             throws EvalError {
 
