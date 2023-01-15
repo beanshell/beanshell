@@ -27,10 +27,17 @@
 
 package bsh;
 
+import bsh.congo.parser.BeanshellConstants.TokenType;
+
 class BSHSwitchLabel extends SimpleNode {
     boolean isDefault;
 
     public BSHSwitchLabel(int id) { super(id); }
+
+    public BSHSwitchLabel(bsh.congo.tree.ClassicSwitchLabel switchLabel) { 
+        super(ParserTreeConstants.JJTSWITCHLABEL, switchLabel); 
+        isDefault = switchLabel.getChild(0).getTokenType() == TokenType._DEFAULT;
+    }
 
     public Object eval(
         CallStack callstack, Interpreter interpreter) throws EvalError

@@ -315,4 +315,20 @@ public class TreeAdapter extends BaseNode.Visitor {
         recurse(assignmentExpression);
         currentLegacyNode = legacyAssignment.jjtGetParent();
     }
+
+    void visit(ClassicSwitchStatement switchStatement) {
+        BSHSwitchStatement legacySwitchStatement = new BSHSwitchStatement(switchStatement);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacySwitchStatement);
+        currentLegacyNode = legacySwitchStatement;
+        recurse(switchStatement);
+        currentLegacyNode = legacySwitchStatement.jjtGetParent();
+    }
+
+    void visit(ClassicSwitchLabel switchLabel) {
+        BSHSwitchLabel legacySwitchLabel = new BSHSwitchLabel(switchLabel);
+        if (currentLegacyNode != null) currentLegacyNode.add(legacySwitchLabel);
+        currentLegacyNode = legacySwitchLabel;
+        recurse(switchLabel);
+        currentLegacyNode = legacySwitchLabel.jjtGetParent();
+    }
 }
