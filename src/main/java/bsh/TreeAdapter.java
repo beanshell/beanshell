@@ -1,7 +1,5 @@
 package bsh;
 
-import java.security.cert.CRLReason;
-
 import bsh.congo.parser.BaseNode;
 import bsh.congo.tree.*;
 import bsh.congo.parser.BeanshellConstants.TokenType;
@@ -330,5 +328,11 @@ public class TreeAdapter extends BaseNode.Visitor {
         currentLegacyNode = legacySwitchLabel;
         recurse(switchLabel);
         currentLegacyNode = legacySwitchLabel.jjtGetParent();
+    }
+
+    void visit(CatchBlock catchBlock) {
+        BSHMultiCatch multiCatch = new BSHMultiCatch(catchBlock);
+        currentLegacyNode.add(multiCatch);
+        visit(catchBlock.getBlock());
     }
 }

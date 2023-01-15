@@ -15,13 +15,22 @@
  * limitations under the License. */
 package bsh;
 
+import bsh.congo.parser.BeanshellConstants.TokenType;
+
 public class BSHMultiCatch extends SimpleNode {
     private static final long serialVersionUID = 1L;
     public static final Class<?> UNTYPED = null;
     public String name;
     public boolean isFinal = false;
     public Class<?>[] types;
+
     public BSHMultiCatch(int id) { super(id); }
+
+    public BSHMultiCatch(bsh.congo.tree.CatchBlock catchBlock) {
+        super(ParserTreeConstants.JJTMULTICATCH, catchBlock);
+        isFinal = catchBlock.firstChildOfType(TokenType.FINAL) != null;
+        //TODO name and types
+    }
 
     public int countTypes() {
         if ( jjtGetNumChildren() > 0 )
