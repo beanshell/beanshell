@@ -485,7 +485,7 @@ public class TreeAdapter extends BaseNode.Visitor {
         currentLegacyNode = currentLegacyNode.jjtGetParent();
     }
 
-    void visit(Name name) {
+    void visit(bsh.congo.tree.Name name) {
         BSHAmbiguousName legacyName = new BSHAmbiguousName(name);
         if (legacyRoot == null) legacyRoot = legacyName;
         if (currentLegacyNode != null) currentLegacyNode.add(legacyName);
