@@ -53,7 +53,7 @@ public interface Node extends bsh.congo.parser.Node, ListIterator<Node> {
     /** Return the list of child nodes..
      * @return children array or zero length Node array */
     default Node[] jjtGetChildren() {
-        return childrenOfType(Node.class).toArray(null);
+        return childrenOfType(Node.class).toArray(new Node[0]);
     }
     //  ---- end BeanShell specific stuff ----  //
 
