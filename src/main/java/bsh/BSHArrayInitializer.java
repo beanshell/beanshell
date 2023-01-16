@@ -38,6 +38,10 @@ class BSHArrayInitializer extends SimpleNode {
     Deque<BSHPrimaryExpression> expressionQueue = new ArrayDeque<>();
     BSHArrayInitializer(int id) { super(id); }
 
+    BSHArrayInitializer(bsh.congo.tree.ArrayInitializer arrayInitializer) {
+        super(ParserTreeConstants.JJTARRAYINITIALIZER, arrayInitializer);
+    }
+
     /** Hook into node creation to apply additional configurations.
      * Inform expression children that they are array expressions.
      * @see BSHPrimaryExpression.setArrayExpression
