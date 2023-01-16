@@ -56,6 +56,18 @@ class BSHClassDeclaration extends SimpleNode
 
     BSHClassDeclaration(int id) { super(id); }
 
+    BSHClassDeclaration(bsh.congo.tree.ClassDeclaration classDeclaration) {
+        super(ParserTreeConstants.JJTCLASSDECLARATION, classDeclaration);
+    }
+
+    BSHClassDeclaration(bsh.congo.tree.InterfaceDeclaration interfaceDeclaration) {
+        super(ParserTreeConstants.JJTCLASSDECLARATION, interfaceDeclaration);
+    }
+
+    BSHClassDeclaration(bsh.congo.tree.EnumDeclaration enumDeclaration) {
+        super(ParserTreeConstants.JJTCLASSDECLARATION, enumDeclaration);
+    }
+
     /**
     */
     public synchronized Object eval(final CallStack callstack, final Interpreter interpreter ) throws EvalError {

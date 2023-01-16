@@ -417,4 +417,40 @@ public class TreeAdapter extends BaseNode.Visitor {
         recurse(forStatement);
         currentLegacyNode = legacyForStatement.jjtGetParent();
     }
+
+    void visit(ClassDeclaration classDeclaration) {
+        BSHClassDeclaration legacyClassDeclaration = new BSHClassDeclaration(classDeclaration);
+        if (legacyRoot == null) legacyRoot = legacyClassDeclaration;
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyClassDeclaration);
+        recurse(classDeclaration);
+        currentLegacyNode = currentLegacyNode.jjtGetParent();
+    }
+
+    void visit(InterfaceDeclaration interfaceDeclaration) {
+        BSHClassDeclaration legacyInterfaceDeclaration = new BSHClassDeclaration(interfaceDeclaration);
+        if (legacyRoot == null) legacyRoot = legacyInterfaceDeclaration;
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyInterfaceDeclaration);
+        recurse(interfaceDeclaration);
+        currentLegacyNode = currentLegacyNode.jjtGetParent();
+    }
+
+    void visit(EnumDeclaration enumDeclaration) {
+        BSHClassDeclaration legacyEnumDeclaration = new BSHClassDeclaration(enumDeclaration);
+        if (legacyRoot == null) legacyRoot = legacyEnumDeclaration;
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyEnumDeclaration);
+        recurse(enumDeclaration);
+        currentLegacyNode = currentLegacyNode.jjtGetParent();
+    }
+
+    void visit(EnumBody enumBody) {
+        BSHBlock legacyEnumBlock = new BSHBlock(enumBody);
+        currentLegacyNode.add(legacyEnumBlock);
+        recurse(enumBody);
+        currentLegacyNode = currentLegacyNode.jjtGetParent();
+    }
+
+    void visit(EnumConstant enumConstant) {
+        BSHEnumConstant legacyEnumConstant = new BSHEnumConstant(enumConstant);
+        currentLegacyNode.add(legacyEnumConstant);
+    }
 }

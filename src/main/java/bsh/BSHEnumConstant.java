@@ -26,6 +26,10 @@ public class BSHEnumConstant extends SimpleNode {
 
     public BSHEnumConstant(int id) { super(id); }
 
+    BSHEnumConstant(bsh.congo.tree.EnumConstant enumConstant) {
+        super(ParserTreeConstants.JJTENUMCONSTANT, enumConstant);
+    }
+
     public Object eval( CallStack callstack, Interpreter interpreter ) throws EvalError {
         NameSpace namespace = callstack.top();
         if ( !getName().equals(""+namespace.classInstance) )

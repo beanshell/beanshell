@@ -31,6 +31,9 @@ package bsh;
 import java.util.ArrayList;
 import java.util.List;
 
+import bsh.congo.parser.BeanshellConstants.TokenType;
+import bsh.congo.tree.Initializer;
+
 /** A node reprresenting a code block */
 class BSHBlock extends SimpleNode {
     /** Unique block id for this instance */
@@ -56,6 +59,12 @@ class BSHBlock extends SimpleNode {
 
     BSHBlock(bsh.congo.tree.CodeBlock block) {
         super(ParserTreeConstants.JJTBLOCK, block);
+        blockId = BlockNameSpace.blockCount.incrementAndGet();
+        isStatic = block.getParent() instanceof Initializer && block.getParent().getChild(0).getTokenType() == TokenType.STATIC;
+    }
+
+    BSHBlock(bsh.congo.tree.EnumBody enumBody) {
+        super(ParserTreeConstants.JJTBLOCK, enumBody);
         blockId = BlockNameSpace.blockCount.incrementAndGet();
     }
 
