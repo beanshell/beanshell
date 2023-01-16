@@ -37,7 +37,7 @@ public final class BSHLiteral extends SimpleNode
     BSHLiteral(int id) { super(id); }
 
     BSHLiteral(bsh.congo.tree.LiteralExpression literalExpression) {
-        super(ParserTreeConstants.JJTLITERAL, literalExpression);
+        super(literalExpression);
     }
 
     public Object eval( CallStack callstack, Interpreter interpreter )

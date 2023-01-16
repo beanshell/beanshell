@@ -58,13 +58,13 @@ class BSHBlock extends SimpleNode {
     }
 
     BSHBlock(bsh.congo.tree.CodeBlock block) {
-        super(ParserTreeConstants.JJTBLOCK, block);
+        super(block);
         blockId = BlockNameSpace.blockCount.incrementAndGet();
         isStatic = block.getParent() instanceof Initializer && block.getParent().getChild(0).getTokenType() == TokenType.STATIC;
     }
 
     BSHBlock(bsh.congo.tree.EnumBody enumBody) {
-        super(ParserTreeConstants.JJTBLOCK, enumBody);
+        super(enumBody);
         blockId = BlockNameSpace.blockCount.incrementAndGet();
     }
 

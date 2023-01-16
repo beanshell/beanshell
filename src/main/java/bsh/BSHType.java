@@ -57,17 +57,17 @@ class BSHType extends SimpleNode implements BshClassManager.Listener {
     }
 
     BSHType(bsh.congo.tree.PrimitiveArrayType pat) {
-        super(ParserTreeConstants.JJTTYPE, pat);
+        super(pat);
         arrayDims = (int) pat.children().stream().filter(t->t.getTokenType()==TokenType.LBRACKET).count();
     }
 
     BSHType(bsh.congo.tree.ReferenceType rt) {
-        super(ParserTreeConstants.JJTTYPE, rt);
+        super(rt);
         arrayDims = (int) rt.children().stream().filter(t->t.getTokenType()==TokenType.LBRACKET).count();
     }
 
     BSHType(bsh.congo.tree.ObjectType ot) {
-        super(ParserTreeConstants.JJTTYPE, ot);
+        super(ot);
     }
 
     /**

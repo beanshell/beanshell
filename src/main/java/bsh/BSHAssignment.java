@@ -35,7 +35,7 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
     BSHAssignment(int id) { super(id); }
 
     BSHAssignment(bsh.congo.tree.AssignmentExpression assignmentExpression) {
-        super(ParserTreeConstants.JJTASSIGNMENT, assignmentExpression);
+        super(assignmentExpression);
         bsh.congo.parser.Token tok = assignmentExpression.firstChildOfType(bsh.congo.tree.Operator.class);
         switch(tok.getType()) {
             case ASSIGN : operator = ASSIGN; break;

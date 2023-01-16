@@ -38,12 +38,12 @@ class BSHReturnStatement extends SimpleNode implements ParserConstants
     BSHReturnStatement(int id) { super(id); }
 
     BSHReturnStatement(bsh.congo.tree.ReturnStatement rs) {
-        super(ParserTreeConstants.JJTRETURNSTATEMENT, rs);
+        super(rs);
         this.kind = ParserConstants.RETURN;
     }
 
     BSHReturnStatement(bsh.congo.tree.BreakStatement bs) {
-        super(ParserTreeConstants.JJTRETURNSTATEMENT, bs);
+        super(bs);
         this.kind = ParserConstants.BREAK;
         bsh.congo.parser.Token labelToken = bs.firstChildOfType(TokenType.IDENTIFIER);
         if (labelToken != null) {
@@ -52,7 +52,7 @@ class BSHReturnStatement extends SimpleNode implements ParserConstants
     }
 
     BSHReturnStatement(bsh.congo.tree.ContinueStatement cs) {
-        super(ParserTreeConstants.JJTRETURNSTATEMENT, cs);
+        super(cs);
         this.kind = ParserConstants.CONTINUE;
         bsh.congo.parser.Token labelToken = cs.firstChildOfType(TokenType.IDENTIFIER);
         if (labelToken != null) {

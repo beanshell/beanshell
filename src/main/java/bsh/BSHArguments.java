@@ -33,7 +33,7 @@ class BSHArguments extends SimpleNode
     BSHArguments(int id) { super(id); }
     
     BSHArguments(bsh.congo.tree.InvocationArguments args) { 
-        super(ParserTreeConstants.JJTARGUMENTS, args); 
+        super(args); 
     }
 
     /**

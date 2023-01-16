@@ -48,7 +48,7 @@ class BSHFormalParameter extends SimpleNode
     BSHFormalParameter(int id) { super(id); }
     
     BSHFormalParameter(bsh.congo.tree.FormalParameter param) { 
-        super(ParserTreeConstants.JJTFORMALPARAMETER, param);
+        super(param);
         isFinal = param.firstDescendantOfType(TokenType.FINAL) != null;
         isVarArgs = param.firstChildOfType(TokenType.VAR_ARGS) != null;
     }

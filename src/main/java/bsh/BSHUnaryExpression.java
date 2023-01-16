@@ -38,7 +38,7 @@ class BSHUnaryExpression extends SimpleNode implements ParserConstants
     BSHUnaryExpression(int id) { super(id); }
     
     BSHUnaryExpression(bsh.congo.tree.UnaryExpression ue) { 
-        super(ParserTreeConstants.JJTUNARYEXPRESSION, ue);
+        super(ue);
         if (ue.firstChildOfType(TokenType.PLUS) != null) {
             kind = bsh.ParserConstants.PLUS;
         } else {

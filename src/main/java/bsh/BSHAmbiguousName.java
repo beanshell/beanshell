@@ -34,16 +34,16 @@ class BSHAmbiguousName extends SimpleNode
     BSHAmbiguousName(int id) { super(id); }
 
     BSHAmbiguousName(bsh.congo.tree.ObjectType ot) {
-        super(ParserTreeConstants.JJTAMBIGUOUSNAME, ot);
+        super(ot);
         text=ot.toString();
     }
 
     BSHAmbiguousName(bsh.congo.tree.ReferenceType rt) {
-        super(ParserTreeConstants.JJTAMBIGUOUSNAME, rt);
+        super(rt);
     }
 
     BSHAmbiguousName(bsh.congo.tree.Name name) {
-        super(ParserTreeConstants.JJTAMBIGUOUSNAME, name);
+        super(name);
     }
 
     public Name getName( NameSpace namespace )

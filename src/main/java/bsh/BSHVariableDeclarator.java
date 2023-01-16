@@ -43,7 +43,7 @@ class BSHVariableDeclarator extends SimpleNode
     BSHVariableDeclarator(int id) { super(id); }
 
     BSHVariableDeclarator(bsh.congo.tree.VariableDeclarator vd) { 
-        super(ParserTreeConstants.JJTVARIABLEDECLARATOR, vd); 
+        super(vd); 
         name = vd.firstChildOfType(TokenType.IDENTIFIER).getImage();
         dimensions = (int) vd.children().stream().filter(t->t.getTokenType() == TokenType.LBRACKET).count();
     }

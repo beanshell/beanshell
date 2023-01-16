@@ -27,7 +27,7 @@ public class BSHMultiCatch extends SimpleNode {
     public BSHMultiCatch(int id) { super(id); }
 
     public BSHMultiCatch(bsh.congo.tree.CatchBlock catchBlock) {
-        super(ParserTreeConstants.JJTMULTICATCH, catchBlock);
+        super(catchBlock);
         isFinal = catchBlock.firstChildOfType(TokenType.FINAL) != null;
         //TODO name and types
     }

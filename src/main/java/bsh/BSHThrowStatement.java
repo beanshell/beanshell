@@ -33,7 +33,7 @@ class BSHThrowStatement extends SimpleNode
     BSHThrowStatement(int id) { super(id); }
 
     BSHThrowStatement(bsh.congo.tree.ThrowStatement throwStatement) {
-        super(ParserTreeConstants.JJTTHROWSTATEMENT, throwStatement);
+        super(throwStatement);
     }
 
     public Object eval( CallStack callstack, Interpreter interpreter)

@@ -43,7 +43,7 @@ class BSHFormalParameters extends SimpleNode
     BSHFormalParameters(int id) { super(id); }
 
     BSHFormalParameters(bsh.congo.tree.FormalParameters params) {
-        super(ParserTreeConstants.JJTFORMALPARAMETERS, params);
+        super(params);
     }
 
     void insureParsed()

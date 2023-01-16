@@ -27,7 +27,7 @@ public class BSHEnumConstant extends SimpleNode {
     public BSHEnumConstant(int id) { super(id); }
 
     BSHEnumConstant(bsh.congo.tree.EnumConstant enumConstant) {
-        super(ParserTreeConstants.JJTENUMCONSTANT, enumConstant);
+        super(enumConstant);
     }
 
     public Object eval( CallStack callstack, Interpreter interpreter ) throws EvalError {

@@ -35,7 +35,7 @@ class BSHSwitchLabel extends SimpleNode {
     public BSHSwitchLabel(int id) { super(id); }
 
     public BSHSwitchLabel(bsh.congo.tree.ClassicSwitchLabel switchLabel) { 
-        super(ParserTreeConstants.JJTSWITCHLABEL, switchLabel); 
+        super(switchLabel); 
         isDefault = switchLabel.getChild(0).getTokenType() == TokenType._DEFAULT;
     }
 

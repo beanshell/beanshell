@@ -46,7 +46,7 @@ class BSHForStatement extends SimpleNode implements ParserConstants
     }
 
     BSHForStatement(bsh.congo.tree.ForStatement forStatement) {
-        super(ParserTreeConstants.JJTFORSTATEMENT, forStatement);
+        super(forStatement);
         blockId = BlockNameSpace.blockCount.incrementAndGet();
         //TODO on the other variables.
     }

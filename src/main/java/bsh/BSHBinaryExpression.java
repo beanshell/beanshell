@@ -40,52 +40,52 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
     BSHBinaryExpression(int id) { super(id); }
 
     BSHBinaryExpression(bsh.congo.tree.AdditiveExpression addExp) {
-        super(ParserTreeConstants.JJTBINARYEXPRESSION, addExp);
+        super(addExp);
         kind = addExp.firstChildOfType(TokenType.PLUS) != null ? PLUS : MINUS;
     }
 
     BSHBinaryExpression(bsh.congo.tree.MultiplicativeExpression multExp) {
-        super(ParserTreeConstants.JJTBINARYEXPRESSION, multExp);
+        super(multExp);
         kind = multExp.firstChildOfType(TokenType.STAR) != null ? STAR : SLASH;
     }
 
     BSHBinaryExpression(bsh.congo.tree.PowerExpression powExp) {
-        super(ParserTreeConstants.JJTBINARYEXPRESSION, powExp);
+        super(powExp);
         kind = POWER;
     }
 
     BSHBinaryExpression(bsh.congo.tree.ConditionalOrExpression condOrExp) {
-        super(ParserTreeConstants.JJTBINARYEXPRESSION, condOrExp);
+        super(condOrExp);
         kind = BOOL_OR;
     }
 
     BSHBinaryExpression(bsh.congo.tree.ConditionalAndExpression condAndExp) {
-        super(ParserTreeConstants.JJTBINARYEXPRESSION, condAndExp);
+        super(condAndExp);
         kind = BOOL_AND;
     }
 
     BSHBinaryExpression(bsh.congo.tree.InclusiveOrExpression inclusiveOrExpression) {
-        super(ParserTreeConstants.JJTBINARYEXPRESSION, inclusiveOrExpression);
+        super(inclusiveOrExpression);
         kind = BIT_OR; 
     }
 
     BSHBinaryExpression(bsh.congo.tree.ExclusiveOrExpression exclusiveOrExpression) {
-        super(ParserTreeConstants.JJTBINARYEXPRESSION, exclusiveOrExpression);
+        super(exclusiveOrExpression);
         kind = XOR; 
     }
 
     BSHBinaryExpression(bsh.congo.tree.AndExpression andExpression) {
-        super(ParserTreeConstants.JJTBINARYEXPRESSION, andExpression);
+        super(andExpression);
         kind = BIT_AND;
     }
 
     BSHBinaryExpression(bsh.congo.tree.EqualityExpression equalityExpression) {
-        super(ParserTreeConstants.JJTBINARYEXPRESSION, equalityExpression);
+        super(equalityExpression);
         kind = equalityExpression.firstChildOfType(TokenType.EQ) != null ? EQ : NE;
     }
     
     BSHBinaryExpression(bsh.congo.tree.RelationalExpression relationalExpression) {
-        super(ParserTreeConstants.JJTBINARYEXPRESSION, relationalExpression);
+        super(relationalExpression);
         switch(relationalExpression.firstChildOfType(bsh.congo.parser.Token.class).getType()) {
             case LT : kind = LT; break;
             case GT : kind = GT; break;
@@ -96,7 +96,7 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
     }
 
     BSHBinaryExpression(bsh.congo.tree.ShiftExpression shiftExpression) {
-        super(ParserTreeConstants.JJTBINARYEXPRESSION, shiftExpression);
+        super(shiftExpression);
         switch(shiftExpression.firstChildOfType(bsh.congo.parser.Token.class).getType()) {
             case LSHIFT : kind = LSHIFT; break;
             case RSIGNEDSHIFT : kind = RSIGNEDSHIFT; break;
@@ -107,12 +107,12 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
     }
 
     BSHBinaryExpression(bsh.congo.tree.InstanceOfExpression instanceOfExpression) {
-        super(ParserTreeConstants.JJTBINARYEXPRESSION, instanceOfExpression);
+        super(instanceOfExpression);
         kind = INSTANCEOF;
     }
 
     BSHBinaryExpression(bsh.congo.tree.NullCoalesceElvisSpaceShipExpression nullCoalesceElvisSpaceShipExpression) {
-        super(ParserTreeConstants.JJTBINARYEXPRESSION, nullCoalesceElvisSpaceShipExpression);
+        super(nullCoalesceElvisSpaceShipExpression);
         switch(nullCoalesceElvisSpaceShipExpression.firstChildOfType(bsh.congo.parser.Token.class).getType()) {
             case NULLCOALESCE : kind = NULLCOALESCE; break;
             case ELVIS : kind = ELVIS; break;

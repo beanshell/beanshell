@@ -48,27 +48,27 @@ class BSHPrimarySuffix extends SimpleNode
     BSHPrimarySuffix(int id) { super(id); }
 
     BSHPrimarySuffix(bsh.congo.tree.DotThis dotThis) {
-        super(ParserTreeConstants.JJTPRIMARYSUFFIX, dotThis);
+        super(dotThis);
     }
 
     BSHPrimarySuffix(bsh.congo.tree.DotSuper dotSuper) {
-        super(ParserTreeConstants.JJTPRIMARYSUFFIX, dotSuper);
+        super(dotSuper);
     }
 
     BSHPrimarySuffix(bsh.congo.tree.DotNew dotNew) {
-        super(ParserTreeConstants.JJTPRIMARYSUFFIX, dotNew);
+        super(dotNew);
     }
 
     BSHPrimarySuffix(bsh.congo.tree.DotName dotName) {
-        super(ParserTreeConstants.JJTPRIMARYSUFFIX, dotName);
+        super(dotName);
     }
 
     BSHPrimarySuffix(bsh.congo.tree.Property property) {
-        super(ParserTreeConstants.JJTPRIMARYSUFFIX, property);
+        super(property);
     }
     
     BSHPrimarySuffix(bsh.congo.tree.MethodCall methodCall) {
-        super(ParserTreeConstants.JJTPRIMARYSUFFIX, methodCall);
+        super(methodCall);
     }
     
     /*

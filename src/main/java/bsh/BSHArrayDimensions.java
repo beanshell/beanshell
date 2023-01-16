@@ -44,10 +44,10 @@ class BSHArrayDimensions extends SimpleNode
         time.
     */
     public int [] definedDimensions;
-    BSHArrayDimensions(int id) { super(id); }
+    BSHArrayDimensions(int id) { }
 
     BSHArrayDimensions(bsh.congo.tree.ArrayDimsAndInits arrayDimsAndInits) {
-        super(ParserTreeConstants.JJTARRAYDIMENSIONS, arrayDimsAndInits);
+        super(arrayDimsAndInits);
     }
 
     public void addDefinedDimension() { numDefinedDims++; }

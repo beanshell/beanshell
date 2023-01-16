@@ -39,7 +39,7 @@ class BSHArrayInitializer extends SimpleNode {
     BSHArrayInitializer(int id) { super(id); }
 
     BSHArrayInitializer(bsh.congo.tree.ArrayInitializer arrayInitializer) {
-        super(ParserTreeConstants.JJTARRAYINITIALIZER, arrayInitializer);
+        super(arrayInitializer);
     }
 
     /** Hook into node creation to apply additional configurations.
@@ -47,8 +47,8 @@ class BSHArrayInitializer extends SimpleNode {
      * @see BSHPrimaryExpression.setArrayExpression
      * {@inheritDoc} */
     @Override
-    public void jjtSetParent(Node n) {
-        super.jjtSetParent(n);
+    public void setParent(bsh.congo.parser.Node n) {
+        super.setParent(n);
         for (int i = 0; i< getChildCount(); i++) {
             Node c = (Node) getChild(i);
             if (c.jjtGetNumChildren() > 0 && c.jjtGetChild(0) instanceof BSHPrimaryExpression) {
@@ -56,13 +56,6 @@ class BSHArrayInitializer extends SimpleNode {
                 expressionQueue.peek().setArrayExpression(this);
             }
         }
-/*        
-        if ( null != children ) for ( Node c : children )
-            if ( c.jjtGetNumChildren() > 0
-                    && c.jjtGetChild(0) instanceof BSHPrimaryExpression ) {
-                expressionQueue.push((BSHPrimaryExpression) c.jjtGetChild(0));
-                expressionQueue.peek().setArrayExpression(this);
-            }*/
     }
 
     /** Default node eval is disabled for this node type.

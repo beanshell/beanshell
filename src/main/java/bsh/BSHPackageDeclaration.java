@@ -36,7 +36,7 @@ public class BSHPackageDeclaration extends SimpleNode
     }
 
     public BSHPackageDeclaration(bsh.congo.tree.PackageDeclaration pdecl) {
-        super(ParserTreeConstants.JJTPACKAGEDECLARATION, pdecl);
+        super(pdecl);
     }
 
     public Object eval( CallStack callstack, Interpreter interpreter )

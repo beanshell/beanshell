@@ -61,12 +61,9 @@ class SimpleNode extends BaseNode implements Node, Serializable {
 
     public SimpleNode() {}
 
-    /** Default constructor supplying the node with its type id.
-     * @param i type index of ParserTreeConstants.jjtNodeName */
-    public SimpleNode(int i) {}// id = i; }
+    public SimpleNode(int id) {}
 
-    public SimpleNode(int id, bsh.congo.parser.Node wrappedNode) {
-        //this.id = id;
+    public SimpleNode(bsh.congo.parser.Node wrappedNode) {
         this.wrappedNode = wrappedNode;
     }
 

@@ -40,7 +40,7 @@ class BSHCastExpression extends SimpleNode {
     public BSHCastExpression(int id) { super(id); }
 
     BSHCastExpression(bsh.congo.tree.CastExpression castExpression) {
-        super(ParserTreeConstants.JJTCASTEXPRESSION, castExpression);
+        super(castExpression);
     }
 
     /**

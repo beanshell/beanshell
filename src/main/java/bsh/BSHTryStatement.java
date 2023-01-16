@@ -45,7 +45,7 @@ class BSHTryStatement extends SimpleNode
     }
 
     BSHTryStatement(bsh.congo.tree.TryStatement tryStatement) {
-        super(ParserTreeConstants.JJTTRYSTATEMENT, tryStatement);
+        super(tryStatement);
         blockId = BlockNameSpace.blockCount.incrementAndGet();
         if (tryStatement instanceof TryWithResources) {
             tryWithResources = new BSHTryWithResources((TryWithResources) tryStatement);

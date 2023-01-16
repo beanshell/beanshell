@@ -38,10 +38,10 @@ import java.util.concurrent.CompletionException;
 */
 class BSHAllocationExpression extends SimpleNode
 {
-    BSHAllocationExpression(int id) { super(id); }
+    BSHAllocationExpression(int id) { super(); }
 
     BSHAllocationExpression(bsh.congo.tree.AllocationExpression allocationExpression) {
-        super(ParserTreeConstants.JJTALLOCATIONEXPRESSION, allocationExpression);
+        super(allocationExpression);
     }
 
     private static int innerClassCount = 0;

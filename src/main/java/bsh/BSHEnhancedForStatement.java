@@ -51,7 +51,7 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
     }
 
     BSHEnhancedForStatement(bsh.congo.tree.EnhancedForStatement enhancedForStatement) {
-        super(ParserTreeConstants.JJTENHANCEDFORSTATEMENT, enhancedForStatement);
+        super(enhancedForStatement);
         blockId = BlockNameSpace.blockCount.incrementAndGet();
         isFinal = enhancedForStatement.firstChildOfType(LocalVariableDeclaration.class).firstChildOfType(TokenType.FINAL) != null;
         //TODO varName and label

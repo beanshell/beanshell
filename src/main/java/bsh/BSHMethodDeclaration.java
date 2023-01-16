@@ -54,7 +54,7 @@ class BSHMethodDeclaration extends SimpleNode
     BSHMethodDeclaration(int id) { super(id); }
 
     BSHMethodDeclaration(bsh.congo.tree.MethodDeclaration methodDeclaration) {
-        super(ParserTreeConstants.JJTMETHODDECLARATION, methodDeclaration);
+        super(methodDeclaration);
     }
 
     /**

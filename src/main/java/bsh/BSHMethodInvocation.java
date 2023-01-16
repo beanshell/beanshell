@@ -34,7 +34,7 @@ class BSHMethodInvocation extends SimpleNode
     BSHMethodInvocation (int id) { super(id); }
 
     BSHMethodInvocation(bsh.congo.tree.MethodCall methodCall) {
-        super(ParserTreeConstants.JJTMETHODINVOCATION, methodCall);
+        super(methodCall);
     }
 
     BSHAmbiguousName getNameNode() {

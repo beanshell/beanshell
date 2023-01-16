@@ -36,7 +36,7 @@ public class BSHFormalComment extends SimpleNode
     }
 
     BSHFormalComment(bsh.congo.tree.FormalComment formalComment) {
-        super(ParserTreeConstants.JJTFORMALCOMMENT, formalComment);
+        super(formalComment);
         this.text = formalComment.getSource();
     }
 

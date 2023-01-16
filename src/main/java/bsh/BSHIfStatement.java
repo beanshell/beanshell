@@ -38,7 +38,7 @@ class BSHIfStatement extends SimpleNode
     BSHIfStatement(int id) { super(id); }
 
     BSHIfStatement(bsh.congo.tree.IfStatement ifStatement) {
-        super(ParserTreeConstants.JJTIFSTATEMENT, ifStatement);
+        super(ifStatement);
         isClosed = ifStatement.firstChildOfType(Statement.class) instanceof EmptyStatement;
     }
 

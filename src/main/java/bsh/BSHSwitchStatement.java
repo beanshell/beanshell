@@ -35,7 +35,7 @@ class BSHSwitchStatement
     public BSHSwitchStatement(int id) { super(id); }
 
     public BSHSwitchStatement(bsh.congo.tree.ClassicSwitchStatement switchStatement) {
-        super(ParserTreeConstants.JJTSWITCHSTATEMENT, switchStatement);
+        super(switchStatement);
     }
 
     public Object eval( CallStack callstack, Interpreter interpreter )

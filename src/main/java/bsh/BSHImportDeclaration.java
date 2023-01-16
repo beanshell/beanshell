@@ -38,7 +38,7 @@ class BSHImportDeclaration extends SimpleNode
     BSHImportDeclaration(int id) { super(id); }
 
     BSHImportDeclaration(bsh.congo.tree.ImportDeclaration importDecl) {
-        super(ParserTreeConstants.JJTIMPORTDECLARATION, importDecl);
+        super(importDecl);
     }
 
     public Object eval(CallStack callstack, Interpreter interpreter)
