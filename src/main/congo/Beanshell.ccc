@@ -14,6 +14,35 @@ ENSURE_FINAL_EOL=true;
 BASE_SRC_DIR="../java";
 LEGACY_GLITCHY_LOOKAHEAD=false;
 
+INJECT Node :
+import bsh.*;
+{
+    /** This is the general signature for evaluation of a node.
+     * @param callstack evaluation call stack
+     * @param interpreter evaluation interpreter
+     * @return result from evaluation
+     * @throws EvalError if an evaluation error occurred */
+    default Object eval(CallStack callstack, Interpreter interpreter) throws EvalError {
+      throw new UnsupportedOperationException();
+    }
+
+    bsh.Node JAVACODE = new SimpleNode( -1 ) {
+        private static final long serialVersionUID = 1L;
+        public String getSourceFile() {
+            return "<Called from Java Code>";
+        }
+        public int getLineNumber() {
+            return -1;
+        }
+        public String getText()  {
+            return "<Compiled Java Code>";
+        }
+        public String toString() {
+            return "JavaCode";
+        }
+    };
+}
+
 TOKEN : 
   < FORMAL_COMMENT:
        "/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/"

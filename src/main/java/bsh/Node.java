@@ -22,28 +22,6 @@ import java.util.ListIterator;
  * between nodes. */
 public interface Node extends bsh.congo.parser.Node, ListIterator<Node> {
     //  ---- start BeanShell specific stuff ----  //
-    Node JAVACODE = new SimpleNode( -1 ) {
-        private static final long serialVersionUID = 1L;
-        public String getSourceFile() {
-            return "<Called from Java Code>";
-        }
-        public int getLineNumber() {
-            return -1;
-        }
-        public String getText()  {
-            return "<Compiled Java Code>";
-        }
-        public String toString() {
-            return "JavaCode";
-        }
-    };
-
-    /** This is the general signature for evaluation of a node.
-     * @param callstack evaluation call stack
-     * @param interpreter evaluation interpreter
-     * @return result from evaluation
-     * @throws EvalError if an evaluation error occurred */
-    Object eval(CallStack callstack, Interpreter interpreter) throws EvalError;
 
     /** Set the name of the source file (or more generally source) of the text
      * from which this node was parsed.

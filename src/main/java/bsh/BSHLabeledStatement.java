@@ -61,4 +61,3 @@ public class BSHLabeledStatement extends bsh.SimpleNode implements ParserConstan
         return super.toString() + ": " + label + ":";
     }
 }
-/* ParserGeneratorCC - OriginalChecksum=38819a41232c844db8da78bbd92f9430 (do not edit this line) */

@@ -51,7 +51,7 @@ class BSHArrayInitializer extends SimpleNode {
         super.setParent(n);
         for (int i = 0; i< getChildCount(); i++) {
             Node c = (Node) getChild(i);
-            if (c.jjtGetNumChildren() > 0 && c.jjtGetChild(0) instanceof BSHPrimaryExpression) {
+            if (c.getChildCount() > 0 && c.jjtGetChild(0) instanceof BSHPrimaryExpression) {
                 expressionQueue.push((BSHPrimaryExpression) c.jjtGetChild(0));
                 expressionQueue.peek().setArrayExpression(this);
             }

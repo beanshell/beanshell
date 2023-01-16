@@ -44,7 +44,7 @@ import bsh.congo.parser.BaseNode;
     data produced by the last eval()... data that is used immediately. We'll
     try to remember to mark these as transient to highlight them.
 */
-class SimpleNode extends BaseNode implements Node, Serializable {
+public class SimpleNode extends BaseNode implements Node, Serializable {
 
     /** Serialization ID */
     private static final long serialVersionUID = 1L;
