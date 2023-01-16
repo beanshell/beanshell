@@ -14,6 +14,12 @@ ENSURE_FINAL_EOL=true;
 BASE_SRC_DIR="../java";
 LEGACY_GLITCHY_LOOKAHEAD=false;
 
+TOKEN : 
+  < FORMAL_COMMENT:
+       "/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/"
+  >
+;  
+
 INCLUDE JAVA
 
 UNPARSED : /* COMMENTS */
@@ -224,10 +230,12 @@ BlockStatement :
   |
   // Allow BeanShell package declarations in any block
   PackageDeclaration
-//  |
-//  FormalComment()  
+  |
+  FormalComment  
  )
 ;
+
+FormalComment# : <FORMAL_COMMENT> ;
 
 PrimaryExpression#interface :
  (

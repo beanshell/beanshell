@@ -490,4 +490,10 @@ public class TreeAdapter extends BaseNode.Visitor {
         if (legacyRoot == null) legacyRoot = legacyName;
         if (currentLegacyNode != null) currentLegacyNode.add(legacyName);
     }
+
+    void visit(bsh.congo.tree.FormalComment formalComment) {
+        BSHFormalComment legacyFormalComment = new BSHFormalComment(formalComment);
+        if (legacyRoot == null) legacyRoot = legacyFormalComment;
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyFormalComment);
+    }
 }
