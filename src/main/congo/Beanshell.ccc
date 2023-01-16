@@ -229,3 +229,62 @@ BlockStatement :
  )
 ;
 
+PrimaryExpression#interface :
+ (
+  LiteralExpression
+  |
+  <THIS> #LiteralExpression
+  |
+  <SUPER> #LiteralExpression
+  |
+  Parentheses
+  |
+  AllocationExpression
+  |
+  ClassLiteral
+  |
+  MethodReference
+  |
+  Name
+ )
+ (
+  (<DOT> <THIS> =>||) #DotThis(+1)
+  |
+  (<DOT> <SUPER> =>||) #DotSuper(+1)
+  |
+  (<DOT> =>|+1 AllocationExpression) #DotNew(+1)
+  |
+  (
+    <LBRACKET> 
+    [ Expression ]
+    [
+      <COLON> 
+      [ Expression ]
+      [ 
+        <COLON> 
+        [ Expression ] 
+      ] 
+    ] 
+    <RBRACKET>
+  ) #ArrayAccess(+1)
+  |
+  <LBRACE>Expression<RBRACE> #Property(+1)
+  |
+  (<DOT> [TypeArguments] <IDENTIFIER>) #DotName(+1)
+  |
+  (<DOUBLE_COLON> [TypeArguments] (<IDENTIFIER>|<NEW>)) #MethodReference(+1)
+  |
+// The following commented-out line is the absolutely correct condition for recent JDK's,
+// since yield on its own cannot be a method call, though you can write this.yield(), for example.
+// For now, I'm not including a check for that. The compiler catches it, after all. Also, it is
+// still unclear to me whether this should be caught at this point or if it is better to just do
+// a post-parse tree walk that runs over the AST and checks for these things.
+//  SCAN 1 {getToken(0).getType() == IDENTIFIER && (currentLookaheadToken==null || (peekNode().getChildCount() > 1 || !getToken(0).getImage().equals("yield")))}#
+  SCAN 1 {getToken(0).getType() == TokenType.IDENTIFIER}#
+  =>
+  InvocationArguments #MethodCall(+1)
+ )*
+ ASSERT {getToken(0).getType() != TokenType.SUPER}# : "Not a valid expression here"
+;
+
+INJECT Property : implements PrimaryExpression;

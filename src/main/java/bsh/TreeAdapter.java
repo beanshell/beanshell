@@ -298,14 +298,6 @@ public class TreeAdapter extends BaseNode.Visitor {
         currentLegacyNode = legacyTernaryExpression.jjtGetParent();
     }
 
-    void visit(MethodCall methodCall) {
-        BSHMethodInvocation legacyMethodInvocation = new BSHMethodInvocation(methodCall);
-        if (currentLegacyNode != null) currentLegacyNode.add(legacyMethodInvocation);
-        currentLegacyNode = legacyMethodInvocation;
-        recurse(methodCall);
-        currentLegacyNode = legacyMethodInvocation.jjtGetParent();
-    }
-
     void visit(AssignmentExpression assignmentExpression) {
         BSHAssignment legacyAssignment = new BSHAssignment(assignmentExpression);
         if (currentLegacyNode !=null) currentLegacyNode.add(legacyAssignment);
@@ -350,5 +342,35 @@ public class TreeAdapter extends BaseNode.Visitor {
         currentLegacyNode = legacyEnhancedForStatement;
         recurse(enhancedForStatement);
         currentLegacyNode = legacyEnhancedForStatement.jjtGetParent();
+    }
+
+    void visit(DotThis dotThis) {
+        BSHPrimarySuffix primarySuffix = new BSHPrimarySuffix(dotThis);
+        currentLegacyNode.add(primarySuffix);
+    }
+
+    void visit(DotSuper dotSuper) {
+        BSHPrimarySuffix primarySuffix = new BSHPrimarySuffix(dotSuper);
+        currentLegacyNode.add(primarySuffix);
+    }
+
+    void visit(DotNew dotNew) {
+        BSHPrimarySuffix primarySuffix = new BSHPrimarySuffix(dotNew);
+        currentLegacyNode.add(primarySuffix);
+    }
+    
+    void visit(DotName dotName) {
+        BSHPrimarySuffix primarySuffix = new BSHPrimarySuffix(dotName);
+        currentLegacyNode.add(primarySuffix);
+    }
+
+    void visit(MethodCall methodCall) {
+        BSHPrimarySuffix primarySuffix = new BSHPrimarySuffix(methodCall);
+        currentLegacyNode.add(primarySuffix);
+    }
+
+    void visit(Property property) {
+        BSHPrimarySuffix primarySuffix = new BSHPrimarySuffix(property);
+        currentLegacyNode.add(primarySuffix);
     }
 }

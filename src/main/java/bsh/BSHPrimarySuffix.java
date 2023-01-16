@@ -47,6 +47,30 @@ class BSHPrimarySuffix extends SimpleNode
 
     BSHPrimarySuffix(int id) { super(id); }
 
+    BSHPrimarySuffix(bsh.congo.tree.DotThis dotThis) {
+        super(ParserTreeConstants.JJTPRIMARYSUFFIX, dotThis);
+    }
+
+    BSHPrimarySuffix(bsh.congo.tree.DotSuper dotSuper) {
+        super(ParserTreeConstants.JJTPRIMARYSUFFIX, dotSuper);
+    }
+
+    BSHPrimarySuffix(bsh.congo.tree.DotNew dotNew) {
+        super(ParserTreeConstants.JJTPRIMARYSUFFIX, dotNew);
+    }
+
+    BSHPrimarySuffix(bsh.congo.tree.DotName dotName) {
+        super(ParserTreeConstants.JJTPRIMARYSUFFIX, dotName);
+    }
+
+    BSHPrimarySuffix(bsh.congo.tree.Property property) {
+        super(ParserTreeConstants.JJTPRIMARYSUFFIX, property);
+    }
+    
+    BSHPrimarySuffix(bsh.congo.tree.MethodCall methodCall) {
+        super(ParserTreeConstants.JJTPRIMARYSUFFIX, methodCall);
+    }
+    
     /*
         Perform a suffix operation on the given object and return the
         new value.
