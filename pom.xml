@@ -30,7 +30,7 @@
   <groupId>org.beanshell</groupId>
   <artifactId>bsh</artifactId>
   <version>3.0.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <packaging>bundle</packaging>
 
   <name>BeanShell</name>
   <description>BeanShell is a small, free, embeddable Java source interpreter
