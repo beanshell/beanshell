@@ -32,11 +32,6 @@ public class TestHarness {
             n.dump();
             TreeAdapter.convert((BaseNode) n).dump();
         }
-        List<Node> convertedNodes = new ArrayList<Node>(); 
-        for (Node n : statements) convertedNodes.add((SimpleNode) TreeAdapter.convert((BaseNode)n));
-        for (Node n : convertedNodes) {
-            n.dump();
-        }
     }
 
     static void usage() {
