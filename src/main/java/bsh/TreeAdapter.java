@@ -8,10 +8,10 @@ public class TreeAdapter extends BaseNode.Visitor {
     private BaseNode root;
     private Node legacyRoot, currentLegacyNode;
 
-    static public Node convert(BaseNode root) {
+    static public SimpleNode convert(BaseNode root) {
         TreeAdapter adapter = new TreeAdapter(root);
         adapter.visit(root);
-        return adapter.legacyRoot;
+        return (SimpleNode) adapter.legacyRoot;
     }
 
     TreeAdapter(BaseNode root) {this.root = root;}

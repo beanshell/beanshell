@@ -28,8 +28,11 @@ public class TestHarness {
         }
         BeanshellParser parser = new BeanshellParser(path);
         List<Node> statements = parser.Statements();
-        for (Node n : statements) n.dump();
-        List<SimpleNode> convertedNodes = new ArrayList<SimpleNode>(); 
+        for (Node n : statements) {
+            n.dump();
+            TreeAdapter.convert((BaseNode) n).dump();
+        }
+        List<Node> convertedNodes = new ArrayList<Node>(); 
         for (Node n : statements) convertedNodes.add((SimpleNode) TreeAdapter.convert((BaseNode)n));
         for (Node n : convertedNodes) {
             n.dump();
