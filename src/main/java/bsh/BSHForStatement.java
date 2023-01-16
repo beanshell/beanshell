@@ -45,6 +45,12 @@ class BSHForStatement extends SimpleNode implements ParserConstants
         blockId = BlockNameSpace.blockCount.incrementAndGet();
     }
 
+    BSHForStatement(bsh.congo.tree.ForStatement forStatement) {
+        super(ParserTreeConstants.JJTFORSTATEMENT, forStatement);
+        blockId = BlockNameSpace.blockCount.incrementAndGet();
+        //TODO on the other variables.
+    }
+
     public Object eval(CallStack callstack , Interpreter interpreter) throws EvalError {
         int i = 0;
         final Node forInit = hasForInit ? jjtGetChild(i++) : null;
