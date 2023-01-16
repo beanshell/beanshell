@@ -123,10 +123,6 @@ class SimpleNode extends BaseNode implements Node, Serializable {
     }
 
     /** {@inheritDoc} */
-    @Override
-    public Node jjtGetChild(int i) { return (Node) getChild(i); }
-
-    /** {@inheritDoc} */
 //    @Override
     public Node[] jjtGetChildren() {
         Node[] result = new Node[getChildCount()];
@@ -135,15 +131,10 @@ class SimpleNode extends BaseNode implements Node, Serializable {
         }
         return result;
     }
-    /** {@inheritDoc} */
-    @Override
-    public int jjtGetNumChildren() {
-        return jjtGetChildren().length;
-    }
 
     /** {@inheritDoc} */
     @Override
-    public String toString() { return getClass().getSimpleName();}//ParserTreeConstants.jjtNodeName[id]; }
+    public String toString() { return getClass().getSimpleName();}
 
     /** {@inheritDoc} */
     @Override

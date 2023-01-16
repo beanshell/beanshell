@@ -23,7 +23,9 @@ public class BSHAutoCloseable extends BSHTypedVariableDeclaration {
     public AutoCloseable ths;
     public Variable varThis;
 
-    public BSHAutoCloseable(int id) { super(id);  }
+    public BSHAutoCloseable() {}
+
+    public BSHAutoCloseable(int id) { }
 
     BSHAutoCloseable(bsh.congo.tree.NoVarDeclaration n) {
         super(n);

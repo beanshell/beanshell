@@ -32,8 +32,10 @@ class BSHTypedVariableDeclaration extends SimpleNode {
     public Modifiers modifiers = new Modifiers(Modifiers.FIELD);
     private BSHVariableDeclarator[] bvda;
 
+   
+    BSHTypedVariableDeclaration() {}
     
-    BSHTypedVariableDeclaration(int id) { super(id); }
+    BSHTypedVariableDeclaration(int id) { }
     
     BSHTypedVariableDeclaration(bsh.congo.tree.NoVarDeclaration varDeclaration) {
         super(varDeclaration);

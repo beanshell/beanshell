@@ -505,4 +505,13 @@ public class TreeAdapter extends BaseNode.Visitor {
         recurse(methodDeclaration);
         currentLegacyNode = currentLegacyNode.jjtGetParent();
     }
+
+    void visit(bsh.congo.tree.LabeledStatement labeledStatement) {
+        BSHLabeledStatement legacyLabeledStatement = new BSHLabeledStatement(labeledStatement);
+        if (legacyRoot == null) legacyRoot = legacyLabeledStatement;
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyLabeledStatement);
+        currentLegacyNode = legacyLabeledStatement;
+        recurse(labeledStatement);
+        currentLegacyNode = currentLegacyNode.jjtGetParent();
+    }
 }

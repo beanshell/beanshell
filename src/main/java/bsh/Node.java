@@ -101,12 +101,9 @@ public interface Node extends bsh.congo.parser.Node, ListIterator<Node> {
      * The children are numbered from zero, left to right.
      * @param i child index
      * @return the node at index */
-    Node jjtGetChild(int i);
+    default Node jjtGetChild(int i) {return (Node) getChild(i);};
 
     /** Return the number of children the node has. */
-    int jjtGetNumChildren();
-
-    /** Return the node type ID. */
-    //int getId();
+    default int jjtGetNumChildren() {return getChildCount();};
 
 }

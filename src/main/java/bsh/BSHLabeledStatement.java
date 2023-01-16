@@ -18,7 +18,11 @@ package bsh;
 public class BSHLabeledStatement extends bsh.SimpleNode implements ParserConstants {
     String label;
 
-    public BSHLabeledStatement(int id) { super(id); }
+    public BSHLabeledStatement(int id) { }
+
+    public BSHLabeledStatement(bsh.congo.tree.LabeledStatement labeledStatement) {
+        super(labeledStatement);
+    }
 
     public Object eval( CallStack callstack, Interpreter interpreter ) throws EvalError {
         if (jjtGetNumChildren() > 0) {
