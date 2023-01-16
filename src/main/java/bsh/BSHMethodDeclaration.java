@@ -48,8 +48,6 @@ class BSHMethodDeclaration extends SimpleNode
     int numThrows = 0;
     boolean isVarArgs;
     private boolean isScriptedObject;
-    private transient CallStack callstack;
-    private transient Interpreter interpreter;
 
     BSHMethodDeclaration(int id) { super(id); }
 
@@ -90,25 +88,6 @@ class BSHMethodDeclaration extends SimpleNode
         isVarArgs = paramsNode.isVarArgs;
     }
 
-    /** Used to reevaluate the parameter types on class loader changed.
-     * @return reevaluated types */
-    Class<?>[] reevalParamTypes() {
-        try {
-            paramsNode.paramTypes = null;
-            paramsNode.eval(callstack, interpreter);
-            return paramsNode.paramTypes;
-        } catch (EvalError e) { return paramsNode.paramTypes; }
-    }
-
-    /** Used to reevaluate the return type on class loader changed.
-     * @return a reevaluated type */
-    Class<?> reevalReturnType() {
-        try {
-            returnType = evalReturnType(callstack, interpreter);
-            return returnType;
-        } catch (EvalError e) { return returnType; }
-    }
-
     /**
         Evaluate the return type node.
         @return the type or null indicating loosely typed return
@@ -146,8 +125,6 @@ class BSHMethodDeclaration extends SimpleNode
     public Object eval( CallStack callstack, Interpreter interpreter )
         throws EvalError
     {
-        this.interpreter = interpreter;
-        this.callstack = callstack;
         returnType = evalReturnType( callstack, interpreter );
         evalNodes( callstack, interpreter );
 
@@ -160,7 +137,12 @@ class BSHMethodDeclaration extends SimpleNode
 // look into this
         NameSpace namespace = callstack.top();
         BshMethod bshMethod = new BshMethod( this, namespace, modifiers, isScriptedObject );
-        interpreter.getClassManager().addListener(bshMethod);
+        if (!namespace.isMethod && !namespace.isClass)
+            interpreter.getClassManager().addListener(bshMethod);
+        else if (namespace.isMethod && !paramsNode.isListener()) {
+            interpreter.getClassManager().addListener(paramsNode);
+            paramsNode.setListener(true);
+        }
 
         namespace.setMethod( bshMethod );
 

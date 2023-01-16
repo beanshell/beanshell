@@ -54,4 +54,99 @@ a = new A();
 assertSame("Returns the same typed instance untyped parameter reloaded", a, objectA(a));
 assertNotSame("A and A before is not the same", b4, a.getClass());
 
+// assign local typed variable
+A assignTypedVar(A a) {
+    A b = a;
+    return b;
+}
+a = new A();
+b4 = a.getClass();
+assertSame("Returns the same typed instance typed local variable", a, assignTypedVar(a));
+class A {}
+a = new A();
+assertSame("Returns the same typed instance typed local variable reloaded", a, assignTypedVar(a));
+assertNotSame("A and A before is not the same", b4, a.getClass());
+
+// scripted object assign local typed variable
+A assignThisTypedVar(A a) {
+    A b = a;
+    return this.b;
+}
+a = new A();
+b4 = a.getClass();
+assertSame("Returns the same typed instance typed instance variable", a, assignThisTypedVar(a));
+class A {}
+a = new A();
+assertSame("Returns the same typed instance typed instance variable reloaded", a, assignThisTypedVar(a));
+assertNotSame("A and A before is not the same", b4, a.getClass());
+
+// scripted object return instance method
+A thisMethod(A a) {
+    A get(A b) {
+        return b;
+    }
+    return this.get(a);
+}
+a = new A();
+b4 = a.getClass();
+assertSame("Returns the same typed instance typed instance method", a, thisMethod(a));
+class A {}
+a = new A();
+assertSame("Returns the same typed instance typed instance method reloaded", a, thisMethod(a));
+assertNotSame("A and A before is not the same", b4, a.getClass());
+
+// scripted object return instance method assign local typed variable
+A thisMethodAssignLocal(A a) {
+    A getC(A b) {
+        A c = b;
+        return c;
+    }
+    return this.getC(a);
+}
+a = new A();
+b4 = a.getClass();
+assertSame("Returns the same typed instance typed instance method local variable", a, thisMethodAssignLocal(a));
+class A {}
+a = new A();
+assertSame("Returns the same typed instance typed instance method local variable reloaded", a, thisMethodAssignLocal(a));
+assertNotSame("A and A before is not the same", b4, a.getClass());
+
+{
+    // in block scripted object return instance method assign local typed variable
+    A inBlockThisMethodAssignLocal(A a) {
+        A getC(A b) {
+            A c = b;
+            return c;
+        }
+        return this.getC(a);
+    }
+    a = new A();
+    b4 = a.getClass();
+    assertSame("Returns the same typed instance typed instance method local variable", a, inBlockThisMethodAssignLocal(a));
+    eval("class A {}");
+    a = new A();
+    assertSame("Returns the same typed instance typed instance method local variable reloaded", a, inBlockThisMethodAssignLocal(a));
+    assertNotSame("A and A before is not the same", b4, a.getClass());
+}
+
+// Variable of type
+A a = new A();
+b4 = a.getClass();
+assertSame("Variable type same as class type", A.class, a.getClass());
+class A {}
+a = new A();
+assertSame("Variable type still same as class type", A.class, a.getClass());
+assertNotSame("A and A before is not the same", b4, a.getClass());
+
+{
+    // Variable of type in block
+    A b = new A();
+    b4 = b.getClass();
+    assertSame("Variable type in block same as class type", A.class, b.getClass());
+    eval("class A {}");
+    b = new A();
+    assertSame("Variable type in block still same as class type", A.class, b.getClass());
+    assertNotSame("A and A before is not the same", b4, b.getClass());
+}
+
 complete();

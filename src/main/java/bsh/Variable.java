@@ -25,7 +25,9 @@
  *****************************************************************************/
 package bsh;
 
-public class Variable implements java.io.Serializable
+import java.io.Serializable;
+
+public class Variable implements Serializable, BshClassManager.Listener
 {
     public static final int DECLARATION=0, ASSIGNMENT=1;
     /** A null type means an untyped variable */
@@ -166,5 +168,13 @@ public class Variable implements java.io.Serializable
     public String toString() {
         return "Variable: " + StringUtil.variableString(this)
                 + ", value:" + value + ", lhs = " + lhs;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void classLoaderChanged() {
+        if (Reflect.isGeneratedClass(type)) try {
+            type = Reflect.getThisNS(type).getClass(type.getName());
+        } catch (UtilEvalError e) { /** should not happen on reload */ }
     }
 }
