@@ -453,4 +453,12 @@ public class TreeAdapter extends BaseNode.Visitor {
         BSHEnumConstant legacyEnumConstant = new BSHEnumConstant(enumConstant);
         currentLegacyNode.add(legacyEnumConstant);
     }
+
+    void visit(CastExpression castExpression) {
+        BSHCastExpression legacyCastExpression = new BSHCastExpression(castExpression);
+        if (legacyRoot == null) legacyRoot = legacyCastExpression;
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyCastExpression);
+        recurse(castExpression);
+        currentLegacyNode = currentLegacyNode.jjtGetParent();
+    }
 }
