@@ -20,7 +20,7 @@ import java.util.ListIterator;
 /* All AST nodes must implement this interface.  It provides basic
  * machinery for constructing the parent and child relationships
  * between nodes. */
-public interface Node extends ListIterator<Node> {
+public interface Node extends bsh.congo.parser.Node, ListIterator<Node> {
     //  ---- start BeanShell specific stuff ----  //
     Node JAVACODE = new SimpleNode( -1 ) {
         private static final long serialVersionUID = 1L;
@@ -79,23 +79,23 @@ public interface Node extends ListIterator<Node> {
 
     /** Called after the node has been made the current node.
      * Indicates that child nodes can now be added to it. */
-    void jjtOpen();
+    default void jjtOpen() {}
 
     /** Called after all the child nodes have been added. */
-    void jjtClose();
+    default void jjtClose() {}
 
     /** Inform the node of its parent.
      * @param n */
-    void jjtSetParent(Node n);
+    default void jjtSetParent(Node n) {setParent(n);};
 
     /** Return node parent.
      * @return parent node */
-    Node jjtGetParent();
+    default Node jjtGetParent() {return (Node) getParent();};
 
     /** Add argument to the list of children.
      * @param n the child node to add
      * @param i index of child node */
-    void jjtAddChild(Node n, int i);
+    default void jjtAddChild(Node n, int i) {addChild(i, n);}
 
     /** Returns the child node at the given index.
      * The children are numbered from zero, left to right.
@@ -107,7 +107,6 @@ public interface Node extends ListIterator<Node> {
     int jjtGetNumChildren();
 
     /** Return the node type ID. */
-    int getId();
+    //int getId();
 
 }
-/* JavaCC - OriginalChecksum=5b1698226c0eeee61d542c86c4e8e60c (do not edit this line) */

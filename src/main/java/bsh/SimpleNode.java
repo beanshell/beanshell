@@ -55,21 +55,18 @@ class SimpleNode extends BaseNode implements Node, Serializable {
     /** the source of the text from which this was parsed */
     private String sourceFile;
 
-//    Node parent;
-    Node[] children;
-
-    private int id;
-//    private Parser parser;
     private int cursor = 0, lastRet = -1;
 
     private bsh.congo.parser.Node wrappedNode;
 
+    public SimpleNode() {}
+
     /** Default constructor supplying the node with its type id.
      * @param i type index of ParserTreeConstants.jjtNodeName */
-    public SimpleNode(int i) { id = i; }
+    public SimpleNode(int i) {}// id = i; }
 
     public SimpleNode(int id, bsh.congo.parser.Node wrappedNode) {
-        this.id = id;
+        //this.id = id;
         this.wrappedNode = wrappedNode;
     }
 
@@ -79,7 +76,7 @@ class SimpleNode extends BaseNode implements Node, Serializable {
 
     /** {@inheritDoc} */
     @Override
-    public boolean hasNext() { return cursor < jjtGetNumChildren(); }
+    public boolean hasNext() { return cursor < getChildCount(); }
 
     /** {@inheritDoc} */
     @Override
@@ -93,15 +90,15 @@ class SimpleNode extends BaseNode implements Node, Serializable {
     @Override
     public Node next() {
         if (!hasNext()) throw new NoSuchElementException();
-        return children[lastRet = cursor++];
-        //return (Node) getChild(lastRet = cursor++);
+        //return children[lastRet = cursor++];
+        return (Node) getChild(lastRet = cursor++);
     }
 
     /** {@inheritDoc} */
     @Override
     public Node previous() {
         if (!hasPrevious()) throw new NoSuchElementException();
-        return children[lastRet = --cursor];
+        return (Node) getChild(lastRet = --cursor);
     }
 
     /** {@inheritDoc} */
@@ -109,10 +106,7 @@ class SimpleNode extends BaseNode implements Node, Serializable {
     public void remove() {
         if (lastRet < 0) throw new IllegalStateException();
         cursor = lastRet;
-        Node c[] = new Node[children.length - 1];
-        System.arraycopy(children, 0, c, 0, cursor);
-        System.arraycopy(children, cursor + 1, c, cursor, c.length - cursor);
-        children = c;
+        removeChild(cursor);
         lastRet = -1;
     }
 
@@ -120,60 +114,29 @@ class SimpleNode extends BaseNode implements Node, Serializable {
     @Override
     public void set(Node e) {
         if (lastRet < 0) throw new IllegalStateException();
-        children[lastRet] = e;
+        //children[lastRet] = e;
+        setChild(lastRet, (bsh.congo.parser.Node) e);
     }
 
     /** {@inheritDoc} */
     @Override
     public void add(Node e) {
-        Node c[] = new Node[jjtGetNumChildren() + 1];
-        System.arraycopy(children, 0, c, 0, cursor);
-        System.arraycopy(children, cursor, c, cursor +1, c.length - cursor -1);
-        children = c;
-        children[cursor++] = e;
+        addChild((bsh.congo.parser.Node) e);
         lastRet = -1;
-        e.jjtSetParent(this);
     }
 
     /** {@inheritDoc} */
     @Override
-    public void jjtOpen() { }
+    public Node jjtGetChild(int i) { return (Node) getChild(i); }
 
     /** {@inheritDoc} */
-    @Override
-    public void jjtClose() { }
-
-    /** {@inheritDoc} */
-    @Override
-    public void jjtSetParent(Node n) { setParent((bsh.congo.parser.Node) n); }
-
-    /** {@inheritDoc} */
-    @Override
-    public Node jjtGetParent() { return (Node) getParent(); }
-
-    /** {@inheritDoc} */
-    @Override
-    public void jjtAddChild(Node n, int i) {
-        if (children == null)
-            children = new Node[i + 1];
-        else if (i >= children.length) {
-            Node c[] = new Node[i + 1];
-            System.arraycopy(children, 0, c, 0, children.length);
-            children = c;
-        }
-        children[i] = n;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public Node jjtGetChild(int i) { return children[i]; }
-
-    /** {@inheritDoc} */
-    @Override
+//    @Override
     public Node[] jjtGetChildren() {
-        if ( null == children )
-            children = new Node[0];
-        return children;
+        Node[] result = new Node[getChildCount()];
+        for (int i=0; i < getChildCount(); i++) {
+            result[i] = (Node) getChild(i);
+        }
+        return result;
     }
     /** {@inheritDoc} */
     @Override
@@ -183,7 +146,7 @@ class SimpleNode extends BaseNode implements Node, Serializable {
 
     /** {@inheritDoc} */
     @Override
-    public String toString() { return ParserTreeConstants.jjtNodeName[id]; }
+    public String toString() { return getClass().getSimpleName();}//ParserTreeConstants.jjtNodeName[id]; }
 
     /** {@inheritDoc} */
     @Override
@@ -193,8 +156,8 @@ class SimpleNode extends BaseNode implements Node, Serializable {
     @Override
     public void dump(String prefix) {
         System.out.println(toString(prefix));
-        if (children != null) for (int i = 0; i < children.length; ++i) {
-            Node n = children[i];
+        for (int i = 0; i < getChildCount(); ++i) {
+            Node n = (Node) getChild(i);
             if (n != null)
                 n.dump(prefix + " ");
         }
@@ -255,9 +218,5 @@ class SimpleNode extends BaseNode implements Node, Serializable {
 
         return text.toString();
     }
-
-    /** {@inheritDoc} */
-    @Override
-    public int getId() { return this.id; }
 }
 

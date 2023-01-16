@@ -94,8 +94,11 @@ public class BSHAutoCloseable extends BSHTypedVariableDeclaration {
             tNode.jjtSetParent(this);
             Node[] n = new Node[2];
             n[0] = tNode;
-            n[1] = children[0];
-            children = n;
+            n[1] = (Node) getChild(0);
+            clearChildren();
+            addChild((bsh.congo.parser.Node)n[0]);
+            addChild((bsh.congo.parser.Node)n[1]);
+            //children = n;
         }
     }
 }
