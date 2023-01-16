@@ -288,3 +288,18 @@ PrimaryExpression#interface :
 ;
 
 INJECT Property : implements PrimaryExpression;
+
+ArrayDimsAndInits# :
+  SCAN 2
+  (
+    <LBRACKET> =>|+1 Expression <RBRACKET>
+  )+
+  (
+    (Annotation)* <LBRACKET><RBRACKET> =>||
+  )*
+  |
+  (
+    (Annotation)* <LBRACKET><RBRACKET>
+  )* // It seems this is optional in Beanshell
+  ArrayInitializer
+;

@@ -46,6 +46,10 @@ class BSHArrayDimensions extends SimpleNode
     public int [] definedDimensions;
     BSHArrayDimensions(int id) { super(id); }
 
+    BSHArrayDimensions(bsh.congo.tree.ArrayDimsAndInits arrayDimsAndInits) {
+        super(ParserTreeConstants.JJTARRAYDIMENSIONS, arrayDimsAndInits);
+    }
+
     public void addDefinedDimension() { numDefinedDims++; }
     public void addUndefinedDimension() { numUndefinedDims++; }
 

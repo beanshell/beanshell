@@ -469,4 +469,11 @@ public class TreeAdapter extends BaseNode.Visitor {
         recurse(arrayInitializer);
         currentLegacyNode = currentLegacyNode.jjtGetParent();
     }
+
+    void visit(ArrayDimsAndInits arrayDimsAndInits) {
+        BSHArrayDimensions legacyArrayDimensions = new BSHArrayDimensions(arrayDimsAndInits);
+        currentLegacyNode.add(legacyArrayDimensions);
+        recurse(arrayDimsAndInits);
+        currentLegacyNode = currentLegacyNode.jjtGetParent();
+    }
 }
