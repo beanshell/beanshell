@@ -42,6 +42,10 @@ class BSHAmbiguousName extends SimpleNode
         super(ParserTreeConstants.JJTAMBIGUOUSNAME, rt);
     }
 
+    BSHAmbiguousName(bsh.congo.tree.Name name) {
+        super(ParserTreeConstants.JJTAMBIGUOUSNAME, name);
+    }
+
     public Name getName( NameSpace namespace )
     {
         return namespace.getNameResolver( text );

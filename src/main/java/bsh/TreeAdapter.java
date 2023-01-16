@@ -476,4 +476,18 @@ public class TreeAdapter extends BaseNode.Visitor {
         recurse(arrayDimsAndInits);
         currentLegacyNode = currentLegacyNode.jjtGetParent();
     }
+
+    void visit(AllocationExpression allocationExpression) {
+        BSHAllocationExpression legacyAllocationExpression = new BSHAllocationExpression(allocationExpression);
+        if (legacyRoot == null) legacyRoot = legacyAllocationExpression;
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyAllocationExpression);
+        recurse(allocationExpression);
+        currentLegacyNode = currentLegacyNode.jjtGetParent();
+    }
+
+    void visit(Name name) {
+        BSHAmbiguousName legacyName = new BSHAmbiguousName(name);
+        if (legacyRoot == null) legacyRoot = legacyName;
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyName);
+    }
 }

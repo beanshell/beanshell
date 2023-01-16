@@ -39,6 +39,11 @@ import java.util.concurrent.CompletionException;
 class BSHAllocationExpression extends SimpleNode
 {
     BSHAllocationExpression(int id) { super(id); }
+
+    BSHAllocationExpression(bsh.congo.tree.AllocationExpression allocationExpression) {
+        super(ParserTreeConstants.JJTALLOCATIONEXPRESSION, allocationExpression);
+    }
+    
     private static int innerClassCount = 0;
 
     public Object eval( CallStack callstack, Interpreter interpreter)
