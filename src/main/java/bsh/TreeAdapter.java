@@ -395,7 +395,7 @@ public class TreeAdapter extends BaseNode.Visitor {
 
     void visit(MethodCall methodCall) {
         BSHPrimarySuffix primarySuffix = new BSHPrimarySuffix(methodCall);
-        currentLegacyNode.add(primarySuffix);
+        if (currentLegacyNode != null) currentLegacyNode.add(primarySuffix);
     }
 
     void visit(Property property) {
@@ -495,5 +495,14 @@ public class TreeAdapter extends BaseNode.Visitor {
         BSHFormalComment legacyFormalComment = new BSHFormalComment(formalComment);
         if (legacyRoot == null) legacyRoot = legacyFormalComment;
         if (currentLegacyNode != null) currentLegacyNode.add(legacyFormalComment);
+    }
+
+    void visit(bsh.congo.tree.MethodDeclaration methodDeclaration) {
+        BSHMethodDeclaration legacyMethodDeclaration = new BSHMethodDeclaration(methodDeclaration);
+        if (legacyRoot == null) legacyRoot = legacyMethodDeclaration;
+        if (currentLegacyNode != null) currentLegacyNode.add(legacyMethodDeclaration);
+        currentLegacyNode = legacyMethodDeclaration;
+        recurse(methodDeclaration);
+        currentLegacyNode = currentLegacyNode.jjtGetParent();
     }
 }

@@ -36,7 +36,7 @@ class BSHPrimitiveType extends SimpleNode
 
     BSHPrimitiveType(bsh.congo.tree.PrimitiveType pt) {
         super(ParserTreeConstants.JJTPRIMITIVETYPE, pt);
-        switch(pt.firstChildOfType(Token.class).getType()) {
+        switch(pt.firstChildOfType(bsh.congo.parser.Token.class).getType()) {
             case BOOLEAN : type = Boolean.TYPE; break;
             case BYTE : type = Byte.TYPE; break;
             case CHAR : type = Character.TYPE; break;

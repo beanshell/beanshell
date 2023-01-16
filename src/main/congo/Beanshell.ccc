@@ -97,6 +97,13 @@ boolean Line :
   }
 ;
 
+java.util.List<Node> Statements#void : 
+  (BlockStatement)* 
+  {
+      return new java.util.ArrayList<>(currentNodeScope);
+  }
+;
+
 ConditionalExpression :
   NullCoalesceElvisSpaceShipExpression [ <HOOK> Expression <COLON> ConditionalExpression]
 ;
@@ -215,6 +222,8 @@ BlockStatement :
   |
   RecordDeclaration
   |
+  MethodDeclaration
+  |
   LocalVariableDeclaration <SEMICOLON>
   |
   ClassDeclaration
@@ -224,7 +233,7 @@ BlockStatement :
   EnumDeclaration
   |
   Statement
-
+  |
  // Allow BeanShell imports in any block
   ImportDeclaration
   |
@@ -311,3 +320,5 @@ ArrayDimsAndInits# :
   )* // It seems this is optional in Beanshell
   ArrayInitializer
 ;
+
+ReturnType# : [<VOID> | SCAN ~(Type <LPAREN>) => Type] ;

@@ -53,6 +53,10 @@ class BSHMethodDeclaration extends SimpleNode
 
     BSHMethodDeclaration(int id) { super(id); }
 
+    BSHMethodDeclaration(bsh.congo.tree.MethodDeclaration methodDeclaration) {
+        super(ParserTreeConstants.JJTMETHODDECLARATION, methodDeclaration);
+    }
+
     /**
         Set the returnTypeNode, paramsNode, and blockNode based on child
         node structure.  No evaluation is done here.
