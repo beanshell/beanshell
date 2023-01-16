@@ -30,10 +30,10 @@ package bsh;
 
 class BSHPrimitiveType extends SimpleNode
 {
-    public Class type;
+    public Class<?> type;
 
     BSHPrimitiveType(int id) { super(id); }
-    public Class getType() { return type; }
+    public Class<?> getType() { return type; }
 
     @Override
     public String toString() {
