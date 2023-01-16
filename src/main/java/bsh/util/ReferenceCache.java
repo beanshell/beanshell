@@ -202,7 +202,7 @@ public abstract class ReferenceCache<K,V> {
         /** Create a new cache key and capture its hash code.
          * @param key to provide equality for */
         public CacheKey(T key) {
-            hashCode = key.hashCode();
+            hashCode = key.hashCode() + key.toString().chars().sum();
         }
 
         /** Provides dereference for the key.
