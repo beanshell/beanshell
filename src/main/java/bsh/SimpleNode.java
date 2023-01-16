@@ -123,16 +123,6 @@ public class SimpleNode extends BaseNode implements Node, Serializable {
     }
 
     /** {@inheritDoc} */
-//    @Override
-    public Node[] jjtGetChildren() {
-        Node[] result = new Node[getChildCount()];
-        for (int i=0; i < getChildCount(); i++) {
-            result[i] = (Node) getChild(i);
-        }
-        return result;
-    }
-
-    /** {@inheritDoc} */
     @Override
     public String toString() { return getClass().getSimpleName();}
 
@@ -149,14 +139,6 @@ public class SimpleNode extends BaseNode implements Node, Serializable {
             if (n != null)
                 n.dump(prefix + " ");
         }
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public Object eval(CallStack callstack, Interpreter interpreter)
-            throws EvalError {
-        throw new InterpreterError(
-            "Unimplemented or inappropriate for " + getClass().getName() );
     }
 
     /** {@inheritDoc} */

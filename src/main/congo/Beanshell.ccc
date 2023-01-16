@@ -23,7 +23,7 @@ import bsh.*;
      * @return result from evaluation
      * @throws EvalError if an evaluation error occurred */
     default Object eval(CallStack callstack, Interpreter interpreter) throws EvalError {
-      throw new UnsupportedOperationException();
+      throw new UnsupportedOperationException("eval method is unimplemented for " + this.getClass().getSimpleName());
     }
 
     bsh.Node JAVACODE = new SimpleNode( -1 ) {
@@ -41,6 +41,8 @@ import bsh.*;
             return "JavaCode";
         }
     };
+
+
 }
 
 TOKEN : 
