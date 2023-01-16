@@ -55,7 +55,7 @@ class SimpleNode extends BaseNode implements Node, Serializable {
     /** the source of the text from which this was parsed */
     private String sourceFile;
 
-    Node parent;
+//    Node parent;
     Node[] children;
 
     private int id;
@@ -94,6 +94,7 @@ class SimpleNode extends BaseNode implements Node, Serializable {
     public Node next() {
         if (!hasNext()) throw new NoSuchElementException();
         return children[lastRet = cursor++];
+        //return (Node) getChild(lastRet = cursor++);
     }
 
     /** {@inheritDoc} */
@@ -144,11 +145,11 @@ class SimpleNode extends BaseNode implements Node, Serializable {
 
     /** {@inheritDoc} */
     @Override
-    public void jjtSetParent(Node n) { parent = n; }
+    public void jjtSetParent(Node n) { setParent((bsh.congo.parser.Node) n); }
 
     /** {@inheritDoc} */
     @Override
-    public Node jjtGetParent() { return parent; }
+    public Node jjtGetParent() { return (Node) getParent(); }
 
     /** {@inheritDoc} */
     @Override
@@ -221,7 +222,7 @@ class SimpleNode extends BaseNode implements Node, Serializable {
         }
         if ( sourceFile == null )
             if ( parent != null )
-                return parent.getSourceFile();
+                return jjtGetParent().getSourceFile();
             else
                 return "<unknown file>";
         else
