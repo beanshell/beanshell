@@ -46,14 +46,14 @@ class BSHIfStatement extends SimpleNode
         throws EvalError
     {
         Object ret = null;
-        if(evaluateCondition(jjtGetChild(0), callstack, interpreter)) {
+        if(evaluateCondition(getChild(0), callstack, interpreter)) {
             if (!isClosed)
-                ret = jjtGetChild(1).eval(callstack, interpreter);
+                ret = getChild(1).eval(callstack, interpreter);
         } else {
-            if (jjtGetNumChildren() > 2)
-                ret = jjtGetChild(2).eval(callstack, interpreter);
+            if (getChildCount() > 2)
+                ret = getChild(2).eval(callstack, interpreter);
             else if (isClosed)
-                ret = jjtGetChild(1).eval(callstack, interpreter);
+                ret = getChild(1).eval(callstack, interpreter);
         }
         if(ret instanceof ReturnControl)
             return ret;

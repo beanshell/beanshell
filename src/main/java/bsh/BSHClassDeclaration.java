@@ -86,7 +86,7 @@ class BSHClassDeclaration extends SimpleNode
         Class<?> superClass = null;
         final List<BshMethod> meths = new ArrayList<>(0);
         if ( extend ) {
-            BSHAmbiguousName superNode = (BSHAmbiguousName)jjtGetChild(child++);
+            BSHAmbiguousName superNode = (BSHAmbiguousName)getChild(child++);
             superClass = superNode.toClass( callstack, interpreter );
             if (Reflect.isGeneratedClass(superClass)) {
                 // Validate final classes should not be extended
@@ -103,7 +103,7 @@ class BSHClassDeclaration extends SimpleNode
         // Get interfaces
         Class<?>[] interfaces = new Class[numInterfaces];
         for( int i=0; i<numInterfaces; i++) {
-            BSHAmbiguousName node = (BSHAmbiguousName)jjtGetChild(child++);
+            BSHAmbiguousName node = (BSHAmbiguousName)getChild(child++);
             interfaces[i] = node.toClass(callstack, interpreter);
             if ( !interfaces[i].isInterface() )
                 throw new EvalError(
@@ -111,7 +111,7 @@ class BSHClassDeclaration extends SimpleNode
                     this, callstack );
         }
 
-        BSHBlock block = (BSHBlock) jjtGetChild(child);
+        BSHBlock block = (BSHBlock) getChild(child);
 
         if (type == Type.INTERFACE) // this should ideally happen in the parser
                 modifiers.changeContext(Modifiers.INTERFACE);

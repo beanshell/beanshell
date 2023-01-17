@@ -49,7 +49,7 @@ class BSHCastExpression extends SimpleNode {
     public Object eval(
         CallStack callstack, Interpreter interpreter ) throws EvalError
     {
-        Class toType = ((BSHType)jjtGetChild(0)).getType(
+        Class toType = ((BSHType)getChild(0)).getType(
             callstack, interpreter );
         bsh.congo.parser.Node expression = getChild(1);
 

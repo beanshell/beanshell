@@ -59,13 +59,13 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
     public Object eval(CallStack callstack, Interpreter interpreter)
             throws EvalError {
         if ( null == operator ) try {
-            return jjtGetChild(0).eval(callstack, interpreter);
+            return getChild(0).eval(callstack, interpreter);
         } catch (SafeNavigate aborted) {
             return Primitive.NULL;
         }
 
         BSHPrimaryExpression lhsNode =
-            (BSHPrimaryExpression) jjtGetChild(0);
+            (BSHPrimaryExpression) getChild(0);
 
         boolean strictJava = interpreter.getStrictJava();
         LHS lhs = lhsNode.toLHS( callstack, interpreter);
@@ -84,7 +84,7 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
             return lhsValue; // return non null lhs before evaluating rhs
 
         // evaluate the right hand side
-        Object rhs = jjtGetChild(1).eval(callstack, interpreter);
+        Object rhs = getChild(1).eval(callstack, interpreter);
 
         if ( rhs == Primitive.VOID )
             throw new EvalError("illegal void assignment", this, callstack);

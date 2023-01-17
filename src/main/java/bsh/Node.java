@@ -21,25 +21,10 @@ import java.util.ListIterator;
  * machinery for constructing the parent and child relationships
  * between nodes. */
 public interface Node extends bsh.congo.parser.Node, ListIterator<Node> {
-    //  ---- start BeanShell specific stuff ----  //
-
     /** Set the name of the source file (or more generally source) of the text
      * from which this node was parsed.
      * @param sourceFile source */
     void setSourceFile(String sourceFile);
-
-    /** Get the name of the source file (or more generally source) of the text
-     * from which this node was parsed.
-     * @return source or parent's source or <unknown file> if no source found */
-//    String getSourceFile();
-
-    /** Get the line number of the starting token
-     * @return line number */
-//    int getLineNumber();
-
-    /** Get the text of the tokens comprising this node.
-     * @return token text */
-//    String getText();
 
     /** Dump the children hierarchy.
      * @param prefix a prefix string */
@@ -49,42 +34,4 @@ public interface Node extends bsh.congo.parser.Node, ListIterator<Node> {
      * @param prefix a prefix string
      * @return toString with prefix */
     String toString(String prefix);
-
-    /** Return the list of child nodes..
-     * @return children array or zero length Node array */
-    default Node[] jjtGetChildren() {
-        return childrenOfType(Node.class).toArray(new Node[0]);
-    }
-    //  ---- end BeanShell specific stuff ----  //
-
-    /** Called after the node has been made the current node.
-     * Indicates that child nodes can now be added to it. */
-//    default void jjtOpen() {}
-
-    /** Called after all the child nodes have been added. */
-//    default void jjtClose() {}
-
-    /** Inform the node of its parent.
-     * @param n */
-//    default void jjtSetParent(Node n) {setParent(n);};
-
-    /** Return node parent.
-     * @return parent node */
-//    default Node jjtGetParent() {return (Node) getParent();};
-
-    /** Add argument to the list of children.
-     * @param n the child node to add
-     * @param i index of child node */
-//    default void jjtAddChild(Node n, int i) {addChild(i, n);}
-
-    /** Returns the child node at the given index.
-     * The children are numbered from zero, left to right.
-     * @param i child index
-     * @return the node at index */
-//    default Node jjtGetChild(int i) {return (Node) getChild(i);};
-
-    /** Return the number of children the node has. */
-//    default int jjtGetNumChildren() {return getChildCount();};
-   
-
 }

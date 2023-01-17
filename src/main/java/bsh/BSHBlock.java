@@ -134,7 +134,7 @@ class BSHBlock extends SimpleNode {
         else enclosingNameSpace = null;
 
         int startChild = isSynchronized ? 1 : 0;
-        int numChildren = jjtGetNumChildren();
+        int numChildren = getChildCount();
 
         try {
             // Evaluate block in two passes:

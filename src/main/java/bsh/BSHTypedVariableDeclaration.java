@@ -47,7 +47,7 @@ class BSHTypedVariableDeclaration extends SimpleNode {
     }
 
     private BSHType getTypeNode() {
-        return ((BSHType)jjtGetChild(0));
+        return ((BSHType)getChild(0));
     }
 
     Class<?> evalType( CallStack callstack, Interpreter interpreter )
@@ -61,12 +61,12 @@ class BSHTypedVariableDeclaration extends SimpleNode {
     {
         if (null != bvda)
             return bvda;
-        int n = jjtGetNumChildren();
+        int n = getChildCount();
         int start=1;
         bvda = new BSHVariableDeclarator[ n-start ];
         for (int i = start; i < n; i++)
         {
-            bvda[i-start] = (BSHVariableDeclarator)jjtGetChild(i);
+            bvda[i-start] = (BSHVariableDeclarator)getChild(i);
         }
         return bvda;
     }

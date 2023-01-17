@@ -25,17 +25,17 @@ public class BSHLabeledStatement extends bsh.SimpleNode implements ParserConstan
     }
 
     public Object eval( CallStack callstack, Interpreter interpreter ) throws EvalError {
-        if (jjtGetNumChildren() > 0) {
+        if (getChildCount() > 0) {
 
             // pass continue labels onto loops to handle in loop
-            if (jjtGetChild(0) instanceof BSHForStatement)
-                ((BSHForStatement)jjtGetChild(0)).label = label;
-            else if (jjtGetChild(0) instanceof BSHEnhancedForStatement)
-                ((BSHEnhancedForStatement)jjtGetChild(0)).label = label;
-            else if (jjtGetChild(0) instanceof BSHWhileStatement)
-                ((BSHWhileStatement)jjtGetChild(0)).label = label;
+            if (getChild(0) instanceof BSHForStatement)
+                ((BSHForStatement)getChild(0)).label = label;
+            else if (getChild(0) instanceof BSHEnhancedForStatement)
+                ((BSHEnhancedForStatement)getChild(0)).label = label;
+            else if (getChild(0) instanceof BSHWhileStatement)
+                ((BSHWhileStatement)getChild(0)).label = label;
 
-            Object retrn = jjtGetChild(0).eval(callstack, interpreter);
+            Object retrn = getChild(0).eval(callstack, interpreter);
 
             if (retrn instanceof ReturnControl) {
                 ReturnControl control = (ReturnControl)retrn;

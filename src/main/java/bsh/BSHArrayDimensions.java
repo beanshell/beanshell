@@ -120,7 +120,7 @@ class BSHArrayDimensions extends SimpleNode
             for(int i = 0; i < numDefinedDims; i++)
             {
                 try {
-                    Object length = jjtGetChild(i).eval(callstack, interpreter);
+                    Object length = getChild(i).eval(callstack, interpreter);
                     definedDimensions[i] = (int) Primitive.castWrapper(Integer.TYPE, length);
                 }
                 catch(Exception e)

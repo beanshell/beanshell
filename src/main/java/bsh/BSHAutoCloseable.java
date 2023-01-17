@@ -82,7 +82,7 @@ public class BSHAutoCloseable extends BSHTypedVariableDeclaration {
      * Then we create the BSHType node and get the type
      * from the BSHVariableDeclarator AllocationExpression nodes. */
     private void renderTypeNode() {
-        if (jjtGetNumChildren() == 1) {
+        if (getChildCount() == 1) {
             bsh.congo.parser.Node tNode = new BSHType(ParserTreeConstants.JJTTYPE);
             bsh.congo.parser.Node ambigName = getChild(0);
             while (ambigName.getChildCount() > 0)
@@ -92,8 +92,8 @@ public class BSHAutoCloseable extends BSHTypedVariableDeclaration {
                     new BSHAmbiguousName(ParserTreeConstants.JJTAMBIGUOUSNAME);
             ambigNew.setParent(tNode);
             ambigNew.text = ((BSHAmbiguousName) ambigName).text;
-            tNode.jjtAddChild(ambigNew, 0);
-            tNode.jjtSetParent(this);
+            tNode.addChild(0, ambigNew);
+            tNode.setParent(this);
             bsh.congo.parser.Node[] n = new bsh.congo.parser.Node[2];
             n[0] = tNode;
             n[1] = (Node) getChild(0);

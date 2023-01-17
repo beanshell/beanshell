@@ -53,23 +53,10 @@ import bsh.*;
      * @param n */
     default void jjtSetParent(Node n) {setParent(n);};
 
-    /** Return node parent.
-     * @return parent node */
-    default Node jjtGetParent() {return (Node) getParent();};
-
     /** Add argument to the list of children.
      * @param n the child node to add
      * @param i index of child node */
     default void jjtAddChild(Node n, int i) {addChild(i, n);}
-
-    /** Returns the child node at the given index.
-     * The children are numbered from zero, left to right.
-     * @param i child index
-     * @return the node at index */
-    default Node jjtGetChild(int i) {return (Node) getChild(i);};
-
-    /** Return the number of children the node has. */
-    default int jjtGetNumChildren() {return getChildCount();};
 
     default String getSourceFile() {return getInputSource();}
 
@@ -286,7 +273,8 @@ BlockStatement :
   |
   RecordDeclaration
   |
-  MethodDeclaration
+  SCAN MethodDeclarationLA
+  =>MethodDeclaration
   |
   LocalVariableDeclaration <SEMICOLON>
   |
@@ -307,6 +295,15 @@ BlockStatement :
   FormalComment  
  )
 ;
+
+MethodDeclarationLA#scan :
+  Modifiers
+  [ TypeParameters ]
+  ReturnType
+  <IDENTIFIER> 
+  FormalParameters ( (Annotation)* <LBRACKET><RBRACKET> )*
+  [ ThrowsList ] <LBRACE>
+;  
 
 FormalComment# : <FORMAL_COMMENT> ;
 

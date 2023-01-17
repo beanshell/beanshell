@@ -149,7 +149,7 @@ public final class ClassGenerator {
 
     static Variable[] getDeclaredVariables(BSHBlock body, CallStack callstack, Interpreter interpreter, String defaultPackage) {
         List<Variable> vars = new ArrayList<Variable>();
-        for (int child = 0; child < body.jjtGetNumChildren(); child++) {
+        for (int child = 0; child < body.getChildCount(); child++) {
             bsh.congo.parser.Node node = body.getChild(child);
             if (node instanceof BSHEnumConstant) {
                 BSHEnumConstant enm = (BSHEnumConstant) node;
@@ -193,7 +193,7 @@ public final class ClassGenerator {
             DelayedEvalBshMethod bm = new DelayedEvalBshMethod(classBaseName, con, callstack.top());
             methods.add(bm);
         }
-        for (int child = 0; child < body.jjtGetNumChildren(); child++) {
+        for (int child = 0; child < body.getChildCount(); child++) {
             bsh.congo.parser.Node node = body.getChild(child);
             if (node instanceof BSHMethodDeclaration) {
                 BSHMethodDeclaration md = (BSHMethodDeclaration) node;
@@ -255,8 +255,8 @@ public final class ClassGenerator {
         }
 
         private boolean isStatic(bsh.congo.parser.Node node) {
-            if ( node.jjtGetParent().jjtGetParent() instanceof BSHClassDeclaration
-                    && ((BSHClassDeclaration) node.jjtGetParent().jjtGetParent()).type == Type.INTERFACE )
+            if ( node.getParent().getParent() instanceof BSHClassDeclaration
+                    && ((BSHClassDeclaration) node.getParent().getParent()).type == Type.INTERFACE )
                 return true;
 
             if (node instanceof BSHTypedVariableDeclaration)

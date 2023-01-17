@@ -38,11 +38,11 @@ class BSHMethodInvocation extends SimpleNode
     }
 
     BSHAmbiguousName getNameNode() {
-        return (BSHAmbiguousName)jjtGetChild(0);
+        return (BSHAmbiguousName)getChild(0);
     }
 
     BSHArguments getArgsNode() {
-        return (BSHArguments)jjtGetChild(1);
+        return (BSHArguments)getChild(1);
     }
 
     /**

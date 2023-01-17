@@ -71,7 +71,7 @@ class BSHVariableDeclarator extends SimpleNode
                 ? null
                 : Primitive.getDefaultValue(typeNode.getBaseType());
 
-        if ( jjtGetNumChildren() > 0 )
+        if ( getChildCount() > 0 )
         {
             bsh.congo.parser.Node initializer = getChild(0);
 

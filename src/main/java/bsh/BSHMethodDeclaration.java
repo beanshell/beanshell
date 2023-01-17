@@ -66,23 +66,23 @@ class BSHMethodDeclaration extends SimpleNode
         if ( paramsNode != null ) // there is always a paramsNode
             return;
 
-        Object firstNode = jjtGetChild(0);
+        Object firstNode = getChild(0);
         firstThrowsClause = 1;
         if ( firstNode instanceof BSHReturnType )
         {
             returnTypeNode = (BSHReturnType)firstNode;
-            paramsNode = (BSHFormalParameters)jjtGetChild(1);
-            if ( jjtGetNumChildren() > 2+numThrows )
+            paramsNode = (BSHFormalParameters)getChild(1);
+            if ( getChildCount() > 2+numThrows )
                 blockNode = (BSHBlock)getChild(2+numThrows); // skip throws
             ++firstThrowsClause;
         }
         else
         {
-            paramsNode = (BSHFormalParameters)jjtGetChild(0);
-            blockNode = (BSHBlock)jjtGetChild(1+numThrows); // skip throws
+            paramsNode = (BSHFormalParameters)getChild(0);
+            blockNode = (BSHBlock)getChild(1+numThrows); // skip throws
         }
 
-        if (null != blockNode && blockNode.jjtGetNumChildren() > 0) {
+        if (null != blockNode && blockNode.getChildCount() > 0) {
             bsh.congo.parser.Node crnt = blockNode.getChild(blockNode.getChildCount() - 1);
             if (crnt instanceof BSHReturnStatement)
                 while (((BSHReturnStatement)crnt).hasNext())
@@ -178,7 +178,7 @@ class BSHMethodDeclaration extends SimpleNode
 
         // validate that the throws names are class names
         for(int i=firstThrowsClause; i<numThrows+firstThrowsClause; i++)
-            ((BSHAmbiguousName)jjtGetChild(i)).toClass(
+            ((BSHAmbiguousName)getChild(i)).toClass(
                 callstack, interpreter );
 
         paramsNode.eval( callstack, interpreter );

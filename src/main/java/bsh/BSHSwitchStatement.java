@@ -41,7 +41,7 @@ class BSHSwitchStatement
     public Object eval( CallStack callstack, Interpreter interpreter )
         throws EvalError
     {
-        int numchild = jjtGetNumChildren();
+        int numchild = getChildCount();
         int child = 0;
         bsh.congo.parser.Node switchExp = getChild(child++);
         Object switchVal = switchExp.eval( callstack, interpreter );
@@ -63,7 +63,7 @@ class BSHSwitchStatement
         // get the first label
         if ( child >= numchild )
             throw new EvalError("Empty switch statement.", this, callstack );
-        label = ((BSHSwitchLabel)jjtGetChild(child++));
+        label = ((BSHSwitchLabel)getChild(child++));
 
         // while more labels or blocks and haven't hit return control
         while ( child < numchild && returnControl == null )
@@ -78,7 +78,7 @@ class BSHSwitchStatement
                 // execute nodes, skipping labels, until a break or return
                 while ( child < numchild )
                 {
-                    node = jjtGetChild(child++);
+                    node = getChild(child++);
                     if ( node instanceof BSHSwitchLabel )
                         continue;
                     // eval it

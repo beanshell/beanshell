@@ -54,7 +54,7 @@ class BSHPrimaryExpression extends SimpleNode
                 && ((BSHAssignment) parent).operator != null
                 && (isMapExpression = (((BSHAssignment) parent).operator
                         == ParserConstants.ASSIGN))
-                && init.jjtGetParent() instanceof BSHArrayInitializer )
+                && init.getParent() instanceof BSHArrayInitializer )
             init.setMapInArray(true);
     }
 
@@ -96,10 +96,10 @@ class BSHPrimaryExpression extends SimpleNode
         if ( isArrayExpression && null != cached )
             return cached;
 
-        Object obj = jjtGetChild(0);
+        Object obj = getChild(0);
 
-        for( int i=1; i < jjtGetNumChildren(); i++ )
-            obj = ((BSHPrimarySuffix) jjtGetChild(i)).doSuffix(
+        for( int i=1; i < getChildCount(); i++ )
+            obj = ((BSHPrimarySuffix) getChild(i)).doSuffix(
                 obj, toLHS, callstack, interpreter);
 
         /*

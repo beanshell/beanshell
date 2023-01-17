@@ -128,7 +128,7 @@ public class DelayedEvalBshMethod extends BshMethod
     public String getAltConstructor() {
         if ( null != this.constructor )
             return "super";
-        if ( this.methodBody.jjtGetNumChildren() == 0 )
+        if ( this.methodBody.getChildCount() == 0 )
             return null;
         bsh.congo.parser.Node firstStatement = this.methodBody.getChild(0);
         while ( !(firstStatement instanceof BSHMethodInvocation)

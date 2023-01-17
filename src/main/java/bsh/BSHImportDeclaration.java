@@ -51,7 +51,7 @@ class BSHImportDeclaration extends SimpleNode
             throw e.toEvalError( this, callstack  );
         }
         else {
-            BSHAmbiguousName ambigName = (BSHAmbiguousName) jjtGetChild(0);
+            BSHAmbiguousName ambigName = (BSHAmbiguousName) getChild(0);
             if ( staticImport ) {
                 if ( importPackage ) {
                     // import all (*) static members

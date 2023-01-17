@@ -35,10 +35,10 @@ class BSHStatementExpressionList extends SimpleNode
     public Object eval(CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
-        int n = jjtGetNumChildren();
+        int n = getChildCount();
         for(int i=0; i<n; i++)
         {
-            jjtGetChild(i).eval(callstack, interpreter);
+            getChild(i).eval(callstack, interpreter);
         }
         return Primitive.VOID;
     }

@@ -51,8 +51,8 @@ class BSHArrayInitializer extends SimpleNode {
         super.setParent(n);
         for (int i = 0; i< getChildCount(); i++) {
             Node c = (Node) getChild(i);
-            if (c.getChildCount() > 0 && c.jjtGetChild(0) instanceof BSHPrimaryExpression) {
-                expressionQueue.push((BSHPrimaryExpression) c.jjtGetChild(0));
+            if (c.getChildCount() > 0 && c.getChild(0) instanceof BSHPrimaryExpression) {
+                expressionQueue.push((BSHPrimaryExpression) c.getChild(0));
                 expressionQueue.peek().setArrayExpression(this);
             }
         }
@@ -77,7 +77,7 @@ class BSHArrayInitializer extends SimpleNode {
      * @throws EvalError produced by thrown type errors */
     public Object eval( Class<?> baseType, int dimensions, CallStack callstack,
             Interpreter interpreter ) throws EvalError {
-        if ( 0 == jjtGetNumChildren() )
+        if ( 0 == getChildCount() )
             dimensions = 0;
 
         // we may infer the baseType, assume they are the same
@@ -148,11 +148,11 @@ class BSHArrayInitializer extends SimpleNode {
         int [] dims = new int [dimensions]; // description of the array
         // The other dimensions default to zero and are assigned when
         // the values are set.
-        dims[0] = jjtGetNumChildren();
+        dims[0] = getChildCount();
         Object array =  Array.newInstance( baseType, dims );
 
         // Evaluate the child nodes
-        for ( int i = 0; i < jjtGetNumChildren(); i++ ) {
+        for ( int i = 0; i < getChildCount(); i++ ) {
             final bsh.congo.parser.Node node = getChild(i);
             final Object entry;
             if ( node instanceof BSHArrayInitializer )
@@ -208,9 +208,9 @@ class BSHArrayInitializer extends SimpleNode {
         try {
             Object bean = baseType.getConstructor().newInstance();
             callstack.top().setClassInstance(bean);
-            for (int i = 0; i < jjtGetNumChildren(); i++) {
-                BSHAssignment asNode = (BSHAssignment)this.jjtGetChild(i);
-                BSHPrimaryExpression peNode = (BSHPrimaryExpression)asNode.jjtGetChild(0);
+            for (int i = 0; i < getChildCount(); i++) {
+                BSHAssignment asNode = (BSHAssignment)this.getChild(i);
+                BSHPrimaryExpression peNode = (BSHPrimaryExpression)asNode.getChild(0);
                 peNode.isArrayExpression = peNode.isMapExpression = false;
                 asNode.eval(callstack, interpreter);
             }
@@ -274,10 +274,10 @@ class BSHArrayInitializer extends SimpleNode {
      * @return if this is a bean type */
     private boolean isBeanType(Class<?> type) {
         return Void.TYPE != type && !Types.isCollectionType(type)
-            && jjtGetChild(0) instanceof BSHAssignment
-            && jjtGetChild(0).jjtGetChild(0) instanceof BSHPrimaryExpression
-            && ((BSHPrimaryExpression)jjtGetChild(0).jjtGetChild(0)).isMapExpression
-            && jjtGetChild(0).jjtGetChild(0).jjtGetChild(0) instanceof BSHAmbiguousName;
+            && getChild(0) instanceof BSHAssignment
+            && getChild(0).getChild(0) instanceof BSHPrimaryExpression
+            && ((BSHPrimaryExpression)getChild(0).getChild(0)).isMapExpression
+            && getChild(0).getChild(0).getChild(0) instanceof BSHAmbiguousName;
     }
 
     /** Convenience method to query the provided node's map in array flag.
@@ -309,10 +309,10 @@ class BSHArrayInitializer extends SimpleNode {
     private int inferDimensions(int dimensions, int idx, bsh.congo.parser.Node node,
             CallStack callstack, Interpreter interpreter) throws EvalError {
         // count ArrayInitializer nodes in this hierarchy
-        while ( node.jjtGetNumChildren() > idx
-                && (node = node.jjtGetChild(idx)) instanceof BSHArrayInitializer
+        while ( node.getChildCount() > idx
+                && (node = node.getChild(idx)) instanceof BSHArrayInitializer
                 && !isMapInArray((BSHArrayInitializer) node)
-                && node.jjtGetNumChildren() > 0 ) {
+                && node.getChildCount() > 0 ) {
             dimensions++;
             idx = 0;
         }
@@ -345,7 +345,7 @@ class BSHArrayInitializer extends SimpleNode {
      * @param interpreter the evaluation interpreter
      * @return the common type for all cells
      * @throws EvalError thrown at node evaluation  */
-    private Class<?> inferCommonType(Class<?> common, Node node,
+    private Class<?> inferCommonType(Class<?> common, bsh.congo.parser.Node node,
             CallStack callstack, Interpreter interpreter ) throws EvalError {
         // Object is already the most common type and maps are typed MapEntry
         if ( Object.class == common || MapEntry.class == common )
@@ -361,7 +361,7 @@ class BSHArrayInitializer extends SimpleNode {
                 && isMapInArray((BSHArrayInitializer) node) )
             return Types.getCommonType(common, Map.class);
         // recurse through nested array initializer nodes
-        for ( Node child : node.jjtGetChildren() )
+        for ( bsh.congo.parser.Node child : node.children() )
             common = this.inferCommonType(common, child, callstack, interpreter);
         return common;
     }

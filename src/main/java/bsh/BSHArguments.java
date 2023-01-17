@@ -57,10 +57,10 @@ class BSHArguments extends SimpleNode
         throws EvalError
     {
         // evaluate each child
-        Object[] args = new Object[jjtGetNumChildren()];
+        Object[] args = new Object[getChildCount()];
         for(int i = 0; i < args.length; i++)
         {
-            args[i] = jjtGetChild(i).eval(callstack, interpreter);
+            args[i] = getChild(i).eval(callstack, interpreter);
             if ( args[i] == Primitive.VOID )
                 throw new EvalError( "Undefined argument: " +
                     getChild(i).getText(), this, callstack );

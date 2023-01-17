@@ -33,8 +33,8 @@ public class BSHMultiCatch extends SimpleNode {
     }
 
     public int countTypes() {
-        if ( jjtGetNumChildren() > 0 )
-            return jjtGetNumChildren();
+        if ( getChildCount() > 0 )
+            return getChildCount();
         return 1;
     }
 
@@ -45,7 +45,7 @@ public class BSHMultiCatch extends SimpleNode {
     }
 
     public boolean isUntyped() {
-        return 0 == jjtGetNumChildren();
+        return 0 == getChildCount();
     }
 
     /**
@@ -59,7 +59,7 @@ public class BSHMultiCatch extends SimpleNode {
         if ( isUntyped() )
             types[0] = UNTYPED;
         else for ( int i=0; i< countTypes(); i++ )
-            types[i] = ((BSHType) jjtGetChild(i)).getType( callstack, interpreter );
+            types[i] = ((BSHType) getChild(i)).getType( callstack, interpreter );
 
         return types;
     }
