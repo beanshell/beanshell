@@ -193,7 +193,7 @@ public final class Reflect {
     */
     public static Object invokeStaticMethod(
             BshClassManager bcm, Class<?> clas, String methodName,
-            Object [] args, Node callerInfo )
+            Object [] args, bsh.congo.parser.Node callerInfo )
                     throws ReflectError, UtilEvalError,
                            InvocationTargetException {
         Interpreter.debug("invoke static Method");
@@ -899,7 +899,7 @@ public final class Reflect {
     */
     public static Object invokeCompiledCommand(
         Class<?> commandClass, Object [] args, Interpreter interpreter,
-        CallStack callstack, Node callerInfo )
+        CallStack callstack, bsh.congo.parser.Node callerInfo )
         throws UtilEvalError
     {
         // add interpereter and namespace to args list

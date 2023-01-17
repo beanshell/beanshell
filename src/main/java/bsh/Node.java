@@ -15,23 +15,8 @@
  * limitations under the License. */
 package bsh;
 
-import java.util.ListIterator;
-
 /* All AST nodes must implement this interface.  It provides basic
  * machinery for constructing the parent and child relationships
  * between nodes. */
-public interface Node extends bsh.congo.parser.Node, ListIterator<Node> {
-    /** Set the name of the source file (or more generally source) of the text
-     * from which this node was parsed.
-     * @param sourceFile source */
-    void setSourceFile(String sourceFile);
-
-    /** Dump the children hierarchy.
-     * @param prefix a prefix string */
-    void dump(String prefix);
-
-    /** Overloaded toString with prefix used by dump.
-     * @param prefix a prefix string
-     * @return toString with prefix */
-    String toString(String prefix);
+public interface Node extends bsh.congo.parser.Node {//}, ListIterator<Node> {
 }

@@ -482,7 +482,7 @@ public class Interpreter
         // init the callstack.
         CallStack callstack = new CallStack(globalNameSpace);
 
-        Node node = null;
+        bsh.congo.parser.Node node = null;
         EOF = false;
         int idx = -1;
         while( !Thread.interrupted() && !EOF ) {

@@ -86,7 +86,7 @@ class BSHMethodDeclaration extends SimpleNode
             bsh.congo.parser.Node crnt = blockNode.getChild(blockNode.getChildCount() - 1);
             if (crnt instanceof BSHReturnStatement)
                 while (((BSHReturnStatement)crnt).hasNext())
-                    if ((crnt = ((Node)crnt).next()) instanceof BSHAmbiguousName)
+                    if ((crnt = crnt.next()) instanceof BSHAmbiguousName)
                         isScriptedObject = ((BSHAmbiguousName)crnt).text.startsWith("this");
         }
 

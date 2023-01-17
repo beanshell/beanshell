@@ -16,6 +16,7 @@ LEGACY_GLITCHY_LOOKAHEAD=false;
 
 INJECT Node :
 import bsh.*;
+extends java.util.ListIterator<Node>
 {
     /** This is the general signature for evaluation of a node.
      * @param callstack evaluation call stack
@@ -26,7 +27,7 @@ import bsh.*;
       throw new UnsupportedOperationException("eval method is unimplemented for " + this.getClass().getSimpleName());
     }
 
-    bsh.Node JAVACODE = new SimpleNode( -1 ) {
+    Node JAVACODE = new SimpleNode( -1 ) {
         private static final long serialVersionUID = 1L;
         public String getSourceFile() {
             return "<Called from Java Code>";
@@ -60,9 +61,23 @@ import bsh.*;
 
     default String getSourceFile() {return getInputSource();}
 
+    default void setSourceFile(String sourceFile) {throw new UnsupportedOperationException();}
+
     default String getText() {return getSource();}
 
     default int getLineNumber() {return getBeginLine();}
+
+    default String toString(String prefix) {throw new UnsupportedOperationException();}
+
+    default void add(Node node) {throw new UnsupportedOperationException();}
+    default void set(Node node) {throw new UnsupportedOperationException();}
+    default void remove() {throw new UnsupportedOperationException();}
+    default int nextIndex() {throw new UnsupportedOperationException();}
+    default int previousIndex() {throw new UnsupportedOperationException();}
+    default boolean hasNext() {throw new UnsupportedOperationException();}
+    default boolean hasPrevious() {throw new UnsupportedOperationException();}
+    default Node next() {throw new UnsupportedOperationException();}
+    default Node previous() {throw new UnsupportedOperationException();}
 }
 
 TOKEN : 

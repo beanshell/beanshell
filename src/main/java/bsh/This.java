@@ -309,7 +309,7 @@ public final class This implements java.io.Serializable, Runnable
             throws EvalError
     {
         CallStack callstack = new CallStack(namespace);
-        Node node = namespace.getNode();
+        bsh.congo.parser.Node node = namespace.getNode();
         namespace.setNode(null);
         try {
             Object ret = invokeMethod(
@@ -362,7 +362,7 @@ public final class This implements java.io.Serializable, Runnable
     */
     public Object invokeMethod(
         String methodName, Object [] args,
-        Interpreter interpreter, CallStack callstack, Node callerInfo,
+        Interpreter interpreter, CallStack callstack, bsh.congo.parser.Node callerInfo,
         boolean declaredOnly  )
         throws EvalError
     {
@@ -441,7 +441,7 @@ public final class This implements java.io.Serializable, Runnable
      * @param callstack for error context
      * @return returns a cloned instances with deep copied This reference
      * @throws EvalError rolled up exceptions to user */
-    Object cloneMethodImpl(Node callerInfo, CallStack callstack) throws EvalError {
+    Object cloneMethodImpl(bsh.congo.parser.Node callerInfo, CallStack callstack) throws EvalError {
         return cloneMethodImpl(callerInfo, callstack, null);
     }
 
@@ -458,7 +458,7 @@ public final class This implements java.io.Serializable, Runnable
      * @param clonedInstance a cloned instance or null to clone from This
      * @return returns a cloned instances with deep copied This reference
      * @throws EvalError rolled up exceptions to user */
-    Object cloneMethodImpl(Node callerInfo, CallStack callstack, Object clonedInstance) throws EvalError {
+    Object cloneMethodImpl(bsh.congo.parser.Node callerInfo, CallStack callstack, Object clonedInstance) throws EvalError {
         NameSpace ns = new NameSpace(namespace.getParent(), namespace.getName()+" clone");
         try {
             if (null == clonedInstance) { // no clone instance, attempt manual clone

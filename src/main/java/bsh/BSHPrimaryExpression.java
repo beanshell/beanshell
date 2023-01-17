@@ -106,7 +106,7 @@ class BSHPrimaryExpression extends SimpleNode
             If the result is a Node eval() it to an object or LHS
             (as determined by toLHS)
         */
-        if ( obj instanceof Node )
+        if ( obj instanceof SimpleNode )
             if ( obj instanceof BSHAmbiguousName )
                 if ( toLHS )
                     obj = ((BSHAmbiguousName) obj).toLHS(
@@ -121,7 +121,7 @@ class BSHPrimaryExpression extends SimpleNode
                     throw new EvalError("Can't assign to prefix.",
                         this, callstack );
                 else
-                    obj = ((Node) obj).eval(callstack, interpreter);
+                    obj = ((SimpleNode) obj).eval(callstack, interpreter);
 
         if ( isMapExpression ) {
             if ( obj == Primitive.VOID )

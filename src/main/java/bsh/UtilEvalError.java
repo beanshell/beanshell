@@ -66,12 +66,11 @@ public class UtilEvalError extends Exception
     /**
         Re-throw as an eval error, prefixing msg to the message and specifying
         the node.  If a node already exists the addNode is ignored.
-        @see #setNode( bsh.Node )
         <p>
         @param msg may be null for no additional message.
     */
     public EvalError toEvalError(
-        String msg, Node node, CallStack callstack  )
+        String msg, bsh.congo.parser.Node node, CallStack callstack  )
     {
         if ( Interpreter.DEBUG.get() )
             printStackTrace();
@@ -83,7 +82,7 @@ public class UtilEvalError extends Exception
         return new EvalError( msg + this.getMessage(), node, callstack, this );
     }
 
-    public EvalError toEvalError ( Node node, CallStack callstack )
+    public EvalError toEvalError ( bsh.congo.parser.Node node, CallStack callstack )
     {
         return toEvalError( null, node, callstack );
     }

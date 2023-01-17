@@ -238,7 +238,7 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
     */
     public Object invoke(
         Object[] argValues, Interpreter interpreter, CallStack callstack,
-            Node callerInfo )
+            bsh.congo.parser.Node callerInfo )
         throws EvalError
     {
         return invoke( argValues, interpreter, callstack, callerInfo, false );
@@ -267,7 +267,7 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
     */
     Object invoke(
         Object[] argValues, Interpreter interpreter, CallStack callstack,
-            Node callerInfo, boolean overrideNameSpace )
+            bsh.congo.parser.Node callerInfo, boolean overrideNameSpace )
         throws EvalError
     {
         Interpreter.debug("Bsh method invoke: ", this.name, " overrideNameSpace: ", overrideNameSpace);
@@ -319,7 +319,7 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
 
     private Object invokeImpl(
         Object[] argValues, Interpreter interpreter, CallStack callstack,
-            Node callerInfo, boolean overrideNameSpace )
+            bsh.congo.parser.Node callerInfo, boolean overrideNameSpace )
         throws EvalError
     {
         if (hasModifier("abstract"))
@@ -508,7 +508,7 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
             } catch( UtilEvalError e ) {
                 // Point to return statement point if we had one.
                 // (else it was implicit return? What's the case here?)
-                Node node = callerInfo;
+                bsh.congo.parser.Node node = callerInfo;
                 if ( retControl != null )
                     node = retControl.returnPoint;
                 throw e.toEvalError(

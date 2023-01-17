@@ -92,7 +92,7 @@ public class NameSpace
     private Map<String, Name> names = new HashMap<>();
     /** The node associated with the creation of this namespace. This is used
      * support getInvocationLine() and getInvocationText(). */
-    Node callerInfoNode;
+    bsh.congo.parser.Node callerInfoNode;
     /** Note that the namespace is a method body namespace. This is used for
      * printing stack traces in exceptions. */
     boolean isMethod;
@@ -203,13 +203,13 @@ public class NameSpace
      * used in debugging and to support the getInvocationLine() and
      * getInvocationText() methods.
      * @param node the new node */
-    void setNode(final Node node) {
+    void setNode(final bsh.congo.parser.Node node) {
         this.callerInfoNode = node;
     }
 
     /** Gets the node.
      * @return the node */
-    Node getNode() {
+    bsh.congo.parser.Node getNode() {
         if (this.callerInfoNode != null)
             return this.callerInfoNode;
         if (this.parent != null)
@@ -1268,13 +1268,13 @@ public class NameSpace
      * @throws EvalError the eval error */
     protected Object invokeCommand(final String commandName, final Object[] args,
             final Interpreter interpreter, final CallStack callstack,
-            final Node callerInfo, final boolean ignoreInvoke) throws EvalError {
+            final bsh.congo.parser.Node callerInfo, final boolean ignoreInvoke) throws EvalError {
         Class<?>[] argTypes = Types.getTypes( args );
         Object commandObject;
         try {
             commandObject = getCommand(
                 commandName, argTypes, interpreter );
-        } catch ( UtilEvalError e ) {
+        } catch ( UtilEvalError e) {
             throw e.toEvalError("Error loading command: ",
                 callerInfo, callstack );
         }
@@ -1321,7 +1321,7 @@ public class NameSpace
      * @throws EvalError the eval error */
     @SuppressWarnings("LogicalAssignment")
     protected Object invokeDefaultInvokeMethod(final String commandName, final Object[] args,
-            final Interpreter interpreter, final CallStack callstack, final Node callerInfo,
+            final Interpreter interpreter, final CallStack callstack, final bsh.congo.parser.Node callerInfo,
             final boolean[] outHasMethod) throws EvalError {
 
         BshMethod invokeMethod = null;
@@ -1416,7 +1416,7 @@ public class NameSpace
     /** Gets the invocation line.
      * @return the invocation line */
     public int getInvocationLine() {
-        final Node node = this.getNode();
+        final bsh.congo.parser.Node node = this.getNode();
         if (node != null)
             return node.getLineNumber();
         else
@@ -1426,7 +1426,7 @@ public class NameSpace
     /** Gets the invocation text.
      * @return the invocation text */
     public String getInvocationText() {
-        final Node node = this.getNode();
+        final bsh.congo.parser.Node node = this.getNode();
         if (node != null)
             return node.getText();
         else

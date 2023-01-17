@@ -52,7 +52,7 @@ public class UtilTargetError extends UtilEvalError
         Override toEvalError to throw TargetError type.
     */
     public EvalError toEvalError(
-        String msg, Node node, CallStack callstack  )
+        String msg, bsh.congo.parser.Node node, CallStack callstack  )
     {
         if ( null == msg )
             msg = this.getMessage();

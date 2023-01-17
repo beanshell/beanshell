@@ -130,7 +130,7 @@ public class EvalError extends Exception
         while ( stack.depth() > 0 )
         {
             NameSpace ns = stack.pop();
-            Node node = ns.getNode();
+            bsh.congo.parser.Node node = ns.getNode();
             if ( ns.isMethod )
             {
                 trace = trace + "\nCalled from method: " + ns.getName();

@@ -85,17 +85,17 @@ public class SimpleNode extends BaseNode implements Node, Serializable {
 
     /** {@inheritDoc} */
     @Override
-    public Node next() {
+    public bsh.congo.parser.Node next() {
         if (!hasNext()) throw new NoSuchElementException();
         //return children[lastRet = cursor++];
-        return (Node) getChild(lastRet = cursor++);
+        return getChild(lastRet = cursor++);
     }
 
     /** {@inheritDoc} */
     @Override
-    public Node previous() {
+    public bsh.congo.parser.Node previous() {
         if (!hasPrevious()) throw new NoSuchElementException();
-        return (Node) getChild(lastRet = --cursor);
+        return getChild(lastRet = --cursor);
     }
 
     /** {@inheritDoc} */
@@ -109,7 +109,7 @@ public class SimpleNode extends BaseNode implements Node, Serializable {
 
     /** {@inheritDoc} */
     @Override
-    public void set(Node e) {
+    public void set(bsh.congo.parser.Node e) {
         if (lastRet < 0) throw new IllegalStateException();
         //children[lastRet] = e;
         setChild(lastRet, (bsh.congo.parser.Node) e);
@@ -117,7 +117,7 @@ public class SimpleNode extends BaseNode implements Node, Serializable {
 
     /** {@inheritDoc} */
     @Override
-    public void add(Node e) {
+    public void add(bsh.congo.parser.Node e) {
         addChild((bsh.congo.parser.Node) e);
         lastRet = -1;
     }
@@ -135,7 +135,7 @@ public class SimpleNode extends BaseNode implements Node, Serializable {
     public void dump(String prefix) {
         System.out.println(toString(prefix));
         for (int i = 0; i < getChildCount(); ++i) {
-            Node n = (Node) getChild(i);
+            bsh.congo.parser.Node n = getChild(i);
             if (n != null)
                 n.dump(prefix + " ");
         }

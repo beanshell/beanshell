@@ -50,7 +50,7 @@ class BSHArrayInitializer extends SimpleNode {
     public void setParent(bsh.congo.parser.Node n) {
         super.setParent(n);
         for (int i = 0; i< getChildCount(); i++) {
-            Node c = (Node) getChild(i);
+            bsh.congo.parser.Node c = getChild(i);
             if (c.getChildCount() > 0 && c.getChild(0) instanceof BSHPrimaryExpression) {
                 expressionQueue.push((BSHPrimaryExpression) c.getChild(0));
                 expressionQueue.peek().setArrayExpression(this);
