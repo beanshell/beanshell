@@ -78,7 +78,7 @@ class BSHArrayDimensions extends SimpleNode
     public Object eval( CallStack callstack, Interpreter interpreter )
         throws EvalError
     {
-        Node child = jjtGetChild(0);
+        bsh.congo.parser.Node child = getChild(0);
 
         /*
             Child is array initializer.  Evaluate it and fill in the

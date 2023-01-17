@@ -155,7 +155,7 @@ public class SimpleNode extends BaseNode implements Node, Serializable {
         }
         if ( sourceFile == null )
             if ( parent != null )
-                return jjtGetParent().getSourceFile();
+                return getParent().getSourceFile();
             else
                 return "<unknown file>";
         else

@@ -39,19 +39,19 @@ package bsh;
 */
 public class EvalError extends Exception
 {
-    private Node node;
+    private bsh.congo.parser.Node node;
 
     // Note: no way to mutate the Throwable message, must maintain our own
     private String message;
 
     private final CallStack callstack;
 
-    public EvalError( String s, Node node, CallStack callstack, Throwable cause ) {
+    public EvalError( String s, bsh.congo.parser.Node node, CallStack callstack, Throwable cause ) {
         this(s,node,callstack);
         initCause(cause);
     }
 
-    public EvalError( String s, Node node, CallStack callstack ) {
+    public EvalError( String s, bsh.congo.parser.Node node, CallStack callstack ) {
         this.message = s;
         this.node = node;
         // freeze the callstack for the stack trace.
@@ -91,7 +91,7 @@ public class EvalError extends Exception
         The error has trace info associated with it.
         i.e. It has an AST node that can print its location and source text.
     */
-    Node getNode() {
+    bsh.congo.parser.Node getNode() {
         return node;
     }
 

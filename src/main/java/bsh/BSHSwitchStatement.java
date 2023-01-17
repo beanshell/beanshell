@@ -43,7 +43,7 @@ class BSHSwitchStatement
     {
         int numchild = jjtGetNumChildren();
         int child = 0;
-        Node switchExp = jjtGetChild(child++);
+        bsh.congo.parser.Node switchExp = getChild(child++);
         Object switchVal = switchExp.eval( callstack, interpreter );
 
         // import enum constants
@@ -57,7 +57,7 @@ class BSHSwitchStatement
         */
         // first label
         BSHSwitchLabel label;
-        Node node;
+        bsh.congo.parser.Node node;
         ReturnControl returnControl=null;
 
         // get the first label
@@ -96,7 +96,7 @@ class BSHSwitchStatement
                 // skip nodes until next label
                 while ( child < numchild )
                 {
-                    node = jjtGetChild(child++);
+                    node = getChild(child++);
                     if ( node instanceof BSHSwitchLabel ) {
                         label = (BSHSwitchLabel)node;
                         break;
@@ -117,7 +117,7 @@ class BSHSwitchStatement
     */
     private boolean primitiveEquals(
         Object switchVal, Object targetVal,
-        CallStack callstack, Node switchExp  )
+        CallStack callstack, bsh.congo.parser.Node switchExp  )
         throws EvalError
     {
         if (targetVal == Primitive.VOID)
@@ -131,7 +131,7 @@ class BSHSwitchStatement
                 return result.equals( Boolean.TRUE );
             } catch ( UtilEvalError e ) {
                 throw e.toEvalError(
-                    "Switch value: "+switchExp.getText()+": ",
+                    "Switch value: "+((bsh.Node)switchExp).getText()+": ",
                     this, callstack );
             }
         else

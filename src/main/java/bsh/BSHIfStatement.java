@@ -62,7 +62,7 @@ class BSHIfStatement extends SimpleNode
     }
 
     public static boolean evaluateCondition(
-        Node condExp, CallStack callstack, Interpreter interpreter)
+        bsh.congo.parser.Node condExp, CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
         Object obj = condExp.eval(callstack, interpreter);

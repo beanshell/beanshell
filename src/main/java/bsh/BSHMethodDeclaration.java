@@ -73,7 +73,7 @@ class BSHMethodDeclaration extends SimpleNode
             returnTypeNode = (BSHReturnType)firstNode;
             paramsNode = (BSHFormalParameters)jjtGetChild(1);
             if ( jjtGetNumChildren() > 2+numThrows )
-                blockNode = (BSHBlock)jjtGetChild(2+numThrows); // skip throws
+                blockNode = (BSHBlock)getChild(2+numThrows); // skip throws
             ++firstThrowsClause;
         }
         else
@@ -83,10 +83,10 @@ class BSHMethodDeclaration extends SimpleNode
         }
 
         if (null != blockNode && blockNode.jjtGetNumChildren() > 0) {
-            Node crnt = blockNode.jjtGetChild(blockNode.jjtGetNumChildren() - 1);
+            bsh.congo.parser.Node crnt = blockNode.getChild(blockNode.getChildCount() - 1);
             if (crnt instanceof BSHReturnStatement)
-                while (crnt.hasNext())
-                    if ((crnt = crnt.next()) instanceof BSHAmbiguousName)
+                while (((BSHReturnStatement)crnt).hasNext())
+                    if ((crnt = ((Node)crnt).next()) instanceof BSHAmbiguousName)
                         isScriptedObject = ((BSHAmbiguousName)crnt).text.startsWith("this");
         }
 

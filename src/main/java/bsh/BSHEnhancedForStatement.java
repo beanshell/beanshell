@@ -63,18 +63,17 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
         if (this.isFinal)
             modifiers.addModifier("final");
         Class<?> elementType = null;
-        final Node expression;
-        final Node statement;
+        final bsh.congo.parser.Node expression, statement;
         final NameSpace enclosingNameSpace = callstack.top();
-        final Node firstNode = jjtGetChild(0);
+        final bsh.congo.parser.Node firstNode = getChild(0);
         final int nodeCount = jjtGetNumChildren();
         if (firstNode instanceof BSHType) {
             elementType = ((BSHType) firstNode).getType(callstack, interpreter);
-            expression = jjtGetChild(1);
-            statement = nodeCount > 2 ? jjtGetChild(2) : null;
+            expression = getChild(1);
+            statement = nodeCount > 2 ? getChild(2) : null;
         } else {
             expression = firstNode;
-            statement = nodeCount > 1 ? jjtGetChild(1) : null;
+            statement = nodeCount > 1 ? getChild(1) : null;
         }
         final Object iteratee = expression.eval(callstack, interpreter);
         final CollectionManager cm = CollectionManager.getCollectionManager();

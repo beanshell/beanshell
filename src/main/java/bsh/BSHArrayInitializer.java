@@ -153,7 +153,7 @@ class BSHArrayInitializer extends SimpleNode {
 
         // Evaluate the child nodes
         for ( int i = 0; i < jjtGetNumChildren(); i++ ) {
-            final Node node = jjtGetChild(i);
+            final bsh.congo.parser.Node node = getChild(i);
             final Object entry;
             if ( node instanceof BSHArrayInitializer )
                 // nested arrays needs at least 2 dimensions to be valid
@@ -306,7 +306,7 @@ class BSHArrayInitializer extends SimpleNode {
      * @param interpreter the evaluation interpreter
      * @return the number of dimensions defined
      * @throws EvalError thrown at node evaluation  */
-    private int inferDimensions(int dimensions, int idx, Node node,
+    private int inferDimensions(int dimensions, int idx, bsh.congo.parser.Node node,
             CallStack callstack, Interpreter interpreter) throws EvalError {
         // count ArrayInitializer nodes in this hierarchy
         while ( node.jjtGetNumChildren() > idx
@@ -322,7 +322,7 @@ class BSHArrayInitializer extends SimpleNode {
             // if the value element is null look for more dimensions
             // example: {null, {1, 2}} makes int[][]
             if ( ot == Primitive.NULL )
-                return inferDimensions(dimensions, ++idx, node.jjtGetParent(),
+                return inferDimensions(dimensions, ++idx, node.getParent(),
                         callstack, interpreter);
             // if the value element is an array we can append dimensions
             // example: new {new {1, 2}} makes int[][]
@@ -330,8 +330,8 @@ class BSHArrayInitializer extends SimpleNode {
         }
         // if we found an empty array element look for more dimensions
         // example: {{}, {1, 2}} makes int[][] but {{}} makes Object[][]
-        else if ( node.jjtGetNumChildren() == 0 )
-            return inferDimensions(dimensions, ++idx, node.jjtGetParent(),
+        else if ( node.getChildCount() == 0 )
+            return inferDimensions(dimensions, ++idx, node.getParent(),
                     callstack, interpreter);
         return dimensions;
     }

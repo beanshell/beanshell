@@ -63,7 +63,7 @@ class BSHArguments extends SimpleNode
             args[i] = jjtGetChild(i).eval(callstack, interpreter);
             if ( args[i] == Primitive.VOID )
                 throw new EvalError( "Undefined argument: " +
-                    jjtGetChild(i).getText(), this, callstack );
+                    getChild(i).getText(), this, callstack );
         }
 
         return args;

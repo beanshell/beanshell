@@ -78,8 +78,8 @@ class BSHType extends SimpleNode implements BshClassManager.Listener {
         arrayDims++;
     }
 
-    Node getTypeNode() {
-        return jjtGetChild(0);
+    bsh.congo.parser.Node getTypeNode() {
+        return getChild(0);
     }
 
     /**
@@ -98,7 +98,7 @@ class BSHType extends SimpleNode implements BshClassManager.Listener {
 
         String descriptor;
         //  first node will either be PrimitiveType or AmbiguousName
-        Node node = getTypeNode();
+        bsh.congo.parser.Node node = getTypeNode();
         if ( node instanceof BSHPrimitiveType )
             descriptor = getTypeDescriptor( ((BSHPrimitiveType)node).type );
         else
@@ -143,7 +143,7 @@ class BSHType extends SimpleNode implements BshClassManager.Listener {
             return type;
 
         //  first node will either be PrimitiveType or AmbiguousName
-        Node node = getTypeNode();
+        bsh.congo.parser.Node node = getTypeNode();
         if ( node instanceof BSHPrimitiveType )
             baseType = ((BSHPrimitiveType)node).getType();
         else

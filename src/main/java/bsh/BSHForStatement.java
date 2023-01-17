@@ -24,15 +24,12 @@
  *                                                                           *
  *****************************************************************************/
 
-
-
 package bsh;
 
 /**
-    Implementation of the for(;;) statement.
-*/
-class BSHForStatement extends SimpleNode implements ParserConstants
-{
+ * Implementation of the for(;;) statement.
+ */
+class BSHForStatement extends SimpleNode implements ParserConstants {
     final int blockId;
     public boolean hasForInit;
     public boolean hasExpression;
@@ -48,49 +45,50 @@ class BSHForStatement extends SimpleNode implements ParserConstants
     BSHForStatement(bsh.congo.tree.ForStatement forStatement) {
         super(forStatement);
         blockId = BlockNameSpace.blockCount.incrementAndGet();
-        //TODO on the other variables.
+        // TODO on the other variables.
     }
 
-    public Object eval(CallStack callstack , Interpreter interpreter) throws EvalError {
+    public Object eval(CallStack callstack, Interpreter interpreter) throws EvalError {
         int i = 0;
-        final Node forInit = hasForInit ? jjtGetChild(i++) : null;
-        final Node expression = hasExpression ? jjtGetChild(i++) : null;
-        final Node forUpdate = hasForUpdate ? jjtGetChild(i++) : null;
-        final Node statement = i < jjtGetNumChildren() ? jjtGetChild(i) : null;
-        final NameSpace enclosingNameSpace= callstack.top();
+        final bsh.congo.parser.Node forInit = hasForInit ? getChild(i++) : null;
+        final bsh.congo.parser.Node expression = hasExpression ? getChild(i++) : null;
+        final bsh.congo.parser.Node forUpdate = hasForUpdate ? getChild(i++) : null;
+        final bsh.congo.parser.Node statement = i < getChildCount() ? getChild(i) : null;
+        final NameSpace enclosingNameSpace = callstack.top();
         final NameSpace forNameSpace = new BlockNameSpace(enclosingNameSpace, blockId);
 
         /*
-            Note: some interesting things are going on here.
-
-            1) We swap instead of push...  The primary mode of operation
-            acts like we are in the enclosing namespace...  (super must be
-            preserved, etc.)
-
-            2) We do *not* call the body block eval with the namespace
-            override.  Instead we allow it to create a second subordinate
-            BlockNameSpace child of the forNameSpace.  Variable propagation
-            still works through the chain, but the block's child cleans the
-            state between iteration.
-            (which is correct Java behavior... see forscope4.bsh)
-        */
+         * Note: some interesting things are going on here.
+         * 
+         * 1) We swap instead of push... The primary mode of operation
+         * acts like we are in the enclosing namespace... (super must be
+         * preserved, etc.)
+         * 
+         * 2) We do *not* call the body block eval with the namespace
+         * override. Instead we allow it to create a second subordinate
+         * BlockNameSpace child of the forNameSpace. Variable propagation
+         * still works through the chain, but the block's child cleans the
+         * state between iteration.
+         * (which is correct Java behavior... see forscope4.bsh)
+         */
 
         // put forNameSpace on the top of the stack
-        callstack.swap( forNameSpace );
+        callstack.swap(forNameSpace);
         try {
-            if ( hasForInit ) forInit.eval( callstack, interpreter );
-            while( !Thread.interrupted() ) {
+            if (hasForInit)
+                forInit.eval(callstack, interpreter);
+            while (!Thread.interrupted()) {
                 if (hasExpression && !BSHIfStatement.evaluateCondition(
                         expression, callstack, interpreter))
                     break;
 
-                if ( statement != null ) { // not empty statement
+                if (statement != null) { // not empty statement
                     Object ret = statement instanceof BSHBlock
-                        ? ((BSHBlock)statement).eval( callstack, interpreter, null)
-                        : statement.eval( callstack, interpreter );
+                            ? ((BSHBlock) statement).eval(callstack, interpreter, null)
+                            : statement.eval(callstack, interpreter);
 
                     if (ret instanceof ReturnControl) {
-                        ReturnControl control = (ReturnControl)ret;
+                        ReturnControl control = (ReturnControl) ret;
 
                         if (null != control.label)
                             if (null == label || !label.equals(control.label))
@@ -103,11 +101,12 @@ class BSHForStatement extends SimpleNode implements ParserConstants
                         // if CONTINUE we just carry on
                     }
                 }
-                if ( hasForUpdate ) forUpdate.eval( callstack, interpreter );
+                if (hasForUpdate)
+                    forUpdate.eval(callstack, interpreter);
             }
             return Primitive.VOID;
         } finally {
-            callstack.swap( enclosingNameSpace );  // put it back
+            callstack.swap(enclosingNameSpace); // put it back
         }
     }
 

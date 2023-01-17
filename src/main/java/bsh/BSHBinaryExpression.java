@@ -219,9 +219,9 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
      * @return the variable in call stack name space for the ambiguous node text
      * @throws UtilEvalError thrown by getVariableImpl. */
     private Variable getVariableAtNode(int index, CallStack callstack) throws UtilEvalError {
-        Node nameNode = null;
+        bsh.congo.parser.Node nameNode = null;
         if ( jjtGetChild(index).jjtGetNumChildren() > 0
-                && (nameNode = jjtGetChild(index).jjtGetChild(0))
+                && (nameNode = getChild(index).getChild(0))
                     instanceof BSHAmbiguousName )
             return callstack.top().getVariableImpl(
                     ((BSHAmbiguousName) nameNode).text, true);

@@ -130,10 +130,10 @@ public class DelayedEvalBshMethod extends BshMethod
             return "super";
         if ( this.methodBody.jjtGetNumChildren() == 0 )
             return null;
-        Node firstStatement = this.methodBody.jjtGetChild(0);
+        bsh.congo.parser.Node firstStatement = this.methodBody.getChild(0);
         while ( !(firstStatement instanceof BSHMethodInvocation)
-                && firstStatement.jjtGetNumChildren() > 0 )
-            firstStatement = firstStatement.jjtGetChild(0);
+                && firstStatement.getChildCount() > 0 )
+            firstStatement = firstStatement.getChild(0);
 
         if ( firstStatement instanceof BSHMethodInvocation ) {
             BSHMethodInvocation methodNode = (BSHMethodInvocation) firstStatement;

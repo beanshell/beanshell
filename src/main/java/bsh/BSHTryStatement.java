@@ -68,8 +68,8 @@ class BSHTryStatement extends SimpleNode
         List<BSHBlock> catchBlocks = new ArrayList<>();
 
         int nchild = jjtGetNumChildren();
-        Node node = null;
-        while( i < nchild && (node = jjtGetChild(i++)) instanceof BSHMultiCatch )
+        bsh.congo.parser.Node node = null;
+        while( i < nchild && (node = getChild(i++)) instanceof BSHMultiCatch )
         {
             catchParams.add((BSHMultiCatch) node);
             catchBlocks.add((BSHBlock) jjtGetChild(i++));

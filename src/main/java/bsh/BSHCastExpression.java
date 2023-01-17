@@ -51,7 +51,7 @@ class BSHCastExpression extends SimpleNode {
     {
         Class toType = ((BSHType)jjtGetChild(0)).getType(
             callstack, interpreter );
-        Node expression = jjtGetChild(1);
+        bsh.congo.parser.Node expression = getChild(1);
 
         // evaluate the expression
         Object fromValue = expression.eval(callstack, interpreter);

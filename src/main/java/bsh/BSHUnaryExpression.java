@@ -49,7 +49,7 @@ class BSHUnaryExpression extends SimpleNode implements ParserConstants
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
-        Node node = jjtGetChild(0);
+        bsh.congo.parser.Node node = jjtGetChild(0);
 
         // If this is a unary increment of decrement (either pre or postfix)
         // then we need an LHS to which to assign the result.  Otherwise
