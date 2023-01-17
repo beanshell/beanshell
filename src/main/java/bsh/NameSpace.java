@@ -1233,7 +1233,7 @@ public class NameSpace
      *      callerInfo) */
     public Object invokeMethod(final String methodName, final Object[] args,
             final Interpreter interpreter, final CallStack callstack,
-            final Node callerInfo) throws EvalError {
+            final bsh.congo.parser.Node callerInfo) throws EvalError {
         return this.getThis(interpreter).invokeMethod(methodName, args,
                 interpreter, callstack, callerInfo, false/* declaredOnly */);
     }
@@ -1251,7 +1251,7 @@ public class NameSpace
      * @throws EvalError the eval error */
     protected Object invokeCommand(final String commandName, final Object[] args,
             final Interpreter interpreter, final CallStack callstack,
-            final Node callerInfo) throws EvalError {
+            final bsh.congo.parser.Node callerInfo) throws EvalError {
         return invokeCommand(commandName, args, interpreter, callstack, callerInfo, false);
     }
 

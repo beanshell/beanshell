@@ -684,7 +684,7 @@ public class Interpreter
             in, getOut(), getErr(), false, nameSpace, this, sourceFileInfo);
         CallStack callstack = new CallStack(nameSpace);
 
-        Node node = null;
+        bsh.congo.parser.Node node = null;
         boolean eof = false;
         while( !eof )
         {
@@ -857,7 +857,7 @@ public class Interpreter
             Object ret = globalNameSpace.get( name, this );
             return Primitive.unwrap( ret );
         } catch ( UtilEvalError e ) {
-            throw e.toEvalError( Node.JAVACODE, new CallStack() );
+            throw e.toEvalError( bsh.congo.parser.Node.JAVACODE, new CallStack() );
         }
     }
 
@@ -886,7 +886,7 @@ public class Interpreter
             else // optimization for common case
                 globalNameSpace.setVariable(name, value, false);
         } catch (UtilEvalError e) {
-            throw e.toEvalError(Node.JAVACODE, callstack);
+            throw e.toEvalError(bsh.congo.parser.Node.JAVACODE, callstack);
         }
     }
 
@@ -935,12 +935,12 @@ public class Interpreter
 
             if ( lhs.type != LHS.VARIABLE )
                 throw new EvalError("Can't unset, not a variable: "+name,
-                    Node.JAVACODE, new CallStack());
+                    bsh.congo.parser.Node.JAVACODE, new CallStack());
 
             lhs.nameSpace.unsetVariable( lhs.getName() );
         } catch ( UtilEvalError e ) {
             throw new EvalError( e.getMessage(),
-                Node.JAVACODE, new CallStack(), e);
+                bsh.congo.parser.Node.JAVACODE, new CallStack(), e);
         }
     }
 
@@ -1168,7 +1168,7 @@ public class Interpreter
         sourcing and from what file a method was originally parsed.  One
         file may call a method sourced from another file.  See Node
         for origination file info.
-        @see bsh.Node#getSourceFile()
+        @see bsh.congo.parser.Node#getSourceFile()
     */
     public String getSourceFileInfo() {
         if ( sourceFileInfo != null )

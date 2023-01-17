@@ -73,7 +73,7 @@ public class PreparsedScript {
             local.set(entry.getKey(), entry.getValue());
 
         return Primitive.unwrap(prepared.invoke(Reflect.ZERO_ARGS,
-                local, new CallStack(scope), Node.JAVACODE, true));
+                local, new CallStack(scope), bsh.congo.parser.Node.JAVACODE, true));
     }
 
     /** Attach a standard output stream.

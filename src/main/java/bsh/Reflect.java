@@ -86,7 +86,7 @@ public final class Reflect {
     public static Object invokeObjectMethod(
             Object object, String methodName, Object[] args,
             Interpreter interpreter, CallStack callstack,
-            Node callerInfo) throws EvalError {
+            bsh.congo.parser.Node callerInfo) throws EvalError {
         // Bsh scripted object
         if (object instanceof This && !This.isExposedThisMethod(methodName))
             return ((This) object).invokeMethod(
@@ -140,7 +140,7 @@ public final class Reflect {
      * BSHPrimarySuffix, gets consolidated here.
      * @return error instance to throw */
     static TargetError targetErrorFromTargetException(InvocationTargetException e,
-            String methodName, CallStack callstack, Node callerInfo) {
+            String methodName, CallStack callstack, bsh.congo.parser.Node callerInfo) {
         String msg = "Method Invocation " + methodName;
         Throwable te = e.getCause();
         // Try to squeltch the native code stack trace if the exception was caused by
@@ -157,7 +157,7 @@ public final class Reflect {
      * Errors and exceptions will abort and get rolled up.
      * @return the result of the method call */
     private static Object numericMathMethod(Object object, Class<?> type, String methodName,
-            Object[] args, Interpreter interpreter, CallStack callstack, Node callerInfo)
+            Object[] args, Interpreter interpreter, CallStack callstack, bsh.congo.parser.Node callerInfo)
             throws EvalError {
         Class<?> mathType = Types.isFloatingpoint(object) ? BigDecimal.class : BigInteger.class;
         try {
@@ -178,7 +178,7 @@ public final class Reflect {
      * @return the result of the method call */
     private static Object invokeMathMethod(Class<?> mathType, Object object, Class<?> returnType,
         String methodName, Object[] args, Interpreter interpreter, CallStack callstack,
-            Node callerInfo) throws EvalError {
+            bsh.congo.parser.Node callerInfo) throws EvalError {
         Object retrn = invokeObjectMethod(Primitive.castWrapper(mathType, object),
             methodName, args, interpreter, callstack, callerInfo);
         if (retrn instanceof Primitive && ((Primitive)retrn).getType() == mathType)

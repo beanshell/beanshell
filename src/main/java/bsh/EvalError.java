@@ -95,7 +95,7 @@ public class EvalError extends Exception
         return node;
     }
 
-    void setNode( Node node ) {
+    void setNode( bsh.congo.parser.Node node ) {
         this.node = node;
     }
 

@@ -43,22 +43,6 @@ extends java.util.ListIterator<Node>
         }
     };
 
-    /** Called after the node has been made the current node.
-     * Indicates that child nodes can now be added to it. */
-    default void jjtOpen() {}
-
-    /** Called after all the child nodes have been added. */
-    default void jjtClose() {}
-
-    /** Inform the node of its parent.
-     * @param n */
-    default void jjtSetParent(Node n) {setParent(n);};
-
-    /** Add argument to the list of children.
-     * @param n the child node to add
-     * @param i index of child node */
-    default void jjtAddChild(Node n, int i) {addChild(i, n);}
-
     default String getSourceFile() {return getInputSource();}
 
     default void setSourceFile(String sourceFile) {throw new UnsupportedOperationException();}

@@ -345,7 +345,7 @@ public final class This implements java.io.Serializable, Runnable
         have to script them directly.
         <p>
 
-        @see bsh.This#invokeMethod(String, Object[], Interpreter, CallStack, Node, boolean)
+        @see bsh.This#invokeMethod(String, Object[], Interpreter, CallStack, bsh.congo.parser.Node, boolean)
         @param callstack if callStack is null a new CallStack will be created and
             initialized with this namespace.
         @param declaredOnly if true then only methods declared directly in the
@@ -376,7 +376,7 @@ public final class This implements java.io.Serializable, Runnable
         if ( callstack == null )
             callstack = new CallStack( namespace );
         if ( callerInfo == null )
-            callerInfo = Node.JAVACODE;
+            callerInfo = bsh.congo.parser.Node.JAVACODE;
 
         // Find the bsh method
         Class<?>[] types = Types.getTypes( args );

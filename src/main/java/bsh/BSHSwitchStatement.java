@@ -131,7 +131,7 @@ class BSHSwitchStatement
                 return result.equals( Boolean.TRUE );
             } catch ( UtilEvalError e ) {
                 throw e.toEvalError(
-                    "Switch value: "+((bsh.Node)switchExp).getText()+": ",
+                    "Switch value: "+((bsh.congo.parser.Node)switchExp).getText()+": ",
                     this, callstack );
             }
         else

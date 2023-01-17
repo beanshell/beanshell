@@ -763,7 +763,7 @@ class Name implements java.io.Serializable
     */
     public Object invokeMethod(
         Interpreter interpreter, Object[] args, CallStack callstack,
-        Node callerInfo
+        bsh.congo.parser.Node callerInfo
     )
         throws UtilEvalError, EvalError, ReflectError, InvocationTargetException
     {
@@ -861,7 +861,7 @@ class Name implements java.io.Serializable
     */
     private static final Pattern noOverride = Pattern.compile("eval|assert");
     private Object invokeLocalMethod(
-        Interpreter interpreter, Object[] args, CallStack callstack, Node callerInfo)
+        Interpreter interpreter, Object[] args, CallStack callstack, bsh.congo.parser.Node callerInfo)
         throws EvalError
     {
         Interpreter.debug( "invokeLocalMethod: ", value );
