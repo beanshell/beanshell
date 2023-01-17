@@ -262,7 +262,7 @@ AssignmentOperator #void :
   | <POWERASSIGN> | <NULLCOALESCEASSIGN>
 ;
 
-BlockStatement :
+BlockStatement#void :
  ASSERT ~((<FINAL>|Annotation)* (<PUBLIC>|<PRIVATE>|<PROTECTED>|<STATIC>)) : "Cannot declare anything to be public, private, protected, or static  in a local context"
  (
 // The YieldStatement option in the Statement production will thus never
@@ -275,7 +275,10 @@ BlockStatement :
   SCAN MethodDeclarationLA
   =>MethodDeclaration
   |
-  LocalVariableDeclaration <SEMICOLON>
+  LocalVariableDeclaration 
+  {Node varDecl = peekNode();}
+  <SEMICOLON>
+  {varDecl.add(popNode());}
   |
   ClassDeclaration
   |
