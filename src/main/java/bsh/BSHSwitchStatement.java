@@ -24,8 +24,9 @@
  *                                                                           *
  *****************************************************************************/
 
-
 package bsh;
+
+import bsh.congo.parser.Node;
 
 class BSHSwitchStatement
     extends SimpleNode
@@ -43,7 +44,7 @@ class BSHSwitchStatement
     {
         int numchild = getChildCount();
         int child = 0;
-        bsh.congo.parser.Node switchExp = getChild(child++);
+        Node switchExp = getChild(child++);
         Object switchVal = switchExp.eval( callstack, interpreter );
 
         // import enum constants
@@ -57,7 +58,7 @@ class BSHSwitchStatement
         */
         // first label
         BSHSwitchLabel label;
-        bsh.congo.parser.Node node;
+        Node node;
         ReturnControl returnControl=null;
 
         // get the first label
@@ -117,7 +118,7 @@ class BSHSwitchStatement
     */
     private boolean primitiveEquals(
         Object switchVal, Object targetVal,
-        CallStack callstack, bsh.congo.parser.Node switchExp  )
+        CallStack callstack, Node switchExp  )
         throws EvalError
     {
         if (targetVal == Primitive.VOID)
@@ -131,7 +132,7 @@ class BSHSwitchStatement
                 return result.equals( Boolean.TRUE );
             } catch ( UtilEvalError e ) {
                 throw e.toEvalError(
-                    "Switch value: "+((bsh.congo.parser.Node)switchExp).getText()+": ",
+                    "Switch value: "+((Node)switchExp).getText()+": ",
                     this, callstack );
             }
         else

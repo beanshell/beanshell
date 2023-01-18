@@ -27,6 +27,8 @@
 
 package bsh;
 
+import bsh.congo.parser.Node;
+
 /**
     EvalError indicates that we cannot continue evaluating the script
     or the script has thrown an exception.
@@ -39,19 +41,19 @@ package bsh;
 */
 public class EvalError extends Exception
 {
-    private bsh.congo.parser.Node node;
+    private Node node;
 
     // Note: no way to mutate the Throwable message, must maintain our own
     private String message;
 
     private final CallStack callstack;
 
-    public EvalError( String s, bsh.congo.parser.Node node, CallStack callstack, Throwable cause ) {
+    public EvalError( String s, Node node, CallStack callstack, Throwable cause ) {
         this(s,node,callstack);
         initCause(cause);
     }
 
-    public EvalError( String s, bsh.congo.parser.Node node, CallStack callstack ) {
+    public EvalError( String s, Node node, CallStack callstack ) {
         this.message = s;
         this.node = node;
         // freeze the callstack for the stack trace.
@@ -91,11 +93,11 @@ public class EvalError extends Exception
         The error has trace info associated with it.
         i.e. It has an AST node that can print its location and source text.
     */
-    bsh.congo.parser.Node getNode() {
+    Node getNode() {
         return node;
     }
 
-    void setNode( bsh.congo.parser.Node node ) {
+    void setNode(Node node) {
         this.node = node;
     }
 
@@ -130,7 +132,7 @@ public class EvalError extends Exception
         while ( stack.depth() > 0 )
         {
             NameSpace ns = stack.pop();
-            bsh.congo.parser.Node node = ns.getNode();
+            Node node = ns.getNode();
             if ( ns.isMethod )
             {
                 trace = trace + "\nCalled from method: " + ns.getName();

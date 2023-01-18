@@ -31,6 +31,7 @@ package bsh;
 import java.util.ArrayList;
 import java.util.List;
 
+import bsh.congo.parser.Node;
 import bsh.congo.parser.BeanshellConstants.TokenType;
 import bsh.congo.tree.Initializer;
 
@@ -109,7 +110,7 @@ class BSHBlock extends SimpleNode {
 
         if ( isSynchronized ) {
             // First node is the expression on which to sync
-            bsh.congo.parser.Node exp = getChild(0);
+            Node exp = getChild(0);
             Object syncValue = exp.eval(callstack, interpreter);
             synchronized( syncValue ) { // Do the actual synchronization
                 return evalBlock(
@@ -141,7 +142,7 @@ class BSHBlock extends SimpleNode {
             // First do class declarations then do everything else.
             if (isFirst || hasClassDeclaration)
                 for (int i = startChild; i < numChildren; i++) {
-                    bsh.congo.parser.Node node = getChild(i);
+                    Node node = getChild(i);
 
                     if ( nodeFilter != null && !nodeFilter.isVisible( node ) )
                         continue;
@@ -152,9 +153,9 @@ class BSHBlock extends SimpleNode {
                     }
                 }
 
-            List<bsh.congo.parser.Node> enumBlocks = null;
+            List<Node> enumBlocks = null;
             for(int i = startChild; i < numChildren; i++) {
-                bsh.congo.parser.Node node = getChild(i);
+                Node node = getChild(i);
 
                 if ( node instanceof BSHClassDeclaration )
                     continue;
@@ -193,7 +194,7 @@ class BSHBlock extends SimpleNode {
     }
 
     public interface NodeFilter {
-        public boolean isVisible( bsh.congo.parser.Node node );
+        public boolean isVisible(Node node );
     }
 
     @Override

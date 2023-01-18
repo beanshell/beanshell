@@ -28,6 +28,8 @@
 
 package bsh;
 
+import bsh.congo.parser.Node;
+
 /**
     UtilEvalError is an error corresponding to an EvalError but thrown by a
     utility or other class that does not have the caller context (Node)
@@ -70,7 +72,7 @@ public class UtilEvalError extends Exception
         @param msg may be null for no additional message.
     */
     public EvalError toEvalError(
-        String msg, bsh.congo.parser.Node node, CallStack callstack  )
+        String msg, Node node, CallStack callstack  )
     {
         if ( Interpreter.DEBUG.get() )
             printStackTrace();
@@ -82,7 +84,7 @@ public class UtilEvalError extends Exception
         return new EvalError( msg + this.getMessage(), node, callstack, this );
     }
 
-    public EvalError toEvalError ( bsh.congo.parser.Node node, CallStack callstack )
+    public EvalError toEvalError ( Node node, CallStack callstack )
     {
         return toEvalError( null, node, callstack );
     }

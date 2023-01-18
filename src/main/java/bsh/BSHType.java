@@ -29,6 +29,7 @@
 package bsh;
 
 import java.lang.reflect.Array;
+import bsh.congo.parser.Node;
 import bsh.congo.parser.BeanshellConstants.TokenType;;
 
 class BSHType extends SimpleNode implements BshClassManager.Listener {
@@ -78,7 +79,7 @@ class BSHType extends SimpleNode implements BshClassManager.Listener {
         arrayDims++;
     }
 
-    bsh.congo.parser.Node getTypeNode() {
+    Node getTypeNode() {
         return getChild(0);
     }
 
@@ -98,7 +99,7 @@ class BSHType extends SimpleNode implements BshClassManager.Listener {
 
         String descriptor;
         //  first node will either be PrimitiveType or AmbiguousName
-        bsh.congo.parser.Node node = getTypeNode();
+        Node node = getTypeNode();
         if ( node instanceof BSHPrimitiveType )
             descriptor = getTypeDescriptor( ((BSHPrimitiveType)node).type );
         else
@@ -143,7 +144,7 @@ class BSHType extends SimpleNode implements BshClassManager.Listener {
             return type;
 
         //  first node will either be PrimitiveType or AmbiguousName
-        bsh.congo.parser.Node node = getTypeNode();
+        Node node = getTypeNode();
         if ( node instanceof BSHPrimitiveType )
             baseType = ((BSHPrimitiveType)node).getType();
         else

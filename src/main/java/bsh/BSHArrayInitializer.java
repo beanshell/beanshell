@@ -31,6 +31,7 @@ import java.util.Map;
 import java.lang.reflect.Array;
 
 import bsh.Types.MapEntry;
+import bsh.congo.parser.Node;
 
 class BSHArrayInitializer extends SimpleNode {
     private static final long serialVersionUID = 1L;
@@ -47,10 +48,10 @@ class BSHArrayInitializer extends SimpleNode {
      * @see BSHPrimaryExpression.setArrayExpression
      * {@inheritDoc} */
     @Override
-    public void setParent(bsh.congo.parser.Node n) {
+    public void setParent(Node n) {
         super.setParent(n);
         for (int i = 0; i< getChildCount(); i++) {
-            bsh.congo.parser.Node c = getChild(i);
+            Node c = getChild(i);
             if (c.getChildCount() > 0 && c.getChild(0) instanceof BSHPrimaryExpression) {
                 expressionQueue.push((BSHPrimaryExpression) c.getChild(0));
                 expressionQueue.peek().setArrayExpression(this);
@@ -153,7 +154,7 @@ class BSHArrayInitializer extends SimpleNode {
 
         // Evaluate the child nodes
         for ( int i = 0; i < getChildCount(); i++ ) {
-            final bsh.congo.parser.Node node = getChild(i);
+            final Node node = getChild(i);
             final Object entry;
             if ( node instanceof BSHArrayInitializer )
                 // nested arrays needs at least 2 dimensions to be valid
@@ -306,7 +307,7 @@ class BSHArrayInitializer extends SimpleNode {
      * @param interpreter the evaluation interpreter
      * @return the number of dimensions defined
      * @throws EvalError thrown at node evaluation  */
-    private int inferDimensions(int dimensions, int idx, bsh.congo.parser.Node node,
+    private int inferDimensions(int dimensions, int idx, Node node,
             CallStack callstack, Interpreter interpreter) throws EvalError {
         // count ArrayInitializer nodes in this hierarchy
         while ( node.getChildCount() > idx
@@ -345,7 +346,7 @@ class BSHArrayInitializer extends SimpleNode {
      * @param interpreter the evaluation interpreter
      * @return the common type for all cells
      * @throws EvalError thrown at node evaluation  */
-    private Class<?> inferCommonType(Class<?> common, bsh.congo.parser.Node node,
+    private Class<?> inferCommonType(Class<?> common, Node node,
             CallStack callstack, Interpreter interpreter ) throws EvalError {
         // Object is already the most common type and maps are typed MapEntry
         if ( Object.class == common || MapEntry.class == common )
@@ -361,7 +362,7 @@ class BSHArrayInitializer extends SimpleNode {
                 && isMapInArray((BSHArrayInitializer) node) )
             return Types.getCommonType(common, Map.class);
         // recurse through nested array initializer nodes
-        for ( bsh.congo.parser.Node child : node.children() )
+        for (Node child : node.children() )
             common = this.inferCommonType(common, child, callstack, interpreter);
         return common;
     }

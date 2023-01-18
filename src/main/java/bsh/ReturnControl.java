@@ -28,6 +28,8 @@
 
 package bsh;
 
+import bsh.congo.parser.Node;
+
 /**
     Represents a Return, Break, or Continue statement
 */
@@ -36,15 +38,15 @@ class ReturnControl implements ParserConstants {
     public String label = null;
     public Object value = Primitive.VOID;
     /** The node where we returned... for printing error messages correctly */
-    public bsh.congo.parser.Node returnPoint;
+    public Node returnPoint;
 
-    public ReturnControl( int kind, Object value, bsh.congo.parser.Node returnPoint ) {
+    public ReturnControl( int kind, Object value, Node returnPoint ) {
         this.kind = kind;
         this.value = value;
         this.returnPoint = returnPoint;
     }
 
-    public ReturnControl( int kind, String label, bsh.congo.parser.Node returnPoint ) {
+    public ReturnControl( int kind, String label, Node returnPoint ) {
         this.kind = kind;
         this.label = label;
         this.returnPoint = returnPoint;

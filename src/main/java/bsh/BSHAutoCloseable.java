@@ -15,6 +15,8 @@
  * limitations under the License. */
 package bsh;
 
+import bsh.congo.parser.Node;
+
 public class BSHAutoCloseable extends BSHTypedVariableDeclaration {
     private static final long serialVersionUID = 1L;
     public String typeName;
@@ -83,8 +85,8 @@ public class BSHAutoCloseable extends BSHTypedVariableDeclaration {
      * from the BSHVariableDeclarator AllocationExpression nodes. */
     private void renderTypeNode() {
         if (getChildCount() == 1) {
-            bsh.congo.parser.Node tNode = new BSHType(ParserTreeConstants.JJTTYPE);
-            bsh.congo.parser.Node ambigName = getChild(0);
+            Node tNode = new BSHType(ParserTreeConstants.JJTTYPE);
+            Node ambigName = getChild(0);
             while (ambigName.getChildCount() > 0)
                 if ((ambigName = ambigName.getChild(0)) instanceof BSHAmbiguousName)
                     break;
@@ -94,7 +96,7 @@ public class BSHAutoCloseable extends BSHTypedVariableDeclaration {
             ambigNew.text = ((BSHAmbiguousName) ambigName).text;
             tNode.addChild(0, ambigNew);
             tNode.setParent(this);
-            bsh.congo.parser.Node[] n = new bsh.congo.parser.Node[2];
+            Node[] n = new Node[2];
             n[0] = tNode;
             n[1] = getChild(0);
             clearChildren();
