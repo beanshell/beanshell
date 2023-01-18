@@ -27,10 +27,10 @@
 
 package bsh;
 
-class BSHFormalParameters extends SimpleNode
-{
+class BSHFormalParameters extends SimpleNode implements BshClassManager.Listener {
     private String [] paramNames;
     private Modifiers [] paramModifiers;
+    private boolean listener;
     /**
         For loose type parameters the paramTypes are null.
     */
@@ -121,5 +121,24 @@ class BSHFormalParameters extends SimpleNode
 
         return paramTypes;
     }
+
+    /** Property getter for listener.
+     * @return boolean return the listener */
+    public boolean isListener() {
+        return listener;
+    }
+
+    /** Property setter for listener.
+     * @param listener the listener to set */
+    public void setListener(boolean listener) {
+        this.listener = listener;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void classLoaderChanged() {
+        paramTypes = null;
+    }
+
 }
 

@@ -74,7 +74,6 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
 
     // Scripted method body
     protected BSHBlock methodBody;
-    private BSHMethodDeclaration methodNode;
     // Java Method, for a BshObject that delegates to a real Java method
     private Invocable javaMethod;
     private Object javaObject;
@@ -91,7 +90,6 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
             method.paramsNode.paramTypes, method.paramsNode.getParamModifiers(),
             method.blockNode, declaringNameSpace, modifiers, method.isVarArgs );
         this.isScriptedObject = isScriptedObject;
-        this.methodNode = method;
     }
 
     BshMethod(
@@ -573,10 +571,14 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
 
     /** Reload types if reload is true */
     private void reloadTypes() {
-        if (!reload) return;
-        reload = false;
-        creturnType = methodNode.reevalReturnType();
-        cparamTypes = methodNode.reevalParamTypes();
+        if (reload) try {
+            reload = false;
+            if (Reflect.isGeneratedClass(creturnType))
+                creturnType = declaringNameSpace.getClass(creturnType.getName());
+            for (int i = 0; i < cparamTypes.length; i++)
+                if (Reflect.isGeneratedClass(cparamTypes[i]))
+                    cparamTypes[i] = declaringNameSpace.getClass(cparamTypes[i].getName());
+        } catch (UtilEvalError e) { /* should not happen on reload */ }
     }
 
     /** {@inheritDoc} */
