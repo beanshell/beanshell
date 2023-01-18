@@ -53,6 +53,11 @@ extends java.util.ListIterator<Node>
 
     default String toString(String prefix) {throw new UnsupportedOperationException();}
 
+    // The following methods exist to implement 
+    // java.util.ListIterator, but really, I'm pretty sure that
+    // Node should not itself be an iterator, since tht is 
+    // inherently thread-unsafe
+
     default void add(Node node) {throw new UnsupportedOperationException();}
     default void set(Node node) {throw new UnsupportedOperationException();}
     default void remove() {throw new UnsupportedOperationException();}
