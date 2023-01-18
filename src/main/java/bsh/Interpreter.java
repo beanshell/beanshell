@@ -27,6 +27,8 @@
 
 package bsh;
 
+import bsh.congo.parser.Node;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -482,7 +484,7 @@ public class Interpreter
         // init the callstack.
         CallStack callstack = new CallStack(globalNameSpace);
 
-        bsh.congo.parser.Node node = null;
+        Node node = null;
         EOF = false;
         int idx = -1;
         while( !Thread.interrupted() && !EOF ) {
@@ -684,7 +686,7 @@ public class Interpreter
             in, getOut(), getErr(), false, nameSpace, this, sourceFileInfo);
         CallStack callstack = new CallStack(nameSpace);
 
-        bsh.congo.parser.Node node = null;
+        Node node = null;
         boolean eof = false;
         while( !eof )
         {
@@ -857,7 +859,7 @@ public class Interpreter
             Object ret = globalNameSpace.get( name, this );
             return Primitive.unwrap( ret );
         } catch ( UtilEvalError e ) {
-            throw e.toEvalError( bsh.congo.parser.Node.JAVACODE, new CallStack() );
+            throw e.toEvalError( Node.JAVACODE, new CallStack() );
         }
     }
 
@@ -886,7 +888,7 @@ public class Interpreter
             else // optimization for common case
                 globalNameSpace.setVariable(name, value, false);
         } catch (UtilEvalError e) {
-            throw e.toEvalError(bsh.congo.parser.Node.JAVACODE, callstack);
+            throw e.toEvalError(Node.JAVACODE, callstack);
         }
     }
 
@@ -935,12 +937,12 @@ public class Interpreter
 
             if ( lhs.type != LHS.VARIABLE )
                 throw new EvalError("Can't unset, not a variable: "+name,
-                    bsh.congo.parser.Node.JAVACODE, new CallStack());
+                    Node.JAVACODE, new CallStack());
 
             lhs.nameSpace.unsetVariable( lhs.getName() );
         } catch ( UtilEvalError e ) {
             throw new EvalError( e.getMessage(),
-                bsh.congo.parser.Node.JAVACODE, new CallStack(), e);
+                Node.JAVACODE, new CallStack(), e);
         }
     }
 

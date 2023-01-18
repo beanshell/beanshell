@@ -28,6 +28,7 @@ package bsh;
 import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Map.Entry;
+import bsh.congo.parser.Node;
 
 class BSHPrimarySuffix extends SimpleNode
 {
@@ -114,11 +115,11 @@ class BSHPrimarySuffix extends SimpleNode
             that we can't just eval() - we need to direct the evaluation to
             the context sensitive type of result; namely object, class, etc.
         */
-        if ( obj instanceof bsh.congo.parser.Node )
+        if ( obj instanceof Node )
             if ( obj instanceof BSHAmbiguousName )
                 obj = ((BSHAmbiguousName)obj).toObject(callstack, interpreter);
             else
-                obj = ((bsh.congo.parser.Node)obj).eval(callstack, interpreter);
+                obj = ((Node)obj).eval(callstack, interpreter);
         else
             if ( obj instanceof LHS ) try {
                 obj = ((LHS)obj).getValue();
@@ -214,7 +215,7 @@ class BSHPrimarySuffix extends SimpleNode
     /**
     */
     static int getIndexAux(Object obj, int idx, CallStack callstack,
-        Interpreter interpreter, bsh.congo.parser.Node callerInfo )
+        Interpreter interpreter, Node callerInfo )
                 throws EvalError {
         int index;
         try {

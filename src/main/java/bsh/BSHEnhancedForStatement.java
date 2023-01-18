@@ -27,6 +27,7 @@ package bsh;
 
 import java.util.Iterator;
 
+import bsh.congo.parser.Node;
 import bsh.congo.parser.BeanshellConstants.TokenType;
 import bsh.congo.tree.LocalVariableDeclaration;
 
@@ -63,9 +64,9 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
         if (this.isFinal)
             modifiers.addModifier("final");
         Class<?> elementType = null;
-        final bsh.congo.parser.Node expression, statement;
+        final Node expression, statement;
         final NameSpace enclosingNameSpace = callstack.top();
-        final bsh.congo.parser.Node firstNode = getChild(0);
+        final Node firstNode = getChild(0);
         final int nodeCount = getChildCount();
         if (firstNode instanceof BSHType) {
             elementType = ((BSHType) firstNode).getType(callstack, interpreter);

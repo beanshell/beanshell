@@ -25,7 +25,6 @@
  *****************************************************************************/
 package bsh;
 
-import java.io.Serializable;
 import java.util.NoSuchElementException;
 import bsh.congo.parser.BaseNode;
 

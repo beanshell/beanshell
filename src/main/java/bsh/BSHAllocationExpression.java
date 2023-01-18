@@ -32,6 +32,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.concurrent.CompletionException;
+import bsh.congo.parser.Node;
 
 /**
     New object, new array, or inner class style allocation with body.
@@ -56,10 +57,10 @@ class BSHAllocationExpression extends SimpleNode
                        Void.TYPE, callstack, interpreter );
 
         // type is either a class name or a primitive type
-        bsh.congo.parser.Node type = getChild(0);
+        Node type = getChild(0);
 
         // args is either constructor arguments or array dimensions
-        bsh.congo.parser.Node args = getChild(1);
+        Node args = getChild(1);
 
         if ( type instanceof BSHAmbiguousName )
         {

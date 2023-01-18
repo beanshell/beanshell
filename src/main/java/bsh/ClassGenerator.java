@@ -26,6 +26,7 @@
 package bsh;
 
 import static bsh.This.Keys.BSHSUPER;
+import bsh.congo.parser.Node;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -150,7 +151,7 @@ public final class ClassGenerator {
     static Variable[] getDeclaredVariables(BSHBlock body, CallStack callstack, Interpreter interpreter, String defaultPackage) {
         List<Variable> vars = new ArrayList<Variable>();
         for (int child = 0; child < body.getChildCount(); child++) {
-            bsh.congo.parser.Node node = body.getChild(child);
+            Node node = body.getChild(child);
             if (node instanceof BSHEnumConstant) {
                 BSHEnumConstant enm = (BSHEnumConstant) node;
                 try {
@@ -194,7 +195,7 @@ public final class ClassGenerator {
             methods.add(bm);
         }
         for (int child = 0; child < body.getChildCount(); child++) {
-            bsh.congo.parser.Node node = body.getChild(child);
+            Node node = body.getChild(child);
             if (node instanceof BSHMethodDeclaration) {
                 BSHMethodDeclaration md = (BSHMethodDeclaration) node;
                 md.insureNodesParsed();
@@ -241,7 +242,7 @@ public final class ClassGenerator {
         }
 
         @Override
-        public boolean isVisible(bsh.congo.parser.Node node) {
+        public boolean isVisible(Node node) {
             if (context == Context.CLASSES) return node instanceof BSHClassDeclaration;
 
             // Only show class decs in CLASSES
@@ -254,7 +255,7 @@ public final class ClassGenerator {
             return types == Types.METHODS ? isInstanceMethod(node) : isNonStatic(node);
         }
 
-        private boolean isStatic(bsh.congo.parser.Node node) {
+        private boolean isStatic(Node node) {
             if ( node.getParent().getParent() instanceof BSHClassDeclaration
                     && ((BSHClassDeclaration) node.getParent().getParent()).type == Type.INTERFACE )
                 return true;
@@ -268,19 +269,19 @@ public final class ClassGenerator {
             return false;
         }
 
-        private boolean isNonStatic(bsh.congo.parser.Node node) {
+        private boolean isNonStatic(Node node) {
             if (node instanceof BSHMethodDeclaration)
                 return false;
             return !isStatic(node);
         }
 
-        private boolean isStaticMethod(bsh.congo.parser.Node node) {
+        private boolean isStaticMethod(Node node) {
             if (node instanceof BSHMethodDeclaration)
                 return ((BSHMethodDeclaration) node).modifiers.hasModifier("static");
             return false;
         }
 
-        private boolean isInstanceMethod(bsh.congo.parser.Node node) {
+        private boolean isInstanceMethod(Node node) {
             if (node instanceof BSHMethodDeclaration)
                 return !((BSHMethodDeclaration) node).modifiers.hasModifier("static");
             return false;

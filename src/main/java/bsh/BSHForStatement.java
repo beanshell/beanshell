@@ -26,6 +26,8 @@
 
 package bsh;
 
+import bsh.congo.parser.Node;
+
 /**
  * Implementation of the for(;;) statement.
  */
@@ -50,10 +52,10 @@ class BSHForStatement extends SimpleNode implements ParserConstants {
 
     public Object eval(CallStack callstack, Interpreter interpreter) throws EvalError {
         int i = 0;
-        final bsh.congo.parser.Node forInit = hasForInit ? getChild(i++) : null;
-        final bsh.congo.parser.Node expression = hasExpression ? getChild(i++) : null;
-        final bsh.congo.parser.Node forUpdate = hasForUpdate ? getChild(i++) : null;
-        final bsh.congo.parser.Node statement = i < getChildCount() ? getChild(i) : null;
+        final Node forInit = hasForInit ? getChild(i++) : null;
+        final Node expression = hasExpression ? getChild(i++) : null;
+        final Node forUpdate = hasForUpdate ? getChild(i++) : null;
+        final Node statement = i < getChildCount() ? getChild(i) : null;
         final NameSpace enclosingNameSpace = callstack.top();
         final NameSpace forNameSpace = new BlockNameSpace(enclosingNameSpace, blockId);
 
