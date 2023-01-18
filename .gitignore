@@ -4,6 +4,7 @@
 .classpath
 .settings
 .project
+.vscode
 
 #Generating JavaCC21/Congo classes here (at least for now)
 /src/main/java/bsh/congo/*

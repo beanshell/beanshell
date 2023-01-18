@@ -64,6 +64,18 @@ extends java.util.ListIterator<Node>
     default Node previous() {throw new UnsupportedOperationException();}
 }
 
+INJECT Expression :
+{  
+  default boolean isPrimary() {return false;}
+}
+
+INJECT PrimaryExpression : extends Expression 
+{
+  default boolean isPrimary() {
+    return !(getParent() instanceof PrimaryExpression);
+  }
+}
+
 TOKEN : 
   < FORMAL_COMMENT:
        "/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/"
@@ -348,6 +360,7 @@ PrimaryExpression#interface :
     <RBRACKET>
   ) #ArrayAccess(+1)
   |
+  // This is only in Beanshell
   <LBRACE>Expression<RBRACE> #Property(+1)
   |
   (<DOT> [TypeArguments] <IDENTIFIER>) #DotName(+1)
@@ -367,7 +380,10 @@ PrimaryExpression#interface :
  ASSERT {getToken(0).getType() != TokenType.SUPER}# : "Not a valid expression here"
 ;
 
-INJECT Property : implements PrimaryExpression;
+INJECT Property : implements PrimaryExpression
+{
+  public boolean isAssignable() {return true;}
+}
 
 ArrayDimsAndInits# :
   SCAN 2

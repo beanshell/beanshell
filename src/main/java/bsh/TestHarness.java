@@ -6,9 +6,6 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import bsh.congo.parser.Node;
 import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.BeanshellParser;
@@ -27,8 +24,7 @@ public class TestHarness {
              System.exit(-1);
         }
         BeanshellParser parser = new BeanshellParser(path);
-        List<Node> statements = parser.Statements();
-        for (Node n : statements) {
+        for (Node n : parser.Statements()) {
             n.dump();
             TreeAdapter.convert((BaseNode) n).dump();
         }

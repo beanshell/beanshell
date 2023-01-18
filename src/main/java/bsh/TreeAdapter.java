@@ -375,32 +375,56 @@ public class TreeAdapter extends BaseNode.Visitor {
 
     void visit(DotThis dotThis) {
         BSHPrimarySuffix primarySuffix = new BSHPrimarySuffix(dotThis);
-        currentLegacyNode.addChild(primarySuffix);
+        if (legacyRoot == null) legacyRoot = primarySuffix;
+        if (currentLegacyNode != null) currentLegacyNode.addChild(primarySuffix);
+        currentLegacyNode = primarySuffix;
+        recurse(dotThis);
+        currentLegacyNode = primarySuffix.getParent();
     }
 
     void visit(DotSuper dotSuper) {
         BSHPrimarySuffix primarySuffix = new BSHPrimarySuffix(dotSuper);
-        currentLegacyNode.addChild(primarySuffix);
+        if (legacyRoot == null) legacyRoot = primarySuffix;
+        if (currentLegacyNode != null) currentLegacyNode.addChild(primarySuffix);
+        currentLegacyNode = primarySuffix;
+        recurse(dotSuper);
+        currentLegacyNode = primarySuffix.getParent();
     }
 
     void visit(DotNew dotNew) {
         BSHPrimarySuffix primarySuffix = new BSHPrimarySuffix(dotNew);
-        currentLegacyNode.addChild(primarySuffix);
+        if (legacyRoot == null) legacyRoot = primarySuffix;
+        if (currentLegacyNode != null) currentLegacyNode.addChild(primarySuffix);
+        currentLegacyNode = primarySuffix;
+        recurse(dotNew);
+        currentLegacyNode = primarySuffix.getParent();
     }
     
     void visit(DotName dotName) {
         BSHPrimarySuffix primarySuffix = new BSHPrimarySuffix(dotName);
-        currentLegacyNode.addChild(primarySuffix);
+        if (legacyRoot == null) legacyRoot = primarySuffix;
+        if (currentLegacyNode != null) currentLegacyNode.addChild(primarySuffix);
+        currentLegacyNode = primarySuffix;
+        recurse(dotName);
+        currentLegacyNode = primarySuffix.getParent();
     }
 
     void visit(MethodCall methodCall) {
         BSHPrimarySuffix primarySuffix = new BSHPrimarySuffix(methodCall);
+        if (legacyRoot == null) legacyRoot = primarySuffix;
         if (currentLegacyNode != null) currentLegacyNode.addChild(primarySuffix);
+        currentLegacyNode = primarySuffix;
+        recurse(methodCall);
+        currentLegacyNode = primarySuffix.getParent();
     }
 
     void visit(Property property) {
         BSHPrimarySuffix primarySuffix = new BSHPrimarySuffix(property);
-        currentLegacyNode.addChild(primarySuffix);
+        if (legacyRoot == null) legacyRoot = primarySuffix;
+        if (currentLegacyNode != null) currentLegacyNode.addChild(primarySuffix);
+        currentLegacyNode = primarySuffix;
+        recurse(property);
+        currentLegacyNode = primarySuffix.getParent();
     }
 
     void visit(LiteralExpression literalExpression) {
@@ -473,6 +497,7 @@ public class TreeAdapter extends BaseNode.Visitor {
     void visit(ArrayDimsAndInits arrayDimsAndInits) {
         BSHArrayDimensions legacyArrayDimensions = new BSHArrayDimensions(arrayDimsAndInits);
         currentLegacyNode.addChild(legacyArrayDimensions);
+        currentLegacyNode = legacyArrayDimensions;
         recurse(arrayDimsAndInits);
         currentLegacyNode = currentLegacyNode.getParent();
     }
@@ -481,6 +506,7 @@ public class TreeAdapter extends BaseNode.Visitor {
         BSHAllocationExpression legacyAllocationExpression = new BSHAllocationExpression(allocationExpression);
         if (legacyRoot == null) legacyRoot = legacyAllocationExpression;
         if (currentLegacyNode != null) currentLegacyNode.addChild(legacyAllocationExpression);
+        currentLegacyNode = legacyAllocationExpression;
         recurse(allocationExpression);
         currentLegacyNode = currentLegacyNode.getParent();
     }
@@ -489,6 +515,9 @@ public class TreeAdapter extends BaseNode.Visitor {
         BSHAmbiguousName legacyName = new BSHAmbiguousName(name);
         if (legacyRoot == null) legacyRoot = legacyName;
         if (currentLegacyNode != null) currentLegacyNode.addChild(legacyName);
+        currentLegacyNode = legacyName;
+        recurse(name);
+        currentLegacyNode = currentLegacyNode.getParent();
     }
 
     void visit(bsh.congo.tree.FormalComment formalComment) {
