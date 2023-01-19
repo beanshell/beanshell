@@ -29,14 +29,15 @@ package bsh;
 
 import java.util.ArrayList;
 import java.util.List;
+import bsh.legacy.*;
 
 
-class BSHTryStatement extends SimpleNode
+public class BSHTryStatement extends SimpleNode
 {
     final int blockId;
     BSHTryWithResources tryWithResources = null;
 
-    BSHTryStatement(int id)
+    public BSHTryStatement(int id)
     {
         super(id);
         blockId = BlockNameSpace.blockCount.incrementAndGet();

@@ -13,9 +13,11 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License. */
-package bsh;
+package bsh.legacy;
 
-import java.util.ListIterator;
+import bsh.CallStack;
+import bsh.Interpreter;
+import bsh.EvalError;
 
 /* All AST nodes must implement this interface.  It provides basic
  * machinery for constructing the parent and child relationships

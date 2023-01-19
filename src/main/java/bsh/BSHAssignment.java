@@ -24,15 +24,15 @@
  *                                                                           *
  *****************************************************************************/
 
-
-
 package bsh;
 
-class BSHAssignment extends SimpleNode implements ParserConstants {
+import bsh.legacy.*;
+
+public class BSHAssignment extends SimpleNode implements ParserConstants {
     private static final long serialVersionUID = 1L;
     public Integer operator;
 
-    BSHAssignment(int id) { super(id); }
+    public BSHAssignment(int id) { super(id); }
 
     public Object eval(CallStack callstack, Interpreter interpreter)
             throws EvalError {

@@ -27,11 +27,13 @@
 
 package bsh;
 
-class BSHAmbiguousName extends SimpleNode
+import bsh.legacy.*;
+
+public class BSHAmbiguousName extends SimpleNode
 {
     public String text;
 
-    BSHAmbiguousName(int id) { super(id); }
+    public BSHAmbiguousName(int id) { super(id); }
 
     public Name getName( NameSpace namespace )
     {

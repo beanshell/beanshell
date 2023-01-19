@@ -28,9 +28,11 @@
 
 package bsh;
 
-class BSHArguments extends SimpleNode
+import bsh.legacy.*;
+
+public class BSHArguments extends SimpleNode
 {
-    BSHArguments(int id) { super(id); }
+    public BSHArguments(int id) { super(id); }
 
     /**
         This node holds a set of arguments for a method invocation or

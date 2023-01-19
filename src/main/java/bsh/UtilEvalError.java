@@ -28,6 +28,8 @@
 
 package bsh;
 
+import bsh.legacy.*;
+
 /**
     UtilEvalError is an error corresponding to an EvalError but thrown by a
     utility or other class that does not have the caller context (Node)

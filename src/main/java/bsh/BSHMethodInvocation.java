@@ -27,11 +27,12 @@
 
 package bsh;
 
+import bsh.legacy.*;
 import java.lang.reflect.InvocationTargetException;
 
-class BSHMethodInvocation extends SimpleNode
+public class BSHMethodInvocation extends SimpleNode
 {
-    BSHMethodInvocation (int id) { super(id); }
+    public BSHMethodInvocation (int id) { super(id); }
 
     BSHAmbiguousName getNameNode() {
         return (BSHAmbiguousName)jjtGetChild(0);

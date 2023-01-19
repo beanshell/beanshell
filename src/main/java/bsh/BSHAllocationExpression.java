@@ -33,12 +33,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.concurrent.CompletionException;
 
+import bsh.legacy.*;
+
 /**
     New object, new array, or inner class style allocation with body.
 */
-class BSHAllocationExpression extends SimpleNode
+public class BSHAllocationExpression extends SimpleNode
 {
-    BSHAllocationExpression(int id) { super(id); }
+    public BSHAllocationExpression(int id) { super(id); }
     private static int innerClassCount = 0;
 
     public Object eval( CallStack callstack, Interpreter interpreter)

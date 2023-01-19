@@ -25,6 +25,7 @@
  *****************************************************************************/
 package bsh;
 
+import bsh.legacy.*;
 import java.util.Iterator;
 
 /**
@@ -35,14 +36,14 @@ import java.util.Iterator;
  * @author Daniel Leuck
  * @author Pat Niemeyer
  */
-class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
+public class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
 
     final int blockId;
-    String varName, label;
-    boolean isFinal = false;
+    public String varName, label;
+    public boolean isFinal = false;
 
 
-    BSHEnhancedForStatement(int id) {
+    public BSHEnhancedForStatement(int id) {
         super(id);
         blockId = BlockNameSpace.blockCount.incrementAndGet();
     }

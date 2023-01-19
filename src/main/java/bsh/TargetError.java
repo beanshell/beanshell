@@ -27,6 +27,7 @@
 
 package bsh;
 
+import bsh.legacy.*;
 import java.lang.reflect.InvocationTargetException;
 import java.io.PrintStream;
 

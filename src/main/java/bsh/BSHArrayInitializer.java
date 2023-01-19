@@ -25,6 +25,7 @@
  *****************************************************************************/
 package bsh;
 
+import bsh.legacy.*;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Map;
@@ -32,11 +33,11 @@ import java.lang.reflect.Array;
 
 import bsh.Types.MapEntry;
 
-class BSHArrayInitializer extends SimpleNode {
+public class BSHArrayInitializer extends SimpleNode {
     private static final long serialVersionUID = 1L;
     boolean isMapInArray = false;
     Deque<BSHPrimaryExpression> expressionQueue = new ArrayDeque<>();
-    BSHArrayInitializer(int id) { super(id); }
+    public BSHArrayInitializer(int id) { super(id); }
 
     /** Hook into node creation to apply additional configurations.
      * Inform expression children that they are array expressions.

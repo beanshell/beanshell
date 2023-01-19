@@ -28,9 +28,10 @@
 
 package bsh;
 
+import bsh.legacy.*;
 import java.lang.reflect.Array;
 
-class BSHType extends SimpleNode implements BshClassManager.Listener {
+public class BSHType extends SimpleNode implements BshClassManager.Listener {
     private static final long serialVersionUID = 1L;
     /**
         baseType is used during evaluation of full type and retained for the
@@ -54,7 +55,7 @@ class BSHType extends SimpleNode implements BshClassManager.Listener {
 
     String descriptor;
 
-    BSHType(int id) {
+    public BSHType(int id) {
         super(id);
     }
 

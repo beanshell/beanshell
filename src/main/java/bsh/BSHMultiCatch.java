@@ -15,6 +15,8 @@
  * limitations under the License. */
 package bsh;
 
+import bsh.legacy.*;
+
 public class BSHMultiCatch extends SimpleNode {
     private static final long serialVersionUID = 1L;
     public static final Class<?> UNTYPED = null;

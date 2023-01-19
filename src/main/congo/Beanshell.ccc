@@ -16,7 +16,8 @@ LEGACY_GLITCHY_LOOKAHEAD=false;
 
 INJECT Node :
 import bsh.*;
-extends java.util.ListIterator<bsh.Node>
+import bsh.legacy.SimpleNode;
+extends java.util.ListIterator<bsh.legacy.Node>
 {
     /** This is the general signature for evaluation of a node.
      * @param callstack evaluation call stack
@@ -27,7 +28,7 @@ extends java.util.ListIterator<bsh.Node>
       throw new UnsupportedOperationException("eval method is unimplemented for " + this.getClass().getSimpleName());
     }
 
-    bsh.Node JAVACODE = new SimpleNode( -1 ) {
+    bsh.legacy.Node JAVACODE = new SimpleNode( -1 ) {
         private static final long serialVersionUID = 1L;
         public String getSourceFile() {
             return "<Called from Java Code>";
@@ -58,15 +59,15 @@ extends java.util.ListIterator<bsh.Node>
     // Node should not itself be an iterator, since tht is 
     // inherently thread-unsafe
 
-    default void add(bsh.Node node) {throw new UnsupportedOperationException();}
-    default void set(bsh.Node node) {throw new UnsupportedOperationException();}
+    default void add(bsh.legacy.Node node) {throw new UnsupportedOperationException();}
+    default void set(bsh.legacy.Node node) {throw new UnsupportedOperationException();}
     default void remove() {throw new UnsupportedOperationException();}
     default int nextIndex() {throw new UnsupportedOperationException();}
     default int previousIndex() {throw new UnsupportedOperationException();}
     default boolean hasNext() {throw new UnsupportedOperationException();}
     default boolean hasPrevious() {throw new UnsupportedOperationException();}
-    default bsh.Node next() {throw new UnsupportedOperationException();}
-    default bsh.Node previous() {throw new UnsupportedOperationException();}
+    default bsh.legacy.Node next() {throw new UnsupportedOperationException();}
+    default bsh.legacy.Node previous() {throw new UnsupportedOperationException();}
 }
 
 INJECT Expression :

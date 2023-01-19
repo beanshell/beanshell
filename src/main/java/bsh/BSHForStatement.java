@@ -28,19 +28,21 @@
 
 package bsh;
 
+import bsh.legacy.*;
+
 /**
     Implementation of the for(;;) statement.
 */
-class BSHForStatement extends SimpleNode implements ParserConstants
+public class BSHForStatement extends SimpleNode implements ParserConstants
 {
     final int blockId;
     public boolean hasForInit;
     public boolean hasExpression;
     public boolean hasForUpdate;
 
-    String label;
+    public String label;
 
-    BSHForStatement(int id) {
+    public BSHForStatement(int id) {
         super(id);
         blockId = BlockNameSpace.blockCount.incrementAndGet();
     }

@@ -28,6 +28,8 @@
 
 package bsh;
 
+import bsh.legacy.*;
+
 /**
     Represents a Return, Break, or Continue statement
 */

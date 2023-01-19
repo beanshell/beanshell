@@ -25,10 +25,11 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-package bsh;
+package bsh.legacy;
 
 import java.io.IOException;
 import java.io.Reader;
+import bsh.*;
 
 /**
     This is the BeanShell parser.  It is used internally by the Interpreter
@@ -56,7 +57,7 @@ import java.io.Reader;
     </pre></code>
 */
 public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConstants {/*@bgen(jjtree)*/
-  protected JJTParserState jjtree = new JJTParserState();boolean retainComments = false;
+  public JJTParserState jjtree = new JJTParserState();boolean retainComments = false;
 
     public void setRetainComments( boolean b ) {
         retainComments = b;
@@ -73,7 +74,7 @@ public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConsta
     /**
         Re-initialize the input stream and token source.
     */
-    void reInitInput( Reader in ) {
+    public void reInitInput( Reader in ) {
         ReInit(in);
     }
 

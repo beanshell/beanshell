@@ -26,9 +26,10 @@
 
 
 package bsh;
+import bsh.legacy.*;
 
-class BSHSwitchLabel extends SimpleNode {
-    boolean isDefault;
+public class BSHSwitchLabel extends SimpleNode {
+    public boolean isDefault;
 
     public BSHSwitchLabel(int id) { super(id); }
 

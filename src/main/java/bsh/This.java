@@ -24,9 +24,9 @@
  *                                                                           *
  *****************************************************************************/
 
-
-
 package bsh;
+
+import bsh.legacy.*;
 
 import static bsh.ClassGenerator.ClassNodeFilter.CLASSINSTANCEFIELDS;
 import static bsh.ClassGenerator.ClassNodeFilter.CLASSINSTANCEMETHODS;

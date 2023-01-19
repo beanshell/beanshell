@@ -28,11 +28,12 @@
 
 package bsh;
 
+import bsh.legacy.*;
 import java.util.ArrayList;
 import java.util.List;
 
 /** A node reprresenting a code block */
-class BSHBlock extends SimpleNode {
+public class BSHBlock extends SimpleNode {
     /** Unique block id for this instance */
     final int blockId;
 
@@ -49,7 +50,7 @@ class BSHBlock extends SimpleNode {
     /** Only check for class declarations the first time through. */
     private boolean isFirst = true;
 
-    BSHBlock(int id) {
+    public BSHBlock(int id) {
         super(id);
         blockId = BlockNameSpace.blockCount.incrementAndGet();
     }

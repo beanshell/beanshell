@@ -24,7 +24,7 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-package bsh;
+package bsh.legacy;
 
 
 /**

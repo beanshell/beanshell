@@ -27,7 +27,9 @@
 
 package bsh;
 
-class BSHMethodDeclaration extends SimpleNode
+import bsh.legacy.*;
+
+public class BSHMethodDeclaration extends SimpleNode
 {
     public String name;
 
@@ -45,11 +47,11 @@ class BSHMethodDeclaration extends SimpleNode
 
     // Unsafe caching of type here.
     Class<?> returnType;  // null (none), Void.TYPE, or a Class
-    int numThrows = 0;
+    public int numThrows = 0;
     boolean isVarArgs;
     private boolean isScriptedObject;
 
-    BSHMethodDeclaration(int id) { super(id); }
+    public BSHMethodDeclaration(int id) { super(id); }
 
     /**
         Set the returnTypeNode, paramsNode, and blockNode based on child

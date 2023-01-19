@@ -27,6 +27,8 @@
 
 package bsh;
 
+import bsh.legacy.*;
+
 public class BSHFormalComment extends SimpleNode
 {
     public String text;

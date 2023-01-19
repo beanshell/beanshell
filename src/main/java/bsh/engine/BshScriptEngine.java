@@ -11,11 +11,11 @@ import javax.script.ScriptEngineFactory;
 import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 
+import bsh.legacy.ParseException;
 import bsh.EvalError;
 import bsh.ExternalNameSpace;
 import bsh.Interpreter;
 import bsh.NameSpace;
-import bsh.ParseException;
 import bsh.PreparsedScript;
 import bsh.TargetError;
 

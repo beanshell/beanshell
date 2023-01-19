@@ -25,7 +25,7 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-package bsh;
+package bsh.legacy;
 import java.io.IOException;
 import java.io.Reader;
 

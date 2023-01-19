@@ -28,14 +28,16 @@
 
 package bsh;
 
+import bsh.legacy.*;
+
 /**
     Implement binary expressions...
     @see Primitive.binaryOperation
 */
-class BSHBinaryExpression extends SimpleNode implements ParserConstants {
+public class BSHBinaryExpression extends SimpleNode implements ParserConstants {
     public int kind;
 
-    BSHBinaryExpression(int id) { super(id); }
+    public BSHBinaryExpression(int id) { super(id); }
 
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError

@@ -28,12 +28,14 @@
 
 package bsh;
 
-class BSHReturnStatement extends SimpleNode implements ParserConstants
+import bsh.legacy.*;
+
+public class BSHReturnStatement extends SimpleNode implements ParserConstants
 {
     public int kind;
     public String label;
 
-    BSHReturnStatement(int id) { super(id); }
+    public BSHReturnStatement(int id) { super(id); }
 
     public Object eval(CallStack callstack, Interpreter interpreter)
         throws EvalError

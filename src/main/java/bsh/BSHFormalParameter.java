@@ -27,23 +27,24 @@
 
 package bsh;
 
+import bsh.legacy.*;
 import java.lang.reflect.Array;
 
 /**
     A formal parameter declaration.
     For loose variable declaration type is null.
 */
-class BSHFormalParameter extends SimpleNode
+public class BSHFormalParameter extends SimpleNode
 {
     public static final Class UNTYPED = null;
     public String name;
     // unsafe caching of type here
     public Class type;
-    boolean isFinal = false;
-    boolean isVarArgs = false;
-    int dimensions = 0;
+    public boolean isFinal = false;
+    public boolean isVarArgs = false;
+    public int dimensions = 0;
 
-    BSHFormalParameter(int id) { super(id); }
+    public BSHFormalParameter(int id) { super(id); }
 
     public String getTypeDescriptor(
         CallStack callstack, Interpreter interpreter, String defaultPackage )

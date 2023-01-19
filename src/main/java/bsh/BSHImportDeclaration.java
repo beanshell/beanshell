@@ -24,18 +24,18 @@
  *                                                                           *
  *****************************************************************************/
 
-
-
 package bsh;
 
-class BSHImportDeclaration extends SimpleNode
+import bsh.legacy.*;
+
+public class BSHImportDeclaration extends SimpleNode
 {
     private static final long serialVersionUID = 1L;
     public boolean importPackage;
     public boolean staticImport;
     public boolean superImport;
 
-    BSHImportDeclaration(int id) { super(id); }
+    public BSHImportDeclaration(int id) { super(id); }
 
     public Object eval(CallStack callstack, Interpreter interpreter)
         throws EvalError

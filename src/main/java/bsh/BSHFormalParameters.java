@@ -27,7 +27,9 @@
 
 package bsh;
 
-class BSHFormalParameters extends SimpleNode implements BshClassManager.Listener {
+import bsh.legacy.*;
+
+public class BSHFormalParameters extends SimpleNode implements BshClassManager.Listener {
     private String [] paramNames;
     private Modifiers [] paramModifiers;
     private boolean listener;
@@ -40,7 +42,7 @@ class BSHFormalParameters extends SimpleNode implements BshClassManager.Listener
     String [] typeDescriptors;
     boolean isVarArgs;
 
-    BSHFormalParameters(int id) { super(id); }
+    public BSHFormalParameters(int id) { super(id); }
 
     void insureParsed()
     {

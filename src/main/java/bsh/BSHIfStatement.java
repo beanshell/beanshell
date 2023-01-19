@@ -27,11 +27,12 @@
 
 
 package bsh;
+import bsh.legacy.*;
 
-class BSHIfStatement extends SimpleNode {
-    boolean isClosed;
+public class BSHIfStatement extends SimpleNode {
+    public boolean isClosed;
 
-    BSHIfStatement(int id) { super(id); }
+    public BSHIfStatement(int id) { super(id); }
 
     public Object eval(CallStack callstack, Interpreter interpreter)
             throws EvalError {

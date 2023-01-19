@@ -27,6 +27,7 @@
 
 package bsh;
 
+import bsh.legacy.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,7 +36,7 @@ import static bsh.ClassGenerator.Type;
 
 /**
 */
-class BSHClassDeclaration extends SimpleNode
+public class BSHClassDeclaration extends SimpleNode
 {
     /**
         The class instance initializer method name.
@@ -47,14 +48,14 @@ class BSHClassDeclaration extends SimpleNode
     */
     static final String CLASSINITNAME = "_bshClassInit";
 
-    String name;
-    Modifiers modifiers = new Modifiers(Modifiers.CLASS);
-    int numInterfaces;
-    boolean extend;
-    Type type;
+    public String name;
+    public Modifiers modifiers = new Modifiers(Modifiers.CLASS);
+    public int numInterfaces;
+    public boolean extend;
+    public Type type;
     private Class<?> generatedClass;
 
-    BSHClassDeclaration(int id) { super(id); }
+    public BSHClassDeclaration(int id) { super(id); }
 
     /**
     */

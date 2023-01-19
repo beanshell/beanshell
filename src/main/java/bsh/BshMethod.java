@@ -26,6 +26,7 @@
 
 package bsh;
 
+import bsh.legacy.*;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 import java.io.Serializable;

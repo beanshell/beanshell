@@ -164,7 +164,7 @@
       </resource>
     </resources>
     <plugins>
-      <plugin>
+      <!-- plugin>
         <groupId>com.helger.maven</groupId>
         <artifactId>ph-javacc-maven-plugin</artifactId>
         <version>4.1.5</version>
@@ -182,7 +182,7 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
+      </plugin -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>

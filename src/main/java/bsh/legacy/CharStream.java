@@ -25,7 +25,7 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-package bsh;
+package bsh.legacy;
 
 /**
  * This interface describes a character stream that maintains line and

@@ -25,7 +25,10 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-package bsh;
+package bsh.legacy;
+
+import bsh.EvalError;
+import bsh.Interpreter;
 
 /**
  * This exception is thrown when parse errors are encountered.

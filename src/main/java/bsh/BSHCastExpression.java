@@ -28,6 +28,8 @@
 
 package bsh;
 
+import bsh.legacy.*;
+
 /**
     Implement casts.
 
@@ -35,7 +37,7 @@ package bsh;
     using the Types.getAssignableForm() method, but I haven't looked
     into it.
 */
-class BSHCastExpression extends SimpleNode {
+public class BSHCastExpression extends SimpleNode {
 
     public BSHCastExpression(int id) { super(id); }
 

@@ -25,6 +25,7 @@
  *****************************************************************************/
 package bsh;
 
+import bsh.legacy.*;
 import static bsh.This.Keys.BSHSUPER;
 
 import java.io.FileOutputStream;
@@ -35,7 +36,7 @@ import java.util.List;
 
 public final class ClassGenerator {
 
-    enum Type { CLASS, INTERFACE, ENUM }
+    public enum Type { CLASS, INTERFACE, ENUM }
 
     private static ClassGenerator cg;
 

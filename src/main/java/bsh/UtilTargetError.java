@@ -28,6 +28,8 @@
 
 package bsh;
 
+import bsh.legacy.*;
+
 /**
     UtilTargetError is an error corresponding to a TargetError but thrown by a
     utility or other class that does not have the caller context (Node)

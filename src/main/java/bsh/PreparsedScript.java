@@ -1,5 +1,6 @@
 package bsh;
 
+import bsh.legacy.*;
 import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.Map;

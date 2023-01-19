@@ -27,6 +27,8 @@
 
 package bsh;
 
+import bsh.legacy.*;
+
 /**
     EvalError indicates that we cannot continue evaluating the script
     or the script has thrown an exception.

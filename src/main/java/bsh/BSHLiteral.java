@@ -28,13 +28,15 @@
 
 package bsh;
 
+import bsh.legacy.*;
+
 public final class BSHLiteral extends SimpleNode
 {
     public static volatile boolean internStrings = true;
 
     public Object value;
 
-    BSHLiteral(int id) { super(id); }
+    public BSHLiteral(int id) { super(id); }
 
     public Object eval( CallStack callstack, Interpreter interpreter )
         throws EvalError
@@ -107,7 +109,7 @@ public final class BSHLiteral extends SimpleNode
         }
     }
 
-    void stringSetup(String str)
+    public void stringSetup(String str)
     {
         StringBuilder buffer = new StringBuilder();
         int len = str.length();

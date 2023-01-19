@@ -28,6 +28,8 @@
 
 package bsh;
 
+import bsh.legacy.*;
+
 public class BSHPackageDeclaration extends SimpleNode
 {
 

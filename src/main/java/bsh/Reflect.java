@@ -25,6 +25,7 @@
  *****************************************************************************/
 package bsh;
 
+import bsh.legacy.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;

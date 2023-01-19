@@ -25,11 +25,12 @@
  *****************************************************************************/
 package bsh;
 
+import bsh.legacy.*;
 import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Map.Entry;
 
-class BSHPrimarySuffix extends SimpleNode
+public class BSHPrimarySuffix extends SimpleNode
 {
     public static final int
         CLASS = 6,
@@ -45,7 +46,7 @@ class BSHPrimarySuffix extends SimpleNode
         hasLeftIndex = false, hasRightIndex = false,
         safeNavigate = false;
 
-    BSHPrimarySuffix(int id) { super(id); }
+    public BSHPrimarySuffix(int id) { super(id); }
 
     /*
         Perform a suffix operation on the given object and return the

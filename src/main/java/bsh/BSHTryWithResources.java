@@ -17,6 +17,7 @@ package bsh;
 
 import java.util.ArrayList;
 import java.util.List;
+import bsh.legacy.*;
 
 public class BSHTryWithResources extends SimpleNode {
     private static final long serialVersionUID = 1L;

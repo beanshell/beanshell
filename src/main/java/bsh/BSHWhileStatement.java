@@ -24,20 +24,21 @@
  *                                                                           *
  *****************************************************************************/
 package bsh;
+import bsh.legacy.*;
 
 /**
  * This class handles both {@code while} statements and {@code do..while} statements.
  */
-class BSHWhileStatement extends SimpleNode implements ParserConstants {
+public class BSHWhileStatement extends SimpleNode implements ParserConstants {
 
     /**
      * Set by Parser, default {@code false}
      */
-    boolean isDoStatement;
-    String label;
+    public boolean isDoStatement;
+    public String label;
 
 
-    BSHWhileStatement(int id) {
+    public BSHWhileStatement(int id) {
         super(id);
     }
 

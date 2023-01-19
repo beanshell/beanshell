@@ -26,8 +26,9 @@
 
 
 package bsh;
+import bsh.legacy.*;
 
-class BSHSwitchStatement
+public class BSHSwitchStatement
     extends SimpleNode
     implements ParserConstants
 {

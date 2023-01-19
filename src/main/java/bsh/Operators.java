@@ -13,6 +13,8 @@
  * limitations under the License. */
 package bsh;
 
+import bsh.legacy.*;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;

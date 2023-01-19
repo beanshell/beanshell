@@ -15,6 +15,8 @@
  * limitations under the License. */
 package bsh;
 
+import bsh.legacy.*;
+
 public class BSHAutoCloseable extends BSHTypedVariableDeclaration {
     private static final long serialVersionUID = 1L;
     public String typeName;

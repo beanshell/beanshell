@@ -15,8 +15,10 @@
  * limitations under the License. */
 package bsh;
 
-public class BSHLabeledStatement extends bsh.SimpleNode implements ParserConstants {
-    String label;
+import bsh.legacy.*;
+
+public class BSHLabeledStatement extends SimpleNode implements ParserConstants {
+    public String label;
 
     public BSHLabeledStatement(int id) { super(id); }
 

@@ -28,11 +28,13 @@
 
 package bsh;
 
+import bsh.legacy.*;
+
 /**
     The name of this class is somewhat misleading.  This covers both the case
     where there is an array initializer and
 */
-class BSHArrayDimensions extends SimpleNode
+public class BSHArrayDimensions extends SimpleNode
 {
     private static final long serialVersionUID = 1L;
     public Class<?> baseType;
@@ -44,7 +46,7 @@ class BSHArrayDimensions extends SimpleNode
         time.
     */
     public int [] definedDimensions;
-    BSHArrayDimensions(int id) { super(id); }
+    public BSHArrayDimensions(int id) { super(id); }
 
     public void addDefinedDimension() { numDefinedDims++; }
     public void addUndefinedDimension() { numUndefinedDims++; }

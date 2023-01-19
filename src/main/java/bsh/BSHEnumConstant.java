@@ -15,6 +15,8 @@
  * limitations under the License. */
 package bsh;
 
+import bsh.legacy.*;
+
 public class BSHEnumConstant extends SimpleNode {
     private static final long serialVersionUID = 1L;
     Modifiers mods = new Modifiers(Modifiers.FIELD);
@@ -22,7 +24,7 @@ public class BSHEnumConstant extends SimpleNode {
         mods.setConstant();
         mods.addModifier("enum");
     }
-    String name;
+    public String name;
 
     public BSHEnumConstant(int id) { super(id); }
 

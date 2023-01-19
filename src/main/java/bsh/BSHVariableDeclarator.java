@@ -28,17 +28,18 @@
 
 package bsh;
 
+import bsh.legacy.*;
 /**
     name [ = initializer ]
     evaluate name and return optional initializer
 */
-class BSHVariableDeclarator extends SimpleNode
+public class BSHVariableDeclarator extends SimpleNode
 {
     // The token.image text of the name... never changes.
     public String name;
     public int dimensions = 0;
 
-    BSHVariableDeclarator(int id) { super(id); }
+    public BSHVariableDeclarator(int id) { super(id); }
 
     /**
         Evaluate the optional initializer value.

@@ -27,12 +27,14 @@
 
 package bsh;
 
-class BSHTypedVariableDeclaration extends SimpleNode {
+import bsh.legacy.*;
+
+public class BSHTypedVariableDeclaration extends SimpleNode {
     private static final long serialVersionUID = 1L;
     public Modifiers modifiers = new Modifiers(Modifiers.FIELD);
     private BSHVariableDeclarator[] bvda;
 
-    BSHTypedVariableDeclaration(int id) { super(id); }
+    public BSHTypedVariableDeclaration(int id) { super(id); }
 
     private BSHType getTypeNode() {
         return ((BSHType)jjtGetChild(0));

@@ -23,8 +23,13 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-package bsh;
+package bsh.legacy;
 
+
+import bsh.CallStack;
+import bsh.Interpreter;
+import bsh.InterpreterError;
+import bsh.EvalError;
 import java.io.Serializable;
 import java.util.NoSuchElementException;
 
@@ -44,7 +49,7 @@ import java.util.NoSuchElementException;
     try to remember to mark these as transient to highlight them.
 
 */
-public class SimpleNode extends bsh.congo.parser.BaseNode implements bsh.Node, Serializable {
+public class SimpleNode extends bsh.congo.parser.BaseNode implements Node, Serializable {
 
     /** Serialization ID */
     private static final long serialVersionUID = 1L;

@@ -28,12 +28,14 @@
 
 package bsh;
 
-class BSHUnaryExpression extends SimpleNode implements ParserConstants
+import bsh.legacy.*;
+
+public class BSHUnaryExpression extends SimpleNode implements ParserConstants
 {
     public int kind;
     public boolean postfix = false;
 
-    BSHUnaryExpression(int id) { super(id); }
+    public BSHUnaryExpression(int id) { super(id); }
 
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError

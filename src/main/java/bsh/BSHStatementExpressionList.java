@@ -27,10 +27,11 @@
 
 
 package bsh;
+import bsh.legacy.*;
 
-class BSHStatementExpressionList extends SimpleNode
+public class BSHStatementExpressionList extends SimpleNode
 {
-    BSHStatementExpressionList(int id) { super(id); }
+    public BSHStatementExpressionList(int id) { super(id); }
 
     public Object eval(CallStack callstack, Interpreter interpreter)
         throws EvalError

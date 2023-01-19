@@ -27,6 +27,8 @@
 
 package bsh;
 
+import bsh.legacy.*;
+
 public class DelayedEvalBshMethod extends BshMethod
 {
     private static final long serialVersionUID = 1L;

@@ -43,7 +43,7 @@ import java.util.Map.Entry;
 
 
 */
-class Types {
+public class Types {
 
     /** a uniquely typed Map.Entry which used solely for the purpose
      * of building map expressions and identifiable as Types.MapEntry. */
