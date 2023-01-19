@@ -1,7 +1,7 @@
 #!/bin/java bsh.Interpreter
 
 source("TestHarness.bsh");
-import bsh.ParseException;
+import bsh.legacy.ParseException;
 
 // Check that ParseException info is filled out, issue #395
 try {

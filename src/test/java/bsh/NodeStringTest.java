@@ -21,6 +21,8 @@
 package bsh;
 
 import static org.junit.Assert.assertEquals;
+import bsh.legacy.ParserTreeConstants;
+import bsh.legacy.ParserConstants;
 
 import org.junit.Test;
 

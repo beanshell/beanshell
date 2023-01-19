@@ -3,7 +3,7 @@
 source("TestHarness.bsh");
 source("Assert.bsh");
 
-package bsh;
+package bsh.legacy;
 
 Node node = Node.JAVACODE;
 node.add(new SimpleNode(0));

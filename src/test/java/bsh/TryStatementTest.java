@@ -151,9 +151,9 @@ public class TryStatementTest {
             );
             fail("expected exception");
         } catch (final Throwable evalError) {
-            if (!(evalError.getCause() instanceof IOException))
+            if (!(evalError.getCause().getCause() instanceof IOException))
                 throw evalError;
-            final Throwable e = evalError.getCause();
+            final Throwable e = evalError.getCause().getCause();
             assertSame("same fromWrite exception thrown", fromWrite, e);
             assertThat("1 suppressed exception collected", e.getSuppressed(), arrayWithSize(1));
             assertSame("same fromClose exception thrown", fromClose, e.getSuppressed()[0]);

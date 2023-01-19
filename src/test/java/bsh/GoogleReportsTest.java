@@ -20,6 +20,7 @@
 
 package bsh;
 
+import bsh.legacy.ParseException;
 import static bsh.Capabilities.setAccessibility;
 import static bsh.Capabilities.haveAccessibility;
 
