@@ -1,0 +1,408 @@
+// For the moment, you can just generate the 
+// sources in ../java/bsh/congo/* by 
+// running:
+//  java -jar javacc-full.jar Beanshell.ccc
+// on the command line.
+//
+
+JAVA_UNICODE_ESCAPE=true;
+DEFAULT_LEXICAL_STATE=JAVA;
+BASE_NAME="Beanshell";
+PARSER_PACKAGE=bsh.congo.parser;
+NODE_PACKAGE=bsh.congo.tree;
+ENSURE_FINAL_EOL=true;
+BASE_SRC_DIR="../java";
+LEGACY_GLITCHY_LOOKAHEAD=false;
+
+INJECT Node :
+import bsh.*;
+extends java.util.ListIterator<bsh.Node>
+{
+    /** This is the general signature for evaluation of a node.
+     * @param callstack evaluation call stack
+     * @param interpreter evaluation interpreter
+     * @return result from evaluation
+     * @throws EvalError if an evaluation error occurred */
+    default Object eval(CallStack callstack, Interpreter interpreter) throws EvalError {
+      throw new UnsupportedOperationException("eval method is unimplemented for " + this.getClass().getSimpleName());
+    }
+
+    bsh.Node JAVACODE = new SimpleNode( -1 ) {
+        private static final long serialVersionUID = 1L;
+        public String getSourceFile() {
+            return "<Called from Java Code>";
+        }
+        public int getLineNumber() {
+            return -1;
+        }
+        public String getText()  {
+            return "<Compiled Java Code>";
+        }
+        public String toString() {
+            return "JavaCode";
+        }
+    };
+
+    default String getSourceFile() {return getInputSource();}
+
+    default void setSourceFile(String sourceFile) {throw new UnsupportedOperationException();}
+
+    default String getText() {return getSource();}
+
+    default int getLineNumber() {return getBeginLine();}
+
+    default String toString(String prefix) {throw new UnsupportedOperationException();}
+
+    // The following methods exist to implement 
+    // java.util.ListIterator, but really, I'm pretty sure that
+    // Node should not itself be an iterator, since tht is 
+    // inherently thread-unsafe
+
+    default void add(bsh.Node node) {throw new UnsupportedOperationException();}
+    default void set(bsh.Node node) {throw new UnsupportedOperationException();}
+    default void remove() {throw new UnsupportedOperationException();}
+    default int nextIndex() {throw new UnsupportedOperationException();}
+    default int previousIndex() {throw new UnsupportedOperationException();}
+    default boolean hasNext() {throw new UnsupportedOperationException();}
+    default boolean hasPrevious() {throw new UnsupportedOperationException();}
+    default bsh.Node next() {throw new UnsupportedOperationException();}
+    default bsh.Node previous() {throw new UnsupportedOperationException();}
+}
+
+INJECT Expression :
+{  
+  default boolean isPrimary() {return false;}
+}
+
+INJECT PrimaryExpression : extends Expression 
+{
+  default boolean isPrimary() {
+    return !(getParent() instanceof PrimaryExpression);
+  }
+}
+
+TOKEN : 
+  < FORMAL_COMMENT:
+       "/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/"
+  >
+;  
+
+INCLUDE JAVA
+
+UNPARSED : /* COMMENTS */
+ <HASH_BANG_COMMENT: "#!" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+// | <MULTI_LINE_COMMENT:
+//    ("/***" (["*"])* | "/*") (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+;
+
+// A redefinition of some operators from the Java grammar
+// to admit an alternative form. Also, some extra operators, such
+// as SPACESHIP and ELVIS that do not exist in Java.
+TOKEN #Operator :
+  < GT: ">" | "@gt" >
+  | 
+  < LT: "<" | "@lt" >
+  | 
+  < LE: "<=" | "@lteq" >
+  | 
+  < GE: ">=" | "@gteq" >
+  | 
+  < SC_OR : "||" | "@or" >
+  | 
+  < SC_AND : "&&" | "@and" >
+  | 
+  < BIT_AND: "&" | "@bitwise_and" >
+  | 
+  < BIT_OR: "|" | "@bitwise_or" >
+  | 
+  < XOR: "^" | "@bitwise_xor" >
+  | 
+  < REM : "%" | "@mod" >
+  | 
+  < POWER: "**" | "@pow" >
+  | 
+  < LSHIFT: "<<" | "@left_shift" >
+  | 
+  < RSIGNEDSHIFT: ">>" | "@right_shift" >
+  | 
+  < RUNSIGNEDSHIFT: ">>" | "@right_unsigned_shift" >
+  | 
+  < ANDASSIGN: "&=" | "@and_assign" >
+  | 
+  < ORASSIGN: "|=" | "@or_assign" >
+  | 
+  < XORASSIGN: "^=" | "@xor_assign" >
+  | 
+  < REMASSIGN: "%=" | "@mod_assign" >
+  | 
+  < POWERASSIGN: "**=" | "@pow_assign" >
+  | 
+  < LSHIFTASSIGN: "<<=" | "@left_shift_assign" >
+  | 
+  < RSIGNEDSHIFTASSIGN: ">>=" | "@right_shift_assign" >
+  | 
+  < RUNSIGNEDSHIFTASSIGN: ">>>=" | "@right_unsigned_shift_assign" >
+  | 
+  < SPACESHIP: "<=>" >
+  | 
+  < NULLCOALESCEASSIGN: "??=" >
+  | 
+  < NULLCOALESCE: "??" >
+  | 
+  < ELVIS: "?:" >
+;
+
+
+boolean Line :
+  <EOF> {
+//    Interpreter.debug("End of File!");
+    return true;
+  }
+  |
+  BlockStatement {
+    return false;
+  }
+;
+
+java.util.List<Node> Statements#void : 
+  (BlockStatement)* 
+  {
+      return new java.util.ArrayList<>(currentNodeScope);
+  }
+;
+
+ConditionalExpression :
+  NullCoalesceElvisSpaceShipExpression [ <HOOK> Expression <COLON> ConditionalExpression]
+;
+
+
+AllocationExpression :
+  ["new"] =>|+1 (ArrayDimsAndInits | ArrayInitializer)
+  |
+  "new" PrimitiveType =>|| ArrayDimsAndInits
+  |
+  "new" [TypeArguments] ObjectType [ PossiblyEmptyTypeArguments ]
+    (
+      ArrayDimsAndInits
+      |
+      InvocationArguments [ ClassOrInterfaceBody ]
+    )
+;
+
+// For now, redefining the following to generate binary expressions.
+
+AdditiveExpression :
+   MultiplicativeExpression (((<PLUS>|<MINUS>) MultiplicativeExpression) #AdditiveExpression(+1))*
+;
+
+MultiplicativeExpression : 
+   PowerExpression (((<STAR>|<SLASH>|<REM>) PowerExpression) #MultiplicativeExpression(+1))*
+;
+
+PowerExpression :
+   UnaryExpression ((<POWER>UnaryExpression)#PowerExpression(+1))*
+;
+
+ConditionalOrExpression :
+  ConditionalAndExpression ((<SC_OR> ConditionalAndExpression) #ConditionalOrExpression(+1))*
+;
+
+ConditionalAndExpression :
+  InclusiveOrExpression ((<SC_AND> InclusiveOrExpression) #ConditionalAndExpression(+1))*
+;
+
+InclusiveOrExpression :
+  ExclusiveOrExpression ((<BIT_OR> ExclusiveOrExpression) #InclusiveOrExpression(+1))*
+;
+
+ExclusiveOrExpression :
+  AndExpression ((<XOR> AndExpression) #ExclusiveOrExpression(+1))*
+;
+
+EqualityExpression :
+  InstanceOfExpression (((<EQ>|<NE>) InstanceOfExpression) #EqualityExpression(+1))*
+;
+
+RelationalExpression :
+  ShiftExpression (((<LT>|<GT>|<LE>|<GT>) ShiftExpression) #RelationalExpression(+1))*
+;
+
+ShiftExpression :
+   AdditiveExpression
+   [
+     // Under certain conditions we scanned forward
+     // and (incorrectly) scanned a >>, so we uncache
+     // the tokens and end up rescanning!
+     SCAN <GT> (<GT>|<RSIGNEDSHIFT>) => UNCACHE_TOKENS
+   ]
+   (
+      ((<LSHIFT> | <RSIGNEDSHIFT> | <RUNSIGNEDSHIFT>)
+      AdditiveExpression) #ShiftExpression(+1)
+   )*
+;
+
+AndExpression :
+  EqualityExpression ((<BIT_AND> EqualityExpression) #AndExpression(+1))*
+;
+
+ExclusiveOrExpression :
+  AndExpression ((<XOR> AndExpression) #ExclusiveOrExpression(+1))*
+;
+
+NullCoalesceElvisSpaceShipExpression :
+  ConditionalOrExpression
+  (((<NULLCOALESCE>|<ELVIS>|<SPACESHIP>) ConditionalOrExpression) #NullCoalesceElvisSpaceShipExpression(+1) )*
+;
+
+INJECT TryWithResources : 
+    import java.util.List;
+    import java.util.ArrayList;
+{
+    public List<Node> getResources() {
+        List<Node> result = new ArrayList<>();
+        for (Node n : children()) {
+            if (n instanceof LocalVariableDeclaration
+                || n instanceof Name
+                || n instanceof DotName) {
+                  result.add(n);
+                }
+            if (n.getTokenType() == RPAREN) break;
+        }
+        return result;
+    }
+}
+
+AssignmentOperator #void :
+  <ASSIGN> | <STARASSIGN> | <SLASHASSIGN> | <REMASSIGN> | <PLUSASSIGN> 
+  | <MINUSASSIGN> | <LSHIFTASSIGN> | <RSIGNEDSHIFTASSIGN> 
+  | <RUNSIGNEDSHIFTASSIGN> | <ANDASSIGN> | <XORASSIGN> | <ORASSIGN>
+  | <POWERASSIGN> | <NULLCOALESCEASSIGN>
+;
+
+BlockStatement#void :
+ ASSERT ~((<FINAL>|Annotation)* (<PUBLIC>|<PRIVATE>|<PROTECTED>|<STATIC>)) : "Cannot declare anything to be public, private, protected, or static  in a local context"
+ (
+// The YieldStatement option in the Statement production will thus never
+// be matched but this doesn't seem to be a problem really.
+// We need YieldStatement up top here so it does not spuriously match LocalVariableDeclaration.
+  YieldStatement
+  |
+  RecordDeclaration
+  |
+  SCAN MethodDeclarationLA
+  =>MethodDeclaration
+  |
+  LocalVariableDeclaration 
+  {Node varDecl = peekNode();}
+  <SEMICOLON>
+  {varDecl.addChild(popNode());}
+  |
+  ClassDeclaration
+  |
+  InterfaceDeclaration
+  |
+  EnumDeclaration
+  |
+  Statement
+  |
+ // Allow BeanShell imports in any block
+  ImportDeclaration
+  |
+  // Allow BeanShell package declarations in any block
+  PackageDeclaration
+  |
+  FormalComment  
+ )
+;
+
+MethodDeclarationLA#scan :
+  Modifiers
+  [ TypeParameters ]
+  ReturnType
+  <IDENTIFIER> 
+  FormalParameters ( (Annotation)* <LBRACKET><RBRACKET> )*
+  [ ThrowsList ] <LBRACE>
+;  
+
+FormalComment# : <FORMAL_COMMENT> ;
+
+PrimaryExpression#interface :
+ (
+  LiteralExpression
+  |
+  <THIS> #LiteralExpression
+  |
+  <SUPER> #LiteralExpression
+  |
+  Parentheses
+  |
+  AllocationExpression
+  |
+  ClassLiteral
+  |
+  MethodReference
+  |
+  Name
+ )
+ (
+  (<DOT> <THIS> =>||) #DotThis(+1)
+  |
+  (<DOT> <SUPER> =>||) #DotSuper(+1)
+  |
+  (<DOT> =>|+1 AllocationExpression) #DotNew(+1)
+  |
+  (
+    <LBRACKET> 
+    [ Expression ]
+    [
+      <COLON> 
+      [ Expression ]
+      [ 
+        <COLON> 
+        [ Expression ] 
+      ] 
+    ] 
+    <RBRACKET>
+  ) #ArrayAccess(+1)
+  |
+  // This is only in Beanshell
+  <LBRACE>Expression<RBRACE> #Property(+1)
+  |
+  (<DOT> [TypeArguments] <IDENTIFIER>) #DotName(+1)
+  |
+  (<DOUBLE_COLON> [TypeArguments] (<IDENTIFIER>|<NEW>)) #MethodReference(+1)
+  |
+// The following commented-out line is the absolutely correct condition for recent JDK's,
+// since yield on its own cannot be a method call, though you can write this.yield(), for example.
+// For now, I'm not including a check for that. The compiler catches it, after all. Also, it is
+// still unclear to me whether this should be caught at this point or if it is better to just do
+// a post-parse tree walk that runs over the AST and checks for these things.
+//  SCAN 1 {getToken(0).getType() == IDENTIFIER && (currentLookaheadToken==null || (peekNode().getChildCount() > 1 || !getToken(0).getImage().equals("yield")))}#
+  SCAN 1 {getToken(0).getType() == TokenType.IDENTIFIER}#
+  =>
+  InvocationArguments #MethodCall(+1)
+ )*
+ ASSERT {getToken(0).getType() != TokenType.SUPER}# : "Not a valid expression here"
+;
+
+INJECT Property : implements PrimaryExpression
+{
+  public boolean isAssignable() {return true;}
+}
+
+ArrayDimsAndInits# :
+  SCAN 2
+  (
+    <LBRACKET> =>|+1 Expression <RBRACKET>
+  )+
+  (
+    (Annotation)* <LBRACKET><RBRACKET> =>||
+  )*
+  |
+  (
+    (Annotation)* <LBRACKET><RBRACKET>
+  )* // It seems this is optional in Beanshell
+  ArrayInitializer
+;
+
+ReturnType# : [<VOID> | SCAN ~(Type <LPAREN>) => Type] ;

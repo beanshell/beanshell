@@ -55,11 +55,16 @@ public class BSHAutoCloseable extends BSHTypedVariableDeclaration {
         return name;
     }
 
-    public void close() throws Throwable {
-        if (null != this.varThis)
-           this.ths = (AutoCloseable) this.varThis.getValue();
-       if (null != this.ths)
-           this.ths.close();
+    public void close() {
+        try {
+            if (null != this.varThis)
+                this.ths = (AutoCloseable) this.varThis.getValue();
+            if (null != this.ths)
+                this.ths.close();
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Class<?> getType() {

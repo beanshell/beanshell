@@ -44,7 +44,7 @@ import java.util.NoSuchElementException;
     try to remember to mark these as transient to highlight them.
 
 */
-class SimpleNode implements Node, Serializable {
+public class SimpleNode extends bsh.congo.parser.BaseNode implements bsh.Node, Serializable {
 
     /** Serialization ID */
     private static final long serialVersionUID = 1L;

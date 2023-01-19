@@ -20,8 +20,9 @@ import java.util.ListIterator;
 /* All AST nodes must implement this interface.  It provides basic
  * machinery for constructing the parent and child relationships
  * between nodes. */
-public interface Node extends ListIterator<Node> {
+public interface Node extends bsh.congo.parser.Node {
     //  ---- start BeanShell specific stuff ----  //
+/*    
     Node JAVACODE = new SimpleNode( -1 ) {
         private static final long serialVersionUID = 1L;
         public String getSourceFile() {
@@ -36,7 +37,7 @@ public interface Node extends ListIterator<Node> {
         public String toString() {
             return "JavaCode";
         }
-    };
+    };*/
 
     /** This is the general signature for evaluation of a node.
      * @param callstack evaluation call stack
