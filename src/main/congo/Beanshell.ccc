@@ -70,7 +70,7 @@ extends java.util.ListIterator<Node>
     default Node next() {throw new UnsupportedOperationException();}
     default Node previous() {throw new UnsupportedOperationException();}
 
-    default Node[] getNodes() {return null;}
+    default List<Node> getNodes() {return null;}
 
 }
 

@@ -155,13 +155,19 @@ public class SimpleNode extends BaseNode implements Serializable {
 
     /** {@inheritDoc} */
     @Override
-    final public Node[] getNodes() {
-        return nodes;
+    final public List<Node> getNodes() {
+        List<Node> result = new ArrayList<>();
+        for (Node n : nodes) {
+            result.add(n);
+        }
+        return result;
+        //return nodes;
     }
     /** {@inheritDoc} */
     @Override
     final public int getChildCount() {
-        return getNodes().length;
+        return nodes.length;
+//        return getNodes().length;
 //        return getBackingContainer().size();
     }
 
