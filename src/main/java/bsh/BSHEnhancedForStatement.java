@@ -26,6 +26,7 @@
 package bsh;
 
 import bsh.legacy.*;
+import bsh.congo.parser.Node;
 import java.util.Iterator;
 
 /**

@@ -24,7 +24,9 @@
  *                                                                           *
  *****************************************************************************/
 package bsh;
+
 import bsh.legacy.*;
+import bsh.congo.parser.Node;
 
 /**
  * This class handles both {@code while} statements and {@code do..while} statements.

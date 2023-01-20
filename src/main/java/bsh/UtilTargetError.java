@@ -28,7 +28,7 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.Node;
 
 /**
     UtilTargetError is an error corresponding to a TargetError but thrown by a

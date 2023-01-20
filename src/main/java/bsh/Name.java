@@ -25,7 +25,7 @@
  *****************************************************************************/
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.Node;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;

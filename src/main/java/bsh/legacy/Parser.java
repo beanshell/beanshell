@@ -30,6 +30,7 @@ package bsh.legacy;
 import java.io.IOException;
 import java.io.Reader;
 import bsh.*;
+import bsh.congo.parser.Node;
 
 /**
     This is the BeanShell parser.  It is used internally by the Interpreter

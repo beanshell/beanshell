@@ -17,7 +17,7 @@ LEGACY_GLITCHY_LOOKAHEAD=false;
 INJECT Node :
 import bsh.*;
 import bsh.legacy.SimpleNode;
-extends java.util.ListIterator<bsh.legacy.Node>
+extends java.util.ListIterator<Node>
 {
     /** This is the general signature for evaluation of a node.
      * @param callstack evaluation call stack
@@ -28,7 +28,7 @@ extends java.util.ListIterator<bsh.legacy.Node>
       throw new UnsupportedOperationException("eval method is unimplemented for " + this.getClass().getSimpleName());
     }
 
-    bsh.legacy.Node JAVACODE = new SimpleNode( -1 ) {
+    Node JAVACODE = new SimpleNode( -1 ) {
         private static final long serialVersionUID = 1L;
         public String getSourceFile() {
             return "<Called from Java Code>";
@@ -59,31 +59,31 @@ extends java.util.ListIterator<bsh.legacy.Node>
     // Node should not itself be an iterator, since tht is 
     // inherently thread-unsafe
 
-    default void add(bsh.legacy.Node node) {throw new UnsupportedOperationException();}
-    default void set(bsh.legacy.Node node) {throw new UnsupportedOperationException();}
+    default void add(Node node) {throw new UnsupportedOperationException();}
+    default void set(Node node) {throw new UnsupportedOperationException();}
     default void remove() {throw new UnsupportedOperationException();}
     default int nextIndex() {throw new UnsupportedOperationException();}
     default int previousIndex() {throw new UnsupportedOperationException();}
     default boolean hasNext() {throw new UnsupportedOperationException();}
     default boolean hasPrevious() {throw new UnsupportedOperationException();}
-    default bsh.legacy.Node next() {throw new UnsupportedOperationException();}
-    default bsh.legacy.Node previous() {throw new UnsupportedOperationException();}
+    default Node next() {throw new UnsupportedOperationException();}
+    default Node previous() {throw new UnsupportedOperationException();}
 
     //  ---- end BeanShell specific stuff ----  //
-    default bsh.legacy.Node[] jjtGetChildren() {return null;}
+    default Node[] jjtGetChildren() {return null;}
 
     default void jjtOpen() {}
 
     default void jjtClose() {}
 
 
-    default void jjtSetParent(bsh.legacy.Node n) {setParent(n);}
+    default void jjtSetParent(Node n) {setParent(n);}
 
-    default bsh.legacy.Node jjtGetParent() {return (bsh.legacy.Node) getParent();}
+    default Node jjtGetParent() {return (Node) getParent();}
 
-    default void jjtAddChild(bsh.legacy.Node n, int i) {addChild(i,n);}
+    default void jjtAddChild(Node n, int i) {addChild(i,n);}
 
-    default bsh.legacy.Node jjtGetChild(int i) {return (bsh.legacy.Node) getChild(i);}
+    default Node jjtGetChild(int i) {return (Node) getChild(i);}
 
     default int jjtGetNumChildren() {return getChildCount();}
 

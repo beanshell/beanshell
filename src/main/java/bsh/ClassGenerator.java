@@ -26,6 +26,7 @@
 package bsh;
 
 import bsh.legacy.*;
+import bsh.congo.parser.Node;
 import static bsh.This.Keys.BSHSUPER;
 
 import java.io.FileOutputStream;

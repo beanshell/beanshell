@@ -16,6 +16,7 @@
 package bsh;
 
 import bsh.legacy.*;
+import bsh.congo.parser.Node;
 
 public class BSHAutoCloseable extends BSHTypedVariableDeclaration {
     private static final long serialVersionUID = 1L;

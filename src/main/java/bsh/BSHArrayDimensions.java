@@ -29,6 +29,7 @@
 package bsh;
 
 import bsh.legacy.*;
+import bsh.congo.parser.Node;
 
 /**
     The name of this class is somewhat misleading.  This covers both the case

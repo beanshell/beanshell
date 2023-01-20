@@ -28,7 +28,7 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.Node;
 
 /**
     UtilEvalError is an error corresponding to an EvalError but thrown by a

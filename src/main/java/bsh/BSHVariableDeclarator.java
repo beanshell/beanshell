@@ -29,6 +29,7 @@
 package bsh;
 
 import bsh.legacy.*;
+import bsh.congo.parser.Node;
 /**
     name [ = initializer ]
     evaluate name and return optional initializer

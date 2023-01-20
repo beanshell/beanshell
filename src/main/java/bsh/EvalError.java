@@ -28,6 +28,7 @@
 package bsh;
 
 import bsh.legacy.*;
+import bsh.congo.parser.Node;
 
 /**
     EvalError indicates that we cannot continue evaluating the script

@@ -29,6 +29,7 @@
 package bsh;
 
 import bsh.legacy.*;
+import bsh.congo.parser.Node;
 
 /**
     Implement binary expressions...

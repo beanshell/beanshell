@@ -28,6 +28,7 @@
 
 package bsh;
 import bsh.legacy.*;
+import bsh.congo.parser.Node;
 
 public class BSHIfStatement extends SimpleNode {
     public boolean isClosed;

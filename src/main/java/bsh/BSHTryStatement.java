@@ -30,6 +30,7 @@ package bsh;
 import java.util.ArrayList;
 import java.util.List;
 import bsh.legacy.*;
+import bsh.congo.parser.Node;
 
 
 public class BSHTryStatement extends SimpleNode

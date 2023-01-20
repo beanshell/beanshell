@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.concurrent.CompletionException;
 
 import bsh.legacy.*;
+import bsh.congo.parser.Node;
 
 /**
     New object, new array, or inner class style allocation with body.

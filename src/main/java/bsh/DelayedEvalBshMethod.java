@@ -27,7 +27,7 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.Node;
 
 public class DelayedEvalBshMethod extends BshMethod
 {

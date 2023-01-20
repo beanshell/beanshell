@@ -27,7 +27,9 @@
 
 
 package bsh;
+
 import bsh.legacy.*;
+import bsh.congo.parser.Node;
 
 /**
     This class needs logic to prevent the right hand side of boolean logical

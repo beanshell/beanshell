@@ -26,6 +26,7 @@
 package bsh;
 
 import bsh.legacy.*;
+import bsh.congo.parser.Node;
 import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Map.Entry;

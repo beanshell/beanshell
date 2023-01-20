@@ -1,6 +1,7 @@
 package bsh;
 
 import bsh.legacy.*;
+import bsh.congo.parser.Node;
 import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.Map;
