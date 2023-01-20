@@ -48,16 +48,16 @@ public class BSHAllocationExpression extends SimpleNode
         throws EvalError
     {
         // loose typed array initializer ex. new {1, 2, 3};
-        if ( getChildCount() == 1 && jjtGetChild(0)
+        if ( getChildCount() == 1 && getChild(0)
                 instanceof BSHArrayDimensions )
-                return arrayAllocation( (BSHArrayDimensions) jjtGetChild(0),
+                return arrayAllocation( (BSHArrayDimensions) getChild(0),
                        Void.TYPE, callstack, interpreter );
 
         // type is either a class name or a primitive type
-        Node type = jjtGetChild(0);
+        Node type = getChild(0);
 
         // args is either constructor arguments or array dimensions
-        Node args = jjtGetChild(1);
+        Node args = getChild(1);
 
         if ( type instanceof BSHAmbiguousName )
         {
@@ -102,7 +102,7 @@ public class BSHAllocationExpression extends SimpleNode
 
         if ( hasBody )
         {
-            BSHBlock body = (BSHBlock)jjtGetChild(2);
+            BSHBlock body = (BSHBlock)getChild(2);
             if ( type.isInterface() )
                 return constructWithInterfaceBody(
                     type, args, body, callstack, interpreter );
@@ -117,12 +117,12 @@ public class BSHAllocationExpression extends SimpleNode
             Interpreter interpreter ) throws EvalError {
 
         String typeString = "";
-        if (jjtGetChild(0) instanceof BSHAmbiguousName)
-            typeString = ((BSHAmbiguousName) jjtGetChild(0)).text;
+        if (getChild(0) instanceof BSHAmbiguousName)
+            typeString = ((BSHAmbiguousName) getChild(0)).text;
 
         Object[] args = null;
-        if (jjtGetChild(1) instanceof BSHArguments)
-            args = ((BSHArguments) jjtGetChild(1)).getArguments(
+        if (getChild(1) instanceof BSHArguments)
+            args = ((BSHArguments) getChild(1)).getArguments(
                         callstack, interpreter);
 
         Class<?> type = null;

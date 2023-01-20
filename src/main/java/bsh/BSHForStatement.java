@@ -50,10 +50,10 @@ public class BSHForStatement extends SimpleNode implements ParserConstants
 
     public Object eval(CallStack callstack , Interpreter interpreter) throws EvalError {
         int i = 0;
-        final Node forInit = hasForInit ? jjtGetChild(i++) : null;
-        final Node expression = hasExpression ? jjtGetChild(i++) : null;
-        final Node forUpdate = hasForUpdate ? jjtGetChild(i++) : null;
-        final Node statement = i < getChildCount() ? jjtGetChild(i) : null;
+        final Node forInit = hasForInit ? getChild(i++) : null;
+        final Node expression = hasExpression ? getChild(i++) : null;
+        final Node forUpdate = hasForUpdate ? getChild(i++) : null;
+        final Node statement = i < getChildCount() ? getChild(i) : null;
         final NameSpace enclosingNameSpace= callstack.top();
         final NameSpace forNameSpace = new BlockNameSpace(enclosingNameSpace, blockId);
 

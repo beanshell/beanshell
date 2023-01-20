@@ -37,8 +37,8 @@ public class BSHEnumConstant extends SimpleNode {
             This.CONTEXT_ARGS.get().put( namespace.classInstance.toString(), getArguments(callstack, interpreter) );
 
         for ( int i = 0; i < getChildCount(); i++ )
-            if ( jjtGetChild(i) instanceof BSHBlock )
-                ((BSHBlock) jjtGetChild(i)).eval(callstack, interpreter, true);
+            if ( getChild(i) instanceof BSHBlock )
+                ((BSHBlock) getChild(i)).eval(callstack, interpreter, true);
 
         return Primitive.VOID;
     }
@@ -49,8 +49,8 @@ public class BSHEnumConstant extends SimpleNode {
 
     Object[] args;
     public Object[] getArguments(CallStack callstack, Interpreter interpreter) throws EvalError {
-        if (args == null && getChildCount() > 0 && jjtGetChild(0) instanceof BSHArguments) {
-            BSHArguments arg = (BSHArguments)jjtGetChild(0);
+        if (args == null && getChildCount() > 0 && getChild(0) instanceof BSHArguments) {
+            BSHArguments arg = (BSHArguments)getChild(0);
             args = arg.getArguments(callstack, interpreter);
         }
         return args;

@@ -99,10 +99,10 @@ public class BSHPrimaryExpression extends SimpleNode
         if ( isArrayExpression && null != cached )
             return cached;
 
-        Object obj = jjtGetChild(0);
+        Object obj = getChild(0);
 
         for( int i=1; i < getChildCount(); i++ )
-            obj = ((BSHPrimarySuffix) jjtGetChild(i)).doSuffix(
+            obj = ((BSHPrimarySuffix) getChild(i)).doSuffix(
                 obj, toLHS, callstack, interpreter);
 
         /*

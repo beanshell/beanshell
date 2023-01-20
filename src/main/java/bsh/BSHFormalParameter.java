@@ -50,7 +50,7 @@ public class BSHFormalParameter extends SimpleNode
         CallStack callstack, Interpreter interpreter, String defaultPackage )
     {
         if ( getChildCount() > 0 )
-            return (isVarArgs ? "[" : "") + ((BSHType)jjtGetChild(0)).getTypeDescriptor(
+            return (isVarArgs ? "[" : "") + ((BSHType)getChild(0)).getTypeDescriptor(
                 callstack, interpreter, defaultPackage );
         else
             // this will probably not get used
@@ -64,7 +64,7 @@ public class BSHFormalParameter extends SimpleNode
         throws EvalError
     {
         if ( getChildCount() > 0 )
-            type = ((BSHType)jjtGetChild(0)).getType( callstack, interpreter );
+            type = ((BSHType)getChild(0)).getType( callstack, interpreter );
         else
             type = UNTYPED;
 

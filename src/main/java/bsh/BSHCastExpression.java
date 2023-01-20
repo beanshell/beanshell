@@ -48,9 +48,9 @@ public class BSHCastExpression extends SimpleNode {
     public Object eval(
         CallStack callstack, Interpreter interpreter ) throws EvalError
     {
-        Class toType = ((BSHType)jjtGetChild(0)).getType(
+        Class toType = ((BSHType)getChild(0)).getType(
             callstack, interpreter );
-        Node expression = jjtGetChild(1);
+        Node expression = getChild(1);
 
         // evaluate the expression
         Object fromValue = expression.eval(callstack, interpreter);

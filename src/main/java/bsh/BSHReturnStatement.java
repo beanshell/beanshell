@@ -44,7 +44,7 @@ public class BSHReturnStatement extends SimpleNode implements ParserConstants
             return new ReturnControl(kind, label, this);
         Object value;
         if(getChildCount() > 0)
-            value = jjtGetChild(0).eval(callstack, interpreter);
+            value = getChild(0).eval(callstack, interpreter);
         else
             value = Primitive.VOID;
 

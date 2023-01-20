@@ -43,7 +43,7 @@ public class BSHBinaryExpression extends SimpleNode implements ParserConstants {
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
-        Object lhs = jjtGetChild(0).eval(callstack, interpreter);
+        Object lhs = getChild(0).eval(callstack, interpreter);
 
         /*
             Doing instanceof?  Next node is a type.
@@ -54,7 +54,7 @@ public class BSHBinaryExpression extends SimpleNode implements ParserConstants {
             if ( lhs == Primitive.NULL )
                 return Primitive.FALSE;
 
-            Class<?> rhs = ((BSHType)jjtGetChild(1)).getType(
+            Class<?> rhs = ((BSHType)getChild(1)).getType(
                 callstack, interpreter );
 
             /*
@@ -97,7 +97,7 @@ public class BSHBinaryExpression extends SimpleNode implements ParserConstants {
         if ( kind == NULLCOALESCE && Primitive.NULL != lhs)
             return lhs;
 
-        Object rhs = jjtGetChild(1).eval(callstack, interpreter);
+        Object rhs = getChild(1).eval(callstack, interpreter);
 
         if ( kind == NULLCOALESCE || kind == ELVIS )
             return rhs;
@@ -155,8 +155,8 @@ public class BSHBinaryExpression extends SimpleNode implements ParserConstants {
      * @throws UtilEvalError thrown by getVariableImpl. */
     private Variable getVariableAtNode(int index, CallStack callstack) throws UtilEvalError {
         Node nameNode = null;
-        if ( jjtGetChild(index).getChildCount() > 0
-                && (nameNode = jjtGetChild(index).jjtGetChild(0))
+        if ( getChild(index).getChildCount() > 0
+                && (nameNode = getChild(index).getChild(0))
                     instanceof BSHAmbiguousName )
             return callstack.top().getVariableImpl(
                     ((BSHAmbiguousName) nameNode).text, true);

@@ -52,7 +52,7 @@ public class BSHMultiCatch extends SimpleNode {
         if ( isUntyped() )
             types[0] = UNTYPED;
         else for ( int i=0; i< countTypes(); i++ )
-            types[i] = ((BSHType) jjtGetChild(i)).getType( callstack, interpreter );
+            types[i] = ((BSHType) getChild(i)).getType( callstack, interpreter );
 
         return types;
     }

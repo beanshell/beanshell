@@ -36,7 +36,7 @@ public class BSHSwitchLabel extends SimpleNode {
     public Object eval(
         CallStack callstack, Interpreter interpreter) throws EvalError
     {
-        return jjtGetChild(0).eval( callstack, interpreter );
+        return getChild(0).eval( callstack, interpreter );
     }
 
     @Override

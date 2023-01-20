@@ -51,11 +51,11 @@ public class BSHWhileStatement extends SimpleNode implements ParserConstants {
         final Node condExp;
         final Node body;
         if (isDoStatement) {
-            condExp = jjtGetChild(1);
-            body = jjtGetChild(0);
+            condExp = getChild(1);
+            body = getChild(0);
         } else {
-            condExp = jjtGetChild(0);
-            body = numChild > 1 ? jjtGetChild(1) : null;
+            condExp = getChild(0);
+            body = numChild > 1 ? getChild(1) : null;
         }
         boolean doOnceFlag = isDoStatement;
         while ( !Thread.interrupted()

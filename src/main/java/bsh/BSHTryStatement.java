@@ -49,22 +49,22 @@ public class BSHTryStatement extends SimpleNode
     {
         int i = 0;
 
-        if (jjtGetChild(i) instanceof BSHTryWithResources) {
-            this.tryWithResources = ((BSHTryWithResources) jjtGetChild(i++));
+        if (getChild(i) instanceof BSHTryWithResources) {
+            this.tryWithResources = ((BSHTryWithResources) getChild(i++));
             this.tryWithResources.eval(callstack, interpreter);
         }
 
-        BSHBlock tryBlock = (BSHBlock) jjtGetChild(i++);
+        BSHBlock tryBlock = (BSHBlock) getChild(i++);
 
         List<BSHMultiCatch> catchParams = new ArrayList<>();
         List<BSHBlock> catchBlocks = new ArrayList<>();
 
         int nchild = getChildCount();
         Node node = null;
-        while( i < nchild && (node = jjtGetChild(i++)) instanceof BSHMultiCatch )
+        while( i < nchild && (node = getChild(i++)) instanceof BSHMultiCatch )
         {
             catchParams.add((BSHMultiCatch) node);
-            catchBlocks.add((BSHBlock) jjtGetChild(i++));
+            catchBlocks.add((BSHBlock) getChild(i++));
             node = null;
         }
         // finally block

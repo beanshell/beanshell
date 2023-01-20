@@ -41,7 +41,7 @@ public class BSHSwitchStatement
     {
         int numchild = getChildCount();
         int child = 0;
-        Node switchExp = jjtGetChild(child++);
+        Node switchExp = getChild(child++);
         Object switchVal = switchExp.eval( callstack, interpreter );
 
         // import enum constants
@@ -61,7 +61,7 @@ public class BSHSwitchStatement
         // get the first label
         if ( child >= numchild )
             throw new EvalError("Empty switch statement.", this, callstack );
-        label = ((BSHSwitchLabel)jjtGetChild(child++));
+        label = ((BSHSwitchLabel)getChild(child++));
 
         // while more labels or blocks and haven't hit return control
         while ( child < numchild && returnControl == null )
@@ -76,7 +76,7 @@ public class BSHSwitchStatement
                 // execute nodes, skipping labels, until a break or return
                 while ( child < numchild )
                 {
-                    node = jjtGetChild(child++);
+                    node = getChild(child++);
                     if ( node instanceof BSHSwitchLabel )
                         continue;
                     // eval it
@@ -94,7 +94,7 @@ public class BSHSwitchStatement
                 // skip nodes until next label
                 while ( child < numchild )
                 {
-                    node = jjtGetChild(child++);
+                    node = getChild(child++);
                     if ( node instanceof BSHSwitchLabel ) {
                         label = (BSHSwitchLabel)node;
                         break;

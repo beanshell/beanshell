@@ -97,7 +97,7 @@ public class BSHBlock extends SimpleNode {
 
         if ( isSynchronized ) {
             // First node is the expression on which to sync
-            Node exp = jjtGetChild(0);
+            Node exp = getChild(0);
             Object syncValue = exp.eval(callstack, interpreter);
             synchronized( syncValue ) { // Do the actual synchronization
                 return evalBlock(
@@ -129,7 +129,7 @@ public class BSHBlock extends SimpleNode {
             // First do class declarations then do everything else.
             if (isFirst || hasClassDeclaration)
                 for (int i = startChild; i < numChildren; i++) {
-                    Node node = jjtGetChild(i);
+                    Node node = getChild(i);
 
                     if ( nodeFilter != null && !nodeFilter.isVisible( node ) )
                         continue;
@@ -142,7 +142,7 @@ public class BSHBlock extends SimpleNode {
 
             List<Node> enumBlocks = null;
             for(int i = startChild; i < numChildren; i++) {
-                Node node = jjtGetChild(i);
+                Node node = getChild(i);
 
                 if ( node instanceof BSHClassDeclaration )
                     continue;

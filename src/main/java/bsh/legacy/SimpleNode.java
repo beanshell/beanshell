@@ -162,11 +162,11 @@ public class SimpleNode extends bsh.congo.parser.BaseNode implements Serializabl
 
     /** {@inheritDoc} */
     @Override
-    public Node jjtGetChild(int i) { return children[i]; }
+    public Node getChild(int i) { return children[i]; }
 
     /** {@inheritDoc} */
     @Override
-    public Node[] jjtGetChildren() {
+    public Node[] getChildren() {
         if ( null == children )
             children = new Node[0];
         return children;
@@ -174,7 +174,7 @@ public class SimpleNode extends bsh.congo.parser.BaseNode implements Serializabl
     /** {@inheritDoc} */
     @Override
     public int getChildCount() {
-        return jjtGetChildren().length;
+        return getChildren().length;
     }
 
     /** {@inheritDoc} */

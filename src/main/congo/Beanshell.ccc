@@ -70,20 +70,16 @@ extends java.util.ListIterator<Node>
     default Node previous() {throw new UnsupportedOperationException();}
 
     //  ---- end BeanShell specific stuff ----  //
-    default Node[] jjtGetChildren() {return null;}
+    default Node[] getChildren() {return null;}
 
     default void jjtOpen() {}
 
     default void jjtClose() {}
 
 
-//    default void setParent(Node n) {setParent(n);}
-
-//    default Node getParent() {return (Node) getParent();}
-
     default void jjtAddChild(Node n, int i) {addChild(i,n);}
 
-    default Node jjtGetChild(int i) {return (Node) getChild(i);}
+//    default Node getChild(int i) {return (Node) getChild(i);}
 
     default int getId() {return -1;}
 

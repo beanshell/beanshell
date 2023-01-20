@@ -7,19 +7,19 @@ package bsh.legacy;
 
 Node node = Node.JAVACODE;
 node.add(new SimpleNode(0));
-assertThat(node.jjtGetChild(0).getId(), equalTo(0));
+assertThat(node.getChild(0).getId(), equalTo(0));
 node.add(new SimpleNode(1));
-assertThat(node.jjtGetChild(1).getId(), equalTo(1));
+assertThat(node.getChild(1).getId(), equalTo(1));
 node.add(new SimpleNode(2));
-assertThat(node.jjtGetChild(2).getId(), equalTo(2));
+assertThat(node.getChild(2).getId(), equalTo(2));
 node.add(new SimpleNode(3));
-assertThat(node.jjtGetChild(3).getId(), equalTo(3));
+assertThat(node.getChild(3).getId(), equalTo(3));
 node.add(new SimpleNode(4));
-assertThat(node.jjtGetChild(4).getId(), equalTo(4));
+assertThat(node.getChild(4).getId(), equalTo(4));
 node.add(new SimpleNode(5));
-assertThat(node.jjtGetChild(5).getId(), equalTo(5));
+assertThat(node.getChild(5).getId(), equalTo(5));
 
-list = new ArrayList(Arrays.asList(node.jjtGetChildren()));
+list = new ArrayList(Arrays.asList(node.getChildren()));
 iter = list.listIterator(6);
 
 assertThat(node.hasNext(), equalTo(iter.hasNext()));
@@ -30,27 +30,27 @@ assertThat(node.previous().getId(), equalTo(iter.previous().getId()));
 assertThat(node.next().getId(), equalTo(iter.next().getId()));
 iter.add(new SimpleNode(6));
 node.add(new SimpleNode(6));
-assertThat(node.jjtGetChild(6).getId(), equalTo(list.get(6).getId()));
+assertThat(node.getChild(6).getId(), equalTo(list.get(6).getId()));
 assertThat(node.previous().getId(), equalTo(iter.previous().getId()));
 iter.remove();
 node.remove();
-assertThat(node.jjtGetChild(5).getId(), equalTo(list.get(5).getId()));
+assertThat(node.getChild(5).getId(), equalTo(list.get(5).getId()));
 assertThat(node.previous().getId(), equalTo(iter.previous().getId()));
 assertThat(node.previous().getId(), equalTo(iter.previous().getId()));
 assertThat(node.previous().getId(), equalTo(iter.previous().getId()));
 assertThat(node.previous().getId(), equalTo(iter.previous().getId()));
 iter.set(new SimpleNode(7));
 node.set(new SimpleNode(7));
-assertThat(node.jjtGetChild(node.nextIndex()).getId(), equalTo(7));
+assertThat(node.getChild(node.nextIndex()).getId(), equalTo(7));
 assertThat(node.next().getId(), equalTo(iter.next().getId()));
-assertThat(node.jjtGetChild(node.previousIndex()).getId(), equalTo(7));
+assertThat(node.getChild(node.previousIndex()).getId(), equalTo(7));
 iter.add(new SimpleNode(8));
 node.add(new SimpleNode(8));
 assert(isEvalError("IllegalStateException", 'node.remove();'));
-assertThat(node.jjtGetChild(node.previousIndex()).getId(), equalTo(8));
+assertThat(node.getChild(node.previousIndex()).getId(), equalTo(8));
 assertThat(node.previous().getId(), equalTo(8));
 assertThat(node.getChildCount(), equalTo(list.size()));
-assertThat((List) node.jjtGetChildren(),
+assertThat((List) node.getChildren(),
     valueString("[void, ClassDeclaration, VariableDeclarator, ArrayInitializer, Block, MethodDeclaration, PackageDeclaration]"));
 assertThat(list,
     valueString("[void, ClassDeclaration, VariableDeclarator, ArrayInitializer, Block, MethodDeclaration, PackageDeclaration]"));
@@ -64,7 +64,7 @@ assert(isEvalError("Unimplemented or inappropriate for bsh.Node", 'node.eval(nul
 
 
 node.jjtAddChild(Node.JAVACODE, 2);
-node2 = node.jjtGetChild(2);
+node2 = node.getChild(2);
 assertThat(node2, equalTo(Node.JAVACODE));
 assertThat(node2.getSourceFile(), equalTo("<Called from Java Code>"));
 assertThat(node2.getLineNumber(), equalTo(-1));
@@ -78,14 +78,14 @@ node.setParent(Node.JAVACODE);
 assertThat(node.getParent(), equalTo(node2));
 
 lastIdx = node.getChildCount() -1 ;
-lastNode = node.jjtGetChild(lastIdx);
+lastNode = node.getChild(lastIdx);
 node.jjtAddChild(Node.JAVACODE, node.getChildCount());
-assertThat(node.jjtGetChild(lastIdx), equalTo(lastNode));
+assertThat(node.getChild(lastIdx), equalTo(lastNode));
 lastIdx = node.getChildCount() -1 ;
-assertThat(node.jjtGetChild(lastIdx), not(lastNode));
-assertThat(node.jjtGetChild(lastIdx), equalTo(Node.JAVACODE));
+assertThat(node.getChild(lastIdx), not(lastNode));
+assertThat(node.getChild(lastIdx), equalTo(Node.JAVACODE));
 
-node0 = node.jjtGetChild(0);
+node0 = node.getChild(0);
 assertThat(node0.getSourceFile(), equalTo("<Called from Java Code>"));
 node0.setParent(null);
 assertThat(node0.getSourceFile(), equalTo("<unknown file>"));

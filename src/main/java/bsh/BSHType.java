@@ -69,7 +69,7 @@ public class BSHType extends SimpleNode implements BshClassManager.Listener {
     }
 
     Node getTypeNode() {
-        return jjtGetChild(0);
+        return getChild(0);
     }
 
     /**

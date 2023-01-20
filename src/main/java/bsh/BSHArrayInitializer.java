@@ -49,8 +49,8 @@ public class BSHArrayInitializer extends SimpleNode {
         parent = n;
         if ( null != children ) for ( Node c : children )
             if ( c.getChildCount() > 0
-                    && c.jjtGetChild(0) instanceof BSHPrimaryExpression ) {
-                expressionQueue.push((BSHPrimaryExpression) c.jjtGetChild(0));
+                    && c.getChild(0) instanceof BSHPrimaryExpression ) {
+                expressionQueue.push((BSHPrimaryExpression) c.getChild(0));
                 expressionQueue.peek().setArrayExpression(this);
             }
     }
@@ -150,7 +150,7 @@ public class BSHArrayInitializer extends SimpleNode {
 
         // Evaluate the child nodes
         for ( int i = 0; i < getChildCount(); i++ ) {
-            final Node node = jjtGetChild(i);
+            final Node node = getChild(i);
             final Object entry;
             if ( node instanceof BSHArrayInitializer )
                 // nested arrays needs at least 2 dimensions to be valid
@@ -206,8 +206,8 @@ public class BSHArrayInitializer extends SimpleNode {
             Object bean = baseType.getConstructor().newInstance();
             callstack.top().setClassInstance(bean);
             for (int i = 0; i < getChildCount(); i++) {
-                BSHAssignment asNode = (BSHAssignment)this.jjtGetChild(i);
-                BSHPrimaryExpression peNode = (BSHPrimaryExpression)asNode.jjtGetChild(0);
+                BSHAssignment asNode = (BSHAssignment)this.getChild(i);
+                BSHPrimaryExpression peNode = (BSHPrimaryExpression)asNode.getChild(0);
                 peNode.isArrayExpression = peNode.isMapExpression = false;
                 asNode.eval(callstack, interpreter);
             }
@@ -271,10 +271,10 @@ public class BSHArrayInitializer extends SimpleNode {
      * @return if this is a bean type */
     private boolean isBeanType(Class<?> type) {
         return Void.TYPE != type && !Types.isCollectionType(type)
-            && jjtGetChild(0) instanceof BSHAssignment
-            && jjtGetChild(0).jjtGetChild(0) instanceof BSHPrimaryExpression
-            && ((BSHPrimaryExpression)jjtGetChild(0).jjtGetChild(0)).isMapExpression
-            && jjtGetChild(0).jjtGetChild(0).jjtGetChild(0) instanceof BSHAmbiguousName;
+            && getChild(0) instanceof BSHAssignment
+            && getChild(0).getChild(0) instanceof BSHPrimaryExpression
+            && ((BSHPrimaryExpression)getChild(0).getChild(0)).isMapExpression
+            && getChild(0).getChild(0).getChild(0) instanceof BSHAmbiguousName;
     }
 
     /** Convenience method to query the provided node's map in array flag.
@@ -307,7 +307,7 @@ public class BSHArrayInitializer extends SimpleNode {
             CallStack callstack, Interpreter interpreter) throws EvalError {
         // count ArrayInitializer nodes in this hierarchy
         while ( node.getChildCount() > idx
-                && (node = node.jjtGetChild(idx)) instanceof BSHArrayInitializer
+                && (node = node.getChild(idx)) instanceof BSHArrayInitializer
                 && !isMapInArray((BSHArrayInitializer) node)
                 && node.getChildCount() > 0 ) {
             dimensions++;
@@ -358,7 +358,7 @@ public class BSHArrayInitializer extends SimpleNode {
                 && isMapInArray((BSHArrayInitializer) node) )
             return Types.getCommonType(common, Map.class);
         // recurse through nested array initializer nodes
-        for ( Node child : node.jjtGetChildren() )
+        for ( Node child : node.getChildren() )
             common = this.inferCommonType(common, child, callstack, interpreter);
         return common;
     }

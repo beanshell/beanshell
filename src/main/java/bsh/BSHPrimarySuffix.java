@@ -134,7 +134,7 @@ public class BSHPrimarySuffix extends SimpleNode
     */
     private Object doNewInner(Object obj, boolean toLHS,
             CallStack callstack, Interpreter interpreter) throws EvalError {
-        BSHAllocationExpression alloc = (BSHAllocationExpression) jjtGetChild(0);
+        BSHAllocationExpression alloc = (BSHAllocationExpression) getChild(0);
         if (Reflect.isGeneratedClass(obj.getClass())) {
             callstack.pop();
             callstack.push(Reflect.getThisNS(obj));
@@ -181,7 +181,7 @@ public class BSHPrimarySuffix extends SimpleNode
             }
         // Method invocation
         // (LHS or non LHS evaluation can both encounter method calls)
-        Object[] oa = ((BSHArguments)jjtGetChild(0)).getArguments(
+        Object[] oa = ((BSHArguments)getChild(0)).getArguments(
             callstack, interpreter);
 
         return Reflect.invokeObjectMethod(
@@ -196,7 +196,7 @@ public class BSHPrimarySuffix extends SimpleNode
                 throws EvalError {
         int index;
         try {
-            Object indexVal = callerInfo.jjtGetChild(idx).eval(
+            Object indexVal = callerInfo.getChild(idx).eval(
                     callstack, interpreter );
             if ( !(indexVal instanceof Primitive) )
                 indexVal = Types.castObject(
@@ -227,13 +227,13 @@ public class BSHPrimarySuffix extends SimpleNode
         if ( !interpreter.getStrictJava() ) {
             // allow index access for maps
             if ( Types.isPropertyTypeMap(obj) ) {
-                Object key = jjtGetChild(0).eval(callstack, interpreter);
+                Object key = getChild(0).eval(callstack, interpreter);
                 return toLHS ? new LHS(obj, key)
                       : Reflect.getObjectProperty(obj, key);
             }
             // allow index access for map entries
             if ( Types.isPropertyTypeEntry(obj) ) {
-                Object key = jjtGetChild(0).eval(callstack, interpreter);
+                Object key = getChild(0).eval(callstack, interpreter);
                 if ( toLHS ) {
                     if ( key.equals(((Entry) obj).getKey()) )
                         return new LHS(obj);
@@ -255,7 +255,7 @@ public class BSHPrimarySuffix extends SimpleNode
         // allow index access for a Map.Entry array.
         if ( !interpreter.getStrictJava()
                 && Types.isPropertyTypeEntryList(cls) ) {
-            Object key = jjtGetChild(0).eval(callstack, interpreter);
+            Object key = getChild(0).eval(callstack, interpreter);
             int idx = 0;
             if ( ((key instanceof Primitive && ((Primitive) key).isNumber())
                         || Primitive.isWrapperType(key.getClass()))
@@ -341,7 +341,7 @@ public class BSHPrimarySuffix extends SimpleNode
             throw new EvalError("Attempt to access property on a primitive",
                 this, callstack );
 
-        Object value = jjtGetChild(0).eval(callstack, interpreter);
+        Object value = getChild(0).eval(callstack, interpreter);
 
         if ( !( value instanceof String ) )
             throw new EvalError(

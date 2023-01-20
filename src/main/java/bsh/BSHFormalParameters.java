@@ -55,7 +55,7 @@ public class BSHFormalParameters extends SimpleNode implements BshClassManager.L
 
         for(int i=0; i<numArgs; i++)
         {
-            BSHFormalParameter param = (BSHFormalParameter)jjtGetChild(i);
+            BSHFormalParameter param = (BSHFormalParameter)getChild(i);
             isVarArgs = param.isVarArgs;
             paramNames[i] = param.name;
             paramModifiers[i] = new Modifiers(Modifiers.PARAMETER);
@@ -87,7 +87,7 @@ public class BSHFormalParameters extends SimpleNode implements BshClassManager.L
 
         for(int i=0; i<numArgs; i++)
         {
-            BSHFormalParameter param = (BSHFormalParameter)jjtGetChild(i);
+            BSHFormalParameter param = (BSHFormalParameter)getChild(i);
             typeDesc[i] = param.getTypeDescriptor(
                 callstack, interpreter, defaultPackage );
         }
@@ -111,7 +111,7 @@ public class BSHFormalParameters extends SimpleNode implements BshClassManager.L
 
         for(int i=0; i<numArgs; i++)
         {
-            BSHFormalParameter param = (BSHFormalParameter)jjtGetChild(i);
+            BSHFormalParameter param = (BSHFormalParameter)getChild(i);
             paramTypes[i] = (Class<?>)param.eval( callstack, interpreter );
         }
 

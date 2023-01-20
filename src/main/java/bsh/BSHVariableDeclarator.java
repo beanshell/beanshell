@@ -69,7 +69,7 @@ public class BSHVariableDeclarator extends SimpleNode
 
         if ( getChildCount() > 0 )
         {
-            Node initializer = jjtGetChild(0);
+            Node initializer = getChild(0);
 
             /*
                 If we have type info and the child is an array initializer

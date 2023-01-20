@@ -44,9 +44,9 @@ public class BSHTernaryExpression extends SimpleNode {
         throws EvalError
     {
         Node
-            cond = jjtGetChild(0),
-            evalTrue = jjtGetChild(1),
-            evalFalse = jjtGetChild(2);
+            cond = getChild(0),
+            evalTrue = getChild(1),
+            evalFalse = getChild(2);
 
         if ( BSHIfStatement.evaluateCondition( cond, callstack, interpreter ) )
             return evalTrue.eval( callstack, interpreter );
