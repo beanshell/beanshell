@@ -74,7 +74,13 @@ extends java.util.ListIterator<Node>
     default Node[] getChildren() {return null;}
 
     default int getId() {return -1;}
+}
 
+INJECT BaseNode :
+import java.util.List;
+{
+  protected List<Node> getBackingContainer() {return children;}
+  protected void setBackingContainer(List<Node> children) {this.children = children;}
 }
 
 INJECT Expression :

@@ -47,12 +47,13 @@ public class BSHArrayInitializer extends SimpleNode {
     @Override
     public void setParent(Node n) {
         super.setParent(n);
-        if ( null != children ) for ( Node c : children )
+        if ( null != nodes ) for ( Node c : nodes )
             if ( c.getChildCount() > 0
                     && c.getChild(0) instanceof BSHPrimaryExpression ) {
                 expressionQueue.push((BSHPrimaryExpression) c.getChild(0));
                 expressionQueue.peek().setArrayExpression(this);
             }
+        updateBackingContainer();
     }
 
     /** Default node eval is disabled for this node type.

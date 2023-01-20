@@ -29,6 +29,8 @@ import bsh.congo.parser.Node;
 import bsh.congo.parser.BaseNode;
 import java.io.Serializable;
 import java.util.NoSuchElementException;
+import java.util.List;
+import java.util.ArrayList;
 
 /*
     Note: great care (and lots of typing) were taken to insure that the
@@ -57,13 +59,21 @@ public class SimpleNode extends BaseNode implements Serializable {
     /** the source of the text from which this was parsed */
     private String sourceFile;
 
-    protected Node[] children;
+    protected Node[] nodes;
     protected int id;
     private int cursor = 0, lastRet = -1;
 
     /** Default constructor supplying the node with its type id.
      * @param i type index of ParserTreeConstants.jjtNodeName */
     public SimpleNode(int i) { id = i; }
+
+    protected void updateBackingContainer() {
+        List<Node> nodes = new ArrayList<>();
+        for (Node n : getChildren()) {
+            nodes.add(n);
+        }
+        setBackingContainer(nodes);
+    }
 
     /** {@inheritDoc} */
     @Override
@@ -85,14 +95,14 @@ public class SimpleNode extends BaseNode implements Serializable {
     @Override
     public Node next() {
         if (!hasNext()) throw new NoSuchElementException();
-        return children[lastRet = cursor++];
+        return nodes[lastRet = cursor++];
     }
 
     /** {@inheritDoc} */
     @Override
     public Node previous() {
         if (!hasPrevious()) throw new NoSuchElementException();
-        return children[lastRet = --cursor];
+        return nodes[lastRet = --cursor];
     }
 
     /** {@inheritDoc} */
@@ -100,10 +110,10 @@ public class SimpleNode extends BaseNode implements Serializable {
     public void remove() {
         if (lastRet < 0) throw new IllegalStateException();
         cursor = lastRet;
-        Node c[] = new Node[children.length - 1];
-        System.arraycopy(children, 0, c, 0, cursor);
-        System.arraycopy(children, cursor + 1, c, cursor, c.length - cursor);
-        children = c;
+        Node c[] = new Node[nodes.length - 1];
+        System.arraycopy(nodes, 0, c, 0, cursor);
+        System.arraycopy(nodes, cursor + 1, c, cursor, c.length - cursor);
+        nodes = c;
         lastRet = -1;
     }
 
@@ -111,17 +121,17 @@ public class SimpleNode extends BaseNode implements Serializable {
     @Override
     public void set(Node e) {
         if (lastRet < 0) throw new IllegalStateException();
-        children[lastRet] = e;
+        nodes[lastRet] = e;
     }
 
     /** {@inheritDoc} */
     @Override
     public void add(Node e) {
         Node c[] = new Node[getChildCount() + 1];
-        System.arraycopy(children, 0, c, 0, cursor);
-        System.arraycopy(children, cursor, c, cursor +1, c.length - cursor -1);
-        children = c;
-        children[cursor++] = e;
+        System.arraycopy(nodes, 0, c, 0, cursor);
+        System.arraycopy(nodes, cursor, c, cursor +1, c.length - cursor -1);
+        nodes = c;
+        nodes[cursor++] = e;
         lastRet = -1;
         e.setParent(this);
     }
@@ -129,26 +139,26 @@ public class SimpleNode extends BaseNode implements Serializable {
     /** {@inheritDoc} */
     @Override
     public void addChild(int i, Node n) {
-        if (children == null)
-            children = new Node[i + 1];
-        else if (i >= children.length) {
+        if (nodes == null)
+            nodes = new Node[i + 1];
+        else if (i >= nodes.length) {
             Node c[] = new Node[i + 1];
-            System.arraycopy(children, 0, c, 0, children.length);
-            children = c;
+            System.arraycopy(nodes, 0, c, 0, nodes.length);
+            nodes = c;
         }
-        children[i] = n;
+        nodes[i] = n;
     }
 
     /** {@inheritDoc} */
     @Override
-    public Node getChild(int i) { return children[i]; }
+    public Node getChild(int i) { return nodes[i]; }
 
     /** {@inheritDoc} */
     @Override
     final public Node[] getChildren() {
-        if ( null == children )
-            children = new Node[0];
-        return children;
+        if ( null == nodes )
+            nodes = new Node[0];
+        return nodes;
     }
     /** {@inheritDoc} */
     @Override
@@ -169,8 +179,8 @@ public class SimpleNode extends BaseNode implements Serializable {
     @Override
     public void dump(String prefix) {
         System.out.println(toString(prefix));
-        if (children != null) for (int i = 0; i < children.length; ++i) {
-            Node n = children[i];
+        if (nodes != null) for (int i = 0; i < nodes.length; ++i) {
+            Node n = nodes[i];
             if (n != null)
                 n.dump(prefix + " ");
         }
