@@ -17,7 +17,6 @@ LEGACY_GLITCHY_LOOKAHEAD=false;
 INJECT Node :
 import bsh.*;
 import bsh.legacy.SimpleNode;
-//extends java.util.ListIterator<Node>
 {
     /** This is the general signature for evaluation of a node.
      * @param callstack evaluation call stack
@@ -55,30 +54,8 @@ import bsh.legacy.SimpleNode;
 
     default String toString(String prefix) {throw new UnsupportedOperationException();}
 
-    // The following methods exist to implement 
-    // java.util.ListIterator, but really, I'm pretty sure that
-    // Node should not itself be an iterator, since tht is 
-    // inherently thread-unsafe
-#if false
-    default void add(Node node) {throw new UnsupportedOperationException();}
-    default void set(Node node) {throw new UnsupportedOperationException();}
-    default void remove() {throw new UnsupportedOperationException();}
-    default int nextIndex() {throw new UnsupportedOperationException();}
-    default int previousIndex() {throw new UnsupportedOperationException();}
-    default boolean hasNext() {throw new UnsupportedOperationException();}
-    default boolean hasPrevious() {throw new UnsupportedOperationException();}
-    default Node next() {throw new UnsupportedOperationException();}
-    default Node previous() {throw new UnsupportedOperationException();}
-#endif
     default List<Node> getNodes() {return null;}
 
-}
-
-INJECT BaseNode :
-import java.util.List;
-{
-  protected List<Node> getBackingContainer() {return children;}
-  protected void setBackingContainer(List<Node> children) {this.children = children;}
 }
 
 INJECT Expression :

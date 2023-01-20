@@ -60,6 +60,16 @@ public class SimpleNode extends BaseNode implements Serializable {
 
     private Node[] nodes = new Node[0];
 
+    public void addChild(Node n) {
+        super.addChild(n);
+        Node[] newNodes = new Node[nodes.length+1];
+        for (int i = 0; i< nodes.length; i++) {
+            newNodes[i] = nodes[i];
+        }
+        newNodes[nodes.length] = n;
+        this.nodes = newNodes;
+    }
+
     /** {@inheritDoc} */
     @Override
     public void addChild(int i, Node n) {
@@ -67,8 +77,10 @@ public class SimpleNode extends BaseNode implements Serializable {
             throw new ArrayIndexOutOfBoundsException();
         }
         else if (i == nodes.length) {
-            Node c[] = new Node[i + 1];
-            System.arraycopy(nodes, 0, c, 0, nodes.length);
+            Node c[] = new Node[nodes.length + 1];
+            for (int j = 0; j< nodes.length; j++) {
+                c[j] = nodes[j];
+            }
             nodes = c;
             nodes[i] = n;
             super.addChild(i, n);
@@ -77,6 +89,18 @@ public class SimpleNode extends BaseNode implements Serializable {
            nodes[i] = n;
            setChild(i, n);
         }
+    }
+
+    public Node removeChild(int i) {
+        Node[] newNodes = new Node[nodes.length-1];
+        for (int j = 0; j < i; j++) {
+            newNodes[j] = nodes[j];
+        }
+        for (int j = i + 1; j < nodes.length; j++) {
+            newNodes[j-1] = nodes[j];
+        }
+        this.nodes = newNodes;
+        return super.removeChild(i);        
     }
 
     /** {@inheritDoc} */
@@ -91,24 +115,28 @@ public class SimpleNode extends BaseNode implements Serializable {
             result.add(n);
         }
         return result;
-        //return nodes;
     }
     /** {@inheritDoc} */
     @Override
     final public int getChildCount() {
-        if (super.getChildCount() != nodes.length) {
-            System.err.println("KILROY: " + getClass().getSimpleName());
-        }
+//        if (super.getChildCount() != nodes.length) {
+//            System.err.println("KILROY: " + getClass().getSimpleName());
+//        }
         return nodes.length;
 //        return getNodes().length;
     }
 
     protected void setNodes(Node... nodes) {
-        this.nodes = nodes;
+//        this.nodes = nodes;
         clearChildren();
         for (Node n : nodes) {
             addChild(n);
         }
+    }
+
+    public void clearChildren() {
+        super.clearChildren();
+        nodes = new Node[0];
     }
 
     /** {@inheritDoc} */

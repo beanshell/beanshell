@@ -86,7 +86,6 @@ public class BSHMethodDeclaration extends SimpleNode
                 }
             }
         }
-
         paramsNode.insureParsed();
         isVarArgs = paramsNode.isVarArgs;
     }
