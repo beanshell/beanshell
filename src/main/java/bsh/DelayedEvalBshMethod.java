@@ -87,7 +87,7 @@ public class DelayedEvalBshMethod extends BshMethod
             NameSpace declaringNameSpace) {
         this(name, con.getReturnTypeDescriptor(), null,
             new String[con.getParameterCount()], con.getParamTypeDescriptors(),
-             null, new BSHBlock(0), declaringNameSpace, null, con.isVarArgs(),
+             null, new BSHBlock(), declaringNameSpace, null, con.isVarArgs(),
              null, null);
 
         this.constructor = con;

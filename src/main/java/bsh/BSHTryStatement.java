@@ -38,9 +38,8 @@ public class BSHTryStatement extends SimpleNode
     final int blockId;
     BSHTryWithResources tryWithResources = null;
 
-    public BSHTryStatement(int id)
+    public BSHTryStatement()
     {
-        super(id);
         blockId = BlockNameSpace.blockCount.incrementAndGet();
     }
 

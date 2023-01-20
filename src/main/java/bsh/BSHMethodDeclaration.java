@@ -52,8 +52,6 @@ public class BSHMethodDeclaration extends SimpleNode
     boolean isVarArgs;
     private boolean isScriptedObject;
 
-    public BSHMethodDeclaration(int id) { super(id); }
-
     /**
         Set the returnTypeNode, paramsNode, and blockNode based on child
         node structure.  No evaluation is done here.

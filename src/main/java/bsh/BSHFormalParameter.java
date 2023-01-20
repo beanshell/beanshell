@@ -44,8 +44,6 @@ public class BSHFormalParameter extends SimpleNode
     public boolean isVarArgs = false;
     public int dimensions = 0;
 
-    public BSHFormalParameter(int id) { super(id); }
-
     public String getTypeDescriptor(
         CallStack callstack, Interpreter interpreter, String defaultPackage )
     {

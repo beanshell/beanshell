@@ -33,8 +33,6 @@ public class BSHReturnType extends SimpleNode
 {
     public boolean isVoid;
 
-    public BSHReturnType(int id) { super(id); }
-
     BSHType getTypeNode() {
         return (BSHType)getChild(0);
     }

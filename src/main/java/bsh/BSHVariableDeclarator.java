@@ -40,8 +40,6 @@ public class BSHVariableDeclarator extends SimpleNode
     public String name;
     public int dimensions = 0;
 
-    public BSHVariableDeclarator(int id) { super(id); }
-
     /**
         Evaluate the optional initializer value.
         (The name was set at parse time.)

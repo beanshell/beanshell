@@ -36,8 +36,6 @@ public final class BSHLiteral extends SimpleNode
 
     public Object value;
 
-    public BSHLiteral(int id) { super(id); }
-
     public Object eval( CallStack callstack, Interpreter interpreter )
         throws EvalError
     {

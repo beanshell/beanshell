@@ -33,10 +33,6 @@ import bsh.legacy.*;
 public class BSHPackageDeclaration extends SimpleNode
 {
 
-  public BSHPackageDeclaration(int id) {
-    super(id);
-  }
-
     public Object eval( CallStack callstack, Interpreter interpreter )
         throws EvalError
     {

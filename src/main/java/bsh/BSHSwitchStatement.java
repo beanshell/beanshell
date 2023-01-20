@@ -34,8 +34,6 @@ public class BSHSwitchStatement
     implements ParserConstants
 {
 
-    public BSHSwitchStatement(int id) { super(id); }
-
     public Object eval( CallStack callstack, Interpreter interpreter )
         throws EvalError
     {

@@ -40,8 +40,6 @@ import bsh.congo.parser.Node;
 */
 public class BSHCastExpression extends SimpleNode {
 
-    public BSHCastExpression(int id) { super(id); }
-
     /**
         @return the result of the cast.
     */

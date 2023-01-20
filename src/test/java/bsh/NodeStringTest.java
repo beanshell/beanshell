@@ -33,7 +33,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_allocation_expression_string() {
-        assertEquals("AllocationExpression", new BSHAllocationExpression(ParserTreeConstants.JJTALLOCATIONEXPRESSION).toString());
+        assertEquals("AllocationExpression", new BSHAllocationExpression().toString());
     }
 
     /**
@@ -41,7 +41,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_ambiguous_name_string() {
-        assertEquals("AmbiguousName: null", new BSHAmbiguousName(ParserTreeConstants.JJTAMBIGUOUSNAME).toString());
+        assertEquals("AmbiguousName: null", new BSHAmbiguousName().toString());
     }
 
     /**
@@ -49,7 +49,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_arguments_string() {
-        assertEquals("Arguments", new BSHArguments(ParserTreeConstants.JJTARGUMENTS).toString());
+        assertEquals("Arguments", new BSHArguments().toString());
     }
 
     /**
@@ -57,7 +57,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_array_dimensions_string() {
-        assertEquals("ArrayDimensions: 0, 0", new BSHArrayDimensions(ParserTreeConstants.JJTARRAYDIMENSIONS).toString());
+        assertEquals("ArrayDimensions: 0, 0", new BSHArrayDimensions().toString());
     }
 
     /**
@@ -65,7 +65,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_array_initializer_string() {
-        assertEquals("ArrayInitializer: false", new BSHArrayInitializer(ParserTreeConstants.JJTARRAYINITIALIZER).toString());
+        assertEquals("ArrayInitializer: false", new BSHArrayInitializer().toString());
     }
 
     /**
@@ -73,7 +73,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_assignment_string() {
-        BSHAssignment node = new BSHAssignment(ParserTreeConstants.JJTASSIGNMENT);
+        BSHAssignment node = new BSHAssignment();
         assertEquals("Assignment", node.toString());
         node.operator = ParserConstants.EOF;
         assertEquals("Assignment: <EOF>", node.toString());
@@ -84,7 +84,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_binary_expression_string() {
-        assertEquals("BinaryExpression: <EOF>", new BSHBinaryExpression(ParserTreeConstants.JJTBINARYEXPRESSION).toString());
+        assertEquals("BinaryExpression: <EOF>", new BSHBinaryExpression().toString());
     }
 
     /**
@@ -92,7 +92,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_block_string() {
-        assertEquals("Block: static=false, synchronized=false", new BSHBlock(ParserTreeConstants.JJTBLOCK).toString());
+        assertEquals("Block: static=false, synchronized=false", new BSHBlock().toString());
     }
 
     /**
@@ -100,7 +100,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_class_declaration_string() {
-        assertEquals("ClassDeclaration: null", new BSHClassDeclaration(ParserTreeConstants.JJTCLASSDECLARATION).toString());
+        assertEquals("ClassDeclaration: null", new BSHClassDeclaration().toString());
     }
 
     /**
@@ -108,7 +108,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_enhanced_for_statement_string() {
-        assertEquals("EnhancedForStatement: null: null, final=false", new BSHEnhancedForStatement(ParserTreeConstants.JJTENHANCEDFORSTATEMENT).toString());
+        assertEquals("EnhancedForStatement: null: null, final=false", new BSHEnhancedForStatement().toString());
     }
 
     /**
@@ -116,7 +116,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_enum_constant_string() {
-        assertEquals("EnumConstant: Modifiers: public static final enum class java.lang.Enum null", new BSHEnumConstant(ParserTreeConstants.JJTENUMCONSTANT).toString());
+        assertEquals("EnumConstant: Modifiers: public static final enum class java.lang.Enum null", new BSHEnumConstant().toString());
     }
 
     /**
@@ -124,7 +124,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_formal_comment_string() {
-        assertEquals("FormalComment: null", new BSHFormalComment(ParserTreeConstants.JJTFORMALCOMMENT).toString());
+        assertEquals("FormalComment: null", new BSHFormalComment().toString());
     }
 
     /**
@@ -132,7 +132,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_formal_parameter_string() {
-        assertEquals("FormalParameter: null, final=false, varargs=false", new BSHFormalParameter(ParserTreeConstants.JJTFORMALPARAMETER).toString());
+        assertEquals("FormalParameter: null, final=false, varargs=false", new BSHFormalParameter().toString());
     }
 
     /**
@@ -140,7 +140,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_for_statement_string() {
-        assertEquals("ForStatement: null: false ; false ; false", new BSHForStatement(ParserTreeConstants.JJTFORSTATEMENT).toString());
+        assertEquals("ForStatement: null: false ; false ; false", new BSHForStatement().toString());
     }
 
     /**
@@ -148,7 +148,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_import_declaration_string() {
-        assertEquals("ImportDeclaration: static=false, *=false, super import=false", new BSHImportDeclaration(ParserTreeConstants.JJTIMPORTDECLARATION).toString());
+        assertEquals("ImportDeclaration: static=false, *=false, super import=false", new BSHImportDeclaration().toString());
     }
 
     /**
@@ -156,7 +156,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_literal_string() {
-        assertEquals("Literal: null", new BSHLiteral(ParserTreeConstants.JJTLITERAL).toString());
+        assertEquals("Literal: null", new BSHLiteral().toString());
     }
 
     /**
@@ -164,7 +164,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_method_declaration_string() {
-        assertEquals("MethodDeclaration: null", new BSHMethodDeclaration(ParserTreeConstants.JJTMETHODDECLARATION).toString());
+        assertEquals("MethodDeclaration: null", new BSHMethodDeclaration().toString());
     }
 
     /**
@@ -172,7 +172,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_multi_catch_string() {
-        assertEquals("MultiCatch: null, final=false", new BSHMultiCatch(ParserTreeConstants.JJTMULTICATCH).toString());
+        assertEquals("MultiCatch: null, final=false", new BSHMultiCatch().toString());
     }
 
     /**
@@ -180,7 +180,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_primary_suffix_string() {
-        BSHPrimarySuffix node = new BSHPrimarySuffix(ParserTreeConstants.JJTPRIMARYSUFFIX);
+        BSHPrimarySuffix node = new BSHPrimarySuffix();
         assertEquals("PrimarySuffix:NO OPERATION", node.toString());
         node.operation = BSHPrimarySuffix.CLASS;
         assertEquals("PrimarySuffix:CLASS class", node.toString());
@@ -199,7 +199,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_primitive_type_string() {
-        assertEquals("PrimitiveType: null", new BSHPrimitiveType(ParserTreeConstants.JJTPRIMITIVETYPE).toString());
+        assertEquals("PrimitiveType: null", new BSHPrimitiveType().toString());
     }
 
     /**
@@ -207,7 +207,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_return_statement_string() {
-        assertEquals("ReturnStatement: <EOF> null:", new BSHReturnStatement(ParserTreeConstants.JJTRETURNSTATEMENT).toString());
+        assertEquals("ReturnStatement: <EOF> null:", new BSHReturnStatement().toString());
     }
 
     /**
@@ -215,7 +215,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_labeled_statement_string() {
-        assertEquals("LabeledStatement: null:", new BSHLabeledStatement(ParserTreeConstants.JJTLABELEDSTATEMENT).toString());
+        assertEquals("LabeledStatement: null:", new BSHLabeledStatement().toString());
     }
 
     /**
@@ -223,7 +223,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_return_type_string() {
-        assertEquals("ReturnType: void=false", new BSHReturnType(ParserTreeConstants.JJTRETURNTYPE).toString());
+        assertEquals("ReturnType: void=false", new BSHReturnType().toString());
     }
 
     /**
@@ -231,7 +231,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_switch_label_string() {
-        BSHSwitchLabel node = new BSHSwitchLabel(ParserTreeConstants.JJTSWITCHLABEL);
+        BSHSwitchLabel node = new BSHSwitchLabel();
         assertEquals("SwitchLabel: case", node.toString());
         node.isDefault = true;
         assertEquals("SwitchLabel: default", node.toString());
@@ -242,7 +242,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_typed_variable_declaration_string() {
-        assertEquals("TypedVariableDeclaration: Modifiers: ", new BSHTypedVariableDeclaration(ParserTreeConstants.JJTTYPEDVARIABLEDECLARATION).toString());
+        assertEquals("TypedVariableDeclaration: Modifiers: ", new BSHTypedVariableDeclaration().toString());
     }
 
     /**
@@ -250,7 +250,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_unary_expression_string() {
-        assertEquals("UnaryExpression: <EOF>", new BSHUnaryExpression(ParserTreeConstants.JJTUNARYEXPRESSION).toString());
+        assertEquals("UnaryExpression: <EOF>", new BSHUnaryExpression().toString());
     }
 
     /**
@@ -258,7 +258,7 @@ public class NodeStringTest {
      */
     @Test
     public void test_variable_declarator_string() {
-        assertEquals("VariableDeclarator: null", new BSHVariableDeclarator(ParserTreeConstants.JJTVARIABLEDECLARATOR).toString());
+        assertEquals("VariableDeclarator: null", new BSHVariableDeclarator().toString());
     }
 
     /**
@@ -266,6 +266,6 @@ public class NodeStringTest {
      */
     @Test
     public void test_while_statement_string() {
-        assertEquals("WhileStatement: null: do=false", new BSHWhileStatement(ParserTreeConstants.JJTWHILESTATEMENT).toString());
+        assertEquals("WhileStatement: null: do=false", new BSHWhileStatement().toString());
     }
 }

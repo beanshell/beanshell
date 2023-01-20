@@ -44,8 +44,7 @@ public class BSHEnhancedForStatement extends SimpleNode implements ParserConstan
     public boolean isFinal = false;
 
 
-    public BSHEnhancedForStatement(int id) {
-        super(id);
+    public BSHEnhancedForStatement() {
         blockId = BlockNameSpace.blockCount.incrementAndGet();
     }
 

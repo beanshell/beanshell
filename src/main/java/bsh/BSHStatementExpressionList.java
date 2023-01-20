@@ -31,8 +31,6 @@ import bsh.legacy.*;
 
 public class BSHStatementExpressionList extends SimpleNode
 {
-    public BSHStatementExpressionList(int id) { super(id); }
-
     public Object eval(CallStack callstack, Interpreter interpreter)
         throws EvalError
     {

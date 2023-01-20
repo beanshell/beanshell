@@ -32,8 +32,6 @@ import bsh.legacy.*;
 
 public class BSHArguments extends SimpleNode
 {
-    public BSHArguments(int id) { super(id); }
-
     /**
         This node holds a set of arguments for a method invocation or
         constructor call.

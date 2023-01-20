@@ -31,8 +31,6 @@ import bsh.legacy.*;
 
 public class BSHThrowStatement extends SimpleNode
 {
-    public BSHThrowStatement(int id) { super(id); }
-
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError
     {

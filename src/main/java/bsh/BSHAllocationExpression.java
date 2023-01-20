@@ -41,7 +41,6 @@ import bsh.congo.parser.Node;
 */
 public class BSHAllocationExpression extends SimpleNode
 {
-    public BSHAllocationExpression(int id) { super(id); }
     private static int innerClassCount = 0;
 
     public Object eval( CallStack callstack, Interpreter interpreter)

@@ -34,7 +34,6 @@ public class BSHPrimitiveType extends SimpleNode
 {
     public Class<?> type;
 
-    public BSHPrimitiveType(int id) { super(id); }
     public Class<?> getType() { return type; }
 
     @Override

@@ -43,8 +43,7 @@ public class BSHForStatement extends SimpleNode implements ParserConstants
 
     public String label;
 
-    public BSHForStatement(int id) {
-        super(id);
+    public BSHForStatement() {
         blockId = BlockNameSpace.blockCount.incrementAndGet();
     }
 

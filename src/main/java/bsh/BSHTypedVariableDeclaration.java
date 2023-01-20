@@ -34,8 +34,6 @@ public class BSHTypedVariableDeclaration extends SimpleNode {
     public Modifiers modifiers = new Modifiers(Modifiers.FIELD);
     private BSHVariableDeclarator[] bvda;
 
-    public BSHTypedVariableDeclaration(int id) { super(id); }
-
     private BSHType getTypeNode() {
         return ((BSHType)getChild(0));
     }

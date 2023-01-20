@@ -47,7 +47,6 @@ public class BSHArrayDimensions extends SimpleNode
         time.
     */
     public int [] definedDimensions;
-    public BSHArrayDimensions(int id) { super(id); }
 
     public void addDefinedDimension() { numDefinedDims++; }
     public void addUndefinedDimension() { numUndefinedDims++; }

@@ -42,8 +42,6 @@ public class BSHFormalParameters extends SimpleNode implements BshClassManager.L
     String [] typeDescriptors;
     boolean isVarArgs;
 
-    public BSHFormalParameters(int id) { super(id); }
-
     void insureParsed()
     {
         if ( paramNames != null )

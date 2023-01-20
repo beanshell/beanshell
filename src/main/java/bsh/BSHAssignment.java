@@ -32,8 +32,6 @@ public class BSHAssignment extends SimpleNode implements ParserConstants {
     private static final long serialVersionUID = 1L;
     public Integer operator;
 
-    public BSHAssignment(int id) { super(id); }
-
     public Object eval(CallStack callstack, Interpreter interpreter)
             throws EvalError {
         if ( null == operator ) try {

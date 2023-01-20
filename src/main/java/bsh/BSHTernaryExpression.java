@@ -38,8 +38,6 @@ import bsh.congo.parser.Node;
 */
 public class BSHTernaryExpression extends SimpleNode {
 
-    public BSHTernaryExpression(int id) { super(id); }
-
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError
     {

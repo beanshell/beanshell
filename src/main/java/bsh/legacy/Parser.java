@@ -334,7 +334,7 @@ if ( !lookahead )
 /**
 */
   final public void ClassDeclaration() throws ParseException {/*@bgen(jjtree) ClassDeclaration */
-    BSHClassDeclaration jjtn000 = new BSHClassDeclaration(JJTCLASSDECLARATION);
+    BSHClassDeclaration jjtn000 = new BSHClassDeclaration();
     boolean jjtc000 = true;
     jjtree.openNodeScope(jjtn000);
     jjtreeOpenNodeScope(jjtn000);Modifiers mods;
@@ -454,7 +454,7 @@ if (jjtc000) {
 }
 
   final public void EnumConstant() throws ParseException {/*@bgen(jjtree) EnumConstant */
-    BSHEnumConstant jjtn000 = new BSHEnumConstant(JJTENUMCONSTANT);
+    BSHEnumConstant jjtn000 = new BSHEnumConstant();
     boolean jjtc000 = true;
     jjtree.openNodeScope(jjtn000);
     jjtreeOpenNodeScope(jjtn000);Token t;
@@ -510,7 +510,7 @@ if (jjtc000) {
 }
 
   final public void EnumBlock() throws ParseException {/*@bgen(jjtree) Block */
-    BSHBlock jjtn000 = new BSHBlock(JJTBLOCK);
+    BSHBlock jjtn000 = new BSHBlock();
     boolean jjtc000 = true;
     jjtree.openNodeScope(jjtn000);
     jjtreeOpenNodeScope(jjtn000);Token s = null;
@@ -581,7 +581,7 @@ if (jjtc000) {
 }
 
   final public void MethodDeclaration() throws ParseException {/*@bgen(jjtree) MethodDeclaration */
-    BSHMethodDeclaration jjtn000 = new BSHMethodDeclaration(JJTMETHODDECLARATION);
+    BSHMethodDeclaration jjtn000 = new BSHMethodDeclaration();
     boolean jjtc000 = true;
     jjtree.openNodeScope(jjtn000);
     jjtreeOpenNodeScope(jjtn000);Token t = null;
@@ -668,7 +668,7 @@ if (jjtc000) {
 }
 
   final public void PackageDeclaration() throws ParseException {/*@bgen(jjtree) PackageDeclaration */
-  BSHPackageDeclaration jjtn000 = new BSHPackageDeclaration(JJTPACKAGEDECLARATION);
+  BSHPackageDeclaration jjtn000 = new BSHPackageDeclaration();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -700,7 +700,7 @@ if (jjtc000) {
 }
 
   final public void ImportDeclaration() throws ParseException {/*@bgen(jjtree) ImportDeclaration */
-  BSHImportDeclaration jjtn000 = new BSHImportDeclaration(JJTIMPORTDECLARATION);
+  BSHImportDeclaration jjtn000 = new BSHImportDeclaration();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -775,7 +775,7 @@ if (jjtc000) {
 }
 
   final public void VariableDeclarator() throws ParseException {/*@bgen(jjtree) VariableDeclarator */
-    BSHVariableDeclarator jjtn000 = new BSHVariableDeclarator(JJTVARIABLEDECLARATOR);
+    BSHVariableDeclarator jjtn000 = new BSHVariableDeclarator();
     boolean jjtc000 = true;
     jjtree.openNodeScope(jjtn000);
     jjtreeOpenNodeScope(jjtn000);Token t;
@@ -880,7 +880,7 @@ if (jjtc000) {
 }
 
   final public void ArrayInitializer() throws ParseException {/*@bgen(jjtree) ArrayInitializer */
-  BSHArrayInitializer jjtn000 = new BSHArrayInitializer(JJTARRAYINITIALIZER);
+  BSHArrayInitializer jjtn000 = new BSHArrayInitializer();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -966,7 +966,7 @@ if (jjtc000) {
 }
 
   final public void FormalParameters() throws ParseException {/*@bgen(jjtree) FormalParameters */
-  BSHFormalParameters jjtn000 = new BSHFormalParameters(JJTFORMALPARAMETERS);
+  BSHFormalParameters jjtn000 = new BSHFormalParameters();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -1029,7 +1029,7 @@ if (jjtc000) {
 }
 
   final public void FormalParameter() throws ParseException {/*@bgen(jjtree) FormalParameter */
-  BSHFormalParameter jjtn000 = new BSHFormalParameter(JJTFORMALPARAMETER);
+  BSHFormalParameter jjtn000 = new BSHFormalParameter();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);Token t;
@@ -1109,7 +1109,7 @@ if (jjtc000) {
     Type, name and expression syntax follows.
 */
   final public void Type() throws ParseException {/*@bgen(jjtree) Type */
-  BSHType jjtn000 = new BSHType(JJTTYPE);
+  BSHType jjtn000 = new BSHType();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -1173,7 +1173,7 @@ if (jjtc000) {
     Originally called ResultType in the grammar
 */
   final public void ReturnType() throws ParseException {/*@bgen(jjtree) ReturnType */
-  BSHReturnType jjtn000 = new BSHReturnType(JJTRETURNTYPE);
+  BSHReturnType jjtn000 = new BSHReturnType();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -1231,7 +1231,7 @@ if (jjtc000) {
 }
 
   final public void PrimitiveType() throws ParseException {/*@bgen(jjtree) PrimitiveType */
-  BSHPrimitiveType jjtn000 = new BSHPrimitiveType(JJTPRIMITIVETYPE);
+  BSHPrimitiveType jjtn000 = new BSHPrimitiveType();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -1333,7 +1333,7 @@ if (jjtc000) {
 }
 
   final public void AmbiguousName() throws ParseException {/*@bgen(jjtree) AmbiguousName */
-    BSHAmbiguousName jjtn000 = new BSHAmbiguousName(JJTAMBIGUOUSNAME);
+    BSHAmbiguousName jjtn000 = new BSHAmbiguousName();
     boolean jjtc000 = true;
     jjtree.openNodeScope(jjtn000);
     jjtreeOpenNodeScope(jjtn000);Token t;
@@ -1393,7 +1393,7 @@ if (jjtc000) {
  * for performance reasons.
  */
   final public void Expression() throws ParseException {/*@bgen(jjtree) Assignment */
-  BSHAssignment jjtn000 = new BSHAssignment(JJTASSIGNMENT);
+  BSHAssignment jjtn000 = new BSHAssignment();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);int op ;
@@ -1562,7 +1562,7 @@ t = getToken(0);
       jj_consume_token(HOOK);
       Expression();
       jj_consume_token(COLON);
-BSHTernaryExpression jjtn001 = new BSHTernaryExpression(JJTTERNARYEXPRESSION);
+BSHTernaryExpression jjtn001 = new BSHTernaryExpression();
                                                                          boolean jjtc001 = true;
                                                                          jjtree.openNodeScope(jjtn001);
                                                                          jjtreeOpenNodeScope(jjtn001);
@@ -1631,7 +1631,7 @@ if (jjtc001) {
         throw new ParseException();
       }
       ConditionalOrExpression();
-BSHBinaryExpression jjtn001 = new BSHBinaryExpression(JJTBINARYEXPRESSION);
+BSHBinaryExpression jjtn001 = new BSHBinaryExpression();
       boolean jjtc001 = true;
       jjtree.openNodeScope(jjtn001);
       jjtreeOpenNodeScope(jjtn001);
@@ -1681,7 +1681,7 @@ if (jjtc001) {
         throw new ParseException();
       }
       ConditionalAndExpression();
-BSHBinaryExpression jjtn001 = new BSHBinaryExpression(JJTBINARYEXPRESSION);
+BSHBinaryExpression jjtn001 = new BSHBinaryExpression();
       boolean jjtc001 = true;
       jjtree.openNodeScope(jjtn001);
       jjtreeOpenNodeScope(jjtn001);
@@ -1731,7 +1731,7 @@ if (jjtc001) {
         throw new ParseException();
       }
       InclusiveOrExpression();
-BSHBinaryExpression jjtn001 = new BSHBinaryExpression(JJTBINARYEXPRESSION);
+BSHBinaryExpression jjtn001 = new BSHBinaryExpression();
       boolean jjtc001 = true;
       jjtree.openNodeScope(jjtn001);
       jjtreeOpenNodeScope(jjtn001);
@@ -1781,7 +1781,7 @@ if (jjtc001) {
         throw new ParseException();
       }
       ExclusiveOrExpression();
-BSHBinaryExpression jjtn001 = new BSHBinaryExpression(JJTBINARYEXPRESSION);
+BSHBinaryExpression jjtn001 = new BSHBinaryExpression();
       boolean jjtc001 = true;
       jjtree.openNodeScope(jjtn001);
       jjtreeOpenNodeScope(jjtn001);
@@ -1831,7 +1831,7 @@ if (jjtc001) {
         throw new ParseException();
       }
       AndExpression();
-BSHBinaryExpression jjtn001 = new BSHBinaryExpression(JJTBINARYEXPRESSION);
+BSHBinaryExpression jjtn001 = new BSHBinaryExpression();
       boolean jjtc001 = true;
       jjtree.openNodeScope(jjtn001);
       jjtreeOpenNodeScope(jjtn001);
@@ -1881,7 +1881,7 @@ if (jjtc001) {
         throw new ParseException();
       }
       EqualityExpression();
-BSHBinaryExpression jjtn001 = new BSHBinaryExpression(JJTBINARYEXPRESSION);
+BSHBinaryExpression jjtn001 = new BSHBinaryExpression();
       boolean jjtc001 = true;
       jjtree.openNodeScope(jjtn001);
       jjtreeOpenNodeScope(jjtn001);
@@ -1931,7 +1931,7 @@ if (jjtc001) {
         throw new ParseException();
       }
       InstanceOfExpression();
-BSHBinaryExpression jjtn001 = new BSHBinaryExpression(JJTBINARYEXPRESSION);
+BSHBinaryExpression jjtn001 = new BSHBinaryExpression();
       boolean jjtc001 = true;
       jjtree.openNodeScope(jjtn001);
       jjtreeOpenNodeScope(jjtn001);
@@ -1959,7 +1959,7 @@ if (jjtc001) {
     case INSTANCEOF:{
       t = jj_consume_token(INSTANCEOF);
       Type();
-BSHBinaryExpression jjtn001 = new BSHBinaryExpression(JJTBINARYEXPRESSION);
+BSHBinaryExpression jjtn001 = new BSHBinaryExpression();
                              boolean jjtc001 = true;
                              jjtree.openNodeScope(jjtn001);
                              jjtreeOpenNodeScope(jjtn001);
@@ -2044,7 +2044,7 @@ if (jjtc001) {
         throw new ParseException();
       }
       ShiftExpression();
-BSHBinaryExpression jjtn001 = new BSHBinaryExpression(JJTBINARYEXPRESSION);
+BSHBinaryExpression jjtn001 = new BSHBinaryExpression();
     boolean jjtc001 = true;
     jjtree.openNodeScope(jjtn001);
     jjtreeOpenNodeScope(jjtn001);
@@ -2114,7 +2114,7 @@ if (jjtc001) {
         throw new ParseException();
       }
       AdditiveExpression();
-BSHBinaryExpression jjtn001 = new BSHBinaryExpression(JJTBINARYEXPRESSION);
+BSHBinaryExpression jjtn001 = new BSHBinaryExpression();
     boolean jjtc001 = true;
     jjtree.openNodeScope(jjtn001);
     jjtreeOpenNodeScope(jjtn001);
@@ -2164,7 +2164,7 @@ if (jjtc001) {
         throw new ParseException();
       }
       MultiplicativeExpression();
-BSHBinaryExpression jjtn001 = new BSHBinaryExpression(JJTBINARYEXPRESSION);
+BSHBinaryExpression jjtn001 = new BSHBinaryExpression();
       boolean jjtc001 = true;
       jjtree.openNodeScope(jjtn001);
       jjtreeOpenNodeScope(jjtn001);
@@ -2224,7 +2224,7 @@ if (jjtc001) {
         throw new ParseException();
       }
       PowerExpression();
-BSHBinaryExpression jjtn001 = new BSHBinaryExpression(JJTBINARYEXPRESSION);
+BSHBinaryExpression jjtn001 = new BSHBinaryExpression();
       boolean jjtc001 = true;
       jjtree.openNodeScope(jjtn001);
       jjtreeOpenNodeScope(jjtn001);
@@ -2274,7 +2274,7 @@ if (jjtc001) {
         throw new ParseException();
       }
       UnaryExpression();
-BSHBinaryExpression jjtn001 = new BSHBinaryExpression(JJTBINARYEXPRESSION);
+BSHBinaryExpression jjtn001 = new BSHBinaryExpression();
       boolean jjtc001 = true;
       jjtree.openNodeScope(jjtn001);
       jjtreeOpenNodeScope(jjtn001);
@@ -2325,7 +2325,7 @@ if (jjtc001) {
         throw new ParseException();
       }
       UnaryExpression();
-BSHUnaryExpression jjtn001 = new BSHUnaryExpression(JJTUNARYEXPRESSION);
+BSHUnaryExpression jjtn001 = new BSHUnaryExpression();
       boolean jjtc001 = true;
       jjtree.openNodeScope(jjtn001);
       jjtreeOpenNodeScope(jjtn001);
@@ -2363,7 +2363,7 @@ if (jjtc001) {
         throw new ParseException();
       }
       PrimaryExpression();
-BSHUnaryExpression jjtn002 = new BSHUnaryExpression(JJTUNARYEXPRESSION);
+BSHUnaryExpression jjtn002 = new BSHUnaryExpression();
       boolean jjtc002 = true;
       jjtree.openNodeScope(jjtn002);
       jjtreeOpenNodeScope(jjtn002);
@@ -2430,7 +2430,7 @@ if (jjtc002) {
               jj_consume_token(-1);
               throw new ParseException();
             }
-BSHUnaryExpression jjtn003 = new BSHUnaryExpression(JJTUNARYEXPRESSION);
+BSHUnaryExpression jjtn003 = new BSHUnaryExpression();
       boolean jjtc003 = true;
       jjtree.openNodeScope(jjtn003);
       jjtreeOpenNodeScope(jjtn003);
@@ -2536,7 +2536,7 @@ if (jjtc003) {
 }
 
   final public void CastExpression() throws ParseException {/*@bgen(jjtree) CastExpression */
-  BSHCastExpression jjtn000 = new BSHCastExpression(JJTCASTEXPRESSION);
+  BSHCastExpression jjtn000 = new BSHCastExpression();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -2570,7 +2570,7 @@ if (jjtc000) {
 }
 
   final public void PrimaryExpression() throws ParseException {/*@bgen(jjtree) PrimaryExpression */
-  BSHPrimaryExpression jjtn000 = new BSHPrimaryExpression(JJTPRIMARYEXPRESSION);
+  BSHPrimaryExpression jjtn000 = new BSHPrimaryExpression();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -2616,7 +2616,7 @@ if (jjtc000) {
 }
 
   final public void MethodInvocation() throws ParseException {/*@bgen(jjtree) MethodInvocation */
-  BSHMethodInvocation jjtn000 = new BSHMethodInvocation(JJTMETHODINVOCATION);
+  BSHMethodInvocation jjtn000 = new BSHMethodInvocation();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -2695,7 +2695,7 @@ if (jjtc000) {
 }
 
   final public void PrimarySuffix() throws ParseException {/*@bgen(jjtree) PrimarySuffix */
-    BSHPrimarySuffix jjtn000 = new BSHPrimarySuffix(JJTPRIMARYSUFFIX);
+    BSHPrimarySuffix jjtn000 = new BSHPrimarySuffix();
     boolean jjtc000 = true;
     jjtree.openNodeScope(jjtn000);
     jjtreeOpenNodeScope(jjtn000);Token t = null;
@@ -2951,7 +2951,7 @@ if (jjtc000) {
 }
 
   final public void Literal() throws ParseException {/*@bgen(jjtree) Literal */
-    BSHLiteral jjtn000 = new BSHLiteral(JJTLITERAL);
+    BSHLiteral jjtn000 = new BSHLiteral();
     boolean jjtc000 = true;
     jjtree.openNodeScope(jjtn000);
     jjtreeOpenNodeScope(jjtn000);Token x;
@@ -3134,7 +3134,7 @@ if (jjtc000) {
 }
 
   final public void Arguments() throws ParseException {/*@bgen(jjtree) Arguments */
-  BSHArguments jjtn000 = new BSHArguments(JJTARGUMENTS);
+  BSHArguments jjtn000 = new BSHArguments();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -3220,7 +3220,7 @@ if (jjtc000) {
 }
 
   final public void AllocationExpression() throws ParseException {/*@bgen(jjtree) AllocationExpression */
-  BSHAllocationExpression jjtn000 = new BSHAllocationExpression(JJTALLOCATIONEXPRESSION);
+  BSHAllocationExpression jjtn000 = new BSHAllocationExpression();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -3312,7 +3312,7 @@ if (jjtc000) {
 }
 
   final public void ArrayDimensions() throws ParseException {/*@bgen(jjtree) ArrayDimensions */
-  BSHArrayDimensions jjtn000 = new BSHArrayDimensions(JJTARRAYDIMENSIONS);
+  BSHArrayDimensions jjtn000 = new BSHArrayDimensions();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -3507,7 +3507,7 @@ void Statement() throws ParseException {
 }
 
   final public void LabeledStatement() throws ParseException {/*@bgen(jjtree) LabeledStatement */
-  BSHLabeledStatement jjtn000 = new BSHLabeledStatement(JJTLABELEDSTATEMENT);
+  BSHLabeledStatement jjtn000 = new BSHLabeledStatement();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);Token t = null;
@@ -3546,7 +3546,7 @@ if (jjtc000) {
 }
 
   final public void Block() throws ParseException {/*@bgen(jjtree) Block */
-    BSHBlock jjtn000 = new BSHBlock(JJTBLOCK);
+    BSHBlock jjtn000 = new BSHBlock();
     boolean jjtc000 = true;
     jjtree.openNodeScope(jjtn000);
     jjtreeOpenNodeScope(jjtn000);Token s = null;
@@ -3635,7 +3635,7 @@ if (jjtc000) {
 }
 
   final public void FormalComment() throws ParseException {/*@bgen(jjtree) #FormalComment( retainComments) */
-    BSHFormalComment jjtn000 = new BSHFormalComment(JJTFORMALCOMMENT);
+    BSHFormalComment jjtn000 = new BSHFormalComment();
     boolean jjtc000 = true;
     jjtree.openNodeScope(jjtn000);
     jjtreeOpenNodeScope(jjtn000);Token t;
@@ -3666,7 +3666,7 @@ if (jjtc000) {
 }
 
   final public void SwitchStatement() throws ParseException {/*@bgen(jjtree) SwitchStatement */
-  BSHSwitchStatement jjtn000 = new BSHSwitchStatement(JJTSWITCHSTATEMENT);
+  BSHSwitchStatement jjtn000 = new BSHSwitchStatement();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -3723,7 +3723,7 @@ if (jjtc000) {
 }
 
   final public void SwitchLabel() throws ParseException {/*@bgen(jjtree) SwitchLabel */
-  BSHSwitchLabel jjtn000 = new BSHSwitchLabel(JJTSWITCHLABEL);
+  BSHSwitchLabel jjtn000 = new BSHSwitchLabel();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -3775,7 +3775,7 @@ if (jjtc000) {
 }
 
   final public void IfStatement() throws ParseException {/*@bgen(jjtree) IfStatement */
-  BSHIfStatement jjtn000 = new BSHIfStatement(JJTIFSTATEMENT);
+  BSHIfStatement jjtn000 = new BSHIfStatement();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -3834,7 +3834,7 @@ if (jjtc000) {
 }
 
   final public void WhileStatement() throws ParseException {/*@bgen(jjtree) WhileStatement */
-  BSHWhileStatement jjtn000 = new BSHWhileStatement(JJTWHILESTATEMENT);
+  BSHWhileStatement jjtn000 = new BSHWhileStatement();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -3873,7 +3873,7 @@ if (jjtc000) {
     at least once.
 */
   final public void DoStatement() throws ParseException {/*@bgen(jjtree) WhileStatement */
-  BSHWhileStatement jjtn000 = new BSHWhileStatement(JJTWHILESTATEMENT);
+  BSHWhileStatement jjtn000 = new BSHWhileStatement();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -3916,7 +3916,7 @@ if (jjtc000) {
 }
 
   final public void ForStatement() throws ParseException {/*@bgen(jjtree) ForStatement */
-  BSHForStatement jjtn000 = new BSHForStatement(JJTFORSTATEMENT);
+  BSHForStatement jjtn000 = new BSHForStatement();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);Token t = null;
@@ -4078,7 +4078,7 @@ if (jjtc000) {
     The new JDK1.5 enhanced for statement.
 */
   final public void EnhancedForStatement() throws ParseException {/*@bgen(jjtree) EnhancedForStatement */
-  BSHEnhancedForStatement jjtn000 = new BSHEnhancedForStatement(JJTENHANCEDFORSTATEMENT);
+  BSHEnhancedForStatement jjtn000 = new BSHEnhancedForStatement();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);Token t = null;
@@ -4206,7 +4206,7 @@ if (jjtc000) {
     of the grammar that deals with assignments.
 */
   final public void TypedVariableDeclaration() throws ParseException {/*@bgen(jjtree) TypedVariableDeclaration */
-    BSHTypedVariableDeclaration jjtn000 = new BSHTypedVariableDeclaration(JJTTYPEDVARIABLEDECLARATION);
+    BSHTypedVariableDeclaration jjtn000 = new BSHTypedVariableDeclaration();
     boolean jjtc000 = true;
     jjtree.openNodeScope(jjtn000);
     jjtreeOpenNodeScope(jjtn000);Token t = null;
@@ -4259,7 +4259,7 @@ if (jjtc000) {
 }
 
   final public void StatementExpressionList() throws ParseException {/*@bgen(jjtree) StatementExpressionList */
-  BSHStatementExpressionList jjtn000 = new BSHStatementExpressionList(JJTSTATEMENTEXPRESSIONLIST);
+  BSHStatementExpressionList jjtn000 = new BSHStatementExpressionList();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -4307,7 +4307,7 @@ if (jjtc000) {
 }
 
   final public void BreakStatement() throws ParseException {/*@bgen(jjtree) ReturnStatement */
-  BSHReturnStatement jjtn000 = new BSHReturnStatement(JJTRETURNSTATEMENT);
+  BSHReturnStatement jjtn000 = new BSHReturnStatement();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);Token t = null;
@@ -4341,7 +4341,7 @@ if (jjtc000) {
 }
 
   final public void ContinueStatement() throws ParseException {/*@bgen(jjtree) ReturnStatement */
-  BSHReturnStatement jjtn000 = new BSHReturnStatement(JJTRETURNSTATEMENT);
+  BSHReturnStatement jjtn000 = new BSHReturnStatement();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);Token t = null;
@@ -4375,7 +4375,7 @@ if (jjtc000) {
 }
 
   final public void ReturnStatement() throws ParseException {/*@bgen(jjtree) ReturnStatement */
-  BSHReturnStatement jjtn000 = new BSHReturnStatement(JJTRETURNSTATEMENT);
+  BSHReturnStatement jjtn000 = new BSHReturnStatement();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -4449,7 +4449,7 @@ if (jjtc000) {
 }
 
   final public void SynchronizedStatement() throws ParseException {/*@bgen(jjtree) Block */
-  BSHBlock jjtn000 = new BSHBlock(JJTBLOCK);
+  BSHBlock jjtn000 = new BSHBlock();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -4490,7 +4490,7 @@ if (jjtc000) {
 }
 
   final public void ThrowStatement() throws ParseException {/*@bgen(jjtree) ThrowStatement */
-  BSHThrowStatement jjtn000 = new BSHThrowStatement(JJTTHROWSTATEMENT);
+  BSHThrowStatement jjtn000 = new BSHThrowStatement();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -4523,7 +4523,7 @@ if (jjtc000) {
 }
 
   final public void TryStatement() throws ParseException {/*@bgen(jjtree) TryStatement */
-  BSHTryStatement jjtn000 = new BSHTryStatement(JJTTRYSTATEMENT);
+  BSHTryStatement jjtn000 = new BSHTryStatement();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);boolean closed = false;
@@ -4598,7 +4598,7 @@ if (jjtc000) {
 }
 
   final public void MultiCatch() throws ParseException {/*@bgen(jjtree) MultiCatch */
-  BSHMultiCatch jjtn000 = new BSHMultiCatch(JJTMULTICATCH);
+  BSHMultiCatch jjtn000 = new BSHMultiCatch();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);Token t;
@@ -4678,7 +4678,7 @@ if (jjtc000) {
 }
 
   final public void TryWithResources() throws ParseException {/*@bgen(jjtree) TryWithResources */
-  BSHTryWithResources jjtn000 = new BSHTryWithResources(JJTTRYWITHRESOURCES);
+  BSHTryWithResources jjtn000 = new BSHTryWithResources();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);
@@ -4724,7 +4724,7 @@ if (jjtc000) {
 }
 
   final public void AutoCloseable() throws ParseException {/*@bgen(jjtree) AutoCloseable */
-  BSHAutoCloseable jjtn000 = new BSHAutoCloseable(JJTAUTOCLOSEABLE);
+  BSHAutoCloseable jjtn000 = new BSHAutoCloseable();
   boolean jjtc000 = true;
   jjtree.openNodeScope(jjtn000);
   jjtreeOpenNodeScope(jjtn000);

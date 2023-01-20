@@ -47,8 +47,6 @@ public class BSHPrimarySuffix extends SimpleNode
         hasLeftIndex = false, hasRightIndex = false,
         safeNavigate = false;
 
-    public BSHPrimarySuffix(int id) { super(id); }
-
     /*
         Perform a suffix operation on the given object and return the
         new value.

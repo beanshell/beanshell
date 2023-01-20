@@ -31,8 +31,6 @@ import bsh.legacy.*;
 public class BSHSwitchLabel extends SimpleNode {
     public boolean isDefault;
 
-    public BSHSwitchLabel(int id) { super(id); }
-
     public Object eval(
         CallStack callstack, Interpreter interpreter) throws EvalError
     {

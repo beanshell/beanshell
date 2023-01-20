@@ -51,8 +51,7 @@ public class BSHBlock extends SimpleNode {
     /** Only check for class declarations the first time through. */
     private boolean isFirst = true;
 
-    public BSHBlock(int id) {
-        super(id);
+    public BSHBlock() {
         blockId = BlockNameSpace.blockCount.incrementAndGet();
     }
 

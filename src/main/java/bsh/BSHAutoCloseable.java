@@ -26,8 +26,6 @@ public class BSHAutoCloseable extends BSHTypedVariableDeclaration {
     public AutoCloseable ths;
     public Variable varThis;
 
-    public BSHAutoCloseable(int id) { super(id);  }
-
     public Object eval(CallStack callstack, Interpreter interpreter)
             throws EvalError {
 
@@ -79,13 +77,13 @@ public class BSHAutoCloseable extends BSHTypedVariableDeclaration {
      * from the BSHVariableDeclarator AllocationExpression nodes. */
     private void renderTypeNode() {
         if (getChildCount() == 1) {
-            Node tNode = new BSHType(ParserTreeConstants.JJTTYPE);
+            Node tNode = new BSHType();
             Node ambigName = getChild(0);
             while (ambigName.getChildCount() > 0)
                 if ((ambigName = ambigName.getChild(0)) instanceof BSHAmbiguousName)
                     break;
             BSHAmbiguousName ambigNew =
-                    new BSHAmbiguousName(ParserTreeConstants.JJTAMBIGUOUSNAME);
+                    new BSHAmbiguousName();
             ambigNew.setParent(tNode);
             ambigNew.text = ((BSHAmbiguousName) ambigName).text;
             tNode.addChild(0, ambigNew);

@@ -20,8 +20,6 @@ import bsh.legacy.*;
 public class BSHLabeledStatement extends SimpleNode implements ParserConstants {
     public String label;
 
-    public BSHLabeledStatement(int id) { super(id); }
-
     public Object eval( CallStack callstack, Interpreter interpreter ) throws EvalError {
         if (getChildCount() > 0) {
 

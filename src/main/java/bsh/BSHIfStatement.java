@@ -33,8 +33,6 @@ import bsh.congo.parser.Node;
 public class BSHIfStatement extends SimpleNode {
     public boolean isClosed;
 
-    public BSHIfStatement(int id) { super(id); }
-
     public Object eval(CallStack callstack, Interpreter interpreter)
             throws EvalError {
         Object ret = null;

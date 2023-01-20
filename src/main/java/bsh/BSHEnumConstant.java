@@ -26,8 +26,6 @@ public class BSHEnumConstant extends SimpleNode {
     }
     public String name;
 
-    public BSHEnumConstant(int id) { super(id); }
-
     public Object eval( CallStack callstack, Interpreter interpreter ) throws EvalError {
         NameSpace namespace = callstack.top();
         if ( !getName().equals(""+namespace.classInstance) )

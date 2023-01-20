@@ -23,7 +23,6 @@ public class BSHMultiCatch extends SimpleNode {
     public String name;
     public boolean isFinal = false;
     public Class<?>[] types;
-    public BSHMultiCatch(int id) { super(id); }
 
     public int countTypes() {
         if ( getChildCount() > 0 )

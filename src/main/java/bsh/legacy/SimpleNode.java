@@ -60,12 +60,11 @@ public class SimpleNode extends BaseNode implements Serializable {
     private String sourceFile;
 
     private Node[] nodes;
-//    private int id;
     private int cursor = 0, lastRet = -1;
 
     /** Default constructor supplying the node with its type id.
      * @param i type index of ParserTreeConstants.jjtNodeName */
-    public SimpleNode(int i) { }//id = i; }
+//    public SimpleNode(int i) { }
 
     private void updateBackingContainer() {
         List<Node> nodes = new ArrayList<>();

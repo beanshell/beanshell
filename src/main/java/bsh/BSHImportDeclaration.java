@@ -35,8 +35,6 @@ public class BSHImportDeclaration extends SimpleNode
     public boolean staticImport;
     public boolean superImport;
 
-    public BSHImportDeclaration(int id) { super(id); }
-
     public Object eval(CallStack callstack, Interpreter interpreter)
         throws EvalError
     {

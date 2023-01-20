@@ -38,8 +38,6 @@ public class BSHPrimaryExpression extends SimpleNode
     boolean isArrayExpression = false;
     boolean isMapExpression = false;
 
-    public BSHPrimaryExpression(int id) { super(id); }
-
     /** Clear the eval cache.  */
     public void clearCache() {
         cached = null;

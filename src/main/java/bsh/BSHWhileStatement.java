@@ -40,11 +40,6 @@ public class BSHWhileStatement extends SimpleNode implements ParserConstants {
     public String label;
 
 
-    public BSHWhileStatement(int id) {
-        super(id);
-    }
-
-
     public Object eval(CallStack callstack, Interpreter interpreter) throws EvalError {
         int numChild = getChildCount();
         // Order of body and condition is swapped for do / while
