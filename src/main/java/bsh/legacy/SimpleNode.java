@@ -28,7 +28,6 @@ package bsh.legacy;
 import bsh.congo.parser.Node;
 import bsh.congo.parser.BaseNode;
 import java.io.Serializable;
-import java.util.NoSuchElementException;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -60,27 +59,24 @@ public class SimpleNode extends BaseNode implements Serializable {
     private String sourceFile;
 
     private Node[] nodes = new Node[0];
-    private int cursor = 0, lastRet = -1;
-
-    private void updateBackingContainer() {
-        List<Node> nodeList = new ArrayList<>();
-        for (Node n : getNodes()) {
-            nodeList.add(n);
-        }
-        setBackingContainer(nodeList);
-    }
-
 
     /** {@inheritDoc} */
     @Override
     public void addChild(int i, Node n) {
-        if (i >= nodes.length) {
+        if (i>nodes.length) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+        else if (i == nodes.length) {
             Node c[] = new Node[i + 1];
             System.arraycopy(nodes, 0, c, 0, nodes.length);
             nodes = c;
+            nodes[i] = n;
+            super.addChild(i, n);
         }
-        nodes[i] = n;
-        updateBackingContainer();
+        else {
+           nodes[i] = n;
+           setChild(i, n);
+        }
     }
 
     /** {@inheritDoc} */
@@ -88,7 +84,7 @@ public class SimpleNode extends BaseNode implements Serializable {
     public Node getChild(int i) { return nodes[i]; }
 
     /** {@inheritDoc} */
-    @Override
+    //@Override
     final public List<Node> getNodes() {
         List<Node> result = new ArrayList<>();
         for (Node n : nodes) {
@@ -100,14 +96,19 @@ public class SimpleNode extends BaseNode implements Serializable {
     /** {@inheritDoc} */
     @Override
     final public int getChildCount() {
+        if (super.getChildCount() != nodes.length) {
+            System.err.println("KILROY: " + getClass().getSimpleName());
+        }
         return nodes.length;
 //        return getNodes().length;
-//        return getBackingContainer().size();
     }
 
     protected void setNodes(Node... nodes) {
         this.nodes = nodes;
-        updateBackingContainer();
+        clearChildren();
+        for (Node n : nodes) {
+            addChild(n);
+        }
     }
 
     /** {@inheritDoc} */
