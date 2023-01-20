@@ -59,19 +59,15 @@ public class SimpleNode extends BaseNode implements Serializable {
     /** the source of the text from which this was parsed */
     private String sourceFile;
 
-    private Node[] nodes;
+    private Node[] nodes = new Node[0];
     private int cursor = 0, lastRet = -1;
 
-    /** Default constructor supplying the node with its type id.
-     * @param i type index of ParserTreeConstants.jjtNodeName */
-//    public SimpleNode(int i) { }
-
     private void updateBackingContainer() {
-        List<Node> nodes = new ArrayList<>();
+        List<Node> nodeList = new ArrayList<>();
         for (Node n : getNodes()) {
-            nodes.add(n);
+            nodeList.add(n);
         }
-        setBackingContainer(nodes);
+        setBackingContainer(nodeList);
     }
 
 
@@ -160,8 +156,6 @@ public class SimpleNode extends BaseNode implements Serializable {
     /** {@inheritDoc} */
     @Override
     final public Node[] getNodes() {
-        if ( null == nodes )
-            nodes = new Node[0];
         return nodes;
     }
     /** {@inheritDoc} */
@@ -236,9 +230,5 @@ public class SimpleNode extends BaseNode implements Serializable {
 
         return text.toString();
     }
-
-    /** {@inheritDoc} */
-//    @Override
-//    public int getId() { return this.id; }
 }
 
