@@ -1,5 +1,8 @@
 package bsh.legacy;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
 import bsh.congo.parser.Node;
 
 public class JJTParserState implements java.io.Serializable {
@@ -89,10 +92,15 @@ public class JJTParserState implements java.io.Serializable {
   public void closeNodeScope(final Node n, final int numIn) {
     mk = marks.remove(marks.size()-1).intValue();
     int num = numIn;
+    ArrayList<Node> poppedNodes = new ArrayList<>();
     while (num-- > 0) {
-      Node c = popNode();
-      c.setParent(n);
-      n.addChild(num, c);
+      poppedNodes.add(popNode());
+    }
+    Collections.reverse(poppedNodes);
+    int index = 0;
+    for (Node child : poppedNodes) {
+      n.addChild(index++, child);
+      child.setParent(n);
     }
     n.close();
     pushNode(n);
@@ -109,10 +117,15 @@ public class JJTParserState implements java.io.Serializable {
     if (condition) {
       int a = nodeArity();
       mk = marks.remove(marks.size()-1).intValue();
+      ArrayList<Node> poppedNodes = new ArrayList<>();
       while (a-- > 0) {
-        final Node c = popNode();
-        c.setParent(n);
-        n.addChild(a, c);
+        poppedNodes.add(popNode());
+      }
+      Collections.reverse(poppedNodes);
+      int index = 0;
+      for (Node child : poppedNodes) {
+        n.addChild(index++, child);
+        child.setParent(n);
       }
       n.close();
       pushNode(n);
