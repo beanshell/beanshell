@@ -25,7 +25,7 @@
  *****************************************************************************/
 package bsh.legacy;
 
-
+import bsh.congo.parser.Node;
 import bsh.CallStack;
 import bsh.Interpreter;
 import bsh.InterpreterError;
@@ -49,7 +49,7 @@ import java.util.NoSuchElementException;
     try to remember to mark these as transient to highlight them.
 
 */
-public class SimpleNode extends bsh.congo.parser.BaseNode implements Node, Serializable {
+public class SimpleNode extends bsh.congo.parser.BaseNode implements Serializable {
 
     /** Serialization ID */
     private static final long serialVersionUID = 1L;
