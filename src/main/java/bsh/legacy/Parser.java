@@ -57,7 +57,7 @@ import bsh.congo.parser.Node;
         }
     </pre></code>
 */
-public class Parser/*@bgen(jjtree)*/implements ParserTreeConstants, ParserConstants {/*@bgen(jjtree)*/
+public class Parser implements ParserConstants {
   public JJTParserState jjtree = new JJTParserState();boolean retainComments = false;
 
     public void setRetainComments( boolean b ) {
