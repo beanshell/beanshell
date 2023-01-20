@@ -51,7 +51,7 @@ public class BSHTypedVariableDeclaration extends SimpleNode {
     {
         if (null != bvda)
             return bvda;
-        int n = jjtGetNumChildren();
+        int n = getChildCount();
         int start=1;
         bvda = new BSHVariableDeclarator[ n-start ];
         for (int i = start; i < n; i++)

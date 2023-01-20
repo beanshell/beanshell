@@ -59,7 +59,7 @@ public class BSHEnhancedForStatement extends SimpleNode implements ParserConstan
         final Node statement;
         final NameSpace enclosingNameSpace = callstack.top();
         final Node firstNode = jjtGetChild(0);
-        final int nodeCount = jjtGetNumChildren();
+        final int nodeCount = getChildCount();
         if (firstNode instanceof BSHType) {
             elementType = ((BSHType) firstNode).getType(callstack, interpreter);
             expression = jjtGetChild(1);

@@ -53,7 +53,7 @@ public class BSHForStatement extends SimpleNode implements ParserConstants
         final Node forInit = hasForInit ? jjtGetChild(i++) : null;
         final Node expression = hasExpression ? jjtGetChild(i++) : null;
         final Node forUpdate = hasForUpdate ? jjtGetChild(i++) : null;
-        final Node statement = i < jjtGetNumChildren() ? jjtGetChild(i) : null;
+        final Node statement = i < getChildCount() ? jjtGetChild(i) : null;
         final NameSpace enclosingNameSpace= callstack.top();
         final NameSpace forNameSpace = new BlockNameSpace(enclosingNameSpace, blockId);
 

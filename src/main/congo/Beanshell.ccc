@@ -77,15 +77,13 @@ extends java.util.ListIterator<Node>
     default void jjtClose() {}
 
 
-    default void jjtSetParent(Node n) {setParent(n);}
+//    default void setParent(Node n) {setParent(n);}
 
-    default Node jjtGetParent() {return (Node) getParent();}
+//    default Node getParent() {return (Node) getParent();}
 
     default void jjtAddChild(Node n, int i) {addChild(i,n);}
 
     default Node jjtGetChild(int i) {return (Node) getChild(i);}
-
-    default int jjtGetNumChildren() {return getChildCount();}
 
     default int getId() {return -1;}
 

@@ -155,7 +155,7 @@ public class BSHBinaryExpression extends SimpleNode implements ParserConstants {
      * @throws UtilEvalError thrown by getVariableImpl. */
     private Variable getVariableAtNode(int index, CallStack callstack) throws UtilEvalError {
         Node nameNode = null;
-        if ( jjtGetChild(index).jjtGetNumChildren() > 0
+        if ( jjtGetChild(index).getChildCount() > 0
                 && (nameNode = jjtGetChild(index).jjtGetChild(0))
                     instanceof BSHAmbiguousName )
             return callstack.top().getVariableImpl(

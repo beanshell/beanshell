@@ -48,7 +48,7 @@ public class BSHAllocationExpression extends SimpleNode
         throws EvalError
     {
         // loose typed array initializer ex. new {1, 2, 3};
-        if ( jjtGetNumChildren() == 1 && jjtGetChild(0)
+        if ( getChildCount() == 1 && jjtGetChild(0)
                 instanceof BSHArrayDimensions )
                 return arrayAllocation( (BSHArrayDimensions) jjtGetChild(0),
                        Void.TYPE, callstack, interpreter );
@@ -98,7 +98,7 @@ public class BSHAllocationExpression extends SimpleNode
                 "Unknown class: "+nameNode.text, this, callstack );
 
         // Is an inner class style object allocation
-        boolean hasBody = jjtGetNumChildren() > 2;
+        boolean hasBody = getChildCount() > 2;
 
         if ( hasBody )
         {

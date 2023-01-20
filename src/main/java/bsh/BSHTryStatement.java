@@ -59,7 +59,7 @@ public class BSHTryStatement extends SimpleNode
         List<BSHMultiCatch> catchParams = new ArrayList<>();
         List<BSHBlock> catchBlocks = new ArrayList<>();
 
-        int nchild = jjtGetNumChildren();
+        int nchild = getChildCount();
         Node node = null;
         while( i < nchild && (node = jjtGetChild(i++)) instanceof BSHMultiCatch )
         {

@@ -23,7 +23,7 @@ public class BSHLabeledStatement extends SimpleNode implements ParserConstants {
     public BSHLabeledStatement(int id) { super(id); }
 
     public Object eval( CallStack callstack, Interpreter interpreter ) throws EvalError {
-        if (jjtGetNumChildren() > 0) {
+        if (getChildCount() > 0) {
 
             // pass continue labels onto loops to handle in loop
             if (jjtGetChild(0) instanceof BSHForStatement)

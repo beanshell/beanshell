@@ -92,7 +92,7 @@ public class JJTParserState implements java.io.Serializable {
     int num = numIn;
     while (num-- > 0) {
       Node c = popNode();
-      c.jjtSetParent(n);
+      c.setParent(n);
       n.jjtAddChild(c, num);
     }
     n.jjtClose();
@@ -112,7 +112,7 @@ public class JJTParserState implements java.io.Serializable {
       mk = marks.remove(marks.size()-1).intValue();
       while (a-- > 0) {
         final Node c = popNode();
-        c.jjtSetParent(n);
+        c.setParent(n);
         n.jjtAddChild(c, a);
       }
       n.jjtClose();

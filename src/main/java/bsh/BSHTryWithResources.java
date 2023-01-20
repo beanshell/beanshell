@@ -25,7 +25,7 @@ public class BSHTryWithResources extends SimpleNode {
 
     public Object eval( CallStack callstack, Interpreter interpreter)
             throws EvalError {
-        for (int i=0; i < jjtGetNumChildren(); i++)
+        for (int i=0; i < getChildCount(); i++)
             jjtGetChild(i).eval(callstack, interpreter);
 
         return Primitive.VOID;
@@ -33,7 +33,7 @@ public class BSHTryWithResources extends SimpleNode {
 
     public List<Throwable> autoClose() {
         List<Throwable> thrown = new ArrayList<>();
-        for (int i=0; i < jjtGetNumChildren(); i++) try {
+        for (int i=0; i < getChildCount(); i++) try {
             ((BSHAutoCloseable) jjtGetChild(i)).close();
         } catch (Throwable e) {
             thrown.add(e);

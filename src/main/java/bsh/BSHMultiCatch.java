@@ -26,8 +26,8 @@ public class BSHMultiCatch extends SimpleNode {
     public BSHMultiCatch(int id) { super(id); }
 
     public int countTypes() {
-        if ( jjtGetNumChildren() > 0 )
-            return jjtGetNumChildren();
+        if ( getChildCount() > 0 )
+            return getChildCount();
         return 1;
     }
 
@@ -38,7 +38,7 @@ public class BSHMultiCatch extends SimpleNode {
     }
 
     public boolean isUntyped() {
-        return 0 == jjtGetNumChildren();
+        return 0 == getChildCount();
     }
 
     /**

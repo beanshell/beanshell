@@ -42,7 +42,7 @@ public class BSHIfStatement extends SimpleNode {
             if (!isClosed)
                 ret = jjtGetChild(1).eval(callstack, interpreter);
         } else {
-            if (jjtGetNumChildren() > 2)
+            if (getChildCount() > 2)
                 ret = jjtGetChild(2).eval(callstack, interpreter);
             else if (isClosed)
                 ret = jjtGetChild(1).eval(callstack, interpreter);

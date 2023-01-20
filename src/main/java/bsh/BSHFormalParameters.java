@@ -49,7 +49,7 @@ public class BSHFormalParameters extends SimpleNode implements BshClassManager.L
         if ( paramNames != null )
             return;
 
-        this.numArgs = jjtGetNumChildren();
+        this.numArgs = getChildCount();
         String [] paramNames = new String[numArgs];
         Modifiers [] paramModifiers = new Modifiers[numArgs];
 

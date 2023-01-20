@@ -39,7 +39,7 @@ public class BSHSwitchStatement
     public Object eval( CallStack callstack, Interpreter interpreter )
         throws EvalError
     {
-        int numchild = jjtGetNumChildren();
+        int numchild = getChildCount();
         int child = 0;
         Node switchExp = jjtGetChild(child++);
         Object switchVal = switchExp.eval( callstack, interpreter );

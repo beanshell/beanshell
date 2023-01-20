@@ -45,10 +45,10 @@ public class BSHArrayInitializer extends SimpleNode {
      * @see BSHPrimaryExpression.setArrayExpression
      * {@inheritDoc} */
     @Override
-    public void jjtSetParent(Node n) {
+    public void setParent(Node n) {
         parent = n;
         if ( null != children ) for ( Node c : children )
-            if ( c.jjtGetNumChildren() > 0
+            if ( c.getChildCount() > 0
                     && c.jjtGetChild(0) instanceof BSHPrimaryExpression ) {
                 expressionQueue.push((BSHPrimaryExpression) c.jjtGetChild(0));
                 expressionQueue.peek().setArrayExpression(this);
@@ -74,7 +74,7 @@ public class BSHArrayInitializer extends SimpleNode {
      * @throws EvalError produced by thrown type errors */
     public Object eval( Class<?> baseType, int dimensions, CallStack callstack,
             Interpreter interpreter ) throws EvalError {
-        if ( 0 == jjtGetNumChildren() )
+        if ( 0 == getChildCount() )
             dimensions = 0;
 
         // we may infer the baseType, assume they are the same
@@ -145,11 +145,11 @@ public class BSHArrayInitializer extends SimpleNode {
         int [] dims = new int [dimensions]; // description of the array
         // The other dimensions default to zero and are assigned when
         // the values are set.
-        dims[0] = jjtGetNumChildren();
+        dims[0] = getChildCount();
         Object array =  Array.newInstance( baseType, dims );
 
         // Evaluate the child nodes
-        for ( int i = 0; i < jjtGetNumChildren(); i++ ) {
+        for ( int i = 0; i < getChildCount(); i++ ) {
             final Node node = jjtGetChild(i);
             final Object entry;
             if ( node instanceof BSHArrayInitializer )
@@ -205,7 +205,7 @@ public class BSHArrayInitializer extends SimpleNode {
         try {
             Object bean = baseType.getConstructor().newInstance();
             callstack.top().setClassInstance(bean);
-            for (int i = 0; i < jjtGetNumChildren(); i++) {
+            for (int i = 0; i < getChildCount(); i++) {
                 BSHAssignment asNode = (BSHAssignment)this.jjtGetChild(i);
                 BSHPrimaryExpression peNode = (BSHPrimaryExpression)asNode.jjtGetChild(0);
                 peNode.isArrayExpression = peNode.isMapExpression = false;
@@ -306,10 +306,10 @@ public class BSHArrayInitializer extends SimpleNode {
     private int inferDimensions(int dimensions, int idx, Node node,
             CallStack callstack, Interpreter interpreter) throws EvalError {
         // count ArrayInitializer nodes in this hierarchy
-        while ( node.jjtGetNumChildren() > idx
+        while ( node.getChildCount() > idx
                 && (node = node.jjtGetChild(idx)) instanceof BSHArrayInitializer
                 && !isMapInArray((BSHArrayInitializer) node)
-                && node.jjtGetNumChildren() > 0 ) {
+                && node.getChildCount() > 0 ) {
             dimensions++;
             idx = 0;
         }
@@ -319,7 +319,7 @@ public class BSHArrayInitializer extends SimpleNode {
             // if the value element is null look for more dimensions
             // example: {null, {1, 2}} makes int[][]
             if ( ot == Primitive.NULL )
-                return inferDimensions(dimensions, ++idx, node.jjtGetParent(),
+                return inferDimensions(dimensions, ++idx, node.getParent(),
                         callstack, interpreter);
             // if the value element is an array we can append dimensions
             // example: new {new {1, 2}} makes int[][]
@@ -327,8 +327,8 @@ public class BSHArrayInitializer extends SimpleNode {
         }
         // if we found an empty array element look for more dimensions
         // example: {{}, {1, 2}} makes int[][] but {{}} makes Object[][]
-        else if ( node.jjtGetNumChildren() == 0 )
-            return inferDimensions(dimensions, ++idx, node.jjtGetParent(),
+        else if ( node.getChildCount() == 0 )
+            return inferDimensions(dimensions, ++idx, node.getParent(),
                     callstack, interpreter);
         return dimensions;
     }

@@ -76,7 +76,7 @@ public class SimpleNode extends bsh.congo.parser.BaseNode implements Serializabl
 
     /** {@inheritDoc} */
     @Override
-    public boolean hasNext() { return cursor < jjtGetNumChildren(); }
+    public boolean hasNext() { return cursor < getChildCount(); }
 
     /** {@inheritDoc} */
     @Override
@@ -122,13 +122,13 @@ public class SimpleNode extends bsh.congo.parser.BaseNode implements Serializabl
     /** {@inheritDoc} */
     @Override
     public void add(Node e) {
-        Node c[] = new Node[jjtGetNumChildren() + 1];
+        Node c[] = new Node[getChildCount() + 1];
         System.arraycopy(children, 0, c, 0, cursor);
         System.arraycopy(children, cursor, c, cursor +1, c.length - cursor -1);
         children = c;
         children[cursor++] = e;
         lastRet = -1;
-        e.jjtSetParent(this);
+        e.setParent(this);
     }
 
     /** {@inheritDoc} */
@@ -141,11 +141,11 @@ public class SimpleNode extends bsh.congo.parser.BaseNode implements Serializabl
 
     /** {@inheritDoc} */
     @Override
-    public void jjtSetParent(Node n) { parent = n; }
+    public void setParent(Node n) { parent = n; }
 
     /** {@inheritDoc} */
     @Override
-    public Node jjtGetParent() { return parent; }
+    public Node getParent() { return parent; }
 
     /** {@inheritDoc} */
     @Override
@@ -173,7 +173,7 @@ public class SimpleNode extends bsh.congo.parser.BaseNode implements Serializabl
     }
     /** {@inheritDoc} */
     @Override
-    public int jjtGetNumChildren() {
+    public int getChildCount() {
         return jjtGetChildren().length;
     }
 

@@ -164,7 +164,7 @@ public class BSHPrimarySuffix extends SimpleNode
             else
                 return new Primitive(Array.getLength(obj));
         // field access
-        if ( jjtGetNumChildren() == 0 )
+        if ( getChildCount() == 0 )
             if ( toLHS ) try {
                 return Reflect.getLHSObjectField(obj, field);
             } catch (Throwable t) {
@@ -281,10 +281,10 @@ public class BSHPrimarySuffix extends SimpleNode
                 if ( this.step ) {
                     Integer step = null;
                     if ( hasLeftIndex && hasRightIndex
-                            && jjtGetNumChildren() == 3 )
+                            && getChildCount() == 3 )
                         step = getIndexAux(obj, 2, callstack, interpreter, this);
                     else if ( (!hasLeftIndex || !hasRightIndex)
-                            && jjtGetNumChildren() == 2 )
+                            && getChildCount() == 2 )
                         step = getIndexAux(obj, 1, callstack, interpreter, this);
                     else if ( !hasLeftIndex && !hasRightIndex ) {
                         step = getIndexAux(obj, 0, callstack, interpreter, this);
