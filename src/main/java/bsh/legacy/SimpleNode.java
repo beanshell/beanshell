@@ -59,21 +59,22 @@ public class SimpleNode extends BaseNode implements Serializable {
     /** the source of the text from which this was parsed */
     private String sourceFile;
 
-    protected Node[] nodes;
-    protected int id;
+    private Node[] nodes;
+//    private int id;
     private int cursor = 0, lastRet = -1;
 
     /** Default constructor supplying the node with its type id.
      * @param i type index of ParserTreeConstants.jjtNodeName */
-    public SimpleNode(int i) { id = i; }
+    public SimpleNode(int i) { }//id = i; }
 
-    protected void updateBackingContainer() {
+    private void updateBackingContainer() {
         List<Node> nodes = new ArrayList<>();
-        for (Node n : getChildren()) {
+        for (Node n : getNodes()) {
             nodes.add(n);
         }
         setBackingContainer(nodes);
     }
+
 
     /** {@inheritDoc} */
     @Override
@@ -114,6 +115,7 @@ public class SimpleNode extends BaseNode implements Serializable {
         System.arraycopy(nodes, 0, c, 0, cursor);
         System.arraycopy(nodes, cursor + 1, c, cursor, c.length - cursor);
         nodes = c;
+        updateBackingContainer();
         lastRet = -1;
     }
 
@@ -122,6 +124,7 @@ public class SimpleNode extends BaseNode implements Serializable {
     public void set(Node e) {
         if (lastRet < 0) throw new IllegalStateException();
         nodes[lastRet] = e;
+        updateBackingContainer();
     }
 
     /** {@inheritDoc} */
@@ -134,6 +137,7 @@ public class SimpleNode extends BaseNode implements Serializable {
         nodes[cursor++] = e;
         lastRet = -1;
         e.setParent(this);
+        updateBackingContainer();
     }
 
     /** {@inheritDoc} */
@@ -147,6 +151,7 @@ public class SimpleNode extends BaseNode implements Serializable {
             nodes = c;
         }
         nodes[i] = n;
+        updateBackingContainer();
     }
 
     /** {@inheritDoc} */
@@ -155,7 +160,7 @@ public class SimpleNode extends BaseNode implements Serializable {
 
     /** {@inheritDoc} */
     @Override
-    final public Node[] getChildren() {
+    final public Node[] getNodes() {
         if ( null == nodes )
             nodes = new Node[0];
         return nodes;
@@ -163,13 +168,19 @@ public class SimpleNode extends BaseNode implements Serializable {
     /** {@inheritDoc} */
     @Override
     final public int getChildCount() {
-        return getChildren().length;
+        return getNodes().length;
+//        return getBackingContainer().size();
+    }
+
+    protected void setNodes(Node... nodes) {
+        this.nodes = nodes;
+        updateBackingContainer();
     }
 
     /** {@inheritDoc} */
     @Override
-    public String toString() { return ParserTreeConstants.jjtNodeName[id]; }
-//    public String toString() {return getClass().getSimpleName();}
+    //public String toString() { return ParserTreeConstants.jjtNodeName[id]; }
+    public String toString() {return getClass().getSimpleName().substring(3);}
 
     /** {@inheritDoc} */
     @Override
@@ -228,7 +239,7 @@ public class SimpleNode extends BaseNode implements Serializable {
     }
 
     /** {@inheritDoc} */
-    @Override
-    public int getId() { return this.id; }
+//    @Override
+//    public int getId() { return this.id; }
 }
 

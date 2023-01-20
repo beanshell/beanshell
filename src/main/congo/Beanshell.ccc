@@ -71,9 +71,8 @@ extends java.util.ListIterator<Node>
     default Node next() {throw new UnsupportedOperationException();}
     default Node previous() {throw new UnsupportedOperationException();}
 
-    default Node[] getChildren() {return null;}
+    default Node[] getNodes() {return null;}
 
-    default int getId() {return -1;}
 }
 
 INJECT BaseNode :

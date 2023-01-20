@@ -90,11 +90,7 @@ public class BSHAutoCloseable extends BSHTypedVariableDeclaration {
             ambigNew.text = ((BSHAmbiguousName) ambigName).text;
             tNode.addChild(0, ambigNew);
             tNode.setParent(this);
-            Node[] n = new Node[2];
-            n[0] = tNode;
-            n[1] = nodes[0];
-            nodes = n;
-            updateBackingContainer();
+            setNodes(tNode, getChild(0));
         }
     }
 }

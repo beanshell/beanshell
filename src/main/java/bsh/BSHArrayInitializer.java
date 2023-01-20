@@ -47,13 +47,12 @@ public class BSHArrayInitializer extends SimpleNode {
     @Override
     public void setParent(Node n) {
         super.setParent(n);
-        if ( null != nodes ) for ( Node c : nodes )
+        for ( Node c : getNodes() )
             if ( c.getChildCount() > 0
                     && c.getChild(0) instanceof BSHPrimaryExpression ) {
                 expressionQueue.push((BSHPrimaryExpression) c.getChild(0));
                 expressionQueue.peek().setArrayExpression(this);
             }
-        updateBackingContainer();
     }
 
     /** Default node eval is disabled for this node type.
@@ -359,7 +358,7 @@ public class BSHArrayInitializer extends SimpleNode {
                 && isMapInArray((BSHArrayInitializer) node) )
             return Types.getCommonType(common, Map.class);
         // recurse through nested array initializer nodes
-        for ( Node child : node.getChildren() )
+        for ( Node child : node.getNodes() )
             common = this.inferCommonType(common, child, callstack, interpreter);
         return common;
     }
