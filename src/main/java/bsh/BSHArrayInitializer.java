@@ -46,7 +46,7 @@ public class BSHArrayInitializer extends SimpleNode {
      * {@inheritDoc} */
     @Override
     public void setParent(Node n) {
-        parent = n;
+        super.setParent(n);
         if ( null != children ) for ( Node c : children )
             if ( c.getChildCount() > 0
                     && c.getChild(0) instanceof BSHPrimaryExpression ) {

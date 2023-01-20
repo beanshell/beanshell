@@ -26,6 +26,7 @@
 package bsh.legacy;
 
 import bsh.congo.parser.Node;
+import bsh.congo.parser.BaseNode;
 import bsh.CallStack;
 import bsh.Interpreter;
 import bsh.InterpreterError;
@@ -49,7 +50,7 @@ import java.util.NoSuchElementException;
     try to remember to mark these as transient to highlight them.
 
 */
-public class SimpleNode extends bsh.congo.parser.BaseNode implements Serializable {
+public class SimpleNode extends BaseNode implements Serializable {
 
     /** Serialization ID */
     private static final long serialVersionUID = 1L;
@@ -60,10 +61,8 @@ public class SimpleNode extends bsh.congo.parser.BaseNode implements Serializabl
     /** the source of the text from which this was parsed */
     private String sourceFile;
 
-    protected Node parent;
     protected Node[] children;
     protected int id;
-    protected Parser parser;
     private int cursor = 0, lastRet = -1;
 
     /** Default constructor supplying the node with its type id.
@@ -133,23 +132,7 @@ public class SimpleNode extends bsh.congo.parser.BaseNode implements Serializabl
 
     /** {@inheritDoc} */
     @Override
-    public void jjtOpen() { }
-
-    /** {@inheritDoc} */
-    @Override
-    public void jjtClose() { }
-
-    /** {@inheritDoc} */
-    @Override
-    public void setParent(Node n) { parent = n; }
-
-    /** {@inheritDoc} */
-    @Override
-    public Node getParent() { return parent; }
-
-    /** {@inheritDoc} */
-    @Override
-    public void jjtAddChild(Node n, int i) {
+    public void addChild(int i, Node n) {
         if (children == null)
             children = new Node[i + 1];
         else if (i >= children.length) {
@@ -166,20 +149,21 @@ public class SimpleNode extends bsh.congo.parser.BaseNode implements Serializabl
 
     /** {@inheritDoc} */
     @Override
-    public Node[] getChildren() {
+    final public Node[] getChildren() {
         if ( null == children )
             children = new Node[0];
         return children;
     }
     /** {@inheritDoc} */
     @Override
-    public int getChildCount() {
+    final public int getChildCount() {
         return getChildren().length;
     }
 
     /** {@inheritDoc} */
     @Override
     public String toString() { return ParserTreeConstants.jjtNodeName[id]; }
+//    public String toString() {return getClass().getSimpleName();}
 
     /** {@inheritDoc} */
     @Override
@@ -214,8 +198,8 @@ public class SimpleNode extends bsh.congo.parser.BaseNode implements Serializabl
     @Override
     public String getSourceFile() {
         if ( sourceFile == null )
-            if ( parent != null )
-                return parent.getSourceFile();
+            if ( getParent() != null )
+                return getParent().getSourceFile();
             else
                 return "<unknown file>";
         else
@@ -246,7 +230,7 @@ public class SimpleNode extends bsh.congo.parser.BaseNode implements Serializabl
     }
 
     /** {@inheritDoc} */
-//    @Override
+    @Override
     public int getId() { return this.id; }
 }
 
