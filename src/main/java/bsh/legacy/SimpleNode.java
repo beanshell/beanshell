@@ -27,10 +27,6 @@ package bsh.legacy;
 
 import bsh.congo.parser.Node;
 import bsh.congo.parser.BaseNode;
-import bsh.CallStack;
-import bsh.Interpreter;
-import bsh.InterpreterError;
-import bsh.EvalError;
 import java.io.Serializable;
 import java.util.NoSuchElementException;
 
@@ -178,14 +174,6 @@ public class SimpleNode extends BaseNode implements Serializable {
             if (n != null)
                 n.dump(prefix + " ");
         }
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public Object eval(CallStack callstack, Interpreter interpreter)
-            throws EvalError {
-        throw new InterpreterError(
-            "Unimplemented or inappropriate for " + getClass().getName() );
     }
 
     /** {@inheritDoc} */
