@@ -73,74 +73,8 @@ public class SimpleNode extends BaseNode implements Serializable {
 
     /** {@inheritDoc} */
     @Override
-    public boolean hasPrevious() { return cursor > 0; }
-
-    /** {@inheritDoc} */
-    @Override
-    public boolean hasNext() { return cursor < getChildCount(); }
-
-    /** {@inheritDoc} */
-    @Override
-    public int nextIndex() { return cursor; }
-
-    /** {@inheritDoc} */
-    @Override
-    public int previousIndex() { return cursor - 1; }
-
-    /** {@inheritDoc} */
-    @Override
-    public Node next() {
-        if (!hasNext()) throw new NoSuchElementException();
-        return nodes[lastRet = cursor++];
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public Node previous() {
-        if (!hasPrevious()) throw new NoSuchElementException();
-        return nodes[lastRet = --cursor];
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void remove() {
-        if (lastRet < 0) throw new IllegalStateException();
-        cursor = lastRet;
-        Node c[] = new Node[nodes.length - 1];
-        System.arraycopy(nodes, 0, c, 0, cursor);
-        System.arraycopy(nodes, cursor + 1, c, cursor, c.length - cursor);
-        nodes = c;
-        updateBackingContainer();
-        lastRet = -1;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void set(Node e) {
-        if (lastRet < 0) throw new IllegalStateException();
-        nodes[lastRet] = e;
-        updateBackingContainer();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void add(Node e) {
-        Node c[] = new Node[getChildCount() + 1];
-        System.arraycopy(nodes, 0, c, 0, cursor);
-        System.arraycopy(nodes, cursor, c, cursor +1, c.length - cursor -1);
-        nodes = c;
-        nodes[cursor++] = e;
-        lastRet = -1;
-        e.setParent(this);
-        updateBackingContainer();
-    }
-
-    /** {@inheritDoc} */
-    @Override
     public void addChild(int i, Node n) {
-        if (nodes == null)
-            nodes = new Node[i + 1];
-        else if (i >= nodes.length) {
+        if (i >= nodes.length) {
             Node c[] = new Node[i + 1];
             System.arraycopy(nodes, 0, c, 0, nodes.length);
             nodes = c;

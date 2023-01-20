@@ -15,7 +15,6 @@
  * limitations under the License. */
 package bsh;
 
-import bsh.legacy.*;
 import bsh.congo.parser.Node;
 
 public class BSHAutoCloseable extends BSHTypedVariableDeclaration {

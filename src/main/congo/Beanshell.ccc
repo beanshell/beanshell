@@ -17,7 +17,7 @@ LEGACY_GLITCHY_LOOKAHEAD=false;
 INJECT Node :
 import bsh.*;
 import bsh.legacy.SimpleNode;
-extends java.util.ListIterator<Node>
+//extends java.util.ListIterator<Node>
 {
     /** This is the general signature for evaluation of a node.
      * @param callstack evaluation call stack
@@ -59,7 +59,7 @@ extends java.util.ListIterator<Node>
     // java.util.ListIterator, but really, I'm pretty sure that
     // Node should not itself be an iterator, since tht is 
     // inherently thread-unsafe
-
+#if false
     default void add(Node node) {throw new UnsupportedOperationException();}
     default void set(Node node) {throw new UnsupportedOperationException();}
     default void remove() {throw new UnsupportedOperationException();}
@@ -69,7 +69,7 @@ extends java.util.ListIterator<Node>
     default boolean hasPrevious() {throw new UnsupportedOperationException();}
     default Node next() {throw new UnsupportedOperationException();}
     default Node previous() {throw new UnsupportedOperationException();}
-
+#endif
     default List<Node> getNodes() {return null;}
 
 }

@@ -79,10 +79,12 @@ public class BSHMethodDeclaration extends SimpleNode
 
         if (null != blockNode && blockNode.getChildCount() > 0) {
             Node crnt = blockNode.getChild(blockNode.getChildCount() - 1);
-            if (crnt instanceof BSHReturnStatement)
-                while (crnt.hasNext())
-                    if ((crnt = crnt.next()) instanceof BSHAmbiguousName)
+            if (crnt instanceof BSHReturnStatement) {
+                for (Node node : crnt.getNodes()) {
+                    if (node instanceof BSHAmbiguousName)
                         isScriptedObject = ((BSHAmbiguousName)crnt).text.startsWith("this");
+                }
+            }
         }
 
         paramsNode.insureParsed();
