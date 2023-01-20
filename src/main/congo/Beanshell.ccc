@@ -68,6 +68,27 @@ extends java.util.ListIterator<bsh.legacy.Node>
     default boolean hasPrevious() {throw new UnsupportedOperationException();}
     default bsh.legacy.Node next() {throw new UnsupportedOperationException();}
     default bsh.legacy.Node previous() {throw new UnsupportedOperationException();}
+
+    //  ---- end BeanShell specific stuff ----  //
+    default bsh.legacy.Node[] jjtGetChildren() {return null;}
+
+    default void jjtOpen() {}
+
+    default void jjtClose() {}
+
+
+    default void jjtSetParent(bsh.legacy.Node n) {setParent(n);}
+
+    default bsh.legacy.Node jjtGetParent() {return (bsh.legacy.Node) getParent();}
+
+    default void jjtAddChild(bsh.legacy.Node n, int i) {addChild(i,n);}
+
+    default bsh.legacy.Node jjtGetChild(int i) {return (bsh.legacy.Node) getChild(i);}
+
+    default int jjtGetNumChildren() {return getChildCount();}
+
+    default int getId() {return -1;}
+
 }
 
 INJECT Expression :
