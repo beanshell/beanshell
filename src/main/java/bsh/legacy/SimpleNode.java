@@ -28,24 +28,7 @@ package bsh.legacy;
 import bsh.congo.parser.Node;
 import bsh.congo.parser.BaseNode;
 import java.io.Serializable;
-import java.util.List;
 
-/*
-    Note: great care (and lots of typing) were taken to insure that the
-    namespace and interpreter references are passed on the stack and not
-    (as they were erroneously before) installed in instance variables...
-    Each of these node objects must be re-entrable to allow for recursive
-    situations.
-
-    The only data which should really be stored in instance vars here should
-    be parse tree data... features of the node which should never change (e.g.
-    the number of arguments, etc.)
-
-    Exceptions would be public fields of simple classes that just publish
-    data produced by the last eval()... data that is used immediately. We'll
-    try to remember to mark these as transient to highlight them.
-
-*/
 public class SimpleNode extends BaseNode implements Serializable {
 
     /** Serialization ID */
@@ -59,35 +42,6 @@ public class SimpleNode extends BaseNode implements Serializable {
 
     /** {@inheritDoc} */
     @Override
-    public void addChild(int i, Node n) {
-        if (i>getChildCount()) {
-            throw new ArrayIndexOutOfBoundsException();
-        }
-        else if (i == getChildCount()) {
-            super.addChild(n);
-        }
-        else {
-           setChild(i, n);
-        }
-    }
-
-
-    /** {@inheritDoc} */
-    //@Override
-    final public List<Node> getNodes() {
-        return children();
-    }
-
-    protected void setNodes(Node... nodes) {
-        clearChildren();
-        for (Node n : nodes) {
-            addChild(n);
-        }
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    //public String toString() { return ParserTreeConstants.jjtNodeName[id]; }
     public String toString() {return getClass().getSimpleName().substring(3);}
 
     /** {@inheritDoc} */

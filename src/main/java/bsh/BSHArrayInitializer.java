@@ -46,7 +46,7 @@ public class BSHArrayInitializer extends SimpleNode {
     @Override
     public void setParent(Node n) {
         super.setParent(n);
-        for ( Node c : getNodes() )
+        for ( Node c : children() )
             if ( c.getChildCount() > 0
                     && c.getChild(0) instanceof BSHPrimaryExpression ) {
                 expressionQueue.push((BSHPrimaryExpression) c.getChild(0));
@@ -357,7 +357,7 @@ public class BSHArrayInitializer extends SimpleNode {
                 && isMapInArray((BSHArrayInitializer) node) )
             return Types.getCommonType(common, Map.class);
         // recurse through nested array initializer nodes
-        for ( Node child : node.getNodes() )
+        for ( Node child : node.children() )
             common = this.inferCommonType(common, child, callstack, interpreter);
         return common;
     }

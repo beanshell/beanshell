@@ -54,7 +54,7 @@ import bsh.legacy.SimpleNode;
 
     default String toString(String prefix) {throw new UnsupportedOperationException();}
 
-    default List<Node> getNodes() {return null;}
+//    default List<Node> getNodes() {return null;}
 
 }
 
