@@ -443,3 +443,28 @@ ArrayDimsAndInits# :
 ;
 
 ReturnType# : [<VOID> | SCAN ~(Type <LPAREN>) => Type] ;
+
+ExpressionStatement : Expression <SEMICOLON> ;
+
+Literal #void :
+  <INTEGER_LITERAL>
+  |
+  <LONG_LITERAL>
+  |
+  <FLOATING_POINT_LITERAL>
+  |
+  <CHARACTER_LITERAL>
+  |
+  <STRING_LITERAL>
+  |
+  <TEXT_BLOCK_LITERAL>
+  |
+  <TRUE>
+  |
+  <FALSE>
+  |
+  <NULL>
+  |
+  // Added for Beanshell
+  <VOID>
+;
