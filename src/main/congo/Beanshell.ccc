@@ -53,10 +53,31 @@ import bsh.legacy.SimpleNode;
     default int getLineNumber() {return getBeginLine();}
 
     default String toString(String prefix) {throw new UnsupportedOperationException();}
-
-//    default List<Node> getNodes() {return null;}
-
 }
+
+TOKEN : 
+  < FORMAL_COMMENT:
+       "/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/"
+  >
+;  
+
+INCLUDE JAVA
+
+INJECT DoStatement : extends bsh.BSHWhileStatement
+INJECT BasicForStatement : extends bsh.BSHForStatement
+INJECT BreakStatement : extends bsh.BSHReturnStatement
+INJECT CodeBlock : extends bsh.BSHBlock
+INJECT ContinueStatement : extends bsh.BSHReturnStatement
+INJECT EnhancedForStatement : extends bsh.BSHEnhancedForStatement
+INJECT IfStatement : extends bsh.BSHIfStatement
+INJECT LabeledStatement : extends bsh.BSHLabeledStatement
+INJECT LocalVariableDeclaration : extends bsh.BSHTypedVariableDeclaration
+INJECT ReturnStatement : extends bsh.BSHReturnStatement
+INJECT SwitchStatement : extends bsh.BSHSwitchStatement
+INJECT SynchronizedStatement : extends bsh.BSHBlock
+INJECT ThrowStatement : extends bsh.BSHThrowStatement
+INJECT TryStatement : extends bsh.BSHTryStatement
+INJECT WhileStatement : extends bsh.BSHWhileStatement
 
 INJECT Expression :
 {  
@@ -70,13 +91,36 @@ INJECT PrimaryExpression : extends Expression
   }
 }
 
-TOKEN : 
-  < FORMAL_COMMENT:
-       "/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/"
-  >
-;  
+INJECT AdditiveExpression : extends bsh.BSHBinaryExpression
+INJECT MultiplicativeExpression : extends bsh.BSHBinaryExpression
+INJECT AndExpression : extends bsh.BSHBinaryExpression
+INJECT ExclusiveOrExpression : extends bsh.BSHBinaryExpression
+INJECT ArrayInitializer : extends bsh.BSHArrayInitializer
+INJECT AssignmentExpression : extends bsh.BSHAssignment
+INJECT CastExpression : extends bsh.BSHCastExpression
 
-INCLUDE JAVA
+INJECT ConditionalAndExpression : extends bsh.BSHBinaryExpression
+INJECT ConditionalOrExpression : extends bsh.BSHBinaryExpression
+INJECT EqualityExpression : extends bsh.BSHBinaryExpression
+INJECT ExclusiveExpression : extends bsh.BSHBinaryExpression
+INJECT InclusiveExpression : extends bsh.BSHBinaryExpression
+INJECT InstanceofExpression : extends bsh.BSHBinaryExpression
+INJECT ReferenceType : extends bsh.BSHType
+INJECT PrimitiveType : extends bsh.BSHPrimitiveType
+INJECT DotThis : extends bsh.BSHPrimaryExpression
+INJECT MethodCall : extends bsh.BSHPrimaryExpression
+INJECT PostfixExpression : extends bsh.BSHUnaryExpression
+INJECT PreDecrementExpression : extends bsh.BSHUnaryExpression
+INJECT PreIncrementExpression : extends bsh.BSHUnaryExpression
+INJECT RelationalExpression : extends bsh.BSHBinaryExpression
+INJECT ShiftExpression : extends bsh.BSHBinaryExpression
+INJECT TernaryExpression : extends bsh.BSHTernaryExpression
+INJECT UnaryExpression : extends bsh.BSHUnaryExpression
+INJECT UnaryExpressionNotPlusMinus : extends bsh.BSHUnaryExpression
+INJECT AllocationExpression : extends bsh.BSHAllocationExpression
+INJECT LiteralExpression : extends bsh.BSHLiteral
+INJECT Name : extends bsh.BSHAmbiguousName
+INJECT ArrayAccess : extends bsh.BSHPrimaryExpression // This is maybe not quite right
 
 UNPARSED : /* COMMENTS */
  <HASH_BANG_COMMENT: "#!" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>

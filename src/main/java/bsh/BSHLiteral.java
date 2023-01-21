@@ -30,7 +30,7 @@ package bsh;
 
 import bsh.legacy.*;
 
-public final class BSHLiteral extends SimpleNode
+public class BSHLiteral extends SimpleNode
 {
     public static volatile boolean internStrings = true;
 

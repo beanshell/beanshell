@@ -97,9 +97,8 @@ public class JJTParserState implements java.io.Serializable {
       poppedNodes.add(popNode());
     }
     Collections.reverse(poppedNodes);
-    int index = 0;
     for (Node child : poppedNodes) {
-      n.addChild(index++, child);
+      n.addChild(child);
       child.setParent(n);
     }
     n.close();
@@ -122,9 +121,8 @@ public class JJTParserState implements java.io.Serializable {
         poppedNodes.add(popNode());
       }
       Collections.reverse(poppedNodes);
-      int index = 0;
       for (Node child : poppedNodes) {
-        n.addChild(index++, child);
+        n.addChild(child);
         child.setParent(n);
       }
       n.close();
