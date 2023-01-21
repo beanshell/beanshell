@@ -29,21 +29,54 @@
 package bsh;
 import bsh.legacy.*;
 import bsh.congo.parser.Node;
+import bsh.congo.parser.BeanshellConstants.TokenType;
+import bsh.congo.tree.EmptyStatement;
+import bsh.congo.tree.Expression;
 
-public class BSHIfStatement extends SimpleNode {
-    public boolean isClosed;
+public class BSHIfStatement extends SimpleNode
+{
+    private boolean closed;
+
+    public boolean isClosed() {
+        return closed || firstChildOfType(EmptyStatement.class) != null;
+    }
+
+    public void setClosed(boolean closed) {
+        this.closed = closed;
+    }
+
+    private Node getCondition() {
+        return isLegacyNode() ? getChild(0) : firstChildOfType(Expression.class);
+    }
+
+    private Node getBody() {
+        if (isLegacyNode()) {
+            return isClosed() ? null : getChild(1);
+        }
+        return firstChildOfType(TokenType.RPAREN).nextSibling();
+    }
+
+    private Node getElseBlock() {
+        if (isLegacyNode()) {
+            if (isClosed()) {
+                return getChildCount() > 1 ? getChild(1) : null;
+            }
+            return getChildCount() > 2 ? getChild(2)  : null;
+        }
+        Node elseNode = firstChildOfType(TokenType.ELSE);
+        return elseNode != null ? elseNode.nextSibling() : null;
+    }
 
     public Object eval(CallStack callstack, Interpreter interpreter)
             throws EvalError {
         Object ret = null;
-        if(evaluateCondition(getChild(0), callstack, interpreter)) {
-            if (!isClosed)
-                ret = getChild(1).eval(callstack, interpreter);
+        if(evaluateCondition(getCondition(), callstack, interpreter)) {
+            if (!isClosed())
+                ret = getBody().eval(callstack, interpreter);
         } else {
-            if (getChildCount() > 2)
-                ret = getChild(2).eval(callstack, interpreter);
-            else if (isClosed)
-                ret = getChild(1).eval(callstack, interpreter);
+            Node elseBlock = getElseBlock();
+            if (elseBlock !=null) 
+                ret = elseBlock.eval(callstack, interpreter);
         }
         if (ret instanceof ReturnControl)
             return ret;

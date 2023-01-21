@@ -74,7 +74,7 @@ public class NodeStringTest {
     public void test_assignment_string() {
         BSHAssignment node = new BSHAssignment();
         assertEquals("Assignment", node.toString());
-        node.operator = ParserConstants.EOF;
+        node.setOperator(ParserConstants.EOF);
         assertEquals("Assignment: <EOF>", node.toString());
     }
 

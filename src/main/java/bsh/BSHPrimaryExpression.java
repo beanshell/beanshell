@@ -52,8 +52,8 @@ public class BSHPrimaryExpression extends SimpleNode
     void setArrayExpression(BSHArrayInitializer init) {
         this.isArrayExpression = true;
         if ( getParent() instanceof BSHAssignment
-                && ((BSHAssignment) getParent()).operator != null
-                && (isMapExpression = (((BSHAssignment) getParent()).operator
+                && ((BSHAssignment) getParent()).getOperator() != null
+                && (isMapExpression = (((BSHAssignment) getParent()).getOperator()
                         == ParserConstants.ASSIGN))
                 && init.getParent() instanceof BSHArrayInitializer )
             init.setMapInArray(true);

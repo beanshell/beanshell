@@ -1423,7 +1423,7 @@ if (jjtc000) {
       case RUNSIGNEDSHIFTASSIGNX:
       case NULLCOALESCEASSIGN:{
         op = AssignmentOperator();
-jjtn000.operator = op;
+        jjtn000.setOperator(op);
         Expression();
         break;
         }
@@ -3787,7 +3787,7 @@ if (jjtc000) {
       switch (jj_ntk == -1 ? jj_ntk_f() : jj_ntk) {
       case SEMICOLON:{
         jj_consume_token(SEMICOLON);
-jjtn000.isClosed = true;
+jjtn000.setClosed(true);
         break;
         }
       default:

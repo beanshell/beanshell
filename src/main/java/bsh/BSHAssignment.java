@@ -26,11 +26,40 @@
 
 package bsh;
 
+import bsh.congo.tree.Operator;
 import bsh.legacy.*;
 
 public class BSHAssignment extends SimpleNode implements ParserConstants {
     private static final long serialVersionUID = 1L;
-    public Integer operator;
+    private Integer operator;
+
+    public void setOperator(int operator) {
+        this.operator = operator;
+    }
+
+    public Integer getOperator() {
+        if (operator == null) {
+            bsh.congo.parser.Token tok = firstChildOfType(Operator.class);
+            if (tok != null) switch(tok.getType()) {
+                case ASSIGN : operator = ASSIGN; break;
+                case PLUSASSIGN : operator = PLUSASSIGN; break;
+                case MINUSASSIGN : operator = MINUSASSIGN; break;
+                case STARASSIGN : operator = STARASSIGN; break;
+                case SLASHASSIGN : operator = SLASHASSIGN; break;
+                case REMASSIGN : operator = MODASSIGN; break;
+                case LSHIFTASSIGN : operator = LSHIFTASSIGN; break;
+                case RSIGNEDSHIFTASSIGN : operator = RSIGNEDSHIFTASSIGN; break;
+                case RUNSIGNEDSHIFTASSIGN : operator = RUNSIGNEDSHIFTASSIGN; break;
+                case ANDASSIGN :operator = ANDASSIGN; break;
+                case XORASSIGN : operator = XORASSIGN; break;
+                case ORASSIGN : operator = ORASSIGN; break;
+                case POWERASSIGN : operator = POWERASSIGN; break;
+                case NULLCOALESCEASSIGN : operator = NULLCOALESCEASSIGN; break;
+                default: break;
+            }
+        }
+        return operator;
+    }
 
     public Object eval(CallStack callstack, Interpreter interpreter)
             throws EvalError {
