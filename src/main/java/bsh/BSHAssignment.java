@@ -63,14 +63,13 @@ public class BSHAssignment extends SimpleNode implements ParserConstants {
 
     public Object eval(CallStack callstack, Interpreter interpreter)
             throws EvalError {
-        if ( null == operator ) try {
+        if ( getOperator() == null ) try {
             return getChild(0).eval(callstack, interpreter);
         } catch (SafeNavigate aborted) {
             return Primitive.NULL;
         }
 
-        BSHPrimaryExpression lhsNode =
-            (BSHPrimaryExpression) getChild(0);
+        BSHPrimaryExpression lhsNode = firstChildOfType(BSHPrimaryExpression.class);
 
         boolean strictJava = interpreter.getStrictJava();
         LHS lhs = lhsNode.toLHS( callstack, interpreter);

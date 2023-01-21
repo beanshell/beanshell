@@ -122,6 +122,10 @@ INJECT LiteralExpression : extends bsh.BSHLiteral
 INJECT Name : extends bsh.BSHAmbiguousName
 INJECT ArrayAccess : extends bsh.BSHPrimaryExpression // This is maybe not quite right
 
+INJECT ClassDeclaration : extends bsh.BSHClassDeclaration
+INJECT InterfaceDeclaration : extends bsh.BSHClassDeclaration
+INJECT EnumDeclaration : extends bsh.BSHClassDeclaration
+
 UNPARSED : /* COMMENTS */
  <HASH_BANG_COMMENT: "#!" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
 // | <MULTI_LINE_COMMENT:
