@@ -28,6 +28,11 @@
 
 package bsh;
 
+import bsh.congo.tree.BreakStatement;
+import bsh.congo.tree.ContinueStatement;
+import bsh.congo.tree.Expression;
+import bsh.congo.tree.ReturnStatement;
+import bsh.congo.parser.Node;
 import bsh.legacy.*;
 
 public class BSHReturnStatement extends SimpleNode implements ParserConstants
@@ -35,22 +40,36 @@ public class BSHReturnStatement extends SimpleNode implements ParserConstants
     public int kind;
     public String label;
 
+    public int getKind() {
+        if (this instanceof ReturnStatement) return RETURN;
+        if (this instanceof BreakStatement) return BREAK;
+        if (this instanceof ContinueStatement) return CONTINUE;
+        return kind;
+    }
+
+    Node getReturnExpression() {
+        if (isLegacyNode()) {
+            return getChildCount() > 0 ? getChild(0) : null;
+        }
+        return firstChildOfType(Expression.class);
+    }
+
     public Object eval(CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
         if (null != label)
             return new ReturnControl(kind, label, this);
         Object value;
-        if(getChildCount() > 0)
-            value = getChild(0).eval(callstack, interpreter);
+        Node returnExp = getReturnExpression(); 
+        if (returnExp != null)
+            value = returnExp.eval(callstack, interpreter);
         else
             value = Primitive.VOID;
-
         return new ReturnControl( kind, value, this );
     }
 
     @Override
     public String toString() {
-        return super.toString() + ": " + tokenImage[kind] + " " + label + ":";
+        return isLegacyNode() ? super.toString() + ": " + tokenImage[kind] + " " + label + ":" : super.toString();
     }
 }

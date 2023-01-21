@@ -5,6 +5,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import bsh.congo.parser.Node;
 import bsh.congo.parser.BeanshellParser;
@@ -23,8 +24,10 @@ public class TestHarness {
              System.exit(-1);
         }
         BeanshellParser parser = new BeanshellParser(path);
+        List<Node> statements = parser.Statements();
+        if (statements.size() == 1) statements.get(0).dump();
         for (Node n : parser.Statements()) {
-            n.dump();
+            System.out.println(n.getClass().getSimpleName() + ":" + n.getLocation());
         }
     }
 

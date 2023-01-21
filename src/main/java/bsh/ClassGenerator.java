@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 public final class ClassGenerator {
 
@@ -208,7 +209,7 @@ public final class ClassGenerator {
      * initializer or instance initializer. In the static case only static
      * members are passed, etc.
      */
-    static class ClassNodeFilter implements BSHBlock.NodeFilter {
+    static class ClassNodeFilter implements Predicate<Node> {
         private enum Context { STATIC, INSTANCE, CLASSES }
         private enum Types { ALL, METHODS, FIELDS }
         public static ClassNodeFilter CLASSSTATICFIELDS = new ClassNodeFilter(Context.STATIC, Types.FIELDS);
@@ -230,7 +231,7 @@ public final class ClassGenerator {
         }
 
         @Override
-        public boolean isVisible(Node node) {
+        public boolean test(Node node) {
             if (context == Context.CLASSES) return node instanceof BSHClassDeclaration;
 
             // Only show class decs in CLASSES

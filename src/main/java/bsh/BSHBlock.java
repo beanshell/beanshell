@@ -30,8 +30,11 @@ package bsh;
 
 import bsh.legacy.*;
 import bsh.congo.parser.Node;
+import bsh.congo.tree.SynchronizedStatement;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 /** A node reprresenting a code block */
 public class BSHBlock extends SimpleNode {
@@ -40,6 +43,10 @@ public class BSHBlock extends SimpleNode {
 
     /** Whether the block needs to be synchronized */
     public boolean isSynchronized = false;
+
+    public boolean isSynchronized() {
+        return isSynchronized || this instanceof SynchronizedStatement;
+    }
 
     /** This block has a static modifier. To be used as a static
      * initialization block within a class. */
@@ -94,7 +101,7 @@ public class BSHBlock extends SimpleNode {
     public Object eval( CallStack callstack, Interpreter interpreter,
             Boolean overrideNamespace ) throws EvalError {
 
-        if ( isSynchronized ) {
+        if ( isSynchronized() ) {
             // First node is the expression on which to sync
             Node exp = getChild(0);
             Object syncValue = exp.eval(callstack, interpreter);
@@ -108,7 +115,7 @@ public class BSHBlock extends SimpleNode {
     }
 
     Object evalBlock( CallStack callstack, Interpreter interpreter,
-            Boolean overrideNamespace, NodeFilter nodeFilter ) throws EvalError {
+            Boolean overrideNamespace, Predicate<Node> nodeFilter ) throws EvalError {
 
         Object ret = Primitive.VOID;
         final NameSpace enclosingNameSpace;
@@ -120,7 +127,8 @@ public class BSHBlock extends SimpleNode {
                 new BlockNameSpace(callstack.top(), blockId));
         else enclosingNameSpace = null;
 
-        int startChild = isSynchronized ? 1 : 0;
+        // TODO
+        int startChild = isSynchronized() ? 1 : 0;
         int numChildren = getChildCount();
 
         try {
@@ -130,7 +138,7 @@ public class BSHBlock extends SimpleNode {
                 for (int i = startChild; i < numChildren; i++) {
                     Node node = getChild(i);
 
-                    if ( nodeFilter != null && !nodeFilter.isVisible( node ) )
+                    if ( nodeFilter != null && !nodeFilter.test( node ) )
                         continue;
 
                     if ( node instanceof BSHClassDeclaration ) {
@@ -147,7 +155,7 @@ public class BSHBlock extends SimpleNode {
                     continue;
 
                 // filter nodes
-                if ( nodeFilter != null && !nodeFilter.isVisible( node ) )
+                if ( nodeFilter != null && !nodeFilter.test( node ) )
                     continue;
 
                 // enum blocks need to override enum class members
@@ -179,13 +187,9 @@ public class BSHBlock extends SimpleNode {
         }
     }
 
-    public interface NodeFilter {
-        public boolean isVisible( Node node );
-    }
-
     @Override
     public String toString() {
-        return super.toString() + ": static=" + isStatic + ", synchronized=" + isSynchronized;
+        return super.toString() + ": static=" + isStatic + ", synchronized=" + isSynchronized();
     }
 }
 

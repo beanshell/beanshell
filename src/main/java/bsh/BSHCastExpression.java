@@ -30,6 +30,8 @@ package bsh;
 
 import bsh.legacy.*;
 import bsh.congo.parser.Node;
+import bsh.congo.tree.Expression;
+import bsh.congo.tree.Type;
 
 /**
     Implement casts.
@@ -40,15 +42,26 @@ import bsh.congo.parser.Node;
 */
 public class BSHCastExpression extends SimpleNode {
 
+    public Node getTypeNode() {
+        if (isLegacyNode()) return getChild(0);
+        return firstChildOfType(Type.class);
+    }
+
+    public Node getExpressionNode() {
+        if (isLegacyNode()) return getChild(1);
+        return firstChildOfType(Expression.class);
+    }
+
     /**
         @return the result of the cast.
     */
     public Object eval(
         CallStack callstack, Interpreter interpreter ) throws EvalError
     {
-        Class toType = ((BSHType)getChild(0)).getType(
+        // TODO
+        Class<?> toType = ((BSHType)getTypeNode()).getType(
             callstack, interpreter );
-        Node expression = getChild(1);
+        Node expression = getExpressionNode();
 
         // evaluate the expression
         Object fromValue = expression.eval(callstack, interpreter);
@@ -61,5 +74,4 @@ public class BSHCastExpression extends SimpleNode {
             throw e.toEvalError( this, callstack  );
         }
     }
-
 }
