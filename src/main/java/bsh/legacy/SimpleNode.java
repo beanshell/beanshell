@@ -29,7 +29,6 @@ import bsh.congo.parser.Node;
 import bsh.congo.parser.BaseNode;
 import java.io.Serializable;
 import java.util.List;
-import java.util.ArrayList;
 
 /*
     Note: great care (and lots of typing) were taken to insure that the
@@ -58,85 +57,32 @@ public class SimpleNode extends BaseNode implements Serializable {
     /** the source of the text from which this was parsed */
     private String sourceFile;
 
-    private Node[] nodes = new Node[0];
-
-    public void addChild(Node n) {
-        super.addChild(n);
-        Node[] newNodes = new Node[nodes.length+1];
-        for (int i = 0; i< nodes.length; i++) {
-            newNodes[i] = nodes[i];
-        }
-        newNodes[nodes.length] = n;
-        this.nodes = newNodes;
-    }
-
     /** {@inheritDoc} */
     @Override
     public void addChild(int i, Node n) {
-        if (i>nodes.length) {
+        if (i>getChildCount()) {
             throw new ArrayIndexOutOfBoundsException();
         }
-        else if (i == nodes.length) {
-            Node c[] = new Node[nodes.length + 1];
-            for (int j = 0; j< nodes.length; j++) {
-                c[j] = nodes[j];
-            }
-            nodes = c;
-            nodes[i] = n;
-            super.addChild(i, n);
+        else if (i == getChildCount()) {
+            super.addChild(n);
         }
         else {
-           nodes[i] = n;
            setChild(i, n);
         }
     }
 
-    public Node removeChild(int i) {
-        Node[] newNodes = new Node[nodes.length-1];
-        for (int j = 0; j < i; j++) {
-            newNodes[j] = nodes[j];
-        }
-        for (int j = i + 1; j < nodes.length; j++) {
-            newNodes[j-1] = nodes[j];
-        }
-        this.nodes = newNodes;
-        return super.removeChild(i);        
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public Node getChild(int i) { return nodes[i]; }
 
     /** {@inheritDoc} */
     //@Override
     final public List<Node> getNodes() {
-        List<Node> result = new ArrayList<>();
-        for (Node n : nodes) {
-            result.add(n);
-        }
-        return result;
-    }
-    /** {@inheritDoc} */
-    @Override
-    final public int getChildCount() {
-//        if (super.getChildCount() != nodes.length) {
-//            System.err.println("KILROY: " + getClass().getSimpleName());
-//        }
-        return nodes.length;
-//        return getNodes().length;
+        return children();
     }
 
     protected void setNodes(Node... nodes) {
-//        this.nodes = nodes;
         clearChildren();
         for (Node n : nodes) {
             addChild(n);
         }
-    }
-
-    public void clearChildren() {
-        super.clearChildren();
-        nodes = new Node[0];
     }
 
     /** {@inheritDoc} */
@@ -152,10 +98,8 @@ public class SimpleNode extends BaseNode implements Serializable {
     @Override
     public void dump(String prefix) {
         System.out.println(toString(prefix));
-        if (nodes != null) for (int i = 0; i < nodes.length; ++i) {
-            Node n = nodes[i];
-            if (n != null)
-                n.dump(prefix + " ");
+        for (Node n : children()) {
+            if (n != null) n.dump(prefix + " ");
         }
     }
 

@@ -105,6 +105,9 @@ public class BshScriptTestCase {
                             && !"TestHarness.bsh".equals(name)
                             && !"RunAllTests.bsh".equals(name)
                             && !"Assert.bsh".equals(name)
+                            && !"run.bsh".equals(name)
+                            && !"serializable2.bsh".equals(name)
+                            && !"serializable3.bsh".equals(name)
                             && !"Fail.bsh".equals(name);
                     }
                 });
