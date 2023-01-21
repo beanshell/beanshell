@@ -3890,7 +3890,7 @@ jjtree.closeNodeScope(jjtn000, true);
       if (jjtree.nodeCreated()) {
        jjtreeCloseNodeScope(jjtn000);
       }
-jjtn000.isDoStatement=true;
+jjtn000.setDoStatement(true);
     } catch (Throwable jjte000) {
 if (jjtc000) {
       jjtree.clearNodeScope(jjtn000);

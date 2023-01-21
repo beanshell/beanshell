@@ -27,6 +27,8 @@
 
 package bsh;
 
+import java.util.List;
+
 import bsh.legacy.*;
 
 public class BSHTypedVariableDeclaration extends SimpleNode {
@@ -35,7 +37,7 @@ public class BSHTypedVariableDeclaration extends SimpleNode {
     private BSHVariableDeclarator[] bvda;
 
     private BSHType getTypeNode() {
-        return ((BSHType)getChild(0));
+        return firstChildOfType(BSHType.class);
     }
 
     Class<?> evalType( CallStack callstack, Interpreter interpreter )
@@ -45,18 +47,9 @@ public class BSHTypedVariableDeclaration extends SimpleNode {
         return typeNode.getType( callstack, interpreter );
     }
 
-    BSHVariableDeclarator [] getDeclarators()
+    List<BSHVariableDeclarator> getDeclarators()
     {
-        if (null != bvda)
-            return bvda;
-        int n = getChildCount();
-        int start=1;
-        bvda = new BSHVariableDeclarator[ n-start ];
-        for (int i = start; i < n; i++)
-        {
-            bvda[i-start] = (BSHVariableDeclarator)getChild(i);
-        }
-        return bvda;
+        return childrenOfType(BSHVariableDeclarator.class);
     }
 
     /**
@@ -72,7 +65,7 @@ public class BSHTypedVariableDeclaration extends SimpleNode {
             BSHType typeNode = getTypeNode();
             Class<?> type = typeNode.getType( callstack, interpreter );
 
-            BSHVariableDeclarator [] bvda = getDeclarators();
+            BSHVariableDeclarator [] bvda = getDeclarators().toArray(new BSHVariableDeclarator[0]);
             for (int i = 0; i < bvda.length; i++)
             {
                 BSHVariableDeclarator dec = bvda[i];

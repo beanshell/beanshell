@@ -42,7 +42,15 @@ public class SimpleNode extends BaseNode implements Serializable {
 
     /** {@inheritDoc} */
     @Override
-    public String toString() {return getClass().getSimpleName().substring(3);}
+    public String toString() {
+        String result = getClass().getSimpleName();
+        if (result.startsWith("BSH")) result = result.substring(3);
+        return result;
+    }
+
+    protected boolean isLegacyNode() {
+        return getClass().getPackage().getName().indexOf("congo") == -1;
+    }
 
     /** {@inheritDoc} */
     @Override
@@ -51,9 +59,14 @@ public class SimpleNode extends BaseNode implements Serializable {
     /** {@inheritDoc} */
     @Override
     public void dump(String prefix) {
-        System.out.println(toString(prefix));
-        for (Node n : children()) {
-            if (n != null) n.dump(prefix + " ");
+        if (!isLegacyNode()) {
+            super.dump(prefix);
+        }
+        else {
+            System.out.println(toString(prefix));
+            for (Node n : children()) {
+                 if (n != null) n.dump(prefix + " ");
+            }
         }
     }
 

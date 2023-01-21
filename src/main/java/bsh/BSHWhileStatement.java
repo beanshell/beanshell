@@ -27,6 +27,8 @@ package bsh;
 
 import bsh.legacy.*;
 import bsh.congo.parser.Node;
+import bsh.congo.parser.BeanshellConstants.TokenType;
+import bsh.congo.tree.DoStatement;
 
 /**
  * This class handles both {@code while} statements and {@code do..while} statements.
@@ -36,23 +38,36 @@ public class BSHWhileStatement extends SimpleNode implements ParserConstants {
     /**
      * Set by Parser, default {@code false}
      */
-    public boolean isDoStatement;
+    private boolean doStatement;
     public String label;
+
+    public boolean isDoStatement() {
+        return this instanceof DoStatement || doStatement;
+    }
+
+    public void setDoStatement(boolean doStatement) {
+        this.doStatement = doStatement;
+    }
+
+    public Node getCondition() {
+        if (isLegacyNode()) {
+            return doStatement ? getChild(1) : getChild(0);
+        }
+        return firstChildOfType(TokenType.LPAREN).nextSibling();
+    }
+
+    public Node getBody() {
+        if (isLegacyNode()) {
+            return doStatement ? getChild(0) : getChildCount() > 1 ? getChild(1) : null;
+        }
+        return isDoStatement() ? getChild(1) : firstChildOfType(TokenType.RPAREN).nextSibling();
+    }
 
 
     public Object eval(CallStack callstack, Interpreter interpreter) throws EvalError {
-        int numChild = getChildCount();
-        // Order of body and condition is swapped for do / while
-        final Node condExp;
-        final Node body;
-        if (isDoStatement) {
-            condExp = getChild(1);
-            body = getChild(0);
-        } else {
-            condExp = getChild(0);
-            body = numChild > 1 ? getChild(1) : null;
-        }
-        boolean doOnceFlag = isDoStatement;
+        final Node condExp = getCondition();
+        final Node body = getBody();
+        boolean doOnceFlag = isDoStatement();
         while ( !Thread.interrupted()
                 && ( doOnceFlag || BSHIfStatement.evaluateCondition(condExp, callstack, interpreter)) ) {
             doOnceFlag = false;
@@ -79,6 +94,6 @@ public class BSHWhileStatement extends SimpleNode implements ParserConstants {
 
     @Override
     public String toString() {
-        return super.toString() + ": " + label + ": do=" + isDoStatement;
+        return super.toString() + ": " + label + ": do=" + doStatement;
     }
 }

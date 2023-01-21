@@ -35,7 +35,7 @@ public class BSHAutoCloseable extends BSHTypedVariableDeclaration {
             throw new EvalError("The resource type "+ this.type.getName()
                 +" does not implement java.lang.AutoCloseable.", this, callstack);
 
-        this.name = this.getDeclarators()[0].name;
+        this.name = this.firstChildOfType(BSHVariableDeclarator.class).name;
 
         // we let BSHTypedVariableDeclaration do the heavy lifting
         super.eval(callstack, interpreter);

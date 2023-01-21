@@ -25,7 +25,6 @@
  *****************************************************************************/
 package bsh;
 
-import bsh.legacy.*;
 import bsh.congo.parser.Node;
 import static bsh.This.Keys.BSHSUPER;
 
@@ -150,36 +149,30 @@ public final class ClassGenerator {
     }
 
     static Variable[] getDeclaredVariables(BSHBlock body, CallStack callstack, Interpreter interpreter, String defaultPackage) {
-        List<Variable> vars = new ArrayList<Variable>();
-        for (int child = 0; child < body.getChildCount(); child++) {
-            Node node = body.getChild(child);
-            if (node instanceof BSHEnumConstant) {
-                BSHEnumConstant enm = (BSHEnumConstant) node;
+        List<Variable> vars = new ArrayList<>();
+        for (BSHEnumConstant enm : body.childrenOfType(BSHEnumConstant.class)) {
+            try {
+                Variable var = new Variable(enm.getName(),
+                        enm.getType(), null/*value*/, enm.mods);
+                vars.add(var);
+            } catch (UtilEvalError e) {
+                // value error shouldn't happen
+            }
+        }
+        for (BSHTypedVariableDeclaration tvd : body.childrenOfType(BSHTypedVariableDeclaration.class)) {
+            Modifiers modifiers = tvd.modifiers;
+            for (BSHVariableDeclarator aVardec : tvd.getDeclarators()) {
+                String name = aVardec.name;
                 try {
-                    Variable var = new Variable(enm.getName(),
-                            enm.getType(), null/*value*/, enm.mods);
+                    Class<?> type = tvd.evalType(callstack, interpreter);
+                    Variable var = new Variable(name, type, null/*value*/, modifiers);
                     vars.add(var);
-                } catch (UtilEvalError e) {
+                } catch (UtilEvalError | EvalError e) {
                     // value error shouldn't happen
-                }
-            } else if (node instanceof BSHTypedVariableDeclaration) {
-                BSHTypedVariableDeclaration tvd = (BSHTypedVariableDeclaration) node;
-                Modifiers modifiers = tvd.modifiers;
-                BSHVariableDeclarator[] vardec = tvd.getDeclarators();
-                for (BSHVariableDeclarator aVardec : vardec) {
-                    String name = aVardec.name;
-                    try {
-                        Class<?> type = tvd.evalType(callstack, interpreter);
-                        Variable var = new Variable(name, type, null/*value*/, modifiers);
-                        vars.add(var);
-                    } catch (UtilEvalError | EvalError e) {
-                        // value error shouldn't happen
-                    }
                 }
             }
         }
-
-        return vars.toArray(new Variable[vars.size()]);
+        return vars.toArray(new Variable[0]);
     }
 
     static DelayedEvalBshMethod[] getDeclaredMethods(BSHBlock body,
@@ -195,24 +188,18 @@ public final class ClassGenerator {
             DelayedEvalBshMethod bm = new DelayedEvalBshMethod(classBaseName, con, callstack.top());
             methods.add(bm);
         }
-        for (int child = 0; child < body.getChildCount(); child++) {
-            Node node = body.getChild(child);
-            if (node instanceof BSHMethodDeclaration) {
-                BSHMethodDeclaration md = (BSHMethodDeclaration) node;
-                md.insureNodesParsed();
-                Modifiers modifiers = md.modifiers;
-                String name = md.name;
-                String returnType = md.getReturnTypeDescriptor(callstack, interpreter, defaultPackage);
-                BSHReturnType returnTypeNode = md.getReturnTypeNode();
-                BSHFormalParameters paramTypesNode = md.paramsNode;
-                String[] paramTypes = paramTypesNode.getTypeDescriptors(callstack, interpreter, defaultPackage);
-
-                DelayedEvalBshMethod bm = new DelayedEvalBshMethod(name, returnType, returnTypeNode, md.paramsNode.getParamNames(), paramTypes, paramTypesNode, md.blockNode, null/*declaringNameSpace*/, modifiers, md.isVarArgs, callstack, interpreter);
-
-                methods.add(bm);
-            }
+        for (BSHMethodDeclaration md : body.childrenOfType(BSHMethodDeclaration.class)) {
+            md.insureNodesParsed();
+            Modifiers modifiers = md.modifiers;
+            String name = md.name;
+            String returnType = md.getReturnTypeDescriptor(callstack, interpreter, defaultPackage);
+            BSHReturnType returnTypeNode = md.getReturnTypeNode();
+            BSHFormalParameters paramTypesNode = md.paramsNode;
+            String[] paramTypes = paramTypesNode.getTypeDescriptors(callstack, interpreter, defaultPackage);
+            DelayedEvalBshMethod bm = new DelayedEvalBshMethod(name, returnType, returnTypeNode, md.paramsNode.getParamNames(), paramTypes, paramTypesNode, md.blockNode, null/*declaringNameSpace*/, modifiers, md.isVarArgs, callstack, interpreter);
+            methods.add(bm);
         }
-        return methods.toArray(new DelayedEvalBshMethod[methods.size()]);
+        return methods.toArray(new DelayedEvalBshMethod[0]);
     }
 
 
