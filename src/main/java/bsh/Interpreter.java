@@ -115,6 +115,33 @@ public class Interpreter
     public static boolean COMPATIBIILTY;
     public static final String VERSION;
 
+    public static final Node JAVACODE = new SimpleNode() {
+        private static final long serialVersionUID = 1L;
+
+        public String getSourceFile()
+         {
+            return "<Called from Java Code>";
+        }
+
+        public int getLineNumber()
+         {
+            return -1;
+        }
+
+        public String getText()
+         {
+            return "<Compiled Java Code>";
+        }
+
+        public String toString()
+         {
+            return "JavaCode";
+        }
+
+    }
+    ;
+
+
     static {
         ResourceBundle b = ResourceBundle.getBundle("version");
         VERSION = b.getString("release") + "." + b.getString("build");
@@ -874,7 +901,7 @@ public class Interpreter
             Object ret = globalNameSpace.get( name, this );
             return Primitive.unwrap( ret );
         } catch ( UtilEvalError e ) {
-            throw e.toEvalError( Node.JAVACODE, new CallStack() );
+            throw e.toEvalError( JAVACODE, new CallStack() );
         }
     }
 
@@ -903,7 +930,7 @@ public class Interpreter
             else // optimization for common case
                 globalNameSpace.setVariable(name, value, false);
         } catch (UtilEvalError e) {
-            throw e.toEvalError(Node.JAVACODE, callstack);
+            throw e.toEvalError(JAVACODE, callstack);
         }
     }
 
@@ -952,12 +979,12 @@ public class Interpreter
 
             if ( lhs.type != LHS.VARIABLE )
                 throw new EvalError("Can't unset, not a variable: "+name,
-                    Node.JAVACODE, new CallStack());
+                    JAVACODE, new CallStack());
 
             lhs.nameSpace.unsetVariable( lhs.getName() );
         } catch ( UtilEvalError e ) {
             throw new EvalError( e.getMessage(),
-                Node.JAVACODE, new CallStack(), e);
+                JAVACODE, new CallStack(), e);
         }
     }
 

@@ -1,6 +1,5 @@
 package bsh;
 
-import bsh.legacy.*;
 import bsh.congo.parser.Node;
 import java.io.PrintStream;
 import java.io.StringReader;
@@ -75,7 +74,7 @@ public class PreparsedScript {
             local.set(entry.getKey(), entry.getValue());
 
         return Primitive.unwrap(prepared.invoke(Reflect.ZERO_ARGS,
-                local, new CallStack(scope), Node.JAVACODE, true));
+                local, new CallStack(scope), Interpreter.JAVACODE, true));
     }
 
     /** Attach a standard output stream.

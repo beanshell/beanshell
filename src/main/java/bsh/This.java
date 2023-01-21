@@ -377,7 +377,7 @@ public final class This implements java.io.Serializable, Runnable
         if ( callstack == null )
             callstack = new CallStack( namespace );
         if ( callerInfo == null )
-            callerInfo = Node.JAVACODE;
+            callerInfo = Interpreter.JAVACODE;
 
         // Find the bsh method
         Class<?>[] types = Types.getTypes( args );

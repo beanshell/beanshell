@@ -16,7 +16,6 @@ LEGACY_GLITCHY_LOOKAHEAD=false;
 
 INJECT Node :
 import bsh.*;
-import bsh.legacy.SimpleNode;
 {
     /** This is the general signature for evaluation of a node.
      * @param callstack evaluation call stack
@@ -27,22 +26,6 @@ import bsh.legacy.SimpleNode;
       throw new InterpreterError(
             "Unimplemented or inappropriate for " + getClass().getName() );
     }
-
-    Node JAVACODE = new SimpleNode() {
-        private static final long serialVersionUID = 1L;
-        public String getSourceFile() {
-            return "<Called from Java Code>";
-        }
-        public int getLineNumber() {
-            return -1;
-        }
-        public String getText()  {
-            return "<Compiled Java Code>";
-        }
-        public String toString() {
-            return "JavaCode";
-        }
-    };
 
     default String getSourceFile() {return getInputSource();}
 
