@@ -21,16 +21,10 @@ import bsh.legacy.ParserConstants;
 public class BSHLabeledStatement extends BaseNode implements ParserConstants {
     public String label;
 
+    public String getLabel() {return label;}
+
     public Object eval( CallStack callstack, Interpreter interpreter ) throws EvalError {
         if (getChildCount() > 0) {
-
-            // pass continue labels onto loops to handle in loop
-            if (getChild(0) instanceof BSHForStatement)
-                ((BSHForStatement)getChild(0)).label = label;
-            else if (getChild(0) instanceof BSHEnhancedForStatement)
-                ((BSHEnhancedForStatement)getChild(0)).label = label;
-            else if (getChild(0) instanceof BSHWhileStatement)
-                ((BSHWhileStatement)getChild(0)).label = label;
 
             Object retrn = getChild(0).eval(callstack, interpreter);
 
@@ -58,4 +52,3 @@ public class BSHLabeledStatement extends BaseNode implements ParserConstants {
         return super.toString() + ": " + label + ":";
     }
 }
-/* ParserGeneratorCC - OriginalChecksum=38819a41232c844db8da78bbd92f9430 (do not edit this line) */

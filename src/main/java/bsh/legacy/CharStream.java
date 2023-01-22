@@ -147,4 +147,3 @@ interface CharStream {
    */
   void setTrackLineColumn(boolean trackLineColumn);
 }
-/* ParserGeneratorCC - OriginalChecksum=360312946e8e4167662a142e195fb49c (do not edit this line) */

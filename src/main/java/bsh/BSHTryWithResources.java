@@ -41,4 +41,3 @@ public class BSHTryWithResources extends BaseNode {
         return thrown;
     }
 }
-/* JavaCC - OriginalChecksum=08f0fcca24c39792c40d25b047261c1c (do not edit this line) */

@@ -42,12 +42,10 @@ public class BSHForStatement extends BaseNode implements ParserConstants
     public boolean hasExpression;
     public boolean hasForUpdate;
 
-    public String label;
-
     public BSHForStatement() {
         blockId = BlockNameSpace.blockCount.incrementAndGet();
     }
-
+    
     public Object eval(CallStack callstack , Interpreter interpreter) throws EvalError {
         int i = 0;
         final Node forInit = hasForInit ? getChild(i++) : null;
@@ -89,9 +87,11 @@ public class BSHForStatement extends BaseNode implements ParserConstants
                     if (ret instanceof ReturnControl) {
                         ReturnControl control = (ReturnControl)ret;
 
-                        if (null != control.label)
+                        if (null != control.label) {
+                            String label = getLabel();
                             if (null == label || !label.equals(control.label))
                                 return ret;
+                        }
 
                         if (control.kind == RETURN)
                             return ret;
@@ -110,6 +110,6 @@ public class BSHForStatement extends BaseNode implements ParserConstants
 
     @Override
     public String toString() {
-        return super.toString() + ": " + label + ": " + hasForInit + " ; " + hasExpression + " ; " + hasForUpdate;
+        return super.toString() + ": " + getLabel() + ": " + hasForInit + " ; " + hasExpression + " ; " + hasForUpdate;
     }
 }

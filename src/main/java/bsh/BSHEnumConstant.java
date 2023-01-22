@@ -66,4 +66,3 @@ public class BSHEnumConstant extends BaseNode {
         return super.toString() + ": " + mods + " " + getType() + " " + name;
     }
 }
-/* JavaCC - OriginalChecksum=6bf5bca59c6d351657103c4ff0e8d054 (do not edit this line) */

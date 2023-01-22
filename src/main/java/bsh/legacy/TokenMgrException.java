@@ -168,4 +168,3 @@ public class TokenMgrException extends RuntimeException
     this(LexicalErr(EOFSeen, lexState, errorLine, errorColumn, errorAfter, curChar), reason);
   }
 }
-/* ParserGeneratorCC - OriginalChecksum=c9dabb0556e3ecda5588240f0a25e387 (do not edit this line) */

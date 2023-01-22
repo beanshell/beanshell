@@ -25,22 +25,20 @@
  *****************************************************************************/
 package bsh;
 
-import bsh.legacy.*;
+import bsh.legacy.ParserConstants;
 import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.Node;
-import bsh.congo.parser.BeanshellConstants.TokenType;
 import bsh.congo.tree.DoStatement;
 
 /**
  * This class handles both {@code while} statements and {@code do..while} statements.
  */
-public class BSHWhileStatement extends BaseNode implements ParserConstants {
+public class BSHWhileStatement extends BaseNode {
 
     /**
      * Set by Parser, default {@code false}
      */
     private boolean doStatement;
-    public String label;
 
     public boolean isDoStatement() {
         return this instanceof DoStatement || doStatement;
@@ -50,23 +48,16 @@ public class BSHWhileStatement extends BaseNode implements ParserConstants {
         this.doStatement = doStatement;
     }
 
-    public Node getCondition() {
-        if (isLegacyNode()) {
-            return doStatement ? getChild(1) : getChild(0);
-        }
-        return firstChildOfType(TokenType.LPAREN).nextSibling();
+    public Node getConditionNode() {
+        return doStatement ? getChild(1) : getChild(0);
     }
 
     public Node getBody() {
-        if (isLegacyNode()) {
-            return doStatement ? getChild(0) : getChildCount() > 1 ? getChild(1) : null;
-        }
-        return isDoStatement() ? getChild(1) : firstChildOfType(TokenType.RPAREN).nextSibling();
+        return doStatement ? getChild(0) : getChildCount() > 1 ? getChild(1) : null;
     }
 
-
     public Object eval(CallStack callstack, Interpreter interpreter) throws EvalError {
-        final Node condExp = getCondition();
+        final Node condExp = getConditionNode();
         final Node body = getBody();
         boolean doOnceFlag = isDoStatement();
         while ( !Thread.interrupted()
@@ -79,13 +70,15 @@ public class BSHWhileStatement extends BaseNode implements ParserConstants {
             if (ret instanceof ReturnControl) {
                 ReturnControl control = (ReturnControl)ret;
 
-                if (null != control.label)
+                if (null != control.label) {
+                    String label = getLabel();
                     if (null == label || !label.equals(control.label))
                         return ret;
+                }
 
-                if (control.kind == RETURN)
+                if (control.kind == ParserConstants.RETURN)
                     return ret;
-                else if (control.kind == BREAK)
+                else if (control.kind == ParserConstants.BREAK)
                     break;
                 // if CONTINUE we just carry on
             }
@@ -95,6 +88,6 @@ public class BSHWhileStatement extends BaseNode implements ParserConstants {
 
     @Override
     public String toString() {
-        return super.toString() + ": " + label + ": do=" + doStatement;
+        return super.toString() + ": " + getLabel() + ": do=" + doStatement;
     }
 }

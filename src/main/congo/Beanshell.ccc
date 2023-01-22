@@ -15,7 +15,10 @@ BASE_SRC_DIR="../java";
 LEGACY_GLITCHY_LOOKAHEAD=false;
 
 INJECT Node :
-import bsh.*;
+import bsh.CallStack;
+import bsh.Interpreter;
+import bsh.InterpreterError;
+import bsh.EvalError;
 {
     /** This is the general signature for evaluation of a node.
      * @param callstack evaluation call stack
@@ -44,7 +47,9 @@ import bsh.*;
     default void setText(String text) { /* default implementation does nothing */}
 }
 
-INJECT BaseNode : implements java.io.Serializable
+INJECT BaseNode : 
+import bsh.BSHLabeledStatement;
+implements java.io.Serializable
 {
     private static final long serialVersionUID = 1L;
   
@@ -78,6 +83,13 @@ INJECT BaseNode : implements java.io.Serializable
         if (result.startsWith("BSH")) result = result.substring(3);
         return result;
     }
+
+    protected String getLabel() {
+        if (getParent() instanceof BSHLabeledStatement) {
+            return ((BSHLabeledStatement) getParent()).getLabel();
+        }
+        return null;
+    }    
 }
 
 TOKEN : 
@@ -88,21 +100,50 @@ TOKEN :
 
 INCLUDE JAVA
 
-INJECT DoStatement : extends bsh.BSHWhileStatement
 INJECT BasicForStatement : extends bsh.BSHForStatement
 INJECT BreakStatement : extends bsh.BSHReturnStatement
 INJECT CodeBlock : extends bsh.BSHBlock
 INJECT ContinueStatement : extends bsh.BSHReturnStatement
 INJECT EnhancedForStatement : extends bsh.BSHEnhancedForStatement
 INJECT IfStatement : extends bsh.BSHIfStatement
-INJECT LabeledStatement : extends bsh.BSHLabeledStatement
 INJECT LocalVariableDeclaration : extends bsh.BSHTypedVariableDeclaration
 INJECT ReturnStatement : extends bsh.BSHReturnStatement
 INJECT SwitchStatement : extends bsh.BSHSwitchStatement
 INJECT SynchronizedStatement : extends bsh.BSHBlock
 INJECT ThrowStatement : extends bsh.BSHThrowStatement
 INJECT TryStatement : extends bsh.BSHTryStatement
+
+INJECT LabeledStatement : extends bsh.BSHLabeledStatement 
+{
+    public String getLabel() {
+        return firstDescendantOfType(Identifier.class).getImage();
+    }
+}
+
+INJECT DoStatement : extends bsh.BSHWhileStatement 
+{
+   @Override
+   public Node getConditionNode() {
+      return firstChildOfType(LPAREN).nextSibling();
+   }
+
+   public Node getBody() {
+       return firstChildOfType(DO).nextSibling();
+   }
+}
+
 INJECT WhileStatement : extends bsh.BSHWhileStatement
+{
+    @Override
+    public Node getConditionNode() {
+      return firstChildOfType(Expression.class);
+    }
+
+    @Override
+    public Node getBody() {
+        return firstChildOfType(Statement.class);
+    }
+}
 
 INJECT Expression :
 {  
@@ -123,6 +164,13 @@ INJECT ExclusiveOrExpression : extends bsh.BSHBinaryExpression
 INJECT ArrayInitializer : extends bsh.BSHArrayInitializer
 INJECT AssignmentExpression : extends bsh.BSHAssignment
 INJECT CastExpression : extends bsh.BSHCastExpression
+{
+   @Override
+   public Node getTypeNode() {return firstChildOfType(Type.class);}
+
+   @Override
+   public Node getExpressionNode() {return firstChildOfType(Expression.class);}
+}
 
 INJECT ConditionalAndExpression : extends bsh.BSHBinaryExpression
 INJECT ConditionalOrExpression : extends bsh.BSHBinaryExpression
@@ -504,3 +552,17 @@ Literal #void :
   // Added for Beanshell
   <VOID>
 ;
+
+ImportDeclaration :
+   <_IMPORT>
+   (
+      <STAR>
+      |
+      Name {Node nameNode = peekNode();}
+      [
+         <DOT> {nameNode.addChild(popNode());}
+         <STAR> {nameNode.addChild(popNode());}
+      ]
+   )
+   <SEMICOLON>
+; 

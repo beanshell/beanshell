@@ -37,18 +37,18 @@ import java.util.Iterator;
  *
  * @author Daniel Leuck
  * @author Pat Niemeyer
+ * @author Jonathan Revusky
  */
-public class BSHEnhancedForStatement extends BaseNode implements ParserConstants {
+public class BSHEnhancedForStatement extends BaseNode {
 
     final int blockId;
-    public String varName, label;
+    public String varName;
     public boolean isFinal = false;
 
 
     public BSHEnhancedForStatement() {
         blockId = BlockNameSpace.blockCount.incrementAndGet();
     }
-
 
     public Object eval(CallStack callstack, Interpreter interpreter) throws EvalError {
         Modifiers modifiers = new Modifiers(Modifiers.PARAMETER);
@@ -91,13 +91,15 @@ public class BSHEnhancedForStatement extends BaseNode implements ParserConstants
                 if (ret instanceof ReturnControl) {
                     ReturnControl control = (ReturnControl)ret;
 
-                    if (null != control.label)
+                    if (null != control.label) {
+                        String label = getLabel();
                         if (null == label || !label.equals(control.label))
                             return ret;
+                    }
 
-                    if (control.kind == RETURN)
+                    if (control.kind == ParserConstants.RETURN)
                         return ret;
-                    else if (control.kind == BREAK)
+                    else if (control.kind == ParserConstants.BREAK)
                         break;
                     // if CONTINUE we just carry on
                 }
@@ -110,6 +112,6 @@ public class BSHEnhancedForStatement extends BaseNode implements ParserConstants
 
     @Override
     public String toString() {
-        return super.toString() + ": " + label + ": " + varName + ", final=" + isFinal;
+        return super.toString() + ": " + getLabel() + ": " + varName + ", final=" + isFinal;
     }
 }

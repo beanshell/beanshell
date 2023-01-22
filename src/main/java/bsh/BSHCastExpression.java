@@ -43,13 +43,11 @@ import bsh.congo.tree.Type;
 public class BSHCastExpression extends BaseNode {
 
     public Node getTypeNode() {
-        if (isLegacyNode()) return getChild(0);
-        return firstChildOfType(Type.class);
+        return getChild(0);
     }
 
     public Node getExpressionNode() {
-        if (isLegacyNode()) return getChild(1);
-        return firstChildOfType(Expression.class);
+        return getChild(1);
     }
 
     /**
@@ -58,7 +56,7 @@ public class BSHCastExpression extends BaseNode {
     public Object eval(
         CallStack callstack, Interpreter interpreter ) throws EvalError
     {
-        // TODO
+        // TODO. This does not work for the Congo-generated Type node
         Class<?> toType = ((BSHType)getTypeNode()).getType(
             callstack, interpreter );
         Node expression = getExpressionNode();

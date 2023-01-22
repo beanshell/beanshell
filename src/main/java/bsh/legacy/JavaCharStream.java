@@ -350,4 +350,3 @@ class JavaCharStream extends AbstractCharStream
     super.done ();
   }
 }
-/* ParserGeneratorCC - OriginalChecksum=e620df263f67d3a771ffdbe472a66bf7 (do not edit this line) */

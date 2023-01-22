@@ -65,4 +65,3 @@ public class BSHMultiCatch extends BaseNode {
         return super.toString() + ": " + name + ", final=" + isFinal;
     }
 }
-/* JavaCC - OriginalChecksum=cc337eefa5f343b6ba168cc49758c10a (do not edit this line) */
