@@ -49,10 +49,6 @@ public class SimpleNode extends BaseNode implements Serializable {
 
     /** {@inheritDoc} */
     @Override
-    public String toString(String prefix) { return prefix + toString(); }
-
-    /** {@inheritDoc} */
-    @Override
     public void setSourceFile(String sourceFile) {
         this.sourceFile = sourceFile;
     }

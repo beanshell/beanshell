@@ -174,6 +174,17 @@ TOKEN #Operator :
   < ELVIS: "?:" >
 ;
 
+TOKEN :
+  <CHARACTER_LITERAL :
+      "'"
+      (   (~["'","\\","\n","\r"])
+          |
+          <STRING_ESCAPE>
+      )*
+      "'"
+  > #StringLiteral
+;  
+
 
 boolean Line :
   <EOF> {
