@@ -28,9 +28,9 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 
-public class BSHPackageDeclaration extends SimpleNode
+public class BSHPackageDeclaration extends BaseNode
 {
 
     public Object eval( CallStack callstack, Interpreter interpreter )

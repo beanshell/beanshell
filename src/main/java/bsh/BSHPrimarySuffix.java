@@ -25,13 +25,13 @@
  *****************************************************************************/
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.Node;
 import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Map.Entry;
 
-public class BSHPrimarySuffix extends SimpleNode
+public class BSHPrimarySuffix extends BaseNode
 {
     public static final int
         CLASS = 6,

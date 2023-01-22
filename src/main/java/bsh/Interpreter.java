@@ -28,6 +28,7 @@
 package bsh;
 
 import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.Node;
 import java.io.BufferedReader;
 import java.io.File;
@@ -115,7 +116,7 @@ public class Interpreter
     public static boolean COMPATIBIILTY;
     public static final String VERSION;
 
-    public static final Node JAVACODE = new SimpleNode() {
+    public static final Node JAVACODE = new BaseNode() {
         private static final long serialVersionUID = 1L;
 
         public String getSourceFile()
@@ -137,9 +138,7 @@ public class Interpreter
          {
             return "JavaCode";
         }
-
-    }
-    ;
+    };
 
 
     static {

@@ -27,7 +27,7 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,7 +36,7 @@ import static bsh.ClassGenerator.Type;
 
 /**
 */
-public class BSHClassDeclaration extends SimpleNode
+public class BSHClassDeclaration extends BaseNode
 {
     /**
         The class instance initializer method name.

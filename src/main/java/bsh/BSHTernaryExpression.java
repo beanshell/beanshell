@@ -28,7 +28,7 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.Node;
 
 /**
@@ -36,7 +36,7 @@ import bsh.congo.parser.Node;
     expressions from being naively evaluated...  e.g. for "foo && bar" bar
     should not be evaluated in the case where foo is true.
 */
-public class BSHTernaryExpression extends SimpleNode {
+public class BSHTernaryExpression extends BaseNode {
 
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError

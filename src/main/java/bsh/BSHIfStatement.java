@@ -27,13 +27,14 @@
 
 
 package bsh;
-import bsh.legacy.*;
+
+import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.Node;
 import bsh.congo.parser.BeanshellConstants.TokenType;
 import bsh.congo.tree.EmptyStatement;
 import bsh.congo.tree.Expression;
 
-public class BSHIfStatement extends SimpleNode
+public class BSHIfStatement extends BaseNode
 {
     private boolean closed;
 

@@ -26,9 +26,9 @@
 
 
 package bsh;
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 
-public class BSHSwitchLabel extends SimpleNode {
+public class BSHSwitchLabel extends BaseNode {
     public boolean isDefault;
 
     public Object eval(

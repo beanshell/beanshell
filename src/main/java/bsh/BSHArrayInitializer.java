@@ -25,7 +25,7 @@
  *****************************************************************************/
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.Node;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -34,7 +34,7 @@ import java.lang.reflect.Array;
 
 import bsh.Types.MapEntry;
 
-public class BSHArrayInitializer extends SimpleNode {
+public class BSHArrayInitializer extends BaseNode {
     private static final long serialVersionUID = 1L;
     boolean isMapInArray = false;
     Deque<BSHPrimaryExpression> expressionQueue = new ArrayDeque<>();

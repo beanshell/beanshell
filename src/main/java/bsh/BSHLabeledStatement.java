@@ -15,9 +15,10 @@
  * limitations under the License. */
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
+import bsh.legacy.ParserConstants;
 
-public class BSHLabeledStatement extends SimpleNode implements ParserConstants {
+public class BSHLabeledStatement extends BaseNode implements ParserConstants {
     public String label;
 
     public Object eval( CallStack callstack, Interpreter interpreter ) throws EvalError {

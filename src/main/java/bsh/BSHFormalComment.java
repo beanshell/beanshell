@@ -27,9 +27,9 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 
-public class BSHFormalComment extends SimpleNode
+public class BSHFormalComment extends BaseNode
 {
     public String text;
 

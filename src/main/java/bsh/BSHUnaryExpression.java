@@ -28,10 +28,11 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.legacy.ParserConstants;
+import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.Node;
 
-public class BSHUnaryExpression extends SimpleNode implements ParserConstants
+public class BSHUnaryExpression extends BaseNode implements ParserConstants
 {
     public int kind;
     public boolean postfix = false;

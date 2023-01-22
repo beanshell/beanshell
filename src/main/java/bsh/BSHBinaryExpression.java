@@ -28,14 +28,15 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.legacy.ParserConstants;
+import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.Node;
 
 /**
     Implement binary expressions...
     @see Primitive.binaryOperation
 */
-public class BSHBinaryExpression extends SimpleNode implements ParserConstants {
+public class BSHBinaryExpression extends BaseNode implements ParserConstants {
     public int kind;
 
     public Object eval( CallStack callstack, Interpreter interpreter)

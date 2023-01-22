@@ -28,13 +28,13 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.Node;
 /**
     name [ = initializer ]
     evaluate name and return optional initializer
 */
-public class BSHVariableDeclarator extends SimpleNode
+public class BSHVariableDeclarator extends BaseNode
 {
     // The token.image text of the name... never changes.
     public String name;

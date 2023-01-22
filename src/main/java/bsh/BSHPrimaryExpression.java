@@ -29,9 +29,10 @@
 package bsh;
 
 import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.Node;
 
-public class BSHPrimaryExpression extends SimpleNode
+public class BSHPrimaryExpression extends BaseNode
 {
     private static final long serialVersionUID = 1L;
     private Object cached = null;

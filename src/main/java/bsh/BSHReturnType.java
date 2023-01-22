@@ -27,14 +27,15 @@
 
 
 package bsh;
-import bsh.legacy.*;
 
-public class BSHReturnType extends SimpleNode
+import bsh.congo.parser.BaseNode;
+
+public class BSHReturnType extends BaseNode
 {
     public boolean isVoid;
 
     BSHType getTypeNode() {
-        return (BSHType)getChild(0);
+        return (BSHType) getChild(0);
     }
 
     public String getTypeDescriptor(

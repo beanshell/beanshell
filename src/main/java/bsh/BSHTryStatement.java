@@ -30,10 +30,11 @@ package bsh;
 import java.util.ArrayList;
 import java.util.List;
 import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.Node;
 
 
-public class BSHTryStatement extends SimpleNode
+public class BSHTryStatement extends BaseNode
 {
     final int blockId;
     BSHTryWithResources tryWithResources = null;

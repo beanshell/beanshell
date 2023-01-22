@@ -26,6 +26,7 @@
 package bsh;
 
 import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.Node;
 import java.util.Iterator;
 
@@ -37,7 +38,7 @@ import java.util.Iterator;
  * @author Daniel Leuck
  * @author Pat Niemeyer
  */
-public class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
+public class BSHEnhancedForStatement extends BaseNode implements ParserConstants {
 
     final int blockId;
     public String varName, label;

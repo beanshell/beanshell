@@ -27,9 +27,10 @@
 
 
 package bsh;
-import bsh.legacy.*;
 
-public class BSHStatementExpressionList extends SimpleNode
+import bsh.congo.parser.BaseNode;
+
+public class BSHStatementExpressionList extends BaseNode
 {
     public Object eval(CallStack callstack, Interpreter interpreter)
         throws EvalError

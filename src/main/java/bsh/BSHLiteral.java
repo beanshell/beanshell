@@ -28,9 +28,9 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 
-public class BSHLiteral extends SimpleNode
+public class BSHLiteral extends BaseNode
 {
     public static volatile boolean internStrings = true;
 

@@ -28,14 +28,14 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.Node;
 
 /**
     The name of this class is somewhat misleading.  This covers both the case
     where there is an array initializer and
 */
-public class BSHArrayDimensions extends SimpleNode
+public class BSHArrayDimensions extends BaseNode
 {
     private static final long serialVersionUID = 1L;
     public Class<?> baseType;

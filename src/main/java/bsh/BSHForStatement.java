@@ -28,13 +28,14 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.legacy.ParserConstants;
+import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.Node;
 
 /**
     Implementation of the for(;;) statement.
 */
-public class BSHForStatement extends SimpleNode implements ParserConstants
+public class BSHForStatement extends BaseNode implements ParserConstants
 {
     final int blockId;
     public boolean hasForInit;

@@ -27,14 +27,14 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 import java.lang.reflect.Array;
 
 /**
     A formal parameter declaration.
     For loose variable declaration type is null.
 */
-public class BSHFormalParameter extends SimpleNode
+public class BSHFormalParameter extends BaseNode
 {
     public static final Class UNTYPED = null;
     public String name;

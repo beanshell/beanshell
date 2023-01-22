@@ -29,7 +29,7 @@ individual files for more information.
     BSHAmbiguousName.java, BSHArguments.java</em>
 <p>
 
-These are the abstract syntax tree nodes (subclasses of SimpleNode) -
+These are the abstract syntax tree nodes (subclasses of BaseNode) -
 the internally compiled form of a bsh script.  Instances of these nodes
 are created by the parser to represent the bsh syntax read from a script.
 <p>
@@ -43,7 +43,7 @@ causes them to evaluate any child nodes and execute their behavior,
 returning an object to the caller.
 <p>
 
-<li><b>SimpleNode.java</b>
+<li><b>BaseNode.java</b>
     Base class for BSH nodes.
 
 <li><b>ReturnControl.java</b>

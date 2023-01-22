@@ -26,9 +26,9 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 
-public class BSHImportDeclaration extends SimpleNode
+public class BSHImportDeclaration extends BaseNode
 {
     private static final long serialVersionUID = 1L;
     public boolean importPackage;

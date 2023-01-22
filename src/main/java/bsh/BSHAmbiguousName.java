@@ -27,9 +27,9 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 
-public class BSHAmbiguousName extends SimpleNode
+public class BSHAmbiguousName extends BaseNode
 {
     public String text;
 

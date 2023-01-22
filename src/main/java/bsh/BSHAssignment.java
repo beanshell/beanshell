@@ -26,10 +26,11 @@
 
 package bsh;
 
+import bsh.congo.parser.BaseNode;
 import bsh.congo.tree.Operator;
-import bsh.legacy.*;
+import bsh.legacy.ParserConstants;
 
-public class BSHAssignment extends SimpleNode implements ParserConstants {
+public class BSHAssignment extends BaseNode implements ParserConstants {
     private static final long serialVersionUID = 1L;
     private Integer operator;
 

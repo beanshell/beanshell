@@ -27,10 +27,11 @@
 
 package bsh;
 import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.Node;
 
 public class BSHSwitchStatement
-    extends SimpleNode
+    extends BaseNode
     implements ParserConstants
 {
 

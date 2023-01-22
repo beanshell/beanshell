@@ -26,6 +26,7 @@
 package bsh;
 
 import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.Node;
 import bsh.congo.parser.BeanshellConstants.TokenType;
 import bsh.congo.tree.DoStatement;
@@ -33,7 +34,7 @@ import bsh.congo.tree.DoStatement;
 /**
  * This class handles both {@code while} statements and {@code do..while} statements.
  */
-public class BSHWhileStatement extends SimpleNode implements ParserConstants {
+public class BSHWhileStatement extends BaseNode implements ParserConstants {
 
     /**
      * Set by Parser, default {@code false}

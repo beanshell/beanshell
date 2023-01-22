@@ -28,11 +28,11 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.Node;
 import java.lang.reflect.Array;
 
-public class BSHType extends SimpleNode implements BshClassManager.Listener {
+public class BSHType extends BaseNode implements BshClassManager.Listener {
     private static final long serialVersionUID = 1L;
     /**
         baseType is used during evaluation of full type and retained for the

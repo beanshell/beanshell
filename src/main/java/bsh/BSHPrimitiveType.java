@@ -28,9 +28,9 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 
-public class BSHPrimitiveType extends SimpleNode
+public class BSHPrimitiveType extends BaseNode
 {
     public Class<?> type;
 

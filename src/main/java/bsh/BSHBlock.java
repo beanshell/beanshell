@@ -28,7 +28,7 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.Node;
 import bsh.congo.tree.SynchronizedStatement;
 
@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 /** A node reprresenting a code block */
-public class BSHBlock extends SimpleNode {
+public class BSHBlock extends BaseNode {
     /** Unique block id for this instance */
     final int blockId;
 

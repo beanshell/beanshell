@@ -27,10 +27,10 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 import java.lang.reflect.InvocationTargetException;
 
-public class BSHMethodInvocation extends SimpleNode
+public class BSHMethodInvocation extends BaseNode
 {
     BSHAmbiguousName getNameNode() {
         return (BSHAmbiguousName)getChild(0);

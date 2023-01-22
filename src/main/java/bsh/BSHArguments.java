@@ -28,9 +28,9 @@
 
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 
-public class BSHArguments extends SimpleNode
+public class BSHArguments extends BaseNode
 {
     /**
         This node holds a set of arguments for a method invocation or

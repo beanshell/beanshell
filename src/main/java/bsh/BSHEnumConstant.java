@@ -15,9 +15,9 @@
  * limitations under the License. */
 package bsh;
 
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 
-public class BSHEnumConstant extends SimpleNode {
+public class BSHEnumConstant extends BaseNode {
     private static final long serialVersionUID = 1L;
     Modifiers mods = new Modifiers(Modifiers.FIELD);
     {

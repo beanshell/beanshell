@@ -33,13 +33,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.concurrent.CompletionException;
 
-import bsh.legacy.*;
+import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.Node;
 
 /**
     New object, new array, or inner class style allocation with body.
 */
-public class BSHAllocationExpression extends SimpleNode
+public class BSHAllocationExpression extends BaseNode
 {
     private static int innerClassCount = 0;
 

@@ -55,7 +55,7 @@ import bsh.congo.parser.Node;
     <code><pre>
         Parser parser = new Parser(in);
         while( !(eof=parser.Line()) ) {
-            SimpleNode node = parser.popNode();
+            Node node = parser.popNode();
             // use the node, etc. (See bsh.BSH* classes)
         }
     </pre></code>
@@ -70,11 +70,9 @@ public class Parser implements ParserConstants {
 
     void jjtreeOpenNodeScope(Node n) {
       startingTokens.put(n, getToken(1));
-//        ((SimpleNode)n).firstToken = getToken(1);
     }
 
     void jjtreeCloseNodeScope(Node n) {
-//        ((SimpleNode)n).lastToken = getToken(0);
         setLocationInfo(n, startingTokens.get(n), getToken(0));
     }
 
@@ -100,10 +98,10 @@ public class Parser implements ParserConstants {
         ReInit(in);
     }
 
-    public SimpleNode popNode()
+    public Node popNode()
     {
         if ( jjtree.nodeArity() > 0)  // number of child nodes
-            return (SimpleNode)jjtree.popNode();
+            return jjtree.popNode();
         else
             return null;
     }
