@@ -32,7 +32,6 @@ package bsh.legacy;
  * contain only ASCII characters (without unicode processing).
  */
 
-public
 abstract class AbstractCharStream
 implements CharStream
 {

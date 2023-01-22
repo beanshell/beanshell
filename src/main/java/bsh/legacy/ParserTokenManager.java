@@ -31,7 +31,7 @@ import java.io.Reader;
 
 /** Token Manager. */
 @SuppressWarnings ("unused")
-public class ParserTokenManager implements ParserConstants {
+class ParserTokenManager implements ParserConstants {
 private final int jjStopStringLiteralDfa_0(int pos, long active0, long active1, long active2){
    switch (pos)
    {

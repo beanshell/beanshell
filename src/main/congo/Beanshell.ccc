@@ -19,6 +19,7 @@ import bsh.CallStack;
 import bsh.Interpreter;
 import bsh.InterpreterError;
 import bsh.EvalError;
+extends java.io.Serializable
 {
     /** This is the general signature for evaluation of a node.
      * @param callstack evaluation call stack
@@ -49,7 +50,6 @@ import bsh.EvalError;
 
 INJECT BaseNode : 
 import bsh.BSHLabeledStatement;
-implements java.io.Serializable
 {
     private static final long serialVersionUID = 1L;
   

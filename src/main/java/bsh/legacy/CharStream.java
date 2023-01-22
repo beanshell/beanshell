@@ -42,7 +42,6 @@ package bsh.legacy;
  * operation.
  */
 
-public
 interface CharStream {
   /**
    * Get the next character from the selected input. The method

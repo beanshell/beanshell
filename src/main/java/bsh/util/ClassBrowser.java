@@ -549,20 +549,20 @@ public class ClassBrowser extends JSplitPane
             */
         }
 
-        public void setPackages( Collection packages ) {
+        public void setPackages( Collection<String> packages ) {
             treeModel = makeTreeModel(packages);
             setModel( treeModel );
         }
 
-        DefaultTreeModel makeTreeModel( Collection packages )
+        DefaultTreeModel makeTreeModel( Collection<String> packages )
         {
-            Map packageTree = new HashMap();
+            Map<String, Object> packageTree = new HashMap<>();
 
-            Iterator it=packages.iterator();
+            Iterator<String> it=packages.iterator();
             while( it.hasNext() ) {
                 String pack = (String)(it.next());
                 String [] sa = pack.split( "\\." );
-                Map level=packageTree;
+                Map<String,Object> level=packageTree;
                 for (int i=0; i< sa.length; i++ ) {
                     String name = sa[i];
                     Map map=(Map)level.get( name );
@@ -650,7 +650,7 @@ public class ClassBrowser extends JSplitPane
     }
 
     public void classPathChanged() {
-        Set pset = classPath.getPackagesSet();
+        Set<String> pset = classPath.getPackagesSet();
         ptree.setPackages( pset );
         setClist(null);
     }

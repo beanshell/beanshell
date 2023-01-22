@@ -92,8 +92,8 @@ import java.util.regex.Pattern;
 class Name implements java.io.Serializable
 {
     // These do not change during evaluation
-    public NameSpace namespace;
-    String value = null;
+    private NameSpace namespace;
+    private String value = null;
 
     // ---------------------------------------------------------
     // The following instance variables mutate during evaluation and should
