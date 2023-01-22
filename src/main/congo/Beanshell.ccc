@@ -36,6 +36,8 @@ import bsh.*;
     default int getLineNumber() {return getBeginLine();}
 
     default String toString(String prefix) {throw new UnsupportedOperationException();}
+
+    default boolean isLegacyNode() {return getClass().getSimpleName().startsWith("BSH");}
 }
 
 TOKEN : 

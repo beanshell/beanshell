@@ -25,7 +25,6 @@
  *****************************************************************************/
 package bsh.legacy;
 
-import bsh.congo.parser.Node;
 import bsh.congo.parser.BaseNode;
 import java.io.Serializable;
 
@@ -48,27 +47,9 @@ public class SimpleNode extends BaseNode implements Serializable {
         return result;
     }
 
-    protected boolean isLegacyNode() {
-        return getClass().getPackage().getName().indexOf("congo") == -1;
-    }
-
     /** {@inheritDoc} */
     @Override
     public String toString(String prefix) { return prefix + toString(); }
-
-    /** {@inheritDoc} */
-    @Override
-    public void dump(String prefix) {
-        if (!isLegacyNode()) {
-            super.dump(prefix);
-        }
-        else {
-            System.out.println(toString(prefix));
-            for (Node n : children()) {
-                 if (n != null) n.dump(prefix + " ");
-            }
-        }
-    }
 
     /** {@inheritDoc} */
     @Override
