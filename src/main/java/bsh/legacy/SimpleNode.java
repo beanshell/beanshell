@@ -26,40 +26,6 @@
 package bsh.legacy;
 
 import bsh.congo.parser.BaseNode;
-import java.io.Serializable;
 
-public class SimpleNode extends BaseNode implements Serializable {
-
-    /** Serialization ID */
-    private static final long serialVersionUID = 1L;
-
-    /** the source of the text from which this was parsed */
-    private String sourceFile;
-
-    /** {@inheritDoc} */
-    @Override
-    public String toString() {
-        String result = getClass().getSimpleName();
-        if (result.startsWith("BSH")) result = result.substring(3);
-        return result;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void setSourceFile(String sourceFile) {
-        this.sourceFile = sourceFile;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public String getSourceFile() {
-        if ( sourceFile == null )
-            if ( getParent() != null )
-                return getParent().getSourceFile();
-            else
-                return "<unknown file>";
-        else
-            return sourceFile;
-    }
-}
+public class SimpleNode extends BaseNode { }
 

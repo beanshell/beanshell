@@ -29,7 +29,7 @@ import bsh.*;
 
     default String getSourceFile() {return getInputSource();}
 
-    default void setSourceFile(String sourceFile) {throw new UnsupportedOperationException();}
+    default void setSourceFile(String sourceFile) { /* default implementation does nothing */ }
 
     default String toString(String prefix) {throw new UnsupportedOperationException();}
 
@@ -44,9 +44,11 @@ import bsh.*;
     default void setText(String text) { /* default implementation does nothing */}
 }
 
-INJECT BaseNode :
+INJECT BaseNode : implements java.io.Serializable
 {
-    private String text;
+    private static final long serialVersionUID = 1L;
+  
+    private String text, sourceFile;
     private int lineNumber = -1;
 
     public String getText() {
@@ -60,6 +62,22 @@ INJECT BaseNode :
     } 
 
     public void setLineNumber(int lineNumber) {this.lineNumber = lineNumber;}
+
+    public void setSourceFile(String sourceFile) {this.sourceFile = sourceFile;}
+
+    public String getSourceFile() {
+        if (sourceFile == null) {
+            if (getParent() != null && getParent().getSourceFile() != null) return getParent().getSourceFile();
+            return getInputSource();
+        }
+        return sourceFile;
+    }
+
+    public String toString() {
+        String result = getClass().getSimpleName();
+        if (result.startsWith("BSH")) result = result.substring(3);
+        return result;
+    }
 }
 
 TOKEN : 
