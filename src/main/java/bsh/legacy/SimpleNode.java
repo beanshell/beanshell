@@ -33,9 +33,6 @@ public class SimpleNode extends BaseNode implements Serializable {
     /** Serialization ID */
     private static final long serialVersionUID = 1L;
 
-    /** The first and last tokens */
-    Token firstToken, lastToken;
-
     /** the source of the text from which this was parsed */
     private String sourceFile;
 
@@ -63,29 +60,6 @@ public class SimpleNode extends BaseNode implements Serializable {
                 return "<unknown file>";
         else
             return sourceFile;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public int getLineNumber() { return firstToken.beginLine; }
-
-    /** {@inheritDoc} */
-    @Override
-    public String getText()
-    {
-        StringBuilder text = new StringBuilder();
-        Token t = firstToken;
-        while ( t!=null ) {
-            text.append(t.image);
-            if ( !t.image.equals(".") )
-                text.append(" ");
-            if ( t==lastToken ||
-                t.image.equals("{") || t.image.equals(";") )
-                break;
-            t=t.next;
-        }
-
-        return text.toString();
     }
 }
 

@@ -31,13 +31,35 @@ import bsh.*;
 
     default void setSourceFile(String sourceFile) {throw new UnsupportedOperationException();}
 
-    default String getText() {return getSource();}
-
-    default int getLineNumber() {return getBeginLine();}
-
     default String toString(String prefix) {throw new UnsupportedOperationException();}
 
     default boolean isLegacyNode() {return getClass().getSimpleName().startsWith("BSH");}
+
+    default int getLineNumber() {return getBeginLine();}
+
+    default void setLineNumber(int lineNumber) { /* default implementation does nothing */}
+
+    default String getText() {return getSource();}
+
+    default void setText(String text) { /* default implementation does nothing */}
+}
+
+INJECT BaseNode :
+{
+    private String text;
+    private int lineNumber = -1;
+
+    public String getText() {
+       return text == null ? getSource() : text; 
+    }
+
+    public void setText(String text) {this.text = text;}
+
+    public int getLineNumber() {
+        return lineNumber > 0 ? lineNumber : getBeginLine();
+    } 
+
+    public void setLineNumber(int lineNumber) {this.lineNumber = lineNumber;}
 }
 
 TOKEN : 

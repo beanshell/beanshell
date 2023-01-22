@@ -29,6 +29,9 @@ package bsh.legacy;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.HashMap;
+import java.util.Map;
+
 import bsh.*;
 import bsh.congo.parser.Node;
 
@@ -59,17 +62,35 @@ import bsh.congo.parser.Node;
 */
 public class Parser implements ParserConstants {
   public JJTParserState jjtree = new JJTParserState();boolean retainComments = false;
+    private Map<Node, Token> startingTokens = new HashMap<>();
 
     public void setRetainComments( boolean b ) {
         retainComments = b;
     }
 
     void jjtreeOpenNodeScope(Node n) {
-        ((SimpleNode)n).firstToken = getToken(1);
+      startingTokens.put(n, getToken(1));
+//        ((SimpleNode)n).firstToken = getToken(1);
     }
 
     void jjtreeCloseNodeScope(Node n) {
-        ((SimpleNode)n).lastToken = getToken(0);
+//        ((SimpleNode)n).lastToken = getToken(0);
+        setLocationInfo(n, startingTokens.get(n), getToken(0));
+    }
+
+    private void setLocationInfo(Node n, Token firstToken, Token lastToken) {
+        n.setLineNumber(firstToken.beginLine);
+        StringBuilder text = new StringBuilder();
+        Token t = firstToken;
+        while ( t!=null ) {
+            text.append(t.image);
+            if ( !t.image.equals(".") )
+                text.append(" ");
+            if ( t==lastToken || t.image.equals("{") || t.image.equals(";") )
+                break;
+            t=t.next;
+        }
+        n.setText(text.toString());
     }
 
     /**
