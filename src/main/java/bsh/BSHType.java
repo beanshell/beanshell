@@ -49,6 +49,9 @@ class BSHType extends SimpleNode implements BshClassManager.Listener {
     */
     private Class<?> type;
 
+    /** Flag to track if instance is already a listener */
+    private boolean isListener = false;
+
     String descriptor;
 
     BSHType(int id) {
@@ -160,7 +163,10 @@ class BSHType extends SimpleNode implements BshClassManager.Listener {
             type = baseType;
 
         // add listener to reload type if class is reloaded see #699
-        interpreter.getClassManager().addListener(this);
+        if (!isListener) { // only add once
+            interpreter.getClassManager().addListener(this);
+            isListener = true;
+        }
 
         return type;
     }
