@@ -95,7 +95,7 @@ public class NameCompletionTable extends ArrayList<String> implements NameComple
         // Check other sources
         // note should add caching in source adapters
         if ( sources != null ) {
-            for( NameSource src : sources) 
+            for( NameSource src : sources)
             {
                 String [] names = src.getAllNames();
                 for( int j=0; j< names.length; j++ )
