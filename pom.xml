@@ -346,7 +346,7 @@
             </goals>
             <configuration>
               <executable>java</executable>
-              <commandlineArgs>-jar ${user.home}/.m2/javacc-full.jar -n src/main/congo/Beanshell.ccc</commandlineArgs>
+              <commandlineArgs>-jar ${user.home}/.m2/javacc-full.jar -n -jdk8 src/main/congo/Beanshell.ccc</commandlineArgs>
             </configuration>
           </execution>
         </executions>
