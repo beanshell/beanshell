@@ -61,7 +61,7 @@ public class BSHReturnStatement extends BaseNode implements ParserConstants
         if (null != label)
             return new ReturnControl(kind, label, this);
         Object value;
-        Node returnExp = getReturnExpression(); 
+        Node returnExp = getReturnExpression();
         if (returnExp != null)
             value = returnExp.eval(callstack, interpreter);
         else

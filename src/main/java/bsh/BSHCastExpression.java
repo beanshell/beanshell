@@ -30,8 +30,6 @@ package bsh;
 
 import bsh.congo.parser.BaseNode;
 import bsh.congo.parser.Node;
-import bsh.congo.tree.Expression;
-import bsh.congo.tree.Type;
 
 /**
     Implement casts.

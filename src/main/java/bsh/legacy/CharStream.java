@@ -121,9 +121,9 @@ interface CharStream {
    * affect the lexer's operation.
    */
   void done();
-  
+
   // Getters and setters
-  
+
   /**
    * @return Current tab size.
    */

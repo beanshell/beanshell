@@ -76,7 +76,7 @@ public class BSHIfStatement extends BaseNode
                 ret = getBody().eval(callstack, interpreter);
         } else {
             Node elseBlock = getElseBlock();
-            if (elseBlock !=null) 
+            if (elseBlock !=null)
                 ret = elseBlock.eval(callstack, interpreter);
         }
         if (ret instanceof ReturnControl)

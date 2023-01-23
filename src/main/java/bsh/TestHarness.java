@@ -35,5 +35,4 @@ public class TestHarness {
         System.err.println("Usage: java bsh.TestHarness <filename>");
         System.exit(-1);
     }
-
 }

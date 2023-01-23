@@ -45,7 +45,7 @@ public class BSHForStatement extends BaseNode implements ParserConstants
     public BSHForStatement() {
         blockId = BlockNameSpace.blockCount.incrementAndGet();
     }
-    
+
     public Object eval(CallStack callstack , Interpreter interpreter) throws EvalError {
         int i = 0;
         final Node forInit = hasForInit ? getChild(i++) : null;

@@ -47,5 +47,10 @@
     <suppress files=".*" checks="AvoidNestedBlocks" />
     <suppress files=".*" checks="EmptyBlock" />
 
+<!-- Congo codestyle ignore -->
+    <suppress files=".*" checks="AvoidStarImport" />
+    <suppress files="bsh[\\/]congo[\\/].*" checks="RegexpSingleline" />
+    <suppress files="bsh[\\/]congo[\\/].*" checks="GenericWhitespace" />
+
 </suppressions>
 

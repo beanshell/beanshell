@@ -80,8 +80,8 @@ implements CharStream
       case 'f':
       case 'F':
         return 15;
-      default:  
-        throw new java.io.IOException ("Invalid hex char '" + c + "' (=" + (int) c + ") provided!"); 
+      default:
+        throw new java.io.IOException ("Invalid hex char '" + c + "' (=" + (int) c + ") provided!");
     }
   }
 
@@ -96,10 +96,10 @@ implements CharStream
 
   /** Current read position in buffer. */
   protected int bufpos;
-  
+
   /** The number of unoccupied buffer array positions */
   protected int available;
-  
+
   /** The first array index (of `buffer`) that the current token starts */
   protected int tokenBegin;
 
@@ -119,14 +119,14 @@ implements CharStream
   private boolean m_bPrevCharIsCR;
   // Was the previous character a "\n" char?
   private boolean m_bPrevCharIsLF;
-  
+
   // Is line/column tracking enabled?
   private boolean m_bTrackLineColumn = true;
 
 
   /** Constructor. */
   public AbstractCharStream(final int nStartLine,
-                            final int nStartColumn, 
+                            final int nStartColumn,
                             final int nBufferSize)
   {
     reInit (nStartLine, nStartColumn, nBufferSize);
@@ -134,7 +134,7 @@ implements CharStream
 
   /** Reinitialise. */
   public final void reInit(final int nStartLine,
-                           final int nStartColumn, 
+                           final int nStartColumn,
                            final int nBufferSize)
   {
     m_nLineNo = nStartLine;
@@ -163,13 +163,13 @@ implements CharStream
    * @return Number of effective chars read, or -1 on error.
    */
   protected abstract int streamRead (char[] aBuf, int nOfs, int nLen) throws java.io.IOException;
-  
+
   /**
    * Close the underlying stream.
    * @throws java.io.IOException If closing fails.
    */
   protected abstract void streamClose () throws java.io.IOException;
-   
+
   // Override this method if you need more aggressive buffer size expansion
   protected int getBufSizeAfterExpansion ()
   {
@@ -181,28 +181,28 @@ implements CharStream
   {
     // Get the new buffer size
     final int nNewBufSize = getBufSizeAfterExpansion ();
-    
+
     final char[] newbuffer = new char[nNewBufSize];
     final int[] newbufline = new int[nNewBufSize];
     final int[] newbufcolumn = new int[nNewBufSize];
 
     // Number of chars to be preserved
     final int nPreservedChars = bufsize - tokenBegin;
-    
+
     if (bWrapAround)
     {
       // Move from offset "tokenBegin" to offset 0
       // arraycopy(src, srcPos, dest, destPos, length)
 
-      // copy the "tail end" to the "start" (index 0) of the new buffer array 
+      // copy the "tail end" to the "start" (index 0) of the new buffer array
       System.arraycopy(buffer, tokenBegin, newbuffer, 0, nPreservedChars);
-      
-      // copy the remaining "wrap around" content of the buffer from the start of the original buffer (starting at srcPos index 0) 
+
+      // copy the remaining "wrap around" content of the buffer from the start of the original buffer (starting at srcPos index 0)
       System.arraycopy(buffer, 0, newbuffer, nPreservedChars, bufpos);
-      
+
       // swap the new buffer in place of the old buffer
       buffer = newbuffer;
-      
+
       System.arraycopy(m_aBufLine, tokenBegin, newbufline, 0, nPreservedChars);
       System.arraycopy(m_aBufLine, 0, newbufline, nPreservedChars, bufpos);
       m_aBufLine = newbufline;
@@ -217,7 +217,7 @@ implements CharStream
     else
     {
       // Move from offset "tokenBegin" to offset 0
-      
+
       System.arraycopy(buffer, tokenBegin, newbuffer, 0, nPreservedChars);
       buffer = newbuffer;
 
@@ -239,7 +239,7 @@ implements CharStream
 
   protected final void internalAdjustBuffSize()
   {
-    final int nHalfBufferSize = bufsize / 2; 
+    final int nHalfBufferSize = bufsize / 2;
     if (available == bufsize)
     {
       if (tokenBegin < 0)
@@ -252,7 +252,7 @@ implements CharStream
       else
         if (tokenBegin > nHalfBufferSize)
         {
-          // The token started in the second half - fill the front part 
+          // The token started in the second half - fill the front part
           bufpos = 0;
           maxNextCharInd = 0;
 
@@ -268,7 +268,7 @@ implements CharStream
     }
     else
     {
-      // A token was read across array boundaries 
+      // A token was read across array boundaries
       if (available > tokenBegin)
       {
         available = bufsize;
@@ -294,11 +294,11 @@ implements CharStream
     {
       // Read from underlying stream
       final int nCharsRead = streamRead (buffer, maxNextCharInd, available - maxNextCharInd);
-      if (nCharsRead == -1) 
+      if (nCharsRead == -1)
       {
         // We reached the end of the file
         streamClose ();
-        
+
         // Caught down below and re-thrown
         throw new java.io.IOException("PGCC end of stream");
       }
@@ -430,7 +430,7 @@ implements CharStream
   {
     if (nAmount > bufsize)
       throw new IllegalStateException ("Cannot back " + nAmount + " chars which is larger than the internal buffer size (" + bufsize + ")");
-  
+
     inBuf += nAmount;
     bufpos -= nAmount;
     if (bufpos < 0)
@@ -477,26 +477,26 @@ implements CharStream
     m_aBufLine = null;
     m_aBufColumn = null;
   }
- 
+
   public final int getTabSize()
-  { 
+  {
     return m_nTabSize;
   }
 
   public final void setTabSize (final int nTabSize)
-  { 
+  {
     m_nTabSize = nTabSize;
   }
 
   /**
    * Method to adjust line and column numbers for the start of a token.
-   * This is used internally to 
+   * This is used internally to
    */
   public final void adjustBeginLineColumn(final int nNewLine, final int newCol)
   {
     int start = tokenBegin;
     int newLine = nNewLine;
-    
+
     int len;
     if (bufpos >= tokenBegin)
     {
@@ -541,30 +541,30 @@ implements CharStream
     m_nLineNo = m_aBufLine[j];
     m_nColumnNo = m_aBufColumn[j];
   }
-  
+
   /**
    * @return the current line number. 0-based.
    */
   protected final int getLine ()
-  { 
+  {
     return m_nLineNo;
   }
-  
+
   /**
    * @return the current column number. 0-based.
    */
   protected final int getColumn ()
-  { 
+  {
     return m_nColumnNo;
   }
-  
+
   public final boolean isTrackLineColumn ()
-  { 
+  {
     return m_bTrackLineColumn;
   }
 
   public final void setTrackLineColumn (final boolean bTrackLineColumn)
-  { 
+  {
     m_bTrackLineColumn = bTrackLineColumn;
   }
 }

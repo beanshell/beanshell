@@ -43,13 +43,13 @@ class JavaCharStream extends AbstractCharStream
   @Override
   protected int streamRead(final char[] buffer, final int offset, final int len) throws java.io.IOException
   {
-    return m_aIS.read (buffer, offset, len); 
+    return m_aIS.read (buffer, offset, len);
   }
-  
+
   @Override
   protected void streamClose() throws java.io.IOException
   {
-    m_aIS.close (); 
+    m_aIS.close ();
   }
 
   @Override
@@ -138,18 +138,18 @@ class JavaCharStream extends AbstractCharStream
     if (c != '\\')
     {
       // Not a backslash
-      if (isTrackLineColumn()) 
+      if (isTrackLineColumn())
         internalUpdateLineColumn(c);
       return c;
     }
-    
-    if (isTrackLineColumn()) 
+
+    if (isTrackLineColumn())
       internalUpdateLineColumn(c);
 
     int backSlashCnt = 1;
 
     // Read all the backslashes
-    for (;;) 
+    for (;;)
     {
       ++bufpos;
       if (bufpos == available)
@@ -162,9 +162,9 @@ class JavaCharStream extends AbstractCharStream
         if (c != '\\')
         {
           // found a non-backslash char.
-          if (isTrackLineColumn()) 
+          if (isTrackLineColumn())
              internalUpdateLineColumn(c);
-             
+
           if (c == 'u' && (backSlashCnt & 1) == 1)
           {
             --bufpos;
@@ -191,10 +191,10 @@ class JavaCharStream extends AbstractCharStream
 
         return '\\';
       }
-      
+
       // We read another backslash
 
-      if (isTrackLineColumn()) 
+      if (isTrackLineColumn())
         internalUpdateLineColumn (c);
       backSlashCnt++;
     }
@@ -205,10 +205,10 @@ class JavaCharStream extends AbstractCharStream
       // Skip all 'u' as in '\uuuuuu1234'
       while ((c = readByte()) == 'u')
       {
-        if (isTrackLineColumn()) 
+        if (isTrackLineColumn())
           internalUpdateLineColumn(c);
       }
-      
+
       final char c1 = c;
       final char c2 = readByte();
       final char c3 = readByte();
@@ -225,7 +225,7 @@ class JavaCharStream extends AbstractCharStream
         internalUpdateLineColumn(c2);
         internalUpdateLineColumn(c3);
         internalUpdateLineColumn(c4);
-      }  
+      }
     }
     catch (final java.io.IOException ex)
     {
@@ -289,12 +289,12 @@ class JavaCharStream extends AbstractCharStream
     m_aIS = dstream;
     super.reInit (startline, startcolumn, buffersize);
   }
-  
+
   /** Constructor. */
-  public JavaCharStream(final java.io.InputStream dstream, 
-                        final java.nio.charset.Charset encoding, 
+  public JavaCharStream(final java.io.InputStream dstream,
+                        final java.nio.charset.Charset encoding,
                         final int startline,
-                        final int startcolumn, 
+                        final int startcolumn,
                         final int buffersize)
   {
     this(new java.io.InputStreamReader(dstream, encoding), startline, startcolumn, buffersize);
@@ -310,12 +310,12 @@ class JavaCharStream extends AbstractCharStream
   }
 
   /** Constructor. */
-  public JavaCharStream(final java.io.InputStream dstream, 
+  public JavaCharStream(final java.io.InputStream dstream,
                         final java.nio.charset.Charset encoding)
   {
     this(dstream, encoding, 1, 1, DEFAULT_BUF_SIZE);
   }
-  
+
   /** Reinitialise. */
   public void reInit(final java.io.InputStream dstream,
                      final java.nio.charset.Charset encoding)
@@ -325,23 +325,23 @@ class JavaCharStream extends AbstractCharStream
 
   /** Reinitialise. */
   public void reInit(final java.io.InputStream dstream,
-                     final java.nio.charset.Charset encoding, 
+                     final java.nio.charset.Charset encoding,
                      final int startline,
                      final int startcolumn)
   {
     reInit(dstream, encoding, startline, startcolumn, DEFAULT_BUF_SIZE);
   }
- 
+
   /** Reinitialise. */
-  public void reInit(final java.io.InputStream dstream, 
-                     final java.nio.charset.Charset encoding, 
+  public void reInit(final java.io.InputStream dstream,
+                     final java.nio.charset.Charset encoding,
                      final int startline,
                      final int startcolumn,
                      final int buffersize)
   {
     reInit(new java.io.InputStreamReader(dstream, encoding), startline, startcolumn, buffersize);
   }
-  
+
   @Override
   public void done ()
   {
