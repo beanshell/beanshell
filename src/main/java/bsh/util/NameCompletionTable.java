@@ -38,8 +38,8 @@ import bsh.StringUtil;
 */
 public class NameCompletionTable extends ArrayList<String> implements NameCompletion {
     /** Unimplemented - need a collection here */
-    NameCompletionTable table;
-    List<NameSource> sources;
+    private NameCompletionTable table;
+    private List<NameSource> sources;
 
     /** Unimplemented - need a collection of sources here*/
 
@@ -94,16 +94,16 @@ public class NameCompletionTable extends ArrayList<String> implements NameComple
 
         // Check other sources
         // note should add caching in source adapters
-        if ( sources != null )
-            for( int i=0; i< sources.size(); i++ )
+        if ( sources != null ) {
+            for( NameSource src : sources) 
             {
-                NameSource src = sources.get(i);
                 String [] names = src.getAllNames();
                 for( int j=0; j< names.length; j++ )
                     if ( names[j].startsWith( part ) )
                         found.add( names[j] );
 
             }
+        }
     }
 
     public String [] completeName( String part )
@@ -129,7 +129,7 @@ public class NameCompletionTable extends ArrayList<String> implements NameComple
         if ( maxCommon.length() > part.length() )
             return new String [] { maxCommon };
         else
-            return found.toArray(new String[found.size()]);
+            return found.toArray(new String[0]);
     }
 
     /**

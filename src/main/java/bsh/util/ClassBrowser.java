@@ -43,7 +43,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -88,19 +87,19 @@ public class ClassBrowser extends JSplitPane
     // GUI
     JFrame frame;
     JInternalFrame iframe;
-    JList classlist, conslist, mlist, fieldlist;
+    JList<Object> classlist, conslist, mlist, fieldlist;
     PackageTree ptree;
     JTextArea methodLine;
     JTree tree;
     // For JList models
     String [] packagesList;
     String [] classesList;
-    Constructor [] consList;
+    Constructor<?> [] consList;
     Method [] methodList;
     Field [] fieldList;
 
     String selectedPackage;
-    Class selectedClass;
+    Class<?> selectedClass;
 
     private static final Color LIGHT_BLUE = new Color(245,245,255);
 
@@ -129,13 +128,13 @@ public class ClassBrowser extends JSplitPane
     void setClist( String packagename ) {
         this.selectedPackage = packagename;
 
-        Set set = classPath.getClassesForPackage( packagename );
+        Set<String> set = classPath.getClassesForPackage( packagename );
         if ( set == null )
-            set = new HashSet();
+            set = new HashSet<>();
 
         // remove inner classes and shorten class names
-        List list = new ArrayList();
-        Iterator it = set.iterator();
+        List<String> list = new ArrayList<>();
+        Iterator<String> it = set.iterator();
         while (it.hasNext()) {
             String cname = (String)it.next();
             if ( cname.indexOf("$") == -1 )
@@ -147,10 +146,10 @@ public class ClassBrowser extends JSplitPane
         //setMlist( (String)classlist.getModel().getElementAt(0) );
     }
 
-    String [] parseConstructors( Constructor [] constructors ) {
+    String [] parseConstructors( Constructor<?> [] constructors ) {
         String [] sa = new String [ constructors.length ] ;
         for(int i=0; i< sa.length; i++) {
-            Constructor con = constructors[i];
+            Constructor<?> con = constructors[i];
             sa[i] = StringUtil.methodString(
                 con.getName(), con.getParameterTypes() );
         }
@@ -176,45 +175,35 @@ public class ClassBrowser extends JSplitPane
         return sa;
     }
 
-    Constructor [] getPublicConstructors( Constructor [] constructors ) {
-        Vector v = new Vector();
-        for(int i=0; i< constructors.length; i++)
-            if ( Modifier.isPublic(constructors[i].getModifiers()) )
-                v.addElement( constructors[i] );
-
-        Constructor [] ca = new Constructor [ v.size() ];
-        v.copyInto( ca );
-        return ca;
+    Constructor<?>[] getPublicConstructors( Constructor<?>[] constructors ) {
+        ArrayList<Constructor<?>> v = new ArrayList<>();
+        for(Constructor<?> cons : constructors)
+            if ( Modifier.isPublic(cons.getModifiers()) )
+                v.add( cons );
+        return v.toArray(new Constructor<?>[0]);
     }
 
     Method [] getPublicMethods( Method [] methods ) {
-        Vector v = new Vector();
-        for(int i=0; i< methods.length; i++)
-            if ( Modifier.isPublic(methods[i].getModifiers()) )
-                v.addElement( methods[i] );
-
-        Method [] ma = new Method [ v.size() ];
-        v.copyInto( ma );
-        return ma;
+        ArrayList<Method> v = new ArrayList<>();
+        for(Method m : methods)
+            if ( Modifier.isPublic(m.getModifiers()) )
+                v.add(m);
+        return v.toArray(new Method[0]);
     }
 
     Field[] getPublicFields( Field [] fields ) {
-        Vector v = new Vector();
-        for(int i=0; i< fields.length; i++)
-            if ( Modifier.isPublic(fields[i].getModifiers()) )
-                v.addElement( fields[i] );
-
-        Field [] fa = new Field [ v.size() ];
-        v.copyInto( fa );
-        return fa;
+        ArrayList<Field> v = new ArrayList<>();
+        for(Field f : fields)
+            if ( Modifier.isPublic(f.getModifiers()) )
+                v.add( f );
+        return v.toArray(new Field[0]);
     }
 
-    void setConslist( Class clas ) {
+    void setConslist( Class<?> clas ) {
         if ( clas == null ) {
-            conslist.setListData( new Object [] { } );
+            conslist.setListData( new Object [0]);
             return;
         }
-
         consList = getPublicConstructors( clas.getDeclaredConstructors() );
         conslist.setListData( parseConstructors(consList) );
     }
@@ -252,7 +241,7 @@ public class ClassBrowser extends JSplitPane
         setFieldList( selectedClass );
     }
 
-    void setFieldList( Class clas ) {
+    void setFieldList( Class<?> clas ) {
         if ( clas == null ) {
             fieldlist.setListData( new Object [] { } );
             return;
@@ -266,7 +255,7 @@ public class ClassBrowser extends JSplitPane
         methodLine.setText( method==null ? "" : method.toString() );
     }
 
-    void setClassTree( Class clas ) {
+    void setClassTree( Class<?> clas ) {
         if ( clas == null ) {
             tree.setModel( null );
             return;
@@ -325,7 +314,7 @@ public class ClassBrowser extends JSplitPane
 
         classPath.addListener( this );
 
-        Set pset = classPath.getPackagesSet();
+        Set<String> pset = classPath.getPackagesSet();
 
         ptree = new PackageTree( pset );
         ptree.addTreeSelectionListener( new TreeSelectionListener() {
@@ -342,18 +331,18 @@ public class ClassBrowser extends JSplitPane
             }
         } );
 
-        classlist=new JList();
+        classlist=new JList<Object>();
         classlist.setBackground(LIGHT_BLUE);
         classlist.addListSelectionListener(this);
 
-        conslist = new JList();
+        conslist = new JList<Object>();
         conslist.addListSelectionListener(this);
 
-        mlist = new JList();
+        mlist = new JList<Object>();
         mlist.setBackground(LIGHT_BLUE);
         mlist.addListSelectionListener(this);
 
-        fieldlist = new JList();
+        fieldlist = new JList<Object>();
         fieldlist.addListSelectionListener(this);
 
         JSplitPane methodConsPane = splitPane(
@@ -529,9 +518,9 @@ public class ClassBrowser extends JSplitPane
     {
         TreeNode root;
         DefaultTreeModel treeModel;
-        Map nodeForPackage = new HashMap();
+        Map<String,TreeNode> nodeForPackage = new HashMap<>();
 
-        PackageTree( Collection packages ) {
+        PackageTree( Collection<String> packages ) {
             setPackages( packages );
 
             setRootVisible(false);
@@ -565,10 +554,10 @@ public class ClassBrowser extends JSplitPane
                 Map<String,Object> level=packageTree;
                 for (int i=0; i< sa.length; i++ ) {
                     String name = sa[i];
-                    Map map=(Map)level.get( name );
+                    Map<String,Object> map=(Map<String,Object>)level.get( name );
 
                     if ( map == null ) {
-                        map=new HashMap();
+                        map=new HashMap<>();
                         level.put( name, map );
                     }
                     level = map;
@@ -581,14 +570,14 @@ public class ClassBrowser extends JSplitPane
         }
 
 
-        MutableTreeNode makeNode( Map map, String nodeName )
+        MutableTreeNode makeNode( Map<String,Object> map, String nodeName )
         {
             DefaultMutableTreeNode root =
                 new DefaultMutableTreeNode( nodeName );
-            Iterator it=map.keySet().iterator();
+            Iterator<String> it=map.keySet().iterator();
             while(it.hasNext() ) {
                 String name = (String)it.next();
-                Map val = (Map)map.get(name);
+                Map<String,Object> val = (Map<String,Object>)map.get(name);
                 if ( val.size() == 0 ) {
                     DefaultMutableTreeNode leaf =
                         new DefaultMutableTreeNode( name );

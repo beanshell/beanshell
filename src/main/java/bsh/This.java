@@ -26,7 +26,6 @@
 
 package bsh;
 
-import bsh.legacy.*;
 import bsh.congo.parser.Node;
 
 import static bsh.ClassGenerator.ClassNodeFilter.CLASSINSTANCEFIELDS;
