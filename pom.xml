@@ -328,7 +328,7 @@
           </execution>
         </executions>
         <configuration>
-          <outputDirectory>${user.home}/.m2/</outputDirectory>
+          <outputDirectory>${project.basedir}/</outputDirectory>
           <url>https://javacc.com/download/javacc-full.jar</url>
           <unpack>false</unpack>
         </configuration>
@@ -346,7 +346,7 @@
             </goals>
             <configuration>
               <executable>java</executable>
-              <commandlineArgs>-jar ${user.home}/.m2/javacc-full.jar -n -jdk8 src/main/congo/Beanshell.ccc</commandlineArgs>
+              <commandlineArgs>-jar ${project.basedir}/javacc-full.jar -n -jdk8 src/main/congo/Beanshell.ccc</commandlineArgs>
             </configuration>
           </execution>
         </executions>

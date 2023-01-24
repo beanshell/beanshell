@@ -1,5 +1,5 @@
-// For the moment, you can just generate the 
-// sources in ../java/bsh/congo/* by 
+// For the moment, you can just generate the
+// sources in ../java/bsh/congo/* by
 // running:
 //  java -jar javacc-full.jar Beanshell.ccc
 // on the command line.
@@ -19,7 +19,8 @@ import bsh.CallStack;
 import bsh.Interpreter;
 import bsh.InterpreterError;
 import bsh.EvalError;
-extends java.io.Serializable
+import java.io.Serializable;
+extends Serializable
 {
     /** This is the general signature for evaluation of a node.
      * @param callstack evaluation call stack
@@ -48,23 +49,23 @@ extends java.io.Serializable
     default void setText(String text) { /* default implementation does nothing */}
 }
 
-INJECT BaseNode : 
+INJECT BaseNode :
 import bsh.BSHLabeledStatement;
 {
     private static final long serialVersionUID = 1L;
-  
+
     private String text, sourceFile;
     private int lineNumber = -1;
 
     public String getText() {
-       return text == null ? getSource() : text; 
+       return text == null ? getSource() : text;
     }
 
     public void setText(String text) {this.text = text;}
 
     public int getLineNumber() {
         return lineNumber > 0 ? lineNumber : getBeginLine();
-    } 
+    }
 
     public void setLineNumber(int lineNumber) {this.lineNumber = lineNumber;}
 
@@ -89,14 +90,14 @@ import bsh.BSHLabeledStatement;
             return ((BSHLabeledStatement) getParent()).getLabel();
         }
         return null;
-    }    
+    }
 }
 
-TOKEN : 
+TOKEN :
   < FORMAL_COMMENT:
        "/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/"
   >
-;  
+;
 
 INCLUDE JAVA
 
@@ -113,14 +114,14 @@ INJECT SynchronizedStatement : extends bsh.BSHBlock
 INJECT ThrowStatement : extends bsh.BSHThrowStatement
 INJECT TryStatement : extends bsh.BSHTryStatement
 
-INJECT LabeledStatement : extends bsh.BSHLabeledStatement 
+INJECT LabeledStatement : extends bsh.BSHLabeledStatement
 {
     public String getLabel() {
         return firstDescendantOfType(Identifier.class).getImage();
     }
 }
 
-INJECT DoStatement : extends bsh.BSHWhileStatement 
+INJECT DoStatement : extends bsh.BSHWhileStatement
 {
    @Override
    public Node getConditionNode() {
@@ -146,11 +147,11 @@ INJECT WhileStatement : extends bsh.BSHWhileStatement
 }
 
 INJECT Expression :
-{  
+{
   default boolean isPrimary() {return false;}
 }
 
-INJECT PrimaryExpression : extends Expression 
+INJECT PrimaryExpression : extends Expression
 {
   default boolean isPrimary() {
     return !(getParent() instanceof PrimaryExpression);
@@ -210,55 +211,55 @@ UNPARSED : /* COMMENTS */
 // as SPACESHIP and ELVIS that do not exist in Java.
 TOKEN #Operator :
   < GT: ">" | "@gt" >
-  | 
+  |
   < LT: "<" | "@lt" >
-  | 
+  |
   < LE: "<=" | "@lteq" >
-  | 
+  |
   < GE: ">=" | "@gteq" >
-  | 
+  |
   < SC_OR : "||" | "@or" >
-  | 
+  |
   < SC_AND : "&&" | "@and" >
-  | 
+  |
   < BIT_AND: "&" | "@bitwise_and" >
-  | 
+  |
   < BIT_OR: "|" | "@bitwise_or" >
-  | 
+  |
   < XOR: "^" | "@bitwise_xor" >
-  | 
+  |
   < REM : "%" | "@mod" >
-  | 
+  |
   < POWER: "**" | "@pow" >
-  | 
+  |
   < LSHIFT: "<<" | "@left_shift" >
-  | 
+  |
   < RSIGNEDSHIFT: ">>" | "@right_shift" >
-  | 
+  |
   < RUNSIGNEDSHIFT: ">>" | "@right_unsigned_shift" >
-  | 
+  |
   < ANDASSIGN: "&=" | "@and_assign" >
-  | 
+  |
   < ORASSIGN: "|=" | "@or_assign" >
-  | 
+  |
   < XORASSIGN: "^=" | "@xor_assign" >
-  | 
+  |
   < REMASSIGN: "%=" | "@mod_assign" >
-  | 
+  |
   < POWERASSIGN: "**=" | "@pow_assign" >
-  | 
+  |
   < LSHIFTASSIGN: "<<=" | "@left_shift_assign" >
-  | 
+  |
   < RSIGNEDSHIFTASSIGN: ">>=" | "@right_shift_assign" >
-  | 
+  |
   < RUNSIGNEDSHIFTASSIGN: ">>>=" | "@right_unsigned_shift_assign" >
-  | 
+  |
   < SPACESHIP: "<=>" >
-  | 
+  |
   < NULLCOALESCEASSIGN: "??=" >
-  | 
+  |
   < NULLCOALESCE: "??" >
-  | 
+  |
   < ELVIS: "?:" >
 ;
 
@@ -271,7 +272,7 @@ TOKEN :
       )*
       "'"
   > #StringLiteral
-;  
+;
 
 
 boolean Line :
@@ -285,8 +286,8 @@ boolean Line :
   }
 ;
 
-java.util.List<Node> Statements#void : 
-  (BlockStatement)* 
+java.util.List<Node> Statements#void :
+  (BlockStatement)*
   {
       return new java.util.ArrayList<>(currentNodeScope);
   }
@@ -316,7 +317,7 @@ AdditiveExpression :
    MultiplicativeExpression (((<PLUS>|<MINUS>) MultiplicativeExpression) #AdditiveExpression(+1))*
 ;
 
-MultiplicativeExpression : 
+MultiplicativeExpression :
    PowerExpression (((<STAR>|<SLASH>|<REM>) PowerExpression) #MultiplicativeExpression(+1))*
 ;
 
@@ -375,7 +376,7 @@ NullCoalesceElvisSpaceShipExpression :
   (((<NULLCOALESCE>|<ELVIS>|<SPACESHIP>) ConditionalOrExpression) #NullCoalesceElvisSpaceShipExpression(+1) )*
 ;
 
-INJECT TryWithResources : 
+INJECT TryWithResources :
     import java.util.List;
     import java.util.ArrayList;
 {
@@ -394,8 +395,8 @@ INJECT TryWithResources :
 }
 
 AssignmentOperator #void :
-  <ASSIGN> | <STARASSIGN> | <SLASHASSIGN> | <REMASSIGN> | <PLUSASSIGN> 
-  | <MINUSASSIGN> | <LSHIFTASSIGN> | <RSIGNEDSHIFTASSIGN> 
+  <ASSIGN> | <STARASSIGN> | <SLASHASSIGN> | <REMASSIGN> | <PLUSASSIGN>
+  | <MINUSASSIGN> | <LSHIFTASSIGN> | <RSIGNEDSHIFTASSIGN>
   | <RUNSIGNEDSHIFTASSIGN> | <ANDASSIGN> | <XORASSIGN> | <ORASSIGN>
   | <POWERASSIGN> | <NULLCOALESCEASSIGN>
 ;
@@ -413,7 +414,7 @@ BlockStatement#void :
   SCAN MethodDeclarationLA
   =>MethodDeclaration
   |
-  LocalVariableDeclaration 
+  LocalVariableDeclaration
   {Node varDecl = peekNode();}
   <SEMICOLON>
   {varDecl.addChild(popNode());}
@@ -432,7 +433,7 @@ BlockStatement#void :
   // Allow BeanShell package declarations in any block
   PackageDeclaration
   |
-  FormalComment  
+  FormalComment
  )
 ;
 
@@ -440,10 +441,10 @@ MethodDeclarationLA#scan :
   Modifiers
   [ TypeParameters ]
   ReturnType
-  <IDENTIFIER> 
+  <IDENTIFIER>
   FormalParameters ( (Annotation)* <LBRACKET><RBRACKET> )*
   [ ThrowsList ] <LBRACE>
-;  
+;
 
 FormalComment# : <FORMAL_COMMENT> ;
 
@@ -473,16 +474,16 @@ PrimaryExpression#interface :
   (<DOT> =>|+1 AllocationExpression) #DotNew(+1)
   |
   (
-    <LBRACKET> 
+    <LBRACKET>
     [ Expression ]
     [
-      <COLON> 
+      <COLON>
       [ Expression ]
-      [ 
-        <COLON> 
-        [ Expression ] 
-      ] 
-    ] 
+      [
+        <COLON>
+        [ Expression ]
+      ]
+    ]
     <RBRACKET>
   ) #ArrayAccess(+1)
   |
@@ -565,4 +566,4 @@ ImportDeclaration :
       ]
    )
    <SEMICOLON>
-; 
+;
