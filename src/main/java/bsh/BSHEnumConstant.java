@@ -15,7 +15,7 @@
  * limitations under the License. */
 package bsh;
 
-import bsh.congo.parser.BaseNode;
+import bsh.congo.tree.BaseNode;
 
 public class BSHEnumConstant extends BaseNode {
     private static final long serialVersionUID = 1L;
@@ -54,7 +54,7 @@ public class BSHEnumConstant extends BaseNode {
         return args;
     }
 
-    public Class<?> getType() {
+    public Class<?> getTypeInfo() {
         return Enum.class;
     }
 
@@ -63,6 +63,6 @@ public class BSHEnumConstant extends BaseNode {
     }
 
     public String toString() {
-        return super.toString() + ": " + mods + " " + getType() + " " + name;
+        return super.toString() + ": " + mods + " " + getTypeInfo() + " " + name;
     }
 }

@@ -29,7 +29,7 @@ package bsh;
 
 import java.util.List;
 
-import bsh.congo.parser.BaseNode;
+import bsh.congo.tree.BaseNode;
 
 public class BSHTypedVariableDeclaration extends BaseNode {
     private static final long serialVersionUID = 1L;

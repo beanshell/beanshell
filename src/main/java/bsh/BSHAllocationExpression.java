@@ -33,7 +33,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.concurrent.CompletionException;
 
-import bsh.congo.parser.BaseNode;
+import bsh.congo.tree.BaseNode;
 import bsh.congo.parser.Node;
 
 /**
@@ -240,7 +240,7 @@ public class BSHAllocationExpression extends BaseNode
             BSHPrimitiveType typeNode, BSHArrayDimensions dimensionsNode,
             CallStack callstack, Interpreter interpreter)
             throws EvalError {
-        Class<?> type = typeNode.getType();
+        Class<?> type = typeNode.getTypeInfo();
 
         return arrayAllocation( dimensionsNode, type, callstack, interpreter );
     }

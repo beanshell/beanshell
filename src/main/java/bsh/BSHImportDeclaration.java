@@ -26,7 +26,7 @@
 
 package bsh;
 
-import bsh.congo.parser.BaseNode;
+import bsh.congo.tree.BaseNode;
 
 public class BSHImportDeclaration extends BaseNode
 {

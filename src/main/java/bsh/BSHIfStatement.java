@@ -28,9 +28,9 @@
 
 package bsh;
 
-import bsh.congo.parser.BaseNode;
+import bsh.congo.tree.BaseNode;
 import bsh.congo.parser.Node;
-import bsh.congo.parser.BeanshellConstants.TokenType;
+import bsh.congo.parser.TokenType;
 import bsh.congo.tree.EmptyStatement;
 import bsh.congo.tree.Expression;
 

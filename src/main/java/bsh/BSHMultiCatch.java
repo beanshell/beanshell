@@ -15,7 +15,7 @@
  * limitations under the License. */
 package bsh;
 
-import bsh.congo.parser.BaseNode;
+import bsh.congo.tree.BaseNode;
 
 public class BSHMultiCatch extends BaseNode {
     private static final long serialVersionUID = 1L;

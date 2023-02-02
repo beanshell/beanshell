@@ -15,7 +15,7 @@
  * limitations under the License. */
 package bsh;
 
-import bsh.congo.parser.BaseNode;
+import bsh.congo.tree.BaseNode;
 import bsh.legacy.ParserConstants;
 
 public class BSHLabeledStatement extends BaseNode implements ParserConstants {

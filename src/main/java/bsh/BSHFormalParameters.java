@@ -27,7 +27,7 @@
 
 package bsh;
 
-import bsh.congo.parser.BaseNode;
+import bsh.congo.tree.BaseNode;
 
 public class BSHFormalParameters extends BaseNode implements BshClassManager.Listener {
     private String [] paramNames;

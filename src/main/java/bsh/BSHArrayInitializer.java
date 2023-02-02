@@ -25,7 +25,7 @@
  *****************************************************************************/
 package bsh;
 
-import bsh.congo.parser.BaseNode;
+import bsh.congo.tree.BaseNode;
 import bsh.congo.parser.Node;
 import java.util.ArrayDeque;
 import java.util.Deque;

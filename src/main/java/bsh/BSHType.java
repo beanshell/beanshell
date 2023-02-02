@@ -28,7 +28,7 @@
 
 package bsh;
 
-import bsh.congo.parser.BaseNode;
+import bsh.congo.tree.BaseNode;
 import bsh.congo.parser.Node;
 import java.lang.reflect.Array;
 
@@ -131,7 +131,7 @@ public class BSHType extends BaseNode implements BshClassManager.Listener {
         //  first node will either be PrimitiveType or AmbiguousName
         Node node = getTypeNode();
         if ( node instanceof BSHPrimitiveType )
-            baseType = ((BSHPrimitiveType)node).getType();
+            baseType = ((BSHPrimitiveType)node).getTypeInfo();
         else
             try {
             baseType = ((BSHAmbiguousName)node).toClass(

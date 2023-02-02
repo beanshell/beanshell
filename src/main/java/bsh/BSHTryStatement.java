@@ -30,7 +30,7 @@ package bsh;
 import java.util.ArrayList;
 import java.util.List;
 import bsh.legacy.*;
-import bsh.congo.parser.BaseNode;
+import bsh.congo.tree.BaseNode;
 import bsh.congo.parser.Node;
 
 

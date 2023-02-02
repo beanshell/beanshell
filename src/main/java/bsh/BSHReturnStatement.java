@@ -32,7 +32,7 @@ import bsh.congo.tree.BreakStatement;
 import bsh.congo.tree.ContinueStatement;
 import bsh.congo.tree.Expression;
 import bsh.congo.tree.ReturnStatement;
-import bsh.congo.parser.BaseNode;
+import bsh.congo.tree.BaseNode;
 import bsh.congo.parser.Node;
 import bsh.legacy.ParserConstants;
 

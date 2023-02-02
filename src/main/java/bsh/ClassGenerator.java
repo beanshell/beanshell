@@ -154,7 +154,7 @@ public final class ClassGenerator {
         for (BSHEnumConstant enm : body.childrenOfType(BSHEnumConstant.class)) {
             try {
                 Variable var = new Variable(enm.getName(),
-                        enm.getType(), null/*value*/, enm.mods);
+                        enm.getTypeInfo(), null/*value*/, enm.mods);
                 vars.add(var);
             } catch (UtilEvalError e) {
                 // value error shouldn't happen

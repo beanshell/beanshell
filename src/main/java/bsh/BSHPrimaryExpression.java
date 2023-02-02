@@ -29,7 +29,7 @@
 package bsh;
 
 import bsh.legacy.*;
-import bsh.congo.parser.BaseNode;
+import bsh.congo.tree.BaseNode;
 import bsh.congo.parser.Node;
 
 public class BSHPrimaryExpression extends BaseNode

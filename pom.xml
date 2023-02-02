@@ -329,7 +329,7 @@
         </executions>
         <configuration>
           <outputDirectory>${project.basedir}/</outputDirectory>
-          <url>https://javacc.com/download/javacc-full.jar</url>
+          <url>https://congocc.org/download/congocc-full.jar</url>
           <unpack>false</unpack>
         </configuration>
       </plugin>
@@ -346,7 +346,7 @@
             </goals>
             <configuration>
               <executable>java</executable>
-              <commandlineArgs>-jar ${project.basedir}/javacc-full.jar -g -n -jdk8 src/main/congo/Beanshell.ccc</commandlineArgs>
+              <commandlineArgs>-jar ${project.basedir}/congocc-full.jar -n -jdk8 src/main/congo/Beanshell.ccc</commandlineArgs>
             </configuration>
           </execution>
         </executions>

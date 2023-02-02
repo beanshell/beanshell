@@ -27,7 +27,7 @@
 
 package bsh;
 
-import bsh.congo.parser.BaseNode;
+import bsh.congo.tree.BaseNode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;

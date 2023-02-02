@@ -13,7 +13,6 @@ NODE_PACKAGE=bsh.congo.tree;
 ENSURE_FINAL_EOL=true;
 BASE_SRC_DIR="../java";
 LEGACY_GLITCHY_LOOKAHEAD=false;
-BASE_NODE_IN_PARSER_PACKAGE=true;
 
 INJECT Node :
 import bsh.CallStack;
@@ -48,6 +47,8 @@ extends Serializable
     default String getText() {return getSource();}
 
     default void setText(String text) { /* default implementation does nothing */}
+
+    default Class<?> getTypeInfo() {return this.getClass();};
 }
 
 INJECT BaseNode :

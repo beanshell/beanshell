@@ -26,7 +26,7 @@
 package bsh;
 
 import bsh.legacy.ParserConstants;
-import bsh.congo.parser.BaseNode;
+import bsh.congo.tree.BaseNode;
 import bsh.congo.parser.Node;
 import bsh.congo.tree.DoStatement;
 

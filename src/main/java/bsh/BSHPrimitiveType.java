@@ -28,13 +28,13 @@
 
 package bsh;
 
-import bsh.congo.parser.BaseNode;
+import bsh.congo.tree.BaseNode;
 
 public class BSHPrimitiveType extends BaseNode
 {
     public Class<?> type;
 
-    public Class<?> getType() { return type; }
+    public Class<?> getTypeInfo() { return type; }
 
     @Override
     public String toString() {

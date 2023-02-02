@@ -31,7 +31,7 @@ public class BSHAutoCloseable extends BSHTypedVariableDeclaration {
         renderTypeNode();
         this.type = evalType(callstack, interpreter);
 
-        if (!AutoCloseable.class.isAssignableFrom(this.getType()))
+        if (!AutoCloseable.class.isAssignableFrom(this.getTypeInfo()))
             throw new EvalError("The resource type "+ this.type.getName()
                 +" does not implement java.lang.AutoCloseable.", this, callstack);
 
@@ -67,7 +67,7 @@ public class BSHAutoCloseable extends BSHTypedVariableDeclaration {
         }
     }
 
-    public Class<?> getType() {
+    public Class<?> getTypeInfo() {
         return this.type;
     }
 
