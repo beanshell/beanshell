@@ -30,7 +30,7 @@ package bsh;
 
 import bsh.congo.tree.BaseNode;
 import bsh.congo.parser.Node;
-import bsh.congo.parser.TokenType;
+import bsh.congo.parser.Token.TokenType;
 import bsh.congo.tree.EmptyStatement;
 import bsh.congo.tree.Expression;
 
