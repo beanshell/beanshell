@@ -551,6 +551,17 @@ public class Interpreter
                     e.printStackTrace();
                 if ( !interactive )
                     EOF = true;
+            } catch (TokenMgrException e) {
+                error("Error parsing input: " + e);
+                /*
+                    We get stuck in infinite loops here when unicode escapes
+                    fail.  Must re-init the char stream reader
+                    (ASCII_UCodeESC_CharStream.java)
+                */
+                parser.reInitTokenInput(getIn());
+
+                if( !interactive )
+                    EOF = true;
             } catch (Exception e) {
                 error("Unknown error: " + e);
                 if ( DEBUG.get() )
@@ -736,6 +747,10 @@ public class Interpreter
                 if ( e.getNode()==null )
                     e.setNode( node );
                 throw e.reThrow( "Sourced file: "+sourceFileInfo );
+            } catch ( TokenMgrException e ) {
+                throw new EvalError(
+                    "Sourced file: "+sourceFileInfo+" Token Parsing Error: "
+                    + e.getMessage(), node, callstack, e);
             } catch ( Exception e) {
                 if ( DEBUG.get())
                     e.printStackTrace();
