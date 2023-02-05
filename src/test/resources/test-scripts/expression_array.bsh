@@ -324,6 +324,14 @@ for ( a:alist ) {
 }
 assertThat(list, valueString('[{"a0"}, {"a1"}, {"a2"}, {"a3"}]'));
 
+// cast to int
+ar = new int {true, false, '11', '22', null};
+assertThat(ar, valueString('{1I, 0I, 11I, 22I, 0I}'));
+assertEquals(1i, ar[false]);
+assertEquals(1i, ar[null]);
+assertEquals(0i, ar[true]);
+assertEquals(11i, ar["2"]);
+assertEquals(22i, ar['\003']);
 
 assert(isEvalError("Error array set index: Index 3 out-of-bounds for length 2", "{1,2}[3]=5;"));
 assert(isEvalError("Error array set index: Index 3 out-of-bounds for length 2", "((List) {1,2})[3]=5;"));
@@ -331,16 +339,13 @@ assert(isEvalError("Error array get index: Index 3 out-of-bounds for length 2", 
 assert(isEvalError("Error array get index: Index 3 out-of-bounds for length 2", "((List) {1,2})[3];"));
 assert(isEvalError("Not an array or List type", "''[1];"));
 assert(isEvalError("Class: Unknow.ObjectType not found in namespace", "new Unknow.ObjectType[0];"));
-assert(isEvalError("Array index: 0 length does not evaluate to an integer", 'new int["0"];'));
 assert(isEvalError("Incompatible initializer. Allocation calls for a 2 dimensional array, but initializer is a 1 dimensional array", "new int[][] {};"));
 assert(isEvalError("Incompatible type: boolean in initializer of array type: boolean", "new {{false}, true};"));
 assert(isEvalError("Incompatible type: Object[] in initializer of array type: Object at position: 1", "new {{{new Object()}}, new {new Object()}};"));
-assert(isEvalError("Error in array initializer: Cannot cast boolean to int", "new int {true};"));
-assert(isEvalError("Error in array initializer: Cannot cast String to int", "new int {'11'};"));
+assert(isEvalError('Error in array initializer: Cannot cast String with value "ab" to int', "new int {'ab'};"));
 assert(isEvalError("Void in array initializer, position 0", "new Object {void};"));
 assert(isEvalError("Invalid Intializer for int, at position: 0", "new int[] {{1}};"));
 assert(isEvalError("ArrayStoreException", 'store={"foo"}; store[0]=1;'));
-
 
 complete();
 return;

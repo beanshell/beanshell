@@ -23,6 +23,6 @@ assertTrue("instBoolProp property set", bean.instBoolProp);
 assertEquals("instProp property set", 23, bean.instProp);
 
 assert(isEvalError("Class: TestClass2 not found", "new TestClass2 { unknowProp=4 };"));
-assert(isEvalError("Cannot cast String to int", 'new TestClass { statProp="2" };'));
+assert(isEvalError('Cannot cast String with value "a" to int', 'new TestClass { statProp="a" };'));
 
 complete();
