@@ -77,17 +77,34 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
             we're a boolean AND and the lhs is false.
             or we're a boolean OR and the lhs is true.
         */
-        if ( Primitive.FALSE.equals(lhs) && (kind == BOOL_AND || kind == BOOL_ANDX) )
-            return Primitive.FALSE;
-        if ( Primitive.TRUE.equals(lhs) && (kind == BOOL_OR || kind == BOOL_ORX || kind == ELVIS) )
-            return Primitive.TRUE;
-        if ( Primitive.NULL != lhs && kind == NULLCOALESCE )
+        if ( (kind == BOOL_AND || kind == BOOL_ANDX) )
+            if ( interpreter.getStrictJava() ) {
+                if (Primitive.FALSE.equals(lhs)) return Primitive.FALSE;
+            } else {
+                if (Primitive.FALSE.equals(Primitive.castWrapper(Boolean.TYPE, lhs)))
+                    return lhs;
+            }
+        if ( (kind == BOOL_OR || kind == BOOL_ORX || kind == ELVIS) )
+            if ( interpreter.getStrictJava() ) {
+                if (Primitive.TRUE.equals(lhs)) return Primitive.TRUE;
+            } else {
+                if (Primitive.TRUE.equals(Primitive.castWrapper(Boolean.TYPE, lhs)))
+                    return lhs;
+            }
+        if ( kind == NULLCOALESCE && Primitive.NULL != lhs)
             return lhs;
 
         Object rhs = jjtGetChild(1).eval(callstack, interpreter);
 
         if ( kind == NULLCOALESCE || kind == ELVIS )
             return rhs;
+
+        if ( !interpreter.getStrictJava() ) switch(kind) {
+            case BOOL_OR: case BOOL_ORX: case BOOL_AND: case BOOL_ANDX:
+                // needs to validate to a boolean is all we return rhs
+                if (Primitive.castWrapper(Boolean.TYPE, rhs) instanceof Boolean)
+                    return rhs;
+        }
 
         // Handle null values and apply null rules.
         lhs = checkNullValues(lhs, rhs, 0, callstack);

@@ -448,7 +448,7 @@ assertEquals(6.0, dd += 2.0, ddelta);
 double ddd = 0.0;
 assertEquals(6.0, ddd += dd, ddelta);
 Long ll = 0i;
-assertEquals(1, ll += 1i);
+assertEquals(1l, ll += 1i);
 assertEquals(7.0, dd += ll, ddelta);
 long lll = 0i;
 assertEquals(1L, lll += 1i);
@@ -457,9 +457,12 @@ assertEquals(2.0, ll += lll, ddelta);
 String ss = "a";
 assertEquals("aa", ss += ss);
 Character cc = 'a';
+cc2 = 'a';
 char ccc = 'a';
-assertEquals(194, cc += cc);
-assertEquals(291, cc += 'a');
+assertEquals('Â', cc += cc);
+assertEquals('ģ', cc += 'a');
+assertEquals(194, cc2 += cc2);
+assertEquals(291, cc2 += 'a');
 assertEquals(388, ccc += cc);
 assertEquals(298.0, cc += dd, ddelta);
 assertEquals(305.0, dd += cc, ddelta);
@@ -700,12 +703,10 @@ assert(isEvalError("illegal use of undefined variable, class, or 'void' literal"
 assert(isEvalError("illegal use of undefined variable, class, or 'void' literal", "\"\" * void;"));
 assert(isEvalError("illegal use of undefined object or 'void' literal", "~void;"));
 assert(isEvalError("illegal use of null value or 'null' literal", "a + null;"));
-assert(isEvalError("illegal use of null value or 'null' literal", "null && null;"));
 assert(isEvalError("Illegal use of null object or 'null' literal", "a += null;"));
 assert(isEvalError("Can't assign to prefix.", "null += a;"));
 assert(isEvalError("illegal use of null object or 'null' literal", "~null;"));
 assert(isEvalError("Cannot cast primitive value to object type java.lang.String", "String sss = true;"));
-assert(isEvalError("Cannot cast String to boolean", "(boolean) 'true';"));
 //assert(isEvalError("cannot assign number 4 to type Number", "(Number) 4s;")); // work like java does #684
 assert(isEvalError("numberValue() not found in class'boolean'", "false.numberValue();"));
 assert(isEvalError("booleanValue() not found in class'int'", "a.booleanValue();"));
@@ -726,6 +727,4 @@ assert(isEvalError("Use Primitve.NULL instead of Primitive(null)", "new Primitiv
 assert(isEvalError("Unary operation \"!\" inappropriate for object", "!new Object();"));
 assert(isEvalError("Operator: \">=\" inappropriate for objects", "new Object() >= new Object();"));
 
-
 complete();
-

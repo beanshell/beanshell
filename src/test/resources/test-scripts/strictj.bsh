@@ -34,6 +34,22 @@ loosei.eval("int q2=5");
 loosei.eval("q=5");
 
 stricti.eval("int q2=5");
+
+assert(stricti.eval("false && true") == false);
+assert(stricti.eval("true && false") == false);
+assert(stricti.eval("true && true") == true);
+assert(stricti.eval("false @and true") == false);
+assert(stricti.eval("true @and false") == false);
+assert(stricti.eval("true @and true") == true);
+assert(stricti.eval("true || false") == true);
+assert(stricti.eval("false || true") == true);
+assert(stricti.eval("false || false") == false);
+assert(stricti.eval("true @or false") == true);
+assert(stricti.eval("false @or true") == true);
+assert(stricti.eval("false @or false") == false);
+assert(stricti.eval("true ?: false") == true);
+assert(stricti.eval("false ?: true") == true);
+
 // error, untyped assignment
 assert( isEvalError("stricti.eval(\"q=5\")") );
 // error, untyped method arg

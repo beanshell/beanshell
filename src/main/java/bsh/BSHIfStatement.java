@@ -28,17 +28,15 @@
 
 package bsh;
 
-class BSHIfStatement extends SimpleNode
-{
+class BSHIfStatement extends SimpleNode {
     boolean isClosed;
 
     BSHIfStatement(int id) { super(id); }
 
     public Object eval(CallStack callstack, Interpreter interpreter)
-        throws EvalError
-    {
+            throws EvalError {
         Object ret = null;
-        if(evaluateCondition(jjtGetChild(0), callstack, interpreter)) {
+        if (evaluateCondition(jjtGetChild(0), callstack, interpreter)) {
             if (!isClosed)
                 ret = jjtGetChild(1).eval(callstack, interpreter);
         } else {
@@ -47,29 +45,21 @@ class BSHIfStatement extends SimpleNode
             else if (isClosed)
                 ret = jjtGetChild(1).eval(callstack, interpreter);
         }
-        if(ret instanceof ReturnControl)
+        if (ret instanceof ReturnControl)
             return ret;
         else
             return Primitive.VOID;
     }
 
-    public static boolean evaluateCondition(
-        Node condExp, CallStack callstack, Interpreter interpreter)
-        throws EvalError
-    {
+    public static boolean evaluateCondition( Node condExp, CallStack callstack,
+            Interpreter interpreter) throws EvalError {
         Object obj = condExp.eval(callstack, interpreter);
 
         if ( obj == Primitive.VOID )
             throw new EvalError("Condition evaluates to void type",
                 condExp, callstack );
 
-        obj = Primitive.unwrap(obj);
-
-        if( obj instanceof Boolean )
-            return ((Boolean) obj).booleanValue();
-        else
-            throw new EvalError(
-                "Condition must evaluate to a Boolean or boolean.",
-                condExp, callstack );
+        obj = Primitive.castWrapper(Boolean.TYPE, obj);
+        return ((Boolean) obj).booleanValue();
     }
 }
