@@ -36,10 +36,8 @@ class Operators implements ParserConstants {
      * @return operator applied value
      * @throws UtilEvalError evaluation error */
     @SuppressWarnings("unchecked")
-    public static Object arbitraryObjectsBinaryOperation(
-        Object lhs, Object rhs, int kind)
-        throws UtilEvalError
-    {
+    public static Object arbitraryObjectsBinaryOperation(Object lhs, Object rhs, int kind)
+            throws UtilEvalError {
         if ( kind == EQ )
             return (lhs == rhs) ? Primitive.TRUE : Primitive.FALSE;
         if ( kind == NE )
@@ -68,8 +66,8 @@ class Operators implements ParserConstants {
             // String concatenation operation
             if ( lhs instanceof String || rhs instanceof String )
                 return BSHLiteral.internStrings
-                    ? (String.valueOf((Object) lhs) + String.valueOf((Object) rhs)).intern()
-                    : String.valueOf((Object) lhs) + String.valueOf((Object) rhs);
+                    ? (String.valueOf(lhs) + String.valueOf(rhs)).intern()
+                    : String.valueOf(lhs) + String.valueOf(rhs);
             // array concatenation operation
             if ( lhs.getClass().isArray() && rhs instanceof List )
                 rhs = ((List<?>) rhs).toArray();
@@ -87,17 +85,34 @@ class Operators implements ParserConstants {
             // array repeat operation
             if ( lhs.getClass().isArray() )
                 return BshArray.repeat(lhs,
-                        (int) Primitive.unwrap(rhs));
+                    (int) Primitive.castWrapper(Integer.TYPE, rhs));
             if ( rhs.getClass().isArray() )
                 return BshArray.repeat(rhs,
-                        (int) Primitive.unwrap(lhs));
+                    (int) Primitive.castWrapper(Integer.TYPE, lhs));
             // List repeat operation
             if ( lhs instanceof List )
                 return BshArray.repeat((List<Object>) lhs,
-                        (int) Primitive.unwrap(rhs));
+                    (int) Primitive.castWrapper(Integer.TYPE, rhs));
             if ( rhs instanceof List )
                 return BshArray.repeat((List<Object>) rhs,
-                        (int) Primitive.unwrap(lhs));
+                    (int) Primitive.castWrapper(Integer.TYPE, lhs));
+            try {
+                // String repeat operation
+                if ( lhs instanceof String )
+                    return BSHLiteral.internStrings
+                        ? new String(new char[(int) Primitive.castWrapper(Integer.TYPE, rhs)])
+                            .replace("\0", String.valueOf(lhs)).intern()
+                        : new String(new char[(int) Primitive.castWrapper(Integer.TYPE, rhs)])
+                            .replace("\0", String.valueOf(lhs));
+                if ( rhs instanceof String )
+                    return BSHLiteral.internStrings
+                        ? new String(new char[(int) Primitive.castWrapper(Integer.TYPE, lhs)])
+                            .replace("\0", String.valueOf(rhs)).intern()
+                        : new String(new char[(int) Primitive.castWrapper(Integer.TYPE, lhs)])
+                            .replace("\0", String.valueOf(rhs));
+            } catch (NegativeArraySizeException e) {
+                throw new UtilEvalError("Negative repeat operand: "+e.getMessage(), e);
+            }
         }
 
         if ( lhs instanceof String || rhs instanceof String )

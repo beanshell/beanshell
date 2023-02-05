@@ -32,9 +32,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThrows;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.lessThan;
+import static org.hamcrest.Matchers.not;
 
 import org.junit.Test;
 
@@ -338,5 +341,167 @@ public class InterpreterTest {
         TestUtil.cleanUp();
         assertThat(b4, lessThan(Runtime.getRuntime().freeMemory()));
     }
+
+    @Test
+    public void interpreter_eval_token_mgr_exception() throws Exception {
+        final Interpreter bsh = new Interpreter();
+        Exception e = assertThrows(EvalError.class, () -> bsh.eval("\\"));
+        assertThat(e.getMessage(), containsString("inline evaluation of: ``\\'' Token Parsing Error:"));
+        assertThat(e.getCause().getMessage(), containsString("Lexical error at line 1, column 1."));
+    }
+
+    @Test
+    public void interpreter_run_token_mgr_exception() throws Exception {
+        final StringReader in = new StringReader("\n\\\n");
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            CommandLineReader repl = new CommandLineReader(in) ) {
+            Interpreter bsh = new Interpreter(repl, new PrintStream(baos),
+                new PrintStream(baos), false);
+
+            bsh.setExitOnEOF(true);
+            bsh.run();
+            assertThat(baos.toString(), containsString("Error parsing input: bsh.TokenMgrException: Lexical error at line 2, column 1.  Encountered: \"\\\\\""));
+        }
+    }
+
+    @Test
+    public void interpreter_run_interactive_token_mgr_exception() throws Exception {
+        final StringReader in = new StringReader("\n\\\n");
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            CommandLineReader repl = new CommandLineReader(in) ) {
+            Interpreter bsh = new Interpreter(repl, new PrintStream(baos),
+                new PrintStream(baos), true);
+
+            bsh.setExitOnEOF(false);
+            bsh.run();
+            assertThat(baos.toString(), containsString("bsh %"));
+            assertThat(baos.toString(), containsString("Error parsing input: bsh.TokenMgrException: Lexical error at line 2, column 1.  Encountered: \"\\\\\""));
+        }
+    }
+
+    @Test
+    public void interpreter_run_target_error() throws Exception {
+        final StringReader in = new StringReader("\nthrow new RuntimeException('make target error');\n");
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            CommandLineReader repl = new CommandLineReader(in) ) {
+            Interpreter bsh = new Interpreter(repl, new PrintStream(baos),
+                new PrintStream(baos), false);
+
+            bsh.setExitOnEOF(false);
+            bsh.run();
+            assertThat(baos.toString(), containsString("Target Exception: TargetError : at Line: 2"));
+            assertThat(baos.toString(), containsString("Caused by: java.lang.RuntimeException: make target error"));
+        }
+    }
+
+    @Test
+    public void interpreter_run_eval_error() throws Exception {
+        final StringReader in = new StringReader("\nInterpreter.DEBUG.set(true);\nunknown();\n");
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            CommandLineReader repl = new CommandLineReader(in) ) {
+            Interpreter bsh = new Interpreter(repl, new PrintStream(baos),
+                new PrintStream(baos), false);
+            PrintStream sout = System.out;
+            PrintStream serr = System.err;
+            System.setOut(new PrintStream(baos));
+            System.setErr(new PrintStream(baos));
+            bsh.setExitOnEOF(false);
+            bsh.run();
+            Interpreter.DEBUG.set(false);
+            System.setOut(sout);
+            System.setOut(serr);
+            assertThat(baos.toString(), containsString("Evaluation Error: Command not found: unknown()"));
+        }
+    }
+
+    @Test
+    public void interpreter_run_interpreter_error() throws Exception {
+        final StringReader in = new StringReader("\n(int)'';\n");
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            CommandLineReader repl = new CommandLineReader(in) ) {
+            Interpreter bsh = new Interpreter(repl, new PrintStream(baos),
+                new PrintStream(baos), false);
+
+            bsh.setExitOnEOF(false);
+            bsh.run();
+            assertThat(baos.toString(), containsString("Internal Error: cannot cast string \"\" to number"));
+        }
+    }
+
+    @Test
+    public void interpreter_run_parser_error() throws Exception {
+        final StringReader in = new StringReader("\nInterpreter.DEBUG.set(true);\n)\n");
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            CommandLineReader repl = new CommandLineReader(in) ) {
+            Interpreter bsh = new Interpreter(repl, new PrintStream(baos),
+                new PrintStream(baos), false);
+            PrintStream sout = System.out;
+            PrintStream serr = System.err;
+            System.setOut(new PrintStream(baos));
+            System.setErr(new PrintStream(baos));
+            bsh.setExitOnEOF(false);
+            bsh.run();
+            Interpreter.DEBUG.set(false);
+            System.setOut(sout);
+            System.setOut(serr);
+            assertThat(baos.toString(), containsString("Parser Error: Unable to parse code syntax. Encountered: )"));
+        }
+    }
+
+    @Test
+    public void interpreter_run_trace() throws Exception {
+        final StringReader in = new StringReader("\nInterpreter.TRACE = true;\n'abc'*3;\n");
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            CommandLineReader repl = new CommandLineReader(in) ) {
+            Interpreter bsh = new Interpreter(repl, new PrintStream(baos),
+                new PrintStream(baos), false);
+            bsh.setExitOnEOF(false);
+            bsh.run();
+            Interpreter.TRACE = false;
+            assertThat(baos.toString(), containsString("// 'abc' * 3"));
+        }
+    }
+
+    @Test
+    public void interpreter_eval_trace() throws Exception {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();) {
+            final Interpreter bsh = new Interpreter();
+            bsh.setOut(new PrintStream(baos));
+            Interpreter.TRACE = true;
+            bsh.eval("'abc' * 3;");
+            Interpreter.TRACE = false;
+            assertThat(baos.toString(), containsString("// 'abc' * 3"));
+        }
+    }
+
+    @Test
+    public void interpreter_run_return() throws Exception {
+        final StringReader in = new StringReader("\nreturn 1;\n");
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            CommandLineReader repl = new CommandLineReader(in) ) {
+            Interpreter bsh = new Interpreter(repl, new PrintStream(baos),
+                new PrintStream(baos), true);
+            bsh.setExitOnEOF(false);
+            bsh.run();
+            Interpreter.TRACE = false;
+            assertThat(baos.toString(), containsString("--> $0 = 1I :int"));
+        }
+    }
+
+    @Test
+    public void interpreter_run_showresults() throws Exception {
+        final StringReader in = new StringReader("\nreturn 1;\nvoid;\n");
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            CommandLineReader repl = new CommandLineReader(in) ) {
+            Interpreter bsh = new Interpreter(repl, new PrintStream(baos),
+                new PrintStream(baos), true);
+            bsh.setShowResults(false);
+            bsh.setExitOnEOF(false);
+            bsh.run();
+            Interpreter.TRACE = false;
+            assertThat(baos.toString(), not(containsString("--> $0 = 1I :int")));
+        }
+    }
+
 
 }

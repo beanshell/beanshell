@@ -677,8 +677,6 @@ assertThat(queue, valueString('[{1I, 2I, 3I}]'));
 assertThat(swap, valueString('[{1I, 2I, 3I}, {4L, 5L}]'));
 assertThat(swap, instanceOf(Queue.class));
 
-
-
 // list slice view
 list = new List {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 assertThat(list, contains(0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
@@ -752,6 +750,26 @@ assertThat(list[1::2][1:2], contains(3));
 list[1::2][1:2].clear();
 assertThat(list[::1], contains(0, 1, 2, 4, 5, 6, 7, 8, 9));
 
+// string repeat
+strstr = "a";
+assertThat(strstr, valueString('"a"'));
+swap = strstr * 5;
+assertThat(strstr, valueString('"a"'));
+assertThat(swap, valueString('"aaaaa"'));
+swap = strstr * 0;
+assertThat(strstr, valueString('"a"'));
+assertThat(swap, valueString('""'));
+strstr = "123";
+assertThat(strstr, valueString('"123"'));
+swap = 3 * strstr;
+assertThat(strstr, valueString('"123"'));
+assertThat(swap, valueString('"123123123"'));
+swap = 1 * strstr;
+
+assertEquals(2, {1,2}[1]);
+assertEquals(2, {1,2}["1"]);
+assertEquals(2, {1,2}[true]);
+
 // slice exceptions
 assert(isEvalError("cannot assign number 2147483648 to type int", '{1,2}[2147483648];'));
 assert(isEvalError("cannot assign number 2147483648 to type int", '{1,2}[2147483648l];'));
@@ -761,7 +779,8 @@ assert(isEvalError("cannot assign number 2147483648 to type int", '{1,2}[2147483
 assert(isEvalError("cannot assign number 2147483648 to type int", '{1,2}[2147483648l:];'));
 assert(isEvalError("cannot assign number 2147483648 to type int", '{1,2}[2147483648w:];'));
 assert(isEvalError("cannot assign number 2147483648.0 to type int", '{1,2}[2147483648.0w:];'));
-assert(isEvalError("Array index does not evaluate to an integer.", '{1,2}["1"];'));
+assert(isEvalError("Array index does not evaluate to an integer.", '{1,2}["a"];'));
+assert(isEvalError("Negative repeat operand:", '"abc" * -5;'));
 assert(isEvalError('Use of invalid operator "/" with array', "arr /= 3;"));
 assert(isEvalError("cannot assign to array slice", "{1,2}[0:1] = 1;"));
 assert(isEvalError("array slice step cannot be zero", "{1,2}[::0];"));
@@ -770,8 +789,6 @@ assert(isEvalError("Use of invalid operator \"+\" with array or List type", "{1}
 assert(isEvalError("Use of invalid operator \"+\" with array or List type", "2 + {1};"));
 assert(isEvalError("Use of invalid operator \"+\" with array or List type", "1 + new List {1};"));
 assert(isEvalError("Use of invalid operator \"+\" with array or List type", "new List {1} + 1;"));
-assert(isEvalError("Use of non + operator with String", '"a" * 3;'));
-assert(isEvalError("Use of non + operator with String", '3 * "b";'));
 assert(isEvalError('Operator: "*" inappropriate for objects', "3 * new Object();"));
 
 complete();

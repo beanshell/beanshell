@@ -179,7 +179,7 @@ public abstract class Invocable implements Member {
     protected Object coerceToType(Object param, Class<?> type)
             throws Throwable {
         Class<?> pClass = Types.getType(param);
-        if (null != pClass && !type.isAssignableFrom(pClass))
+        if (null == pClass || !type.isAssignableFrom(pClass))
             param = Types.castObject(param, type, Types.CAST);
         return Primitive.unwrap(param);
     }
