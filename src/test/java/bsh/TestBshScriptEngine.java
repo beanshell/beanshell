@@ -217,7 +217,7 @@ public class TestBshScriptEngine {
         bshThis.invokeMethod("print", new Object[] {"foo bar"});
         assertThat(sw.toString(), endsWith("foo bar"+System.lineSeparator()));
 
-        EvalError e = assertThrows(EvalError.class, () -> bshThis.invokeMethod("unknown", null));
+        Exception e = assertThrows(EvalError.class, () -> bshThis.invokeMethod("unknown", null));
         assertThat(e.getMessage(), containsString("Method unknown() not found in bsh scripted object"));
         assertThat(e.getCause().getMessage(), containsString("Command not found: unknown()"));
         e = assertThrows(EvalError.class, () -> bshThis.invokeMethod("equals", null));
@@ -238,9 +238,9 @@ public class TestBshScriptEngine {
         e = assertThrows(EvalError.class, () -> bshThis.invokeMethod("cd", new Object[] {2}));
         assertThat(e.getMessage(), containsString("Method cd(Integer) not found in bsh scripted object"));
         assertThat(e.getCause().getMessage(), containsString("Command not found: cd(Integer)"));
-        e = assertThrows(EvalError.class, () -> bshThis.invokeMethod("square", new Object[] {""}));
-        assertThat(e.getMessage(), containsString("Use of non + operator with String"));
-        assertThat(e.getCause().getMessage(), containsString("Use of non + operator with String"));
+        e = assertThrows(InterpreterError.class, () -> bshThis.invokeMethod("square", new Object[] {""}));
+        assertThat(e.getMessage(), containsString("cannot cast string \"\" to number"));
+        assertThat(e.getCause().getMessage(), containsString("empty String"));
     }
 
     @Test

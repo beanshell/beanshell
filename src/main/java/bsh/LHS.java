@@ -102,8 +102,9 @@ class LHS implements ParserConstants, Serializable {
     LHS( Invocable field )
     {
         type = FIELD;
-        this.object = null;
+        this.object = field.getDeclaringClass();
         this.field = field;
+        this.varName = field.getName();
     }
 
     /**
@@ -117,6 +118,8 @@ class LHS implements ParserConstants, Serializable {
         type = FIELD;
         this.object = object;
         this.field = field;
+        if (null != field)
+            this.varName = field.getName();
     }
 
     /**
@@ -157,7 +160,8 @@ class LHS implements ParserConstants, Serializable {
             return nameSpace.getVariableOrProperty( varName, null );
 
         if ( type == FIELD ) try {
-            return Objects.requireNonNull(field).invoke(object);
+            return Objects.requireNonNull(field,
+                "get value, field cannot be null").invoke(object);
         } catch( ReflectiveOperationException e2 ) {
             throw new UtilEvalError("Can't read field: " + field, e2);
         }
@@ -256,25 +260,14 @@ class LHS implements ParserConstants, Serializable {
                 nameSpace.setLocalVariableOrProperty( varName, val, strictJava );
             else
                 nameSpace.setVariableOrProperty( varName, val, strictJava );
+            return getValue();
         } else  if ( type == FIELD )  try {
-            Objects.requireNonNull(field).invoke( object, val );
-            return val;
-        }
-        catch( NullPointerException e ) {
+            Objects.requireNonNull(field,
+                "assign value, field cannot be null").invoke( object, val);
+            return getValue();
+        } catch (ReflectiveOperationException e) {
             throw new UtilEvalError(
-                "LHS ("+field.getName()+") not a static field.", e);
-        }
-        catch( ReflectiveOperationException e2 ) {
-            throw new UtilEvalError(
-                "LHS ("+field.getName()+") can't access field: "+e2, e2);
-        }
-        catch( IllegalArgumentException e3 )
-        {
-            String type = val == null ? "null"
-                : Types.getType(val).getSimpleName();
-            throw new UtilEvalError(
-                "Argument type mismatch. " + type
-                + " not assignable to field "+field.getName(), e3);
+                "LHS ("+field.getName()+") can't access field: "+e, e);
         } else if ( type == PROPERTY ) try {
             if (propName instanceof String)
                 return  Reflect.setObjectProperty(object, (String) propName, val);

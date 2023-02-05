@@ -61,7 +61,9 @@ class BSHVariableDeclarator extends SimpleNode
         // null value means no value
         Object value = modifiers.hasModifier("final")
                 ? null
-                : Primitive.getDefaultValue(typeNode.getBaseType());
+                : Primitive.isWrapperType(typeNode.getBaseType())
+                    ? null
+                    : Primitive.getDefaultValue(typeNode.getBaseType());
 
         if ( jjtGetNumChildren() > 0 )
         {

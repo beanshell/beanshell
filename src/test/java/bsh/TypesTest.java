@@ -19,6 +19,8 @@ import java.math.BigInteger;
 
 import org.junit.Assert;
 import org.junit.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 
 public class TypesTest {
 
@@ -125,7 +127,7 @@ public class TypesTest {
         Throwable e = Assert.assertThrows(UtilTargetError.class,
             () -> Primitive.castPrimitive(Integer.class, Integer.TYPE,
                 Primitive.VOID,false, Types.CAST));
-        Assert.assertTrue(e.getMessage().contains("Cannot cast primitive value to object type"));
+        assertThat(e.getMessage(), containsString("Cannot cast primitive value to object type"));
     }
 
     /**
@@ -137,7 +139,7 @@ public class TypesTest {
         Throwable e = Assert.assertThrows(UtilEvalError.class,
             () -> Primitive.castPrimitive(String.class, Integer.TYPE,
                 Primitive.VOID,false, Types.ASSIGNMENT));
-        Assert.assertTrue(e.getMessage().contains("Can't assign primitive value to object type"));
+        assertThat(e.getMessage(), containsString("Cannot assign primitive value to object type"));
     }
 
     /**
@@ -353,7 +355,7 @@ public class TypesTest {
     public void unwrap_primitive_void() throws Exception {
         Throwable e = Assert.assertThrows(InterpreterError.class,
             () -> Assert.assertNull(Primitive.VOID.getValue()));
-        Assert.assertTrue(e.getMessage().contains("attempt to unwrap void type"));
+        assertThat(e.getMessage(), containsString("attempt to unwrap void type"));
     }
 
     /**
@@ -364,7 +366,7 @@ public class TypesTest {
     public void number_value_primitive_void() throws Exception {
         Throwable e = Assert.assertThrows(InterpreterError.class,
             () -> Assert.assertNull(Primitive.VOID.numberValue()));
-        Assert.assertTrue(e.getMessage().contains("Primitive not a number"));
+        assertThat(e.getMessage(), containsString("Primitive not a number"));
     }
 
     /**
@@ -375,7 +377,7 @@ public class TypesTest {
     public void unwrap_primitive_null_big_decimal() throws Exception {
         Throwable e = Assert.assertThrows(InterpreterError.class,
             () -> Assert.assertNull(new Primitive((BigDecimal)null).getValue()));
-        Assert.assertTrue(e.getMessage().contains("Use Primitve.NULL instead of Primitive(null)"));
+        assertThat(e.getMessage(), containsString("Use Primitve.NULL instead of Primitive(null)"));
     }
 
     /**

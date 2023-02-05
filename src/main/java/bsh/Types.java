@@ -553,29 +553,8 @@ class Types {
         Notes: This method is currently responsible for auto-boxing/unboxing
         conversions...  Where does that need to go?
     */
-    private static Object castObject(
-        Class<?> toType, Class<?> fromType, Object fromValue,
-        int operation, boolean checkOnly )
-        throws UtilEvalError
-    {
-        /*
-            Lots of preconditions checked here...
-            Once things are running smoothly we might comment these out
-            (That's what assertions are for).
-        */
-        if ( checkOnly && fromValue != null )
-            throw new InterpreterError("bad cast params 1");
-        if ( !checkOnly && fromValue == null )
-            throw new InterpreterError("bad cast params 2");
-        if ( fromType == Primitive.class )
-            throw new InterpreterError("bad from Type, need to unwrap");
-        if ( fromValue == Primitive.NULL && fromType != null )
-            throw new InterpreterError("inconsistent args 1");
-        if ( fromValue == Primitive.VOID && fromType != Void.TYPE )
-            throw new InterpreterError("inconsistent args 2");
-        if ( toType == Void.TYPE )
-            throw new InterpreterError("loose toType should be null");
-
+    public static Object castObject( Class<?> toType, Class<?> fromType, Object fromValue,
+            int operation, boolean checkOnly ) throws UtilEvalError {
         // assignment to loose type, void type, or exactly same type
         if ( toType == null || arrayElementType(toType) == arrayElementType(fromType) )
             return checkOnly ? VALID_CAST :
@@ -588,48 +567,28 @@ class Types {
                         toType, fromType, fromValue );
 
         // Casting to primitive type
-        if ( toType.isPrimitive() )
-        {
-            if ( fromType == Void.TYPE || fromType == null
-                || fromType.isPrimitive() )
-            {
+        if ( toType.isPrimitive() ) {
+            if ( fromType == Void.TYPE || fromType == null || fromType.isPrimitive() ) {
+                if (!Primitive.class.isInstance(fromValue))
+                    fromValue = Primitive.wrap(fromValue, fromType);
                 // Both primitives, do primitive cast
-                return Primitive.castPrimitive(
-                    toType, fromType, (Primitive)fromValue,
+                return Primitive.castPrimitive( toType, fromType, (Primitive) fromValue,
                     checkOnly, operation );
-            } else
-            {
-                if (Types.isNumeric(fromType) && Types.isNumeric(toType)) {
+            } else {
+                if (((Types.isNumeric(fromType) || String.valueOf(fromValue).matches("[-+0-9.]*"))
+                        && Types.isNumeric(toType)) || toType == Boolean.TYPE) {
                     // Auto widening and narrowing of primitive numeric types
                     if (checkOnly)
                         return VALID_CAST;
                     else
                         return Primitive.wrap(
                             Primitive.castWrapper(toType, fromValue), toType);
-                } else if ( Primitive.isWrapperType( fromType ) )
-                {
-                    // wrapper to primitive
-                    // Convert value to Primitive and check/cast it.
-
-                    //Object r = checkOnly ? VALID_CAST :
-                    Class<?> unboxedFromType = Primitive.unboxType( fromType );
-                    Primitive primFromValue;
-                    if ( checkOnly )
-                        primFromValue = null; // must be null in checkOnly
-                    else
-                        primFromValue = (Primitive)Primitive.wrap(
-                            fromValue, unboxedFromType );
-
-                    return Primitive.castPrimitive(
-                        toType, unboxedFromType, primFromValue,
-                        checkOnly, operation );
-                } else
-                {
+                } else {
                     // Cannot cast from arbitrary object to primitive
                     if ( checkOnly )
                         return INVALID_CAST;
                     else
-                        throw castError( toType, fromType, operation );
+                        throw castError(toType, fromType, fromValue, operation);
                 }
             }
         }
@@ -637,22 +596,17 @@ class Types {
         // Else, casting to reference type
 
         // Casting from primitive or void (to reference type)
-        if ( fromType == Void.TYPE || fromType == null
-            || fromType.isPrimitive() )
-        {
+        if ( fromType == Void.TYPE || fromType == null || fromType.isPrimitive() || toType == Boolean.class
+                || (String.valueOf(fromValue).matches("[-+0-9.]*") && Types.isNumeric(toType))) {
             // cast from primitive to wrapper type
-            if ( Primitive.isWrapperType( toType )
-                && fromType != Void.TYPE && fromType != null )
-            {
+            if ( Primitive.isWrapperType( toType ) && fromType != Void.TYPE && fromType != null ) {
                 // primitive to wrapper type
                 return checkOnly ? VALID_CAST :
                     Primitive.castWrapper(Primitive.unboxType(toType), fromValue);
             }
 
             // Primitive (not null or void) to Object.class type
-            if ( toType == Object.class
-                && fromType != Void.TYPE && fromType != null )
-            {
+            if ( toType == Object.class && fromType != Void.TYPE && fromType != null ) {
                 // box it
                 return checkOnly ? VALID_CAST : Primitive.unwrap(fromValue);
             }
@@ -681,9 +635,7 @@ class Types {
 
         // Can we use the proxy mechanism to cast a bsh.This to
         // the correct interface?
-        if ( toType.isInterface()
-            && bsh.This.class.isAssignableFrom( fromType )
-        )
+        if ( toType.isInterface() && bsh.This.class.isAssignableFrom( fromType ) )
             return checkOnly ? VALID_CAST :
                 ((bsh.This)fromValue).getInterface( toType );
 
@@ -697,30 +649,30 @@ class Types {
         if ( checkOnly )
             return INVALID_CAST;
         else
-            throw castError( toType, fromType , operation  );
+            throw castError(toType, fromType, fromValue, operation);
     }
 
     /**
         Return a UtilEvalError or UtilTargetError wrapping a ClassCastException
         describing an illegal assignment or illegal cast, respectively.
     */
-    static UtilEvalError castError(
-        Class<?> lhsType, Class<?> rhsType, int operation   )
-    {
+    static UtilEvalError castError(Class<?> lhsType, Class<?> rhsType, Object value, int operation) {
         return castError(
             StringUtil.typeString(lhsType),
-            StringUtil.typeString(rhsType), operation  );
+            StringUtil.typeString(rhsType), value, operation);
     }
 
-    static UtilEvalError castError(
-        String lhs, String rhs, int operation   )
-    {
+    static UtilEvalError castError(String lhs, String rhs, int operation) {
+        return castError(lhs, rhs, null, operation);
+    }
+
+    static UtilEvalError castError(String lhs, String rhs, Object value, int operation) {
         if ( operation == ASSIGNMENT )
             return new UtilEvalError (
-                "Can't assign " + rhs + " to "+ lhs );
+                "Cannot assign " + rhs + (null == value ? "" : " with value \""+value+"\"") + " to "+ lhs );
 
         Exception cce = new ClassCastException(
-            "Cannot cast " + rhs + " to " + lhs );
+            "Cannot cast " + rhs + (null == value ? "" : " with value \""+value+"\"") + " to " + lhs );
         return new UtilTargetError( cce );
     }
 
