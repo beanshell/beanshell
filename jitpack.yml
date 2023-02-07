@@ -1,0 +1,10 @@
+install:
+- sed -i.bak -E "0,/<\/version>/{s#<version>.+#<version>${VERSION}</version>#}" pom-jitpack.xml
+- sed -i.bak "s#<groupId>org.beanshell</groupId>#<groupId>${GROUP}.${ARTIFACT}</groupId>#" pom-jitpack.xml
+- sed -i.bak -E "0,/<\/version>/{s#<version>.+#<version>${VERSION}</version>#}" pom.xml
+- sed -i.bak "s#<groupId>org.beanshell</groupId>#<groupId>${GROUP}.${ARTIFACT}</groupId>#" pom.xml
+- sed -i.bak "s#</modelVersion>#</modelVersion><parent><relativePath>pom-jitpack.xml</relativePath><groupId>${GROUP}.${ARTIFACT}</groupId><artifactId>beanshell</artifactId><version>${VERSION}</version></parent>#" pom.xml
+- sed -i.bak -E "0,/<\/version>/{s#<version>.+#<version>${VERSION}</version>#}" bsh-bsf-engine/pom.xml
+- sed -i.bak "s#<groupId>org.beanshell</groupId>#<groupId>${GROUP}.${ARTIFACT}</groupId>#" bsh-bsf-engine/pom.xml
+- sed -i.bak "s#</modelVersion>#</modelVersion><parent><relativePath>../pom-jitpack.xml</relativePath><groupId>${GROUP}.${ARTIFACT}</groupId><artifactId>beanshell</artifactId><version>${VERSION}</version></parent>#" bsh-bsf-engine/pom.xml
+- mvn clean install -f pom-jitpack.xml
