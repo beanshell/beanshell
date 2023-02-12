@@ -41,6 +41,7 @@ import java.util.Map.Entry;
 import java.util.regex.Pattern;
 import java.util.Objects;
 import java.util.WeakHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static bsh.This.Keys.BSHTHIS;
@@ -76,7 +77,11 @@ public final class Reflect {
     static {
         String packageAccess = Security.getProperty("package.access");
         if (null == packageAccess) packageAccess = "null";
-        PACKAGE_ACCESS = Pattern.compile("(?:"+packageAccess.replace(',', '|')+").*");
+
+        String pattern = Stream.of(packageAccess.split(","))
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.joining("|", "(?:", ").*"));
+        PACKAGE_ACCESS = Pattern.compile(pattern);
     }
 
 
