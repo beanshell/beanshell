@@ -20,6 +20,8 @@
 
 package bsh;
 
+import static bsh.Interpreter.COMPATIBILITY_DEFAULT;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -40,10 +42,10 @@ public class Namespace_Chaining_Test {
         final NameSpace root = new NameSpace( null, "root");
         final NameSpace child = new NameSpace(root, "child");
 
-        root.setLocalVariable("bar", 42, false);
+        root.setLocalVariable("bar", 42, COMPATIBILITY_DEFAULT);
         assertEquals(42, child.getVariable("bar"));
 
-        child.setLocalVariable("bar", 4711, false);
+        child.setLocalVariable("bar", 4711, COMPATIBILITY_DEFAULT);
         assertEquals(4711, child.getVariable("bar"));
         assertEquals(42, root.getVariable("bar"));
     }
@@ -92,7 +94,7 @@ public class Namespace_Chaining_Test {
     @Test
     public void check_ExternalNameSpace() throws Exception {
         final ExternalNameSpace externalNameSpace = new ExternalNameSpace();
-        externalNameSpace.setVariable("a", Primitive.NULL, false);
+        externalNameSpace.setVariable("a", Primitive.NULL, COMPATIBILITY_DEFAULT);
         assertTrue("map should contain variable 'a'", externalNameSpace.getMap().containsKey("a"));
         assertNull("variable 'a' should have value <NULL>", externalNameSpace.getMap().get("a"));
     }

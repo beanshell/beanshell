@@ -440,7 +440,7 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
                 else try {
                     localNameSpace.setLocalVariable(
                         paramNames[k], argValues[i],
-                        interpreter.getStrictJava() );
+                        interpreter.getCompatibilityFlags() );
                 } catch ( UtilEvalError e3 ) {
                     throw e3.toEvalError( "Typed method parameter assignment",
                             callerInfo, callstack );

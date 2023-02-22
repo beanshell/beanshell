@@ -25,6 +25,8 @@
  *****************************************************************************/
 package bsh;
 
+import static bsh.Interpreter.COMPATIBILITY_DEFAULT;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -243,23 +245,23 @@ class LHS implements ParserConstants, Serializable {
      * @throws UtilEvalError on exception */
     public Object assign( Object val )
             throws UtilEvalError {
-        return this.assign(val, false);
+        return this.assign(val, COMPATIBILITY_DEFAULT);
     }
 
     /**
         Assign a value to the LHS.
     */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public Object assign( Object val, boolean strictJava )
+    public Object assign( Object val, int compatibilityFlags )
         throws UtilEvalError
     {
         if ( type == VARIABLE )
         {
             // Set the variable in namespace according to localVar flag
             if ( localVar )
-                nameSpace.setLocalVariableOrProperty( varName, val, strictJava );
+                nameSpace.setLocalVariableOrProperty( varName, val, compatibilityFlags );
             else
-                nameSpace.setVariableOrProperty( varName, val, strictJava );
+                nameSpace.setVariableOrProperty( varName, val, compatibilityFlags );
             return getValue();
         } else  if ( type == FIELD )  try {
             Objects.requireNonNull(field,
@@ -340,4 +342,3 @@ class LHS implements ParserConstants, Serializable {
         this.field = BshClassManager.memberCache.get(cls).findField(varName);
     }
 }
-

@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static bsh.Interpreter.COMPATIBILITY_DEFAULT;
 
 /**
     A namespace which maintains an external map of values held in variables in
@@ -188,7 +189,7 @@ public class ExternalNameSpace extends NameSpace
         // Is this race condition worth worrying about?
         // value will appear in map before it's really in the interpreter
         try {
-            lhs.assign( value, false/*strict*/ );
+            lhs.assign( value, COMPATIBILITY_DEFAULT );
         } catch ( UtilEvalError e) {
             throw new InterpreterError( e.toString() );
         }
@@ -206,4 +207,3 @@ public class ExternalNameSpace extends NameSpace
     }
 
 }
-
