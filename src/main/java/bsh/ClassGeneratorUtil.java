@@ -29,6 +29,7 @@ package bsh;
 import static bsh.ClassGenerator.Type.CLASS;
 import static bsh.ClassGenerator.Type.ENUM;
 import static bsh.ClassGenerator.Type.INTERFACE;
+import static bsh.Interpreter.COMPATIBILITY_DEFAULT;
 import static bsh.This.Keys.BSHCLASSMODIFIERS;
 import static bsh.This.Keys.BSHCONSTRUCTORS;
 import static bsh.This.Keys.BSHINIT;
@@ -175,9 +176,9 @@ public class ClassGeneratorUtil implements Opcodes {
      */
     public void initStaticNameSpace(NameSpace classStaticNameSpace, BSHBlock instanceInitBlock) {
         try {
-            classStaticNameSpace.setLocalVariable(""+BSHCLASSMODIFIERS, classModifiers, false/*strict*/);
-            classStaticNameSpace.setLocalVariable(""+BSHCONSTRUCTORS, constructors, false/*strict*/);
-            classStaticNameSpace.setLocalVariable(""+BSHINIT, instanceInitBlock, false/*strict*/);
+            classStaticNameSpace.setLocalVariable(""+BSHCLASSMODIFIERS, classModifiers, COMPATIBILITY_DEFAULT);
+            classStaticNameSpace.setLocalVariable(""+BSHCONSTRUCTORS, constructors, COMPATIBILITY_DEFAULT);
+            classStaticNameSpace.setLocalVariable(""+BSHINIT, instanceInitBlock, COMPATIBILITY_DEFAULT);
         } catch (UtilEvalError e) {
             throw new InterpreterError("Unable to init class static block: " + e, e);
         }

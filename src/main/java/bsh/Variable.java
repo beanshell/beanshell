@@ -25,6 +25,8 @@
  *****************************************************************************/
 package bsh;
 
+import static bsh.Interpreter.COMPATIBILITY_DEFAULT;
+
 import java.io.Serializable;
 
 public class Variable implements Serializable, BshClassManager.Listener
@@ -108,7 +110,7 @@ public class Variable implements Serializable, BshClassManager.Listener
             this.value = Primitive.getDefaultValue( type );
 
         if ( lhs != null )
-            this.value = lhs.assign( this.value, false/*strictjava*/ );
+            this.value = lhs.assign( this.value, COMPATIBILITY_DEFAULT );
 
     }
 

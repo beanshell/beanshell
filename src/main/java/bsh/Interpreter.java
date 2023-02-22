@@ -113,6 +113,10 @@ public class Interpreter
     public static boolean COMPATIBIILTY;
     public static final String VERSION;
 
+    static final int COMPATIBILITY_DEFAULT = 0;
+    static final int COMPATIBILITY_STRICT_JAVA = 1;
+    static final int COMPATIBILITY_BSH2_VARIABLE_SCOPING = 2;
+
     static {
         ResourceBundle b = ResourceBundle.getBundle("version");
         VERSION = b.getString("release") + "." + b.getString("build");
@@ -125,21 +129,23 @@ public class Interpreter
     /** Shared system object visible under bsh.system */
     public static void setShutdownOnExit(final boolean value) {
         try {
-            SYSTEM_OBJECT.getNameSpace().setVariable("shutdownOnExit", Boolean.valueOf(value), false);
+            SYSTEM_OBJECT.getNameSpace().setVariable("shutdownOnExit", Boolean.valueOf(value), COMPATIBILITY_DEFAULT);
         } catch (final UtilEvalError utilEvalError) {
             throw new IllegalStateException(utilEvalError);
         }
     }
 
-    /**
-        Strict Java mode
-        @see #setStrictJava( boolean )
-    */
-    private boolean strictJava = false;
-
     /* --- End static members --- */
 
     /* --- Instance data --- */
+
+    /**
+     * A set of flags that indicate compatibility modes, such as for
+     * strict java mode or Bsh V2 loose variable scoping.
+     * @see #setStrictJava( boolean )
+     * @see #setBsh2ScopingCompatibility( boolean )
+     */
+    private int compatibilityFlags = 0;
 
     transient Parser parser;
     NameSpace globalNameSpace;
@@ -191,9 +197,21 @@ public class Interpreter
         this.interactive = interactive;
         this.parent = parent;
         if ( parent != null ) {
-            setStrictJava( parent.strictJava );
+            compatibilityFlags = parent.compatibilityFlags;
             this.parser = parent.parser;
             this.evalOnly = parent.evalOnly;
+        } else {
+            /*
+             * If not inheriting from a parent then Check system properties
+             * for compatibility mode switches
+             */
+            compatibilityFlags = 0;
+            boolean strictJava = Boolean.parseBoolean(System.getProperty("bsh.strictJava","false"));
+            if (strictJava)
+                compatibilityFlags |= COMPATIBILITY_STRICT_JAVA;
+            boolean bsh2Compat = Boolean.parseBoolean(System.getProperty("bsh.v2ScopingCompatibility","false"));
+            if (bsh2Compat)
+                compatibilityFlags |= COMPATIBILITY_BSH2_VARIABLE_SCOPING;
         }
 
         this.sourceFileInfo = sourceFileInfo;
@@ -897,9 +915,9 @@ public class Interpreter
         try {
             if ( Name.isCompound(name) )
                 globalNameSpace.getNameResolver(name).toLHS(
-                    callstack, this).assign(value, false);
+                    callstack, this).assign(value, COMPATIBILITY_DEFAULT);
             else // optimization for common case
-                globalNameSpace.setVariable(name, value, false);
+                globalNameSpace.setVariable(name, value, COMPATIBILITY_DEFAULT);
         } catch (UtilEvalError e) {
             throw e.toEvalError(Node.JAVACODE, callstack);
         }
@@ -1135,6 +1153,22 @@ public class Interpreter
     }
 
     /**
+     * Return an integer value containing flag bits that describe
+     * compatibility modes.  The flag bits within the value are
+     * identified by the static fields {@link #COMPATIBILITY_STRICT_JAVA}
+     * and {@link #COMPATIBILITY_BSH2_VARIABLE_SCOPING}.
+     * <p>
+     * In order to set the compatibility modes use the accessor functions
+     * {@link #setStrictJava} and {@link #setBsh2ScopingCompatibility}.
+     * <p>
+     * To retrieve individual compatibility modes use the retrieval functions
+     * {@link #getStrictJava} and {@link #getBsh2ScopingCompatibility}.
+     */
+    int getCompatibilityFlags() {
+        return compatibilityFlags;
+    }
+
+    /**
         Set strict Java mode on or off.
         This mode attempts to make BeanShell syntax behave as Java
         syntax, eliminating conveniences like loose variables, etc.
@@ -1146,15 +1180,62 @@ public class Interpreter
         classes are interpreted and there is an alternative to scripting
         objects as method closures.
     */
-    public void setStrictJava( boolean b ) {
-        this.strictJava = b;
+    public void setStrictJava( boolean mode ) {
+        if (mode)
+            compatibilityFlags |= COMPATIBILITY_STRICT_JAVA;
+        else
+            compatibilityFlags &= ~COMPATIBILITY_STRICT_JAVA;
     }
 
     /**
         @see #setStrictJava( boolean )
     */
     public boolean getStrictJava() {
-        return this.strictJava;
+        return ((compatibilityFlags & COMPATIBILITY_STRICT_JAVA) ==
+                        COMPATIBILITY_STRICT_JAVA);
+    }
+
+    /**
+        Set Bsh version 2 variable scoping compatibility mode on or off.
+        According to the BeanShell V2 documentation:
+        <pre>
+        Untyped variables in BeanShell, however, are not constrained by
+        blocks. Instead they act as if they were declared at the outer
+        (enclosing) scope's level. With this in mind, BeanShell code
+        looks just like Java code. In BeanShell if you declare a typed
+        variable within a block it is local to the block. But if you
+        use an untyped variable (which looks just like an ordinary
+        assignment in Java) it behaves as an assignment to the
+        enclosing scope.
+        </pre>
+        This behavior has changed in BeanShell V3.  Now untyped
+        variables will be local to the block where they are first used,
+        and not to the outer scope.  This essentially means that java
+        strict mode is always enabled for loose variable scoping.
+        <p>
+        This new default may be a source of problems for older BeanShell
+        code that relies on scoping to the outer block.  There may be
+        situation where older code may run without producing
+        any warning yet will generate incorrect results.  Having this
+        compatibility mode will allow a transitional step to BeanShell V3.
+        <p>
+        @param mode the compatibility mode.  Set to true to enable
+        compatibility with BeanShell V2, false for BeanShell V3.
+        The default value is false.
+    */
+    public void setBsh2ScopingCompatibility( boolean mode ) {
+        if (mode)
+            compatibilityFlags |= COMPATIBILITY_BSH2_VARIABLE_SCOPING;
+        else
+            compatibilityFlags &= ~COMPATIBILITY_BSH2_VARIABLE_SCOPING;
+    }
+
+    /**
+        @see #setBsh2ScopingCompatibility( boolean )
+    */
+    public boolean getBsh2ScopingCompatibility() {
+        return ((compatibilityFlags & COMPATIBILITY_BSH2_VARIABLE_SCOPING) ==
+                COMPATIBILITY_BSH2_VARIABLE_SCOPING);
     }
 
     static void staticInit()

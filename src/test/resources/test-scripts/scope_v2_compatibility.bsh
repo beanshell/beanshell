@@ -1,0 +1,181 @@
+#!/bin/java bsh.Interpreter
+
+/**
+ * Most of this code copied from other tests and modified
+ * for V2 behaviour.
+ */
+
+source("TestHarness.bsh");
+complete();
+return;
+
+this.interpreter.setBsh2ScopingCompatibility(true);
+
+/*****************************************
+ * Taken from blockscope.bsh
+ *****************************************/
+int p=1;
+{
+    int p=2;
+    {
+        int p=3;
+        pz=99;
+        assert( p == 3 );
+    }
+    assert( p == 2 );
+}
+assert( p == 1 );
+assert( pz == 99 );
+
+
+/*
+    Typed variable declarations inside a block should not leak out.
+*/
+boolean var = false;
+for(int i=0; i<1; i++) {
+   int var=1;
+}
+for(int i=0; i<1; i++) {
+   String var="hello";
+}
+assert( var == false );
+
+u=2;
+int x=2;
+int z1=2;
+{
+    assert(u==2);
+    assert(super.u==2);
+    u=3;
+    assert(u==3);
+
+    x=3;
+    assert(x==3);
+
+    int z=3;
+    // bsh allows the redeclaration...
+    // but the scope should be local
+    int z1=5;
+}
+assert( u==3 );
+assert( x==3 );
+
+assert( z==void );
+assert( z1==2 );
+
+i=0;
+while( i++ < 5 ) {
+    int qz=5;
+    assert( qz == 5);
+}
+assert( qz == void);
+
+int i=0;
+while( i < 5 ) {
+    i++;
+    int qz=5;
+    assert( qz == 5);
+}
+assert( qz == void);
+
+if ( true ) {
+    assert( this == global );
+    if ( true ) {
+        assert( this == global );
+    }
+}
+
+/*****************************************
+ * Taken from forenhanced.bsh
+ *****************************************/
+
+// Test that eval'ed variables in blocks are seen in global
+// make sure x does not exist at start
+unset("x");
+try { eval("{x=55;}"); }
+catch (e) { assert(false); }
+assert(x == void);
+try { eval("{global.x=55;}"); }
+catch (e) { assert(false); }
+assert(x == 55);
+unset("x");
+
+/*****************************************
+ * Taken from forenhanced.bsh
+ *****************************************/
+
+al = new ArrayList();
+al.add("foo");
+al.add("bar");
+al.add("gee");
+
+// inerate over iterable
+for ( a : al )
+    b = a;
+assert(a == void);
+assert(b.equals("gee"));
+
+a="a";
+b="b";
+
+for ( a : this.al )
+    b = a;
+assert(a.equals("a"));
+assert(b.equals("gee"));
+
+v = new Vector();
+v.addAll(al);
+// iterate over enumerator
+for ( a : v.elements() )
+  b = a;
+assert(a.equals("a"));
+assert(b.equals("gee"));
+
+/*****************************************
+ * Taken from forscope.bsh
+ *****************************************/
+a=5;
+i=99;
+int q2=99;
+assert( q2 == 99 );
+for(int i=1; i<3; i++) {
+    a=9;
+    q=2;
+
+    // slightly deviant behavior here...  java wouldn't allow the re-declaration
+    int q2=3;
+    assert( q2 == 3 );
+
+    i2 = i;
+}
+assert(i==99);
+assert(q==2);
+
+// typed and untyped vars effectively have different scope
+assert(a==9);
+assert(q2==99);
+
+assert(i2 == 2);
+
+// multiple inits
+for(x=0, a=2, y="foo"; x<3; x++) {
+    b = x+", "+y;
+//    print(x+", "+y);
+}
+
+// Can't declare var again already declared in forinit
+assert(
+    isEvalError(
+        "for (int foo=1, int bar=2; foo < 3; foo++ ) { int bar = 3; }" )
+);
+
+// test interrupt loop
+repetition=0;
+for (i=0; i<=2; i++) {
+  repetition++;
+  Thread.currentThread().interrupt();
+}
+assert(1 == repetition);
+
+
+complete();

@@ -45,7 +45,7 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
         BSHPrimaryExpression lhsNode =
             (BSHPrimaryExpression) jjtGetChild(0);
 
-        boolean strictJava = interpreter.getStrictJava();
+        int compatibilityFlags = interpreter.getCompatibilityFlags();
         LHS lhs = lhsNode.toLHS( callstack, interpreter);
 
         // For operator-assign operations save the lhs value before evaluating
@@ -74,70 +74,70 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
                         lhs.getVariable().setValue(rhs, Variable.ASSIGNMENT);
                         return rhs;
                     }
-                    return lhs.assign(rhs, strictJava);
+                    return lhs.assign(rhs, compatibilityFlags);
 
                 case NULLCOALESCEASSIGN:
                     // we already know lhs is null
-                    return lhs.assign(rhs, strictJava);
+                    return lhs.assign(rhs, compatibilityFlags);
 
                 case PLUSASSIGN:
                     if ( Primitive.NULL == lhsValue && lhs.getType() == String.class )
                         lhsValue = "null";
                     return lhs.assign(
-                        operation(lhsValue, rhs, PLUS), strictJava);
+                        operation(lhsValue, rhs, PLUS), compatibilityFlags);
 
                 case MINUSASSIGN:
                     return lhs.assign(
-                        operation(lhsValue, rhs, MINUS), strictJava);
+                        operation(lhsValue, rhs, MINUS), compatibilityFlags);
 
                 case STARASSIGN:
                     return lhs.assign(
-                        operation(lhsValue, rhs, STAR), strictJava);
+                        operation(lhsValue, rhs, STAR), compatibilityFlags);
 
                 case SLASHASSIGN:
                     return lhs.assign(
-                        operation(lhsValue, rhs, SLASH), strictJava);
+                        operation(lhsValue, rhs, SLASH), compatibilityFlags);
 
                 case ANDASSIGN:
                 case ANDASSIGNX:
                     return lhs.assign(
-                        operation(lhsValue, rhs, BIT_AND), strictJava);
+                        operation(lhsValue, rhs, BIT_AND), compatibilityFlags);
 
                 case ORASSIGN:
                 case ORASSIGNX:
                     return lhs.assign(
-                        operation(lhsValue, rhs, BIT_OR), strictJava);
+                        operation(lhsValue, rhs, BIT_OR), compatibilityFlags);
 
                 case XORASSIGN:
                 case XORASSIGNX:
                     return lhs.assign(
-                        operation(lhsValue, rhs, XOR), strictJava);
+                        operation(lhsValue, rhs, XOR), compatibilityFlags);
 
                 case MODASSIGN:
                 case MODASSIGNX:
                     return lhs.assign(
-                        operation(lhsValue, rhs, MOD), strictJava );
+                        operation(lhsValue, rhs, MOD), compatibilityFlags );
 
                 case POWERASSIGN:
                 case POWERASSIGNX:
                     return lhs.assign(
-                            operation(lhsValue, rhs, POWER), strictJava);
+                            operation(lhsValue, rhs, POWER), compatibilityFlags);
 
                 case LSHIFTASSIGN:
                 case LSHIFTASSIGNX:
                     return lhs.assign(
-                        operation(lhsValue, rhs, LSHIFT), strictJava);
+                        operation(lhsValue, rhs, LSHIFT), compatibilityFlags);
 
                 case RSIGNEDSHIFTASSIGN:
                 case RSIGNEDSHIFTASSIGNX:
                     return lhs.assign(
-                    operation(lhsValue, rhs, RSIGNEDSHIFT ), strictJava);
+                    operation(lhsValue, rhs, RSIGNEDSHIFT ), compatibilityFlags);
 
                 case RUNSIGNEDSHIFTASSIGN:
                 case RUNSIGNEDSHIFTASSIGNX:
                     return lhs.assign(
                         operation(lhsValue, rhs, RUNSIGNEDSHIFT),
-                        strictJava);
+                        compatibilityFlags);
 
                 default:
                     throw new InterpreterError(

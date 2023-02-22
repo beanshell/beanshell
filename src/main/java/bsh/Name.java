@@ -25,6 +25,8 @@
  *****************************************************************************/
 package bsh;
 
+import static bsh.Interpreter.COMPATIBILITY_DEFAULT;
+
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -306,7 +308,7 @@ class Name implements java.io.Serializable
                     namespace : ((This)evalBaseObject).namespace;
             Object obj = new NameSpace(
                 targetNameSpace, "auto: "+varName ).getThis( interpreter );
-            targetNameSpace.setVariable( varName, obj, false, evalBaseObject == null );
+            targetNameSpace.setVariable( varName, obj, COMPATIBILITY_DEFAULT, evalBaseObject == null );
             return completeRound( varName, suffix(evalName), obj );
         }
 
@@ -993,4 +995,3 @@ class Name implements java.io.Serializable
     public String toString() { return value; }
 
 }
-

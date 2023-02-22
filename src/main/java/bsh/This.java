@@ -33,6 +33,7 @@ import static bsh.ClassGenerator.ClassNodeFilter.CLASSINSTANCEMETHODS;
 import static bsh.ClassGenerator.ClassNodeFilter.CLASSSTATICFIELDS;
 import static bsh.ClassGenerator.ClassNodeFilter.CLASSSTATICMETHODS;
 import static bsh.ClassGeneratorUtil.DEFAULTCONSTRUCTOR;
+import static bsh.Interpreter.COMPATIBILITY_DEFAULT;
 import static bsh.This.Keys.BSHCONSTRUCTORS;
 import static bsh.This.Keys.BSHINIT;
 import static bsh.This.Keys.BSHTHIS;
@@ -745,7 +746,7 @@ public final class This implements java.io.Serializable, Runnable
                 instanceThis = instanceNameSpace.getThis(classStaticThis.declaringInterpreter);
             try {
                 LHS lhs = Reflect.getLHSObjectField(instance, BSHTHIS + className);
-                lhs.assign(instanceThis, false/*strict*/);
+                lhs.assign(instanceThis, COMPATIBILITY_DEFAULT);
             } catch (Exception e) {
                 throw new InterpreterError("Error in class gen setup: " + e, e);
             }

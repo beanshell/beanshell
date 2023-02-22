@@ -36,6 +36,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static bsh.Interpreter.COMPATIBILITY_STRICT_JAVA;
+import static bsh.Interpreter.COMPATIBILITY_BSH2_VARIABLE_SCOPING;
+
 /** A namespace in which methods, variables, and imports (class names) live.
  * This is package public because it is used in the implementation of some bsh
  * commands. However for normal use you should be using methods on
@@ -237,26 +240,29 @@ public class NameSpace
      * </p>
      * @param name the name
      * @param value the value
-     * @param strictJava specifies whether strict java rules are applied.
+     * @param compatibilityFlags specifies optional modes such as strict
+     * java rules or V2 variable scoping
      * @throws UtilEvalError the util eval error
      * @see bsh.Primitive
      *      <p>
      *      Setting a new variable (which didn't exist before) or removing a
      *      variable causes a namespace change. </p>*/
-    public void setVariable(final String name, final Object value,
-            final boolean strictJava) throws UtilEvalError {
-        this.setVariable(name, value, strictJava, true);
+    public void setVariable(String name, Object value,
+                            int compatibilityFlags) throws UtilEvalError {
+        setVariable(name, value, compatibilityFlags, true);
     }
 
     /** Set a variable explicitly in the local scope.
      * @param name the name
      * @param value the value
-     * @param strictJava the strict java
+     * @param compatibilityFlags specifies optional modes such as strict
+     * java rules or V2 variable scoping
      * @return the variable
      * @throws UtilEvalError the util eval error */
-    public Variable setLocalVariable(final String name, final Object value,
-            final boolean strictJava) throws UtilEvalError {
-        return this.setVariable(name, value, strictJava, false/* recurse */);
+    public Variable setLocalVariable(String name, Object value,
+                                     int compatibilityFlags)
+        throws UtilEvalError {
+        return setVariable(name, value, compatibilityFlags, false/* recurse */);
     }
 
     /** Set the value of a the variable 'name' through this namespace. The
@@ -269,7 +275,8 @@ public class NameSpace
      * </p>
      * @param name the name
      * @param value the value
-     * @param strictJava specifies whether strict java rules are applied.
+     * @param compatibilityFlags specifies optional modes such as strict
+     * java rules or V2 variable scoping
      * @param recurse determines whether we will search for the variable in our
      *        parent's scope before assigning locally.
      * @return the variable
@@ -278,28 +285,33 @@ public class NameSpace
      *      <p>
      *      Setting a new variable (which didn't exist before) or removing a
      *      variable causes a namespace change. </p>*/
-    Variable setVariable(final String name, Object value,
-            final boolean strictJava, final boolean recurse)
+    Variable setVariable(String name, Object value,
+                         int compatibilityFlags, boolean recurse)
             throws UtilEvalError {
+
         // primitives should have been wrapped
         if (value == null)
             value = Primitive.NULL; // So then wrap it
+
         // Locate the variable definition if it exists.
-        final Variable existing = this.getVariableImpl(name, recurse);
+        final Variable existing = getVariableImpl(name, recurse);
+
         // Found an existing variable here (or above if recurse allowed)
-        if ( existing != null ) {
+        if (existing != null) {
             existing.setValue( value, Variable.ASSIGNMENT );
             return existing;
         } else {
             // No previous variable definition found here (or above if recurse)
-            if (strictJava)
+
+            /*
+             * Do not allow loosely type variable if strict mode is on
+             */
+            if ((compatibilityFlags&COMPATIBILITY_STRICT_JAVA)==
+                COMPATIBILITY_STRICT_JAVA)
                 throw new UtilEvalError(
                         "(Strict Java mode) Assignment to undeclared variable: "
                                 + name);
-            // If recurse, set global untyped var, else set it here.
-            // NameSpace varScope = recurse ? getGlobal() : this;
-            // This modification makes default allocation local
-            // NameSpace varScope = this;
+
             final Variable var = this.createVariable(name, value,
                     null/* modifiers */);
             this.variables.put(name, var);
@@ -322,11 +334,13 @@ public class NameSpace
      * </p>
      * @param name the name
      * @param value the value
-     * @param strictJava specifies whether strict java rules are applied.
+     * @param compatibilityFlags specifies optional modes such as strict
+     * java rules or V2 variable scoping
      * @throws UtilEvalError the util eval error */
-    public void setVariableOrProperty(final String name, final Object value,
-            final boolean strictJava) throws UtilEvalError {
-        this.setVariableOrProperty(name, value, strictJava, true);
+    public void setVariableOrProperty(String name, Object value,
+                                      int compatibilityFlags)
+        throws UtilEvalError {
+        setVariableOrProperty(name, value, compatibilityFlags, true);
     }
 
     /** Set a variable or property explicitly in the local scope.
@@ -342,11 +356,13 @@ public class NameSpace
      * </p>
      * @param name the name
      * @param value the value
-     * @param strictJava the strict java
+     * @param compatibilityFlags specifies optional modes such as strict
+     * java rules or V2 variable scoping
      * @throws UtilEvalError the util eval error */
-    void setLocalVariableOrProperty(final String name, final Object value,
-            final boolean strictJava) throws UtilEvalError {
-        this.setVariableOrProperty(name, value, strictJava, false/* recurse */);
+    void setLocalVariableOrProperty(String name, Object value,
+                                    int compatibilityFlags)
+        throws UtilEvalError {
+        setVariableOrProperty(name, value, compatibilityFlags, false/* recurse */);
     }
 
     /** Set the value of a the variable or property 'name' through this
@@ -363,16 +379,19 @@ public class NameSpace
      * </p>
      * @param name the name
      * @param value the value
-     * @param strictJava specifies whether strict java rules are applied.
+     * @param compatibilityFlags specifies optional modes such as strict
+     * java rules or V2 variable scoping
      * @param recurse determines whether we will search for the variable in our
      *        parent's scope before assigning locally.
      * @throws UtilEvalError the util eval error */
-    void setVariableOrProperty(final String name, final Object value,
-            final boolean strictJava, final boolean recurse)
-            throws UtilEvalError {
+    void setVariableOrProperty(String name, Object value,
+                               int compatibilityFlags, boolean recurse)
+        throws UtilEvalError {
+
         // primitives should have been wrapped
         if (value == null)
             throw new InterpreterError("null variable value");
+
         // Locate the variable definition if it exists.
         final Variable existing = this.getVariableImpl(name, recurse);
         // Found an existing variable here (or above if recurse allowed)
@@ -380,27 +399,46 @@ public class NameSpace
             try {
                 existing.setValue(value, Variable.ASSIGNMENT);
             } catch (final UtilEvalError e) {
-                throw new UtilEvalError(
-                        "Variable assignment: " + name + ": " + e.getMessage(), e);
+                throw new UtilEvalError("Variable assignment: " + name +
+                                        ": " + e.getMessage(), e);
             }
         else {
             // No previous variable definition found here (or above if recurse)
-            if (strictJava)
-                throw new UtilEvalError(
-                        "(Strict Java mode) Assignment to undeclared variable: "
-                                + name);
-            final boolean setProp = this.attemptSetPropertyValue(name, value,
+
+            /*
+             * If strict jave mode then loosely typed variables are not
+             * allowed
+             */
+            if ((compatibilityFlags&COMPATIBILITY_STRICT_JAVA)==
+                COMPATIBILITY_STRICT_JAVA)
+                throw new UtilEvalError("(Strict Java mode) Assignment to undeclared variable: "
+                                        + name);
+
+            /*
+             * Attempt to set the value as a property
+             */
+            boolean setProp = this.attemptSetPropertyValue(name, value,
                     null != thisReference ? thisReference.declaringInterpreter
                     : null);
             if (setProp)
                 return;
-            // If recurse, set global untyped var, else set it here.
-            // NameSpace varScope = recurse ? getGlobal() : this;
-            // This modification makes default allocation local
-            final NameSpace varScope = this;
-            varScope.variables.put(name,
-                    this.createVariable(name, value, null/* modifiers */));
-            this.nameSpaceChanged();
+
+            if ((compatibilityFlags&COMPATIBILITY_BSH2_VARIABLE_SCOPING)==
+                COMPATIBILITY_BSH2_VARIABLE_SCOPING) {
+                /*
+                 * BeanShell V2 loose variable scoping allows new loose
+                 * variables to be set in the outer scope.
+                 */
+                setVariable(name, value, compatibilityFlags, recurse);
+            } else {
+                /*
+                 * BeanShell V3 creates loose variables in the
+                 * current scope, similar to java declared variables.
+                 */
+                variables.put(name,
+                              createVariable(name, value, null/* modifiers */));
+                nameSpaceChanged();
+            }
         }
     }
 

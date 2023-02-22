@@ -29,6 +29,7 @@ package bsh;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static bsh.Interpreter.COMPATIBILITY_DEFAULT;
 import bsh.util.ReferenceCache;
 import bsh.util.ReferenceCache.Type;
 
@@ -121,15 +122,15 @@ class BlockNameSpace extends NameSpace
         variable in our parent, not here.
     */
     public Variable setVariable(
-        String name, Object value, boolean strictJava, boolean recurse )
+        String name, Object value, int compatibilityFlags, boolean recurse )
         throws UtilEvalError
     {
         if ( weHaveVar( name ) )
             // set the var here in the block namespace
-            return super.setVariable( name, value, strictJava, false );
+            return super.setVariable( name, value, compatibilityFlags, false );
         else
             // set the var in the enclosing (parent) namespace
-            return getParent().setVariable( name, value, strictJava, recurse );
+            return getParent().setVariable( name, value, compatibilityFlags, recurse );
     }
 
     /**
@@ -141,7 +142,7 @@ class BlockNameSpace extends NameSpace
     public void setBlockVariable( String name, Object value )
         throws UtilEvalError
     {
-        super.setVariable( name, value, false/*strict?*/, false );
+        super.setVariable( name, value, COMPATIBILITY_DEFAULT, false );
     }
 
     /**
@@ -203,4 +204,3 @@ class BlockNameSpace extends NameSpace
         getParent().setMethod( method );
     }
 }
-
