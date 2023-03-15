@@ -1,6 +1,7 @@
 #!/bin/java bsh.Interpreter
 
 source("TestHarness.bsh");
+source("Assert.bsh");
 
 // test static method selection
 assert( MethodSelection.get_static( (int)5 ) == Integer.TYPE );
@@ -79,6 +80,20 @@ Object x = null;
 String str = String.valueOf(x);
 assert("null".equals(str));
 
+/*
+ * Test method selection with override of array type
+ * Related to issue #731
+ */
+method2( single ) {
+   return single;
+}
+
+method2( String[] list ) {
+   return method2( list[1] );
+}
+
+assertEquals( method2("a"), "a" );
+assertEquals( method2(new String[] {"a","b","c"}), "b" );
 
 complete();
 
