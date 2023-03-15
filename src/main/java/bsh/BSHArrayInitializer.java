@@ -26,6 +26,7 @@
 package bsh;
 
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.Map;
 import java.lang.reflect.Array;
@@ -251,10 +252,15 @@ class BSHArrayInitializer extends SimpleNode {
      * @throws EvalError thrown on cast exceptions */
     private Object toCollection(Object value, Class<?> type, CallStack callstack)
             throws EvalError {
+        /*
+         * Don't try to convert an array of collections into a collection
+         */
         Class valClaz = value.getClass();
+        Class valBase = Types.arrayElementType(valClaz);
         if ( Types.isCollectionType(type) &&
              !(valClaz.isArray() &&
-               type.isAssignableFrom(Types.arrayElementType(valClaz))))
+               (Map.class.isAssignableFrom(valBase) ||
+                Collection.class.isAssignableFrom(valBase))))
             try {
             return Types.castObject(value, type, Types.CAST);
         } catch ( UtilEvalError e ) {
