@@ -111,7 +111,7 @@ public class Parser implements ParserConstants {
         This seems to be necessary to avoid certain looping errors when
         reading bogus input.  See Interpreter.
     */
-    void reInitTokenInput( Reader in ) {
+    public void reInitTokenInput( Reader in ) {
         jj_input_stream.reInit( in,
             jj_input_stream.getEndLine(),
             jj_input_stream.getEndColumn() );

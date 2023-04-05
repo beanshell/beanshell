@@ -28,7 +28,7 @@
 package bsh.legacy;
 
 /** Token Manager Error. */
-class TokenMgrException extends RuntimeException
+public class TokenMgrException extends RuntimeException
 {
 
   /**

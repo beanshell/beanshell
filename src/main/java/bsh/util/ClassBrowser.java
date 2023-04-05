@@ -130,7 +130,7 @@ public class ClassBrowser extends JSplitPane
 
         Set<String> set = classPath.getClassesForPackage( packagename );
         if ( set == null )
-            set = new HashSet<>();
+            set = new HashSet<String>();
 
         // remove inner classes and shorten class names
         List<String> list = new ArrayList<>();
@@ -557,7 +557,7 @@ public class ClassBrowser extends JSplitPane
                     Map<String,Object> map=(Map<String,Object>)level.get( name );
 
                     if ( map == null ) {
-                        map=new HashMap<>();
+                        map=new HashMap<String, Object>();
                         level.put( name, map );
                     }
                     level = map;

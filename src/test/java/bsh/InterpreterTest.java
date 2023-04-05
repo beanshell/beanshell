@@ -360,7 +360,7 @@ public class InterpreterTest {
 
             bsh.setExitOnEOF(true);
             bsh.run();
-            assertThat(baos.toString(), containsString("Error parsing input: bsh.TokenMgrException: Lexical error at line 2, column 1.  Encountered: \"\\\\\""));
+            assertThat(baos.toString(), containsString("Error parsing input: bsh.legacy.TokenMgrException: Lexical error at line 2, column 1.  Encountered: \"\\\\\""));
         }
     }
 
@@ -375,7 +375,7 @@ public class InterpreterTest {
             bsh.setExitOnEOF(false);
             bsh.run();
             assertThat(baos.toString(), containsString("bsh %"));
-            assertThat(baos.toString(), containsString("Error parsing input: bsh.TokenMgrException: Lexical error at line 2, column 1.  Encountered: \"\\\\\""));
+            assertThat(baos.toString(), containsString("Error parsing input: bsh.legacy.TokenMgrException: Lexical error at line 2, column 1.  Encountered: \"\\\\\""));
         }
     }
 
