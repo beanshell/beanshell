@@ -13,6 +13,7 @@ NODE_PACKAGE=bsh.congo.tree;
 ENSURE_FINAL_EOL=true;
 BASE_SRC_DIR="../java";
 LEGACY_GLITCHY_LOOKAHEAD=false;
+//TOKENS_ARE_NODES=false;
 
 INJECT Node :
 import bsh.CallStack;
@@ -179,16 +180,23 @@ INJECT ConditionalAndExpression : extends bsh.BSHBinaryExpression
 INJECT ConditionalOrExpression : extends bsh.BSHBinaryExpression
 INJECT EqualityExpression : extends bsh.BSHBinaryExpression
 INJECT ExclusiveExpression : extends bsh.BSHBinaryExpression
+INJECT FormalComment: extends bsh.BSHFormalComment
+INJECT FormalParameters: extends bsh.BSHFormalParameters
 INJECT InclusiveExpression : extends bsh.BSHBinaryExpression
 INJECT InstanceofExpression : extends bsh.BSHBinaryExpression
+INJECT InvocationArguments : extends bsh.BSHArguments
 INJECT ReferenceType : extends bsh.BSHType
 INJECT PrimitiveType : extends bsh.BSHPrimitiveType
 INJECT DotThis : extends bsh.BSHPrimaryExpression
-INJECT MethodCall : extends bsh.BSHPrimaryExpression
+INJECT MethodCall : extends bsh.BSHMethodInvocation
+INJECT MethodDeclaration : extends bsh.BSHMethodDeclaration
+INJECT ExpressionStatement : extends bsh.BSHPrimaryExpression
+INJECT ObjectType : extends bsh.BSHType
 INJECT PostfixExpression : extends bsh.BSHUnaryExpression
 INJECT PreDecrementExpression : extends bsh.BSHUnaryExpression
 INJECT PreIncrementExpression : extends bsh.BSHUnaryExpression
 INJECT RelationalExpression : extends bsh.BSHBinaryExpression
+INJECT ReturnType : extends bsh.BSHReturnType
 INJECT ShiftExpression : extends bsh.BSHBinaryExpression
 INJECT TernaryExpression : extends bsh.BSHTernaryExpression
 INJECT UnaryExpression : extends bsh.BSHUnaryExpression
@@ -196,6 +204,7 @@ INJECT UnaryExpressionNotPlusMinus : extends bsh.BSHUnaryExpression
 INJECT AllocationExpression : extends bsh.BSHAllocationExpression
 INJECT LiteralExpression : extends bsh.BSHLiteral
 INJECT Name : extends bsh.BSHAmbiguousName
+INJECT DotName : extends bsh.BSHAmbiguousName
 INJECT ArrayAccess : extends bsh.BSHPrimaryExpression // This is maybe not quite right
 
 INJECT ClassDeclaration : extends bsh.BSHClassDeclaration
