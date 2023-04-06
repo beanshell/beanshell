@@ -28,6 +28,9 @@ public class TestHarness {
         if (statements.size() == 1) statements.get(0).dump();
         for (Node n : parser.Statements()) {
             System.out.println(n.getClass().getSimpleName() + ":" + n.getLocation());
+            System.out.println("------");
+            n.dump();
+            System.out.println("------");
         }
     }
 
