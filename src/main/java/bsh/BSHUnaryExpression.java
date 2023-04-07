@@ -28,14 +28,23 @@
 
 package bsh;
 
-import bsh.legacy.ParserConstants;
 import bsh.congo.tree.BaseNode;
+import bsh.congo.tree.Operator;
 import bsh.congo.parser.Node;
+import bsh.congo.parser.Token.TokenType;
+import static bsh.congo.parser.Token.TokenType.*;
 
-public class BSHUnaryExpression extends BaseNode implements ParserConstants
+public class BSHUnaryExpression extends BaseNode
 {
-    public int kind;
     public boolean postfix = false;
+
+    public TokenType getKind() {
+        return getOperator() != null ? getOperator().getType() : null;
+    }
+
+    public Operator getOperator() {
+        return firstChildOfType(Operator.class);
+    }
 
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError
@@ -46,13 +55,13 @@ public class BSHUnaryExpression extends BaseNode implements ParserConstants
         // then we need an LHS to which to assign the result.  Otherwise
         // just do the unary operation for the value.
         try {
-            if ( kind == INCR || kind == DECR ) {
+            if ( getKind() == INCR || getKind() == DECR ) {
                 LHS lhs = ((BSHPrimaryExpression)node).toLHS(
                     callstack, interpreter );
                 return lhsUnaryOperation( lhs, interpreter.getStrictJava() );
             } else
                 return
-                    unaryOperation( node.eval(callstack, interpreter), kind );
+                    unaryOperation( node.eval(callstack, interpreter), getOperator() );
         } catch ( UtilEvalError e ) {
             throw e.toEvalError( this, callstack );
         }
@@ -64,7 +73,7 @@ public class BSHUnaryExpression extends BaseNode implements ParserConstants
         Interpreter.debug("lhsUnaryOperation");
         Object prevalue, postvalue;
         prevalue = lhs.getValue();
-        postvalue = unaryOperation(prevalue, kind);
+        postvalue = unaryOperation(prevalue, getOperator());
 
         Object retVal;
         if ( postfix )
@@ -76,20 +85,20 @@ public class BSHUnaryExpression extends BaseNode implements ParserConstants
         return retVal;
     }
 
-    private Object unaryOperation( Object op, int kind ) throws UtilEvalError
+    private Object unaryOperation( Object op, Operator operator ) throws UtilEvalError
     {
         if ( op instanceof Boolean )
             op = (Boolean) op ? Primitive.TRUE : Primitive.FALSE;
 
         if ( !(op instanceof Primitive) )
-            throw new UtilEvalError( "Unary operation " + tokenImage[kind]
+            throw new UtilEvalError( "Unary operation " + operator
                 + " inappropriate for object" );
 
-        return Operators.unaryOperation((Primitive) op, kind);
+        return Operators.unaryOperation((Primitive) op, operator.getType());
     }
 
     @Override
     public String toString() {
-        return super.toString() + ": " + tokenImage[kind];
+        return super.toString() + ": " + getOperator();
     }
 }

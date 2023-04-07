@@ -29,11 +29,9 @@ package bsh;
 import bsh.legacy.*;
 import bsh.congo.tree.BaseNode;
 import bsh.congo.parser.Node;
+import bsh.congo.parser.Token.TokenType;
 
-public class BSHSwitchStatement
-    extends BaseNode
-    implements ParserConstants
-{
+public class BSHSwitchStatement extends BaseNode {
 
     public Object eval( CallStack callstack, Interpreter interpreter )
         throws EvalError
@@ -102,7 +100,7 @@ public class BSHSwitchStatement
             }
         }
 
-        if ( returnControl != null && returnControl.kind == RETURN )
+        if ( returnControl != null && returnControl.kind == TokenType.RETURN )
             return returnControl;
         else
             return Primitive.VOID;
@@ -123,7 +121,7 @@ public class BSHSwitchStatement
             try {
                 // binaryOperation can return Primitive or wrapper type
                 Object result = Operators.binaryOperation(
-                    switchVal, targetVal, ParserConstants.EQ );
+                    switchVal, targetVal, TokenType.EQ );
                 result = Primitive.unwrap( result );
                 return result.equals( Boolean.TRUE );
             } catch ( UtilEvalError e ) {

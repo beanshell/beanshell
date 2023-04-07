@@ -21,6 +21,8 @@
 package bsh;
 
 import static org.junit.Assert.assertEquals;
+
+import bsh.congo.parser.Token.TokenType;
 import bsh.legacy.ParserConstants;
 
 import org.junit.Test;
@@ -74,7 +76,7 @@ public class NodeStringTest {
     public void test_assignment_string() {
         BSHAssignment node = new BSHAssignment();
         assertEquals("Assignment", node.toString());
-        node.setOperator(ParserConstants.EOF);
+        node.setKind(TokenType.EOF);
         assertEquals("Assignment: <EOF>", node.toString());
     }
 

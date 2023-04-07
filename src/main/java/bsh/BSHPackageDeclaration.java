@@ -38,9 +38,9 @@ public class BSHPackageDeclaration extends BaseNode
     {
         BSHAmbiguousName name = firstChildOfType(BSHAmbiguousName.class);
         NameSpace namespace = callstack.top();
-        namespace.setPackage( name.text );
+        namespace.setPackage( name.getName() );
         // import the package we're in by default...
-        namespace.importPackage( name.text );
+        namespace.importPackage( name.getName() );
         return Primitive.VOID;
     }
 }

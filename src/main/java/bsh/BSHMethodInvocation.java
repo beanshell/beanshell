@@ -51,13 +51,13 @@ public class BSHMethodInvocation extends BaseNode
         BSHAmbiguousName nameNode = getNameNode();
 
       // get caller info for assert fail
-      if ("fail".equals(nameNode.text))
+      if ("fail".equals(nameNode.getName()))
           interpreter.getNameSpace().setNode(this);
 
         // Do not evaluate methods this() or super() in class instance space
         // (i.e. inside a constructor)
         if ( namespace.getParent() != null && namespace.getParent().isClass
-            && ( nameNode.text.equals("super") || nameNode.text.equals("this") )
+            && ( nameNode.getName().equals("super") || nameNode.getName().equals("this") )
         )
             return Primitive.VOID;
 

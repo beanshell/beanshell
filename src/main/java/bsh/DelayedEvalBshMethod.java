@@ -139,7 +139,7 @@ public class DelayedEvalBshMethod extends BshMethod
 
         if ( firstStatement instanceof BSHMethodInvocation ) {
             BSHMethodInvocation methodNode = (BSHMethodInvocation) firstStatement;
-            String methodName = methodNode.getNameNode().text;
+            String methodName = methodNode.getNameNode().getName();
             if ( methodName.equals("super") || methodName.equals("this") ) {
                 this.argsNode = methodNode.getArgsNode();
                 return methodName;

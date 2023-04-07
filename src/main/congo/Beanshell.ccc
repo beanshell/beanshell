@@ -82,18 +82,38 @@ import bsh.BSHLabeledStatement;
         return sourceFile;
     }
 
-    public String toString() {
-        String result = getClass().getSimpleName();
-        if (result.startsWith("BSH")) result = result.substring(3);
-        return result;
-    }
-
     protected String getLabel() {
         if (getParent() instanceof BSHLabeledStatement) {
             return ((BSHLabeledStatement) getParent()).getLabel();
         }
         return null;
     }
+
+    public List<Node> childrenNodes() {
+        return children.stream().filter(this::isNotToken).toList();
+    }
+
+    private boolean isNotToken(Node n) {
+        return n != null && !Token.class.isAssignableFrom(n.getClass());
+    }
+
+    public void dump(String prefix) {
+        if (isNotToken(this)) System.out.println(toString(prefix));
+        if (children != null) for (Node n : childrenNodes())
+            n.dump(prefix + " ");
+    }
+
+    public String toString() {
+        String result = BaseNode.class.equals(getClass().getSuperclass())
+            ? getClass().getSimpleName()
+            : getClass().getSuperclass().getSimpleName();
+        //if (result.startsWith("BSH")) result = result.substring(3);
+        return result;
+    }
+
+    public String toString(String prefix) { return prefix + toString(); }
+
+    public void ndump(String prefix) { Node.super.dump(prefix); }
 }
 
 TOKEN :
@@ -190,7 +210,7 @@ INJECT PrimitiveType : extends bsh.BSHPrimitiveType
 INJECT DotThis : extends bsh.BSHPrimaryExpression
 INJECT MethodCall : extends bsh.BSHMethodInvocation
 INJECT MethodDeclaration : extends bsh.BSHMethodDeclaration
-INJECT ExpressionStatement : extends bsh.BSHPrimaryExpression
+INJECT ExpressionStatement : extends bsh.BSHAssignment
 INJECT ObjectType : extends bsh.BSHType
 INJECT PostfixExpression : extends bsh.BSHUnaryExpression
 INJECT PreDecrementExpression : extends bsh.BSHUnaryExpression
@@ -203,8 +223,27 @@ INJECT UnaryExpression : extends bsh.BSHUnaryExpression
 INJECT UnaryExpressionNotPlusMinus : extends bsh.BSHUnaryExpression
 INJECT AllocationExpression : extends bsh.BSHAllocationExpression
 INJECT LiteralExpression : extends bsh.BSHLiteral
+{
+    @Override
+    public Object getValue() {
+        return super.getValue() == null && getChildCount() > 0 ? getChild(0) : super.getValue();
+    }
+}
 INJECT Name : extends bsh.BSHAmbiguousName
+{
+    @Override
+    public String getName() {
+        return children().stream().map(n->n==null?"":n.toString()).reduce("",(a,b)->a+b);
+    }
+}
 INJECT DotName : extends bsh.BSHAmbiguousName
+{
+    @Override
+    public String getName() {
+        return children().stream().map(n->n==null?"":n.toString()).reduce("",(a,b)->a+b);
+    }
+}
+
 INJECT ArrayAccess : extends bsh.BSHPrimaryExpression // This is maybe not quite right
 
 INJECT ClassDeclaration : extends bsh.BSHClassDeclaration
@@ -229,9 +268,9 @@ TOKEN #Operator :
   |
   < GE: ">=" | "@gteq" >
   |
-  < SC_OR : "||" | "@or" >
+  < BOOL_OR : "||" | "@or" >
   |
-  < SC_AND : "&&" | "@and" >
+  < BOOL_AND : "&&" | "@and" >
   |
   < BIT_AND: "&" | "@bitwise_and" >
   |
@@ -272,6 +311,10 @@ TOKEN #Operator :
   < NULLCOALESCE: "??" >
   |
   < ELVIS: "?:" >
+  |
+  < MOD: "%" | "@mod" >
+  |
+  < MODASSIGN: "%=" | "@mod_assign" >
 ;
 
 TOKEN :

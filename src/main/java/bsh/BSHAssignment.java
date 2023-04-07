@@ -29,38 +29,27 @@ package bsh;
 import bsh.congo.tree.BaseNode;
 import bsh.congo.tree.Operator;
 import bsh.legacy.ParserConstants;
+import bsh.congo.tree.Operator;
+import bsh.congo.parser.Token.TokenType;
+import static bsh.congo.parser.Token.TokenType.*;
 
-public class BSHAssignment extends BaseNode implements ParserConstants {
+public class BSHAssignment extends BaseNode {
     private static final long serialVersionUID = 1L;
-    private Integer operator;
-
-    public void setOperator(int operator) {
-        this.operator = operator;
+    private TokenType tokenType;
+    public TokenType getKind() {
+        if (null == tokenType)
+            tokenType = getOperator() != null ? getOperator().getType() : null;
+        return tokenType;
     }
 
-    public Integer getOperator() {
-        if (operator == null) {
-            bsh.congo.parser.Token tok = firstChildOfType(Operator.class);
-            if (tok != null) switch(tok.getType()) {
-                case ASSIGN : operator = ASSIGN; break;
-                case PLUSASSIGN : operator = PLUSASSIGN; break;
-                case MINUSASSIGN : operator = MINUSASSIGN; break;
-                case STARASSIGN : operator = STARASSIGN; break;
-                case SLASHASSIGN : operator = SLASHASSIGN; break;
-                case REMASSIGN : operator = MODASSIGN; break;
-                case LSHIFTASSIGN : operator = LSHIFTASSIGN; break;
-                case RSIGNEDSHIFTASSIGN : operator = RSIGNEDSHIFTASSIGN; break;
-                case RUNSIGNEDSHIFTASSIGN : operator = RUNSIGNEDSHIFTASSIGN; break;
-                case ANDASSIGN :operator = ANDASSIGN; break;
-                case XORASSIGN : operator = XORASSIGN; break;
-                case ORASSIGN : operator = ORASSIGN; break;
-                case POWERASSIGN : operator = POWERASSIGN; break;
-                case NULLCOALESCEASSIGN : operator = NULLCOALESCEASSIGN; break;
-                default: break;
-            }
-        }
-        return operator;
+    public void setKind(TokenType kind) {
+        tokenType = kind;
     }
+
+    public Operator getOperator() {
+        return firstChildOfType(Operator.class);
+    }
+
 
     public Object eval(CallStack callstack, Interpreter interpreter)
             throws EvalError {
@@ -79,13 +68,13 @@ public class BSHAssignment extends BaseNode implements ParserConstants {
         // the rhs.  This is correct Java behavior for postfix operations
         // e.g. i=1; i+=i++; // should be 2 not 3
         Object lhsValue = null;
-        if ( operator != ASSIGN ) try { // assign doesn't need the lhs value
+        if ( getKind() != ASSIGN ) try { // assign doesn't need the lhs value
             lhsValue = lhs.getValue();
         } catch ( UtilEvalError e ) {
             throw e.toEvalError( this, callstack );
         }
 
-        if ( operator == NULLCOALESCEASSIGN &&  Primitive.NULL != lhsValue )
+        if ( getKind() == NULLCOALESCEASSIGN &&  Primitive.NULL != lhsValue )
             return lhsValue; // return non null lhs before evaluating rhs
 
         // evaluate the right hand side
@@ -95,7 +84,7 @@ public class BSHAssignment extends BaseNode implements ParserConstants {
             throw new EvalError("illegal void assignment", this, callstack);
 
         try {
-            switch( operator ) {
+            switch( getKind() ) {
                 case ASSIGN:
                     if (lhs.isFinal()) {
                         lhs.getVariable().setValue(rhs, Variable.ASSIGNMENT);
@@ -126,42 +115,34 @@ public class BSHAssignment extends BaseNode implements ParserConstants {
                         operation(lhsValue, rhs, SLASH), strictJava);
 
                 case ANDASSIGN:
-                case ANDASSIGNX:
                     return lhs.assign(
                         operation(lhsValue, rhs, BIT_AND), strictJava);
 
                 case ORASSIGN:
-                case ORASSIGNX:
                     return lhs.assign(
                         operation(lhsValue, rhs, BIT_OR), strictJava);
 
                 case XORASSIGN:
-                case XORASSIGNX:
                     return lhs.assign(
                         operation(lhsValue, rhs, XOR), strictJava);
 
                 case MODASSIGN:
-                case MODASSIGNX:
                     return lhs.assign(
                         operation(lhsValue, rhs, MOD), strictJava );
 
                 case POWERASSIGN:
-                case POWERASSIGNX:
                     return lhs.assign(
                             operation(lhsValue, rhs, POWER), strictJava);
 
                 case LSHIFTASSIGN:
-                case LSHIFTASSIGNX:
                     return lhs.assign(
                         operation(lhsValue, rhs, LSHIFT), strictJava);
 
                 case RSIGNEDSHIFTASSIGN:
-                case RSIGNEDSHIFTASSIGNX:
                     return lhs.assign(
                     operation(lhsValue, rhs, RSIGNEDSHIFT ), strictJava);
 
                 case RUNSIGNEDSHIFTASSIGN:
-                case RUNSIGNEDSHIFTASSIGNX:
                     return lhs.assign(
                         operation(lhsValue, rhs, RUNSIGNEDSHIFT),
                         strictJava);
@@ -182,7 +163,7 @@ public class BSHAssignment extends BaseNode implements ParserConstants {
      * @param kind the operation kind
      * @return the operated result
      * @throws UtilEvalError of invalidation */
-    private Object operation( Object lhs, Object rhs, int kind )
+    private Object operation( Object lhs, Object rhs, TokenType kind )
             throws UtilEvalError {
         if ( lhs instanceof String || lhs.getClass().isArray() )
             return Operators.arbitraryObjectsBinaryOperation(lhs, rhs, kind);
@@ -199,11 +180,11 @@ public class BSHAssignment extends BaseNode implements ParserConstants {
         }
 
         throw new UtilEvalError("Non primitive value in operator: " +
-            lhs.getClass() + " " + tokenImage[kind] + " " + rhs.getClass());
+            lhs.getClass() + " " + kind + " " + rhs.getClass());
     }
 
     @Override
     public String toString() {
-        return super.toString() + (null == operator ? "" : ": " + tokenImage[operator]);
+        return super.toString() + (null == getOperator() ? "" : ": " + getOperator());
     }
 }

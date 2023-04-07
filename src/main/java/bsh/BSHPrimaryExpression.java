@@ -31,6 +31,7 @@ package bsh;
 import bsh.legacy.*;
 import bsh.congo.tree.BaseNode;
 import bsh.congo.parser.Node;
+import bsh.congo.parser.Token.TokenType;
 
 public class BSHPrimaryExpression extends BaseNode
 {
@@ -54,8 +55,8 @@ public class BSHPrimaryExpression extends BaseNode
         this.isArrayExpression = true;
         if ( getParent() instanceof BSHAssignment
                 && ((BSHAssignment) getParent()).getOperator() != null
-                && (isMapExpression = (((BSHAssignment) getParent()).getOperator()
-                        == ParserConstants.ASSIGN))
+                && (isMapExpression = (((BSHAssignment) getParent()).getKind()
+                        == TokenType.ASSIGN))
                 && init.getParent() instanceof BSHArrayInitializer )
             init.setMapInArray(true);
     }
@@ -101,7 +102,7 @@ public class BSHPrimaryExpression extends BaseNode
         Object obj = getChild(0);
 
         for( int i=1; i < getChildCount(); i++ )
-            obj = ((BSHPrimarySuffix) getChild(i)).doSuffix(
+            obj = firstChildOfType(BSHPrimarySuffix.class).doSuffix(
                 obj, toLHS, callstack, interpreter);
 
         /*

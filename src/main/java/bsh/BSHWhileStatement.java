@@ -25,10 +25,11 @@
  *****************************************************************************/
 package bsh;
 
-import bsh.legacy.ParserConstants;
 import bsh.congo.tree.BaseNode;
 import bsh.congo.parser.Node;
 import bsh.congo.tree.DoStatement;
+import static bsh.congo.parser.Token.TokenType.BREAK;
+import static bsh.congo.parser.Token.TokenType.RETURN;
 
 /**
  * This class handles both {@code while} statements and {@code do..while} statements.
@@ -76,9 +77,9 @@ public class BSHWhileStatement extends BaseNode {
                         return ret;
                 }
 
-                if (control.kind == ParserConstants.RETURN)
+                if (control.kind == RETURN)
                     return ret;
-                else if (control.kind == ParserConstants.BREAK)
+                else if (control.kind == BREAK)
                     break;
                 // if CONTINUE we just carry on
             }

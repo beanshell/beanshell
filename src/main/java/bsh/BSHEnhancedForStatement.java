@@ -29,6 +29,8 @@ import bsh.legacy.*;
 import bsh.congo.tree.BaseNode;
 import bsh.congo.parser.Node;
 import java.util.Iterator;
+import static bsh.congo.parser.Token.TokenType.BREAK;
+import static bsh.congo.parser.Token.TokenType.RETURN;
 
 /**
  * Implementation of the enhanced for(:) statement.
@@ -97,9 +99,9 @@ public class BSHEnhancedForStatement extends BaseNode {
                             return ret;
                     }
 
-                    if (control.kind == ParserConstants.RETURN)
+                    if (control.kind == RETURN)
                         return ret;
-                    else if (control.kind == ParserConstants.BREAK)
+                    else if (control.kind == BREAK)
                         break;
                     // if CONTINUE we just carry on
                 }

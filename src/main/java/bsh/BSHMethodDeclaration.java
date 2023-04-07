@@ -67,15 +67,15 @@ public class BSHMethodDeclaration extends BaseNode
         if ( firstNode instanceof BSHReturnType )
         {
             returnTypeNode = (BSHReturnType)firstNode;
-            paramsNode = (BSHFormalParameters)getChild(1);
+            paramsNode = firstChildOfType(BSHFormalParameters.class);
             if ( getChildCount() > 2+numThrows )
-                blockNode = (BSHBlock)getChild(2+numThrows); // skip throws
+                blockNode = firstChildOfType(BSHBlock.class); // skip throws
             ++firstThrowsClause;
         }
         else
         {
-            paramsNode = (BSHFormalParameters)getChild(0);
-            blockNode = (BSHBlock)getChild(1+numThrows); // skip throws
+            paramsNode = firstChildOfType(BSHFormalParameters.class);
+            blockNode = firstChildOfType(BSHBlock.class); // skip throws
         }
 
         if (null != blockNode && blockNode.getChildCount() > 0) {
@@ -83,7 +83,7 @@ public class BSHMethodDeclaration extends BaseNode
             if (crnt instanceof BSHReturnStatement) {
                 for (Node node : crnt.children()) {
                     if (node instanceof BSHAmbiguousName)
-                        isScriptedObject = ((BSHAmbiguousName)crnt).text.startsWith("this");
+                        isScriptedObject = ((BSHAmbiguousName)crnt).getName().startsWith("this");
                 }
             }
         }

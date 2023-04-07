@@ -28,16 +28,23 @@
 
 package bsh;
 
-import bsh.legacy.ParserConstants;
 import bsh.congo.tree.BaseNode;
+import bsh.congo.tree.Operator;
 import bsh.congo.parser.Node;
-
+import bsh.congo.parser.Token.TokenType;
+import static bsh.congo.parser.Token.TokenType.*;
 /**
     Implement binary expressions...
     @see Primitive.binaryOperation
 */
-public class BSHBinaryExpression extends BaseNode implements ParserConstants {
-    public int kind;
+public class BSHBinaryExpression extends BaseNode {
+    public TokenType getKind() {
+        return getOperator() != null ? getOperator().getType() : null;
+    }
+
+    public Operator getOperator() {
+        return firstChildOfType(Operator.class);
+    }
 
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError
@@ -47,7 +54,7 @@ public class BSHBinaryExpression extends BaseNode implements ParserConstants {
         /*
             Doing instanceof?  Next node is a type.
         */
-        if (kind == INSTANCEOF)
+        if (getKind() == INSTANCEOF)
         {
             // null object ref is not instance of any type
             if ( lhs == Primitive.NULL )
@@ -79,30 +86,30 @@ public class BSHBinaryExpression extends BaseNode implements ParserConstants {
             we're a boolean AND and the lhs is false.
             or we're a boolean OR and the lhs is true.
         */
-        if ( (kind == BOOL_AND || kind == BOOL_ANDX) )
+        if ( (getKind() == BOOL_AND) )
             if ( interpreter.getStrictJava() ) {
                 if (Primitive.FALSE.equals(lhs)) return Primitive.FALSE;
             } else {
                 if (Primitive.FALSE.equals(Primitive.castWrapper(Boolean.TYPE, lhs)))
                     return lhs;
             }
-        if ( (kind == BOOL_OR || kind == BOOL_ORX || kind == ELVIS) )
+        if ( (getKind() == BOOL_OR || getKind() == ELVIS) )
             if ( interpreter.getStrictJava() ) {
                 if (Primitive.TRUE.equals(lhs)) return Primitive.TRUE;
             } else {
                 if (Primitive.TRUE.equals(Primitive.castWrapper(Boolean.TYPE, lhs)))
                     return lhs;
             }
-        if ( kind == NULLCOALESCE && Primitive.NULL != lhs)
+        if ( getKind() == NULLCOALESCE && Primitive.NULL != lhs)
             return lhs;
 
         Object rhs = getChild(1).eval(callstack, interpreter);
 
-        if ( kind == NULLCOALESCE || kind == ELVIS )
+        if ( getKind() == NULLCOALESCE || getKind() == ELVIS )
             return rhs;
 
-        if ( !interpreter.getStrictJava() ) switch(kind) {
-            case BOOL_OR: case BOOL_ORX: case BOOL_AND: case BOOL_ANDX:
+        if ( !interpreter.getStrictJava() ) switch(getKind()) {
+            case BOOL_OR: case BOOL_AND:
                 // needs to validate to a boolean is all we return rhs
                 if (Primitive.castWrapper(Boolean.TYPE, rhs) instanceof Boolean)
                     return rhs;
@@ -118,21 +125,21 @@ public class BSHBinaryExpression extends BaseNode implements ParserConstants {
             preserve identity semantics for Wrapper ==/!= Wrapper
             gets treated as arbitrary objects in comparison
         */
-        if ( !((kind == EQ || kind == NE) && isWrapper(lhs) && isWrapper(rhs)) ) {
+        if ( !((getKind() == EQ || getKind() == NE) && isWrapper(lhs) && isWrapper(rhs)) ) {
             if ( (isWrapper(lhs) || isPrimitiveValue(lhs))
                 && (isWrapper(rhs) || isPrimitiveValue(rhs)) ) try {
-                    return Operators.binaryOperation(lhs, rhs, kind);
+                    return Operators.binaryOperation(lhs, rhs, getKind());
             } catch ( UtilEvalError e ) {
                 throw e.toEvalError(
-                    "Failed operation: "+lhs+" "+tokenImage[kind]+" "+rhs,
+                    "Failed operation: "+lhs+" "+getOperator()+" "+rhs,
                     this, callstack  );
             }
         }
 
-        if ( interpreter.getStrictJava() && ( kind == PLUS || kind == STAR )
+        if ( interpreter.getStrictJava() && ( getKind() == PLUS || getKind() == STAR )
                 && !( lhs instanceof String || rhs instanceof String ) )
             throw new EvalError( "Bad operand types for binary operator "
-                + tokenImage[kind] + " first type: "  + StringUtil.typeString(lhs)
+                + getOperator() + " first type: "  + StringUtil.typeString(lhs)
                 + " second type: " + StringUtil.typeString(rhs),
                     this, callstack );
         /*
@@ -140,7 +147,7 @@ public class BSHBinaryExpression extends BaseNode implements ParserConstants {
             (including NULL and VOID represented by their Primitive types)
         */
         try {
-            return Operators.arbitraryObjectsBinaryOperation(lhs, rhs, kind);
+            return Operators.arbitraryObjectsBinaryOperation(lhs, rhs, getKind());
         } catch (UtilEvalError e) {
             throw e.toEvalError(this, callstack);
         }
@@ -158,7 +165,7 @@ public class BSHBinaryExpression extends BaseNode implements ParserConstants {
                 && (nameNode = getChild(index).getChild(0))
                     instanceof BSHAmbiguousName )
             return callstack.top().getVariableImpl(
-                    ((BSHAmbiguousName) nameNode).text, true);
+                    ((BSHAmbiguousName) nameNode).getName(), true);
         return null;
     }
 
@@ -188,17 +195,17 @@ public class BSHBinaryExpression extends BaseNode implements ParserConstants {
                 val2Class = Primitive.unwrap(val2).getClass();
             if ( null == (var = getVariableAtNode(index, callstack)) )
                 return val1;
-            if ( (kind == EQ || kind == NE)
+            if ( (getKind() == EQ || getKind() == NE)
                     && isComparableTypes(var.getType(), val2Class, callstack) )
                 return val1;
-            if ( kind == PLUS && (val2IsString || var.getType() == String.class) )
+            if ( getKind() == PLUS && (val2IsString || var.getType() == String.class) )
                 return "null";
             if ( isWrapper(var.getType()) )
                 throw new NullPointerException(
-                        "null value with binary operator " + tokenImage[kind]);
+                        "null value with binary operator " + getOperator());
             throw new EvalError(
                     "bad operand types for binary operator "
-                        + tokenImage[kind], this, callstack);
+                        + getOperator(), this, callstack);
         } catch (NullPointerException e) {
             throw new TargetError(e, this, callstack);
         } catch (UtilEvalError e) {
@@ -256,16 +263,15 @@ public class BSHBinaryExpression extends BaseNode implements ParserConstants {
         if ( null == cls )
             return false;
         if ( Number.class.isAssignableFrom(cls)
-            || Character.class.isAssignableFrom(cls)) switch ( kind ) {
-            case BOOL_AND: case BOOL_ANDX: case BOOL_OR: case BOOL_ORX:
+            || Character.class.isAssignableFrom(cls)) switch ( getKind() ) {
+            case BOOL_AND: case BOOL_OR:
                 return false;
             default:
                 return true;
         }
-        if ( Boolean.class.isAssignableFrom(cls) ) switch ( kind ) {
-            case EQ: case NE: case BOOL_OR: case BOOL_ORX: case BOOL_AND:
-            case BOOL_ANDX: case BIT_AND: case BIT_ANDX: case BIT_OR:
-            case BIT_ORX: case XOR: case XORX:
+        if ( Boolean.class.isAssignableFrom(cls) ) switch ( getKind() ) {
+            case EQ: case NE: case BOOL_OR: case BOOL_AND:
+            case BIT_AND: case BIT_OR: case XOR:
                 return true;
         }
         return false;
@@ -273,6 +279,6 @@ public class BSHBinaryExpression extends BaseNode implements ParserConstants {
 
     @Override
     public String toString() {
-        return super.toString() + ": " + tokenImage[kind];
+        return super.toString() + ": " + getOperator();
     }
 }

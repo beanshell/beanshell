@@ -28,6 +28,8 @@ package bsh;
 
 import bsh.legacy.*;
 import bsh.congo.parser.Node;
+import bsh.congo.parser.Token.TokenType;
+
 import java.util.Arrays;
 import java.util.stream.IntStream;
 import java.io.Serializable;
@@ -483,7 +485,7 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
             retControl = (ReturnControl) ret;
 
             // Method body can only use 'return' statement type return control.
-            if ( retControl.kind == ReturnControl.RETURN )
+            if ( retControl.kind == TokenType.RETURN )
                 ret = retControl.value;
             else
                 // retControl.returnPoint is the Node of the return statement

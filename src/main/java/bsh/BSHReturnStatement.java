@@ -34,14 +34,17 @@ import bsh.congo.tree.Expression;
 import bsh.congo.tree.ReturnStatement;
 import bsh.congo.tree.BaseNode;
 import bsh.congo.parser.Node;
-import bsh.legacy.ParserConstants;
+import bsh.congo.parser.Token.TokenType;
+import static bsh.congo.parser.Token.TokenType.BREAK;
+import static bsh.congo.parser.Token.TokenType.CONTINUE;
+import static bsh.congo.parser.Token.TokenType.RETURN;
 
-public class BSHReturnStatement extends BaseNode implements ParserConstants
+public class BSHReturnStatement extends BaseNode
 {
-    public int kind;
+    public TokenType kind;
     public String label;
 
-    public int getKind() {
+    public TokenType getKind() {
         if (this instanceof ReturnStatement) return RETURN;
         if (this instanceof BreakStatement) return BREAK;
         if (this instanceof ContinueStatement) return CONTINUE;
@@ -71,6 +74,6 @@ public class BSHReturnStatement extends BaseNode implements ParserConstants
 
     @Override
     public String toString() {
-        return isLegacyNode() ? super.toString() + ": " + tokenImage[kind] + " " + label + ":" : super.toString();
+        return isLegacyNode() ? super.toString() + ": " + kind + " " + label + ":" : super.toString();
     }
 }

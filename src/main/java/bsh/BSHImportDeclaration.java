@@ -54,9 +54,9 @@ public class BSHImportDeclaration extends BaseNode
                 } else {
                     Object obj = null;
                     Class<?> clas = null;
-                    String name = Name.suffix(ambigName.text, 1);
+                    String name = Name.suffix(ambigName.getName(), 1);
                     try { // import static method from class
-                        clas = namespace.getClass(Name.prefix(ambigName.text));
+                        clas = namespace.getClass(Name.prefix(ambigName.getName()));
                         obj = Reflect.staticMethodImport(clas, name);
                     } catch (Exception e) { e.printStackTrace(); /* ignore try field instead */ }
                     try { // import static field from class
@@ -81,12 +81,12 @@ public class BSHImportDeclaration extends BaseNode
                         return Primitive.VOID;
                     }
                     // no static member found
-                    throw new EvalError(ambigName.text
+                    throw new EvalError(ambigName.getName()
                                         + " is not a static member of a class",
                                         this, callstack );
                 }
             } else { // import package
-                String name = ambigName.text;
+                String name = ambigName.getName();
                 if ( importPackage )
                     namespace.importPackage(name);
                 else

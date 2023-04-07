@@ -94,7 +94,7 @@ public class BSHAllocationExpression extends BaseNode
             type = ((ClassIdentifier)obj).getTargetClass();
         else
             throw new EvalError(
-                "Unknown class: "+nameNode.text, this, callstack );
+                "Unknown class: "+nameNode.getName(), this, callstack );
 
         // Is an inner class style object allocation
         boolean hasBody = getChildCount() > 2;
@@ -117,7 +117,7 @@ public class BSHAllocationExpression extends BaseNode
 
         String typeString = "";
         if (getChild(0) instanceof BSHAmbiguousName)
-            typeString = ((BSHAmbiguousName) getChild(0)).text;
+            typeString = firstChildOfType(BSHAmbiguousName.class).getName();
 
         Object[] args = null;
         if (getChild(1) instanceof BSHArguments)

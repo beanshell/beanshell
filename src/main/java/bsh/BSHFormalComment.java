@@ -33,6 +33,10 @@ public class BSHFormalComment extends BaseNode
 {
     public String text;
 
+    // remove this eval method
+    public Object eval(CallStack callstack, Interpreter interpreter) throws EvalError {
+        return Primitive.VOID;
+    }
     @Override
     public String toString() {
         return super.toString() + ": " + text;

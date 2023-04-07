@@ -94,7 +94,7 @@ public class BSHClassDeclaration extends BaseNode
             interfaces[i] = node.toClass(callstack, interpreter);
             if ( !interfaces[i].isInterface() )
                 throw new EvalError(
-                    "Type: "+node.text+" is not an interface!",
+                    "Type: "+node.getName()+" is not an interface!",
                     this, callstack );
         }
 

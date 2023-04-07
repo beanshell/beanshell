@@ -39,7 +39,7 @@ public class BSHLiteral extends BaseNode
     public Object eval( CallStack callstack, Interpreter interpreter )
         throws EvalError
     {
-        return value;
+        return getValue();
     }
 
     private char getEscapeChar(char ch)
@@ -153,8 +153,12 @@ public class BSHLiteral extends BaseNode
         value = s;
     }
 
+    public Object getValue() {
+        return value;
+    }
+
     @Override
     public String toString() {
-        return super.toString() + ": " + value;
+        return super.toString() + ": " + getValue();
     }
 }

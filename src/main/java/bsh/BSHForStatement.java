@@ -28,14 +28,15 @@
 
 package bsh;
 
-import bsh.legacy.ParserConstants;
 import bsh.congo.tree.BaseNode;
 import bsh.congo.parser.Node;
+import static bsh.congo.parser.Token.TokenType.BREAK;
+import static bsh.congo.parser.Token.TokenType.RETURN;
 
 /**
     Implementation of the for(;;) statement.
 */
-public class BSHForStatement extends BaseNode implements ParserConstants
+public class BSHForStatement extends BaseNode
 {
     final int blockId;
     public boolean hasForInit;

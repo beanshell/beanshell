@@ -89,7 +89,7 @@ public class BSHType extends BaseNode implements BshClassManager.Listener {
             descriptor = getTypeDescriptor( ((BSHPrimitiveType)node).type );
         else
         {
-            String clasName = ((BSHAmbiguousName)node).text;
+            String clasName = ((BSHAmbiguousName)node).getName();
             String innerClass = callstack.top().importedClasses.get(clasName);
 
             Class<?> clas = null;

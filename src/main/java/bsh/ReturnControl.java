@@ -28,26 +28,29 @@
 
 package bsh;
 
-import bsh.legacy.*;
 import bsh.congo.parser.Node;
+import bsh.congo.parser.Token.TokenType;
+import static bsh.congo.parser.Token.TokenType.BREAK;
+import static bsh.congo.parser.Token.TokenType.CONTINUE;
+import static bsh.congo.parser.Token.TokenType.RETURN;
 
 /**
     Represents a Return, Break, or Continue statement
 */
-class ReturnControl implements ParserConstants {
-    public int kind;
+class ReturnControl {
+    public TokenType kind;
     public String label = null;
     public Object value = Primitive.VOID;
     /** The node where we returned... for printing error messages correctly */
     public Node returnPoint;
 
-    public ReturnControl( int kind, Object value, Node returnPoint ) {
+    public ReturnControl( TokenType kind, Object value, Node returnPoint ) {
         this.kind = kind;
         this.value = value;
         this.returnPoint = returnPoint;
     }
 
-    public ReturnControl( int kind, String label, Node returnPoint ) {
+    public ReturnControl( TokenType kind, String label, Node returnPoint ) {
         this.kind = kind;
         this.label = label;
         this.returnPoint = returnPoint;

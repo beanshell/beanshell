@@ -31,11 +31,9 @@ import bsh.congo.tree.BaseNode;
 
 public class BSHAmbiguousName extends BaseNode
 {
-    public String text;
-
     public Name getName( NameSpace namespace )
     {
-        return namespace.getNameResolver( text );
+        return namespace.getNameResolver( getName() );
     }
 
     public Object toObject( CallStack callstack, Interpreter interpreter )
@@ -92,8 +90,11 @@ public class BSHAmbiguousName extends BaseNode
             +"  Use toObject() if you want an object." );
     }
 
+    public String getName() {
+        return null;
+    }
     public String toString() {
-        return super.toString() + ": " + text;
+        return super.toString() + ": " + getName();
     }
 }
 

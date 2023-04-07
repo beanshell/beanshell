@@ -29,6 +29,7 @@ package bsh;
 
 import bsh.legacy.*;
 import bsh.congo.tree.BaseNode;
+import bsh.congo.parser.BeanshellParser;
 import bsh.congo.parser.Node;
 import java.io.BufferedReader;
 import java.io.File;
@@ -42,7 +43,9 @@ import java.io.Serializable;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.nio.file.FileSystems;
 import java.util.ResourceBundle;
+import java.util.Scanner;
 
 /**
     The BeanShell script interpreter.
@@ -169,7 +172,7 @@ public class Interpreter
 
     /* --- Instance data --- */
 
-    transient Parser parser;
+    transient BeanshellParser parser;
     NameSpace globalNameSpace;
     ConsoleAssignable console;
 
@@ -357,16 +360,22 @@ public class Interpreter
     }
 
     // End constructors
+    private Scanner input;
 
-    /** Attach an assignable console and initialize a new parser.
-     * @param console assignable collection of input output streams. */
-    public void setConsole( ConsoleAssignable console ) {
+    /**
+     * Attach an assignable console and initialize a new parser.
+     *
+     * @param console assignable collection of input output streams.
+     */
+    public void setConsole(ConsoleAssignable console) {
         this.console = console;
-        if ( null == this.parser || get_jjtree().nodeArity() != 0
-                || (null != parent && parent.interactive) )
-            this.parser = new Parser(getIn());
-        else
-            this.parser.ReInit(getIn());
+        if (null != getIn())
+            input = new Scanner(getIn());
+        // if ( null == this.parser || get_jjtree().nodeArity() != 0
+        // || (null != parent && parent.interactive) )
+        // this.parser = new BeanshellParser(TokenSource.stringFromBytes(getIn().));
+        // else
+        // this.parser.ReInit(getIn());
     }
 
     /** Overloaded to accept a read only console.
@@ -520,9 +529,9 @@ public class Interpreter
 
                 EOF = readLine();
 
-                if ( get_jjtree().nodeArity() > 0 )  { // number of child nodes
+                if (parser.Statements().size() > 0) { // number of child nodes
 
-                    node = get_jjtree().rootNode();
+                    node = parser.Statements().get(0);
                     // nodes remember from where they were sourced
                     node.setSourceFile( sourceFileInfo );
 
@@ -558,7 +567,7 @@ public class Interpreter
                     e.printStackTrace();
                 if ( !interactive )
                     EOF = true;
-                parser.reInitInput(getIn());
+                // parser.reInitInput(getIn());
             } catch (InterpreterError e) {
                 error("Internal Error: " + e.getMessage());
                 if ( !interactive )
@@ -586,7 +595,7 @@ public class Interpreter
                     fail.  Must re-init the char stream reader
                     (ASCII_UCodeESC_CharStream.java)
                 */
-                parser.reInitTokenInput(getIn());
+                // parser.reInitTokenInput(getIn());
 
                 if( !interactive )
                     EOF = true;
@@ -597,7 +606,7 @@ public class Interpreter
                 if ( !interactive )
                     EOF = true;
             } finally {
-                get_jjtree().reset();
+                // get_jjtree().reset();
                 // reinit the callstack
                 if ( callstack.depth() > 1 ) {
                     callstack.clear();
@@ -636,6 +645,7 @@ public class Interpreter
     public Object source(File file, NameSpace namespace)
             throws EvalError, IOException {
 
+        this.parser = new BeanshellParser(FileSystems.getDefault().getPath(file.getPath()));
         Interpreter.debug("Sourcing file: ", file);
         Reader sourceIn = new BufferedReader( new FileReader(file) );
         try {
@@ -723,35 +733,27 @@ public class Interpreter
             in, getOut(), getErr(), false, nameSpace, this, sourceFileInfo);
         CallStack callstack = new CallStack(nameSpace);
 
-        Node node = null;
-        boolean eof = false;
-        while( !eof )
-        {
-            try
-            {
-                eof = localInterpreter.readLine();
-                if (localInterpreter.get_jjtree().nodeArity() > 0)
-                {
-                    node = localInterpreter.get_jjtree().rootNode();
-                    // nodes remember from where they were sourced
-                    node.setSourceFile( sourceFileInfo );
+        for (Node node: parser.Statements()) {
+            try {
+                // nodes remember from where they were sourced
+                node.setSourceFile(sourceFileInfo);
 
-                    if ( TRACE )
-                        println( "// " +node.getText() );
+                if (TRACE)
+                    println("// " + node.getText());
 
-                    retVal = node.eval(callstack, localInterpreter);
+                retVal = node.eval(callstack, localInterpreter);
 
-                    // sanity check during development
-                    if ( callstack.depth() > 1 )
-                        throw new InterpreterError(
-                            "Callstack growing: "+callstack);
+                // sanity check during development
+                if (callstack.depth() > 1)
+                    throw new InterpreterError(
+                            "Callstack growing: " + callstack);
 
-                    if ( retVal instanceof ReturnControl ) {
-                        retVal = ((ReturnControl)retVal).value;
-                        break; // non-interactive, return control now
-                    }
+                if (retVal instanceof ReturnControl) {
+                    retVal = ((ReturnControl) retVal).value;
+                    break; // non-interactive, return control now
                 }
-            } catch(ParseException e) {
+System.out.println(retVal);
+            } catch (ParseException e) {
                 if ( DEBUG.get() )
                     // show extra "expecting..." info
                     error( e.getMessage(DEBUG.get()) );
@@ -786,7 +788,7 @@ public class Interpreter
                     "Sourced file: "+sourceFileInfo+" unknown error: "
                     + e.getMessage(), node, callstack, e);
             } finally {
-                localInterpreter.get_jjtree().reset();
+                // localInterpreter.get_jjtree().reset();
 
                 // reinit the callstack
                 if ( callstack.depth() > 1 ) {
@@ -795,7 +797,9 @@ public class Interpreter
                 }
             }
         }
-        return Primitive.unwrap( retVal );
+        System.out.println("------");
+        System.out.println(retVal);
+        return Primitive.unwrap(retVal);
     }
 
     /** Optional method to release additional resources. The interpreter
@@ -1046,22 +1050,29 @@ public class Interpreter
 
     /*  Methods for interacting with Parser */
 
-    private JJTParserState get_jjtree() {
-        return parser.jjtree;
-    }
+    // private JJTParserState get_jjtree() {
+    // return parser.jjtree;
+    // }
 
-    /** Blocking call to read a line from the parser.
+    /**
+     * Blocking call to read a line from the parser.
+     *
      * @return true on EOF or false
-     * @throws ParseException on parser exception */
+     * @throws ParseException on parser exception
+     */
     private boolean readLine() throws ParseException {
-        try {
-            return parser.Line();
-        } catch (ParseException e) {
-            this.yield();
-            if ( EOF )
-                return true;
-            throw e;
+        // try {
+        if (input.hasNext()) {
+            this.parser = new BeanshellParser("REPL", input.nextLine());
+            return false;
         }
+        return true;
+        // } catch (ParseException e) {
+        // this.yield();
+        // if ( EOF )
+        // return true;
+        // throw e;
+        // }
     }
 
     /*  End methods for interacting with Parser */

@@ -13,20 +13,21 @@
  * limitations under the License. */
 package bsh;
 
-import bsh.legacy.*;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import bsh.congo.tree.Operator;
+import bsh.congo.parser.Token.TokenType;
+import static bsh.congo.parser.Token.TokenType.*;
 
-class Operators implements ParserConstants {
+class Operators {
 
-    private static final List<Integer> OVERFLOW_OPS
+    private static final List<TokenType> OVERFLOW_OPS
         = Arrays.asList(PLUS, MINUS, STAR, POWER);
-    private static final List<Integer> COMPARABLE_OPS
-        = Arrays.asList(LT, LTX, GT, GTX, EQ, LE, LEX, GE, GEX, NE);
+    private static final List<TokenType> COMPARABLE_OPS
+        = Arrays.asList(LT, GT, EQ, LE, GE, NE);
 
     /** Constructor private no instance required. */
     private Operators() {}
@@ -38,7 +39,7 @@ class Operators implements ParserConstants {
      * @return operator applied value
      * @throws UtilEvalError evaluation error */
     @SuppressWarnings("unchecked")
-    public static Object arbitraryObjectsBinaryOperation(Object lhs, Object rhs, int kind)
+    public static Object arbitraryObjectsBinaryOperation(Object lhs, Object rhs, TokenType kind)
             throws UtilEvalError {
         if ( kind == EQ )
             return (lhs == rhs) ? Primitive.TRUE : Primitive.FALSE;
@@ -123,13 +124,13 @@ class Operators implements ParserConstants {
         if ( lhs.getClass().isArray() || rhs.getClass().isArray()
                || lhs instanceof List || rhs instanceof List)
             throw new UtilEvalError(
-                "Use of invalid operator " + tokenImage[kind]
+                "Use of invalid operator " + kind
                     + " with array or List type" );
         if ( lhs == Primitive.NULL || rhs == Primitive.NULL )
             throw new UtilEvalError(
                 "illegal use of null value or 'null' literal");
 
-        throw new UtilEvalError("Operator: " + tokenImage[kind]
+        throw new UtilEvalError("Operator: " + kind
                     + " inappropriate for objects");
     }
     /**
@@ -139,7 +140,7 @@ class Operators implements ParserConstants {
     The exception is for boolean operations where we will return the
     primitive type either way.
     */
-    public static Object binaryOperation(Object obj1, Object obj2, int kind)
+    public static Object binaryOperation(Object obj1, Object obj2, TokenType kind)
             throws UtilEvalError {
 
         // Unwrap primitives
@@ -179,7 +180,7 @@ class Operators implements ParserConstants {
     }
 
     @SuppressWarnings("unchecked")
-    static <T> Object binaryOperationImpl( T lhs, T rhs, int kind )
+    static <T> Object binaryOperationImpl( T lhs, T rhs, TokenType kind )
         throws UtilEvalError
     {
         if (kind == SPACESHIP) // compares two non null numbers
@@ -199,7 +200,7 @@ class Operators implements ParserConstants {
         throw new UtilEvalError("Invalid types in binary operator" );
     }
 
-    static Boolean booleanBinaryOperation(Boolean B1, Boolean B2, int kind)
+    static Boolean booleanBinaryOperation(Boolean B1, Boolean B2, TokenType kind)
     {
         boolean lhs = B1.booleanValue();
         boolean rhs = B2.booleanValue();
@@ -213,51 +214,42 @@ class Operators implements ParserConstants {
                 return lhs != rhs;
 
             case BOOL_OR:
-            case BOOL_ORX:
                 // already evaluated lhs TRUE
                 // see BSHBinaryExpression
                 return false || rhs;
 
             case BOOL_AND:
-            case BOOL_ANDX:
                 // already evaluated lhs FALSE
                 // see BSHBinaryExpression
                 return true && rhs;
 
             case BIT_AND:
-            case BIT_ANDX:
                 return lhs & rhs;
 
             case BIT_OR:
-            case BIT_ORX:
                 return lhs | rhs;
 
             case XOR:
-            case XORX:
                 return lhs ^ rhs;
 
         }
         throw new InterpreterError("unimplemented binary operator");
     }
 
-    static <T> Boolean comparableBinaryBooleanOperations(Comparable<T> lhs, T rhs, int kind) {
+    static <T> Boolean comparableBinaryBooleanOperations(Comparable<T> lhs, T rhs, TokenType kind) {
         switch(kind)
         {
             // boolean
             case LT:
-            case LTX:
                 return lhs.compareTo(rhs) < 0;
 
             case GT:
-            case GTX:
                 return lhs.compareTo(rhs) > 0;
 
             case LE:
-            case LEX:
                 return lhs.compareTo(rhs) <= 0;
 
             case GE:
-            case GEX:
                 return lhs.compareTo(rhs) >= 0;
 
             case NE:
@@ -270,7 +262,7 @@ class Operators implements ParserConstants {
     }
 
     // returns Object covering both Long and Boolean return types
-    static Object longBinaryOperation(long lhs, long rhs, int kind)
+    static Object longBinaryOperation(long lhs, long rhs, TokenType kind)
     {
         switch(kind)
         {
@@ -294,11 +286,9 @@ class Operators implements ParserConstants {
                 return lhs / rhs;
 
             case MOD:
-            case MODX:
                 return lhs % rhs;
 
             case POWER:
-            case POWERX:
                 double check = Math.pow(lhs, rhs);
                 BigInteger bi = BigDecimal.valueOf(check).toBigInteger();
                 if ( bi.compareTo(Primitive.LONG_MIN) >= 0 && bi.compareTo(Primitive.LONG_MAX) <= 0 )
@@ -307,27 +297,21 @@ class Operators implements ParserConstants {
 
             // bitwise
             case LSHIFT:
-            case LSHIFTX:
                 return lhs << rhs;
 
             case RSIGNEDSHIFT:
-            case RSIGNEDSHIFTX:
                 return lhs >> rhs;
 
             case RUNSIGNEDSHIFT:
-            case RUNSIGNEDSHIFTX:
                 return lhs >>> rhs;
 
             case BIT_AND:
-            case BIT_ANDX:
                 return lhs & rhs;
 
             case BIT_OR:
-            case BIT_ORX:
                 return lhs | rhs;
 
             case XOR:
-            case XORX:
                 return lhs ^ rhs;
 
         }
@@ -339,7 +323,7 @@ class Operators implements ParserConstants {
     }
 
     // returns Object covering both Integer and Boolean return types
-    static Object bigIntegerBinaryOperation(BigInteger lhs, BigInteger rhs, int kind)
+    static Object bigIntegerBinaryOperation(BigInteger lhs, BigInteger rhs, TokenType kind)
     {
 
         switch(kind)
@@ -358,24 +342,19 @@ class Operators implements ParserConstants {
                 return lhs.divide(rhs);
 
             case MOD:
-            case MODX:
                 return lhs.mod(rhs);
 
             case POWER:
-            case POWERX:
                 return lhs.pow(rhs.intValue());
 
             // bitwise
             case LSHIFT:
-            case LSHIFTX:
                 return lhs.shiftLeft(rhs.intValue());
 
             case RSIGNEDSHIFT:
-            case RSIGNEDSHIFTX:
                 return lhs.shiftRight(rhs.intValue());
 
             case RUNSIGNEDSHIFT:
-            case RUNSIGNEDSHIFTX:
                 if ( lhs.signum() >= 0 )
                     return lhs.shiftRight(rhs.intValue());
                 BigInteger opener = BigInteger.ONE.shiftLeft(lhs.toString(2).length() + 1);
@@ -385,15 +364,12 @@ class Operators implements ParserConstants {
 
 
             case BIT_AND:
-            case BIT_ANDX:
                 return lhs.and(rhs);
 
             case BIT_OR:
-            case BIT_ORX:
                 return lhs.or(rhs);
 
             case XOR:
-            case XORX:
                 return lhs.xor(rhs);
 
         }
@@ -402,7 +378,7 @@ class Operators implements ParserConstants {
     }
 
     // returns Object covering both Double and Boolean return types
-    static Object doubleBinaryOperation(double lhs, double rhs, int kind)
+    static Object doubleBinaryOperation(double lhs, double rhs, TokenType kind)
         throws UtilEvalError
     {
         switch(kind)
@@ -427,11 +403,9 @@ class Operators implements ParserConstants {
                 return lhs / rhs;
 
             case MOD:
-            case MODX:
                 return lhs % rhs;
 
             case POWER:
-            case POWERX:
                 double check = Math.pow(lhs, rhs);
                 if ( Double.isInfinite(check) )
                     break;
@@ -439,11 +413,8 @@ class Operators implements ParserConstants {
 
             // can't shift floating-point values
             case LSHIFT:
-            case LSHIFTX:
             case RSIGNEDSHIFT:
-            case RSIGNEDSHIFTX:
             case RUNSIGNEDSHIFT:
-            case RUNSIGNEDSHIFTX:
                 throw new UtilEvalError("Can't shift floatingpoint values");
 
         }
@@ -455,7 +426,7 @@ class Operators implements ParserConstants {
     }
 
     // returns Object covering both Long and Boolean return types
-    static Object bigDecimalBinaryOperation(BigDecimal lhs, BigDecimal rhs, int kind)
+    static Object bigDecimalBinaryOperation(BigDecimal lhs, BigDecimal rhs, TokenType kind)
         throws UtilEvalError
     {
         switch(kind)
@@ -474,20 +445,15 @@ class Operators implements ParserConstants {
                 return lhs.divide(rhs);
 
             case MOD:
-            case MODX:
                 return lhs.remainder(rhs);
 
             case POWER:
-            case POWERX:
                 return lhs.pow(rhs.intValue());
 
             // can't shift floats
             case LSHIFT:
-            case LSHIFTX:
             case RSIGNEDSHIFT:
-            case RSIGNEDSHIFTX:
             case RUNSIGNEDSHIFT:
-            case RUNSIGNEDSHIFTX:
                 throw new UtilEvalError("Can't shift floatingpoint values");
 
         }
@@ -542,7 +508,7 @@ class Operators implements ParserConstants {
         return new Object[] { lhs, rhs };
     }
 
-    public static Primitive unaryOperation(Primitive val, int kind)
+    public static Primitive unaryOperation(Primitive val, TokenType kind)
         throws UtilEvalError
     {
         if (val == Primitive.NULL)
@@ -591,7 +557,7 @@ class Operators implements ParserConstants {
             "An error occurred.  Please call technical support.");
     }
 
-    static boolean booleanUnaryOperation(Boolean B, int kind)
+    static boolean booleanUnaryOperation(Boolean B, TokenType kind)
         throws UtilEvalError
     {
         boolean operand = B.booleanValue();
@@ -603,7 +569,7 @@ class Operators implements ParserConstants {
         throw new UtilEvalError("Operator inappropriate for boolean");
     }
 
-    static int intUnaryOperation(Integer I, int kind)
+    static int intUnaryOperation(Integer I, TokenType kind)
     {
         int operand = I.intValue();
 
@@ -623,7 +589,7 @@ class Operators implements ParserConstants {
         throw new InterpreterError("bad integer unaryOperation");
     }
 
-    static BigInteger bigIntegerUnaryOperation(BigInteger operand, int kind)
+    static BigInteger bigIntegerUnaryOperation(BigInteger operand, TokenType kind)
     {
         switch(kind)
         {
@@ -641,7 +607,7 @@ class Operators implements ParserConstants {
         throw new InterpreterError("bad big integer unaryOperation");
     }
 
-    static BigDecimal bigDecimalUnaryOperation(BigDecimal operand, int kind)
+    static BigDecimal bigDecimalUnaryOperation(BigDecimal operand, TokenType kind)
     {
         switch(kind)
         {
@@ -659,7 +625,7 @@ class Operators implements ParserConstants {
         throw new InterpreterError("bad big decimal unaryOperation");
     }
 
-    static long longUnaryOperation(Long L, int kind)
+    static long longUnaryOperation(Long L, TokenType kind)
     {
         long operand = L.longValue();
 
@@ -679,7 +645,7 @@ class Operators implements ParserConstants {
         throw new InterpreterError("bad long unaryOperation");
     }
 
-    static float floatUnaryOperation(Float F, int kind)
+    static float floatUnaryOperation(Float F, TokenType kind)
     {
         float operand = F.floatValue();
 
@@ -697,7 +663,7 @@ class Operators implements ParserConstants {
         throw new InterpreterError("bad float unaryOperation");
     }
 
-    static double doubleUnaryOperation(Double D, int kind)
+    static double doubleUnaryOperation(Double D, TokenType kind)
     {
         double operand = D.doubleValue();
 
