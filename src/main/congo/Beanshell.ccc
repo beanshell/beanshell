@@ -139,6 +139,7 @@ INJECT ThrowStatement : extends bsh.BSHThrowStatement
 INJECT TryStatement : extends bsh.BSHTryStatement
 INJECT ArrayDimsAndInits : implements Expression
 INJECT PowerExpression : implements Expression
+INJECT ElvisExpression : implements Expression
 
 INJECT LabeledStatement : extends bsh.BSHLabeledStatement
 {
@@ -345,6 +346,7 @@ boolean Line :
 
 java.util.List<Node> Statements#void :
   (BlockStatement)*
+  //(Statement)*
   {
       return new java.util.ArrayList<>(currentNodeScope);
   }
@@ -405,7 +407,11 @@ EqualityExpression :
 ;
 
 RelationalExpression :
-  ShiftExpression (((<LT>|<GT>|<LE>|<GT>) ShiftExpression) #RelationalExpression(+1))*
+  ElvisExpression (((<LT>|<GT>|<LE>|<GE>) ElvisExpression) #RelationalExpression(+1))*
+;
+
+ElvisExpression :
+   ShiftExpression (<ELVIS> ShiftExpression)*
 ;
 
 ShiftExpression :
@@ -629,15 +635,18 @@ PrimaryExpression#interface :
   |
   (
     <LBRACKET>
-    [ Expression ]
-    [
-      <COLON>
+    DEACTIVATE_TOKENS DOUBLE_COLON
+    (
       [ Expression ]
       [
         <COLON>
         [ Expression ]
+        [
+          <COLON>
+          [ Expression ]
+        ]
       ]
-    ]
+    )
     <RBRACKET>
   ) #ArrayAccess(+1)
   |
@@ -698,9 +707,26 @@ VariableInitializer :
   |
   Expression
 ;
+
+NoVarDeclaration :
+   {permissibleModifiers = EnumSet.of(FINAL);}#
+   Modifiers 
+   [Type ASSERT ~(<COMMA>|<RPAREN>|<IDENTIFIER>)=>||] 
+   =>|| 
+   VariableDeclarator ( <COMMA> VariableDeclarator )*
+;
 */
 
-
+AssignmentExpression :
+  {
+    Expression lhs;
+  }
+  TernaryExpression {lhs = (Expression) peekNode();}
+  [
+    //SCAN 1 {lhs.isAssignableTo()} => 
+    AssignmentOperator Expression
+  ]
+;
 
 TOKEN :
   < INTEGER_LITERAL:
