@@ -86,14 +86,14 @@ public class BSHBinaryExpression extends BaseNode {
             we're a boolean AND and the lhs is false.
             or we're a boolean OR and the lhs is true.
         */
-        if ( (getKind() == BOOL_AND) )
+        if ( (getKind() == SC_AND) )
             if ( interpreter.getStrictJava() ) {
                 if (Primitive.FALSE.equals(lhs)) return Primitive.FALSE;
             } else {
                 if (Primitive.FALSE.equals(Primitive.castWrapper(Boolean.TYPE, lhs)))
                     return lhs;
             }
-        if ( (getKind() == BOOL_OR || getKind() == ELVIS) )
+        if ( (getKind() == SC_OR || getKind() == ELVIS) )
             if ( interpreter.getStrictJava() ) {
                 if (Primitive.TRUE.equals(lhs)) return Primitive.TRUE;
             } else {
@@ -109,7 +109,7 @@ public class BSHBinaryExpression extends BaseNode {
             return rhs;
 
         if ( !interpreter.getStrictJava() ) switch(getKind()) {
-            case BOOL_OR: case BOOL_AND:
+            case SC_OR: case SC_AND:
                 // needs to validate to a boolean is all we return rhs
                 if (Primitive.castWrapper(Boolean.TYPE, rhs) instanceof Boolean)
                     return rhs;
@@ -264,13 +264,13 @@ public class BSHBinaryExpression extends BaseNode {
             return false;
         if ( Number.class.isAssignableFrom(cls)
             || Character.class.isAssignableFrom(cls)) switch ( getKind() ) {
-            case BOOL_AND: case BOOL_OR:
+            case SC_AND: case SC_OR:
                 return false;
             default:
                 return true;
         }
         if ( Boolean.class.isAssignableFrom(cls) ) switch ( getKind() ) {
-            case EQ: case NE: case BOOL_OR: case BOOL_AND:
+            case EQ: case NE: case SC_OR: case SC_AND:
             case BIT_AND: case BIT_OR: case XOR:
                 return true;
         }

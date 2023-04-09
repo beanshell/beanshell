@@ -213,12 +213,12 @@ class Operators {
             case NE:
                 return lhs != rhs;
 
-            case BOOL_OR:
+            case SC_OR:
                 // already evaluated lhs TRUE
                 // see BSHBinaryExpression
                 return false || rhs;
 
-            case BOOL_AND:
+            case SC_AND:
                 // already evaluated lhs FALSE
                 // see BSHBinaryExpression
                 return true && rhs;
