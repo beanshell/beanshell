@@ -346,7 +346,6 @@ boolean Line :
 
 java.util.List<Node> Statements#void :
   (BlockStatement)*
-  //(Statement)*
   {
       return new java.util.ArrayList<>(currentNodeScope);
   }
@@ -407,7 +406,7 @@ EqualityExpression :
 ;
 
 RelationalExpression :
-  ElvisExpression (((<LT>|<GT>|<LE>|<GE>) ElvisExpression) #RelationalExpression(+1))*
+  ShiftExpression (((<LT>|<GT>|<LE>|<GE>) ShiftExpression) #RelationalExpression(+1))*
 ;
 
 ElvisExpression :
@@ -536,7 +535,9 @@ ArrayInitializer
 
 ReturnType# : [<VOID> | SCAN ~(Type <LPAREN>) => Type] ;
 
-ExpressionStatement : Expression [AssignmentOperator Expression] <SEMICOLON> ;
+//ExpressionStatement : Expression [AssignmentOperator Expression] <SEMICOLON> ;
+
+StatementExpression : Expression;
 
 Literal #void :
 <INTEGER_LITERAL>

@@ -53,12 +53,12 @@ assert("\"quoted\"" == '"quoted"');
 assert('\'quoted\'' == "'quoted'");
 assert('xb'.concat('xb').equals('xbxb'));
 
-assertThat("a\bcde\fg", containsString("cde"));
-assertThat("abc\8def", equalTo("abc8def"));
-assertThat("abc\78def", endsWith("8def"));
-assertThat("abc\378def", endsWith("8def"));
+assertThat("a\\bcde\fg", containsString("cde"));
+assertThat("abc\\8def", equalTo("abc8def"));
+assertThat("abc\\78def", endsWith("8def"));
+assertThat("abc\\378def", endsWith("8def"));
 BSHLiteral.internStrings = false;
-assertThat("abc\3def", endsWith("def"));
+assertThat("abc\\3def", endsWith("def"));
 BSHLiteral.internStrings = true;
 
 // additional edge cases

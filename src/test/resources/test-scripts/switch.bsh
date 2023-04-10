@@ -13,9 +13,9 @@ switch( 1 ) {
         flag();
         break;
     default:
-        assert (false);
+        _assert (false);
 }
-assert(flag()==1);
+_assert(flag()==1);
 
 //print("test2");
 test_flag = 0;

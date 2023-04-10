@@ -6,7 +6,7 @@ boolean test_warning=false;
 String test_message="";
 int test_flag = 0;
 
-assert( boolean condition )
+_assert( boolean condition )
 {
     if ( !condition )
     {
