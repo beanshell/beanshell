@@ -468,6 +468,8 @@ AssignmentOperator #void :
 BlockStatement#void :
  ASSERT ~((<FINAL>|Annotation)* (<PUBLIC>|<PRIVATE>|<PROTECTED>|<STATIC>)) : "Cannot declare anything to be public, private, protected, or static  in a local context"
  (
+  AssertStatement
+  |
 // The YieldStatement option in the Statement production will thus never
 // be matched but this doesn't seem to be a problem really.
 // We need YieldStatement up top here so it does not spuriously match LocalVariableDeclaration.
