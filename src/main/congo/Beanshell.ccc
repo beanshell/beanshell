@@ -561,7 +561,7 @@ Literal #void :
 <NULL>
 |
 // Added for Beanshell
-<VOID>
+<VOID> [<DOT><CLASS> =>||]
 ;
 
 ImportDeclaration :
@@ -746,5 +746,6 @@ TOKEN :
       | "." (["0"-"9"])+ (<DECIMAL_EXPONENT>)? (["f","F","d","D","w","W"])?
       | (["0"-"9"])+ <DECIMAL_EXPONENT> (["f","F","d","D","w","W"])?
       | (["0"-"9"])+ ["f","F","d","D"]
+      | <HEXADECIMAL_FLOATING_POINT_LITERAL>
   >  
 ;  
