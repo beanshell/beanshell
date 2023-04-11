@@ -684,6 +684,8 @@ ClassOrInterfaceBodyDeclaration#interface :
   FieldDeclaration
   |
   Statement
+  |
+  FormalComment
 ;
 
 EnhancedForStatement :
