@@ -139,7 +139,7 @@ INJECT ThrowStatement : extends bsh.BSHThrowStatement
 INJECT TryStatement : extends bsh.BSHTryStatement
 INJECT ArrayDimsAndInits : implements Expression
 INJECT PowerExpression : implements Expression
-INJECT ElvisExpression : implements Expression
+INJECT NullCoalesceElvisSpaceShipExpression : extends bsh.BSHBinaryExpression implements Expression
 
 INJECT LabeledStatement : extends bsh.BSHLabeledStatement
 {
@@ -212,6 +212,10 @@ INJECT InvocationArguments : extends bsh.BSHArguments
 INJECT ReferenceType : extends bsh.BSHType
 INJECT PrimitiveType : extends bsh.BSHPrimitiveType
 INJECT DotThis : extends bsh.BSHPrimaryExpression
+INJECT StatementExpression : extends bsh.BSHPrimaryExpression
+INJECT PrimaryExpressionInstance : extends bsh.BSHPrimaryExpression implements Expression
+INJECT PrimarySuffix : extends bsh.BSHPrimarySuffix
+INJECT PostfixExpression : extends bsh.BSHPrimarySuffix
 INJECT MethodCall : extends bsh.BSHMethodInvocation
 INJECT MethodDeclaration : extends bsh.BSHMethodDeclaration
 INJECT ExpressionStatement : extends bsh.BSHAssignment
@@ -314,6 +318,8 @@ TOKEN #Operator :
   |
   < NULLCOALESCE: "??" >
   |
+  < SAFETRAVERSE: "?." >
+  |
   < ELVIS: "?:" >
   |
   < MOD: "%" | "@mod" >
@@ -351,11 +357,6 @@ java.util.List<Node> Statements#void :
   }
 ;
 
-ConditionalExpression :
-  NullCoalesceElvisSpaceShipExpression [ <HOOK> Expression <COLON> ConditionalExpression]
-;
-
-
 AllocationExpression :
   ["new"] =>|+1 (ArrayDimsAndInits | ArrayInitializer)
   |
@@ -373,10 +374,6 @@ AllocationExpression :
 
 // For now, redefining the following to generate binary expressions.
 
-AdditiveExpression :
-   MultiplicativeExpression (((<PLUS>|<MINUS>) MultiplicativeExpression) #AdditiveExpression(+1))*
-;
-
 MultiplicativeExpression :
    PowerExpression (((<STAR>|<SLASH>|<REM>) PowerExpression) #MultiplicativeExpression(+1))*
 ;
@@ -385,32 +382,12 @@ PowerExpression :
    UnaryExpression ((<POWER>UnaryExpression)#PowerExpression(+1))*
 ;
 
-ConditionalOrExpression :
-  ConditionalAndExpression ((<SC_OR> ConditionalAndExpression) #ConditionalOrExpression(+1))*
+TernaryExpression :
+  NullCoalesceElvisSpaceShipExpression [  <HOOK> Expression <COLON> Expression ]
 ;
 
-ConditionalAndExpression :
-  InclusiveOrExpression ((<SC_AND> InclusiveOrExpression) #ConditionalAndExpression(+1))*
-;
-
-InclusiveOrExpression :
-  ExclusiveOrExpression ((<BIT_OR> ExclusiveOrExpression) #InclusiveOrExpression(+1))*
-;
-
-ExclusiveOrExpression :
-  AndExpression ((<XOR> AndExpression) #ExclusiveOrExpression(+1))*
-;
-
-EqualityExpression :
-  InstanceOfExpression (((<EQ>|<NE>|<SPACESHIP>) InstanceOfExpression) #EqualityExpression(+1))*
-;
-
-RelationalExpression :
-  ShiftExpression (((<LT>|<GT>|<LE>|<GE>) ShiftExpression) #RelationalExpression(+1))*
-;
-
-ElvisExpression :
-   ShiftExpression (<ELVIS> ShiftExpression)*
+NullCoalesceElvisSpaceShipExpression :
+  ConditionalOrExpression ( (<NULLCOALESCE>|<ELVIS>|<SPACESHIP>) ConditionalOrExpression )*
 ;
 
 ShiftExpression :
@@ -427,17 +404,25 @@ ShiftExpression :
    )*
 ;
 
-AndExpression :
-  EqualityExpression ((<BIT_AND> EqualityExpression) #AndExpression(+1))*
-;
-
-ExclusiveOrExpression :
-  AndExpression ((<XOR> AndExpression) #ExclusiveOrExpression(+1))*
-;
-
-NullCoalesceElvisSpaceShipExpression :
-  ConditionalOrExpression
-  (((<NULLCOALESCE>|<ELVIS>|<SPACESHIP>) ConditionalOrExpression) #NullCoalesceElvisSpaceShipExpression(+1) )*
+TryWithResources :
+   <TRY> <LPAREN> =>||
+    (
+      SCAN {getTokenType(0) == SEMICOLON}# ~(<RPAREN>)
+      =>
+       (
+         LocalVariableDeclaration
+         |
+         Name
+         |
+         PrimaryExpressionInstance
+         ASSERT {peekNode() instanceof DotName} : "Resource should be a field access here."
+       )
+       [<SEMICOLON>]
+    )+
+    <RPAREN>
+    Block /block/
+    ( CatchBlock /[catchBlocks]/ )*
+    [ FinallyBlock /finallyBlock/ ]
 ;
 
 INJECT TryWithResources :
@@ -537,9 +522,48 @@ ArrayInitializer
 
 ReturnType# : [<VOID> | SCAN ~(Type <LPAREN>) => Type] ;
 
-//ExpressionStatement : Expression [AssignmentOperator Expression] <SEMICOLON> ;
+// this is a hack and needs to be fixed
+ExpressionStatement :
+  (
+    StatementExpression
+    [
+      (<STAR>|<EQ>|<BIT_AND>) StatementExpression
+      |
+      AssignmentOperator StatementExpression
+      |
+      Expression [StatementExpression]
+    ]
+  )
+  <SEMICOLON>
+;
 
-StatementExpression : Expression;
+StatementExpression# :
+  PreIncrementExpression
+  |
+  PreDecrementExpression
+  |
+  PrimaryExpressionInstance
+  {Expression lhs = (Expression) peekNode();}
+  (
+      SCAN 1 {lhs.isAssignableTo()}=>
+      (
+          (<INCR> | <DECR>) #PostfixExpression(2)
+          |
+          AssignmentOperator Expression #AssignmentExpression(3)
+      )
+      |
+      ASSERT {lhs instanceof MethodCall
+               || lhs instanceof AllocationExpression
+               || lhs instanceof ExplicitConstructorInvocation
+               || lhs instanceof LiteralExpression
+               || lhs instanceof Name
+               || lhs instanceof PrimaryExpressionInstance
+               || lhs instanceof ArrayAccess
+               || lhs instanceof Parentheses
+               || lhs instanceof DotName}
+      : "LHS type "+lhs.getClass().getSimpleName()+". Not a valid statement."
+  )
+;
 
 Literal #void :
 <INTEGER_LITERAL>
@@ -579,22 +603,22 @@ ImportDeclaration :
 ;
 
 
-FormalParameter : 
-  {permissibleModifiers = EnumSet.of(FINAL);}# 
-  Modifiers 
+FormalParameter :
+  {permissibleModifiers = EnumSet.of(FINAL);}#
+  Modifiers
   [Type ASSERT ([(Annotation)* <VAR_ARGS>] <IDENTIFIER>) =>||]
-  [ (Annotation)* <VAR_ARGS> ] 
-  VariableDeclaratorId 
+  [ (Annotation)* <VAR_ARGS> ]
+  VariableDeclaratorId
 ;
 
 FieldDeclaration :
-{permissibleModifiers = EnumSet.of(PUBLIC, PROTECTED, 
-                                    PRIVATE, STATIC, FINAL, 
+{permissibleModifiers = EnumSet.of(PUBLIC, PROTECTED,
+                                    PRIVATE, STATIC, FINAL,
                                     TRANSIENT, VOLATILE);}#
 Modifiers /modifiers/
-//[Type ASSERT(<IDENTIFIER>) =>||] 
+//[Type ASSERT(<IDENTIFIER>) =>||]
 Type
-VariableDeclarator =>|| 
+VariableDeclarator =>||
 ( <COMMA> VariableDeclarator )* <SEMICOLON>
 ;
 
@@ -609,6 +633,19 @@ CatchBlock :
     )
     <RPAREN>
     Block
+;
+
+PostfixExpression :
+  PrimaryExpressionInstance
+  [
+    SCAN {((Expression)peekNode()).isAssignableTo()}
+    =>
+    <INCR> | <DECR>
+  ]
+;
+
+PrimaryExpressionInstance :
+  PrimaryExpression
 ;
 
 PrimaryExpression#interface :
@@ -628,8 +665,10 @@ PrimaryExpression#interface :
   MethodReference
   |
   Name
- )
- (
+ ) ( PrimarySuffix )*
+;
+
+PrimarySuffix :
   (<DOT> <THIS> =>||) #DotThis(+1)
   |
   (<DOT> <SUPER> =>||) #DotSuper(+1)
@@ -658,6 +697,8 @@ PrimaryExpression#interface :
   |
   (<DOT> [TypeArguments] <IDENTIFIER>) #DotName(+1)
   |
+  (<SAFETRAVERSE> [TypeArguments] <IDENTIFIER>) #DotName(+1)
+  |
   (<DOUBLE_COLON> [TypeArguments] (<IDENTIFIER>|<NEW>)) #MethodReference(+1)
   |
 // The following commented-out line is the absolutely correct condition for recent JDK's,
@@ -669,7 +710,6 @@ PrimaryExpression#interface :
   SCAN 1 {getTokenType(0) == IDENTIFIER}#
   =>
   InvocationArguments #MethodCall(+1)
- )*
 ;
 
 ClassOrInterfaceBodyDeclaration#interface :
@@ -689,19 +729,19 @@ ClassOrInterfaceBodyDeclaration#interface :
 ;
 
 EnhancedForStatement :
-   <FOR> <LPAREN> 
+   <FOR> <LPAREN>
    (
     (<IDENTIFIER> ASSERT (<COLON>) =>||)
     |
-    LocalVariableDeclaration 
+    LocalVariableDeclaration
    )
    <COLON> =>|| Expression <RPAREN> Statement
 ;
 
 ArrayInitializer# :
-  "{" 
+  "{"
      [ VariableInitializer
-        ( SCAN 2 "," VariableInitializer )* ] [ "," ] 
+        ( SCAN 2 "," VariableInitializer )* ] [ "," ]
   "}"
 ;
 
@@ -715,9 +755,9 @@ VariableInitializer :
 
 NoVarDeclaration :
    {permissibleModifiers = EnumSet.of(FINAL);}#
-   Modifiers 
-   [Type ASSERT ~(<COMMA>|<RPAREN>|<IDENTIFIER>)=>||] 
-   =>|| 
+   Modifiers
+   [Type ASSERT ~(<COMMA>|<RPAREN>|<IDENTIFIER>)=>||]
+   =>||
    VariableDeclarator ( <COMMA> VariableDeclarator )*
 ;
 */
@@ -728,7 +768,7 @@ AssignmentExpression :
   }
   TernaryExpression {lhs = (Expression) peekNode();}
   [
-    //SCAN 1 {lhs.isAssignableTo()} => 
+    //SCAN 1 {lhs.isAssignableTo()} =>
     AssignmentOperator Expression
   ]
 ;
@@ -747,5 +787,5 @@ TOKEN :
       | (["0"-"9"])+ <DECIMAL_EXPONENT> (["f","F","d","D","w","W"])?
       | (["0"-"9"])+ ["f","F","d","D"]
       | <HEXADECIMAL_FLOATING_POINT_LITERAL>
-  >  
-;  
+  >
+;
