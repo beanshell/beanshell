@@ -214,6 +214,7 @@ Projects that we know of which use BeanShell. Is your project not listed here? L
  * [TestNG](https://testng.org/doc/documentation-main.html#beanshell)
  * [jAlbum](https://jalbum.net/help/en/Scripting)
  * [jEdit](http://www.jedit.org/users-guide/beanshell-intro.html)
+ * [Jupyter Notebooks](https://github.com/opeongo/jupyter_beanshell)
 
 ## History
 
