@@ -273,4 +273,32 @@ public class TryStatementTest {
         assertEquals("return from finally", result);
     }
 
+    @Test
+    public void check_chained_error_message_try_statement() throws Exception {
+       /*
+        * Check that the error message contains the complete beanshell
+        * script stack trace and is not just starting at the try statement.
+        *
+        * Previously the script stack trace would start at the
+        * try statement.  With the fix the stack trace will chain
+        * from fn2() to fn1() to the try statement.
+        */
+       thrown.expect(TargetError.class);
+       thrown.expectMessage(containsString("Called from method: fn2"));
+
+       eval(
+            "void fn1() {",
+            "  fn2();",
+            "}",
+            "void fn2() {",
+            "  throw new RuntimeException(\"boom\");",
+            "}",
+            "try {",
+            "   fn1();",
+            "} finally {",
+            "   /* ignore */;",
+            "}"
+       );
+    }
+
 }

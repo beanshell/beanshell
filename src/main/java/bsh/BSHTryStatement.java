@@ -71,6 +71,7 @@ class BSHTryStatement extends SimpleNode
             finallyBlock = (BSHBlock)node;
 
         Throwable thrown = null;
+        TargetError originalException = null;
         Object ret = null;
 
         /*
@@ -98,6 +99,7 @@ class BSHTryStatement extends SimpleNode
             // clean up call stack grown due to exception interruption
             while ( callstack.depth() > callstackDepth )
                 callstack.pop();
+            originalException = new TargetError(e, this, callstack);
         } finally {
             // unwrap the target error
             while ( null != thrown && thrown.getCause() instanceof TargetError )
@@ -193,7 +195,7 @@ class BSHTryStatement extends SimpleNode
         }
         // exception fell through, throw it upward...
         if( null != thrown )
-            throw new TargetError(thrown, this, callstack);
+            throw originalException;
 
         // no exception return
         return ret instanceof ReturnControl ? ret : Primitive.VOID;
