@@ -211,8 +211,20 @@ public class ClassManagerImpl extends BshClassManager
         if ( c == null && externalClassLoader != null ) {
             try {
                 c = externalClassLoader.loadClass(name);
+                /*
+                 * An external ClassLoader can be used as a security measure to prevent
+                 * bsh from executing malicious code.
+                 * If an external ClassLoader is specified and fails, it's important to stop here.
+                 */
+                cacheClassInfo(name, c);
+                return c;
             } catch (ClassNotFoundException e) {
-                // fall through
+                /*
+                 * The external ClassLoader threw a ClassNotFoundException.
+                 * Stop here.
+                 */
+                cacheClassInfo(name, null);
+                return null;
             }
         }
 

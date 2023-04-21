@@ -535,7 +535,7 @@ public class BshClassManager {
         However BeanShell is not currently able to reload
         classes supplied through the external classloader.
     */
-    public void setClassLoader( ClassLoader externalCL ) {
+    public void setClassLoader(ClassLoader externalCL) {
         externalClassLoader = externalCL;
         classLoaderChanged();
     }
