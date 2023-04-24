@@ -28,6 +28,12 @@
 
 package bsh;
 
+import java.lang.invoke.CallSite;
+import java.lang.invoke.LambdaMetafactory;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
 class BSHAssignment extends SimpleNode implements ParserConstants {
     private static final long serialVersionUID = 1L;
     public Integer operator;
@@ -37,7 +43,13 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
     public Object eval(CallStack callstack, Interpreter interpreter)
             throws EvalError {
         if ( null == operator ) try {
-            return jjtGetChild(0).eval(callstack, interpreter);
+            Object retrn = jjtGetChild(0).eval(callstack, interpreter);
+            // intercept LambdaMethodReference returned from BSHPrimarySuffix
+            // if (retrn instanceof LambdaMethodReference)
+            //     return assignMethodReference(((BSHPrimaryExpression)
+            //         jjtGetChild(0)).toLHS(callstack, interpreter),
+            //         (LambdaMethodReference)retrn, callstack);
+            return retrn;
         } catch (SafeNavigate aborted) {
             return Primitive.NULL;
         }
@@ -146,6 +158,40 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
         } catch ( UtilEvalError e ) {
             throw e.toEvalError( this, callstack );
         }
+    }
+
+    Object assignMethodReference(LHS lhs, LambdaMethodReference rhs, CallStack callstack) throws EvalError {
+        System.out.println(lhs + " \n" +rhs);
+        // DEFUNCT: was hoping to get Interface class from lhs.getType but for formal parameters this is still unknown
+        try {
+            MethodHandles.Lookup caller = MethodHandles.lookup();
+            if (!rhs.hasInstance()) { // static method
+                MethodType methodType = MethodType.methodType(String.class, Object.class);
+                // methodType = MethodType.methodType(Double.TYPE, Double.TYPE);
+                MethodHandle inv = caller.findStatic(rhs.getType(), rhs.getName(), methodType);
+                methodType = MethodType.methodType(Object.class, Object.class);
+                MethodType invokeType = MethodType.methodType(lhs.getType());
+                CallSite site = LambdaMetafactory.metafactory(caller, "apply", invokeType, methodType, inv, methodType);
+                MethodHandle factory = site.getTarget();
+                return lhs.assign(factory.invoke());
+            } else { // virtual instance method - invokeType changes and factory invoke takes instance
+                MethodType methodType = MethodType.methodType(Void.TYPE, Object.class);
+                MethodHandle inv = caller.findVirtual(rhs.getType(), rhs.getName(), methodType);
+                MethodType invokeType = MethodType.methodType(lhs.getType(), rhs.getType());
+                CallSite site = LambdaMetafactory.metafactory(caller, "accept", invokeType, methodType, inv, methodType);
+                MethodHandle factory = site.getTarget();
+                return lhs.assign(factory.invoke(rhs.getInstance()));
+            }
+            //System.out.println(obj+" "+obj.getClass()+" "+field+" "+clz.newInstance());
+
+
+        } catch (UtilEvalError e) {
+            throw e.toEvalError(getSourceFile(), this, callstack);
+        } catch (Throwable e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return lhs;
     }
 
     /** Convenience method to shuffle the different types off to
