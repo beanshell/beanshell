@@ -29,7 +29,6 @@ import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;

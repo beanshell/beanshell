@@ -28,7 +28,6 @@
 package bsh;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 
 import bsh.util.WeakValueMap;
 
