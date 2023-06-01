@@ -28,9 +28,9 @@
 package bsh;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
-import bsh.util.ReferenceCache;
-import bsh.util.ReferenceCache.Type;
+import bsh.util.WeakValueMap;
 
 /**
     A specialized namespace for Blocks (e.g. the body of a "for" statement).
@@ -53,9 +53,6 @@ class BlockNameSpace extends NameSpace
     /** Atomic block count of unique block instances. */
     public static final AtomicInteger blockCount = new AtomicInteger();
 
-    /** Atomic reuse count per instance. */
-    public final AtomicInteger used = new AtomicInteger(1);
-
     /** Unique key for cached name spaces. */
     private static final class UniqueBlock {
         NameSpace ns;
@@ -71,17 +68,27 @@ class BlockNameSpace extends NameSpace
         /** Return a calculated hash code from name space and block id.
          * {@inheritDoc} */
         @Override
-        public int hashCode() { return ns.hashCode() + id; }
+        public int hashCode() {
+            return 31 * ns.hashCode() +
+                Integer.hashCode(id);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == this)
+                return true;
+            else if (o instanceof UniqueBlock) {
+                UniqueBlock ub = (UniqueBlock) o;
+                return ns == ub.ns &&
+                    id == ub.id;
+            } else
+                return false;
+        }
     }
 
-    /** Weak reference cache for reusable block namespaces */
-    private static final ReferenceCache<UniqueBlock,NameSpace> blockspaces
-        = new ReferenceCache<UniqueBlock, NameSpace>(Type.Weak, Type.Weak, 100) {
-            /** Create block namespace based on unique block key as required */
-            protected NameSpace create(UniqueBlock key) {
-                return new BlockNameSpace(key.ns, key.id);
-            }
-    };
+    /** Weak value reference cache for recyclable block namespaces */
+    private static WeakValueMap<UniqueBlock,BlockNameSpace> blockspaces =
+        new WeakValueMap<>(key -> new BlockNameSpace(key.ns, key.id));
 
     /** Static method to get a unique block name space. With the
      * supplied namespace as parent and unique block id obtained
@@ -90,9 +97,8 @@ class BlockNameSpace extends NameSpace
      * @param blockId unique id for block
      * @return new or cached instance of a unique block name space */
     public static NameSpace getInstance(NameSpace parent, int blockId ) {
-        BlockNameSpace ns = (BlockNameSpace) blockspaces.get(
-                new UniqueBlock(parent, blockId));
-        if (1 < ns.used.getAndIncrement()) ns.clear();
+        BlockNameSpace ns = blockspaces.get(new UniqueBlock(parent, blockId));
+        ns.clear();
         return ns;
     }
 
@@ -203,4 +209,3 @@ class BlockNameSpace extends NameSpace
         getParent().setMethod( method );
     }
 }
-
