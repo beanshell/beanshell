@@ -8,15 +8,12 @@ import static bsh.util.ValueReferenceMap.Type.Soft;
 import static bsh.util.ValueReferenceMap.Type.Weak;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-
-import java.util.concurrent.CompletionException;
 
 @RunWith(FilteredTestRunner.class)
 public class ValueReferenceMapTest {
