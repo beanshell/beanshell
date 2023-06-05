@@ -47,6 +47,14 @@ public class ValueReferenceMapTest {
     public void weak_reference_key_gced() {
         ValueReferenceMap<String,byte[]> cache = new ValueReferenceMap<String,byte[]>(key -> new byte[1024*1000], Weak);
         cache.get("foo");
+
+        // GC is unpredictable, add some pressure
+        TestUtil.cleanUp();
+        TestUtil.cleanUp();
+        int[][] array = new int[1000][];
+        for (int i=0; i<array.length; i++)
+            array[i] = new int[5000];
+        TestUtil.cleanUp();
         TestUtil.cleanUp();
         assertThat(cache.size(), equalTo(0));
         assertArrayEquals(new byte[1024*1000], cache.get("foo"));
