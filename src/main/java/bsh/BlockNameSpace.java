@@ -29,7 +29,7 @@ package bsh;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import bsh.util.WeakValueMap;
+import bsh.util.ValueReferenceMap;
 
 /**
     A specialized namespace for Blocks (e.g. the body of a "for" statement).
@@ -86,8 +86,9 @@ class BlockNameSpace extends NameSpace
     }
 
     /** Weak value reference cache for recyclable block namespaces */
-    private static WeakValueMap<UniqueBlock,BlockNameSpace> blockspaces =
-        new WeakValueMap<>(key -> new BlockNameSpace(key.ns, key.id));
+    private static ValueReferenceMap<UniqueBlock,BlockNameSpace> blockspaces =
+        new ValueReferenceMap<>(key -> new BlockNameSpace(key.ns, key.id),
+                                ValueReferenceMap.Type.Weak);
 
     /** Static method to get a unique block name space. With the
      * supplied namespace as parent and unique block id obtained

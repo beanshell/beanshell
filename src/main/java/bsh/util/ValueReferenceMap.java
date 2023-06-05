@@ -27,6 +27,7 @@ package bsh.util;
 
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
+import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.function.Function;
@@ -34,14 +35,18 @@ import java.util.function.Function;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Implement a simple cache that automatically purges unused values
+ * Implement a simple cache that automatically removes unused
+ * values from the map.  References can be hard or soft.
  */
-public class WeakValueMap<K,V> {
+public class ValueReferenceMap<K,V> {
+
+    public static enum Type { Weak, Soft }
 
     private Function<K,V> creator;
+    private Type type;
 
-    private HashMap<K,WeakReference<V>> map = new HashMap<>();
-    private HashMap<WeakReference<V>,K> reverse = new HashMap<>();
+    private HashMap<K,Reference<V>> map = new HashMap<>();
+    private HashMap<Reference<V>,K> reverse = new HashMap<>();
     private ReferenceQueue<V> queue = new ReferenceQueue<>();
     private int counter;
     private int found;
@@ -50,26 +55,40 @@ public class WeakValueMap<K,V> {
     /**
      * @param creator a function that creates the value object for
      * a given key in the map
+     * @param type the type of reference: Hard or Soft
      */
-    public WeakValueMap(Function<K,V> creator) {
+    public ValueReferenceMap(Function<K,V> creator, Type type) {
         requireNonNull(creator, "creator must not be null");
+        requireNonNull(type, "type must not be null");
+        assert(type == Type.Weak || type == Type.Soft);
+
         this.creator = creator;
+        this.type = type;
     }
 
     /**
      * Get the value for a given key.  If the value for a given key
      * does not exist then create one using the creator function.
-     * @param key the key for the required value
+     * @param key the key for the required value.  Must not be null.
      */
     public synchronized V get(K key) {
         requireNonNull(key, "key must not be null");
-        if (((++counter)%1000)==0) {
-            // periodically clean up the entries
+
+        /*
+         * Periodically clean up the entries.
+         * Could probably just unconditionally call clean() without a
+         * noticable performance penalty.
+         */
+        if (++counter == 1000) {
             clean();
             counter=found=missed=0;
         }
 
-        WeakReference<V> ref = map.get(key);
+        /*
+         * Do not use computeIfAbsent because we need to
+         * maintain a hard reference to the object at all times.
+         */
+        Reference<V> ref = map.get(key);
         if (ref != null) {
             V obj = ref.get();
             if (obj != null) {
@@ -77,12 +96,48 @@ public class WeakValueMap<K,V> {
                 return obj;
             }
         }
+
         missed++;
-        V obj = creator.apply(key);
-        ref = new WeakReference<V>(obj, queue);
+        V obj = requireNonNull(creator.apply(key),
+                               "ValueReference cache create value may not return null.");
+        if (type == Type.Weak)
+            ref = new WeakReference<V>(obj, queue);
+        else
+            ref = new SoftReference<V>(obj, queue);
+
         map.put(key, ref);
         reverse.put(ref, key);
         return obj;
+    }
+
+    /**
+     * Remove an entry from the map
+     * @param key the key for the entry
+     */
+    public synchronized boolean remove(K key) {
+        Reference<V> ref = map.remove(key);
+        boolean result = ref != null;
+        if (result)
+            reverse.remove(ref);
+        return result;
+    }
+
+    /**
+     * Remove all entries from the map
+     */
+    public synchronized void clear() {
+        clean();
+        map.clear();
+        reverse.clear();
+        counter=found=missed=0;
+    }
+
+    /**
+     * Get map size
+     */
+    public synchronized int size() {
+        clean();
+        return map.size();
     }
 
     /**
@@ -98,6 +153,6 @@ public class WeakValueMap<K,V> {
             reverse.remove(wr);
             cleaned++;
         }
-        // System.err.println("cleaned "+cleaned+" found="+found+" missed="+missed);
+        // System.err.println("counter="+counter+" cleaned="+cleaned+" found="+found+" missed="+missed+" map size="+map.size()+" reverse size="+reverse.size());
     }
 }
