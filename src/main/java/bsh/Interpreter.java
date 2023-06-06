@@ -839,6 +839,7 @@ public class Interpreter
     public final void println( Object o ) { console.println(o); }
     public final void print( Object o ) { console.print(o); }
     public final void error( Object o ) { console.error(o); }
+    public void setIn( Reader in ) { console.setIn(in); }
     public void setOut( PrintStream out ) { console.setOut(out); }
     public void setErr( PrintStream err ) { console.setErr(err); }
 
