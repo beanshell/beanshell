@@ -61,7 +61,7 @@ Beanshell releases are published to [Maven Central](http://central.maven.org/mav
        <dependency>
          <groupId>org.apache-extras.beanshell</groupId>
          <artifactId>bsh</artifactId>
-         <version>2.0b6</version>
+         <version>2.1.1</version>
        </dependency>
     </dependencies>
 ```
@@ -75,13 +75,13 @@ You can also download the `bsh.jar` binary from the releases page or the link be
 If you want to execute the Beanshell [User Interface](https://github.com/beanshell/beanshell/wiki/Desktop), either double-click the JAR file, or run it with:
 
 ```shell
-$ java -jar bsh-2.0b6.jar
+$ java -jar bsh-2.1.1.jar
 ```
 
 For a BeanShell interactive shell you can either use the java command:
 
 ```shell
-$ java -cp bsh-2.0b6.jar bsh.Interpreter
+$ java -cp bsh-2.1.1.jar bsh.Interpreter
 ```
 
 or the supplied helper scripts `bsh` or `bsh.bat` available under the scripts folder.
