@@ -46,11 +46,10 @@ $ mvn install
 Requires as a minimum JDK 8 but will build with Java 9 and Java 10 as well.
 
 The source code releases can be downloaded from [GitHub releases](https://github.com/beanshell/beanshell/releases)
-or [Bintray](https://bintray.com/beanshell/Beanshell/bsh/view).
 
 Latest release: **not supported** (use the recommended development snapshot)
 
- - [BeanShell 2.0b6](https://github.com/beanshell/beanshell/releases/tag/2.0b6) - [bsh-2.0b6-src.zip](http://dl.bintray.com/beanshell/Beanshell/org/apache-extras/beanshell/bsh/2.0b6/bsh-2.0b6-src.zip)
+ - [BeanShell 2.1.1](https://github.com/beanshell/beanshell/releases/tag/2.1.1) - [bsh-2.1.1-src.zip](https://github.com/beanshell/beanshell/releases/download/2.1.1/bsh-2.1.1-src.zip)
 
 
 ### Maven
@@ -67,32 +66,11 @@ Beanshell releases are published to [Maven Central](http://central.maven.org/mav
     </dependencies>
 ```
 
-Alternatively you can use
-[our BinTray Maven repository](http://dl.bintray.com/beanshell/Beanshell) or
-[JCenter](http://jcenter.bintray.com/org/apache-extras/beanshell/bsh/2.0b6/):
-
-```xml
-<!-- just beanshell -->
-<repository>
-  <id>bintray-beanshell-Beanshell</id>
-  <name>bintray</name>
-  <url>http://dl.bintray.com/beanshell/Beanshell</url>
-  <snapshots><enabled>false</enabled></snapshots>
-</repository>
-<!-- or use JCenter -->
-<repository>
-  <id>central</id>
-  <name>bintray</name>
-  <url>http://jcenter.bintray.com</url>
-  <snapshots><enabled>false</enabled></snapshots>
-</repository>
-```
-
 ### JAR binary
 
-You can also download the `bsh.jar` binary from Bintray.
+You can also download the `bsh.jar` binary from the releases page or the link below:
 
-- [bsh-2.06b.jar](https://bintray.com/artifact/download/beanshell/Beanshell/org/apache-extras/beanshell/bsh/2.0b6/bsh-2.0b6.jar)
+- [bsh-2.1.1.jar](https://github.com/beanshell/beanshell/releases/download/2.1.1/bsh-2.1.1.jar)
 
 If you want to execute the Beanshell [User Interface](https://github.com/beanshell/beanshell/wiki/Desktop), either double-click the JAR file, or run it with:
 
