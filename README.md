@@ -54,7 +54,7 @@ Latest release: **not supported** (use the recommended development snapshot)
 
 ### Maven
 
-Beanshell 3.0.0 currently only has a SNAPSHOT releases published to [sonatype](https://oss.sonatype.org/content/repositories/snapshots/org/beanshell/bsh/). To use Beanshell with Maven, add this to your `pom.xml`:
+Beanshell 3.0.0 currently only has a SNAPSHOT release published to [sonatype](https://oss.sonatype.org/content/repositories/snapshots/org/beanshell/bsh/). To use Beanshell with Maven, add this to your `pom.xml`:
 
 ```xml
     <dependencies>
