@@ -31,7 +31,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Map.Entry;
 import java.util.Objects;
-
+import java.lang.reflect.Modifier;
 import bsh.Types.MapEntry;
 /**
     An LHS is a wrapper for an variable, field, or property.  It ordinarily
@@ -160,6 +160,12 @@ class LHS implements ParserConstants, Serializable {
             return nameSpace.getVariableOrProperty( varName, null );
 
         if ( type == FIELD ) try {
+            // Validate if can get this field
+            if (Modifier.isStatic(field.getModifiers()))
+                Interpreter.mainSecurityGuard.canGetStaticField(field.getDeclaringClass(), field.getName());
+            else
+                Interpreter.mainSecurityGuard.canGetField(object, field.getName());
+
             return Objects.requireNonNull(field,
                 "get value, field cannot be null").invoke(object);
         } catch( ReflectiveOperationException e2 ) {

@@ -32,6 +32,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.concurrent.CompletionException;
+import bsh.security.SecurityError;
 
 /**
     New object, new array, or inner class style allocation with body.
@@ -96,6 +97,13 @@ class BSHAllocationExpression extends SimpleNode
 
         // Is an inner class style object allocation
         boolean hasBody = jjtGetNumChildren() > 2;
+
+        // Validate if can construct a instance of this class
+        try {
+            Interpreter.mainSecurityGuard.canConstruct(type, args);
+        } catch (SecurityError error) {
+            throw error.toEvalError(this, callstack);
+        }
 
         if ( hasBody )
         {
