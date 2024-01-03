@@ -1,0 +1,36 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+import bsh.*;
+
+/**
+ * test that formal comments are picked up as nodes, and other types of comments are skipped
+ */
+ 
+/*
+ * This comment should be skipped
+ */
+ 
+/**********************************
+ * This comment should be skipped
+ **********************************/
+ 
+// This comment should be skipped
+
+parser = new Parser(new FileReader(bsh.cwd+"/"+getSourceFileInfo()));
+parser.setRetainComments(true);
+
+assertFalse("parse line 1", parser.Line());
+assertEquals("node 1 class", BSHAssignment.class, parser.popNode().getClass()); 
+assertFalse("parse line 2", parser.Line());
+assertEquals("node 2 class", BSHAssignment.class, parser.popNode().getClass()); 
+assertFalse("parse line 3", parser.Line());
+assertEquals("node 3 class", BSHImportDeclaration.class, parser.popNode().getClass()); 
+assertFalse("parse line 4", parser.Line());
+assertEquals("node 4 class", BSHFormalComment.class, parser.popNode().getClass()); 
+assertFalse("parse line 5", parser.Line());
+assertEquals("node 5 class", BSHAssignment.class, parser.popNode().getClass()); 
+
+complete();

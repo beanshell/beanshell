@@ -309,7 +309,7 @@ SPECIAL_TOKEN : /* COMMENTS */
  /* Moved FORMAL_COMMENT to a real token.  Modified MULTI_LINE_COMMENT to not
     catch formal comments (require no star after star) */
 | <MULTI_LINE_COMMENT:
-    ("/***" (["*"])* | "/*") (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+    ("/***" (["*"])* | "/*" ~["*"]) (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
 }
 
 TOKEN : /* RESERVED WORDS AND LITERALS */
