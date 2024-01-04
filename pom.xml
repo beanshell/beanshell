@@ -302,6 +302,29 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.1.1</version>
+        <executions>
+          <execution>
+            <!-- This is temporary until upstream javacc plugin fixes a bug -->
+            <id>Patch outout of javacc</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>sed</executable>
+              <arguments>
+                <argument>-i.bak</argument>
+                <argument>/maxNextCharInd = bufpos;/d</argument>
+                <argument>target/generated-sources/javacc/bsh/AbstractCharStream.java</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
