@@ -62,9 +62,24 @@ class BSHFormalParameter extends SimpleNode
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError
     {
-        if ( jjtGetNumChildren() > 0 )
+        if ( jjtGetNumChildren() > 0 ) {
             type = ((BSHType)jjtGetChild(0)).getType( callstack, interpreter );
-        else
+            /*
+             * Check if dimensions have been recorded for this parameter.
+             * If so,
+             * - If no array dimensions on the type then add them now.
+             * - If there are already array dimensions on the type then
+             * throw an error.
+             */
+            if (dimensions > 0) {
+                if (!type.isArray())
+                    type = Array.newInstance(type, new int[dimensions]).getClass();
+                else
+                    throw new EvalError(
+                       "Array dimensions not allowed on both type and name: "
+                       + name, this, null );
+            }
+        } else
             type = UNTYPED;
 
         if (isVarArgs)
@@ -78,4 +93,3 @@ class BSHFormalParameter extends SimpleNode
         return super.toString() + ": " + name + ", final=" + isFinal + ", varargs=" + isVarArgs;
     }
 }
-

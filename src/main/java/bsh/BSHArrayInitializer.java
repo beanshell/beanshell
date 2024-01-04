@@ -26,6 +26,7 @@
 package bsh;
 
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.Map;
 import java.lang.reflect.Array;
@@ -109,9 +110,10 @@ class BSHArrayInitializer extends SimpleNode {
             inferType = inferCommonType(null, this, callstack, interpreter);
 
         // force MapEntry to Map output
-        if ( MapEntry.class == inferType && Void.TYPE == baseType
-                || MapEntry.class == baseType )
-            baseType = Map.class;
+        if (dimensions < 2)
+            if ( (MapEntry.class == inferType && Void.TYPE == baseType)
+                 || MapEntry.class == baseType )
+                baseType = Map.class;
 
         // no common type was inferred
         if ( null == inferType ) {
@@ -145,6 +147,7 @@ class BSHArrayInitializer extends SimpleNode {
         // the values are set.
         dims[0] = jjtGetNumChildren();
         Object array =  Array.newInstance( baseType, dims );
+        Class<?> entryType = array.getClass().getComponentType();
 
         // Evaluate the child nodes
         for ( int i = 0; i < jjtGetNumChildren(); i++ ) {
@@ -180,7 +183,7 @@ class BSHArrayInitializer extends SimpleNode {
             try {
                 // store the value in the array
                 Array.set(array, i,
-                        normalizeEntry(entry, baseType, dimensions, callstack));
+                        normalizeEntry(entry, entryType, dimensions, callstack));
             } catch( IllegalArgumentException e ) {
                 Interpreter.debug("illegal arg", e);
                 throwTypeError( baseType, entry, i, callstack );
@@ -249,7 +252,16 @@ class BSHArrayInitializer extends SimpleNode {
      * @throws EvalError thrown on cast exceptions */
     private Object toCollection(Object value, Class<?> type, CallStack callstack)
             throws EvalError {
-        if ( Types.isCollectionType(type) ) try {
+        /*
+         * Don't try to convert an array of collections into a collection
+         */
+        Class valClaz = value.getClass();
+        Class valBase = Types.arrayElementType(valClaz);
+        if ( Types.isCollectionType(type) &&
+             !(valClaz.isArray() &&
+               (Map.class.isAssignableFrom(valBase) ||
+                Collection.class.isAssignableFrom(valBase))))
+            try {
             return Types.castObject(value, type, Types.CAST);
         } catch ( UtilEvalError e ) {
             e.toEvalError(this, callstack);
