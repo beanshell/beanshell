@@ -111,7 +111,7 @@ class BSHArrayInitializer extends SimpleNode {
 
         // force MapEntry to Map output
         if (dimensions < 2)
-            if ( MapEntry.class == inferType && Void.TYPE == baseType
+            if ( (MapEntry.class == inferType && Void.TYPE == baseType)
                  || MapEntry.class == baseType )
                 baseType = Map.class;
 

@@ -184,4 +184,8 @@ assert(isEvalError("cannot assign number 2147483648 to type int", 'new int[21474
 assert(isEvalError("cannot assign number 2147483648 to type int", 'new int[2147483648w];'));
 assert(isEvalError("cannot assign number 2147483648.0 to type int", 'new int[2147483648.0w];'));
 
+// Cannot have array dims on both the type and the name
+assert(isEvalError("Array dimensions not allowed on both type and name",
+                   'func(String[] list[]) {Arrays.toString(list);}'));
+
 complete();
