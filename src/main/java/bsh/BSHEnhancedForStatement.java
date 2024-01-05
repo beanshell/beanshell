@@ -70,12 +70,13 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
         final CollectionManager cm = CollectionManager.getCollectionManager();
         final Iterator<?> iterator = cm.getBshIterator(iteratee);
         try {
+            NameSpace eachNameSpace = BlockNameSpace.getInstance(enclosingNameSpace, blockId);
+            callstack.swap(eachNameSpace);
             while ( !Thread.interrupted() && iterator.hasNext() ) {
                 try {
-                    NameSpace eachNameSpace = BlockNameSpace.getInstance(enclosingNameSpace, blockId);
-                    callstack.swap(eachNameSpace);
                     Object value = iterator.next();
                     if ( value == null ) value = Primitive.NULL;
+                    eachNameSpace.clear();
                     eachNameSpace.setTypedVariable(
                         varName, elementType, value, modifiers);
                 } catch ( UtilEvalError e ) {
