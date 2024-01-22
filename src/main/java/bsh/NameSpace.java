@@ -1290,7 +1290,7 @@ public class NameSpace
                 if ( outHasMethod[0] )
                     return result;
             }
-            throw new EvalError( "Command not found: " +
+            throw new EvalException( "Command not found: " +
                 StringUtil.methodString( commandName, argTypes ),
                 callerInfo, callstack );
         }

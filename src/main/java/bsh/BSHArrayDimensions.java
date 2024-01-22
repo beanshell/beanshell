@@ -101,7 +101,7 @@ class BSHArrayDimensions extends SimpleNode
             // Compare with number of dimensions actually created with the
             // number specified (syntax uses the undefined ones here)
             if ( definedDimensions.length != numUndefinedDims )
-                throw new EvalError(
+                throw new EvalException(
                 "Incompatible initializer. Allocation calls for a " +
                 numUndefinedDims+ " dimensional array, but initializer is a " +
                 definedDimensions.length + " dimensional array", this, callstack );
@@ -121,7 +121,7 @@ class BSHArrayDimensions extends SimpleNode
                 }
                 catch(Exception e)
                 {
-                    throw new EvalError(
+                    throw new EvalException(
                         "Array index: " + i +
                         " length does not evaluate to an integer", this, callstack, e );
                 }

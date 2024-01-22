@@ -118,14 +118,14 @@ class BSHPrimaryExpression extends SimpleNode
                 // Some arbitrary kind of node
                 if ( toLHS )
                     // is this right?
-                    throw new EvalError("Can't assign to prefix.",
+                    throw new EvalException("Can't assign to prefix.",
                         this, callstack );
                 else
                     obj = ((Node) obj).eval(callstack, interpreter);
 
         if ( isMapExpression ) {
             if ( obj == Primitive.VOID )
-                throw new EvalError(
+                throw new EvalException(
                     "illegal use of undefined variable or 'void' literal",
                     this, callstack );
             // we have a valid map expression return an assignable Map.Entry

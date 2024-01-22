@@ -79,7 +79,7 @@ class BSHClassDeclaration extends SimpleNode
             if (Reflect.isGeneratedClass(superClass)) {
                 // Validate final classes should not be extended
                 if (Reflect.getClassModifiers(superClass).hasModifier("final"))
-                    throw new EvalError("Cannot inherit from final class "
+                    throw new EvalException("Cannot inherit from final class "
                         + superClass.getName(), null, null);
                 // Collect final methods from all super class namespaces
                 meths.addAll(Stream.of(Reflect.getDeclaredMethods(superClass))
@@ -94,7 +94,7 @@ class BSHClassDeclaration extends SimpleNode
             BSHAmbiguousName node = (BSHAmbiguousName)jjtGetChild(child++);
             interfaces[i] = node.toClass(callstack, interpreter);
             if ( !interfaces[i].isInterface() )
-                throw new EvalError(
+                throw new EvalException(
                     "Type: "+node.text+" is not an interface!",
                     this, callstack );
         }
@@ -111,7 +111,7 @@ class BSHClassDeclaration extends SimpleNode
         // Validate final methods should not be overridden
         for (BshMethod m : meths)
            if (null != Reflect.getDeclaredMethod(clas, m.getName(), m.getParameterTypes()))
-               throw new EvalError("Cannot override "+m.getName()+"() in " +
+               throw new EvalException("Cannot override "+m.getName()+"() in " +
                    StringUtil.typeString(superClass) + " overridden method is final", null, null);
 
         return clas;

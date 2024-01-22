@@ -71,7 +71,7 @@ public class UtilEvalError extends Exception
         @param msg may be null for no additional message.
     */
     public EvalError toEvalError(
-        String msg, Node node, CallStack callstack  )
+            String msg, Node node, CallStack callstack  )
     {
         if ( Interpreter.DEBUG.get() )
             printStackTrace();
@@ -87,6 +87,21 @@ public class UtilEvalError extends Exception
     {
         return toEvalError( null, node, callstack );
     }
+
+    public EvalException toEvalException(
+            String msg, Node node, CallStack callstack  )
+    {
+        if ( Interpreter.DEBUG.get() )
+            printStackTrace();
+
+        if ( msg == null )
+            msg = "";
+        else
+            msg += ": ";
+        return new EvalException( msg + this.getMessage(), node, callstack, this );
+    }
+
+    public EvalException toEvalException ( Node node, CallStack callstack ) { return toEvalException( null, node, callstack ); }
 
 }
 

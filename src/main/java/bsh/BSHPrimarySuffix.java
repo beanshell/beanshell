@@ -54,7 +54,7 @@ class BSHPrimarySuffix extends SimpleNode
 
         obj will be a Node when suffix evaluation begins, allowing us to
         interpret it contextually. (e.g. for .class) Thereafter it will be
-        an value object or LHS (as determined by toLHS).
+        a value object or LHS (as determined by toLHS).
         <p>
 
         We must handle the toLHS case at each point here.
@@ -70,11 +70,11 @@ class BSHPrimarySuffix extends SimpleNode
         if ( operation == CLASS )
             if ( obj instanceof BSHType ) {
                 if ( toLHS )
-                    throw new EvalError("Can't assign .class",
+                    throw new EvalException("Can't assign .class",
                         this, callstack );
                 return ((BSHType)obj).getType( callstack, interpreter );
             } else
-                throw new EvalError(
+                throw new EvalException(
                     "Attempt to use .class suffix on non class.",
                     this, callstack );
 

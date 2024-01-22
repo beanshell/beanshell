@@ -60,7 +60,7 @@ class BSHImportDeclaration extends SimpleNode
                     try { // import static method from class
                         clas = namespace.getClass(Name.prefix(ambigName.text));
                         obj = Reflect.staticMethodImport(clas, name);
-                    } catch (Exception e) { e.printStackTrace(); /* ignore try field instead */ }
+                    } catch (Exception e) { /* ignore try field instead */ }
                     try { // import static field from class
                         if (null != clas && null == obj)
                             obj = Reflect.getLHSStaticField(clas, name);
@@ -83,7 +83,7 @@ class BSHImportDeclaration extends SimpleNode
                         return Primitive.VOID;
                     }
                     // no static member found
-                    throw new EvalError(ambigName.text
+                    throw new EvalException(ambigName.text
                                         + " is not a static member of a class",
                                         this, callstack );
                 }

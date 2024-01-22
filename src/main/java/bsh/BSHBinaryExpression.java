@@ -129,7 +129,7 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
 
         if ( interpreter.getStrictJava() && ( kind == PLUS || kind == STAR )
                 && !( lhs instanceof String || rhs instanceof String ) )
-            throw new EvalError( "Bad operand types for binary operator "
+            throw new EvalException( "Bad operand types for binary operator "
                 + tokenImage[kind] + " first type: "  + StringUtil.typeString(lhs)
                 + " second type: " + StringUtil.typeString(rhs),
                     this, callstack );
@@ -194,7 +194,7 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
             if ( isWrapper(var.getType()) )
                 throw new NullPointerException(
                         "null value with binary operator " + tokenImage[kind]);
-            throw new EvalError(
+            throw new EvalException(
                     "bad operand types for binary operator "
                         + tokenImage[kind], this, callstack);
         } catch (NullPointerException e) {
@@ -216,7 +216,7 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
         if ( val2Class == val1Class
                 || isSimilarTypes(val1Class, val2Class) )
             return true;
-        throw new EvalError("incomparable types: "
+        throw new EvalException("incomparable types: "
             + StringUtil.typeString(val1Class) + " and "
             + StringUtil.typeString(val2Class),
             this, callstack);

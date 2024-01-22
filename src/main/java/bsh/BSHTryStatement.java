@@ -93,8 +93,15 @@ class BSHTryStatement extends SimpleNode
             }
         }
         catch( TargetError e ) {
-            Interpreter.debug("Exception from try block: ", e);
+            Interpreter.debug("TargetError from try block: ", e);
             thrown = e.getTarget();
+            // clean up call stack grown due to exception interruption
+            while ( callstack.depth() > callstackDepth )
+                callstack.pop();
+        }
+        catch( EvalException e ) {
+            Interpreter.debug("EvalException from try block: ", e);
+            thrown = e;
             // clean up call stack grown due to exception interruption
             while ( callstack.depth() > callstackDepth )
                 callstack.pop();
@@ -132,7 +139,7 @@ class BSHTryStatement extends SimpleNode
                     mc.eval( callstack, interpreter );
 
                     if ( mc.isUntyped() && interpreter.getStrictJava() )
-                        throw new EvalError(
+                        throw new EvalException(
                             "(Strict Java) Untyped catch block", this, callstack );
 
                     // If the param is typed check assignability

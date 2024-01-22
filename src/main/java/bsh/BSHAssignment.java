@@ -65,7 +65,7 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
         Object rhs = jjtGetChild(1).eval(callstack, interpreter);
 
         if ( rhs == Primitive.VOID )
-            throw new EvalError("illegal void assignment", this, callstack);
+            throw new EvalException("illegal void assignment", this, callstack);
 
         try {
             switch( operator ) {

@@ -16,13 +16,7 @@ package bsh;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Member;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -220,6 +214,8 @@ public abstract class Invocable implements Member {
                     invokeTarget(base, pars), getReturnType());
         }
         catch (Throwable ite) {
+            if (ite instanceof UndeclaredThrowableException)
+                ite = ite.getCause();
             throw new InvocationTargetException(ite);
         }
     }
