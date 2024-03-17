@@ -2,11 +2,13 @@ package bsh;
 
 import java.io.File;
 import java.util.List;
+
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import bsh.security.SecurityGuard;
 
 @RunWith(FilteredTestRunner.class)
@@ -25,6 +27,10 @@ public class SecurityGuardTest {
         }
         public boolean canInvokeMethod(Object thisArg, String methodName, Object[] args) {
             if (thisArg instanceof List && methodName.equals("add")) return false;
+            return true;
+        }
+        public boolean canInvokeLocalMethod(String methodName, Object[] args) {
+            if (methodName.equals("eval")) return false;
             return true;
         }
         public boolean canInvokeSuperMethod(Class<?> superClass, Object thisArg, String methodName, Object[] args) {
@@ -288,6 +294,27 @@ public class SecurityGuardTest {
             Assert.fail("The code must throw an Exception!");
         } catch (Exception ex) {
             final String expectedMsg = "SecurityError: Can't invoke this method: java.util.ArrayList.add(int)";
+            Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
+        }
+    }
+
+    @Test
+    public void canInvokeLocalMethod() {
+        try {
+            TestUtil.eval("clear()");
+            Assert.assertTrue(true);
+        } catch (Exception ex) {
+            Assert.fail("The code mustn't throw any Exception!");
+        }
+    }
+
+    @Test
+    public void cantInvokeLocalMethod() {
+        try {
+            TestUtil.eval("eval(\"return 123;\")");
+            Assert.fail("The code must throw an Exception!");
+        } catch (Exception ex) {
+            final String expectedMsg = "SecurityError: Can't invoke this local method: eval(java.lang.String)";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
         }
     }

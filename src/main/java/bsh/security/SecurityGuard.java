@@ -16,6 +16,9 @@ public interface SecurityGuard {
     /** Validate and return if a specific method of a specific object can be invoked. */
     public boolean canInvokeMethod(Object thisArg, String methodName, Object[] args);
 
+    /** Validate and return if a specific local method ( aka commands ) can be invoked */
+    public boolean canInvokeLocalMethod(String methodName, Object[] args);
+
     /** Validate and return if can call a method of super class */
     public boolean canInvokeSuperMethod(Class<?> superClass, Object thisArg, String methodName, Object[] args);
 

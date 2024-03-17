@@ -7,6 +7,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
 import bsh.Interpreter;
 
 /** It prevents the execution of codes that manipulate the SecurityGuard or MainSecurityGuard */
@@ -21,6 +22,10 @@ class BasicSecurityGuard implements SecurityGuard {
 
     public boolean canInvokeMethod(Object thisArg, String methodName, Object[] args) {
         return !(thisArg instanceof MainSecurityGuard);
+    }
+
+    public boolean canInvokeLocalMethod(String methodName, Object[] args) {
+        return true;
     }
 
     public boolean canInvokeSuperMethod(Class<?> superClass, Object thisArg, String methodName, Object[] args) {
@@ -173,6 +178,13 @@ public final class MainSecurityGuard {
                 throw SecurityError.reflectCantConstruct(_class, _args);
             }
         }
+    }
+
+    /** Validate if can call a local method ( aka commands ) */
+    public void canInvokeLocalMethod(String methodName, Object[] args) throws SecurityError {
+        for (SecurityGuard guard: this.securityGuards)
+            if (!guard.canInvokeLocalMethod(methodName, args))
+                throw SecurityError.cantInvokeLocalMethod(methodName, args);
     }
 
     /** Validate if can call a method of super class */

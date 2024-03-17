@@ -2,6 +2,7 @@ package bsh.security;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import bsh.CallStack;
 import bsh.EvalError;
 import bsh.SimpleNode;
@@ -76,6 +77,12 @@ public class SecurityError extends UtilEvalError {
     public static SecurityError reflectCantInvokeMethod(Object thisArg, String methodName, Object[] args) {
         String className = classNameOf(thisArg.getClass());
         String msg = String.format("Can't invoke this method using reflection: %s.%s(%s)", className, methodName, argsTypesString(args));
+        return new SecurityError(msg);
+    }
+
+    /** Create a error for when can't invoke a local method ( aka commands ) */
+    public static SecurityError cantInvokeLocalMethod(String methodName, Object[] args) {
+        String msg = String.format("Can't invoke this local method: %s(%s)", methodName, argsTypesString(args));
         return new SecurityError(msg);
     }
 

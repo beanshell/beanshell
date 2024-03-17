@@ -893,6 +893,12 @@ class Name implements java.io.Serializable
         String methodName = value;
         Class<?>[] argTypes = Types.getTypes( args );
 
+        try {
+            Interpreter.mainSecurityGuard.canInvokeLocalMethod(methodName, args);
+        } catch ( UtilEvalError e ) {
+            throw e.toEvalError(callerInfo, callstack);
+        }
+
         // Check for existing method
         BshMethod meth = null;
         try {
