@@ -25,10 +25,16 @@ if (1 == 2)
 /***
 This code is commented
 ***/
+/**
+ * This is acceptable
+ */
 else if (2 == 2)
     assert(true);
 /*******
 This is more comments
 *******/
+/**
+ * This is acceptable
+ */
 else
     assert(false);

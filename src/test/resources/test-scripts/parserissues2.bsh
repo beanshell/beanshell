@@ -6,31 +6,47 @@ source("Assert.bsh");
 import bsh.*;
 
 /**
- * test that formal comments are picked up as nodes, and other types of comments are skipped
+ * test that formal comments are picked up as special tokens
  */
- 
+
 /*
- * This comment should be skipped
+ * This comment is also a special token
  */
- 
+
 /**********************************
- * This comment should be skipped
+ * This comment is also a special token
  **********************************/
- 
-// This comment should be skipped
+
+// This comment is also a special token
 
 parser = new Parser(new FileReader(bsh.cwd+"/"+getSourceFileInfo()));
 parser.setRetainComments(true);
 
 assertFalse("parse line 1", parser.Line());
-assertEquals("node 1 class", BSHAssignment.class, parser.popNode().getClass()); 
+node = parser.popNode();
+assertEquals("node 1 class", BSHAssignment.class, node.getClass());
+assertEquals("node 1 comment count", 1, Parser.getAllCommentsBeforeNode(node).size());
+
 assertFalse("parse line 2", parser.Line());
-assertEquals("node 2 class", BSHAssignment.class, parser.popNode().getClass()); 
+node = parser.popNode();
+assertEquals("node 2 class", BSHAssignment.class, node.getClass());
+assertEquals("node 2 comment count", 0, Parser.getAllCommentsBeforeNode(node).size());
+
 assertFalse("parse line 3", parser.Line());
-assertEquals("node 3 class", BSHImportDeclaration.class, parser.popNode().getClass()); 
+node = parser.popNode();
+assertEquals("node 3 class", BSHImportDeclaration.class, node.getClass());
+assertEquals("node 3 comment count", 0, Parser.getAllCommentsBeforeNode(node).size());
+
 assertFalse("parse line 4", parser.Line());
-assertEquals("node 4 class", BSHFormalComment.class, parser.popNode().getClass()); 
+node = parser.popNode();
+assertEquals("node 4 class", BSHAssignment.class, node.getClass());
+assertEquals("node 4 comment count", 4, Parser.getAllCommentsBeforeNode(node).size());
+assertEquals("node 4 formal comment count", 2, Parser.getFormalCommentsBeforeNode(node).size());
+assertTrue("Node 4 formal comment contains", Parser.getFormalCommentsBeforeNode(node).get(0).contains("test that formal comments are picked up"));
+
 assertFalse("parse line 5", parser.Line());
-assertEquals("node 5 class", BSHAssignment.class, parser.popNode().getClass()); 
+node = parser.popNode();
+assertEquals("node 5 class", BSHAssignment.class, node.getClass());
+assertEquals("node 5 comment count", 0, Parser.getAllCommentsBeforeNode(node).size());
 
 complete();
