@@ -1,0 +1,416 @@
+
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+try {
+    String.class = Number.class;
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Can't assign .class").matcher(ex.getMessage());
+    String err = "Expected [Can't assign .class] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    clz = (1+1).class;
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Attempt to use .class suffix on non class.").matcher(ex.getMessage());
+    String err = "Expected [Attempt to use .class suffix on non class.] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    setStrictJava(true); a = {1,2,3};
+} catch (Exception ex) {
+    setStrictJava(false);
+    Matcher m = Pattern.compile("No declared array type or dimensions.").matcher(ex.getMessage());
+    String err = "Expected [No declared array type or dimensions.] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    m = {"a"=3, {1,2,3}};
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Invalid Intializer for (.*), at position: \\d+").matcher(ex.getMessage());
+    String err = "Expected [Invalid Intializer for (.*), at position: \\d+] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    a = {1,2,void};
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Void in array initializer, position \\d+").matcher(ex.getMessage());
+    String err = "Expected [Void in array initializer, position \\d+] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    class TestClass2 { int instProp; }; new TestClass2{ unknownProp=1 };
+} catch (Exception ex) {
+    Matcher m = Pattern.compile(".*").matcher(ex.getMessage());
+    String err = "Expected [.*] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    a = new int[]{1,2,3,"a"};
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Error in array initializer").matcher(ex.getMessage());
+    String err = "Expected [Error in array initializer] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    new {{false}, true};
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Incompatible type: (.*) in initializer of array type: (.*) at position: \\d+").matcher(ex.getMessage());
+    String err = "Expected [Incompatible type: (.*) in initializer of array type: (.*) at position: \\d+] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    new Unknown();
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Unknown class: (.*)").matcher(ex.getMessage());
+    String err = "Expected [Unknown class: (.*)] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    new ArrayList("a");
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Constructor error: Can't find constructor").matcher(ex.getMessage());
+    String err = "Expected [Constructor error: Can't find constructor] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    new ArrayList(-1) {public void hello(){}};
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Error constructing inner class instance:").matcher(ex.getMessage());
+    String err = "Expected [Error constructing inner class instance:] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    new int[1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1][1];
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Can't construct primitive array:").matcher(ex.getMessage());
+    String err = "Expected [Can't construct primitive array:] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    new Unknown[1];
+} catch (Exception ex) {
+    Matcher m = Pattern.compile(".*").matcher(ex.getMessage());
+    String err = "Expected [.*] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    f() {break;}; f();
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("continue' or 'break' in method body").matcher(ex.getMessage());
+    String err = "Expected [continue' or 'break' in method body] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    void blah() { return "foo"; };blah();
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Cannot return value from void method").matcher(ex.getMessage());
+    String err = "Expected [Cannot return value from void method] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    final class F {String getS() {return"a";}};class B extends F {}
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Cannot inherit from final class").matcher(ex.getMessage());
+    String err = "Expected [Cannot inherit from final class] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    class A implements String {};
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Type: (.*) is not an interface!").matcher(ex.getMessage());
+    String err = "Expected [Type: (.*) is not an interface!] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    class P {static final f() {}};class C extends P {f() {}};
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Cannot override (.*)\\(\\) in (.*) overridden method is final").matcher(ex.getMessage());
+    String err = "Expected [Cannot override (.*)\\(\\) in (.*) overridden method is final] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    if (void) print("hello");
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Condition evaluates to void type").matcher(ex.getMessage());
+    String err = "Expected [Condition evaluates to void type] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    setStrictJava(true);int[] arr = {0,1};arr*3;
+} catch (Exception ex) {
+    setStrictJava(false);
+    Matcher m = Pattern.compile("Bad operand types for binary operator").matcher(ex.getMessage());
+    String err = "Expected [Bad operand types for binary operator] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    String s=null;s==1;
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("incomparable types:").matcher(ex.getMessage());
+    String err = "Expected [incomparable types:] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    String s=null;s - 1;
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("bad operand types for binary operator").matcher(ex.getMessage());
+    String err = "Expected [bad operand types for binary operator] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    void = 1;
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Can't assign to prefix.").matcher(ex.getMessage());
+    String err = "Expected [Can't assign to prefix.] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    new {xyz=1};
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("illegal use of undefined variable or 'void' literal").matcher(ex.getMessage());
+    String err = "Expected [illegal use of undefined variable or 'void' literal] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    java.lang.System.booga();
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Error in method invocation:").matcher(ex.getMessage());
+    String err = "Expected [Error in method invocation:] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    throw "a";
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Expression in 'throw' must be Throwable type").matcher(ex.getMessage());
+    String err = "Expected [Expression in 'throw' must be Throwable type] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    new int[][] {};
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Incompatible initializer. Allocation calls for a \\d+ dimensional array, but initializer is a \\d+ dimensional array").matcher(ex.getMessage());
+    String err = "Expected [Incompatible initializer. Allocation calls for a \\d+ dimensional array, but initializer is a \\d+ dimensional array] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    new int[2147483648];
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Array index: \\d+ length does not evaluate to an integer").matcher(ex.getMessage());
+    String err = "Expected [Array index: \\d+ length does not evaluate to an integer] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    Interface si2 = new Interface() { };InterfaceConsumer consumer = new InterfaceConsumer();consumer.consumeInterface( si2 );
+} catch (Exception ex) {
+    ex = ex.getCause();
+    Matcher m = Pattern.compile(".*").matcher(ex.getMessage());
+    String err = "Expected [.*] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    Interface si2 = new Interface() { };si2.getString();
+} catch (Exception ex) {
+    ex = ex.getCause();
+    Matcher m = Pattern.compile("Method (.*) not found in bsh scripted object:").matcher(ex.getMessage());
+    String err = "Expected [Method (.*) not found in bsh scripted object:] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    setStrictJava(true);int foo(a) {}
+} catch (Exception ex) {
+    setStrictJava(false);
+    Matcher m = Pattern.compile("Undeclared argument type, parameter").matcher(ex.getMessage());
+    String err = "Expected [Undeclared argument type, parameter] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    setStrictJava(true);ifoo(int a) {return a;}
+} catch (Exception ex) {
+    setStrictJava(false);
+    Matcher m = Pattern.compile("Undeclared return type for method").matcher(ex.getMessage());
+    String err = "Expected [Undeclared return type for method] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    print(unknown);
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Undefined argument:").matcher(ex.getMessage());
+    String err = "Expected [Undefined argument:] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    try (x = new String()) {return x;} catch (Exception e) {}
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("The resource (.*) does not implement java.lang.AutoCloseable.").matcher(ex.getMessage());
+    String err = "Expected [The resource (.*) does not implement java.lang.AutoCloseable.] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    void voidmethod1() { };s1=voidmethod1();
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("illegal void assignment").matcher(ex.getMessage());
+    String err = "Expected [illegal void assignment] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    switch (1) {}
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Empty switch statement.").matcher(ex.getMessage());
+    String err = "Expected [Empty switch statement.] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    import static Unknown.unknown;
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("(.*) is not a static member of a class").matcher(ex.getMessage());
+    String err = "Expected [(.*) is not a static member of a class] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    setStrictJava(true);try{throw new Exception();}catch(e){}
+} catch (Exception ex) {
+    setStrictJava(false);
+    Matcher m = Pattern.compile("Untyped catch block").matcher(ex.getMessage());
+    String err = "Expected [Untyped catch block] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    int i = void;
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Void initializer").matcher(ex.getMessage());
+    String err = "Expected [Void initializer] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+try {
+    unknown();
+} catch (Exception ex) {
+    Matcher m = Pattern.compile("Command not found:").matcher(ex.getMessage());
+    String err = "Expected [Command not found:] got ["+ex.getMessage()+"]";
+    assertTrue(err,m.find());
+} finally {
+    flag();
+}
+
+assertTrue("Checking that all finalies ran",flag()==40);
+
+complete();

@@ -83,7 +83,7 @@ class BSHVariableDeclarator extends SimpleNode
         }
 
         if ( value == Primitive.VOID )
-            throw new EvalError("Void initializer.", this, callstack );
+            throw new EvalException("Void initializer.", this, callstack );
 
         return value;
     }

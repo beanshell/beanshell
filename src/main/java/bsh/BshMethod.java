@@ -485,13 +485,13 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
                 ret = retControl.value;
             else
                 // retControl.returnPoint is the Node of the return statement
-                throw new EvalError("'continue' or 'break' in method body",
+                throw new EvalException("'continue' or 'break' in method body",
                     retControl.returnPoint, returnStack );
 
             // Check for explicit return of value from void method type.
             // retControl.returnPoint is the Node of the return statement
             if ( returnType == Void.TYPE && ret != Primitive.VOID )
-                throw new EvalError( "Cannot return value from void method",
+                throw new EvalException( "Cannot return value from void method",
                 retControl.returnPoint, returnStack);
         }
 

@@ -320,7 +320,7 @@ public final class This implements java.io.Serializable, Runnable
                 return ((Primitive)ret).getValue();
             return ret;
         } catch (Exception e) {
-            throw new EvalError(e.getMessage(), node, callstack, e);
+            throw new EvalException(e.getMessage(), node, callstack, e);
         }
     }
 
@@ -429,7 +429,7 @@ public final class This implements java.io.Serializable, Runnable
             return namespace.invokeCommand(
                     methodName, args, interpreter, callstack, callerInfo, true);
         } catch (EvalError e) {
-             throw new EvalError("Method " +
+             throw new EvalException("Method " +
                     StringUtil.methodString( methodName, types ) +
                     " not found in bsh scripted object: "+ namespace.getName(),
                     callerInfo, callstack, e );

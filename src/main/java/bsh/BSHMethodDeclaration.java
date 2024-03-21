@@ -168,7 +168,7 @@ class BSHMethodDeclaration extends SimpleNode
                 if ( paramsNode.paramTypes[i] == null )
                     // Warning: Null callstack here.  Don't think we need
                     // a stack trace to indicate how we sourced the method.
-                    throw new EvalError(
+                    throw new EvalException(
                 "(Strict Java Mode) Undeclared argument type, parameter: " +
                     paramsNode.getParamNames()[i] + " in method: "
                     + name, this, null );
@@ -176,7 +176,7 @@ class BSHMethodDeclaration extends SimpleNode
             if ( returnType == null )
                 // Warning: Null callstack here.  Don't think we need
                 // a stack trace to indicate how we sourced the method.
-                throw new EvalError(
+                throw new EvalException(
                 "(Strict Java Mode) Undeclared return type for method: "
                     + name, this, null );
         }

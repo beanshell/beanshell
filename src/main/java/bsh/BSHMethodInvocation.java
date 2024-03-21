@@ -68,7 +68,7 @@ class BSHMethodInvocation extends SimpleNode
         try {
             return name.invokeMethod( interpreter, args, callstack, this);
         } catch (ReflectError e) {
-            throw new EvalError(
+            throw new EvalException(
                 "Error in method invocation: " + e.getMessage(),
                     this, callstack, e);
         } catch (InvocationTargetException e) {

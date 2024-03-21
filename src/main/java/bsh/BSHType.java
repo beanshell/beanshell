@@ -156,7 +156,7 @@ class BSHType extends SimpleNode implements BshClassManager.Listener {
                         null == baseType ? Object.class : baseType, dims);
                 type = obj.getClass();
             } catch(Exception e) {
-                throw new EvalError("Couldn't construct array type",
+                throw new EvalException("Couldn't construct array type",
                     this, callstack, e);
             }
         } else

@@ -28,13 +28,14 @@
 package bsh;
 
 /**
-    EvalError indicates that we cannot continue evaluating the script
-    or the script has thrown an exception.
+    EvalError indicates that we cannot continue evaluating the node
+    and an unrecoverable internal error has corrupted the interpreter
+    or callstack.
 
-    EvalError may be thrown for a script syntax error, an evaluation
-    error such as referring to an undefined variable, an internal error.
-    <p>
+    This does not include script syntax errors or referring to an undefined variable,
+    which are handled by {@link EvalException}.
 
+    @see EvalException
     @see TargetError
 */
 public class EvalError extends Exception
@@ -149,7 +150,7 @@ public class EvalError extends Exception
     /**
         Prepend the message if it is non-null.
     */
-    private void prependMessage( String s )
+    protected void prependMessage( String s )
     {
         if ( s == null )
             return;
@@ -159,6 +160,4 @@ public class EvalError extends Exception
         else
             message = s + " : "+ message;
     }
-
 }
-
