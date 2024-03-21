@@ -72,6 +72,7 @@ fout.close();
 Interpreter.main(new String[] {"test_interpreter.out"});
 System.setOut(sysout);
 System.setErr(syserr);
+System.setIn(sysin);
 new File("test_interpreter.out").delete();
 
 assert(isEvalError("bsh Interpreter: No stream", "new Interpreter().run();"));
