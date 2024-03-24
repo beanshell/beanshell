@@ -40,7 +40,6 @@ import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ResourceBundle;
-import bsh.security.MainSecurityGuard;
 
 /**
     The BeanShell script interpreter.

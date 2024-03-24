@@ -9,8 +9,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import bsh.security.SecurityGuard;
-
 @RunWith(FilteredTestRunner.class)
 public class SecurityGuardTest {
 
@@ -450,12 +448,12 @@ public class SecurityGuardTest {
     public void cantUseSecurityGuardAPI1() {
         try {
             TestUtil.eval(
-                "import bsh.security.SecurityGuard;",
+                "import bsh.SecurityGuard;",
                 "class MySecuryGuard implements SecurityGuard {}"
             );
             Assert.fail("The code must throw an Exception!");
         } catch (Exception ex) {
-            final String expectedMsg = "SecurityError: This interface can't be implemented: bsh.security.SecurityGuard";
+            final String expectedMsg = "SecurityError: This interface can't be implemented: bsh.SecurityGuard";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
         }
     }
@@ -478,12 +476,12 @@ public class SecurityGuardTest {
     public void cantUseSecurityGuardAPI3() {
         try {
             TestUtil.eval(
-                "import bsh.security.MainSecurityGuard;",
-                "new MainSecurityGuard().add(new java.util.HashMap());" // It's used the 'java.util.HashMap' cuz we can't create 'SecurityGuard' instances :P, and it's an extra security
+                "import bsh.MainSecurityGuard;",
+                "new MainSecurityGuard().add(new java.util.HashMap());"
             );
             Assert.fail("The code must throw an Exception!");
         } catch (Exception ex) {
-            final String expectedMsg = "SecurityError: Can't invoke this method: bsh.security.MainSecurityGuard.add(java.util.HashMap)";
+            final String expectedMsg = "SecurityError: Can't invoke this method: bsh.MainSecurityGuard.add(java.util.HashMap)";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
         }
     }

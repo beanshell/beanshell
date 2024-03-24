@@ -26,12 +26,11 @@
 
 package bsh;
 
-import java.util.Arrays;
-import java.util.stream.IntStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.stream.IntStream;
 
 /**
     This represents an instance of a bsh method declaration in a particular
@@ -279,7 +278,7 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
         {
             try {
                 // Validate if can invoke this method
-                if (Modifier.isStatic(javaMethod.getModifiers()))
+                if (Reflect.isStatic(javaMethod))
                     Interpreter.mainSecurityGuard.canInvokeStaticMethod(javaMethod.getDeclaringClass(), javaMethod.getName(), argValues);
                 else
                     Interpreter.mainSecurityGuard.canInvokeMethod(javaObject, javaMethod.getName(), argValues);

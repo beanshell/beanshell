@@ -29,11 +29,11 @@ package bsh;
 import java.lang.reflect.Proxy;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.Map.Entry;
 
 /**
@@ -43,7 +43,7 @@ import java.util.Map.Entry;
 
 
 */
-public class Types {
+class Types {
 
     /** a uniquely typed Map.Entry which used solely for the purpose
      * of building map expressions and identifiable as Types.MapEntry. */
@@ -772,5 +772,27 @@ public class Types {
         return Collection.class.isAssignableFrom(clas)
             || Map.class.isAssignableFrom(clas)
             || Entry.class.isAssignableFrom(clas);
+    }
+
+    /**
+     * Just a method to return the pretty name of any Class
+     *
+     * <pre>
+     * prettyName(String.class)
+     *  returns "java.lang.String"
+     * prettyName(byte.class)
+     *  returns "byte"
+     * prettyName((new Object[3]).getClass())
+     *  returns "java.lang.Object[];"
+     * prettyName((new int[3][4][5][6][7][8][9]).getClass())
+     *  returns "int[][][][][][][]"
+     * </pre>
+     */
+    public static String prettyName(Class<?> clas) {
+        if (!clas.isArray()) return clas.getName();
+
+        // Return a string like "int[]", "double[]", "double[][]", etc...
+        Class<?> arrayType = clas.getComponentType();
+        return prettyName(arrayType) + "[]";
     }
 }
