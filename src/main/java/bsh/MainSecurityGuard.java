@@ -45,21 +45,21 @@ final class MainSecurityGuard {
 
     /** Validate if a specific method of a specific object can be invoked. */
     protected void canInvokeMethod(Object thisArg, String methodName, Object[] args) throws SecurityError {
-        this._canInvokeMethod(thisArg, methodName, args);
-        this.canInvokeMethod_Reflection_canGetField(thisArg, methodName, args);
-        this.canInvokeMethod_Reflection_canConstruct(thisArg, methodName, args);
-        this.canInvokeMethod_Reflection_canInvokeMethod(thisArg, methodName, args);
+        this.canInvokeMethodImpl(thisArg, methodName, args);
+        this.canInvokeMethodImplToReflectionCanGetField(thisArg, methodName, args);
+        this.canInvokeMethodImplToReflectionCanConstruct(thisArg, methodName, args);
+        this.canInvokeMethodImplToReflectionCanInvokeMethod(thisArg, methodName, args);
     }
 
     /** Real validate if a specific method of a specific object can be invoked. */
-    private final void _canInvokeMethod(Object thisArg, String methodName, Object[] args) throws SecurityError {
+    private final void canInvokeMethodImpl(Object thisArg, String methodName, Object[] args) throws SecurityError {
         for (SecurityGuard guard: this.securityGuards)
             if (!guard.canInvokeMethod(thisArg, methodName, args))
                 throw SecurityError.cantInvokeMethod(thisArg, methodName, args);
     }
 
     /** Validate if can get a field when using Reflection API */
-    private final void canInvokeMethod_Reflection_canGetField(Object thisArg, String methodName, Object[] args) throws SecurityError {
+    private final void canInvokeMethodImplToReflectionCanGetField(Object thisArg, String methodName, Object[] args) throws SecurityError {
         if (!methodName.equals("get") || args.length != 1 || !(thisArg instanceof Field)) return;
 
         Field field = (Field) thisArg;
@@ -83,7 +83,7 @@ final class MainSecurityGuard {
     }
 
     /** Validate if can invoke a method when using Reflection API */
-    private final void canInvokeMethod_Reflection_canInvokeMethod(Object thisArg, String methodName, Object[] args) throws SecurityError {
+    private final void canInvokeMethodImplToReflectionCanInvokeMethod(Object thisArg, String methodName, Object[] args) throws SecurityError {
         if (!methodName.equals("invoke") || args.length == 0 || !(thisArg instanceof Method)) return;
 
         Method method = (Method) thisArg;
@@ -112,7 +112,7 @@ final class MainSecurityGuard {
     }
 
     /** Validate if can construct a instance when using Reflection API */
-    private final void canInvokeMethod_Reflection_canConstruct(Object thisArg, String methodName, Object[] args) throws SecurityError {
+    private final void canInvokeMethodImplToReflectionCanConstruct(Object thisArg, String methodName, Object[] args) throws SecurityError {
         // Deprecated way using reflection
         if (thisArg instanceof Class<?> && methodName.equals("newInstance")) {
             Class<?> _class = (Class<?>) thisArg;
@@ -148,7 +148,7 @@ final class MainSecurityGuard {
     protected void canInvokeSuperMethod(Class<?> superClass, Object thisArg, String methodName, Object[] args) throws SecurityError {
         for (SecurityGuard guard: this.securityGuards)
             if (!guard.canInvokeSuperMethod(superClass, thisArg, methodName, args))
-                throw SecurityError.cantInvokeSuperMethod(superClass, thisArg, methodName, args);
+                throw SecurityError.cantInvokeSuperMethod(superClass, methodName, args);
     }
 
     /** Validate if can get a field of a specific object */

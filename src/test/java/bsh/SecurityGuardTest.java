@@ -299,7 +299,10 @@ public class SecurityGuardTest {
     @Test
     public void canInvokeLocalMethod() {
         try {
-            TestUtil.eval("clear()");
+            TestUtil.eval(
+                "int doubleIt(int num) { return num * 2; }",
+                "doubleIt(20);"
+                );
             Assert.assertTrue(true);
         } catch (Exception ex) {
             Assert.fail("The code mustn't throw any Exception!");

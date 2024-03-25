@@ -10,11 +10,13 @@ class SecurityError extends UtilEvalError {
         super("SecurityError: " + msg);
     }
 
-    public EvalError toEvalError(String msg, SimpleNode node, CallStack callstack)  {
+    @Override
+    public EvalError toEvalError(String msg, Node node, CallStack callstack) {
         return new EvalError(this.getMessage(), node, callstack);
     }
 
-    public EvalError toEvalError(SimpleNode node, CallStack callstack) {
+    @Override
+    public EvalError toEvalError(Node node, CallStack callstack) {
         return new EvalError(this.getMessage(), node, callstack);
     }
 
@@ -73,16 +75,9 @@ class SecurityError extends UtilEvalError {
     }
 
     /** Create a error for when can't invoke a super method */
-    protected static SecurityError cantInvokeSuperMethod(Class<?> superClass, Object thisArg, String methodName, Object[] args) {
+    protected static SecurityError cantInvokeSuperMethod(Class<?> superClass, String methodName, Object[] args) {
         String superClassName = Types.prettyName(superClass);
         String msg = String.format("Can't invoke this super method: %s.%s(%s)", superClassName, methodName, argsTypesString(args));
-        return new SecurityError(msg);
-    }
-
-    /** Create a error for when can't invoke a super method */
-    protected static SecurityError reflectCantInvokeSuperMethod(Class<?> superClass, Object thisArg, String methodName, Object[] args) {
-        String superClassName = Types.prettyName(superClass);
-        String msg = String.format("Can't invoke this super method using reflection: %s.%s(%s)", superClassName, methodName, argsTypesString(args));
         return new SecurityError(msg);
     }
 
