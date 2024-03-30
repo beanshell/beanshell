@@ -12,6 +12,12 @@ import org.junit.runner.RunWith;
 @RunWith(FilteredTestRunner.class)
 public class SecurityGuardTest {
 
+    /**
+     * It's an empty implementation of SecurityGuard, so it basically does nothing.
+     * It's just to make the default implementations of the methods be covedered by tests, in another words, it's just to increase the code coverage.
+     */
+    private static final SecurityGuard emptySecurityGuard = new SecurityGuard() {};
+
     /** It's an implementation of SecurityGuard just to execute the tests */
     private static final SecurityGuard mySecurityGuard = new SecurityGuard() {
         public boolean canConstruct(Class<?> _class, Object[] args) {
@@ -56,16 +62,18 @@ public class SecurityGuardTest {
 
     @BeforeClass
     public static void beforeAll() {
+        Interpreter.mainSecurityGuard.add(SecurityGuardTest.emptySecurityGuard);
         Interpreter.mainSecurityGuard.add(SecurityGuardTest.mySecurityGuard);
     }
 
     @AfterClass
     public static void afterAll() {
+        Interpreter.mainSecurityGuard.remove(SecurityGuardTest.emptySecurityGuard);
         Interpreter.mainSecurityGuard.remove(SecurityGuardTest.mySecurityGuard);
     }
 
     @Test
-    public void canConstruct() {
+    public void can_construct() {
         try {
             TestUtil.eval("var obj = new java.util.HashMap();");
             Assert.assertTrue(true);
@@ -75,7 +83,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantConstruct() {
+    public void cant_construct() {
         try {
             TestUtil.eval("var obj = new java.io.File(\"\");");
             Assert.fail("The code must throw an Exception!");
@@ -86,7 +94,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canConstructLegacyReflection() {
+    public void can_construct_using_legacy_reflection() {
         try {
             TestUtil.eval("var obj = HashMap.class.newInstance()");
             Assert.assertTrue(true);
@@ -96,7 +104,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantConstructLegacyReflection() {
+    public void cant_construct_using_legacy_reflection() {
         try {
             TestUtil.eval("var obj = File.class.newInstance();");
             Assert.fail("The code must throw an Exception!");
@@ -107,7 +115,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canConstructReflection() {
+    public void can_construct_using_reflection() {
         try {
             TestUtil.eval("var obj = HashMap.class.getConstructor(new Class[] {}).newInstance(new Object[] {});");
             Assert.assertTrue(true);
@@ -117,7 +125,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantConstructReflection() {
+    public void cant_construct_using_reflection() {
         try {
             TestUtil.eval("var obj = File.class.getConstructor(new Class[] { String.class }).newInstance(new Object[] { \"\" });");
             Assert.fail("The code must throw an Exception!");
@@ -128,7 +136,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canConstructReflectionVarArgs() {
+    public void can_construct_using_reflection_with_varargs() {
         try {
             TestUtil.eval("var obj = HashMap.class.getConstructor().newInstance();");
             Assert.assertTrue(true);
@@ -138,7 +146,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantConstructReflectionVarArgs() {
+    public void cant_construct_using_reflection_with_varargs() {
         try {
             TestUtil.eval("var obj = File.class.getConstructor(String.class).newInstance(\"\");");
             Assert.fail("The code must throw an Exception!");
@@ -149,7 +157,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canInvokeStaticMethod() {
+    public void can_invoke_static_method() {
         try {
             TestUtil.eval("System.getProperty(\"java.version\");");
             Assert.assertTrue(true);
@@ -159,7 +167,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantInvokeStaticMethod() {
+    public void cant_invoke_static_method() {
         try {
             TestUtil.eval("System.exit(1);");
             Assert.fail("The code must throw an Exception!");
@@ -170,7 +178,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canInvokeStaticMethodWithinLocalMethod() {
+    public void can_invoke_static_method_within_local_method() {
         try {
             TestUtil.eval("void func() { System.getProperty(\"java.version\"); }; func();");
             Assert.assertTrue(true);
@@ -180,7 +188,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantInvokeStaticMethodWithinLocalMethod() {
+    public void cant_invoke_static_method_within_local_method() {
         try {
             TestUtil.eval("void func() { System.exit(1); }; func()");
             Assert.fail("The code must throw an Exception!");
@@ -191,7 +199,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canInvokeStaticMethodWithReflection() {
+    public void can_invoke_static_method_using_reflection() {
         try {
             TestUtil.eval(
                 "import java.lang.reflect.Method;",
@@ -205,7 +213,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantInvokeStaticMethodWithReflection() {
+    public void cant_invoke_static_method_using_reflection() {
         try {
             TestUtil.eval(
                 "import java.lang.reflect.Method;",
@@ -220,7 +228,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canInvokeStaticMethodWithReflectionVarArgs() {
+    public void can_invoke_static_method_using_reflection_with_varargs() {
         try {
             TestUtil.eval(
                 "import java.lang.reflect.Method;",
@@ -234,7 +242,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantInvokeStaticMethodWithReflectionVarArgs() {
+    public void cant_invoke_static_method_using_reflection_with_varargs() {
         try {
             TestUtil.eval(
                 "import java.lang.reflect.Method;",
@@ -249,7 +257,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canInvokeStaticMethodWithinClassMethod() {
+    public void can_invoke_static_method_within_class_method() {
         try {
             TestUtil.eval(
                 "class Test { void exec() { System.getProperty(\"java.version\"); } }; ",
@@ -262,7 +270,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantInvokeStaticMethodWithinClassMethod() {
+    public void cant_invoke_static_method_within_class_method() {
         try {
             TestUtil.eval(
                 "class Test { void exec() { System.exit(1); } }; ",
@@ -276,7 +284,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canInvokeStaticMethodWithinClassStaticMethod() {
+    public void can_invoke_static_method_within_class_static_method() {
         try {
             TestUtil.eval(
                 "class Test { static void exec() { System.getProperty(\"java.version\"); } };",
@@ -289,7 +297,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantInvokeStaticMethodWithinClassStaticMethod() {
+    public void cant_invoke_static_method_within_class_static_method() {
         try {
             TestUtil.eval(
                 "class Test { static void exec() { System.exit(1); } };",
@@ -303,7 +311,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canInvokeStaticMethodWithinEnumStaticMethod() {
+    public void can_invoke_static_method_within_enum_static_method() {
         try {
             TestUtil.eval(
                 "enum Test { AB; static void exec() { System.getProperty(\"java.version\"); } };",
@@ -316,7 +324,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantInvokeStaticMethodWithinEnumStaticMethod() {
+    public void cant_invoke_static_method_within_enum_static_method() {
         try {
             TestUtil.eval(
                 "enum Test { AB; static void exec() { System.exit(1); } };",
@@ -330,7 +338,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canInvokeStaticMethodWithinEnumMethod() {
+    public void can_invoke_static_method_within_enum_method() {
         try {
             TestUtil.eval(
                 "enum Test { AB; void exec() { System.getProperty(\"java.version\"); } };",
@@ -343,7 +351,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantInvokeStaticMethodWithinEnumMethod() {
+    public void cant_invoke_static_method_within_enum_method() {
         try {
             TestUtil.eval(
                 "enum Test { AB; void exec() { System.exit(1); } };",
@@ -357,7 +365,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canInvokeMethod() {
+    public void can_invoke_method() {
         try {
             TestUtil.eval(
                 "import java.util.ArrayList;",
@@ -370,7 +378,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantInvokeMethod() {
+    public void cant_invoke_method() {
         try {
             TestUtil.eval(
                 "import java.util.ArrayList;",
@@ -384,7 +392,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canInvokeMethodWithinLocalMethod() {
+    public void can_invoke_method_within_local_method() {
         try {
             TestUtil.eval(
                 "import java.util.ArrayList;",
@@ -398,7 +406,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantInvokeMethodWithinLocalMethod() {
+    public void cant_invoke_method_within_local_method() {
         try {
             TestUtil.eval(
                 "import java.util.ArrayList;",
@@ -413,7 +421,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canInvokeMethodWithReflection() {
+    public void can_invoke_method_using_reflection() {
         try {
             TestUtil.eval(
                 "import java.util.ArrayList;",
@@ -428,7 +436,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantInvokeMethodWithReflection() {
+    public void cant_invoke_method_using_reflection() {
         try {
             TestUtil.eval(
                 "import java.util.ArrayList;",
@@ -444,7 +452,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canInvokeMethodWithReflectionVarArgs() {
+    public void can_invoke_method_using_reflection_with_varargs() {
         try {
             TestUtil.eval(
                 "import java.util.ArrayList;",
@@ -459,7 +467,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantInvokeMethodWithReflectionVarArgs() {
+    public void cant_invoke_method_using_reflection_with_varargs() {
         try {
             TestUtil.eval(
                 "import java.util.ArrayList;",
@@ -475,7 +483,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canInvokeMethodWithinClassMethod() {
+    public void can_invoke_method_within_class_method() {
         try {
             TestUtil.eval(
                 "class Test { void exec() { new ArrayList().size(); } }; ",
@@ -488,7 +496,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantInvokeMethodWithinClassMethod() {
+    public void cant_invoke_method_within_class_method() {
         try {
             TestUtil.eval(
                 "class Test { void exec() { new ArrayList().add(1); } };",
@@ -502,7 +510,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canInvokeMethodWithinClassStaticMethod() {
+    public void can_invoke_method_within_class_static_method() {
         try {
             TestUtil.eval(
                 "class Test { void exec() { new ArrayList().size(); } }; ",
@@ -516,7 +524,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantInvokeMethodWithinClassStaticMethod() {
+    public void cant_invoke_method_within_class_static_method() {
         try {
             TestUtil.eval(
                 "class Test { static void exec() { new ArrayList().add(1); } };",
@@ -530,7 +538,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canInvokeMethodWithinEnumStaticMethod() {
+    public void can_invoke_method_within_enum_static_method() {
         try {
             TestUtil.eval(
                 "enum Test { AB; static void exec() { new ArrayList().size(); } };",
@@ -543,7 +551,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantInvokeMethodWithinEnumStaticMethod() {
+    public void cant_invoke_method_within_enum_static_method() {
         try {
             TestUtil.eval(
                 "enum Test { AB; static void exec() { new ArrayList().add(1); } };",
@@ -557,7 +565,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canInvokeMethodWithinEnumMethod() {
+    public void can_invoke_method_within_enum_method() {
         try {
             TestUtil.eval(
                 "enum Test { AB; void exec() { new ArrayList().size(); } };",
@@ -570,7 +578,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantInvokeMethodWithinEnumMethod() {
+    public void cant_invoke_method_within_enum_method() {
         try {
             TestUtil.eval(
                 "enum Test { AB; void exec() { new ArrayList().add(1); } };",
@@ -584,7 +592,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canInvokeLocalMethod() {
+    public void can_invoke_local_method() {
         try {
             TestUtil.eval(
                 "int doubleIt(int num) { return num * 2; }",
@@ -597,7 +605,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantInvokeLocalMethod() {
+    public void cant_invoke_local_method() {
         try {
             TestUtil.eval("eval(\"return 123;\")");
             Assert.fail("The code must throw an Exception!");
@@ -608,7 +616,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canInvokeSuperMethod() {
+    public void can_invoke_super_method() {
         try {
             TestUtil.eval(
                 "class Cls1 { int exec() { return 1; } };",
@@ -622,7 +630,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantInvokeSuperMethod() {
+    public void cant_invoke_super_method() {
         try {
             TestUtil.eval(
                 "class Cls1 { int method() { return 1; } };",
@@ -637,7 +645,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canGetField() {
+    public void can_get_field() {
         try {
             TestUtil.eval(
                 "class Cls1 { int[] nums = {1, 2, 3}; };",
@@ -650,7 +658,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantGetField() {
+    public void cant_get_field() {
         try {
             TestUtil.eval(
                 "class Cls1 { int[] nums = {1, 2, 3}; };",
@@ -664,7 +672,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canGetFieldWithReflection() {
+    public void can_get_field_using_reflection() {
         try {
             TestUtil.eval(
                 "class Cls1 { int[] nums = {1, 2, 3}; }",
@@ -679,7 +687,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantGetFieldWithReflection() {
+    public void cant_get_field_using_reflection() {
         try {
             TestUtil.eval(
                 "class Cls1 { int[] nums2 = {1, 2, 3}; };",
@@ -695,7 +703,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantGetArrayLengthWithReflection() {
+    public void cant_get_array_length_using_reflection() {
         try {
             TestUtil.eval(
                 "import java.lang.reflect.Array;",
@@ -710,7 +718,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canGetStaticField() {
+    public void can_get_static_field() {
         try {
             TestUtil.eval(
                 "class Cls { static int nums = 1; };",
@@ -723,7 +731,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantGetStaticField() {
+    public void cant_get_static_field() {
         try {
             TestUtil.eval(
                 "class Cls { static int num = 1; };",
@@ -737,7 +745,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canGetStaticFieldWithReflection() {
+    public void can_get_static_field_using_reflection() {
         try {
             TestUtil.eval(
                 "class Cls { static int nums = 1; };",
@@ -751,7 +759,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantGetStaticFieldWithReflection() {
+    public void cant_get_static_field_using_reflection() {
         try {
             TestUtil.eval(
                 "class Cls { static int num = 1; };",
@@ -766,7 +774,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canExtends() {
+    public void can_extends() {
         try {
             TestUtil.eval("class MyClass extends java.util.HashMap { }");
             Assert.assertTrue(true);
@@ -776,7 +784,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantExtends() {
+    public void cant_extends() {
         try {
             TestUtil.eval("class MyClass extends java.io.File { }");
             Assert.fail("The code must throw an Exception!");
@@ -787,7 +795,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void canImplements() {
+    public void can_implements() {
         try {
             TestUtil.eval("interface EmptyInterface {}; class MyClass implements EmptyInterface { }");
             Assert.assertTrue(true);
@@ -797,7 +805,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantImplements() {
+    public void cant_implements() {
         try {
             TestUtil.eval("class MyClass implements java.util.List { }");
             Assert.fail("The code must throw an Exception!");
@@ -808,7 +816,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantUseSecurityGuardAPI1() {
+    public void cant_use_security_guard_API_1st() {
         try {
             TestUtil.eval(
                 "import bsh.SecurityGuard;",
@@ -822,7 +830,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantUseSecurityGuardAPI2() {
+    public void cant_use_security_guard_API_2nd() {
         try {
             TestUtil.eval(
                 "import bsh.Interpreter;",
@@ -836,7 +844,7 @@ public class SecurityGuardTest {
     }
 
     @Test
-    public void cantUseSecurityGuardAPI3() {
+    public void cant_use_security_guard_API_3rd() {
         try {
             TestUtil.eval(
                 "import bsh.MainSecurityGuard;",

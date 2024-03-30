@@ -14,13 +14,14 @@
 
 package bsh;
 
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.junit.Assert;
 import org.junit.Test;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 
 public class TypesTest {
 
@@ -427,6 +428,24 @@ public class TypesTest {
     @Test
     public void is_assignable_object_primitive_to_object() throws Exception {
         Assert.assertTrue(Types.isBshAssignable(Object.class, Integer.TYPE));
+    }
+
+    /** Test {@link Types#prettyName(Class)} with primitive Class<?>, e.g.: <b>byte</b>, <b>int</b>, <b>char</b>, etc... */
+    @Test
+    public void pretty_name_of_primitive() {
+        Assert.assertEquals("byte", Types.prettyName(byte.class));
+    }
+
+    /** Test {@link Types#prettyName(Class)} with an array Class<?>, e.g.: <b>java.lang.Object[]</b> */
+    @Test
+    public void pretty_name_of_array() {
+        Assert.assertEquals("java.lang.Object[]", Types.prettyName(new Object[3].getClass()));
+    }
+
+    /** Test {@link Types#prettyName(Class)} with an matrix Class<?>, e.g.: <b>java.lang.Object[][][][][]</b> */
+    @Test
+    public void pretty_name_of_matrix() {
+        Assert.assertEquals("int[][][][][][][]", Types.prettyName(new int[3][4][5][6][7][8][9].getClass()));
     }
 
 }
