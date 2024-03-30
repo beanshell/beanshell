@@ -1,5 +1,6 @@
 package bsh;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -31,24 +32,46 @@ final class MainSecurityGuard {
 
     /** Validate if you can create a instance */
     protected void canConstruct(Class<?> _class, Object[] args) throws SecurityError {
+        final Object[] _args = Primitive.unwrap(args);
         for (SecurityGuard guard: this.securityGuards)
-            if (!guard.canConstruct(_class, args))
-                throw SecurityError.cantConstruct(_class, args);
+            if (!guard.canConstruct(_class, _args))
+                throw SecurityError.cantConstruct(_class, _args);
     }
 
     /** Validate if a specific static method of a specific class can be invoked */
     protected void canInvokeStaticMethod(Class<?> _class, String methodName, Object[] args) throws SecurityError {
+        final Object[] _args = Primitive.unwrap(args);
+        this.canInvokeStaticMethodImpl(_class, methodName, _args);
+        this.canInvokeStaticMethodImplToReflectionCanGetArrayLength(_class, methodName, _args);
+    }
+
+    /** Real validate if a specific static method of a specific class can be invoked */
+    private void canInvokeStaticMethodImpl(Class<?> _class, String methodName, Object[] args) throws SecurityError {
         for (SecurityGuard guard: this.securityGuards)
             if (!guard.canInvokeStaticMethod(_class, methodName, args))
                 throw SecurityError.cantInvokeStaticMethod(_class, methodName, args);
     }
 
+    /** Validate if the length of an array can be get when using Reflection API */
+    private void canInvokeStaticMethodImplToReflectionCanGetArrayLength(Class<?> _class, String methodName, Object[] args) throws SecurityError {
+        if (!methodName.equals("getLength") || args.length != 1 || !_class.isAssignableFrom(Array.class)) return;
+
+        final Object _thisArg = args[0];
+        final String fieldName = "length";
+        try {
+            this.canGetField(_thisArg, fieldName);
+        } catch (SecurityError error) {
+            throw SecurityError.reflectCantGetField(_thisArg, fieldName);
+        }
+    }
+
     /** Validate if a specific method of a specific object can be invoked. */
     protected void canInvokeMethod(Object thisArg, String methodName, Object[] args) throws SecurityError {
-        this.canInvokeMethodImpl(thisArg, methodName, args);
-        this.canInvokeMethodImplToReflectionCanGetField(thisArg, methodName, args);
-        this.canInvokeMethodImplToReflectionCanConstruct(thisArg, methodName, args);
-        this.canInvokeMethodImplToReflectionCanInvokeMethod(thisArg, methodName, args);
+        final Object[] _args = Primitive.unwrap(args);
+        this.canInvokeMethodImpl(thisArg, methodName, _args);
+        this.canInvokeMethodImplToReflectionCanGetField(thisArg, methodName, _args);
+        this.canInvokeMethodImplToReflectionCanConstruct(thisArg, methodName, _args);
+        this.canInvokeMethodImplToReflectionCanInvokeMethod(thisArg, methodName, _args);
     }
 
     /** Real validate if a specific method of a specific object can be invoked. */
@@ -139,16 +162,18 @@ final class MainSecurityGuard {
 
     /** Validate if can call a local method ( aka commands ) */
     protected void canInvokeLocalMethod(String methodName, Object[] args) throws SecurityError {
+        final Object[] _args = Primitive.unwrap(args);
         for (SecurityGuard guard: this.securityGuards)
-            if (!guard.canInvokeLocalMethod(methodName, args))
-                throw SecurityError.cantInvokeLocalMethod(methodName, args);
+            if (!guard.canInvokeLocalMethod(methodName, _args))
+                throw SecurityError.cantInvokeLocalMethod(methodName, _args);
     }
 
     /** Validate if can call a method of super class */
     protected void canInvokeSuperMethod(Class<?> superClass, Object thisArg, String methodName, Object[] args) throws SecurityError {
+        final Object[] _args = Primitive.unwrap(args);
         for (SecurityGuard guard: this.securityGuards)
-            if (!guard.canInvokeSuperMethod(superClass, thisArg, methodName, args))
-                throw SecurityError.cantInvokeSuperMethod(superClass, methodName, args);
+            if (!guard.canInvokeSuperMethod(superClass, thisArg, methodName, _args))
+                throw SecurityError.cantInvokeSuperMethod(superClass, methodName, _args);
     }
 
     /** Validate if can get a field of a specific object */
