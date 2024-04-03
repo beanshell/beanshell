@@ -234,4 +234,31 @@ try {
 }
 assertEquals(1, flag());
 
+// Casting between numeric reference types works
+refObj = (Number) Double.valueOf(1);
+assertThat(refObj, instanceOf(Number.class));
+assertThat(refObj, instanceOf(Double.class));
+assertEquals(refObj, 1.0);
+
+refObj = Double.valueOf(1);
+assertThat(refObj, instanceOf(Number.class));
+assertThat(refObj, instanceOf(Double.class));
+assertEquals(refObj, 1.0);
+
+Number refObj1 = (Number) Double.valueOf(1);
+assertThat(refObj1, instanceOf(Number.class));
+assertThat(refObj1, instanceOf(Double.class));
+assertEquals(refObj1, 1.0);
+
+Number refObj2 = Double.valueOf(1);
+assertThat(refObj2, instanceOf(Number.class));
+assertThat(refObj2, instanceOf(Double.class));
+assertEquals(refObj2, 1.0);
+
+Double refObj3 = (Double) null;
+assertEquals(refObj3, null);
+
+Double refObject4 = (Double) Boolean.TRUE;
+assertEquals(refObject4, 1.0);
+
 complete();
