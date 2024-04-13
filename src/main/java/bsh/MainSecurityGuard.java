@@ -113,9 +113,7 @@ final class MainSecurityGuard {
         String _methodName = method.getName();
         Object[] _args = args.length == 2 && args[1] instanceof Object[]
                             ? (Object[]) args[1]
-                            : args.length >= 2
-                                ? Arrays.copyOfRange(args, 1, args.length)
-                                : new Object[0];
+                            : Arrays.copyOfRange(args, 1, args.length);
 
         if (Reflect.isStatic(method)) {
             Class<?> _class = method.getDeclaringClass();

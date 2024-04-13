@@ -31,6 +31,7 @@ public class SecurityGuardTest {
         }
         public boolean canInvokeMethod(Object thisArg, String methodName, Object[] args) {
             if (thisArg instanceof List && methodName.equals("add") && args[0] instanceof Number) return false;
+            if (methodName.equals("someMethod")) return false;
             return true;
         }
         public boolean canInvokeLocalMethod(String methodName, Object[] args) {
@@ -42,7 +43,6 @@ public class SecurityGuardTest {
             return true;
         }
         public boolean canGetField(Object thisArg, String fieldName) {
-            if (fieldName.equals("length")) return false;
             if (fieldName.equals("nums2")) return false;
             return true;
         }
@@ -483,6 +483,38 @@ public class SecurityGuardTest {
     }
 
     @Test
+    public void can_invoke_method_using_reflection_with_multiple_varargs() {
+        try {
+            TestUtil.eval(
+                "class MyList extends ArrayList { public void add(String a, String b, String c) {} }",
+                "var method = MyList.class.getMethod(\"add\", String.class, String.class, String.class);",
+                "var list = new MyList();",
+                "method.invoke(list, \"1\", \"2\", \"3\");"
+            );
+            Assert.assertTrue(true);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Assert.fail("The code mustn't throw any Exception!");
+        }
+    }
+
+    @Test
+    public void cant_invoke_method_using_reflection_with_multiple_varargs() {
+        try {
+            TestUtil.eval(
+                "class MyList extends ArrayList { public void add(int a, int b, int c) {} }",
+                "var method = MyList.class.getMethod(\"add\", int.class, int.class, int.class);",
+                "var list = new MyList();",
+                "method.invoke(list, 1, 2, 3);"
+            );
+            Assert.fail("The code must throw an Exception!");
+        } catch (Exception ex) {
+            final String expectedMsg = "SecurityError: Can't invoke this method using reflection: MyList.add(java.lang.Integer, java.lang.Integer, java.lang.Integer)";
+            Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
+        }
+    }
+
+    @Test
     public void can_invoke_method_within_class_method() {
         try {
             TestUtil.eval(
@@ -661,6 +693,42 @@ public class SecurityGuardTest {
     public void cant_get_field() {
         try {
             TestUtil.eval(
+                "class Cls1 { int[] nums2 = {1, 2, 3}; };",
+                "var myObj = new Cls1();",
+                "myObj.nums2;",
+                "field.get(myObj);"
+            );
+            Assert.fail("The code must throw an Exception!");
+        } catch (Exception ex) {
+            final String expectedMsg = "SecurityError: Can't get this field: Cls1.nums2";
+            Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
+        }
+    }
+
+    @Test
+    public void can_get_array_length_field() {
+        try {
+            TestUtil.eval(
+                "class Cls1 { int[] nums = {1, 2, 3}; };",
+                "var myObj = new Cls1(); myObj.nums.length;"
+            );
+            Assert.assertTrue(true);
+        } catch (Exception ex) {
+            Assert.fail("The code mustn't throw any Exception!");
+        }
+    }
+
+    @Test
+    public void cant_get_array_length_field() {
+        final SecurityGuard arrayLengthSecurityGuard = new SecurityGuard() {
+            public boolean canGetField(Object thisArg, String fieldName) {
+                return !fieldName.equals("length");
+            }
+        };
+        Interpreter.mainSecurityGuard.add(arrayLengthSecurityGuard);
+
+        try {
+            TestUtil.eval(
                 "class Cls1 { int[] nums = {1, 2, 3}; };",
                 "var myObj = new Cls1(); myObj.nums.length;"
             );
@@ -669,6 +737,8 @@ public class SecurityGuardTest {
             final String expectedMsg = "SecurityError: Can't get this field: int[].length";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
         }
+
+        Interpreter.mainSecurityGuard.remove(arrayLengthSecurityGuard);
     }
 
     @Test
@@ -697,13 +767,34 @@ public class SecurityGuardTest {
             );
             Assert.fail("The code must throw an Exception!");
         } catch (Exception ex) {
-            final String expectedMsg = "SecurityError: Can't get this field: Cls1.nums2";
+            final String expectedMsg = "SecurityError: Can't get this field using reflection: Cls1.nums2";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
         }
     }
 
     @Test
-    public void cant_get_array_length_using_reflection() {
+    public void can_get_array_length_field_using_reflection() {
+        try {
+            TestUtil.eval(
+                "import java.lang.reflect.Array;",
+                "int[] nums = {1, 2, 3};",
+                "Array.getLength(nums);"
+            );
+            Assert.assertTrue(true);
+        } catch (Exception ex) {
+            Assert.fail("The code mustn't throw any Exception!");
+        }
+    }
+
+    @Test
+    public void cant_get_array_length_field_using_reflection() {
+        final SecurityGuard arrayLengthSecurityGuard = new SecurityGuard() {
+            public boolean canGetField(Object thisArg, String fieldName) {
+                return !fieldName.equals("length");
+            }
+        };
+        Interpreter.mainSecurityGuard.add(arrayLengthSecurityGuard);
+
         try {
             TestUtil.eval(
                 "import java.lang.reflect.Array;",
@@ -715,6 +806,8 @@ public class SecurityGuardTest {
             final String expectedMsg = "SecurityError: Can't get this field using reflection: int[].length";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
         }
+
+        Interpreter.mainSecurityGuard.remove(arrayLengthSecurityGuard);
     }
 
     @Test
@@ -855,6 +948,110 @@ public class SecurityGuardTest {
             final String expectedMsg = "SecurityError: Can't invoke this method: bsh.MainSecurityGuard.add(java.util.HashMap)";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
         }
+    }
+
+    @Test
+    // This method is just to cover all jacoco branchs :V
+    public void cant_invoke_method_using_reflection_with_no_args() {
+        try {
+            TestUtil.eval(
+                "import java.util.ArrayList;",
+                "var method = ArrayList.class.getMethod(\"add\", Object.class);",
+                "method.invoke();"
+            );
+            Assert.fail("The code must throw an Exception!");
+        } catch (Exception ex) {
+            final String expectedMsg = "java.lang.reflect.InvocationTargetException: Insufficient parameters passed for method: invoke";
+            Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
+        }
+    }
+
+    @Test
+    // This method is just to cover all jacoco branchs :V
+    public void can_invoke_non_methods_objects() {
+        try {
+            TestUtil.eval(
+                "class AnyObj { void invoke(Object obj) {} }",
+                "new AnyObj().invoke(null);"
+            );
+            Assert.assertTrue(true);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Assert.fail("The code mustn't throw any Exception!");
+        }
+    }
+
+    @Test
+    // This method is just to cover all jacoco branchs :V
+    public void can_invoke_other_constructor_methods() {
+        try {
+            TestUtil.eval(
+                "var constructor = ArrayList.class.getConstructors()[0];",
+                "constructor.getName();"
+            );
+            Assert.assertTrue(true);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Assert.fail("The code mustn't throw any Exception!");
+        }
+    }
+
+    @Test
+    // This method is just to cover all jacoco branchs :V
+    public void cant_get_array_length_with_no_args() {
+        try {
+            TestUtil.eval(
+                "import java.lang.reflect.Array;",
+                "Array.getLength();"
+            );
+            Assert.fail("The code must throw an Exception!");
+        } catch (Exception ex) {
+            final String expectedMsg = "java.lang.reflect.InvocationTargetException: Insufficient parameters passed for method: getLength";
+            Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
+        }
+    }
+
+    @Test
+    // This method is just to cover all jacoco branchs :V
+    public void can_invoke_non_Array_getLength() {
+        try {
+            TestUtil.eval(
+                "class MyArray { static void getLength(Object obj) {} }",
+                "MyArray.getLength(null);"
+            );
+            Assert.assertTrue(true);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Assert.fail("The code mustn't throw any Exception!");
+        }
+    }
+
+    @Test
+    // This method is just to cover all jacoco branchs :V
+    public void cant_invoke_method_with_null_arg() {
+        try {
+            TestUtil.eval(
+                "class MyClass { void someMethod(Object obj) {} }",
+                "new MyClass().someMethod(null);"
+            );
+            Assert.fail("The code must throw an Exception!");
+        } catch (Exception ex) {
+            final String expectedMsg = "SecurityError: Can't invoke this method: MyClass.someMethod(null)";
+            Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
+        }
+    }
+
+    @Test
+    // This method is just to cover all jacoco branchs :V
+    public void SecurityError_to_EvalError() {
+        final SecurityError securityError = SecurityError.cantConstruct(Object.class, new Object[0]);
+        final String expectedMessage = "SecurityError: Can't call this construct: new java.lang.Object()";
+
+        EvalError evalError1 = securityError.toEvalError("", null, null);
+        Assert.assertTrue(evalError1.getMessage().startsWith(expectedMessage));
+
+        EvalError evalError2 = securityError.toEvalError(null, null);
+        Assert.assertTrue(evalError2.getMessage().startsWith(expectedMessage));
     }
 
 }
