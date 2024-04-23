@@ -7,8 +7,7 @@
 The **official** and **active** project home for BeanShell.
 
 ## NOTICE: Pending new release
-
-The only reccomended version is a manual build of the master branch. Support for legacy releases reached end of line, only issues and pull requests against master can be accepted.
+The only recommended version is a manual build of the master branch. Support for legacy releases reached end of line, only issues and pull requests against master can be accepted.
 
 The next release will be BeanShell 3.0 as outlined in the [development roadmap](https://github.com/beanshell/beanshell#development-road-map). It [was decided](https://github.com/beanshell/beanshell/issues/81) that the next release will be a production ready major version with all outstanding issues resolved to encourage community envolvement and testing.
 
