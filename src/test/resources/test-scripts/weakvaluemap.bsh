@@ -1,0 +1,36 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+/*
+ * This is just for code coverage.  Create a large number of
+ * block name spaces so that the reference queue gets a chance to
+ * clean out.
+ */
+myObj(int i) {
+
+    list = new ArrayList();
+
+    return this;
+}
+
+subObj(Object val) {
+    return this;
+}
+
+double x = 0;
+for (int i=0; i<3000; i++) {
+    o = myObj(i);
+    x++;
+    for (int j=0; j<10; j++) {
+        if (j<5) {
+            x++;
+            o.list.add(subObj(Integer.valueOf(j)));
+        } else {
+            x++;
+            o.list.add(subObj(Integer.valueOf(-j)));
+        }
+    }
+}
+
+complete();
