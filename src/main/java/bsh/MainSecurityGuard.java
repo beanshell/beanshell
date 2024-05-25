@@ -16,7 +16,7 @@ final class MainSecurityGuard {
 
     private final Set<SecurityGuard> securityGuards = new HashSet<SecurityGuard>();
 
-    protected MainSecurityGuard() {
+    MainSecurityGuard() {
         this.securityGuards.add(new BasicSecurityGuard());
     }
 
@@ -31,7 +31,7 @@ final class MainSecurityGuard {
     }
 
     /** Validate if you can create a instance */
-    protected void canConstruct(Class<?> _class, Object[] args) throws SecurityError {
+    void canConstruct(Class<?> _class, Object[] args) throws SecurityError {
         final Object[] _args = Primitive.unwrap(args);
         for (SecurityGuard guard: this.securityGuards)
             if (!guard.canConstruct(_class, _args))
@@ -39,7 +39,7 @@ final class MainSecurityGuard {
     }
 
     /** Validate if a specific static method of a specific class can be invoked */
-    protected void canInvokeStaticMethod(Class<?> _class, String methodName, Object[] args) throws SecurityError {
+    void canInvokeStaticMethod(Class<?> _class, String methodName, Object[] args) throws SecurityError {
         final Object[] _args = Primitive.unwrap(args);
         this.canInvokeStaticMethodImpl(_class, methodName, _args);
         this.canInvokeStaticMethodImplToReflectionCanGetArrayLength(_class, methodName, _args);
@@ -66,7 +66,7 @@ final class MainSecurityGuard {
     }
 
     /** Validate if a specific method of a specific object can be invoked. */
-    protected void canInvokeMethod(Object thisArg, String methodName, Object[] args) throws SecurityError {
+    void canInvokeMethod(Object thisArg, String methodName, Object[] args) throws SecurityError {
         final Object[] _args = Primitive.unwrap(args);
         this.canInvokeMethodImpl(thisArg, methodName, _args);
         this.canInvokeMethodImplToReflectionCanGetField(thisArg, methodName, _args);
@@ -159,7 +159,7 @@ final class MainSecurityGuard {
     }
 
     /** Validate if can call a local method ( aka commands ) */
-    protected void canInvokeLocalMethod(String methodName, Object[] args) throws SecurityError {
+    void canInvokeLocalMethod(String methodName, Object[] args) throws SecurityError {
         final Object[] _args = Primitive.unwrap(args);
         for (SecurityGuard guard: this.securityGuards)
             if (!guard.canInvokeLocalMethod(methodName, _args))
@@ -167,7 +167,7 @@ final class MainSecurityGuard {
     }
 
     /** Validate if can call a method of super class */
-    protected void canInvokeSuperMethod(Class<?> superClass, Object thisArg, String methodName, Object[] args) throws SecurityError {
+    void canInvokeSuperMethod(Class<?> superClass, Object thisArg, String methodName, Object[] args) throws SecurityError {
         final Object[] _args = Primitive.unwrap(args);
         for (SecurityGuard guard: this.securityGuards)
             if (!guard.canInvokeSuperMethod(superClass, thisArg, methodName, _args))
@@ -175,28 +175,28 @@ final class MainSecurityGuard {
     }
 
     /** Validate if can get a field of a specific object */
-    protected void canGetField(Object thisArg, String fieldName) throws SecurityError {
+    void canGetField(Object thisArg, String fieldName) throws SecurityError {
         for (SecurityGuard guard: this.securityGuards)
             if (!guard.canGetField(thisArg, fieldName))
                 throw SecurityError.cantGetField(thisArg, fieldName);
     }
 
     /** Validate if can get a static field of a specific class */
-    protected void canGetStaticField(Class<?> _class, String fieldName) throws SecurityError {
+    void canGetStaticField(Class<?> _class, String fieldName) throws SecurityError {
         for (SecurityGuard guard: this.securityGuards)
             if (!guard.canGetStaticField(_class, fieldName))
                 throw SecurityError.cantGetStaticField(_class, fieldName);
     }
 
     /** Validate if {@link _class} can extends {@link superClass} */
-    protected void canExtends(Class<?> superClass) throws SecurityError {
+    void canExtends(Class<?> superClass) throws SecurityError {
         for (SecurityGuard guard: this.securityGuards)
             if (!guard.canExtends(superClass))
                 throw SecurityError.cantExtends(superClass);
     }
 
     /** Validate if {@link _class} can implements {@link _interface} */
-    protected void canImplements(Class<?> _interface) throws SecurityError {
+    void canImplements(Class<?> _interface) throws SecurityError {
         for (SecurityGuard guard: this.securityGuards)
             if (!guard.canImplements(_interface))
                 throw SecurityError.cantImplements(_interface);
