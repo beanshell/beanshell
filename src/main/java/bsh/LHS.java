@@ -156,6 +156,19 @@ class LHS implements ParserConstants, Serializable {
 
     public Object getValue() throws UtilEvalError
     {
+        if ( type == FIELD ) {
+            // Validate if can get this field
+            if (Reflect.isStatic(field))
+                Interpreter.mainSecurityGuard.canGetStaticField(field.getDeclaringClass(), field.getName());
+            else
+                Interpreter.mainSecurityGuard.canGetField(object, field.getName());
+        }
+
+        return this.getValueImpl();
+    }
+
+    private Object getValueImpl() throws UtilEvalError
+    {
         if ( type == VARIABLE )
             return nameSpace.getVariableOrProperty( varName, null );
 
@@ -199,7 +212,7 @@ class LHS implements ParserConstants, Serializable {
         if ( null != getVariable() )
             return var.getType();
         try {
-            return Types.getType(getValue());
+            return Types.getType(getValueImpl());
         } catch ( UtilEvalError e ) {
             return null;
         }
@@ -260,11 +273,11 @@ class LHS implements ParserConstants, Serializable {
                 nameSpace.setLocalVariableOrProperty( varName, val, strictJava );
             else
                 nameSpace.setVariableOrProperty( varName, val, strictJava );
-            return getValue();
+            return getValueImpl();
         } else  if ( type == FIELD )  try {
             Objects.requireNonNull(field,
                 "assign value, field cannot be null").invoke( object, val);
-            return getValue();
+            return getValueImpl();
         } catch (ReflectiveOperationException e) {
             throw new UtilEvalError(
                 "LHS ("+field.getName()+") can't access field: "+e, e);

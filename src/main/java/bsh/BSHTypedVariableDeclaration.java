@@ -110,7 +110,8 @@ class BSHTypedVariableDeclaration extends SimpleNode {
                             interpreter.getClassManager().addListener(
                                 namespace.getVariableImpl(dec.name, false));
                     }
-                    value = namespace.getVariable(dec.name);
+                    if (!namespace.isClass)
+                        value = namespace.getVariable(dec.name);
                 } catch ( UtilEvalError e ) {
                     throw e.toEvalError( this, callstack );
                 }

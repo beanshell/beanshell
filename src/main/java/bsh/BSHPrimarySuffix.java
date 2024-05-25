@@ -150,41 +150,57 @@ class BSHPrimarySuffix extends SimpleNode
         Object obj, boolean toLHS,
         CallStack callstack, Interpreter interpreter)
             throws EvalError, ReflectError {
-        // Safe Navigate operator ?. abort on null
-        if (this.safeNavigate && Primitive.NULL == obj)
-            throw SafeNavigate.doAbort();
+        try {
+            // Safe Navigate operator ?. abort on null
+            if (this.safeNavigate && Primitive.NULL == obj)
+                throw SafeNavigate.doAbort();
 
-        // .length on array
-        if ( field.equals("length") && obj.getClass().isArray() )
-            if ( toLHS )
-                throw new EvalError(
-                    "Can't assign array length", this, callstack );
-            else
-                return new Primitive(Array.getLength(obj));
-        // field access
-        if ( jjtGetNumChildren() == 0 )
-            if ( toLHS ) try {
-                return Reflect.getLHSObjectField(obj, field);
-            } catch (Throwable t) {
-                return new LHS(obj, field);
+            // .length on array
+            if ( field.equals("length") && obj.getClass().isArray() ) {
+                // Validate if can get this field
+                Interpreter.mainSecurityGuard.canGetField(obj, field);
+
+                if ( toLHS )
+                    throw new EvalError(
+                        "Can't assign array length", this, callstack );
+                else
+                    return new Primitive(Array.getLength(obj));
             }
-            else try {
-                return Reflect.getObjectFieldValue( obj, field );
-            } catch (Throwable t) {
-                try {
-                    return Reflect.getObjectProperty( obj, field );
-                } catch (Throwable tt) {
-                    return Primitive.VOID;
+
+            // field access
+            if ( jjtGetNumChildren() == 0 ) {
+                // Validate if can get this field
+                Interpreter.mainSecurityGuard.canGetField(obj, field);
+
+                if ( toLHS ) try {
+                    return Reflect.getLHSObjectField(obj, field);
+                } catch (Throwable t) {
+                    return new LHS(obj, field);
+                }
+                else try {
+                    return Reflect.getObjectFieldValue( obj, field );
+                } catch (Throwable t) {
+                    try {
+                        return Reflect.getObjectProperty( obj, field );
+                    } catch (Throwable tt) {
+                        return Primitive.VOID;
+                    }
                 }
             }
-        // Method invocation
-        // (LHS or non LHS evaluation can both encounter method calls)
-        Object[] oa = ((BSHArguments)jjtGetChild(0)).getArguments(
-            callstack, interpreter);
 
-        return Reflect.invokeObjectMethod(
-            obj, field, oa, interpreter, callstack, this );
+            // Method invocation
+            // (LHS or non LHS evaluation can both encounter method calls)
+            Object[] oa = ((BSHArguments)jjtGetChild(0)).getArguments(
+                callstack, interpreter);
 
+            // Validate if can invoke this method
+            Interpreter.mainSecurityGuard.canInvokeMethod(obj, field, oa);
+
+            return Reflect.invokeObjectMethod(
+                obj, field, oa, interpreter, callstack, this );
+        } catch (UtilEvalError e1) {
+            throw e1.toEvalError(this, callstack);
+        }
     }
 
     /**
