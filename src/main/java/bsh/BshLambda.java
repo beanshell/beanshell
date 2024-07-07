@@ -395,11 +395,11 @@ public abstract class BshLambda {
 
             Method method = methodFromFI(functionalInterface);
             WrapperGenerator.writeMethod(cw, className, method);
-                        
+
             cw.visitEnd();
             return cw.toByteArray();
         }
-        
+
         /**
          * Just write the constructor in the ClassWriter. Example of a class with the constructor that is written with this method:
          *
