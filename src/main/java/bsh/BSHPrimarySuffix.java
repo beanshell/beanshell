@@ -36,7 +36,8 @@ class BSHPrimarySuffix extends SimpleNode
         INDEX = 1,
         NAME = 2,
         PROPERTY = 3,
-        NEW = 4;
+        NEW = 4,
+        METHODREF = 5;
 
     public int operation;
     Object index;
@@ -117,6 +118,10 @@ class BSHPrimarySuffix extends SimpleNode
 
                 case NEW:
                     return doNewInner(obj, toLHS, callstack, interpreter);
+
+                case METHODREF:
+                    return doMethodRef ( obj );
+
                 default:
                     throw new InterpreterError( "Unknown suffix type" );
             }
@@ -373,6 +378,10 @@ class BSHPrimarySuffix extends SimpleNode
         {
             throw new EvalError("No such property: " + value, this, callstack, e);
         }
+    }
+
+    private BshLambda doMethodRef(Object obj) {
+        return BshLambda.fromMethodReference(this, obj, field);
     }
 
     @Override
