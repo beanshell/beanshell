@@ -14,13 +14,14 @@
 
 package bsh;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.junit.Assert;
 import org.junit.Test;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 
 public class TypesTest {
 
@@ -427,6 +428,21 @@ public class TypesTest {
     @Test
     public void is_assignable_object_primitive_to_object() throws Exception {
         Assert.assertTrue(Types.isBshAssignable(Object.class, Integer.TYPE));
+    }
+
+    /** There shouldn't be a invalid round; this test is just to increase code coverage! */
+    @Test
+    public void is_assignable_invalid_round() throws Throwable {
+        InterpreterError error = Assert.assertThrows(InterpreterError.class, () -> Types.isAssignable(null, null, -1));
+        Assert.assertEquals("bad case", error.getMessage());
+    }
+
+    /** There is already a test for this in {@link BshLambdaTest}, this test is just to increase code coverage. */
+    @Test
+    public void lambda_check_cast() throws Throwable {
+        BshLambda bshLambda = (BshLambda) TestUtil.eval("() -> {}");
+        Object result = Types.castObject(Runnable.class, bshLambda.dummyType, bshLambda, 0, true);
+        Assert.assertEquals(Types.VALID_CAST, result);
     }
 
 }
