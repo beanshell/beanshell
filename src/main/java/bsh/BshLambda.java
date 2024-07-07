@@ -317,7 +317,7 @@ public abstract class BshLambda {
         public Class<?> classFromBytes(String className, byte[] classBytes) {
             return defineClass(className, classBytes, 0, classBytes.length);
         }
-    };
+    }
 
     /**
      * It's an util class that generate classes that extend functional interfaces
