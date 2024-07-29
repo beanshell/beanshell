@@ -183,6 +183,8 @@ public final class Primitive implements Serializable {
         if (!(number instanceof Number))
             throw new InterpreterError("Can only shrink wrap Number types");
         Number value = (Number) number;
+        if (value instanceof Float)
+            return new Primitive(value.floatValue());
         if ( Types.isFloatingpoint(number) ) {
             if ( !Double.isInfinite(value.doubleValue()) )
                 return new Primitive(value.doubleValue());

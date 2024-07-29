@@ -97,4 +97,14 @@ public class OperatorPrecedenceTest {
                     i.eval("true && false ? true : true && false ? true : false;"),
                     true && false ? true : true && false ? true : false);
     }
+
+    @Test
+    public void conversion_tests() throws Exception {
+        float a = 1;
+        float b = 2;
+        assertEquals("float*float = float", ((Object)(a*b)).getClass(), i.eval("float a = 1; float b=2; a*b;").getClass());
+
+
+    }
+
 }

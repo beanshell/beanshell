@@ -46,8 +46,8 @@ t = -Float.MAX_VALUE - 12345678901234567890123456789012f;
 assertThat(t, instanceOf(Double.class));
 assertEquals(-3.4028235898420748E38d, t, 0.0);
 t = Float.MAX_VALUE - 12345678901234567890123456789012f;
-assertThat(t, instanceOf(Double.class));
-assertEquals(3.4028233429285024E38, t, 0.0);
+assertThat(t, instanceOf(Float.class));
+assertEquals(3.4028232635611926E38, t, 0.0);
 t = -Float.MAX_VALUE - 0.0000001f;
 assertThat(t, instanceOf(Double.class));
 assertEquals(-3.4028235E38f, t, 0.0);
@@ -67,7 +67,7 @@ t = 1.7976931348623167E308 - 1E309;
 assertThat(t, instanceOf(BigDecimal.class));
 assertEquals(-8.2023068651376833E+308w, t);
 
-//mulitiplication floating point
+//multiplication floating point
 t = 1.0 * 2;
 assertThat(t, instanceOf(Double.class));
 assertEquals(2.0, t, 0.0);
@@ -400,4 +400,3 @@ lng += 512.0w;
 assertEquals(9223370937343150590L, lng);
 
 complete();
-
