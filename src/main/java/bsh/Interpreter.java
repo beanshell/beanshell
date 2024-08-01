@@ -148,6 +148,9 @@ public class Interpreter
     /** If this interpeter is a child of another, the parent */
     Interpreter parent;
 
+    /** It's the main security guard used by all instances of the Interpreter to prevent the execution of dangerous code */
+    public static final MainSecurityGuard mainSecurityGuard = new MainSecurityGuard();
+
     /** The name of the file or other source that this interpreter is reading */
     String sourceFileInfo;
 
@@ -195,7 +198,6 @@ public class Interpreter
             this.parser = parent.parser;
             this.evalOnly = parent.evalOnly;
         }
-
         this.sourceFileInfo = sourceFileInfo;
 
         if ( namespace == null ) {
