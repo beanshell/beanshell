@@ -611,6 +611,11 @@ class Types {
                 return checkOnly ? VALID_CAST : Primitive.unwrap(fromValue);
             }
 
+            // Test if a directly assignable reference type and avoid widening conversions
+            if (fromType != null && !fromType.isPrimitive() &&
+                toType.isAssignableFrom( fromType ))
+                return checkOnly ? VALID_CAST : fromValue;
+
             // Primitive to arbitrary object type.
             // Allow Primitive.castToType() to handle it as well as cases of
             // Primitive.NULL and Primitive.VOID
