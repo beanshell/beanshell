@@ -30,7 +30,6 @@ package bsh;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
 import java.util.concurrent.CompletionException;
 
 /**
@@ -308,8 +307,6 @@ class BSHAllocationExpression extends SimpleNode
         try {
             Object arr = Array.newInstance(
                 type, dimensionsNode.definedDimensions);
-            if ( !interpreter.getStrictJava() )
-                arrayFillDefaultValue(arr);
             return arr;
         } catch( NegativeArraySizeException e1 ) {
             throw new TargetError( e1, this, callstack );
@@ -317,21 +314,5 @@ class BSHAllocationExpression extends SimpleNode
             throw new EvalException("Can't construct primitive array: "
                     + e.getMessage(), this, callstack, e);
         }
-    }
-
-    /** Fill boxed numeric types with default numbers instead of nulls.
-     * @param arr the array to fill. */
-    private void arrayFillDefaultValue(Object arr) {
-        if (null == arr)
-            return;
-        Class<?> clas = arr.getClass();
-        Class<?> comp = Types.arrayElementType(clas);
-        if ( !comp.isPrimitive() )
-            if ( Types.arrayDimensions(clas) > 1 )
-                for ( int i = 0; i < Array.getLength(arr); i++ )
-                    arrayFillDefaultValue(Array.get(arr, i));
-            else
-                Arrays.fill((Object[]) arr, Primitive.unwrap(
-                    Primitive.getDefaultValue(comp)));
     }
 }
