@@ -30,7 +30,7 @@ jobs:
       run: mvn -B verify package --file pom.xml
 
     - name: Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v4.2.0
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       if: ${{ matrix.java == '8' }}
