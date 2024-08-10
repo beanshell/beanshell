@@ -555,8 +555,8 @@ class Types {
     */
     public static Object castObject( Class<?> toType, Class<?> fromType, Object fromValue,
             int operation, boolean checkOnly ) throws UtilEvalError {
-        // assignment to loose type, void type, or exactly same type
-        if ( toType == null || arrayElementType(toType) == arrayElementType(fromType) )
+        // assignment to void type, or exactly same type
+        if ( toType == null || toType == fromType )
             return checkOnly ? VALID_CAST :
                 fromValue;
 
