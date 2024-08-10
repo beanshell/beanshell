@@ -106,6 +106,8 @@ package bsh;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
     This is the BeanShell parser.  It is used internally by the Interpreter
@@ -283,6 +285,51 @@ public class Parser
         int radix = getRadix(s);
         return new Primitive(new java.math.BigInteger(s.substring(getStartIdx(radix)), radix));
     }
+
+    /**
+     * Return a list of all comments that were before this node but
+     * prior to the previous node.  The comments are returned in the
+     * order that they are foud within the source file.
+     * @param node the node of interest
+     */
+    public static List<String> getAllCommentsBeforeNode(SimpleNode node) {
+        ArrayList<String> list = new ArrayList<String>();
+        if (node != null && node.firstToken != null) {
+            Token t = node.firstToken;
+            if (t.specialToken != null) {
+                while (t.specialToken != null)
+                    t = t.specialToken;
+                while (t != null) {
+                    list.add(t.image);
+                    t = t.next;
+                }
+            }
+        }
+        return list;
+    }
+
+    /**
+     * Return a list of all formal comments that were before this node but
+     * prior to the previous node.  Formal comments are those that
+     * begin with /**
+     * @param node the node of interest
+     */
+    public static List<String> getFormalCommentsBeforeNode(SimpleNode node) {
+        ArrayList<String> list = new ArrayList<String>();
+        if (node != null && node.firstToken != null) {
+            Token t = node.firstToken;
+            if (t.specialToken != null) {
+                while (t.specialToken != null)
+                    t = t.specialToken;
+                while (t != null) {
+                    if (t.image.startsWith("/**"))
+                        list.add(t.image);
+                    t = t.next;
+                }
+            }
+        }
+        return list;
+    }
 }
 
 PARSER_END(Parser)
@@ -306,10 +353,11 @@ SPECIAL_TOKEN : /* COMMENTS */
 
 | <HASH_BANG_COMMENT: "#!" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
 
- /* Moved FORMAL_COMMENT to a real token.  Modified MULTI_LINE_COMMENT to not
-    catch formal comments (require no star after star) */
+ /* Match all multi-line comments.  No longer using FORMAL_COMMENT.
+  * Instead use the
+  */
 | <MULTI_LINE_COMMENT:
-    ("/***" (["*"])* | "/*" ~["*"]) (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+    "/*" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
 }
 
 TOKEN : /* RESERVED WORDS AND LITERALS */
@@ -399,10 +447,6 @@ TOKEN : /* LITERALS */
   < STRING_LITERAL: "\"" (~["\"","\n","\r","\\"] | <ESCAPE>)* "\"" >
 |
   < LONG_STRING_LITERAL: "\"\"\"" ( ~["\""] ("\"")? )* "\"\"\"" >
-|
-   < FORMAL_COMMENT:
-        "/**" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/"
-    >
 }
 
 TOKEN : /* IDENTIFIERS */
@@ -1283,18 +1327,6 @@ void BlockStatement() :
 |
   // Allow BeanShell package declarations in any block
   PackageDeclaration()
-|
-  FormalComment()
-}
-
-void FormalComment() #FormalComment( retainComments ) :
-{
-    Token t;
-}
-{
-    t=<FORMAL_COMMENT>  {
-        jjtThis.text=t.image;
-    }
 }
 
 void EmptyStatement() :
