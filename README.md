@@ -98,7 +98,7 @@ You are encouraged to raise a Github [Pull Request](https://github.com/beanshell
 
 You can also raise an [issue](https://github.com/beanshell/beanshell/issues) for any questions or bugs. Remember, your stack trace might be particularly useful for others!
 
-Please note only issues and pull requests made against the development branch merge-fork-beanshell2 will be considered.
+Please note only issues and pull requests made against the master branch will be considered.
 
 ## Documentation
 
