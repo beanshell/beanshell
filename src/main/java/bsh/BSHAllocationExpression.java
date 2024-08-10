@@ -97,6 +97,13 @@ class BSHAllocationExpression extends SimpleNode
         // Is an inner class style object allocation
         boolean hasBody = jjtGetNumChildren() > 2;
 
+        // Validate if can construct a instance of this class
+        try {
+            Interpreter.mainSecurityGuard.canConstruct(type, args);
+        } catch (SecurityError error) {
+            throw error.toEvalError(this, callstack);
+        }
+
         if ( hasBody )
         {
             BSHBlock body = (BSHBlock)jjtGetChild(2);

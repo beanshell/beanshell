@@ -26,11 +26,11 @@
 
 package bsh;
 
-import java.util.Arrays;
-import java.util.stream.IntStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.stream.IntStream;
 
 /**
     This represents an instance of a bsh method declaration in a particular
@@ -275,7 +275,14 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
                     throw new Error("HERE!");
 
         if ( javaMethod != null )
+        {
             try {
+                // Validate if can invoke this method
+                if (Reflect.isStatic(javaMethod))
+                    Interpreter.mainSecurityGuard.canInvokeStaticMethod(javaMethod.getDeclaringClass(), javaMethod.getName(), argValues);
+                else
+                    Interpreter.mainSecurityGuard.canInvokeMethod(javaObject, javaMethod.getName(), argValues);
+
                 return javaMethod.invoke(javaObject, argValues);
             } catch ( ReflectError e ) {
                 throw new EvalError(
@@ -284,7 +291,10 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
                 throw new TargetError(
                     "Exception invoking imported object method.",
                     e2, callerInfo, callstack, true/*isNative*/ );
+            } catch (UtilEvalError e3) {
+                throw e3.toEvalError(callerInfo, callstack);
             }
+        }
 
         // is this a syncrhonized method?
         if ( modifiers != null && modifiers.hasModifier("synchronized") )
