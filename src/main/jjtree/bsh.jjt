@@ -693,7 +693,7 @@ void VariableInitializer() :
   LOOKAHEAD(3)
   ArrayInitializer()
 |
- Expression()
+  Expression()
 }
 
 void ArrayInitializer() #ArrayInitializer :
@@ -1168,7 +1168,7 @@ void Arguments() #Arguments :
 void ArgumentList() :
 { }
 {
- Expression()
+  Expression()
   ( "," Expression() )*
 }
 
@@ -1327,7 +1327,7 @@ void StatementExpression() :
     us to type arbitrary expressions on the command line, e.g. "1+1;"
     We should turn this off in the implementation in strict java mode.
   */
- Expression()
+  Expression()
 /*
     // This was the original Java grammar.
 
