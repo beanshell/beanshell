@@ -763,7 +763,7 @@ class Types {
         Class<?> arrayType = clas.getComponentType();
         return prettyName(arrayType) + "[]";
     }
-    
+
     /** Returns if a specific class is a functional interface */
     public static boolean isFunctionalInterface(Class<?> clas) {
         return clas != null && clas.isInterface() && clas.getAnnotation(FunctionalInterface.class) != null;
