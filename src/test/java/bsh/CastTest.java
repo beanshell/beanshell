@@ -1,5 +1,6 @@
 package bsh;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -341,38 +342,22 @@ public class CastTest {
     public void test_cast_array_1() throws Exception {
         Object result = TestUtil.eval("(long[]) new byte[] { 14, 10, 45, 2 }");
         assertTrue(result instanceof long[]);
-
-        long[] array = (long[]) result;
-        assertEquals(4, array.length);
-        assertEquals(14, array[0]);
-        assertEquals(10, array[1]);
-        assertEquals(45, array[2]);
-        assertEquals(2, array[3]);
+        long[] expected = new long[] { 14, 10, 45, 2 };
+        assertArrayEquals(expected, (long[]) result);
     }
 
     @Test
     public void test_cast_array_2() throws Exception {
         Object result = TestUtil.eval("(List<Integer>[]) new List[] { null, new ArrayList(), Arrays.asList(10, 43, 76) }");
         assertTrue(result instanceof List[]);
-
-        List<Integer>[] array = (List<Integer>[]) result;
-        assertEquals(3, array.length);
-        assertEquals(null, array[0]);
-        assertEquals(new ArrayList<>(), array[1]);
-        assertEquals(Arrays.asList(10, 43, 76), array[2]);
+        assertArrayEquals(new List[] { null, new ArrayList<>(), Arrays.asList(10, 43, 76) }, (List[]) result);
     }
 
     @Test
     public void test_cast_matrix() throws Exception {
         Object result = TestUtil.eval("(byte[][]) new int[][] { { 14, 10 }, { 45, 2, 34 } }");
         assertTrue(result instanceof byte[][]);
-
-        byte[][] array = (byte[][]) result;
-        assertEquals(2, array.length);
-        assertEquals((byte) 14, array[0][0]);
-        assertEquals((byte) 10, array[0][1]);
-        assertEquals((byte) 45, array[1][0]);
-        assertEquals((byte) 2, array[1][1]);
-        assertEquals((byte) 34, array[1][2]);
+        byte[][] expected = new byte[][] { { 14, 10 }, { 45, 2, 34 } };
+        assertArrayEquals(expected, (byte[][]) result);
     }
 }

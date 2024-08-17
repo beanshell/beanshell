@@ -1,0 +1,249 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+f=(float) 5;
+assertEquals(5f, f, 1);
+assertEquals(0i, (int) 0.5);
+
+a=0.3;
+assertEquals(0i, (int) a);
+
+d=(double) +1;
+assertEquals(1.0d, d, 1);
+
+// this is ok of course
+String s = null;
+assertNull(s);
+// but this should be as well
+String s2 = (String) null;
+assertNull(s2);
+assertNull((Object) null);
+assertNotNull((int) null);
+
+// cast null to primitive default value
+assertEquals(0o, (byte) null);
+assertEquals(0s, (short) null);
+assertEquals(0i, (int) null);
+assertEquals(0l, (long) null);
+assertEquals(0.0f, (float) null, 1);
+assertEquals(0.0d, (double) null, 1);
+assertEquals(false, (boolean) null);
+assertEquals('\000', (char) null);
+
+int x = (int) 'a';
+assertEquals(97i, x);
+
+// can't cast void to anything
+assert( isEvalError("Cannot cast void value to int", "(int) xyz"));
+assert( isEvalError("Cannot cast void value to Object", "(Object) xyz"));
+
+// cast primitives to object types get boxed
+assertThat((Object) 5o, instanceOf(Byte.class));
+assertThat((Object) 5s, instanceOf(Short.class));
+assertThat((Object) 5i, instanceOf(Integer.class));
+assertThat((Object) 5l, instanceOf(Long.class));
+assertThat((Object) 5f, instanceOf(Float.class));
+assertThat((Object) 5d, instanceOf(Double.class));
+assertThat((Object) '5', instanceOf(Character.class));
+assertThat((Object) true, instanceOf(Boolean.class));
+// cast boxed types to primitives
+assertEquals('a', (char) Character.valueOf('a'));
+assertEquals(1o, (byte) Byte.valueOf(1o));
+assertEquals(2s, (short) Short.valueOf(2s));
+assertEquals(3i, (int) Integer.valueOf(3i));
+assertEquals(4l, (long) Long.valueOf(4l));
+assertEquals(5.0f, (float) Float.valueOf(5f), 1);
+assertEquals(6.0d, (double) Double.valueOf(6d), 1);
+assertEquals(true, (boolean) Boolean.TRUE);
+
+// boolean can be cast to numbers
+assertEquals('\000', (char) false);
+assertEquals(0o, (byte) false);
+assertEquals(0s, (short) false);
+assertEquals(0i, (int) false);
+assertEquals(0l, (long) false);
+assertEquals(0.0f, (float) false, 1);
+assertEquals(0.0d, (double) false, 1);
+assertEquals('\001', (char) true);
+assertEquals(1o, (byte) true);
+assertEquals(1s, (short) true);
+assertEquals(1i, (int) true);
+assertEquals(1l, (long) true);
+assertEquals(1.0f, (float) true, 1);
+assertEquals(1.0d, (double) true, 1);
+
+// cast string to number
+assertEquals('a', (char) "97");
+assertEquals(1i, (int) "1.0");
+assertEquals(3o, (byte) "3");
+assertEquals(2s, (short) "2");
+assertEquals(1i, (int) "1.0");
+assertEquals(0l, (long) "0");
+assertEquals(-1.0f, (float) "-1", 1);
+assertEquals(-2.0d, (double) "-2.0", 1);
+
+// cast to boolean
+// 0, null, or empty string is false
+assertEquals(false, (boolean) false);
+assertEquals(false, (boolean) '\000');
+assertEquals(false, (boolean) 0o);
+assertEquals(false, (boolean) 0s);
+assertEquals(false, (boolean) 0i);
+assertEquals(false, (boolean) 0l);
+assertEquals(false, (boolean) 0.0f);
+assertEquals(false, (boolean) 0.0d);
+assertEquals(false, (boolean) "");
+assertEquals(false, (boolean) null);
+// not 0, not null, or not empty string is true
+assertEquals(true, (boolean) true);
+assertEquals(true, (boolean) ' ');
+assertEquals(true, (boolean) 3o);
+assertEquals(true, (boolean) 2s);
+assertEquals(true, (boolean) 1i);
+assertEquals(true, (boolean) -1l);
+assertEquals(true, (boolean) -2.0f);
+assertEquals(true, (boolean) -3.0d);
+assertEquals(true, (boolean) "not empty");
+assertEquals(true, (boolean) new Object());
+assertEquals(true, (boolean) Class.class);
+
+// typed variable assignment
+byte b;
+assertEquals(0o, b);
+assertEquals(0o, b = null);
+assertEquals(0o, b = '\000');
+assertEquals(0o, b = false);
+assertEquals(1o, b = true);
+assertEquals(123o, b = "123");
+Byte B;
+assertNull(B);
+assertNull(B = null);
+assertEquals(0o, B = '\000');
+assertEquals(0o, B = false);
+assertEquals(1o, B = true);
+assertEquals(123o, B = "123");
+short ss;
+assertEquals(0s, ss);
+assertEquals(0s, ss = null);
+assertEquals(0s, ss = '\000');
+assertEquals(0s, ss = false);
+assertEquals(1s, ss = true);
+assertEquals(123s, ss = "123");
+Short S;
+assertNull(S);
+assertNull(S = null);
+assertEquals(0s, S = '\000');
+assertEquals(0s, S = false);
+assertEquals(1s, S = true);
+assertEquals(123s, S = "123");
+int i;
+assertEquals(0i, i);
+assertEquals(0i, i = null);
+assertEquals(0i, i = '\000');
+assertEquals(0i, i = false);
+assertEquals(1i, i = true);
+assertEquals(123i, i = "123");
+Integer I;
+assertNull(I);
+assertNull(I = null);
+assertEquals(0i, I = '\000');
+assertEquals(0i, I = false);
+assertEquals(1i, I = true);
+assertEquals(123i, I = "123");
+long l;
+assertEquals(0l, l);
+assertEquals(0l, l = null);
+assertEquals(0l, l = '\000');
+assertEquals(0l, l = false);
+assertEquals(1l, l = true);
+assertEquals(123l, l = "123");
+Long L;
+assertNull(L);
+assertNull(L = null);
+assertEquals(0l, L = '\000');
+assertEquals(0l, L = false);
+assertEquals(1l, L = true);
+assertEquals(123l, L = "123");
+float f;
+assertEquals(0.0f, f, 1);
+assertEquals(0.0f, f = null, 1);
+assertEquals(0.0f, f = '\000', 1);
+assertEquals(0.0f, f = false, 1);
+assertEquals(1.0f, f = true, 1);
+assertEquals(123.0f, f = "123", 1);
+Float F;
+assertNull(F);
+assertNull(F = null);
+assertEquals(0.0f, F = '\000', 1);
+assertEquals(0.0f, F = false, 1);
+assertEquals(1.0f, F = true, 1);
+assertEquals(123.0f, F = "123", 1);
+double d;
+assertEquals(0.0d, d, 1);
+assertEquals(0.0d, d = null, 1);
+assertEquals(0.0d, d = '\000', 1);
+assertEquals(0.0d, d = false, 1);
+assertEquals(1.0d, d = true, 1);
+assertEquals(123.0d, d = "123", 1);
+Double D;
+assertNull(D);
+assertNull(D = null);
+assertEquals(0.0d, D = '\000', 1);
+assertEquals(0.0d, D = false, 1);
+assertEquals(1.0d, D = true, 1);
+assertEquals(123.0d, D = "123", 1);
+boolean bb;
+assertFalse(bb);
+assertFalse(bb = null);
+assertFalse(bb = 0);
+assertFalse(bb = "");
+assertFalse(bb = '\000');
+assertFalse(bb = false);
+assertTrue(bb = Boolean.TYPE);
+assertTrue(bb = 123);
+assertTrue(bb = "tick");
+assertTrue(bb = 'a');
+assertTrue(bb = true);
+Boolean BB;
+assertNull(BB);
+assertNull(BB = null);
+assertFalse(BB = 0);
+assertFalse(BB = "");
+assertFalse(BB = '\000');
+assertFalse(BB = false);
+assertTrue(BB = Boolean.class);
+assertTrue(BB = 123);
+assertTrue(BB = "tick");
+assertTrue(BB = 'a');
+assertTrue(BB = true);
+
+// can't cast non parseable strings to number
+assert( isEvalError('Cannot cast String with value "foo" to int', '(int) "foo"'));
+assert( isEvalError('cannot cast string "" to number', '(short) ""'));
+assert( isEvalError('Cannot cast String with value "foo" to Integer', '(Integer) "foo";'));
+
+// cast error throws ClassCastException which can be caught
+try {
+    i=(Integer) "foo";
+} catch ( ArithmeticException e0 ) {
+    assert(false); // just checking
+} catch ( ClassCastException e ) {
+    flag();
+}
+assertEquals(1, flag());
+
+arr = (long[]) new byte[] { 14, 10, 45, 2 };
+assertTrue(arr instanceof long[]);
+assertArrayEquals(new long[] { 14, 10, 45, 2 }, arr);
+
+arr = (List<Integer>[]) new List[] { null, new ArrayList(), Arrays.asList(10, 43, 76) };
+assertTrue(arr instanceof List[]);
+assertArrayEquals(new List[] { null, new ArrayList<>(), Arrays.asList(10, 43, 76) }, arr);
+
+arr = (byte[][]) new int[][] { { 14, 10 }, { 45, 2, 34 } };
+assertTrue(arr instanceof byte[][]);
+assertArrayEquals(new byte[][] { { 14, 10 }, { 45, 2, 34 } }, arr);
+
+complete();
