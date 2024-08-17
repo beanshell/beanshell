@@ -529,6 +529,7 @@ TOKEN : /* OPERATORS */
 | < ELVIS: "?:" >
 | < HOOK: "?" >
 | < COLON: ":" >
+| < COLON_COLON: "::" >
 | < ELLIPSIS: "..." >
 }
 
@@ -692,7 +693,7 @@ void VariableInitializer() :
   LOOKAHEAD(3)
   ArrayInitializer()
 |
-  Expression()
+ Expression()
 }
 
 void ArrayInitializer() #ArrayInitializer :
@@ -1017,17 +1018,23 @@ void PrimarySuffix() #PrimarySuffix :
         jjtThis.operation = BSHPrimarySuffix.CLASS;
     }
 |
-  "[" [ Expression() { jjtThis.hasLeftIndex = true; } ]
-     ( ":" { jjtThis.slice = true; }
-      [ Expression() { jjtThis.hasRightIndex = true; } ]
-     ( ":" { jjtThis.step = true; } [ Expression() ] )? )? "]" {
-        jjtThis.operation = BSHPrimarySuffix.INDEX;
-    }
+  "["
+    [ Expression() { jjtThis.hasLeftIndex = true; } ]
+    (
+      "::" [Expression()] { jjtThis.slice = true; jjtThis.step = true; }
+    |
+     (
+       ":" { jjtThis.slice = true; } [Expression() { jjtThis.hasRightIndex = true; }]
+       ( ":" { jjtThis.step = true; } [Expression()] )?
+     )
+    )?
+  "]" { jjtThis.operation = BSHPrimarySuffix.INDEX; }
 |
+  LOOKAHEAD({ getToken(1).kind == COLON_COLON && (getToken(2).kind == IDENTIFIER || getToken(2).kind == NEW ) && getToken(3).kind != RBRACKET })
   "::" (t=<IDENTIFIER> | t="new") {
-      jjtThis.operation = BSHPrimarySuffix.METHODREF;
-      jjtThis.field = t.image;
-    }
+    jjtThis.operation = BSHPrimarySuffix.METHODREF;
+    jjtThis.field = t.image;
+  }
 |
     // Safe navigate field access or method invocation
   LOOKAHEAD(2)
@@ -1161,7 +1168,7 @@ void Arguments() #Arguments :
 void ArgumentList() :
 { }
 {
-  Expression()
+ Expression()
   ( "," Expression() )*
 }
 
@@ -1320,7 +1327,7 @@ void StatementExpression() :
     us to type arbitrary expressions on the command line, e.g. "1+1;"
     We should turn this off in the implementation in strict java mode.
   */
-  Expression()
+ Expression()
 /*
     // This was the original Java grammar.
 
