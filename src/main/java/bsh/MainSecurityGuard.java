@@ -12,7 +12,7 @@ import java.util.Set;
  * It's the "main" SecurityGuard that must be used to real validate something.
  * This class store some implementations of {@link SecurityGuard} that each has some specific validation
  */
-final class MainSecurityGuard {
+public final class MainSecurityGuard {
 
     private final Set<SecurityGuard> securityGuards = new HashSet<SecurityGuard>();
 
