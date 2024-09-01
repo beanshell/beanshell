@@ -96,11 +96,15 @@ class BSHPrimaryExpression extends SimpleNode
         if ( isArrayExpression && null != cached )
             return cached;
 
-        Object obj = jjtGetChild(0);
+        Node[] children = this.jjtGetChildren();
+        Object obj = children[0];
+        for (int i = 1; i < children.length; i++) {
+            BSHPrimarySuffix primarySuffix = (BSHPrimarySuffix) jjtGetChild(i);
+            if (primarySuffix.operation == BSHPrimarySuffix.METHODREF && i != (children.length-1))
+                throw new EvalError("Method Reference must be the last suffix!", primarySuffix, callstack);
 
-        for( int i=1; i < jjtGetNumChildren(); i++ )
-            obj = ((BSHPrimarySuffix) jjtGetChild(i)).doSuffix(
-                obj, toLHS, callstack, interpreter);
+            obj = primarySuffix.doSuffix(obj, toLHS, callstack, interpreter);
+        }
 
         /*
             If the result is a Node eval() it to an object or LHS

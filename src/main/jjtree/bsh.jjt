@@ -529,6 +529,7 @@ TOKEN : /* OPERATORS */
 | < ELVIS: "?:" >
 | < HOOK: "?" >
 | < COLON: ":" >
+| < COLON_COLON: "::" >
 | < ELLIPSIS: "..." >
 }
 
@@ -947,22 +948,16 @@ void UnaryExpression() :
   (t = <INCR> | t = <DECR>) PrimaryExpression()
     { jjtThis.kind = t.kind; } #UnaryExpression(1)
 |
+  // lambda
+  LOOKAHEAD(( FormalParameters() | <IDENTIFIER> ) "->")
+    LambdaExpression()
+|
   // cast
-  LOOKAHEAD( CastLookahead() ) CastExpression()
+  LOOKAHEAD( "(" Type() ")" ) CastExpression()
 |
   // postfix incr/decr
   PrimaryExpression() [ (t = <INCR> | t = <DECR>)
     { jjtThis.kind = t.kind; jjtThis.postfix = true; } #UnaryExpression(1) ]
-}
-
-// This production only looks ahead to see if the next matches a cast.
-void CastLookahead() : { }
-{
-  LOOKAHEAD(2) <LPAREN> PrimitiveType()
-|
-  LOOKAHEAD( <LPAREN> AmbiguousName() <LBRACKET> ) <LPAREN> AmbiguousName() <LBRACKET> <RBRACKET>
-|
- <LPAREN> AmbiguousName() <RPAREN> ( <TILDE> | <BANG> | <LPAREN> | <IDENTIFIER> | <NEW> | Literal() | ArrayDimensions() )
 }
 
 void CastExpression() #CastExpression :
@@ -979,6 +974,16 @@ void PrimaryExpression() #PrimaryExpression : { }
 void MethodInvocation() #MethodInvocation : { }
 {
    AmbiguousName() Arguments()
+}
+
+void LambdaExpression() #LambdaExpression :
+{ Token t = null; }
+{
+  ( FormalParameters() | t=<IDENTIFIER> )
+  "->"
+  ( Block() | Expression() )
+  
+  { jjtThis.singleParamName = t != null ? t.image : null; }
 }
 
 void PrimaryPrefix() : { }
@@ -1013,12 +1018,23 @@ void PrimarySuffix() #PrimarySuffix :
         jjtThis.operation = BSHPrimarySuffix.CLASS;
     }
 |
-  "[" [ Expression() { jjtThis.hasLeftIndex = true; } ]
-     ( ":" { jjtThis.slice = true; }
-      [ Expression() { jjtThis.hasRightIndex = true; } ]
-     ( ":" { jjtThis.step = true; } [ Expression() ] )? )? "]" {
-        jjtThis.operation = BSHPrimarySuffix.INDEX;
-    }
+  "["
+    [ Expression() { jjtThis.hasLeftIndex = true; } ]
+    (
+      "::" [Expression()] { jjtThis.slice = true; jjtThis.step = true; }
+    |
+     (
+       ":" { jjtThis.slice = true; } [Expression() { jjtThis.hasRightIndex = true; }]
+       ( ":" { jjtThis.step = true; } [Expression()] )?
+     )
+    )?
+  "]" { jjtThis.operation = BSHPrimarySuffix.INDEX; }
+|
+  LOOKAHEAD({ getToken(1).kind == COLON_COLON && (getToken(2).kind == IDENTIFIER || getToken(2).kind == NEW ) && getToken(3).kind != RBRACKET })
+  "::" (t=<IDENTIFIER> | t="new") {
+    jjtThis.operation = BSHPrimarySuffix.METHODREF;
+    jjtThis.field = t.image;
+  }
 |
     // Safe navigate field access or method invocation
   LOOKAHEAD(2)

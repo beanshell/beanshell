@@ -27,7 +27,7 @@ package bsh;
 
 import java.io.Serializable;
 
-public class Variable implements Serializable, BshClassManager.Listener
+public class Variable implements Serializable, BshClassManager.Listener, Cloneable
 {
     public static final int DECLARATION=0, ASSIGNMENT=1;
     /** A null type means an untyped variable */
@@ -176,5 +176,16 @@ public class Variable implements Serializable, BshClassManager.Listener
         if (Reflect.isGeneratedClass(type)) try {
             type = Reflect.getThisNS(type).getClass(type.getName());
         } catch (UtilEvalError e) { /** should not happen on reload */ }
+    }
+
+    @Override
+    protected Variable clone() {
+        try {
+            Variable clone = (Variable) super.clone();
+            clone.modifiers = clone.modifiers != null ? clone.modifiers.clone() : null;
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
     }
 }

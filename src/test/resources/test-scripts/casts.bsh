@@ -234,4 +234,16 @@ try {
 }
 assertEquals(1, flag());
 
+arr = (long[]) new byte[] { 14, 10, 45, 2 };
+assertTrue(arr instanceof long[]);
+assertArrayEquals(new long[] { 14, 10, 45, 2 }, arr);
+
+arr = (List<Integer>[]) new List[] { null, new ArrayList(), Arrays.asList(10, 43, 76) };
+assertTrue(arr instanceof List[]);
+assertArrayEquals(new List[] { null, new ArrayList<>(), Arrays.asList(10, 43, 76) }, arr);
+
+arr = (byte[][]) new int[][] { { 14, 10 }, { 45, 2, 34 } };
+assertTrue(arr instanceof byte[][]);
+assertArrayEquals(new byte[][] { { 14, 10 }, { 45, 2, 34 } }, arr);
+
 complete();

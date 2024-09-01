@@ -98,7 +98,7 @@ class BSHFormalParameters extends SimpleNode implements BshClassManager.Listener
         Evaluate the types.
         Note that type resolution does not require the interpreter instance.
     */
-    public Object eval( CallStack callstack, Interpreter interpreter )
+    public Class<?>[] eval( CallStack callstack, Interpreter interpreter )
         throws EvalError
     {
         if ( paramTypes != null )

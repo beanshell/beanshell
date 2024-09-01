@@ -22,7 +22,7 @@ import java.util.Map;
  * and although it does define enum as a modifier, albeit not accessible, it
  * does not include it as a valid field modifier. For these we were obligated
  * to make accommodations for. */
-public class Modifiers implements java.io.Serializable {
+public class Modifiers implements java.io.Serializable, Cloneable {
     private static final long serialVersionUID = 1L;
     public static final int CLASS=0, INTERFACE=1, METHOD=2, FIELD=3, PARAMETER=4, CONSTRUCTOR=5;
     public static final Map<String, Integer> CONST = new HashMap<>(17);
@@ -202,5 +202,10 @@ public class Modifiers implements java.io.Serializable {
         return "Modifiers: " + Modifier.toString(modifiers) + (
             (modifiers & CONST.get("enum")) != 0 ? " enum" :
             (modifiers & CONST.get("default")) != 0 ? " default" : "");
+    }
+
+    @Override
+    protected Modifiers clone() throws CloneNotSupportedException {
+        return (Modifiers) super.clone();
     }
 }

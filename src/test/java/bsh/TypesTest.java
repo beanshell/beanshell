@@ -17,11 +17,18 @@ package bsh;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import mypackage.MyClass;
 
 public class TypesTest {
 
@@ -446,6 +453,50 @@ public class TypesTest {
     @Test
     public void pretty_name_of_matrix() {
         Assert.assertEquals("int[][][][][][][]", Types.prettyName(new int[3][4][5][6][7][8][9].getClass()));
+    }
+
+    /** Test {@link Types#prettyName(Class)} with an null Class<?> */
+    @Test
+    public void pretty_name_of_null() {
+        Assert.assertEquals("null", Types.prettyName((Class<?>) null));
+    }
+
+    /** Test {@link Types#prettyName(Type)} with some java.lang.reflect.Type */
+    @Test
+    public void pretty_name_of_types() {
+        class MyClass<A, B extends A, C extends List<? super Integer>, D extends Map<B, ? super Object>, E extends Set<? extends Runnable> & Runnable, F extends List<?>> {}
+
+        String[] prettyNames = Types.prettyNames(MyClass.class.getTypeParameters());
+
+        Assert.assertEquals(6, prettyNames.length);
+        Assert.assertEquals("A", prettyNames[0]);
+        Assert.assertEquals("B extends A", prettyNames[1]);
+        Assert.assertEquals("C extends java.util.List<? super java.lang.Integer>", prettyNames[2]);
+        Assert.assertEquals("D extends java.util.Map<B, ? super java.lang.Object>", prettyNames[3]);
+        Assert.assertEquals("E extends java.util.Set<? extends java.lang.Runnable> & java.lang.Runnable", prettyNames[4]);
+        Assert.assertEquals("F extends java.util.List<?>", prettyNames[5]);
+
+        Assert.assertEquals("java.lang.Boolean", Types.prettyName((Type) Boolean.class));
+        Assert.assertEquals("null", Types.prettyName((Type) null));
+
+        Type myType = new Type() {};
+        RuntimeException error = Assert.assertThrows(RuntimeException.class, () -> Types.prettyName(myType));
+        Assert.assertEquals("Can't return a pretty name because the type is unknown!", error.getMessage());
+    }
+
+    /** There shouldn't be a invalid round; this test is just to increase code coverage! */
+    @Test
+    public void is_assignable_invalid_round() throws Throwable {
+        InterpreterError error = Assert.assertThrows(InterpreterError.class, () -> Types.isAssignable(null, null, -1));
+        Assert.assertEquals("bad case", error.getMessage());
+    }
+
+    /** There is already a test for this in {@link BshLambdaTest}, this test is just to increase code coverage. */
+    @Test
+    public void lambda_check_cast() throws Throwable {
+        BshLambda bshLambda = (BshLambda) TestUtil.eval("() -> {}");
+        Object result = Types.castObject(Runnable.class, bshLambda.dummyType, bshLambda, 0, true);
+        Assert.assertEquals(Types.VALID_CAST, result);
     }
 
 }

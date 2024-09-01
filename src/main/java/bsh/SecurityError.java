@@ -24,7 +24,7 @@ class SecurityError extends UtilEvalError {
     private static String argsTypesString(Object[] args) {
         List<String> typesString = new ArrayList<String>();
         for (Class<?> typeClass: Types.getTypes(args))
-            typesString.add(typeClass != null ? Types.prettyName(typeClass) : "null");
+            typesString.add(Types.prettyName(typeClass));
         return String.join(", ", typesString);
     }
 
