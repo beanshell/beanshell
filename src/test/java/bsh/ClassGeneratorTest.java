@@ -26,6 +26,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
 import java.util.function.IntSupplier;
 
@@ -387,4 +388,45 @@ public class ClassGeneratorTest {
         eval("interface Test { static int x = 1; }");
         eval("interface Test { int x = 1; }");
     }
+
+    // @Test
+    // public void throws_signature() throws Exception {
+    //     Class<?> _class = (Class<?>) eval("class MyClassImpl<T> { public void doSomething() throws NullPointerException {} }");
+    //     Method method = _class.getDeclaredMethods()[0];
+    //     System.out.println(method.toString()); // "public void MyClassImpl.doSomething()"
+    //     assertEquals("public void MyClassImpl.doSomething() throws NullPointerException", method.toString());
+    // }
+
+    // @Test
+    // public void method_generic_signature_1() throws Exception {
+    //     try {
+    //         Class<?> _class = (Class<?>) eval("class MyClassImpl<T> { public void doSomething(T obj) {} }");
+    //         Method method = null;
+    //         for (Method _method: _class.getDeclaredMethods()) if (_method.getName().equals("doSomething")) method = _method;
+    
+    //         System.out.println(method.toGenericString());
+    
+    //         assertEquals("public void MyClassImpl.doSomething(T obj)", method.toString());
+    //     } catch (Throwable e) {
+    //         e.printStackTrace();
+    //     }
+    // }
+
+    // @Test
+    // public void method_generic_signature_2() throws Exception {
+    //     Class<?> _class = (Class<?>) eval("class MyClassImpl { public <T> void doSomething(T obj) {} }");
+    //     Method method = null;
+    //     for (Method _method: _class.getDeclaredMethods()) if (_method.getName().equals("doSomething")) method = _method;
+
+    //     assertEquals("public <T> void MyClassImpl.doSomething(T obj)", method.toString());
+    // }
+
+    // @Test
+    // public void method_generic_signature_3() throws Exception {
+    //     Class<?> _class = (Class<?>) eval("class MyClassImpl<T> { public <R> R doSomething(T obj) {} }");
+    //     Method method = null;
+    //     for (Method _method: _class.getDeclaredMethods()) if (_method.getName().equals("doSomething")) method = _method;
+
+    //     assertEquals("public <R> R MyClassImpl.doSomething(T obj)", method.toString());
+    // }
 }

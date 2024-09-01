@@ -1,21 +1,33 @@
 package bsh;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+
+import java.lang.reflect.WildcardType;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.Callable;
+import java.util.function.Function;
 import java.util.WeakHashMap;
 
 import bsh.org.objectweb.asm.ClassWriter;
 import bsh.org.objectweb.asm.FieldVisitor;
 import bsh.org.objectweb.asm.MethodVisitor;
 import bsh.org.objectweb.asm.Opcodes;
-import bsh.org.objectweb.asm.Type;
+import bsh.util.Util;
 
 /**
  * It's the instance of lambdas written in code.
@@ -51,10 +63,25 @@ public abstract class BshLambda {
     /** Method with the real implementation to eval the code written */
     protected abstract Object invokeImpl(Object[] args) throws UtilEvalError, EvalError, TargetError;
 
-    /** Method to invoke the lambda and deal with the expected exceptions */
-    public final Object invoke(Object[] args, Class<?>[] exceptionTypes) throws Throwable {
+    /**
+     * Method to invoke this lambda where the return must be an Object of a specific Class<?>
+     * @param args The args to give to the lambda
+     * @param exceptionTypes An array of accepted exceptions that can be throw when invoking this lambda
+     * @param returnType This specify of what type must be the return
+     * @return An value that is assignable to <code>returnType</code>. Note: whether <code>returnType</code> is a primitive ( e.g., int ) the return will be a wrapper instance ( e.g., Integer )
+     */
+    public final <T> T invoke(Object[] args, Class<?>[] exceptionTypes, Class<T> returnType) throws Throwable {
         try {
-            return Primitive.unwrap(this.invokeImpl(args));
+            final Object result = returnType.isPrimitive() ? Primitive.unwrap(this.invokeImpl(args)) : this.invokeImpl(args);
+            if (returnType == void.class) return null;
+
+            try {
+                return (T) Primitive.unwrap(Types.castObject(result, returnType, Types.ASSIGNMENT));
+            } catch (Throwable t) {
+                final String msg = String.format("Can't assign %s to %s", Types.prettyName(Types.getType(result)), Types.prettyName(returnType));
+                throw new RuntimeEvalError(msg, expressionNode, null);
+            }
+
         } catch (TargetError e) {
             for (Class<?> exceptionType: exceptionTypes)
                 if (exceptionType.isInstance(e.getTarget()))
@@ -62,73 +89,6 @@ public abstract class BshLambda {
             throw new RuntimeEvalError("Can't invoke lambda: Unexpected Exception: " + e.getTarget().getMessage(), expressionNode, null, e.getTarget());
         } catch (EvalError e) {
             throw new RuntimeEvalError("Can't invoke lambda: " + e.getMessage(), expressionNode, null, e);
-        } catch (UtilEvalError e) {
-            throw new RuntimeEvalError(e.toEvalError(expressionNode, null));
-        }
-    }
-
-    /** Method to invoke the lambda where the return must be a char */
-    public final char invokeChar(Object[] args, Class<?>[] exceptionTypes) throws Throwable {
-        Object result = this.invoke(args, exceptionTypes);
-        if (result instanceof Character) return ((Character) result).charValue();
-        throw new RuntimeEvalError("Can't convert " + StringUtil.typeString(result) + " to char", expressionNode, null);
-    }
-
-    /** Method to invoke the lambda where the return must be a boolean */
-    public final boolean invokeBoolean(Object[] args, Class<?>[] exceptionTypes) throws Throwable {
-        Object result = this.invoke(args, exceptionTypes);
-        if (result instanceof Boolean) return ((Boolean) result).booleanValue();
-        throw new RuntimeEvalError("Can't convert " + StringUtil.typeString(result) + " to boolean", expressionNode, null);
-    }
-
-    /** Method to invoke the lambda where the return must be a byte */
-    public final byte invokeByte(Object[] args, Class<?>[] exceptionTypes) throws Throwable {
-        Object result = this.invoke(args, exceptionTypes);
-        if (result instanceof Number) return ((Number) result).byteValue();
-        throw new RuntimeEvalError("Can't convert " + StringUtil.typeString(result) + " to byte", expressionNode, null);
-    }
-
-    /** Method to invoke the lambda where the return must be a boolean */
-    public final short invokeShort(Object[] args, Class<?>[] exceptionTypes) throws Throwable {
-        Object result = this.invoke(args, exceptionTypes);
-        if (result instanceof Number) return ((Number) result).shortValue();
-        throw new RuntimeEvalError("Can't convert " + StringUtil.typeString(result) + " to short", expressionNode, null);
-    }
-
-    /** Method to invoke the lambda where the return must be an int */
-    public final int invokeInt(Object[] args, Class<?>[] exceptionTypes) throws Throwable {
-        Object result = this.invoke(args, exceptionTypes);
-        if (result instanceof Number) return ((Number) result).intValue();
-        throw new RuntimeEvalError("Can't convert " + StringUtil.typeString(result) + " to int", expressionNode, null);
-    }
-
-    /** Method to invoke the lambda where the return must be a long */
-    public final long invokeLong(Object[] args, Class<?>[] exceptionTypes) throws Throwable {
-        Object result = this.invoke(args, exceptionTypes);
-        if (result instanceof Number) return ((Number) result).longValue();
-        throw new RuntimeEvalError("Can't convert " + StringUtil.typeString(result) + " to long", expressionNode, null);
-    }
-
-    /** Method to invoke the lambda where the return must be a float */
-    public final float invokeFloat(Object[] args, Class<?>[] exceptionTypes) throws Throwable {
-        Object result = this.invoke(args, exceptionTypes);
-        if (result instanceof Number) return ((Number) result).floatValue();
-        throw new RuntimeEvalError("Can't convert " + StringUtil.typeString(result) + " to float", expressionNode, null);
-    }
-
-    /** Method to invoke the lambda where the return must be a double */
-    public final double invokeDouble(Object[] args, Class<?>[] exceptionTypes) throws Throwable {
-        Object result = this.invoke(args, exceptionTypes);
-        if (result instanceof Number) return ((Number) result).doubleValue();
-        throw new RuntimeEvalError("Can't convert " + StringUtil.typeString(result) + " to double", expressionNode, null);
-    }
-
-    /** Method to invoke the lambda where the return must be an Object of a specific Class<?> */
-    public final <T> T invokeObject(Object[] args, Class<?>[] exceptionTypes, Class<T> returnType) throws Throwable {
-        Object result = this.invoke(args, exceptionTypes);
-        if (result == null) return null;
-        try {
-            return (T) Types.castObject(result, returnType, Types.ASSIGNMENT);
         } catch (UtilEvalError e) {
             throw new RuntimeEvalError(e.toEvalError(expressionNode, null));
         }
@@ -183,9 +143,13 @@ public abstract class BshLambda {
 
     /** Util method to return the functional interface's method to be implemented */
     protected static Method methodFromFI(Class<?> functionalInterface) {
-        for (Method method: functionalInterface.getMethods())
-            if (Modifier.isAbstract(method.getModifiers()))
-                return method;
+        for (Method method: functionalInterface.getDeclaredMethods())
+            if (Modifier.isAbstract(method.getModifiers()) && !method.isDefault())
+                try {
+                    Object.class.getDeclaredMethod(method.getName(), method.getParameterTypes());
+                } catch (NoSuchMethodException e) {
+                    return method;
+                }
         throw new IllegalArgumentException("This class isn't a valid Functional Interface: " + functionalInterface.getName());
     }
 
@@ -250,7 +214,7 @@ public abstract class BshLambda {
         }
 
         protected boolean isAssignable(Method to, int round) {
-            Class<?>[] toParamsTypes = to.getParameterTypes();
+            Type[] toParamsTypes = to.getGenericParameterTypes();
             if (this.paramsTypes.length != toParamsTypes.length) return false;
 
             // TODO: validate the return type of 'this.bodyNode' ???
@@ -264,48 +228,87 @@ public abstract class BshLambda {
         private final Object thisArg;
         private final String methodName;
 
+        // Util variables
+        private final boolean staticRef;
+        private final Class<?> _class;
+        private final Method[] methods;
+
         public BshLambdaFromMethodReference(Node expressionNode, Object thisArg, String methodName) {
             super(expressionNode);
             this.thisArg = thisArg;
             this.methodName = methodName;
+            this.staticRef = this.thisArg instanceof ClassIdentifier;
+            this._class = this.staticRef ? ((ClassIdentifier) this.thisArg).clas : this.thisArg.getClass();
+            this.methods = this._class.isInterface()
+                                ? Util.concatArrays(this._class.getMethods(), Object.class.getMethods())
+                                : this._class.getMethods();
         }
 
         protected final Object invokeImpl(Object[] args) throws UtilEvalError, EvalError, TargetError {
             try {
-                NameSpace nameSpace = new NameSpace("MethodReferenceLambda");
-                CallStack callStack = new CallStack(nameSpace);
-                Interpreter interpreter = new Interpreter(nameSpace);
+                final NameSpace nameSpace = new NameSpace("MethodReferenceLambda");
+                final CallStack callStack = new CallStack(nameSpace);
+                final Interpreter interpreter = new Interpreter(nameSpace);
 
-                if (thisArg instanceof ClassIdentifier) {
-                    Class<?> _class = ((ClassIdentifier) thisArg).clas;
-                    return methodName.equals("new")
-                            ? Reflect.constructObject(_class, args)
-                            : Reflect.invokeStaticMethod(nameSpace.getClassManager(), _class, methodName, args, expressionNode);
+                if (!this.staticRef) return Reflect.invokeObjectMethod(this.thisArg, this.methodName, args, interpreter, callStack, this.expressionNode);
+                if (this.methodName.equals("new")) return Reflect.constructObject(this._class, args);
+                if (args.length == 0 || !this._class.isInstance(args[0])) return Reflect.invokeStaticMethod(nameSpace.getClassManager(), this._class, this.methodName, args, this.expressionNode);
+
+                final Class<?>[] argsTypes = Types.getTypes(args);
+                final Class<?>[] nonStaticArgsTypes = Arrays.copyOfRange(argsTypes, 1, argsTypes.length);
+
+                for (Method method: this.methods) {
+                    if (!this.methodName.equals(method.getName())) continue;
+
+                    try {
+                        if (Reflect.isStatic(method)) { // Static reference to static method
+                            if (Types.isSignatureAssignable(argsTypes, method.getGenericParameterTypes(), Types.JAVA_BASE_ASSIGNABLE))
+                                return method.invoke(null, args);
+                        } else { // Static reference to non static method
+                            if (Types.isSignatureAssignable(nonStaticArgsTypes, method.getGenericParameterTypes(), Types.JAVA_BASE_ASSIGNABLE))
+                                return method.invoke(args[0], Arrays.copyOfRange(args, 1, args.length));
+                        }
+                    } catch (IllegalAccessException e) {}
                 }
-                return Reflect.invokeObjectMethod(this.thisArg, methodName, args, interpreter, callStack, expressionNode);
+
+                throw new UtilEvalError("Can't invoke lambda made from method reference!");
             } catch (InvocationTargetException e) {
                 throw new TargetError(e.getTargetException(), expressionNode, null);
             }
         }
 
         protected boolean isAssignable(Method to, int round) {
-            boolean staticMethod = this.thisArg instanceof ClassIdentifier;
-            Class<?> _class = this.thisArg instanceof ClassIdentifier ? ((ClassIdentifier) this.thisArg).clas : this.thisArg.getClass();
-
-            if (this.thisArg instanceof ClassIdentifier && this.methodName.equals("new")) {
-                for (Constructor<?> constructor: _class.getConstructors()) {
-                    if (!Types.isSignatureAssignable(constructor.getParameterTypes(), to.getParameterTypes(), round)) continue;
-                    if (!Types.isAssignable(_class, to.getReturnType(), round)) continue;
+            if (!this.staticRef) { // Non-Static references
+                for (Method method: _class.getMethods()) {
+                    if (!this.methodName.equals(method.getName())) continue;
+                    if (Reflect.isStatic(method)) continue;
+                    if (!Types.isSignatureAssignable(method.getParameterTypes(), to.getGenericParameterTypes(), round)) continue;
+                    if (!Types.isAssignable(method.getReturnType(), to.getGenericReturnType(), round)) continue;
                     return true;
                 }
                 return false;
             }
 
-            for (Method method: _class.getMethods()) {
+            if (this.methodName.equals("new")) { // Constructor reference
+                for (Constructor<?> constructor: _class.getConstructors()) {
+                    if (!Types.isSignatureAssignable(constructor.getParameterTypes(), to.getGenericParameterTypes(), round)) continue;
+                    if (!Types.isAssignable(_class, to.getGenericReturnType(), round)) continue;
+                    return true;
+                }
+                return false;
+            }
+
+            // Static reference
+            for (Method method: this.methods) {
                 if (!this.methodName.equals(method.getName())) continue;
-                if (Reflect.isStatic(method) != staticMethod) continue;
-                if (!Types.isSignatureAssignable(method.getParameterTypes(), to.getParameterTypes(), round)) continue;
-                if (!Types.isAssignable(method.getReturnType(), to.getReturnType(), round)) continue;
+                if (Reflect.isStatic(method)) { // Static reference to static method
+                    if (!Types.isSignatureAssignable(method.getParameterTypes(), to.getGenericParameterTypes(), round)) continue;
+                    if (!Types.isAssignable(method.getReturnType(), to.getGenericReturnType(), round)) continue;
+                } else { // Static reference to non static method
+                    final Class<?>[] paramTypes = Util.concatArrays(new Class<?>[] { this._class }, method.getParameterTypes());
+                    if (!Types.isSignatureAssignable(paramTypes, to.getGenericParameterTypes(), round)) continue;
+                    if (!Types.isAssignable(method.getReturnType(), to.getGenericReturnType(), round)) continue;
+                }
                 return true;
             }
             return false;
@@ -325,37 +328,35 @@ public abstract class BshLambda {
      */
     private static class WrapperGenerator {
 
-        private static String[] getInternalNames(Class<?>[] types) {
-            final String[] internalNames = new String[types.length];
-            for (int i = 0; i < types.length; i++) internalNames[i] = Type.getInternalName(types[i]);
-            return internalNames;
-        }
-
+        // TODO: get the FunctionalInterface args names too!
         /**
          * Return a new generated class that wraps a bshLambda. Example of a class that is generated:
          *
          * <p>
          *
-         * <pre>
+         * <pre>{@code
          * import java.util.function.Function;
          *
-         * public class MyClass implements Function {
+         * public class MyClass<T, R> implements Function<T, R> {
          *  private BshLambda bshLambda;
          *
          *  public MyClass(BshLambda bshLambda) {
          *      this.bshLambda = bshLambda;
          *  }
          *
-         *  public Object apply(Object arg1) {
+         *  public R apply(T arg1) {
          *      return this.bshLambda.invokeObject(new Object[] { arg1 }, new Class[0], Object.class);
          *  }
          * }
          * </pre>
          */
         protected static <T> Class<T> generateClass(Class<T> functionalInterface) {
-            final String encodedFIName = Base64.getEncoder().encodeToString(functionalInterface.getName().getBytes());
+            final String encodedFIName = Base64.getEncoder().encodeToString(functionalInterface.getName().getBytes()).replace('=', '_');
             final String className = BshLambda.class.getName() + "Generated" + encodedFIName;
             byte[] bytes = WrapperGenerator.generateClassBytes(className.replace(".", "/"), functionalInterface);
+            // try {
+            //     Files.write(Paths.get("/home/net0/git/beanshell-securityguard/generatedClass.class"), bytes);
+            // } catch (IOException e) {}
             return (Class<T>) BshLambda.byteClassLoader.classFromBytes(className, bytes);
         }
 
@@ -383,12 +384,14 @@ public abstract class BshLambda {
         private static byte[] generateClassBytes(String className, Class<?> functionalInterface) {
             ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 
-            final String[] interfacesPrimitiveNames = { Type.getInternalName(functionalInterface) };
+            final String[] interfacesPrimitiveNames = { Types.getInternalName(functionalInterface) };
             final String superPrimitiveName = "java/lang/Object";
-            cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, className, null, superPrimitiveName, interfacesPrimitiveNames);
+            final String signature =  generateClassSignature(functionalInterface);
+
+            cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, className, signature, superPrimitiveName, interfacesPrimitiveNames);
 
             // Declare the 'bshLambda' field
-            FieldVisitor fieldVisitor = cw.visitField(Opcodes.ACC_PRIVATE, "bshLambda", Type.getDescriptor(BshLambda.class), null, null);
+            FieldVisitor fieldVisitor = cw.visitField(Opcodes.ACC_PRIVATE, "bshLambda", Types.getDescriptor(BshLambda.class), null, null);
             fieldVisitor.visitEnd();
 
             WrapperGenerator.writeConstructor(cw, className);
@@ -398,6 +401,13 @@ public abstract class BshLambda {
 
             cw.visitEnd();
             return cw.toByteArray();
+        }
+
+        private static String generateClassSignature(Class<?> functionalInterface) {
+            Type _interface = functionalInterface.getTypeParameters().length != 0
+                                                    ? Types.createParameterizedType(functionalInterface, functionalInterface.getTypeParameters())
+                                                    : functionalInterface;
+            return Types.getASMClassSignature(functionalInterface.getTypeParameters(), Object.class, _interface);
         }
 
         /**
@@ -417,7 +427,7 @@ public abstract class BshLambda {
          */
         private static void writeConstructor(ClassWriter cw, String className) {
             // Add a default constructor
-            final String constructorDescriptor = Type.getMethodDescriptor(Type.getType(void.class), Type.getType(BshLambda.class));
+            final String constructorDescriptor = Types.getMethodDescriptor(void.class, BshLambda.class);
             MethodVisitor constructor = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", constructorDescriptor, null, null);
             constructor.visitCode();
 
@@ -428,7 +438,7 @@ public abstract class BshLambda {
             // Write the implementation: this.bshLambda = bshLambda;
             constructor.visitVarInsn(Opcodes.ALOAD, 0); // Load this
             constructor.visitVarInsn(Opcodes.ALOAD, 1); // Load the first arg
-            constructor.visitFieldInsn(Opcodes.PUTFIELD, className, "bshLambda", Type.getDescriptor(BshLambda.class)); // Set the 'bshLambda' field
+            constructor.visitFieldInsn(Opcodes.PUTFIELD, className, "bshLambda", Types.getDescriptor(BshLambda.class)); // Set the 'bshLambda' field
 
             // Default end
             constructor.visitInsn(Opcodes.RETURN); // Return void
@@ -492,15 +502,15 @@ public abstract class BshLambda {
          * </pre>
          */
         private static void writeMethod(ClassWriter cw, String className, Method method) {
-            final String BSH_LAMBDA_NAME = Type.getInternalName(BshLambda.class);
+            final String BSH_LAMBDA_NAME = Types.getInternalName(BshLambda.class);
             final Parameter[] params = method.getParameters();
             final Class<?>[] exceptionTypes = method.getExceptionTypes();
 
-            MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, method.getName(), Type.getMethodDescriptor(method), null, getInternalNames(exceptionTypes));
+            MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, method.getName(), Types.getMethodDescriptor(method), Types.getASMMethodSignature(method), Types.getInternalNames(exceptionTypes));
             mv.visitCode();
 
             mv.visitVarInsn(Opcodes.ALOAD, 0); // Load 'this' onto the stack
-            mv.visitFieldInsn(Opcodes.GETFIELD, className, "bshLambda", Type.getDescriptor(BshLambda.class)); // Get the field value
+            mv.visitFieldInsn(Opcodes.GETFIELD, className, "bshLambda", Types.getDescriptor(BshLambda.class)); // Get the field value
 
             // Define and create the Object[] array to store the 'args'
             mv.visitLdcInsn(params.length); // Size of the array
@@ -559,42 +569,49 @@ public abstract class BshLambda {
                 Class<?> exceptionType = exceptionTypes[i];
                 mv.visitInsn(Opcodes.DUP);
                 mv.visitLdcInsn(i);
-                mv.visitLdcInsn(Type.getType(exceptionType));
+                mv.visitLdcInsn(Types.getASMType(exceptionType));
                 mv.visitInsn(Opcodes.AASTORE);
             }
 
             final Class<?> returnType = method.getReturnType();
+            final Class<?> invokeReturnType = returnType.isPrimitive() ? Primitive.boxType(returnType) : returnType;
+
+            if (returnType.isPrimitive())
+                mv.visitFieldInsn(Opcodes.GETSTATIC, Types.getInternalName(invokeReturnType), "TYPE", "Ljava/lang/Class;"); // Primitive type
+            else
+                mv.visitLdcInsn(Types.getASMType(returnType)); // Other types, just load it :P
+
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, BSH_LAMBDA_NAME, "invoke", "([Ljava/lang/Object;[Ljava/lang/Class;Ljava/lang/Class;)Ljava/lang/Object;", false);
+            mv.visitTypeInsn(Opcodes.CHECKCAST, Types.getInternalName(invokeReturnType));
+
             if (returnType == void.class) {
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, BSH_LAMBDA_NAME, "invoke", "([Ljava/lang/Object;[Ljava/lang/Class;)Ljava/lang/Object;", false);
                 mv.visitInsn(Opcodes.POP);
                 mv.visitInsn(Opcodes.RETURN);
             } else if (returnType == boolean.class) {
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, BSH_LAMBDA_NAME, "invokeBoolean", "([Ljava/lang/Object;[Ljava/lang/Class;)Z", false);
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Boolean", "booleanValue", "()Z", false);
                 mv.visitInsn(Opcodes.IRETURN);
             } else if (returnType == char.class) {
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, BSH_LAMBDA_NAME, "invokeChar", "([Ljava/lang/Object;[Ljava/lang/Class;)C", false);
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Character", "charValue", "()C", false);
                 mv.visitInsn(Opcodes.IRETURN);
             } else if (returnType == byte.class) {
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, BSH_LAMBDA_NAME, "invokeByte", "([Ljava/lang/Object;[Ljava/lang/Class;)B", false);
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Byte", "byteValue", "()B", false);
                 mv.visitInsn(Opcodes.IRETURN);
             } else if (returnType == short.class) {
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, BSH_LAMBDA_NAME, "invokeShort", "([Ljava/lang/Object;[Ljava/lang/Class;)S", false);
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Short", "shortValue", "()S", false);
                 mv.visitInsn(Opcodes.IRETURN);
             } else if (returnType == int.class) {
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, BSH_LAMBDA_NAME, "invokeInt", "([Ljava/lang/Object;[Ljava/lang/Class;)I", false);
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Integer", "intValue", "()I", false);
                 mv.visitInsn(Opcodes.IRETURN);
             } else if (returnType == long.class) {
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, BSH_LAMBDA_NAME, "invokeLong", "([Ljava/lang/Object;[Ljava/lang/Class;)J", false);
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Long", "longValue", "()J", false);
                 mv.visitInsn(Opcodes.LRETURN);
             } else if (returnType == float.class) {
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, BSH_LAMBDA_NAME, "invokeFloat", "([Ljava/lang/Object;[Ljava/lang/Class;)F", false);
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Float", "floatValue", "()F", false);
                 mv.visitInsn(Opcodes.FRETURN);
             } else if (returnType == double.class) {
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, BSH_LAMBDA_NAME, "invokeDouble", "([Ljava/lang/Object;[Ljava/lang/Class;)D", false);
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/Double", "doubleValue", "()D", false);
                 mv.visitInsn(Opcodes.DRETURN);
             } else {
-                mv.visitLdcInsn(Type.getType(returnType));
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, BSH_LAMBDA_NAME, "invokeObject", "([Ljava/lang/Object;[Ljava/lang/Class;Ljava/lang/Class;)Ljava/lang/Object;", false);
                 mv.visitInsn(Opcodes.ARETURN);
             }
 

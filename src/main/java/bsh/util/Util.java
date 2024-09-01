@@ -32,6 +32,7 @@ import java.awt.Image;
 import java.awt.MediaTracker;
 import java.awt.Toolkit;
 import java.awt.Window;
+import java.lang.reflect.Array;
 
 import bsh.Interpreter;
 
@@ -84,6 +85,31 @@ public class Util
     public static void endSplashScreen() {
         if ( splashScreen != null )
             splashScreen.dispose();
+    }
+
+    /** Just concat 2 arrays */
+    @SuppressWarnings("unchecked")
+    public static <T> T[] concatArrays(T[] ...arrays) {
+        if (arrays.length == 0) throw new NullPointerException("There is no arrays to concat!");
+        if (arrays.length == 1) return arrays[0];
+
+        int totalLength = 0;
+        for (T[] array: arrays) totalLength += array.length;
+
+        final Class<?> baseType = arrays[0].getClass().getComponentType();
+        T[] result = (T[]) Array.newInstance(baseType, totalLength);
+
+        int offset = 0;
+        for (T[] array: arrays) System.arraycopy(array, 0, result, offset, array.length);
+
+        // final Class<?> baseType = a.getClass().getComponentType();
+        // T[] result = (T[]) Array.newInstance(baseType, a.length + b.length);
+
+        // System.arraycopy(baseType, 0, result, 0, 0);
+        // for (int i = 0; i < a.length; i++) result[i] = a[i];
+        // for (int i = 0; i < b.length; i++) result[i + a.length] = b[i];
+
+        return result;
     }
 
 }

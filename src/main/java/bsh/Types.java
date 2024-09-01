@@ -26,7 +26,12 @@
 
 package bsh;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.AbstractMap.SimpleEntry;
@@ -206,6 +211,64 @@ class Types {
         }
     }
 
+    static boolean isAssignable(Class<?> from, Type to, int round) {
+        if (to instanceof Class<?>) // Handle a simple type ( like void or Integer )
+            return isAssignable(from, (Class<?>) to, round);
+
+        if (to instanceof ParameterizedType) // Handle parameterized types (like List<T>)
+            return isAssignable(from, ((ParameterizedType) to).getRawType(), round);
+
+        if (to instanceof TypeVariable<?>) { // Handle type variables (like T or R)
+            TypeVariable<?> typeVar = (TypeVariable<?>) to;
+            for (Type bound: typeVar.getBounds())
+                if (!isAssignable(from, bound, round))
+                    return false;
+            return true;
+        }
+
+        if (to instanceof WildcardType) { // Handle wildcards (like ? extends Number)
+            WildcardType wildcardType = (WildcardType) to;
+            for (Type bound: wildcardType.getUpperBounds())
+                if (!isAssignable(from, bound, round))
+                    return false;
+            for (Type bound: wildcardType.getLowerBounds())
+                if (!isAssignable(bound, from, round))
+                    return false;
+            return true;
+        }
+
+        return to == null;
+    }
+
+    static boolean isAssignable(Type from, Class<?> to, int round) {
+        if (from instanceof Class<?>) // Handle a simple type ( like void or Integer )
+            return isAssignable(from, (Class<?>) to, round);
+
+        if (from instanceof ParameterizedType) // Handle parameterized types (like List<T>)
+            return isAssignable(((ParameterizedType) from).getRawType(), to, round);
+
+        if (from instanceof TypeVariable<?>) { // Handle type variables (like T or R)
+            TypeVariable<?> typeVar = (TypeVariable<?>) from;
+            for (Type bound: typeVar.getBounds())
+                if (!isAssignable(bound, to, round))
+                    return false;
+            return true;
+        }
+
+        if (from instanceof WildcardType) { // Handle wildcards (like ? extends Number)
+            WildcardType wildcardType = (WildcardType) from;
+            for (Type bound: wildcardType.getUpperBounds())
+                if (!isAssignable(bound, to, round))
+                    return false;
+            for (Type bound: wildcardType.getLowerBounds())
+                if (!isAssignable(to, bound, round))
+                    return false;
+            return true;
+        }
+
+        return to == null;
+    }
+
     /**
      Is the 'from' signature (argument types) assignable to the 'to'
      signature (candidate method types)
@@ -214,6 +277,17 @@ class Types {
      */
     /* Should check for strict java here and limit to isJavaAssignable() */
     static boolean isSignatureAssignable( Class<?>[] from, Class<?>[] to, int round )
+    {
+        if ( round != JAVA_VARARGS_ASSIGNABLE && from.length != to.length )
+            return false;
+
+        for (int i = 0; i < from.length; i++)
+            if (!isAssignable(from[i], to[i], round))
+                return false;
+        return true;
+    }
+
+    static boolean isSignatureAssignable( Class<?>[] from, Type[] to, int round )
     {
         if ( round != JAVA_VARARGS_ASSIGNABLE && from.length != to.length )
             return false;
@@ -757,15 +831,237 @@ class Types {
      * </pre>
      */
     public static String prettyName(Class<?> clas) {
+        if (clas == null) return "null";
         if (!clas.isArray()) return clas.getName();
 
         // Return a string like "int[]", "double[]", "double[][]", etc...
         Class<?> arrayType = clas.getComponentType();
         return prettyName(arrayType) + "[]";
     }
+    
+    public static String[] prettyNames(Type[] types) {
+        String[] result = new String[types.length];
+        for (int i = 0; i < types.length; i++) result[i] = prettyName(types[i]);
+        return result;
+    }
+
+    public static String prettyName(Type type) {
+        return prettyName(type, true);
+    }
+
+    private static String prettyName(Type type, boolean showTypeVariableBounds) {
+        if (type instanceof Class<?>) // Handle a simple type ( like void or Integer )
+            return prettyName((Class<?>) type);
+        
+        if (type instanceof ParameterizedType) { // Handle parameterized types (like List<T>)
+            ParameterizedType paramType = (ParameterizedType) type;
+            Type[] params = paramType.getActualTypeArguments();
+            String[] paramsNames = new String[params.length];
+            for (int i = 0; i < params.length; i++) paramsNames[i] = prettyName(params[i], false);
+            return String.format("%s<%s>", prettyName(paramType.getRawType()), String.join(", ", paramsNames));
+        }
+
+        if (type instanceof TypeVariable<?>) { // Handle type variables (like T or R)
+            TypeVariable<?> typeVar = (TypeVariable<?>) type;
+
+            Type[] bounds = typeVar.getBounds();
+            if (!showTypeVariableBounds || (bounds.length == 1 && bounds[0] == Object.class)) return typeVar.getName();
+
+            String[] boundsStr = new String[bounds.length];
+            for (int i = 0; i < bounds.length; i++) boundsStr[i] = prettyName(bounds[i]);
+
+            return String.format("%s extends %s", typeVar.getName(), String.join(" & ", boundsStr));
+        }
+
+        if (type instanceof WildcardType) { // Handle wildcards (like '? extends Number' and '? super Integer')
+            WildcardType wildcardType = (WildcardType) type;
+
+            Type[] upperBounds = wildcardType.getUpperBounds();
+            if (upperBounds[0] != Object.class) {
+                String[] upperBoundsStr = new String[upperBounds.length];
+                for (int i = 0; i < upperBounds.length; i++) upperBoundsStr[i] = prettyName(upperBounds[i]);
+                return String.format("? extends %s", String.join(" & ", upperBoundsStr));
+            }
+
+            Type[] lowerBounds = wildcardType.getLowerBounds();
+            if (lowerBounds.length != 0) {
+                String[] lowerBoundsStr = new String[lowerBounds.length];
+                for (int i = 0; i < lowerBounds.length; i++) lowerBoundsStr[i] = prettyName(lowerBounds[i]);
+                return String.format("? super %s", String.join(" & ", lowerBoundsStr));
+            }
+
+            return "?";
+        }
+        
+        if (type == null) return "null";
+
+        throw new RuntimeException("Can't return a pretty name because the type is unknown!");
+    }
 
     /** Returns if a specific class is a functional interface */
-    public static boolean isFunctionalInterface(Class<?> clas) {
-        return clas != null && clas.isInterface() && clas.getAnnotation(FunctionalInterface.class) != null;
+    public static boolean isFunctionalInterface(Class<?> _class) {
+        return _class != null && _class.isInterface() && _class.getAnnotation(FunctionalInterface.class) != null;
     }
+
+    public static bsh.org.objectweb.asm.Type getASMType(Class<?> type) {
+        return bsh.org.objectweb.asm.Type.getType(type);
+    }
+
+    public static String getInternalName(Class<?> type) {
+        return bsh.org.objectweb.asm.Type.getInternalName(type);
+    }
+
+    public static String[] getInternalNames(Class<?>[] types) {
+        final String[] internalNames = new String[types.length];
+        for (int i = 0; i < types.length; i++) internalNames[i] = bsh.org.objectweb.asm.Type.getInternalName(types[i]);
+        return internalNames;
+    }
+
+    public static String getDescriptor(Class<?> type) {
+        return bsh.org.objectweb.asm.Type.getDescriptor(type);
+    }
+
+    public static String getMethodDescriptor(Method method) {
+        return bsh.org.objectweb.asm.Type.getMethodDescriptor(method);
+    }
+
+    public static String getMethodDescriptor(Class<?> returnType, Class<?>  ...argumentTypes) {
+        final bsh.org.objectweb.asm.Type[] _types = new bsh.org.objectweb.asm.Type[argumentTypes.length];
+        for (int i = 0; i < argumentTypes.length; i++) _types[i] = bsh.org.objectweb.asm.Type.getType(argumentTypes[i]);
+        return bsh.org.objectweb.asm.Type.getMethodDescriptor(bsh.org.objectweb.asm.Type.getType(returnType), _types);
+    }
+
+    // Helper method to convert Type to ASM style signature
+    /** Return the signature of a specific type to be used in ASM bytecodes */
+    public static String getASMSignature(Type type) {
+        if (type instanceof Class<?>) return bsh.org.objectweb.asm.Type.getDescriptor((Class<?>) type); // Handle a simple type ( like void or Integer )
+
+        if (type instanceof ParameterizedType) { // Handle parameterized types (like List<T>)
+            ParameterizedType paramType = (ParameterizedType) type;
+            StringBuilder paramSignature = new StringBuilder();
+            paramSignature.append("L" + bsh.org.objectweb.asm.Type.getInternalName((Class<?>) paramType.getRawType())); // Base type
+            paramSignature.append("<");
+            for (Type arg : paramType.getActualTypeArguments()) {
+                paramSignature.append(getASMSignature(arg));
+            }
+            paramSignature.append(">;");
+            return paramSignature.toString();
+        }
+
+        if (type instanceof TypeVariable<?>) // Handle type variables (like T or R)
+            return "T" + ((TypeVariable<?>) type).getName() + ";";
+
+        if (type instanceof WildcardType) { // Handle wildcards (like ? extends Number)
+            WildcardType wildcard = (WildcardType) type;
+            Type[] lowerBounds = wildcard.getLowerBounds();
+            return lowerBounds.length > 0
+                    ? "-" + bsh.org.objectweb.asm.Type.getDescriptor((Class<?>) lowerBounds[0])
+                    : "+" + bsh.org.objectweb.asm.Type.getDescriptor((Class<?>) wildcard.getUpperBounds()[0]);
+        }
+
+        throw new IllegalArgumentException("Can't get the signature of this type because its Class is unknown: " + (type != null ? type.getClass() : null));
+    }
+
+    // TODO: testes com enums, interfaces e classes
+    public static String getASMClassSignature(TypeVariable<?>[] types, Type superClass, Type ...interfaces) {
+        StringBuilder signature = new StringBuilder();
+
+        // 1. Extract type parameters (generics)
+        if (types.length != 0) {
+            signature.append("<");
+            for (TypeVariable<?> typeParam : types) {
+                signature.append(typeParam.getName()); // Add the type variable (e.g.: "T")
+
+                for (Type bound : typeParam.getBounds()) // Add the bound of the type variable (e.g.: 'extends Number' => ":Ljava/lang/Number;")
+                    signature.append(":").append(getASMSignature(bound));
+            }
+            signature.append(">");
+        }
+
+        // 2. Add the superclass in the signature
+        signature.append(getASMSignature(superClass)); // All wrapper classes doesn't have a superclass, thus extends Object
+
+        // 3. Add interfaces in the signature
+        for (Type interface_: interfaces) signature.append(getASMSignature(interface_));
+
+        return signature.toString();
+    }
+
+    // TODO: testes com vários métodos
+    public static String getASMMethodSignature(Method method) {
+        return getASMMethodSignature(method.getTypeParameters(), method.getGenericParameterTypes(), method.getGenericReturnType(), method.getGenericExceptionTypes());
+    }
+
+    public static String getASMMethodSignature(TypeVariable<?>[] types, Type[] params, Type returnType, Type[] exceptions) {
+        StringBuilder signature = new StringBuilder();
+
+        // 1. Handle generic type parameters (if any)
+        if (types.length > 0) {
+            signature.append("<");
+            for (TypeVariable<?> typeParam : types) {
+                signature.append(typeParam.getName()); // Add type variable (e.g., "T")
+                for (Type bound : typeParam.getBounds())
+                    signature.append(":").append(getASMSignature(bound)); // Add the bound
+            }
+            signature.append(">");
+        }
+
+        // 2. Add the method parameter types
+        signature.append("(");
+        for (Type param : params) signature.append(getASMSignature(param));
+        signature.append(")");
+
+        // 3. Add the return type
+        signature.append(getASMSignature(returnType));
+
+        // 4. Add the exception types (if any)
+        for (Type exceptionType : exceptions) signature.append("^").append(getASMSignature(exceptionType));
+
+        return signature.toString();
+    }
+
+    // if (type instanceof ParameterizedType) { // Handle parameterized types (like List<T>)
+    //     ParameterizedType paramType = (ParameterizedType) type;
+    //     StringBuilder paramSignature = new StringBuilder();
+    //     paramSignature.append("L" + bsh.org.objectweb.asm.Type.getInternalName((Class<?>) paramType.getRawType())); // Base type
+    //     paramSignature.append("<");
+    //     for (Type arg : paramType.getActualTypeArguments()) {
+    //         paramSignature.append(getASMSignature(arg));
+    //     }
+    //     paramSignature.append(">;");
+    //     return paramSignature.toString();
+    // }
+
+    // // if (type instanceof TypeVariable<?>) // Handle type variables (like T or R)
+    // //     return "T" + ((TypeVariable<?>) type).getName() + ";";
+    // public static TypeVariable<?> createTypeVariable(String name, Type[] bounds) {
+    //     // TODO: see it!
+    //     // bounds = bounds == null || bounds.length == 0 ? new Type[] { Object.class } : bounds;
+
+    //     return new TypeVariable<GenericDeclaration>() {
+    //         public String getName() { return name; }
+    //         public <T extends Annotation> T getAnnotation(Class<T> annotationClass) { return null; }
+    //         public Annotation[] getAnnotations() { return new Annotation[0]; }
+    //         public Annotation[] getDeclaredAnnotations() { return new Annotation[0]; }
+    //         public AnnotatedType[] getAnnotatedBounds() { throw new UnsupportedOperationException("Unimplemented method 'getAnnotatedBounds'"); }
+    //         public Type[] getBounds() { return bounds; }
+    //         public GenericDeclaration getGenericDeclaration() { throw new UnsupportedOperationException("Unimplemented method 'getGenericDeclaration'"); };
+    //     };
+    // }
+    public static ParameterizedType createParameterizedType(Type rawType, Type[] typeArguments) {
+        return new ParameterizedType() {
+            public Type[] getActualTypeArguments() { return typeArguments; }
+            public Type getRawType() { return rawType; }
+            public Type getOwnerType() { return null; }
+        };
+    }
+
+    // if (type instanceof WildcardType) { // Handle wildcards (like ? extends Number)
+    //     WildcardType wildcard = (WildcardType) type;
+    //     Type[] lowerBounds = wildcard.getLowerBounds();
+    //     return lowerBounds.length > 0
+    //             ? "-" + bsh.org.objectweb.asm.Type.getDescriptor((Class<?>) lowerBounds[0])
+    //             : "+" + bsh.org.objectweb.asm.Type.getDescriptor((Class<?>) wildcard.getUpperBounds()[0]);
+    // }
+
 }
