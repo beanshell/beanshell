@@ -1,4 +1,4 @@
-package bsh;
+package bsh.security;
 
 import java.io.File;
 import java.util.List;
@@ -8,6 +8,11 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import bsh.EvalError;
+import bsh.FilteredTestRunner;
+import bsh.Interpreter;
+import bsh.TestUtil;
 
 @RunWith(FilteredTestRunner.class)
 public class SecurityGuardTest {
@@ -912,12 +917,12 @@ public class SecurityGuardTest {
     public void cant_use_security_guard_API_1st() {
         try {
             TestUtil.eval(
-                "import bsh.SecurityGuard;",
+                "import bsh.security.SecurityGuard;",
                 "class MySecuryGuard implements SecurityGuard {}"
             );
             Assert.fail("The code must throw an Exception!");
         } catch (Exception ex) {
-            final String expectedMsg = "SecurityError: This interface can't be implemented: bsh.SecurityGuard";
+            final String expectedMsg = "SecurityError: This interface can't be implemented: bsh.security.SecurityGuard";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
         }
     }
@@ -940,12 +945,12 @@ public class SecurityGuardTest {
     public void cant_use_security_guard_API_3rd() {
         try {
             TestUtil.eval(
-                "import bsh.MainSecurityGuard;",
+                "import bsh.security.MainSecurityGuard;",
                 "new MainSecurityGuard().add(new java.util.HashMap());"
             );
             Assert.fail("The code must throw an Exception!");
         } catch (Exception ex) {
-            final String expectedMsg = "SecurityError: Can't invoke this method: bsh.MainSecurityGuard.add(java.util.HashMap)";
+            final String expectedMsg = "SecurityError: Can't invoke this method: bsh.security.MainSecurityGuard.add(java.util.HashMap)";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
         }
     }

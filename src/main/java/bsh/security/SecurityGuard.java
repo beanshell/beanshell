@@ -1,4 +1,4 @@
-package bsh;
+package bsh.security;
 
 /** It's the interface to implement a single SecurityGuard to be used by MainSecurityGuard */
 public interface SecurityGuard {

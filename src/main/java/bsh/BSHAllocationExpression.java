@@ -33,6 +33,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.concurrent.CompletionException;
 
+import bsh.security.SecurityError;
+
 /**
     New object, new array, or inner class style allocation with body.
 */

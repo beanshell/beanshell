@@ -448,4 +448,18 @@ public class TypesTest {
         Assert.assertEquals("int[][][][][][][]", Types.prettyName(new int[3][4][5][6][7][8][9].getClass()));
     }
 
+    /** Test {@link Types#prettyName(Class)} with an null value */
+    @Test
+    public void pretty_name_of_null() {
+        Assert.assertEquals("null", Types.prettyName(null));
+    }
+
+    /** Test {@link Types#prettyNames(Class[])} */
+    @Test
+    public void pretty_names() {
+        Class<?>[] classes = { byte.class, Object[].class, int[][][][][][][].class, null };
+        String[] expectedNames = { "byte", "java.lang.Object[]" , "int[][][][][][][]", "null" };
+        Assert.assertArrayEquals(expectedNames, Types.prettyNames(classes));
+    }
+
 }
