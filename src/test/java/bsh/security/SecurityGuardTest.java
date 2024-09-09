@@ -17,6 +17,8 @@ import bsh.TestUtil;
 @RunWith(FilteredTestRunner.class)
 public class SecurityGuardTest {
 
+    public static class MySecurityGuard implements SecurityGuard {}
+
     /**
      * It's an empty implementation of SecurityGuard, so it basically does nothing.
      * It's just to make the default implementations of the methods be covedered by tests, in another words, it's just to increase the code coverage.
@@ -944,13 +946,40 @@ public class SecurityGuardTest {
     @Test
     public void cant_use_security_guard_API_3rd() {
         try {
-            TestUtil.eval(
-                "import bsh.security.MainSecurityGuard;",
-                "new MainSecurityGuard().add(new java.util.HashMap());"
-            );
+            Interpreter bsh = new Interpreter();
+            bsh.set("mainSG", new MainSecurityGuard());
+            bsh.eval("mainSG.add(new java.util.HashMap());");
             Assert.fail("The code must throw an Exception!");
         } catch (Exception ex) {
             final String expectedMsg = "SecurityError: Can't invoke this method: bsh.security.MainSecurityGuard.add(java.util.HashMap)";
+            Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
+        }
+    }
+
+    @Test
+    public void cant_instantiate_main_security_guard() {
+        try {
+            TestUtil.eval(
+                "import bsh.security.MainSecurityGuard;",
+                "new MainSecurityGuard();"
+            );
+            Assert.fail("The code must throw an Exception!");
+        } catch (Exception ex) {
+            final String expectedMsg = "SecurityError: Can't call this construct: new bsh.security.MainSecurityGuard()";
+            Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
+        }
+    }
+
+    @Test
+    public void cant_instantiate_security_guard() {
+        try {
+            TestUtil.eval(
+                "import bsh.security.SecurityGuardTest.MySecurityGuard;",
+                "new MySecurityGuard();"
+            );
+            Assert.fail("The code must throw an Exception!");
+        } catch (Exception ex) {
+            final String expectedMsg = "SecurityError: Can't call this construct: new bsh.security.SecurityGuardTest$MySecurityGuard()";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
         }
     }

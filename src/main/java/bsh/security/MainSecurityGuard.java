@@ -209,6 +209,12 @@ public final class MainSecurityGuard {
     /** It prevents the execution of codes that manipulate the SecurityGuard or MainSecurityGuard */
     private class BasicSecurityGuard implements SecurityGuard {
 
+        public boolean canConstruct(Class<?> _class, Object[] args) {
+            if (MainSecurityGuard.class.isAssignableFrom(_class)) return false;
+            if (SecurityGuard.class.isAssignableFrom(_class)) return false;
+            return true;
+        }
+
         public boolean canInvokeMethod(Object thisArg, String methodName, Object[] args) {
             return !(thisArg instanceof MainSecurityGuard);
         }

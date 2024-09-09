@@ -10,11 +10,14 @@ import org.junit.runner.RunWith;
 import bsh.FilteredTestRunner;
 import bsh.Interpreter;
 import bsh.TestUtil;
+import bsh.security.MainSecurityGuard;
 import bsh.security.SecurityGuard;
 
 // Note: this class has almost all tests from bsh.security.SecurityGuardTest, the idea of this class is to ensure that we won't have package visibility issues again!
 @RunWith(FilteredTestRunner.class)
 public class SimpleSecurityGuardTest {
+
+    public static class MySecurityGuard implements SecurityGuard {}
 
     /**
      * It's an empty implementation of SecurityGuard, so it basically does nothing.
@@ -943,13 +946,26 @@ public class SimpleSecurityGuardTest {
     @Test
     public void cant_use_security_guard_API_3rd() {
         try {
-            TestUtil.eval(
-                "import bsh.security.MainSecurityGuard;",
-                "new MainSecurityGuard().add(new java.util.HashMap());"
-            );
+            Interpreter bsh = new Interpreter();
+            bsh.set("mainSG", new MainSecurityGuard());
+            bsh.eval("mainSG.add(new java.util.HashMap());");
             Assert.fail("The code must throw an Exception!");
         } catch (Exception ex) {
             final String expectedMsg = "SecurityError: Can't invoke this method: bsh.security.MainSecurityGuard.add(java.util.HashMap)";
+            Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
+        }
+    }
+
+    @Test
+    public void cant_instantiate_security_guard() {
+        try {
+            TestUtil.eval(
+                "import SimpleSecurityGuardTest.MySecurityGuard;",
+                "new MySecurityGuard();"
+            );
+            Assert.fail("The code must throw an Exception!");
+        } catch (Exception ex) {
+            final String expectedMsg = "SecurityError: Can't call this construct: new SimpleSecurityGuardTest$MySecurityGuard()";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
         }
     }

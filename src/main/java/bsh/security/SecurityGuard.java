@@ -32,6 +32,8 @@ public interface SecurityGuard {
         return true;
     }
 
+    // TODO: implement a 'canSetField' and 'canSetStaticField'
+
     /** Validate and return if can get a field of a specific object */
     public default boolean canGetField(Object thisArg, String fieldName) {
         return true;
