@@ -889,7 +889,7 @@ public class SimpleSecurityGuardTest {
             TestUtil.eval("class MyClass extends java.io.File { }");
             Assert.fail("The code must throw an Exception!");
         } catch (Exception ex) {
-            final String expectedMsg = "SecurityError: This class can't be extended: java.io.File";
+            final String expectedMsg = "SecurityError: Can't extend this class: java.io.File";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
         }
     }
@@ -910,7 +910,7 @@ public class SimpleSecurityGuardTest {
             TestUtil.eval("class MyClass implements java.util.List { }");
             Assert.fail("The code must throw an Exception!");
         } catch (Exception ex) {
-            final String expectedMsg = "SecurityError: This interface can't be implemented: java.util.List";
+            final String expectedMsg = "SecurityError: Can't implement this interface: java.util.List";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
         }
     }
@@ -924,7 +924,7 @@ public class SimpleSecurityGuardTest {
             );
             Assert.fail("The code must throw an Exception!");
         } catch (Exception ex) {
-            final String expectedMsg = "SecurityError: This interface can't be implemented: bsh.security.SecurityGuard";
+            final String expectedMsg = "SecurityError: Can't implement this interface: bsh.security.SecurityGuard";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
         }
     }

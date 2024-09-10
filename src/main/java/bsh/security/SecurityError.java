@@ -112,13 +112,13 @@ public class SecurityError extends UtilEvalError {
 
     /** Create a error for when a class can't extends another class */
     static SecurityError cantExtends(Class<?> superClass) {
-        String msg = String.format("This class can't be extended: %s", superClass.getName());
+        String msg = String.format("Can't extend this class: %s", superClass.getName());
         return new SecurityError(msg);
     }
 
     /** Create a error for when a class can't implements an interface */
     static SecurityError cantImplements(Class<?> _interface) {
-        String msg = String.format("This interface can't be implemented: %s", _interface.getName());
+        String msg = String.format("Can't implement this interface: %s", _interface.getName());
         return new SecurityError(msg);
     }
 
