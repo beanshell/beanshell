@@ -170,14 +170,6 @@ public final class MainSecurityGuard {
                 throw SecurityError.cantInvokeLocalMethod(methodName, _args);
     }
 
-    /** Validate if can call a method of super class */
-    public void canInvokeSuperMethod(Class<?> superClass, Object thisArg, String methodName, Object[] args) throws SecurityError {
-        final Object[] _args = Primitive.unwrap(args);
-        for (SecurityGuard guard: this.securityGuards)
-            if (!guard.canInvokeSuperMethod(superClass, thisArg, methodName, _args))
-                throw SecurityError.cantInvokeSuperMethod(superClass, methodName, _args);
-    }
-
     /** Validate if can get a field of a specific object */
     public void canGetField(Object thisArg, String fieldName) throws SecurityError {
         for (SecurityGuard guard: this.securityGuards)

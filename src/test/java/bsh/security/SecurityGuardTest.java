@@ -45,10 +45,6 @@ public class SecurityGuardTest {
             if (methodName.equals("eval")) return false;
             return true;
         }
-        public boolean canInvokeSuperMethod(Class<?> superClass, Object thisArg, String methodName, Object[] args) {
-            if (methodName.equals("method")) return false;
-            return true;
-        }
         public boolean canGetField(Object thisArg, String fieldName) {
             if (fieldName.equals("nums2")) return false;
             return true;
@@ -672,13 +668,13 @@ public class SecurityGuardTest {
     public void cant_invoke_super_method() {
         try {
             TestUtil.eval(
-                "class Cls1 { int method() { return 1; } };",
-                "class Cls2 extends Cls1 { int method2() { return super.method(); } };",
-                "new Cls2().method2();"
+                "class Cls1 { int someMethod() { return 1; } };",
+                "class Cls2 extends Cls1 { int method() { return super.someMethod(); } };",
+                "new Cls2().method();"
             );
             Assert.fail("The code must throw an Exception!");
         } catch (Exception ex) {
-            final String expectedMsg = "SecurityError: Can't invoke this super method: Cls1.method()";
+            final String expectedMsg = "SecurityError: Can't invoke this method: Cls2.someMethod()";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
         }
     }
