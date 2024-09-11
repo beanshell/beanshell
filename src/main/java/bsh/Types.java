@@ -789,10 +789,22 @@ class Types {
      * </pre>
      */
     public static String prettyName(Class<?> clas) {
+        if (clas == null) return "null";
         if (!clas.isArray()) return clas.getName();
 
         // Return a string like "int[]", "double[]", "double[][]", etc...
         Class<?> arrayType = clas.getComponentType();
         return prettyName(arrayType) + "[]";
+    }
+
+    /**
+     * Just a method to return the pretty names of some Classes
+     * @see Types#prettyName(Class)
+     */
+    public static String[] prettyNames(Class<?>[] classes) {
+        String[] prettyNames = new String[classes.length];
+        for (int i = 0; i < classes.length; i++)
+            prettyNames[i] = prettyName(classes[i]);
+        return prettyNames;
     }
 }

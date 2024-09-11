@@ -1,4 +1,4 @@
-package bsh;
+package bsh.security;
 
 /** It's the interface to implement a single SecurityGuard to be used by MainSecurityGuard */
 public interface SecurityGuard {
@@ -27,10 +27,7 @@ public interface SecurityGuard {
         return true;
     }
 
-    /** Validate and return if can call a method of super class */
-    public default boolean canInvokeSuperMethod(Class<?> superClass, Object thisArg, String methodName, Object[] args) {
-        return true;
-    }
+    // TODO: implement a 'canSetField' and 'canSetStaticField'
 
     /** Validate and return if can get a field of a specific object */
     public default boolean canGetField(Object thisArg, String fieldName) {

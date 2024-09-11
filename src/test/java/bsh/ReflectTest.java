@@ -3,6 +3,7 @@ package bsh;
 
 import static bsh.TestUtil.eval;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -717,5 +718,37 @@ public class ReflectTest {
         //     {Double.TYPE}, {char[].class}, {Boolean.TYPE}
         // });
         // assertEquals("most specific char[] class", 1, value);
+    }
+
+    /** Test {@link Reflect#prettyName(Class)} with primitive Class<?>, e.g.: <b>byte</b>, <b>int</b>, <b>char</b>, etc... */
+    @Test
+    public void pretty_name_of_primitive() {
+        Assert.assertEquals("byte", Reflect.prettyName(byte.class));
+    }
+
+    /** Test {@link Reflect#prettyName(Class)} with an array Class<?>, e.g.: <b>java.lang.Object[]</b> */
+    @Test
+    public void pretty_name_of_array() {
+        Assert.assertEquals("java.lang.Object[]", Reflect.prettyName(new Object[3].getClass()));
+    }
+
+    /** Test {@link Reflect#prettyName(Class)} with an matrix Class<?>, e.g.: <b>java.lang.Object[][][][][]</b> */
+    @Test
+    public void pretty_name_of_matrix() {
+        Assert.assertEquals("int[][][][][][][]", Reflect.prettyName(new int[3][4][5][6][7][8][9].getClass()));
+    }
+
+    /** Test {@link Reflect#prettyName(Class)} with an null value */
+    @Test
+    public void pretty_name_of_null() {
+        Assert.assertEquals("null", Reflect.prettyName(null));
+    }
+
+    /** Test {@link Reflect#prettyNames(Class[])} */
+    @Test
+    public void pretty_names() {
+        Class<?>[] classes = { byte.class, Object[].class, int[][][][][][][].class, null };
+        String[] expectedNames = { "byte", "java.lang.Object[]" , "int[][][][][][][]", "null" };
+        Assert.assertArrayEquals(expectedNames, Reflect.prettyNames(classes));
     }
 }

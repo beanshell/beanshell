@@ -812,8 +812,8 @@ class Name implements java.io.Serializable
                 Object instance = classNameSpace.getClassInstance();
                 Class<?> classStatic = classNameSpace.classStatic;
 
-                // Validate if can invoke this super method
-                Interpreter.mainSecurityGuard.canInvokeSuperMethod(instance.getClass().getSuperclass(), instance, methodName, args);
+                // Validate if can invoke this method
+                Interpreter.mainSecurityGuard.canInvokeMethod(instance, methodName, args);
 
                 return ClassGenerator.getClassGenerator()
                     .invokeSuperclassMethod( bcm, instance, classStatic, methodName, args );

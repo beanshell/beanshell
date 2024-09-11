@@ -1,4 +1,4 @@
-package bsh;
+package bsh.security;
 
 import java.io.File;
 import java.util.List;
@@ -9,8 +9,15 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import bsh.EvalError;
+import bsh.FilteredTestRunner;
+import bsh.Interpreter;
+import bsh.TestUtil;
+
 @RunWith(FilteredTestRunner.class)
 public class SecurityGuardTest {
+
+    public static class MySecurityGuard implements SecurityGuard {}
 
     /**
      * It's an empty implementation of SecurityGuard, so it basically does nothing.
@@ -36,10 +43,6 @@ public class SecurityGuardTest {
         }
         public boolean canInvokeLocalMethod(String methodName, Object[] args) {
             if (methodName.equals("eval")) return false;
-            return true;
-        }
-        public boolean canInvokeSuperMethod(Class<?> superClass, Object thisArg, String methodName, Object[] args) {
-            if (methodName.equals("method")) return false;
             return true;
         }
         public boolean canGetField(Object thisArg, String fieldName) {
@@ -665,13 +668,13 @@ public class SecurityGuardTest {
     public void cant_invoke_super_method() {
         try {
             TestUtil.eval(
-                "class Cls1 { int method() { return 1; } };",
-                "class Cls2 extends Cls1 { int method2() { return super.method(); } };",
-                "new Cls2().method2();"
+                "class Cls1 { int someMethod() { return 1; } };",
+                "class Cls2 extends Cls1 { int method() { return super.someMethod(); } };",
+                "new Cls2().method();"
             );
             Assert.fail("The code must throw an Exception!");
         } catch (Exception ex) {
-            final String expectedMsg = "SecurityError: Can't invoke this super method: Cls1.method()";
+            final String expectedMsg = "SecurityError: Can't invoke this method: Cls2.someMethod()";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
         }
     }
@@ -882,7 +885,7 @@ public class SecurityGuardTest {
             TestUtil.eval("class MyClass extends java.io.File { }");
             Assert.fail("The code must throw an Exception!");
         } catch (Exception ex) {
-            final String expectedMsg = "SecurityError: This class can't be extended: java.io.File";
+            final String expectedMsg = "SecurityError: Can't extend this class: java.io.File";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
         }
     }
@@ -903,7 +906,7 @@ public class SecurityGuardTest {
             TestUtil.eval("class MyClass implements java.util.List { }");
             Assert.fail("The code must throw an Exception!");
         } catch (Exception ex) {
-            final String expectedMsg = "SecurityError: This interface can't be implemented: java.util.List";
+            final String expectedMsg = "SecurityError: Can't implement this interface: java.util.List";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
         }
     }
@@ -912,12 +915,12 @@ public class SecurityGuardTest {
     public void cant_use_security_guard_API_1st() {
         try {
             TestUtil.eval(
-                "import bsh.SecurityGuard;",
+                "import bsh.security.SecurityGuard;",
                 "class MySecuryGuard implements SecurityGuard {}"
             );
             Assert.fail("The code must throw an Exception!");
         } catch (Exception ex) {
-            final String expectedMsg = "SecurityError: This interface can't be implemented: bsh.SecurityGuard";
+            final String expectedMsg = "SecurityError: Can't implement this interface: bsh.security.SecurityGuard";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
         }
     }
@@ -939,13 +942,40 @@ public class SecurityGuardTest {
     @Test
     public void cant_use_security_guard_API_3rd() {
         try {
+            Interpreter bsh = new Interpreter();
+            bsh.set("mainSG", new MainSecurityGuard());
+            bsh.eval("mainSG.add(new java.util.HashMap());");
+            Assert.fail("The code must throw an Exception!");
+        } catch (Exception ex) {
+            final String expectedMsg = "SecurityError: Can't invoke this method: bsh.security.MainSecurityGuard.add(java.util.HashMap)";
+            Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
+        }
+    }
+
+    @Test
+    public void cant_instantiate_main_security_guard() {
+        try {
             TestUtil.eval(
-                "import bsh.MainSecurityGuard;",
-                "new MainSecurityGuard().add(new java.util.HashMap());"
+                "import bsh.security.MainSecurityGuard;",
+                "new MainSecurityGuard();"
             );
             Assert.fail("The code must throw an Exception!");
         } catch (Exception ex) {
-            final String expectedMsg = "SecurityError: Can't invoke this method: bsh.MainSecurityGuard.add(java.util.HashMap)";
+            final String expectedMsg = "SecurityError: Can't call this construct: new bsh.security.MainSecurityGuard()";
+            Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
+        }
+    }
+
+    @Test
+    public void cant_instantiate_security_guard() {
+        try {
+            TestUtil.eval(
+                "import bsh.security.SecurityGuardTest.MySecurityGuard;",
+                "new MySecurityGuard();"
+            );
+            Assert.fail("The code must throw an Exception!");
+        } catch (Exception ex) {
+            final String expectedMsg = "SecurityError: Can't call this construct: new bsh.security.SecurityGuardTest$MySecurityGuard()";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
         }
     }

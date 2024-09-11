@@ -1297,4 +1297,43 @@ public final class Reflect {
         .filter(Objects::nonNull)
         .toArray(len -> (T[]) Array.newInstance(enm, len));
     }
+
+    /** Find the type of an object. */
+    public static Class<?> getType(Object arg) {
+        return Types.getType(arg);
+    }
+
+    /** Find the types of some objects. */
+    public static Class<?>[] getTypes(Object ...args) {
+        return Types.getTypes(args);
+    }
+
+    /**
+     * Just a method to return the pretty name of any Class
+     *
+     * <pre>
+     * prettyName(String.class)
+     *  returns "java.lang.String"
+     * prettyName(byte.class)
+     *  returns "byte"
+     * prettyName((new Object[3]).getClass())
+     *  returns "java.lang.Object[];"
+     * prettyName((new int[3][4][5][6][7][8][9]).getClass())
+     *  returns "int[][][][][][][]"
+     * </pre>
+     */
+    public static String prettyName(Class<?> clas) {
+        return Types.prettyName(clas);
+    }
+
+    /**
+     * Just a method to return the pretty names of some Classes
+     * @see Reflect#prettyName(Class)
+     */
+    public static String[] prettyNames(Class<?>[] classes) {
+        String[] prettyNames = new String[classes.length];
+        for (int i = 0; i < classes.length; i++)
+            prettyNames[i] = prettyName(classes[i]);
+        return prettyNames;
+    }
 }
