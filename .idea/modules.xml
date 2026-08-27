@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/beanshell.iml" filepath="$PROJECT_DIR$/.idea/beanshell.iml" />
+      <module fileurl="file://$PROJECT_DIR$/bsh-bsf-engine/src/main/main.iml" filepath="$PROJECT_DIR$/bsh-bsf-engine/src/main/main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/src/main/main2.iml" filepath="$PROJECT_DIR$/src/main/main2.iml" />
+      <module fileurl="file://$PROJECT_DIR$/src/test/resources/resources.iml" filepath="$PROJECT_DIR$/src/test/resources/resources.iml" />
+      <module fileurl="file://$PROJECT_DIR$/src/test/test.iml" filepath="$PROJECT_DIR$/src/test/test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/bsh-bsf-engine/src/test/test2.iml" filepath="$PROJECT_DIR$/bsh-bsf-engine/src/test/test2.iml" />
+    </modules>
+  </component>
+</project>

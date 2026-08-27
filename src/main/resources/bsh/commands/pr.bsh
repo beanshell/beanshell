@@ -1,0 +1,43 @@
+/**
+    BeanShell command to manage GitHub Pull Requests.
+
+    Usage:
+        pr();             // List PRs with CI status
+        pr("list");       // List PRs with CI status
+        pr("show", id);   // Show detailed PR metadata and changed files
+        pr("diff", id);   // View diff between PR and master
+        pr("test", id);   // Checkout PR and run 'mvn test'
+        pr("checkout", id); // Checkout PR branch
+        pr("merge", id);    // Merge PR locally
+*/
+
+pr() {
+    pr("list", null);
+}
+
+pr(String cmd) {
+    pr(cmd, null);
+}
+
+pr(String cmd, String id) {
+    String scriptPath = pathToFile("scripts/gh_pr.sh").getAbsolutePath();
+    String[] command;
+
+    if (id == null) {
+        command = new String[] { "/bin/bash", scriptPath, cmd };
+    } else {
+        command = new String[] { "/bin/bash", scriptPath, cmd, id };
+    }
+
+    try {
+        Process p = Runtime.getRuntime().exec(command);
+        BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        String line;
+        while ((line = in.readLine()) != null) {
+            print(line);
+        }
+        p.waitFor();
+    } catch (Exception e) {
+        error("Error executing PR command: " + e.getMessage());
+    }
+}
