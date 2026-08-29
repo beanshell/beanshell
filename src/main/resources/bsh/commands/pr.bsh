@@ -30,13 +30,18 @@ pr(String cmd, String id) {
     }
 
     try {
-        Process p = Runtime.getRuntime().exec(command);
+        ProcessBuilder pb = new ProcessBuilder(command);
+        pb.redirectErrorStream(true);
+        Process p = pb.start();
         BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
         String line;
         while ((line = in.readLine()) != null) {
             print(line);
         }
-        p.waitFor();
+        int exitCode = p.waitFor();
+        if (exitCode != 0) {
+            error("PR command failed with exit code " + exitCode);
+        }
     } catch (Exception e) {
         error("Error executing PR command: " + e.getMessage());
     }

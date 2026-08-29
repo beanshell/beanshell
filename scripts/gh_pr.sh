@@ -25,9 +25,15 @@ function list_prs() {
         user=$(echo "$line" | cut -f2)
         title=$(echo "$line" | cut -f3)
 
-        # Get CI status (simplified to last check-run)
+        # Get CI status (aggregated from check-runs)
         local status_json=$(curl -s "$API_URL/commits/pull/$id/head/check-runs")
-        local conclusion=$(echo "$status_json" | jq -r '.check_runs[0].conclusion // "pending"')
+        local conclusions=$(echo "$status_json" | jq -r '.check_runs[].conclusion')
+        local conclusion="success"
+        if echo "$conclusions" | grep -q "failure"; then
+            conclusion="failure"
+        elif [ -z "$conclusions" ] || echo "$conclusions" | grep -qE "pending|null"; then
+            conclusion="pending"
+        fi
 
         case "$conclusion" in
             success) status_icon="${GREEN}●${NC}" ;;
@@ -73,8 +79,9 @@ function diff_pr() {
     fi
 
     echo -e "${BOLD}Fetching diff for PR #$pr_id...${NC}"
-    git fetch origin pull/$pr_id/head > /dev/null 2>&1
-    git diff master...FETCH_HEAD
+    git fetch origin master > /dev/null 2>&1 || { echo -e "${RED}Error: Failed to fetch master.${NC}"; exit 1; }
+    git fetch origin pull/$pr_id/head > /dev/null 2>&1 || { echo -e "${RED}Error: Failed to fetch PR head.${NC}"; exit 1; }
+    git diff origin/master...FETCH_HEAD
 }
 
 function checkout_pr() {
@@ -84,8 +91,8 @@ function checkout_pr() {
         exit 1
     fi
     echo -e "${BOLD}Checking out PR #$pr_id...${NC}"
-    git fetch origin pull/$pr_id/head:pr-$pr_id
-    git checkout pr-$pr_id
+    git fetch origin pull/$pr_id/head:pr-$pr_id || { echo -e "${RED}Error: Failed to fetch PR.${NC}"; exit 1; }
+    git checkout pr-$pr_id || { echo -e "${RED}Error: Failed to checkout PR branch.${NC}"; exit 1; }
 }
 
 function test_pr() {
@@ -95,17 +102,22 @@ function test_pr() {
         exit 1
     fi
 
+    local original_state=$(git rev-parse HEAD)
     local original_branch=$(git rev-parse --abbrev-ref HEAD)
 
     echo -e "${BOLD}Testing PR #$pr_id...${NC}"
-    git fetch origin pull/$pr_id/head > /dev/null 2>&1
-    git checkout FETCH_HEAD --detach > /dev/null 2>&1
+    git fetch origin pull/$pr_id/head > /dev/null 2>&1 || { echo -e "${RED}Error: Failed to fetch PR.${NC}"; exit 1; }
+    git checkout FETCH_HEAD --detach > /dev/null 2>&1 || { echo -e "${RED}Error: Failed to checkout PR.${NC}"; exit 1; }
 
     echo -e "${YELLOW}Running Maven tests...${NC}"
     mvn test
     local result=$?
 
-    git checkout "$original_branch" > /dev/null 2>&1
+    if [ "$original_branch" = "HEAD" ]; then
+        git checkout "$original_state" --detach > /dev/null 2>&1
+    else
+        git checkout "$original_branch" > /dev/null 2>&1
+    fi
 
     if [ $result -eq 0 ]; then
         echo -e "${GREEN}Tests PASSED for PR #$pr_id${NC}"
@@ -130,7 +142,7 @@ function merge_pr() {
         exit 1
     fi
 
-    git fetch origin pull/$pr_id/head
+    git fetch origin pull/$pr_id/head || { echo -e "${RED}Error: Failed to fetch PR.${NC}"; exit 1; }
     git merge FETCH_HEAD -m "Merge pull request #$pr_id from GitHub"
 }
 
