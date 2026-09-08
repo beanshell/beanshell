@@ -40,7 +40,7 @@ The development branch is the master, and it is currently recommended that you u
 $ mvn install
 ```
 
-BeanShell requires at least JDK 8 but will also work with LTS versions; Java 11, Java 17, and Java 21.
+BeanShell needs JDK 8 or newer. CI builds and tests use Java 8, 11, 17, 21, and 25.
 
 The source code releases can be downloaded from [GitHub releases](https://github.com/beanshell/beanshell/releases)
 
