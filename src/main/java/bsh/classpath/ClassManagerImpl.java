@@ -235,6 +235,9 @@ public class ClassManagerImpl extends BshClassManager
             }
         }
 
+        if (c == null)
+            c = classForCommandName(name);
+
         // try plain class forName()
         if ( c == null )
             try {
@@ -607,6 +610,7 @@ public class ClassManagerImpl extends BshClassManager
     @Override
     protected void classLoaderChanged() {
         clearCaches();
+        super.classLoaderChanged();
         List<WeakReference<Listener>> toRemove = new ArrayList<>(); // safely remove
         for (WeakReference<Listener> wr : listeners) {
             Listener l = wr.get();

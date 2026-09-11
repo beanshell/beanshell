@@ -878,9 +878,11 @@ public class NameSpace
             Interpreter.debug("searching for script: " + scriptPath);
             URL url = bcm.getResource(scriptPath);
             if (null != url) try {
-                return this.loadScriptedCommand((InputStream) url.getContent(),
+                return this.loadScriptedCommand(url.openStream(),
                     name, argTypes, scriptPath, interpreter);
-            } catch (IOException e) { /* ignore */ }
+            } catch (IOException e) {
+                Interpreter.debug("Cannot load command ", scriptPath, ": ", e);
+            }
             // Chop leading "/" and change "/" to "."
             String className;
             if (path.equals("/"))
@@ -895,8 +897,7 @@ public class NameSpace
         }
         if (this.parent != null)
             return this.parent.getCommand(name, argTypes, interpreter);
-        else
-            return null;
+        return bcm.getOptionalCommand(name, argTypes, this, interpreter);
     }
 
     /** Gets the imported method.
@@ -975,7 +976,7 @@ public class NameSpace
      *         is not found after parsing the script. If we want to support
      *         multiple commands in the command path we need to change this to
      *         not throw the exception. */
-    private BshMethod loadScriptedCommand(final InputStream in,
+    BshMethod loadScriptedCommand(final InputStream in,
             final String name, final Class<?>[] argTypes,
             final String resourcePath, final Interpreter interpreter)
             throws UtilEvalError {

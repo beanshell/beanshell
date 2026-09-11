@@ -415,6 +415,9 @@ public class BshClassManager {
             clas = plainClassForName( name );
         } catch ( ClassNotFoundException e ) { /*ignore*/ }
 
+        if (clas == null)
+            clas = classForCommandName(name);
+
         // try scripted class
         if ( clas == null && declaringInterpreter.getCompatibility() )
             clas = loadSourceClass( name );
@@ -429,7 +432,7 @@ public class BshClassManager {
         if ( url == null )
             return null;
         try (FileReader reader
-                = new FileReader((InputStream) url.getContent())) {
+                = new FileReader(url.openStream())) {
             Interpreter.debug("Loading class from source file: " + fileName);
             declaringInterpreter.eval( reader );
         } catch ( IOException | EvalError e ) {
@@ -482,8 +485,10 @@ public class BshClassManager {
             // classloader wants no leading slash
             url = externalClassLoader.getResource( path.substring(1) );
         if ( url == null )
-            return Interpreter.class.getResource( path );
-
+            url = Interpreter.class.getResource( path );
+        CommandProviders providers = commandProviders;
+        if (url == null && providers != null)
+            url = providers.getResource(path);
         return url;
     }
     /**
@@ -496,8 +501,16 @@ public class BshClassManager {
             // classloader wants no leading slash
             in = externalClassLoader.getResourceAsStream( path.substring(1) );
         if ( in == null )
-            return Interpreter.class.getResourceAsStream( path );
-
+            in = Interpreter.class.getResourceAsStream( path );
+        CommandProviders providers = commandProviders;
+        if (in == null && providers != null) {
+            URL url = providers.getResource(path);
+            if (url != null) try {
+                in = url.openStream();
+            } catch (IOException e) {
+                Interpreter.debug("Cannot load command resource: ", e);
+            }
+        }
         return (InputStream) in;
     }
 
@@ -650,7 +663,39 @@ public class BshClassManager {
             +") without class manager package.");
     }
 
-    protected void classLoaderChanged() { }
+    protected void classLoaderChanged() {
+        commandProviders = null;
+        absoluteNonClasses.clear();
+        absoluteClassCache.clear();
+    }
+
+    private transient volatile CommandProviders commandProviders;
+
+    synchronized Object getOptionalCommand(String name, Class<?>[] argTypes,
+            NameSpace namespace, Interpreter interpreter) throws UtilEvalError {
+        ClassLoader context = Thread.currentThread().getContextClassLoader();
+        if (commandProviders == null || commandProviders.contextLoader != context) {
+            commandProviders = new CommandProviders(externalClassLoader, context);
+            absoluteNonClasses.clear();
+        }
+        Object command = commandProviders.find(name);
+        if (command instanceof URL) {
+            URL url = (URL) command;
+            try {
+                return namespace.loadScriptedCommand(url.openStream(), name,
+                        argTypes, url.toExternalForm(), interpreter);
+            } catch (IOException e) {
+                throw new UtilEvalError("Cannot load optional command " + name, e);
+            }
+        }
+        return command;
+    }
+
+    /** Resolve implementation types used by discovered command libraries. */
+    protected Class<?> classForCommandName(String name) {
+        CommandProviders providers = commandProviders;
+        return providers == null ? null : providers.loadClass(name);
+    }
 
     protected static UtilEvalError cmUnavailable() {
         return new Capabilities.Unavailable(
