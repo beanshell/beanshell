@@ -35,6 +35,7 @@
     <module>bsh</module>
     <module>bsh-gui</module>
     <module>bsh-bsf-engine</module>
+    <module>bsh-tests</module>
   </modules>
   <description>BeanShell is a small, free, embeddable Java source interpreter
     with object scripting language features, written in Java. BeanShell

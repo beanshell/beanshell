@@ -1,0 +1,57 @@
+/*****************************************************************************
+ * Licensed to the Apache Software Foundation (ASF) under one                *
+ * or more contributor license agreements.  See the NOTICE file              *
+ * distributed with this work for additional information                     *
+ * regarding copyright ownership.  The ASF licenses this file                *
+ * to you under the Apache License, Version 2.0 (the                         *
+ * "License"); you may not use this file except in compliance                *
+ * with the License.  You may obtain a copy of the License at                *
+ *                                                                           *
+ *     http://www.apache.org/licenses/LICENSE-2.0                            *
+ *                                                                           *
+ * Unless required by applicable law or agreed to in writing,                *
+ * software distributed under the License is distributed on an               *
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY                    *
+ * KIND, either express or implied.  See the License for the                 *
+ * specific language governing permissions and limitations                   *
+ * under the License.                                                        *
+ *                                                                           *
+ *                                                                           *
+ * This file is part of the BeanShell Java Scripting distribution.           *
+ * Documentation and updates may be found at http://www.beanshell.org/       *
+ * Patrick Niemeyer (pat@pat.net)                                            *
+ * Author of Learning Java, O'Reilly & Associates                            *
+ *                                                                           *
+ *****************************************************************************/
+
+package org.beanshell.tests;
+
+import javax.script.Compilable;
+import javax.script.Invocable;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+
+import bsh.Interpreter;
+
+public final class CoreSmoke {
+    private CoreSmoke() { }
+
+    public static void main(String[] args) throws Exception {
+        Interpreter interpreter = new Interpreter();
+        check(42, interpreter.eval("class Answer { int value() { return 42; } } new Answer().value()"));
+        ScriptEngine engine = new ScriptEngineManager().getEngineByName("beanshell");
+        if (engine == null)
+            throw new AssertionError("JSR-223 provider missing");
+        engine.put("value", 6);
+        check(42, ((Compilable) engine).compile("value * 7").eval());
+        engine.eval("answer() { return 42; }");
+        check(42, ((Invocable) engine).invokeFunction("answer"));
+        interpreter.eval("printBanner()");
+        System.out.println("CORE_OK");
+    }
+
+    private static void check(Object expected, Object actual) {
+        if (!expected.equals(bsh.Primitive.unwrap(actual)))
+            throw new AssertionError("Expected " + expected + " but got " + actual);
+    }
+}
