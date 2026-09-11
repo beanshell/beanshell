@@ -42,6 +42,9 @@ $ mvn install
 
 Building BeanShell requires JDK 17 or newer for the parser generator. The resulting JAR targets Java 8 and runs on Java 8, Java 11, Java 17, Java 21, and Java 25.
 
+BeanShell 3 builds a headless `bsh` core (including JSR-223) and separate GUI and BSF bundles. See [module selection and migration](docs/MODULES.md), including optional OSGi Service Loader mediation.
+
+
 The source code releases can be downloaded from [GitHub releases](https://github.com/beanshell/beanshell/releases)
 
 Latest release: **not supported** (use the recommended development snapshot)
