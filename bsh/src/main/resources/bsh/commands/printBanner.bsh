@@ -1,0 +1,4 @@
+/** Print the BeanShell version for the text console. */
+printBanner() {
+    print("BeanShell " + Interpreter.VERSION);
+}

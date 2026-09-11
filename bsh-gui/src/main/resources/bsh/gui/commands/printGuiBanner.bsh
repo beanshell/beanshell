@@ -1,0 +1,9 @@
+/** Print the graphical banner in a Swing console. */
+printGuiBanner() {
+    if (bsh.console instanceof bsh.gui.JConsole) {
+        bsh.console.println(new javax.swing.ImageIcon(bsh.gui.JConsole.class.getResource("/bsh/gui/lib/small_bean_shell.gif")));
+        bsh.console.print(Interpreter.VERSION, new java.awt.Font("SansSerif", java.awt.Font.BOLD, 12), new java.awt.Color(20,100,20));
+        bsh.console.println();
+    } else
+        print("BeanShell " + Interpreter.VERSION);
+}
