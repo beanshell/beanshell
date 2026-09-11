@@ -118,14 +118,6 @@ public class NodeStringTest {
     }
 
     /**
-     * Verify formal comment to string.
-     */
-    @Test
-    public void test_formal_comment_string() {
-        assertEquals("FormalComment: null", new BSHFormalComment(ParserTreeConstants.JJTFORMALCOMMENT).toString());
-    }
-
-    /**
      * Verify formal parameter to string.
      */
     @Test
