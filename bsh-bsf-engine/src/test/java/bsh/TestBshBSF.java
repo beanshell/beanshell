@@ -21,7 +21,7 @@ public class TestBshBSF {
         // register beanshell with the BSF framework
         final String[] extensions = {"bsh"};
         BSFManager.registerScriptingEngine("beanshell",
-                "bsh.util.BeanShellBSFEngine", extensions);
+                "bsh.bsf.BeanShellBSFEngine", extensions);
         mgr.declareBean("foo", "fooString", String.class);
         mgr.declareBean("bar", "barString", String.class);
         mgr.registerBean("gee", "geeString");
