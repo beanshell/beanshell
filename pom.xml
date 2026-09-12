@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <!--
    ====================================================================
    Licensed to the Apache Software Foundation (ASF) under one
@@ -26,13 +26,17 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <groupId>org.beanshell</groupId>
-  <artifactId>bsh</artifactId>
+  <artifactId>bsh-project</artifactId>
   <version>3.0.0-SNAPSHOT</version>
-  <packaging>bundle</packaging>
-
+  <packaging>pom</packaging>
   <name>BeanShell</name>
+  <modules>
+    <module>bsh</module>
+    <module>bsh-gui</module>
+    <module>bsh-bsf-engine</module>
+    <module>bsh-tests</module>
+  </modules>
   <description>BeanShell is a small, free, embeddable Java source interpreter
     with object scripting language features, written in Java. BeanShell
     dynamically executes standard Java syntax and extends it with common
@@ -47,17 +51,18 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
-
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <checkstyle.suppressions.location>src/conf/checkstyle-supressions.xml</checkstyle.suppressions.location>
+    <checkstyle.suppressions.location>${project.basedir}/../build-config/checkstyle-supressions.xml</checkstyle.suppressions.location>
     <version.jdk>1.8</version.jdk>
     <maven.compiler.source>${version.jdk}</maven.compiler.source>
     <maven.compiler.target>${version.jdk}</maven.compiler.target>
     <maven.compiler.release>8</maven.compiler.release>
+    <bnd.version>7.3.0</bnd.version>
+    <checkstyle.skip>true</checkstyle.skip>
+    <surefireArgLine></surefireArgLine>
   </properties>
-
   <scm>
     <connection>scm:git:git://github.com/beanshell/beanshell.git</connection>
     <developerConnection>scm:git:git@github.com:beanshell/beanshell.git</developerConnection>
@@ -134,12 +139,10 @@
       <url>http://linkedin.com/in/jimjag/</url>
     </developer>
   </developers>
-
   <issueManagement>
     <system>GitHub</system>
     <url>https://github.com/beanshell/beanshell/issues</url>
   </issueManagement>
-
   <distributionManagement>
     <snapshotRepository>
       <id>ossrh</id>
@@ -150,50 +153,15 @@
       <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
     </repository>
   </distributionManagement>
-
   <build>
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-      </resource>
-      <resource>
-        <directory>src/conf</directory>
-        <targetPath>bsh</targetPath>
-        <filtering>true</filtering>
-        <includes>
-          <include>version.properties</include>
-        </includes>
-      </resource>
-    </resources>
     <plugins>
-      <plugin>
-        <groupId>com.helger.maven</groupId>
-        <artifactId>ph-javacc-maven-plugin</artifactId>
-        <version>5.0.2</version>
-        <executions>
-          <execution>
-            <id>javacc</id>
-            <goals>
-              <goal>jjtree-javacc</goal>
-            </goals>
-            <configuration>
-              <jdkVersion>${version.jdk}</jdkVersion>
-              <javadocFriendlyComments>true</javadocFriendlyComments>
-              <static>false</static>
-              <usercharstream>true</usercharstream>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <version>3.1.1</version>
         <configuration>
           <archive>
-            <manifest>
-              <mainClass>bsh.Console</mainClass>
-            </manifest>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
           </archive>
         </configuration>
       </plugin>
@@ -214,23 +182,17 @@
             <phase>verify</phase>
             <configuration>
               <encoding>UTF-8</encoding>
-              <failsOnViolation>true</failsOnViolation>
               <includeTestSourceDirectory>true</includeTestSourceDirectory>
               <sourceDirectories>
                 <sourceDirectory>src/main/java</sourceDirectory>
               </sourceDirectories>
+              <skip>${checkstyle.skip}</skip>
             </configuration>
             <goals>
               <goal>check</goal>
             </goals>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <version>3.5.1</version>
-        <extensions>true</extensions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -240,7 +202,7 @@
           <execution>
             <id>attach-sources</id>
             <goals>
-              <goal>jar</goal>
+              <goal>jar-no-fork</goal>
             </goals>
             <phase>verify</phase>
           </execution>
@@ -249,14 +211,15 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.0.0-M5</version>
+        <version>3.5.3</version>
         <configuration>
-          <!-- headless keeps the forked JVM from stealing window focus on macOS -->
-          <argLine>-Xmx1000M -Xms500M -XX:+UseSerialGC -Djava.awt.headless=true ${surefireArgLine}</argLine>
+          <argLine>-Xmx1000M -Xms500M -XX:+UseSerialGC @{surefireArgLine}</argLine>
           <systemPropertyVariables>
-            <bsh.debugClasses />
+            <java.awt.headless>true</java.awt.headless>
+            <projectVersion>${project.version}</projectVersion>
+            <bsh.debugClasses/>
             <accessibility>false</accessibility>
-            <script />
+            <script/>
             <verbose>false</verbose>
             <skip_known_issues>true</skip_known_issues>
           </systemPropertyVariables>
@@ -305,10 +268,29 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.14.0</version>
+      </plugin>
     </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>biz.aQute.bnd</groupId>
+          <artifactId>bnd-maven-plugin</artifactId>
+          <version>${bnd.version}</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>bnd-process</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
-
-
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -322,6 +304,5 @@
       <version>1.3</version>
       <scope>test</scope>
     </dependency>
-
   </dependencies>
 </project>

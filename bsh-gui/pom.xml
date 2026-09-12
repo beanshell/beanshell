@@ -31,8 +31,8 @@
     <artifactId>bsh-project</artifactId>
     <version>3.0.0-SNAPSHOT</version>
   </parent>
-  <artifactId>bsh-bsf-engine</artifactId>
-  <name>BeanShell bsf-engine</name>
+  <artifactId>bsh-gui</artifactId>
+  <name>BeanShell gui</name>
   <properties>
     <checkstyle.skip>false</checkstyle.skip>
   </properties>
@@ -43,9 +43,12 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>bsf</groupId>
-      <artifactId>bsf</artifactId>
-      <version>2.4.0</version>
+      <groupId>org.beanshell</groupId>
+      <artifactId>bsh</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <classifier>tests</classifier>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <build>
@@ -69,9 +72,13 @@
         <configuration>
           <bnd><![CDATA[
 Bundle-Version: ${replace;${project.version};-;.}
-Bundle-SymbolicName: org.beanshell.bsh-bsf-engine
-Export-Package: bsh.bsf
+Bundle-SymbolicName: org.beanshell.bsh-gui
+Export-Package: bsh.gui
 -includeresource: META-INF/LICENSE=../LICENSE,META-INF/NOTICE=../NOTICE
+Private-Package: bsh.gui.internal
+Require-Capability: osgi.extender;filter:="(&(osgi.extender=osgi.serviceloader.registrar)(version>=1.0.0)(!(version>=2.0.0)))";resolution:=optional
+Provide-Capability: osgi.serviceloader;osgi.serviceloader=bsh.spi.CommandProvider;register:="bsh.gui.internal.GuiCommands";uses:="bsh.spi"
+Main-Class: bsh.gui.Console
 ]]></bnd>
         </configuration>
       </plugin>
