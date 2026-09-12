@@ -84,7 +84,7 @@ public class DelayedEvalBshMethod extends BshMethod
     DelayedEvalBshMethod(String name, Invocable con,
             NameSpace declaringNameSpace) {
         this(name, con.getReturnTypeDescriptor(), null,
-            new String[con.getParameterCount()], con.getParamTypeDescriptors(),
+            syntheticParameterNames(con.getParameterCount()), con.getParamTypeDescriptors(),
              null, new BSHBlock(0), declaringNameSpace, null, con.isVarArgs(),
              null, null);
 

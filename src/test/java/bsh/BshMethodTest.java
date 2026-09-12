@@ -20,10 +20,34 @@
 
 package bsh;
 
+import java.util.Arrays;
+import java.util.HashSet;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 public class BshMethodTest {
+
+    /** The names are installed as namespace variables and printed in method
+     * signatures, so every one has to be a usable identifier. */
+    @Test
+    public void syntheticParameterNames_are_distinct_identifiers() {
+        final String[] names = BshMethod.syntheticParameterNames(30);
+
+        Assert.assertEquals("first is a", "a", names[0]);
+        Assert.assertEquals("26th is z", "z", names[25]);
+        Assert.assertEquals("27th keeps to the identifier space", "a26", names[26]);
+        Assert.assertEquals("all 30 are distinct",
+                30, new HashSet<>(Arrays.asList(names)).size());
+
+        for (final String name : names) {
+            Assert.assertTrue(name + " starts an identifier",
+                    Character.isJavaIdentifierStart(name.charAt(0)));
+            for (final char ch : name.toCharArray())
+                Assert.assertTrue(name + " is all identifier characters",
+                        Character.isJavaIdentifierPart(ch));
+        }
+    }
 
     /**
      * Verifies that subclasses are not considered equal to superclass interfaces

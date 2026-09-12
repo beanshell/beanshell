@@ -153,10 +153,18 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
 
     public String [] getParameterNames() {
         if (null == paramNames)
-            paramNames = IntStream.range(97, 97+getParameterCount())
-            .boxed().map(n->String.valueOf((char) n.intValue()))
-            .toArray(String[]::new);
+            paramNames = syntheticParameterNames(getParameterCount());
         return paramNames;
+    }
+
+    /** Counting past 'z' through the character set reaches DEL and the C1
+     * controls, which then show up in printed method signatures.
+     * @param count how many parameters
+     * @return a distinct identifier per position, for parameters with no name */
+    static String [] syntheticParameterNames(int count) {
+        return IntStream.range(0, count)
+            .mapToObj(n -> n < 26 ? String.valueOf((char) ('a' + n)) : "a" + n)
+            .toArray(String[]::new);
     }
 
     public Modifiers [] getParameterModifiers() {

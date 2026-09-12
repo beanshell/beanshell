@@ -138,6 +138,90 @@ public class ClassGeneratorTest {
         assertEquals(cls, cls.getDeclaredField("next").getType());
     }
 
+    public static class SuperArgs {
+        public final String got;
+        public SuperArgs(int a) { got = "int:" + a; }
+        public SuperArgs(int a, String b) { got = "int,String:" + a + "," + b; }
+        public SuperArgs(String a, String b) { got = "String,String:" + a + "," + b; }
+        public SuperArgs(String a, int b, double c) { got = "String,int,double:" + a + "," + b + "," + c; }
+    }
+
+    @Test
+    public void anonymous_subclass_super_args_of_different_types() throws Exception {
+        assertEquals("int,String:1,a", eval(
+            "import bsh.ClassGeneratorTest.SuperArgs;",
+            "return new SuperArgs(1, \"a\") {}.got;"));
+        assertEquals("String,int,double:a,2,3.0", eval(
+            "import bsh.ClassGeneratorTest.SuperArgs;",
+            "return new SuperArgs(\"a\", 2, 3.0) {}.got;"));
+    }
+
+    public static class RefArgs {
+        public final String got;
+        public RefArgs(String a, Object b) { got = "String,Object:" + a + "," + b; }
+    }
+
+    public static class VarArgs {
+        public final String got;
+        public VarArgs(int a, String... b) { got = "int,String...:" + a + "," + b.length; }
+    }
+
+    /** More parameters than the synthetic namer has letters, so the names it
+     * makes run past 'z'. The tail is a different type from the rest: 30
+     * parameters of one type never collided, so they prove nothing. */
+    public static class ManyArgs {
+        public final String got;
+        public ManyArgs(int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9, int a10, int a11, int a12, int a13, int a14, int a15, int a16, int a17, int a18, int a19, int a20, int a21, int a22, int a23, int a24, int a25, int a26, int a27, int a28, int a29, String a30) { got = a1 + ":" + a30; }
+    }
+
+    @Test
+    public void anonymous_subclass_super_args_of_two_reference_types() throws Exception {
+        assertEquals("String,Object:a,o", eval(
+            "import bsh.ClassGeneratorTest.RefArgs;",
+            "return new RefArgs(\"a\", \"o\") {}.got;"));
+    }
+
+    @Test
+    public void anonymous_subclass_super_args_with_varargs_tail() throws Exception {
+        assertEquals("int,String...:1,2", eval(
+            "import bsh.ClassGeneratorTest.VarArgs;",
+            "return new VarArgs(1, \"x\", \"y\") {}.got;"));
+    }
+
+    @Test
+    public void anonymous_subclass_super_args_with_empty_varargs_tail() throws Exception {
+        assertEquals("int,String...:1,0", eval(
+            "import bsh.ClassGeneratorTest.VarArgs;",
+            "return new VarArgs(1) {}.got;"));
+    }
+
+    @Test
+    public void anonymous_subclass_super_args_past_the_alphabet() throws Exception {
+        assertEquals("1:end", eval(
+            "import bsh.ClassGeneratorTest.ManyArgs;",
+            "return new ManyArgs(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, \"end\") {}.got;"));
+    }
+
+    @Test
+    public void nested_anonymous_subclass_super_args() throws Exception {
+        assertEquals("String,int,double:b,2,3.0", eval(
+            "import bsh.ClassGeneratorTest.SuperArgs;",
+            "outer = new SuperArgs(1, \"a\") {",
+                "inner() { return new SuperArgs(\"b\", 2, 3.0) {}.got; }",
+            "};",
+            "return outer.inner();"));
+    }
+
+    @Test
+    public void anonymous_subclass_super_args_of_one_type() throws Exception {
+        assertEquals("int:1", eval(
+            "import bsh.ClassGeneratorTest.SuperArgs;",
+            "return new SuperArgs(1) {}.got;"));
+        assertEquals("String,String:a,b", eval(
+            "import bsh.ClassGeneratorTest.SuperArgs;",
+            "return new SuperArgs(\"a\", \"b\") {}.got;"));
+    }
+
     @Test
     public void class_with_abstract_method_must_be_abstract() throws Exception {
         thrown.expect(EvalError.class);
