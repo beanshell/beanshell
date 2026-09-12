@@ -116,7 +116,13 @@ public class Capabilities implements Supplier<Boolean>, Consumer<Boolean>
             found = null;
         }
         synchronized (classes) {
-            classes.put(name, found);
+            // nothing ever clears a negative, so a failed lookup must not
+            // replace a class another caller resolved while we were unlocked
+            Class<?> existing = classes.get(name);
+            if ( null != existing )
+                return true;
+            if ( null != found || !classes.containsKey(name) )
+                classes.put(name, found);
         }
         return found != null;
     }

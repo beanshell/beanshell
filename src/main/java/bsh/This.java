@@ -616,30 +616,33 @@ public final class This implements java.io.Serializable, Runnable
         // use default super constructor
 
         BSHArguments argsNode = constructor.getArgsNode();
-
-        // Make a tmp namespace to hold the original constructor args for
-        // use in eval of the parameters node
-        NameSpace consArgsNameSpace = new NameSpace(classStaticThis.getNameSpace(), "consArgs");
-        String[] consArgNames = constructor.getParameterNames();
-        Class<?>[] consArgTypes = constructor.getParameterTypes();
-        for (int i = 0; i < consArgs.length; i++) try {
-            consArgsNameSpace.setTypedVariable(consArgNames[i], consArgTypes[i], consArgs[i], null/*modifiers*/);
-        } catch (UtilEvalError e) {
-            throw new InterpreterError("err setting local cons arg:" + e, e);
-        }
-
-        // evaluate the args
-
-        CallStack callstack = new CallStack();
-        callstack.push(consArgsNameSpace);
         Object[] args = constructor.getConstructorArgs();
-        Interpreter interpreter = classStaticThis.declaringInterpreter;
 
-        if ( null != argsNode ) try {
-            args = argsNode.getArguments(callstack, interpreter);
-        } catch (EvalError e) {
-            throw new InterpreterError(
-                    "Error evaluating constructor args: " + e, e);
+        // A wrapped Java super constructor has no argument expressions of
+        // its own, so nothing would read the namespace those args need.
+        if ( null != argsNode ) {
+            // Make a tmp namespace to hold the original constructor args for
+            // use in eval of the parameters node
+            NameSpace consArgsNameSpace = new NameSpace(classStaticThis.getNameSpace(), "consArgs");
+            String[] consArgNames = constructor.getParameterNames();
+            Class<?>[] consArgTypes = constructor.getParameterTypes();
+            for (int i = 0; i < consArgs.length; i++) try {
+                consArgsNameSpace.setTypedVariable(consArgNames[i], consArgTypes[i], consArgs[i], null/*modifiers*/);
+            } catch (UtilEvalError e) {
+                throw new InterpreterError("err setting local cons arg:" + e, e);
+            }
+
+            // evaluate the args
+
+            CallStack callstack = new CallStack();
+            callstack.push(consArgsNameSpace);
+            try {
+                args = argsNode.getArguments(callstack,
+                        classStaticThis.declaringInterpreter);
+            } catch (EvalError e) {
+                throw new InterpreterError(
+                        "Error evaluating constructor args: " + e, e);
+            }
         }
 
         Class<?>[] argTypes = Types.getTypes(args);

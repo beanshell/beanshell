@@ -66,10 +66,12 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
     private Class<?> creturnType;
 
     // Arguments
-    private String [] paramNames;
+    // lazily filled on first use, from any thread: a reader that sees the
+    // reference must see the elements, or a parameter reads back as null
+    private volatile String [] paramNames;
     private int paramCount;
     private Class<?> [] cparamTypes;
-    private Modifiers [] paramModifiers;
+    private volatile Modifiers [] paramModifiers;
 
     // Scripted method body
     protected BSHBlock methodBody;
@@ -152,9 +154,10 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
     }
 
     public String [] getParameterNames() {
-        if (null == paramNames)
-            paramNames = syntheticParameterNames(getParameterCount());
-        return paramNames;
+        String [] names = paramNames;
+        if (null == names)
+            paramNames = names = syntheticParameterNames(getParameterCount());
+        return names;
     }
 
     /** Counting past 'z' through the character set reaches DEL and the C1
@@ -168,9 +171,10 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
     }
 
     public Modifiers [] getParameterModifiers() {
-        if (null == paramModifiers)
-            paramModifiers = new Modifiers[getParameterCount()];
-        return paramModifiers;
+        Modifiers [] mods = paramModifiers;
+        if (null == mods)
+            paramModifiers = mods = new Modifiers[getParameterCount()];
+        return mods;
     }
 
     public int getParameterCount() {

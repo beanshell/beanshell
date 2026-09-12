@@ -33,6 +33,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.CompletionException;
 
 import bsh.security.SecurityError;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
     New object, new array, or inner class style allocation with body.
@@ -40,7 +41,7 @@ import bsh.security.SecurityError;
 class BSHAllocationExpression extends SimpleNode
 {
     BSHAllocationExpression(int id) { super(id); }
-    private static int innerClassCount = 0;
+    private static final AtomicInteger innerClassCount = new AtomicInteger();
 
     public Object eval( CallStack callstack, Interpreter interpreter)
         throws EvalError
@@ -194,7 +195,7 @@ class BSHAllocationExpression extends SimpleNode
         CallStack callstack, Interpreter interpreter )
         throws EvalError
     {
-        String anon = "anon" + (++innerClassCount);
+        String anon = "anon" + innerClassCount.incrementAndGet();
         String name = callstack.top().getName().replace('/', '_') + "$" + anon;
         try {
             This.CONTEXT_ARGS.get().put(anon,

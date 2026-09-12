@@ -1268,6 +1268,13 @@ public final class Reflect {
         }
     }
 
+    /** Stands in for a class that cannot be constructed, so a failure is
+     * remembered rather than retried through reflection every time. */
+    private static final Object UNCONSTRUCTABLE = new Object();
+
+    /** Held strongly: dropping a value would reconstruct, re-running a
+     * scripted class's instance initializer. An entry therefore pins its own
+     * key class until the cache is cleared. */
     private static final Map<Class<?>,Object> instanceCache = new WeakHashMap<>();
 
     /*
@@ -1276,8 +1283,11 @@ public final class Reflect {
      */
     public static Object getNewInstance(Class<?> type) {
         synchronized (instanceCache) {
-            if (instanceCache.containsKey(type))
-                return instanceCache.get(type);
+            Object cached = instanceCache.get(type);
+            if (UNCONSTRUCTABLE == cached)
+                return null;
+            if (null != cached)
+                return cached;
         }
         Object instance;
         try {
@@ -1286,6 +1296,17 @@ public final class Reflect {
             instance = null;
         }
         synchronized (instanceCache) {
+            // callers of getDeclared* must all see the same instance's
+            // namespace, so a racing caller's instance wins over this one
+            Object cached = instanceCache.get(type);
+            if (null != cached && UNCONSTRUCTABLE != cached)
+                return cached;
+            if (null == instance) {
+                if (null == cached)
+                    instanceCache.put(type, UNCONSTRUCTABLE);
+                return null;
+            }
+            // a construction that worked replaces a racing caller's failure
             instanceCache.put(type, instance);
         }
         return instance;

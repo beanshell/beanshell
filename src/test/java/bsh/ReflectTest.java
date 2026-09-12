@@ -17,10 +17,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -219,6 +225,102 @@ public class ReflectTest {
         assertNotNull("instance is not null", inst);
         assertThat("instance is cached", inst,
                 sameInstance(Reflect.getNewInstance(type)));
+    }
+
+    /** The first construction blocks until a second caller has recorded its
+     * own failure, so the success is always the later write. */
+    public static class RacedInstance {
+        static final CountDownLatch inConstructor = new CountDownLatch(1);
+        static final CountDownLatch failureRecorded = new CountDownLatch(1);
+        static final AtomicBoolean firstCall = new AtomicBoolean(true);
+
+        public RacedInstance() {
+            if (!firstCall.getAndSet(false))
+                throw new IllegalStateException("only the first call constructs");
+            inConstructor.countDown();
+            try {
+                failureRecorded.await(10, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    @Test
+    public void successful_instance_survives_a_racing_failure() throws Exception {
+        Reflect.clearInstanceCache();
+        AtomicReference<Object> constructed = new AtomicReference<>();
+        Thread first = new Thread(() ->
+                constructed.set(Reflect.getNewInstance(RacedInstance.class)));
+        first.start();
+        assertTrue("first caller reached the constructor",
+                RacedInstance.inConstructor.await(10, TimeUnit.SECONDS));
+        assertNull("second caller fails and records that failure",
+                Reflect.getNewInstance(RacedInstance.class));
+        RacedInstance.failureRecorded.countDown();
+        first.join(10000);
+        assertNotNull("the successful instance is not discarded",
+                constructed.get());
+        assertSame("and the cache serves it from then on",
+                constructed.get(), Reflect.getNewInstance(RacedInstance.class));
+    }
+
+    /** The first construction blocks until a second caller has constructed
+     * and cached one of its own. */
+    public static class RacedTwice {
+        static final CountDownLatch inConstructor = new CountDownLatch(1);
+        static final CountDownLatch secondCached = new CountDownLatch(1);
+        static final AtomicBoolean firstCall = new AtomicBoolean(true);
+        static final AtomicInteger constructed = new AtomicInteger();
+
+        public RacedTwice() {
+            constructed.incrementAndGet();
+            if (!firstCall.getAndSet(false))
+                return;
+            inConstructor.countDown();
+            try {
+                secondCached.await(10, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    @Test
+    public void racing_callers_share_one_instance() throws Exception {
+        Reflect.clearInstanceCache();
+        AtomicReference<Object> raced = new AtomicReference<>();
+        Thread first = new Thread(() ->
+                raced.set(Reflect.getNewInstance(RacedTwice.class)));
+        first.start();
+        assertTrue("first caller reached the constructor",
+                RacedTwice.inConstructor.await(10, TimeUnit.SECONDS));
+        Object second = Reflect.getNewInstance(RacedTwice.class);
+        assertNotNull("second caller constructs and caches", second);
+        RacedTwice.secondCached.countDown();
+        first.join(10000);
+        assertEquals("both callers constructed", 2, RacedTwice.constructed.get());
+        assertSame("but the later writer returns the cached instance",
+                second, raced.get());
+    }
+
+    public static class NeverConstructs {
+        static final AtomicInteger attempts = new AtomicInteger();
+        public NeverConstructs() {
+            attempts.incrementAndGet();
+            throw new IllegalStateException("cannot construct");
+        }
+    }
+
+    @Test
+    public void unconstructable_class_is_not_retried() throws Exception {
+        Reflect.clearInstanceCache();
+        assertNull("construction fails",
+                Reflect.getNewInstance(NeverConstructs.class));
+        assertNull("and keeps failing",
+                Reflect.getNewInstance(NeverConstructs.class));
+        assertEquals("reflection attempted once",
+                1, NeverConstructs.attempts.get());
     }
 
     @Test
