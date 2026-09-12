@@ -29,9 +29,9 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
 import java.util.regex.Pattern;
+
+import bsh.util.ValueReferenceMap;
 
 /**
     What's in a name?  I'll tell you...
@@ -955,7 +955,11 @@ class Name implements java.io.Serializable
     // Static methods that operate on compound ('.' separated) names
     // I guess we could move these to StringUtil someday
     private static class Parts {
-        private static final Map<String, Parts> PARTSCACHE = new WeakHashMap<>();
+        /** A Parts keeps its own key string, so a strongly held value would
+         * pin the key however weak the map's keys were. This holds both by
+         * reference. */
+        private static final ValueReferenceMap<String, Parts> PARTSCACHE
+            = new ValueReferenceMap<>(Parts::new, ValueReferenceMap.Type.Soft);
         private final String[] prefix;
         private final String[] suffix;
         private final List<String> list;
@@ -965,7 +969,15 @@ class Name implements java.io.Serializable
             this.count = list.size();
             this.prefix = new String[count + 1];
             this.suffix = new String[count + 1];
+            this.prefix[count] = value;
+            this.suffix[count] = value;
+            if (count > 1) {
+                this.prefix[1] = list.get(0);
+                this.suffix[1] = list.get(count - 1);
+            }
         }
+        /** Filled lazily and without a lock, which is safe only because
+         * every thread computes the same String. */
         public String prefix(int parts) {
             if (1 > parts || count < parts)
                 return null;
@@ -981,28 +993,12 @@ class Name implements java.io.Serializable
             return suffix[parts];
         }
         public static Parts get(String value) {
-            if (PARTSCACHE.containsKey(value)) {
-                Parts parts = PARTSCACHE.get(value);
-                if (null != parts)
-                    return parts;
-                PARTSCACHE.remove(value);
-            }
-            Parts parts = new Parts(value);
-            PARTSCACHE.put(value, parts);
-            parts.prefix[parts.count] = value;
-            parts.suffix[parts.count] = value;
-            if (parts.count == 1)
-                return parts;
-            parts.prefix[1] = parts.list.get(0);
-            parts.suffix[1] = parts.list.get(parts.count - 1);
-            return parts;
+            return PARTSCACHE.get(value);
         }
     }
 
     static void clearParts() {
-        synchronized (Parts.PARTSCACHE) {
-            Parts.PARTSCACHE.clear();
-        }
+        Parts.PARTSCACHE.clear();
     }
 
     public static boolean isCompound(String value)

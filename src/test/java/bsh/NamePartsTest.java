@@ -109,6 +109,21 @@ public class NamePartsTest {
         assertNull("null suffix 1 parts is null", Name.suffix(null, 1));
     }
 
+    /** split() drops the trailing empty strings, so a name of nothing but
+     * dots has no parts at all. The old code threw indexing the first of
+     * them, then served nulls from the half-built entry it left cached. */
+    @Test
+    public void name_of_only_dots_has_no_parts() throws Exception {
+        assertEquals("'.' has 0 parts", 0, Name.countParts("."));
+        assertEquals("'..' has 0 parts", 0, Name.countParts(".."));
+        assertEquals("'...' has 0 parts", 0, Name.countParts("..."));
+        assertFalse("'.' is not compound", Name.isCompound("."));
+        assertNull("'.' prefix 1 parts is null", Name.prefix(".", 1));
+        assertNull("'.' suffix 1 parts is null", Name.suffix(".", 1));
+        assertEquals("'a..b' still has 3 parts", 3, Name.countParts("a..b"));
+        assertEquals("'.a' still has 2 parts", 2, Name.countParts(".a"));
+    }
+
     @Test
     public void name_count_parts() throws Exception {
         assertEquals("name has 1 parts", 1, Name.countParts("name"));

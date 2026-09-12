@@ -100,21 +100,31 @@ public class Capabilities implements Supplier<Boolean>, Consumer<Boolean>
             system **including the remote applet**.
     */
     public static boolean classExists( String name ) {
-        if ( !classes.containsKey(name) ) try {
+        synchronized (classes) {
+            if ( classes.containsKey(name) )
+                return classes.get(name) != null;
+        }
+        Class<?> found;
+        try {
             /*
                 Note: do *not* change this to
                 BshClassManager plainClassForName() or equivalent.
                 This class must not touch any other bsh classes.
             */
-            classes.put(name, Class.forName( name ));
+            found = Class.forName( name );
         } catch ( ClassNotFoundException e ) {
-            classes.put(name, null);
+            found = null;
         }
-        return getExisting( name ) != null;
+        synchronized (classes) {
+            classes.put(name, found);
+        }
+        return found != null;
     }
 
     public static Class<?> getExisting(String name) {
-        return classes.get(name);
+        synchronized (classes) {
+            return classes.get(name);
+        }
     }
     /**
         An attempt was made to use an unavailable capability supported by

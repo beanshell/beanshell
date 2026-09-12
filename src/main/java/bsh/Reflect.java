@@ -71,7 +71,6 @@ public final class Reflect {
     static final String GET_PREFIX = "get";
     static final String SET_PREFIX = "set";
     static final String IS_PREFIX = "is";
-    private static final Map<String,String> ACCESSOR_NAMES = new WeakHashMap<>();
     private static final Pattern DEFAULT_PACKAGE
         = Pattern.compile("[^\\.]+|bsh\\..*");
     private static final Pattern PACKAGE_ACCESS;
@@ -802,12 +801,9 @@ public final class Reflect {
     }
 
     static String accessorName( String prefix, String propName ) {
-        if (!ACCESSOR_NAMES.containsKey(propName)) {
-            char[] ch = propName.toCharArray();
-            ch[0] = Character.toUpperCase(ch[0]);
-            ACCESSOR_NAMES.put(propName, new String(ch));
-        }
-        return prefix + ACCESSOR_NAMES.get(propName);
+        char[] ch = propName.toCharArray();
+        ch[0] = Character.toUpperCase(ch[0]);
+        return prefix + new String(ch);
     }
 
     public static boolean hasObjectPropertyGetter(
@@ -1272,21 +1268,34 @@ public final class Reflect {
         }
     }
 
-    static final Map<Class<?>,Object> instanceCache = new WeakHashMap<>();
+    private static final Map<Class<?>,Object> instanceCache = new WeakHashMap<>();
 
     /*
      * Class new instance or null, wrap exception handling and
      * instance cache.
      */
     public static Object getNewInstance(Class<?> type) {
-        if (instanceCache.containsKey(type))
-            return instanceCache.get(type);
-        try {
-            instanceCache.put(type, type.getConstructor().newInstance());
-        } catch ( IllegalArgumentException | ReflectiveOperationException | SecurityException e) {
-            instanceCache.put(type, null);
+        synchronized (instanceCache) {
+            if (instanceCache.containsKey(type))
+                return instanceCache.get(type);
         }
-        return instanceCache.get(type);
+        Object instance;
+        try {
+            instance = type.getConstructor().newInstance();
+        } catch ( IllegalArgumentException | ReflectiveOperationException | SecurityException e) {
+            instance = null;
+        }
+        synchronized (instanceCache) {
+            instanceCache.put(type, instance);
+        }
+        return instance;
+    }
+
+    /** Clear the shared instance cache under its monitor. */
+    static void clearInstanceCache() {
+        synchronized (instanceCache) {
+            instanceCache.clear();
+        }
     }
 
     static boolean isPrivate(Member member) {

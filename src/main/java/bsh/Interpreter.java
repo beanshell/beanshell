@@ -811,7 +811,7 @@ public class Interpreter
         this.getClassManager().reset();
         this.globalNameSpace.clear();
         Name.clearParts();
-        Reflect.instanceCache.clear();
+        Reflect.clearInstanceCache();
     }
 
     /**
@@ -1461,7 +1461,7 @@ public class Interpreter
     /** {@inheritDoc} */
     @Override
     public void classLoaderChanged() {
-        Reflect.instanceCache.clear();
+        Reflect.clearInstanceCache();
     }
 
 }

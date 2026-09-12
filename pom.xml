@@ -261,6 +261,38 @@
             <skip_known_issues>true</skip_known_issues>
           </systemPropertyVariables>
         </configuration>
+        <executions>
+          <!-- SharedCacheConcurrencyTest leaves threads spinning in a shared
+               static cache when it fails, which would hang every later test
+               in the same JVM. It gets a fork of its own. -->
+          <execution>
+            <id>default-test</id>
+            <configuration>
+              <excludes>
+                <exclude>**/SharedCacheConcurrencyTest.java</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>shared-cache-concurrency</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <includes>
+                <include>**/SharedCacheConcurrencyTest.java</include>
+              </includes>
+              <!-- pinned so a -Dtest= on the command line cannot pull other
+                   classes into this fork and run them twice -->
+              <test>SharedCacheConcurrencyTest</test>
+              <failIfNoSpecifiedTests>false</failIfNoSpecifiedTests>
+              <!-- a corrupted cache spins in a loop no interrupt can break,
+                   so bound the fork rather than let it hang the build -->
+              <forkedProcessTimeoutInSeconds>300</forkedProcessTimeoutInSeconds>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.jacoco</groupId>
