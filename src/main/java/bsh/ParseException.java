@@ -156,7 +156,7 @@ public class ParseException extends EvalError {
             retval.append(": ");
             for (int i = 0; i < expectedTokenSequences.length; i++)
                 for (int j = 0; j < expectedTokenSequences[i].length; j++)
-                    retval.append(tokenImage[expectedTokenSequences[i][j]]
+                    retval.append(SimpleNode.tokenImage(expectedTokenSequences[i][j])
                             .replace('"', ' ').trim()).append(' ');
         }
 

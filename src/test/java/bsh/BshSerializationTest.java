@@ -20,6 +20,7 @@
 
 package bsh;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -75,5 +76,10 @@ public class BshSerializationTest {
         assertTrue((Boolean) deserInterpreter.eval("myVoid == void"));
         originalInterpreter.getNameSpace().clear();
         deserInterpreter.getNameSpace().clear();
+    }
+    @Test
+    public void token_serial_version_uid_is_unchanged() {
+        // nodes carry their tokens, so a new uid would break loading objects saved by earlier builds
+        assertEquals(1L, java.io.ObjectStreamClass.lookup(Token.class).getSerialVersionUID());
     }
 }

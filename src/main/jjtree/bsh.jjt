@@ -35,8 +35,8 @@
 options {
     JAVA_UNICODE_ESCAPE=true;
     STATIC=false;
+    // one file per node class, so the hand-written BSH* classes shadow the generated ones
     SINGLE_TREE_FILE=false;
-    TOKEN_EXTENDS="bsh.AbstractToken";
 
     MULTI=true;
     NODE_DEFAULT_VOID=true;

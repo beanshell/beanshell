@@ -24,8 +24,8 @@
  *                                                                           *
  *****************************************************************************/
 /* Copied from the JavaCharStream that JavaCC 8.1.0 generates for bsh.jjt; the build
- * skips generating it while this file exists. Only end-of-input handling differs
- * (see FillBuff). To refresh after a JavaCC upgrade: delete this file, build, copy the
+ * skips generating it while this file exists. Only end-of-input handling (FillBuff)
+ * and the invalid-escape error type (ReadByte's caller) differ. To refresh after a JavaCC upgrade: delete this file, build, copy the
  * generated file back here and re-apply that change. */
 
 package bsh;
@@ -143,8 +143,11 @@ public class JavaCharStream {
                                     | hexval(ReadByte()) );
         column += 4;
       } catch (IOException e) {
-        throw new Error(
-                  "Invalid escape character at line " + line + " column " + column + ".");
+        // a lexical error, so Interpreter reports it and keeps the shell alive (JavaCC's own
+        // template throws java.lang.Error here)
+        throw new TokenMgrError(
+                  "Invalid escape character at line " + line + " column " + column + ".",
+                  TokenMgrError.LEXICAL_ERROR);
       }
 
       if (backSlashCnt == 1) {
