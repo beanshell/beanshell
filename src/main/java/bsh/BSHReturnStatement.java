@@ -51,6 +51,6 @@ class BSHReturnStatement extends SimpleNode implements ParserConstants
 
     @Override
     public String toString() {
-        return super.toString() + ": " + tokenImage[kind] + " " + label + ":";
+        return super.toString() + ": " + tokenImage(kind) + " " + label + ":";
     }
 }

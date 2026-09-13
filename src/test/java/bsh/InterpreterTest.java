@@ -422,7 +422,7 @@ public class InterpreterTest {
 
             bsh.setExitOnEOF(true);
             bsh.run();
-            assertThat(baos.toString(), containsString("Error parsing input: bsh.TokenMgrException: Lexical error at line 2, column 1.  Encountered: \"\\\\\""));
+            assertThat(baos.toString(), containsString("Error parsing input: bsh.TokenMgrError: Lexical error at line 2, column 1.  Encountered: \"\\\\\""));
         }
     }
 
@@ -437,7 +437,45 @@ public class InterpreterTest {
             bsh.setExitOnEOF(false);
             bsh.run();
             assertThat(baos.toString(), containsString("bsh %"));
-            assertThat(baos.toString(), containsString("Error parsing input: bsh.TokenMgrException: Lexical error at line 2, column 1.  Encountered: \"\\\\\""));
+            assertThat(baos.toString(), containsString("Error parsing input: bsh.TokenMgrError: Lexical error at line 2, column 1.  Encountered: \"\\\\\""));
+        }
+    }
+
+    @Test
+    public void interpreter_eval_invalid_unicode_escape() throws Exception {
+        final Interpreter bsh = new Interpreter();
+        Exception e = assertThrows(EvalError.class, () -> bsh.eval("a = \"\\u00zz\";"));
+        assertThat(e.getMessage(), containsString("Token Parsing Error:"));
+        assertThat(e.getCause().getMessage(), containsString("Invalid escape character at line 1 column 7."));
+    }
+
+    @Test
+    public void interpreter_run_interactive_invalid_unicode_escape() throws Exception {
+        final StringReader in = new StringReader("a = \"\\u00zz\";\nb = 7;\n");
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            CommandLineReader repl = new CommandLineReader(in) ) {
+            Interpreter bsh = new Interpreter(repl, new PrintStream(baos),
+                new PrintStream(baos), true);
+
+            bsh.setExitOnEOF(false);
+            bsh.run();
+            String out = baos.toString();
+            assertThat(out, containsString("Error parsing input: bsh.TokenMgrError: Invalid escape character at line 1 column 7."));
+            // the shell keeps prompting after the error rather than dying with an Error
+            assertThat(out.indexOf("bsh %", out.indexOf("Invalid escape character")), not(-1));
+        }
+    }
+
+    @Test
+    public void debug_parse_error_lists_expected_tokens_by_image() throws Exception {
+        final Interpreter bsh = new Interpreter();
+        Interpreter.DEBUG.set(true);
+        try {
+            Exception e = assertThrows(EvalError.class, () -> bsh.eval("x = ;"));
+            assertThat(e.getMessage(), containsString("boolean byte char"));
+            assertThat(e.getMessage(), not(containsString("<BOOLEAN>")));
+        } finally {
+            Interpreter.DEBUG.set(false);
         }
     }
 

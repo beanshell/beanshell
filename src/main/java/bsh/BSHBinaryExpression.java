@@ -122,7 +122,7 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
                     return Operators.binaryOperation(lhs, rhs, kind);
             } catch ( UtilEvalError e ) {
                 throw e.toEvalError(
-                    "Failed operation: "+lhs+" "+tokenImage[kind]+" "+rhs,
+                    "Failed operation: "+lhs+" "+tokenImage(kind)+" "+rhs,
                     this, callstack  );
             }
         }
@@ -130,7 +130,7 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
         if ( interpreter.getStrictJava() && ( kind == PLUS || kind == STAR )
                 && !( lhs instanceof String || rhs instanceof String ) )
             throw new EvalException( "Bad operand types for binary operator "
-                + tokenImage[kind] + " first type: "  + StringUtil.typeString(lhs)
+                + tokenImage(kind) + " first type: "  + StringUtil.typeString(lhs)
                 + " second type: " + StringUtil.typeString(rhs),
                     this, callstack );
         /*
@@ -193,10 +193,10 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
                 return "null";
             if ( isWrapper(var.getType()) )
                 throw new NullPointerException(
-                        "null value with binary operator " + tokenImage[kind]);
+                        "null value with binary operator " + tokenImage(kind));
             throw new EvalException(
                     "bad operand types for binary operator "
-                        + tokenImage[kind], this, callstack);
+                        + tokenImage(kind), this, callstack);
         } catch (NullPointerException e) {
             throw new TargetError(e, this, callstack);
         } catch (UtilEvalError e) {
@@ -271,6 +271,6 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
 
     @Override
     public String toString() {
-        return super.toString() + ": " + tokenImage[kind];
+        return super.toString() + ": " + tokenImage(kind);
     }
 }

@@ -121,13 +121,13 @@ class Operators implements ParserConstants {
         if ( lhs.getClass().isArray() || rhs.getClass().isArray()
                || lhs instanceof List || rhs instanceof List)
             throw new UtilEvalError(
-                "Use of invalid operator " + tokenImage[kind]
+                "Use of invalid operator " + SimpleNode.tokenImage(kind)
                     + " with array or List type" );
         if ( lhs == Primitive.NULL || rhs == Primitive.NULL )
             throw new UtilEvalError(
                 "illegal use of null value or 'null' literal");
 
-        throw new UtilEvalError("Operator: " + tokenImage[kind]
+        throw new UtilEvalError("Operator: " + SimpleNode.tokenImage(kind)
                     + " inappropriate for objects");
     }
     /**

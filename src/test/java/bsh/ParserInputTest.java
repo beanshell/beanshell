@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.io.StringReader;
 
 import org.junit.Test;
@@ -56,48 +55,53 @@ public class ParserInputTest {
     @Test
     public void end_of_input_is_signalled_without_a_stack_trace() throws Exception {
         TrackingReader source = new TrackingReader("a");
-        Reader in = StacklessEofReader.wrap(source);
-        char[] buf = new char[4];
-        assertEquals(1, in.read(buf, 0, buf.length));
-        try {
-            in.read(buf, 0, buf.length);
-            fail("Expected end of input");
-        } catch (IOException end) {
-            assertEquals(0, end.getStackTrace().length);
-            assertTrue("source should be closed by caller, not by wrapper", !source.closed);
-            try {
-                in.read(buf, 0, buf.length);
-                fail("Expected end of input");
-            } catch (IOException again) {
-                assertSame(end, again);
-            }
-        }
-        // The wrapper probes the underlying reader again after EOF to support
-        // resettable readers, so one extra read after end is expected.
-        assertEquals("reads after end of stream", 1, source.readsAfterEnd);
-        assertSame(in, StacklessEofReader.wrap(in));
+        JavaCharStream in = new JavaCharStream(source);
+        assertEquals('a', in.BeginToken());
+        IOException end = readToEnd(in);
+        assertEquals(0, end.getStackTrace().length);
+        assertTrue("source should be closed by caller, not by the char stream", !source.closed);
+        assertSame("end of input should reuse one exception", end, readToEnd(in));
     }
 
     @Test
     public void underlying_reader_can_be_reused_after_stackless_eof() throws Exception {
         StringReader source = new StringReader("x = 1;\ny = 2;\n");
-        Reader wrapped = StacklessEofReader.wrap(source);
-        char[] buf = new char[64];
-        // drain first parse: the wrapper signals EOF by throwing IOException
-        drain(wrapped, buf);
-        // reset and drain again: the wrapper must not have closed source
+        JavaCharStream in = new JavaCharStream(source);
+        assertEquals("x = 1;\ny = 2;\n", drain(in));
+        // reset and drain again: the char stream must not have closed source
         source.reset();
-        assertEquals("x = 1;\ny = 2;\n", drain(wrapped, buf));
+        in.ReInit(source);
+        assertEquals("x = 1;\ny = 2;\n", drain(in));
     }
 
-    private static String drain(Reader in, char[] buf) throws IOException {
+    @Test
+    public void closed_reader_after_end_of_input_still_reports_end_of_input() throws Exception {
+        StringReader source = new StringReader("");
+        JavaCharStream in = new JavaCharStream(source);
+        IOException first = readToEnd(in);
+        source.close();
+        IOException second = readToEnd(in);
+        assertSame("cached end-of-input exception should be reused, not replaced", first, second);
+        assertEquals(0, second.getStackTrace().length);
+    }
+
+    private static IOException readToEnd(JavaCharStream in) throws IOException {
+        try {
+            in.readChar();
+            fail("Expected end of input");
+            return null;
+        } catch (IOException end) {
+            return end;
+        }
+    }
+
+    private static String drain(JavaCharStream in) throws IOException {
         StringBuilder sb = new StringBuilder();
         try {
-            int n;
-            while ((n = in.read(buf, 0, buf.length)) != -1)
-                sb.append(buf, 0, n);
+            while (true)
+                sb.append(in.readChar());
         } catch (IOException eof) {
-            // StacklessEofReader signals end of input with an IOException.
+            // the char stream signals end of input with an IOException
         }
         return sb.toString();
     }
