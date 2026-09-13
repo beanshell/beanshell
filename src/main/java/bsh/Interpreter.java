@@ -574,7 +574,7 @@ public class Interpreter
                     e.printStackTrace();
                 if ( !interactive )
                     EOF = true;
-            } catch (TokenMgrException e) {
+            } catch (TokenMgrError e) {
                 error("Error parsing input: " + e);
                 /*
                     We get stuck in infinite loops here when unicode escapes
@@ -777,7 +777,7 @@ public class Interpreter
                 if ( e.getNode()==null )
                     e.setNode( node );
                 throw e.reThrow( "Sourced file: "+sourceFileInfo );
-            } catch ( TokenMgrException e ) {
+            } catch ( TokenMgrError e ) {
                 throw new EvalError(
                     "Sourced file: "+sourceFileInfo+" Token Parsing Error: "
                     + e.getMessage(), node, callstack, e);

@@ -122,7 +122,7 @@ public class LongTokenTest {
         assertEquals(letters(32768), tokens.getNextToken().image);
         assertEquals(ParserConstants.EOF, tokens.getNextToken().kind);
 
-        stream.reInit(new StringReader("42"), 3, 7);
+        stream.ReInit(new StringReader("42"), 3, 7);
         tokens.ReInit(stream);
         Token number = tokens.getNextToken();
         assertEquals("42", number.image);

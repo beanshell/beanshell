@@ -34,7 +34,9 @@
 
 options {
     JAVA_UNICODE_ESCAPE=true;
-    JDK_VERSION="1.8";
+    STATIC=false;
+    SINGLE_TREE_FILE=false;
+    TOKEN_EXTENDS="bsh.AbstractToken";
 
     MULTI=true;
     NODE_DEFAULT_VOID=true;
@@ -172,7 +174,7 @@ public class Parser
         reading bogus input.  See Interpreter.
     */
     void reInitTokenInput( Reader in ) {
-        jj_input_stream.reInit( in,
+        jj_input_stream.ReInit( in,
             jj_input_stream.getEndLine(),
             jj_input_stream.getEndColumn() );
     }
@@ -1690,7 +1692,7 @@ void TryStatement() #TryStatement:
     ( "catch" "(" MultiCatch() ")" Block() { closed = true; } )*
     [ "finally" Block() { closed = true; } ]
     {
-        if ( !closed ) throw generateParseException();
+        if ( !closed ) throw generateParseException("");
     }
 }
 

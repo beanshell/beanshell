@@ -243,5 +243,11 @@ public class SimpleNode implements Node, Serializable {
     /** {@inheritDoc} */
     @Override
     public int getId() { return this.id; }
+
+    /** JavaCC 8 lists labelled tokens in tokenImage by label, so quote the literal where one exists. */
+    static String tokenImage(int kind) {
+        String literal = ParserTokenManager.jjstrLiteralImages[kind];
+        return null == literal ? ParserConstants.tokenImage[kind] : '"' + literal + '"';
+    }
 }
 

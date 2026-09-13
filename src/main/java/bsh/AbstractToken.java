@@ -23,34 +23,12 @@
  * Author of Learning Java, O'Reilly & Associates                            *
  *                                                                           *
  *****************************************************************************/
-
-
-
 package bsh;
 
-class BSHReturnStatement extends SimpleNode implements ParserConstants
-{
-    public int kind;
-    public String label;
+import java.io.Serializable;
 
-    BSHReturnStatement(int id) { super(id); }
-
-    public Object eval(CallStack callstack, Interpreter interpreter)
-        throws EvalError
-    {
-        if (null != label)
-            return new ReturnControl(kind, label, this);
-        Object value;
-        if(jjtGetNumChildren() > 0)
-            value = jjtGetChild(0).eval(callstack, interpreter);
-        else
-            value = Primitive.VOID;
-
-        return new ReturnControl( kind, value, this );
-    }
-
-    @Override
-    public String toString() {
-        return super.toString() + ": " + tokenImage(kind) + " " + label + ":";
-    }
+/** Base of the generated Token: JavaCC 8 no longer makes tokens Serializable,
+ * but nodes keep their first and last token and are serialized with scripted objects. */
+public abstract class AbstractToken implements Serializable {
+    private static final long serialVersionUID = 1L;
 }

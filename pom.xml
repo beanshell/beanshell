@@ -167,9 +167,48 @@
     </resources>
     <plugins>
       <plugin>
-        <groupId>com.helger.maven</groupId>
-        <artifactId>ph-javacc-maven-plugin</artifactId>
-        <version>5.0.2</version>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>3.4.1</version>
+        <executions>
+          <!-- the JavaCC plugin regenerates after a grammar edit but does not
+               replace files already under generated-sources, so purge them first -->
+          <execution>
+            <id>purge-generated-parser</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>clean</goal>
+            </goals>
+            <configuration>
+              <excludeDefaultDirectories>true</excludeDefaultDirectories>
+              <filesets>
+                <fileset>
+                  <directory>${project.build.directory}/generated-sources</directory>
+                  <includes>
+                    <include>javacc/**</include>
+                    <include>jjtree/**</include>
+                  </includes>
+                </fileset>
+              </filesets>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.javacc.plugin</groupId>
+        <artifactId>javacc-maven-plugin</artifactId>
+        <version>3.8.0</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.javacc</groupId>
+            <artifactId>core</artifactId>
+            <version>8.1.0</version>
+          </dependency>
+          <dependency>
+            <groupId>org.javacc.generator</groupId>
+            <artifactId>java</artifactId>
+            <version>8.1.0</version>
+          </dependency>
+        </dependencies>
         <executions>
           <execution>
             <id>javacc</id>
@@ -177,10 +216,7 @@
               <goal>jjtree-javacc</goal>
             </goals>
             <configuration>
-              <jdkVersion>${version.jdk}</jdkVersion>
-              <javadocFriendlyComments>true</javadocFriendlyComments>
-              <static>false</static>
-              <usercharstream>true</usercharstream>
+              <sourceDirectory>${basedir}/src/main/jjtree</sourceDirectory>
             </configuration>
           </execution>
         </executions>
@@ -314,6 +350,7 @@
               <excludes>
                 <exclude>bsh/org/objectweb/**/*</exclude>
                 <exclude>bsh/Token*</exclude>
+                <exclude>bsh/Tree*</exclude>
                 <exclude>bsh/JavaCharStream*</exclude>
                 <exclude>bsh/*Parser*</exclude>
               </excludes>
@@ -330,6 +367,7 @@
               <excludes>
                 <exclude>bsh/org/objectweb/**/*</exclude>
                 <exclude>bsh/Token*</exclude>
+                <exclude>bsh/Tree*</exclude>
                 <exclude>bsh/JavaCharStream*</exclude>
                 <exclude>bsh/*Parser*</exclude>
               </excludes>

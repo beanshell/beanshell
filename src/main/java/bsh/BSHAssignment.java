@@ -189,7 +189,7 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
         }
 
         throw new UtilEvalError("Non primitive value in operator: " +
-            lhs.getClass() + " " + tokenImage[kind] + " " + rhs.getClass());
+            lhs.getClass() + " " + tokenImage(kind) + " " + rhs.getClass());
     }
 
     /** Whether an unevaluated node that produced Primitive.VOID is a genuine
@@ -206,6 +206,6 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
 
     @Override
     public String toString() {
-        return super.toString() + (null == operator ? "" : ": " + tokenImage[operator]);
+        return super.toString() + (null == operator ? "" : ": " + tokenImage(operator));
     }
 }

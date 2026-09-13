@@ -102,7 +102,7 @@ class BSHUnaryExpression extends SimpleNode implements ParserConstants
             op = new Primitive((BigDecimal) op);
 
         if ( !(op instanceof Primitive) )
-            throw new UtilEvalError( "Unary operation " + tokenImage[kind]
+            throw new UtilEvalError( "Unary operation " + tokenImage(kind)
                 + " inappropriate for object" );
 
         Primitive result = Operators.unaryOperation((Primitive) op, kind);
@@ -114,6 +114,6 @@ class BSHUnaryExpression extends SimpleNode implements ParserConstants
 
     @Override
     public String toString() {
-        return super.toString() + ": " + tokenImage[kind];
+        return super.toString() + ": " + tokenImage(kind);
     }
 }

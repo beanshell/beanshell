@@ -70,11 +70,14 @@ public class ParseException extends EvalError {
      * a new object of this type with the fields "currentToken",
      * "expectedTokenSequences", and "tokenImage" set.
      */
-    public ParseException(Token currentTokenVal, int[][] expectedTokenSequencesVal, String[] tokenImageVal) {
+    public ParseException(Token currentTokenVal, int[][] expectedTokenSequencesVal,
+            String[][] expectedTokenSequencesLocVal, String[] tokenImageVal, String locationVal) {
         super(initialise(currentTokenVal, expectedTokenSequencesVal, tokenImageVal), null, null);
         currentToken = currentTokenVal;
         expectedTokenSequences = expectedTokenSequencesVal;
+        expectedTokenSequencesLoc = expectedTokenSequencesLocVal;
         tokenImage = tokenImageVal;
+        location = locationVal;
     }
 
     /**
@@ -120,6 +123,12 @@ public class ParseException extends EvalError {
      * defined in the generated ...Constants interface.
      */
     public String[] tokenImage;
+
+    /** Source locations of each expected token sequence, parallel to expectedTokenSequences. */
+    public String[][] expectedTokenSequencesLoc;
+
+    /** The grammar expansion in which the error arose. */
+    public String location;
 
     /**
      * It uses "currentToken" and "expectedTokenSequences" to generate a parse
