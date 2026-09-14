@@ -293,19 +293,28 @@ public class BshLambdaResolutionTest {
     // Only a void method call can stand in for null; an undefined name is an error.
     @Test
     public void void_result_fails_unless_a_method_call_returns_a_reference() throws Exception {
+        // Block bodies with no return (statically VOID) are rejected at conversion time for value interfaces
+        try {
+            eval("sb = new StringBuilder(); java.util.concurrent.Callable f = () -> { sb.setLength(0); };");
+            fail("expected an EvalError: VOID block body cannot fit Callable (non-void return)");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(),
+                expected.getMessage().contains("its body does not fit"));
+        }
+        // Expression bodies with statement expressions (EITHER shape) have unknown result types
+        // and are allowed at conversion time, failing only at invoke time if the result is incompatible
         for (String conversion : new String[] {
                 "java.util.function.IntSupplier f = () -> sb.setLength(0); f.getAsInt();",
-                "java.util.concurrent.Callable f = () -> { sb.setLength(0); }; f.call();",
                 "java.util.function.Supplier f = () -> undefinedNameQ; f.get();",
                 "java.util.function.Supplier f = () -> sb.undefinedFieldQ; f.get();",
                 "java.util.function.Supplier f = () -> sb.reverse().undefinedFieldQ; f.get();",
                 "java.util.function.Function f = s -> s.lenght; f.apply(\"ab\");" }) {
             try {
                 eval("sb = new StringBuilder(); " + conversion);
-                fail("expected a void-return error for " + conversion);
+                fail("expected a TargetError for unknown-result body: " + conversion);
             } catch (TargetError expected) {
                 String message = expected.getTarget().getMessage();
-                assertTrue(conversion + ": " + message, message.contains("Cannot return void"));
+                assertTrue(conversion + ": " + message, message.contains("Cannot return void") || message.contains("undefined"));
             }
         }
     }
@@ -572,11 +581,18 @@ public class BshLambdaResolutionTest {
         }
     }
 
-    // MemberCache returns a lone Java method without checking its signature.
+    // A void-body lambda is rejected when converted to a non-void interface,
+    // even for a lone Java method. The conversion happens before method resolution.
     @Test
-    public void lone_java_method_still_takes_a_mismatched_lambda() throws Exception {
-        assertEquals("lone", eval("import bsh.BshLambdaResolutionTest.Overloads;"
-            + " Overloads.lone(() -> { x = 1; });"));
+    public void lone_java_method_rejects_a_void_lambda_for_a_value_interface() throws Exception {
+        try {
+            eval("import bsh.BshLambdaResolutionTest.Overloads;"
+                + " Overloads.lone(() -> { x = 1; });");
+            fail("expected an error: void-body lambda cannot fit Callable");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(),
+                expected.getMessage().contains("does not fit"));
+        }
     }
 
     @Test

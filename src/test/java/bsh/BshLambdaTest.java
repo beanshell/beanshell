@@ -453,4 +453,35 @@ public class BshLambdaTest {
         }
         assertNull("class manager still reachable after its interpreter was dropped", ref.get());
     }
+
+    @Test
+    public void direct_cast_rejects_a_value_body_for_a_void_interface() throws Exception {
+        try {
+            new Interpreter().eval("Runnable r = () -> 1; r.run();");
+            fail("expected an EvalError: Runnable's SAM returns void, the body returns a value");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("Runnable"));
+        }
+    }
+
+    @Test
+    public void direct_cast_rejects_a_void_body_for_a_value_interface() throws Exception {
+        try {
+            new Interpreter().eval(
+                "(java.util.concurrent.Callable) () -> { x = 1; };");
+            fail("expected an EvalError: a block that completes normally is void-shaped");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("Callable"));
+        }
+    }
+
+    @Test
+    public void direct_cast_rejects_a_known_result_that_cannot_fit_the_return_type() throws Exception {
+        try {
+            new Interpreter().eval("java.util.function.IntSupplier s = () -> \"x\";");
+            fail("expected an EvalError: String cannot become int");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("IntSupplier"));
+        }
+    }
 }

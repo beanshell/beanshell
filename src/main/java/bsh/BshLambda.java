@@ -349,6 +349,10 @@ public class BshLambda implements Serializable {
             throw new UtilEvalError("A lambda cannot implement "
                 + functionalInterface.getName() + ": its return type "
                 + hidden.getName() + " is not public");
+        if (!descriptor().fits(functionalInterface))
+            throw new UtilEvalError("A lambda cannot implement "
+                + functionalInterface.getName() + ": its body does not fit the "
+                + "method's void/value shape or its statically known result type");
 
         Class<?> wrapperClass;
         try {
