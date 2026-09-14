@@ -1,6 +1,7 @@
 package bsh;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -21,6 +22,7 @@ public class BshLambdaTest {
 
     public interface SerialTriple extends java.io.Serializable { int apply(int x); }
     public interface ReplaceWriter { Object writeReplace(); }
+    public interface SerializableReplaceWriter extends java.io.Serializable { Object writeReplace(); }
 
     // The wrapper generates its own writeReplace, which must not clash with the SAM's.
     @Test
@@ -234,10 +236,11 @@ public class BshLambdaTest {
     @Test
     public void interpreter_holding_a_converted_lambda_serializes_but_the_lambda_does_not_run() throws Exception {
         Interpreter interpreter = new Interpreter();
-        interpreter.eval("n = 0; Runnable r = () -> { n++; };");
+        interpreter.eval("import bsh.BshLambdaTest.SerialTriple; n = 0; "
+            + "SerialTriple triple = (SerialTriple) x -> { n++; return x; };");
         Interpreter copy = TestUtil.serDeser(interpreter);
-        Runnable r = (Runnable) copy.get("r");
-        assertRefusesToRun(r);
+        SerialTriple triple = (SerialTriple) copy.get("triple");
+        assertRefusesToRun(() -> triple.apply(1));
         assertEquals(Integer.valueOf(0), Primitive.unwrap(copy.eval("n;")));
     }
 
@@ -246,6 +249,24 @@ public class BshLambdaTest {
         SerialTriple triple = TestUtil.serDeser((SerialTriple) new Interpreter().eval(
             "import bsh.BshLambdaTest.SerialTriple; (SerialTriple) x -> x * 3;"));
         assertRefusesToRun(() -> triple.apply(2));
+    }
+
+    @Test
+    public void plain_runnable_wrapper_is_not_serializable() throws Exception {
+        Runnable r = (Runnable) new Interpreter().eval("(Runnable) () -> {};");
+        assertFalse(r instanceof java.io.Serializable);
+    }
+
+    @Test
+    public void serializable_interface_whose_sam_is_write_replace_is_rejected() throws Exception {
+        try {
+            new Interpreter().eval(
+                "import bsh.BshLambdaTest.SerializableReplaceWriter;"
+                + " (SerializableReplaceWriter) () -> \"x\";");
+            fail("expected an EvalError: no safe writeReplace hook can be generated");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("writeReplace"));
+        }
     }
 
     @Test

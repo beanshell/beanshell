@@ -315,6 +315,11 @@ public class BshLambda implements Serializable {
         return null;
     }
 
+    private static boolean isWriteReplaceSam(Method sam) {
+        return sam.getName().equals("writeReplace") && sam.getParameterCount() == 0
+            && sam.getReturnType() == Object.class;
+    }
+
     /** A functional interface may redeclare an Object method (equals, hashCode,
         toString) without it counting as the single abstract method. */
     private static boolean isObjectMethod(Method m) {
@@ -349,6 +354,11 @@ public class BshLambda implements Serializable {
             throw new UtilEvalError("A lambda cannot implement "
                 + functionalInterface.getName() + ": its return type "
                 + hidden.getName() + " is not public");
+        if (Serializable.class.isAssignableFrom(functionalInterface) && isWriteReplaceSam(sam))
+            throw new UtilEvalError("A lambda cannot implement "
+                + functionalInterface.getName() + ": its single abstract method "
+                + "collides with Java serialization's writeReplace() hook, which "
+                + "would run the lambda body during writeObject");
         if (!descriptor().fits(functionalInterface))
             throw new UtilEvalError("A lambda cannot implement "
                 + functionalInterface.getName() + ": its body does not fit the "
@@ -550,11 +560,16 @@ public class BshLambda implements Serializable {
         }
 
         private static byte[] generateBytes(String internalClassName, Class<?> functionalInterface) {
+            boolean serializable = Serializable.class.isAssignableFrom(functionalInterface);
+            List<String> interfaces = new ArrayList<>();
+            interfaces.add(Type.getInternalName(functionalInterface));
+            interfaces.add(Type.getInternalName(Wrapper.class));
+            if (serializable)
+                interfaces.add(Type.getInternalName(Serializable.class));
+
             ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
             cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC | Opcodes.ACC_SUPER, internalClassName, null,
-                "java/lang/Object", new String[] {
-                    Type.getInternalName(functionalInterface), Type.getInternalName(Wrapper.class),
-                    Type.getInternalName(Serializable.class) });
+                "java/lang/Object", interfaces.toArray(new String[0]));
 
             cw.visitField(Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, "bshLambda",
                 Type.getDescriptor(BshLambda.class), null, null).visitEnd();
@@ -565,7 +580,7 @@ public class BshLambda implements Serializable {
             for (Method m : abstractMethods(functionalInterface))
                 if (names.add(m.getName() + Type.getMethodDescriptor(m)))
                     writeMethod(cw, internalClassName, m);
-            if (!names.contains(WRITE_REPLACE))
+            if (serializable && !names.contains(WRITE_REPLACE))
                 writeWriteReplace(cw, internalClassName, functionalInterface);
 
             cw.visitEnd();
