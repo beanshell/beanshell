@@ -336,18 +336,6 @@ public class ClassGeneratorUtil implements Opcodes {
         cw.visitField(modifiers, fieldName, type, null/*signature*/, value);
     }
 
-    /**
-     * Build the signature for the supplied parameter types.
-     * @param paramTypes list of parameter types
-     * @return parameter type signature
-     */
-    private static String getTypeParameterSignature(String[] paramTypes) {
-        StringBuilder sb = new StringBuilder("<");
-        for (final String pt : paramTypes)
-            sb.append(pt).append(":");
-        return sb.toString();
-    }
-
     /** Generate support code needed for Enum types.
      * Generates enum values and valueOf methods, default private constructor with initInstance call.
      * Instead of maintaining a synthetic array of enum values we greatly reduce the required bytecode
@@ -419,10 +407,8 @@ public class ClassGeneratorUtil implements Opcodes {
 
         String methodDescriptor = getMethodDescriptor(returnType, paramTypes);
 
-        String paramTypesSig = getTypeParameterSignature(paramTypes);
-
         // Generate method body
-        MethodVisitor cv = cw.visitMethod(modifiers, methodName, methodDescriptor, paramTypesSig, exceptions);
+        MethodVisitor cv = cw.visitMethod(modifiers, methodName, methodDescriptor, null/*signature*/, exceptions);
 
         if ((modifiers & ACC_ABSTRACT) != 0)
             return;
@@ -467,10 +453,8 @@ public class ClassGeneratorUtil implements Opcodes {
         String[] exceptions = null;
         String methodDescriptor = getMethodDescriptor("V", paramTypes);
 
-        String paramTypesSig = getTypeParameterSignature(paramTypes);
-
         // Create this constructor method
-        MethodVisitor cv = cw.visitMethod(modifiers, "<init>", methodDescriptor, paramTypesSig, exceptions);
+        MethodVisitor cv = cw.visitMethod(modifiers, "<init>", methodDescriptor, null/*signature*/, exceptions);
 
         // Generate code to push arguments as an object array
         generateParameterReifierCode(paramTypes, false/*isStatic*/, cv);
@@ -695,10 +679,8 @@ public class ClassGeneratorUtil implements Opcodes {
 
         String methodDescriptor = getMethodDescriptor(returnType, paramTypes);
 
-        String paramTypesSig = getTypeParameterSignature(paramTypes);
-
         // Add method body
-        MethodVisitor cv = cw.visitMethod(modifiers, "_bshSuper" + superClass.getSimpleName() + methodName, methodDescriptor, paramTypesSig, exceptions);
+        MethodVisitor cv = cw.visitMethod(modifiers, "_bshSuper" + superClass.getSimpleName() + methodName, methodDescriptor, null/*signature*/, exceptions);
 
         cv.visitVarInsn(ALOAD, 0);
         // Push vars

@@ -21,6 +21,7 @@
 package bsh;
 
 import static bsh.TestUtil.eval;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -104,6 +105,25 @@ public class ClassGeneratorTest {
         assertEquals("chained:direct", eval(script.toString(),
                 "return new LargeConstructorDispatch().result + \":\""
                 + " + new LargeConstructorDispatch(\"direct\").result;"));
+    }
+
+    @Test
+    public void generated_members_have_valid_generic_parameter_metadata() throws Exception {
+        Class<?> type = (Class<?>) eval(
+                "class SignatureProbe extends java.util.ArrayList {",
+                    "SignatureProbe(int value) {}",
+                    "void probe(String value) {}",
+                    "public boolean add(Object value) { return super.add(value); }",
+                "}",
+                "return SignatureProbe.class;");
+
+        assertArrayEquals(new Class<?>[] { int.class }, type
+                .getDeclaredConstructor(int.class).getGenericParameterTypes());
+        assertArrayEquals(new Class<?>[] { String.class }, type
+                .getDeclaredMethod("probe", String.class).getGenericParameterTypes());
+        assertArrayEquals(new Class<?>[] { Object.class }, type
+                .getDeclaredMethod("_bshSuperArrayListadd", Object.class)
+                .getGenericParameterTypes());
     }
 
 
