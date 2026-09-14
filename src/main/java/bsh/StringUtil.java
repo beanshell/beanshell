@@ -236,6 +236,7 @@ public class StringUtil {
      * @return simple name or Object if null */
     private static String getTypeName(Class<?> type) {
         return ( null == type ) ? "Object"
+                : BshLambda.isArityMarker(type) ? BshLambda.markerTypeName(type)
                 : type.getSimpleName();
     }
 

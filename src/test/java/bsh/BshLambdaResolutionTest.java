@@ -1,0 +1,482 @@
+package bsh;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.Arrays;
+import java.util.List;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+/**
+    Phase 3 coverage for lambdas (issue #675): cast-free target typing, where
+    the functional interface is chosen by overload resolution.
+*/
+@RunWith(FilteredTestRunner.class)
+public class BshLambdaResolutionTest {
+
+    public static final class Overloads {
+        public static String take(Object o) { return "object"; }
+        public static String take(Runnable r) { return "runnable"; }
+        interface Hidden { int apply(int x); }
+        public static int hidden(Hidden h) { return h.apply(21); }
+        public interface Getter { Object get(); }
+        public interface RunningGetter extends Getter { default Object get() { return null; } void run(); }
+        public interface GettingRunner extends Runnable { default void run() {} Object get(); }
+    }
+
+    private static Object eval(String script) throws EvalError {
+        return Primitive.unwrap(new Interpreter().eval(script));
+    }
+
+    // Pre-existing behaviour, pinned: a scripted object is only proxied to an
+    // interface when no Object overload exists, because This.class matches
+    // Object in the first assignability round. Lambdas deliberately do not
+    // inherit this -- see object_overload_loses_to_a_matching_functional_interface.
+    @Test
+    public void scripted_object_prefers_an_object_overload_over_an_interface() throws Exception {
+        assertEquals("object", eval(
+            "f(Object o) { return \"object\"; }\n"
+            + "f(Comparator c) { return \"comparator\"; }\n"
+            + "compare(a, b) { return 0; }\n"
+            + "f(this);"));
+    }
+
+    @Test
+    public void bare_lambda_argument_to_a_typed_scripted_parameter() throws Exception {
+        assertEquals(Boolean.TRUE, eval(
+            "ran = false; accept(Runnable r) { r.run(); }\n"
+            + "accept(() -> { ran = true; }); ran;"));
+    }
+
+    @Test
+    public void java_method_taking_a_consumer() throws Exception {
+        assertEquals(Integer.valueOf(6), eval(
+            "sum = 0; Arrays.asList(1, 2, 3).forEach(x -> { sum += x; }); sum;"));
+    }
+
+    @Test
+    public void java_constructor_taking_a_runnable() throws Exception {
+        assertEquals(Boolean.TRUE, eval(
+            "ran = false; t = new Thread(() -> { ran = true; }); t.run(); ran;"));
+    }
+
+    // Stream.map is the lone "map" candidate, so MemberCache.findBest returns
+    // it without signature matching; this passed before Phase 3 and guards
+    // that shortcut rather than the arity marker.
+    @Test
+    public void stream_map_with_an_expression_lambda() throws Exception {
+        assertEquals(Arrays.asList(2, 4, 6), eval(
+            "Arrays.asList(1, 2, 3).stream().map(x -> x * 2)"
+            + ".collect(java.util.stream.Collectors.toList());"));
+    }
+
+    @Test
+    public void list_sort_with_a_two_parameter_comparator() throws Exception {
+        List<?> sorted = (List<?>) eval(
+            "l = new ArrayList(Arrays.asList(1, 3, 2)); l.sort((a, b) -> b - a); l;");
+        assertEquals(Arrays.asList(3, 2, 1), sorted);
+    }
+
+    @Test
+    public void object_overload_loses_to_a_matching_functional_interface() throws Exception {
+        String objectFirst = "f(Object o) { return \"object\"; }\n"
+            + "f(Runnable r) { return \"runnable\"; }\n";
+        String runnableFirst = "f(Runnable r) { return \"runnable\"; }\n"
+            + "f(Object o) { return \"object\"; }\n";
+        assertEquals("runnable", eval(objectFirst + "f(() -> {});"));
+        assertEquals("runnable", eval(runnableFirst + "f(() -> {});"));
+    }
+
+    @Test
+    public void java_object_overload_loses_to_a_matching_functional_interface() throws Exception {
+        assertEquals("runnable", eval(
+            "import bsh.BshLambdaResolutionTest.Overloads; Overloads.take(() -> {});"));
+    }
+
+    // The lambda must not push the whole call into BSH_ASSIGNABLE, where the
+    // other arguments would be matched by looser rules than Java's. Declaring
+    // Integer last puts it first in the candidate list, so a loose match wins.
+    @Test
+    public void other_arguments_keep_java_conversion_rules() throws Exception {
+        String overloads = "w(long n, Runnable r) { return \"long\"; }\n"
+            + "w(Integer n, Runnable r) { return \"Integer\"; }\n";
+        assertEquals("long", eval(overloads + "w(1L, () -> {});"));
+        assertEquals("long", eval(overloads + "w(1, () -> {});"));
+    }
+
+    @Test
+    public void non_public_functional_interface_fails_clearly() throws Exception {
+        try {
+            eval("import bsh.BshLambdaResolutionTest.Overloads; Overloads.hidden(x -> x * 2);");
+            fail("expected an EvalError");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("not public"));
+        }
+    }
+
+    @Test
+    public void object_only_overload_still_receives_the_raw_lambda() throws Exception {
+        assertTrue(eval("keep(Object o) { return o; } keep(x -> x);") instanceof BshLambda);
+        assertTrue(eval("java.util.Objects.requireNonNull(x -> x);") instanceof BshLambda);
+    }
+
+    @Test
+    public void arity_selects_between_functional_interfaces() throws Exception {
+        String overloads = "g(Runnable r) { return \"runnable\"; }\n"
+            + "g(java.util.function.Consumer c) { return \"consumer\"; }\n";
+        assertEquals("runnable", eval(overloads + "g(() -> {});"));
+        assertEquals("consumer", eval(overloads + "g(x -> {});"));
+    }
+
+    @Test
+    public void functional_interface_beats_an_object_varargs_overload() throws Exception {
+        assertEquals("runnable", eval(
+            "v(Object... os) { return \"varargs\"; }\n"
+            + "v(Runnable r) { return \"runnable\"; }\n"
+            + "v(() -> {});"));
+    }
+
+    @Test
+    public void lambda_does_not_match_a_boolean_parameter() throws Exception {
+        String boolFirst = "b(boolean x) { return \"boolean\"; }\n"
+            + "b(Runnable r) { return \"runnable\"; }\n";
+        assertEquals("runnable", eval(boolFirst + "b(() -> {});"));
+    }
+
+    // Java picks Callable: 42 is not a statement, so the lambda cannot be a Runnable.
+    @Test
+    public void executor_submit_of_a_value_lambda_is_a_callable() throws Exception {
+        assertEquals(Integer.valueOf(42), eval(
+            "ex = java.util.concurrent.Executors.newSingleThreadExecutor(); r = null;\n"
+            + "try { r = ex.submit(() -> 42).get(); } finally { ex.shutdown(); }\n"
+            + "r;"));
+    }
+
+    /** Resolves f(body) with Runnable and Callable overloads declared in both orders. */
+    private static void assertBothOrdersPick(String expected, String lambda) throws Exception {
+        String runnable = "f(Runnable r) { return \"runnable\"; }\n";
+        String callable = "f(java.util.concurrent.Callable c) { return \"callable\"; }\n";
+        String call = "foo() { return 1; } x = 0; f(" + lambda + ");";
+        assertEquals(lambda, expected, eval(runnable + callable + call));
+        assertEquals(lambda, expected, eval(callable + runnable + call));
+    }
+
+    @Test
+    public void value_expression_body_selects_the_value_returning_interface() throws Exception {
+        assertBothOrdersPick("callable", "() -> 42");
+        assertBothOrdersPick("callable", "() -> (foo())");
+    }
+
+    @Test
+    public void block_returning_a_value_selects_the_value_returning_interface() throws Exception {
+        assertBothOrdersPick("callable", "() -> { return 1; }");
+    }
+
+    @Test
+    public void block_returning_nothing_selects_the_void_interface() throws Exception {
+        assertBothOrdersPick("runnable", "() -> { x = 1; }");
+        assertBothOrdersPick("runnable", "() -> { return; }");
+        assertBothOrdersPick("runnable", "() -> { r = () -> { return 1; }; }");
+        assertBothOrdersPick("runnable", "() -> { while (true) { break; } }");
+        assertBothOrdersPick("runnable", "() -> { m() { return 1; } }");
+        assertBothOrdersPick("runnable", "() -> { class K { int k() { return 1; } } }");
+        assertBothOrdersPick("runnable", "() -> { o = new Object() { int k() { return 1; } }; }");
+    }
+
+    @Test
+    public void body_shape_ranks_a_lambda_among_other_arguments() throws Exception {
+        String runnable = "h(String s, Runnable r) { return \"runnable\"; }\n";
+        String callable = "h(String s, java.util.concurrent.Callable c) { return \"callable\"; }\n";
+        assertEquals("callable", eval(runnable + callable + "h(\"a\", () -> 42);"));
+        assertEquals("callable", eval(callable + runnable + "h(\"a\", () -> 42);"));
+        assertEquals("runnable", eval(runnable + callable + "h(\"a\", () -> { x = 1; });"));
+        assertEquals("runnable", eval(callable + runnable + "h(\"a\", () -> { x = 1; });"));
+        String objectRunnable = "k(Object o, Runnable r) { return \"object,runnable\"; }\n";
+        String stringCallable = "k(String s, java.util.concurrent.Callable c) { return \"string,callable\"; }\n";
+        assertEquals("string,callable", eval(objectRunnable + stringCallable + "k(\"a\", () -> 42);"));
+        assertEquals("string,callable", eval(stringCallable + objectRunnable + "k(\"a\", () -> 42);"));
+    }
+
+    // A statement expression or a block that cannot complete normally fits
+    // both; Java then prefers the interface that returns a value.
+    @Test
+    public void body_fitting_both_prefers_the_value_returning_interface() throws Exception {
+        assertBothOrdersPick("callable", "() -> foo()");
+        assertBothOrdersPick("callable", "() -> x = 1");
+        assertBothOrdersPick("callable", "() -> x++");
+        assertBothOrdersPick("callable", "() -> ++x");
+        assertBothOrdersPick("callable", "() -> x += 1");
+        assertBothOrdersPick("callable", "() -> new StringBuilder().reverse().setLength(0)");
+        assertBothOrdersPick("callable", "() -> new Object()");
+        assertBothOrdersPick("callable", "() -> { throw new RuntimeException(); }");
+        assertBothOrdersPick("callable", "() -> { while (true) {} }");
+        assertBothOrdersPick("callable", "() -> { for (;;) {} }");
+        assertBothOrdersPick("callable", "() -> { for (; true;) {} }");
+        assertBothOrdersPick("callable", "() -> { while (true) { if (x == 0) continue; } }");
+        assertBothOrdersPick("callable", "() -> { do {} while (true); }");
+        assertBothOrdersPick("callable",
+            "() -> { if (x == 0) throw new RuntimeException(); else throw new Error(); }");
+        assertBothOrdersPick("callable", "() -> { synchronized (this) { throw new RuntimeException(); } }");
+        assertBothOrdersPick("callable", "() -> { { throw new RuntimeException(); } }");
+        assertBothOrdersPick("callable", "() -> { try { throw new RuntimeException(); } finally {} }");
+        assertBothOrdersPick("callable",
+            "() -> { try { throw new RuntimeException(); } catch (Exception e) { throw new Error(); } }");
+        assertBothOrdersPick("callable", "() -> { try {} finally { throw new Error(); } }");
+        assertBothOrdersPick("callable", "() -> { out: while (true) {} }");
+        assertBothOrdersPick("callable", "() -> { while ((true)) {} }");
+        assertBothOrdersPick("callable", "() -> { for (int i = 0; true; i++) {} }");
+        assertBothOrdersPick("callable",
+            "() -> { try (java.io.StringReader r = new java.io.StringReader(\"\")) { x = 1; } finally { throw new Error(); } }");
+        assertBothOrdersPick("callable", "() -> { switch (x) { case 1: default: throw new Error(); } }");
+    }
+
+    @Test
+    public void block_that_can_complete_normally_selects_the_void_interface() throws Exception {
+        assertBothOrdersPick("runnable", "() -> { if (x == 0) throw new RuntimeException(); }");
+        assertBothOrdersPick("runnable", "() -> { if (x == 0) return; throw new RuntimeException(); }");
+        assertBothOrdersPick("runnable", "() -> { while (x == 0) {} }");
+        assertBothOrdersPick("runnable", "() -> { while (!true) {} }");
+        assertBothOrdersPick("runnable", "() -> { do {} while (false); }");
+        assertBothOrdersPick("runnable", "() -> { out: ; }");
+        assertBothOrdersPick("runnable", "() -> { out: inner: ; }");
+        assertBothOrdersPick("runnable", "() -> { do ; while (false); }");
+        assertBothOrdersPick("runnable", "() -> { try { x = 1; } finally { x = 2; } }");
+        assertBothOrdersPick("runnable", "() -> { switch (x) { default: throw new Error(); case 1: x = 1; } }");
+        assertBothOrdersPick("runnable", "() -> { if (x == 0) x = 1; else throw new Error(); }");
+        assertBothOrdersPick("runnable", "() -> { if (x == 0) throw new Error(); else x = 1; }");
+        assertBothOrdersPick("runnable", "() -> { for (int i = 0; i < 1; i++) {} }");
+        assertBothOrdersPick("runnable", "() -> { out: { if (x == 0) break out; throw new Error(); } }");
+        assertBothOrdersPick("runnable", "() -> { for (;;) { for (;;) { break; } break; } }");
+        assertBothOrdersPick("runnable", "() -> { try { throw new RuntimeException(); } catch (Exception e) {} }");
+        assertBothOrdersPick("runnable", "() -> { out: while (true) { break out; } }");
+        assertBothOrdersPick("runnable", "() -> { switch (x) { case 1: throw new Error(); } }");
+        assertBothOrdersPick("runnable", "() -> { switch (x) { default: throw new Error(); case 1: } }");
+        assertBothOrdersPick("runnable", "() -> { switch (x) { case 1: break; default: throw new Error(); } }");
+    }
+
+    // javac picks Runnable for a void call; bsh cannot tell at resolution time,
+    // so the Callable it picks must still behave like one.
+    @Test
+    public void void_method_call_body_as_a_callable_runs_and_yields_null() throws Exception {
+        assertBothOrdersPick("callable", "() -> sb.setLength(0)");
+        assertEquals("0,null,0,null", eval(
+            "import java.util.concurrent.*; a = new StringBuilder(\"x\"); b = new StringBuilder(\"yz\");\n"
+            + "Callable c = () -> a.setLength(0); r = c.call();\n"
+            + "Callable d = () -> b.reverse().setLength(0); s = d.call();\n"
+            + "a.length() + \",\" + r + \",\" + b.length() + \",\" + s;"));
+    }
+
+    @Test
+    public void void_method_call_body_submitted_to_an_executor_runs() throws Exception {
+        assertEquals("0,null,0,null", eval(
+            "import java.util.concurrent.*;\n"
+            + "ex = Executors.newSingleThreadScheduledExecutor(); a = new StringBuilder(\"x\");"
+            + " b = new StringBuilder(\"y\"); r = null; s = null;\n"
+            + "try { r = ex.submit(() -> a.setLength(0)).get();"
+            + " s = ex.schedule(() -> b.setLength(0), 1, TimeUnit.MILLISECONDS).get(); }"
+            + " finally { ex.shutdown(); }\n"
+            + "a.length() + \",\" + r + \",\" + b.length() + \",\" + s;"));
+    }
+
+    // Only a void method call can stand in for null; an undefined name is an error.
+    @Test
+    public void void_result_fails_unless_a_method_call_returns_a_reference() throws Exception {
+        for (String conversion : new String[] {
+                "java.util.function.IntSupplier f = () -> sb.setLength(0); f.getAsInt();",
+                "java.util.concurrent.Callable f = () -> { sb.setLength(0); }; f.call();",
+                "java.util.function.Supplier f = () -> undefinedNameQ; f.get();",
+                "java.util.function.Supplier f = () -> sb.undefinedFieldQ; f.get();",
+                "java.util.function.Supplier f = () -> sb.reverse().undefinedFieldQ; f.get();",
+                "java.util.function.Function f = s -> s.lenght; f.apply(\"ab\");" }) {
+            try {
+                eval("sb = new StringBuilder(); " + conversion);
+                fail("expected a void-return error for " + conversion);
+            } catch (TargetError expected) {
+                String message = expected.getTarget().getMessage();
+                assertTrue(conversion + ": " + message, message.contains("Cannot return void"));
+            }
+        }
+    }
+
+    private static final String GETTER = "bsh.BshLambdaResolutionTest.Overloads.Getter";
+    private static final String RUNNING_GETTER = "bsh.BshLambdaResolutionTest.Overloads.RunningGetter";
+    private static final String GETTING_RUNNER = "bsh.BshLambdaResolutionTest.Overloads.GettingRunner";
+
+    /** Resolves call against the declarations in every order. */
+    private static void assertEveryOrderPicks(String expected, String call, String... declarations)
+            throws Exception {
+        for (List<String> order : permutations(Arrays.asList(declarations)))
+            assertEquals(order + " " + call, expected,
+                eval(String.join("\n", order)
+                    + "\nfoo() { return 1; } x = 0; arr = new int[1]; sb = new StringBuilder();\n" + call));
+    }
+
+    private static List<List<String>> permutations(List<String> items) {
+        List<List<String>> all = new java.util.ArrayList<>();
+        if (items.isEmpty())
+            all.add(new java.util.ArrayList<>());
+        for (String first : items) {
+            List<String> rest = new java.util.ArrayList<>(items);
+            rest.remove(first);
+            for (List<String> tail : permutations(rest)) {
+                tail.add(0, first);
+                all.add(tail);
+            }
+        }
+        return all;
+    }
+
+    // A body fitting both shapes keeps Java's rule: a subinterface stays more specific.
+    @Test
+    public void subinterface_wins_for_a_body_fitting_both_shapes() throws Exception {
+        assertEveryOrderPicks("running", "q(() -> foo());",
+            "q(" + GETTER + " g) { return \"getter\"; }", "q(" + RUNNING_GETTER + " g) { return \"running\"; }");
+        for (String body : new String[] { "{ throw new Error(); }", "x = 1", "x += 1", "x++", "++x", "x--", "new Object()",
+                "o.new Inner()", "new Object().new Inner()" })
+            assertEveryOrderPicks("running", "q(() -> " + body + ");",
+                "q(" + GETTER + " g) { return \"getter\"; }", "q(" + RUNNING_GETTER + " g) { return \"running\"; }");
+        assertEveryOrderPicks("gettingRunner", "w(() -> foo());",
+            "w(Runnable r) { return \"runnable\"; }", "w(" + GETTING_RUNNER + " g) { return \"gettingRunner\"; }");
+    }
+
+    // An untyped parameter has no type at all; it ties as it would for any argument.
+    @Test
+    public void untyped_parameters_compete_with_a_lambda_argument() throws Exception {
+        for (List<String> order : permutations(Arrays.asList(
+                "each(java.util.Collection c, f) { return \"collection\"; }", "each(Object o, f) { return \"object\"; }"))) {
+            String declarations = String.join("\n", order) + "\n";
+            assertEquals(order.toString(), eval(declarations + "each(new java.util.ArrayList(), 1);"),
+                eval(declarations + "each(new java.util.ArrayList(), v -> v);"));
+        }
+        for (String[] declarations : new String[][] {
+                { "h(a, b) { return \"untyped\"; }", "h(Runnable r, b) { return \"runnable\"; }" },
+                { "h(int i, a) { return \"untyped\"; }", "h(int i, Runnable r) { return \"runnable\"; }" } }) {
+            for (String lambda : new String[] { "() -> {}", "() -> foo()", "() -> 1" }) {
+                String call = declarations[0].startsWith("h(int") ? "h(null, " + lambda + ");" : "h(" + lambda + ", 1);";
+                for (List<String> order : permutations(Arrays.asList(declarations)))
+                    assertTrue(order + " " + call, Arrays.asList("untyped", "runnable").contains(
+                        eval(String.join("\n", order) + "\nfoo() { return 1; }\n" + call)));
+            }
+        }
+    }
+
+    // A primitive result cannot carry a void call's null or an arbitrary object, so
+    // void and reference results rank above it where javac would need static types.
+    @Test
+    public void body_fitting_both_prefers_void_over_a_primitive_result() throws Exception {
+        String runnable = "f(Runnable r) { r.run(); return \"runnable\"; }";
+        String intSupplier = "f(java.util.function.IntSupplier s) { s.getAsInt(); return \"intSupplier\"; }";
+        for (String body : new String[] { "sb.setLength(0)", "new Object()", "foo()", "x++" })
+            assertEveryOrderPicks("runnable", "f(() -> " + body + ");", runnable, intSupplier);
+        assertEveryOrderPicks("intSupplier", "f(() -> 1);", runnable, intSupplier);
+    }
+
+    @Test
+    public void reference_result_beats_a_primitive_result() throws Exception {
+        String supplier = "g(java.util.function.Supplier s) { return \"supplier:\" + s.get(); }";
+        for (String primitive : new String[] { "IntSupplier s) { return \"int:\" + s.getAsInt(); }",
+                "BooleanSupplier s) { return \"boolean:\" + s.getAsBoolean(); }" })
+            for (String body : new String[] { "\"s\"", "foo()", "new Object() { String toString() { return \"o\"; } }", "1" })
+                assertEveryOrderPicks("supplier:" + (body.startsWith("new") ? "o" : body.replace("\"", "").replace("foo()", "1")),
+                    "g(() -> " + body + ");", supplier, "g(java.util.function." + primitive);
+        assertEveryOrderPicks("supplier:1", "g(() -> foo());", supplier,
+            "g(Runnable r) { return \"runnable\"; }", "g(java.util.function.IntSupplier s) { return \"int\"; }");
+    }
+
+    // Object only matches a lambda in the loose round, where it must still rank below the interface.
+    @Test
+    public void functional_interface_beats_object_in_the_loose_round() throws Exception {
+        assertEveryOrderPicks("runnable", "u(null, () -> {});",
+            "u(int i, Object o) { return \"object\"; }", "u(int i, Runnable r) { return \"runnable\"; }");
+        assertEveryOrderPicks("callable", "u(null, () -> 1);",
+            "u(int i, Object o) { return \"object\"; }", "u(int i, java.util.concurrent.Callable c) { return \"callable\"; }");
+    }
+
+    // javac never applies a subinterface whose method the body's shape cannot fit.
+    @Test
+    public void interface_the_body_fits_beats_a_subinterface_it_cannot_fit() throws Exception {
+        String getter = "q(" + GETTER + " g) { return \"getter\"; }";
+        String running = "q(" + RUNNING_GETTER + " g) { return \"running\"; }";
+        for (String body : new String[] { "1", "-x", "new int[1]", "(foo())", "x == 1 ? foo() : foo()",
+                "new java.awt.Point().x", "arr[0]" })
+            assertEveryOrderPicks("getter", "q(() -> " + body + ");", getter, running);
+        assertEveryOrderPicks("getter", "q(() -> { return 1; });", getter, running);
+        assertEveryOrderPicks("runnable", "w(() -> { x = 1; });",
+            "w(Runnable r) { return \"runnable\"; }", "w(" + GETTING_RUNNER + " g) { return \"gettingRunner\"; }");
+        assertEveryOrderPicks("getter,string", "m(() -> 1, \"s\");",
+            "m(" + GETTER + " g, String s) { return \"getter,string\"; }",
+            "m(" + RUNNING_GETTER + " g, Object o) { return \"running,object\"; }");
+        assertEveryOrderPicks("getter", "t(() -> 1);", "t(Runnable r) { return \"runnable\"; }", getter.replace("q(", "t("),
+            running.replace("q(", "t("));
+    }
+
+    @Test
+    public void body_shape_breaks_ties_between_one_parameter_interfaces() throws Exception {
+        String consumer = "g(java.util.function.Consumer c) { return \"consumer\"; }\n";
+        String function = "g(java.util.function.Function f) { return \"function\"; }\n";
+        assertEquals("function", eval(consumer + function + "g(v -> v + 1);"));
+        assertEquals("function", eval(function + consumer + "g(v -> v + 1);"));
+        assertEquals("consumer", eval(consumer + function + "g(v -> { v.hashCode(); });"));
+        assertEquals("consumer", eval(function + consumer + "g(v -> { v.hashCode(); });"));
+    }
+
+    // Shape only ranks candidates; it never makes a lone candidate inapplicable.
+    @Test
+    public void lone_value_interface_still_accepts_a_void_block() throws Exception {
+        assertEquals("callable", eval(
+            "only(java.util.concurrent.Callable c) { return \"callable\"; }\n"
+            + "only(() -> { x = 1; });"));
+    }
+
+    // Existing resolution semantics, pinned rather than changed: when neither
+    // candidate is more specific, findMostSpecificSignature keeps the first in
+    // list order, and NameSpace.setMethod inserts at index 0 -- so the last
+    // declared scripted method wins (same for two non-lambda interfaces).
+    @Test
+    public void same_arity_functional_interfaces_resolve_to_the_last_declared() throws Exception {
+        String functionFirst = "s(java.util.function.Function f) { return \"function\"; }\n"
+            + "s(java.util.function.IntFunction i) { return \"intFunction\"; }\n";
+        String intFunctionFirst = "s(java.util.function.IntFunction i) { return \"intFunction\"; }\n"
+            + "s(java.util.function.Function f) { return \"function\"; }\n";
+        assertEquals("intFunction", eval(functionFirst + "s(x -> true);"));
+        assertEquals("function", eval(intFunctionFirst + "s(x -> true);"));
+    }
+
+    // As for any argument, a typed parameter matches in an earlier round than
+    // an untyped one, so declaration order does not matter.
+    @Test
+    public void functional_interface_parameter_beats_an_untyped_one() throws Exception {
+        String untypedFirst = "h(x) { return \"untyped\"; }\n"
+            + "h(Runnable r) { return \"runnable\"; }\n";
+        String runnableFirst = "h(Runnable r) { return \"runnable\"; }\n"
+            + "h(x) { return \"untyped\"; }\n";
+        assertEquals("runnable", eval(untypedFirst + "h(() -> {});"));
+        assertEquals("runnable", eval(runnableFirst + "h(() -> {});"));
+    }
+
+    // Past the last arity marker the lambda is typed as BshLambda, which
+    // matches only Object/loose parameters; an explicit cast still works.
+    @Test
+    public void lambda_beyond_the_marker_arities_resolves_only_to_object() throws Exception {
+        String eleven = "(a, b, c, d, e, f, g, h, i, j, k) -> a";
+        assertEquals("object", eval(
+            "m(Object o) { return \"object\"; }\n"
+            + "m(Runnable r) { return \"runnable\"; }\n"
+            + "m(" + eleven + ");"));
+    }
+
+    @Test
+    public void unresolvable_call_does_not_name_the_internal_marker_type() throws Exception {
+        try {
+            eval("noSuchMethod(x -> x);");
+            fail("expected an EvalError");
+        } catch (EvalError e) {
+            assertFalse(e.getMessage(), e.getMessage().contains("Arity"));
+            assertTrue(e.getMessage(), e.getMessage().toLowerCase().contains("lambda"));
+        }
+    }
+}

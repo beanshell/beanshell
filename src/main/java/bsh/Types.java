@@ -154,9 +154,17 @@ class Types {
         Class<?>[] types = new Class[ args.length ];
 
         for( int i=0; i < args.length; i++ )
-            types[i] = getType(args[i]);
+            types[i] = getArgumentType(args[i]);
 
         return types;
+    }
+
+    /** Type of a call argument for overload resolution: as getType, except a
+     * lambda is typed by its arity marker, since resolution never sees values.
+     * @param arg the argument value
+     * @return the argument's lookup type */
+    static Class<?> getArgumentType( Object arg ) {
+        return arg instanceof BshLambda ? ((BshLambda) arg).arityMarker() : getType(arg);
     }
 
     /** Find the type of an object.
@@ -228,6 +236,27 @@ class Types {
             default:
                 throw new InterpreterError("bad case");
         }
+    }
+
+    /**
+     * Is candidate signature target at least as specific as best for a call
+     * with argument types idealMatch? Without lambda arguments this is exactly
+     * target assignable to best; at a lambda argument, functional interfaces
+     * are also ranked by how well they fit the lambda's body shape.
+     */
+    static boolean isMoreSpecificSignature(Class<?>[] idealMatch, Class<?>[] target,
+            Class<?>[] best) {
+        boolean lambdaArgument = false;
+        for (Class<?> type : idealMatch)
+            lambdaArgument |= BshLambda.isArityMarker(type);
+        if ( !lambdaArgument )
+            return isSignatureAssignable(target, best, JAVA_BASE_ASSIGNABLE);
+        for (int i = 0; i < target.length; i++)
+            if ( BshLambda.isArityMarker(idealMatch[i])
+                    ? !BshLambda.isAtLeastAsSpecific(idealMatch[i], target[i], best[i])
+                    : !isJavaBaseAssignable(best[i], target[i]) )
+                return false;
+        return true;
     }
 
     /**
@@ -314,6 +343,11 @@ class Types {
     */
     public static boolean isJavaBaseAssignable( Class<?> lhsType, Class<?> rhsType )
     {
+        // A lambda matches a functional interface of its arity here, so its other
+        // arguments keep Java rules; Object takes it only in BSH_ASSIGNABLE.
+        if ( BshLambda.isArityMarker(rhsType) )
+            return BshLambda.isFunctionalTarget(lhsType, rhsType);
+
         /*
             Assignment to loose type, defer to bsh extensions
             Note: we could shortcut this here:
@@ -354,6 +388,10 @@ class Types {
     static boolean isJavaBoxTypesAssignable(
         Class<?> lhsType, Class<?> rhsType )
     {
+        // See isJavaBaseAssignable: must precede the Object shortcut below.
+        if ( BshLambda.isArityMarker(rhsType) )
+            return BshLambda.isFunctionalTarget(lhsType, rhsType);
+
         // Assignment to loose type... defer to bsh extensions
         if ( lhsType == null )
             return false;
@@ -560,6 +598,10 @@ class Types {
             return checkOnly ? VALID_CAST :
                 fromValue;
 
+        // Before the primitive branches, which would accept any object for boolean.
+        if ( fromType == BshLambda.class || BshLambda.isArityMarker(fromType) )
+            return BshLambda.castLambda( toType, fromType, fromValue, checkOnly );
+
         if ( null != fromType && fromType.isArray() )
             if ( operation == Types.CAST
                     || Collection.class.isAssignableFrom(toType) )
@@ -631,6 +673,7 @@ class Types {
         if ( toType.isAssignableFrom( fromType ) )
             return checkOnly ? VALID_CAST
                 : Reflect.isGeneratedClass(toType) && !Proxy.isProxyClass(fromType)
+                    && !BshLambda.Wrapper.class.isAssignableFrom(fromType)
                 ? Reflect.getClassInstanceThis(fromValue, toType)
                 : fromValue;
 

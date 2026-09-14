@@ -787,8 +787,7 @@ public final class Reflect {
                         idealMatch, targetMatch, round )
                     && ( bestMatch == null
                         || Types.areSignaturesEqual(idealMatch, targetMatch)
-                    || ( Types.isSignatureAssignable(targetMatch, bestMatch,
-                                Types.JAVA_BASE_ASSIGNABLE)
+                    || ( Types.isMoreSpecificSignature(idealMatch, targetMatch, bestMatch)
                        && !Types.areSignaturesEqual(idealMatch, bestMatch)))) {
                     bestMatch = targetMatch;
                     bestMatchIndex = i;
@@ -1010,7 +1009,8 @@ public final class Reflect {
      */
     public static boolean isGeneratedClass(Class<?> type) {
         return null != type && type != GeneratedClass.class
-                && GeneratedClass.class.isAssignableFrom(type);
+                && GeneratedClass.class.isAssignableFrom(type)
+                && !BshLambda.Wrapper.class.isAssignableFrom(type);
     }
 
     /**

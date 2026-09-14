@@ -1012,11 +1012,15 @@ int NameList() :
  *   Assignment() | ConditionalExpression()
  * for performance reasons.
  */
+// The explicit LOOKAHEAD(1)s from here down through UnaryExpression() pin the
+// existing greedy choice (enter the optional/loop) now that LambdaExpression()
+// embeds a full Expression() inside UnaryExpression(), which otherwise makes
+// every level of this chain look ambiguous to JavaCC's static analysis.
 void Expression() #Assignment :
 { int op ; }
 {
   ConditionalExpression()
-  [ op=AssignmentOperator() { jjtThis.operator = op; } Expression() ]
+  [ LOOKAHEAD(1) op=AssignmentOperator() { jjtThis.operator = op; } Expression() ]
 }
 
 int AssignmentOperator() :
@@ -1035,7 +1039,7 @@ int AssignmentOperator() :
 void ConditionalExpression() :
 { }
 {
-  NullCoalesceElvisSpaceShipExpression() [ <HOOK> Expression() <COLON> ConditionalExpression()
+  NullCoalesceElvisSpaceShipExpression() [ LOOKAHEAD(1) <HOOK> Expression() <COLON> ConditionalExpression()
     #TernaryExpression(3) ]
 }
 
@@ -1043,7 +1047,7 @@ void NullCoalesceElvisSpaceShipExpression() :
 { Token t=null; }
 {
   ConditionalOrExpression()
-  ( ( t = <NULLCOALESCE> | t = <ELVIS> | t = <SPACESHIP> )
+  ( LOOKAHEAD(1) ( t = <NULLCOALESCE> | t = <ELVIS> | t = <SPACESHIP> )
     ConditionalOrExpression()
     { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
 }
@@ -1052,7 +1056,7 @@ void ConditionalOrExpression() :
 { Token t=null; }
 {
   ConditionalAndExpression()
-  ( ( t = <BOOL_OR> | t = <BOOL_ORX> )
+  ( LOOKAHEAD(1) ( t = <BOOL_OR> | t = <BOOL_ORX> )
     ConditionalAndExpression()
     { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
 }
@@ -1061,7 +1065,7 @@ void ConditionalAndExpression() :
 { Token t=null; }
 {
   InclusiveOrExpression()
-  ( ( t = <BOOL_AND> | t = <BOOL_ANDX> )
+  ( LOOKAHEAD(1) ( t = <BOOL_AND> | t = <BOOL_ANDX> )
     InclusiveOrExpression()
     { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
 }
@@ -1070,7 +1074,7 @@ void InclusiveOrExpression() :
 { Token t=null; }
 {
   ExclusiveOrExpression()
-  ( ( t = <BIT_OR> | t = <BIT_ORX> )
+  ( LOOKAHEAD(1) ( t = <BIT_OR> | t = <BIT_ORX> )
     ExclusiveOrExpression()
     { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
 }
@@ -1079,7 +1083,7 @@ void ExclusiveOrExpression() :
 { Token t=null; }
 {
    AndExpression()
-      ( ( t = <XOR> | t = <XORX> )
+      ( LOOKAHEAD(1) ( t = <XOR> | t = <XORX> )
         AndExpression()
     { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
 }
@@ -1088,7 +1092,7 @@ void AndExpression() :
 { Token t=null; }
 {
    EqualityExpression()
-  (( t = <BIT_AND> | t = <BIT_ANDX> )
+  ( LOOKAHEAD(1) ( t = <BIT_AND> | t = <BIT_ANDX> )
     EqualityExpression()
     { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
 }
@@ -1097,7 +1101,7 @@ void EqualityExpression() :
 { Token t = null; }
 {
   InstanceOfExpression()
-     (( t = <EQ> | t= <NE> )
+     ( LOOKAHEAD(1) ( t = <EQ> | t= <NE> )
       InstanceOfExpression()
     { jjtThis.kind = t.kind; } #BinaryExpression(2)
   )*
@@ -1107,14 +1111,14 @@ void InstanceOfExpression() :
 { Token t = null; }
 {
   RelationalExpression()
-  [t = <INSTANCEOF> Type() { jjtThis.kind = t.kind; } #BinaryExpression(2) ]
+  [ LOOKAHEAD(1) t = <INSTANCEOF> Type() { jjtThis.kind = t.kind; } #BinaryExpression(2) ]
 }
 
 void RelationalExpression() :
 { Token t = null; }
 {
   ShiftExpression()
-  (( t = <LT> | t = <LTX> | t = <GT> | t = <GTX> |
+  ( LOOKAHEAD(1) ( t = <LT> | t = <LTX> | t = <GT> | t = <GTX> |
       t = <LE> | t = <LEX> | t = <GE> | t = <GEX> )
   ShiftExpression()
   { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
@@ -1124,7 +1128,7 @@ void ShiftExpression() :
 { Token t = null; }
 {
   AdditiveExpression()
-  (( t = <LSHIFT> | t = <LSHIFTX> | t = <RSIGNEDSHIFT> |
+  ( LOOKAHEAD(1) ( t = <LSHIFT> | t = <LSHIFTX> | t = <RSIGNEDSHIFT> |
       t = <RSIGNEDSHIFTX> | t = <RUNSIGNEDSHIFT> | t = <RUNSIGNEDSHIFTX> )
   AdditiveExpression()
   { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
@@ -1134,7 +1138,7 @@ void AdditiveExpression() :
 { Token t = null; }
 {
   MultiplicativeExpression()
-   ( ( t = <PLUS> | t = <MINUS> )
+   ( LOOKAHEAD(1) ( t = <PLUS> | t = <MINUS> )
   MultiplicativeExpression()
     { jjtThis.kind = t.kind; } #BinaryExpression(2)  )*
 }
@@ -1143,7 +1147,7 @@ void MultiplicativeExpression() :
 { Token t = null; }
 {
   PowerExpression()
-     (( t = <STAR> | t = <SLASH> | t = <MOD> | t = <MODX> )
+     ( LOOKAHEAD(1) ( t = <STAR> | t = <SLASH> | t = <MOD> | t = <MODX> )
       PowerExpression()
     { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
 }
@@ -1152,7 +1156,7 @@ void PowerExpression() :
 { Token t = null; }
 {
   UnaryExpression()
-     (( t = <POWER> | t = <POWERX> )
+     ( LOOKAHEAD(1) ( t = <POWER> | t = <POWERX> )
       UnaryExpression()
     { jjtThis.kind = t.kind; } #BinaryExpression(2) )*
 }
@@ -1167,6 +1171,9 @@ void UnaryExpression() :
   // prefix incr/decr
   (t = <INCR> | t = <DECR>) PrimaryExpression()
     { jjtThis.kind = t.kind; } #UnaryExpression(1)
+|
+  // lambda expression
+  LOOKAHEAD( ( FormalParameters() | <IDENTIFIER> ) <ARROW> ) LambdaExpression()
 |
   // cast
   LOOKAHEAD( CastLookahead() ) CastExpression()
@@ -1190,6 +1197,15 @@ void CastExpression() #CastExpression :
 { }
 {
   "(" Type() ")" UnaryExpression()
+}
+
+// x -> ...   (a, b) -> ...   (String s) -> ...   with an expression or block body.
+void LambdaExpression() #LambdaExpression :
+{ Token t = null; }
+{
+  ( FormalParameters() | t=<IDENTIFIER> { jjtThis.paramName = t.image; } )
+  <ARROW>
+  ( LOOKAHEAD(1) Block() | Expression() )
 }
 
 void PrimaryExpression() #PrimaryExpression : { }
