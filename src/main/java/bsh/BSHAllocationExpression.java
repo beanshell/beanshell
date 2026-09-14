@@ -233,6 +233,8 @@ class BSHAllocationExpression extends SimpleNode
         if ( lastIndex < 0 || lastIndex > arguments.values.length )
             return arguments.values;
         Class<?> arrayType = con.getParameterTypes()[lastIndex];
+        Object[] source = arguments.values;
+        int sourceIndex = lastIndex;
         // The caller may have passed the array itself rather than a tail. This
         // is the declared type, not the value: (Object[])null and (Object)null
         // are both a null value and only the type tells them apart.
@@ -240,17 +242,21 @@ class BSHAllocationExpression extends SimpleNode
             Class<?> lastType = arguments.types[lastIndex];
             if ( null == lastType || arrayType.isAssignableFrom(lastType) )
                 return arguments.values;
+            if ( lastType == Object[].class && arguments.values[lastIndex] instanceof Object[] ) {
+                source = (Object[]) arguments.values[lastIndex];
+                sourceIndex = 0;
+            }
         }
         Object[] wrapped = new Object[con.getParameterCount()];
         System.arraycopy(arguments.values, 0, wrapped, 0, lastIndex);
         // the tail has to be the constructor's own array type, not Object[],
         // or the super() call finds no matching constructor
         Class<?> component = arrayType.getComponentType();
-        int tail = arguments.values.length - lastIndex;
+        int tail = source.length - sourceIndex;
         Object varargs = Array.newInstance(component, tail);
         for ( int i = 0; i < tail; i++ )
             Array.set(varargs, i,
-                    con.coerceToType(arguments.values[lastIndex + i], component));
+                    con.coerceToType(source[sourceIndex + i], component));
         wrapped[lastIndex] = varargs;
         return wrapped;
     }

@@ -67,6 +67,36 @@ public class VarargsTest {
         Assert.assertEquals(Arrays.<Object>asList(1,2,3), list);
     }
 
+    @Test
+    public void calling_java_typed_varargs_with_object_array() throws Exception {
+        final Interpreter interpreter = new Interpreter();
+        interpreter.set("helper", new ClassWithVarargMethods());
+        Object[] parameterTypes = {int.class, Object.class};
+        interpreter.set("parameterTypes", parameterTypes);
+        Assert.assertEquals(ArrayList.class.getDeclaredMethod("add", int.class, Object.class),
+                interpreter.eval("ArrayList.class.getDeclaredMethod(\"add\", (Object[]){int.class, Object.class})"));
+        Assert.assertEquals(ArrayList.class.getDeclaredMethod("add", int.class, Object.class),
+                interpreter.eval("ArrayList.class.getDeclaredMethod(\"add\", parameterTypes)"));
+        Assert.assertEquals(ArrayList.class.getDeclaredConstructor(),
+                interpreter.eval("ArrayList.class.getDeclaredConstructor((Object[]){})"));
+        Assert.assertEquals(ArrayList.class.getDeclaredMethod("add", int.class, Object.class),
+                interpreter.eval("ArrayList.class.getDeclaredMethod(\"add\", (Class[]){int.class, Object.class})"));
+        Assert.assertEquals(ArrayList.class.getDeclaredMethod("add", int.class, Object.class),
+                interpreter.eval("ArrayList.class.getDeclaredMethod(\"add\", int.class, Object.class)"));
+        Assert.assertArrayEquals(new int[] {2, 3},
+                (int[]) interpreter.eval("helper.ints((Object[]){2, 3})"));
+    }
+
+    @Test
+    public void incompatible_object_array_vararg_reports_element_cast() throws Exception {
+        final Interpreter interpreter = new Interpreter();
+        interpreter.set("parameterTypes", new Object[] {int.class, "not a class"});
+        TargetError error = Assert.assertThrows(TargetError.class, () -> interpreter.eval(
+                "ArrayList.class.getDeclaredMethod(\"add\", parameterTypes)"));
+        Assert.assertTrue(error.getTarget().getMessage(),
+                error.getTarget().getMessage().contains("Cannot cast String"));
+    }
+
     public static class ClassWithVarargMethods {
 
         public List<Object> list(final List<Object> list, final Object... args) {
@@ -76,6 +106,10 @@ public class VarargsTest {
 
         public List<Object> list(final Object... args) {
             return new ArrayList<Object>(Arrays.asList(args));
+        }
+
+        public int[] ints(final int... args) {
+            return args;
         }
 
     }
