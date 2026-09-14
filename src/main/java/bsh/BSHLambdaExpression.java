@@ -81,11 +81,19 @@ class BSHLambdaExpression extends SimpleNode
     static int bodyShape(Node body) {
         if (!(body instanceof BSHBlock))
             return isStatementExpression(body) ? BshLambda.EITHER : BshLambda.VALUE;
-        if (contains(body, BSHLambdaExpression::isValueReturn))
-            return BshLambda.VALUE;
-        if (contains(body, BSHLambdaExpression::isBareReturn))
-            return BshLambda.VOID;
+        boolean hasValueReturn = contains(body, BSHLambdaExpression::isValueReturn);
+        boolean hasBareReturn = contains(body, BSHLambdaExpression::isBareReturn);
         int completion = completion(body);
+        if (hasValueReturn && !hasBareReturn && completion == NEVER)
+            return BshLambda.VALUE;
+        if (hasValueReturn)
+            // Mixed valued/bare returns, or a valued return that can also
+            // complete normally (falling off the end without a value): neither
+            // Java's value- nor void-compatible block. Treat as unknown rather
+            // than picking a shape that would wrongly gate applicability.
+            return BshLambda.VOID_UNSURE;
+        if (hasBareReturn)
+            return BshLambda.VOID;
         return completion == COMPLETES ? BshLambda.VOID
             : completion == NEVER ? BshLambda.EITHER : BshLambda.VOID_UNSURE;
     }
@@ -296,7 +304,7 @@ class BSHLambdaExpression extends SimpleNode
     // completion that depends on one is UNSURE, as is an unfoldable loop condition.
     private static int completion(Node node) {
         int n = node.jjtGetNumChildren();
-        if (node instanceof BSHThrowStatement)
+        if (node instanceof BSHThrowStatement || node instanceof BSHReturnStatement)
             return NEVER;
         if (node instanceof BSHBlock)
             return n == 0 ? COMPLETES : completion(node.jjtGetChild(n - 1));

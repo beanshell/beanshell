@@ -497,6 +497,17 @@ public class BshLambdaTest {
     }
 
     @Test
+    public void a_value_return_that_can_also_complete_normally_is_rejected_for_a_supplier() throws Exception {
+        try {
+            new Interpreter().eval(
+                "flag = false; java.util.function.Supplier s = () -> { if (flag) return 1; };");
+            fail("expected an EvalError: the block can complete normally, so it is not value-compatible");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("Supplier"));
+        }
+    }
+
+    @Test
     public void direct_cast_rejects_a_known_result_that_cannot_fit_the_return_type() throws Exception {
         try {
             new Interpreter().eval("java.util.function.IntSupplier s = () -> \"x\";");

@@ -106,6 +106,16 @@ public class BshLambdaDescriptorTest {
     }
 
     @Test
+    public void a_block_with_a_valued_return_that_can_also_complete_normally_is_not_value_shaped() throws Exception {
+        assertNotEquals(BshLambda.VALUE, shape("() -> { if (flag) return 1; }"));
+    }
+
+    @Test
+    public void a_block_mixing_a_valued_and_a_bare_return_is_not_value_shaped() throws Exception {
+        assertNotEquals(BshLambda.VALUE, shape("() -> { if (flag) return 1; return; }"));
+    }
+
+    @Test
     public void literal_result_has_the_type_of_its_bsh_value() throws Exception {
         assertResult(int.class, result("() -> 1"), 1);
         assertResult(char.class, result("() -> 'a'"), 'a');
