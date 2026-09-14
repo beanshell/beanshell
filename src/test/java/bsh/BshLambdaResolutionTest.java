@@ -36,6 +36,10 @@ public class BshLambdaResolutionTest {
         public interface AGen { <T> T get(); }
     }
 
+    public static class LoneCallableTaker {
+        public static String take(java.util.concurrent.Callable c) { return "java"; }
+    }
+
     private static Object eval(String script) throws EvalError {
         return Primitive.unwrap(new Interpreter().eval(script));
     }
@@ -592,6 +596,23 @@ public class BshLambdaResolutionTest {
         } catch (EvalError expected) {
             assertTrue(expected.getMessage(),
                 expected.getMessage().contains("does not fit"));
+        }
+    }
+
+    // MemberCache.findBest's lone-candidate shortcut (BshClassManager.java)
+    // returns this candidate without checking lambda fit, but Invocable's
+    // argument coercion (coerceToType -> castObject -> BshLambda.convertTo)
+    // rejects the mismatch before the method handle is invoked, so no change
+    // to findBest is needed. Pins that this stays true.
+    @Test
+    public void a_lone_compiled_java_method_still_rejects_a_certainly_void_lambda() throws Exception {
+        try {
+            new Interpreter().eval(
+                "import bsh.BshLambdaResolutionTest.LoneCallableTaker;"
+                + " LoneCallableTaker.take(() -> { x = 1; });");
+            fail("expected an EvalError: a void block cannot fit Callable");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("take"));
         }
     }
 
