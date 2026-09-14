@@ -154,4 +154,42 @@ public class LambdaExpressionParseTest {
         assertEquals(1, lambda.jjtGetNumChildren());
         assertTrue(lambda.jjtGetChild(0) instanceof BSHAssignment);
     }
+
+    @Test
+    public void lambda_as_an_operator_operand_fails_to_parse() throws Exception {
+        String[] sources = { "1 + x -> x;", "x || y -> z;", "x && y -> z;", "x == y -> z;",
+            "x * y -> y;", "x ** y -> y;", "x ?? y -> y;", "x | y -> y;", "x ^ y -> y;",
+            "x & y -> y;", "x <= y -> y;", "x >> y -> y;", "-x -> x;", "!x -> x;", "~x -> x;",
+            "+x -> x;", "a = 1 + () -> 1;", "x -> {} + 1;", "() -> {} instanceof Runnable;",
+            "r = () -> {} ? 1 : 2;", "() -> {} = 5;" };
+        for (String source : sources) {
+            try {
+                parse(source);
+                fail("expected a ParseException for " + source);
+            } catch (ParseException expected) {
+                assertEquals(source, 1, expected.getErrorLineNumber());
+                assertTrue(source + ": " + expected.getMessage(), expected.getMessage().contains("->"));
+            }
+        }
+    }
+
+    @Test
+    public void operator_operand_error_reaches_the_interpreter_before_evaluation() throws Exception {
+        Interpreter interpreter = new Interpreter();
+        try {
+            interpreter.eval("x = false; y = true; z = false; r = x || y -> z;");
+            fail("expected an EvalError");
+        } catch (EvalError expected) {
+            assertNull(interpreter.get("r"));
+        }
+    }
+
+    @Test
+    public void lambdas_outside_operator_operands_still_parse() throws Exception {
+        String[] sources = { "r = x -> x;", "r = s = x -> x;", "m() { return x -> x || y; }",
+            "x -> y -> x + y;", "(x -> x) + 1;", "f(a, x -> -x, !b);", "r = b ? x -> x : y -> y;",
+            "(Runnable) () -> {};", "r += x -> x;", "b ? x : y -> y;" };
+        for (String source : sources)
+            parse(source);
+    }
 }

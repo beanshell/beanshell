@@ -24,6 +24,9 @@
 
 package bsh;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectStreamException;
+import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -33,13 +36,13 @@ import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import bsh.org.objectweb.asm.ClassWriter;
 import bsh.org.objectweb.asm.MethodVisitor;
@@ -50,144 +53,158 @@ import bsh.org.objectweb.asm.Type;
     The runtime value of a lambda expression. Opaque until coerced to a
     functional interface, either by a cast or assignment ({@link #convertTo})
     or by overload resolution matching its arity marker ({@link #castLambda}).
+    <p>
+    Public only because generated wrapper classes, defined in other class
+    loaders, must call {@link #invoke}; it is not a supported API. Script errors
+    reach Java callers of a wrapper as {@link RuntimeEvalError}.
 */
-public class BshLambda {
+public class BshLambda implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     /** Implemented by every generated wrapper class. A wrapper for a scripted
         interface is GeneratedClass-assignable without being a script-generated
         class, so Reflect must be able to tell the two apart. */
     public interface Wrapper {}
 
-    // Overload resolution sees only argument Class[], never values, so a
-    // lambda argument's type is a marker encoding its arity and body shape
-    // (Types.getTypes). Shape only ranks functional interfaces, never rules one
-    // out (JLS 15.12.2.5): see isAtLeastAsSpecific.
-    interface ArityMarker {}
-    interface ValueShape extends ArityMarker {}
-    interface VoidShape extends ArityMarker {}
-    interface EitherShape extends ArityMarker {}
-    interface Value0 extends ValueShape {}
-    interface Value1 extends ValueShape {}
-    interface Value2 extends ValueShape {}
-    interface Value3 extends ValueShape {}
-    interface Value4 extends ValueShape {}
-    interface Value5 extends ValueShape {}
-    interface Value6 extends ValueShape {}
-    interface Value7 extends ValueShape {}
-    interface Value8 extends ValueShape {}
-    interface Value9 extends ValueShape {}
-    interface Value10 extends ValueShape {}
-    interface Void0 extends VoidShape {}
-    interface Void1 extends VoidShape {}
-    interface Void2 extends VoidShape {}
-    interface Void3 extends VoidShape {}
-    interface Void4 extends VoidShape {}
-    interface Void5 extends VoidShape {}
-    interface Void6 extends VoidShape {}
-    interface Void7 extends VoidShape {}
-    interface Void8 extends VoidShape {}
-    interface Void9 extends VoidShape {}
-    interface Void10 extends VoidShape {}
-    interface Either0 extends EitherShape {}
-    interface Either1 extends EitherShape {}
-    interface Either2 extends EitherShape {}
-    interface Either3 extends EitherShape {}
-    interface Either4 extends EitherShape {}
-    interface Either5 extends EitherShape {}
-    interface Either6 extends EitherShape {}
-    interface Either7 extends EitherShape {}
-    interface Either8 extends EitherShape {}
-    interface Either9 extends EitherShape {}
-    interface Either10 extends EitherShape {}
-
     /** A body fits a value-returning method, a void one, or either (a
-        statement expression, or a block that cannot complete normally). */
-    static final int VALUE = 0, VOID = 1, EITHER = 2;
+        statement expression, or a block that cannot complete normally);
+        VOID_UNSURE is a void block bsh cannot be sure completes. */
+    static final int VALUE = 0, VOID = 1, EITHER = 2, VOID_UNSURE = 3;
 
-    private static final Class<?>[][] MARKERS = {
-        { Value0.class, Value1.class, Value2.class, Value3.class, Value4.class, Value5.class,
-          Value6.class, Value7.class, Value8.class, Value9.class, Value10.class },
-        { Void0.class, Void1.class, Void2.class, Void3.class, Void4.class, Void5.class,
-          Void6.class, Void7.class, Void8.class, Void9.class, Void10.class },
-        { Either0.class, Either1.class, Either2.class, Either3.class, Either4.class, Either5.class,
-          Either6.class, Either7.class, Either8.class, Either9.class, Either10.class } };
+    // Overload resolution sees only argument Class[], never values, so a lambda
+    // argument's type is an empty marker interface generated per descriptor
+    // (Types.getTypes); its loader carries the descriptor.
+    private static final String MARKER_PREFIX = BshLambda.class.getName() + "$Marker$";
+    private static final AtomicLong MARKER_COUNT = new AtomicLong();
 
-    private static final Map<Class<?>, Integer> MARKER_ARITY = new HashMap<>();
-    static {
-        for (Class<?>[] shape : MARKERS)
-            for (int arity = 0; arity < shape.length; arity++)
-                MARKER_ARITY.put(shape[arity], arity);
+    // Weak both ways; the key is the descriptor held by the marker's own loader,
+    // so an entry lives exactly as long as its marker.
+    private static final Map<LambdaDescriptor, WeakReference<Class<?>>> MARKERS = new WeakHashMap<>();
+
+    /** A node's last marker, reused only for an equal descriptor. */
+    static final class Marker {
+        final LambdaDescriptor descriptor;
+        final Class<?> type;
+
+        Marker(LambdaDescriptor descriptor, Class<?> type) {
+            this.descriptor = descriptor;
+            this.type = type;
+        }
     }
 
-    /** The type overload resolution matches this lambda by. Past the last
-        marker the arity is unknown, so only Object/loose parameters match. */
-    Class<?> arityMarker() {
-        return paramNames.length < MARKERS[shape].length
-            ? MARKERS[shape][paramNames.length] : BshLambda.class;
+    private transient volatile LambdaDescriptor descriptor;
+
+    LambdaDescriptor descriptor() {
+        LambdaDescriptor known = descriptor;
+        if (known == null)
+            descriptor = known = new LambdaDescriptor(shape, paramTypes, BSHLambdaExpression.result(bodyNode));
+        return known;
     }
 
-    static boolean isArityMarker(Class<?> type) {
-        return type != null && MARKER_ARITY.containsKey(type);
+    /** The type overload resolution matches this lambda by. */
+    Class<?> marker() {
+        LambdaDescriptor wanted = descriptor();
+        BSHLambdaExpression node = (BSHLambdaExpression) expressionNode;
+        Marker cached = node.marker;
+        if (cached != null && cached.descriptor.equals(wanted))
+            return cached.type;
+        Class<?> type = sharedMarker(wanted);
+        node.marker = new Marker(wanted, type);
+        return type;
     }
 
-    /** Whether a lambda typed by this marker can become a toType: a public
-        functional interface whose single abstract method has the marker's arity.
-        Body shape does not affect applicability, only ranking. */
+    private static Class<?> sharedMarker(LambdaDescriptor wanted) {
+        synchronized (MARKERS) {
+            WeakReference<Class<?>> ref = MARKERS.get(wanted);
+            Class<?> type = ref == null ? null : ref.get();
+            if (type != null)
+                return type;
+        }
+        MarkerLoader loader = AccessController.doPrivileged(
+            (PrivilegedAction<MarkerLoader>) () -> new MarkerLoader(wanted));
+        Class<?> defined = loader.define();
+        synchronized (MARKERS) {
+            WeakReference<Class<?>> ref = MARKERS.get(wanted);
+            Class<?> raced = ref == null ? null : ref.get();
+            if (raced != null)
+                return raced;
+            MARKERS.put(loader.descriptor, new WeakReference<>(defined));
+            return defined;
+        }
+    }
+
+    // Parented on bsh's own loader, so bsh code may call getClassLoader() on a
+    // marker without a permission check.
+    private static final class MarkerLoader extends ClassLoader {
+        final LambdaDescriptor descriptor;
+
+        MarkerLoader(LambdaDescriptor descriptor) {
+            super(BshLambda.class.getClassLoader());
+            this.descriptor = descriptor;
+        }
+
+        Class<?> define() {
+            String name = MARKER_PREFIX + MARKER_COUNT.incrementAndGet();
+            ClassWriter cw = new ClassWriter(0);
+            cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT | Opcodes.ACC_INTERFACE,
+                name.replace('.', '/'), null, "java/lang/Object", null);
+            cw.visitEnd();
+            byte[] bytes = cw.toByteArray();
+            return defineClass(name, bytes, 0, bytes.length, BSH_DOMAIN);
+        }
+    }
+
+    static long markersDefined() {
+        return MARKER_COUNT.get();
+    }
+
+    static boolean isLambdaMarker(Class<?> type) {
+        return type != null && type.getName().startsWith(MARKER_PREFIX)
+            && type.getClassLoader() instanceof MarkerLoader;
+    }
+
+    static LambdaDescriptor descriptor(Class<?> marker) {
+        return ((MarkerLoader) marker.getClassLoader()).descriptor;
+    }
+
+    /** Descriptors of the lambda arguments by position, or null without one. */
+    static LambdaDescriptor[] lambdaDescriptors(Class<?>[] argumentTypes) {
+        LambdaDescriptor[] lambdas = null;
+        for (int i = 0; i < argumentTypes.length; i++)
+            if (isLambdaMarker(argumentTypes[i])) {
+                if (lambdas == null)
+                    lambdas = new LambdaDescriptor[argumentTypes.length];
+                lambdas[i] = descriptor(argumentTypes[i]);
+            }
+        return lambdas;
+    }
+
+    /** Whether a lambda typed by this marker can become toType. */
     static boolean isFunctionalTarget(Class<?> toType, Class<?> marker) {
-        if (toType == null || !IMPLEMENTABLE.get(toType))
-            return false;
-        Method sam = singleAbstractMethod(toType);
-        Integer arity = MARKER_ARITY.get(marker);
-        return sam != null && arity != null && sam.getParameterCount() == arity;
+        return descriptor(marker).fits(toType);
     }
 
-    /** Whether, at an argument typed by marker, parameter type target is at
-        least as specific as best. Java drops an interface whose method the body
-        cannot fit; bsh keeps it applicable but ranks it below one the body fits.
-        Among those the body fits, a subinterface wins, then the result kind
-        (JLS 15.12.2.5, approximated without static types: see rank). */
-    static boolean isAtLeastAsSpecific(Class<?> marker, Class<?> target, Class<?> best) {
-        boolean subtype = Types.isJavaBaseAssignable(best, target);
-        int t = result(target), b = result(best);
-        // Object and untyped (null) parameters have no method to rank by.
-        if (t < 0 || b < 0)
-            return subtype;
-        int shape = shape(marker);
-        if (fits(shape, t) != fits(shape, b))
-            return fits(shape, t);
-        return subtype || rank(t) > rank(b) && !target.isAssignableFrom(best);
-    }
-
-    private static final int VOID_RESULT = 0, PRIMITIVE_RESULT = 1, REFERENCE_RESULT = 2;
-
-    // -1 if type has no single abstract method.
-    private static int result(Class<?> type) {
-        Method sam = type == null ? null : singleAbstractMethod(type);
-        if (sam == null)
-            return -1;
-        Class<?> returned = sam.getReturnType();
-        return returned == void.class ? VOID_RESULT
-            : returned.isPrimitive() ? PRIMITIVE_RESULT : REFERENCE_RESULT;
-    }
-
-    private static int shape(Class<?> marker) {
-        return EitherShape.class.isAssignableFrom(marker) ? EITHER
-            : VoidShape.class.isAssignableFrom(marker) ? VOID : VALUE;
-    }
-
-    private static boolean fits(int shape, int result) {
-        return shape == EITHER || (shape == VOID) == (result == VOID_RESULT);
-    }
-
-    // Without static types, prefer what can hold anything the body yields: a
-    // reference (even a void call's null), then void, and a primitive last.
-    private static int rank(int result) {
-        return result == REFERENCE_RESULT ? 2 : result == VOID_RESULT ? 1 : 0;
-    }
-
-    /** Error-message name for an arity marker, which must never surface as-is. */
+    /** Error-message name for a marker, which must never surface as-is. */
     static String markerTypeName(Class<?> marker) {
-        return "<" + MARKER_ARITY.get(marker) + "-arg lambda>";
+        LambdaDescriptor lambda = descriptor(marker);
+        StringBuilder name = new StringBuilder("<");
+        boolean typed = false;
+        for (Class<?> type : lambda.paramTypes)
+            typed |= type != null;
+        if (typed) {
+            StringBuilder params = new StringBuilder();
+            for (Class<?> type : lambda.paramTypes)
+                params.append(params.length() == 0 ? "" : ", ").append(type == null ? "?" : type.getSimpleName());
+            name.append("lambda (").append(params).append(')');
+        } else
+            name.append(lambda.arity).append("-arg lambda");
+        if (lambda.result != null)
+            name.append(" returning ").append(lambda.result.type == LambdaDescriptor.NullType.class
+                ? "null" : lambda.result.type.getSimpleName());
+        else if (lambda.shape == VOID)
+            name.append(" returning void");
+        return name.append('>').toString();
     }
 
     /**
@@ -197,17 +214,19 @@ public class BshLambda {
     */
     static Object castLambda(Class<?> toType, Class<?> fromType, Object fromValue,
             boolean checkOnly) throws UtilEvalError {
+        // Only Object holds a raw lambda: Serializable is an implementation detail, not a target.
+        boolean raw = toType == Object.class || toType == BshLambda.class;
         if (checkOnly)
-            return toType.isAssignableFrom(BshLambda.class) || isFunctionalTarget(toType, fromType)
-                ? Types.VALID_CAST : Types.INVALID_CAST;
-        if (toType.isInstance(fromValue))
+            return raw || isFunctionalTarget(toType, fromType) ? Types.VALID_CAST : Types.INVALID_CAST;
+        if (raw)
             return fromValue;
         return ((BshLambda) fromValue).convertTo(toType);
     }
 
     private final Node expressionNode;
     private final NameSpace declaringNameSpace;
-    private final Interpreter declaringInterpreter;
+    // Transient, as in This: a deserialized lambda must not run (see invokeImpl).
+    private final transient Interpreter declaringInterpreter;
     private final String[] paramNames;
     private final Class<?>[] paramTypes;
     private final Modifiers[] paramModifiers;
@@ -274,6 +293,10 @@ public class BshLambda {
 
     // A wrapper lives in its own runtime package, so it can implement only a
     // public interface and can name (checkcast) only public return types.
+    static boolean isImplementable(Class<?> type) {
+        return IMPLEMENTABLE.get(type);
+    }
+
     private static final ClassValue<Boolean> IMPLEMENTABLE = new ClassValue<Boolean>() {
         @Override
         protected Boolean computeValue(Class<?> type) {
@@ -353,7 +376,9 @@ public class BshLambda {
         // Define outside the lock: defineClass takes the interface loader's lock,
         // and holding ours meanwhile deadlocks against a thread holding theirs.
         // A racing duplicate just goes unused.
-        wrapper = new WrapperLoader(functionalInterface.getClassLoader()).define(functionalInterface);
+        // Privileged, like marker definition: bsh's own domain needs createClassLoader, not the script's caller.
+        wrapper = AccessController.doPrivileged((PrivilegedAction<Class<?>>) () ->
+            new WrapperLoader(functionalInterface.getClassLoader()).define(functionalInterface));
         synchronized (WRAPPERS) {
             Class<?> raced = cachedWrapper(functionalInterface);
             if (raced != null)
@@ -433,15 +458,46 @@ public class BshLambda {
         }
     }
 
+    /** Called by a generated wrapper's writeReplace; public for the same reason as invoke. */
+    public final Object serializedForm(Class<?> functionalInterface) {
+        return new SerializedWrapper(this, functionalInterface);
+    }
+
+    // Wrapper classes exist only in the JVM that generated them, so a wrapper
+    // travels as its lambda and interface and is regenerated on read.
+    private static final class SerializedWrapper implements Serializable {
+        private static final long serialVersionUID = 1L;
+        private final BshLambda lambda;
+        private final Class<?> functionalInterface;
+
+        SerializedWrapper(BshLambda lambda, Class<?> functionalInterface) {
+            this.lambda = lambda;
+            this.functionalInterface = functionalInterface;
+        }
+
+        private Object readResolve() throws ObjectStreamException {
+            try {
+                return lambda.convertTo(functionalInterface);
+            } catch (UtilEvalError e) {
+                InvalidObjectException invalid = new InvalidObjectException(e.getMessage());
+                invalid.initCause(e);
+                throw invalid;
+            }
+        }
+    }
+
     private Object invokeImpl(Object[] args) throws UtilEvalError, EvalError {
+        // Running script code read from a stream would make this a deserialization gadget.
+        if (declaringInterpreter == null)
+            throw new UtilEvalError("A deserialized lambda cannot run: it has no interpreter");
         // Never reuse the declaring call stack: by the time Java calls back it
         // has been popped. The declaring namespace is shared, not copied.
-        NameSpace nameSpace = new NameSpace(declaringNameSpace, "LambdaExpression");
+        NameSpace nameSpace = new LambdaNameSpace(declaringNameSpace);
         for (int i = 0; i < paramNames.length; i++) {
             if (paramTypes[i] != null)
                 nameSpace.setTypedVariable(paramNames[i], paramTypes[i], args[i], paramModifiers[i]);
             else
-                nameSpace.setVariable(paramNames[i], args[i], false);
+                nameSpace.setLocalVariable(paramNames[i], args[i], false);
         }
         CallStack callstack = new CallStack(nameSpace);
 
@@ -449,12 +505,32 @@ public class BshLambda {
         if (bodyNode instanceof BSHBlock) {
             if (result instanceof ReturnControl) {
                 ReturnControl rc = (ReturnControl) result;
-                if (rc.kind == ReturnControl.RETURN)
-                    return rc.value;
+                if (rc.kind != ReturnControl.RETURN)
+                    throw new EvalException("'continue' or 'break' in lambda body",
+                        rc.returnPoint, callstack);
+                return rc.value;
             }
             return Primitive.VOID;
         }
         return result;
+    }
+
+    /** Parameters and body locals stay local, but like a Java lambda (and a
+        BlockNameSpace) it has no this or super of its own. */
+    private static final class LambdaNameSpace extends NameSpace {
+        LambdaNameSpace(NameSpace declaringNameSpace) {
+            super(declaringNameSpace, "LambdaExpression");
+        }
+
+        @Override
+        public This getThis(Interpreter declaringInterpreter) {
+            return getParent().getThis(declaringInterpreter);
+        }
+
+        @Override
+        public This getSuper(Interpreter declaringInterpreter) {
+            return getParent().getSuper(declaringInterpreter);
+        }
     }
 
     /** Generates a real implementation class (not a Proxy) so the interface's
@@ -469,17 +545,20 @@ public class BshLambda {
             ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
             cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC | Opcodes.ACC_SUPER, internalClassName, null,
                 "java/lang/Object", new String[] {
-                    Type.getInternalName(functionalInterface), Type.getInternalName(Wrapper.class) });
+                    Type.getInternalName(functionalInterface), Type.getInternalName(Wrapper.class),
+                    Type.getInternalName(Serializable.class) });
 
             cw.visitField(Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, "bshLambda",
                 Type.getDescriptor(BshLambda.class), null, null).visitEnd();
 
             writeConstructor(cw, internalClassName);
             // A covariant diamond inherits one method under several descriptors.
-            Set<String> descriptors = new HashSet<>();
+            Set<String> names = new HashSet<>();
             for (Method m : abstractMethods(functionalInterface))
-                if (descriptors.add(Type.getMethodDescriptor(m)))
+                if (names.add(m.getName() + Type.getMethodDescriptor(m)))
                     writeMethod(cw, internalClassName, m);
+            if (!names.contains(WRITE_REPLACE))
+                writeWriteReplace(cw, internalClassName, functionalInterface);
 
             cw.visitEnd();
             return cw.toByteArray();
@@ -496,6 +575,24 @@ public class BshLambda {
             mv.visitFieldInsn(Opcodes.PUTFIELD, internalClassName, "bshLambda",
                 Type.getDescriptor(BshLambda.class));
             mv.visitInsn(Opcodes.RETURN);
+            mv.visitMaxs(0, 0);
+            mv.visitEnd();
+        }
+
+        private static final String WRITE_REPLACE = "writeReplace()Ljava/lang/Object;";
+
+        private static void writeWriteReplace(ClassWriter cw, String internalClassName,
+                Class<?> functionalInterface) {
+            MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PRIVATE, "writeReplace",
+                "()Ljava/lang/Object;", null, null);
+            mv.visitCode();
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitFieldInsn(Opcodes.GETFIELD, internalClassName, "bshLambda",
+                Type.getDescriptor(BshLambda.class));
+            mv.visitLdcInsn(Type.getType(functionalInterface));
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(BshLambda.class),
+                "serializedForm", "(Ljava/lang/Class;)Ljava/lang/Object;", false);
+            mv.visitInsn(Opcodes.ARETURN);
             mv.visitMaxs(0, 0);
             mv.visitEnd();
         }

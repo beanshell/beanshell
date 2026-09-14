@@ -149,8 +149,20 @@ public class Parser
         ((SimpleNode)n).firstToken = getToken(1);
     }
 
-    void jjtreeCloseNodeScope(Node n) {
+    void jjtreeCloseNodeScope(Node n) throws ParseException {
         ((SimpleNode)n).lastToken = getToken(0);
+        // LambdaExpression hooks in at unary precedence, so reject it here as an operand,
+        // a ternary condition or an assignment target.
+        int operands = n instanceof BSHBinaryExpression || n instanceof BSHUnaryExpression
+            ? n.jjtGetNumChildren()
+            : n instanceof BSHTernaryExpression || n instanceof BSHAssignment && n.jjtGetNumChildren() > 1
+            ? 1 : 0;
+        for (int i = 0; i < operands; i++)
+            if (n.jjtGetChild(i) instanceof BSHLambdaExpression) {
+                Token beforeLambda = new Token();
+                beforeLambda.next = ((SimpleNode) n.jjtGetChild(i)).firstToken;
+                throw new ParseException(beforeLambda, new int[0][], new String[0][], tokenImage, null);
+            }
     }
 
     /**

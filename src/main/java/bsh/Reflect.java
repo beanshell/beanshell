@@ -767,9 +767,16 @@ public final class Reflect {
     */
     static int findMostSpecificSignature(
         Class<?>[] idealMatch, Class<?>[][] candidates ) {
+        LambdaDescriptor[] lambdas = BshLambda.lambdaDescriptors(idealMatch);
 
         for ( int round = Types.FIRST_ROUND_ASSIGNABLE;
                 round <= Types.LAST_ROUND_ASSIGNABLE; round++ ) {
+            if ( lambdas != null ) {
+                int match = mostSpecificForLambdas( idealMatch, candidates, lambdas, round );
+                if ( match >= 0 )
+                    return match;
+                continue;
+            }
             Class<?>[] bestMatch = null;
             int bestMatchIndex = -1;
 
@@ -787,7 +794,8 @@ public final class Reflect {
                         idealMatch, targetMatch, round )
                     && ( bestMatch == null
                         || Types.areSignaturesEqual(idealMatch, targetMatch)
-                    || ( Types.isMoreSpecificSignature(idealMatch, targetMatch, bestMatch)
+                    || ( Types.isSignatureAssignable(targetMatch, bestMatch,
+                                Types.JAVA_BASE_ASSIGNABLE)
                        && !Types.areSignaturesEqual(idealMatch, bestMatch)))) {
                     bestMatch = targetMatch;
                     bestMatchIndex = i;
@@ -797,6 +805,22 @@ public final class Reflect {
                 return bestMatchIndex;
         }
         return -1;
+    }
+
+    // Set-based, so the choice cannot depend on declaration order; see LambdaDescriptor.select.
+    private static int mostSpecificForLambdas(Class<?>[] idealMatch, Class<?>[][] candidates,
+            LambdaDescriptor[] lambdas, int round) {
+        List<Integer> applicable = new ArrayList<>();
+        candidates:
+        for (int i = 0; i < candidates.length; i++) {
+            if (!Types.isSignatureAssignable(idealMatch, candidates[i], round))
+                continue;
+            for (int earlier : applicable)
+                if (Types.areSignaturesEqual(candidates[i], candidates[earlier]))
+                    continue candidates; // overridden keep first
+            applicable.add(i);
+        }
+        return applicable.isEmpty() ? -1 : LambdaDescriptor.select(lambdas, candidates, applicable);
     }
 
     static String accessorName( String prefix, String propName ) {

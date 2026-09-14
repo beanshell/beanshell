@@ -1,7 +1,6 @@
 package bsh;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -26,6 +25,15 @@ public class BshLambdaResolutionTest {
         public interface Getter { Object get(); }
         public interface RunningGetter extends Getter { default Object get() { return null; } void run(); }
         public interface GettingRunner extends Runnable { default void run() {} Object get(); }
+        public interface StrSupplier { String get(); }
+        public interface IntegerSupplier { Integer get(); }
+        public interface SC { String accept(String s); }
+        public interface IC { String accept(Integer i); }
+        public interface Eleven { Object apply(Object a, Object b, Object c, Object d, Object e, Object f,
+            Object g, Object h, Object i, Object j, Object k); }
+        public static String lone(java.util.concurrent.Callable<?> c) { return "lone"; }
+        public interface W extends java.util.function.IntSupplier { default int getAsInt() { return 0; } Object get(); }
+        public interface AGen { <T> T get(); }
     }
 
     private static Object eval(String script) throws EvalError {
@@ -330,28 +338,26 @@ public class BshLambdaResolutionTest {
         return all;
     }
 
-    // A body fitting both shapes keeps Java's rule: a subinterface stays more specific.
+    // Where bsh cannot know the result, an Object result outranks a void one even
+    // against a subinterface (javac, knowing the type, picks the subinterface).
     @Test
-    public void subinterface_wins_for_a_body_fitting_both_shapes() throws Exception {
-        assertEveryOrderPicks("running", "q(() -> foo());",
+    public void object_result_beats_a_void_subinterface_for_an_unknown_result() throws Exception {
+        assertEveryOrderPicks("getter", "q(() -> foo());",
             "q(" + GETTER + " g) { return \"getter\"; }", "q(" + RUNNING_GETTER + " g) { return \"running\"; }");
         for (String body : new String[] { "{ throw new Error(); }", "x = 1", "x += 1", "x++", "++x", "x--", "new Object()",
                 "o.new Inner()", "new Object().new Inner()" })
-            assertEveryOrderPicks("running", "q(() -> " + body + ");",
+            assertEveryOrderPicks("getter", "q(() -> " + body + ");",
                 "q(" + GETTER + " g) { return \"getter\"; }", "q(" + RUNNING_GETTER + " g) { return \"running\"; }");
         assertEveryOrderPicks("gettingRunner", "w(() -> foo());",
             "w(Runnable r) { return \"runnable\"; }", "w(" + GETTING_RUNNER + " g) { return \"gettingRunner\"; }");
     }
 
-    // An untyped parameter has no type at all; it ties as it would for any argument.
+    // An untyped parameter ties with itself, so the other argument decides; without a
+    // lambda the same call follows declaration order (bug log 18).
     @Test
     public void untyped_parameters_compete_with_a_lambda_argument() throws Exception {
-        for (List<String> order : permutations(Arrays.asList(
-                "each(java.util.Collection c, f) { return \"collection\"; }", "each(Object o, f) { return \"object\"; }"))) {
-            String declarations = String.join("\n", order) + "\n";
-            assertEquals(order.toString(), eval(declarations + "each(new java.util.ArrayList(), 1);"),
-                eval(declarations + "each(new java.util.ArrayList(), v -> v);"));
-        }
+        assertEveryOrderPicks("collection", "each(new java.util.ArrayList(), v -> v);",
+            "each(java.util.Collection c, f) { return \"collection\"; }", "each(Object o, f) { return \"object\"; }");
         for (String[] declarations : new String[][] {
                 { "h(a, b) { return \"untyped\"; }", "h(Runnable r, b) { return \"runnable\"; }" },
                 { "h(int i, a) { return \"untyped\"; }", "h(int i, Runnable r) { return \"runnable\"; }" } }) {
@@ -381,7 +387,8 @@ public class BshLambdaResolutionTest {
         for (String primitive : new String[] { "IntSupplier s) { return \"int:\" + s.getAsInt(); }",
                 "BooleanSupplier s) { return \"boolean:\" + s.getAsBoolean(); }" })
             for (String body : new String[] { "\"s\"", "foo()", "new Object() { String toString() { return \"o\"; } }", "1" })
-                assertEveryOrderPicks("supplier:" + (body.startsWith("new") ? "o" : body.replace("\"", "").replace("foo()", "1")),
+                assertEveryOrderPicks(body.equals("1") && primitive.startsWith("Int") ? "int:1"
+                        : "supplier:" + (body.startsWith("new") ? "o" : body.replace("\"", "").replace("foo()", "1")),
                     "g(() -> " + body + ");", supplier, "g(java.util.function." + primitive);
         assertEveryOrderPicks("supplier:1", "g(() -> foo());", supplier,
             "g(Runnable r) { return \"runnable\"; }", "g(java.util.function.IntSupplier s) { return \"int\"; }");
@@ -402,7 +409,7 @@ public class BshLambdaResolutionTest {
         String getter = "q(" + GETTER + " g) { return \"getter\"; }";
         String running = "q(" + RUNNING_GETTER + " g) { return \"running\"; }";
         for (String body : new String[] { "1", "-x", "new int[1]", "(foo())", "x == 1 ? foo() : foo()",
-                "new java.awt.Point().x", "arr[0]" })
+                "new java.awt.Point().x", "arr[0]", "o.new int[2]", "o.new Inner[] { null }" })
             assertEveryOrderPicks("getter", "q(() -> " + body + ");", getter, running);
         assertEveryOrderPicks("getter", "q(() -> { return 1; });", getter, running);
         assertEveryOrderPicks("runnable", "w(() -> { x = 1; });",
@@ -425,25 +432,12 @@ public class BshLambdaResolutionTest {
     }
 
     // Shape only ranks candidates; it never makes a lone candidate inapplicable.
+    // bsh cannot tell these apart, so the name decides, in every declaration order.
     @Test
-    public void lone_value_interface_still_accepts_a_void_block() throws Exception {
-        assertEquals("callable", eval(
-            "only(java.util.concurrent.Callable c) { return \"callable\"; }\n"
-            + "only(() -> { x = 1; });"));
-    }
-
-    // Existing resolution semantics, pinned rather than changed: when neither
-    // candidate is more specific, findMostSpecificSignature keeps the first in
-    // list order, and NameSpace.setMethod inserts at index 0 -- so the last
-    // declared scripted method wins (same for two non-lambda interfaces).
-    @Test
-    public void same_arity_functional_interfaces_resolve_to_the_last_declared() throws Exception {
-        String functionFirst = "s(java.util.function.Function f) { return \"function\"; }\n"
-            + "s(java.util.function.IntFunction i) { return \"intFunction\"; }\n";
-        String intFunctionFirst = "s(java.util.function.IntFunction i) { return \"intFunction\"; }\n"
-            + "s(java.util.function.Function f) { return \"function\"; }\n";
-        assertEquals("intFunction", eval(functionFirst + "s(x -> true);"));
-        assertEquals("function", eval(intFunctionFirst + "s(x -> true);"));
+    public void indistinguishable_functional_interfaces_resolve_by_name() throws Exception {
+        assertEveryOrderPicks("function", "s(x -> true);",
+            "s(java.util.function.Function f) { return \"function\"; }",
+            "s(java.util.function.IntFunction i) { return \"intFunction\"; }");
     }
 
     // As for any argument, a typed parameter matches in an earlier round than
@@ -458,15 +452,131 @@ public class BshLambdaResolutionTest {
         assertEquals("runnable", eval(runnableFirst + "h(() -> {});"));
     }
 
-    // Past the last arity marker the lambda is typed as BshLambda, which
-    // matches only Object/loose parameters; an explicit cast still works.
     @Test
-    public void lambda_beyond_the_marker_arities_resolves_only_to_object() throws Exception {
+    public void lambda_of_another_arity_resolves_only_to_object() throws Exception {
         String eleven = "(a, b, c, d, e, f, g, h, i, j, k) -> a";
         assertEquals("object", eval(
             "m(Object o) { return \"object\"; }\n"
             + "m(Runnable r) { return \"runnable\"; }\n"
             + "m(" + eleven + ");"));
+    }
+
+    private static final String OVERLOADS = "bsh.BshLambdaResolutionTest.Overloads.";
+
+    // Seventh review finding 1: javac applies only IntSupplier.
+    @Test
+    public void known_int_result_never_picks_a_string_result() throws Exception {
+        assertEveryOrderPicks("int:1", "c(() -> 1);",
+            "c(java.util.function.IntSupplier s) { return \"int:\" + s.getAsInt(); }",
+            "c(" + OVERLOADS + "StrSupplier s) { return \"str:\" + s.get(); }");
+        assertEveryOrderPicks("double:1.5", "c(() -> 1.5);",
+            "c(java.util.function.DoubleSupplier s) { return \"double:\" + s.getAsDouble(); }",
+            "c(" + OVERLOADS + "IntegerSupplier s) { return \"integer:\" + s.get(); }");
+    }
+
+    // Seventh review finding 3 and external F4.
+    @Test
+    public void known_primitive_result_picks_the_narrowest_fitting_primitive() throws Exception {
+        assertEveryOrderPicks("int:1", "c(() -> 1);",
+            "c(java.util.function.IntSupplier s) { return \"int:\" + s.getAsInt(); }",
+            "c(java.util.function.DoubleSupplier s) { return \"double:\" + s.getAsDouble(); }",
+            "c(java.util.function.BooleanSupplier s) { return \"bool:\" + s.getAsBoolean(); }");
+    }
+
+    // External F3: javac applies only SC.
+    @Test
+    public void explicit_parameter_type_selects_the_matching_interface() throws Exception {
+        assertEveryOrderPicks("sc:ok", "pick((String value) -> \"ok\");",
+            "pick(" + OVERLOADS + "SC v) { return \"sc:\" + v.accept(\"x\"); }",
+            "pick(" + OVERLOADS + "IC v) { return \"ic:\" + v.accept(1); }");
+    }
+
+    // External F13: no marker ceiling.
+    @Test
+    public void lambda_with_eleven_parameters_resolves_to_a_functional_interface() throws Exception {
+        assertEquals("a", eval("m(Object o) { return \"object\"; }\n"
+            + "m(" + OVERLOADS + "Eleven e) { return e.apply(\"a\", 2, 3, 4, 5, 6, 7, 8, 9, 10, 11); }\n"
+            + "m((a, b, c, d, e, f, g, h, i, j, k) -> a);"));
+    }
+
+    // The v4 review's regression case: javac and bsh both submit a Runnable.
+    @Test
+    public void unsure_void_block_submitted_to_an_executor_is_a_runnable() throws Exception {
+        assertEquals("null", eval("flag = true; r = \"unset\";\n"
+            + "ex = java.util.concurrent.Executors.newSingleThreadExecutor();\n"
+            + "try { r = String.valueOf(ex.submit(() -> { while (flag) { flag = false; } }).get()); }"
+            + " finally { ex.shutdown(); }\nr;"));
+    }
+
+    @Test
+    public void lone_value_interface_rejects_a_certainly_void_block() throws Exception {
+        try {
+            eval("only(java.util.concurrent.Callable c) { return \"callable\"; }\n"
+                + "only(() -> { x = 1; });");
+            fail("a void block cannot be a Callable");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("only(<0-arg lambda returning void>)"));
+        }
+        assertEquals("callable", eval("only(java.util.concurrent.Callable c) { return \"callable\"; }\n"
+            + "only(() -> { while (flag) { } });"));
+    }
+
+    // The untyped argument ties with itself, so the lambda's subtype rule decides.
+    @Test
+    public void untyped_argument_leaves_the_decision_to_the_lambda() throws Exception {
+        assertEveryOrderPicks("w", "h(() -> 1, 1);",
+            "h(java.util.function.IntSupplier s, b) { return \"int\"; }", "h(" + OVERLOADS + "W w, b) { return \"w\"; }");
+    }
+
+    // Scripted interfaces carry a malformed generic signature, which reflection rejects with an Error.
+    @Test
+    public void scripted_interface_is_a_lambda_target() throws Exception {
+        assertEquals("S", eval("interface S { void run(); } m(S s) { return \"S\"; } m(() -> { });"));
+        assertEquals("F:x", eval("interface F<T> { void accept(T t); }"
+            + " seen = \"\"; m(F f) { f.accept(\"x\"); return \"F:\" + seen; } m((String s) -> { seen = s; });"));
+        assertEquals("G:1", eval("interface G { Object get(); } m(G g) { return \"G:\" + g.get(); } m(() -> 1);"));
+        assertEquals("P:3", eval("interface P { void take(int x); } seen = 0;"
+            + " m(P p) { p.take(3); return \"P:\" + seen; } m((int x) -> { seen = x; });"));
+    }
+
+    // bsh types an unsuffixed 2147483648 as long; javac and bsh both run it as an int.
+    @Test
+    public void unsuffixed_long_literal_still_reaches_an_int_result() throws Exception {
+        assertEveryOrderPicks("int:-2147483648", "m(() -> -2147483648);",
+            "m(java.util.function.IntSupplier s) { return \"int:\" + s.getAsInt(); }",
+            "m(Runnable r) { return \"runnable\"; }");
+        assertEveryOrderPicks("int:-2147483648", "m(() -> -2147483648);",
+            "m(java.util.function.IntSupplier s) { return \"int:\" + s.getAsInt(); }",
+            "m(java.util.function.LongSupplier s) { return \"long:\" + s.getAsLong(); }",
+            "m(java.util.function.Supplier s) { return \"supplier:\" + s.get(); }");
+    }
+
+    // JLS 15.27.3: a lambda cannot implement a generic method.
+    @Test
+    public void generic_method_interface_is_not_a_lambda_target() throws Exception {
+        assertEveryOrderPicks("supplier", "m(() -> \"x\");",
+            "m(" + OVERLOADS + "AGen g) { return \"agen\"; }",
+            "m(java.util.function.Supplier s) { return \"supplier\"; }");
+    }
+
+    // Serializable is BshLambda's own interface, not a target a lambda can become.
+    @Test
+    public void lambda_does_not_match_a_serializable_parameter() throws Exception {
+        assertEveryOrderPicks("object", "o(() -> 1);",
+            "o(Object x) { return \"object\"; }", "o(java.io.Serializable s) { return \"serializable\"; }");
+        try {
+            eval("k(java.io.Serializable s) { return \"serializable\"; } k(() -> 1);");
+            fail("a lambda is not Serializable");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("k(<0-arg lambda returning int>)"));
+        }
+    }
+
+    // MemberCache returns a lone Java method without checking its signature.
+    @Test
+    public void lone_java_method_still_takes_a_mismatched_lambda() throws Exception {
+        assertEquals("lone", eval("import bsh.BshLambdaResolutionTest.Overloads;"
+            + " Overloads.lone(() -> { x = 1; });"));
     }
 
     @Test
@@ -475,8 +585,7 @@ public class BshLambdaResolutionTest {
             eval("noSuchMethod(x -> x);");
             fail("expected an EvalError");
         } catch (EvalError e) {
-            assertFalse(e.getMessage(), e.getMessage().contains("Arity"));
-            assertTrue(e.getMessage(), e.getMessage().toLowerCase().contains("lambda"));
+            assertTrue(e.getMessage(), e.getMessage().contains("noSuchMethod(<1-arg lambda>)"));
         }
     }
 }

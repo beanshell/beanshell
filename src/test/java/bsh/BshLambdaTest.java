@@ -19,6 +19,15 @@ import org.junit.runner.RunWith;
 @RunWith(FilteredTestRunner.class)
 public class BshLambdaTest {
 
+    public interface SerialTriple extends java.io.Serializable { int apply(int x); }
+    public interface ReplaceWriter { Object writeReplace(); }
+
+    // The wrapper generates its own writeReplace, which must not clash with the SAM's.
+    @Test
+    public void interface_whose_method_is_named_write_replace_is_implementable() throws Exception {
+        assertEquals("w", new Interpreter().eval(
+            "import bsh.BshLambdaTest.ReplaceWriter; ((ReplaceWriter) () -> \"w\").writeReplace();"));
+    }
     public interface RunA { void run(); }
     public interface RunB { void run(); }
     public interface RunAB extends RunA, RunB {}
@@ -144,8 +153,148 @@ public class BshLambdaTest {
             f.apply("not a date");
             fail("expected a RuntimeEvalError");
         } catch (RuntimeEvalError expected) {
-            // expected
+            assertTrue(String.valueOf(expected.getCause()), expected.getCause() instanceof EvalError);
         }
+    }
+
+    @Test
+    public void untyped_parameter_shadows_an_outer_variable_of_the_same_name() throws Exception {
+        Interpreter interpreter = new Interpreter();
+        assertEquals(Integer.valueOf(3), interpreter.eval(
+            "x = 100; y = 200; java.util.function.BiFunction f = (x, y) -> x + y; f.apply(1, 2);"));
+        assertEquals(Integer.valueOf(100), interpreter.get("x"));
+        assertEquals(Integer.valueOf(200), interpreter.get("y"));
+    }
+
+    @Test
+    public void assigning_an_untyped_parameter_does_not_write_the_outer_variable() throws Exception {
+        Interpreter interpreter = new Interpreter();
+        assertEquals(Integer.valueOf(5), interpreter.eval(
+            "x = 7; java.util.function.Function f = x -> { x = 5; return x; }; f.apply(1);"));
+        assertEquals(Integer.valueOf(7), interpreter.get("x"));
+    }
+
+    @Test
+    public void this_in_a_lambda_is_the_enclosing_this() throws Exception {
+        assertEquals(Boolean.TRUE, new Interpreter().eval(
+            "m() { java.util.function.Supplier s = () -> this; return s.get() == this; } m();"));
+    }
+
+    @Test
+    public void this_in_a_lambda_in_a_scripted_class_is_the_instance() throws Exception {
+        assertEquals(Boolean.TRUE, new Interpreter().eval("class C {"
+            + " Object viaLambda() { java.util.function.Supplier s = () -> this; return s.get(); } }"
+            + " c = new C(); c.viaLambda() == c;"));
+    }
+
+    @Test
+    public void field_assigned_through_this_in_a_lambda_reaches_the_instance() throws Exception {
+        assertEquals(Integer.valueOf(9), Primitive.unwrap(new Interpreter().eval("class C { int f = 1;"
+            + " int setF() { Runnable r = () -> { this.f = 9; }; r.run(); return f; } }"
+            + " new C().setF();")));
+    }
+
+    @Test
+    public void super_in_a_lambda_is_the_enclosing_super() throws Exception {
+        assertEquals("3,3", new Interpreter().eval(
+            "m() { q = 3; n() { int q = 4; java.util.function.Supplier s = () -> super.q;"
+            + " return s.get() + \",\" + super.q; } return n(); } m();"));
+    }
+
+    @Test
+    public void super_method_call_in_a_lambda_reaches_the_superclass() throws Exception {
+        assertEquals("A", new Interpreter().eval(
+            "class A { String hi() { return \"A\"; } }"
+            + " class B extends A { String hi() { return \"B\"; }"
+            + " String viaLambda() { java.util.function.Supplier s = () -> super.hi(); return s.get(); } }"
+            + " new B().viaLambda();"));
+    }
+
+    // Like a This proxy, a deserialized lambda must not run: a stream that could
+    // run script code while being read is a deserialization gadget (CVE-2016-2510).
+    private static void assertRefusesToRun(Runnable call) {
+        try {
+            call.run();
+            fail("a deserialized lambda must not run");
+        } catch (RuntimeEvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("deserialized"));
+        }
+    }
+
+    @Test
+    public void interpreter_holding_a_raw_lambda_serializes_but_the_lambda_does_not_run() throws Exception {
+        Interpreter interpreter = new Interpreter();
+        interpreter.eval("inc = x -> x + 1;");
+        Interpreter copy = TestUtil.serDeser(interpreter);
+        java.util.function.Function<?, ?> inc = (java.util.function.Function<?, ?>)
+            copy.eval("(java.util.function.Function) inc;");
+        assertRefusesToRun(() -> inc.apply(null));
+    }
+
+    @Test
+    public void interpreter_holding_a_converted_lambda_serializes_but_the_lambda_does_not_run() throws Exception {
+        Interpreter interpreter = new Interpreter();
+        interpreter.eval("n = 0; Runnable r = () -> { n++; };");
+        Interpreter copy = TestUtil.serDeser(interpreter);
+        Runnable r = (Runnable) copy.get("r");
+        assertRefusesToRun(r);
+        assertEquals(Integer.valueOf(0), Primitive.unwrap(copy.eval("n;")));
+    }
+
+    @Test
+    public void lambda_for_a_serializable_interface_serializes_but_does_not_run() throws Exception {
+        SerialTriple triple = TestUtil.serDeser((SerialTriple) new Interpreter().eval(
+            "import bsh.BshLambdaTest.SerialTriple; (SerialTriple) x -> x * 3;"));
+        assertRefusesToRun(() -> triple.apply(2));
+    }
+
+    @Test
+    public void deserializing_a_lambda_comparator_does_not_run_its_body() throws Exception {
+        // A system property, not a script variable: the copy would write its own namespace.
+        String ran = "bsh.BshLambdaTest.comparatorRan";
+        @SuppressWarnings("unchecked")
+        java.util.Comparator<Object> comparator = (java.util.Comparator<Object>) new Interpreter().eval(
+            "(java.util.Comparator) (a, b) -> { System.setProperty(\"" + ran + "\", \"yes\"); return 0; };");
+        java.util.PriorityQueue<Object> queue = new java.util.PriorityQueue<>(2, comparator);
+        queue.add("a");
+        queue.add("b");
+        System.clearProperty(ran);
+        try {
+            TestUtil.serDeser(queue);
+            fail("reading the queue must fail, as it does for a This proxy");
+        } catch (RuntimeException expected) {
+            assertNull(System.getProperty(ran));
+        } finally {
+            System.clearProperty(ran);
+        }
+    }
+
+    @Test
+    public void break_escaping_a_block_body_fails() throws Exception {
+        Runnable r = (Runnable) new Interpreter().eval("(Runnable) () -> { break; };");
+        try {
+            r.run();
+            fail("expected a RuntimeEvalError");
+        } catch (RuntimeEvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("'continue' or 'break'"));
+        }
+    }
+
+    @Test
+    public void continue_escaping_a_block_body_fails() throws Exception {
+        Runnable r = (Runnable) new Interpreter().eval("(Runnable) () -> { continue; };");
+        try {
+            r.run();
+            fail("expected a RuntimeEvalError");
+        } catch (RuntimeEvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("'continue' or 'break'"));
+        }
+    }
+
+    @Test
+    public void break_inside_a_loop_in_a_block_body_is_not_an_escape() throws Exception {
+        assertEquals(Integer.valueOf(3), Primitive.unwrap(new Interpreter().eval(
+            "n = 0; ((Runnable) () -> { while (true) { if (++n == 3) break; } }).run(); n;")));
     }
 
     @Test
@@ -203,6 +352,19 @@ public class BshLambdaTest {
             fail("expected a RuntimeEvalError");
         } catch (RuntimeEvalError expected) {
             assertTrue(expected.getMessage(), expected.getMessage().contains("noSuchMethod"));
+        }
+    }
+
+    @Test
+    public void runtime_eval_error_exposes_the_script_error() throws Exception {
+        Runnable r = (Runnable) new Interpreter().eval("(Runnable) () -> {\n noSuchMethod(); };");
+        try {
+            r.run();
+            fail("expected a RuntimeEvalError");
+        } catch (RuntimeEvalError expected) {
+            EvalError error = expected.getEvalError();
+            assertEquals(expected.getMessage(), error.getMessage());
+            assertTrue(String.valueOf(error.getErrorLineNumber()), error.getErrorLineNumber() > 0);
         }
     }
 

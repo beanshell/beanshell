@@ -262,6 +262,67 @@ public class BshLambdaClassLoadingTest {
         assertNull("bsh's class loader still reachable", ref.get());
     }
 
+    @Test
+    public void throwaway_bsh_loader_is_collectable_after_resolving_a_lambda() throws Exception {
+        WeakReference<ClassLoader> ref = runInThrowawayLoader(
+            "m(java.util.function.IntSupplier s) { return s.getAsInt(); }"
+            + " m(java.util.function.Supplier s) { return s.get(); } foo() { return 1; } m(() -> 1); m(() -> foo());");
+        for (int n = 0; n < 50 && ref.get() != null; n++) {
+            System.gc();
+            Thread.sleep(20);
+        }
+        assertNull("bsh's class loader still reachable", ref.get());
+    }
+
+    @Test
+    public void markers_do_not_accumulate_when_a_lambda_is_resolved_in_a_loop() throws Exception {
+        Interpreter interpreter = new Interpreter();
+        interpreter.eval("m(Runnable r) { } m(java.util.concurrent.Callable c) { }"
+            + " n(java.util.function.Consumer d) { } n(Runnable e) { }");
+        long before = BshLambda.markersDefined();
+        interpreter.eval("for (i = 0; i < 10000; i++) { m(() -> 7654321); n((String s) -> { }); }");
+        assertTrue("markers defined: " + (BshLambda.markersDefined() - before),
+            BshLambda.markersDefined() - before <= 2);
+    }
+
+    @Test
+    public void marker_is_collectable_once_its_lambda_is_unreachable() throws Exception {
+        WeakReference<Class<?>> ref = new WeakReference<>(
+            ((BshLambda) new Interpreter().eval("() -> 918273645L;")).marker());
+        for (int n = 0; n < 50 && ref.get() != null; n++) {
+            System.gc();
+            Thread.sleep(20);
+        }
+        assertNull("marker still reachable", ref.get());
+    }
+
+    @Test
+    public void equal_descriptors_share_one_marker_across_racing_threads() throws Exception {
+        for (int round = 0; round < 20; round++) {
+            String lambda = "() -> " + (5000000000L + round) + "L;";
+            java.util.concurrent.CountDownLatch start = new java.util.concurrent.CountDownLatch(1);
+            java.util.List<java.util.concurrent.Future<Class<?>>> markers = new java.util.ArrayList<>();
+            java.util.List<Object> keep = java.util.Collections.synchronizedList(new java.util.ArrayList<>());
+            java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(16);
+            try {
+                for (int t = 0; t < 16; t++)
+                    markers.add(pool.submit(() -> {
+                        BshLambda each = (BshLambda) new Interpreter().eval(lambda);
+                        keep.add(each);
+                        start.await();
+                        return each.marker();
+                    }));
+                start.countDown();
+                java.util.Set<Class<?>> distinct = new java.util.HashSet<>();
+                for (java.util.concurrent.Future<Class<?>> marker : markers)
+                    distinct.add(marker.get());
+                assertEquals(lambda, 1, distinct.size());
+            } finally {
+                pool.shutdownNow();
+            }
+        }
+    }
+
     private static WeakReference<ClassLoader> runInThrowawayLoader(String script) throws Exception {
         URL classes = Interpreter.class.getProtectionDomain().getCodeSource().getLocation();
         URLClassLoader loader = new URLClassLoader(new URL[] { classes },

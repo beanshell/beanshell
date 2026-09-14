@@ -46,6 +46,12 @@ public class RuntimeEvalError extends RuntimeException {
 
     RuntimeEvalError(EvalError error) {
         this.error = error;
+        initCause(error);
+    }
+
+    /** The script error, with its line, file and script stack. */
+    public EvalError getEvalError() {
+        return error;
     }
 
     @Override
