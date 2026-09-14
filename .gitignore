@@ -21,3 +21,4 @@ BeanShell.iws
 *gradle*
 *.ser
 .claude/settings.local.json
+.superpowers/
