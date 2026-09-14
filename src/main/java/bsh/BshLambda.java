@@ -450,6 +450,10 @@ public class BshLambda implements Serializable {
                 throw new RuntimeEvalError("Cannot return " + Types.getType(result)
                     + " from a lambda declared to return " + returnType.getName(),
                     expressionNode, null);
+            } catch (RuntimeException e) {
+                throw new RuntimeEvalError("Cannot return " + Types.getType(result)
+                    + " from a lambda declared to return " + returnType.getName(),
+                    expressionNode, null, e);
             }
         } catch (TargetError e) {
             throw new RuntimeEvalError(

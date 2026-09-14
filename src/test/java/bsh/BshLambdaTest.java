@@ -484,4 +484,32 @@ public class BshLambdaTest {
             assertTrue(expected.getMessage(), expected.getMessage().contains("IntSupplier"));
         }
     }
+
+    @Test
+    public void a_null_result_from_an_unknown_body_reaches_a_java_caller_as_runtime_eval_error() throws Exception {
+        Interpreter interpreter = new Interpreter();
+        interpreter.eval("nullGiver() { return null; }");
+        java.util.function.IntSupplier s = (java.util.function.IntSupplier)
+            interpreter.eval("(java.util.function.IntSupplier) () -> nullGiver();");
+        try {
+            s.getAsInt();
+            fail("expected a RuntimeEvalError");
+        } catch (RuntimeEvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("int"));
+        }
+    }
+
+    @Test
+    public void an_out_of_range_result_from_an_unknown_body_reaches_a_java_caller_as_runtime_eval_error() throws Exception {
+        Interpreter interpreter = new Interpreter();
+        interpreter.eval("bigGiver() { return 5000000000L; }");
+        java.util.function.IntSupplier s = (java.util.function.IntSupplier)
+            interpreter.eval("(java.util.function.IntSupplier) () -> bigGiver();");
+        try {
+            s.getAsInt();
+            fail("expected a RuntimeEvalError");
+        } catch (RuntimeEvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("int"));
+        }
+    }
 }
