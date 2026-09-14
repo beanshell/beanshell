@@ -113,7 +113,7 @@ public class BshClassPathTest {
         bcp.add(new URL[] { new URL("file:/unknown/path") });
         bcp.add(new URL("file:/unknown/path"));
         assertThat("Got feedback error", cpmf.err,
-                equalTo("Not a classpath component: /unknown/path"));
+                equalTo("Not a classpath component: " + new File("/unknown/path").getPath()));
     }
 
     @Test
