@@ -164,6 +164,21 @@ class BSHLambdaExpression extends SimpleNode
             LambdaDescriptor.Result operand = expressionResult(node.jjtGetChild(0));
             return operand == null || operand.constants == null ? null : constantResult(fold(node));
         }
+        if (node instanceof BSHBinaryExpression) {
+            LambdaDescriptor.Result lhs = expressionResult(node.jjtGetChild(0));
+            LambdaDescriptor.Result rhs = expressionResult(node.jjtGetChild(1));
+            if (lhs == null || lhs.constants == null || rhs == null || rhs.constants == null)
+                return null;
+            return constantResult(fold(node));
+        }
+        if (node instanceof BSHTernaryExpression) {
+            LambdaDescriptor.Result condition = expressionResult(node.jjtGetChild(0));
+            if (condition == null || condition.constants == null)
+                return null;
+            LambdaDescriptor.Result taken = expressionResult(fold(node.jjtGetChild(0)) == Primitive.TRUE
+                ? node.jjtGetChild(1) : node.jjtGetChild(2));
+            return taken == null || taken.constants == null ? null : constantResult(fold(node));
+        }
         Class<?> cast = primitiveCast(node);
         if (cast == null)
             return null;

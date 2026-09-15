@@ -163,10 +163,22 @@ public class BshLambdaDescriptorTest {
 
     @Test
     public void anything_else_or_a_folding_failure_is_unknown() throws Exception {
-        for (String lambda : new String[] { "() -> foo()", "() -> x", "() -> 1 + 1", "() -> ~1.5",
+        for (String lambda : new String[] { "() -> foo()", "() -> x", "() -> ~1.5",
                 "() -> -true", "() -> (String) x", "() -> new Object()", "() -> { throw new Error(); }",
                 "() -> { if (c) return 1; return 1L; }", "() -> { if (c) return 1; return foo(); }" })
             assertNull(lambda, result(lambda));
+    }
+
+    // Deep-review Finding 11: expressionResult() must recurse into binary and
+    // ternary expressions the same way fold() already does for loop completion.
+    @Test
+    public void a_foldable_binary_expression_is_a_known_constant_result() throws Exception {
+        assertResult(int.class, result("() -> 1 + 1"), 2);
+    }
+
+    @Test
+    public void a_foldable_ternary_expression_is_a_known_constant_result() throws Exception {
+        assertResult(int.class, result("() -> true ? 1 : 2"), 1);
     }
 
     @Test
