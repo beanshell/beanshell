@@ -70,10 +70,10 @@ public class BshLambda implements Serializable {
 
     /** A body fits a value-returning method, a void one, or either (a
         statement expression, or a block that cannot complete normally);
-        VOID_UNSURE is a void block bsh cannot be sure completes, or a block
-        whose valued/bare returns mix or whose valued return can also complete
-        normally (neither value- nor void-compatible). */
-    static final int VALUE = 0, VOID = 1, EITHER = 2, VOID_UNSURE = 3;
+        VOID_UNSURE is a void block bsh cannot be sure completes; INVALID is a
+        block with a valued return that also has a bare return or can complete
+        normally (JLS 15.27.2: neither value- nor void-compatible). */
+    static final int VALUE = 0, VOID = 1, EITHER = 2, VOID_UNSURE = 3, INVALID = 4;
 
     // Overload resolution sees only argument Class[], never values, so a lambda
     // argument's type is an empty marker interface generated per descriptor
@@ -496,6 +496,11 @@ public class BshLambda implements Serializable {
                 + functionalInterface.getName() + ": its single abstract method "
                 + "collides with Java serialization's writeReplace() hook, which "
                 + "would run the lambda body during writeObject");
+        if (shape == INVALID)
+            throw new UtilEvalError("A lambda cannot implement "
+                + functionalInterface.getName() + ": its block body has a valued return "
+                + "beside a bare return or a path that falls off the end, so it fits no "
+                + "functional interface (JLS 15.27.2)");
         if (!descriptor().fits(functionalInterface))
             throw new UtilEvalError("A lambda cannot implement "
                 + functionalInterface.getName() + ": its body does not fit the "

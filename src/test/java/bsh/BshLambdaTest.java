@@ -743,6 +743,32 @@ public class BshLambdaTest {
     }
 
     @Test
+    public void a_block_with_a_valued_return_that_can_fall_off_the_end_is_rejected_for_a_void_interface() throws Exception {
+        try {
+            new Interpreter().eval("flag = false; Runnable r = () -> { if (flag) return 1; };");
+            fail("expected an EvalError: neither void- nor value-compatible");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("valued return"));
+        }
+    }
+
+    @Test
+    public void a_block_mixing_valued_and_bare_returns_is_rejected_by_cast_and_by_a_java_call() throws Exception {
+        Interpreter interpreter = new Interpreter();
+        for (String script : new String[] {
+                "(Runnable) () -> { if (flag) return 1; return; };",
+                "new Thread(() -> { if (flag) return 1; return; });" }) {
+            try {
+                interpreter.eval("flag = true; " + script);
+                fail("expected an EvalError for: " + script);
+            } catch (EvalError expected) {
+                assertTrue(expected.getMessage(), expected.getMessage().contains("Runnable")
+                    || expected.getMessage().contains("Thread"));
+            }
+        }
+    }
+
+    @Test
     public void direct_cast_rejects_a_known_result_that_cannot_fit_the_return_type() throws Exception {
         try {
             new Interpreter().eval("java.util.function.IntSupplier s = () -> \"x\";");

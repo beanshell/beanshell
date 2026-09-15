@@ -97,9 +97,9 @@ final class LambdaDescriptor {
                 return false;
         }
         Class<?> returned = sam.getReturnType();
-        if (shape == BshLambda.VALUE && returned == void.class
-                || shape == BshLambda.VOID && returned != void.class
-                || shape == BshLambda.VOID_UNSURE && returned != void.class && result != null)
+        if (shape == BshLambda.INVALID
+                || shape == BshLambda.VALUE && returned == void.class
+                || shape == BshLambda.VOID && returned != void.class)
             return false;
         return result == null || returned == void.class || isAssignable(result, returned);
     }

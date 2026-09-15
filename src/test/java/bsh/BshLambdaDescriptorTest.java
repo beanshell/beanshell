@@ -134,6 +134,43 @@ public class BshLambdaDescriptorTest {
         assertNotEquals(BshLambda.VALUE, shape("() -> { if (flag) return 1; return; }"));
     }
 
+    // JLS 15.27.2: a valued return rules out void-compatibility; a bare return or a
+    // reachable end rules out value-compatibility. Both together fit nothing.
+    @Test
+    public void a_block_mixing_valued_and_bare_returns_or_falling_off_the_end_is_invalid() throws Exception {
+        assertEquals(BshLambda.INVALID, shape("() -> { if (flag) return 1; }"));
+        assertEquals(BshLambda.INVALID, shape("() -> { if (flag) return 1; return; }"));
+        assertEquals(BshLambda.INVALID, shape("() -> { if (flag) return foo(); }"));
+        assertEquals(BshLambda.INVALID, shape("() -> { switch (x) { case 1: return x; case 2: return x + 1; } }"));
+        assertEquals(BshLambda.INVALID, shape("() -> { for (v : list) { return v; } }"));
+    }
+
+    // bsh cannot tell whether `flag` is a constant variable, so the valued return decides the shape.
+    @Test
+    public void a_valued_return_under_an_unfoldable_condition_is_value_shaped() throws Exception {
+        assertEquals(BshLambda.VALUE, shape("() -> { while (flag) { return 1; } }"));
+        assertEquals(BshLambda.VALUE, shape("() -> { while (true) { if (c) break; return 1; } }"));
+    }
+
+    // Exhaustive branches that all return a value cannot complete normally: VALUE, not INVALID.
+    @Test
+    public void an_if_else_returning_a_value_on_both_branches_is_value_shaped() throws Exception {
+        assertEquals(BshLambda.VALUE, shape("() -> { if (flag) return 1; else return 2; }"));
+        assertTrue(descriptor("() -> { if (flag) return 1; else return 2; }").fits(Callable.class));
+        assertFalse(descriptor("() -> { if (flag) return 1; else return 2; }").fits(Runnable.class));
+    }
+
+    @Test
+    public void an_invalid_block_fits_no_interface() throws Exception {
+        LambdaDescriptor invalid = descriptor("() -> { if (flag) return 1; }");
+        assertFalse(invalid.fits(Runnable.class));
+        assertFalse(invalid.fits(Supplier.class));
+        assertFalse(invalid.fits(IntSupplier.class));
+        LambdaDescriptor unknown = descriptor("() -> { if (flag) return foo(); }");
+        assertFalse(unknown.fits(Runnable.class));
+        assertFalse(unknown.fits(Callable.class));
+    }
+
     @Test
     public void literal_result_has_the_type_of_its_bsh_value() throws Exception {
         assertResult(int.class, result("() -> 1"), 1);
