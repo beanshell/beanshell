@@ -55,7 +55,9 @@ import bsh.org.objectweb.asm.Type;
     <p>
     Public only because generated wrapper classes, defined in other class
     loaders, must call {@link #invoke}; it is not a supported API. Script errors
-    reach Java callers of a wrapper as {@link RuntimeEvalError}.
+    and undeclared checked exceptions reach Java callers of a wrapper as
+    {@link RuntimeEvalError}; unchecked exceptions and declared checked
+    exceptions reach them as themselves.
 */
 public class BshLambda implements Serializable {
 
@@ -602,6 +604,9 @@ public class BshLambda implements Serializable {
             }
         } catch (TargetError e) {
             Throwable target = e.getTarget();
+            // JLS 11.2: unchecked throwables are exempt from the throws clause.
+            if (target instanceof RuntimeException || target instanceof Error)
+                BshLambda.<RuntimeException>sneakyThrow(target);
             for (Class<?> declared : declaredExceptions)
                 if (declared.isInstance(target))
                     BshLambda.<RuntimeException>sneakyThrow(target);

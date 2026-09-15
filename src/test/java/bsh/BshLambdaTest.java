@@ -419,6 +419,80 @@ public class BshLambdaTest {
     }
 
     @Test
+    public void an_unchecked_exception_from_the_body_reaches_a_java_caller_as_itself() throws Exception {
+        Runnable r = (Runnable) new Interpreter().eval(
+            "(Runnable) () -> { throw new IllegalStateException(\"boom\"); };");
+        try {
+            r.run();
+            fail("expected the IllegalStateException itself, not a RuntimeEvalError");
+        } catch (IllegalStateException expected) {
+            assertEquals("boom", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void an_error_from_the_body_reaches_a_java_caller_as_itself() throws Exception {
+        Runnable r = (Runnable) new Interpreter().eval(
+            "(Runnable) () -> { throw new LinkageError(\"link\"); };");
+        try {
+            r.run();
+            fail("expected the LinkageError itself");
+        } catch (LinkageError expected) {
+            assertEquals("link", expected.getMessage());
+        }
+    }
+
+    // The SAM declares IOException only; an unchecked exception is still exempt from that clause.
+    @Test
+    public void an_unchecked_exception_is_not_gated_by_the_declared_checked_clause() throws Exception {
+        IOAction action = (IOAction) new Interpreter().eval(
+            "import bsh.BshLambdaTest.IOAction;"
+            + " (IOAction) () -> { throw new IllegalArgumentException(\"arg\"); };");
+        try {
+            action.run();
+            fail("expected the IllegalArgumentException itself");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("arg", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void a_script_can_catch_an_unchecked_exception_from_a_lambda_by_type() throws Exception {
+        assertEquals("caught", new Interpreter().eval(
+            "Runnable r = () -> { throw new IllegalStateException(\"ise\"); };"
+            + " result = \"missed\";"
+            + " try { r.run(); } catch (IllegalStateException e) { result = \"caught\"; }"
+            + " result;"));
+    }
+
+    // An inner lambda's unchecked exception crosses a Java method and the outer wrapper unchanged.
+    @Test
+    public void an_unchecked_exception_from_a_nested_lambda_reaches_a_java_caller_as_itself() throws Exception {
+        Runnable r = (Runnable) new Interpreter().eval(
+            "(Runnable) () -> { java.util.Arrays.asList(1).forEach(x -> { throw new IllegalStateException(\"inner\"); }); };");
+        try {
+            r.run();
+            fail("expected the IllegalStateException itself");
+        } catch (IllegalStateException expected) {
+            assertEquals("inner", expected.getMessage());
+        }
+    }
+
+    // Bug log 26 fixed on lambda-dev 2026-09-15: an out-of-bounds array store is now
+    // a TargetError, so it is an unchecked exception like any other by the time
+    // invoke sees it.
+    @Test
+    public void an_out_of_bounds_array_store_reaches_a_java_caller_as_itself() throws Exception {
+        Runnable r = (Runnable) new Interpreter().eval(
+            "(Runnable) () -> { int[] a = new int[0]; a[1] = 2; };");
+        try {
+            r.run();
+            fail("expected the ArrayIndexOutOfBoundsException itself");
+        } catch (ArrayIndexOutOfBoundsException expected) {
+        }
+    }
+
+    @Test
     public void an_undeclared_checked_style_failure_is_still_wrapped() throws Exception {
         Runnable r = (Runnable) new Interpreter().eval(
             "(Runnable) () -> { throw new java.io.IOException(\"undeclared\"); };");
