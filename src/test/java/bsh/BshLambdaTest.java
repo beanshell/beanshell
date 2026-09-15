@@ -38,6 +38,16 @@ public class BshLambdaTest {
     // throws clause for a call through AB is their intersection (nothing).
     public interface MixedThrowsAB extends IOAction, RunA {}
 
+    public interface ExceptionAction { void run() throws Exception; }
+    public interface ExceptionAndIO extends ExceptionAction, IOAction {}
+    public interface FileNotFoundAction { void run() throws java.io.FileNotFoundException; }
+    public interface IOAndFileNotFound extends IOAction, FileNotFoundAction {}
+    public interface IOOrInterrupted { void run() throws java.io.IOException, InterruptedException; }
+    public interface IOAndIOOrInterrupted extends IOAction, IOOrInterrupted {}
+    // A single, non-diamond interface: no cross-branch conflict to resolve,
+    // so javac copies this throws clause verbatim, subtype pair and all.
+    public interface IOOrFileNotFoundAction { void run() throws java.io.IOException, java.io.FileNotFoundException; }
+
     // Two inherited abstract methods with one signature are a single SAM.
     @Test
     public void interface_inheriting_the_same_method_twice_is_functional() throws Exception {
@@ -545,6 +555,85 @@ public class BshLambdaTest {
         Class<?>[] declared = action.getClass().getMethod("run").getExceptionTypes();
         assertEquals(1, declared.length);
         assertEquals(java.io.IOException.class, declared[0]);
+    }
+
+    // JLS 9.4.1.3: IOException is under Exception (E's branch) and is I's own clause.
+    @Test
+    public void effective_throws_clause_keeps_a_subtype_declared_by_every_branch() throws Exception {
+        ExceptionAndIO action = (ExceptionAndIO) new Interpreter().eval(
+            "import bsh.BshLambdaTest.ExceptionAndIO;"
+            + " (ExceptionAndIO) () -> { throw new java.io.IOException(\"io\"); };");
+        assertEquals(java.util.Arrays.asList(java.io.IOException.class),
+            java.util.Arrays.asList(action.getClass().getMethod("run").getExceptionTypes()));
+        try {
+            action.run();
+            fail("expected the IOException itself");
+        } catch (java.io.IOException expected) {
+            assertEquals("io", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void effective_throws_clause_is_the_narrower_of_two_related_declarations() throws Exception {
+        IOAndFileNotFound action = (IOAndFileNotFound) new Interpreter().eval(
+            "import bsh.BshLambdaTest.IOAndFileNotFound;"
+            + " (IOAndFileNotFound) () -> { throw new java.io.FileNotFoundException(\"fnf\"); };");
+        assertEquals(java.util.Arrays.asList(java.io.FileNotFoundException.class),
+            java.util.Arrays.asList(action.getClass().getMethod("run").getExceptionTypes()));
+        try {
+            action.run();
+            fail("expected the FileNotFoundException itself");
+        } catch (java.io.FileNotFoundException expected) {
+            assertEquals("fnf", expected.getMessage());
+        }
+    }
+
+    // InterruptedException is declared by one branch only, so it is not in the clause.
+    @Test
+    public void effective_throws_clause_drops_a_type_missing_from_one_branch() throws Exception {
+        IOAndIOOrInterrupted action = (IOAndIOOrInterrupted) new Interpreter().eval(
+            "import bsh.BshLambdaTest.IOAndIOOrInterrupted;"
+            + " (IOAndIOOrInterrupted) () -> { throw new InterruptedException(\"int\"); };");
+        assertEquals(java.util.Arrays.asList(java.io.IOException.class),
+            java.util.Arrays.asList(action.getClass().getMethod("run").getExceptionTypes()));
+        try {
+            action.run();
+            fail("expected a RuntimeEvalError");
+        } catch (RuntimeEvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("int"));
+        }
+    }
+
+    // A lone interface (group.size() == 1) has no second branch to intersect
+    // against, so both declared types must survive, not just one of the pair.
+    @Test
+    public void a_lone_branchs_own_throws_clause_keeps_both_related_types() throws Exception {
+        IOOrFileNotFoundAction action = (IOOrFileNotFoundAction) new Interpreter().eval(
+            "import bsh.BshLambdaTest.IOOrFileNotFoundAction;"
+            + " (IOOrFileNotFoundAction) () -> { throw new java.io.IOException(\"io\"); };");
+        assertEquals(new java.util.HashSet<>(java.util.Arrays.asList(
+                java.io.IOException.class, java.io.FileNotFoundException.class)),
+            new java.util.HashSet<>(java.util.Arrays.asList(
+                action.getClass().getMethod("run").getExceptionTypes())));
+        try {
+            action.run();
+            fail("expected the IOException itself");
+        } catch (java.io.IOException expected) {
+            assertEquals("io", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void a_lone_branchs_declared_subtype_exception_reaches_the_caller_too() throws Exception {
+        IOOrFileNotFoundAction action = (IOOrFileNotFoundAction) new Interpreter().eval(
+            "import bsh.BshLambdaTest.IOOrFileNotFoundAction;"
+            + " (IOOrFileNotFoundAction) () -> { throw new java.io.FileNotFoundException(\"fnf\"); };");
+        try {
+            action.run();
+            fail("expected the FileNotFoundException itself");
+        } catch (java.io.FileNotFoundException expected) {
+            assertEquals("fnf", expected.getMessage());
+        }
     }
 
     // A wrapper implementing a scripted interface is GeneratedClass-assignable

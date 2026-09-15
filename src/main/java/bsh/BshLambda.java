@@ -740,16 +740,34 @@ public class BshLambda implements Serializable {
             return cw.toByteArray();
         }
 
-        // A conservative, non-subtype-aware under-approximation of javac's throws-clause
-        // intersection: exact Class equality across every inherited branch. Non-public
-        // types are dropped too: the wrapper lives in its own runtime package and cannot
-        // even name one (see isImplementable's return-type guard for the parallel case).
+        // JLS 9.4.1.3: a type is in the effective throws clause when every
+        // inherited branch declares it or a supertype of it; a kept type whose
+        // supertype is also kept is redundant. Non-public types are dropped:
+        // the wrapper lives in its own runtime package and cannot name one.
+        // A single branch has no cross-branch conflict to resolve, so javac
+        // copies its own clause verbatim: no minimality reduction applies.
         private static Class<?>[] intersectedPublicExceptionTypes(List<Method> group) {
-            List<Class<?>> intersection = new ArrayList<>(Arrays.asList(group.get(0).getExceptionTypes()));
-            for (int i = 1; i < group.size(); i++)
-                intersection.retainAll(Arrays.asList(group.get(i).getExceptionTypes()));
-            intersection.removeIf(type -> !Modifier.isPublic(type.getModifiers()));
-            return intersection.toArray(new Class<?>[0]);
+            if (group.size() == 1) {
+                List<Class<?>> own = new ArrayList<>(Arrays.asList(group.get(0).getExceptionTypes()));
+                own.removeIf(type -> !Modifier.isPublic(type.getModifiers()));
+                return own.toArray(new Class<?>[0]);
+            }
+            List<Class<?>> kept = new ArrayList<>();
+            for (Method m : group)
+                for (Class<?> candidate : m.getExceptionTypes())
+                    if (!kept.contains(candidate) && Modifier.isPublic(candidate.getModifiers())
+                            && group.stream().allMatch(branch -> declaresSupertypeOf(branch, candidate)))
+                        kept.add(candidate);
+            List<Class<?>> minimal = new ArrayList<>(kept);
+            minimal.removeIf(type -> kept.stream().anyMatch(other -> other != type && other.isAssignableFrom(type)));
+            return minimal.toArray(new Class<?>[0]);
+        }
+
+        private static boolean declaresSupertypeOf(Method branch, Class<?> exception) {
+            for (Class<?> declared : branch.getExceptionTypes())
+                if (declared.isAssignableFrom(exception))
+                    return true;
+            return false;
         }
 
         private static void writeConstructor(ClassWriter cw, String internalClassName) {
