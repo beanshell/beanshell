@@ -269,16 +269,141 @@ public class BshLambda implements Serializable {
         if (!type.isInterface())
             return null;
         List<Method> methods = abstractMethods(type);
+        if (methods.isEmpty())
+            return null;
+        // Pairwise-to-first, not all-pairs: each survivor is consistent with
+        // first, though two survivors are never compared to each other
+        // directly. Only reachable via hand-written bytecode (javac never
+        // emits a shape exposing the gap), and every downstream consumer
+        // keys off first or a method validated against it, so it's benign.
+        Method first = methods.get(0);
         for (Method m : methods)
-            if (!m.getName().equals(methods.get(0).getName())
-                    || !Arrays.equals(m.getParameterTypes(), methods.get(0).getParameterTypes()))
+            if (!m.getName().equals(first.getName())
+                    || !sameAfterSubstitution(type, m, first))
                 return null;
         // Inherited from several superinterfaces: one return type must
         // substitute for all of them, though not every pair need be related.
         for (Method candidate : methods)
             if (methods.stream().allMatch(m -> m.getReturnType().isAssignableFrom(candidate.getReturnType())))
-                return candidate;
+                return mostConcrete(methods, candidate);
         return null;
+    }
+
+    private static boolean sameAfterSubstitution(Class<?> type, Method a, Method b) {
+        if (Arrays.equals(a.getParameterTypes(), b.getParameterTypes()))
+            return true;
+        Class<?>[] substitutedA = substitutedParameterTypes(type, a);
+        Class<?>[] substitutedB = substitutedParameterTypes(type, b);
+        return substitutedA != null && substitutedB != null && Arrays.equals(substitutedA, substitutedB);
+    }
+
+    // Single-level only: resolves a.getGenericParameterTypes() against type's
+    // DIRECT generic superinterfaces' actual type arguments. Returns null (not
+    // resolvable) for anything deeper -- multi-level chains, wildcards, and
+    // generic-array type variables are deliberately out of scope.
+    private static Class<?>[] substitutedParameterTypes(Class<?> type, Method a) {
+        Class<?> declaringClass = a.getDeclaringClass();
+        java.lang.reflect.Type[] generic = genericParameterTypesOrErasure(a);
+        boolean anyTypeVariable = false;
+        for (java.lang.reflect.Type t : generic)
+            anyTypeVariable |= t instanceof java.lang.reflect.TypeVariable;
+        if (!anyTypeVariable)
+            return a.getParameterTypes();
+        Map<java.lang.reflect.TypeVariable<?>, Class<?>> substitution = directSubstitution(type, declaringClass);
+        if (substitution == null)
+            return null;
+        Class<?>[] resolved = new Class<?>[generic.length];
+        for (int i = 0; i < generic.length; i++) {
+            if (generic[i] instanceof java.lang.reflect.TypeVariable) {
+                Class<?> actual = substitution.get(generic[i]);
+                if (actual == null)
+                    return null;
+                resolved[i] = actual;
+            } else if (generic[i] instanceof Class) {
+                resolved[i] = (Class<?>) generic[i];
+            } else {
+                return null;
+            }
+        }
+        return resolved;
+    }
+
+    // A generated class's method (e.g. a bsh-scripted interface's) may carry a
+    // Signature attribute the JVM cannot parse, or one that names a type
+    // absent from the classpath (an optional dependency, missing at runtime)
+    // -- exactly the three exceptions LambdaDescriptor.fits already guards
+    // the same call against. Treat that exactly like an ordinary erased
+    // method rather than let discovery crash on it.
+    private static java.lang.reflect.Type[] genericParameterTypesOrErasure(Method m) {
+        try {
+            return m.getGenericParameterTypes();
+        } catch (java.lang.reflect.GenericSignatureFormatError | TypeNotPresentException
+                | java.lang.reflect.MalformedParameterizedTypeException malformed) {
+            return m.getParameterTypes();
+        }
+    }
+
+    // type's direct (one-level) generic superinterfaces only, e.g. GS extends
+    // G<String>: maps G's type variable T to String, as seen from GS.
+    private static Map<java.lang.reflect.TypeVariable<?>, Class<?>> directSubstitution(
+            Class<?> type, Class<?> declaringClass) {
+        java.lang.reflect.Type[] superInterfaces;
+        try {
+            superInterfaces = type.getGenericInterfaces();
+        } catch (java.lang.reflect.GenericSignatureFormatError | TypeNotPresentException
+                | java.lang.reflect.MalformedParameterizedTypeException malformed) {
+            return null;
+        }
+        for (java.lang.reflect.Type superInterface : superInterfaces) {
+            if (!(superInterface instanceof java.lang.reflect.ParameterizedType))
+                continue;
+            java.lang.reflect.ParameterizedType parameterized = (java.lang.reflect.ParameterizedType) superInterface;
+            if (parameterized.getRawType() != declaringClass)
+                continue;
+            java.lang.reflect.TypeVariable<?>[] variables = declaringClass.getTypeParameters();
+            java.lang.reflect.Type[] arguments;
+            try {
+                arguments = parameterized.getActualTypeArguments();
+            } catch (TypeNotPresentException | java.lang.reflect.MalformedParameterizedTypeException malformed) {
+                return null;
+            }
+            Map<java.lang.reflect.TypeVariable<?>, Class<?>> substitution = new java.util.HashMap<>();
+            for (int i = 0; i < variables.length; i++) {
+                if (!(arguments[i] instanceof Class))
+                    return null; // a further type variable or wildcard: out of scope
+                substitution.put(variables[i], (Class<?>) arguments[i]);
+            }
+            return substitution;
+        }
+        return null;
+    }
+
+    // candidate is already the return-type-optimal choice (see above); leave
+    // it alone unless swapping to a concrete sibling is both safe and useful:
+    //   - safe: the same return type, so this can never demote candidate's
+    //     already-correct, order-independent return type (every other method
+    //     in the group is only guaranteed a supertype-or-equal return type);
+    //   - useful: a genuinely different erasure, so LambdaDescriptor.exactParams
+    //     actually learns something substitution alone wouldn't tell it.
+    // A candidate whose own erasure already matches every concrete sibling's
+    // (e.g. G<Object>,O both erasing m's parameter to Object) is left as-is:
+    // swapping there would change nothing real, only which method's generic
+    // signature LambdaDescriptor.fits reads for its protected lenient-match
+    // rule -- not this task's call to make.
+    private static Method mostConcrete(List<Method> methods, Method candidate) {
+        if (!hasUnresolvedTypeVariable(candidate))
+            return candidate;
+        for (Method m : methods)
+            if (!hasUnresolvedTypeVariable(m)
+                    && m.getReturnType() == candidate.getReturnType()
+                    && !Arrays.equals(m.getParameterTypes(), candidate.getParameterTypes()))
+                return m;
+        return candidate;
+    }
+
+    private static boolean hasUnresolvedTypeVariable(Method m) {
+        return Arrays.stream(genericParameterTypesOrErasure(m))
+            .anyMatch(t -> t instanceof java.lang.reflect.TypeVariable);
     }
 
     // getMethods(), not getDeclaredMethods(): a SAM may be inherited.
