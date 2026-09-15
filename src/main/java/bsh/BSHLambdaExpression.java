@@ -67,10 +67,29 @@ class BSHLambdaExpression extends SimpleNode
             paramTypes = (Class<?>[]) params.eval(callstack, interpreter);
             paramModifiers = params.getParamModifiers();
             bodyNode = (Node) jjtGetChild(1);
+            validateParameterList(paramNames, paramTypes, callstack);
         }
 
         return new BshLambda(this, callstack.top(), interpreter,
             paramNames, paramTypes, paramModifiers, bodyNode, bodyShape(bodyNode));
+    }
+
+    // JLS 15.27.1: a lambda's formal parameter list must be entirely typed or
+    // entirely untyped, and its names must be unique -- unlike a method
+    // declaration, which FormalParameters()/FormalParameter() also serve.
+    private void validateParameterList(String[] paramNames, Class<?>[] paramTypes,
+            CallStack callstack) throws EvalException {
+        boolean anyTyped = false, anyUntyped = false;
+        for (Class<?> type : paramTypes)
+            if (type != null) anyTyped = true; else anyUntyped = true;
+        if (anyTyped && anyUntyped)
+            throw new EvalException(
+                "A lambda's parameters must be either all typed or all untyped", this, callstack);
+        Set<String> seen = new HashSet<>();
+        for (String name : paramNames)
+            if (!seen.add(name))
+                throw new EvalException(
+                    "Duplicate lambda parameter name: " + name, this, callstack);
     }
 
     /** Which methods the body fits (JLS 15.27.2): an expression fits a value

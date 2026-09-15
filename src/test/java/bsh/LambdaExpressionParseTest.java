@@ -192,4 +192,27 @@ public class LambdaExpressionParseTest {
         for (String source : sources)
             parse(source);
     }
+
+    @Test
+    public void lambda_with_duplicate_parameter_names_fails() throws Exception {
+        try {
+            new Interpreter().eval("(x, x) -> x;");
+            fail("expected an EvalError: duplicate parameter name");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("x"));
+        }
+    }
+
+    @Test
+    public void lambda_mixing_typed_and_untyped_parameters_fails() throws Exception {
+        String[] sources = { "(String a, b) -> a;", "(a, String b) -> b;" };
+        for (String source : sources) {
+            try {
+                new Interpreter().eval(source);
+                fail("expected an EvalError for " + source);
+            } catch (EvalError expected) {
+                assertTrue(source, expected.getMessage().length() > 0);
+            }
+        }
+    }
 }
