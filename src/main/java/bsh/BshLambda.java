@@ -68,7 +68,9 @@ public class BshLambda implements Serializable {
 
     /** A body fits a value-returning method, a void one, or either (a
         statement expression, or a block that cannot complete normally);
-        VOID_UNSURE is a void block bsh cannot be sure completes. */
+        VOID_UNSURE is a void block bsh cannot be sure completes, or a block
+        whose valued/bare returns mix or whose valued return can also complete
+        normally (neither value- nor void-compatible). */
     static final int VALUE = 0, VOID = 1, EITHER = 2, VOID_UNSURE = 3;
 
     // Overload resolution sees only argument Class[], never values, so a lambda
@@ -783,8 +785,12 @@ public class BshLambda implements Serializable {
             String bshLambdaInternalName = Type.getInternalName(BshLambda.class);
             Parameter[] params = sam.getParameters();
 
+            String[] exceptionInternalNames = new String[exceptionTypes.length];
+            for (int i = 0; i < exceptionTypes.length; i++)
+                exceptionInternalNames[i] = Type.getInternalName(exceptionTypes[i]);
+
             MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, sam.getName(),
-                Type.getMethodDescriptor(sam), null, null);
+                Type.getMethodDescriptor(sam), null, exceptionInternalNames);
             mv.visitCode();
 
             mv.visitVarInsn(Opcodes.ALOAD, 0);

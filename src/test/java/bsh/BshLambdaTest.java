@@ -461,6 +461,18 @@ public class BshLambdaTest {
         }
     }
 
+    // The wrapper method really can throw IOAction's declared IOException, so
+    // its own Exceptions attribute must say so, not report an empty list.
+    @Test
+    public void wrapper_method_reports_its_declared_checked_exception_via_reflection() throws Exception {
+        IOAction action = (IOAction) new Interpreter().eval(
+            "import bsh.BshLambdaTest.IOAction;"
+            + " (IOAction) () -> { throw new java.io.IOException(\"failure\"); };");
+        Class<?>[] declared = action.getClass().getMethod("run").getExceptionTypes();
+        assertEquals(1, declared.length);
+        assertEquals(java.io.IOException.class, declared[0]);
+    }
+
     // A wrapper implementing a scripted interface is GeneratedClass-assignable
     // but is not itself a script-generated class, so it has no namespace fields.
     @Test

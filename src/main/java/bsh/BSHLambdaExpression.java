@@ -96,7 +96,9 @@ class BSHLambdaExpression extends SimpleNode
         method, and a statement expression a void one too; a block with a valued
         return fits a value method, one with a bare return or that can complete
         normally a void method, and any other block either. VOID_UNSURE is a void
-        block whose completing rests on an unfoldable condition or a break. */
+        block whose completing rests on an unfoldable condition or a break, or a
+        block with a valued return that can also complete normally or that mixes
+        a bare and a valued return (neither value- nor void-compatible). */
     static int bodyShape(Node body) {
         if (!(body instanceof BSHBlock))
             return isStatementExpression(body) ? BshLambda.EITHER : BshLambda.VALUE;
