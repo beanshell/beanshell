@@ -604,4 +604,24 @@ public class BshLambdaTest {
             assertTrue(expected.getMessage(), expected.getMessage().contains("int"));
         }
     }
+
+    @Test
+    public void getCause_and_getEvalError_agree_for_the_message_only_constructor() throws Exception {
+        RuntimeEvalError e = new RuntimeEvalError("msg", null, null);
+        assertEquals(e.getEvalError(), e.getCause());
+    }
+
+    @Test
+    public void getCause_and_getEvalError_agree_for_the_message_and_cause_constructor() throws Exception {
+        Exception cause = new Exception("boom");
+        RuntimeEvalError e = new RuntimeEvalError("msg", null, null, cause);
+        assertEquals(e.getEvalError(), e.getCause());
+        assertEquals(cause, e.getEvalError().getCause());
+    }
+
+    @Test
+    public void runtime_eval_error_declares_a_serial_version_uid() throws Exception {
+        java.io.ObjectStreamClass descriptor = java.io.ObjectStreamClass.lookup(RuntimeEvalError.class);
+        assertEquals(1L, descriptor.getSerialVersionUID());
+    }
 }

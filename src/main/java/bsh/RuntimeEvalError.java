@@ -33,15 +33,19 @@ package bsh;
 */
 public class RuntimeEvalError extends RuntimeException {
 
+    private static final long serialVersionUID = 1L;
+
     private final EvalError error;
 
     RuntimeEvalError(String s, Node node, CallStack callstack) {
         this.error = new EvalError(s, node, callstack);
+        initCause(this.error);
     }
 
     RuntimeEvalError(String s, Node node, CallStack callstack, Throwable cause) {
         this.error = new EvalError(s, node, callstack);
-        initCause(cause);
+        this.error.initCause(cause);
+        initCause(this.error);
     }
 
     RuntimeEvalError(EvalError error) {
