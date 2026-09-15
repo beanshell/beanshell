@@ -1247,14 +1247,6 @@ void CastExpression() #CastExpression :
   "(" Type() ")" UnaryExpression()
 }
 
-// x -> ...   (a, b) -> ...   (String s) -> ...   with an expression or block body.
-void LambdaExpression() #LambdaExpression :
-{ Token t = null; }
-{
-  ( FormalParameters() | t=<IDENTIFIER> { jjtThis.paramName = t.image; } )
-  <ARROW>
-  ( LOOKAHEAD(1) Block() | Expression() )
-}
 
 void PrimaryExpression() #PrimaryExpression : { }
 {
@@ -1780,4 +1772,13 @@ void AutoCloseable() #AutoCloseable :
        Type() VariableDeclarator()
     |
         VariableDeclarator()
+}
+
+// x -> ...   (a, b) -> ...   (String s) -> ...   with an expression or block body.
+void LambdaExpression() #LambdaExpression :
+{ Token t = null; }
+{
+  ( FormalParameters() | t=<IDENTIFIER> { jjtThis.paramName = t.image; } )
+  <ARROW>
+  ( LOOKAHEAD(1) Block() | Expression() )
 }
