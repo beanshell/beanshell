@@ -182,6 +182,22 @@ public class BshLambdaClassLoadingTest {
         }
     }
 
+    interface PackagePrivateParam {}
+    public interface TakesPackagePrivateParam { void accept(PackagePrivateParam p); }
+
+    // The wrapper lives in another runtime package, so it cannot name a parameter type.
+    @Test
+    public void a_public_interface_with_a_non_public_parameter_type_is_rejected() throws Exception {
+        try {
+            new Interpreter().eval(
+                "import bsh.BshLambdaClassLoadingTest.TakesPackagePrivateParam;"
+                + " (TakesPackagePrivateParam) p -> {};");
+            org.junit.Assert.fail("expected an EvalError: the parameter type is not public");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("PackagePrivateParam"));
+        }
+    }
+
     // A wrapper must run with bsh's permissions, not an empty ProtectionDomain.
     @Test
     public void wrapper_shares_bsh_protection_domain() throws Exception {

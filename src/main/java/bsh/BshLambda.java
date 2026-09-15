@@ -291,7 +291,7 @@ public class BshLambda implements Serializable {
     }
 
     // A wrapper lives in its own runtime package, so it can implement only a
-    // public interface and can name (checkcast) only public return types.
+    // public interface and can name (checkcast) only public return types and parameters.
     static boolean isImplementable(Class<?> type) {
         return IMPLEMENTABLE.get(type);
     }
@@ -299,19 +299,28 @@ public class BshLambda implements Serializable {
     private static final ClassValue<Boolean> IMPLEMENTABLE = new ClassValue<Boolean>() {
         @Override
         protected Boolean computeValue(Class<?> type) {
-            return Modifier.isPublic(type.getModifiers()) && nonPublicReturnType(type) == null;
+            return Modifier.isPublic(type.getModifiers()) && inaccessibleSignatureType(type) == null;
         }
     };
 
-    private static Class<?> nonPublicReturnType(Class<?> type) {
+    private static Class<?> inaccessibleSignatureType(Class<?> type) {
         for (Method m : abstractMethods(type)) {
-            Class<?> returned = m.getReturnType();
-            while (returned.isArray())
-                returned = returned.getComponentType();
+            Class<?> returned = unwrapArray(m.getReturnType());
             if (!returned.isPrimitive() && !Modifier.isPublic(returned.getModifiers()))
                 return returned;
+            for (Class<?> parameter : m.getParameterTypes()) {
+                Class<?> unwrapped = unwrapArray(parameter);
+                if (!unwrapped.isPrimitive() && !Modifier.isPublic(unwrapped.getModifiers()))
+                    return unwrapped;
+            }
         }
         return null;
+    }
+
+    private static Class<?> unwrapArray(Class<?> type) {
+        while (type.isArray())
+            type = type.getComponentType();
+        return type;
     }
 
     private static boolean isWriteReplaceSam(Method sam) {
@@ -348,10 +357,10 @@ public class BshLambda implements Serializable {
         if (!Modifier.isPublic(functionalInterface.getModifiers()))
             throw new UtilEvalError("A lambda cannot implement "
                 + functionalInterface.getName() + ": the interface is not public");
-        Class<?> hidden = nonPublicReturnType(functionalInterface);
+        Class<?> hidden = inaccessibleSignatureType(functionalInterface);
         if (hidden != null)
             throw new UtilEvalError("A lambda cannot implement "
-                + functionalInterface.getName() + ": its return type "
+                + functionalInterface.getName() + ": its return type or a parameter type "
                 + hidden.getName() + " is not public");
         if (Serializable.class.isAssignableFrom(functionalInterface) && isWriteReplaceSam(sam))
             throw new UtilEvalError("A lambda cannot implement "
