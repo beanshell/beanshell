@@ -36,11 +36,10 @@ import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -440,7 +439,7 @@ public class BshLambda implements Serializable {
     /** Called by generated wrappers; public because they live in another class
         loader. A generated SAM declares no EvalError, so errors go unchecked. */
     @SuppressWarnings("unchecked")
-    public final <T> T invoke(Object[] args, Class<T> returnType) {
+    public final <T> T invoke(Object[] args, Class<T> returnType, Class<?>[] declaredExceptions) {
         try {
             Object result = invokeImpl(args);
             if (returnType == void.class)
@@ -466,14 +465,23 @@ public class BshLambda implements Serializable {
                     expressionNode, null, e);
             }
         } catch (TargetError e) {
+            Throwable target = e.getTarget();
+            for (Class<?> declared : declaredExceptions)
+                if (declared.isInstance(target))
+                    BshLambda.<RuntimeException>sneakyThrow(target);
             throw new RuntimeEvalError(
                 "Uncaught exception from lambda body: " + e.getMessage(),
-                expressionNode, null, e.getTarget());
+                expressionNode, null, target);
         } catch (EvalError e) {
             throw new RuntimeEvalError("Error invoking lambda: " + e.getMessage(), expressionNode, null, e);
         } catch (UtilEvalError e) {
             throw new RuntimeEvalError(e.toEvalError(expressionNode, null));
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <E extends Throwable> void sneakyThrow(Throwable t) throws E {
+        throw (E) t;
     }
 
     /** Called by a generated wrapper's writeReplace; public for the same reason as invoke. */
@@ -575,16 +583,32 @@ public class BshLambda implements Serializable {
                 Type.getDescriptor(BshLambda.class), null, null).visitEnd();
 
             writeConstructor(cw, internalClassName);
-            // A covariant diamond inherits one method under several descriptors.
-            Set<String> names = new HashSet<>();
+            // A covariant diamond inherits one method under several descriptors; a SAM
+            // inherited from unrelated superinterfaces can also carry different throws
+            // clauses, so each name+descriptor group passes through only the exceptions
+            // every branch declares (javac's own effective throws clause for the call).
+            Map<String, List<Method>> byDescriptor = new LinkedHashMap<>();
             for (Method m : abstractMethods(functionalInterface))
-                if (names.add(m.getName() + Type.getMethodDescriptor(m)))
-                    writeMethod(cw, internalClassName, m);
-            if (serializable && !names.contains(WRITE_REPLACE))
+                byDescriptor.computeIfAbsent(m.getName() + Type.getMethodDescriptor(m), k -> new ArrayList<>()).add(m);
+            for (List<Method> group : byDescriptor.values())
+                writeMethod(cw, internalClassName, group.get(0), intersectedPublicExceptionTypes(group));
+            if (serializable && !byDescriptor.containsKey(WRITE_REPLACE))
                 writeWriteReplace(cw, internalClassName, functionalInterface);
 
             cw.visitEnd();
             return cw.toByteArray();
+        }
+
+        // A conservative, non-subtype-aware under-approximation of javac's throws-clause
+        // intersection: exact Class equality across every inherited branch. Non-public
+        // types are dropped too: the wrapper lives in its own runtime package and cannot
+        // even name one (see isImplementable's return-type guard for the parallel case).
+        private static Class<?>[] intersectedPublicExceptionTypes(List<Method> group) {
+            List<Class<?>> intersection = new ArrayList<>(Arrays.asList(group.get(0).getExceptionTypes()));
+            for (int i = 1; i < group.size(); i++)
+                intersection.retainAll(Arrays.asList(group.get(i).getExceptionTypes()));
+            intersection.removeIf(type -> !Modifier.isPublic(type.getModifiers()));
+            return intersection.toArray(new Class<?>[0]);
         }
 
         private static void writeConstructor(ClassWriter cw, String internalClassName) {
@@ -620,7 +644,8 @@ public class BshLambda implements Serializable {
             mv.visitEnd();
         }
 
-        private static void writeMethod(ClassWriter cw, String internalClassName, Method sam) {
+        private static void writeMethod(ClassWriter cw, String internalClassName, Method sam,
+                Class<?>[] exceptionTypes) {
             String bshLambdaInternalName = Type.getInternalName(BshLambda.class);
             Parameter[] params = sam.getParameters();
 
@@ -651,8 +676,17 @@ public class BshLambda implements Serializable {
             else
                 mv.visitLdcInsn(Type.getType(returnType));
 
+            mv.visitLdcInsn(exceptionTypes.length);
+            mv.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Class");
+            for (int i = 0; i < exceptionTypes.length; i++) {
+                mv.visitInsn(Opcodes.DUP);
+                mv.visitLdcInsn(i);
+                mv.visitLdcInsn(Type.getType(exceptionTypes[i]));
+                mv.visitInsn(Opcodes.AASTORE);
+            }
+
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, bshLambdaInternalName, "invoke",
-                "([Ljava/lang/Object;Ljava/lang/Class;)Ljava/lang/Object;", false);
+                "([Ljava/lang/Object;Ljava/lang/Class;[Ljava/lang/Class;)Ljava/lang/Object;", false);
 
             finishReturn(mv, returnType);
 

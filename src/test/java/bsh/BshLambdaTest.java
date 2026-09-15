@@ -33,6 +33,10 @@ public class BshLambdaTest {
     public interface RunA { void run(); }
     public interface RunB { void run(); }
     public interface RunAB extends RunA, RunB {}
+    public interface IOAction { void run() throws java.io.IOException; }
+    // A's branch declares IOException, B's declares nothing: javac's effective
+    // throws clause for a call through AB is their intersection (nothing).
+    public interface MixedThrowsAB extends IOAction, RunA {}
 
     // Two inherited abstract methods with one signature are a single SAM.
     @Test
@@ -398,6 +402,62 @@ public class BshLambdaTest {
             fail("expected a RuntimeEvalError");
         } catch (RuntimeEvalError expected) {
             assertTrue(expected.getMessage(), expected.getMessage().contains("int"));
+        }
+    }
+
+    @Test
+    public void a_declared_checked_exception_reaches_a_java_caller_as_itself() throws Exception {
+        IOAction action = (IOAction) new Interpreter().eval(
+            "import bsh.BshLambdaTest.IOAction;"
+            + " (IOAction) () -> { throw new java.io.IOException(\"failure\"); };");
+        try {
+            action.run();
+            fail("expected an IOException");
+        } catch (java.io.IOException expected) {
+            assertEquals("failure", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void an_undeclared_checked_style_failure_is_still_wrapped() throws Exception {
+        Runnable r = (Runnable) new Interpreter().eval(
+            "(Runnable) () -> { throw new java.io.IOException(\"undeclared\"); };");
+        try {
+            r.run();
+            fail("expected a RuntimeEvalError: Runnable declares no checked exception");
+        } catch (RuntimeEvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("failure") || expected.getMessage().contains("undeclared"));
+        }
+    }
+
+    // The wrapper lives in package bsh and cannot name a non-public exception
+    // type, so it must fall back to wrapping instead of an IllegalAccessError.
+    @Test
+    public void a_non_public_declared_exception_type_is_still_wrapped() throws Exception {
+        mypackage.ThrowsHidden action = (mypackage.ThrowsHidden) new Interpreter().eval(
+            "import mypackage.ThrowsHidden;"
+            + " (ThrowsHidden) () -> { throw new mypackage.HiddenCheckedException(\"hidden\"); };");
+        try {
+            action.run();
+            fail("expected a RuntimeEvalError: HiddenCheckedException is not public");
+        } catch (RuntimeEvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("hidden"));
+        }
+    }
+
+    // AB's effective throws clause is the intersection of A's and B's (javac
+    // rejects catch (IOException) around a call through AB), so a lambda body
+    // that throws IOException must still be wrapped, not escape raw.
+    @Test
+    public void a_checked_exception_declared_by_only_one_inherited_branch_is_still_wrapped() throws Exception {
+        MixedThrowsAB action = (MixedThrowsAB) new Interpreter().eval(
+            "import bsh.BshLambdaTest.MixedThrowsAB;"
+            + " (MixedThrowsAB) () -> { throw new java.io.IOException(\"leak\"); };");
+        try {
+            action.run();
+            fail("expected a RuntimeEvalError: IOException is not in every inherited branch's throws clause");
+        } catch (RuntimeEvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("leak"));
         }
     }
 
