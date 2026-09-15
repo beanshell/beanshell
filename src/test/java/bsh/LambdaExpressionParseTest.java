@@ -215,4 +215,28 @@ public class LambdaExpressionParseTest {
             }
         }
     }
+
+    @Test
+    public void lambda_as_a_statement_condition_fails_to_parse() throws Exception {
+        String[] sources = { "if (p -> p) {}", "while (p -> p) {}", "do {} while (p -> p);",
+            "do x = 1; while (p -> p);", "for (; p -> p ;) {}", "switch (p -> p) { default: break; }",
+            "synchronized (p -> p) {}" };
+        for (String source : sources) {
+            try {
+                parse(source);
+                fail("expected a ParseException for " + source);
+            } catch (ParseException expected) {
+                assertTrue(source + ": " + expected.getMessage(), expected.getMessage().contains("->"));
+            }
+        }
+    }
+
+    @Test
+    public void ordinary_nested_block_with_lambda_statement_still_parses() throws Exception {
+        // Regression test: { p -> p; { x = 1; } } has the same shape that isSynchronizedBlock()
+        // used to misfire on (2 children, second is BSHBlock), but it's just an ordinary nested
+        // block, not a synchronized statement. It must parse without throwing.
+        // The lambda here is a bare statement expression, not a condition.
+        parse("{ p -> p; { x = 1; } }");
+    }
 }
