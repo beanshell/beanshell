@@ -386,7 +386,7 @@ public class BshLambdaDescriptorTest {
     // to the plain raw Consumer.class) -- so an explicit lambda parameter narrower
     // than a generic SAM's erasure is accepted by assignability, not rejected by
     // exact equality, since there is no substituted type anywhere to compare
-    // against. See docs/lambda-descriptor-markers-design-2026-09-14.md.
+    // against.
     @Test
     public void an_explicit_parameter_narrower_than_a_generic_sams_erasure_still_fits() throws Exception {
         Node body = body("(String s) -> {}");

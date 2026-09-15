@@ -796,7 +796,7 @@ public class BshLambdaResolutionTest {
     // Accepted divergence: bsh's resolution has no runtime "ambiguous" outcome for
     // any call (lambda or not) -- ties among maximal candidates resolve
     // deterministically by interface name rather than raising an error, unlike
-    // javac's static ambiguity. See docs/lambda-descriptor-markers-design-2026-09-14.md.
+    // javac's static ambiguity.
     @Test
     public void tied_functional_interfaces_resolve_deterministically_by_name_not_ambiguity() throws Exception {
         String result = (String) new Interpreter().eval(

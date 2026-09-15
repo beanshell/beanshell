@@ -40,7 +40,6 @@ import java.util.Set;
 /**
     What overload resolution can know about a lambda without running it, and
     how that ranks functional interfaces for it.
-    See docs/lambda-descriptor-markers-design-2026-09-14.md.
 */
 final class LambdaDescriptor {
 
