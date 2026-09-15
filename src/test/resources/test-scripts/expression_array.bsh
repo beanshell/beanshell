@@ -335,6 +335,7 @@ assertEquals(22i, ar['\003']);
 
 assert(isEvalError("Error array set index: Index 3 out-of-bounds for length 2", "{1,2}[3]=5;"));
 assert(isEvalError("Error array set index: Index 3 out-of-bounds for length 2", "((List) {1,2})[3]=5;"));
+assert(isEvalError("Array access: Index 3 out-of-bounds for length 2", "{1,2}[3]+=5;"));
 assert(isEvalError("Error array get index: Index 3 out-of-bounds for length 2", "{1,2}[3];"));
 assert(isEvalError("Error array get index: Index 3 out-of-bounds for length 2", "((List) {1,2})[3];"));
 assert(isEvalError("Not an array or List type", "''[1];"));
