@@ -380,4 +380,18 @@ public class BshLambdaDescriptorTest {
         Class<?>[][] reversed = { signatures[1], signatures[0] };
         assertEquals(0, LambdaDescriptor.select(new LambdaDescriptor[] { lambda, null }, reversed, both));
     }
+
+    // Accepted divergence: bsh has no representation of a target interface's
+    // generic type arguments anywhere (Consumer<String> c = ...; resolves c's type
+    // to the plain raw Consumer.class) -- so an explicit lambda parameter narrower
+    // than a generic SAM's erasure is accepted by assignability, not rejected by
+    // exact equality, since there is no substituted type anywhere to compare
+    // against. See docs/lambda-descriptor-markers-design-2026-09-14.md.
+    @Test
+    public void an_explicit_parameter_narrower_than_a_generic_sams_erasure_still_fits() throws Exception {
+        Node body = body("(String s) -> {}");
+        LambdaDescriptor descriptor = new LambdaDescriptor(
+            BSHLambdaExpression.bodyShape(body), new Class<?>[] { String.class }, null);
+        assertTrue(descriptor.fits(java.util.function.Consumer.class));
+    }
 }
