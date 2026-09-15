@@ -40,6 +40,46 @@ public class BshLambdaResolutionTest {
         public static String take(java.util.concurrent.Callable c) { return "java"; }
     }
 
+    public static class ObjectVsVarargsRunnable {
+        public static String take(Object x) { return "object"; }
+        public static String take(Runnable... x) { return "varargs"; }
+    }
+
+    /** Unrelated functional interfaces, deliberately at both ends of the
+        alphabet: nothing may rank them by name. */
+    public interface Aaa { void a(); }
+    public interface Zzz { void z(); }
+
+    public static class FixedAaaVarargsZzz {
+        public static String q(Aaa x) { return "fixed"; }
+        public static String q(Zzz... x) { return "varargs"; }
+    }
+
+    public static class FixedZzzVarargsAaa {
+        public static String q(Zzz x) { return "fixed"; }
+        public static String q(Aaa... x) { return "varargs"; }
+    }
+
+    public static class LoneObjectTaker {
+        public static String q(Object x) { return "object"; }
+    }
+
+    public static class ObjectVsVarargsObject {
+        public static String q(Object x) { return "fixed"; }
+        public static String q(Object... x) { return "varargs"; }
+    }
+
+    /** long takes an Integer only by unbox-then-widen, which bsh models at
+        BSH_ASSIGNABLE; javac picks the fixed-arity overload here. */
+    public static class WideningVsVarargs {
+        public static String q(long n, Runnable r) { return "fixed"; }
+        public static String q(Number n, Runnable... r) { return "varargs"; }
+    }
+
+    private static final String IMPORT_AAA_ZZZ =
+        "import bsh.BshLambdaResolutionTest.Aaa;\n"
+        + "import bsh.BshLambdaResolutionTest.Zzz;\n";
+
     private static Object eval(String script) throws EvalError {
         return Primitive.unwrap(new Interpreter().eval(script));
     }
@@ -624,5 +664,132 @@ public class BshLambdaResolutionTest {
         } catch (EvalError e) {
             assertTrue(e.getMessage(), e.getMessage().contains("noSuchMethod(<1-arg lambda>)"));
         }
+    }
+
+    @Test
+    public void a_functional_varargs_candidate_beats_object_for_a_lambda_argument() throws Exception {
+        assertEquals("varargs", new Interpreter().eval(
+            "import bsh.BshLambdaResolutionTest.ObjectVsVarargsRunnable;"
+            + " ObjectVsVarargsRunnable.take(() -> {});"));
+    }
+
+    @Test
+    public void a_scripted_functional_varargs_candidate_beats_object_for_a_lambda_argument() throws Exception {
+        assertEquals("varargs", eval(
+            "f(Object x) { return \"object\"; }\n"
+            + "f(Runnable... x) { return \"varargs\"; }\n"
+            + "f(() -> {});"));
+    }
+
+    // javac reaches JLS 15.12.2 phase 3 only when no fixed-arity candidate
+    // applies, so the fixed-arity one wins whichever way the names sort. The
+    // two orderings are separate tests so neither can mask the other.
+    @Test
+    public void a_fixed_arity_functional_candidate_beats_a_later_named_varargs_one() throws Exception {
+        assertEquals("fixed", eval(
+            "import bsh.BshLambdaResolutionTest.FixedAaaVarargsZzz;"
+            + " FixedAaaVarargsZzz.q(() -> {});"));
+    }
+
+    @Test
+    public void a_fixed_arity_functional_candidate_beats_an_earlier_named_varargs_one() throws Exception {
+        assertEquals("fixed", eval(
+            "import bsh.BshLambdaResolutionTest.FixedZzzVarargsAaa;"
+            + " FixedZzzVarargsAaa.q(() -> {});"));
+    }
+
+    @Test
+    public void a_scripted_fixed_arity_candidate_beats_a_later_named_varargs_one() throws Exception {
+        assertEquals("fixed", eval(IMPORT_AAA_ZZZ
+            + "f(Aaa x) { return \"fixed\"; }\n"
+            + "f(Zzz... x) { return \"varargs\"; }\n"
+            + "f(() -> {});"));
+    }
+
+    @Test
+    public void a_scripted_fixed_arity_candidate_beats_an_earlier_named_varargs_one() throws Exception {
+        assertEquals("fixed", eval(IMPORT_AAA_ZZZ
+            + "f(Zzz x) { return \"fixed\"; }\n"
+            + "f(Aaa... x) { return \"varargs\"; }\n"
+            + "f(() -> {});"));
+    }
+
+    // Holding the raw-lambda shortcut back must not disable it: Object is
+    // still a lambda's target of last resort when nothing else will take it.
+    @Test
+    public void an_object_parameter_still_takes_a_lambda_raw_when_alone() throws Exception {
+        assertEquals("object", eval(
+            "import bsh.BshLambdaResolutionTest.LoneObjectTaker;"
+            + " LoneObjectTaker.q(() -> {});"));
+        assertEquals("object", eval(
+            "f(Object x) { return \"object\"; }\n"
+            + "f(() -> {});"));
+    }
+
+    // Both candidates are reachable only through that shortcut, so the choice
+    // between them is settled by arity, not by which pass ran first.
+    @Test
+    public void fixed_arity_still_wins_when_only_the_raw_shortcut_applies() throws Exception {
+        assertEquals("fixed", eval(
+            "import bsh.BshLambdaResolutionTest.ObjectVsVarargsObject;"
+            + " ObjectVsVarargsObject.q(() -> {});"));
+        assertEquals("fixed", eval(
+            "f(Object x) { return \"fixed\"; }\n"
+            + "f(Object... x) { return \"varargs\"; }\n"
+            + "f(() -> {});"));
+    }
+
+    // Round four is also bsh's only model for unbox-then-widen (JLS 5.3), which
+    // an ordinary argument beside the lambda may be the only thing needing.
+    @Test
+    public void a_non_lambda_argument_keeps_its_round_four_conversion() throws Exception {
+        assertEquals("fixed", eval(
+            "import bsh.BshLambdaResolutionTest.WideningVsVarargs;"
+            + " WideningVsVarargs.q(Integer.valueOf(1), () -> {});"));
+    }
+
+    /*
+        An untyped parameter now outranks an Object one for a lambda, where it
+        used to lose. Preferring a functional varargs candidate over Object --
+        the whole point of holding the raw shortcut back -- closes a cycle:
+        Object beat untyped, untyped beat Runnable..., and Runnable... now has
+        to beat Object. One pair had to give, and Object over untyped is the
+        only one of the three with nothing in Java behind it, since Java has
+        neither untyped parameters nor any way for a lambda to target Object.
+        What is left is a plain order: untyped, then Runnable..., then Object.
+    */
+    @Test
+    public void an_untyped_scripted_parameter_beats_a_later_declared_object_one() throws Exception {
+        assertEquals("untyped", eval(
+            "f(x) { return \"untyped\"; }\n"
+            + "f(Object o) { return \"object\"; }\n"
+            + "f(() -> {});"));
+    }
+
+    @Test
+    public void an_untyped_scripted_parameter_beats_an_earlier_declared_object_one() throws Exception {
+        assertEquals("untyped", eval(
+            "f(Object o) { return \"object\"; }\n"
+            + "f(x) { return \"untyped\"; }\n"
+            + "f(() -> {});"));
+    }
+
+    // The same overload set without a lambda is untouched, as every non-lambda
+    // call is: there Object still wins, exactly as it did before.
+    @Test
+    public void an_object_parameter_still_beats_an_untyped_one_without_a_lambda() throws Exception {
+        assertEquals("object", eval(
+            "f(x) { return \"untyped\"; }\n"
+            + "f(Object o) { return \"object\"; }\n"
+            + "f(\"s\");"));
+    }
+
+    // A real functional interface still outranks an untyped parameter.
+    @Test
+    public void a_functional_interface_still_beats_an_untyped_scripted_parameter() throws Exception {
+        assertEquals("runnable", eval(
+            "f(x) { return \"untyped\"; }\n"
+            + "f(Runnable r) { return \"runnable\"; }\n"
+            + "f(() -> {});"));
     }
 }
