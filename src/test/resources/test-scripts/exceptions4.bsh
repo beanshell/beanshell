@@ -46,6 +46,33 @@ try {
     a[99];
 } catch ( ArrayIndexOutOfBoundsException e3 ) { flag(); }
 
+// Array store out-of-bounds must be catchable too (bug 26)
+try {
+    a=new String[5];
+    a[99] = "x";
+} catch ( ArrayIndexOutOfBoundsException e3a ) { flag(); }
+
+// Compound array store forms must be catchable too (bug 26)
+try {
+    ai=new int[5];
+    ai[99] += 1;
+} catch ( ArrayIndexOutOfBoundsException e3b ) { flag(); }
+
+try {
+    ai=new int[5];
+    ai[99]++;
+} catch ( ArrayIndexOutOfBoundsException e3c ) { flag(); }
+
+try {
+    ai=new int[5];
+    ++ai[99];
+} catch ( ArrayIndexOutOfBoundsException e3d ) { flag(); }
+
+// List store out-of-bounds must be catchable too (bug 26)
+try {
+    ((List) {1,2})[3] = 5;
+} catch ( IndexOutOfBoundsException e3e ) { flag(); }
+
 // /pkg/java/src//java/lang/NegativeArraySizeException.java
 try {
     a=new String[-1];
@@ -70,6 +97,6 @@ try {
     foo.bar();
 } catch ( NullPointerException e7) { flag(); }
 
-assert( flag() == 8 );
+assert( flag() == 13 );
 
 complete();

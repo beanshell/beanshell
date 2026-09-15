@@ -188,6 +188,8 @@ class LHS implements ParserConstants, Serializable {
 
         if ( type == INDEX ) try {
             return BshArray.getIndex(object, index);
+        } catch(UtilTargetError e) {
+            throw new UtilTargetError("Array access: " + e.getMessage(), e.getCause());
         } catch(Exception e) {
             throw new UtilEvalError("Array access: " + e, e);
         }
@@ -303,7 +305,7 @@ class LHS implements ParserConstants, Serializable {
             BshArray.setIndex(object, index, val);
         } catch ( UtilTargetError e1 ) { // pass along target error
             if ( IndexOutOfBoundsException.class.isAssignableFrom(e1.getCause().getClass()) )
-                throw new UtilEvalError("Error array set index: "+e1.getMessage(), e1);
+                throw new UtilTargetError("Error array set index: "+e1.getMessage(), e1.getCause());
             throw e1;
         } catch ( Exception e ) {
             throw new UtilEvalError("Assignment: " + e.getMessage(), e);
