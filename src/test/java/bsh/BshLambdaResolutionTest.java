@@ -286,6 +286,15 @@ public class BshLambdaResolutionTest {
         assertBothOrdersPick("callable", "() -> { switch (x) { case 1: default: throw new Error(); } }");
     }
 
+    // javac: the outer loop cannot complete normally, so the block fits Callable and Runnable;
+    // Callable is preferred (a value-compatible body that also fits void). Confirmed with javac 23.
+    @Test
+    public void a_nested_break_does_not_make_an_infinite_loop_body_void_shaped() throws Exception {
+        assertBothOrdersPick("callable", "() -> { while (true) { while (true) { break; } } }");
+        assertEquals(2, Primitive.unwrap(eval(
+            "java.util.function.IntSupplier s = () -> { for (;;) { for (;;) { break; } return 2; } }; s.getAsInt();")));
+    }
+
     @Test
     public void block_that_can_complete_normally_selects_the_void_interface() throws Exception {
         assertBothOrdersPick("runnable", "() -> { if (x == 0) throw new RuntimeException(); }");

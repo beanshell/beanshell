@@ -98,6 +98,25 @@ public class BshLambdaDescriptorTest {
             shape("() -> { while (true) { try { break; } finally { throw new Error(); } } }"));
     }
 
+    // JLS 14.15: an unlabeled break ends only the innermost loop or switch.
+    @Test
+    public void a_break_inside_a_nested_loop_or_switch_does_not_end_the_outer_loop() throws Exception {
+        assertEquals(BshLambda.EITHER, shape("() -> { while (true) { while (true) { break; } } }"));
+        assertEquals(BshLambda.EITHER, shape("() -> { for (;;) { switch (x) { case 1: break; } } }"));
+        assertEquals(BshLambda.EITHER, shape("() -> { do { for (v : list) { break; } } while (true); }"));
+        assertEquals(BshLambda.VALUE, shape("() -> { for (;;) { for (;;) { break; } return 2; } }"));
+        assertEquals(BshLambda.VALUE, shape("() -> { while (true) { switch (1) { case 1: break; } return 1; } }"));
+        assertEquals(BshLambda.VALUE, shape("() -> { for (;;) { inner: { break inner; } return 3; } }"));
+    }
+
+    // A labeled break ends the statement carrying that label and nothing else.
+    @Test
+    public void a_labeled_break_ends_only_its_own_statement() throws Exception {
+        assertEquals(BshLambda.VOID_UNSURE, shape("() -> { outer: while (true) { while (true) { break outer; } } }"));
+        assertEquals(BshLambda.EITHER, shape("() -> { outer: while (true) { inner: while (true) { break inner; } } }"));
+        assertEquals(BshLambda.VOID_UNSURE, shape("() -> { l: { foo(); break l; } }"));
+    }
+
     @Test
     public void value_return_and_expression_shapes_are_unchanged() throws Exception {
         assertEquals(BshLambda.VALUE, shape("() -> { return 1; }"));

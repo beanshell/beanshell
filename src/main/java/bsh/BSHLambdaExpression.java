@@ -317,10 +317,6 @@ class BSHLambdaExpression extends SimpleNode
         return jump.kind == ParserConstants.CONTINUE;
     }
 
-    private static boolean isBreak(BSHReturnStatement jump) {
-        return jump.kind == ParserConstants.BREAK;
-    }
-
     // Nested lambdas and methods (including those of local and anonymous
     // classes) have returns of their own.
     private static boolean contains(Node node, Predicate<BSHReturnStatement> jump) {
@@ -336,8 +332,9 @@ class BSHLambdaExpression extends SimpleNode
 
     private static final int NEVER = 0, COMPLETES = 1, UNSURE = 2;
 
-    // JLS 14.22. Any break is taken to end its loop, switch or label, so a
-    // completion that depends on one is UNSURE, as is an unfoldable loop condition.
+    // JLS 14.15. A break that targets the construct makes its completion UNSURE
+    // (reachability is not analyzed); a break targeting an inner loop, switch or
+    // label does not count. An unfoldable loop condition is UNSURE too.
     private static int completion(Node node) {
         int n = node.jjtGetNumChildren();
         if (node instanceof BSHThrowStatement || node instanceof BSHReturnStatement)
@@ -393,8 +390,31 @@ class BSHLambdaExpression extends SimpleNode
         return either(value == NOT_CONSTANT ? UNSURE : reachesCondition, breaks(loop));
     }
 
-    private static int breaks(Node node) {
-        return contains(node, BSHLambdaExpression::isBreak) ? UNSURE : NEVER;
+    // JLS 14.15: an unlabeled break ends the innermost loop or switch, a labeled
+    // one the statement with that label.
+    private static int breaks(Node target) {
+        String label = target instanceof BSHLabeledStatement ? ((BSHLabeledStatement) target).label : null;
+        for (int i = 0; i < target.jjtGetNumChildren(); i++)
+            if (breaksOut(target.jjtGetChild(i), false, label))
+                return UNSURE;
+        return NEVER;
+    }
+
+    private static boolean breaksOut(Node node, boolean nested, String label) {
+        if (node instanceof BSHReturnStatement) {
+            BSHReturnStatement jump = (BSHReturnStatement) node;
+            if (jump.kind != ParserConstants.BREAK)
+                return false;
+            return jump.label == null ? !nested : jump.label.equals(label);
+        }
+        if (node instanceof BSHLambdaExpression || node instanceof BSHMethodDeclaration)
+            return false;
+        boolean breakable = node instanceof BSHWhileStatement || node instanceof BSHForStatement
+            || node instanceof BSHEnhancedForStatement || node instanceof BSHSwitchStatement;
+        for (int i = 0; i < node.jjtGetNumChildren(); i++)
+            if (breaksOut(node.jjtGetChild(i), nested || breakable, label))
+                return true;
+        return false;
     }
 
     private static int either(int a, int b) {
