@@ -166,6 +166,13 @@ public class ClassGeneratorTest {
         public VarArgs(int a, String... b) { got = "int,String...:" + a + "," + b.length; }
     }
 
+    public static class NullableVarArgs {
+        public final String got;
+        public NullableVarArgs(int a, String... b) {
+            got = "int,String...:" + a + "," + java.util.Arrays.toString(b);
+        }
+    }
+
     /** More parameters than the synthetic namer has letters, so the names it
      * makes run past 'z'. The tail is a different type from the rest: 30
      * parameters of one type never collided, so they prove nothing. */
@@ -193,6 +200,75 @@ public class ClassGeneratorTest {
         assertEquals("int,String...:1,0", eval(
             "import bsh.ClassGeneratorTest.VarArgs;",
             "return new VarArgs(1) {}.got;"));
+    }
+
+    // A scripted class's own constructor (not an anonymous subclass body) delegating
+    // via super(...)/this(...) goes through a different code path (This.getConstructorArgs
+    // -> the generated constructor's switch bytecode) than the anonymous-subclass tests
+    // above (BSHAllocationExpression.superConstructorArgs). Both must pack a varargs tail.
+
+    @Test
+    public void scripted_subclass_super_delegation_with_varargs_tail() throws Exception {
+        assertEquals("int,String...:1,2", eval(
+            "import bsh.ClassGeneratorTest.VarArgs;",
+            "class Sub extends VarArgs { Sub() { super(1, \"x\", \"y\"); } }",
+            "return new Sub().got;"));
+    }
+
+    @Test
+    public void scripted_subclass_super_delegation_with_empty_varargs_tail() throws Exception {
+        assertEquals("int,String...:1,0", eval(
+            "import bsh.ClassGeneratorTest.VarArgs;",
+            "class Sub extends VarArgs { Sub() { super(1); } }",
+            "return new Sub().got;"));
+    }
+
+    @Test
+    public void scripted_this_delegation_to_a_scripted_varargs_constructor() throws Exception {
+        assertEquals(6, eval(
+            "class Runner { int total;",
+            "  Runner(int... ns) { for (n : ns) total += n; }",
+            "  Runner(boolean flag) { this(1, 2, 3); } }",
+            "return new Runner(true).total;"));
+    }
+
+    @Test
+    public void scripted_this_delegation_to_a_scripted_varargs_constructor_with_empty_tail() throws Exception {
+        assertEquals(0, eval(
+            "class Runner { int total;",
+            "  Runner(int... ns) { for (n : ns) total += n; }",
+            "  Runner(boolean flag) { this(); } }",
+            "return new Runner(true).total;"));
+    }
+
+    @Test
+    public void scripted_this_delegation_to_a_scripted_varargs_constructor_with_a_lone_array_argument() throws Exception {
+        assertEquals(6, eval(
+            "class Runner { int total;",
+            "  Runner(int... ns) { for (n : ns) total += n; }",
+            "  Runner(boolean flag) { this(new int[]{1, 2, 3}); } }",
+            "return new Runner(true).total;"));
+    }
+
+    // A null anywhere in a multi-element varargs tail must convert like a cast, not an
+    // assignment -- Types.castObject(null, type, ASSIGNMENT) throws, while CAST returns
+    // Primitive.NULL. A lone null argument (matching the declared param count) takes a
+    // different, already-tested branch and does not exercise this.
+    @Test
+    public void scripted_subclass_super_delegation_with_a_null_in_the_varargs_tail() throws Exception {
+        assertEquals("int,String...:1,[x, null, y]", eval(
+            "import bsh.ClassGeneratorTest.NullableVarArgs;",
+            "class Sub extends NullableVarArgs { Sub() { super(1, \"x\", null, \"y\"); } }",
+            "return new Sub().got;"));
+    }
+
+    @Test
+    public void scripted_this_delegation_to_a_scripted_varargs_constructor_with_a_null_in_the_tail() throws Exception {
+        assertEquals("[a, null, b]", eval(
+            "class Runner { Object[] os;",
+            "  Runner(Object... os) { this.os = os; }",
+            "  Runner(boolean flag) { this(\"a\", null, \"b\"); } }",
+            "return java.util.Arrays.toString(new Runner(true).os);"));
     }
 
     @Test
