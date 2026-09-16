@@ -267,6 +267,11 @@ public class BshLambdaDescriptorTest {
     public interface AH<T> { void h(T[] a); }
     public interface NumberTaker<T extends Number> { void take(T t); }
     public interface ListTaker<T> { void take(java.util.List<T> list); }
+    public interface FixedListTaker { void take(java.util.List<String> values); }
+    public interface MapTaker { void take(java.util.Map<String, Integer> m); }
+    public interface WildcardTaker { void take(java.util.List<?> values); }
+    public interface BoundedWildcardTaker<T> { void take(java.util.List<? extends T> values); }
+    public interface NestedTaker<T> { void take(java.util.Map<String, java.util.List<T>> m); }
     public interface IntTask extends Supplier<Object> { default Object get() { return null; } int getAsInt(); }
     public interface W extends IntSupplier { default int getAsInt() { return 0; } Object get(); }
     public interface CycB { int getAsInt(); }
@@ -328,6 +333,19 @@ public class BshLambdaDescriptorTest {
         assertFalse(descriptor("(s) -> { }", String.class).fits(NumberTaker.class));
         assertTrue(descriptor("(l) -> { }", java.util.ArrayList.class).fits(ListTaker.class));
         assertTrue(descriptor("(s) -> { }", (Class<?>) null).fits(IC.class));
+    }
+
+    // JLS 15.27.3: a concrete parameterized signature is available through reflection,
+    // so the erasure must match exactly; only an unresolved type variable earns leniency.
+    @Test
+    public void a_concrete_parameterized_parameter_requires_an_exact_erasure() throws Exception {
+        assertFalse(descriptor("(x) -> { }", java.util.ArrayList.class).fits(FixedListTaker.class));
+        assertTrue(descriptor("(x) -> { }", java.util.List.class).fits(FixedListTaker.class));
+        assertFalse(descriptor("(x) -> { }", java.util.Collection.class).fits(FixedListTaker.class));
+        assertFalse(descriptor("(x) -> { }", java.util.HashMap.class).fits(MapTaker.class));
+        assertFalse(descriptor("(x) -> { }", java.util.ArrayList.class).fits(WildcardTaker.class));
+        assertTrue(descriptor("(x) -> { }", java.util.ArrayList.class).fits(BoundedWildcardTaker.class));
+        assertTrue(descriptor("(x) -> { }", java.util.HashMap.class).fits(NestedTaker.class));
     }
 
     @Test

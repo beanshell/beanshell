@@ -31,6 +31,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -90,7 +91,7 @@ final class LambdaDescriptor {
         }
         for (int i = 0; i < arity; i++) {
             Class<?> declared = paramTypes[i];
-            // bsh has no type arguments, so a generic parameter takes any compatible type.
+            // bsh has no type arguments, so a parameter typed by a type variable takes any compatible type.
             if (declared != null && !(generic == null || mentionsTypeVariable(generic[i])
                     ? parameters[i] == declared || parameters[i].isAssignableFrom(box(declared))
                     : parameters[i] == declared))
@@ -104,9 +105,27 @@ final class LambdaDescriptor {
         return result == null || returned == void.class || isAssignable(result, returned);
     }
 
+    // Only an unresolved type variable, wherever it occurs, earns leniency: a
+    // concrete List<String> is as exact as a plain List.
     private static boolean mentionsTypeVariable(Type type) {
-        if (type instanceof TypeVariable || type instanceof ParameterizedType)
+        if (type instanceof TypeVariable)
             return true;
+        if (type instanceof ParameterizedType) {
+            for (Type argument : ((ParameterizedType) type).getActualTypeArguments())
+                if (mentionsTypeVariable(argument))
+                    return true;
+            return false;
+        }
+        if (type instanceof WildcardType) {
+            WildcardType wildcard = (WildcardType) type;
+            for (Type bound : wildcard.getUpperBounds())
+                if (mentionsTypeVariable(bound))
+                    return true;
+            for (Type bound : wildcard.getLowerBounds())
+                if (mentionsTypeVariable(bound))
+                    return true;
+            return false;
+        }
         return type instanceof GenericArrayType
             && mentionsTypeVariable(((GenericArrayType) type).getGenericComponentType());
     }
