@@ -350,12 +350,19 @@ public class BshLambda implements Serializable {
     // named directly, and because this must also run unmodified on an actual
     // JDK 8, where the class does not exist at all.
     private static boolean isExportedToUnnamedModules(Class<?> type) {
+        // An array type's own getPackage() is always null (it has none); the
+        // export to check is its component type's, same as
+        // inaccessibleSignatureType's unwrapArray use below. A primitive
+        // component has no package or module to export from.
+        Class<?> component = unwrapArray(type);
+        if (component.isPrimitive())
+            return true;
         try {
-            Object module = Class.class.getMethod("getModule").invoke(type);
+            Object module = Class.class.getMethod("getModule").invoke(component);
             Method isNamed = module.getClass().getMethod("isNamed");
             if (!(Boolean) isNamed.invoke(module))
                 return true;
-            Package pkg = type.getPackage();
+            Package pkg = component.getPackage();
             String packageName = pkg == null ? "" : pkg.getName();
             return (Boolean) module.getClass().getMethod("isExported", String.class)
                 .invoke(module, packageName);

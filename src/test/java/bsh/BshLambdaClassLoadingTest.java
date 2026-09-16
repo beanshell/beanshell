@@ -624,6 +624,7 @@ public class BshLambdaClassLoadingTest {
     public void a_public_but_unexported_actual_type_falls_back_to_the_erasure() throws Exception {
         Assume.assumeTrue("module system unavailable on this JDK",
             !System.getProperty("java.specification.version").startsWith("1."));
+        Assume.assumeTrue("javac not available at java.home", new File(javaHomeTool("javac")).exists());
 
         Path work = Files.createTempDirectory("bsh-module-export-test");
         try {
@@ -670,6 +671,78 @@ public class BshLambdaClassLoadingTest {
             String output = runTool(javaHomeTool("java"), "-p", modOut.toString(), "--add-modules", "m.api",
                 "-cp", driverOut + File.pathSeparator + bshClasses, "Driver");
             assertEquals(output, "OK:null", output.trim());
+        } finally {
+            deleteRecursively(work);
+        }
+    }
+
+    // Round-1 regression: an array actual type's own getPackage() is always
+    // null, so the module-export check must consult the component type's
+    // package, not the array class's -- otherwise a component in a genuinely
+    // non-exported package of a named module (here, internal.Thing[]) must
+    // still fall back to the erasure safely (no crash), the same as the
+    // non-array case above; the plain-JDK, no-module-needed positive case
+    // (an exported component specializing correctly, e.g. String[]) is
+    // covered directly in BshLambdaDescriptorTest.
+    @Test
+    public void an_array_component_in_a_non_exported_package_of_a_named_module_falls_back_to_the_erasure() throws Exception {
+        Assume.assumeTrue("module system unavailable on this JDK",
+            !System.getProperty("java.specification.version").startsWith("1."));
+        Assume.assumeTrue("javac not available at java.home", new File(javaHomeTool("javac")).exists());
+
+        Path work = Files.createTempDirectory("bsh-module-export-array-test");
+        try {
+            Path modSrc = work.resolve("modsrc");
+            Files.createDirectories(modSrc.resolve("api"));
+            Files.createDirectories(modSrc.resolve("internal"));
+            Files.write(modSrc.resolve("module-info.java"),
+                Arrays.asList("module m.arr {", "    exports api;", "}"));
+            Files.write(modSrc.resolve("api/Gen.java"),
+                Arrays.asList("package api;", "public interface Gen<T> { T get(); }"));
+            Files.write(modSrc.resolve("api/ArrApi.java"),
+                Arrays.asList("package api;", "public interface ArrApi extends Gen<internal.Thing[]> {}"));
+            Files.write(modSrc.resolve("internal/Thing.java"),
+                Arrays.asList("package internal;", "public class Thing {}"));
+
+            Path modOut = work.resolve("modout");
+            Files.createDirectories(modOut);
+            runTool(javaHomeTool("javac"), "-d", modOut.toString(),
+                modSrc.resolve("module-info.java").toString(), modSrc.resolve("api/Gen.java").toString(),
+                modSrc.resolve("api/ArrApi.java").toString(), modSrc.resolve("internal/Thing.java").toString());
+
+            Path driverSrc = work.resolve("Driver.java");
+            Files.write(driverSrc, Arrays.asList(
+                "import java.lang.reflect.InvocationTargetException;",
+                "import java.lang.reflect.Method;",
+                "public class Driver {",
+                "    public static void main(String[] args) throws Exception {",
+                "        try {",
+                "            Method frt = Class.forName(\"bsh.BshLambda\").getDeclaredMethod(\"functionReturnType\", Class.class);",
+                "            frt.setAccessible(true);",
+                "            Class<?> arrApi = Class.forName(\"api.ArrApi\");",
+                "            System.out.println(\"FUNCTION_RETURN:\" + frt.invoke(null, arrApi));",
+                "            bsh.Interpreter interp = new bsh.Interpreter();",
+                "            Object result = interp.eval(\"import api.ArrApi; (ArrApi) () -> null;\");",
+                "            Object value = result.getClass().getMethod(\"get\").invoke(result);",
+                "            System.out.println(\"OK:\" + value);",
+                "        } catch (Throwable t) {",
+                "            Throwable real = t instanceof InvocationTargetException ? t.getCause() : t;",
+                "            System.out.println(\"THROWN:\" + real.getClass().getName() + \":\" + real.getMessage());",
+                "        }",
+                "    }",
+                "}"));
+            Path driverOut = work.resolve("driverout");
+            Files.createDirectories(driverOut);
+            String bshClasses = Paths.get(Interpreter.class.getProtectionDomain()
+                .getCodeSource().getLocation().toURI()).toString();
+            runTool(javaHomeTool("javac"), "-cp", bshClasses, "-d", driverOut.toString(), driverSrc.toString());
+
+            String output = runTool(javaHomeTool("java"), "-p", modOut.toString(), "--add-modules", "m.arr",
+                "-cp", driverOut + File.pathSeparator + bshClasses, "Driver");
+            String[] lines = output.trim().split("\\r?\\n");
+            assertEquals(output, 2, lines.length);
+            assertEquals(output, "FUNCTION_RETURN:class java.lang.Object", lines[0]);
+            assertEquals(output, "OK:null", lines[1]);
         } finally {
             deleteRecursively(work);
         }

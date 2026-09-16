@@ -483,4 +483,21 @@ public class BshLambdaDescriptorTest {
         assertEquals(String.class, BshLambda.functionReturnType(DiamondFirstA.class));
         assertEquals(String.class, BshLambda.functionReturnType(DiamondFirstB.class));
     }
+
+    // Round-1 regression: an array actual type's own getPackage() is always
+    // null (arrays have none), so the module-export accessibility check added
+    // for Finding 1 must consult the component type's package/module, not the
+    // array class's -- otherwise every array actual type falls back to the
+    // erasure, even one whose component (e.g. java.lang.String, in the named,
+    // exported java.base module) is perfectly accessible.
+    public interface StringArrayGetter extends GenericGetter<String[]> {}
+    public interface IntArrayGetter extends GenericGetter<int[]> {}
+    public interface StringArrayArrayGetter extends GenericGetter<String[][]> {}
+
+    @Test
+    public void an_array_actual_type_specializes_by_its_component_types_accessibility() throws Exception {
+        assertEquals(String[].class, BshLambda.functionReturnType(StringArrayGetter.class));
+        assertEquals(int[].class, BshLambda.functionReturnType(IntArrayGetter.class));
+        assertEquals(String[][].class, BshLambda.functionReturnType(StringArrayArrayGetter.class));
+    }
 }
