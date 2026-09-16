@@ -269,6 +269,40 @@ public class BshLambda implements Serializable {
         return SAM.get(type).orElse(null);
     }
 
+    private static final ClassValue<Optional<Class<?>>> FUNCTION_RETURN = new ClassValue<Optional<Class<?>>>() {
+        @Override
+        protected Optional<Class<?>> computeValue(Class<?> type) {
+            Method sam = singleAbstractMethod(type);
+            return Optional.ofNullable(sam == null ? null : specializedReturnType(type, sam));
+        }
+    };
+
+    /** The SAM's return type in the interface's own context (JLS 9.9): a type
+        variable bound by a direct generic superinterface resolves to its
+        argument; anything else is the erasure. Null if not functional. */
+    static Class<?> functionReturnType(Class<?> functionalInterface) {
+        return FUNCTION_RETURN.get(functionalInterface).orElse(null);
+    }
+
+    static Class<?> specializedReturnType(Class<?> functionalInterface, Method m) {
+        java.lang.reflect.Type generic;
+        try {
+            generic = m.getGenericReturnType();
+        } catch (java.lang.reflect.GenericSignatureFormatError | TypeNotPresentException
+                | java.lang.reflect.MalformedParameterizedTypeException malformed) {
+            return m.getReturnType();
+        }
+        if (!(generic instanceof java.lang.reflect.TypeVariable))
+            return m.getReturnType();
+        Map<java.lang.reflect.TypeVariable<?>, Class<?>> substitution =
+            directSubstitution(functionalInterface, m.getDeclaringClass());
+        Class<?> actual = substitution == null ? null : substitution.get(generic);
+        // The wrapper can checkcast only a public type it can name, and only
+        // one the erased descriptor can carry.
+        return actual != null && Modifier.isPublic(actual.getModifiers())
+            && m.getReturnType().isAssignableFrom(actual) ? actual : m.getReturnType();
+    }
+
     private static Method discoverSingleAbstractMethod(Class<?> type) {
         if (!type.isInterface())
             return null;
@@ -737,7 +771,9 @@ public class BshLambda implements Serializable {
             for (Method m : abstractMethods(functionalInterface))
                 byDescriptor.computeIfAbsent(m.getName() + Type.getMethodDescriptor(m), k -> new ArrayList<>()).add(m);
             for (List<Method> group : byDescriptor.values())
-                writeMethod(cw, internalClassName, group.get(0), intersectedPublicExceptionTypes(group));
+                writeMethod(cw, internalClassName, group.get(0),
+                    specializedReturnType(functionalInterface, group.get(0)),
+                    intersectedPublicExceptionTypes(group));
             if (serializable && !byDescriptor.containsKey(WRITE_REPLACE))
                 writeWriteReplace(cw, internalClassName, functionalInterface);
 
@@ -809,7 +845,7 @@ public class BshLambda implements Serializable {
         }
 
         private static void writeMethod(ClassWriter cw, String internalClassName, Method sam,
-                Class<?>[] exceptionTypes) {
+                Class<?> resultType, Class<?>[] exceptionTypes) {
             String bshLambdaInternalName = Type.getInternalName(BshLambda.class);
             Parameter[] params = sam.getParameters();
 
@@ -842,7 +878,7 @@ public class BshLambda implements Serializable {
                 mv.visitFieldInsn(Opcodes.GETSTATIC, primitiveWrapperInternalName(returnType),
                     "TYPE", "Ljava/lang/Class;");
             else
-                mv.visitLdcInsn(Type.getType(returnType));
+                mv.visitLdcInsn(Type.getType(resultType));
 
             mv.visitLdcInsn(exceptionTypes.length);
             mv.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Class");
@@ -856,7 +892,7 @@ public class BshLambda implements Serializable {
             mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, bshLambdaInternalName, "invoke",
                 "([Ljava/lang/Object;Ljava/lang/Class;[Ljava/lang/Class;)Ljava/lang/Object;", false);
 
-            finishReturn(mv, returnType);
+            finishReturn(mv, returnType, resultType);
 
             mv.visitMaxs(0, 0);
             mv.visitEnd();
@@ -904,14 +940,14 @@ public class BshLambda implements Serializable {
             return localVarIndex + 1;
         }
 
-        private static void finishReturn(MethodVisitor mv, Class<?> returnType) {
+        private static void finishReturn(MethodVisitor mv, Class<?> returnType, Class<?> resultType) {
             if (returnType == void.class) {
                 mv.visitInsn(Opcodes.POP);
                 mv.visitInsn(Opcodes.RETURN);
                 return;
             }
             if (!returnType.isPrimitive()) {
-                mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(returnType));
+                mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(resultType));
                 mv.visitInsn(Opcodes.ARETURN);
                 return;
             }

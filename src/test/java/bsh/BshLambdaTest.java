@@ -20,6 +20,49 @@ import org.junit.runner.RunWith;
 @RunWith(FilteredTestRunner.class)
 public class BshLambdaTest {
 
+    public interface GenericGetter<T> { T get(); }
+    public interface StringGetter extends GenericGetter<String> {}
+    public interface IntegerGetter extends GenericGetter<Integer> {}
+    public static class GetterOverloads {
+        public static String take(IntegerGetter g) { return "integer:" + g.get(); }
+        public static String take(StringGetter g) { return "string:" + g.get(); }
+    }
+
+    // JLS 9.9: StringGetter's function type returns String.
+    @Test
+    public void a_specialized_generic_return_type_rejects_an_unfit_constant_at_conversion() throws Exception {
+        try {
+            new Interpreter().eval("import bsh.BshLambdaTest.StringGetter; StringGetter g = () -> 1;");
+            fail("expected an EvalError: 1 is not a String");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("StringGetter"));
+        }
+        assertEquals("x", ((StringGetter) new Interpreter().eval(
+            "import bsh.BshLambdaTest.StringGetter; (StringGetter) () -> \"x\";")).get());
+    }
+
+    // An unknown result that turns out wrong at run time fails inside invoke, not as a
+    // ClassCastException at the Java call site.
+    @Test
+    public void a_specialized_generic_return_type_is_checked_when_the_body_runs() throws Exception {
+        StringGetter g = (StringGetter) new Interpreter().eval(
+            "import bsh.BshLambdaTest.StringGetter; foo() { return 1; } (StringGetter) () -> foo();");
+        try {
+            g.get();
+            fail("expected a RuntimeEvalError");
+        } catch (RuntimeEvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("String"));
+        }
+    }
+
+    @Test
+    public void overloads_differing_only_in_a_specialized_return_type_resolve_as_javac_does() throws Exception {
+        Interpreter interpreter = new Interpreter();
+        interpreter.eval("import bsh.BshLambdaTest.GetterOverloads;");
+        assertEquals("string:s", interpreter.eval("GetterOverloads.take(() -> \"s\");"));
+        assertEquals("integer:1", interpreter.eval("GetterOverloads.take(() -> 1);"));
+    }
+
     public interface SerialTriple extends java.io.Serializable { int apply(int x); }
     public interface ReplaceWriter { Object writeReplace(); }
     public interface SerializableReplaceWriter extends java.io.Serializable { Object writeReplace(); }

@@ -96,7 +96,7 @@ final class LambdaDescriptor {
                     : parameters[i] == declared))
                 return false;
         }
-        Class<?> returned = sam.getReturnType();
+        Class<?> returned = BshLambda.functionReturnType(type);
         if (shape == BshLambda.INVALID
                 || shape == BshLambda.VALUE && returned == void.class
                 || shape == BshLambda.VOID && returned != void.class)
@@ -209,7 +209,7 @@ final class LambdaDescriptor {
             return true;
         if (target.isAssignableFrom(other))
             return false;
-        Class<?> rt = t.getReturnType(), ro = o.getReturnType();
+        Class<?> rt = BshLambda.functionReturnType(target), ro = BshLambda.functionReturnType(other);
         if (ro == void.class)
             return true;
         if (rt == void.class || result == null)
@@ -245,7 +245,7 @@ final class LambdaDescriptor {
 
     // Higher is more specific; see the design's key.
     private int resultScore(Class<?> type) {
-        Class<?> returned = BshLambda.singleAbstractMethod(type).getReturnType();
+        Class<?> returned = BshLambda.functionReturnType(type);
         if (result == null) {
             if (returned == void.class)
                 return shape == BshLambda.VOID_UNSURE ? 4000 : 2000;

@@ -1,6 +1,7 @@
 package bsh;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -554,6 +555,52 @@ public class BshLambdaClassLoadingTest {
                 pool.shutdownNow();
             }
         }
+    }
+
+    // Every java.util.function interface, plus the common JDK targets: the SAM
+    // found must be the documented one. Guards the SAM-discovery changes of
+    // Tasks 5 and 16 against silently changing an ordinary interface.
+    @Test
+    public void jdk_functional_interfaces_resolve_to_their_documented_method() throws Exception {
+        String[][] expected = {
+            { "java.util.function.BiConsumer", "accept" }, { "java.util.function.BiFunction", "apply" },
+            { "java.util.function.BinaryOperator", "apply" }, { "java.util.function.BiPredicate", "test" },
+            { "java.util.function.BooleanSupplier", "getAsBoolean" }, { "java.util.function.Consumer", "accept" },
+            { "java.util.function.DoubleBinaryOperator", "applyAsDouble" }, { "java.util.function.DoubleConsumer", "accept" },
+            { "java.util.function.DoubleFunction", "apply" }, { "java.util.function.DoublePredicate", "test" },
+            { "java.util.function.DoubleSupplier", "getAsDouble" }, { "java.util.function.DoubleToIntFunction", "applyAsInt" },
+            { "java.util.function.DoubleToLongFunction", "applyAsLong" }, { "java.util.function.DoubleUnaryOperator", "applyAsDouble" },
+            { "java.util.function.Function", "apply" }, { "java.util.function.IntBinaryOperator", "applyAsInt" },
+            { "java.util.function.IntConsumer", "accept" }, { "java.util.function.IntFunction", "apply" },
+            { "java.util.function.IntPredicate", "test" }, { "java.util.function.IntSupplier", "getAsInt" },
+            { "java.util.function.IntToDoubleFunction", "applyAsDouble" }, { "java.util.function.IntToLongFunction", "applyAsLong" },
+            { "java.util.function.IntUnaryOperator", "applyAsInt" }, { "java.util.function.LongBinaryOperator", "applyAsLong" },
+            { "java.util.function.LongConsumer", "accept" }, { "java.util.function.LongFunction", "apply" },
+            { "java.util.function.LongPredicate", "test" }, { "java.util.function.LongSupplier", "getAsLong" },
+            { "java.util.function.LongToDoubleFunction", "applyAsDouble" }, { "java.util.function.LongToIntFunction", "applyAsInt" },
+            { "java.util.function.LongUnaryOperator", "applyAsLong" }, { "java.util.function.ObjDoubleConsumer", "accept" },
+            { "java.util.function.ObjIntConsumer", "accept" }, { "java.util.function.ObjLongConsumer", "accept" },
+            { "java.util.function.Predicate", "test" }, { "java.util.function.Supplier", "get" },
+            { "java.util.function.ToDoubleBiFunction", "applyAsDouble" }, { "java.util.function.ToDoubleFunction", "applyAsDouble" },
+            { "java.util.function.ToIntBiFunction", "applyAsInt" }, { "java.util.function.ToIntFunction", "applyAsInt" },
+            { "java.util.function.ToLongBiFunction", "applyAsLong" }, { "java.util.function.ToLongFunction", "applyAsLong" },
+            { "java.util.function.UnaryOperator", "apply" },
+            { "java.lang.Runnable", "run" }, { "java.util.concurrent.Callable", "call" },
+            { "java.util.Comparator", "compare" }, { "java.lang.Comparable", "compareTo" },
+            { "java.lang.Iterable", "iterator" }, { "java.lang.AutoCloseable", "close" },
+            { "java.io.Closeable", "close" }, { "java.lang.Thread$UncaughtExceptionHandler", "uncaughtException" },
+            { "java.security.PrivilegedAction", "run" }, { "java.util.concurrent.ThreadFactory", "newThread" },
+            { "java.io.FileFilter", "accept" }, { "java.io.FilenameFilter", "accept" },
+        };
+        for (String[] entry : expected) {
+            Class<?> type = Class.forName(entry[0]);
+            Method sam = BshLambda.singleAbstractMethod(type);
+            assertNotNull(entry[0], sam);
+            assertEquals(entry[0], entry[1], sam.getName());
+            assertEquals(entry[0], sam.getReturnType(), BshLambda.functionReturnType(type));
+        }
+        for (String notFunctional : new String[] { "java.util.List", "java.util.Map", "java.lang.CharSequence" })
+            assertNull(notFunctional, BshLambda.singleAbstractMethod(Class.forName(notFunctional)));
     }
 
     private static WeakReference<ClassLoader> runInThrowawayLoader(String script) throws Exception {

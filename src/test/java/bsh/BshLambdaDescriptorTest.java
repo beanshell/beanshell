@@ -450,4 +450,22 @@ public class BshLambdaDescriptorTest {
             BSHLambdaExpression.bodyShape(body), new Class<?>[] { String.class }, null);
         assertTrue(descriptor.fits(java.util.function.Consumer.class));
     }
+
+    public interface GenericGetter<T> { T get(); }
+    public interface StringGetter extends GenericGetter<String> {}
+    public interface IntegerGetter extends GenericGetter<Integer> {}
+
+    @Test
+    public void a_known_result_is_checked_against_the_specialized_return_type() throws Exception {
+        assertFalse(descriptor("() -> 1").fits(StringGetter.class));
+        assertTrue(descriptor("() -> 1").fits(IntegerGetter.class));
+        assertTrue(descriptor("() -> \"s\"").fits(StringGetter.class));
+        assertTrue(descriptor("() -> \"s\"").fits(GenericGetter.class));
+    }
+
+    @Test
+    public void ranking_sees_the_specialized_return_type() throws Exception {
+        assertEquals(StringGetter.class, pick(descriptor("() -> \"s\""), IntegerGetter.class, StringGetter.class));
+        assertEquals(IntegerGetter.class, pick(descriptor("() -> 1"), IntegerGetter.class, StringGetter.class));
+    }
 }
