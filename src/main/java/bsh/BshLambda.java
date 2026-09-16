@@ -458,6 +458,16 @@ public class BshLambda implements Serializable {
         }
     }
 
+    // A generated class's method may carry a Signature attribute reflection cannot parse.
+    private static boolean isGenericMethod(Method sam) {
+        try {
+            return sam.getTypeParameters().length > 0;
+        } catch (java.lang.reflect.GenericSignatureFormatError | TypeNotPresentException
+                | java.lang.reflect.MalformedParameterizedTypeException malformed) {
+            return false;
+        }
+    }
+
     // type's direct (one-level) generic superinterfaces only, e.g. GS extends
     // G<String>: maps G's type variable T to String, as seen from GS.
     private static Map<java.lang.reflect.TypeVariable<?>, Class<?>> directSubstitution(
@@ -617,6 +627,10 @@ public class BshLambda implements Serializable {
                 + functionalInterface.getName() + ": its block body has a valued return "
                 + "beside a bare return or a path that falls off the end, so it fits no "
                 + "functional interface (JLS 15.27.2)");
+        if (isGenericMethod(sam))
+            throw new UtilEvalError("A lambda cannot implement "
+                + functionalInterface.getName() + ": its single abstract method "
+                + sam.getName() + " is generic, and a lambda cannot declare type parameters (JLS 15.27.3)");
         if (!descriptor().fits(functionalInterface))
             throw new UtilEvalError("A lambda cannot implement "
                 + functionalInterface.getName() + ": its body does not fit the "

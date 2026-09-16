@@ -931,4 +931,17 @@ public class BshLambdaTest {
         java.io.ObjectStreamClass descriptor = java.io.ObjectStreamClass.lookup(RuntimeEvalError.class);
         assertEquals(1L, descriptor.getSerialVersionUID());
     }
+
+    public interface GenericMethodSam { <T> T id(T t); }
+
+    // JLS 15.27.3: a lambda cannot implement a generic method.
+    @Test
+    public void a_generic_method_sam_is_rejected_with_a_message_that_says_so() throws Exception {
+        try {
+            new Interpreter().eval("import bsh.BshLambdaTest.GenericMethodSam; (GenericMethodSam) x -> x;");
+            fail("expected an EvalError naming the generic method");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("generic"));
+        }
+    }
 }
