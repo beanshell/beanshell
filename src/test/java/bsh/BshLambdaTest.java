@@ -63,6 +63,52 @@ public class BshLambdaTest {
         assertEquals("integer:1", interpreter.eval("GetterOverloads.take(() -> 1);"));
     }
 
+    // Two unrelated generic superinterfaces erasing the same SAM to Object, with
+    // different (subtype-related) type arguments: javac resolves both declaration
+    // orders to the narrower String, not whichever branch getMethods() happens
+    // to visit first.
+    public interface DiamondGetterA<T> { T get(); }
+    public interface DiamondGetterB<T> { T get(); }
+    public interface DiamondFirstA extends DiamondGetterA<String>, DiamondGetterB<CharSequence> {}
+    public interface DiamondFirstB extends DiamondGetterB<CharSequence>, DiamondGetterA<String> {}
+
+    // A known-String result works for both orders (this alone would also pass
+    // under the order-dependent bug: whichever branch getMethods() visits
+    // first, its erasure is Object, and a String result fits Object too).
+    // The discriminating case is a runtime StringBuffer result: only the
+    // buggy order ever names CharSequence in the wrapper, under which a
+    // StringBuffer coerces successfully and reaches the caller's own,
+    // real-Java, javac-inserted checkcast to String -- a raw
+    // ClassCastException, not the RuntimeEvalError the wrapper's own
+    // (correctly specialized) checkcast is supposed to raise instead.
+    @Test
+    public void a_return_type_shared_by_two_generic_superinterfaces_does_not_depend_on_declaration_order() throws Exception {
+        assertEquals("x", ((DiamondFirstA) new Interpreter().eval(
+            "import bsh.BshLambdaTest.DiamondFirstA; (DiamondFirstA) () -> \"x\";")).get());
+        assertEquals("x", ((DiamondFirstB) new Interpreter().eval(
+            "import bsh.BshLambdaTest.DiamondFirstB; (DiamondFirstB) () -> \"x\";")).get());
+
+        DiamondFirstA a = (DiamondFirstA) new Interpreter().eval(
+            "import bsh.BshLambdaTest.DiamondFirstA;"
+            + " foo() { return new StringBuffer(\"x\"); } (DiamondFirstA) () -> foo();");
+        try {
+            String s = a.get();
+            fail("DiamondFirstA: expected a RuntimeEvalError, StringBuffer is not a String; got " + s);
+        } catch (RuntimeEvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("String"));
+        }
+
+        DiamondFirstB b = (DiamondFirstB) new Interpreter().eval(
+            "import bsh.BshLambdaTest.DiamondFirstB;"
+            + " foo() { return new StringBuffer(\"x\"); } (DiamondFirstB) () -> foo();");
+        try {
+            String s = b.get();
+            fail("DiamondFirstB: expected a RuntimeEvalError, StringBuffer is not a String; got " + s);
+        } catch (RuntimeEvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("String"));
+        }
+    }
+
     public interface SerialTriple extends java.io.Serializable { int apply(int x); }
     public interface ReplaceWriter { Object writeReplace(); }
     public interface SerializableReplaceWriter extends java.io.Serializable { Object writeReplace(); }

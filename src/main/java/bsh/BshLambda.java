@@ -273,7 +273,8 @@ public class BshLambda implements Serializable {
         @Override
         protected Optional<Class<?>> computeValue(Class<?> type) {
             Method sam = singleAbstractMethod(type);
-            return Optional.ofNullable(sam == null ? null : specializedReturnType(type, sam));
+            return Optional.ofNullable(sam == null ? null
+                : specializedReturnType(type, sameDescriptorGroup(type, sam)));
         }
     };
 
@@ -282,6 +283,43 @@ public class BshLambda implements Serializable {
         argument; anything else is the erasure. Null if not functional. */
     static Class<?> functionReturnType(Class<?> functionalInterface) {
         return FUNCTION_RETURN.get(functionalInterface).orElse(null);
+    }
+
+    // Every abstract method sharing sam's name and erased descriptor: when two
+    // unrelated generic superinterfaces contribute the same erasure (e.g. two
+    // T get() methods, one from A<String> and one from B<CharSequence>),
+    // getMethods()'s declaration-order-dependent iteration must not decide
+    // which one's specialization wins -- every member of the group is a
+    // candidate, in the same grouping WrapperGenerator uses for codegen, so
+    // the two can never disagree.
+    private static List<Method> sameDescriptorGroup(Class<?> type, Method sam) {
+        String key = sam.getName() + Type.getMethodDescriptor(sam);
+        List<Method> group = new ArrayList<>();
+        for (Method m : abstractMethods(type))
+            if ((m.getName() + Type.getMethodDescriptor(m)).equals(key))
+                group.add(m);
+        return group;
+    }
+
+    /** The narrowest type every member of the group's own specialization
+        (see the single-method overload) is a supertype of; when the members'
+        specializations don't relate by subtyping at all, bsh's resolution API
+        has no ambiguity outcome, so the shared erasure -- already validated
+        as a common return type by singleAbstractMethod -- is the safe answer,
+        not an error. Order-independent: a candidate the whole group agrees on
+        is unique when one exists. */
+    static Class<?> specializedReturnType(Class<?> functionalInterface, List<Method> group) {
+        List<Class<?>> specialized = new ArrayList<>();
+        for (Method m : group)
+            specialized.add(specializedReturnType(functionalInterface, m));
+        outer:
+        for (Class<?> candidate : specialized) {
+            for (Class<?> other : specialized)
+                if (!other.isAssignableFrom(candidate))
+                    continue outer;
+            return candidate;
+        }
+        return group.get(0).getReturnType();
     }
 
     static Class<?> specializedReturnType(Class<?> functionalInterface, Method m) {
@@ -300,7 +338,31 @@ public class BshLambda implements Serializable {
         // The wrapper can checkcast only a public type it can name, and only
         // one the erased descriptor can carry.
         return actual != null && Modifier.isPublic(actual.getModifiers())
+            && isExportedToUnnamedModules(actual)
             && m.getReturnType().isAssignableFrom(actual) ? actual : m.getReturnType();
+    }
+
+    // Modifier.isPublic screens simple visibility, not JPMS module exports: a
+    // public type in a named module whose package the module does not export
+    // is still inaccessible to the wrapper, which is always defined into an
+    // unnamed module (WrapperLoader never assigns one). Reflects because this
+    // module targets bytecode release 8, where java.lang.Module cannot be
+    // named directly, and because this must also run unmodified on an actual
+    // JDK 8, where the class does not exist at all.
+    private static boolean isExportedToUnnamedModules(Class<?> type) {
+        try {
+            Object module = Class.class.getMethod("getModule").invoke(type);
+            Method isNamed = module.getClass().getMethod("isNamed");
+            if (!(Boolean) isNamed.invoke(module))
+                return true;
+            Package pkg = type.getPackage();
+            String packageName = pkg == null ? "" : pkg.getName();
+            return (Boolean) module.getClass().getMethod("isExported", String.class)
+                .invoke(module, packageName);
+        } catch (ReflectiveOperationException noModuleSystem) {
+            // JDK 8: nothing to export from.
+            return true;
+        }
     }
 
     private static Method discoverSingleAbstractMethod(Class<?> type) {
@@ -772,7 +834,7 @@ public class BshLambda implements Serializable {
                 byDescriptor.computeIfAbsent(m.getName() + Type.getMethodDescriptor(m), k -> new ArrayList<>()).add(m);
             for (List<Method> group : byDescriptor.values())
                 writeMethod(cw, internalClassName, group.get(0),
-                    specializedReturnType(functionalInterface, group.get(0)),
+                    specializedReturnType(functionalInterface, group),
                     intersectedPublicExceptionTypes(group));
             if (serializable && !byDescriptor.containsKey(WRITE_REPLACE))
                 writeWriteReplace(cw, internalClassName, functionalInterface);

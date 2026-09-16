@@ -5,11 +5,19 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.stream.Stream;
 
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -601,6 +609,96 @@ public class BshLambdaClassLoadingTest {
         }
         for (String notFunctional : new String[] { "java.util.List", "java.util.Map", "java.lang.CharSequence" })
             assertNull(notFunctional, BshLambda.singleAbstractMethod(Class.forName(notFunctional)));
+    }
+
+    // Task 5 adversarial review, Finding 1: Modifier.isPublic screens simple
+    // visibility, not JPMS module exports. A public actual type (internal.Thing)
+    // whose module does not export its package is still inaccessible to the
+    // wrapper, which is always defined into an unnamed module; naming it in the
+    // wrapper's LDC/CHECKCAST throws IllegalAccessError on first invocation
+    // instead of the erasure fallback this test expects. A real modular JAR
+    // (compiled and loaded in a throwaway subprocess, since the module system's
+    // own API cannot be named at this project's bytecode release) reproduces
+    // the reviewer's exact repro end to end.
+    @Test
+    public void a_public_but_unexported_actual_type_falls_back_to_the_erasure() throws Exception {
+        Assume.assumeTrue("module system unavailable on this JDK",
+            !System.getProperty("java.specification.version").startsWith("1."));
+
+        Path work = Files.createTempDirectory("bsh-module-export-test");
+        try {
+            Path modSrc = work.resolve("modsrc");
+            Files.createDirectories(modSrc.resolve("api"));
+            Files.createDirectories(modSrc.resolve("internal"));
+            Files.write(modSrc.resolve("module-info.java"),
+                Arrays.asList("module m.api {", "    exports api;", "}"));
+            Files.write(modSrc.resolve("api/Gen.java"),
+                Arrays.asList("package api;", "public interface Gen<T> { T get(); }"));
+            Files.write(modSrc.resolve("api/Api.java"),
+                Arrays.asList("package api;", "public interface Api extends Gen<internal.Thing> {}"));
+            Files.write(modSrc.resolve("internal/Thing.java"),
+                Arrays.asList("package internal;", "public class Thing {}"));
+
+            Path modOut = work.resolve("modout");
+            Files.createDirectories(modOut);
+            runTool(javaHomeTool("javac"), "-d", modOut.toString(),
+                modSrc.resolve("module-info.java").toString(), modSrc.resolve("api/Gen.java").toString(),
+                modSrc.resolve("api/Api.java").toString(), modSrc.resolve("internal/Thing.java").toString());
+
+            Path driverSrc = work.resolve("Driver.java");
+            Files.write(driverSrc, Arrays.asList(
+                "import java.lang.reflect.InvocationTargetException;",
+                "public class Driver {",
+                "    public static void main(String[] args) throws Exception {",
+                "        try {",
+                "            bsh.Interpreter interp = new bsh.Interpreter();",
+                "            Object result = interp.eval(\"import api.Api; (Api) () -> null;\");",
+                "            Object value = result.getClass().getMethod(\"get\").invoke(result);",
+                "            System.out.println(\"OK:\" + value);",
+                "        } catch (Throwable t) {",
+                "            Throwable real = t instanceof InvocationTargetException ? t.getCause() : t;",
+                "            System.out.println(\"THROWN:\" + real.getClass().getName() + \":\" + real.getMessage());",
+                "        }",
+                "    }",
+                "}"));
+            Path driverOut = work.resolve("driverout");
+            Files.createDirectories(driverOut);
+            String bshClasses = Paths.get(Interpreter.class.getProtectionDomain()
+                .getCodeSource().getLocation().toURI()).toString();
+            runTool(javaHomeTool("javac"), "-cp", bshClasses, "-d", driverOut.toString(), driverSrc.toString());
+
+            String output = runTool(javaHomeTool("java"), "-p", modOut.toString(), "--add-modules", "m.api",
+                "-cp", driverOut + File.pathSeparator + bshClasses, "Driver");
+            assertEquals(output, "OK:null", output.trim());
+        } finally {
+            deleteRecursively(work);
+        }
+    }
+
+    private static String javaHomeTool(String name) {
+        return System.getProperty("java.home") + File.separator + "bin" + File.separator + name;
+    }
+
+    private static String runTool(String... command) throws Exception {
+        Process p = new ProcessBuilder(command).redirectErrorStream(true).start();
+        java.io.ByteArrayOutputStream captured = new java.io.ByteArrayOutputStream();
+        byte[] buffer = new byte[4096];
+        int read;
+        while ((read = p.getInputStream().read(buffer)) != -1)
+            captured.write(buffer, 0, read);
+        String output = captured.toString();
+        int exit = p.waitFor();
+        if (exit != 0)
+            throw new AssertionError("command " + Arrays.toString(command) + " exited " + exit + ": " + output);
+        return output;
+    }
+
+    private static void deleteRecursively(Path root) throws Exception {
+        if (!Files.exists(root))
+            return;
+        try (Stream<Path> paths = Files.walk(root)) {
+            paths.sorted(Comparator.reverseOrder()).forEach(p -> p.toFile().delete());
+        }
     }
 
     private static WeakReference<ClassLoader> runInThrowawayLoader(String script) throws Exception {

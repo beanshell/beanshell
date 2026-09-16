@@ -468,4 +468,19 @@ public class BshLambdaDescriptorTest {
         assertEquals(StringGetter.class, pick(descriptor("() -> \"s\""), IntegerGetter.class, StringGetter.class));
         assertEquals(IntegerGetter.class, pick(descriptor("() -> 1"), IntegerGetter.class, StringGetter.class));
     }
+
+    // Two unrelated generic superinterfaces erasing get() to Object: javac
+    // resolves both declaration orders to the narrower String (confirmed by
+    // compiling the Java equivalent), so fits must not depend on which
+    // getMethods() happens to visit first.
+    public interface DiamondGetterA<T> { T get(); }
+    public interface DiamondGetterB<T> { T get(); }
+    public interface DiamondFirstA extends DiamondGetterA<String>, DiamondGetterB<CharSequence> {}
+    public interface DiamondFirstB extends DiamondGetterB<CharSequence>, DiamondGetterA<String> {}
+
+    @Test
+    public void a_return_type_shared_by_two_generic_superinterfaces_does_not_depend_on_declaration_order() throws Exception {
+        assertEquals(String.class, BshLambda.functionReturnType(DiamondFirstA.class));
+        assertEquals(String.class, BshLambda.functionReturnType(DiamondFirstB.class));
+    }
 }
