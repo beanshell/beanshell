@@ -680,10 +680,12 @@ public final class This implements java.io.Serializable, Runnable
 
     // A lambda or scripted object is opaque until it meets its parameter type.
     // A Java call converts in Invocable.invokeTarget; the generated constructor
-    // switch casts the raw argument itself, so convert here.
+    // switch casts the raw argument itself, so convert here. An untyped (loose)
+    // parameter has a null target type and stays opaque, same as before lambdas existed.
     private static Object[] convertOpaqueArgs(Object[] args, Class<?>[] paramTypes) {
         for (int k = 0; k < args.length && k < paramTypes.length; k++)
-            if (args[k] instanceof BshLambda || args[k] instanceof This && paramTypes[k].isInterface()) try {
+            if (paramTypes[k] != null && (args[k] instanceof BshLambda
+                    || args[k] instanceof This && paramTypes[k].isInterface())) try {
                 args[k] = Types.castObject(args[k], paramTypes[k], Types.ASSIGNMENT);
             } catch (UtilEvalError e) {
                 throw new InterpreterError("Error converting constructor argument "

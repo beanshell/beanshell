@@ -979,6 +979,29 @@ public class BshLambdaTest {
             + " t = new T(); t.run(); t.get();")));
     }
 
+    // A `This` argument to an untyped ("loose") constructor parameter must stay opaque --
+    // the generated constructor holds it as an untyped local, exactly as before lambdas
+    // existed. paramTypes[k] is null for such a parameter.
+    @Test
+    public void a_this_argument_to_an_untyped_constructor_param_is_left_opaque() throws Exception {
+        assertEquals(Boolean.TRUE, new Interpreter().eval(
+            "run() {} outer = this;"
+            + " class Widget { Object handler; Widget(h) { this.handler = h; }"
+            + " Widget() { this(outer); } }"
+            + " new Widget().handler == outer;"));
+    }
+
+    // Same as above for a lambda argument -- this side already worked (Types.castObject
+    // short-circuits a null target type before reaching BshLambda.castLambda), pinned here
+    // alongside the This case above so both halves of the untyped-parameter path are covered.
+    @Test
+    public void a_lambda_argument_to_an_untyped_constructor_param_is_left_opaque() throws Exception {
+        assertEquals(Boolean.TRUE, new Interpreter().eval(
+            "class Holder { Object cb; Holder(c) { this.cb = c; }"
+            + " Holder() { this(x -> x); } }"
+            + " new Holder().cb != null;"));
+    }
+
     @Test
     public void a_scripted_interface_constant_is_readable_through_a_lambda_wrapper() throws Exception {
         assertEquals("42,42,42", new Interpreter().eval(
