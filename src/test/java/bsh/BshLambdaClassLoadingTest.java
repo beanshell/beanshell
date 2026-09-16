@@ -567,6 +567,109 @@ public class BshLambdaClassLoadingTest {
         }
     }
 
+    // Companion assessment I4: earlier races used a fresh lambda per thread
+    // (equal_descriptors_share_one_marker_across_racing_threads) or a fresh
+    // interpreter per call (lambdas_in_concurrent_interpreters_all_materialize).
+    // Here one BshLambda -- one node, one transient volatile descriptor and
+    // marker -- is shared by every racing thread, so both convertTo's wrapper
+    // cache and marker()'s node-local cache are read and (on the first caller)
+    // written concurrently by the same underlying lambda.
+    @Test
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public void one_lambda_converted_and_invoked_from_racing_threads_is_consistent() throws Exception {
+        for (int round = 0; round < 20; round++) {
+            BshLambda lambda = (BshLambda) new Interpreter().eval("x -> x + 1;");
+            java.util.concurrent.CountDownLatch start = new java.util.concurrent.CountDownLatch(1);
+            java.util.List<java.util.concurrent.Future<Object[]>> futures = new java.util.ArrayList<>();
+            java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(16);
+            try {
+                for (int t = 0; t < 16; t++)
+                    futures.add(pool.submit(() -> {
+                        start.await();
+                        Class<?> marker = lambda.marker();
+                        java.util.function.Function f =
+                            (java.util.function.Function) lambda.convertTo(java.util.function.Function.class);
+                        for (int i = 0; i < 1000; i++) {
+                            Object result = f.apply(i);
+                            if (!result.equals(i + 1))
+                                throw new AssertionError("wrong result " + result + " for " + i);
+                        }
+                        return new Object[] { f.getClass(), marker };
+                    }));
+                start.countDown();
+                java.util.Set<Class<?>> wrapperClasses = new java.util.HashSet<>();
+                java.util.Set<Class<?>> markers = new java.util.HashSet<>();
+                for (java.util.concurrent.Future<Object[]> future : futures) {
+                    Object[] result = future.get();
+                    wrapperClasses.add((Class<?>) result[0]);
+                    markers.add((Class<?>) result[1]);
+                }
+                assertEquals("round " + round + ": distinct wrapper classes", 1, wrapperClasses.size());
+                assertEquals("round " + round + ": distinct markers", 1, markers.size());
+            } finally {
+                pool.shutdownNow();
+            }
+        }
+    }
+
+    /** A fixture functional interface never referenced elsewhere as a type,
+        so the only Class object anything in this test can see for it is the
+        one {@link ChildFirstLoader} itself defines. */
+    public interface LoaderGcFixture { int apply(int x); }
+
+    /** Bypasses parent delegation for exactly one class name, so that class
+        is defined by this loader's own findClass rather than found through
+        the parent -- unlike ChildLoader/LockingLoader above, whose parent
+        cannot see the class at all, this loader's parent could see it too. */
+    private static final class ChildFirstLoader extends URLClassLoader {
+        private final String childFirstName;
+
+        ChildFirstLoader(URL[] urls, ClassLoader parent, String childFirstName) {
+            super(urls, parent);
+            this.childFirstName = childFirstName;
+        }
+
+        @Override
+        protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+            if (!name.equals(childFirstName))
+                return super.loadClass(name, resolve);
+            synchronized (getClassLoadingLock(name)) {
+                Class<?> found = findLoadedClass(name);
+                if (found == null)
+                    found = findClass(name);
+                if (resolve)
+                    resolveClass(found);
+                return found;
+            }
+        }
+    }
+
+    private static WeakReference<ClassLoader> convertInThrowawayInterfaceLoader() throws Exception {
+        URL classes = BshLambdaClassLoadingTest.class.getProtectionDomain().getCodeSource().getLocation();
+        String fixtureName = LoaderGcFixture.class.getName();
+        ChildFirstLoader loader = new ChildFirstLoader(new URL[] { classes },
+            BshLambdaClassLoadingTest.class.getClassLoader(), fixtureName);
+        Class<?> iface = loader.loadClass(fixtureName);
+        Object wrapper = materialize(new Interpreter(), "x -> x + 1;", iface);
+        assertEquals(6, iface.getMethod("apply", int.class).invoke(wrapper, 5));
+        loader.close();
+        return new WeakReference<>(loader);
+    }
+
+    // Companion assessment I5: existing coverage collects bsh's own loader,
+    // marker, and class manager; not a user interface's loader after a
+    // wrapper was generated for it, i.e. the WRAPPERS WeakHashMap<Class,
+    // WeakReference<Class>> cache keyed on that interface's Class object.
+    @Test
+    public void an_interface_loader_is_collectable_after_a_wrapper_was_generated_for_it() throws Exception {
+        WeakReference<ClassLoader> ref = convertInThrowawayInterfaceLoader();
+        for (int n = 0; n < 50 && ref.get() != null; n++) {
+            System.gc();
+            Thread.sleep(20);
+        }
+        assertNull("interface loader still reachable", ref.get());
+    }
+
     // Every java.util.function interface, plus the common JDK targets: the SAM
     // found must be the documented one. Guards the SAM-discovery changes of
     // Tasks 5 and 16 against silently changing an ordinary interface.
