@@ -347,6 +347,14 @@ public final class Reflect {
                     if (Primitive.VOID != val)
                         return val;
                 }
+            // A lambda wrapper implements a scripted interface without being a
+            // generated class; the interface keeps its constants only in its
+            // static namespace (ClassGeneratorUtil keeps them virtual).
+            if (BshLambda.Wrapper.class.isAssignableFrom(clas)) {
+                Object constant = scriptedInterfaceConstant(clas, fieldName);
+                if (constant != Primitive.VOID)
+                    return constant;
+            }
             throw e;
         } catch(InvocationTargetException e) {
             if (e.getCause() instanceof InterpreterError)
@@ -356,6 +364,22 @@ public final class Reflect {
             throw new ReflectError("Can't access field: "
                 + fieldName, e.getCause());
         }
+    }
+
+    private static Object scriptedInterfaceConstant(Class<?> clas, String fieldName)
+            throws UtilEvalError {
+        for (Class<?> iface : clas.getInterfaces()) {
+            if (isGeneratedClass(iface)) {
+                NameSpace ns = getThisNS(iface);
+                Variable var = ns == null ? null : ns.getVariableImpl(fieldName, true);
+                if (var != null && (!var.hasModifier("private") || haveAccessibility()))
+                    return ns.unwrapVariable(var);
+            }
+            Object inherited = scriptedInterfaceConstant(iface, fieldName);
+            if (inherited != Primitive.VOID)
+                return inherited;
+        }
+        return Primitive.VOID;
     }
 
     /*

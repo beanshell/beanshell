@@ -978,4 +978,21 @@ public class BshLambdaTest {
             + " class T extends java.util.concurrent.FutureTask { T() { super(outer); } }"
             + " t = new T(); t.run(); t.get();")));
     }
+
+    @Test
+    public void a_scripted_interface_constant_is_readable_through_a_lambda_wrapper() throws Exception {
+        assertEquals("42,42,42", new Interpreter().eval(
+            "interface K { int C = 42; int get(); } interface K2 extends K { }"
+            + " K k = () -> 1; K2 k2 = () -> 2;"
+            + " K.C + \",\" + k.C + \",\" + k2.C;"));
+    }
+
+    // A compiled interface's constant already works through the wrapper via getField.
+    public interface JavaConstants { int X = 7; int get(); }
+
+    @Test
+    public void a_java_interface_constant_is_readable_through_a_lambda_wrapper() throws Exception {
+        assertEquals(7, Primitive.unwrap(new Interpreter().eval(
+            "import bsh.BshLambdaTest.JavaConstants; JavaConstants j = () -> 1; j.X;")));
+    }
 }
