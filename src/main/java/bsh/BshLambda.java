@@ -632,6 +632,8 @@ public class BshLambda implements Serializable {
             throw new UtilEvalError("A lambda cannot implement "
                 + functionalInterface.getName() + ": its single abstract method "
                 + sam.getName() + " is generic, and a lambda cannot declare type parameters (JLS 15.27.3)");
+        // The same veto an implements clause gets (BSHClassDeclaration).
+        Interpreter.mainSecurityGuard.canImplements(functionalInterface);
         if (!descriptor().fits(functionalInterface))
             throw new UtilEvalError("A lambda cannot implement "
                 + functionalInterface.getName() + ": its body does not fit the "

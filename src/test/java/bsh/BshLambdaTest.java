@@ -995,4 +995,30 @@ public class BshLambdaTest {
         assertEquals(7, Primitive.unwrap(new Interpreter().eval(
             "import bsh.BshLambdaTest.JavaConstants; JavaConstants j = () -> 1; j.X;")));
     }
+
+    @Test
+    public void a_security_guard_can_veto_the_interface_a_lambda_implements() throws Exception {
+        bsh.security.SecurityGuard noRunnables = new bsh.security.SecurityGuard() {
+            public boolean canImplements(Class<?> iface) { return iface != Runnable.class; }
+        };
+        Interpreter.mainSecurityGuard.add(noRunnables);
+        try {
+            Interpreter interpreter = new Interpreter();
+            assertEquals(1, Primitive.unwrap(interpreter.eval("java.util.concurrent.Callable c = () -> 1; c.call();")));
+            try {
+                interpreter.eval("Runnable r = () -> {};");
+                fail("expected a SecurityError");
+            } catch (EvalError expected) {
+                assertTrue(expected.getMessage(), expected.getMessage().contains("Can't implement this interface"));
+            }
+            try {
+                interpreter.eval("new Thread(() -> {});");
+                fail("expected a SecurityError from the overload-resolved conversion");
+            } catch (EvalError expected) {
+                assertTrue(expected.getMessage(), expected.getMessage().contains("Can't implement this interface"));
+            }
+        } finally {
+            Interpreter.mainSecurityGuard.remove(noRunnables);
+        }
+    }
 }

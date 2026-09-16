@@ -96,7 +96,7 @@ an integer argument is a Java numeric wrapper and a null argument is Java `null`
 | `canGetField(Object receiver, String name)` | Instance field read, including array `length` | Receiver and field name |
 | `canGetStaticField(Class<?> type, String name)` | Static field read | Class and field name |
 | `canExtends(Class<?> superClass)` | Class extension | Superclass |
-| `canImplements(Class<?> interfaceType)` | Interface implementation | Interface |
+| `canImplements(Class<?> interfaceType)` | Interface implementation. Also consulted when a lambda expression is converted to a functional interface. | Interface |
 
 The earlier `canInvokeSuperMethod()` callback was removed in #772. Move policies
 using that callback to `canInvokeMethod()`. The replacement callback also checks
