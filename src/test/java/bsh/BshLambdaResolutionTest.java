@@ -1,6 +1,8 @@
 package bsh;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -813,5 +815,24 @@ public class BshLambdaResolutionTest {
             + " f(java.util.function.Supplier x) { return \"supplier\"; }"
             + " f(() -> \"x\");");
         assertEquals("callable", result); // Callable's fully-qualified name sorts before Supplier's, so it wins the tie-break; see compareFully.
+    }
+
+    @Test
+    public void a_check_only_cast_from_the_raw_lambda_class_reports_functional_targets_without_crashing() throws Exception {
+        assertTrue(Types.isBshAssignable(Runnable.class, BshLambda.class));
+        assertTrue(Types.isBshAssignable(java.util.function.Function.class, BshLambda.class));
+        assertTrue(Types.isBshAssignable(Object.class, BshLambda.class));
+        assertFalse(Types.isBshAssignable(java.util.List.class, BshLambda.class));
+        assertFalse(Types.isBshAssignable(String.class, BshLambda.class));
+    }
+
+    @Test
+    public void namespace_get_method_accepts_a_raw_lambda_class_in_the_signature() throws Exception {
+        Interpreter interpreter = new Interpreter();
+        interpreter.eval("f(Runnable r) { return \"r\"; } lam = () -> {};");
+        Object lam = interpreter.get("lam");
+        BshMethod found = interpreter.getNameSpace().getMethod("f", new Class<?>[] { lam.getClass() });
+        assertNotNull(found);
+        assertEquals(Runnable.class, found.getParameterTypes()[0]);
     }
 }

@@ -219,8 +219,16 @@ public class BshLambda implements Serializable {
             boolean checkOnly) throws UtilEvalError {
         // Only Object holds a raw lambda: Serializable is an implementation detail, not a target.
         boolean raw = toType == Object.class || toType == BshLambda.class;
-        if (checkOnly)
-            return raw || isFunctionalTarget(toType, fromType) ? Types.VALID_CAST : Types.INVALID_CAST;
+        if (checkOnly) {
+            if (raw)
+                return Types.VALID_CAST;
+            // BshLambda.class itself (an API caller typing a lambda by getClass())
+            // carries no descriptor: any implementable functional interface may fit.
+            if (!isLambdaMarker(fromType))
+                return singleAbstractMethod(toType) != null && isImplementable(toType)
+                    ? Types.VALID_CAST : Types.INVALID_CAST;
+            return isFunctionalTarget(toType, fromType) ? Types.VALID_CAST : Types.INVALID_CAST;
+        }
         if (raw)
             return fromValue;
         return ((BshLambda) fromValue).convertTo(toType);
