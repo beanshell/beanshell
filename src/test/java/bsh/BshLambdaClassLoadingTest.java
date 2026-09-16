@@ -226,10 +226,12 @@ public class BshLambdaClassLoadingTest {
     public interface DeepDiamond extends Mid<String>, StringSam {}
 
     // Mid<String> is DeepDiamond's direct ancestor, not GenericSam: a
-    // single-level lookup for GenericSam's declaring class finds nothing,
-    // so substitution is unresolvable and this correctly falls back to rejection.
+    // single-level lookup for GenericSam's declaring class finds nothing, so
+    // substitution is unresolvable. Java (JLS 9.4.1.3) treats Deep extends
+    // Mid<String>, Mid<T> extends G<T> as a genuine functional interface;
+    // bsh does not yet resolve substitutions across more than one level.
     @Test
-    public void a_diamond_with_a_second_level_generic_ancestor_falls_back_to_rejection() throws Exception {
+    public void a_diamond_with_a_second_level_generic_ancestor_is_not_yet_supported() throws Exception {
         try {
             materialize(new Interpreter(), "s -> {};", DeepDiamond.class);
             org.junit.Assert.fail("expected a UtilEvalError");
@@ -300,9 +302,9 @@ public class BshLambdaClassLoadingTest {
 
     // T[] reflects as a GenericArrayType, not a TypeVariable, so it is never
     // recognized as needing substitution and falls back to plain erasure
-    // comparison (Object[] vs String[]) -- out of scope, correctly rejected.
+    // comparison (Object[] vs String[]) -- not yet supported.
     @Test
-    public void a_diamond_with_a_generic_array_substitution_falls_back_to_rejection() throws Exception {
+    public void a_diamond_with_a_generic_array_substitution_is_not_yet_supported() throws Exception {
         try {
             materialize(new Interpreter(), "s -> {};", ArrayDiamond.class);
             org.junit.Assert.fail("expected a UtilEvalError");
