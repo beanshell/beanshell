@@ -944,4 +944,38 @@ public class BshLambdaTest {
             assertTrue(expected.getMessage(), expected.getMessage().contains("generic"));
         }
     }
+
+    @Test
+    public void a_lambda_argument_to_super_in_a_scripted_constructor_is_converted() throws Exception {
+        assertEquals(Boolean.TRUE, new Interpreter().eval(
+            "class Base { Runnable r; Base(Runnable r) { this.r = r; } }"
+            + " class Sub extends Base { Sub() { super(() -> hit = true); } }"
+            + " hit = false; new Sub().r.run(); hit;"));
+    }
+
+    @Test
+    public void a_lambda_argument_to_a_java_super_constructor_is_converted() throws Exception {
+        assertEquals(Boolean.TRUE, new Interpreter().eval(
+            "class T extends Thread { T() { super(() -> hit = true); } }"
+            + " hit = false; t = new T(); t.run(); hit;"));
+    }
+
+    @Test
+    public void a_lambda_argument_to_this_in_a_scripted_constructor_is_converted() throws Exception {
+        assertEquals(7, Primitive.unwrap(new Interpreter().eval(
+            "class C { java.util.concurrent.Callable c; C() { this(() -> 7); }"
+            + " C(java.util.concurrent.Callable c) { this.c = c; } }"
+            + " new C().c.call();")));
+    }
+
+    // Pre-existing: a `This` reference needs the same conversion where an interface is
+    // expected. Thread(Runnable) would pass either way since Thread already implements
+    // Runnable; FutureTask(Callable) does not, so it isolates the conversion.
+    @Test
+    public void a_this_argument_to_a_java_super_constructor_is_converted_to_the_interface() throws Exception {
+        assertEquals(7, Primitive.unwrap(new Interpreter().eval(
+            "Object call() { return 7; } outer = this;"
+            + " class T extends java.util.concurrent.FutureTask { T() { super(outer); } }"
+            + " t = new T(); t.run(); t.get();")));
+    }
 }

@@ -650,18 +650,20 @@ public final class This implements java.io.Serializable, Runnable
 
         // find the matching super() constructor for the args
         if (altConstructor.equals("super")) {
-            int i = BshClassManager.memberCache.get(superClass)
-                    .findMemberIndex(superClass.getName(), argTypes);
+            BshClassManager.MemberCache cache = BshClassManager.memberCache.get(superClass);
+            int i = cache.findMemberIndex(superClass.getName(), argTypes);
             if (i == -1)
                 throw new InterpreterError(
                         "can't find super constructor for args!");
-            return new ConstructorArgs(i, args);
+            return new ConstructorArgs(i,
+                convertOpaqueArgs(args, cache.members(superClass.getName()).get(i).getParameterTypes()));
         }
 
         // find the matching this() constructor for the args
         int i = Reflect.findMostSpecificBshMethodIndex(argTypes, Arrays.asList(constructors));
         if (i == -1)
             throw new InterpreterError("can't find this constructor for args!");
+        args = convertOpaqueArgs(args, constructors[i].getParameterTypes());
         // this() constructors come after super constructors in the table
 
         int count = BshClassManager.memberCache.get(superClass)
@@ -674,6 +676,20 @@ public final class This implements java.io.Serializable, Runnable
             throw new InterpreterError("Recursive constructor call.");
 
         return new ConstructorArgs(selector, args);
+    }
+
+    // A lambda or scripted object is opaque until it meets its parameter type.
+    // A Java call converts in Invocable.invokeTarget; the generated constructor
+    // switch casts the raw argument itself, so convert here.
+    private static Object[] convertOpaqueArgs(Object[] args, Class<?>[] paramTypes) {
+        for (int k = 0; k < args.length && k < paramTypes.length; k++)
+            if (args[k] instanceof BshLambda || args[k] instanceof This && paramTypes[k].isInterface()) try {
+                args[k] = Types.castObject(args[k], paramTypes[k], Types.ASSIGNMENT);
+            } catch (UtilEvalError e) {
+                throw new InterpreterError("Error converting constructor argument "
+                    + (k + 1) + " to " + paramTypes[k].getName() + ": " + e.getMessage(), e);
+            }
+        return args;
     }
 
     /**
