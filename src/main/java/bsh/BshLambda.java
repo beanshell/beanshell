@@ -563,9 +563,14 @@ public class BshLambda implements Serializable {
         return type;
     }
 
-    private static boolean isWriteReplaceSam(Method sam) {
-        return sam.getName().equals("writeReplace") && sam.getParameterCount() == 0
-            && sam.getReturnType() == Object.class;
+    // Any zero-argument writeReplace in the inherited abstract family, whatever
+    // its return type: Class.getDeclaredMethod picks the most specific return,
+    // so serialization would find it instead of the surrogate hook.
+    private static boolean hasWriteReplaceSam(Class<?> functionalInterface) {
+        for (Method m : abstractMethods(functionalInterface))
+            if (m.getName().equals("writeReplace") && m.getParameterCount() == 0)
+                return true;
+        return false;
     }
 
     /** A functional interface may redeclare an Object method (equals, hashCode,
@@ -602,7 +607,7 @@ public class BshLambda implements Serializable {
             throw new UtilEvalError("A lambda cannot implement "
                 + functionalInterface.getName() + ": its return type or a parameter type "
                 + hidden.getName() + " is not public");
-        if (Serializable.class.isAssignableFrom(functionalInterface) && isWriteReplaceSam(sam))
+        if (Serializable.class.isAssignableFrom(functionalInterface) && hasWriteReplaceSam(functionalInterface))
             throw new UtilEvalError("A lambda cannot implement "
                 + functionalInterface.getName() + ": its single abstract method "
                 + "collides with Java serialization's writeReplace() hook, which "

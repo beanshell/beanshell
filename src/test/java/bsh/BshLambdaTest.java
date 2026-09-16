@@ -372,6 +372,23 @@ public class BshLambdaTest {
         }
     }
 
+    public interface ObjectReplacer { Object writeReplace(); }
+    public interface StringReplacer { String writeReplace(); }
+    public interface CovariantSerializableReplacer extends java.io.Serializable, ObjectReplacer, StringReplacer {}
+
+    // Class.getDeclaredMethod("writeReplace") would return the String declaration,
+    // hiding the surrogate hook: the whole abstract family must be checked.
+    @Test
+    public void a_covariant_write_replace_family_on_a_serializable_target_is_rejected() throws Exception {
+        try {
+            new Interpreter().eval("import bsh.BshLambdaTest.CovariantSerializableReplacer;"
+                + " (CovariantSerializableReplacer) () -> \"w\";");
+            fail("expected an EvalError naming writeReplace");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("writeReplace"));
+        }
+    }
+
     @Test
     public void deserializing_a_lambda_comparator_does_not_run_its_body() throws Exception {
         // A system property, not a script variable: the copy would write its own namespace.
