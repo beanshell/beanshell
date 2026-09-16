@@ -262,7 +262,7 @@ class BSHLambdaExpression extends SimpleNode
     }
 
     // Parentheses and the statement-level Expression() wrapper.
-    private static Node unwrap(Node node) {
+    static Node unwrap(Node node) {
         while (node.jjtGetNumChildren() == 1 && (node instanceof BSHPrimaryExpression
                 || node instanceof BSHAssignment && ((BSHAssignment) node).operator == null))
             node = node.jjtGetChild(0);

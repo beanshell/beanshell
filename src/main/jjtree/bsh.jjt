@@ -157,47 +157,33 @@ public class Parser
         // never produce one.
         if (n instanceof BSHBinaryExpression || n instanceof BSHUnaryExpression) {
             for (int i = 0; i < n.jjtGetNumChildren(); i++)
-                rejectLambdaChild(n, i);
+                rejectLambdaAt(n, i);
         } else if (n instanceof BSHTernaryExpression
                 || n instanceof BSHAssignment && n.jjtGetNumChildren() > 1) {
-            rejectLambdaChild(n, 0);
+            rejectLambdaAt(n, 0);
         } else if (n instanceof BSHIfStatement || n instanceof BSHSwitchStatement) {
-            rejectLambdaInCondition(n, 0);
+            rejectLambdaAt(n, 0);
         } else if (n instanceof BSHWhileStatement) {
-            rejectLambdaInCondition(n, ((BSHWhileStatement) n).isDoStatement ? n.jjtGetNumChildren() - 1 : 0);
+            rejectLambdaAt(n, ((BSHWhileStatement) n).isDoStatement ? n.jjtGetNumChildren() - 1 : 0);
         } else if (n instanceof BSHForStatement) {
             BSHForStatement loop = (BSHForStatement) n;
             if (loop.hasExpression)
-                rejectLambdaInCondition(n, loop.hasForInit ? 1 : 0);
+                rejectLambdaAt(n, loop.hasForInit ? 1 : 0);
         } else if (n instanceof BSHBlock && ((BSHBlock) n).isSynchronized) {
-            rejectLambdaInCondition(n, 0);
+            rejectLambdaAt(n, 0);
         }
     }
 
-    private void rejectLambdaChild(Node n, int index) throws ParseException {
-        if (index < n.jjtGetNumChildren() && n.jjtGetChild(index) instanceof BSHLambdaExpression) {
-            Token beforeLambda = new Token();
-            beforeLambda.next = ((SimpleNode) n.jjtGetChild(index)).firstToken;
-            throw new ParseException(beforeLambda, new int[0][], new String[0][], tokenImage, null);
-        }
-    }
-
-    private void rejectLambdaInCondition(Node n, int index) throws ParseException {
+    // Parentheses and the Expression() wrapper add nodes around a lambda without
+    // changing what it is.
+    private void rejectLambdaAt(Node n, int index) throws ParseException {
         if (index >= n.jjtGetNumChildren())
             return;
-        Node child = n.jjtGetChild(index);
+        Node child = BSHLambdaExpression.unwrap(n.jjtGetChild(index));
         if (child instanceof BSHLambdaExpression) {
             Token beforeLambda = new Token();
             beforeLambda.next = ((SimpleNode) child).firstToken;
             throw new ParseException(beforeLambda, new int[0][], new String[0][], tokenImage, null);
-        } else if (child instanceof BSHAssignment) {
-            // The condition is wrapped by Expression(), which creates a BSHAssignment.
-            // Check if it's a simple assignment (1 child) where the operand is a lambda.
-            if (child.jjtGetNumChildren() == 1 && child.jjtGetChild(0) instanceof BSHLambdaExpression) {
-                Token beforeLambda = new Token();
-                beforeLambda.next = ((SimpleNode) child.jjtGetChild(0)).firstToken;
-                throw new ParseException(beforeLambda, new int[0][], new String[0][], tokenImage, null);
-            }
         }
     }
 

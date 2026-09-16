@@ -187,7 +187,7 @@ public class LambdaExpressionParseTest {
     @Test
     public void lambdas_outside_operator_operands_still_parse() throws Exception {
         String[] sources = { "r = x -> x;", "r = s = x -> x;", "m() { return x -> x || y; }",
-            "x -> y -> x + y;", "(x -> x) + 1;", "f(a, x -> -x, !b);", "r = b ? x -> x : y -> y;",
+            "x -> y -> x + y;", "f(a, x -> -x, !b);", "r = b ? x -> x : y -> y;",
             "(Runnable) () -> {};", "r += x -> x;", "b ? x : y -> y;" };
         for (String source : sources)
             parse(source);
@@ -238,5 +238,52 @@ public class LambdaExpressionParseTest {
         // block, not a synchronized statement. It must parse without throwing.
         // The lambda here is a bare statement expression, not a condition.
         parse("{ p -> p; { x = 1; } }");
+    }
+
+    private static void assertParseFails(String source) throws Exception {
+        try {
+            parse(source);
+            fail("expected a ParseException for " + source);
+        } catch (ParseException expected) {
+            // expected
+        }
+    }
+
+    @Test
+    public void a_parenthesized_lambda_is_still_rejected_as_a_condition() throws Exception {
+        for (String statement : new String[] {
+                "if ((x -> x)) y = 1;",
+                "if (((x -> x))) y = 1;",
+                "while ((x -> x)) { break; }",
+                "do { break; } while ((x -> x));",
+                "for (; (x -> x); ) { break; }",
+                "switch ((x -> x)) { default: break; }",
+                "synchronized ((x -> x)) { }" })
+            assertParseFails(statement);
+    }
+
+    @Test
+    public void a_parenthesized_lambda_is_still_rejected_as_an_operand() throws Exception {
+        for (String statement : new String[] {
+                "((x -> x)) + 1;",
+                "1 + (x -> x);",
+                "-(x -> x);",
+                "(x -> x) != null;",
+                "(x -> x) instanceof Object;",
+                "(x -> x) ? 1 : 2;",
+                "(x -> x) = 5;" })
+            assertParseFails(statement);
+    }
+
+    @Test
+    public void parenthesized_lambdas_in_legal_positions_still_parse() throws Exception {
+        for (String statement : new String[] {
+                "r = (() -> 1);",
+                "f((x -> x));",
+                "v = b ? (x -> x) : (y -> y);",
+                "while ((s = () -> 1) != null) { break; }",
+                "((Runnable) () -> {}) == null;",
+                "(((x -> x)));" })
+            parse(statement);
     }
 }
