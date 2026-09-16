@@ -67,7 +67,7 @@ class BSHLambdaExpression extends SimpleNode
             paramTypes = (Class<?>[]) params.eval(callstack, interpreter);
             paramModifiers = params.getParamModifiers();
             bodyNode = (Node) jjtGetChild(1);
-            validateParameterList(paramNames, paramTypes, callstack);
+            validateParameterList(params, paramNames, paramTypes, callstack);
         }
 
         return new BshLambda(this, callstack.top(), interpreter,
@@ -75,10 +75,10 @@ class BSHLambdaExpression extends SimpleNode
     }
 
     // JLS 15.27.1: a lambda's formal parameter list must be entirely typed or
-    // entirely untyped, and its names must be unique -- unlike a method
-    // declaration, which FormalParameters()/FormalParameter() also serve.
-    private void validateParameterList(String[] paramNames, Class<?>[] paramTypes,
-            CallStack callstack) throws EvalException {
+    // entirely untyped, its names unique, and an inferred parameter unannotated
+    // -- unlike a method declaration, which FormalParameters() also serves.
+    private void validateParameterList(BSHFormalParameters params, String[] paramNames,
+            Class<?>[] paramTypes, CallStack callstack) throws EvalException {
         boolean anyTyped = false, anyUntyped = false;
         for (Class<?> type : paramTypes)
             if (type != null) anyTyped = true; else anyUntyped = true;
@@ -86,10 +86,14 @@ class BSHLambdaExpression extends SimpleNode
             throw new EvalException(
                 "A lambda's parameters must be either all typed or all untyped", this, callstack);
         Set<String> seen = new HashSet<>();
-        for (String name : paramNames)
-            if (!seen.add(name))
+        for (int i = 0; i < paramNames.length; i++) {
+            if (!seen.add(paramNames[i]))
                 throw new EvalException(
-                    "Duplicate lambda parameter name: " + name, this, callstack);
+                    "Duplicate lambda parameter name: " + paramNames[i], this, callstack);
+            if (paramTypes[i] == null && ((BSHFormalParameter) params.jjtGetChild(i)).annotated)
+                throw new EvalException(
+                    "An inferred lambda parameter cannot be annotated: " + paramNames[i], this, callstack);
+        }
     }
 
     /** Which methods the body fits (JLS 15.27.2): an expression fits a value

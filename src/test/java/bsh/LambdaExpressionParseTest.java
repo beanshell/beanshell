@@ -286,4 +286,20 @@ public class LambdaExpressionParseTest {
                 "(((x -> x)));" })
             parse(statement);
     }
+
+    @Test
+    public void an_annotation_on_an_inferred_parameter_is_rejected() throws Exception {
+        try {
+            new Interpreter().eval("java.util.function.Consumer c = (@Deprecated x) -> {};");
+            fail("expected an EvalError: an implicitly typed parameter cannot be annotated");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("annotat"));
+        }
+    }
+
+    @Test
+    public void an_annotation_on_a_typed_parameter_is_still_accepted() throws Exception {
+        assertEquals("ok", new Interpreter().eval(
+            "java.util.function.Function f = (@Deprecated String s) -> s; f.apply(\"ok\");"));
+    }
 }

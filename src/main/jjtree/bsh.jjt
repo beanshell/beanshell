@@ -967,7 +967,7 @@ void FormalParameter() #FormalParameter :
   Token t;
 }
 {
-  ( Annotation() )*
+  ( Annotation() { jjtThis.annotated = true; } )*
 ( LOOKAHEAD(2) [ "final" { jjtThis.isFinal = true; } ]
   Type()[ <ELLIPSIS> { jjtThis.isVarArgs = true; } ]
   t=<IDENTIFIER> { jjtThis.name = t.image; }
