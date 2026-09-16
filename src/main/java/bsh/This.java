@@ -37,6 +37,7 @@ import static bsh.This.Keys.BSHCONSTRUCTORS;
 import static bsh.This.Keys.BSHINIT;
 import static bsh.This.Keys.BSHTHIS;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -650,18 +651,22 @@ public final class This implements java.io.Serializable, Runnable
 
         // find the matching super() constructor for the args
         if (altConstructor.equals("super")) {
-            int i = BshClassManager.memberCache.get(superClass)
-                    .findMemberIndex(superClass.getName(), argTypes);
+            BshClassManager.MemberCache cache = BshClassManager.memberCache.get(superClass);
+            int i = cache.findMemberIndex(superClass.getName(), argTypes);
             if (i == -1)
                 throw new InterpreterError(
                         "can't find super constructor for args!");
-            return new ConstructorArgs(i, args);
+            Invocable superCon = cache.members(superClass.getName()).get(i);
+            return new ConstructorArgs(i, packVarArgsTail(args, argTypes,
+                superCon.getParameterTypes(), superCon.isVarArgs()));
         }
 
         // find the matching this() constructor for the args
         int i = Reflect.findMostSpecificBshMethodIndex(argTypes, Arrays.asList(constructors));
         if (i == -1)
             throw new InterpreterError("can't find this constructor for args!");
+        args = packVarArgsTail(args, argTypes,
+            constructors[i].getParameterTypes(), constructors[i].isVarArgs());
         // this() constructors come after super constructors in the table
 
         int count = BshClassManager.memberCache.get(superClass)
@@ -674,6 +679,47 @@ public final class This implements java.io.Serializable, Runnable
             throw new InterpreterError("Recursive constructor call.");
 
         return new ConstructorArgs(selector, args);
+    }
+
+    // The generated constructor's this()/super() delegation switch
+    // (ClassGeneratorUtil.doSwitchBranch) reads exactly one value per DECLARED
+    // parameter and CHECKCASTs it directly to the declared type -- for a varargs
+    // parameter that is the array type itself, e.g. Runnable[]. It never spreads
+    // multiple resolved arguments into an array itself, unlike an ordinary
+    // reflective/MethodHandle varargs call. Pack the tail here first, mirroring
+    // BSHAllocationExpression.superConstructorArgs's handling of the same
+    // problem for an anonymous subclass's super(...) call. A lone argument
+    // already assignable to the array type is passed through unwrapped, matching
+    // ordinary varargs call semantics (an explicitly-passed array isn't re-wrapped).
+    // The declared type, not the value, tells a lone null array argument apart
+    // from a lone null element: (Object[])null and (Object)null are both a null
+    // value (same reasoning as BSHAllocationExpression.superConstructorArgs).
+    private static Object[] packVarArgsTail(Object[] args, Class<?>[] argTypes,
+            Class<?>[] paramTypes, boolean varArgs) {
+        if (!varArgs || paramTypes.length == 0 || paramTypes.length > args.length + 1)
+            return args;
+        int fixed = paramTypes.length - 1;
+        Class<?> arrayType = paramTypes[fixed];
+        if (arrayType == null)
+            return args;
+        if (args.length == paramTypes.length) {
+            Class<?> lastType = argTypes[fixed];
+            if (lastType == null || arrayType.isAssignableFrom(lastType))
+                return args;
+        }
+        Class<?> component = arrayType.getComponentType();
+        int tail = args.length - fixed;
+        Object packed = Array.newInstance(component, tail);
+        for (int k = 0; k < tail; k++) try {
+            Array.set(packed, k,
+                Primitive.unwrap(Types.castObject(args[fixed + k], component, Types.CAST)));
+        } catch (UtilEvalError e) {
+            throw new InterpreterError("Error converting constructor argument "
+                + (fixed + k + 1) + " to " + component.getName() + ": " + e.getMessage(), e);
+        }
+        Object[] result = Arrays.copyOf(args, paramTypes.length);
+        result[fixed] = packed;
+        return result;
     }
 
     /**
