@@ -817,6 +817,28 @@ public class BshLambdaResolutionTest {
         assertEquals("callable", result); // Callable's fully-qualified name sorts before Supplier's, so it wins the tie-break; see compareFully.
     }
 
+    public interface FLong { long f(int x); }
+    public interface FDbl { double f(int x); }
+
+    private static final String F_LONG = "q(bsh.BshLambdaResolutionTest.FLong a) { return \"long:\" + a.f(1); }";
+    private static final String F_DBL = "q(bsh.BshLambdaResolutionTest.FDbl a) { return \"dbl:\" + a.f(1); }";
+
+    // bsh, unlike Java (JLS 6.4), lets a block redeclare a lambda parameter. The
+    // redeclared name is not the parameter, so the body's type is unknown: taking it
+    // for the parameter's would rank the double body onto the narrower long SAM and
+    // truncate 1.5 to 1 with no error at all.
+    @Test
+    public void a_parameter_redeclared_in_the_body_does_not_rank_as_its_declared_type() throws Exception {
+        assertEveryOrderPicks("dbl:1.5", "q((int x) -> { double x = 1.5; return x; });", F_LONG, F_DBL);
+        assertEveryOrderPicks("dbl:3.5", "q((int x) -> { { double x = 3.5; return x; } });", F_LONG, F_DBL);
+        assertEveryOrderPicks("dbl:2.5",
+            "q((int x) -> { try { throw new Error(); } catch (Error e) { double x = 2.5; return x; } });",
+            F_LONG, F_DBL);
+        // Control: a plain reassignment is not a redeclaration, so the body is still
+        // an int and the narrower long SAM rightly wins.
+        assertEveryOrderPicks("long:5", "q((int x) -> { x = 5; return x; });", F_LONG, F_DBL);
+    }
+
     public static class TypedLambdaOverloads {
         public static String a(java.util.function.IntUnaryOperator f) { return "unary:" + f.applyAsInt(3); }
         public static String a(java.util.function.IntToLongFunction f) { return "tolong:" + f.applyAsLong(3); }

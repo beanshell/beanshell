@@ -137,6 +137,7 @@ class BSHLambdaExpression extends SimpleNode
                 declared.put(paramNames[i], paramTypes[i]);
         if (!(body instanceof BSHBlock))
             return expressionResult(body, declared);
+        removeRedeclared(body, declared);
         List<Node> returned = new ArrayList<>();
         collectValueReturns(body, returned);
         if (returned.isEmpty())
@@ -154,6 +155,25 @@ class BSHLambdaExpression extends SimpleNode
                 constants = null;
         }
         return new LambdaDescriptor.Result(type, constants);
+    }
+
+    /** bsh, unlike Java (JLS 6.4), lets a block redeclare a lambda parameter's name
+        -- as a local, a catch parameter, a for-each variable or a resource. That name
+        then holds the local, so the parameter's declared type says nothing about it.
+        One redeclaration anywhere drops the name for the whole body: a name bsh only
+        might know is treated exactly like one it cannot know. Nested lambdas and
+        methods bind in their own scope, so their declarations do not count. */
+    private static void removeRedeclared(Node node, Map<String, Class<?>> declared) {
+        if (node instanceof BSHVariableDeclarator)
+            declared.remove(((BSHVariableDeclarator) node).name);
+        else if (node instanceof BSHMultiCatch)
+            declared.remove(((BSHMultiCatch) node).name);
+        else if (node instanceof BSHEnhancedForStatement)
+            declared.remove(((BSHEnhancedForStatement) node).varName);
+        else if (node instanceof BSHLambdaExpression || node instanceof BSHMethodDeclaration)
+            return;
+        for (int i = 0; i < node.jjtGetNumChildren() && !declared.isEmpty(); i++)
+            removeRedeclared(node.jjtGetChild(i), declared);
     }
 
     private static void collectValueReturns(Node node, List<Node> returned) {

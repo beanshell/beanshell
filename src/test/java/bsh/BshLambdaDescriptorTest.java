@@ -477,6 +477,38 @@ public class BshLambdaDescriptorTest {
             ToIntBiFunction.class, BiFunction.class, IntBinaryOperator.class));
     }
 
+    // bsh, unlike Java (JLS 6.4), lets a block redeclare a lambda parameter's name.
+    // The redeclared name holds the local's value, not the parameter's, so trusting
+    // the declared type there silently truncates (a double body ranked onto a long
+    // SAM) or silently picks another overload.
+    @Test
+    public void a_parameter_redeclared_anywhere_in_the_body_is_not_statically_known() throws Exception {
+        assertNull(descriptor("(int x) -> { double x = 1.5; return x; }", int.class).result);
+        assertNull(descriptor("(int x) -> { { String x = \"inner\"; return x; } }", int.class).result);
+        assertNull(descriptor("(int x) -> { if (c) { long x = 3; return x; } return 1; }", int.class).result);
+        assertNull(descriptor("(int x) -> { try { foo(); } catch (Exception x) { return x; } return 1; }", int.class).result);
+        assertNull(descriptor(
+            "(int x) -> { try { throw new Error(); } catch (Error e) { double x = 2.5; return x; } }", int.class).result);
+        assertNull(descriptor("(int x) -> { for (String x : list) { return x; } }", int.class).result);
+        assertNull(descriptor("(int x) -> { for (String x = \"q\"; c; ) { return x; } return 1; }", int.class).result);
+        assertNull(descriptor(
+            "(int x) -> { try (java.io.Reader x = r) { return x; } finally { } }", int.class).result);
+        // Only the redeclared name is lost; the others keep their declared type.
+        assertEquals(int.class,
+            descriptor("(int x, int y) -> { double y = 1.5; return x; }", int.class, int.class).result.type);
+    }
+
+    // A reassignment is not a redeclaration: a typed bsh variable still holds an int,
+    // and a nested lambda's own parameter does not shadow the body's.
+    @Test
+    public void a_parameter_only_reassigned_or_reused_by_a_nested_lambda_keeps_its_type() throws Exception {
+        assertEquals(int.class, descriptor("(int x) -> { x = 5; return x; }", int.class).result.type);
+        assertEquals(int.class, descriptor("(int x) -> { x++; return x; }", int.class).result.type);
+        assertEquals(int.class, descriptor("(int x) -> { if (c) x = 5; return x; }", int.class).result.type);
+        assertEquals(int.class, descriptor("(int x) -> { Object f = (String x) -> x; return x; }", int.class).result.type);
+        assertEquals(int.class, descriptor("(int x) -> { int y = 1; return x; }", int.class).result.type);
+    }
+
     // The @word spellings are the same operators and must type the same way.
     @Test
     public void the_word_spelling_of_an_operator_types_as_its_symbol_does() throws Exception {
