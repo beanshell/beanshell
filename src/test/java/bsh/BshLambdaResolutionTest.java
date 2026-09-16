@@ -817,6 +817,29 @@ public class BshLambdaResolutionTest {
         assertEquals("callable", result); // Callable's fully-qualified name sorts before Supplier's, so it wins the tie-break; see compareFully.
     }
 
+    public static class TypedLambdaOverloads {
+        public static String a(java.util.function.IntUnaryOperator f) { return "unary:" + f.applyAsInt(3); }
+        public static String a(java.util.function.IntToLongFunction f) { return "tolong:" + f.applyAsLong(3); }
+        public static String h(java.util.function.Predicate<Integer> p) { return "predicate:" + p.test(2); }
+        public static String h(java.util.function.Function<Integer, Boolean> f) { return "function:" + f.apply(2); }
+        public static String q(java.util.function.BooleanSupplier s) { return "boolean:" + s.getAsBoolean(); }
+        public static String q(java.util.function.Supplier<Boolean> s) { return "supplier:" + s.get(); }
+        public static String w(java.util.function.ToIntBiFunction<Integer, Integer> f) { return "toint:" + f.applyAsInt(1, 2); }
+        public static String w(java.util.function.BiFunction<Integer, Integer, Integer> f) { return "bifunction:" + f.apply(1, 2); }
+    }
+
+    // javac 23 picks: a -> IntUnaryOperator, h -> Predicate, q -> BooleanSupplier, w -> ToIntBiFunction.
+    @Test
+    public void explicitly_typed_bodies_with_a_knowable_type_resolve_as_javac_does() throws Exception {
+        Interpreter interpreter = new Interpreter();
+        interpreter.eval("import bsh.BshLambdaResolutionTest.TypedLambdaOverloads; foo() { return 5; }");
+        assertEquals("unary:3", interpreter.eval("TypedLambdaOverloads.a((int x) -> x);"));
+        assertEquals("unary:6", interpreter.eval("TypedLambdaOverloads.a((int x) -> x * 2);"));
+        assertEquals("predicate:true", interpreter.eval("TypedLambdaOverloads.h((Integer x) -> x > 1);"));
+        assertEquals("boolean:true", interpreter.eval("TypedLambdaOverloads.q(() -> foo() > 1);"));
+        assertEquals("toint:3", interpreter.eval("TypedLambdaOverloads.w((Integer a, Integer b) -> a + b);"));
+    }
+
     @Test
     public void a_check_only_cast_from_the_raw_lambda_class_reports_functional_targets_without_crashing() throws Exception {
         assertTrue(Types.isBshAssignable(Runnable.class, BshLambda.class));

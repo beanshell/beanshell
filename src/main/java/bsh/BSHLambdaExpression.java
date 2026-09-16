@@ -28,8 +28,11 @@
 package bsh;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -120,11 +123,20 @@ class BSHLambdaExpression extends SimpleNode
     }
 
     /** The statically known result of a body, or null. Deliberately narrow:
-        literals, unary +, - and ~ on them, and primitive casts; resolving any
-        other type could initialize classes. */
+        literals, unary +, - and ~ on them, primitive casts, a declared parameter
+        read back, and operators whose result type follows from their operands;
+        resolving any other name could initialize classes. */
     static LambdaDescriptor.Result result(Node body) {
+        return result(body, new String[0], new Class<?>[0]);
+    }
+
+    static LambdaDescriptor.Result result(Node body, String[] paramNames, Class<?>[] paramTypes) {
+        Map<String, Class<?>> declared = new HashMap<>();
+        for (int i = 0; i < paramNames.length; i++)
+            if (paramTypes[i] != null)
+                declared.put(paramNames[i], paramTypes[i]);
         if (!(body instanceof BSHBlock))
-            return expressionResult(body);
+            return expressionResult(body, declared);
         List<Node> returned = new ArrayList<>();
         collectValueReturns(body, returned);
         if (returned.isEmpty())
@@ -132,7 +144,7 @@ class BSHLambdaExpression extends SimpleNode
         Class<?> type = null;
         Set<Object> constants = new HashSet<>();
         for (Node expression : returned) {
-            LambdaDescriptor.Result each = expressionResult(expression);
+            LambdaDescriptor.Result each = expressionResult(expression, declared);
             if (each == null || type != null && each.type != type)
                 return null;
             type = each.type;
@@ -152,42 +164,121 @@ class BSHLambdaExpression extends SimpleNode
                 collectValueReturns(node.jjtGetChild(i), returned);
     }
 
-    private static LambdaDescriptor.Result expressionResult(Node expression) {
+    private static LambdaDescriptor.Result expressionResult(Node expression, Map<String, Class<?>> declared) {
         Node node = unwrap(expression);
+        if (node instanceof BSHAmbiguousName) {
+            Class<?> type = declared.get(((BSHAmbiguousName) node).text);
+            return type == null ? null : new LambdaDescriptor.Result(type, null);
+        }
         if (node instanceof BSHLiteral)
             return isWidenedToLong((BSHLiteral) node) ? null : constantResult(((BSHLiteral) node).value);
         if (node instanceof BSHUnaryExpression) {
             BSHUnaryExpression unary = (BSHUnaryExpression) node;
+            if (!unary.postfix && unary.kind == ParserConstants.BANG)
+                return new LambdaDescriptor.Result(boolean.class, null);
             if (unary.postfix || unary.kind != ParserConstants.PLUS && unary.kind != ParserConstants.MINUS
                     && unary.kind != ParserConstants.TILDE)
                 return null;
             if (unary.kind == ParserConstants.MINUS && isIntMinimumMagnitude(node.jjtGetChild(0)))
                 return constantResult(new Primitive(Integer.MIN_VALUE));
-            LambdaDescriptor.Result operand = expressionResult(node.jjtGetChild(0));
+            LambdaDescriptor.Result operand = expressionResult(node.jjtGetChild(0), declared);
             return operand == null || operand.constants == null ? null : constantResult(fold(node));
         }
         if (node instanceof BSHBinaryExpression) {
-            LambdaDescriptor.Result lhs = expressionResult(node.jjtGetChild(0));
-            LambdaDescriptor.Result rhs = expressionResult(node.jjtGetChild(1));
-            if (lhs == null || lhs.constants == null || rhs == null || rhs.constants == null)
+            int kind = ((BSHBinaryExpression) node).kind;
+            LambdaDescriptor.Result lhs = expressionResult(node.jjtGetChild(0), declared);
+            LambdaDescriptor.Result rhs = expressionResult(node.jjtGetChild(1), declared);
+            if (isBooleanValued(kind))
+                return lhs != null && lhs.constants != null && rhs != null && rhs.constants != null
+                    ? constantResult(fold(node)) : new LambdaDescriptor.Result(boolean.class, null);
+            if (lhs == null || rhs == null)
                 return null;
-            return constantResult(fold(node));
+            if (lhs.constants != null && rhs.constants != null)
+                return constantResult(fold(node));
+            Class<?> promoted = operatorType(kind, lhs.type, rhs.type);
+            return promoted == null ? null : new LambdaDescriptor.Result(promoted, null);
         }
         if (node instanceof BSHTernaryExpression) {
-            LambdaDescriptor.Result condition = expressionResult(node.jjtGetChild(0));
-            if (condition == null || condition.constants == null)
-                return null;
+            LambdaDescriptor.Result condition = expressionResult(node.jjtGetChild(0), declared);
+            if (condition == null || condition.constants == null) {
+                LambdaDescriptor.Result then = expressionResult(node.jjtGetChild(1), declared);
+                LambdaDescriptor.Result otherwise = expressionResult(node.jjtGetChild(2), declared);
+                return then == null || otherwise == null || then.type != otherwise.type
+                    ? null : new LambdaDescriptor.Result(then.type, null);
+            }
             LambdaDescriptor.Result taken = expressionResult(fold(node.jjtGetChild(0)) == Primitive.TRUE
-                ? node.jjtGetChild(1) : node.jjtGetChild(2));
+                ? node.jjtGetChild(1) : node.jjtGetChild(2), declared);
             return taken == null || taken.constants == null ? null : constantResult(fold(node));
         }
         Class<?> cast = primitiveCast(node);
         if (cast == null)
             return null;
-        LambdaDescriptor.Result operand = expressionResult(node.jjtGetChild(1));
+        LambdaDescriptor.Result operand = expressionResult(node.jjtGetChild(1), declared);
         if (operand == null || operand.constants == null)
             return new LambdaDescriptor.Result(cast, null);
         return constantResult(fold(node));
+    }
+
+    // JLS 15.20-15.24, 15.20.2: relational, equality, conditional and instanceof.
+    private static boolean isBooleanValued(int kind) {
+        switch (kind) {
+            case ParserConstants.LT: case ParserConstants.LTX: case ParserConstants.GT: case ParserConstants.GTX:
+            case ParserConstants.LE: case ParserConstants.LEX: case ParserConstants.GE: case ParserConstants.GEX:
+            case ParserConstants.EQ: case ParserConstants.NE:
+            case ParserConstants.BOOL_AND: case ParserConstants.BOOL_ANDX:
+            case ParserConstants.BOOL_OR: case ParserConstants.BOOL_ORX:
+            case ParserConstants.INSTANCEOF:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private static final List<Class<?>> PROMOTION = Arrays.asList(
+        int.class, long.class, float.class, double.class);
+
+    // JLS 5.6.2 binary numeric promotion (boxed operands unboxed), 15.18.1 string
+    // concatenation, 15.19 shifts (left operand promoted alone), 15.22 bitwise
+    // and logical & | ^. Null where bsh cannot know the type.
+    private static Class<?> operatorType(int kind, Class<?> lhs, Class<?> rhs) {
+        if (kind == ParserConstants.PLUS && (lhs == String.class || rhs == String.class))
+            return String.class;
+        Class<?> l = numericOrNull(lhs), r = numericOrNull(rhs);
+        switch (kind) {
+            case ParserConstants.PLUS: case ParserConstants.MINUS: case ParserConstants.STAR:
+            case ParserConstants.SLASH: case ParserConstants.MOD:
+                return l == null || r == null ? null : promoted(l, r);
+            case ParserConstants.LSHIFT: case ParserConstants.LSHIFTX:
+            case ParserConstants.RSIGNEDSHIFT: case ParserConstants.RSIGNEDSHIFTX:
+            case ParserConstants.RUNSIGNEDSHIFT: case ParserConstants.RUNSIGNEDSHIFTX:
+                return l == null || r == null || !isIntegral(l) || !isIntegral(r) ? null : promoted(l, int.class);
+            case ParserConstants.BIT_AND: case ParserConstants.BIT_ANDX:
+            case ParserConstants.BIT_OR: case ParserConstants.BIT_ORX:
+            case ParserConstants.XOR: case ParserConstants.XORX:
+                if (unboxed(lhs) == boolean.class && unboxed(rhs) == boolean.class)
+                    return boolean.class;
+                return l == null || r == null || !isIntegral(l) || !isIntegral(r) ? null : promoted(l, r);
+            default:
+                return null;
+        }
+    }
+
+    private static Class<?> unboxed(Class<?> type) {
+        return type != null && Primitive.isWrapperType(type) ? Primitive.unboxType(type) : type;
+    }
+
+    private static Class<?> numericOrNull(Class<?> type) {
+        Class<?> u = unboxed(type);
+        return u == null || !u.isPrimitive() || u == boolean.class ? null : u;
+    }
+
+    private static boolean isIntegral(Class<?> primitive) {
+        return primitive != float.class && primitive != double.class;
+    }
+
+    private static Class<?> promoted(Class<?> a, Class<?> b) {
+        int ia = Math.max(0, PROMOTION.indexOf(a)), ib = Math.max(0, PROMOTION.indexOf(b));
+        return PROMOTION.get(Math.max(ia, ib));
     }
 
     // JLS 3.10.1: an unparenthesized 2147483648 under unary minus is the int minimum.

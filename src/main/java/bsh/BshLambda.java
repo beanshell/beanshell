@@ -101,7 +101,8 @@ public class BshLambda implements Serializable {
     LambdaDescriptor descriptor() {
         LambdaDescriptor known = descriptor;
         if (known == null)
-            descriptor = known = new LambdaDescriptor(shape, paramTypes, BSHLambdaExpression.result(bodyNode));
+            descriptor = known = new LambdaDescriptor(shape, paramTypes,
+                BSHLambdaExpression.result(bodyNode, paramNames, paramTypes));
         return known;
     }
 

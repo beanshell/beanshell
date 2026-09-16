@@ -13,14 +13,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 import java.util.function.Function;
+import java.util.function.IntBinaryOperator;
 import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
 import java.util.function.IntSupplier;
+import java.util.function.IntToLongFunction;
+import java.util.function.IntUnaryOperator;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.function.ToIntBiFunction;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -281,10 +287,23 @@ public class BshLambdaDescriptorTest {
     public interface A1 { void go(); }
     interface Hidden { void run(); }
 
-    private static LambdaDescriptor descriptor(String lambda, Class<?>... paramTypes) throws Exception {
-        Node body = body(lambda);
+    private static BSHLambdaExpression lambda(String source) throws Exception {
+        Parser parser = new Parser(new StringReader(source + ";"));
+        parser.Line();
+        Node expression = parser.popNode().jjtGetChild(0);
+        return (BSHLambdaExpression) expression;
+    }
+
+    private static String[] paramNames(BSHLambdaExpression node) {
+        return node.paramName != null ? new String[] { node.paramName }
+            : ((BSHFormalParameters) node.jjtGetChild(0)).getParamNames();
+    }
+
+    private static LambdaDescriptor descriptor(String source, Class<?>... paramTypes) throws Exception {
+        BSHLambdaExpression node = lambda(source);
+        Node body = node.jjtGetChild(node.jjtGetNumChildren() - 1);
         return new LambdaDescriptor(BSHLambdaExpression.bodyShape(body), paramTypes,
-            BSHLambdaExpression.result(body));
+            BSHLambdaExpression.result(body, paramNames(node), paramTypes));
     }
 
     @Test
@@ -412,6 +431,73 @@ public class BshLambdaDescriptorTest {
     @Test
     public void jls_cycle_falls_back_to_the_ranking_key() throws Exception {
         assertEquals(IntSupplier.class, pick(descriptor("() -> 1"), IntSupplier.class, DoubleSupplier.class, W.class));
+    }
+
+    // JLS 15.12.2.5: a declared primitive parameter or a boolean operator gives the
+    // body a known type, so the narrower or primitive-returning interface wins.
+    @Test
+    public void a_declared_parameter_read_back_has_its_declared_type() throws Exception {
+        LambdaDescriptor identity = descriptor("(int x) -> x", int.class);
+        assertEquals(int.class, identity.result.type);
+        assertNull(identity.result.constants);
+        assertEquals(IntUnaryOperator.class, pick(identity, IntUnaryOperator.class, IntToLongFunction.class));
+        assertEquals(String.class, descriptor("(String s) -> s", String.class).result.type);
+        assertNull(descriptor("(x) -> x", (Class<?>) null).result);
+        assertNull(descriptor("(int x) -> { int y = x; return y; }", int.class).result);
+    }
+
+    @Test
+    public void relational_logical_and_instanceof_bodies_are_boolean() throws Exception {
+        assertEquals(boolean.class, descriptor("(Integer x) -> x > 1", Integer.class).result.type);
+        assertEquals(boolean.class, descriptor("() -> foo() > 1").result.type);
+        assertEquals(boolean.class, descriptor("(a, b) -> a == b", null, null).result.type);
+        assertEquals(boolean.class, descriptor("(a, b) -> a && b", null, null).result.type);
+        assertEquals(boolean.class, descriptor("(o) -> o instanceof String", (Class<?>) null).result.type);
+        assertEquals(boolean.class, descriptor("(b) -> !b", (Class<?>) null).result.type);
+        assertEquals(Predicate.class, pick(descriptor("(Integer x) -> x > 1", Integer.class), Predicate.class, Function.class));
+        assertEquals(BooleanSupplier.class, pick(descriptor("() -> foo() > 1"), BooleanSupplier.class, Supplier.class));
+    }
+
+    // JLS 5.6.2 binary numeric promotion, with boxed operands unboxed.
+    @Test
+    public void arithmetic_on_known_numeric_operands_has_the_promoted_type() throws Exception {
+        assertEquals(int.class, descriptor("(int x) -> x * 2", int.class).result.type);
+        assertEquals(int.class, descriptor("(Integer a, Integer b) -> a + b", Integer.class, Integer.class).result.type);
+        assertEquals(long.class, descriptor("(int x, long y) -> x + y", int.class, long.class).result.type);
+        assertEquals(double.class, descriptor("(float f, double d) -> f * d", float.class, double.class).result.type);
+        assertEquals(int.class, descriptor("(byte b, short s) -> b + s", byte.class, short.class).result.type);
+        assertEquals(int.class, descriptor("(char c) -> c + 1", char.class).result.type);
+        assertEquals(String.class, descriptor("(String s, int n) -> s + n", String.class, int.class).result.type);
+        assertEquals(int.class, descriptor("(int x) -> x << 2", int.class).result.type);
+        assertEquals(long.class, descriptor("(long x, int n) -> x >> n", long.class, int.class).result.type);
+        assertEquals(boolean.class, descriptor("(boolean a, boolean b) -> a & b", boolean.class, boolean.class).result.type);
+        assertNull(descriptor("(String s) -> s.length()", String.class).result);
+        assertNull(descriptor("(int x) -> x + foo()", int.class).result);
+        assertEquals(ToIntBiFunction.class, pick(descriptor("(Integer a, Integer b) -> a + b", Integer.class, Integer.class),
+            ToIntBiFunction.class, BiFunction.class, IntBinaryOperator.class));
+    }
+
+    // The @word spellings are the same operators and must type the same way.
+    @Test
+    public void the_word_spelling_of_an_operator_types_as_its_symbol_does() throws Exception {
+        for (String operator : new String[] { "@lt", "@gt", "@lteq", "@gteq", "@and", "@or" })
+            assertEquals(operator, boolean.class,
+                descriptor("(a, b) -> a " + operator + " b", null, null).result.type);
+        for (String operator : new String[] { "@bitwise_and", "@bitwise_or", "@bitwise_xor",
+                "@left_shift", "@right_shift", "@right_unsigned_shift" })
+            assertEquals(operator, int.class,
+                descriptor("(int x, int y) -> x " + operator + " y", int.class, int.class).result.type);
+        assertEquals(boolean.class,
+            descriptor("(boolean p, boolean q) -> p @bitwise_and q", boolean.class, boolean.class).result.type);
+    }
+
+    // bsh's own operators have no JLS result type, so they stay unknown.
+    @Test
+    public void bsh_only_operators_have_no_known_result() throws Exception {
+        assertNull(descriptor("(int x, int y) -> x ** y", int.class, int.class).result);
+        assertNull(descriptor("(int x, int y) -> x <=> y", int.class, int.class).result);
+        assertNull(descriptor("(Integer a, Integer b) -> a ?? b", Integer.class, Integer.class).result);
+        assertNull(descriptor("(Integer a, Integer b) -> a ?: b", Integer.class, Integer.class).result);
     }
 
     public interface Getter { Object get(); }
