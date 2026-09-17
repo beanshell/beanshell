@@ -477,6 +477,30 @@ public class BshLambdaDescriptorTest {
             ToIntBiFunction.class, BiFunction.class, IntBinaryOperator.class));
     }
 
+    // External review Finding 1: unary +, - and ~ on a non-constant operand must
+    // propagate JLS 5.6.1 unary numeric promotion the same way every other operator
+    // form here does, not report the whole expression unknown.
+    @Test
+    public void unary_operators_on_a_known_non_constant_operand_have_the_promoted_type() throws Exception {
+        assertEquals(int.class, descriptor("(int x) -> -x", int.class).result.type);
+        assertEquals(int.class, descriptor("(int x) -> +x", int.class).result.type);
+        assertEquals(int.class, descriptor("(int x) -> ~x", int.class).result.type);
+        assertEquals(long.class, descriptor("(long l) -> -l", long.class).result.type);
+        assertEquals(int.class, descriptor("(byte b) -> -b", byte.class).result.type);
+        assertEquals(int.class, descriptor("(char c) -> -c", char.class).result.type);
+        assertEquals(int.class, descriptor("(Integer i) -> -i", Integer.class).result.type);
+        assertEquals(double.class, descriptor("(double d) -> -d", double.class).result.type);
+        assertNull(descriptor("(double d) -> ~d", double.class).result);
+        assertEquals(IntUnaryOperator.class,
+            pick(descriptor("(int x) -> -x", int.class), IntUnaryOperator.class, IntToLongFunction.class));
+    }
+
+    @Test
+    public void unary_operator_constant_folding_still_works_after_promotion_added() throws Exception {
+        assertResult(int.class, result("() -> -1"), -1);
+        assertResult(int.class, result("() -> -2147483648"), Integer.MIN_VALUE);
+    }
+
     // bsh, unlike Java (JLS 6.4), lets a block redeclare a lambda parameter's name.
     // The redeclared name holds the local's value, not the parameter's, so trusting
     // the declared type there silently truncates (a double body ranked onto a long

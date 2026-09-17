@@ -52,6 +52,9 @@ public class BshLambdaResolutionTest {
     public interface Aaa { void a(); }
     public interface Zzz { void z(); }
 
+    public interface IntFn { int apply(int x); }
+    public interface ObjFn { Object apply(int x); }
+
     public static class FixedAaaVarargsZzz {
         public static String q(Aaa x) { return "fixed"; }
         public static String q(Zzz... x) { return "varargs"; }
@@ -815,6 +818,17 @@ public class BshLambdaResolutionTest {
             + " f(java.util.function.Supplier x) { return \"supplier\"; }"
             + " f(() -> \"x\");");
         assertEquals("callable", result); // Callable's fully-qualified name sorts before Supplier's, so it wins the tie-break; see compareFully.
+    }
+
+    private static final String M_INT_FN = "m(bsh.BshLambdaResolutionTest.IntFn f) { return \"IntFn\"; }";
+    private static final String M_OBJ_FN = "m(bsh.BshLambdaResolutionTest.ObjFn f) { return \"ObjFn\"; }";
+
+    // External review Finding 1: -x on a declared int parameter is not a compile-time
+    // constant, but its type (int, JLS 5.6.1 unary numeric promotion) is still known;
+    // javac picks IntFn here, and bsh must match it rather than falling back to ObjFn.
+    @Test
+    public void unary_minus_on_a_declared_parameter_resolves_as_javac_does() throws Exception {
+        assertEveryOrderPicks("IntFn", "m((int x) -> -x);", M_INT_FN, M_OBJ_FN);
     }
 
     public interface FLong { long f(int x); }

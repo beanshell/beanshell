@@ -202,7 +202,14 @@ class BSHLambdaExpression extends SimpleNode
             if (unary.kind == ParserConstants.MINUS && isIntMinimumMagnitude(node.jjtGetChild(0)))
                 return constantResult(new Primitive(Integer.MIN_VALUE));
             LambdaDescriptor.Result operand = expressionResult(node.jjtGetChild(0), declared);
-            return operand == null || operand.constants == null ? null : constantResult(fold(node));
+            if (operand == null)
+                return null;
+            if (operand.constants != null)
+                return constantResult(fold(node));
+            Class<?> numeric = numericOrNull(operand.type);
+            if (numeric == null || unary.kind == ParserConstants.TILDE && !isIntegral(numeric))
+                return null;
+            return new LambdaDescriptor.Result(promoted(numeric, int.class), null);
         }
         if (node instanceof BSHBinaryExpression) {
             int kind = ((BSHBinaryExpression) node).kind;
