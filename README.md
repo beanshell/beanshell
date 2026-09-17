@@ -44,7 +44,7 @@ Building BeanShell requires JDK 8 or newer. The resulting JAR targets Java 8 and
 
 The source code releases can be downloaded from [GitHub releases](https://github.com/beanshell/beanshell/releases)
 
-Latest release: **not supported** (use the recommended development snapshot)
+Latest release:
 
  - [BeanShell 2.1.1](https://github.com/beanshell/beanshell/releases/tag/2.1.1) - [bsh-2.1.1-src.zip](https://github.com/beanshell/beanshell/releases/download/2.1.1/bsh-2.1.1-src.zip)
 
@@ -164,7 +164,7 @@ The current development effort focuses on releasing BeanShell 3.0. The following
  - [x] Implement BigInteger/BigDecimal and number coercion
  - [x] Make all current unit tests pass
  - [x] Increase unit tests code coverage 70%
- - [ ] Resolve all outstanding issues and process pull requests
+ - [ ] Resolve all critical outstanding issues and process pull requests
  - [ ] Apply uniform code style and Javadocs
  - [ ] Consider feedback from [community discussions](/beanshell/beanshell/labels/discussion)
 
@@ -196,48 +196,3 @@ Projects that we know of that are using BeanShell. Is your project not listed he
  * [jEdit](http://www.jedit.org/users-guide/beanshell-intro.html)
  * [Jupyter Notebooks](https://github.com/opeongo/jupyter_beanshell)
 
-## History
-
-### 2015: Move to github.com
-
-On 2015-09-23, the BeanShell repository moved from https://code.google.com/a/apache-extras.org/p/beanshell/ to its new home on https://github.com/beanshell/beanshell/ as Google Code has been discontinued.
-
-The project adopted an open, collaborative approach using [GitHub pull requests](https://github.com/beanshell/beanshell/pulls) and has since grown its committer base beyond the original Apache Extra team.
-
-http://beanshell.org/ remains available for older versions.
-
-### 2012: Move to apache-extras.org
-
-BeanShell was [proposed as an incubator project](https://wiki.apache.org/incubator/BeanShellProposal) to
-move to [Apache Software Foundation](http://www.apache.org/). In preparation for this, the codebase
-for BeanShell 2.0b4 was donated to ASF by a code grant, and the license changed to
-[Apache License, version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
-
-The source code was moved to http://apache-extras.org/ - a project home hosted by Google Code that was only informally associated with Apache Software Foundation. Many BeanShell committers were Apache committers; thus, Apache Extras seemed a natural home.
-
-However, the project did not move into the [Apache incubator](http://incubator.apache.org/) and remained at apache-extras.org as an independent project.
-
-In March 2015, Google announced it would discontinue Google Code, which provided the hosting for Apache Extras.
-
-### 2007: Community fork beanshell2
-
-The community forked BeanShell in May 2007, creating the [BeanShell2](https://code.google.com/archive/p/beanshell2/) project hosted on google code. The new fork saw crucial fixes and updates with several releases between 2011 and 2014.
-
-The project moved to [GitHub](/pejobo/beanshell2) in June 2016 after Google Code was discontinued, and it is independently maintained.
-
-In August 2017, BeanShell decided to merge all the changes from the BeanShell2 fork back upstream, ensuring that no effort was lost during this period.
-
-### 2005: JSR 274: The BeanShell Scripting Language
-
-In 2005, JSR 274 was accepted for officially defining the language but was never completed.
-The current status is dormant, as voted by the JCP in June 2011.
-
-[JSR 274: The BeanShell Scripting Language](https://jcp.org/en/jsr/detail?id=274)
-
-### 1999: beanshell.org
-
-BeanShell was originally developed by Patrick Niemeyer at http://beanshell.org/ - distributed as
-BeanShell (2.0b4 and earlier) were distributed under
-GNU Lesser General Public License (LGPL) and Sun Public License (SPL).
-
-In 2000, the project was hosted [on sourceforge](https://sourceforge.net/projects/beanshell/), which quickly saw interest in the new Java scripting language grow.
