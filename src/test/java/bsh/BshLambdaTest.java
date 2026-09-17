@@ -1376,4 +1376,41 @@ public class BshLambdaTest {
             "interface F { int f(int x); } F g = x -> x + 1; return g;");
         org.junit.Assert.assertNotNull(noDefault);
     }
+
+    // A default inherited from a SCRIPTED ancestor interface is exactly as unsafe as one
+    // declared directly: it still evaluates through a generated-class instance context.
+    @Test
+    public void a_default_method_inherited_from_a_scripted_ancestor_interface_is_rejected() throws Exception {
+        try {
+            new Interpreter().eval(
+                "interface Base { int f(int x); default int twice(int x) { return f(x) * 2; } }"
+                + " interface Derived extends Base {} Derived d = x -> x + 1;");
+            fail("expected an EvalError: Derived inherits Base's scripted default method");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("default"));
+        }
+    }
+
+    // LAMBDA-REVIEW2.md F5 fix follow-up: hasDefaultMethod used to walk
+    // getMethods(), which also returns defaults inherited from a COMPILED
+    // ancestor -- so a scripted interface merely extending a JDK functional
+    // interface like Predicate or Comparator was wrongly rejected even though
+    // it declares no default itself, and the inherited default is ordinary
+    // JVM dispatch that never touches anything scripted.
+    @Test
+    public void a_scripted_interface_inheriting_only_a_compiled_default_method_is_not_rejected() throws Exception {
+        Object p = new Interpreter().eval(
+            "interface MyPred extends java.util.function.Predicate {}"
+            + " MyPred p = x -> true; return p;");
+        @SuppressWarnings("unchecked")
+        java.util.function.Predicate<Object> pred = (java.util.function.Predicate<Object>) p;
+        assertFalse(pred.negate().test("a"));
+
+        Object c = new Interpreter().eval(
+            "interface MyCmp extends java.util.Comparator {}"
+            + " MyCmp c = (a, b) -> 0; return c;");
+        @SuppressWarnings("unchecked")
+        java.util.Comparator<Integer> cmp = (java.util.Comparator<Integer>) c;
+        assertEquals(0, cmp.compare(1, 2));
+    }
 }

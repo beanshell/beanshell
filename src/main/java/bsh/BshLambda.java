@@ -657,14 +657,15 @@ public class BshLambda implements Serializable {
         return false;
     }
 
-    // Conservative, per Jim's chosen scope: any default method, not just one
-    // that provably calls the SAM. Telling those apart needs bytecode-body
-    // analysis of the generated default method -- real design work, the same
-    // risk tier as fixing dispatch itself, and explicitly deferred (see
-    // CHANGES.md).
+    // Conservative, per Jim's chosen scope: any SCRIPTED default method, not
+    // just one that provably calls the SAM. Telling those apart needs
+    // bytecode-body analysis of the generated default method -- real design
+    // work, the same risk tier as fixing dispatch itself, and explicitly
+    // deferred (see CHANGES.md). A compiled default (e.g. Predicate.negate())
+    // is unaffected: ordinary JVM default-method dispatch, nothing scripted involved.
     private static boolean hasDefaultMethod(Class<?> type) {
         for (Method m : type.getMethods())
-            if (m.isDefault())
+            if (m.isDefault() && Reflect.isGeneratedClass(m.getDeclaringClass()))
                 return true;
         return false;
     }
@@ -713,7 +714,7 @@ public class BshLambda implements Serializable {
                 + functionalInterface.getName() + ": its single abstract method "
                 + "collides with Java serialization's writeReplace() hook, which "
                 + "would run the lambda body during writeObject");
-        if (Reflect.isGeneratedClass(functionalInterface) && hasDefaultMethod(functionalInterface))
+        if (hasDefaultMethod(functionalInterface))
             throw new UtilEvalError("A lambda cannot implement "
                 + functionalInterface.getName() + ": a scripted interface's default "
                 + "method cannot yet call the interface's own abstract method on a "
