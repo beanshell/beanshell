@@ -82,6 +82,8 @@ final class LambdaDescriptor {
                 || shape == BshLambda.VALUE && returned == void.class
                 || shape == BshLambda.VOID && returned != void.class)
             return false;
+        if (result != null && returned != void.class && BshLambda.hasUnresolvedReturnTypeVariable(type))
+            return false;
         return result == null || returned == void.class || isAssignable(result, returned);
     }
 

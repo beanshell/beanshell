@@ -55,6 +55,47 @@ public class BshLambdaTest {
         }
     }
 
+    public interface MultiLevelBase<T> { T get(); }
+    public interface MultiLevelMid<U> extends MultiLevelBase<U> {}
+    public interface MultiLevelStringGetter extends MultiLevelMid<String> {}
+
+    // LAMBDA-REVIEW2.md F3: MultiLevelStringGetter is a plain LINEAR two-level
+    // chain (no diamond) -- unlike the already-pinned
+    // a_diamond_with_a_second_level_generic_ancestor_is_not_yet_supported case
+    // in BshLambdaClassLoadingTest, which fails safely CLOSED (SAM discovery
+    // itself refuses two branches that don't converge). Here there is only one
+    // branch, so SAM discovery succeeds fine, but specializedReturnType's
+    // single-level-only substitution can't resolve T two levels up and
+    // silently falls back to the erasure Object -- so () -> 1 (an int,
+    // nowhere near a String) was silently accepted instead of rejected.
+    @Test
+    public void a_multi_level_unresolved_return_type_rejects_a_known_incompatible_constant() throws Exception {
+        try {
+            new Interpreter().eval(
+                "import bsh.BshLambdaTest.MultiLevelStringGetter; MultiLevelStringGetter g = () -> 1;");
+            fail("expected an EvalError: an int constant cannot be a MultiLevelStringGetter's result");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("MultiLevelStringGetter"));
+        }
+        // An unknown result is unaffected: still deferred to invocation time (existing, accepted behavior).
+        // Because specializedReturnType can't resolve two levels, it falls back to Object.
+        // When invoked with a narrowing assignment to String (as in the existing diamond test),
+        // this exposes a pre-existing gap: it throws raw ClassCastException, not RuntimeEvalError.
+        // That mismatch is a separate issue, not this task's to fix.
+        Object g = new Interpreter().eval(
+            "import bsh.BshLambdaTest.MultiLevelStringGetter;"
+            + " foo() { return 1; } (MultiLevelStringGetter) () -> foo();");
+        try {
+            // Force a narrowing via typed-local, matching the pattern from
+            // a_return_type_shared_by_two_generic_superinterfaces_does_not_depend_on_declaration_order
+            String s = ((MultiLevelStringGetter) g).get();
+            fail("MultiLevelStringGetter unknown result: expected ClassCastException when narrowed; got " + s);
+        } catch (ClassCastException expected) {
+            // Pre-existing behavior: raw checkcast failure, not a RuntimeEvalError at the wrapper's conversion.
+            // This is the actual current behavior for unknown results with unresolved multi-level returns.
+        }
+    }
+
     @Test
     public void overloads_differing_only_in_a_specialized_return_type_resolve_as_javac_does() throws Exception {
         Interpreter interpreter = new Interpreter();
@@ -71,6 +112,15 @@ public class BshLambdaTest {
     public interface DiamondGetterB<T> { T get(); }
     public interface DiamondFirstA extends DiamondGetterA<String>, DiamondGetterB<CharSequence> {}
     public interface DiamondFirstB extends DiamondGetterB<CharSequence>, DiamondGetterA<String> {}
+
+    // A diamond where one branch resolves in a single level and another branch
+    // requires two levels (unresolvable by bsh's deliberately single-level-only substitution).
+    // This tests that the ANY->ALL logic correctly accepts lambdas compatible with
+    // the resolving branch (not over-rejecting due to another unresolvable branch).
+    public interface PartialResolvingA<T> { T get(); }
+    public interface PartialResolvingBase<U> { U get(); }
+    public interface PartialResolvingMid<V> extends PartialResolvingBase<V> {}
+    public interface PartialDiamondResolution extends PartialResolvingA<String>, PartialResolvingMid<String> {}
 
     // A known-String result works for both orders (this alone would also pass
     // under the order-dependent bug: whichever branch getMethods() visits
@@ -107,6 +157,18 @@ public class BshLambdaTest {
         } catch (RuntimeEvalError expected) {
             assertTrue(expected.getMessage(), expected.getMessage().contains("String"));
         }
+    }
+
+    // A partial-resolution diamond: one branch (PartialResolvingA<String>) resolves
+    // its return type in a single level, while another branch (PartialResolvingMid<String>)
+    // would require two levels to resolve back to PartialResolvingBase. Tests that
+    // the ANY->ALL gating logic correctly accepts lambdas with statically-known results
+    // compatible with the resolving branch (not over-rejected due to the unresolvable branch).
+    @Test
+    public void a_partial_resolution_diamond_accepts_a_compatible_result() throws Exception {
+        // Lambda result is String, compatible with PartialResolvingA<String> (one-level-resolvable branch)
+        assertEquals("x", ((PartialDiamondResolution) new Interpreter().eval(
+            "import bsh.BshLambdaTest.PartialDiamondResolution; (PartialDiamondResolution) () -> \"x\";")).get());
     }
 
     public interface SerialTriple extends java.io.Serializable { int apply(int x); }

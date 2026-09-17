@@ -351,6 +351,57 @@ public class BshLambda implements Serializable {
             && m.getReturnType().isAssignableFrom(actual) ? actual : m.getReturnType();
     }
 
+    /** Whether functionReturnType(type) is currently reporting an erasure
+        that masks a return-type variable directSubstitution could not
+        resolve, as opposed to a genuinely non-generic method, where the
+        erasure IS the real type. Only relevant to a lambda whose result is
+        statically known (see LambdaDescriptor.fits): an unknown result is
+        already, correctly, checked at invocation time regardless. */
+    static boolean hasUnresolvedReturnTypeVariable(Class<?> functionalInterface) {
+        Method sam = singleAbstractMethod(functionalInterface);
+        if (sam == null)
+            return false;
+        // In a diamond, all branches must be unresolved to reject, since any
+        // resolvable branch would be picked. For a non-diamond (single method),
+        // check if it's unresolved.
+        List<Method> group = sameDescriptorGroup(functionalInterface, sam);
+        if (group.size() == 1)
+            return unresolvedReturnTypeVariable(functionalInterface, group.get(0));
+        for (Method m : group)
+            if (!unresolvedReturnTypeVariable(functionalInterface, m))
+                return false; // At least one branch resolves
+        return true; // All branches unresolved
+    }
+
+    private static boolean unresolvedReturnTypeVariable(Class<?> functionalInterface, Method m) {
+        java.lang.reflect.Type generic;
+        try {
+            generic = m.getGenericReturnType();
+        } catch (java.lang.reflect.GenericSignatureFormatError | TypeNotPresentException
+                | java.lang.reflect.MalformedParameterizedTypeException malformed) {
+            return false;
+        }
+        if (!(generic instanceof java.lang.reflect.TypeVariable))
+            return false;
+        // If the SAM is declared in the functional interface itself or its direct
+        // superinterfaces, it's a single-level case (possibly raw), not multi-level.
+        // directSubstitution failing is OK; we just can't specialize further.
+        Class<?> declaringClass = m.getDeclaringClass();
+        if (declaringClass == functionalInterface)
+            return false; // SAM declared in functionalInterface itself
+        // Check if declaringClass is a direct superinterface of functionalInterface
+        for (Class<?> direct : functionalInterface.getInterfaces())
+            if (direct == declaringClass)
+                return false; // SAM declared in direct superinterface
+        // The SAM's declaring class is not reachable via direct superinterfaces:
+        // this is a multi-level case where we can't resolve.
+        Map<java.lang.reflect.TypeVariable<?>, Class<?>> substitution =
+            directSubstitution(functionalInterface, declaringClass);
+        Class<?> actual = substitution == null ? null : substitution.get(generic);
+        return actual == null || !isAccessibleToWrapper(actual)
+            || !m.getReturnType().isAssignableFrom(actual);
+    }
+
     // Modifier.isPublic screens simple visibility, not JPMS module exports: a
     // public type in a named module whose package the module does not export
     // is still inaccessible to the wrapper, which is always defined into an
