@@ -239,4 +239,14 @@ public class NullVarargsTest {
             "import bsh.NullVarargsTest.TypedVarargs;",
             "return new TypedVarargs(){}.kind;"));
     }
+
+    @Test
+    public void anonymous_subclass_converts_an_object_array_varargs_tail() throws Exception {
+        assertEquals("String...2", TestUtil.eval(
+            "import bsh.NullVarargsTest.TypedVarargs;",
+            "return new TypedVarargs((Object[]){\"a\", \"b\"}){}.kind;"));
+        assertEquals("String...0", TestUtil.eval(
+            "import bsh.NullVarargsTest.TypedVarargs;",
+            "return new TypedVarargs((Object[]){}){}.kind;"));
+    }
 }

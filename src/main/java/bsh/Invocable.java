@@ -17,6 +17,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
@@ -230,7 +231,10 @@ public abstract class Invocable implements Member {
                 || getParameterCount() != arguments.types.length + enclosing)
             return false;
         Class<?> last = arguments.types[arguments.types.length - 1];
-        return last == null || getVarArgsType().isAssignableFrom(last);
+        if (last == null || getVarArgsType().isAssignableFrom(last))
+            return true;
+        Object value = arguments.values[arguments.values.length - 1];
+        return last == Object[].class && value instanceof Object[];
     }
 
     /** Invoke using call-local types, leaving the cached method handle unchanged. */
@@ -355,7 +359,15 @@ abstract class ExecutingInvocable extends Invocable {
                 Object[] varargs;
                 if (fixedArity) {
                     isFixedArity = true;
-                    parameters.add(Primitive.unwrap(params[getLastParameterIndex()]));
+                    Object value = Primitive.unwrap(params[getLastParameterIndex()]);
+                    if (value instanceof Object[] && !getVarArgsType().isInstance(value)) {
+                        Object[] source = (Object[]) value;
+                        value = Array.newInstance(getVarArgsComponentType(), source.length);
+                        for (int i = 0; i < source.length; i++)
+                            Array.set(value, i, super.coerceToType(
+                                    source[i], getVarArgsComponentType()));
+                    }
+                    parameters.add(value);
                 } else {
                     varargs = Arrays.copyOfRange(
                             params, getLastParameterIndex(), params.length);
