@@ -100,9 +100,11 @@ final class LambdaDescriptor {
             // JLS 15.27.3: a lambda cannot implement a generic method.
             if (sam.getTypeParameters().length > 0)
                 return false;
-            generic = sam.getGenericParameterTypes();
+            // ClassGeneratorUtil emits no generic signature for a scripted interface's members, so
+            // reflection has nothing to report either way -- don't trust an erasure-only result as "not generic".
+            generic = Reflect.isGeneratedClass(sam.getDeclaringClass()) ? null : sam.getGenericParameterTypes();
         } catch (GenericSignatureFormatError | TypeNotPresentException | MalformedParameterizedTypeException e) {
-            // Scripted interfaces carry a signature reflection cannot parse; treat them as generic.
+            // A compiled class's own signature reflection cannot parse; treat it as generic too.
             generic = null;
         }
         // Diamond check: methods with this same name+erasure. Group size 1 means unambiguous,
