@@ -103,7 +103,7 @@ public class InterpreterConcurrencyTest {
                     final Object o = callable.invokeMethod("call", new Object[]{i});
                     assertEquals(i, o);
                     heap.add(new WeakReference<byte[]>(new byte[1024*1000]));
-                    try { interpreter.eval("System.gc();"); } catch (Exception e) {/*ignore*/};
+                    System.gc();
                 } catch (final EvalError evalError) {
                     throw new RuntimeException(evalError);
                 }
