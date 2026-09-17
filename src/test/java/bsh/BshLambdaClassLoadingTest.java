@@ -967,6 +967,89 @@ public class BshLambdaClassLoadingTest {
         }
     }
 
+    // LAMBDA-REVIEW2.md F1: isImplementable/inaccessibleSignatureType checked
+    // only Modifier.isPublic, not module export, for a DIRECT (non-generic)
+    // SAM parameter/return type -- unlike specializedReturnType's already-
+    // exported-checked generic case above. A public type in a non-exported
+    // package of a named module is still inaccessible to the wrapper, which
+    // is always defined into an unnamed module; naming it directly (not via
+    // generic substitution) in a CHECKCAST/return type crashed with
+    // IllegalAccessError on first invocation instead of being rejected at
+    // conversion. Checked-exception filtering had the identical gap.
+    @Test
+    public void a_direct_non_exported_signature_or_exception_type_is_rejected_at_conversion() throws Exception {
+        Assume.assumeTrue("module system unavailable on this JDK",
+            !System.getProperty("java.specification.version").startsWith("1."));
+        Assume.assumeTrue("javac not available at java.home", new File(javaHomeTool("javac")).exists());
+
+        Path work = Files.createTempDirectory("bsh-module-direct-test");
+        try {
+            Path modSrc = work.resolve("modsrc");
+            Files.createDirectories(modSrc.resolve("api"));
+            Files.createDirectories(modSrc.resolve("internal"));
+            Files.write(modSrc.resolve("module-info.java"),
+                Arrays.asList("module m.direct {", "    exports api;", "}"));
+            Files.write(modSrc.resolve("api/DirectReturn.java"),
+                Arrays.asList("package api;", "public interface DirectReturn { internal.Hidden get(); }"));
+            Files.write(modSrc.resolve("api/HiddenExceptionAction.java"),
+                Arrays.asList("package api;",
+                    "public interface HiddenExceptionAction { void run() throws internal.HiddenException; }"));
+            Files.write(modSrc.resolve("internal/Hidden.java"),
+                Arrays.asList("package internal;", "public class Hidden {}"));
+            Files.write(modSrc.resolve("internal/HiddenException.java"),
+                Arrays.asList("package internal;", "public class HiddenException extends Exception {}"));
+
+            Path modOut = work.resolve("modout");
+            Files.createDirectories(modOut);
+            runTool(javaHomeTool("javac"), "-d", modOut.toString(),
+                modSrc.resolve("module-info.java").toString(),
+                modSrc.resolve("api/DirectReturn.java").toString(),
+                modSrc.resolve("api/HiddenExceptionAction.java").toString(),
+                modSrc.resolve("internal/Hidden.java").toString(),
+                modSrc.resolve("internal/HiddenException.java").toString());
+
+            Path driverSrc = work.resolve("Driver.java");
+            Files.write(driverSrc, Arrays.asList(
+                "import java.lang.reflect.InvocationTargetException;",
+                "public class Driver {",
+                "    static String probe(bsh.Interpreter interp, String src) {",
+                "        try {",
+                "            interp.eval(src);",
+                "            return \"ACCEPTED\";",
+                "        } catch (Throwable t) {",
+                "            Throwable real = t instanceof InvocationTargetException ? t.getCause() : t;",
+                "            return \"THROWN:\" + real.getClass().getName();",
+                "        }",
+                "    }",
+                "    public static void main(String[] args) throws Exception {",
+                "        bsh.Interpreter interp = new bsh.Interpreter();",
+                "        System.out.println(probe(interp,",
+                "            \"import api.DirectReturn; DirectReturn d = () -> null;\"));",
+                "        System.out.println(probe(interp,",
+                "            \"import api.HiddenExceptionAction; HiddenExceptionAction a = () -> {};\"));",
+                "    }",
+                "}"));
+            Path driverOut = work.resolve("driverout");
+            Files.createDirectories(driverOut);
+            String bshClasses = Paths.get(Interpreter.class.getProtectionDomain()
+                .getCodeSource().getLocation().toURI()).toString();
+            runTool(javaHomeTool("javac"), "-cp", bshClasses, "-d", driverOut.toString(), driverSrc.toString());
+
+            String output = runTool(javaHomeTool("java"), "-p", modOut.toString(), "--add-modules", "m.direct",
+                "-cp", driverOut + File.pathSeparator + bshClasses, "Driver");
+            String[] lines = output.trim().split("\\r?\\n");
+            assertEquals(output, 2, lines.length);
+            // Direct return type: rejected cleanly at conversion, not accepted-then-IllegalAccessError.
+            assertTrue(output, lines[0].startsWith("THROWN:bsh.EvalError"));
+            // Checked exception: the inaccessible type is dropped from the throws
+            // clause (same treatment as an existing non-public exception type),
+            // so conversion itself still succeeds.
+            assertEquals(output, "ACCEPTED", lines[1]);
+        } finally {
+            deleteRecursively(work);
+        }
+    }
+
     private static String javaHomeTool(String name) {
         return System.getProperty("java.home") + File.separator + "bin" + File.separator + name;
     }

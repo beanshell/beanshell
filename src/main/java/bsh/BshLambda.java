@@ -554,16 +554,23 @@ public class BshLambda implements Serializable {
         }
     };
 
+    // A wrapper lives in its own runtime package, in an unnamed module: it can
+    // name (CHECKCAST/exception-table/LDC) only a public type also exported to
+    // unnamed modules -- Modifier.isPublic alone screens visibility, not JPMS
+    // module exports (see isExportedToUnnamedModules).
+    private static boolean isAccessibleToWrapper(Class<?> type) {
+        Class<?> component = unwrapArray(type);
+        return component.isPrimitive()
+            || Modifier.isPublic(component.getModifiers()) && isExportedToUnnamedModules(component);
+    }
+
     private static Class<?> inaccessibleSignatureType(Class<?> type) {
         for (Method m : abstractMethods(type)) {
-            Class<?> returned = unwrapArray(m.getReturnType());
-            if (!returned.isPrimitive() && !Modifier.isPublic(returned.getModifiers()))
-                return returned;
-            for (Class<?> parameter : m.getParameterTypes()) {
-                Class<?> unwrapped = unwrapArray(parameter);
-                if (!unwrapped.isPrimitive() && !Modifier.isPublic(unwrapped.getModifiers()))
-                    return unwrapped;
-            }
+            if (!isAccessibleToWrapper(m.getReturnType()))
+                return unwrapArray(m.getReturnType());
+            for (Class<?> parameter : m.getParameterTypes())
+                if (!isAccessibleToWrapper(parameter))
+                    return unwrapArray(parameter);
         }
         return null;
     }
@@ -617,7 +624,8 @@ public class BshLambda implements Serializable {
         if (hidden != null)
             throw new UtilEvalError("A lambda cannot implement "
                 + functionalInterface.getName() + ": its return type or a parameter type "
-                + hidden.getName() + " is not public");
+                + hidden.getName() + " is not accessible to the generated wrapper "
+                + "(not public, or public in a module that does not export it)");
         if (Serializable.class.isAssignableFrom(functionalInterface) && hasWriteReplaceSam(functionalInterface))
             throw new UtilEvalError("A lambda cannot implement "
                 + functionalInterface.getName() + ": its single abstract method "
@@ -891,13 +899,13 @@ public class BshLambda implements Serializable {
         private static Class<?>[] intersectedPublicExceptionTypes(List<Method> group) {
             if (group.size() == 1) {
                 List<Class<?>> own = new ArrayList<>(Arrays.asList(group.get(0).getExceptionTypes()));
-                own.removeIf(type -> !Modifier.isPublic(type.getModifiers()));
+                own.removeIf(type -> !isAccessibleToWrapper(type));
                 return own.toArray(new Class<?>[0]);
             }
             List<Class<?>> kept = new ArrayList<>();
             for (Method m : group)
                 for (Class<?> candidate : m.getExceptionTypes())
-                    if (!kept.contains(candidate) && Modifier.isPublic(candidate.getModifiers())
+                    if (!kept.contains(candidate) && isAccessibleToWrapper(candidate)
                             && group.stream().allMatch(branch -> declaresSupertypeOf(branch, candidate)))
                         kept.add(candidate);
             List<Class<?>> minimal = new ArrayList<>(kept);
