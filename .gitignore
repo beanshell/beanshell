@@ -22,3 +22,4 @@ BeanShell.iws
 *.ser
 .claude/settings.local.json
 .superpowers/
+.agent-notes/
