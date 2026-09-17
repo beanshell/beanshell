@@ -1,0 +1,109 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+import bsh.BshLambdaTest.IntegerGetter;
+import bsh.BshLambdaTest.StringGetter;
+
+/*
+    Living documentation for cast-free lambda overload resolution (issue
+    #675, Phase 3). Each pair of scripted overloads is declared in both
+    orders, with a fresh method name each time, to show the pick does not
+    depend on declaration order. See lambda.bsh for the feature itself.
+*/
+
+// -- Runnable/Callable: body shape decides value- vs void-returning --
+// A statement-expression body such as () -> foo() fits both interfaces in
+// Java; bsh follows javac and prefers the value-returning one (Callable).
+resFoo() { return 1; }
+
+pick1(Runnable r) { return "runnable"; }
+pick1(java.util.concurrent.Callable c) { return "callable"; }
+pick2(java.util.concurrent.Callable c) { return "callable"; }
+pick2(Runnable r) { return "runnable"; }
+
+assert( pick1(() -> 1).equals("callable") );
+assert( pick2(() -> 1).equals("callable") );
+assert( pick1(() -> {}).equals("runnable") );
+assert( pick2(() -> {}).equals("runnable") );
+assert( pick1(() -> resFoo()).equals("callable") );
+assert( pick2(() -> resFoo()).equals("callable") );
+
+// -- IntSupplier/Supplier: a known int result picks the primitive interface --
+pick3(java.util.function.IntSupplier s) { return "int"; }
+pick3(java.util.function.Supplier s) { return "supplier"; }
+pick4(java.util.function.Supplier s) { return "supplier"; }
+pick4(java.util.function.IntSupplier s) { return "int"; }
+
+assert( pick3(() -> 1).equals("int") );
+assert( pick4(() -> 1).equals("int") );
+
+// -- IntUnaryOperator/IntToLongFunction: an explicitly (int x) typed body picks
+// the narrower int-to-int interface over the widening int-to-long one (Task 12) --
+pick5(java.util.function.IntUnaryOperator f) { return "unary"; }
+pick5(java.util.function.IntToLongFunction f) { return "tolong"; }
+pick6(java.util.function.IntToLongFunction f) { return "tolong"; }
+pick6(java.util.function.IntUnaryOperator f) { return "unary"; }
+
+assert( pick5((int x) -> x).equals("unary") );
+assert( pick6((int x) -> x).equals("unary") );
+
+// -- Object/Runnable: a matching functional interface beats Object --
+pick7(Object o) { return "object"; }
+pick7(Runnable r) { return "runnable"; }
+pick8(Runnable r) { return "runnable"; }
+pick8(Object o) { return "object"; }
+
+assert( pick7(() -> {}).equals("runnable") );
+assert( pick8(() -> {}).equals("runnable") );
+
+// -- Object/Runnable...: a functional varargs candidate beats Object too --
+pick9(Object o) { return "object"; }
+pick9(Runnable... r) { return "varargs"; }
+pick10(Runnable... r) { return "varargs"; }
+pick10(Object o) { return "object"; }
+
+assert( pick9(() -> {}).equals("varargs") );
+assert( pick10(() -> {}).equals("varargs") );
+
+// -- explicit parameter types SC/IC: the declared parameter type alone selects
+// the matching interface --
+interface SC { void accept(String s); }
+interface IC { void accept(Integer i); }
+pick11(SC v) { return "sc"; }
+pick11(IC v) { return "ic"; }
+pick12(IC v) { return "ic"; }
+pick12(SC v) { return "sc"; }
+
+assert( pick11((String s) -> {}).equals("sc") );
+assert( pick12((String s) -> {}).equals("sc") );
+
+// -- IntegerGetter/StringGetter: a specialized generic return type resolves the
+// same as javac (Task 5) --
+pick13(IntegerGetter g) { return "integer:" + g.get(); }
+pick13(StringGetter g) { return "string:" + g.get(); }
+pick14(StringGetter g) { return "string:" + g.get(); }
+pick14(IntegerGetter g) { return "integer:" + g.get(); }
+
+assert( pick13(() -> "s").equals("string:s") );
+assert( pick13(() -> 1).equals("integer:1") );
+assert( pick14(() -> "s").equals("string:s") );
+assert( pick14(() -> 1).equals("integer:1") );
+
+// -- name tie-break: a documented, accepted divergence from Java --
+// Aaa and Zzz are unrelated, equally-shaped functional interfaces at
+// opposite ends of the alphabet. A lambda that fits both equally would be a
+// static ambiguity error in javac; bsh has no such runtime outcome, so ties
+// among maximal candidates resolve deterministically by interface name
+// instead. This is a deliberate, accepted divergence, not a bug.
+interface Aaa { void a(); }
+interface Zzz { void z(); }
+pick15(Aaa x) { return "aaa"; }
+pick15(Zzz x) { return "zzz"; }
+pick16(Zzz x) { return "zzz"; }
+pick16(Aaa x) { return "aaa"; }
+
+assert( pick15(() -> {}).equals("aaa") );
+assert( pick16(() -> {}).equals("aaa") );
+
+complete();

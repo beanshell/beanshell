@@ -1,0 +1,147 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+import bsh.BshLambdaTest.IOAction;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+
+/*
+    Living documentation for lambda expressions (issue #675). Each assert is
+    a small, self-contained example of a supported form or a documented
+    restriction. See lambda_resolution.bsh for overload resolution, and
+    lambda_serialization.bsh for serialization of a Serializable lambda
+    target (kept in its own script: see that file for why).
+*/
+
+// -- expression and block bodies --
+Function expr = x -> x + 1;
+assert( expr.apply(1).equals(2) );
+Function block = x -> { return x + 1; };
+assert( block.apply(1).equals(2) );
+
+// -- parameter forms: (), x, (a, b), typed --
+Supplier zeroArg = () -> 5;
+assert( zeroArg.get().equals(5) );
+Function oneArg = x -> x * 2;
+assert( oneArg.apply(3).equals(6) );
+java.util.function.BiFunction twoArgs = (a, b) -> a + b;
+assert( twoArgs.apply(2, 3).equals(5) );
+Function typedArg = (Integer x) -> x + 10;
+assert( typedArg.apply(1).equals(11) );
+
+// -- direct cast and typed assignment --
+flag1 = false;
+Runnable castRan = (Runnable) () -> { flag1 = true; };
+castRan.run();
+assert( flag1 == true );
+flag2 = false;
+Runnable typedRan = () -> { flag2 = true; };
+typedRan.run();
+assert( flag2 == true );
+
+// -- cast-free lambdas to JDK APIs --
+sum = 0;
+java.util.Arrays.asList(1, 2, 3).forEach(x -> { sum += x; });
+assert( sum == 6 );
+
+sorted = new java.util.ArrayList(java.util.Arrays.asList(3, 1, 2));
+java.util.Collections.sort(sorted, (a, b) -> a - b);
+assert( sorted.equals(java.util.Arrays.asList(1, 2, 3)) );
+
+mapped = java.util.Arrays.asList(1, 2, 3).stream().map(x -> x * 2)
+    .collect(java.util.stream.Collectors.toList());
+assert( mapped.equals(java.util.Arrays.asList(2, 4, 6)) );
+
+optMapped = java.util.Optional.of(5).map(x -> x * 2);
+assert( optMapped.get().equals(10) );
+
+cfResult = java.util.concurrent.CompletableFuture.supplyAsync(() -> 21 * 2).get();
+assert( cfResult.equals(42) );
+
+threadRan = false;
+thr = new Thread(() -> { threadRan = true; });
+thr.run();
+assert( threadRan == true );
+
+// -- capture: a global, a method local, a scripted-class field --
+// bsh closures hold a live reference to their defining namespace, not a
+// snapshot, so a mutation after the lambda is created is visible when it runs.
+captureGlobal = 1;
+Supplier globalGetter = () -> captureGlobal;
+captureGlobal = 2;
+assert( globalGetter.get().equals(2) );
+
+captureLocalTest() {
+    local = 10;
+    Supplier localGetter = () -> local;
+    local = 20;
+    return localGetter.get();
+}
+assert( captureLocalTest().equals(20) );
+
+class FieldHolder {
+    int f = 5;
+    Supplier makeGetter() {
+        return () -> f;
+    }
+}
+fieldHolder = new FieldHolder();
+fieldGetter = fieldHolder.makeGetter();
+fieldHolder.f = 99;
+assert( fieldGetter.get().equals(99) );
+
+// -- nested lambdas via a typed variable --
+Function<Object,Object> adder = x -> (Function) (y -> x + y);
+assert( adder.apply(3).apply(4).equals(7) );
+
+// -- recursion via a typed variable --
+Function factorial;
+factorial = n -> n <= 1 ? 1 : n * factorial.apply(n - 1);
+assert( factorial.apply(5).equals(120) );
+
+// -- this inside a lambda in a scripted class --
+class ThisHolder {
+    Supplier getThis() { return () -> this; }
+}
+thisHolder = new ThisHolder();
+assert( thisHolder.getThis().get() == thisHolder );
+
+// -- a scripted interface as target --
+interface Doubler { int apply(int x); }
+Doubler doubler = x -> x * 2;
+assert( doubler.apply(21) == 42 );
+
+// -- a scripted interface constant through the wrapper (Task 14) --
+interface WithConstant { int C = 42; int get(); }
+WithConstant withConstant = () -> 1;
+assert( withConstant.C == 42 );
+
+// -- default methods --
+Function add1 = x -> x + 1;
+Function times2 = x -> x * 2;
+assert( add1.andThen(times2).apply(3).equals(8) );
+Predicate isEven = x -> x % 2 == 0;
+assert( isEven.negate().test(3) == true );
+
+// -- checked and unchecked exceptions caught by type from script (Tasks 1-2) --
+Runnable throwsUnchecked = () -> { throw new IllegalStateException("ise"); };
+uncheckedResult = "missed";
+try { throwsUnchecked.run(); } catch (IllegalStateException e) { uncheckedResult = "caught"; }
+assert( uncheckedResult.equals("caught") );
+
+IOAction throwsChecked = (IOAction) () -> { throw new java.io.IOException("io-fail"); };
+checkedResult = "missed";
+try { throwsChecked.run(); } catch (java.io.IOException e) { checkedResult = "caught"; }
+assert( checkedResult.equals("caught") );
+
+// -- negative cases --
+assert( isEvalError("Runnable r = () -> 1;") );
+assert( isEvalError("java.util.function.Supplier s = () -> {};") );
+assert( isEvalError("boolean negBool = true; Runnable r = () -> { if (negBool) return 1; };") );
+assert( isEvalError("(java.util.List) () -> 1;") );
+assert( isEvalError("java.util.function.Consumer c = (@Deprecated x) -> {};") ); // Task 10
+assert( isEvalError("x -> {1,2,3};") ); // parse restriction: block-body form wins over the array-initializer expression
+
+complete();
