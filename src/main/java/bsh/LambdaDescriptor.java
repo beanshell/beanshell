@@ -94,6 +94,7 @@ final class LambdaDescriptor {
         if (sam == null || !BshLambda.isImplementable(type) || sam.getParameterCount() != arity)
             return false;
         Class<?>[] parameters = sam.getParameterTypes();
+        Class<?>[] substituted = BshLambda.substitutedParameterTypes(type, sam);
         Type[] generic;
         try {
             // JLS 15.27.3: a lambda cannot implement a generic method.
@@ -104,12 +105,37 @@ final class LambdaDescriptor {
             // Scripted interfaces carry a signature reflection cannot parse; treat them as generic.
             generic = null;
         }
+        // Diamond check: methods with this same name+erasure. Group size 1 means unambiguous,
+        // no diamond -- resolved types should be exact. Size > 1 means diamond -- stay lenient.
+        java.util.List<Method> group = sam == null ? java.util.Collections.emptyList()
+            : BshLambda.sameDescriptorGroup(type, sam);
+        boolean isDiamond = group.size() > 1;
         for (int i = 0; i < arity; i++) {
             Class<?> declared = paramTypes[i];
-            // bsh has no type arguments, so a parameter typed by a type variable takes any compatible type.
-            if (declared != null && !(generic == null || mentionsTypeVariable(generic[i])
-                    ? parameters[i] == declared || parameters[i].isAssignableFrom(box(declared))
-                    : parameters[i] == declared))
+            if (declared == null)
+                continue; // bsh has no type arguments; an untyped parameter takes anything.
+            boolean mentionsVariable = generic != null && mentionsTypeVariable(generic[i]);
+            if (generic != null && !mentionsVariable) {
+                if (parameters[i] != declared)
+                    return false;
+                continue;
+            }
+            // Use substituted type exactly when available, unambiguous (not a diamond), AND
+            // there's a top-level type variable to resolve. Wildcards and multi-level chains
+            // don't have top-level type variables, so substituted just returns the erasure --
+            // don't treat that as "resolved" and fall back to lenient instead.
+            boolean hasTopLevelTypeVariable = generic != null && java.util.Arrays.stream(generic)
+                .anyMatch(t -> t instanceof TypeVariable);
+            if (substituted != null && !isDiamond && hasTopLevelTypeVariable) {
+                // Resolved against the target's own type arguments (JLS 9.9): exact, like any other typed parameter.
+                if (substituted[i] != declared)
+                    return false;
+                continue;
+            }
+            // Unresolvable (a raw ancestor, a multi-level chain), diamond inheritance, wildcards,
+            // or generic signature can't be parsed: fall back to the erased type, leniently -- bsh has no type
+            // arguments to check more precisely than this, same as an untyped-target-language call.
+            if (!(parameters[i] == declared || parameters[i].isAssignableFrom(box(declared))))
                 return false;
         }
         return true;

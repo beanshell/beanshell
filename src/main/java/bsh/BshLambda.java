@@ -301,7 +301,7 @@ public class BshLambda implements Serializable {
     // which one's specialization wins -- every member of the group is a
     // candidate, in the same grouping WrapperGenerator uses for codegen, so
     // the two can never disagree.
-    private static List<Method> sameDescriptorGroup(Class<?> type, Method sam) {
+    static List<Method> sameDescriptorGroup(Class<?> type, Method sam) {
         String key = sam.getName() + Type.getMethodDescriptor(sam);
         List<Method> group = new ArrayList<>();
         for (Method m : abstractMethods(type))
@@ -431,7 +431,7 @@ public class BshLambda implements Serializable {
     // DIRECT generic superinterfaces' actual type arguments. Returns null (not
     // resolvable) for anything deeper -- multi-level chains, wildcards, and
     // generic-array type variables are deliberately out of scope.
-    private static Class<?>[] substitutedParameterTypes(Class<?> type, Method a) {
+    static Class<?>[] substitutedParameterTypes(Class<?> type, Method a) {
         Class<?> declaringClass = a.getDeclaringClass();
         java.lang.reflect.Type[] generic = genericParameterTypesOrErasure(a);
         boolean anyTypeVariable = false;

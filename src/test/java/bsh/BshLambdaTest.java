@@ -249,6 +249,51 @@ public class BshLambdaTest {
         }
     }
 
+    public interface StringConsumer extends java.util.function.Consumer<String> {}
+
+    // LAMBDA-REVIEW2.md F2: javac requires an explicit lambda parameter to
+    // match the TARGET's resolved type (String, here), not the SAM's erased
+    // declaration (Object). parametersFit's leniency for a type-variable-
+    // mentioning parameter existed for the genuinely-unresolvable case (a raw
+    // ancestor, a multi-level chain); StringConsumer's single-level
+    // substitution is resolvable and was simply not being consulted.
+    @Test
+    public void an_explicit_parameter_must_match_the_targets_resolved_type_not_its_erasure() throws Exception {
+        try {
+            new Interpreter().eval(
+                "import bsh.BshLambdaTest.StringConsumer; StringConsumer c = (Integer x) -> {};");
+            fail("expected an EvalError: StringConsumer resolves accept(T) to accept(String)");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("StringConsumer"));
+        }
+        // The matching case must keep working.
+        StringConsumer c = (StringConsumer) new Interpreter().eval(
+            "import bsh.BshLambdaTest.StringConsumer; (StringConsumer) (String x) -> {};");
+        c.accept("ok"); // must not throw
+    }
+
+    public interface ObjSink extends java.util.function.Consumer<Object> {}
+
+    // An unambiguous single-path specialized interface (no diamond): the parameter
+    // is resolved to Object (from Consumer<Object>). Even though the resolved type
+    // happens to equal the erasure, this is unambiguous, so javac (and now bsh)
+    // requires exact match, rejecting Integer when Object is required. The diamond
+    // case (an erasure-equal diamond with distinct declaring interfaces) stays lenient.
+    @Test
+    public void an_unambiguous_specialized_interface_requires_exact_match_even_if_resolved_equals_erasure() throws Exception {
+        try {
+            new Interpreter().eval(
+                "import bsh.BshLambdaTest.ObjSink; ObjSink c = (Integer x) -> {};");
+            fail("expected an EvalError: ObjSink resolves accept(T) to accept(Object)");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("ObjSink"));
+        }
+        // The matching case must keep working.
+        ObjSink c = (ObjSink) new Interpreter().eval(
+            "import bsh.BshLambdaTest.ObjSink; (ObjSink) (Object x) -> {};");
+        c.accept("ok"); // must not throw
+    }
+
     @Test
     public void arity_mismatch_against_the_target_interface_fails_clearly() throws Exception {
         Interpreter interpreter = new Interpreter();
