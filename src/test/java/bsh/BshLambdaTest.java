@@ -1297,4 +1297,39 @@ public class BshLambdaTest {
             assertTrue(message, message.contains("writeReplace"));
         }
     }
+
+    // LAMBDA-REVIEW2.md F5: a scripted interface's default method body
+    // evaluates through the interface's static namespace, expecting a
+    // generated-class instance context; a lambda wrapper is deliberately
+    // excluded from Reflect.isGeneratedClass (so other reflection paths don't
+    // treat it as an ordinary scripted instance), so a default method calling
+    // the interface's own abstract method on a lambda-implemented instance
+    // resolves that call as if from a static context and fails. Conservative
+    // fix (Jim's chosen scope, not a dispatch fix): reject the conversion
+    // outright whenever the target is a scripted interface with ANY default
+    // method, whether or not it actually calls the SAM.
+    @Test
+    public void a_scripted_interface_with_a_default_method_is_rejected_as_a_lambda_target() throws Exception {
+        try {
+            new Interpreter().eval(
+                "interface D { int f(int x); default int twice(int x) { return f(x) * 2; } }"
+                + " D d = x -> x + 1;");
+            fail("expected an EvalError: a scripted default method cannot yet dispatch to a lambda's SAM");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("default"));
+        }
+        // Conservative: also rejected even when the default doesn't touch the SAM at all.
+        try {
+            new Interpreter().eval(
+                "interface E { int f(int x); default int hello() { return 42; } }"
+                + " E e = x -> x + 1;");
+            fail("expected an EvalError: any scripted default rejects the target, not just a SAM-calling one");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("default"));
+        }
+        // A scripted interface with NO default method is unaffected.
+        Object noDefault = new Interpreter().eval(
+            "interface F { int f(int x); } F g = x -> x + 1; return g;");
+        org.junit.Assert.assertNotNull(noDefault);
+    }
 }
