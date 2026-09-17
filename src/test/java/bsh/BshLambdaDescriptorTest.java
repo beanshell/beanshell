@@ -123,6 +123,15 @@ public class BshLambdaDescriptorTest {
         assertEquals(BshLambda.VOID_UNSURE, shape("() -> { l: { foo(); break l; } }"));
     }
 
+    // A nested lambda (or method) has its own break/return scope: its break must
+    // not leak into the enclosing body's completion analysis, only its own does.
+    @Test
+    public void a_nested_lambdas_or_methods_break_does_not_leak_into_the_outer_shape() throws Exception {
+        assertEquals(BshLambda.VOID_UNSURE, shape("() -> { while (true) { if (flag) break; } }"));
+        assertEquals(BshLambda.EITHER, shape("() -> { while (true) { Runnable r = () -> { break; }; } }"));
+        assertEquals(BshLambda.EITHER, shape("() -> { while (true) { foo() { break; } } }"));
+    }
+
     @Test
     public void value_return_and_expression_shapes_are_unchanged() throws Exception {
         assertEquals(BshLambda.VALUE, shape("() -> { return 1; }"));
@@ -241,6 +250,12 @@ public class BshLambdaDescriptorTest {
     @Test
     public void a_foldable_ternary_expression_is_a_known_constant_result() throws Exception {
         assertResult(int.class, result("() -> true ? 1 : 2"), 1);
+    }
+
+    // The condition's constant-false branch must fold too, not just the true one above.
+    @Test
+    public void a_foldable_ternary_expressions_false_branch_is_a_known_constant_result() throws Exception {
+        assertResult(int.class, result("() -> false ? 1 : 2"), 2);
     }
 
     @Test
@@ -659,5 +674,96 @@ public class BshLambdaDescriptorTest {
         assertEquals(String[].class, BshLambda.functionReturnType(StringArrayGetter.class));
         assertEquals(int[].class, BshLambda.functionReturnType(IntArrayGetter.class));
         assertEquals(String[][].class, BshLambda.functionReturnType(StringArrayArrayGetter.class));
+    }
+
+    public static class Own {}
+    public interface OwnGetter extends GenericGetter<Own> {}
+
+    // isExportedToUnnamedModules's ordinary (non-array) branch: an actual type
+    // that is a plain classpath class, not a JDK type, running in the unnamed
+    // module (as this whole test module does) must still specialize correctly,
+    // not fall back to the erasure only because it isn't a JDK class.
+    @Test
+    public void an_ordinary_classpath_actual_type_in_the_unnamed_module_specializes_correctly() throws Exception {
+        assertEquals(Own.class, BshLambda.functionReturnType(OwnGetter.class));
+    }
+
+    // JLS 15.12.2.5's lenient wildcard-lower-bound leniency (LambdaDescriptor's
+    // mentionsTypeVariable): a lower bound "? super T" still mentions the type
+    // variable T, so an explicit lambda parameter narrower than the erasure is
+    // still accepted, by the same lenient rule as a plain upper-bounded or
+    // unbounded type-variable parameter.
+    public interface Sink<T> { void put(java.util.List<? super T> l); }
+
+    @Test
+    public void a_wildcard_lower_bound_mentioning_a_type_variable_is_lenient() throws Exception {
+        assertTrue(descriptor("(l) -> { }", java.util.ArrayList.class).fits(Sink.class));
+    }
+
+    // resultScore's unknown-result branch ranks a primitive return type by its
+    // width (LambdaDescriptor.width): char shares short's width special-case,
+    // narrower than int, so the wider (safer) int-returning candidate wins.
+    // Accepted divergence: javac picks the char-returning candidate here (JLS
+    // 4.10.1 primitive subtyping, char <: int), but bsh's unknown-result ranking
+    // goes by width, safety-first, not by javac's subtyping rules -- the same
+    // documented "unknown results" divergence as elsewhere in this file.
+    public interface CharSup { char get(); }
+    public interface IntSup2 { int get(); }
+
+    @Test
+    public void an_unknown_result_ranks_a_char_returning_candidate_by_its_width() throws Exception {
+        assertEquals(IntSup2.class, pick(descriptor("() -> foo()"), CharSup.class, IntSup2.class));
+    }
+
+    // resultScore's unknown-result branch for a non-primitive, non-Object return
+    // type ranks by depth (LambdaDescriptor.depth's array-type branch): an array
+    // return type is always two deeper than its component type alone.
+    public interface ArrSup { String[] get(); }
+
+    @Test
+    public void an_unknown_result_ranks_an_array_returning_candidate_by_its_depth() throws Exception {
+        assertEquals(ArrSup.class, pick(descriptor("() -> foo()"), ArrSup.class, StrSupplier.class));
+    }
+
+    // Two overloads that each fail the strict-functional pass at one argument
+    // position (a lambda there fits only the raw Object slot) fall through to
+    // the positional tie-break; compareFully's "one side is functional, the
+    // other is not" branch decides the first position outright.
+    @Test
+    public void an_argument_only_fitting_the_raw_object_slot_falls_through_to_the_positional_tie_break()
+            throws Exception {
+        LambdaDescriptor emptyLambda = descriptor("() -> { }");
+        LambdaDescriptor[] lambdas = { emptyLambda, emptyLambda };
+        Class<?>[][] candidates = { { Runnable.class, Object.class }, { Object.class, Runnable.class } };
+        int picked = LambdaDescriptor.select(lambdas, candidates, Arrays.asList(0, 1));
+        assertEquals("hh(Runnable, Object): declaration order tie-break", 0, picked);
+    }
+
+    // Position 0 (a lambda argument, both candidates typed Object there) ties via
+    // compareFully's "neither side is functional" branch, which returns 0; the
+    // actual pick is decided at position 1, whose argument isn't a lambda
+    // (lambdas[1] == null), so compareSignatures compares it directly via
+    // compareByDepthAndName, not through compareFully at all.
+    @Test
+    public void two_non_lambda_argument_positions_are_compared_by_depth_and_name() throws Exception {
+        LambdaDescriptor lambda = descriptor("() -> 1");
+        LambdaDescriptor[] lambdas = { lambda, null };
+        Class<?>[][] candidates = { { Object.class, Comparable.class }, { Object.class, java.io.Serializable.class } };
+        int picked = LambdaDescriptor.select(lambdas, candidates, Arrays.asList(0, 1));
+        // Deterministic regardless of declaration order; this pins whichever bsh computes.
+        assertEquals(1, picked);
+    }
+
+    // compareByDepthAndName's null-guarded branch: an untyped scripted parameter
+    // (a null Class entry) at a lambda-argument position compares via the null
+    // check rather than depth(a)/depth(b), which would NPE on a null Class.
+    @Test
+    public void an_untyped_scripted_parameter_at_a_lambda_position_compares_via_the_null_branch() throws Exception {
+        LambdaDescriptor lambda = descriptor("() -> 1");
+        LambdaDescriptor[] lambdas = { lambda, lambda };
+        Class<?>[][] candidates = { { null, Object.class }, { Object.class, null } };
+        int picked = LambdaDescriptor.select(lambdas, candidates, Arrays.asList(0, 1));
+        // Deterministic regardless of declaration order; this pins whichever bsh computes.
+        assertEquals(1, picked);
     }
 }

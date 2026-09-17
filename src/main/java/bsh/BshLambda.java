@@ -635,9 +635,11 @@ public class BshLambda implements Serializable {
         // The same veto an implements clause gets (BSHClassDeclaration).
         Interpreter.mainSecurityGuard.canImplements(functionalInterface);
         if (!descriptor().fits(functionalInterface))
-            throw new UtilEvalError("A lambda cannot implement "
-                + functionalInterface.getName() + ": its body does not fit the "
-                + "method's void/value shape or its statically known result type");
+            throw new UtilEvalError(descriptor().parametersFit(functionalInterface)
+                ? "A lambda cannot implement " + functionalInterface.getName() + ": its body does "
+                    + "not fit the method's void/value shape or its statically known result type"
+                : "A lambda cannot implement " + functionalInterface.getName() + ": its parameter "
+                    + "types don't match the method's");
 
         Class<?> wrapperClass;
         try {

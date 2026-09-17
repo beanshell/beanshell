@@ -232,6 +232,23 @@ public class BshLambdaTest {
         }
     }
 
+    public interface ListSink { void take(java.util.List<String> l); }
+
+    // A parameter-type mismatch must be reported as such, not blamed on the
+    // body's void/value shape or result type (which fit fine here).
+    @Test
+    public void a_parameter_type_mismatch_is_reported_distinctly_from_a_body_shape_mismatch() throws Exception {
+        try {
+            new Interpreter().eval(
+                "import bsh.BshLambdaTest.ListSink;"
+                + " (ListSink) (java.util.ArrayList l) -> { };");
+            fail("expected an EvalError: ArrayList does not match List<String>");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("parameter types don't match"));
+            assertFalse(expected.getMessage(), expected.getMessage().contains("void/value shape"));
+        }
+    }
+
     @Test
     public void arity_mismatch_against_the_target_interface_fails_clearly() throws Exception {
         Interpreter interpreter = new Interpreter();
@@ -277,6 +294,42 @@ public class BshLambdaTest {
         assertEquals(Integer.valueOf(5), interpreter.eval(
             "x = 7; java.util.function.Function f = x -> { x = 5; return x; }; f.apply(1);"));
         assertEquals(Integer.valueOf(7), interpreter.get("x"));
+    }
+
+    // Documented, pre-existing divergence (CHANGES.md): bsh gives a loop no fresh
+    // variable slot per iteration, so a lambda capturing it by reference sees
+    // whatever the last iteration left there, not the value at its own iteration
+    // the way Java does. Not lambda-specific -- a bsh.This proxy and an anonymous
+    // inner class capturing the same loop variable reproduce this identical "last
+    // value" result on this same tree (see .agent-notes bug log entry 29). This
+    // pins the current, documented behavior; it is not the correct Java answer.
+    @Test
+    public void a_foreach_loops_variable_is_shared_by_every_lambda_that_captures_it() throws Exception {
+        Interpreter interpreter = new Interpreter();
+        interpreter.eval("l = new java.util.ArrayList();"
+            + " for (String s : new String[]{\"a\",\"b\",\"c\"})"
+            + " l.add((java.util.function.Supplier) (() -> s));");
+        @SuppressWarnings("unchecked")
+        java.util.List<java.util.function.Supplier<String>> l =
+            (java.util.List<java.util.function.Supplier<String>>) interpreter.get("l");
+        assertEquals(3, l.size());
+        for (java.util.function.Supplier<String> s : l)
+            assertEquals("c", s.get());
+    }
+
+    // Same divergence, a C-style loop's block-local instead of a for-each variable.
+    @Test
+    public void a_c_style_loops_block_local_is_shared_by_every_lambda_that_captures_it() throws Exception {
+        Interpreter interpreter = new Interpreter();
+        interpreter.eval("l2 = new java.util.ArrayList();"
+            + " for (i = 0; i < 3; i++) { String t = \"x\" + i;"
+            + " l2.add((java.util.function.Supplier) (() -> t)); }");
+        @SuppressWarnings("unchecked")
+        java.util.List<java.util.function.Supplier<String>> l2 =
+            (java.util.List<java.util.function.Supplier<String>>) interpreter.get("l2");
+        assertEquals(3, l2.size());
+        for (java.util.function.Supplier<String> s : l2)
+            assertEquals("x2", s.get());
     }
 
     @Test
@@ -386,6 +439,31 @@ public class BshLambdaTest {
             fail("expected an EvalError naming writeReplace");
         } catch (EvalError expected) {
             assertTrue(expected.getMessage(), expected.getMessage().contains("writeReplace"));
+        }
+    }
+
+    // readResolve's catch (BshLambda.convertTo failing during deserialization),
+    // reached via a SecurityGuard installed between serialize and deserialize
+    // rather than a SAM-arity change (see BshLambdaClassLoadingTest for that trigger).
+    @Test
+    public void a_security_guard_installed_before_deserialization_rejects_the_lambda() throws Exception {
+        SerialTriple triple = (SerialTriple) new Interpreter().eval(
+            "import bsh.BshLambdaTest.SerialTriple; (SerialTriple) x -> x;");
+        java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream();
+        new java.io.ObjectOutputStream(bytes).writeObject(triple);
+        bsh.security.SecurityGuard noSerialTriple = new bsh.security.SecurityGuard() {
+            public boolean canImplements(Class<?> iface) { return iface != SerialTriple.class; }
+        };
+        Interpreter.mainSecurityGuard.add(noSerialTriple);
+        try {
+            try {
+                new java.io.ObjectInputStream(new java.io.ByteArrayInputStream(bytes.toByteArray())).readObject();
+                fail("expected an InvalidObjectException: the guard now vetoes SerialTriple");
+            } catch (java.io.InvalidObjectException expected) {
+                assertTrue(String.valueOf(expected.getCause()), expected.getCause() instanceof UtilEvalError);
+            }
+        } finally {
+            Interpreter.mainSecurityGuard.remove(noSerialTriple);
         }
     }
 
@@ -1042,6 +1120,74 @@ public class BshLambdaTest {
             }
         } finally {
             Interpreter.mainSecurityGuard.remove(noRunnables);
+        }
+    }
+
+    // Companion to the assignment/overload-resolved forms above: an explicit cast
+    // must be vetoed the same way, with a different, allowed interface still
+    // working under the same guard (the control case).
+    @Test
+    public void a_security_guard_veto_via_an_explicit_cast_matches_the_assignment_case() throws Exception {
+        bsh.security.SecurityGuard noRunnables = new bsh.security.SecurityGuard() {
+            public boolean canImplements(Class<?> iface) { return iface != Runnable.class; }
+        };
+        Interpreter.mainSecurityGuard.add(noRunnables);
+        try {
+            try {
+                new Interpreter().eval("(Runnable) (() -> {});");
+                fail("expected a SecurityError from the explicit cast");
+            } catch (EvalError expected) {
+                assertTrue(expected.getMessage(), expected.getMessage().contains("Can't implement this interface"));
+            }
+            assertEquals(1, Primitive.unwrap(
+                new Interpreter().eval("((java.util.concurrent.Callable) (() -> 1)).call();")));
+        } finally {
+            Interpreter.mainSecurityGuard.remove(noRunnables);
+        }
+    }
+
+    // Reflect.scriptedInterfaceConstant's recursive superinterface-constant lookup,
+    // at a second level: a_scripted_interface_constant_is_readable_through_a_lambda_wrapper
+    // above already covers one level (K2 extends K); this closes Task 14's remaining gap.
+    @Test
+    public void a_scripted_interface_constant_is_readable_through_two_levels_of_inheritance() throws Exception {
+        assertEquals(41, Primitive.unwrap(new Interpreter().eval(
+            "interface A1 { int K = 41; } interface B1 extends A1 { } interface C1 extends B1 { int get(); }"
+            + " C1 c = () -> 1; c.K;")));
+    }
+
+    // markerTypeName must describe the lambda by its parameter types and shape,
+    // never leak the internal synthetic marker class name, in an unmatched-overload error.
+    @Test
+    public void an_unmatched_overload_error_names_the_lambda_by_its_marker_type_name() throws Exception {
+        try {
+            new Interpreter().eval("m(Runnable r) { } m((String s) -> { });");
+            fail("expected an EvalError: Runnable's SAM takes 0 parameters, not (String)");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("<lambda (String) returning void>"));
+        }
+    }
+
+    public static class Base {
+        public final SerializableReplaceWriter w;
+        public Base(SerializableReplaceWriter w) { this.w = w; }
+    }
+
+    // This.convertOpaqueArgs's catch: a lambda argument to a Java super
+    // constructor that fails BshLambda.convertTo (here, the SAM collides with
+    // Serialization's writeReplace() hook) must be wrapped, naming the argument,
+    // not escape as a bare UtilEvalError.
+    @Test
+    public void a_lambda_argument_to_a_java_super_constructor_that_fails_conversion_is_wrapped() throws Exception {
+        try {
+            new Interpreter().eval(
+                "import bsh.BshLambdaTest.Base;"
+                + " class A extends Base { A() { super(() -> null); } } new A();");
+            fail("expected an error: SerializableReplaceWriter's SAM collides with writeReplace");
+        } catch (EvalError | InterpreterError expected) {
+            String message = expected.getMessage();
+            assertTrue(message, message.contains("argument 1"));
+            assertTrue(message, message.contains("writeReplace"));
         }
     }
 }

@@ -75,6 +75,21 @@ final class LambdaDescriptor {
     /** Whether this lambda can become the type: a public functional interface
         whose method takes its parameters and whose result its body fits. */
     boolean fits(Class<?> type) {
+        if (!parametersFit(type))
+            return false;
+        Class<?> returned = BshLambda.functionReturnType(type);
+        if (shape == BshLambda.INVALID
+                || shape == BshLambda.VALUE && returned == void.class
+                || shape == BshLambda.VOID && returned != void.class)
+            return false;
+        return result == null || returned == void.class || isAssignable(result, returned);
+    }
+
+    /** Whether type's single abstract method's arity and parameter types accept
+        this lambda, ignoring its body's void/value shape and statically known
+        result -- separated out so a caller can tell the two kinds of mismatch
+        apart for an error message (see BshLambda.convertTo). */
+    boolean parametersFit(Class<?> type) {
         Method sam = type == null ? null : BshLambda.singleAbstractMethod(type);
         if (sam == null || !BshLambda.isImplementable(type) || sam.getParameterCount() != arity)
             return false;
@@ -97,12 +112,7 @@ final class LambdaDescriptor {
                     : parameters[i] == declared))
                 return false;
         }
-        Class<?> returned = BshLambda.functionReturnType(type);
-        if (shape == BshLambda.INVALID
-                || shape == BshLambda.VALUE && returned == void.class
-                || shape == BshLambda.VOID && returned != void.class)
-            return false;
-        return result == null || returned == void.class || isAssignable(result, returned);
+        return true;
     }
 
     // Only an unresolved type variable, wherever it occurs, earns leniency: a
@@ -231,6 +241,10 @@ final class LambdaDescriptor {
         Class<?> rt = BshLambda.functionReturnType(target), ro = BshLambda.functionReturnType(other);
         if (ro == void.class)
             return true;
+        // rt == void.class is defensive here, not reachable: target already passed
+        // fits() for this lambda, which rejects shape == INVALID outright and rejects
+        // shape == VALUE against a void-returning SAM, so a known (non-null) result
+        // paired with rt == void.class doesn't arise here in practice.
         if (rt == void.class || result == null)
             return false;
         if (rt.isPrimitive() && ro.isPrimitive())
@@ -272,6 +286,10 @@ final class LambdaDescriptor {
                 return 3000;
             return returned.isPrimitive() ? width(returned) : 1000 + depth(returned);
         }
+        // Defensive, not reachable: type already passed fits() for this lambda, which
+        // rejects shape == INVALID outright and rejects shape == VALUE against a
+        // void-returning SAM, so a known (non-null) result (as here) paired with
+        // returned == void.class doesn't arise here in practice.
         if (returned == void.class)
             return 0;
         boolean primitiveResult = result.type.isPrimitive();
@@ -321,6 +339,12 @@ final class LambdaDescriptor {
             if (c != 0)
                 return c;
         }
+        // Defensive, practically unreachable: two distinct overloads whose parameters
+        // share every position's exact binary name would ordinarily be the same
+        // overload, so a and b are not expected to be equal signatures by the time they
+        // reach this comparison -- though two same-named types from different class
+        // loaders (see BshLambdaClassLoadingTest's arity-mismatch coverage) could in
+        // principle still reach here equal by binary name alone.
         return 0;
     }
 

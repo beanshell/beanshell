@@ -313,6 +313,120 @@ public class BshLambdaClassLoadingTest {
         }
     }
 
+    public interface GenericGetterSam<T> { T get(); }
+
+    // directSubstitution's Class.getGenericInterfaces() call throws TypeNotPresentException
+    // when the class's Signature attribute names a generic type argument absent from the
+    // classpath (an optional dependency, missing at runtime); functionReturnType must fall
+    // back to the plain erasure (Object, here) rather than propagate the crash.
+    @Test
+    public void a_missing_generic_type_argument_falls_back_to_the_erasure_return_type() throws Exception {
+        String genericSamInternal = GenericGetterSam.class.getName().replace('.', '/');
+        ClassWriter cw = new ClassWriter(0);
+        cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT | Opcodes.ACC_INTERFACE,
+            "missing/MissingSam", "Ljava/lang/Object;L" + genericSamInternal + "<Lmissing/Gone;>;",
+            "java/lang/Object", new String[] { genericSamInternal });
+        cw.visitEnd();
+        Class<?> missingSam = new ChildLoader().define(cw.toByteArray());
+        assertEquals(Object.class, BshLambda.functionReturnType(missingSam));
+        Object made = materialize(new Interpreter(), "() -> \"ok\";", missingSam);
+        assertEquals("ok", missingSam.getMethod("get").invoke(made));
+    }
+
+    /** Never checks findLoadedClass for the isolated name, so a second load
+        redefines it and the JVM rejects the duplicate -- simulates a
+        misbehaving plugin/app-server loader that doesn't cache classes. */
+    private static final class ParentOnlyLoader extends ClassLoader {
+        private final String isolatedName;
+        private final byte[] isolatedBytes;
+
+        ParentOnlyLoader(String isolatedName, byte[] isolatedBytes) {
+            super(BshLambdaClassLoadingTest.class.getClassLoader());
+            this.isolatedName = isolatedName;
+            this.isolatedBytes = isolatedBytes;
+        }
+
+        @Override
+        protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+            if (!name.equals(isolatedName))
+                return super.loadClass(name, resolve);
+            Class<?> defined = defineClass(name, isolatedBytes, 0, isolatedBytes.length);
+            if (resolve)
+                resolveClass(defined);
+            return defined;
+        }
+    }
+
+    // WrapperLoader.define's defineClass must load the interface as a direct
+    // superinterface; a loader that redefines it on every load (never
+    // consulting findLoadedClass) makes that second load collide with the
+    // first, so wrapper generation must surface a named UtilEvalError instead
+    // of letting the raw LinkageError escape.
+    @Test
+    public void a_loader_that_never_caches_the_interface_fails_wrapper_generation_with_a_named_cause()
+            throws Exception {
+        byte[] bytes = interfaceBytes("isolated/Op", "get", "()I");
+        ParentOnlyLoader loader = new ParentOnlyLoader("isolated.Op", bytes);
+        Class<?> iface = loader.loadClass("isolated.Op");
+        try {
+            materialize(new Interpreter(), "() -> 1;", iface);
+            org.junit.Assert.fail("expected a UtilEvalError: the loader redefines isolated.Op on every load");
+        } catch (UtilEvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("isolated.Op"));
+            assertTrue(String.valueOf(expected.getCause()), expected.getCause() instanceof LinkageError);
+        }
+    }
+
+    // A fixed serialVersionUID on both arities, so ObjectInputStream's own SUID
+    // check (computed from the method shape otherwise) doesn't reject the swap
+    // before readResolve/convertTo ever sees the mismatched arity.
+    private static byte[] serializableInterfaceBytes(String internalName, String method, String descriptor) {
+        ClassWriter cw = new ClassWriter(0);
+        cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT | Opcodes.ACC_INTERFACE,
+            internalName, null, "java/lang/Object", new String[] { "java/io/Serializable" });
+        cw.visitField(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL,
+            "serialVersionUID", "J", null, Long.valueOf(1L)).visitEnd();
+        cw.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT, method, descriptor, null, null).visitEnd();
+        cw.visitEnd();
+        return cw.toByteArray();
+    }
+
+    // readResolve's catch (BshLambda.convertTo failing during deserialization) reached via
+    // a SAM-arity change instead of C4's security-guard trigger: two loaders in one JVM each
+    // define a same-named interface with a different arity, and a custom ObjectInputStream
+    // resolves the serialized class name to the second loader's version, simulating what an
+    // actual two-process mismatch would produce.
+    @Test
+    public void deserializing_against_a_same_named_interface_with_a_different_arity_fails_naming_the_mismatch()
+            throws Exception {
+        byte[] arity1 = serializableInterfaceBytes("dyn/Api", "apply", "(I)I");
+        byte[] arity2 = serializableInterfaceBytes("dyn/Api", "apply", "(II)I");
+        Class<?> apiA = new ChildLoader().define(arity1);
+        Class<?> apiB = new ChildLoader().define(arity2);
+
+        Object wrapper = materialize(new Interpreter(), "x -> x + 1;", apiA);
+        java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream();
+        new java.io.ObjectOutputStream(bytes).writeObject(wrapper);
+
+        java.io.ObjectInputStream in = new java.io.ObjectInputStream(
+                new java.io.ByteArrayInputStream(bytes.toByteArray())) {
+            @Override
+            protected Class<?> resolveClass(java.io.ObjectStreamClass desc)
+                    throws java.io.IOException, ClassNotFoundException {
+                if (desc.getName().equals(apiA.getName()))
+                    return apiB;
+                return super.resolveClass(desc);
+            }
+        };
+        try {
+            in.readObject();
+            org.junit.Assert.fail("expected an InvalidObjectException: dyn.Api's arity changed between loaders");
+        } catch (java.io.InvalidObjectException expected) {
+            assertTrue(String.valueOf(expected.getCause()), expected.getCause() instanceof UtilEvalError);
+            assertTrue(expected.getMessage(), expected.getMessage().contains("parameter"));
+        }
+    }
+
     public interface ObjectReturner { Object get(); }
     public interface CharSequenceReturner { CharSequence get(); }
     public interface ObjectFirstDiamond extends ObjectReturner, CharSequenceReturner {}
