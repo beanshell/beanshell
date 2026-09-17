@@ -657,8 +657,10 @@ public final class This implements java.io.Serializable, Runnable
                 throw new InterpreterError(
                         "can't find super constructor for args!");
             Invocable superCon = cache.members(superClass.getName()).get(i);
-            return new ConstructorArgs(i, packVarArgsTail(args, argTypes,
-                superCon.getParameterTypes(), superCon.isVarArgs()));
+            Object[] packed = packVarArgsTail(args, argTypes,
+                superCon.getParameterTypes(), superCon.isVarArgs());
+            return new ConstructorArgs(i,
+                convertOpaqueArgs(packed, superCon.getParameterTypes()));
         }
 
         // find the matching this() constructor for the args
@@ -667,6 +669,7 @@ public final class This implements java.io.Serializable, Runnable
             throw new InterpreterError("can't find this constructor for args!");
         args = packVarArgsTail(args, argTypes,
             constructors[i].getParameterTypes(), constructors[i].isVarArgs());
+        args = convertOpaqueArgs(args, constructors[i].getParameterTypes());
         // this() constructors come after super constructors in the table
 
         int count = BshClassManager.memberCache.get(superClass)
@@ -694,6 +697,8 @@ public final class This implements java.io.Serializable, Runnable
     // The declared type, not the value, tells a lone null array argument apart
     // from a lone null element: (Object[])null and (Object)null are both a null
     // value (same reasoning as BSHAllocationExpression.superConstructorArgs).
+    // A lambda or scripted object packed into the tail converts here too, via
+    // Types.castObject's BshLambda branch.
     private static Object[] packVarArgsTail(Object[] args, Class<?>[] argTypes,
             Class<?>[] paramTypes, boolean varArgs) {
         if (!varArgs || paramTypes.length == 0 || paramTypes.length > args.length + 1)
@@ -720,6 +725,24 @@ public final class This implements java.io.Serializable, Runnable
         Object[] result = Arrays.copyOf(args, paramTypes.length);
         result[fixed] = packed;
         return result;
+    }
+
+    // A lambda or scripted object is opaque until it meets its parameter type.
+    // A Java call converts in Invocable.invokeTarget; the generated constructor
+    // switch casts the raw argument itself, so convert here. An untyped (loose)
+    // parameter has a null target type and stays opaque, same as before lambdas existed.
+    // The varargs tail, if any, is already a real array by this point (packVarArgsTail
+    // runs first), so this only ever converts a fixed-arity argument.
+    private static Object[] convertOpaqueArgs(Object[] args, Class<?>[] paramTypes) {
+        for (int k = 0; k < args.length && k < paramTypes.length; k++)
+            if (paramTypes[k] != null && (args[k] instanceof BshLambda
+                    || args[k] instanceof This && paramTypes[k].isInterface())) try {
+                args[k] = Types.castObject(args[k], paramTypes[k], Types.ASSIGNMENT);
+            } catch (UtilEvalError e) {
+                throw new InterpreterError("Error converting constructor argument "
+                    + (k + 1) + " to " + paramTypes[k].getName() + ": " + e.getMessage(), e);
+            }
+        return args;
     }
 
     /**

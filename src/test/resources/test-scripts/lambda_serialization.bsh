@@ -1,0 +1,50 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+/*
+    Serialization of a Serializable lambda target, and the deserialized copy
+    refusing to run (issue #675: like a This proxy, a deserialized lambda
+    must not run, since a stream that could run script code while being read
+    is a deserialization gadget -- CVE-2016-2510).
+
+    Serializing a lambda wrapper walks its *entire* defining namespace, not
+    just the variables its body reads -- so a lambda created as an ordinary
+    global in this file would pull in every other global here too, and
+    break (NotSerializableException) the moment an unrelated non-Serializable
+    lambda-typed global (Runnable, Function, ...) was added anywhere in the
+    file, independent of this test's own logic. To make this example
+    independent of file position rather than merely relying on where it sits,
+    the lambda is created inside its own private, throwaway Interpreter: its
+    defining namespace is that interpreter's own (otherwise empty) global
+    namespace, never this file's, so nothing declared in this file -- above,
+    below, now or later -- can ever be swept into it.
+*/
+
+makeSerialLambda() {
+    bsh.Interpreter interp = new bsh.Interpreter();
+    return interp.eval(
+        "import bsh.BshLambdaTest.SerialTriple; (SerialTriple) (x -> x * 3);");
+}
+serialLambda = makeSerialLambda();
+assert( serialLambda.apply(2) == 6 );
+
+serDeser(obj) {
+    import java.io.*;
+    baos = new ByteArrayOutputStream();
+    oos = new ObjectOutputStream(baos);
+    oos.writeObject(obj);
+    oos.close();
+    ois = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()));
+    return ois.readObject();
+}
+deserializedLambda = serDeser(serialLambda);
+deserFailed = false;
+try {
+    deserializedLambda.apply(2);
+} catch (bsh.RuntimeEvalError e) {
+    deserFailed = true;
+}
+assert( deserFailed == true );
+
+complete();
