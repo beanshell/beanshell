@@ -130,6 +130,7 @@ The old documentation available at [http://beanshell.org](http://www.beanshell.o
 - Scripted methods with optionally typed arguments and return values
 - Scripted objects (method closures)
 - Scripted interfaces and event handlers.
+- Lambda expressions (Java 8 syntax), usable with Java APIs without casts.
 - Convenience syntax for working with JavaBean? Properties, hashtables, and primitive wrapper types.
 - Auto-allocation of variables to emulate Java properties files.
 - Extensible set of utility and shell-like commands
