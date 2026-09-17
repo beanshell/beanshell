@@ -1,17 +1,17 @@
 # BeanShell - Simple Java Scripting
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Build workflow](https://github.com/beanshell/beanshell/actions/workflows/maven.yml/badge.svg?branch=master)](https://github.com/beanshell/beanshell/actions/workflows/maven.yml) [![codecov](https://codecov.io/gh/beanshell/beanshell/branch/master/graph/badge.svg)](https://codecov.io/gh/beanshell/beanshell)
+[![Build workflow](https://github.com/beanshell/beanshell/actions/workflows/maven.yml/badge.svg?branch=main)](https://github.com/beanshell/beanshell/actions/workflows/maven.yml) [![codecov](https://codecov.io/gh/beanshell/beanshell/branch/main/graph/badge.svg)](https://codecov.io/gh/beanshell/beanshell)
 [![coverity](https://scan.coverity.com/projects/16379/badge.svg)](https://scan.coverity.com/projects/beanshell-beanshell)
 [![Known Vulnerabilities](https://snyk.io/test/github/beanshell/beanshell/badge.svg)](https://snyk.io/test/github/beanshell/beanshell)
 
 The **official** and **active** project home for BeanShell.
 
 ## NOTICE: Pending new release
-The only recommended version is a manual build of the master branch. Support for legacy releases reached end-of-life; only issues and pull requests against master will be accepted.
+The only recommended version is a manual build of the main branch. Support for legacy releases reached end-of-life; only issues and pull requests against main will be accepted.
 
 The next release will be BeanShell 3.0, as the [development roadmap](https://github.com/beanshell/beanshell#development-road-map) outlines. It [was decided](https://github.com/beanshell/beanshell/issues/81) that the next release would be a production-ready major version with all outstanding issues resolved to encourage community involvement and testing.
 
-Most of the outstanding issues were [imported from Sourceforge](https://github.com/beanshell/beanshell/labels/auto-migrated%20sourceforge), where they were reported many years ago and are now orphaned without owners. The majority has already been resolved on master. **An earnest call goes out for assistance in processing these issues to verify whether they are still valid, reproducible, or already resolved.**
+Most of the outstanding issues were [imported from Sourceforge](https://github.com/beanshell/beanshell/labels/auto-migrated%20sourceforge), where they were reported many years ago and are now orphaned without owners. The majority has already been resolved on main. **An earnest call goes out for assistance in processing these issues to verify whether they are still valid, reproducible, or already resolved.**
 
 New language enhancements remain open for [comments and discussion](https://github.com/beanshell/beanshell/labels/discussion).
 
@@ -34,7 +34,7 @@ Starting with version 2.0b5, BeanShell is licensed under the
 ## Download
 
 ### Source code
-The development branch is the master, and it is currently recommended that you use that version. To build, pull the project, and run the maven command.
+The development branch is main, and it is currently recommended that you use that version. To build, pull the project, and run the maven command.
 
 ```shell
 $ mvn install
@@ -98,7 +98,7 @@ You are encouraged to raise a Github [Pull Request](https://github.com/beanshell
 
 You can also raise an [issue](https://github.com/beanshell/beanshell/issues) for any questions or bugs. Remember, your stack trace might be particularly useful for others!
 
-Please note only issues and pull requests made against the master branch will be considered.
+Please note only issues and pull requests made against the main branch will be considered.
 
 ## Documentation
 
