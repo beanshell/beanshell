@@ -381,6 +381,20 @@ public class BshLambda implements Serializable {
         }
     }
 
+    // Class.isSealed() (JLS 9.8) can't be named directly: this module targets
+    // bytecode release 8, where the method doesn't exist on the compile-time
+    // Class API, and must also run unmodified on an actual JDK 8, where
+    // sealed interfaces don't exist as a class-file concept at all.
+    private static boolean isSealed(Class<?> type) {
+        try {
+            return (Boolean) Class.class.getMethod("isSealed").invoke(type);
+        } catch (NoSuchMethodException e) {
+            return false; // JDK 8-16: no such thing as a sealed interface
+        } catch (ReflectiveOperationException e) {
+            return true; // fail closed: unusable as a lambda target either way
+        }
+    }
+
     private static Method discoverSingleAbstractMethod(Class<?> type) {
         if (!type.isInterface())
             return null;
@@ -550,7 +564,8 @@ public class BshLambda implements Serializable {
     private static final ClassValue<Boolean> IMPLEMENTABLE = new ClassValue<Boolean>() {
         @Override
         protected Boolean computeValue(Class<?> type) {
-            return Modifier.isPublic(type.getModifiers()) && inaccessibleSignatureType(type) == null;
+            return Modifier.isPublic(type.getModifiers()) && !isSealed(type)
+                && inaccessibleSignatureType(type) == null;
         }
     };
 
@@ -620,6 +635,10 @@ public class BshLambda implements Serializable {
         if (!Modifier.isPublic(functionalInterface.getModifiers()))
             throw new UtilEvalError("A lambda cannot implement "
                 + functionalInterface.getName() + ": the interface is not public");
+        if (isSealed(functionalInterface))
+            throw new UtilEvalError("A lambda cannot implement "
+                + functionalInterface.getName() + ": sealed interfaces are not "
+                + "functional-interface targets (JLS 9.8)");
         Class<?> hidden = inaccessibleSignatureType(functionalInterface);
         if (hidden != null)
             throw new UtilEvalError("A lambda cannot implement "

@@ -1050,6 +1050,43 @@ public class BshLambdaClassLoadingTest {
         }
     }
 
+    // LAMBDA-REVIEW2.md F6: JLS 9.8 excludes a sealed interface from
+    // functional-interface targets; BshLambda's SAM/implementability checks
+    // never tested sealed status, so a lambda was accepted at conversion-entry
+    // and only failed later, at wrapper class definition, with a raw
+    // IncompatibleClassChangeError instead of a clean, immediate rejection.
+    @Test
+    public void a_sealed_interface_is_rejected_cleanly_not_at_wrapper_linkage() throws Exception {
+        Assume.assumeTrue("sealed interfaces need Java 17+",
+            Double.parseDouble(System.getProperty("java.specification.version")) >= 17);
+        Assume.assumeTrue("javac not available at java.home", new File(javaHomeTool("javac")).exists());
+
+        Path work = Files.createTempDirectory("bsh-sealed-test");
+        try {
+            Files.write(work.resolve("Action.java"), Arrays.asList(
+                "public sealed interface Action permits Action.Impl {",
+                "    void run();",
+                "    final class Impl implements Action { public void run() {} }",
+                "}"));
+            Path out = work.resolve("out");
+            Files.createDirectories(out);
+            runTool(javaHomeTool("javac"), "--release", "17", "-d", out.toString(),
+                work.resolve("Action.java").toString());
+
+            URLClassLoader loader = new URLClassLoader(
+                new java.net.URL[] { out.toUri().toURL() }, Interpreter.class.getClassLoader());
+            Class<?> action = Class.forName("Action", true, loader);
+            try {
+                materialize(new Interpreter(), "() -> {};", action);
+                org.junit.Assert.fail("expected a UtilEvalError: Action is sealed");
+            } catch (UtilEvalError expected) {
+                assertTrue(expected.getMessage(), expected.getMessage().contains("sealed"));
+            }
+        } finally {
+            deleteRecursively(work);
+        }
+    }
+
     private static String javaHomeTool(String name) {
         return System.getProperty("java.home") + File.separator + "bin" + File.separator + name;
     }
