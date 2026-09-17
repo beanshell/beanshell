@@ -355,7 +355,7 @@ public class BshLambda implements Serializable {
         that masks a return-type variable directSubstitution could not
         resolve, as opposed to a genuinely non-generic method, where the
         erasure IS the real type. Only relevant to a lambda whose result is
-        statically known (see LambdaDescriptor.fits): an unknown result is
+        statically known (see convertTo): an unknown result is
         already, correctly, checked at invocation time regardless. */
     static boolean hasUnresolvedReturnTypeVariable(Class<?> functionalInterface) {
         Method sam = singleAbstractMethod(functionalInterface);
@@ -736,6 +736,12 @@ public class BshLambda implements Serializable {
                     + "not fit the method's void/value shape or its statically known result type"
                 : "A lambda cannot implement " + functionalInterface.getName() + ": its parameter "
                     + "types don't match the method's");
+        Class<?> returned = functionReturnType(functionalInterface);
+        if (descriptor().result != null && returned != void.class && hasUnresolvedReturnTypeVariable(functionalInterface))
+            throw new UtilEvalError("A lambda cannot implement " + functionalInterface.getName()
+                + ": its result type is only reachable through more than one level of generic "
+                + "substitution, which bsh cannot resolve -- a lambda with a statically known "
+                + "result is rejected here even where the result would in fact be correct (see CHANGES.md)");
 
         Class<?> wrapperClass;
         try {

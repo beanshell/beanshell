@@ -96,6 +96,50 @@ public class BshLambdaTest {
         }
     }
 
+    public static class MultiLevelOverloads {
+        public static String take(MultiLevelStringGetter g) { return "specific:" + g.get(); }
+        public static String take(Object g) { return "object"; }
+    }
+
+    // The fix for F3 lives in convertTo, not fits, precisely so this stays a candidate
+    // during overload resolution: excluding it from fits (the first, buggy fix) made
+    // resolution silently fall through to the Object overload instead of erroring --
+    // worse than the original hole, since it ran the wrong method with no error at all.
+    @Test
+    public void an_unresolved_multi_level_return_type_does_not_silently_dispatch_to_an_object_overload() throws Exception {
+        Interpreter interpreter = new Interpreter();
+        interpreter.eval("import bsh.BshLambdaTest.MultiLevelOverloads;");
+        try {
+            Object result = interpreter.eval("MultiLevelOverloads.take(() -> \"x\");");
+            fail("expected an EvalError, not a silent Object-overload dispatch; got " + result);
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("MultiLevelStringGetter"));
+            assertTrue(expected.getMessage(), expected.getMessage().contains("more than one level of generic substitution"));
+        }
+    }
+
+    public interface MultiLevelParam<T> { T apply(String s); }
+    public interface MultiLevelParamMid<U> extends MultiLevelParam<U> {}
+    public interface MultiLevelParamString extends MultiLevelParamMid<String> {}
+
+    // convertTo's fits() check must run, and report, before the unresolved-return-type
+    // check: a lambda that's wrong in both ways (a plain parameter mismatch here, on top
+    // of the unresolved multi-level return) should get the true, more basic problem --
+    // its parameter types don't match -- not the return-type message, which would be
+    // misleading (and, taken alone, wrongly implies the result itself is the issue).
+    @Test
+    public void a_parameter_mismatch_is_reported_before_the_unresolved_return_type_check() throws Exception {
+        try {
+            new Interpreter().eval("import bsh.BshLambdaTest.MultiLevelParamString;"
+                + " (MultiLevelParamString) (Integer x) -> \"s\";");
+            fail("expected an EvalError: the parameter type doesn't match");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("parameter"));
+            assertFalse(expected.getMessage(),
+                expected.getMessage().contains("more than one level of generic substitution"));
+        }
+    }
+
     @Test
     public void overloads_differing_only_in_a_specialized_return_type_resolve_as_javac_does() throws Exception {
         Interpreter interpreter = new Interpreter();
