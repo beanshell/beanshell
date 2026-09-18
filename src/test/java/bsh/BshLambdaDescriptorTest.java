@@ -82,6 +82,14 @@ public class BshLambdaDescriptorTest {
         assertEquals(BshLambda.VOID, shape("() -> { while (1 == 2) { } }"));
     }
 
+    // JLS 15.28: a ternary is a constant only when every branch is, not just the
+    // one its condition statically selects.
+    @Test
+    public void a_ternary_loop_condition_needs_both_branches_constant_to_be_infinite() throws Exception {
+        assertEquals(BshLambda.EITHER, shape("() -> { while (true ? true : false) { } }"));
+        assertEquals(BshLambda.VOID_UNSURE, shape("() -> { while (true ? true : flag) { } }"));
+    }
+
     // JLS 14.13: a do statement completes only if its body does (or a continue or break reaches out).
     @Test
     public void do_statement_completes_only_through_its_body() throws Exception {
@@ -256,6 +264,14 @@ public class BshLambdaDescriptorTest {
     @Test
     public void a_foldable_ternary_expressions_false_branch_is_a_known_constant_result() throws Exception {
         assertResult(int.class, result("() -> false ? 1 : 2"), 2);
+    }
+
+    // Issue #845: the untaken branch must fold too (JLS 15.28), not just the
+    // taken one, or a ternary like true ? 1 : foo() is wrongly seen as constant.
+    @Test
+    public void a_ternary_whose_untaken_branch_does_not_fold_is_not_a_known_constant() throws Exception {
+        assertNull(result("() -> true ? 1 : foo()"));
+        assertNull(result("() -> false ? foo() : 1"));
     }
 
     @Test
