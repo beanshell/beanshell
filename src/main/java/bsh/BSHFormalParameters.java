@@ -94,6 +94,20 @@ class BSHFormalParameters extends SimpleNode implements BshClassManager.Listener
         return typeDesc;
     }
 
+    /** @return which parameters had no type-node child, i.e. were declared untyped. */
+    public boolean [] getUntypedParams() {
+        insureParsed();
+        boolean [] untyped = new boolean[numArgs];
+
+        for(int i=0; i<numArgs; i++)
+        {
+            BSHFormalParameter param = (BSHFormalParameter)jjtGetChild(i);
+            untyped[i] = param.jjtGetNumChildren() == 0;
+        }
+
+        return untyped;
+    }
+
     /**
         Evaluate the types.
         Note that type resolution does not require the interpreter instance.
