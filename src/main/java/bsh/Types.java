@@ -398,7 +398,44 @@ class Types {
         if ( Primitive.wrapperMap.get( lhsType ) == rhsType )
             return true;
 
+        // JLS 5.3: unboxing conversion optionally followed by widening
+        // primitive conversion (e.g. Integer -> long). The exact-pair case
+        // above already covers the non-widening half of this rule.
+        if ( isUnboxThenWidenAssignable( lhsType, rhsType ) )
+            return true;
+
         return isJavaBaseAssignable(lhsType, rhsType);
+    }
+
+    /** Whether rhsType is a numeric wrapper (or Character) whose unboxed
+        primitive value widens (JLS 5.1.2) to primitive lhsType. Deliberately
+        independent of the NUMBER_ORDER table used elsewhere in this file,
+        which misplaces Character.TYPE and would otherwise also accept the
+        illegal byte/short -> char "widening". */
+    private static boolean isUnboxThenWidenAssignable( Class<?> lhsType, Class<?> rhsType ) {
+        if ( !lhsType.isPrimitive() )
+            return false;
+        Class<?> unboxed = Primitive.wrapperMap.get( rhsType );
+        if ( unboxed == null || !unboxed.isPrimitive() )
+            return false;
+        return isWideningPrimitiveConversion( unboxed, lhsType );
+    }
+
+    /** JLS 5.1.2's widening primitive conversion table, exactly. */
+    private static boolean isWideningPrimitiveConversion( Class<?> from, Class<?> to ) {
+        if ( from == Byte.TYPE )
+            return to == Short.TYPE || to == Integer.TYPE || to == Long.TYPE
+                || to == Float.TYPE || to == Double.TYPE;
+        if ( from == Short.TYPE || from == Character.TYPE )
+            return to == Integer.TYPE || to == Long.TYPE
+                || to == Float.TYPE || to == Double.TYPE;
+        if ( from == Integer.TYPE )
+            return to == Long.TYPE || to == Float.TYPE || to == Double.TYPE;
+        if ( from == Long.TYPE )
+            return to == Float.TYPE || to == Double.TYPE;
+        if ( from == Float.TYPE )
+            return to == Double.TYPE;
+        return false;
     }
 
     /**
