@@ -1727,7 +1727,7 @@ void TryStatement() #TryStatement:
  */
 { boolean closed = false; }
 {
-    "try" [ TryWithResources() ] Block()
+    "try" [ TryWithResources() { closed = true; } ] Block()
     ( "catch" "(" MultiCatch() ")" Block() { closed = true; } )*
     [ "finally" Block() { closed = true; } ]
     {
