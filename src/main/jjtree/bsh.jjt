@@ -323,6 +323,27 @@ public class Parser
         return new Primitive(new java.math.BigInteger(s.substring(getStartIdx(radix)), radix));
     }
 
+    /** True only when this suffixed integer-literal token's *positive* value
+     *  doesn't fit its suffix's target type, but negating it would (JLS 3.10.1's
+     *  "smallest negative literal" carve-out) -- e.g. 9223372036854775808L. An
+     *  ordinary literal (positive or one that already fits) returns false here
+     *  and is left to the existing "( - ) UnaryExpression()" alternative. */
+    private boolean isUnnegatableIntegralLiteral(Token literalTok) {
+        if (literalTok.kind != INTEGER_LITERAL)
+            return false;
+        String literal = literalTok.image.replaceAll("_", "");
+        char ch = literal.charAt(literal.length() - 1);
+        if (!Types.Suffix.isIntegral(ch))
+            return false;
+        try {
+            parseIntegral(literal.substring(0, literal.length() - 1))
+                .castToType(Types.Suffix.getIntegralType(ch), 0);
+            return false; // fits its type as a positive value -- not our case
+        } catch (Exception e) {
+            return true; // positive doesn't fit -- let the special alternative try negated
+        }
+    }
+
     /**
      * Return a list of all comments that were before this node but
      * prior to the previous node.  The comments are returned in the
@@ -1196,8 +1217,33 @@ void PowerExpression() :
 }
 
 void UnaryExpression() :
-{ Token t = null; }
+{ Token t = null; Token x = null; }
 {
+  // the "smallest negative literal" carve-out (JLS 3.10.1) -- e.g.
+  // -9223372036854775808L, whose positive form overflows its suffix type
+  // and would otherwise never reach a later negation
+  LOOKAHEAD({ getToken(1).kind == MINUS && isUnnegatableIntegralLiteral(getToken(2)) })
+    t = <MINUS> x = <INTEGER_LITERAL>
+    {
+      String literal = x.image.replaceAll("_", "");
+      int last = literal.length() - 1;
+      char ch = literal.charAt(last);
+      java.math.BigInteger magnitude =
+          (java.math.BigInteger) parseIntegral(literal.substring(0, last)).getValue();
+      try {
+          jjtThis.value = new Primitive(magnitude.negate())
+                .castToType(Types.Suffix.getIntegralType(ch), 0);
+      } catch ( Exception e ) {
+          // castToType() is declared to throw the checked UtilEvalError, but
+          // the overflow case (the negated value still doesn't fit, e.g.
+          // -99999999999999999999L) actually throws the unchecked
+          // InterpreterError -- catch both so overflow here is reported as a
+          // located ParseException like every other malformed literal, not
+          // an uncaught internal error.
+          throw createParseException( e.getMessage(), e );
+      }
+    } #Literal(0)
+|
    // prefix sign
   ( t = <PLUS> | t = <MINUS> | t = <TILDE> | t = <BANG> ) UnaryExpression()
     { jjtThis.kind = t.kind; } #UnaryExpression(1)

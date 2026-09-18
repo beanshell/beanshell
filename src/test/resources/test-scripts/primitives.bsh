@@ -586,8 +586,12 @@ assertThat(cw1, equalTo('\005'));
 cw1=bd1;
 assertThat(cw1, instanceOf(Character.class));
 assertThat(cw1, equalTo('\005'));
-assert(isEvalError("cannot assign number 65537 to type char", "cw1=(char)65537;"));
-assert(isEvalError("cannot assign number -1 to type char", "cw1=(char)-1;"));
+// explicit narrowing cast truncates per JLS 5.1.3 (issue #844), rather than
+// rejecting the out-of-range value
+cw1=(char)65537;
+assertThat(cw1, equalTo('\001'));
+cw1=(char)-1;
+assertThat(cw1, equalTo('\uffff'));
 cw1='*';
 assertThat(cw1, equalTo('*'));
 assertThat(cw1, equalTo((char) 42));
