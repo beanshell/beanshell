@@ -286,16 +286,76 @@ public class ClassGeneratorUtil implements Opcodes {
                modifiers |= ACC_VARARGS;
             boolean isStatic = (modifiers & ACC_STATIC) > 0;
 
+            String[] paramTypes = isStatic || method.isVarArgs()
+                    ? method.getParamTypeDescriptors()
+                    : resolveOverrideParamTypes(method);
+
             generateMethod(className, fqClassName, method.getName(), method.getReturnTypeDescriptor(),
-                    method.getParamTypeDescriptors(), modifiers, cw);
+                    paramTypes, modifiers, cw);
 
             // check if method overrides existing method and generate super delegate.
-            if ( null != classContainsMethod(superClass, method.getName(), method.getParamTypeDescriptors()) && !isStatic )
+            if ( null != classContainsMethod(superClass, method.getName(), paramTypes) && !isStatic )
                 generateSuperDelegateMethod(superClass, superClassName, method.getName(), method.getReturnTypeDescriptor(),
-                        method.getParamTypeDescriptors(), ACC_PUBLIC, cw);
+                        paramTypes, ACC_PUBLIC, cw);
         }
 
         return cw.toByteArray();
+    }
+
+    /** @return abstract methods reachable from the superclass chain and interfaces,
+     *  i.e. candidates a scripted override could actually implement. */
+    private List<Method> gatherAbstractMethods() {
+        List<Method> methods = new ArrayList<>();
+        class Reflector {
+            void gather(Class<?> type) {
+                if ( null == type ) return;
+                gather(type.getSuperclass());
+                for ( Method m : type.getDeclaredMethods() )
+                    if ( (m.getModifiers() & ACC_ABSTRACT) != 0 )
+                        methods.add(m);
+                for ( Class<?> i : type.getInterfaces() )
+                    gather(i);
+            }
+        }
+        Reflector r = new Reflector();
+        r.gather(superClass);
+        for ( Class<?> intf : interfaces )
+            r.gather(intf);
+        return methods;
+    }
+
+    /** Resolve the descriptors an untyped parameter list should be generated with.
+     * An untyped parameter is otherwise Object, which does not implement an abstract
+     * method declaring a narrower type, so adopt the abstract method's descriptors
+     * when exactly one abstract method of that name/arity can be meant.
+     * @return the descriptors to generate the method with */
+    private String[] resolveOverrideParamTypes(DelayedEvalBshMethod method) {
+        String[] declared = method.getParamTypeDescriptors();
+        boolean[] untyped = method.getUntypedParams();
+        if ( null == untyped || declared.length == 0 )
+            return declared;
+        boolean anyUntyped = false;
+        for ( boolean u : untyped )
+            anyUntyped |= u;
+        if ( !anyUntyped )
+            return declared;
+
+        String[] found = null;
+        for ( Method candidate : gatherAbstractMethods() ) {
+            if ( !candidate.getName().equals(method.getName())
+                    || candidate.getParameterCount() != declared.length )
+                continue;
+            String[] candidateTypes = getTypeDescriptors(candidate.getParameterTypes());
+            boolean matches = true;
+            for ( int i = 0; i < declared.length && matches; i++ )
+                matches = untyped[i] || declared[i].equals(candidateTypes[i]);
+            if ( !matches )
+                continue;
+            if ( null != found && !Arrays.equals(found, candidateTypes) )
+                return declared; // ambiguous between two abstract signatures, leave as Object
+            found = candidateTypes;
+        }
+        return null == found ? declared : found;
     }
 
     /**

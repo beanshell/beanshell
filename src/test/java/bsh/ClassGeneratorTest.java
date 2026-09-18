@@ -677,4 +677,80 @@ public class ClassGeneratorTest {
         bsh.eval("new pkg383p.Printer().print();");
         assertThat(out.toString(), containsString("from command"));
     }
+
+    @Test
+    public void untyped_param_overrides_abstract_method_in_anonymous_subclass() throws Exception {
+        assertEquals("got:x", eval(
+            "abstract class Base812A { abstract Object run(String s); }",
+            "Base812A b = new Base812A() { run(s) { return \"got:\" + s; } };",
+            "return b.run(\"x\");"));
+    }
+
+    @Test
+    public void untyped_param_overrides_abstract_method_in_named_class() throws Exception {
+        assertEquals("got:x", eval(
+            "abstract class Base812B { abstract Object run(String s); }",
+            "class Impl812B extends Base812B { run(s) { return \"got:\" + s; } }",
+            "return new Impl812B().run(\"x\");"));
+    }
+
+    @Test
+    public void untyped_param_override_does_not_cross_talk_between_arities() throws Exception {
+        assertEquals("one:x", eval(
+            "abstract class Base812C {",
+                "abstract Object run(String s);",
+                "abstract Object run(String s, String t);",
+            "}",
+            "Base812C b = new Base812C() {",
+                "run(s) { return \"one:\" + s; }",
+                "run(s, t) { return \"two:\" + s + t; }",
+            "};",
+            "return b.run(\"x\");"));
+        assertEquals("two:xy", eval(
+            "abstract class Base812D {",
+                "abstract Object run(String s);",
+                "abstract Object run(String s, String t);",
+            "}",
+            "Base812D b = new Base812D() {",
+                "run(s) { return \"one:\" + s; }",
+                "run(s, t) { return \"two:\" + s + t; }",
+            "};",
+            "return b.run(\"x\", \"y\");"));
+    }
+
+    @Test
+    public void untyped_param_override_stays_object_when_ambiguous() throws Exception {
+        Class<?> cls = (Class<?>) eval(
+            "abstract class Base812E {",
+                "abstract Object run(String s);",
+                "abstract Object run(Integer i);",
+            "}",
+            "class Sub812E extends Base812E { run(x) { return \"got:\" + x; } }",
+            "return Sub812E.class;");
+        assertNotNull(cls.getDeclaredMethod("run", Object.class));
+    }
+
+    @Test
+    public void untyped_params_override_abstract_method_with_multiple_parameters() throws Exception {
+        assertEquals("a-b", eval(
+            "abstract class Base812F { abstract Object join(String a, String b); }",
+            "Base812F j = new Base812F() { join(a, b) { return a + \"-\" + b; } };",
+            "return j.join(\"a\", \"b\");"));
+    }
+
+    @Test
+    public void mixed_typed_and_untyped_params_override_abstract_method() throws Exception {
+        assertEquals("a-5", eval(
+            "abstract class Base812G { abstract Object join(String a, Integer b); }",
+            "Base812G j = new Base812G() { join(String a, b) { return a + \"-\" + b; } };",
+            "return j.join(\"a\", 5);"));
+    }
+
+    @Test
+    public void untyped_param_named_wait_does_not_override_final_object_wait() throws Exception {
+        Class<?> cls = (Class<?>) eval(
+            "class C812H { wait(x) { return x; } }",
+            "return C812H.class;");
+        assertNotNull(cls);
+    }
 }
