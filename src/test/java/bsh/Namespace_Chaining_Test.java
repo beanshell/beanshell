@@ -90,6 +90,27 @@ public class Namespace_Chaining_Test {
     }
 
     @Test
+    public void chained_call_does_not_leak_params_or_locals() throws Exception {
+        Interpreter root = new Interpreter();
+        Interpreter child = new Interpreter(new StringReader(""), System.out, System.err, false, new NameSpace(root.getNameSpace(), "child"));
+
+        root.eval("int bar=42;");
+        child.eval("int bar=4711;");
+
+        // Method foo declared in parent namespace, late binds to child's bar
+        root.eval("int foo(int p) { int local = p; return bar; }");
+
+        assertEquals(4711, child.eval("foo(99);"));
+
+        // the call's own parameter and locals must not have leaked into
+        // the child namespace that invoked it
+        assertNull(child.eval("p;"));
+        assertNull(child.eval("local;"));
+        // and bar in the child namespace must be untouched
+        assertEquals(4711, child.eval("bar;"));
+    }
+
+    @Test
     public void check_ExternalNameSpace() throws Exception {
         final ExternalNameSpace externalNameSpace = new ExternalNameSpace();
         externalNameSpace.setVariable("a", Primitive.NULL, false);
