@@ -337,4 +337,63 @@ public class TryStatementTest {
         }
     }
 
+    @Test
+    public void try_with_resource_no_catch_no_finally() throws Exception {
+        Object result = eval(
+            "x = 0;",
+            "try (java.io.StringReader r = new java.io.StringReader(\"\")) {",
+                "x = 1;",
+            "}",
+            "return x;"
+        );
+        assertEquals(1, result);
+    }
+
+    @Test
+    public void try_with_resource_no_catch_no_finally_in_method_body() throws Exception {
+        Object result = eval(
+            "m() {",
+                "x = 0;",
+                "try (java.io.StringReader r = new java.io.StringReader(\"\")) {",
+                    "x = 1;",
+                "}",
+                "return x;",
+            "}",
+            "return m();"
+        );
+        assertEquals(1, result);
+    }
+
+    @Test
+    public void try_with_resource_no_catch_no_finally_closes_resource() throws Exception {
+        final AtomicBoolean closed = new AtomicBoolean(false);
+        final OutputStream autoclosable = new OutputStream() {
+            @Override
+            public void write(final int b) throws IOException {}
+
+            @Override
+            public void close() throws IOException {
+                closed.set(true);
+            }
+        };
+        eval(
+            toMap("autoclosable", autoclosable),
+            "try (x = new BufferedOutputStream(autoclosable)) {",
+                "x.write(42);",
+            "}"
+        );
+        assertTrue("stream should be closed", closed.get());
+    }
+
+    @Test
+    public void bare_try_with_no_resources_catch_or_finally_still_fails_to_parse() throws Exception {
+        thrown.expect(Exception.class);
+
+        eval(
+            "try {",
+            "   x = 1;",
+            "}"
+        );
+    }
+
 }
