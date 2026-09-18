@@ -11,13 +11,49 @@
   <!-- ====================================================================== -->
 
   <import file="maven-build.xml"/>
-  
+
   <!-- ====================================================================== -->
   <!-- Help target                                                            -->
   <!-- ====================================================================== -->
 
   <target name="help">
     <echo message="Please run: $ant -projecthelp"/>
+  </target>
+
+  <!-- ====================================================================== -->
+  <!-- Publishing generated docs to the beanshell.github.io site checkout     -->
+  <!-- ====================================================================== -->
+
+  <!-- Expects a sibling checkout of beanshell/beanshell.github.io; override
+       with -Dsite.dir=... to point elsewhere. -->
+  <property name="site.dir" location="../beanshell.github.io"/>
+
+  <target name="check-jdk8">
+    <condition property="is.jdk8">
+      <equals arg1="${ant.java.version}" arg2="1.8"/>
+    </condition>
+    <fail unless="is.jdk8">
+Javadoc must be generated with JDK 8 (this project's source/target level). On a
+newer JDK the javadoc tool silently produces incomplete or empty output for
+this codebase (e.g. it rejects 'yield' as a restricted identifier) while Ant
+still reports BUILD SUCCESSFUL. Re-run with:
+  JAVA_HOME=$(/usr/libexec/java_home -v 1.8) ant publish-javadoc
+    </fail>
+  </target>
+
+  <target name="publish-javadoc" depends="check-jdk8,javadoc"
+          description="Generate Javadoc and copy it into ../beanshell.github.io/v3/javadoc">
+    <available file="${site.dir}" type="dir" property="site.dir.present"/>
+    <fail unless="site.dir.present">
+${site.dir} was not found. publish-javadoc expects a sibling checkout of
+beanshell/beanshell.github.io; override the location with -Dsite.dir=...
+    </fail>
+    <delete dir="${site.dir}/v3/javadoc" quiet="true"/>
+    <mkdir dir="${site.dir}/v3/javadoc"/>
+    <copy todir="${site.dir}/v3/javadoc">
+      <fileset dir="${maven.reporting.outputDirectory}/apidocs"/>
+    </copy>
+    <echo message="Javadoc published to ${site.dir}/v3/javadoc"/>
   </target>
 
 </project>
