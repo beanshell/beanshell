@@ -48,8 +48,9 @@ class BSHWhileStatement extends SimpleNode implements ParserConstants {
         final Node condExp;
         final Node body;
         if (isDoStatement) {
-            condExp = jjtGetChild(1);
-            body = jjtGetChild(0);
+            // An empty-statement body produces no node, so a lone child is the condition.
+            condExp = jjtGetChild(numChild > 1 ? 1 : 0);
+            body = numChild > 1 ? jjtGetChild(0) : null;
         } else {
             condExp = jjtGetChild(0);
             body = numChild > 1 ? jjtGetChild(1) : null;
