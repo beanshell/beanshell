@@ -81,6 +81,25 @@ public class BshLambdaResolutionTest {
         public static String q(Number n, Runnable... r) { return "varargs"; }
     }
 
+    // Issue #849: "x" has no legal conversion to boolean at any applicability
+    // phase, so javac never even considers the fixed-arity overload here.
+    public static class PickFixture {
+        public static String pick(boolean value, Runnable action) { return "fixed"; }
+        public static String pick(String value, Runnable... actions) { return "varargs"; }
+    }
+
+    // Part A generality: unbox-then-widen from Byte, not just Integer.
+    public static class ByteToIntCase {
+        public static String q(int n, Runnable r) { return "fixed"; }
+        public static String q(Object n, Runnable... r) { return "varargs"; }
+    }
+
+    // Part A generality: unbox-then-widen from Short to double.
+    public static class ShortToDoubleCase {
+        public static String q(double n, Runnable r) { return "fixed"; }
+        public static String q(Object n, Runnable... r) { return "varargs"; }
+    }
+
     private static final String IMPORT_AAA_ZZZ =
         "import bsh.BshLambdaResolutionTest.Aaa;\n"
         + "import bsh.BshLambdaResolutionTest.Zzz;\n";
@@ -753,10 +772,11 @@ public class BshLambdaResolutionTest {
             + "f(() -> {});"));
     }
 
-    // Round four is also bsh's only model for unbox-then-widen (JLS 5.3), which
-    // an ordinary argument beside the lambda may be the only thing needing.
+    // Unbox-then-widen (JLS 5.3), which an ordinary argument beside the
+    // lambda may be the only thing needing, must win the fixed-arity
+    // overload before any varargs candidate is even tried (#849).
     @Test
-    public void a_non_lambda_argument_keeps_its_round_four_conversion() throws Exception {
+    public void a_non_lambda_argument_keeps_its_unbox_then_widen_conversion() throws Exception {
         assertEquals("fixed", eval(
             "import bsh.BshLambdaResolutionTest.WideningVsVarargs;"
             + " WideningVsVarargs.q(Integer.valueOf(1), () -> {});"));
@@ -927,5 +947,38 @@ public class BshLambdaResolutionTest {
         BshMethod found = interpreter.getNameSpace().getMethod("f", new Class<?>[] { lam.getClass() });
         assertNotNull(found);
         assertEquals(Runnable.class, found.getParameterTypes()[0]);
+    }
+
+    // Issue #849: "x" has no legal conversion to boolean at any applicability
+    // phase, so javac never applies pick(boolean, Runnable) and reaches phase 3
+    // (varargs) instead. bsh incorrectly picked the fixed-arity overload.
+    @Test
+    public void a_lambda_argument_reaches_the_varargs_overload_when_fixed_arity_is_inapplicable() throws Exception {
+        assertEquals("varargs", eval(
+            "import bsh.BshLambdaResolutionTest.PickFixture;"
+            + " PickFixture.pick(\"x\", () -> {});"));
+    }
+
+    @Test
+    public void a_non_lambda_argument_reaches_the_varargs_overload_when_fixed_arity_is_inapplicable() throws Exception {
+        assertEquals("varargs", eval(
+            "import bsh.BshLambdaResolutionTest.PickFixture;"
+            + " PickFixture.pick(\"x\", new Runnable() { public void run() {} });"));
+    }
+
+    // Part A generality: the unbox-then-widen check must implement the full
+    // JLS 5.1.2 table, not special-case Integer -> long.
+    @Test
+    public void a_byte_widens_to_int_through_unboxing_to_win_the_fixed_arity_overload() throws Exception {
+        assertEquals("fixed", eval(
+            "import bsh.BshLambdaResolutionTest.ByteToIntCase;"
+            + " ByteToIntCase.q(Byte.valueOf((byte)1), () -> {});"));
+    }
+
+    @Test
+    public void a_short_widens_to_double_through_unboxing_to_win_the_fixed_arity_overload() throws Exception {
+        assertEquals("fixed", eval(
+            "import bsh.BshLambdaResolutionTest.ShortToDoubleCase;"
+            + " ShortToDoubleCase.q(Short.valueOf((short)1), () -> {});"));
     }
 }
