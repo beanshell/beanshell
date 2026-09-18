@@ -91,6 +91,10 @@ A `ParseException` built from a plain message, such as a modifier-conflict error
 
 A `try` statement with a resources clause but no `catch` or `finally` failed to parse, even though the resources' own close is enough to make both optional in Java (#836). The grammar rejected it regardless of where it appeared — top level, inside a block, or inside a method body — while adding an empty `finally {}` made it parse; both now behave the same.
 
+An explicit narrowing cast on an out-of-range numeric value, such as `(short) -2147483648L`, threw `internal Error: cannot assign number ... to type ...` instead of truncating the way Java's `(short)`/`(byte)`/etc. casts do per JLS 5.1.3 (#844). An implicit typed declaration without a cast is a separate code path and still range-checks unless strict-Java mode is on.
+
+`-9223372036854775808L` (`Long.MIN_VALUE`'s literal form) failed to parse: the positive magnitude `9223372036854775808L` overflows `long` and was rejected before unary minus ever got a chance to negate it (#842). The same applied to the `int` and `short` suffixes at their own minimum values; the parser now recognizes this boundary case per integral suffix and builds the negated literal directly. `byte` is unaffected by this fix; a separate, pre-existing quirk already lets an out-of-range `byte` value through by silently wrapping instead of throwing.
+
 ## 2.1.1
 
 Fix src/bsh/util/AWTConsole.java breakage with newer Java versions

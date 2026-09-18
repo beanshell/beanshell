@@ -402,4 +402,64 @@ assertEquals(9223370937343150078L, lng);
 lng += 512.0w;
 assertEquals(9223370937343150590L, lng);
 
+// Issue #842: the "smallest negative literal" (JLS 3.10.1) now parses --
+// its positive form overflows the suffix type and used to be rejected
+// before unary minus ever got a chance to apply.
+t = -9223372036854775808L;
+assertThat(t, instanceOf(Long.class));
+assertEquals(-9223372036854775808L, t);
+
+// regression: the positive form alone must still fail -- javac rejects it too
+assert( isEvalError("cannot assign number 9223372036854775808 to type long", "9223372036854775808L;") );
+
+// regression: a bare int literal with no suffix takes the unrelated,
+// untouched shrinkWrap branch and is unaffected -- note it's a pre-existing,
+// separate quirk that this evaluates as a Long, not an Integer (bsh doesn't
+// implement JLS 3.10.1's "smallest negative literal" carve-out for bare,
+// unsuffixed literals; this fix only covers suffixed literals)
+t = -2147483648;
+assertThat(t, instanceOf(Long.class));
+assertEquals(-2147483648, t);
+
+// regression: an ordinary negative literal, nowhere near the boundary
+x = -5L;
+assertEquals(-5L, x);
+
+// generalizes across suffixes -- short and int boundaries
+t = -32768s;
+assertThat(t, instanceOf(Short.class));
+assertEquals(-32768s, t);
+t = -2147483648I;
+assertThat(t, instanceOf(Integer.class));
+assertEquals(-2147483648I, t);
+
+// regression: one less than the boundary, an ordinary already-representable
+// negative long, unaffected
+t = -9223372036854775807L;
+assertThat(t, instanceOf(Long.class));
+assertEquals(-9223372036854775807L, t);
+
+// NOTE: byte does not generalize the same way. Primitive.castNumber() has a
+// separate, pre-existing permissive range check for byte (accepts up to 255
+// and silently wraps via byteValue() truncation instead of throwing), so a
+// bare "128o" already silently becomes -128 without ever throwing -- meaning
+// the overflow this fix detects never fires for byte. This is an unrelated,
+// existing quirk that this fix does not touch or attempt to correct.
+assertEquals(-128, 128o);
+assertEquals(128, -128o);
+
+// regression: a magnitude so large it still doesn't fit even negated (e.g.
+// one more digit than Long.MIN_VALUE) must still be rejected as a clean,
+// located ParseException, not silently accepted and not an uncaught
+// internal error
+assert( isEvalError("cannot assign number -99999999999999999999 to type long", "-99999999999999999999L;") );
+
+// regression: the new UnaryExpression() alternative must only fire for a
+// literal MINUS -- +/~/! immediately followed by an overflowing suffixed
+// literal must still report the original, informative cast-overflow error,
+// not a bogus parse error from committing to a MINUS token that isn't there
+assert( isEvalError("cannot assign number 9223372036854775808 to type long", "+9223372036854775808L;") );
+assert( isEvalError("cannot assign number 9223372036854775808 to type long", "~9223372036854775808L;") );
+assert( isEvalError("cannot assign number 9223372036854775808 to type long", "!9223372036854775808L;") );
+
 complete();

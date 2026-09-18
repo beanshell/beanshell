@@ -261,4 +261,25 @@ assertEquals(refObj3, null);
 Double refObject4 = (Double) Boolean.TRUE;
 assertEquals(refObject4, 1.0);
 
+// Issue #844: an explicit narrowing cast truncates out-of-range values per
+// JLS 5.1.3, rather than throwing, just like Java's (short)/(byte)/etc do.
+assertEquals(0s, (short) -2147483648L);
+assertEquals(44o, (byte) 300);
+// non-truncating explicit cast is unaffected
+assertEquals(5o, (byte) 5);
+
+// a typed declaration without an explicit cast is a different code path
+// and must still range-check rather than truncate
+assert( isEvalError("cannot assign number 300 to type byte", "byte noCastByte = 300;"));
+
+// strict-Java typed declarations already truncate on their own, unrelated,
+// code path -- confirm this fix didn't change that behavior either way
+setStrictJava(true);
+byte strictByte = 300;
+assertEquals(44o, strictByte);
+setStrictJava(false);
+
+// object-type casts still go through the untouched Types.castObject path
+assertThat((Object) "hello", instanceOf(String.class));
+
 complete();

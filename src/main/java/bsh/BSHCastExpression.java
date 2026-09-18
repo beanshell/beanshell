@@ -58,6 +58,18 @@ class BSHCastExpression extends SimpleNode {
             return Types.castObject( fromValue, toType, Types.CAST );
         } catch ( UtilEvalError e ) {
             throw e.toEvalError( this, callstack  );
+        } catch ( InterpreterError e ) {
+            // An explicit narrowing cast truncates an out-of-range numeric
+            // value per JLS 5.1.3, unlike an implicit typed declaration
+            // (which is only forgiven in strict-Java mode). Only reached
+            // when the normal cast path above already rejected the value;
+            // in-range casts (including bsh's unsigned-byte-widening cast
+            // to int) never reach here.
+            if ( fromValue instanceof Primitive && ((Primitive) fromValue).isNumber()
+                    && Types.isNumeric(toType) )
+                return Primitive.wrap( Primitive.castNumberStrictJava(
+                    toType, ((Primitive) fromValue).numberValue() ), toType );
+            throw e;
         }
     }
 
