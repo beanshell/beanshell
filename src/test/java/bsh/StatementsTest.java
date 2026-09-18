@@ -176,4 +176,42 @@ public class StatementsTest {
         assertThat("not default branch", ret, equalTo("not default"));
     }
 
+    @Test
+    public void do_while_with_empty_statement_body() throws Exception {
+        // body is a no-op each time; x++ < 2 is checked (and increments x) for
+        // x=0, x=1, x=2 -- true, true, false -- leaving x at 3.
+        Object ret = eval(
+            "x = 0;",
+            "do ; while (x++ < 2);",
+            "return x;");
+        assertEquals(3, ret);
+    }
+
+    @Test
+    public void do_while_with_normal_body_still_works() throws Exception {
+        Object ret = eval(
+            "x = 0;",
+            "do { x++; } while (x < 3);",
+            "return x;");
+        assertEquals(3, ret);
+    }
+
+    @Test
+    public void while_with_empty_statement_body_still_works() throws Exception {
+        Object ret = eval(
+            "x = 0;",
+            "while (x++ < 2) ;",
+            "return x;");
+        assertEquals(3, ret);
+    }
+
+    @Test
+    public void do_while_with_empty_block_body_still_works() throws Exception {
+        Object ret = eval(
+            "x = 0;",
+            "do {} while (x++ < 2);",
+            "return x;");
+        assertEquals(3, ret);
+    }
+
 }
