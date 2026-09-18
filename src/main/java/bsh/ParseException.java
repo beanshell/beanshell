@@ -149,7 +149,7 @@ public class ParseException extends EvalError {
             if (null != sourceFile)
                 retval.append(" in: ").append(sourceFile);
         }
-        if (Interpreter.DEBUG.get() && expectedTokenSequences.length != 0) {
+        if (Interpreter.DEBUG.get() && null != expectedTokenSequences && expectedTokenSequences.length != 0) {
             retval.append(System.getProperty("line.separator", "\n")).append("Exppected");
             if (expectedTokenSequences.length > 1)
                 retval.append(" one of");
@@ -214,6 +214,8 @@ public class ParseException extends EvalError {
 
     @Override
     public int getErrorLineNumber() {
+        if (null == currentToken)
+            return -1;
         return currentToken.next.beginLine;
     }
 
@@ -223,6 +225,8 @@ public class ParseException extends EvalError {
     }
 
     public String getMessage() {
+        if (null == currentToken)
+            return getRawMessage();
         return ParseException.initialise(currentToken, expectedTokenSequences, tokenImage);
     }
     public String getMessage(boolean debug) {

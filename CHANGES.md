@@ -87,6 +87,10 @@ Added lambda expressions: `x -> ...`, `(a, b) -> ...` and `(Type a) -> ...`, wit
 
 `do ; while (cond);` — a do-while loop with an empty-statement body — threw `ArrayIndexOutOfBoundsException` instead of running (#837). An empty statement produces no AST node, so the loop's child-count assumption was off by one; a do-while with a real body, including an empty block (`do {} while (cond);`), was never affected.
 
+A `ParseException` built from a plain message, such as a modifier-conflict error like `private public int x = 1;`, lost that message entirely: `getMessage()` returned only the bare "Unable to parse code syntax. Encountered:" header with nothing after it, and `getErrorLineNumber()` threw a `NullPointerException` instead of returning something sensible (#839). Both now behave correctly for this case; ordinary parse errors raised by the generated parser, which carry a token, are unchanged.
+
+A `try` statement with a resources clause but no `catch` or `finally` failed to parse, even though the resources' own close is enough to make both optional in Java (#836). The grammar rejected it regardless of where it appeared — top level, inside a block, or inside a method body — while adding an empty `finally {}` made it parse; both now behave the same.
+
 ## 2.1.1
 
 Fix src/bsh/util/AWTConsole.java breakage with newer Java versions
