@@ -899,14 +899,17 @@ public final class Reflect {
      */
     /*
      Note: Two methods which are equally specific should not be allowed by
-     the Java compiler.  In this case BeanShell currently chooses the first
-     one it finds.  We could add a test for this case here (I believe) by
-     adding another isSignatureAssignable() in the other direction between
-     the target and "best" match.  If the assignment works both ways then
-     neither is more specific and they are ambiguous.  I'll leave this test
-     out for now because I'm not sure how much another test would impact
-     performance.  Method selection is now cached at a high level, so a few
-     friendly extraneous tests shouldn't be a problem.
+     the Java compiler.  In this case BeanShell keeps the first candidate it
+     encounters in the array below and this is the *most recently declared*
+     overload, not the first: NameSpace.setMethod inserts each new
+     declaration at the front of the per-name method list (#833). We could
+     add a test for this case here (I believe) by adding another
+     isSignatureAssignable() in the other direction between the target and
+     "best" match.  If the assignment works both ways then neither is more
+     specific and they are ambiguous.  I'll leave this test out for now
+     because I'm not sure how much another test would impact performance.
+     Method selection is now cached at a high level, so a few friendly
+     extraneous tests shouldn't be a problem.
     */
     static int findMostSpecificSignature(
         Class<?>[] idealMatch, Class<?>[][] candidates ) {
