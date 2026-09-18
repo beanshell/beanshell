@@ -226,7 +226,7 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
         Object[] argValues, Interpreter interpreter )
         throws EvalError
     {
-        return invoke( argValues, interpreter, null, null, false );
+        return invoke( argValues, interpreter, null, null, false, null );
     }
 
     /**
@@ -251,7 +251,7 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
             Node callerInfo )
         throws EvalError
     {
-        return invoke( argValues, interpreter, callstack, callerInfo, false );
+        return invoke( argValues, interpreter, callstack, callerInfo, false, null );
     }
 
     /**
@@ -280,12 +280,27 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
             Node callerInfo, boolean overrideNameSpace )
         throws EvalError
     {
+        return invoke( argValues, interpreter, callstack, callerInfo,
+            overrideNameSpace, null );
+    }
+
+    Object invoke(
+        Object[] argValues, Interpreter interpreter, CallStack callstack,
+            Node callerInfo, boolean overrideNameSpace, NameSpace parentNameSpace )
+        throws EvalError
+    {
         return invoke(new CallArguments(argValues), interpreter, callstack,
-                callerInfo, overrideNameSpace);
+                callerInfo, overrideNameSpace, parentNameSpace);
     }
 
     Object invoke(CallArguments arguments, Interpreter interpreter, CallStack callstack,
             Node callerInfo, boolean overrideNameSpace) throws EvalError {
+        return invoke(arguments, interpreter, callstack, callerInfo,
+                overrideNameSpace, null);
+    }
+
+    Object invoke(CallArguments arguments, Interpreter interpreter, CallStack callstack,
+            Node callerInfo, boolean overrideNameSpace, NameSpace parentNameSpace) throws EvalError {
         Object[] argValues = arguments.values;
         Interpreter.debug("Bsh method invoke: ", this.name, " overrideNameSpace: ", overrideNameSpace);
         if ( argValues != null )
@@ -337,16 +352,16 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
             {
                 return invokeImpl(
                     argValues, interpreter, callstack,
-                    callerInfo, overrideNameSpace );
+                    callerInfo, overrideNameSpace, parentNameSpace );
             }
         } else
             return invokeImpl( argValues, interpreter, callstack, callerInfo,
-                overrideNameSpace );
+                overrideNameSpace, parentNameSpace );
     }
 
     private Object invokeImpl(
         Object[] argValues, Interpreter interpreter, CallStack callstack,
-            Node callerInfo, boolean overrideNameSpace )
+            Node callerInfo, boolean overrideNameSpace, NameSpace parentNameSpace )
         throws EvalError
     {
         if (hasModifier("abstract"))
@@ -389,7 +404,11 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
         if ( overrideNameSpace )
             localNameSpace = callstack.top();
         else {
-            localNameSpace = new NameSpace( declaringNameSpace, name );
+            // A method called unqualified from a chained scope (block, lambda, child
+            // namespace) is parented by that scope so it still binds late, but its
+            // parameters and locals stay its own. #676, #841
+            localNameSpace = new NameSpace( null != parentNameSpace
+                    ? parentNameSpace : declaringNameSpace, name );
             localNameSpace.isMethod = true;
         }
         localNameSpace.setNode( callerInfo );

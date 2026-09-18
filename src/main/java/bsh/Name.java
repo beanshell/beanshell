@@ -936,16 +936,17 @@ class Name implements java.io.Serializable
 
         // If defined, invoke it
         if ( meth != null ) {
-            // whether to use callstack.top or new child of declared name space
+            // whether to parent the method's namespace on the caller's chained scope
             // enables late binding for closures and namespace chaining #676
-            boolean overrideChild = !namespace.isMethod
+            boolean chainToCaller = !namespace.isMethod
                     && !meth.isScriptedObject
                     && namespace.isChildOf(meth.declaringNameSpace)
                     && !namespace.getParent().isClass
                     && !noOverride.matcher(meth.getName()).matches();
 
             if (result != null) result.type = meth.getReturnType();
-            return meth.invoke(arguments, interpreter, callstack, callerInfo, overrideChild);
+            return meth.invoke(arguments, interpreter, callstack, callerInfo,
+                    false/*overrideNameSpace*/, chainToCaller ? namespace : null);
         }
 
         // Look for a BeanShell command

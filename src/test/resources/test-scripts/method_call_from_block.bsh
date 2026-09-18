@@ -1,0 +1,77 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+/*
+ * #841 - two scripted methods sharing a parameter name of different types
+ * couldn't both be called from inside a block, because the callee ran in
+ * the caller's own block namespace instead of one of its own.
+ */
+
+// 1a. bare block
+m1(Integer c) { }
+n1(String c) { }
+{ m1(1); n1("s"); }
+
+// 1b. if block
+m2(Integer c) { }
+n2(String c) { }
+if (true) { m2(1); n2("s"); }
+
+// 1c. for block
+m3(Integer c) { }
+n3(String c) { }
+for (int i=0; i<1; i++) { m3(1); n3("s"); }
+
+// 1d. while block
+m4(Integer c) { }
+n4(String c) { }
+int w=0; while (w++ < 1) { m4(1); n4("s"); }
+
+// 1e. try block
+m5(Integer c) { }
+n5(String c) { }
+try { m5(1); n5("s"); } catch (Exception e) { assert(false); }
+
+// 1f. nested blocks
+m6(Integer c) { }
+n6(String c) { }
+{ { m6(1); n6("s"); } }
+
+// 2. parameters must not leak into the caller
+p(int a) { }
+{ p(1); assert(a == void); }
+
+// 3. locals must not leak into the caller
+q() { qlocal = 7; int qtyped = 8; }
+{ q(); assert(qlocal == void); assert(qtyped == void); }
+
+// 4. silent corruption of a same-named, same-typed caller local must be gone
+clobber(int c) { c = 999; }
+{ int c = 7; clobber(1); assertEquals("caller local must be untouched", 7, c); }
+
+// 5. late binding must still work (#676 regression guard)
+int lb = 42;
+int getLb() { return lb; }
+{ int lb = 5; assertEquals("late bound to block declaration", 5, getLb()); }
+assertEquals("late bound to declaring scope", 42, getLb());
+
+// 6. write-through to an existing caller variable is intentionally preserved
+bump() { total = total + 1; }
+{ int total = 10; bump(); assertEquals("write-through to existing var preserved", 11, total); }
+
+// 7. recursion from a block still works
+int fact(int f) { if (f <= 1) return 1; int r = fact(f-1); return f * r; }
+assertEquals("recursion at top level", 120, fact(5));
+{ assertEquals("recursion from a block", 120, fact(5)); }
+
+// 8. lambda bodies must not let a callee corrupt the lambda's own parameter
+import java.util.function.Function;
+lm(Integer x) { x = 55; return 0; }
+Function fe = (x) -> lm(x) + x;
+assert( fe.apply(1).equals(1) );
+Function fb = (x) -> { lm(x); return x; };
+assert( fb.apply(1).equals(1) );
+
+complete();
