@@ -359,8 +359,11 @@ class BSHLambdaExpression extends SimpleNode
             }
             if (node instanceof BSHTernaryExpression) {
                 Object condition = fold(node.jjtGetChild(0));
-                return condition == Primitive.TRUE ? fold(node.jjtGetChild(1))
-                    : condition == Primitive.FALSE ? fold(node.jjtGetChild(2)) : NOT_CONSTANT;
+                if (condition != Primitive.TRUE && condition != Primitive.FALSE)
+                    return NOT_CONSTANT;
+                Object then = fold(node.jjtGetChild(1)), otherwise = fold(node.jjtGetChild(2));
+                return then == NOT_CONSTANT || otherwise == NOT_CONSTANT ? NOT_CONSTANT
+                    : condition == Primitive.TRUE ? then : otherwise;
             }
             Class<?> cast = primitiveCast(node);
             Object operand = cast == null ? NOT_CONSTANT : fold(node.jjtGetChild(1));

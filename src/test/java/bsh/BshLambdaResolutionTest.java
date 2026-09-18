@@ -885,6 +885,40 @@ public class BshLambdaResolutionTest {
         assertFalse(Types.isBshAssignable(String.class, BshLambda.class));
     }
 
+    // Issue #845: JLS 15.28 makes a conditional expression constant only when
+    // every branch is, not just the one its condition statically selects, so
+    // javac never applies the narrowing-constant special case (JLS 5.2) here
+    // and only IntFI is applicable.
+    @Test
+    public void a_ternary_whose_untaken_branch_is_not_constant_picks_the_int_interface() throws Exception {
+        String declarations = "interface ByteFI { byte get(); }\n"
+            + "interface IntFI { int get(); }\n"
+            + "foo() { return 5; }\n";
+        assertEquals("int:1", eval(declarations
+            + "q(ByteFI f) { return \"byte:\" + f.get(); }\n"
+            + "q(IntFI f) { return \"int:\" + f.get(); }\n"
+            + "q(() -> true ? 1 : foo());"));
+        assertEquals("int:1", eval(declarations
+            + "q(IntFI f) { return \"int:\" + f.get(); }\n"
+            + "q(ByteFI f) { return \"byte:\" + f.get(); }\n"
+            + "q(() -> true ? 1 : foo());"));
+    }
+
+    // Regression pin: both branches constant must keep picking ByteFI (JLS 5.2).
+    @Test
+    public void a_fully_constant_ternary_still_picks_the_byte_interface() throws Exception {
+        String declarations = "interface ByteFI { byte get(); }\n"
+            + "interface IntFI { int get(); }\n";
+        assertEquals("byte:1", eval(declarations
+            + "q(ByteFI f) { return \"byte:\" + f.get(); }\n"
+            + "q(IntFI f) { return \"int:\" + f.get(); }\n"
+            + "q(() -> true ? 1 : 2);"));
+        assertEquals("byte:1", eval(declarations
+            + "q(IntFI f) { return \"int:\" + f.get(); }\n"
+            + "q(ByteFI f) { return \"byte:\" + f.get(); }\n"
+            + "q(() -> true ? 1 : 2);"));
+    }
+
     @Test
     public void namespace_get_method_accepts_a_raw_lambda_class_in_the_signature() throws Exception {
         Interpreter interpreter = new Interpreter();
