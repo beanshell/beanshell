@@ -586,15 +586,10 @@ public final class Reflect {
     /**
      * Resolve a call carrying a lambda argument.
      *
-     * Ordinary calls try the fixed-arity candidates to exhaustion over every
-     * round before expanding any varargs. That order cannot stand for a
-     * lambda, because BSH_ASSIGNABLE lets an Object parameter take any lambda
-     * raw: a fixed-arity f(Object) would win there before f(Runnable...) was
-     * ever expanded, though Java rejects the former outright and picks the
-     * latter (JLS 15.12.2 phase 3). So candidates a lambda can only reach
-     * through that one shortcut are held back to the last two passes, leaving
-     * every other round-four conversion -- which the non-lambda arguments in
-     * the same call still depend on -- where it was.
+     * Java fixed-arity conversions are tried before Java varargs conversions;
+     * BeanShell extensions follow only after both Java phases are exhausted.
+     * Candidates a lambda can only reach through the raw Object/BshLambda
+     * shortcut are held back to the final passes.
      *
      * @param lambdas the lambda arguments by position, as lambdaDescriptors
      * @param fixedSigs the same-arity candidate signatures
@@ -607,11 +602,21 @@ public final class Reflect {
             LambdaDescriptor[] lambdas,
             Class<?>[][] fixedSigs, List<Integer> fixedRemap,
             Class<?>[][] varargsSigs, List<Integer> varargsRemap) {
-        int match = findMostSpecificFunctional(
-            idealMatch, lambdas, fixedSigs, fixedRemap );
+        int match = findMostSpecificFunctional( idealMatch, lambdas,
+            fixedSigs, fixedRemap, Types.FIRST_ROUND_ASSIGNABLE,
+            Types.JAVA_BOX_TYPES_ASSIGABLE );
         if ( match < 0 )
-            match = findMostSpecificFunctional(
-                idealMatch, lambdas, varargsSigs, varargsRemap );
+            match = findMostSpecificFunctional( idealMatch, lambdas,
+                varargsSigs, varargsRemap, Types.FIRST_ROUND_ASSIGNABLE,
+                Types.JAVA_BOX_TYPES_ASSIGABLE );
+        if ( match < 0 )
+            match = findMostSpecificFunctional( idealMatch, lambdas,
+                fixedSigs, fixedRemap, Types.BSH_ASSIGNABLE,
+                Types.BSH_ASSIGNABLE );
+        if ( match < 0 )
+            match = findMostSpecificFunctional( idealMatch, lambdas,
+                varargsSigs, varargsRemap, Types.BSH_ASSIGNABLE,
+                Types.BSH_ASSIGNABLE );
         if ( match < 0 )
             match = findMostSpecificRaw( idealMatch, fixedSigs, fixedRemap );
         if ( match < 0 )
@@ -620,10 +625,11 @@ public final class Reflect {
         return match;
     }
 
-    /** The best match over every round, among the candidates each lambda can
-        reach without BshLambda.castLambda's raw shortcut. */
+    /** The best match over the requested rounds, among the candidates each
+        lambda can reach without BshLambda.castLambda's raw shortcut. */
     private static int findMostSpecificFunctional(Class<?>[] idealMatch,
-            LambdaDescriptor[] lambdas, Class<?>[][] sigs, List<Integer> remap) {
+            LambdaDescriptor[] lambdas, Class<?>[][] sigs, List<Integer> remap,
+            int firstRound, int lastRound) {
         List<Class<?>[]> kept = new ArrayList<>();
         List<Integer> keptRemap = new ArrayList<>();
         candidates:
@@ -635,8 +641,31 @@ public final class Reflect {
             keptRemap.add( remap.get(i) );
         }
         int match = findMostSpecificSignature(
-            idealMatch, kept.toArray(new Class[kept.size()][]) );
+            idealMatch, kept.toArray(new Class[kept.size()][]),
+            firstRound, lastRound );
         return match < 0 ? -1 : keptRemap.get(match);
+    }
+
+    /** Resolve ordinary calls in Java invocation order, then apply BeanShell
+        extensions in the same fixed-arity/varargs order. */
+    private static int findMostSpecificForCall(Class<?>[] idealMatch,
+            Class<?>[][] fixedSigs, List<Integer> fixedRemap,
+            Class<?>[][] varargsSigs, List<Integer> varargsRemap) {
+        int match = findMostSpecificSignature( idealMatch, fixedSigs,
+            Types.FIRST_ROUND_ASSIGNABLE, Types.JAVA_BOX_TYPES_ASSIGABLE );
+        if ( match >= 0 )
+            return fixedRemap.get(match);
+        match = findMostSpecificSignature( idealMatch, varargsSigs,
+            Types.FIRST_ROUND_ASSIGNABLE, Types.JAVA_BOX_TYPES_ASSIGABLE );
+        if ( match >= 0 )
+            return varargsRemap.get(match);
+        match = findMostSpecificSignature( idealMatch, fixedSigs,
+            Types.BSH_ASSIGNABLE, Types.BSH_ASSIGNABLE );
+        if ( match >= 0 )
+            return fixedRemap.get(match);
+        match = findMostSpecificSignature( idealMatch, varargsSigs,
+            Types.BSH_ASSIGNABLE, Types.BSH_ASSIGNABLE );
+        return match < 0 ? -1 : varargsRemap.get(match);
     }
 
     /** The best match at BSH_ASSIGNABLE, where the raw shortcut applies. */
@@ -693,45 +722,12 @@ public final class Reflect {
         }
         Class<?>[][] sigs = candidateSigs.toArray(new Class[candidateSigs.size()][]);
 
-        LambdaDescriptor[] lambdas = BshLambda.lambdaDescriptors(idealMatch);
-        if ( lambdas != null ) {
-            List<Class<?>[]> varargsSigs = new ArrayList<>();
-            ArrayList<Integer> varargsRemap = new ArrayList<>();
-            i=0;
-            for( BshMethod m : methods ) {
-                Class<?>[] parameterTypes = m.getParameterTypes();
-                if (m.isVarArgs()
-                    && idealMatch.length >= parameterTypes.length-1 ) {
-                    Class<?>[] candidateSig = new Class[idealMatch.length];
-                    System.arraycopy(parameterTypes, 0, candidateSig, 0,
-                                     parameterTypes.length-1);
-                    Class<?> arrayCompType = parameterTypes[parameterTypes.length-1].getComponentType();
-                    Arrays.fill(candidateSig, parameterTypes.length-1,
-                                idealMatch.length, arrayCompType);
-                    varargsRemap.add(i);
-                    varargsSigs.add( candidateSig );
-                }
-                i++;
-            }
-            return findMostSpecificForLambdaCall( idealMatch, lambdas, sigs, remap,
-                varargsSigs.toArray(new Class[varargsSigs.size()][]), varargsRemap );
-        }
-
-        int match = findMostSpecificSignature( idealMatch, sigs );
-        if (match >= 0) {
-            match = remap.get(match);
-            Interpreter.debug(" remap: "+remap);
-            Interpreter.debug(" match:"+match);
-            return match;
-        }
-
         /*
-         * If did not get a match then try VarArgs methods
          * Filter for varArgs method signatures of sufficient arity
          * Expand out the vararg parameters.
          */
-        candidateSigs.clear();
-        remap.clear();
+        List<Class<?>[]> varargsSigs = new ArrayList<>();
+        ArrayList<Integer> varargsRemap = new ArrayList<>();
         i=0;
         for( BshMethod m : methods ) {
             Class<?>[] parameterTypes = m.getParameterTypes();
@@ -743,19 +739,23 @@ public final class Reflect {
                 Class<?> arrayCompType = parameterTypes[parameterTypes.length-1].getComponentType();
                 Arrays.fill(candidateSig, parameterTypes.length-1,
                             idealMatch.length, arrayCompType);
-                remap.add(i);
-                candidateSigs.add( candidateSig );
+                varargsRemap.add(i);
+                varargsSigs.add( candidateSig );
             }
             i++;
         }
 
-        sigs = candidateSigs.toArray(new Class[candidateSigs.size()][]);
-        match = findMostSpecificSignature( idealMatch, sigs);
-        if (match >= 0) {
-            match = remap.get(match);
-            Interpreter.debug(" remap (varargs): "+Arrays.toString(remap.toArray(new Integer[0])));
-            Interpreter.debug(" match (varargs):"+match);
-        }
+        Class<?>[][] expandedSigs = varargsSigs.toArray(
+            new Class[varargsSigs.size()][]);
+        LambdaDescriptor[] lambdas = BshLambda.lambdaDescriptors(idealMatch);
+        int match = lambdas == null
+            ? findMostSpecificForCall( idealMatch, sigs, remap,
+                expandedSigs, varargsRemap )
+            : findMostSpecificForLambdaCall( idealMatch, lambdas, sigs, remap,
+                expandedSigs, varargsRemap );
+        Interpreter.debug(" remap: "+remap);
+        Interpreter.debug(" remap (varargs): "+varargsRemap);
+        Interpreter.debug(" match:"+match);
 
         return match;
     }
@@ -819,44 +819,11 @@ public final class Reflect {
         }
         Class<?>[][] sigs = candidateSigs.toArray(new Class[candidateSigs.size()][]);
 
-        LambdaDescriptor[] lambdas = BshLambda.lambdaDescriptors(idealMatch);
-        if ( lambdas != null ) {
-            List<Class<?>[]> varargsSigs = new ArrayList<>();
-            ArrayList<Integer> varargsRemap = new ArrayList<>();
-            i=0;
-            for( Invocable method : methods ) {
-                Class<?>[] parameterTypes = method.getParameterTypes();
-                if (method.isVarArgs()
-                    && idealMatch.length >= parameterTypes.length-1 ) {
-                    Class<?>[] candidateSig = new Class[idealMatch.length];
-                    System.arraycopy(parameterTypes, 0, candidateSig, 0,
-                                     parameterTypes.length-1);
-                    Arrays.fill(candidateSig, parameterTypes.length-1,
-                                idealMatch.length, method.getVarArgsComponentType());
-                    varargsRemap.add(i);
-                    varargsSigs.add( candidateSig );
-                }
-                i++;
-            }
-            return findMostSpecificForLambdaCall( idealMatch, lambdas, sigs, remap,
-                varargsSigs.toArray(new Class[varargsSigs.size()][]), varargsRemap );
-        }
-
-        int match = findMostSpecificSignature( idealMatch, sigs );
-        if (match >= 0) {
-            match = remap.get(match);
-            Interpreter.debug(" remap="+Arrays.toString(remap.toArray(new Integer[0])));
-            Interpreter.debug(" match="+match);
-            return match;
-        }
-
-
         /*
-         * If did not get a match then try VarArgs methods
          * Filter for varArgs method signatures of sufficient arity
          */
-        candidateSigs.clear();
-        remap.clear();
+        List<Class<?>[]> varargsSigs = new ArrayList<>();
+        ArrayList<Integer> varargsRemap = new ArrayList<>();
         i=0;
         for( Invocable method : methods ) {
             Class<?>[] parameterTypes = method.getParameterTypes();
@@ -867,23 +834,23 @@ public final class Reflect {
                                  parameterTypes.length-1);
                 Arrays.fill(candidateSig, parameterTypes.length-1,
                             idealMatch.length, method.getVarArgsComponentType());
-                remap.add(i);
-                candidateSigs.add( candidateSig );
+                varargsRemap.add(i);
+                varargsSigs.add( candidateSig );
             }
             i++;
         }
 
-        sigs = candidateSigs.toArray(new Class[candidateSigs.size()][]);
-        match = findMostSpecificSignature( idealMatch, sigs);
-
-        /*
-         * return the remaped value so that the index is relative
-         * to the original list
-         */
-        if (match >= 0)
-            match = remap.get(match);
-        Interpreter.debug(" remap (varargs) ="+Arrays.toString(remap.toArray(new Integer[0])));
-        Interpreter.debug(" match (varargs) ="+match);
+        Class<?>[][] expandedSigs = varargsSigs.toArray(
+            new Class[varargsSigs.size()][]);
+        LambdaDescriptor[] lambdas = BshLambda.lambdaDescriptors(idealMatch);
+        int match = lambdas == null
+            ? findMostSpecificForCall( idealMatch, sigs, remap,
+                expandedSigs, varargsRemap )
+            : findMostSpecificForLambdaCall( idealMatch, lambdas, sigs, remap,
+                expandedSigs, varargsRemap );
+        Interpreter.debug(" remap="+remap);
+        Interpreter.debug(" remap (varargs)="+varargsRemap);
+        Interpreter.debug(" match="+match);
         return match;
     }
 

@@ -391,6 +391,9 @@ class Types {
         )
             return true;
 
+        if ( isJavaUnboxThenWidenAssignable( lhsType, rhsType ) )
+            return true;
+
         // General case prim type to wrapper or vice versa.
         // I don't know if this is faster than a flat list of 'if's like above.
         // wrapperMap maps both prim to wrapper and wrapper to prim types,
@@ -399,6 +402,28 @@ class Types {
             return true;
 
         return isJavaBaseAssignable(lhsType, rhsType);
+    }
+
+    /** Whether method invocation permits unboxing followed by primitive
+        widening (JLS 5.1.2 and 5.3). */
+    private static boolean isJavaUnboxThenWidenAssignable(
+            Class<?> lhsType, Class<?> rhsType) {
+        Class<?> unboxedType = Primitive.wrapperMap.get( rhsType );
+        if ( !lhsType.isPrimitive() || unboxedType == null )
+            return false;
+        if ( unboxedType == Byte.TYPE )
+            return lhsType == Short.TYPE || lhsType == Integer.TYPE
+                || lhsType == Long.TYPE || lhsType == Float.TYPE
+                || lhsType == Double.TYPE;
+        if ( unboxedType == Short.TYPE || unboxedType == Character.TYPE )
+            return lhsType == Integer.TYPE || lhsType == Long.TYPE
+                || lhsType == Float.TYPE || lhsType == Double.TYPE;
+        if ( unboxedType == Integer.TYPE )
+            return lhsType == Long.TYPE || lhsType == Float.TYPE
+                || lhsType == Double.TYPE;
+        if ( unboxedType == Long.TYPE )
+            return lhsType == Float.TYPE || lhsType == Double.TYPE;
+        return unboxedType == Float.TYPE && lhsType == Double.TYPE;
     }
 
     /**
