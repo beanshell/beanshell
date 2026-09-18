@@ -10,10 +10,12 @@ import java.util.HashMap;
 import java.util.List;
 
 import static bsh.TestUtil.eval;
+import static bsh.TestUtil.script;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @RunWith(FilteredTestRunner.class)
 public class TypeParametersTest {
@@ -247,6 +249,79 @@ public class TypeParametersTest {
         );
         assertNotNull(ret);
         assertEquals("a < 0 || a > 0 = 1", 1, ret);
+    }
+
+    @Test
+    public void generics_lookalike_chained_relational_throws_not_silent_decl() throws Exception {
+        final Interpreter interpreter = new Interpreter();
+        interpreter.eval(script("x = 5;", "y = 3;"));
+        try {
+            interpreter.eval(script("x < y > y;"));
+            fail("Expected an EvalError for comparing a boolean result to an int");
+        } catch (EvalError expected) {
+            // boolean > int is a genuine type-mismatch error, not a silent bogus declaration
+        }
+        assertEquals("y must not be silently reassigned to null",
+            Integer.valueOf(3), interpreter.get("y"));
+    }
+
+    @Test
+    public void generics_lookalike_dangling_minus_throws_parse_exception() throws Exception {
+        final Interpreter interpreter = new Interpreter();
+        interpreter.eval(script("x = 5;", "y = 3;"));
+        try {
+            interpreter.eval(script("x < y - > y;"));
+            fail("Expected a ParseException for a dangling binary minus before '>'");
+        } catch (EvalError expected) {
+            // ParseException extends EvalError; a dangling binary '-' cannot be followed by '>'
+        }
+        assertEquals("y must not be silently reassigned to null",
+            Integer.valueOf(3), interpreter.get("y"));
+    }
+
+    @Test
+    public void generics_lookalike_shift_then_greater_than() throws Exception {
+        final Object ret = eval(
+            "x = 2;",
+            "b = 1;",
+            "x << b > b;"
+        );
+        assertEquals("(x << b) > b = true", Boolean.TRUE, ret);
+    }
+
+    @Test
+    public void generics_lookalike_nested_ternary_relational() throws Exception {
+        final Object ret = eval(
+            "u = 1;",
+            "v = 2;",
+            "x = u < v ? -1 : u > v ? 1 : 0;",
+            "x;"
+        );
+        assertEquals("u < v ? -1 : u > v ? 1 : 0 = -1", -1, ret);
+    }
+
+    @Test
+    public void generics_lookalike_parenthesised_relational_chain_throws() throws Exception {
+        final Interpreter interpreter = new Interpreter();
+        interpreter.eval(script("a = 1;", "b = 2;", "c = 5;"));
+        try {
+            interpreter.eval(script("(a < b) > c;"));
+            fail("Expected an EvalError for comparing a boolean result to an int");
+        } catch (EvalError expected) {
+            // boolean > int is a genuine type-mismatch error
+        }
+    }
+
+    @Test
+    public void generics_lookalike_equality_of_relationals_unaffected() throws Exception {
+        final Object ret = eval(
+            "a = 1;",
+            "b = 2;",
+            "c = 5;",
+            "d = 3;",
+            "a < b == c > d;"
+        );
+        assertEquals("(a < b) == (c > d) = true", Boolean.TRUE, ret);
     }
 
 }
