@@ -74,11 +74,29 @@ public class BshLambdaResolutionTest {
         public static String q(Object... x) { return "varargs"; }
     }
 
-    /** long takes an Integer only by unbox-then-widen, which bsh models at
-        BSH_ASSIGNABLE; javac picks the fixed-arity overload here. */
+    /** Java's boxing round permits unboxing Integer followed by widening. */
     public static class WideningVsVarargs {
         public static String q(long n, Runnable r) { return "fixed"; }
         public static String q(Number n, Runnable... r) { return "varargs"; }
+    }
+
+    public static class UnboxWideningVsVarargs {
+        public static String byteToChar(char value, Object action) { return "fixed-char"; }
+        public static String byteToChar(Byte value, Object... actions) { return "varargs-byte"; }
+        public static String shortToChar(char value, Object action) { return "fixed-char"; }
+        public static String shortToChar(Short value, Object... actions) { return "varargs-short"; }
+        public static String charToInt(int value, Object action) { return "fixed-int"; }
+        public static String charToInt(Character value, Object... actions) { return "varargs-char"; }
+    }
+
+    public static class InapplicableFixedVsVarargs {
+        public static String pick(boolean value, Runnable action) { return "fixed"; }
+        public static String pick(String value, Runnable... actions) { return "varargs"; }
+    }
+
+    public static class InapplicableFixedVsOrdinaryVarargs {
+        public static String pick(boolean value, Object action) { return "fixed"; }
+        public static String pick(String value, Object... actions) { return "varargs"; }
     }
 
     private static final String IMPORT_AAA_ZZZ =
@@ -753,13 +771,52 @@ public class BshLambdaResolutionTest {
             + "f(() -> {});"));
     }
 
-    // Round four is also bsh's only model for unbox-then-widen (JLS 5.3), which
-    // an ordinary argument beside the lambda may be the only thing needing.
     @Test
-    public void a_non_lambda_argument_keeps_its_round_four_conversion() throws Exception {
+    public void a_non_lambda_argument_uses_java_unbox_then_widen() throws Exception {
         assertEquals("fixed", eval(
             "import bsh.BshLambdaResolutionTest.WideningVsVarargs;"
             + " WideningVsVarargs.q(Integer.valueOf(1), () -> {});"));
+    }
+
+    @Test
+    public void compiled_unbox_then_widen_obeys_java_primitive_rules() throws Exception {
+        String target = "import bsh.BshLambdaResolutionTest.UnboxWideningVsVarargs;";
+        assertEquals("varargs-byte", eval(target
+            + " UnboxWideningVsVarargs.byteToChar(Byte.valueOf((byte) 1), new Object());"));
+        assertEquals("varargs-short", eval(target
+            + " UnboxWideningVsVarargs.shortToChar(Short.valueOf((short) 1), new Object());"));
+        assertEquals("fixed-int", eval(target
+            + " UnboxWideningVsVarargs.charToInt(Character.valueOf('a'), new Object());"));
+    }
+
+    @Test
+    public void scripted_unbox_then_widen_obeys_java_primitive_rules() throws Exception {
+        String methods = "byteToChar(char value, Object action) { return \"fixed-char\"; }\n"
+            + "byteToChar(Byte value, Object... actions) { return \"varargs-byte\"; }\n"
+            + "shortToChar(char value, Object action) { return \"fixed-char\"; }\n"
+            + "shortToChar(Short value, Object... actions) { return \"varargs-short\"; }\n"
+            + "charToInt(int value, Object action) { return \"fixed-int\"; }\n"
+            + "charToInt(Character value, Object... actions) { return \"varargs-char\"; }\n";
+        assertEquals("varargs-byte", eval(methods
+            + "byteToChar(Byte.valueOf((byte) 1), new Object());"));
+        assertEquals("varargs-short", eval(methods
+            + "shortToChar(Short.valueOf((short) 1), new Object());"));
+        assertEquals("fixed-int", eval(methods
+            + "charToInt(Character.valueOf('a'), new Object());"));
+    }
+
+    @Test
+    public void a_java_inapplicable_fixed_arity_overload_does_not_preempt_lambda_varargs() throws Exception {
+        assertEquals("varargs", eval(
+            "import bsh.BshLambdaResolutionTest.InapplicableFixedVsVarargs;"
+            + " InapplicableFixedVsVarargs.pick(\"x\", () -> {});"));
+    }
+
+    @Test
+    public void a_java_inapplicable_fixed_arity_overload_does_not_preempt_ordinary_varargs() throws Exception {
+        assertEquals("varargs", eval(
+            "import bsh.BshLambdaResolutionTest.InapplicableFixedVsOrdinaryVarargs;"
+            + " InapplicableFixedVsOrdinaryVarargs.pick(\"x\", new Object());"));
     }
 
     /*
