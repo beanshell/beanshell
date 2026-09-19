@@ -25,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +36,26 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class TestUtil {
+
+    /**
+     * Waits, via bounded {@code System.gc()} polling, for the referent of
+     * {@code ref} to become unreachable.
+     *
+     * @param ref the weak reference to poll
+     * @return true if the referent was collected within the wait bound
+     */
+    public static boolean awaitCollected(WeakReference<?> ref) {
+        for (int n = 0; n < 50 && ref.get() != null; n++) {
+            System.gc();
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        return ref.get() == null;
+    }
 
     /**
      * Serializes and then deserializes the given instance - should be not null.
