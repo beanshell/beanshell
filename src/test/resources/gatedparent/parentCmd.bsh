@@ -1,0 +1,4 @@
+import bsh.GatedLoadSupport;
+GatedLoadSupport.enterB("P");
+parentCmd() { return "p"; }
+childRef.cl();

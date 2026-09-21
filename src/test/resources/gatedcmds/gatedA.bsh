@@ -1,0 +1,3 @@
+import bsh.GatedLoadSupport;
+GatedLoadSupport.enter("A");
+gatedA() { return "A"; }
