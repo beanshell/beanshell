@@ -60,8 +60,16 @@ public final class ClassGenerator {
      * one of the given final superclass methods.
      */
     public Class<?> generateClass(String name, Modifiers modifiers, Class<?>[] interfaces, Class<?> superClass, List<BshMethod> finalMethods, BSHBlock block, Type type, CallStack callstack, Interpreter interpreter) throws EvalError {
+        return generateClass(name, modifiers, interfaces, superClass, finalMethods, block, type, callstack, interpreter, null);
+    }
+
+    /**
+     * As above, generating the class in the given package rather than the
+     * enclosing namespace's current one; the empty string is the default package.
+     */
+    public Class<?> generateClass(String name, Modifiers modifiers, Class<?>[] interfaces, Class<?> superClass, List<BshMethod> finalMethods, BSHBlock block, Type type, CallStack callstack, Interpreter interpreter, String pinnedPackage) throws EvalError {
         // Delegate to the static method
-        return generateClassImpl(name, modifiers, interfaces, superClass, finalMethods, block, type, callstack, interpreter);
+        return generateClassImpl(name, modifiers, interfaces, superClass, finalMethods, block, type, callstack, interpreter, pinnedPackage);
     }
 
     /**
@@ -78,9 +86,10 @@ public final class ClassGenerator {
      * Parse the BSHBlock for for the class definition and generate the class
      * using ClassGenerator.
      */
-    public static Class<?> generateClassImpl(String name, Modifiers modifiers, Class<?>[] interfaces, Class<?> superClass, List<BshMethod> finalMethods, BSHBlock block, Type type, CallStack callstack, Interpreter interpreter) throws EvalError {
+    public static Class<?> generateClassImpl(String name, Modifiers modifiers, Class<?>[] interfaces, Class<?> superClass, List<BshMethod> finalMethods, BSHBlock block, Type type, CallStack callstack, Interpreter interpreter, String pinnedPackage) throws EvalError {
         NameSpace enclosingNameSpace = callstack.top();
-        String packageName = enclosingNameSpace.getPackage();
+        String livePackage = pinnedPackage != null ? pinnedPackage : enclosingNameSpace.getPackage();
+        String packageName = livePackage == null || livePackage.isEmpty() ? null : livePackage;
         String className = enclosingNameSpace.isClass ? (enclosingNameSpace.getName() + "$" + name) : name;
         String fqClassName = packageName == null ? className : packageName + "." + className;
         BshClassManager bcm = interpreter.getClassManager();
@@ -88,6 +97,8 @@ public final class ClassGenerator {
         // Create the class static namespace
         NameSpace classStaticNameSpace = new NameSpace(enclosingNameSpace, className);
         classStaticNameSpace.isClass = true;
+        if (pinnedPackage != null)
+            classStaticNameSpace.setPackage(pinnedPackage);
 
         callstack.push(classStaticNameSpace);
         Class<?> genClass;

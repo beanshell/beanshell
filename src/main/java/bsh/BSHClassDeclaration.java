@@ -55,6 +55,8 @@ class BSHClassDeclaration extends SimpleNode
     boolean extend;
     Type type;
     private Class<?> generatedClass;
+    /** Package of a top-level declaration, fixed at first evaluation; "" is the default package. */
+    private String pinnedPackage;
 
     BSHClassDeclaration(int id) { super(id); }
 
@@ -65,9 +67,13 @@ class BSHClassDeclaration extends SimpleNode
             final NameSpace enclosing = callstack.top();
             final boolean topLevel = type != Type.ENUM && !enclosing.isClass && !enclosing.isMethod;
             if (topLevel) {
+                if (pinnedPackage == null) {
+                    final String live = enclosing.getPackage();
+                    pinnedPackage = live == null ? "" : live;
+                }
                 final Set<String> missing = undeclaredSupertypes(callstack, interpreter);
                 if (!missing.isEmpty()) {
-                    final String pkg = enclosing.getPackage();
+                    final String pkg = pinnedPackage.isEmpty() ? null : pinnedPackage;
                     interpreter.getClassManager().declarationPending(
                         pkg == null ? name : pkg + "." + name, enclosing, this, interpreter, missing);
                     return Primitive.VOID;
@@ -192,7 +198,7 @@ class BSHClassDeclaration extends SimpleNode
 
         return ClassGenerator.getClassGenerator().generateClass(
             name, modifiers, interfaces, superClass, meths, block, type,
-            callstack, interpreter );
+            callstack, interpreter, pinnedPackage );
     }
 
     public String toString() {

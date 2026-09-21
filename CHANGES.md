@@ -11,7 +11,7 @@ A scripted class that fails the final-method or strict abstract-method check is 
 
 Fixed concurrent `eval` calls on one interpreter interfering with each other, which caused spurious parse errors, `NullPointerException`s or wrong results.
 
-A scripted class that extends or implements a type that isn't declared yet is now held pending, with a note on the error stream, and generated once the type is declared, instead of failing for good. A misspelled supertype now shows up as a pending class rather than an error at its declaration (#696).
+A scripted class that extends or implements a type that isn't declared yet is now held pending, with a note on the error stream, and generated once the type is declared, in the package it was declared in, instead of failing for good. A misspelled supertype now shows up as a pending class rather than an error at its declaration (#696).
 
 Redefining a scripted class or interface now regenerates the classes declared from it, so subclasses and implementors pick up the new definition. Enums are not regenerated, and redefining a superclass resets its subclasses' static state (#697).
 
