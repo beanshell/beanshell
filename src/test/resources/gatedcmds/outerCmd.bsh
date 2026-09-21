@@ -1,0 +1,4 @@
+import bsh.GatedLoadSupport;
+GatedLoadSupport.enter("outer");
+outerCmd() { return "outer:" + innerCmd(); }
+outerCmd();

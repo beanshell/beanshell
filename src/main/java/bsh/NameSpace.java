@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 /** A namespace in which methods, variables, and imports (class names) live.
  * This is package public because it is used in the implementation of some bsh
@@ -112,6 +113,9 @@ public class NameSpace
      * are cached here (those which might be imported). Qualified names are
      * always absolute and are cached by BshClassManager. */
     private transient Map<String, Class<?>> classCache = new HashMap<>();
+    /** Held while a command script's top-level code runs. Process-wide so nested loads
+     * across parent and child namespaces cannot deadlock each other. */
+    private static final ReentrantLock commandLoadLock = new ReentrantLock();
 
     /** Sets the class static.
      * @param clas the new class static */
@@ -979,7 +983,12 @@ public class NameSpace
             final String name, final Class<?>[] argTypes,
             final String resourcePath, final Interpreter interpreter)
             throws UtilEvalError {
+        commandLoadLock.lock();
         try (FileReader reader = new FileReader(in)) {
+            // another thread may have loaded it while we waited for the lock
+            final BshMethod loaded = this.getMethod(name, argTypes, true/* declaredOnly */);
+            if (null != loaded)
+                return loaded;
             interpreter.eval(reader, this, resourcePath);
         } catch (IOException | EvalError e) {
             /* Here we catch any EvalError from the interpreter because we are
@@ -987,6 +996,8 @@ public class NameSpace
              * execution path. */
             Interpreter.debug(e.toString());
             throw new UtilEvalError("Error loading script: " + e.getMessage(), e);
+        } finally {
+            commandLoadLock.unlock();
         }
         // Look for the loaded command
         final BshMethod meth = this.getMethod(name, argTypes);

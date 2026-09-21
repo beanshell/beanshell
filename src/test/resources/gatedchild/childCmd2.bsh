@@ -1,0 +1,1 @@
+childCmd2() { return "c2"; }
