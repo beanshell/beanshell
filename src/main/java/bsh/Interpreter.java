@@ -41,6 +41,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.concurrent.atomic.AtomicReference;
 
 import bsh.security.MainSecurityGuard;
 
@@ -149,6 +150,9 @@ public class Interpreter
     /* --- Instance data --- */
 
     transient Parser parser;
+    /** Idle parser handed to the next eval; taken with getAndSet(null) so one thread owns it at a time. */
+    transient AtomicReference<Parser> spareParser;
+    private static final Reader NO_INPUT = new StringReader("");
     NameSpace globalNameSpace;
     ConsoleAssignable console;
 
@@ -211,9 +215,9 @@ public class Interpreter
 
         this.interactive = interactive;
         this.parent = parent;
+        this.spareParser = null != parent ? parent.spareParser : new AtomicReference<>();
         if ( parent != null ) {
             setStrictJava( parent.strictJava );
-            this.parser = parent.parser;
             this.evalOnly = parent.evalOnly;
         }
         this.sourceFileInfo = sourceFileInfo;
@@ -350,13 +354,34 @@ public class Interpreter
 
     // End constructors
 
+    /** The idle spare for a child, else a new parser; a concurrent or nested eval finds it taken. */
+    private Parser takeParser() {
+        final Parser spare = null != parent ? spareParser.getAndSet(null) : null;
+        if ( null == spare )
+            return new Parser(getIn());
+        spare.ReInit(getIn());
+        return spare;
+    }
+
+    /** Park this child's parser; a failed one is dropped as its tokenizer state survives ReInit (an early return can leave it stale too). */
+    void releaseParser(final boolean reusable) {
+        final Parser released = this.parser;
+        if ( null == released || null == parent )
+            return;
+        this.parser = null;
+        if ( !reusable )
+            return;
+        released.ReInit(NO_INPUT);
+        spareParser.set(released);
+    }
+
     /** Attach an assignable console and initialize a new parser.
      * @param console assignable collection of input output streams. */
     public void setConsole( ConsoleAssignable console ) {
         this.console = console;
         if ( null == this.parser || get_jjtree().nodeArity() != 0
                 || (null != parent && parent.interactive) )
-            this.parser = new Parser(getIn());
+            this.parser = takeParser();
         else
             this.parser.ReInit(getIn());
     }
@@ -711,6 +736,8 @@ public class Interpreter
         throws EvalError
     {
         Object retVal = null;
+        Interpreter localInterpreter = null;
+        boolean completed = false;
         int[] depth = EVAL_DEPTH.get();
         depth[0]++;
         try {
@@ -721,7 +748,7 @@ public class Interpreter
             with source from the input stream and out/err same as
             this interpreter.
         */
-        Interpreter localInterpreter = new Interpreter(
+        localInterpreter = new Interpreter(
             in, getOut(), getErr(), false, nameSpace, this, sourceFileInfo);
         CallStack callstack = new CallStack(nameSpace);
 
@@ -797,9 +824,12 @@ public class Interpreter
                 }
             }
         }
+        completed = true;
         return Primitive.unwrap( retVal );
         } finally {
             depth[0]--;
+            if ( null != localInterpreter )
+                localInterpreter.releaseParser(completed);
         }
     }
 
@@ -1278,6 +1308,7 @@ public class Interpreter
         // set transient fields
         setOut( System.out );
         setErr( System.err );
+        spareParser = new AtomicReference<>();
     }
 
     /**

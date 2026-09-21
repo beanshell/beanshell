@@ -72,8 +72,12 @@ public class PreparsedScript {
         for ( final Map.Entry<String,?> entry : context.entrySet() )
             local.set(entry.getKey(), entry.getValue());
 
-        return Primitive.unwrap(prepared.invoke(Reflect.ZERO_ARGS,
-                local, new CallStack(scope), Node.JAVACODE, true));
+        try {
+            return Primitive.unwrap(prepared.invoke(Reflect.ZERO_ARGS,
+                    local, new CallStack(scope), Node.JAVACODE, true));
+        } finally {
+            local.releaseParser(true);
+        }
     }
 
     /** Attach a standard output stream.
