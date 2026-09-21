@@ -20,8 +20,11 @@
 
 package bsh;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
@@ -605,5 +608,60 @@ public class InterpreterTest {
         }
     }
 
+    @Test
+    public void eval_after_a_parse_error_still_works_on_the_same_thread() throws Exception {
+        Interpreter bsh = new Interpreter();
+        assertEquals(1, bsh.eval("return 1;"));
+        assertThrows(EvalError.class, () -> bsh.eval("int = ;"));
+        assertEquals(3, bsh.eval("return 1 + 2;"));
+    }
+
+    @Test
+    public void nested_eval_while_the_outer_eval_is_running() throws Exception {
+        Interpreter bsh = new Interpreter();
+        assertEquals(6, bsh.eval("return eval(\"return 1 + 2;\") + 3;"));
+        assertEquals(4, bsh.eval("return 4;"));
+    }
+
+    @Test
+    public void a_deserialized_interpreter_can_eval() throws Exception {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        try (ObjectOutputStream out = new ObjectOutputStream(bytes)) {
+            out.writeObject(new Interpreter());
+        }
+        try (ObjectInputStream in = new ObjectInputStream(
+                new ByteArrayInputStream(bytes.toByteArray()))) {
+            Interpreter bsh = (Interpreter) in.readObject();
+            assertEquals(3, bsh.eval("return 1 + 2;"));
+        }
+    }
+
+    @Test
+    public void the_parser_is_reused_after_an_eval_and_dropped_after_a_failed_one() throws Exception {
+        Interpreter bsh = new Interpreter();
+        bsh.eval("return 1;");
+        Parser spare = bsh.spareParser.get();
+        assertNotNull(spare);
+        bsh.eval("return 2;");
+        assertSame(spare, bsh.spareParser.get());
+        assertThrows(EvalError.class, () -> bsh.eval("int = ;"));
+        assertNull(bsh.spareParser.get());
+        bsh.eval("return 3;");
+        assertNotNull(bsh.spareParser.get());
+    }
+
+    @Test
+    public void a_failed_eval_does_not_leave_tokenizer_state_for_the_next_one() throws Exception {
+        Interpreter bsh = new Interpreter();
+        assertThrows(EvalError.class, () -> bsh.eval("foo )"));
+        assertEquals(5, bsh.eval("@powerful class C1 { } 5"));
+    }
+
+    @Test
+    public void a_released_child_no_longer_holds_its_parser() throws Exception {
+        Interpreter bsh = new Interpreter();
+        Interpreter child = (Interpreter) bsh.eval("return this.interpreter;");
+        assertNull(child.parser);
+    }
 
 }

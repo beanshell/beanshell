@@ -2,6 +2,7 @@ package bsh;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static bsh.TestUtil.script;
 import static bsh.TestUtil.measureConcurrentTime;
@@ -9,6 +10,7 @@ import static bsh.TestUtil.emptyMap;
 import static bsh.TestUtil.toMap;
 import static bsh.TestUtil.mapOf;
 
+import java.lang.reflect.Field;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Rule;
@@ -20,6 +22,17 @@ public class PreparsedScriptTest {
     public ExpectedException thrown = ExpectedException.none();
 
     private ClassLoader _classLoader = new ClassLoader() {};
+
+    @Test
+    public void invoke_leaves_the_spare_parser_for_the_next_call() throws Exception {
+        final PreparsedScript script = new PreparsedScript("return 1;", _classLoader);
+        final Field field = PreparsedScript.class.getDeclaredField("interpreter");
+        field.setAccessible(true);
+        final Interpreter interpreter = (Interpreter) field.get(script);
+        assertNotNull(interpreter.spareParser.get());
+        assertEquals(1, script.invoke(emptyMap()));
+        assertNotNull(interpreter.spareParser.get());
+    }
 
     @Test
     public void empty_script() throws Exception {

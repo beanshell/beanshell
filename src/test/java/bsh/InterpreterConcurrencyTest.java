@@ -21,10 +21,12 @@
 package bsh;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
 import static bsh.TestUtil.script;
 import static bsh.TestUtil.measureConcurrentTime;
 import org.junit.Test;
 
+import java.io.StringReader;
 import java.lang.ref.WeakReference;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -131,6 +133,35 @@ public class InterpreterConcurrencyTest {
             }
         };
         measureConcurrentTime(runnable, 30, 30, 100);
+        interpreter.getNameSpace().clear();
+    }
+
+    @Test
+    public void child_interpreter_does_not_share_its_parents_parser() throws Exception {
+        final Interpreter parent = new Interpreter();
+        final Interpreter child = new Interpreter(new StringReader(""),
+            System.out, System.err, false, parent.getNameSpace(), parent, null);
+        assertNotSame(parent.parser, child.parser);
+    }
+
+
+    @Test(timeout = 120000)
+    public void concurrent_evals_on_one_interpreter_do_not_corrupt_each_other() throws Exception {
+        final Interpreter interpreter = new Interpreter();
+        final AtomicInteger counter = new AtomicInteger();
+        final Runnable runnable = new Runnable() {
+            public void run() {
+                try {
+                    for (int i = 0; i < 50; i++) {
+                        final int n = counter.incrementAndGet();
+                        assertEquals(n, interpreter.eval("return " + n + ";"));
+                    }
+                } catch (final EvalError evalError) {
+                    throw new RuntimeException(evalError);
+                }
+            }
+        };
+        measureConcurrentTime(runnable, 16, 16, 20);
         interpreter.getNameSpace().clear();
     }
 
