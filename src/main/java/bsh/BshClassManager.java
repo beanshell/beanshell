@@ -379,6 +379,8 @@ public class BshClassManager {
     private final transient Map<String,Declaration> pending = new HashMap<>();
     /** Supertype name as written to the names of the pending types waiting on it; guarded by declarations. */
     private final transient Map<String,Set<String>> pendingOn = new HashMap<>();
+    /** Fully qualified name to the context id of the class currently generated for it. */
+    private final transient Map<String,String> contexts = new ConcurrentHashMap<>();
     private final transient ThreadLocal<Boolean> cascading = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
     private static final class Declaration {
@@ -811,6 +813,22 @@ public class BshClassManager {
         memberCache.clear();
     }
 
+    /** Record the context of a newly defined class, releasing that of the class it supersedes. */
+    void contextPublished(String name, String uuid) {
+        String previous = contexts.put(name, uuid);
+        if (previous != null && !previous.equals(uuid))
+            This.contextStore.remove(previous);
+    }
+
+    /** Release every context still held for a class this manager generated. */
+    protected void clearContexts() {
+        for (String name : new ArrayList<>(contexts.keySet())) {
+            String uuid = contexts.remove(name);
+            if (uuid != null)
+                This.contextStore.remove(uuid);
+        }
+    }
+
     /** Forget every recorded declaration; unlike clearCaches() this must not run on each defineClass(). */
     protected void clearDeclarations() {
         synchronized (declarations) {
@@ -845,6 +863,7 @@ public class BshClassManager {
     public void reset() {
         clearCaches();
         clearDeclarations();
+        clearContexts();
     }
 
     /**

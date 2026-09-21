@@ -5,6 +5,8 @@
 
 Work has resumed on the long-dormant 3.0 development line (`master`; the JAR targets Java 8 and is tested on Java 8 through 25) after a multi-year gap. This entry will grow as the release is prepared; changes so far:
 
+Fixed memory growing with every redefinition of a scripted class that has dependents and with every rejected class declaration: the internal state kept for classes that were never used is now released (#868). A `Class` object held from before a redefinition can no longer be used for the first time afterwards; existing instances and the current class are unaffected.
+
 Redefining a scripted class now also regenerates classes that extend or implement one of another class's static nested types, such as `class Leaf extends Outer.Inner` (#697).
 
 A scripted class that fails the final-method or strict abstract-method check is no longer left defined: a rejected redefinition keeps the previous class, and a rejected first definition is not declared. A method that only overloads a final superclass method is no longer rejected, and strict mode reports an unresolvable type in a method signature on first use rather than at the declaration.

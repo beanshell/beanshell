@@ -38,7 +38,6 @@ import static org.hamcrest.Matchers.instanceOf;
 
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
@@ -804,17 +803,113 @@ public class ClassGeneratorTest {
     }
 
     @Test
-    @Category(KnownIssue.class)
-    public void cascade_pins_regenerated_uninstantiated_classes_in_context_store() throws Exception {
+    public void redefinition_cascade_does_not_accumulate_context_store_entries() throws Exception {
         Interpreter bsh = new Interpreter();
-        bsh.eval("class P697e { } class L1 extends P697e { } class L2 extends P697e { } class L3 extends P697e { }");
+        bsh.eval("class P868 { } class L868a extends P868 { } class L868b extends P868 { } class L868c extends P868 { }");
+        bsh.eval("class P868 { }");
+        int first = This.contextStore.size();
+        for (int i = 0; i < 10; i++)
+            bsh.eval("class P868 { }");
+        int growth = This.contextStore.size() - first;
+        assertTrue("This.contextStore grew by " + growth + " over 10 redefinitions", growth <= 0);
+    }
+
+    @Test
+    public void class_rejected_before_publication_leaves_no_context_store_entry() throws Exception {
+        Interpreter bsh = quietInterpreter(new java.io.ByteArrayOutputStream());
+        bsh.eval("class Pv868 { final void m() { } } new Pv868();");
         int before = This.contextStore.size();
-        bsh.eval("class P697e { }");
-        int growth = This.contextStore.size() - before;
-        // Regenerated but never-instantiated subclasses each leave a
-        // permanent This.contextStore entry (the #843 mechanism). Flip this
-        // assertion once that is fixed.
-        assertTrue("This.contextStore did not grow -- appears fixed; flip this assertion", growth >= 3);
+        try {
+            bsh.eval("class Sv868 extends Pv868 { void m() { } }");
+            org.junit.Assert.fail("expected an EvalError");
+        } catch (EvalError e) {
+            assertThat(e.getMessage(), containsString("Cannot override m()"));
+        }
+        assertEquals(before, This.contextStore.size());
+    }
+
+    @Test
+    public void strict_abstract_rejection_leaves_no_context_store_entry() throws Exception {
+        Interpreter bsh = strictInterpreter(new java.io.ByteArrayOutputStream());
+        bsh.eval("interface Iv868 { int f(); }");
+        int before = This.contextStore.size();
+        try {
+            bsh.eval("class Cv868 implements Iv868 { }");
+            org.junit.Assert.fail("expected an EvalError");
+        } catch (EvalError e) {
+            assertThat(e.getMessage(), containsString("does not override abstract method f()"));
+        }
+        assertEquals(before, This.contextStore.size());
+    }
+
+    @Test
+    public void failed_cascade_regeneration_leaves_no_extra_context_store_entries() throws Exception {
+        java.io.ByteArrayOutputStream err = new java.io.ByteArrayOutputStream();
+        Interpreter bsh = quietInterpreter(err);
+        bsh.eval("class P868c { } class S868c extends P868c { void m() { } }");
+        bsh.eval("class P868c { final void m() { } }");
+        int first = This.contextStore.size();
+        for (int i = 0; i < 5; i++)
+            bsh.eval("class P868c { final void m() { } }");
+        assertThat(err.toString(), containsString("Regeneration of class S868c after redefinition of P868c failed"));
+        int growth = This.contextStore.size() - first;
+        assertTrue("This.contextStore grew by " + growth + " over 5 failed cascades", growth <= 0);
+    }
+
+    @Test
+    public void regenerated_classes_still_find_their_context_when_initialized() throws Exception {
+        Interpreter bsh = new Interpreter();
+        bsh.eval("class P868s { static int p = 1; } class L868s extends P868s { static int l = 2; int sum() { return p + l; } } "
+            + "interface I868 { int K = 9; } enum E868 { A, B }");
+        java.util.Set<String> before = new java.util.HashSet<>(This.contextStore.keySet());
+        bsh.eval("class P868s { static int p = 10; } interface I868 { int K = 5; } enum E868 { A, B, C }");
+        java.util.Set<String> fresh = new java.util.HashSet<>(This.contextStore.keySet());
+        fresh.removeAll(before);
+        assertFalse(fresh.isEmpty());
+        assertEquals(12, bsh.eval("return new L868s().sum();"));
+        assertEquals(5, bsh.eval("return I868.K;"));
+        assertEquals("C", bsh.eval("return E868.valueOf(\"C\").name();"));
+        assertEquals(20, bsh.eval("L868s.l = 20; return L868s.l;"));
+        for (String id : fresh)
+            assertFalse(This.contextStore.containsKey(id));
+    }
+
+    @Test
+    public void resetting_the_class_manager_releases_its_context_store_entries() throws Exception {
+        Interpreter bsh = new Interpreter();
+        int before = This.contextStore.size();
+        bsh.eval("class P868r { } class L868r extends P868r { } interface I868r { }");
+        assertTrue(This.contextStore.size() > before);
+        bsh.getClassManager().reset();
+        assertEquals(before, This.contextStore.size());
+    }
+
+    @Test
+    public void redefinition_in_one_interpreter_leaves_the_others_context_alone() throws Exception {
+        Interpreter a = new Interpreter();
+        Interpreter b = new Interpreter();
+        a.eval("class QP868 { } class QL868 extends QP868 { static int s = 1; }");
+        b.eval("class QP868 { } class QL868 extends QP868 { static int s = 2; }");
+        java.util.Set<String> before = new java.util.HashSet<>(This.contextStore.keySet());
+        b.eval("class QP868 { }");
+        java.util.Set<String> ofB = new java.util.HashSet<>(This.contextStore.keySet());
+        ofB.removeAll(before);
+        assertFalse(ofB.isEmpty());
+        a.eval("class QP868 { }");
+        for (String id : ofB)
+            assertTrue(This.contextStore.containsKey(id));
+        assertEquals(2, b.eval("return QL868.s;"));
+        assertEquals(1, a.eval("return QL868.s;"));
+    }
+
+    @Test
+    public void associated_class_generation_leaves_no_context_store_entry() throws Exception {
+        Object generated = new Interpreter().eval("class A868 { } return A868.class;");
+        Interpreter bsh = new Interpreter();
+        bsh.getClassManager().associateClass((Class<?>) generated);
+        int before = This.contextStore.size();
+        assertSame(generated, bsh.eval("class A868 { }"));
+        assertEquals(before, This.contextStore.size());
     }
 
     @Test
@@ -926,6 +1021,19 @@ public class ClassGeneratorTest {
         bsh.eval("class NBase9b { }");
         assertNotSame(before, bsh.eval("return Leaf9.class;"));
         assertEquals(4, bsh.getClassManager().declarationCount());
+    }
+
+    @Test
+    public void held_superseded_class_cannot_initialize_after_its_context_is_released() throws Exception {
+        Interpreter bsh = quietInterpreter(new java.io.ByteArrayOutputStream());
+        bsh.eval("class Pl { } class Sl extends Pl { static int n = 5; int v() { return n + 1; } } held = Sl.class; class Pl { }");
+        assertEquals(6, bsh.eval("return new Sl().v();"));
+        try {
+            bsh.eval("return held.newInstance().v();");
+            org.junit.Assert.fail("expected the superseded class to fail to initialize");
+        } catch (TargetError e) {
+            assertThat(e.getTarget().toString(), containsString("ExceptionInInitializerError"));
+        }
     }
 
     private static Object evalStatement(Interpreter bsh, String statement) throws Exception {

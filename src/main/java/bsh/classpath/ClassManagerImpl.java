@@ -360,6 +360,7 @@ public class ClassManagerImpl extends BshClassManager
     public void reset()
     {
         clearDeclarations();
+        clearContexts();
         baseClassPath = new BshClassPath("baseClassPath");
         baseLoader = null;
         loaderMap.clear();
