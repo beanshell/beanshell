@@ -36,6 +36,7 @@ import static org.hamcrest.Matchers.instanceOf;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
@@ -752,5 +753,65 @@ public class ClassGeneratorTest {
             "class C812H { wait(x) { return x; } }",
             "return C812H.class;");
         assertNotNull(cls);
+    }
+
+    @Test
+    public void redefining_a_superclass_rebinds_its_subclass() throws Exception {
+        assertEquals(2, eval(
+            "class P697 { int get() { return 1; } }",
+            "class S697 extends P697 { }",
+            "class P697 { int get() { return 2; } }",
+            "return new S697().get();"));
+        assertEquals(true, eval(
+            "class P697b { }",
+            "class S697b extends P697b { }",
+            "class P697b { }",
+            "return P697b.class == S697b.class.getSuperclass();"));
+    }
+
+    @Test
+    public void cascade_failure_does_not_fail_the_triggering_statement() throws Exception {
+        Interpreter bsh = new Interpreter();
+        java.io.ByteArrayOutputStream err = new java.io.ByteArrayOutputStream();
+        bsh.setOut(new java.io.PrintStream(err));
+        bsh.eval("class P697c { } class S697c extends P697c { }");
+        assertEquals("ok", bsh.eval("final class P697c { } return \"ok\";"));
+        assertThat(err.toString(), containsString("Regeneration of class S697c after redefinition of P697c failed"));
+        assertThat(err.toString(), containsString("Cannot inherit from final class"));
+    }
+
+    @Test
+    public void enum_implementing_a_redefined_interface_is_not_regenerated() throws Exception {
+        // known limitation: enums are excluded from the cascade
+        assertEquals(false, eval(
+            "interface I697e { int f(); }",
+            "enum E697e implements I697e { X; public int f() { return 1; } }",
+            "interface I697e { int f(); }",
+            "return I697e.class.isAssignableFrom(E697e.class);"));
+    }
+
+    @Test
+    public void cascade_does_not_disturb_an_inner_class_binding() throws Exception {
+        Interpreter bsh = new Interpreter();
+        assertEquals(7, bsh.eval(
+            "class P697d { } "
+            + "class S697d extends P697d { class In { int v() { return 7; } } int f() { return new In().v(); } } "
+            + "class P697d { } "
+            + "return new S697d().f();"));
+        assertEquals(2, bsh.getClassManager().declarationCount());
+    }
+
+    @Test
+    @Category(KnownIssue.class)
+    public void cascade_pins_regenerated_uninstantiated_classes_in_context_store() throws Exception {
+        Interpreter bsh = new Interpreter();
+        bsh.eval("class P697e { } class L1 extends P697e { } class L2 extends P697e { } class L3 extends P697e { }");
+        int before = This.contextStore.size();
+        bsh.eval("class P697e { }");
+        int growth = This.contextStore.size() - before;
+        // Regenerated but never-instantiated subclasses each leave a
+        // permanent This.contextStore entry (the #843 mechanism). Flip this
+        // assertion once that is fixed.
+        assertTrue("This.contextStore did not grow -- appears fixed; flip this assertion", growth >= 3);
     }
 }

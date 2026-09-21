@@ -399,7 +399,9 @@ public class InterpreterTest {
             +" b(){} c=a(); d=2; } return new "+cls+"().getClass().getName();"));
         }
         long b4 = Runtime.getRuntime().freeMemory();
+        assertEquals(5, bsh.getClassManager().declarationCount());
         bsh.reset();
+        assertEquals(0, bsh.getClassManager().declarationCount());
         TestUtil.cleanUp();
         assertThat(b4, lessThan(Runtime.getRuntime().freeMemory()));
     }

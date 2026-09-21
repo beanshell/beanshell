@@ -61,8 +61,52 @@ class BSHClassDeclaration extends SimpleNode
     public synchronized Object eval(final CallStack callstack, final Interpreter interpreter ) throws EvalError {
         if (generatedClass == null) {
             generatedClass = generateClass(callstack, interpreter);
+            NameSpace enclosing = callstack.top();
+            if (type != Type.ENUM && !enclosing.isClass && !enclosing.isMethod)
+                interpreter.getClassManager().declarationCompleted(
+                    generatedClass, enclosing, this, interpreter);
         }
         return generatedClass;
+    }
+
+    /**
+        Regenerate this class, and any classes declared inside it, against
+        the current definitions of its supertypes. A failure leaves the
+        previous classes bound.
+    */
+    synchronized Class<?> regenerate(final CallStack callstack, final Interpreter interpreter) throws EvalError {
+        final List<BSHClassDeclaration> nodes = new ArrayList<>();
+        collectDeclarations(this, nodes);
+        final List<Class<?>> previous = new ArrayList<>(nodes.size());
+        for (BSHClassDeclaration node : nodes) {
+            previous.add(node.generatedClass);
+            node.generatedClass = null;
+        }
+        try {
+            return (Class<?>) eval(callstack, interpreter);
+        } catch (EvalError | RuntimeException | LinkageError e) {
+            for (int i = 0; i < nodes.size(); i++)
+                nodes.get(i).generatedClass = previous.get(i);
+            throw e;
+        }
+    }
+
+    /** Generated classes declared anywhere inside this one. */
+    List<Class<?>> nestedClasses() {
+        final List<BSHClassDeclaration> nodes = new ArrayList<>();
+        collectDeclarations(this, nodes);
+        final List<Class<?>> classes = new ArrayList<>(nodes.size());
+        for (BSHClassDeclaration node : nodes)
+            if (node != this && node.generatedClass != null)
+                classes.add(node.generatedClass);
+        return classes;
+    }
+
+    private static void collectDeclarations(final Node node, final List<BSHClassDeclaration> found) {
+        if (node instanceof BSHClassDeclaration)
+            found.add((BSHClassDeclaration) node);
+        for (int i = 0; i < node.jjtGetNumChildren(); i++)
+            collectDeclarations(node.jjtGetChild(i), found);
     }
 
 

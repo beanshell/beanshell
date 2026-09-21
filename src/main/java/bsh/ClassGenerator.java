@@ -81,63 +81,65 @@ public final class ClassGenerator {
         classStaticNameSpace.isClass = true;
 
         callstack.push(classStaticNameSpace);
+        Class<?> genClass;
+        try {
+            // Evaluate inner class definitions in the block first, effectively
+            // recursively calling this method for contained classes, EXCEPT for
+            // an inner class that extends this class itself (#698): that one
+            // must wait until this class is fully defined below, or it bakes in
+            // whatever "name" previously resolved to (stale on a redefinition,
+            // unresolvable on a first definition).
+            block.evalBlock(callstack, interpreter, true/*override*/,
+                new SelfExtendingClassFilter(name, false));
 
-        // Evaluate inner class definitions in the block first, effectively
-        // recursively calling this method for contained classes, EXCEPT for
-        // an inner class that extends this class itself (#698): that one
-        // must wait until this class is fully defined below, or it bakes in
-        // whatever "name" previously resolved to (stale on a redefinition,
-        // unresolvable on a first definition).
-        block.evalBlock(callstack, interpreter, true/*override*/,
-            new SelfExtendingClassFilter(name, false));
+            // Generate the type for our class
+            Variable[] variables = getDeclaredVariables(block, callstack, interpreter, packageName, name, fqClassName);
+            DelayedEvalBshMethod[] methods = getDeclaredMethods(block, callstack, interpreter, packageName, superClass);
 
-        // Generate the type for our class
-        Variable[] variables = getDeclaredVariables(block, callstack, interpreter, packageName, name, fqClassName);
-        DelayedEvalBshMethod[] methods = getDeclaredMethods(block, callstack, interpreter, packageName, superClass);
+            // initialize static this singleton in namespace
+            classStaticNameSpace.getThis(interpreter);
 
-        // initialize static this singleton in namespace
-        classStaticNameSpace.getThis(interpreter);
+            // Create the class generator, which encapsulates all knowledge of the
+            // structure of the class
+            ClassGeneratorUtil classGenerator = new ClassGeneratorUtil(modifiers, className, packageName, superClass, interfaces, variables, methods, classStaticNameSpace, type);
 
-        // Create the class generator, which encapsulates all knowledge of the
-        // structure of the class
-        ClassGeneratorUtil classGenerator = new ClassGeneratorUtil(modifiers, className, packageName, superClass, interfaces, variables, methods, classStaticNameSpace, type);
+            // Let the class generator install hooks relating to the structure of
+            // the class into the class static namespace.  e.g. the constructor
+            // array.  This is necessary whether we are generating code or just
+            // reinitializing a previously generated class.
+            classGenerator.initStaticNameSpace(classStaticNameSpace, block/*instance initializer*/);
 
-        // Let the class generator install hooks relating to the structure of
-        // the class into the class static namespace.  e.g. the constructor
-        // array.  This is necessary whether we are generating code or just
-        // reinitializing a previously generated class.
-        classGenerator.initStaticNameSpace(classStaticNameSpace, block/*instance initializer*/);
+            // Check for existing class (saved class file)
+            genClass = bcm.getAssociatedClass(fqClassName);
 
-        // Check for existing class (saved class file)
-        Class<?> genClass = bcm.getAssociatedClass(fqClassName);
+            // If the class isn't there then generate it.
+            // Else just let it be initialized below.
+            if (genClass == null) {
+                // generate bytecode, optionally with static init hooks to
+                // bootstrap the interpreter
+                byte[] code = classGenerator.generateClass();
 
-        // If the class isn't there then generate it.
-        // Else just let it be initialized below.
-        if (genClass == null) {
-            // generate bytecode, optionally with static init hooks to
-            // bootstrap the interpreter
-            byte[] code = classGenerator.generateClass();
+                if (Interpreter.getSaveClasses())
+                    saveClasses(className, code);
 
-            if (Interpreter.getSaveClasses())
-                saveClasses(className, code);
+                // Define the new class in the classloader
+                genClass = bcm.defineClass(fqClassName, code);
+                Interpreter.debug("Define ", fqClassName, " as ", genClass);
+            }
+            // import the unqualified class name into parent namespace
+            enclosingNameSpace.importClass(fqClassName.replace('$', '.'));
 
-            // Define the new class in the classloader
-            genClass = bcm.defineClass(fqClassName, code);
-            Interpreter.debug("Define ", fqClassName, " as ", genClass);
+            // Give the static space its class static import
+            // important to do this after all classes are defined
+            classStaticNameSpace.setClassStatic(genClass);
+
+            // Now that this class is fully defined, evaluate any inner class
+            // that extends it (#698), so its superclass resolves to genClass.
+            block.evalBlock(callstack, interpreter, true/*override*/,
+                new SelfExtendingClassFilter(name, true));
+        } finally {
+            callstack.pop();
         }
-        // import the unqualified class name into parent namespace
-        enclosingNameSpace.importClass(fqClassName.replace('$', '.'));
-
-        // Give the static space its class static import
-        // important to do this after all classes are defined
-        classStaticNameSpace.setClassStatic(genClass);
-
-        // Now that this class is fully defined, evaluate any inner class
-        // that extends it (#698), so its superclass resolves to genClass.
-        block.evalBlock(callstack, interpreter, true/*override*/,
-            new SelfExtendingClassFilter(name, true));
-
-        callstack.pop();
 
         Interpreter.debug(classStaticNameSpace);
 

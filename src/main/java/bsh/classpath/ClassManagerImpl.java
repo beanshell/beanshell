@@ -359,6 +359,7 @@ public class ClassManagerImpl extends BshClassManager
     @Override
     public void reset()
     {
+        clearDeclarations();
         baseClassPath = new BshClassPath("baseClassPath");
         baseLoader = null;
         loaderMap.clear();
