@@ -5,113 +5,108 @@
 
 Work has resumed on the long-dormant 3.0 development line (`master`; the JAR targets Java 8 and is tested on Java 8 through 25) after a multi-year gap. This entry will grow as the release is prepared; changes so far:
 
-Fixed a scripted class that fails the final-method or strict abstract-method check being defined anyway: a rejected redefinition now leaves the previous class in place, and a rejected first definition is no longer left declared. A method that merely overloads a final superclass method is no longer rejected, and strict mode now reports an unresolvable type in a method signature on first use rather than at the declaration.
+A scripted class that fails the final-method or strict abstract-method check is no longer left defined: a rejected redefinition keeps the previous class, and a rejected first definition is not declared. A method that only overloads a final superclass method is no longer rejected, and strict mode reports an unresolvable type in a method signature on first use rather than at the declaration.
 
-Fixed concurrent `eval` calls on one interpreter corrupting each other: child interpreters shared their parent's parser, so several threads evaluating strings or calling scripted commands could fail with spurious parse errors, `NullPointerException`s or wrong results. Each eval now has its own parser, with one idle parser handed from eval to eval instead of shared, and a parser that failed mid-parse is no longer reused. An early `return` from a compound statement can still leave a stale tokenizer state that misparses an annotation-like token in a later eval, as before.
+Fixed concurrent `eval` calls on one interpreter interfering with each other, which caused spurious parse errors, `NullPointerException`s or wrong results.
 
-Fixed a scripted class that extends or implements a type that isn't declared yet throwing at its declaration and being lost for good; it is now held pending, with a note on the error stream, and generated once a script declares the missing type, including through a chain of such classes. Only a scripted declaration wakes a pending class, not an import or classpath change, and a misspelled supertype now shows up as a pending class rather than an error at its declaration (#696).
+A scripted class that extends or implements a type that isn't declared yet is now held pending, with a note on the error stream, and generated once the type is declared, instead of failing for good. A misspelled supertype now shows up as a pending class rather than an error at its declaration (#696).
 
-Fixed redefining a scripted class or interface leaving classes already declared from it bound to the old definition, so a subclass kept the old superclass's behavior and an implementor stopped being assignable to the redeclared interface; the dependent classes are now regenerated against the new definition. Redefining a superclass resets its subclasses' static state, and enums are not regenerated (#697).
+Redefining a scripted class or interface now regenerates the classes declared from it, so subclasses and implementors pick up the new definition. Enums are not regenerated, and redefining a superclass resets its subclasses' static state (#697).
 
-Fixed the generic type-argument lexer (`List<String>`) over-matching and misparsing relational, shift, or ternary expressions like `x < y > y;` and `x << b > b;` as bogus declarations (#838).
+Fixed expressions like `x < y > y;` and `x << b > b;` being misparsed as declarations (#838).
 
-Fixed an untyped parameter in a scripted override of an abstract method throwing `AbstractMethodError` instead of running; it now adopts the abstract method's own parameter types (#812).
+Fixed an untyped parameter in a scripted override of an abstract method throwing `AbstractMethodError` (#812).
 
-Fixed overload resolution preempting an applicable varargs overload with an inapplicable fixed-arity one, for both lambda and ordinary calls (#849).
+Fixed an applicable varargs overload losing to an inapplicable fixed-arity one (#849).
 
-Fixed a lambda body's ternary expression being treated as a compile-time constant for overload resolution without checking that both branches actually fold (#845).
+Fixed a lambda body containing a ternary expression being treated as a constant when only one branch was (#845).
 
-Fixed a scripted method called without qualification from inside a block, `if`/`for`/`while`/`try` body, or lambda running in the caller's own namespace instead of its own, which could collide with, leak into, or silently overwrite the caller's variables (#841).
+Fixed a scripted method called from inside a block, `if`/`for`/`while`/`try` body or lambda running in the caller's namespace and overwriting the caller's variables (#841).
 
-Fixed `-9223372036854775808L` (`Long.MIN_VALUE`) and the equivalent `int`/`short` minimum literals failing to parse (#842).
+Fixed `-9223372036854775808L` and the `int`/`short` minimum literals failing to parse (#842).
 
-Fixed an explicit narrowing cast on an out-of-range value, such as `(short) -2147483648L`, throwing instead of truncating the way Java does (#844).
+Fixed an explicit narrowing cast of an out-of-range value, such as `(short) -2147483648L`, throwing instead of truncating as Java does (#844).
 
-Fixed a `try` statement with a resources clause but no `catch` or `finally` failing to parse (#836).
+Fixed a `try` statement with resources but no `catch` or `finally` failing to parse (#836).
 
-Fixed `ParseException` built from a plain message (such as a modifier conflict like `private public int x = 1;`) losing that message, and `getErrorLineNumber()` throwing `NullPointerException` (#839).
+Fixed `ParseException` losing its message for errors such as `private public int x = 1;`, and `getErrorLineNumber()` throwing `NullPointerException` (#839).
 
-Fixed `do ; while (cond);` — a do-while loop with an empty-statement body — throwing `ArrayIndexOutOfBoundsException` (#837).
+Fixed `do ; while (cond);` throwing `ArrayIndexOutOfBoundsException` (#837).
 
-Added lambda expressions: `x -> ...`, `(a, b) -> ...`, and `(Type a) -> ...`, usable as a functional-interface value without an explicit cast (method references are not supported) (#675). A lambda captures its declaring scope by reference, not by value, so a later change to a captured variable — including a loop variable — is visible to the lambda. An unchecked exception, or a checked exception the target interface's method declares, propagates normally; anything else surfaces as `bsh.RuntimeEvalError`. A lambda converted to a `Serializable` interface can be serialized but throws on deserialize. Some interface shapes are rejected at conversion time, including sealed interfaces and scripted interfaces with a scripted default method. `x -> {1,2,3}` needs parentheses around the body.
+Added lambda expressions: `x -> ...`, `(a, b) -> ...` and `(Type a) -> ...`, usable as a functional-interface value without a cast; method references are not supported (#675). Lambdas capture variables by reference. Exceptions the target method allows propagate normally, and any other checked exception surfaces as `bsh.RuntimeEvalError`. Sealed interfaces and scripted interfaces with a scripted default method can't be targets, a lambda converted to a `Serializable` interface throws when deserialized, and `x -> {1,2,3}` needs parentheses around the body.
 
-Fixed an out-of-bounds array or `List` index store — including `arr[i] += x`, `arr[i]++`, and `++arr[i]` — escaping as a plain `EvalError` that no script `catch` block, not even `catch (Throwable)`, could see; it now surfaces as the ordinary target exception (`ArrayIndexOutOfBoundsException`/`IndexOutOfBoundsException`), matching an out-of-bounds read (#824).
+Fixed an out-of-bounds array or `List` index store, including `arr[i] += x` and `arr[i]++`, escaping as an `EvalError` that no `catch` could see; it now throws the ordinary `ArrayIndexOutOfBoundsException` or `IndexOutOfBoundsException` (#824).
 
-The parser is now generated by JavaCC 8.1.0 instead of ParserGeneratorCC, so building from source needs JDK 8 or newer again. A lexical error is once more `bsh.TokenMgrError` rather than `bsh.TokenMgrException`, and `bsh.ParseException`'s constructor takes two additional arguments; the grammar, syntax tree, and error messages are otherwise unchanged.
+The parser is now generated by JavaCC 8.1.0 instead of ParserGeneratorCC, so building from source needs JDK 8 or newer again. A lexical error is `bsh.TokenMgrError` again, and the `bsh.ParseException` constructor takes two additional arguments.
 
-`Name.countParts`, `Name.isCompound`, `Name.prefix`, and `Name.suffix` no longer throw `ArrayIndexOutOfBoundsException` for a name made of nothing but dots; such a name now has no parts.
+`Name.countParts`, `Name.isCompound`, `Name.prefix` and `Name.suffix` no longer throw `ArrayIndexOutOfBoundsException` for a name made only of dots.
 
-Fixed several caches shared by every interpreter in the JVM being read and updated without synchronization, which could spin a lookup at full CPU forever, hand different callers different state for the same class, or let a failed lookup overwrite a good one.
+Fixed caches shared by every interpreter in the JVM being updated without synchronization, which could hang a lookup or return the wrong state.
 
-Fixed an anonymous subclass of a Java class with a multi-parameter constructor failing with `Typed variable: null was previously declared with type: int`, from all its constructor parameters being declared under the same name.
+Fixed an anonymous subclass of a Java class with a multi-parameter constructor failing with `Typed variable: null was previously declared with type: int`.
 
-Fixed an anonymous subclass of a class with a varargs constructor building the wrong array type for the trailing arguments, so no constructor matched.
+Fixed an anonymous subclass of a class with a varargs constructor failing to match a constructor.
 
-The `exec()` command now runs through `ProcessBuilder` (#683): it prints the application's standard error as well as its standard output (#273), waits for the process to actually exit before returning a status, and gained a `String[]` form for arguments containing spaces.
+The `exec()` command now runs through `ProcessBuilder`: it prints the process's standard error as well as its standard output (#273), waits for it to exit before returning the status, and has a `String[]` form for arguments containing spaces (#683).
 
-Three constructs that compiled Java accepts are now parsed: annotations on class, method, field, and parameter declarations (parsed and discarded, not retained on the generated class); C-style array brackets on a method declarator (`int f()[] { ... }`); and a parenthesized class literal (`(String[].class)`) (#814).
+Annotations on class, method, field and parameter declarations (parsed and discarded), C-style array brackets on a method declarator (`int f()[] { ... }`) and a parenthesized class literal (`(String[].class)`) now parse (#814).
 
-Fixed a field declared with the type of the class being generated, such as `class Node { Node next; }`, being silently dropped from that class (#813).
+Fixed a field declared with the type of its own class, such as `class Node { Node next; }`, being dropped (#813).
 
-A directory added to the class path now also contributes the archives it holds, so `addClassPath("file:/path/lib/")` picks up the JARs in `lib/` the way `java -cp 'lib/*'` does (#646).
+A directory added to the class path now also contributes the archives it holds, so `addClassPath("file:/path/lib/")` picks up the JARs in `lib/` as `java -cp 'lib/*'` does (#646).
 
-Fixed a class name that failed to resolve being remembered as not being a class even after `addClassPath()` added the archive that contains it (#811).
+Fixed a class name that failed to resolve staying unresolved after `addClassPath()` added the archive containing it (#811).
 
-Removed the built-in HTTP server (`server()` command, `bsh.util.Httpd`, `bsh.util.Sessiond`), the `bsh.servlet` package, and the remote console applets, none of which were authenticated (#496).
+Removed the built-in HTTP server (`server()`, `bsh.util.Httpd`, `bsh.util.Sessiond`), the `bsh.servlet` package and the remote console applets, none of which were authenticated (#496).
 
-The result of a void method call may now be assigned to an untyped or `Object`-declared variable, such as `x = voidMethod();`, instead of throwing (#775).
+The result of a void method call may now be assigned to an untyped or `Object` variable, such as `x = voidMethod();`, instead of throwing (#775).
 
-`bsh.SimpleNode`, the base implementation of the public `bsh.Node` AST interface, is now a public class, so embedding applications can name and cast to it (#730).
+`bsh.SimpleNode` is now a public class, so embedding applications can name and cast to it (#730).
 
 Fixed an inner class extending its own enclosing class, such as `class A { class B extends A {} }`, resolving to the wrong or no superclass (#698).
 
-Added `Interpreter.setOutputFile(String)` to redirect a specific interpreter's own output and error streams to a file without touching `System.out`/`System.err` (#516).
+Added `Interpreter.setOutputFile(String)` to send an interpreter's own output and error streams to a file without touching `System.out` or `System.err` (#516).
 
-Fixed a `ThreadLocal` state leak where debug mode enabled on one `Interpreter` could remain enabled for later, unrelated `Interpreter` instances sharing a pooled thread (#785).
+Fixed debug mode enabled on one `Interpreter` staying enabled for later interpreters on the same pooled thread (#785).
 
-Packaged the ASM library's BSD-3-Clause license notice into the binary JAR (#788).
+The binary JAR now carries the ASM BSD-3-Clause license notice, and the bundled ASM library is updated to 9.10.1, which fixes scripted classes with many overloaded constructors failing with `Can't find default constructor` (#788).
 
-Restored weak and soft key behavior in the class-member and block-namespace caches, so a cached key (and what it holds onto) doesn't outlive everything else that references it (#659).
+Fixed intermittent wrong-variable lookups in nested blocks and loops, and restored weak and soft key behavior in the class-member and block-namespace caches (#659).
 
-Extended the null-varargs fix (#778) to more places a null argument's declared type was lost: assignment expressions used as call arguments, bean property getters, ternary expressions, and anonymous-class construction.
+Passing a bare `null` to a Java varargs method or constructor now passes a null array, as compiled Java does, and a bare `null` argument matches array-typed overloads generally. This also holds for assignment expressions used as call arguments, bean property getters, ternary expressions and anonymous-class construction (#778).
 
-Fixed a parse error when a method-call argument, wrapped in extra parentheses, contained an anonymous class declaring a method with a class return type (#423).
+Fixed a parse error when a method-call argument wrapped in extra parentheses contained an anonymous class declaring a method with a class return type (#423).
 
 Scripts evaluated from deep call stacks no longer slow down in proportion to the stack depth (#551).
 
-Fixed scripted classes whose subclass has the same simple name as its superclass, such as `a.b.A extends a.A`, throwing `NullPointerException` on an inherited method call (#383).
+Fixed a scripted class whose subclass has the same simple name as its superclass, such as `a.b.A extends a.A`, throwing `NullPointerException` on an inherited method call (#383).
 
 `JConsole.addHistory(String)` adds a line to the Swing console's command history (#405).
 
-Pressing Enter after pasting a large block of code into the Swing console (`JConsole`) no longer freezes it (#585).
+Pressing Enter after pasting a large block of code into the Swing console no longer freezes it (#585).
 
-Tab completion in the Swing console (`JConsole`) no longer corrupts the command line when several completions are shown (#292).
+Tab completion in the Swing console no longer corrupts the command line when several completions are shown (#292).
 
 Calling an overloaded method of a scripted class or enum with a variable declared as a reference type but holding `null` now selects the overload for the declared type, as compiled Java does (#150).
 
-Fixed three defects in the `desktop()` command: a `NullPointerException` from an unregistered taskbar button, the context menu opening on any mouse press instead of the platform's popup trigger, and closing the desktop window terminating the whole JVM (#416).
+Fixed three defects in the `desktop()` command: a `NullPointerException` from an unregistered taskbar button, the context menu opening on any mouse press, and closing the desktop window ending the whole JVM (#416).
 
-An error that escapes a `try` block uncaught is now reported at the line where it occurred instead of at the `try` statement (#726).
-
-Passing a bare `null` to a Java varargs method or constructor now passes a null array, as compiled Java does, instead of wrapping it in a one-element array; a bare `null` argument now matches array-typed overloads generally (#778).
-
-Updated the bundled ASM bytecode library to 9.10.1, fixing scripted classes with many overloaded constructors that could fail with `Can't find default constructor` (#788).
+An error that escapes a `try` block is now reported at the line where it occurred instead of at the `try` statement (#726).
 
 Fixed BeanShell calling a property accessor instead of a real method of the same name, such as `level(...)` running `setLevel(...)` (#780).
 
-Fixed intermittent wrong-variable lookups in nested blocks and loops, from an internal cache treating any two keys with the same hash code as the same entry (#659).
+Float arithmetic now follows Java's numeric promotion: `+`, `-`, `*`, `/` and `%` on `float` operands return `Float` instead of widening to `double` (#767).
 
-Float arithmetic now follows Java's numeric promotion: `+`, `-`, `*`, `/`, and `%` on `float` operands are computed in `float` and return `Float` instead of widening to `double` (#767).
-
-Fixed a parser input-buffer defect where long string literals, identifiers, or comments could corrupt the parser's buffer position, causing `ArrayIndexOutOfBoundsException`, parse errors, or incorrect token contents (#734, #743).
+Fixed long string literals, identifiers or comments corrupting the parser's input buffer, causing `ArrayIndexOutOfBoundsException`, parse errors or wrong token contents (#734, #743).
 
 Fixed numeric reference casts such as `(Number) Double.valueOf(1)` throwing `ClassCastException` (#725).
 
-Fixed a method-lookup regression from BeanShell 2.0b5 where overload resolution mismatched array-typed parameters against scalar arguments in some declaration orders (#731).
+Fixed overload resolution matching array-typed parameters against scalar arguments in some declaration orders, a regression from BeanShell 2.0b5 (#731).
 
-Unary operators (`++`, `--`, unary `+`/`-`, `~`) now accept boxed numeric and character wrapper types, instead of throwing `EvalError` for code as simple as `Integer i = new Integer(0); ++i;` (#762).
+Unary operators (`++`, `--`, unary `+`/`-`, `~`) now accept boxed numeric and character wrapper types instead of throwing `EvalError` (#762).
 
-Fixed BeanShell failing to start, or silently reporting the wrong version, when another JAR on the classpath also provided a root-level `version.properties` (#736, #783).
+Fixed BeanShell failing to start, or reporting the wrong version, when another JAR on the classpath also provided a root-level `version.properties` (#736, #783).
+
 
 ## 2.1.1
 
