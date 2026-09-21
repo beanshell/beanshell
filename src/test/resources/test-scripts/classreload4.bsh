@@ -1,0 +1,63 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// three-deep transitive chain
+class A4 { public int get() { return 1; } }
+class B4 extends A4 { }
+class C4 extends B4 { }
+assertEquals(1, new C4().get());
+class A4 { public int get() { return 2; } }
+assertEquals(2, new C4().get());
+assertSame(A4.class, B4.class.getSuperclass());
+assertSame(B4.class, C4.class.getSuperclass());
+
+// interface redeclaration keeps the implementor assignable
+interface I4 { int f(); }
+class D4 implements I4 { public int f() { return 1; } }
+Class oldD4 = D4.class;
+interface I4 { int f(); }
+assertTrue(I4.class.isAssignableFrom(D4.class));
+assertNotSame(oldD4, D4.class);
+assertEquals(1, new D4().f());
+
+// diamond: F reaches J directly and through E, so E must be regenerated first
+interface J4 { int j(); }
+class E4 implements J4 { public int j() { return 1; } }
+class F4 extends E4 implements J4 { }
+interface J4 { int j(); }
+assertSame(E4.class, F4.class.getSuperclass());
+assertTrue(J4.class.isAssignableFrom(E4.class));
+assertTrue(J4.class.isAssignableFrom(F4.class));
+assertEquals(1, new F4().j());
+
+// an unrelated class is left alone
+class U4 { }
+Class oldU4 = U4.class;
+class A4 { public int get() { return 3; } }
+assertEquals(3, new C4().get());
+assertSame(oldU4, U4.class);
+
+// a nested class's supertype counts as a dependency of the enclosing class
+class P4n { public int get() { return 1; } }
+class Outer4n { class In extends P4n { } public int f() { return new In().get(); } }
+assertEquals(1, new Outer4n().f());
+class P4n { public int get() { return 2; } }
+assertEquals(2, new Outer4n().f());
+assertSame(P4n.class, Outer4n.In.class.getSuperclass());
+
+// a nested class extending its own enclosing class must not make it look circular
+class P4s { int v() { return 1; } }
+class O4s extends P4s { class In extends O4s { } int f() { return new In().v(); } }
+assertEquals(1, new O4s().f());
+class P4s { int v() { return 2; } }
+assertEquals(2, new O4s().f());
+
+interface K4n { int k(); }
+class Outer4k { class InK implements K4n { public int k() { return 1; } } public boolean ok() { return K4n.class.isAssignableFrom(InK.class); } }
+assertTrue(new Outer4k().ok());
+interface K4n { int k(); }
+assertTrue(new Outer4k().ok());
+
+complete();

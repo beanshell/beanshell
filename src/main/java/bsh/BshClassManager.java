@@ -33,8 +33,13 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -366,6 +371,150 @@ public class BshClassManager {
     */
     protected final transient Set<String> absoluteNonClasses = ConcurrentHashMap.newKeySet();
 
+    /** Top-level scripted type declarations by fully qualified name, guarded by itself. */
+    private final transient Map<String,Declaration> declarations = new HashMap<>();
+    /** Fully qualified supertype name to the names of the declarations built on it. */
+    private final transient Map<String,Set<String>> dependents = new HashMap<>();
+    private final transient ThreadLocal<Boolean> cascading = ThreadLocal.withInitial(() -> Boolean.FALSE);
+
+    private static final class Declaration {
+        final BSHClassDeclaration node;
+        final NameSpace namespace;
+        final Interpreter interpreter;
+        final Set<String> supertypes;
+
+        Declaration(BSHClassDeclaration node, NameSpace namespace,
+                Interpreter interpreter, Set<String> supertypes) {
+            this.node = node;
+            this.namespace = namespace;
+            this.interpreter = interpreter;
+            this.supertypes = supertypes;
+        }
+    }
+
+    int declarationCount() {
+        synchronized (declarations) { return declarations.size(); }
+    }
+
+    /**
+        Record a top-level scripted type and, unless this is itself a
+        regeneration, regenerate every type that was built on a previous
+        definition of it.
+    */
+    void declarationCompleted(Class<?> clas, NameSpace namespace,
+            BSHClassDeclaration node, Interpreter interpreter) {
+        final String name = clas.getName();
+        final Set<String> supertypes = new LinkedHashSet<>();
+        addGeneratedSupertype(supertypes, clas.getSuperclass());
+        for (Class<?> iface : clas.getInterfaces())
+            addGeneratedSupertype(supertypes, iface);
+        for (Class<?> nested : node.nestedClasses()) {
+            addGeneratedSupertype(supertypes, nested.getSuperclass());
+            for (Class<?> iface : nested.getInterfaces())
+                addGeneratedSupertype(supertypes, iface);
+        }
+        supertypes.removeIf(s -> s.equals(name) || s.startsWith(name + "$"));
+        synchronized (declarations) {
+            Declaration previous = declarations.put(name,
+                new Declaration(node, namespace, interpreter, supertypes));
+            if (previous != null)
+                for (String supertype : previous.supertypes)
+                    dependents.get(supertype).remove(name);
+            for (String supertype : supertypes)
+                dependents.computeIfAbsent(supertype, k -> new LinkedHashSet<>()).add(name);
+        }
+        if (!cascading.get())
+            cascade(name, interpreter);
+    }
+
+    private static void addGeneratedSupertype(Set<String> supertypes, Class<?> supertype) {
+        if (supertype != null && Reflect.isGeneratedClass(supertype))
+            supertypes.add(supertype.getName());
+    }
+
+    /** Regenerate the dependents of a redefined type, best effort. */
+    private void cascade(String redefined, Interpreter interpreter) {
+        final List<String> order = new ArrayList<>();
+        final Set<String> cyclic = new LinkedHashSet<>();
+        synchronized (declarations) {
+            regenerationOrder(redefined, order, cyclic);
+        }
+        if (order.isEmpty() && cyclic.isEmpty())
+            return;
+        final Set<String> failed = new HashSet<>(cyclic);
+        for (String name : cyclic)
+            interpreter.error("Not regenerating class " + name
+                + " after redefinition of " + redefined + ": circular dependency");
+        cascading.set(Boolean.TRUE);
+        try {
+            for (String name : order) {
+                Declaration declaration;
+                synchronized (declarations) { declaration = declarations.get(name); }
+                if (declaration == null)
+                    continue;
+                if (!Collections.disjoint(declaration.supertypes, failed)) {
+                    failed.add(name);
+                    continue;
+                }
+                try {
+                    declaration.node.regenerate(
+                        new CallStack(declaration.namespace), declaration.interpreter);
+                } catch (EvalError | RuntimeException | LinkageError e) {
+                    failed.add(name);
+                    declaration.interpreter.error("Regeneration of class " + name
+                        + " after redefinition of " + redefined + " failed, it may be"
+                        + " inconsistent with the new definition: " + e.getMessage());
+                }
+            }
+        } finally {
+            cascading.set(Boolean.FALSE);
+        }
+    }
+
+    /**
+        Topologically order the transitive dependents of a redefined type so
+        that every type follows the types it is built on. Anything left over
+        after the ordering is caught in a cycle. Caller holds the lock.
+    */
+    private void regenerationOrder(String redefined, List<String> order, Set<String> cyclic) {
+        final Set<String> affected = new LinkedHashSet<>();
+        final Deque<String> pending = new ArrayDeque<>();
+        for (Map.Entry<String,Set<String>> entry : dependents.entrySet())
+            if (entry.getKey().equals(redefined) || entry.getKey().startsWith(redefined + "$"))
+                pending.addAll(entry.getValue());
+        while (!pending.isEmpty()) {
+            String name = pending.poll();
+            if (name.equals(redefined) || !declarations.containsKey(name) || !affected.add(name))
+                continue;
+            Set<String> next = dependents.get(name);
+            if (next != null)
+                pending.addAll(next);
+        }
+        final Map<String,Integer> unresolved = new HashMap<>();
+        for (String name : affected) {
+            int count = 0;
+            for (String supertype : declarations.get(name).supertypes)
+                if (affected.contains(supertype))
+                    count++;
+            unresolved.put(name, count);
+            if (count == 0)
+                pending.add(name);
+        }
+        while (!pending.isEmpty()) {
+            String name = pending.poll();
+            order.add(name);
+            Set<String> next = dependents.get(name);
+            if (next != null)
+                for (String dependent : next)
+                    if (unresolved.containsKey(dependent)
+                            && unresolved.merge(dependent, -1, Integer::sum) == 0)
+                        pending.add(dependent);
+        }
+        for (String name : affected)
+            if (!order.contains(name))
+                cyclic.add(name);
+    }
+
     /** @see #associateClass( Class ) */
     protected final transient Map<String, Class<?>> associatedClasses = new ConcurrentHashMap<>();
 
@@ -547,6 +696,14 @@ public class BshClassManager {
         memberCache.clear();
     }
 
+    /** Forget every recorded declaration; unlike clearCaches() this must not run on each defineClass(). */
+    protected void clearDeclarations() {
+        synchronized (declarations) {
+            declarations.clear();
+            dependents.clear();
+        }
+    }
+
     /**
         Set an external class loader.  BeanShell will use this at the same
         point it would otherwise use the plain Class.forName().
@@ -570,6 +727,7 @@ public class BshClassManager {
     */
     public void reset() {
         clearCaches();
+        clearDeclarations();
     }
 
     /**

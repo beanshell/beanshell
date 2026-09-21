@@ -23,9 +23,7 @@ class FooR {
     public int get() { return 44; }
 }
 assertEquals(44, new FooR().get());
-// TODO: this is wrong should be 44 #697
-assertEquals(43, new BarR().get());
-// TODO: this is wrong classes should be the same #697
-assertNotSame("FooR.class is same as FooR.class", FooR.class, BarR.class.getSuperclass());
+assertEquals(44, new BarR().get());
+assertSame(FooR.class, BarR.class.getSuperclass());
 
 complete();

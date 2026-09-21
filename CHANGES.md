@@ -5,6 +5,8 @@
 
 Work has resumed on the long-dormant 3.0 development line (`master`; the JAR targets Java 8 and is tested on Java 8 through 25) after a multi-year gap. This entry will grow as the release is prepared; changes so far:
 
+Fixed redefining a scripted class or interface leaving classes already declared from it bound to the old definition, so a subclass kept the old superclass's behavior and an implementor stopped being assignable to the redeclared interface; the dependent classes are now regenerated against the new definition. Redefining a superclass resets its subclasses' static state, and enums are not regenerated (#697).
+
 Fixed the generic type-argument lexer (`List<String>`) over-matching and misparsing relational, shift, or ternary expressions like `x < y > y;` and `x << b > b;` as bogus declarations (#838).
 
 Fixed an untyped parameter in a scripted override of an abstract method throwing `AbstractMethodError` instead of running; it now adopts the abstract method's own parameter types (#812).
