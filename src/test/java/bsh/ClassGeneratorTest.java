@@ -25,6 +25,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.Callable;
@@ -813,5 +814,183 @@ public class ClassGeneratorTest {
         // permanent This.contextStore entry (the #843 mechanism). Flip this
         // assertion once that is fixed.
         assertTrue("This.contextStore did not grow -- appears fixed; flip this assertion", growth >= 3);
+    }
+
+    private static Object evalStatement(Interpreter bsh, String statement) throws Exception {
+        Parser parser = new Parser(new java.io.StringReader(statement));
+        parser.Line();
+        return parser.popNode().eval(new CallStack(bsh.getNameSpace()), bsh);
+    }
+
+    @Test
+    public void undeclared_supertype_leaves_the_class_pending_with_a_note() throws Exception {
+        Interpreter bsh = new Interpreter();
+        java.io.ByteArrayOutputStream err = new java.io.ByteArrayOutputStream();
+        bsh.setOut(new java.io.PrintStream(err));
+        assertSame(Primitive.VOID, evalStatement(bsh, "class Pd696 extends Pd696Base { }"));
+        assertThat(err.toString(), containsString(
+            "Class Pd696 is pending: unresolved supertype Pd696Base"));
+        assertEquals(1, bsh.getClassManager().pendingCount());
+        assertEquals(true, bsh.eval("return Pd696 == void;"));
+    }
+
+    @Test
+    public void misspelled_supertype_no_longer_throws_at_its_declaration() throws Exception {
+        // accepted trade for late binding: the typo is reported by a note, not an exception
+        Interpreter bsh = new Interpreter();
+        bsh.setOut(new java.io.PrintStream(new java.io.ByteArrayOutputStream()));
+        bsh.eval("class Ms696 extends Objecct { }");
+        bsh.eval("class Ms696i implements Runnabel { }");
+        assertEquals(2, bsh.getClassManager().pendingCount());
+    }
+
+    @Test
+    public void redeclaring_a_pending_class_does_not_double_register() throws Exception {
+        Interpreter bsh = new Interpreter();
+        bsh.setOut(new java.io.PrintStream(new java.io.ByteArrayOutputStream()));
+        bsh.eval("class Rd696 extends Rd696Base { }");
+        bsh.eval("class Rd696 extends Rd696Base { }");
+        bsh.eval("for (int i = 0; i < 3; i++) { class Rd696 extends Rd696Base { } }");
+        assertEquals(1, bsh.getClassManager().pendingCount());
+        assertEquals(1, bsh.getClassManager().pendingEdgeCount());
+        assertEquals(4, bsh.eval("class Rd696Base { public int get() { return 4; } } return new Rd696().get();"));
+        assertEquals(0, bsh.getClassManager().pendingCount());
+        assertEquals(0, bsh.getClassManager().pendingEdgeCount());
+    }
+
+    @Test
+    public void enum_with_an_undeclared_interface_still_throws() throws Exception {
+        Interpreter bsh = new Interpreter();
+        try {
+            bsh.eval("enum En696 implements En696I { A }");
+            org.junit.Assert.fail("expected an EvalError");
+        } catch (EvalError e) {
+            assertThat(e.getMessage(), containsString("En696I"));
+        }
+        assertEquals(0, bsh.getClassManager().pendingCount());
+    }
+
+    private static Interpreter quietInterpreter(java.io.ByteArrayOutputStream err) {
+        Interpreter bsh = new Interpreter();
+        bsh.setOut(new java.io.PrintStream(err));
+        return bsh;
+    }
+
+    private static int occurrences(String text, String part) {
+        int count = 0;
+        for (int i = text.indexOf(part); i >= 0; i = text.indexOf(part, i + 1))
+            count++;
+        return count;
+    }
+
+    @Test
+    public void declaring_a_pending_class_outright_drops_its_pending_entry() throws Exception {
+        Interpreter bsh = quietInterpreter(new java.io.ByteArrayOutputStream());
+        bsh.eval("class Z696 extends Z696B { }");
+        assertEquals(1, bsh.getClassManager().pendingCount());
+        bsh.eval("class Z696 { int v() { return 1; } }");
+        assertEquals(0, bsh.getClassManager().pendingCount());
+        assertEquals(0, bsh.getClassManager().pendingEdgeCount());
+        bsh.eval("class Z696B { }");
+        assertEquals(1, bsh.eval("return new Z696().v();"));
+        assertEquals(Object.class, bsh.eval("return Z696.class.getSuperclass();"));
+    }
+
+    @Test
+    public void promotion_in_another_package_drops_the_pending_entry() throws Exception {
+        Interpreter bsh = quietInterpreter(new java.io.ByteArrayOutputStream());
+        bsh.eval("class Pk1 extends Pk1B { }");
+        assertEquals(1, bsh.getClassManager().pendingCount());
+        bsh.eval("package other696; class Pk1B { }");
+        assertEquals(0, bsh.getClassManager().pendingCount());
+        assertEquals(0, bsh.getClassManager().pendingEdgeCount());
+    }
+
+    @Test
+    public void simple_supertype_name_matches_a_declaration_in_a_package() throws Exception {
+        Interpreter bsh = quietInterpreter(new java.io.ByteArrayOutputStream());
+        assertEquals("pk696.Q", bsh.eval(
+            "package pk696; class Q extends R { } class R { } return Q.class.getName();"));
+        assertEquals(0, bsh.getClassManager().pendingCount());
+        assertEquals("pk696.R", bsh.eval("return Q.class.getSuperclass().getName();"));
+    }
+
+    @Test
+    public void nested_supertype_arrives_with_its_enclosing_class() throws Exception {
+        Interpreter bsh = quietInterpreter(new java.io.ByteArrayOutputStream());
+        bsh.eval("class Nb696 extends Ob696.In { }");
+        assertEquals(1, bsh.getClassManager().pendingCount());
+        assertEquals(9, bsh.eval(
+            "class Ob696 { static class In { public int get() { return 9; } } } return new Nb696().get();"));
+        assertEquals(true, bsh.eval("return Ob696.In.class == Nb696.class.getSuperclass();"));
+        assertEquals(0, bsh.getClassManager().pendingCount());
+    }
+
+    @Test
+    public void reset_forgets_pending_declarations() throws Exception {
+        Interpreter bsh = quietInterpreter(new java.io.ByteArrayOutputStream());
+        bsh.eval("class Rs696 extends Rs696Base { }");
+        assertEquals(1, bsh.getClassManager().pendingCount());
+        assertEquals(1, bsh.getClassManager().pendingEdgeCount());
+        bsh.reset();
+        assertEquals(0, bsh.getClassManager().pendingCount());
+        assertEquals(0, bsh.getClassManager().pendingEdgeCount());
+    }
+
+    @Test
+    public void failed_promotion_is_reported_once_and_forgotten() throws Exception {
+        java.io.ByteArrayOutputStream err = new java.io.ByteArrayOutputStream();
+        Interpreter bsh = quietInterpreter(err);
+        bsh.eval("class Fp696 extends Fp696B { }");
+        err.reset();
+        assertEquals("ok", bsh.eval("final class Fp696B { } return \"ok\";"));
+        assertEquals(1, occurrences(err.toString(), "could not be generated"));
+        assertThat(err.toString(), containsString("Cannot inherit from final class"));
+        assertEquals(0, bsh.getClassManager().pendingCount());
+        assertEquals(0, bsh.getClassManager().pendingEdgeCount());
+    }
+
+    @Test
+    public void partial_promotion_keeps_only_the_still_missing_edges() throws Exception {
+        Interpreter bsh = quietInterpreter(new java.io.ByteArrayOutputStream());
+        bsh.eval("class Pp696 extends Pp696N implements Pp696J { public int f() { return 6; } }");
+        assertEquals(1, bsh.getClassManager().pendingCount());
+        assertEquals(2, bsh.getClassManager().pendingEdgeCount());
+        bsh.eval("class Pp696N { }");
+        assertEquals(1, bsh.getClassManager().pendingCount());
+        assertEquals(1, bsh.getClassManager().pendingEdgeCount());
+        assertEquals(6, bsh.eval("interface Pp696J { int f(); } return new Pp696().f();"));
+        assertEquals(0, bsh.getClassManager().pendingCount());
+        assertEquals(0, bsh.getClassManager().pendingEdgeCount());
+    }
+
+    @Test
+    public void resolvable_but_invalid_supertype_still_throws_at_its_declaration() throws Exception {
+        Interpreter bsh = quietInterpreter(new java.io.ByteArrayOutputStream());
+        bsh.eval("final class Fs696 { }");
+        try {
+            bsh.eval("class Gs696 extends Fs696 { }");
+            org.junit.Assert.fail("expected an EvalError");
+        } catch (EvalError e) {
+            assertThat(e.getMessage(), containsString("Cannot inherit from final class"));
+        }
+        try {
+            bsh.eval("class Hs696 implements String { }");
+            org.junit.Assert.fail("expected an EvalError");
+        } catch (EvalError e) {
+            assertThat(e.getMessage(), containsString("is not an interface"));
+        }
+        assertEquals(0, bsh.getClassManager().pendingCount());
+    }
+
+    @Test
+    public void promoted_class_brings_its_nested_classes_to_waiting_classes() throws Exception {
+        Interpreter bsh = quietInterpreter(new java.io.ByteArrayOutputStream());
+        bsh.eval("class Cn696 extends Pn696.In { }");
+        bsh.eval("class Pn696 extends Bn696 { static class In { public int get() { return 3; } } }");
+        assertEquals(2, bsh.getClassManager().pendingCount());
+        assertEquals(3, bsh.eval("class Bn696 { } return new Cn696().get();"));
+        assertEquals(0, bsh.getClassManager().pendingCount());
+        assertEquals(0, bsh.getClassManager().pendingEdgeCount());
     }
 }

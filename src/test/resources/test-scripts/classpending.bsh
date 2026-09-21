@@ -1,0 +1,53 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// superclass declared after its subclass
+class PB1 extends PA1 { public int get() { return super.get() + 1; } }
+assertTrue(PB1 == void);
+class PA1 { public int get() { return 3; } }
+assertEquals(4, new PB1().get());
+assertSame(PA1.class, PB1.class.getSuperclass());
+
+// interface declared after its implementor
+class PD2 implements PI2 { public int f() { return 5; } }
+assertTrue(PD2 == void);
+interface PI2 { int f(); }
+assertTrue(PI2.class.isAssignableFrom(PD2.class));
+assertEquals(5, new PD2().f());
+
+// a chain resolves in one go when its last link arrives
+class PX3 extends PY3 { public int get() { return super.get() * 10; } }
+class PY3 extends PZ3 { public int get() { return super.get() + 1; } }
+assertTrue(PX3 == void);
+assertTrue(PY3 == void);
+class PZ3 { public int get() { return 2; } }
+assertEquals(30, new PX3().get());
+assertSame(PZ3.class, PY3.class.getSuperclass());
+assertSame(PY3.class, PX3.class.getSuperclass());
+
+// forward reference inside an explicit block
+{
+    class PF4 extends PG4 { public int get() { return 8; } }
+    class PG4 { }
+    assertEquals(8, new PF4().get());
+    assertSame(PG4.class, PF4.class.getSuperclass());
+}
+
+// only the last missing supertype makes a class resolve
+class PM5 extends PN5 implements PJ5 { public int f() { return 6; } }
+class PN5 { }
+assertTrue(PM5 == void);
+interface PJ5 { int f(); }
+assertEquals(6, new PM5().f());
+assertSame(PN5.class, PM5.class.getSuperclass());
+assertTrue(PJ5.class.isAssignableFrom(PM5.class));
+
+// a supertype that never arrives leaves the class pending
+class PP6 extends NeverDeclared6 { }
+assertTrue(PP6 == void);
+class Unrelated6 { }
+assertTrue(PP6 == void);
+
+complete();
