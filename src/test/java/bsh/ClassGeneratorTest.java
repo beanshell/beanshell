@@ -1019,6 +1019,73 @@ public class ClassGeneratorTest {
     }
 
     @Test
+    public void pending_class_keeps_the_package_it_was_written_in() throws Exception {
+        Interpreter bsh = quietInterpreter(new java.io.ByteArrayOutputStream());
+        bsh.eval("class Pp1 extends Pp1B { int m() { return 7; } }");
+        bsh.eval("package foo696; class Pp1B { }");
+        assertEquals("Pp1", bsh.eval("return Pp1.class.getName();"));
+        assertEquals(7, bsh.eval("return new Pp1().m();"));
+        assertEquals("foo696.Pp1B", bsh.eval("return Pp1.class.getSuperclass().getName();"));
+        assertEquals(0, bsh.getClassManager().pendingCount());
+        assertEquals(0, bsh.getClassManager().pendingEdgeCount());
+    }
+
+    @Test
+    public void pending_class_keeps_a_declared_package_when_the_package_changes() throws Exception {
+        Interpreter bsh = quietInterpreter(new java.io.ByteArrayOutputStream());
+        bsh.eval("package p1x696; class Pp2 extends Pp2B { }");
+        bsh.eval("package p2x696; class Pp2B { }");
+        assertEquals("p1x696.Pp2", bsh.eval("return Pp2.class.getName();"));
+        assertEquals(0, bsh.getClassManager().pendingCount());
+    }
+
+    @Test
+    public void nested_class_of_a_pending_class_keeps_the_package() throws Exception {
+        Interpreter bsh = quietInterpreter(new java.io.ByteArrayOutputStream());
+        bsh.eval("class Pp3 extends Pp3B { static class N { } }");
+        bsh.eval("package foo696b; class Pp3B { }");
+        assertEquals("Pp3$N", bsh.eval("return Pp3.N.class.getName();"));
+        assertEquals("Pp3", bsh.eval("return Pp3.class.getName();"));
+    }
+
+    @Test
+    public void class_declared_in_a_package_still_gets_it() throws Exception {
+        Interpreter bsh = quietInterpreter(new java.io.ByteArrayOutputStream());
+        assertEquals("foo696c.Pp4", bsh.eval("package foo696c; class Pp4 { } return Pp4.class.getName();"));
+    }
+
+    @Test
+    public void default_package_class_still_has_no_package() throws Exception {
+        Interpreter bsh = quietInterpreter(new java.io.ByteArrayOutputStream());
+        assertEquals("Pp5", bsh.eval("class Pp5 { static class N { } } return Pp5.class.getName();"));
+        assertEquals("Pp5$N", bsh.eval("return Pp5.N.class.getName();"));
+    }
+
+    @Test
+    public void failed_promotion_of_a_pending_class_in_another_package_leaves_nothing_behind() throws Exception {
+        java.io.ByteArrayOutputStream err = new java.io.ByteArrayOutputStream();
+        Interpreter bsh = quietInterpreter(err);
+        bsh.eval("class Pp6 extends Pp6B { void m() { } }");
+        bsh.eval("package foo696e; class Pp6B { final void m() { } }");
+        assertThat(err.toString(), containsString("Cannot override m()"));
+        assertEquals(0, bsh.getClassManager().pendingCount());
+        assertEquals(0, bsh.getClassManager().pendingEdgeCount());
+        assertEquals(true, bsh.eval("return Pp6 == void;"));
+    }
+
+    @Test
+    public void cascade_regeneration_keeps_the_package_the_class_was_declared_in() throws Exception {
+        Interpreter bsh = quietInterpreter(new java.io.ByteArrayOutputStream());
+        bsh.eval("package pc696; class Cb { } class Cs extends Cb { }");
+        bsh.eval("package pc696z;");
+        Object before = bsh.eval("return pc696.Cs.class;");
+        bsh.eval("package pc696; class Cb { int v() { return 5; } }", new NameSpace(bsh.getNameSpace(), "other"));
+        assertNotSame(before, bsh.eval("return pc696.Cs.class;"));
+        assertEquals("pc696.Cs", bsh.eval("return pc696.Cs.class.getName();"));
+        assertEquals(5, bsh.eval("return new pc696.Cs().v();"));
+    }
+
+    @Test
     public void simple_supertype_name_matches_a_declaration_in_a_package() throws Exception {
         Interpreter bsh = quietInterpreter(new java.io.ByteArrayOutputStream());
         assertEquals("pk696.Q", bsh.eval(
