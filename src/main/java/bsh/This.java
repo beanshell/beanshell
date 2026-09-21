@@ -326,6 +326,34 @@ public final class This implements java.io.Serializable, Runnable
             boolean declaredOnly  )
             throws EvalError
     {
+        return invokeMethod(methodName, paramTypes, args, declaredOnly, null);
+    }
+
+    /**
+        Class generated default method stub entry. A scripted interface has
+        no instance This of its own, so its default methods are declared in
+        the interface's static namespace. Run the selected method against the
+        instance it was invoked on instead, the way a class instance method
+        runs, so its body reaches that instance's methods and 'this' rather
+        than the interface's static context (#832).
+     */
+    public Object invokeDefaultMethod(
+            Object instance, String methodName, Class<?>[] paramTypes,
+            Object [] args, boolean declaredOnly  )
+            throws EvalError
+    {
+        NameSpace instanceNameSpace = new NameSpace(namespace, namespace.getName());
+        instanceNameSpace.isClass = true;
+        instanceNameSpace.setClassInstance(instance);
+        return invokeMethod(methodName, paramTypes, args, declaredOnly,
+                instanceNameSpace);
+    }
+
+    private Object invokeMethod(
+            String methodName, Class<?>[] paramTypes, Object [] args,
+            boolean declaredOnly, NameSpace parentNameSpace )
+            throws EvalError
+    {
         CallStack callstack = new CallStack(namespace);
         Node node = namespace.getNode();
         namespace.setNode(null);
@@ -334,7 +362,7 @@ public final class This implements java.io.Serializable, Runnable
         try {
             Object ret = invokeMethod(
                     methodName, arguments, declaringInterpreter,
-                    callstack, node, declaredOnly, null);
+                    callstack, node, declaredOnly, null, parentNameSpace);
             // manually unwrap primitives excluding void
             if (ret instanceof Primitive && ret != Primitive.VOID)
                 return ((Primitive)ret).getValue();
@@ -393,6 +421,13 @@ public final class This implements java.io.Serializable, Runnable
     Object invokeMethod(String methodName, CallArguments arguments, Interpreter interpreter,
             CallStack callstack, Node callerInfo, boolean declaredOnly,
             CallArguments.Result resultType) throws EvalError {
+        return invokeMethod(methodName, arguments, interpreter, callstack,
+                callerInfo, declaredOnly, resultType, null);
+    }
+
+    private Object invokeMethod(String methodName, CallArguments arguments, Interpreter interpreter,
+            CallStack callstack, Node callerInfo, boolean declaredOnly,
+            CallArguments.Result resultType, NameSpace parentNameSpace) throws EvalError {
         Object[] args = arguments.values;
 
         if ( interpreter == null )
@@ -411,7 +446,8 @@ public final class This implements java.io.Serializable, Runnable
 
         if (bshMethod != null) {
             if (resultType != null) resultType.type = bshMethod.getReturnType();
-            return bshMethod.invoke(arguments, interpreter, callstack, callerInfo, false);
+            return bshMethod.invoke(arguments, interpreter, callstack, callerInfo,
+                    false, parentNameSpace);
         }
 
         /*
