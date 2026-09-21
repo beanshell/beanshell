@@ -421,27 +421,33 @@ public class BshClassManager {
     void declarationCompleted(Class<?> clas, NameSpace namespace,
             BSHClassDeclaration node, Interpreter interpreter) {
         final String name = clas.getName();
-        final Set<String> supertypes = new LinkedHashSet<>();
-        addGeneratedSupertype(supertypes, clas.getSuperclass());
+        final Set<String> written = new LinkedHashSet<>();
+        addGeneratedSupertype(written, clas.getSuperclass());
         for (Class<?> iface : clas.getInterfaces())
-            addGeneratedSupertype(supertypes, iface);
+            addGeneratedSupertype(written, iface);
         for (Class<?> nested : node.nestedClasses()) {
-            addGeneratedSupertype(supertypes, nested.getSuperclass());
+            addGeneratedSupertype(written, nested.getSuperclass());
             for (Class<?> iface : nested.getInterfaces())
-                addGeneratedSupertype(supertypes, iface);
+                addGeneratedSupertype(written, iface);
         }
-        supertypes.removeIf(s -> s.equals(name) || s.startsWith(name + "$"));
+        written.removeIf(s -> s.equals(name) || s.startsWith(name + "$"));
         final List<String> events = new ArrayList<>();
         events.add(name);
         for (Class<?> nested : node.nestedClasses())
             events.add(nested.getName());
         synchronized (declarations) {
+            final Set<String> supertypes = new LinkedHashSet<>();
+            for (String supertype : written)
+                supertypes.add(declaredOwner(supertype));
             unregisterPending(name);
             Declaration previous = declarations.put(name,
                 new Declaration(node, namespace, interpreter, supertypes));
             if (previous != null)
-                for (String supertype : previous.supertypes)
-                    dependents.get(supertype).remove(name);
+                for (String supertype : previous.supertypes) {
+                    Set<String> names = dependents.get(supertype);
+                    if (names != null)
+                        names.remove(name);
+                }
             for (String supertype : supertypes)
                 dependents.computeIfAbsent(supertype, k -> new LinkedHashSet<>()).add(name);
         }
@@ -477,6 +483,15 @@ public class BshClassManager {
             if (names != null && names.remove(name) && names.isEmpty())
                 pendingOn.remove(supertype);
         }
+    }
+
+    /** The tracked top-level declaration that owns a generated type, else the name unchanged. Caller holds the lock. */
+    private String declaredOwner(String generated) {
+        String candidate = generated;
+        while (!declarations.containsKey(candidate)
+                && candidate.indexOf('$') > candidate.lastIndexOf('.'))
+            candidate = candidate.substring(0, candidate.lastIndexOf('$'));
+        return declarations.containsKey(candidate) ? candidate : generated;
     }
 
     private static void addGeneratedSupertype(Set<String> supertypes, Class<?> supertype) {

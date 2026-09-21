@@ -25,6 +25,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -814,6 +815,117 @@ public class ClassGeneratorTest {
         // permanent This.contextStore entry (the #843 mechanism). Flip this
         // assertion once that is fixed.
         assertTrue("This.contextStore did not grow -- appears fixed; flip this assertion", growth >= 3);
+    }
+
+    @Test
+    public void cascade_reaches_a_subclass_of_a_nested_class() throws Exception {
+        Interpreter bsh = new Interpreter();
+        bsh.eval("class NBase1 { int v() { return 1; } } "
+            + "class Outer1 { static class Inner extends NBase1 { } } "
+            + "class Leaf1 extends Outer1.Inner { }");
+        assertEquals(1, bsh.eval("return new Leaf1().v();"));
+        bsh.eval("class NBase1 { int v() { return 2; } }");
+        assertEquals(2, bsh.eval("return new Leaf1().v();"));
+        assertEquals(2, bsh.eval("return new Outer1.Inner().v();"));
+        assertSame(bsh.eval("return Outer1.Inner.class;"), bsh.eval("return Leaf1.class.getSuperclass();"));
+    }
+
+    @Test
+    public void cascade_orders_a_nested_class_owner_before_its_subclass() throws Exception {
+        Interpreter bsh = new Interpreter();
+        bsh.eval("class Base2 { int v() { return 1; } } class Mid2 extends Base2 { } "
+            + "class Outer2 { static class Inner extends Mid2 { } } "
+            + "class Leaf2 extends Outer2.Inner { }");
+        bsh.eval("class Base2 { int v() { return 2; } }");
+        assertEquals(2, bsh.eval("return new Leaf2().v();"));
+        assertSame(bsh.eval("return Outer2.Inner.class;"), bsh.eval("return Leaf2.class.getSuperclass();"));
+        assertSame(bsh.eval("return Mid2.class;"), bsh.eval("return Outer2.Inner.class.getSuperclass();"));
+    }
+
+    @Test
+    public void cascade_reaches_a_subclass_of_a_deeply_nested_class() throws Exception {
+        Interpreter bsh = new Interpreter();
+        bsh.eval("class Base3 { int v() { return 1; } } "
+            + "class Outer3 { static class Mid { static class Inner extends Base3 { } } } "
+            + "class Leaf3 extends Outer3.Mid.Inner { }");
+        assertEquals(1, bsh.eval("return new Leaf3().v();"));
+        bsh.eval("class Base3 { int v() { return 2; } }");
+        assertEquals(2, bsh.eval("return new Leaf3().v();"));
+        assertSame(bsh.eval("return Outer3.Mid.Inner.class;"), bsh.eval("return Leaf3.class.getSuperclass();"));
+    }
+
+    @Test
+    public void cascade_reaches_a_subclass_of_a_nested_class_implementing_a_redefined_interface() throws Exception {
+        Interpreter bsh = new Interpreter();
+        bsh.eval("interface I4 { int f(); } "
+            + "class Outer4 { static class In implements I4 { public int f() { return 1; } } } "
+            + "class Leaf4 extends Outer4.In { }");
+        bsh.eval("interface I4 { int f(); }");
+        assertEquals(true, bsh.eval("return I4.class.isAssignableFrom(Leaf4.class);"));
+        assertSame(bsh.eval("return Outer4.In.class;"), bsh.eval("return Leaf4.class.getSuperclass();"));
+    }
+
+    @Test
+    public void failed_nested_owner_regeneration_skips_the_subclass_of_its_nested_class() throws Exception {
+        java.io.ByteArrayOutputStream err = new java.io.ByteArrayOutputStream();
+        Interpreter bsh = quietInterpreter(err);
+        bsh.eval("class Base5 { void m() { } } "
+            + "class Outer5 { static class Inner extends Base5 { void m() { } } } "
+            + "class Leaf5 extends Outer5.Inner { }");
+        Object before = bsh.eval("return Leaf5.class;");
+        bsh.eval("class Base5 { final void m() { } }");
+        assertThat(err.toString(), containsString("Regeneration of class Outer5 after redefinition of Base5 failed"));
+        assertSame(before, bsh.eval("return Leaf5.class;"));
+    }
+
+    @Test
+    public void cascade_reaches_a_subclass_of_a_nested_class_in_a_package() throws Exception {
+        Interpreter bsh = new Interpreter();
+        bsh.eval("package p6; class NBase6 { int v() { return 1; } } "
+            + "class Outer6 { static class Inner extends NBase6 { } } "
+            + "class Leaf6 extends Outer6.Inner { }");
+        assertEquals(1, bsh.eval("return new p6.Leaf6().v();"));
+        bsh.eval("package p6; class NBase6 { int v() { return 2; } }");
+        assertEquals(2, bsh.eval("return new p6.Leaf6().v();"));
+    }
+
+    @Test
+    public void nested_class_dependency_cycle_is_reported_not_regenerated() throws Exception {
+        java.io.ByteArrayOutputStream err = new java.io.ByteArrayOutputStream();
+        Interpreter bsh = quietInterpreter(err);
+        bsh.eval("class Base7 { } "
+            + "class Outer7 { static class Inner extends Base7 { } static class Other extends Base7 { } } "
+            + "class Leaf7 extends Outer7.Inner { }");
+        bsh.eval("class Outer7 { static class Inner extends Leaf7 { } static class Other extends Base7 { } }");
+        err.reset();
+        bsh.eval("class Base7 { }");
+        assertThat(err.toString(), containsString("after redefinition of Base7: circular dependency"));
+    }
+
+    @Test
+    public void redefining_the_owner_of_a_nested_class_still_rebinds_its_subclass() throws Exception {
+        Interpreter bsh = new Interpreter();
+        bsh.eval("class NBase8 { } class Outer8 { static class Inner extends NBase8 { } } class Leaf8 extends Outer8.Inner { }");
+        bsh.eval("class Outer8 { static class Inner extends NBase8 { int v() { return 5; } } }");
+        assertEquals(5, bsh.eval("return new Leaf8().v();"));
+        bsh.eval("class NBase8 { }");
+        assertEquals(5, bsh.eval("return new Leaf8().v();"));
+        assertEquals(3, bsh.getClassManager().declarationCount());
+    }
+
+    @Test
+    public void redefining_a_subclass_drops_its_old_nested_class_dependency() throws Exception {
+        Interpreter bsh = new Interpreter();
+        bsh.eval("class NBase9 { } class NBase9b { } class Outer9 { static class Inner extends NBase9 { } } "
+            + "class Leaf9 extends Outer9.Inner { }");
+        for (int i = 0; i < 3; i++)
+            bsh.eval("class Leaf9 extends NBase9b { }");
+        Object before = bsh.eval("return Leaf9.class;");
+        bsh.eval("class NBase9 { }");
+        assertSame(before, bsh.eval("return Leaf9.class;"));
+        bsh.eval("class NBase9b { }");
+        assertNotSame(before, bsh.eval("return Leaf9.class;"));
+        assertEquals(4, bsh.getClassManager().declarationCount());
     }
 
     private static Object evalStatement(Interpreter bsh, String statement) throws Exception {

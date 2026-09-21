@@ -5,6 +5,8 @@
 
 Work has resumed on the long-dormant 3.0 development line (`master`; the JAR targets Java 8 and is tested on Java 8 through 25) after a multi-year gap. This entry will grow as the release is prepared; changes so far:
 
+Redefining a scripted class now also regenerates classes that extend or implement one of another class's static nested types, such as `class Leaf extends Outer.Inner` (#697).
+
 A scripted class that fails the final-method or strict abstract-method check is no longer left defined: a rejected redefinition keeps the previous class, and a rejected first definition is not declared. A method that only overloads a final superclass method is no longer rejected, and strict mode reports an unresolvable type in a method signature on first use rather than at the declaration.
 
 Fixed concurrent `eval` calls on one interpreter interfering with each other, which caused spurious parse errors, `NullPointerException`s or wrong results.
