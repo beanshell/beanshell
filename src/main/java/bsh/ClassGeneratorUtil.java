@@ -363,6 +363,16 @@ public class ClassGeneratorUtil implements Opcodes {
      * Only a subset of modifiers are baked into classes.
      */
     private static int getASMModifiers(Modifiers modifiers) {
+        int mods = asmModifiers(modifiers);
+
+        // if no access modifiers declared then we make it public
+        if ( ( modifiers.getModifiers() & ACCESS_MODIFIERS ) == 0 )
+            modifiers.addModifier(ACC_PUBLIC);
+
+        return mods;
+    }
+
+    private static int asmModifiers(Modifiers modifiers) {
         int mods = 0;
 
         if (modifiers.hasModifier(ACC_PUBLIC))
@@ -378,11 +388,8 @@ public class ClassGeneratorUtil implements Opcodes {
         if (modifiers.hasModifier(ACC_ABSTRACT))
             mods |= ACC_ABSTRACT;
 
-        // if no access modifiers declared then we make it public
-        if ( ( modifiers.getModifiers() & ACCESS_MODIFIERS ) == 0 ) {
+        if ( ( modifiers.getModifiers() & ACCESS_MODIFIERS ) == 0 )
             mods |= ACC_PUBLIC;
-            modifiers.addModifier(ACC_PUBLIC);
-        }
 
         return mods;
     }
@@ -761,55 +768,113 @@ public class ClassGeneratorUtil implements Opcodes {
         cv.visitMaxs(0, 0);
     }
 
-    /** Validate abstract method implementation.
+    /** A method as the abstract check sees it, whether read from a defined
+     * class or described by a class about to be generated. */
+    private static final class MethodInfo {
+        final String name;
+        final String[] paramTypes;
+        final int modifiers;
+        final String declaringName;
+        final String declaringSimpleName;
+
+        MethodInfo(String name, String[] paramTypes, int modifiers, String declaringName, String declaringSimpleName) {
+            this.name = name;
+            this.paramTypes = paramTypes;
+            this.modifiers = modifiers;
+            this.declaringName = declaringName;
+            this.declaringSimpleName = declaringSimpleName;
+        }
+
+        MethodInfo(Method method) {
+            this(method.getName(), getTypeDescriptors(method.getParameterTypes()), method.getModifiers(),
+                method.getDeclaringClass().getName(), method.getDeclaringClass().getSimpleName());
+        }
+    }
+
+    private static void gatherMethods(Class<?> type, List<MethodInfo> meths) {
+        if (null != type.getSuperclass())
+            gatherMethods(type.getSuperclass(), meths);
+        for (Method m : type.getDeclaredMethods())
+            meths.add(new MethodInfo(m));
+        for (Class<?> i : type.getInterfaces())
+            gatherMethods(i, meths);
+    }
+
+    /** Validate abstract method implementation of an already defined class.
      * Check that class is abstract or implements all abstract methods.
      * BSH classes are not abstract which allows us to instantiate abstract
      * classes. Also applies inheritance rules @see checkInheritanceRules().
      * @param type The class to check.
      * @throws RuntimException if validation fails. */
     static void checkAbstractMethodImplementation(Class<?> type) {
-        final List<Method> meths = new ArrayList<>();
-        class Reflector {
-            void gatherMethods(Class<?> type) {
-                if (null != type.getSuperclass())
-                    gatherMethods(type.getSuperclass());
-                meths.addAll(Arrays.asList(type.getDeclaredMethods()));
-                for (Class<?> i : type.getInterfaces())
-                    gatherMethods(i);
-            }
+        final List<MethodInfo> meths = new ArrayList<>();
+        gatherMethods(type, meths);
+        checkAbstractMethodImplementation(meths, type.getSimpleName(),
+            Reflect.getClassModifiers(type).hasModifier("abstract"));
+    }
+
+    /** Validate abstract method implementation before the class is defined,
+     * from the structure this generator is about to emit.
+     * @throws RuntimException if validation fails. */
+    void checkAbstractMethodImplementation() {
+        final List<MethodInfo> meths = new ArrayList<>();
+        if (type != INTERFACE)
+            gatherMethods(superClass, meths);
+        final String name = fqClassName.replace('/', '.');
+        final String simpleName = name.substring(name.lastIndexOf('.') + 1);
+        for (DelayedEvalBshMethod method : methods) {
+            if (method.hasModifier("private"))
+                continue;
+            int modifiers = asmModifiers(method.getModifiers());
+            if (type == INTERFACE && !method.hasModifier("static")
+                    && !method.hasModifier("default") && !method.hasModifier("abstract"))
+                modifiers |= ACC_ABSTRACT;
+            String[] paramTypes = (modifiers & ACC_STATIC) > 0 || method.isVarArgs()
+                    ? method.getParamTypeDescriptors()
+                    : resolveOverrideParamTypes(method);
+            meths.add(new MethodInfo(method.getName(), paramTypes, modifiers, name, simpleName));
         }
-        new Reflector().gatherMethods(type);
+        if (type == ENUM) {
+            meths.add(new MethodInfo("values", new String[0], ACC_PUBLIC | ACC_STATIC, name, simpleName));
+            meths.add(new MethodInfo("valueOf", new String[] { "Ljava/lang/String;" },
+                ACC_PUBLIC | ACC_STATIC, name, simpleName));
+        }
+        for (Class<?> i : interfaces)
+            gatherMethods(i, meths);
+        gatherMethods(GeneratedClass.class, meths);
+        checkAbstractMethodImplementation(meths, simpleName, classModifiers.hasModifier("abstract"));
+    }
+
+    private static void checkAbstractMethodImplementation(List<MethodInfo> meths, String simpleName, boolean isAbstract) {
         // for each filtered abstract method
-        meths.stream().filter( m -> ( m.getModifiers() & ACC_ABSTRACT ) > 0 )
+        meths.stream().filter( m -> ( m.modifiers & ACC_ABSTRACT ) > 0 )
         .forEach( method -> {
-            Method[] meth = meths.stream()
+            MethodInfo[] meth = meths.stream()
                     // find methods of the same name
-                .filter( m -> method.getName().equals(m.getName() )
+                .filter( m -> method.name.equals(m.name )
                     // not abstract nor private
-                    && ( m.getModifiers() & (ACC_ABSTRACT|ACC_PRIVATE) ) == 0
+                    && ( m.modifiers & (ACC_ABSTRACT|ACC_PRIVATE) ) == 0
                     // with matching parameters
-                    && Types.areSignaturesEqual(
-                            method.getParameterTypes(), m.getParameterTypes()))
+                    && Arrays.equals(method.paramTypes, m.paramTypes))
                 // sort most visible methods to the top
                 // comparator: -1 if a is public or b not public or protected
                 //              0 if access modifiers for a and b are equal
-                .sorted( (a, b) -> ( a.getModifiers() & ACC_PUBLIC ) > 0
-                      || ( b.getModifiers() & (ACC_PUBLIC|ACC_PROTECTED) ) == 0
-                            ? -1 : ( a.getModifiers() & ACCESS_MODIFIERS ) ==
-                                   ( b.getModifiers() & ACCESS_MODIFIERS )
+                .sorted( (a, b) -> ( a.modifiers & ACC_PUBLIC ) > 0
+                      || ( b.modifiers & (ACC_PUBLIC|ACC_PROTECTED) ) == 0
+                            ? -1 : ( a.modifiers & ACCESS_MODIFIERS ) ==
+                                   ( b.modifiers & ACCESS_MODIFIERS )
                             ?  0 : 1 )
-                .toArray(Method[]::new);
+                .toArray(MethodInfo[]::new);
             // with no overriding methods class must be abstract
-            if ( meth.length == 0 && !Reflect.getClassModifiers(type)
-                    .hasModifier("abstract") )
-                throw new RuntimeException(type.getSimpleName()
+            if ( meth.length == 0 && !isAbstract )
+                throw new RuntimeException(simpleName
                     + " is not abstract and does not override abstract method "
-                    + method.getName() + "() in "
-                    + method.getDeclaringClass().getSimpleName());
+                    + method.name + "() in "
+                    + method.declaringSimpleName);
             // apply inheritance rules to most visible method at index 0
             if ( meth.length > 0)
-                checkInheritanceRules(method.getModifiers(),
-                        meth[0].getModifiers(), method.getDeclaringClass());
+                checkInheritanceRules(method.modifiers,
+                        meth[0].modifiers, method.declaringName);
         });
     }
 
@@ -819,7 +884,7 @@ public class ClassGeneratorUtil implements Opcodes {
      * @param parentClass parent class name
      * @return true if visibility is not reduced
      * @throws RuntimeException if validation fails */
-    static boolean checkInheritanceRules(int parentModifiers, int overriddenModifiers, Class<?> parentClass) {
+    static boolean checkInheritanceRules(int parentModifiers, int overriddenModifiers, String parentClass) {
         int prnt = parentModifiers & ( ACC_PUBLIC | ACC_PRIVATE | ACC_PROTECTED );
         int chld = overriddenModifiers & ( ACC_PUBLIC | ACC_PRIVATE | ACC_PROTECTED );
 
@@ -827,7 +892,7 @@ public class ClassGeneratorUtil implements Opcodes {
             return true;
 
         throw new RuntimeException("Cannot reduce the visibility of the inherited method from "
-                + parentClass.getName());
+                + parentClass);
     }
 
     /** Check if method name and type descriptor signature is overridden.

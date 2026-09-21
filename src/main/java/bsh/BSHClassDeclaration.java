@@ -190,17 +190,9 @@ class BSHClassDeclaration extends SimpleNode
         if (type == Type.INTERFACE) // this should ideally happen in the parser
                 modifiers.changeContext(Modifiers.INTERFACE);
 
-        Class<?> clas = ClassGenerator.getClassGenerator().generateClass(
-            name, modifiers, interfaces, superClass, block, type,
+        return ClassGenerator.getClassGenerator().generateClass(
+            name, modifiers, interfaces, superClass, meths, block, type,
             callstack, interpreter );
-
-        // Validate final methods should not be overridden
-        for (BshMethod m : meths)
-           if (null != Reflect.getDeclaredMethod(clas, m.getName(), m.getParameterTypes()))
-               throw new EvalException("Cannot override "+m.getName()+"() in " +
-                   StringUtil.typeString(superClass) + " overridden method is final", null, null);
-
-        return clas;
     }
 
     public String toString() {
