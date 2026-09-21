@@ -993,4 +993,144 @@ public class ClassGeneratorTest {
         assertEquals(0, bsh.getClassManager().pendingCount());
         assertEquals(0, bsh.getClassManager().pendingEdgeCount());
     }
+    private static void assertNotDeclared(Interpreter bsh, String name) {
+        try {
+            bsh.eval("return " + name + ".class;");
+            org.junit.Assert.fail(name + " should not resolve");
+        } catch (EvalError e) {
+            // expected
+        }
+    }
+
+    private static Interpreter strictInterpreter(java.io.ByteArrayOutputStream err) {
+        Interpreter bsh = quietInterpreter(err);
+        bsh.setStrictJava(true);
+        return bsh;
+    }
+
+    @Test
+    public void failed_cascade_on_final_override_keeps_the_previous_class_bound() throws Exception {
+        java.io.ByteArrayOutputStream err = new java.io.ByteArrayOutputStream();
+        Interpreter bsh = quietInterpreter(err);
+        bsh.eval("class Pv1 { void m() { } } class Sv1 extends Pv1 { void m() { } }");
+        Object before = bsh.eval("return Sv1.class;");
+        bsh.eval("class Pv1 { final void m() { } }");
+        assertThat(err.toString(), containsString("Regeneration of class Sv1 after redefinition of Pv1 failed"));
+        assertSame(before, bsh.eval("return Sv1.class;"));
+        assertSame(before, bsh.eval("return new Sv1().getClass();"));
+    }
+
+    @Test
+    public void failed_strict_cascade_keeps_the_previous_class_bound() throws Exception {
+        java.io.ByteArrayOutputStream err = new java.io.ByteArrayOutputStream();
+        Interpreter bsh = strictInterpreter(err);
+        bsh.eval("interface Iv2 { int f(); } class Cv2 implements Iv2 { public int f() { return 1; } }");
+        Object before = bsh.eval("return Cv2.class;");
+        bsh.eval("interface Iv2 { int f(); int g(); }");
+        assertThat(err.toString(), containsString("Regeneration of class Cv2 after redefinition of Iv2 failed"));
+        assertSame(before, bsh.eval("return Cv2.class;"));
+        assertEquals(1, bsh.eval("return new Cv2().f();"));
+    }
+
+    @Test
+    public void failed_promotion_of_a_pending_class_keeps_the_previous_class_bound() throws Exception {
+        java.io.ByteArrayOutputStream err = new java.io.ByteArrayOutputStream();
+        Interpreter bsh = quietInterpreter(err);
+        bsh.eval("class Av3 { void m() { } } class Bv3 extends Av3 { }");
+        Object before = bsh.eval("return Bv3.class;");
+        bsh.eval("class Bv3 extends Mv3 { void m() { } }");
+        bsh.eval("class Mv3 { final void m() { } }");
+        assertThat(err.toString(), containsString("Cannot override m()"));
+        assertSame(before, bsh.eval("return Bv3.class;"));
+        assertSame(before, bsh.eval("return new Bv3().getClass();"));
+        assertEquals("Av3", ((Class<?>) before).getSuperclass().getSimpleName());
+    }
+
+    @Test
+    public void first_definition_overriding_a_final_method_is_not_left_bound() throws Exception {
+        Interpreter bsh = quietInterpreter(new java.io.ByteArrayOutputStream());
+        bsh.eval("class Pv4 { final void m() { } }");
+        try {
+            bsh.eval("class Sv4 extends Pv4 { void m() { } }");
+            org.junit.Assert.fail("expected an EvalError");
+        } catch (EvalError e) {
+            assertThat(e.getMessage(), containsString("Cannot override m() in Pv4 overridden method is final"));
+        }
+        assertNotDeclared(bsh, "Sv4");
+    }
+
+    @Test
+    public void first_definition_missing_an_abstract_method_is_not_left_bound_in_strict_mode() throws Exception {
+        Interpreter bsh = strictInterpreter(new java.io.ByteArrayOutputStream());
+        bsh.eval("interface Iv4 { int f(); }");
+        try {
+            bsh.eval("class Cv4 implements Iv4 { }");
+            org.junit.Assert.fail("expected an EvalError");
+        } catch (EvalError e) {
+            assertThat(e.getMessage(), containsString("Cv4 is not abstract and does not override abstract method f() in Iv4"));
+        }
+        assertNotDeclared(bsh, "Cv4");
+    }
+
+    @Test
+    public void final_override_check_matches_on_exact_parameter_types() throws Exception {
+        Interpreter bsh = quietInterpreter(new java.io.ByteArrayOutputStream());
+        bsh.eval("class Pv5 { final void m(int x) { } private final void p() { } }");
+        try {
+            bsh.eval("class Ev5 extends Pv5 { void m(int x) { } }");
+            org.junit.Assert.fail("expected an EvalError");
+        } catch (EvalError e) {
+            assertThat(e.getMessage(), containsString("Cannot override m() in Pv5 overridden method is final"));
+        }
+        assertNotNull(bsh.eval("class Ov5 extends Pv5 { void m(String x) { } void m(long x) { } } return new Ov5();"));
+        assertNotNull(bsh.eval("class Xv5 extends Pv5 { void p() { } } return new Xv5();"));
+        assertNotNull(bsh.eval("class Nv5 extends Pv5 { void n() { } } return new Nv5();"));
+    }
+
+    @Test
+    public void strict_abstract_check_accepts_inherited_and_abstract_class_implementations() throws Exception {
+        Interpreter bsh = strictInterpreter(new java.io.ByteArrayOutputStream());
+        assertEquals(3, bsh.eval(
+            "class Bv6 { public int f() { return 3; } } interface Iv6 { int f(); } "
+            + "class Cv6 extends Bv6 implements Iv6 { } return new Cv6().f();"));
+        assertNotNull(bsh.eval(
+            "interface Jv6 { int f(); int g(); } abstract class Av6 implements Jv6 { public int f() { return 1; } } return Av6.class;"));
+    }
+
+    @Test
+    public void strict_abstract_check_rejects_reduced_visibility() throws Exception {
+        Interpreter bsh = strictInterpreter(new java.io.ByteArrayOutputStream());
+        bsh.eval("interface Iv7 { int f(); }");
+        try {
+            bsh.eval("class Cv7 implements Iv7 { protected int f() { return 1; } }");
+            org.junit.Assert.fail("expected an EvalError");
+        } catch (EvalError e) {
+            assertThat(e.getMessage(), containsString("Cannot reduce the visibility of the inherited method from Iv7"));
+        }
+        assertNotDeclared(bsh, "Cv7");
+    }
+    @Test
+    public void strict_abstract_check_covers_enums_and_ignores_private_methods() throws Exception {
+        Interpreter bsh = strictInterpreter(new java.io.ByteArrayOutputStream());
+        assertEquals(1, bsh.eval(
+            "interface Iv8 { int f(); } enum Ev8 implements Iv8 { A; public int f() { return 1; } } return Ev8.A.f();"));
+        try {
+            bsh.eval("class Cv8 implements Iv8 { private int f() { return 1; } }");
+            org.junit.Assert.fail("expected an EvalError");
+        } catch (EvalError e) {
+            assertThat(e.getMessage(), containsString("Cv8 is not abstract and does not override abstract method f() in Iv8"));
+        }
+    }
+
+    @Test
+    public void strict_mode_accepts_an_unresolvable_signature_type_until_use() throws Exception {
+        Interpreter bsh = strictInterpreter(new java.io.ByteArrayOutputStream());
+        assertNotNull(bsh.eval("class Cv9 { int f(Undefined x) { return 1; } } return Cv9.class;"));
+        try {
+            bsh.eval("return new Cv9().f(null);");
+            org.junit.Assert.fail("expected a NoClassDefFoundError");
+        } catch (NoClassDefFoundError e) {
+            assertThat(e.getMessage(), containsString("Undefined"));
+        }
+    }
 }

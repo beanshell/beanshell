@@ -31,6 +31,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public final class ClassGenerator {
@@ -51,8 +52,16 @@ public final class ClassGenerator {
      * Parse the BSHBlock for the class definition and generate the class.
      */
     public Class<?> generateClass(String name, Modifiers modifiers, Class<?>[] interfaces, Class<?> superClass, BSHBlock block, Type type, CallStack callstack, Interpreter interpreter) throws EvalError {
+        return generateClass(name, modifiers, interfaces, superClass, Collections.<BshMethod>emptyList(), block, type, callstack, interpreter);
+    }
+
+    /**
+     * As above, rejecting the class before it is defined if it overrides
+     * one of the given final superclass methods.
+     */
+    public Class<?> generateClass(String name, Modifiers modifiers, Class<?>[] interfaces, Class<?> superClass, List<BshMethod> finalMethods, BSHBlock block, Type type, CallStack callstack, Interpreter interpreter) throws EvalError {
         // Delegate to the static method
-        return generateClassImpl(name, modifiers, interfaces, superClass, block, type, callstack, interpreter);
+        return generateClassImpl(name, modifiers, interfaces, superClass, finalMethods, block, type, callstack, interpreter);
     }
 
     /**
@@ -69,7 +78,7 @@ public final class ClassGenerator {
      * Parse the BSHBlock for for the class definition and generate the class
      * using ClassGenerator.
      */
-    public static Class<?> generateClassImpl(String name, Modifiers modifiers, Class<?>[] interfaces, Class<?> superClass, BSHBlock block, Type type, CallStack callstack, Interpreter interpreter) throws EvalError {
+    public static Class<?> generateClassImpl(String name, Modifiers modifiers, Class<?>[] interfaces, Class<?> superClass, List<BshMethod> finalMethods, BSHBlock block, Type type, CallStack callstack, Interpreter interpreter) throws EvalError {
         NameSpace enclosingNameSpace = callstack.top();
         String packageName = enclosingNameSpace.getPackage();
         String className = enclosingNameSpace.isClass ? (enclosingNameSpace.getName() + "$" + name) : name;
@@ -82,6 +91,7 @@ public final class ClassGenerator {
 
         callstack.push(classStaticNameSpace);
         Class<?> genClass;
+        boolean associated = false;
         try {
             // Evaluate inner class definitions in the block first, effectively
             // recursively calling this method for contained classes, EXCEPT for
@@ -109,12 +119,19 @@ public final class ClassGenerator {
             // reinitializing a previously generated class.
             classGenerator.initStaticNameSpace(classStaticNameSpace, block/*instance initializer*/);
 
+            checkFinalOverrides(finalMethods, methods, className, superClass);
+
             // Check for existing class (saved class file)
             genClass = bcm.getAssociatedClass(fqClassName);
 
             // If the class isn't there then generate it.
             // Else just let it be initialized below.
+            associated = genClass != null;
             if (genClass == null) {
+                // validate before defining: a defined class cannot be withdrawn
+                if (interpreter.getStrictJava())
+                    classGenerator.checkAbstractMethodImplementation();
+
                 // generate bytecode, optionally with static init hooks to
                 // bootstrap the interpreter
                 byte[] code = classGenerator.generateClass();
@@ -143,10 +160,31 @@ public final class ClassGenerator {
 
         Interpreter.debug(classStaticNameSpace);
 
-        if (interpreter.getStrictJava())
+        if (associated && interpreter.getStrictJava())
             ClassGeneratorUtil.checkAbstractMethodImplementation(genClass);
 
         return genClass;
+    }
+
+    private static void checkFinalOverrides(List<BshMethod> finalMethods, DelayedEvalBshMethod[] methods, String className, Class<?> superClass) throws EvalException {
+        String baseName = Types.getBaseName(className);
+        for (BshMethod inherited : finalMethods)
+            for (DelayedEvalBshMethod method : methods)
+                if (method.getName().equals(inherited.getName())
+                        && !method.getName().equals(baseName)
+                        && sameParameters(inherited.getParameterTypes(), method.getParamTypeDescriptors()))
+                    throw new EvalException("Cannot override " + inherited.getName() + "() in "
+                        + StringUtil.typeString(superClass) + " overridden method is final", null, null);
+    }
+
+    /** An untyped parameter of the final method (null) matches any type. */
+    private static boolean sameParameters(Class<?>[] inherited, String[] declared) {
+        if (inherited.length != declared.length)
+            return false;
+        for (int i = 0; i < declared.length; i++)
+            if (null != inherited[i] && !BSHType.getTypeDescriptor(inherited[i]).equals(declared[i]))
+                return false;
+        return true;
     }
 
     private static void saveClasses(String className, byte[] code) {

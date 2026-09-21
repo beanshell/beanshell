@@ -5,6 +5,8 @@
 
 Work has resumed on the long-dormant 3.0 development line (`master`; the JAR targets Java 8 and is tested on Java 8 through 25) after a multi-year gap. This entry will grow as the release is prepared; changes so far:
 
+Fixed a scripted class that fails the final-method or strict abstract-method check being defined anyway: a rejected redefinition now leaves the previous class in place, and a rejected first definition is no longer left declared. A method that merely overloads a final superclass method is no longer rejected, and strict mode now reports an unresolvable type in a method signature on first use rather than at the declaration.
+
 Fixed concurrent `eval` calls on one interpreter corrupting each other: child interpreters shared their parent's parser, so several threads evaluating strings or calling scripted commands could fail with spurious parse errors, `NullPointerException`s or wrong results. Each eval now has its own parser, with one idle parser handed from eval to eval instead of shared, and a parser that failed mid-parse is no longer reused. An early `return` from a compound statement can still leave a stale tokenizer state that misparses an annotation-like token in a later eval, as before.
 
 Fixed a scripted class that extends or implements a type that isn't declared yet throwing at its declaration and being lost for good; it is now held pending, with a note on the error stream, and generated once a script declares the missing type, including through a chain of such classes. Only a scripted declaration wakes a pending class, not an import or classpath change, and a misspelled supertype now shows up as a pending class rather than an error at its declaration (#696).
