@@ -375,6 +375,10 @@ public class BshClassManager {
     private final transient Map<String,Declaration> declarations = new HashMap<>();
     /** Fully qualified supertype name to the names of the declarations built on it. */
     private final transient Map<String,Set<String>> dependents = new HashMap<>();
+    /** Top-level types waiting on undeclared supertypes, by fully qualified name; guarded by declarations. */
+    private final transient Map<String,Declaration> pending = new HashMap<>();
+    /** Supertype name as written to the names of the pending types waiting on it; guarded by declarations. */
+    private final transient Map<String,Set<String>> pendingOn = new HashMap<>();
     private final transient ThreadLocal<Boolean> cascading = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
     private static final class Declaration {
@@ -389,6 +393,19 @@ public class BshClassManager {
             this.namespace = namespace;
             this.interpreter = interpreter;
             this.supertypes = supertypes;
+        }
+    }
+
+    int pendingCount() {
+        synchronized (declarations) { return pending.size(); }
+    }
+
+    int pendingEdgeCount() {
+        synchronized (declarations) {
+            int edges = 0;
+            for (Set<String> names : pendingOn.values())
+                edges += names.size();
+            return edges;
         }
     }
 
@@ -414,7 +431,12 @@ public class BshClassManager {
                 addGeneratedSupertype(supertypes, iface);
         }
         supertypes.removeIf(s -> s.equals(name) || s.startsWith(name + "$"));
+        final List<String> events = new ArrayList<>();
+        events.add(name);
+        for (Class<?> nested : node.nestedClasses())
+            events.add(nested.getName());
         synchronized (declarations) {
+            unregisterPending(name);
             Declaration previous = declarations.put(name,
                 new Declaration(node, namespace, interpreter, supertypes));
             if (previous != null)
@@ -424,7 +446,37 @@ public class BshClassManager {
                 dependents.computeIfAbsent(supertype, k -> new LinkedHashSet<>()).add(name);
         }
         if (!cascading.get())
-            cascade(name, interpreter);
+            cascade(name, events, interpreter);
+    }
+
+    /**
+        Record a top-level scripted type that cannot be generated yet because
+        the named supertypes are not declared. It is generated, best effort,
+        when the last of them appears. Redeclaring a live class this way leaves the old class live.
+    */
+    void declarationPending(String name, NameSpace namespace, BSHClassDeclaration node,
+            Interpreter interpreter, Set<String> missing) {
+        synchronized (declarations) {
+            unregisterPending(name);
+            pending.put(name, new Declaration(node, namespace, interpreter, missing));
+            for (String supertype : missing)
+                pendingOn.computeIfAbsent(supertype, k -> new LinkedHashSet<>()).add(name);
+        }
+        if (!cascading.get())
+            interpreter.error("Class " + name + " is pending: unresolved supertype "
+                + String.join(", ", missing));
+    }
+
+    /** Caller holds the lock. */
+    private void unregisterPending(String name) {
+        final Declaration previous = pending.remove(name);
+        if (previous == null)
+            return;
+        for (String supertype : previous.supertypes) {
+            Set<String> names = pendingOn.get(supertype);
+            if (names != null && names.remove(name) && names.isEmpty())
+                pendingOn.remove(supertype);
+        }
     }
 
     private static void addGeneratedSupertype(Set<String> supertypes, Class<?> supertype) {
@@ -432,8 +484,61 @@ public class BshClassManager {
             supertypes.add(supertype.getName());
     }
 
+    private void cascade(String redefined, List<String> events, Interpreter interpreter) {
+        cascading.set(Boolean.TRUE);
+        try {
+            propagate(redefined, events, interpreter);
+        } finally {
+            cascading.set(Boolean.FALSE);
+        }
+    }
+
+    private void propagate(String redefined, List<String> events, Interpreter interpreter) {
+        regenerateDependents(redefined, interpreter);
+        final List<String> waiting = new ArrayList<>();
+        synchronized (declarations) {
+            for (Map.Entry<String,Set<String>> entry : pendingOn.entrySet())
+                for (String event : events)
+                    if (matches(entry.getKey(), event))
+                        for (String name : entry.getValue())
+                            if (!waiting.contains(name))
+                                waiting.add(name);
+        }
+        for (String name : waiting) {
+            Declaration declaration;
+            synchronized (declarations) { declaration = pending.get(name); }
+            if (declaration == null)
+                continue;
+            try {
+                Object result = declaration.node.regenerate(
+                    new CallStack(declaration.namespace), declaration.interpreter);
+                if (result instanceof Class) {
+                    synchronized (declarations) {
+                        if (pending.get(name) == declaration)
+                            unregisterPending(name);
+                    }
+                    final List<String> promoted = new ArrayList<>();
+                    promoted.add(name);
+                    for (Class<?> nested : declaration.node.nestedClasses())
+                        promoted.add(nested.getName());
+                    propagate(name, promoted, declaration.interpreter);
+                }
+            } catch (EvalError | RuntimeException | LinkageError e) {
+                synchronized (declarations) { unregisterPending(name); }
+                declaration.interpreter.error("Class " + name + " could not be generated after "
+                    + redefined + " was declared: " + e.getMessage());
+            }
+        }
+    }
+
+    /** A supertype written as text names a declared type given as a fully qualified name. */
+    private static boolean matches(String written, String declared) {
+        final String dotted = declared.replace('$', '.');
+        return dotted.equals(written) || dotted.endsWith("." + written);
+    }
+
     /** Regenerate the dependents of a redefined type, best effort. */
-    private void cascade(String redefined, Interpreter interpreter) {
+    private void regenerateDependents(String redefined, Interpreter interpreter) {
         final List<String> order = new ArrayList<>();
         final Set<String> cyclic = new LinkedHashSet<>();
         synchronized (declarations) {
@@ -445,29 +550,24 @@ public class BshClassManager {
         for (String name : cyclic)
             interpreter.error("Not regenerating class " + name
                 + " after redefinition of " + redefined + ": circular dependency");
-        cascading.set(Boolean.TRUE);
-        try {
-            for (String name : order) {
-                Declaration declaration;
-                synchronized (declarations) { declaration = declarations.get(name); }
-                if (declaration == null)
-                    continue;
-                if (!Collections.disjoint(declaration.supertypes, failed)) {
-                    failed.add(name);
-                    continue;
-                }
-                try {
-                    declaration.node.regenerate(
-                        new CallStack(declaration.namespace), declaration.interpreter);
-                } catch (EvalError | RuntimeException | LinkageError e) {
-                    failed.add(name);
-                    declaration.interpreter.error("Regeneration of class " + name
-                        + " after redefinition of " + redefined + " failed, it may be"
-                        + " inconsistent with the new definition: " + e.getMessage());
-                }
+        for (String name : order) {
+            Declaration declaration;
+            synchronized (declarations) { declaration = declarations.get(name); }
+            if (declaration == null)
+                continue;
+            if (!Collections.disjoint(declaration.supertypes, failed)) {
+                failed.add(name);
+                continue;
             }
-        } finally {
-            cascading.set(Boolean.FALSE);
+            try {
+                declaration.node.regenerate(
+                    new CallStack(declaration.namespace), declaration.interpreter);
+            } catch (EvalError | RuntimeException | LinkageError e) {
+                failed.add(name);
+                declaration.interpreter.error("Regeneration of class " + name
+                    + " after redefinition of " + redefined + " failed, it may be"
+                    + " inconsistent with the new definition: " + e.getMessage());
+            }
         }
     }
 
@@ -701,6 +801,8 @@ public class BshClassManager {
         synchronized (declarations) {
             declarations.clear();
             dependents.clear();
+            pending.clear();
+            pendingOn.clear();
         }
     }
 

@@ -28,7 +28,9 @@
 package bsh;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import static bsh.ClassGenerator.Type;
@@ -60,9 +62,19 @@ class BSHClassDeclaration extends SimpleNode
     */
     public synchronized Object eval(final CallStack callstack, final Interpreter interpreter ) throws EvalError {
         if (generatedClass == null) {
+            final NameSpace enclosing = callstack.top();
+            final boolean topLevel = type != Type.ENUM && !enclosing.isClass && !enclosing.isMethod;
+            if (topLevel) {
+                final Set<String> missing = undeclaredSupertypes(callstack, interpreter);
+                if (!missing.isEmpty()) {
+                    final String pkg = enclosing.getPackage();
+                    interpreter.getClassManager().declarationPending(
+                        pkg == null ? name : pkg + "." + name, enclosing, this, interpreter, missing);
+                    return Primitive.VOID;
+                }
+            }
             generatedClass = generateClass(callstack, interpreter);
-            NameSpace enclosing = callstack.top();
-            if (type != Type.ENUM && !enclosing.isClass && !enclosing.isMethod)
+            if (topLevel)
                 interpreter.getClassManager().declarationCompleted(
                     generatedClass, enclosing, this, interpreter);
         }
@@ -74,7 +86,7 @@ class BSHClassDeclaration extends SimpleNode
         the current definitions of its supertypes. A failure leaves the
         previous classes bound.
     */
-    synchronized Class<?> regenerate(final CallStack callstack, final Interpreter interpreter) throws EvalError {
+    synchronized Object regenerate(final CallStack callstack, final Interpreter interpreter) throws EvalError {
         final List<BSHClassDeclaration> nodes = new ArrayList<>();
         collectDeclarations(this, nodes);
         final List<Class<?>> previous = new ArrayList<>(nodes.size());
@@ -83,12 +95,27 @@ class BSHClassDeclaration extends SimpleNode
             node.generatedClass = null;
         }
         try {
-            return (Class<?>) eval(callstack, interpreter);
+            return eval(callstack, interpreter);
         } catch (EvalError | RuntimeException | LinkageError e) {
             for (int i = 0; i < nodes.size(); i++)
                 nodes.get(i).generatedClass = previous.get(i);
             throw e;
         }
+    }
+
+    /** Supertype names, as written, that do not resolve; other resolution errors are left to generateClass. */
+    private Set<String> undeclaredSupertypes(final CallStack callstack, final Interpreter interpreter) {
+        final Set<String> missing = new LinkedHashSet<>();
+        for (int i = 0; i < (extend ? 1 : 0) + numInterfaces; i++) {
+            final BSHAmbiguousName node = (BSHAmbiguousName) jjtGetChild(i);
+            try {
+                node.toClass(callstack, interpreter);
+            } catch (EvalError e) {
+                if (e.getCause() instanceof ClassNotFoundException)
+                    missing.add(node.text);
+            }
+        }
+        return missing;
     }
 
     /** Generated classes declared anywhere inside this one. */
