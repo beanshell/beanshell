@@ -164,6 +164,13 @@ public class ClassGeneratorUtil implements Opcodes {
             classModifiers.addModifier("static");
     }
 
+    String uuid() { return uuid; }
+
+    /** Drop the context registered for a class that never got defined. */
+    void discardContext() {
+        This.contextStore.remove(uuid);
+    }
+
     /**
      * This method provides a hook for the class generator implementation to
      * store additional information in the class's bsh static namespace.

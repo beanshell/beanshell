@@ -103,6 +103,8 @@ public final class ClassGenerator {
         callstack.push(classStaticNameSpace);
         Class<?> genClass;
         boolean associated = false;
+        ClassGeneratorUtil classGenerator = null;
+        boolean published = false;
         try {
             // Evaluate inner class definitions in the block first, effectively
             // recursively calling this method for contained classes, EXCEPT for
@@ -122,7 +124,7 @@ public final class ClassGenerator {
 
             // Create the class generator, which encapsulates all knowledge of the
             // structure of the class
-            ClassGeneratorUtil classGenerator = new ClassGeneratorUtil(modifiers, className, packageName, superClass, interfaces, variables, methods, classStaticNameSpace, type);
+            classGenerator = new ClassGeneratorUtil(modifiers, className, packageName, superClass, interfaces, variables, methods, classStaticNameSpace, type);
 
             // Let the class generator install hooks relating to the structure of
             // the class into the class static namespace.  e.g. the constructor
@@ -152,6 +154,8 @@ public final class ClassGenerator {
 
                 // Define the new class in the classloader
                 genClass = bcm.defineClass(fqClassName, code);
+                published = true;
+                bcm.contextPublished(fqClassName, classGenerator.uuid());
                 Interpreter.debug("Define ", fqClassName, " as ", genClass);
             }
             // import the unqualified class name into parent namespace
@@ -167,6 +171,8 @@ public final class ClassGenerator {
                 new SelfExtendingClassFilter(name, true));
         } finally {
             callstack.pop();
+            if (!published && classGenerator != null)
+                classGenerator.discardContext();
         }
 
         Interpreter.debug(classStaticNameSpace);
