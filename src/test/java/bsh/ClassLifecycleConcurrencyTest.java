@@ -22,6 +22,7 @@ package bsh;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -267,16 +268,21 @@ public class ClassLifecycleConcurrencyTest {
         assertTrue(label + " was not collected once initialized", TestUtil.awaitCollected(ref));
     }
 
-    // ---- (e) #829: FieldAccess.invoke (Invocable.java:601) is synchronized
-    // on a single JVM-wide FieldAccess instance (cached in
-    // BshClassManager.memberCache) and performs the class-initializing
-    // GETSTATIC inside that monitor. This.initStatic (This.java:881) takes
-    // the same monitor from inside <clinit>. A thread that takes the
-    // FieldAccess monitor first, then itself tries to initialize the class,
-    // deadlocks against a thread already running <clinit> for that class. ----
+    // ---- (e) #829 (fixed): FieldAccess.invoke (Invocable.java:601) used to
+    // be synchronized on a single JVM-wide FieldAccess instance (cached in
+    // BshClassManager.memberCache) and performed the class-initializing
+    // GETSTATIC inside that monitor. This.initStatic (This.java:881) took
+    // the same monitor from inside <clinit>. A thread that took the
+    // FieldAccess monitor first, then itself tried to initialize the class,
+    // deadlocked against a thread already running <clinit> for that class.
+    // FieldAccess.invoke now resolves its MethodHandle under a private lock
+    // and invokes it outside any lock, so external code holding an
+    // Invocable's own monitor -- as this test deliberately does, to
+    // reproduce the original cycle -- can no longer wedge bsh's own field
+    // access at all. This test proves that: both threads now complete
+    // cleanly, every time. ----
 
     @Test(timeout = 20000)
-    @Category(KnownIssue.class)
     public void static_field_access_and_class_init_deadlock_on_lock_order_inversion() throws Exception {
         int id = PROBE_SEQ.incrementAndGet();
         String simpleName = "Op" + id;
@@ -293,8 +299,9 @@ public class ClassLifecycleConcurrencyTest {
 
         // Thread B: waits for the holder to take the FieldAccess monitor,
         // then initializes the class -- acquiring the JVM's class-init lock
-        // and, inside <clinit>, trying (and failing) to also take the
-        // FieldAccess monitor via This.initStatic -> getClassStaticThis.
+        // and, inside <clinit>, calling This.initStatic -> getClassStaticThis
+        // -> FieldAccess.invoke. That call no longer needs the FieldAccess
+        // monitor at all, so it no longer contends with the holder thread.
         Thread initializer = new Thread(() -> {
             try {
                 holderEntered.await();
@@ -305,9 +312,12 @@ public class ClassLifecycleConcurrencyTest {
             }
         }, "op-initializer-" + id);
 
-        // Thread A: takes the FieldAccess monitor first, waits for B to be
-        // genuinely blocked on it, then itself tries to initialize the same
-        // class -- needing the class-init lock B already holds.
+        // Thread A: takes the FieldAccess object's own monitor first --
+        // external to bsh, exactly what a caller with a reference to the
+        // Invocable could do -- waits for B to either block on it or finish,
+        // then itself tries to initialize the same class. Since bsh's own
+        // field access no longer uses this monitor, B never blocks on it and
+        // this wait just falls through once B completes.
         Thread holder = new Thread(() -> {
             synchronized (fieldAccess) {
                 holderEntered.countDown();
@@ -338,16 +348,94 @@ public class ClassLifecycleConcurrencyTest {
         initializer.join(5000);
 
         boolean deadlocked = holder.isAlive() && initializer.isAlive();
-        String dump = deadlocked ? "" : dumpAllThreads();
-        // #829: flip these assertions once the lock-order inversion is
-        // fixed (both threads should then join cleanly, every time). Note:
-        // both threads are daemon and, on the expected (deadlocked) outcome,
-        // stay blocked for the remainder of this fork's life by design --
-        // this test's fork exists to contain exactly that.
-        assertTrue("holder thread joined without deadlocking -- #829 appears fixed; thread dump:\n" + dump,
+        String dump = deadlocked ? dumpAllThreads() : "";
+        // #829 fixed: both threads join cleanly, every time. Both are
+        // daemon so, if the deadlock somehow reappeared, they'd stay
+        // blocked for the remainder of this fork's life by design -- this
+        // test's fork exists to contain exactly that.
+        assertFalse("holder thread did not join -- deadlock reappeared; thread dump:\n" + dump,
             holder.isAlive());
-        assertTrue("initializer thread joined without deadlocking -- #829 appears fixed; thread dump:\n" + dump,
+        assertFalse("initializer thread did not join -- deadlock reappeared; thread dump:\n" + dump,
             initializer.isAlive());
+    }
+
+    // ---- (f) #829 regression guard: an unforced, real-world repro. Rather
+    // than manufacturing the deadlock by grabbing a FieldAccess's monitor
+    // from test code (as (e) above does), this drives ordinary concurrent
+    // cascade class regeneration against one shared Interpreter/
+    // BshClassManager -- the scenario the original deadlock was actually
+    // found in. It is a liveness check only: LinkageErrors and other eval
+    // failures from racing redefinitions are expected and ignored; the only
+    // thing this test cares about is that every thread finishes. ----
+
+    private static final int CASCADE_THREADS = 8;
+    private static final int CASCADE_ITERATIONS = 300;
+    private static final int CASCADE_SLOTS = 4;
+    private static final int CASCADE_WAIT_SECONDS = 15;
+
+    @Test
+    public void concurrent_cascade_class_regeneration_does_not_deadlock_on_field_access() throws Exception {
+        int uid = PROBE_SEQ.incrementAndGet();
+        final Interpreter interpreter = new Interpreter();
+
+        // Single-threaded setup: 4 independent 3-level hierarchies.
+        for (int slot = 0; slot < CASCADE_SLOTS; slot++) {
+            interpreter.eval("class " + cascadeBaseName(uid, slot) + " { int v = 0; }");
+            interpreter.eval("class " + cascadeLevelName(uid, slot, 1) + " extends "
+                + cascadeBaseName(uid, slot) + " { int v = 0; }");
+            interpreter.eval("class " + cascadeLevelName(uid, slot, 2) + " extends "
+                + cascadeLevelName(uid, slot, 1) + " { int v = 0; }");
+        }
+
+        CountDownLatch start = new CountDownLatch(1);
+        CountDownLatch done = new CountDownLatch(CASCADE_THREADS);
+        Thread[] threads = new Thread[CASCADE_THREADS];
+        for (int t = 0; t < CASCADE_THREADS; t++) {
+            final int id = t;
+            threads[t] = new Thread(() -> {
+                try {
+                    start.await();
+                    for (int i = 0; i < CASCADE_ITERATIONS; i++) {
+                        int slot = (id + i) % CASCADE_SLOTS;
+                        int level = (id * 7 + i) % 3;
+                        String script;
+                        if (level == 0)
+                            script = "class " + cascadeBaseName(uid, slot) + " { int v = " + i + "; }";
+                        else
+                            script = "class " + cascadeLevelName(uid, slot, level) + " extends "
+                                + (level == 1 ? cascadeBaseName(uid, slot) : cascadeLevelName(uid, slot, level - 1))
+                                + " { int v = " + i + "; }";
+                        try {
+                            interpreter.eval(script);
+                        } catch (Throwable ignored) {
+                            // concurrent redefinition legitimately throws
+                            // LinkageError/eval errors sometimes -- that's
+                            // expected and not what this test checks; it
+                            // only checks for hangs
+                        }
+                    }
+                } catch (InterruptedException ignored) {
+                    // start latch interrupted -- fall through to done.countDown()
+                } finally {
+                    done.countDown();
+                }
+            }, "cascade-race-" + id);
+            threads[t].setDaemon(true);
+            threads[t].start();
+        }
+        start.countDown();
+        boolean finished = done.await(CASCADE_WAIT_SECONDS, TimeUnit.SECONDS);
+        if (!finished)
+            fail("cascade class regeneration: threads still running after "
+                + CASCADE_WAIT_SECONDS + "s; thread dump:\n" + dumpAllThreads());
+    }
+
+    private static String cascadeBaseName(int uid, int slot) {
+        return "CascadeBase" + uid + "_" + slot;
+    }
+
+    private static String cascadeLevelName(int uid, int slot, int level) {
+        return "CascadeL" + uid + "_" + slot + "_" + level;
     }
 
     private static String dumpAllThreads() {

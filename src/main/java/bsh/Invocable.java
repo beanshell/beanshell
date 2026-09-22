@@ -548,6 +548,10 @@ class FieldAccess extends Invocable {
     private final Class<?> type;
     private MethodHandle setter;
     private boolean getter = false;
+    /** Guards resolution of the getter/setter MethodHandles only -- the
+     * actual handle invocation in invoke() below runs outside this lock, so
+     * a class-initializing field read never holds it while <clinit> runs. */
+    private final Object handleLock = new Object();
 
     /** Package private field access invocable constructor.
      * Collects the reflect field member to unreflect into MethodHandles.
@@ -594,24 +598,47 @@ class FieldAccess extends Invocable {
         return setter;
     }
 
+    /** Resolve the getter handle under handleLock. lookup(MethodHandle) and
+     * lookup() hand the field reference off between each other (field is
+     * nulled only once both handles exist), so both must resolve under the
+     * same lock to keep that handoff serialized. */
+    private MethodHandle resolveGetterHandle() {
+        synchronized (handleLock) {
+            return getMethodHandle();
+        }
+    }
+
+    /** Resolve the setter handle under handleLock -- see
+     * resolveGetterHandle(). */
+    private MethodHandle resolveSetterHandle() {
+        synchronized (handleLock) {
+            return getSetterHandle();
+        }
+    }
+
     /** Specialty invoke for field access invocable types.
      * Based on arguments supplied infer get or set operation.
+     * Handle resolution is serialized on a private lock (resolveGetterHandle/
+     * resolveSetterHandle above); the actual MethodHandle invocation below
+     * holds no lock, since a static field read can trigger the target
+     * class's &lt;clinit&gt;, which may itself re-enter field access on
+     * another thread (see #829).
      * {@inheritDoc} */
     @Override
-    public synchronized Object invoke(Object base, Object... pars)
+    public Object invoke(Object base, Object... pars)
             throws InvocationTargetException {
         try {
             if (0 == pars.length) { // getter
+                MethodHandle handle = resolveGetterHandle();
                 if (isStatic())
-                    return Primitive.wrap(
-                            getMethodHandle().invoke(), getReturnType());
-                return Primitive.wrap(
-                        getMethodHandle().invoke(base), getReturnType());
+                    return Primitive.wrap(handle.invoke(), getReturnType());
+                return Primitive.wrap(handle.invoke(base), getReturnType());
             } else {                // setter
+                MethodHandle handle = resolveSetterHandle();
                 if (isStatic())
-                    return getSetterHandle().invoke(super.coerceToType(
+                    return handle.invoke(super.coerceToType(
                             pars[0], getParameterTypes()[0]));
-                return getSetterHandle().invoke(base, super.coerceToType(
+                return handle.invoke(base, super.coerceToType(
                             pars[0], getParameterTypes()[0]));
             }
         }
