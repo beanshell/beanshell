@@ -61,8 +61,13 @@ public abstract class Invocable implements Member {
     private final String name;
     private final int flags;
     private final Class<?> declaringClass;
-    protected final List<Object> parameters = new ArrayList<>();
     protected int lastParameterIndex;
+    /** Guards resolution of the MethodHandle only -- the actual handle
+     * invocation in invokeTarget() below runs outside this lock, so a
+     * class-initializing static call never holds it while &lt;clinit&gt;
+     * runs (see #877, the same AB-BA shape as FieldAccess.handleLock's
+     * #829 fix). */
+    private final Object handleLock = new Object();
 
     /** Package private abstract invocable constructor.
      * Collects an accessible member entity as the common invocable apparatus.
@@ -136,6 +141,14 @@ public abstract class Invocable implements Member {
         return handle;
     }
 
+    /** Resolve the MethodHandle under handleLock -- see invokeTarget()
+     * below for why the invocation itself must not hold this lock. */
+    private MethodHandle resolveMethodHandle() {
+        synchronized (handleLock) {
+            return getMethodHandle();
+        }
+    }
+
     /** Retrieve a method type from return type a parameter type signatures.
      * @return method type  */
     public MethodType methodType() {
@@ -172,7 +185,7 @@ public abstract class Invocable implements Member {
             throws Throwable {
         if (getLastParameterIndex() > params.length)
             throw new InvocationTargetException(null, "Insufficient parameters passed for method: " + getName() + Arrays.asList(getParameterTypes()));
-        parameters.clear();
+        List<Object> parameters = new ArrayList<>(getLastParameterIndex());
         for (int i = 0; i < getLastParameterIndex(); i++)
             parameters.add(coerceToType(params[i], getParameterTypes()[i]));
         return new ParameterType(parameters, false);
@@ -192,25 +205,32 @@ public abstract class Invocable implements Member {
     }
 
     /** All purpose MethodHandle invoke implementation, with or without args.
+     * Parameters are collected into a call-local list (see
+     * collectParamaters() above) and MethodHandle resolution is serialized
+     * on a private lock (resolveMethodHandle() above); the actual
+     * MethodHandle invocation below holds no lock, since a static method or
+     * constructor call can trigger the target class's &lt;clinit&gt;, which
+     * may itself re-enter method/constructor invocation on another thread
+     * (see #877).
      * @param base represents the base object instance.
      * @param pars parameter arguments
      * @return invocation result
      * @throws Throwable combined exceptions */
-    private synchronized Object invokeTarget(Object base, Object[] pars, boolean fixedArity)
+    private Object invokeTarget(Object base, Object[] pars, boolean fixedArity)
             throws Throwable {
         Reflect.logInvokeMethod("Invoking method (entry): ", this, pars);
         ParameterType pt = collectParamaters(base, pars, fixedArity);
         List<Object> params = pt.params;
         Reflect.logInvokeMethod("Invoking method (after): ", this, params);
         if (getParameterCount() > 0) {
-            MethodHandle mh = getMethodHandle();
+            MethodHandle mh = resolveMethodHandle();
             if (pt.isFixedArity)
                 mh = mh.asFixedArity();
             return mh.invokeWithArguments(params);
         }
         if (isStatic() || this instanceof ConstructorInvocable)
-            return getMethodHandle().invoke();
-        return getMethodHandle().invoke(params.get(0));
+            return resolveMethodHandle().invoke();
+        return resolveMethodHandle().invoke(params.get(0));
     }
 
     /** Abstraction to cleanly apply the primitive result wrapping.
@@ -218,7 +238,7 @@ public abstract class Invocable implements Member {
      * @param pars parameter arguments
      * @return invocation result
      * @throws InvocationTargetException wrapped target exceptions */
-    public synchronized Object invoke(Object base, Object... pars)
+    public Object invoke(Object base, Object... pars)
             throws InvocationTargetException {
         return invokeWithArguments(base, new CallArguments(pars));
     }
@@ -238,7 +258,7 @@ public abstract class Invocable implements Member {
     }
 
     /** Invoke using call-local types, leaving the cached method handle unchanged. */
-    synchronized Object invokeWithArguments(Object base, CallArguments arguments)
+    Object invokeWithArguments(Object base, CallArguments arguments)
             throws InvocationTargetException {
         boolean fixedArity = isFixedArity(arguments);
         try {
@@ -352,7 +372,8 @@ abstract class ExecutingInvocable extends Invocable {
     @Override
     protected ParameterType collectParamaters(Object base, Object[] params, boolean fixedArity)
             throws Throwable {
-        super.collectParamaters(base, params, fixedArity);
+        ParameterType pt = super.collectParamaters(base, params, fixedArity);
+        List<Object> parameters = pt.params;
         boolean isFixedArity = false;
         if (isVarArgs()) {
             if (getLastParameterIndex() < params.length) {
@@ -536,8 +557,8 @@ class MethodInvocable extends ExecutingInvocable {
             throws Throwable {
         ParameterType pt = super.collectParamaters(base, params, fixedArity);
         if (!isStatic())
-            parameters.add(0, base);
-        return new ParameterType(parameters, pt.isFixedArity);
+            pt.params.add(0, base);
+        return new ParameterType(pt.params, pt.isFixedArity);
     }
 
 }
