@@ -339,12 +339,13 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
             Object lock;
             if ( declaringNameSpace.isClass )
             {
-                try {
-                    lock = declaringNameSpace.getClassInstance();
-                } catch ( UtilEvalError e ) {
+                if ( declaringNameSpace.classInstance != null )
+                    lock = declaringNameSpace.classInstance;
+                else if ( declaringNameSpace.classStatic != null )
+                    lock = declaringNameSpace.classStatic;
+                else
                     throw new InterpreterError(
                         "Can't get class instance for synchronized method.");
-                }
             } else
                 lock = declaringNameSpace.getThis(interpreter); // ???
 

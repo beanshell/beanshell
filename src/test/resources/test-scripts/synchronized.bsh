@@ -29,5 +29,21 @@ bar() {
 }
 assert(isEvalError("bar()"));
 
+class SyncInstance {
+    synchronized void bar() {
+        flag();
+    }
+}
+new SyncInstance().bar();
+assert(flag()==5);
+
+class SyncStatic {
+    static synchronized void bar() {
+        flag();
+    }
+}
+SyncStatic.bar();
+assert(flag()==7);
+
 complete();
 
