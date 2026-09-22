@@ -1032,10 +1032,11 @@ public class BshLambdaTest {
         return new WeakReference<>(interpreter.getClassManager());
     }
 
-    // ClassManagerImpl.reloadClasses parks the last class loader it made in a
-    // static (DiscreteFilesClassLoader.instance), pinning whichever manager
-    // defined a class most recently -- pre-existing, lambda-independent.
-    // Defining a class elsewhere moves that static on before we check.
+    // ClassManagerImpl.reloadClasses used to park the last class loader it
+    // made in a static (DiscreteFilesClassLoader.instance), pinning whichever
+    // manager defined a class most recently -- pre-existing, lambda-
+    // independent, and fixed by #827. That static is gone now, so this
+    // displacement is a harmless no-op kept in place for no benefit but no risk.
     private static void assertCollected(WeakReference<?> ref) throws Exception {
         new Interpreter().eval("class DisplaceLastClassLoader {} new DisplaceLastClassLoader();");
         for (int n = 0; n < 50 && ref.get() != null; n++) {

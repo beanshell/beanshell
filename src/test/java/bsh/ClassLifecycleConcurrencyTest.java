@@ -19,6 +19,7 @@
 /****************************************************************************/
 package bsh;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -78,17 +79,20 @@ public class ClassLifecycleConcurrencyTest {
         return ref;
     }
 
-    // ---- (b) #827 pin: defineClass() alone pins the class manager ----
+    // ---- (b) #827 pin (fixed): defineClass() used to pin the class manager
+    // via ClassManagerImpl.reloadClasses, which parked its freshly-made
+    // DiscreteFilesClassLoader in a static field that held onto whichever
+    // loader (and, through it, whichever class manager) had defined a class
+    // most recently. That static is gone now -- newInstance() just returns
+    // the loader it built instead of stashing it -- so the class manager is
+    // reclaimable once every local reference to it is gone, same as before
+    // any class was ever defined. ----
 
     @Test
-    @Category(KnownIssue.class)
     public void defining_a_class_directly_pins_its_class_manager() throws Exception {
         WeakReference<BshClassManager> ref = defineClassDirectlyAndDrop();
         boolean collected = TestUtil.awaitCollected(ref);
-        // #827: the class manager (and via it, the declaring interpreter)
-        // should be reclaimable once every local reference is gone. It
-        // isn't -- flip this assertion to assertTrue once #827 is fixed.
-        assertFalse("class manager was collected -- #827 pin appears fixed; flip this assertion to assertTrue",
+        assertTrue("class manager was not collected -- #827 pin has regressed",
             collected);
     }
 
@@ -113,21 +117,21 @@ public class ClassLifecycleConcurrencyTest {
         return cw.toByteArray();
     }
 
-    // ---- (c) #827 race: DiscreteFilesClassLoader.instance is a plain,
-    // non-volatile static written and read back across two separate steps
-    // (ClassManagerImpl.java:460,465), so two threads defining same-named
-    // scripted types can interleave and hand each other's classes the wrong
-    // loader. ----
+    // ---- (c) #827 race (fixed): DiscreteFilesClassLoader.instance used to be
+    // a plain, non-volatile static written and read back across two separate
+    // steps (ClassManagerImpl.java:460,465), so two threads defining
+    // same-named scripted types could interleave and hand each other's
+    // classes the wrong loader. newInstance() now returns the loader it
+    // built instead of stashing it in shared state, so there's nothing left
+    // to interleave. ----
 
     @Test
-    @Category(KnownIssue.class)
     public void concurrent_fresh_interpreters_race_defining_classes() throws Exception {
         raceScriptedTypeDefinition("class",
             "class K%1$d { int v() { return 23; } } new K%1$d().v();");
     }
 
     @Test
-    @Category(KnownIssue.class)
     public void concurrent_fresh_interpreters_race_defining_interfaces() throws Exception {
         raceScriptedTypeDefinition("iface",
             "interface Op%1$d { int ap(int a); } Op%1$d o = a -> a * 2; o.ap(11) + 1;");
@@ -194,19 +198,21 @@ public class ClassLifecycleConcurrencyTest {
             throw new AssertionError(sb.toString());
         }
         int total = RACE_THREADS * RACE_PER_THREAD;
-        assertTrue(mode + ": expected at least one duplicate-definition failure over "
-                + total + " scripted definitions (#827) but observed none"
+        assertEquals(mode + ": expected no duplicate-definition failures over "
+                + total + " scripted definitions, #827 is fixed"
                 + (messages.isEmpty() ? "" : "; messages: " + messages),
-            raceFailures.get() > 0);
+            0, raceFailures.get());
     }
 
-    /** The interleaved read/write of {@code DiscreteFilesClassLoader.instance}
-     * (ClassManagerImpl.java:460,465) can hand one thread's class name a
-     * different thread's loader. Depending on exactly how the two threads'
-     * iterations interleave that has surfaced, in practice, as either a
-     * duplicate-definition {@link LinkageError} or a class that "vanishes"
-     * because the wrong loader's source map does not contain it -- both are
-     * the same root cause, just different symptoms of it. */
+    /** Before the #827 fix, the interleaved read/write of {@code
+     * DiscreteFilesClassLoader.instance} (ClassManagerImpl.java:460,465)
+     * could hand one thread's class name a different thread's loader.
+     * Depending on exactly how the two threads' iterations interleaved that
+     * surfaced, in practice, as either a duplicate-definition {@link
+     * LinkageError} or a class that "vanished" because the wrong loader's
+     * source map did not contain it -- both were the same root cause, just
+     * different symptoms of it. Kept here to classify any unexpected failure
+     * as race-related should this assertion ever fail again. */
     private static boolean isRaceRelatedFailure(Throwable e) {
         for (Throwable cause = e; cause != null; cause = cause.getCause()) {
             if (cause instanceof LinkageError || cause instanceof ClassNotFoundException)
@@ -256,10 +262,10 @@ public class ClassLifecycleConcurrencyTest {
         interpreter = null;
         generated = null;
 
-        // #827 (above) separately pins whichever loader most recently defined
-        // a scripted type, via the non-volatile DiscreteFilesClassLoader
-        // instance static. Displace it with an unrelated definition so this
-        // probe measures only #828's question, not #827's.
+        // #827 (above) used to separately pin whichever loader most recently
+        // defined a scripted type, via a non-volatile DiscreteFilesClassLoader
+        // instance static. That static is gone now, so this displacement is a
+        // harmless no-op -- left in place since removing it buys nothing.
         int displacerId = PROBE_SEQ.incrementAndGet();
         Interpreter displacer = new Interpreter();
         displacer.eval("class Displacer" + displacerId + " { } new Displacer" + displacerId + "();");
