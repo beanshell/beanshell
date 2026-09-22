@@ -149,6 +149,21 @@ The old documentation available at [http://beanshell.org](http://www.beanshell.o
 - Remote debugging - Embed a live, remotely accessible shell/command line in your application with just a few lines of code.
 - Use BeanShell declaratively to replace properties files and replace startup config files with real scripts that perform complex initialization and setup with the full Java syntax at their disposal.
 
+## Threading and concurrency
+
+The supported contract is one `Interpreter` per thread, with each thread's own `Interpreter` used only from that thread.
+
+What is not safe:
+
+- Calling `eval()` or `source()` concurrently on one shared `Interpreter`. Its global `NameSpace` and the AST nodes a parsed script produces hold plain, unsynchronized state that gets read and written during evaluation, so two threads sharing an interpreter can corrupt each other's results or throw spurious errors ([#881](https://github.com/beanshell/beanshell/issues/881)).
+- Sharing one `NameSpace` across threads for the same reason, even without a shared `Interpreter`.
+- Sharing a scripted method, class, or other parsed artifact across threads: the first evaluation of a shared AST node can cache resolved state (a method's parameter types, a variable declarator) into the node itself, and that caching isn't synchronized.
+- Using `bsh.system` (or its alias `bsh.shared`) from more than one thread. Every `Interpreter` in the JVM is wired to the same underlying `NameSpace`, so this one is shared even between otherwise fully independent interpreters on separate threads.
+
+`PreparsedScript` narrows the exposure — each `invoke()` runs in a fresh child scope — but resolving an unqualified class name for the first time can still fall through to the shared parent namespace and write its class cache unsynchronized, so it's not a guarantee under concurrent use.
+
+One further known, bounded limitation: declaring a scripted class that's never instantiated or otherwise initialized can pin its declaring `Interpreter` in memory indefinitely ([#843](https://github.com/beanshell/beanshell/issues/843)). A class that goes on to be used releases normally.
+
 ## Development road map
 
 The current development effort focuses on releasing BeanShell 3.0. The following road map serves as a guide to gauge progress to the next release.
