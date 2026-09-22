@@ -5,6 +5,8 @@
 
 Work has resumed on the long-dormant 3.0 development line (`master`; the JAR targets Java 8 and is tested on Java 8 through 25) after a multi-year gap. This entry will grow as the release is prepared; changes so far:
 
+Fixed two problems sharing one cause: defining a scripted class permanently pinned its interpreter in memory even after every real reference to it was dropped, and two threads defining same-named scripted classes at the same time could corrupt each other's class loading, surfacing as spurious duplicate-class errors or a class that couldn't be found right after it was declared (#827).
+
 Fixed a deadlock between two threads sharing an interpreter: one thread reading a scripted class's static field for the first time could permanently block against another thread already running that class's static initializer (#829).
 
 Threads sharing one interpreter no longer corrupt its methods when they first use the same scripted command at the same time; a command is now loaded once, under a lock, and its top-level statements run while that lock is held. Evaluating scripts from several threads on one interpreter is still not thread-safe in general (#867).

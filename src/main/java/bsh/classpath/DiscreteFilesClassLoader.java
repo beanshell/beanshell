@@ -55,13 +55,9 @@ public class DiscreteFilesClassLoader extends BshClassLoader
         }
     }
 
-    private static DiscreteFilesClassLoader instance;
-    public static DiscreteFilesClassLoader instance() {
-        return instance;
-    }
-    public static void newInstance(
+    public static DiscreteFilesClassLoader newInstance(
             BshClassManager classManager, ClassSourceMap map ) {
-        instance = new DiscreteFilesClassLoader(classManager, map);
+        return new DiscreteFilesClassLoader(classManager, map);
     }
 
     public DiscreteFilesClassLoader(
