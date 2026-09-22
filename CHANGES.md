@@ -5,6 +5,8 @@
 
 Work has resumed on the long-dormant 3.0 development line (`master`; the JAR targets Java 8 and is tested on Java 8 through 25) after a multi-year gap. This entry will grow as the release is prepared; changes so far:
 
+Fixed a script being able to disguise its own class as BeanShell's internal lambda-wrapper machinery by implementing the public `bsh.BshLambda.Wrapper` marker interface directly, which let a `final` scripted class be subclassed anyway and let a scripted interface's default method dodge the check that rejects it as an unsafe lambda-conversion target. The check now looks at which class loader actually defined the class, which a script can't fake (#850).
+
 Fixed `SecurityGuard.canImplements` and `canExtends` not being checked for an anonymous class or interface body, a cast of a scripted object to an interface, `This.getInterface()`, or passing a scripted object where a Java method expects an interface — only a named `class X implements Y {}` and a lambda conversion were checked before. Casting a scripted object to `Runnable` or `Serializable` still can't be guarded, since `bsh.This` implements both directly (#835).
 
 Documented BeanShell's threading contract in the README: one `Interpreter` per thread is supported; sharing one across threads, or sharing a scripted method or class between threads, is not (#881).

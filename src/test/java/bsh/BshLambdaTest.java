@@ -1378,6 +1378,21 @@ public class BshLambdaTest {
         org.junit.Assert.assertNotNull(noDefault);
     }
 
+    // #850: implementing the public bsh.BshLambda.Wrapper marker interface directly
+    // must not let a scripted interface's own default method evade this rejection.
+    @Test
+    public void a_scripted_interface_implementing_wrapper_marker_with_a_default_method_is_rejected() throws Exception {
+        try {
+            new Interpreter().eval(
+                "interface Evil850 extends bsh.BshLambda.Wrapper { int f(int x); "
+                + "default int twice(int x) { return f(x) * 2; } }"
+                + " Evil850 d = x -> x + 1;");
+            fail("expected an EvalError: a scripted default method cannot yet dispatch to a lambda's SAM");
+        } catch (EvalError expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("default"));
+        }
+    }
+
     // A default inherited from a SCRIPTED ancestor interface is exactly as unsafe as one
     // declared directly: it still evaluates through a generated-class instance context.
     @Test

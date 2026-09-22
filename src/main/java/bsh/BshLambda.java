@@ -163,6 +163,13 @@ public class BshLambda implements Serializable {
         return MARKER_COUNT.get();
     }
 
+    /** Whether type was loaded by BshLambda's own WrapperLoader -- unlike
+     * implementing the public Wrapper marker interface, a script cannot spoof
+     * this: only wrapperClass() ever constructs a WrapperLoader (see #850). */
+    static boolean isWrapperClass(Class<?> type) {
+        return null != type && type.getClassLoader() instanceof WrapperLoader;
+    }
+
     static boolean isLambdaMarker(Class<?> type) {
         return type != null && type.getName().startsWith(MARKER_PREFIX)
             && type.getClassLoader() instanceof MarkerLoader;
