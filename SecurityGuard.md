@@ -304,6 +304,18 @@ instance call to a class loader's `loadClass` method. These rules apply at the
 intercepted operation; calling an allowed Java method does not instrument the
 compiled Java code that runs inside it.
 
+On Java 8, a script can call `AccessibleObject.setAccessible(true)` on a
+`Method`/`Field`/`Constructor` it already holds and use it to reach a
+`ClassLoader`'s inherited `defineClass`, bypassing every check above: none of
+them intercept raw class definition. Java 9 and later block this by default
+(`InaccessibleObjectException`, since `java.base` does not open `java.lang` to
+an unnamed module). `Capabilities.setAccessibility()` does not help here — it
+only governs BeanShell's own internal reflection when resolving a non-public
+member on a script's behalf, not a script's own explicit reflective calls. If
+this matters for a Java 8 embedding, reject it the same way the example above
+rejects `loadClass`: a `canInvokeMethod()` guard checking
+`"setAccessible".equals(name)`.
+
 ## Errors and scope
 
 The guard manager throws `bsh.security.SecurityError` when a callback rejects an

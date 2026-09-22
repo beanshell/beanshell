@@ -350,7 +350,7 @@ public final class Reflect {
             // A lambda wrapper implements a scripted interface without being a
             // generated class; the interface keeps its constants only in its
             // static namespace (ClassGeneratorUtil keeps them virtual).
-            if (BshLambda.Wrapper.class.isAssignableFrom(clas)) {
+            if (BshLambda.isWrapperClass(clas)) {
                 Object constant = scriptedInterfaceConstant(clas, fieldName);
                 if (constant != Primitive.VOID)
                     return constant;
@@ -1166,7 +1166,7 @@ public final class Reflect {
     public static boolean isGeneratedClass(Class<?> type) {
         return null != type && type != GeneratedClass.class
                 && GeneratedClass.class.isAssignableFrom(type)
-                && !BshLambda.Wrapper.class.isAssignableFrom(type);
+                && !BshLambda.isWrapperClass(type);
     }
 
     /**

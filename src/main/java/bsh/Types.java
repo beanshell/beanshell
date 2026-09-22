@@ -689,7 +689,7 @@ class Types {
         if ( toType.isAssignableFrom( fromType ) )
             return checkOnly ? VALID_CAST
                 : Reflect.isGeneratedClass(toType) && !Proxy.isProxyClass(fromType)
-                    && !BshLambda.Wrapper.class.isAssignableFrom(fromType)
+                    && !BshLambda.isWrapperClass(fromType)
                 ? Reflect.getClassInstanceThis(fromValue, toType)
                 : fromValue;
 

@@ -589,4 +589,17 @@ public class FinalModifierTest {
             "class C extends P2 { }"
         );
     }
+
+    // #850: implementing the public bsh.BshLambda.Wrapper marker interface
+    // must not let a final scripted class evade final-class-inheritance enforcement.
+    @Test
+    public void final_class_implementing_wrapper_marker_should_not_allow_extends() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("Cannot inherit from final class P850"));
+
+        eval(
+            "final class P850 implements bsh.BshLambda.Wrapper { }",
+            "class P850Sub extends P850 { }"
+        );
+    }
 }

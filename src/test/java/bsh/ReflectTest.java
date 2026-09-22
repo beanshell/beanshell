@@ -50,6 +50,33 @@ public class ReflectTest {
                 Reflect.isGeneratedClass(Object.class));
     }
 
+    // #850: a scripted class implementing the public Wrapper marker interface
+    // directly must not be misidentified as an internal lambda-wrapper shim.
+    @Test
+    public void is_generated_class_even_if_it_implements_the_wrapper_marker_interface() throws Exception {
+        Class<?> type = (Class<?>) eval(
+            "interface Evil850 extends bsh.BshLambda.Wrapper { int f(int x); }",
+            "class EvilImpl850 implements Evil850 { int f(int x) { return x; } }",
+            "return EvilImpl850.class;"
+        );
+        assertTrue("a script class implementing the Wrapper marker directly is still a generated class",
+                Reflect.isGeneratedClass(type));
+    }
+
+    // Regression guard on isWrapperClass itself: a REAL lambda wrapper must
+    // still be excluded from isGeneratedClass.
+    @Test
+    public void is_not_generated_class_for_a_real_lambda_wrapper() throws Exception {
+        Object wrapper = eval(
+            "interface Doubler850 { int apply(int x); }",
+            "return (Doubler850) (x -> x * 2);"
+        );
+        assertTrue("sanity: this is actually a real generated wrapper instance",
+                BshLambda.Wrapper.class.isInstance(wrapper));
+        assertFalse("a real lambda-wrapper class is not misidentified as a generated class",
+                Reflect.isGeneratedClass(wrapper.getClass()));
+    }
+
     @Test
     public void get_this_static_namespace_from_class() throws Exception {
         Class<?> type = (Class<?>) eval(
