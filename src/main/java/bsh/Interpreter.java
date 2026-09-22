@@ -1077,7 +1077,11 @@ public class Interpreter
     */
     public Object getInterface( Class<?> interf ) throws EvalError
     {
-        return globalNameSpace.getThis( this ).getInterface( interf );
+        try {
+            return globalNameSpace.getThis( this ).getInterface( interf );
+        } catch ( UtilEvalError e ) {
+            throw e.toEvalError( Node.JAVACODE, new CallStack() );
+        }
     }
 
     /*  Methods for interacting with Parser */

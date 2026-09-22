@@ -195,6 +195,12 @@ class BSHAllocationExpression extends SimpleNode
         CallStack callstack, Interpreter interpreter )
         throws EvalError
     {
+        try {
+            Interpreter.mainSecurityGuard.canExtends(type);
+        } catch (SecurityError error) {
+            throw error.toEvalError(this, callstack);
+        }
+
         String anon = "anon" + innerClassCount.incrementAndGet();
         String name = callstack.top().getName().replace('/', '_') + "$" + anon;
         try {
@@ -277,7 +283,11 @@ class BSHAllocationExpression extends SimpleNode
         // statical import fields from the interface so that code inside
         // can refer to the fields directly (e.g. HEIGHT)
         local.importStatic( type );
-        return local.getThis(interpreter).getInterface( type );
+        try {
+            return local.getThis(interpreter).getInterface( type );
+        } catch (SecurityError error) {
+            throw error.toEvalError(this, callstack);
+        }
     }
 
     private Object objectArrayAllocation(

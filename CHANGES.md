@@ -5,6 +5,8 @@
 
 Work has resumed on the long-dormant 3.0 development line (`master`; the JAR targets Java 8 and is tested on Java 8 through 25) after a multi-year gap. This entry will grow as the release is prepared; changes so far:
 
+Fixed `SecurityGuard.canImplements` and `canExtends` not being checked for an anonymous class or interface body, a cast of a scripted object to an interface, `This.getInterface()`, or passing a scripted object where a Java method expects an interface — only a named `class X implements Y {}` and a lambda conversion were checked before. Casting a scripted object to `Runnable` or `Serializable` still can't be guarded, since `bsh.This` implements both directly (#835).
+
 Documented BeanShell's threading contract in the README: one `Interpreter` per thread is supported; sharing one across threads, or sharing a scripted method or class between threads, is not (#881).
 
 Fixed a scripted class's `static synchronized` method always throwing instead of running; it now locks on the class, matching how a real Java static synchronized method behaves (#879).

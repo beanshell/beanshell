@@ -49,6 +49,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import bsh.security.SecurityError;
+
 
 /**
     'This' is the type of bsh scripted objects.
@@ -130,7 +132,7 @@ public final class This implements java.io.Serializable, Runnable
     /**
         Get dynamic proxy for interface, caching those it creates.
     */
-    public Object getInterface( Class<?> clas )
+    public Object getInterface( Class<?> clas ) throws SecurityError
     {
         return getInterface( new Class<?>[] { clas } );
     }
@@ -138,7 +140,7 @@ public final class This implements java.io.Serializable, Runnable
     /**
         Get dynamic proxy for interface, caching those it creates.
     */
-    public Object getInterface( Class<?>[] ca )
+    public Object getInterface( Class<?>[] ca ) throws SecurityError
     {
         if ( interfaces == null )
             interfaces = new HashMap<Integer,Object>();
@@ -153,6 +155,9 @@ public final class This implements java.io.Serializable, Runnable
 
         if ( interf == null )
         {
+            for ( Class<?> c : ca )
+                Interpreter.mainSecurityGuard.canImplements( c );
+
             interf = Proxy.newProxyInstance(
                 ca[0].getClassLoader(), ca, invocationHandler );
             interfaces.put( hashKey, interf );
