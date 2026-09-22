@@ -157,6 +157,38 @@ public class InterfaceMethodsTest {
     }
 
     @Test
+    public void default_interface_method_reads_interface_constant_before_instance_field() throws Exception {
+        Object ret = eval(
+            "interface A { int X = 10; default int getX() { return X; } }",
+            "class B implements A { int X = 99; }",
+            "new B().getX();"
+        );
+        assertEquals("interface constant is 10", 10, ret);
+    }
+
+    @Test
+    public void default_interface_method_calls_interface_static_method_before_instance_method() throws Exception {
+        Object ret = eval(
+            "interface A { static int h() { return 1; } default int callH() { return h(); } }",
+            "class B implements A { int h() { return 2; } }",
+            "new B().callH();"
+        );
+        assertEquals("interface static method returns 1", 1, ret);
+    }
+
+    @Test
+    public void default_interface_method_resolves_enclosing_scope_before_instance() throws Exception {
+        Object ret = eval(
+            "int limit = 7;",
+            "int twice(int x) { return x * 2; }",
+            "interface A { default int calc() { return twice(limit); } }",
+            "class B implements A { int limit = 99; int twice(int x) { return 0; } }",
+            "new B().calc();"
+        );
+        assertEquals("script's twice(limit) is 7*2 = 14", 14, ret);
+    }
+
+    @Test
     public void abstract_interface_method_not_implemented_fails() throws Exception {
         thrown.expect(EvalError.class);
         thrown.expectMessage(containsString("ZZC is not abstract and does not override abstract method ab() in ZZ"));
