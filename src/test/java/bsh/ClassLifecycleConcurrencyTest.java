@@ -365,7 +365,169 @@ public class ClassLifecycleConcurrencyTest {
             initializer.isAlive());
     }
 
-    // ---- (f) #829 regression guard: an unforced, real-world repro. Rather
+    // ---- (f) #877: same AB-BA lock-order-inversion shape as (e)'s #829
+    // fix, but on the method/constructor invocation path
+    // (Invocable.invokeTarget) rather than field access. Invocable.invoke/
+    // invokeWithArguments/invokeTarget used to stay synchronized(this)
+    // across the actual MethodHandle invocation, including the <clinit>
+    // that a static method or constructor call on a not-yet-initialized
+    // class can trigger. A thread that takes that Invocable's own monitor
+    // first, then itself tries to initialize the target class, deadlocks
+    // against a thread already running <clinit> for that class from inside
+    // a call the fixed thread is holding the monitor for. ----
+
+    @Test(timeout = 20000)
+    public void static_method_invocation_and_class_init_deadlock_on_lock_order_inversion() throws Exception {
+        int id = PROBE_SEQ.incrementAndGet();
+        String simpleName = "MethodOp" + id;
+        Interpreter interpreter = new Interpreter();
+        interpreter.eval("class " + simpleName
+            // called unqualified (inherited) -- a fully-qualified
+            // "bsh.MethodInvocableDeadlockHelper.staticMethod()" call fails
+            // to resolve here, a pre-existing ambiguous-name resolution gap
+            // for static method calls (as opposed to type references) on a
+            // class in the "bsh" package that is unrelated to this fix.
+            + " extends bsh.MethodInvocableDeadlockHelper { static { staticMethod(); } }");
+        Class<?> generated = interpreter.getNameSpace().getClass(simpleName);
+        assertNotNull("class was not generated", generated);
+
+        Invocable methodInvocable = BshClassManager.memberCache.get(MethodInvocableDeadlockHelper.class)
+            .findMethod("staticMethod");
+        assertNotNull("static method invocable not found", methodInvocable);
+
+        CountDownLatch holderEntered = new CountDownLatch(1);
+
+        // Thread B: waits for the holder to take the MethodInvocable
+        // monitor, then initializes the class -- acquiring the JVM's
+        // class-init lock and, inside <clinit>, calling back into
+        // MethodInvocableDeadlockHelper.staticMethod() via
+        // Invocable.invokeWithArguments on that same cached Invocable.
+        Thread initializer = new Thread(() -> {
+            try {
+                holderEntered.await();
+                Class.forName(generated.getName(), true, generated.getClassLoader());
+            } catch (Throwable ignored) {
+                // any failure here just means no deadlock occurred; the
+                // assertions below are what determine pass/fail
+            }
+        }, "method-op-initializer-" + id);
+
+        // Thread A: takes the MethodInvocable object's own monitor first --
+        // external to bsh, exactly what a caller with a reference to the
+        // Invocable could do -- waits for B to either block on it or
+        // finish, then itself tries to initialize the same class.
+        Thread holder = new Thread(() -> {
+            synchronized (methodInvocable) {
+                holderEntered.countDown();
+                while (initializer.getState() != Thread.State.BLOCKED && initializer.isAlive())
+                    Thread.yield();
+                try {
+                    Class.forName(generated.getName(), true, generated.getClassLoader());
+                } catch (Throwable ignored) {
+                    // see above
+                }
+            }
+        }, "method-op-holder-" + id);
+
+        initializer.setDaemon(true);
+        holder.setDaemon(true);
+        // See the (e) test above for why this start order matters.
+        initializer.start();
+        holder.start();
+
+        holder.join(5000);
+        initializer.join(5000);
+
+        boolean deadlocked = holder.isAlive() && initializer.isAlive();
+        String dump = deadlocked ? dumpAllThreads() : "";
+        // #877 fixed: Invocable.invokeTarget now resolves its MethodHandle
+        // under a private lock and invokes it outside any lock, with
+        // parameters collected into a call-local list rather than a shared
+        // field, so external code holding a MethodInvocable's own monitor
+        // -- as this test deliberately does, to reproduce the original
+        // cycle -- can no longer wedge bsh's own method invocation at all.
+        // This test proves that: both threads now complete cleanly, every
+        // time.
+        assertFalse("holder thread did not join -- deadlock reappeared; thread dump:\n" + dump,
+            holder.isAlive());
+        assertFalse("initializer thread did not join -- deadlock reappeared; thread dump:\n" + dump,
+            initializer.isAlive());
+    }
+
+    @Test(timeout = 20000)
+    public void constructor_invocation_and_class_init_deadlock_on_lock_order_inversion() throws Exception {
+        int id = PROBE_SEQ.incrementAndGet();
+        String simpleName = "CtorOp" + id;
+        Interpreter interpreter = new Interpreter();
+        interpreter.eval("class " + simpleName
+            + " extends bsh.ConstructorInvocableDeadlockHelper { static { new bsh.ConstructorInvocableDeadlockHelper(); } }");
+        Class<?> generated = interpreter.getNameSpace().getClass(simpleName);
+        assertNotNull("class was not generated", generated);
+
+        Invocable constructorInvocable = BshClassManager.memberCache.get(ConstructorInvocableDeadlockHelper.class)
+            .findMethod(ConstructorInvocableDeadlockHelper.class.getName());
+        assertNotNull("constructor invocable not found", constructorInvocable);
+
+        CountDownLatch holderEntered = new CountDownLatch(1);
+
+        // Thread B: waits for the holder to take the ConstructorInvocable
+        // monitor, then initializes the class -- acquiring the JVM's
+        // class-init lock and, inside <clinit>, calling back into
+        // `new ConstructorInvocableDeadlockHelper()` via
+        // Invocable.invokeWithArguments on that same cached Invocable.
+        Thread initializer = new Thread(() -> {
+            try {
+                holderEntered.await();
+                Class.forName(generated.getName(), true, generated.getClassLoader());
+            } catch (Throwable ignored) {
+                // any failure here just means no deadlock occurred; the
+                // assertions below are what determine pass/fail
+            }
+        }, "ctor-op-initializer-" + id);
+
+        // Thread A: takes the ConstructorInvocable object's own monitor
+        // first -- external to bsh, exactly what a caller with a reference
+        // to the Invocable could do -- waits for B to either block on it
+        // or finish, then itself tries to initialize the same class.
+        Thread holder = new Thread(() -> {
+            synchronized (constructorInvocable) {
+                holderEntered.countDown();
+                while (initializer.getState() != Thread.State.BLOCKED && initializer.isAlive())
+                    Thread.yield();
+                try {
+                    Class.forName(generated.getName(), true, generated.getClassLoader());
+                } catch (Throwable ignored) {
+                    // see above
+                }
+            }
+        }, "ctor-op-holder-" + id);
+
+        initializer.setDaemon(true);
+        holder.setDaemon(true);
+        // See the (e) test above for why this start order matters.
+        initializer.start();
+        holder.start();
+
+        holder.join(5000);
+        initializer.join(5000);
+
+        boolean deadlocked = holder.isAlive() && initializer.isAlive();
+        String dump = deadlocked ? dumpAllThreads() : "";
+        // #877 fixed: Invocable.invokeTarget now resolves its MethodHandle
+        // under a private lock and invokes it outside any lock, with
+        // parameters collected into a call-local list rather than a shared
+        // field, so external code holding a ConstructorInvocable's own
+        // monitor -- as this test deliberately does, to reproduce the
+        // original cycle -- can no longer wedge bsh's own constructor
+        // invocation at all. This test proves that: both threads now
+        // complete cleanly, every time.
+        assertFalse("holder thread did not join -- deadlock reappeared; thread dump:\n" + dump,
+            holder.isAlive());
+        assertFalse("initializer thread did not join -- deadlock reappeared; thread dump:\n" + dump,
+            initializer.isAlive());
+    }
+
+    // ---- (g) #829 regression guard: an unforced, real-world repro. Rather
     // than manufacturing the deadlock by grabbing a FieldAccess's monitor
     // from test code (as (e) above does), this drives ordinary concurrent
     // cascade class regeneration against one shared Interpreter/
