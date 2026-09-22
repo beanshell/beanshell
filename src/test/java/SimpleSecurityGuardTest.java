@@ -63,6 +63,24 @@ public class SimpleSecurityGuardTest {
         }
     };
 
+    /** Denies implementing java.util.concurrent.Callable specifically, used by the
+     * anonymous-interface-body / cast / getInterface() / coercion tests below.
+     * bsh.This implements Runnable directly, so Runnable can't be used to exercise
+     * the getInterface()/Proxy path -- Callable is not natively implemented. */
+    private static final SecurityGuard noCallableSecurityGuard = new SecurityGuard() {
+        public boolean canImplements(Class<?> _interface) {
+            if (_interface == java.util.concurrent.Callable.class) return false;
+            return true;
+        }
+    };
+
+    private static final SecurityGuard noHashMapExtendsSecurityGuard = new SecurityGuard() {
+        public boolean canExtends(Class<?> superClass) {
+            if (superClass == java.util.HashMap.class) return false;
+            return true;
+        }
+    };
+
     @BeforeClass
     public static void beforeAll() {
         Interpreter.mainSecurityGuard.add(SimpleSecurityGuardTest.emptySecurityGuard);
@@ -963,6 +981,140 @@ public class SimpleSecurityGuardTest {
         } catch (Exception ex) {
             final String expectedMsg = "SecurityError: Can't call this construct: new SimpleSecurityGuardTest$MySecurityGuard()";
             Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
+        }
+    }
+
+    @Test
+    public void cant_implements_anonymous_interface_body() {
+        Interpreter.mainSecurityGuard.add(noCallableSecurityGuard);
+        try {
+            TestUtil.eval(
+                "new java.util.concurrent.Callable() { public Object call() { return 1; } };"
+            );
+            Assert.fail("The code must throw an Exception!");
+        } catch (Exception ex) {
+            final String expectedMsg = "Can't implement this interface: java.util.concurrent.Callable";
+            Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
+        } finally {
+            Interpreter.mainSecurityGuard.remove(noCallableSecurityGuard);
+        }
+    }
+
+    @Test
+    public void can_implements_anonymous_interface_body_when_allowed() {
+        try {
+            Object result = TestUtil.eval(
+                "return new java.util.concurrent.Callable() { public Object call() { return 1; } }.call();"
+            );
+            Assert.assertEquals(1, bsh.Primitive.unwrap(result));
+        } catch (Exception ex) {
+            Assert.fail("The code mustn't throw any Exception: " + ex);
+        }
+    }
+
+    @Test
+    public void cant_implements_via_explicit_cast() {
+        Interpreter.mainSecurityGuard.add(noCallableSecurityGuard);
+        try {
+            TestUtil.eval(
+                "obj() { Object call() { return 1; } return this; }",
+                "java.util.concurrent.Callable c = (java.util.concurrent.Callable) obj();"
+            );
+            Assert.fail("The code must throw an Exception!");
+        } catch (Exception ex) {
+            final String expectedMsg = "Can't implement this interface: java.util.concurrent.Callable";
+            Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
+        } finally {
+            Interpreter.mainSecurityGuard.remove(noCallableSecurityGuard);
+        }
+    }
+
+    @Test
+    public void cant_implements_via_getInterface_call() {
+        Interpreter.mainSecurityGuard.add(noCallableSecurityGuard);
+        try {
+            TestUtil.eval(
+                "obj() { Object call() { return 1; } return this; }",
+                "obj().getInterface(java.util.concurrent.Callable.class);"
+            );
+            Assert.fail("The code must throw an Exception!");
+        } catch (Exception ex) {
+            final String expectedMsg = "Can't implement this interface: java.util.concurrent.Callable";
+            Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
+        } finally {
+            Interpreter.mainSecurityGuard.remove(noCallableSecurityGuard);
+        }
+    }
+
+    @Test
+    public void cant_implements_via_implicit_argument_coercion() {
+        Interpreter.mainSecurityGuard.add(noCallableSecurityGuard);
+        try {
+            TestUtil.eval(
+                "obj() { Object call() { return 1; } return this; }",
+                "new java.util.concurrent.FutureTask(obj());"
+            );
+            Assert.fail("The code must throw an Exception!");
+        } catch (Exception ex) {
+            final String expectedMsg = "Can't implement this interface: java.util.concurrent.Callable";
+            Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
+        } finally {
+            Interpreter.mainSecurityGuard.remove(noCallableSecurityGuard);
+        }
+    }
+
+    @Test
+    public void getInterface_checks_once_at_creation_not_on_cache_hit() throws Exception {
+        SecurityGuard allowCallable = new SecurityGuard() {
+            public boolean canImplements(Class<?> _interface) { return true; }
+        };
+        Interpreter interpreter = new Interpreter();
+        bsh.This thiz = (bsh.This) interpreter.eval(
+            "obj() { Object call() { return 1; } return this; }\nreturn obj();"
+        );
+        Interpreter.mainSecurityGuard.add(allowCallable);
+        Object first;
+        try {
+            first = thiz.getInterface(java.util.concurrent.Callable.class);
+        } finally {
+            Interpreter.mainSecurityGuard.remove(allowCallable);
+        }
+        Assert.assertNotNull(first);
+
+        Interpreter.mainSecurityGuard.add(noCallableSecurityGuard);
+        try {
+            Object second = thiz.getInterface(java.util.concurrent.Callable.class);
+            Assert.assertSame("Cached proxy must be returned without re-checking the guard",
+                first, second);
+        } finally {
+            Interpreter.mainSecurityGuard.remove(noCallableSecurityGuard);
+        }
+    }
+
+    @Test
+    public void cant_extends_anonymous_class_body() {
+        Interpreter.mainSecurityGuard.add(noHashMapExtendsSecurityGuard);
+        try {
+            TestUtil.eval("new java.util.HashMap() { };");
+            Assert.fail("The code must throw an Exception!");
+        } catch (Exception ex) {
+            final String expectedMsg = "Can't extend this class: java.util.HashMap";
+            Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
+        } finally {
+            Interpreter.mainSecurityGuard.remove(noHashMapExtendsSecurityGuard);
+        }
+    }
+
+    @Test
+    public void can_extends_anonymous_class_body_when_allowed() {
+        Interpreter.mainSecurityGuard.add(noHashMapExtendsSecurityGuard);
+        try {
+            TestUtil.eval("new java.util.ArrayList() { };");
+            Assert.assertTrue(true);
+        } catch (Exception ex) {
+            Assert.fail("The code mustn't throw any Exception!");
+        } finally {
+            Interpreter.mainSecurityGuard.remove(noHashMapExtendsSecurityGuard);
         }
     }
 

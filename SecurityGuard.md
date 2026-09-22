@@ -95,8 +95,8 @@ an integer argument is a Java numeric wrapper and a null argument is Java `null`
 | `canInvokeLocalMethod(String name, Object[] args)` | Local method or command invocation | Method name and arguments |
 | `canGetField(Object receiver, String name)` | Instance field read, including array `length` | Receiver and field name |
 | `canGetStaticField(Class<?> type, String name)` | Static field read | Class and field name |
-| `canExtends(Class<?> superClass)` | Class extension | Superclass |
-| `canImplements(Class<?> interfaceType)` | Interface implementation. Also consulted when a lambda expression is converted to a functional interface. | Interface |
+| `canExtends(Class<?> superClass)` | Class extension, including an anonymous class body (`new SomeClass() { ... }`) | Superclass |
+| `canImplements(Class<?> interfaceType)` | Interface implementation: a named `implements` clause, an anonymous interface body (`new SomeInterface() { ... }`), a lambda converted to a functional interface, and exposing a scripted object as an interface (an explicit cast, `This.getInterface()`, or passing the object where a method expects that interface) | Interface |
 
 The earlier `canInvokeSuperMethod()` callback was removed in #772. Move policies
 using that callback to `canInvokeMethod()`. The replacement callback also checks
@@ -226,6 +226,7 @@ class NoHashMapExtension implements SecurityGuard {
 ```bsh
 class MyList extends java.util.ArrayList {}
 class MyMap extends java.util.HashMap {} // Rejected.
+new java.util.HashMap() { }; // Also rejected -- an anonymous class body extends too.
 ```
 
 This example rejects the exact superclass `HashMap`. To include its subclasses,
@@ -250,9 +251,26 @@ class MyMap extends java.util.HashMap implements java.util.Map {}
 class MyList extends java.util.ArrayList implements java.util.List {} // Rejected.
 ```
 
-The callback checks explicitly declared interfaces. The construction and
-extension callbacks allow additional rules for classes that already implement
-an interface.
+The callback also fires for every other route to the same capability: an
+anonymous interface body, a cast of an existing scripted object to an
+interface, a direct `This.getInterface()` call, and passing a scripted object
+where a Java method expects that interface (which coerces it the same way a
+cast would):
+
+```bsh
+new java.util.List() { }; // Rejected.
+
+myScriptedObject() { return this; }
+Object obj = myScriptedObject();
+java.util.List l = (java.util.List) obj; // Rejected.
+obj.getInterface(java.util.List.class); // Rejected.
+```
+
+One case can't be guarded: a scripted object cast to `Runnable` or
+`Serializable` always succeeds, whatever a guard returns. `bsh.This` (the
+Java class behind every scripted object) implements both directly, so casting
+to either is an ordinary Java assignment, not something BeanShell generates
+and can intercept.
 
 ## Reflection and class loaders
 

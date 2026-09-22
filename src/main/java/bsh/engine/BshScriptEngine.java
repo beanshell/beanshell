@@ -317,10 +317,16 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
      *         requested interface.
      * @throws IllegalArgumentException if the specified {@code Class} object
      *                                  does not exist or is not an interface.
+     * @throws RuntimeException wrapping bsh.security.SecurityError if a
+     *                                  registered SecurityGuard denies implementing this interface.
      */
     @Override
     public <T> T getInterface(Class<T> clasz) {
-        return clasz.cast(getGlobal().getInterface(clasz));
+        try {
+            return clasz.cast(getGlobal().getInterface(clasz));
+        } catch (bsh.security.SecurityError e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 
 
@@ -339,6 +345,8 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
      * @throws IllegalArgumentException if the specified {@code Class} object
      *                                  does not exist or is not an interface, or if the specified Object is null
      *                                  or does not represent a scripting object.
+     * @throws RuntimeException wrapping bsh.security.SecurityError if a
+     *                                  registered SecurityGuard denies implementing this interface.
      */
     @Override
     public <T> T getInterface(Object thiz, Class<T> clasz) {
@@ -347,7 +355,11 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
         }
 
         bsh.This bshThis = (bsh.This) thiz;
-        return clasz.cast(bshThis.getInterface(clasz));
+        try {
+            return clasz.cast(bshThis.getInterface(clasz));
+        } catch (bsh.security.SecurityError e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 
 
