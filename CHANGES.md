@@ -5,6 +5,8 @@
 
 Work has resumed on the long-dormant 3.0 development line (`master`; the JAR targets Java 8 and is tested on Java 8 through 25) after a multi-year gap. This entry will grow as the release is prepared; changes so far:
 
+Fixed a deadlock between two threads sharing an interpreter: one thread reading a scripted class's static field for the first time could permanently block against another thread already running that class's static initializer (#829).
+
 Threads sharing one interpreter no longer corrupt its methods when they first use the same scripted command at the same time; a command is now loaded once, under a lock, and its top-level statements run while that lock is held. Evaluating scripts from several threads on one interpreter is still not thread-safe in general (#867).
 
 Fixed memory growing with every redefinition of a scripted class that has dependents and with every rejected class declaration: the internal state kept for classes that were never used is now released (#868). A `Class` object held from before a redefinition can no longer be used for the first time afterwards; existing instances and the current class are unaffected.
