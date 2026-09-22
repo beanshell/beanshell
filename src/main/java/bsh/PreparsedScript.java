@@ -5,8 +5,12 @@ import java.io.StringReader;
 import java.util.Map;
 
 /** With this class the script source is only parsed once and the resulting
- * AST is used for {@link #invoke(java.util.Map) every invocation}. This class
- * is designed to be thread-safe. */
+ * AST is used for {@link #invoke(java.util.Map) every invocation}. Each
+ * invocation runs in its own child scope, which narrows but does not
+ * eliminate concurrent-use hazards: resolving an unqualified class name for
+ * the first time can still fall through to the shared parent namespace and
+ * write its class cache unsynchronized. See the README's "Threading and
+ * concurrency" section. */
 public class PreparsedScript {
 
     /** Prepared script reference. */
