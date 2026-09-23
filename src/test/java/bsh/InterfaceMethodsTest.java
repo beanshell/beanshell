@@ -103,6 +103,161 @@ public class InterfaceMethodsTest {
     }
 
     @Test
+    public void default_interface_method_calls_abstract_method_of_class_instance() throws Exception {
+        Object ret = eval(
+            "interface Foo {",
+                "int bar();",
+                "default int baz() { return bar() + 1; }",
+            "}",
+            "class Impl implements Foo { int bar() { return 1; } }",
+            "Foo f = new Impl();",
+            "f.baz();"
+        );
+        assertEquals("method returns 1+1 = 2", 2, ret);
+    }
+
+    @Test
+    public void default_interface_method_dispatches_to_overriding_subclass() throws Exception {
+        Object ret = eval(
+            "interface Foo {",
+                "int bar();",
+                "default int baz() { return bar() + 1; }",
+            "}",
+            "class Impl implements Foo { int bar() { return 1; } }",
+            "class Sub extends Impl { int bar() { return 5; } }",
+            "new Sub().baz();"
+        );
+        assertEquals("method returns 5+1 = 6", 6, ret);
+    }
+
+    @Test
+    public void default_interface_method_reaches_instance_through_this_and_other_defaults() throws Exception {
+        Object ret = eval(
+            "interface Foo {",
+                "int bar(int x);",
+                "default int twice(int x) { return this.bar(x) * 2; }",
+                "default int baz(int x) { return twice(x) + 1; }",
+            "}",
+            "class Impl implements Foo { int bar(int x) { return x + 1; } }",
+            "new Impl().baz(4);"
+        );
+        assertEquals("method returns (4+1)*2+1 = 11", 11, ret);
+    }
+
+    @Test
+    public void class_instance_assignable_to_scripted_interface_type() throws Exception {
+        Object ret = eval(
+            "interface Foo { int bar(); }",
+            "class Impl implements Foo { int bar() { return 1; } }",
+            "int use(Foo foo) { return foo.bar(); }",
+            "Foo f = new Impl();",
+            "f.bar() + ((Foo) new Impl()).bar() + use(new Impl());"
+        );
+        assertEquals("methods return 1+1+1 = 3", 3, ret);
+    }
+
+    @Test
+    public void default_interface_method_reads_interface_constant_before_instance_field() throws Exception {
+        Object ret = eval(
+            "interface A { int X = 10; default int getX() { return X; } }",
+            "class B implements A { int X = 99; }",
+            "new B().getX();"
+        );
+        assertEquals("interface constant is 10", 10, ret);
+    }
+
+    @Test
+    public void default_interface_method_calls_interface_static_method_before_instance_method() throws Exception {
+        Object ret = eval(
+            "interface A { static int h() { return 1; } default int callH() { return h(); } }",
+            "class B implements A { int h() { return 2; } }",
+            "new B().callH();"
+        );
+        assertEquals("interface static method returns 1", 1, ret);
+    }
+
+    @Test
+    public void default_interface_method_resolves_enclosing_scope_before_instance() throws Exception {
+        Object ret = eval(
+            "int limit = 7;",
+            "int twice(int x) { return x * 2; }",
+            "interface A { default int calc() { return twice(limit); } }",
+            "class B implements A { int limit = 99; int twice(int x) { return 0; } }",
+            "new B().calc();"
+        );
+        assertEquals("script's twice(limit) is 7*2 = 14", 14, ret);
+    }
+
+    @Test
+    public void default_interface_method_overridden_by_implementing_class() throws Exception {
+        Object ret = eval(
+            "interface Foo {",
+                "int bar();",
+                "default int baz() { return bar() + 1; }",
+                "default int qux() { return baz() * 10; }",
+            "}",
+            "class Impl implements Foo {",
+                "int bar() { return 1; }",
+                "int baz() { return 5; }",
+            "}",
+            "new Impl().baz() + new Impl().qux();"
+        );
+        assertEquals("methods return 5+5*10 = 55", 55, ret);
+    }
+
+    @Test
+    public void default_interface_method_runs_on_enum_constant() throws Exception {
+        Object ret = eval(
+            "interface Foo {",
+                "int X = 10;",
+                "int bar();",
+                "default int baz() { return bar() + this.bar() + X; }",
+            "}",
+            "enum Level implements Foo {",
+                "LOW, HIGH;",
+                "int X = 99;",
+                "int bar() { return 3; }",
+            "}",
+            "Level.HIGH.baz();"
+        );
+        assertEquals("method returns 3+3+10 = 16", 16, ret);
+    }
+
+    @Test
+    public void default_interface_method_inherited_through_extending_interface() throws Exception {
+        Object ret = eval(
+            "interface Base {",
+                "int X = 10;",
+                "int bar();",
+                "default int baz() { return bar() + X; }",
+            "}",
+            "interface Sub extends Base {",
+                "default int qux() { return baz() + this.bar() + X; }",
+            "}",
+            "class Impl implements Sub {",
+                "int X = 99;",
+                "int bar() { return 1; }",
+            "}",
+            "new Impl().baz() * 100 + new Impl().qux();"
+        );
+        assertEquals("methods return (1+10)*100 + (11+1+10) = 1122", 1122, ret);
+    }
+
+    @Test
+    public void default_interface_method_reads_and_writes_instance_field_through_this() throws Exception {
+        Object ret = eval(
+            "interface Counter {",
+                "default int next() { this.count = this.count + 1; return this.count; }",
+            "}",
+            "class Impl implements Counter { int count = 5; }",
+            "Impl c = new Impl();",
+            "c.next();",
+            "c.next() * 100 + c.count;"
+        );
+        assertEquals("count goes 5, 6, 7 so 7*100+7 = 707", 707, ret);
+    }
+
+    @Test
     public void abstract_interface_method_not_implemented_fails() throws Exception {
         thrown.expect(EvalError.class);
         thrown.expectMessage(containsString("ZZC is not abstract and does not override abstract method ab() in ZZ"));

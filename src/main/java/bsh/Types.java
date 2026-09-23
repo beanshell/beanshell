@@ -685,10 +685,12 @@ class Types {
         // If type already assignable no cast necessary
         // We do this last to allow various errors above to be caught.
         // e.g cast Primitive.Void to Object would pass this
-        // returns class instance This for generated super types
+        // returns class instance This for generated super types; a generated
+        // interface has no instance This, so the value itself is kept (#832)
         if ( toType.isAssignableFrom( fromType ) )
             return checkOnly ? VALID_CAST
-                : Reflect.isGeneratedClass(toType) && !Proxy.isProxyClass(fromType)
+                : Reflect.isGeneratedClass(toType) && !toType.isInterface()
+                    && !Proxy.isProxyClass(fromType)
                     && !BshLambda.isWrapperClass(fromType)
                 ? Reflect.getClassInstanceThis(fromValue, toType)
                 : fromValue;

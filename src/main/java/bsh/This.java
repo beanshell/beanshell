@@ -326,6 +326,75 @@ public final class This implements java.io.Serializable, Runnable
             boolean declaredOnly  )
             throws EvalError
     {
+        return invokeMethod(methodName, paramTypes, args, declaredOnly, null);
+    }
+
+    /**
+        Class generated default method stub entry. A scripted interface has
+        no instance This of its own, so its default methods are declared in
+        the interface's static namespace. Run the selected method against the
+        instance it was invoked on instead, so its body reaches that instance
+        through 'this' and the interface's abstract and default methods rather
+        than failing in the interface's static context (#832).
+     */
+    public Object invokeDefaultMethod(
+            Object instance, String methodName, Class<?>[] paramTypes,
+            Object [] args, boolean declaredOnly  )
+            throws EvalError
+    {
+        return invokeMethod(methodName, paramTypes, args, declaredOnly,
+                new DefaultMethodNameSpace(namespace, instance));
+    }
+
+    /**
+        The namespace a scripted interface default method runs under. As in
+        Java, a name in the method body resolves against the interface: its
+        constants and static methods, and then the scopes enclosing it, come
+        before anything of the instance. The interface's abstract and default
+        methods, declared or inherited, dispatch on the instance like any
+        instance method. Any other name reaches the instance only when
+        nothing else resolves it (#832).
+     */
+    private static final class DefaultMethodNameSpace extends NameSpace {
+        DefaultMethodNameSpace(NameSpace interfaceNameSpace, Object instance) {
+            super(interfaceNameSpace, interfaceNameSpace.getName());
+            isClass = true;
+            setClassInstance(instance);
+        }
+
+        /** The interface's variables, and those of the scopes enclosing it,
+            come before the instance's fields. */
+        @Override
+        protected Variable getVariableImpl(String name, boolean recurse)
+                throws UtilEvalError {
+            Variable var = getParent().getVariableImpl(name, recurse);
+            return null != var ? var : super.getVariableImpl(name, false/*recurse*/);
+        }
+
+        /** An abstract or default method of the interface dispatches on the
+            instance. Any other method resolves through the interface, and
+            reaches the instance only when nothing else resolves it. */
+        @Override
+        public BshMethod getMethod(String name, Class<?>[] sig,
+                boolean declaredOnly) throws UtilEvalError {
+            if (declaredOnly)
+                return super.getMethod(name, sig, declaredOnly);
+            Invocable member = Reflect.resolveJavaMethod(
+                    getParent().classStatic, name, sig, false/*onlyStatic*/);
+            if (null == member || member.isStatic()) {
+                BshMethod method = getParent().getMethod(name, sig);
+                if (null != method)
+                    return method;
+            }
+            return getImportedMethod(name, sig);
+        }
+    }
+
+    private Object invokeMethod(
+            String methodName, Class<?>[] paramTypes, Object [] args,
+            boolean declaredOnly, NameSpace parentNameSpace )
+            throws EvalError
+    {
         CallStack callstack = new CallStack(namespace);
         Node node = namespace.getNode();
         namespace.setNode(null);
@@ -334,7 +403,7 @@ public final class This implements java.io.Serializable, Runnable
         try {
             Object ret = invokeMethod(
                     methodName, arguments, declaringInterpreter,
-                    callstack, node, declaredOnly, null);
+                    callstack, node, declaredOnly, null, parentNameSpace);
             // manually unwrap primitives excluding void
             if (ret instanceof Primitive && ret != Primitive.VOID)
                 return ((Primitive)ret).getValue();
@@ -393,6 +462,13 @@ public final class This implements java.io.Serializable, Runnable
     Object invokeMethod(String methodName, CallArguments arguments, Interpreter interpreter,
             CallStack callstack, Node callerInfo, boolean declaredOnly,
             CallArguments.Result resultType) throws EvalError {
+        return invokeMethod(methodName, arguments, interpreter, callstack,
+                callerInfo, declaredOnly, resultType, null);
+    }
+
+    private Object invokeMethod(String methodName, CallArguments arguments, Interpreter interpreter,
+            CallStack callstack, Node callerInfo, boolean declaredOnly,
+            CallArguments.Result resultType, NameSpace parentNameSpace) throws EvalError {
         Object[] args = arguments.values;
 
         if ( interpreter == null )
@@ -411,7 +487,8 @@ public final class This implements java.io.Serializable, Runnable
 
         if (bshMethod != null) {
             if (resultType != null) resultType.type = bshMethod.getReturnType();
-            return bshMethod.invoke(arguments, interpreter, callstack, callerInfo, false);
+            return bshMethod.invoke(arguments, interpreter, callstack, callerInfo,
+                    false, parentNameSpace);
         }
 
         /*

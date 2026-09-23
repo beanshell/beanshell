@@ -469,8 +469,9 @@ public class ClassGeneratorUtil implements Opcodes {
      * Generate a delegate method - static or instance.
      * The generated code packs the method arguments into an object array
      * (wrapping primitive types in bsh.Primitive), invokes the static or
-     * instance This invokeMethod() method, and then returns
-     * the result.
+     * instance This invokeMethod() method, or the static This
+     * invokeDefaultMethod() method for an interface default method, and then
+     * returns the result.
      */
     private void generateMethod(String className, String fqClassName, String methodName, String returnType, String[] paramTypes, int modifiers, ClassWriter cw) {
         String[] exceptions = null;
@@ -487,11 +488,19 @@ public class ClassGeneratorUtil implements Opcodes {
         if ((modifiers & ACC_ABSTRACT) != 0)
             return;
 
+        // An interface has no instance This field, so a default method uses
+        // the static This and passes along the instance it runs on (#832)
+        boolean isDefault = type == INTERFACE && !isStatic;
+
         // Generate code to push the BSHTHIS or BSHSTATIC field
         if ( isStatic||type == INTERFACE )
             pushBshStatic(fqClassName, className, cv);
         else
             pushBshThis(fqClassName, className, cv);
+
+        // push 'this'
+        if ( isDefault )
+            cv.visitVarInsn(ALOAD, 0);
 
         // Push the name of the method as a constant
         cv.visitLdcInsn(methodName);
@@ -505,8 +514,12 @@ public class ClassGeneratorUtil implements Opcodes {
         // Push the boolean constant 'true' (for declaredOnly)
         cv.visitInsn(ICONST_1);
 
-        // Invoke the method This.invokeMethod( name, Class [] paramTypes, Object [] args, boolean )
-        cv.visitMethodInsn(INVOKEVIRTUAL, "bsh/This", "invokeMethod", "(Ljava/lang/String;[Ljava/lang/Class;[Ljava/lang/Object;Z)Ljava/lang/Object;", false);
+        if ( isDefault )
+            // Invoke the method This.invokeDefaultMethod( instance, name, Class [] paramTypes, Object [] args, boolean )
+            cv.visitMethodInsn(INVOKEVIRTUAL, "bsh/This", "invokeDefaultMethod", "(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Class;[Ljava/lang/Object;Z)Ljava/lang/Object;", false);
+        else
+            // Invoke the method This.invokeMethod( name, Class [] paramTypes, Object [] args, boolean )
+            cv.visitMethodInsn(INVOKEVIRTUAL, "bsh/This", "invokeMethod", "(Ljava/lang/String;[Ljava/lang/Class;[Ljava/lang/Object;Z)Ljava/lang/Object;", false);
 
         // Generate code to return the value
         generateReturnCode(returnType, cv);
