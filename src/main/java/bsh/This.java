@@ -432,7 +432,7 @@ public final class This implements java.io.Serializable, Runnable
         Note: The invoke() meta-method will not catch the Object protocol
         methods (toString(), hashCode()...).  If you want to override them you
         have to script them directly.
-        <p>
+
 
         @see bsh.This#invokeMethod(String, Object[], Interpreter, CallStack, Node, boolean)
         @param callstack if callStack is null a new CallStack will be created and
@@ -952,10 +952,10 @@ public final class This implements java.io.Serializable, Runnable
     }
 
     /** Lazy initialize static context implementation.
-     * Called from <clinit> after static This was populated we will now
+     * Called from &lt;clinit&gt; after static This was populated we will now
      * proceed to evaluate the static block node.
      * @param genClass the generated class.
-     * @param className name of the class.
+     * The class name is taken from the generated class.
      * @throws UtilEvalError combined exceptions. */
     public static void initStatic(Class<?> genClass) throws UtilEvalError {
         String className = genClass.getSimpleName();
@@ -986,7 +986,7 @@ public final class This implements java.io.Serializable, Runnable
     }
 
     /** Pull provider for class static This.
-     * Called from <clinit> to initialize class BSHSTATIC.
+     * Called from &lt;clinit&gt; to initialize class BSHSTATIC.
      * @param uuid the class unique id.
      * @return This from static namespace. */
     public static This pullBshStatic(String uuid) {
@@ -1002,7 +1002,7 @@ public final class This implements java.io.Serializable, Runnable
      * A ConstructorArgs object holds evaluated arguments for a constructor
      * call as well as the index of a possible alternate selector to invoke.
      * This object is used by the constructor switch.
-     * @see #generateConstructor( int , String [] , int , ClassWriter)
+     * @see ClassGeneratorUtil#generateConstructor(int, String[], int, bsh.org.objectweb.asm.ClassWriter)
      */
     public static class ConstructorArgs {
 

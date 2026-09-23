@@ -39,12 +39,12 @@ public interface SecurityGuard {
         return true;
     }
 
-    /** Validate and return if some class can extends {@link superClass} */
+    /** Validate and return if some class can extends {@code superClass} */
     public default boolean canExtends(Class<?> superClass) {
         return true;
     }
 
-    /** Validate and return if some class can implements {@link _interface} */
+    /** Validate and return if some class can implements {@code _interface} */
     public default boolean canImplements(Class<?> _interface) {
         return true;
     }

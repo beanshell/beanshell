@@ -50,7 +50,7 @@ public interface Node extends ListIterator<Node> {
 
     /** Get the name of the source file (or more generally source) of the text
      * from which this node was parsed.
-     * @return source or parent's source or <unknown file> if no source found */
+     * @return source or parent's source or &lt;unknown file&gt; if no source found */
     String getSourceFile();
 
     /** Get the line number of the starting token

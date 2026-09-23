@@ -36,7 +36,7 @@ package bsh;
     to implement NameCompletion directly in a more native and efficient
     fasion.  However in general name competion is used for human interaction
     and therefore does not require high performance.
-    <p>
+
     @see bsh.util.NameCompletion
     @see bsh.util.NameCompletionTable
 */

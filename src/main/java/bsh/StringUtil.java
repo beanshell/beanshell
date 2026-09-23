@@ -333,7 +333,7 @@ public class StringUtil {
 
     /** Produce a string representation of a java field declaration.
      * Shows modifiers, type and name.
-     * @param var the field to reflect
+     * @param field the field to reflect
      * @return string representation of field declaration */
     public static String variableString(Field field) {
         StringBuilder sb = new StringBuilder();

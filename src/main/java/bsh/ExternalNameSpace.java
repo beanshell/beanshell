@@ -35,7 +35,7 @@ import java.util.stream.Stream;
     its scope.  This mechanism provides a standard collections based interface
     to the namespace as well as a convenient way to export and view values of
     the namespace without the ordinary BeanShell wrappers.
-    </p>
+    <p>
 
     Variables are maintained internally in the normal fashion to support
     meta-information (such as variable type and visibility modifiers), but
@@ -43,7 +43,7 @@ import java.util.stream.Stream;
     time they are written by BeanShell.  Imported variables from the map appear
     in the BeanShell namespace as untyped variables with no modifiers and
     shadow any previously defined variables in the scope.
-    <p/>
+    <p>
 
     Note: this class is inherentely dependent on Java 1.2 (for Map), however
     it is not used directly by the core as other than type NameSpace, so no

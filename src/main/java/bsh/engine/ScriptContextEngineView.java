@@ -14,7 +14,7 @@ import static javax.script.ScriptContext.ENGINE_SCOPE;
  * for engine implementations.  This class can be used to simplify engine
  * implementations which have the capability to bind their namespaces to Maps
  * or other external interfaces.
- * <p/>
+ * <p>
  * Get operations on this view delegate to the
  * ScriptContext inheriting get() method that automatically traverses the
  * binding scopes in order or precedence.  Put operations on this view always
@@ -56,11 +56,11 @@ public class ScriptContextEngineView implements Map<String, Object> {
      * The key must be a String.
      *
      * @param key key whose presence in this map is to be tested.
-     * @return <tt>true</tt> if this map contains a mapping for the specified key.
+     * @return <code>true</code> if this map contains a mapping for the specified key.
      * @throws ClassCastException   if the key is of an inappropriate type for this
      *                              map (optional).
-     * @throws NullPointerException if the key is <tt>null</tt> and this map does
-     *                              not permit <tt>null</tt> keys (optional).
+     * @throws NullPointerException if the key is <code>null</code> and this map does
+     *                              not permit <code>null</code> keys (optional).
      */
     @Override
     public boolean containsKey(Object key) {
@@ -69,20 +69,20 @@ public class ScriptContextEngineView implements Map<String, Object> {
 
 
     /**
-     * Returns <tt>true</tt> if this map maps one or more keys to the specified
-     * value.  More formally, returns <tt>true</tt> if and only if this map
-     * contains at least one mapping to a value <tt>v</tt> such that
-     * <tt>(value==null ? v==null : value.equals(v))</tt>.  This operation will
+     * Returns <code>true</code> if this map maps one or more keys to the specified
+     * value.  More formally, returns <code>true</code> if and only if this map
+     * contains at least one mapping to a value <code>v</code> such that
+     * <code>(value==null ? v==null : value.equals(v))</code>.  This operation will
      * probably require time linear in the map size for most implementations of the
-     * <tt>Map</tt> interface.
+     * <code>Map</code> interface.
      *
      * @param value value whose presence in this map is to be tested.
-     * @return <tt>true</tt> if this map maps one or more keys to the specified
+     * @return <code>true</code> if this map maps one or more keys to the specified
      *         value.
      * @throws ClassCastException   if the value is of an inappropriate type for this
      *                              map (optional).
-     * @throws NullPointerException if the value is <tt>null</tt> and this map does
-     *                              not permit <tt>null</tt> values (optional).
+     * @throws NullPointerException if the value is <code>null</code> and this map does
+     *                              not permit <code>null</code> values (optional).
      */
     @Override
     public boolean containsValue(Object value) {
@@ -96,12 +96,12 @@ public class ScriptContextEngineView implements Map<String, Object> {
      * key must be a String.
      *
      * @param key key whose associated value is to be returned.
-     * @return the value to which this map maps the specified key, or <tt>null</tt>
+     * @return the value to which this map maps the specified key, or <code>null</code>
      *         if the map contains no mapping for this key.
      * @throws ClassCastException   if the key is of an inappropriate type for this
      *                              map (optional).
-     * @throws NullPointerException if the key is <tt>null</tt> and this map does
-     *                              not permit <tt>null</tt> keys (optional).
+     * @throws NullPointerException if the key is <code>null</code> and this map does
+     *                              not permit <code>null</code> keys (optional).
      * @see #containsKey(Object)
      */
     @Override
@@ -116,18 +116,18 @@ public class ScriptContextEngineView implements Map<String, Object> {
      *
      * @param key   key with which the specified value is to be associated.
      * @param value value to be associated with the specified key.
-     * @return previous value associated with specified key, or <tt>null</tt> if
-     *         there was no mapping for key.  A <tt>null</tt> return can also
-     *         indicate that the map previously associated <tt>null</tt> with the
-     *         specified key, if the implementation supports <tt>null</tt> values.
-     * @throws UnsupportedOperationException if the <tt>put</tt> operation is not
+     * @return previous value associated with specified key, or <code>null</code> if
+     *         there was no mapping for key.  A <code>null</code> return can also
+     *         indicate that the map previously associated <code>null</code> with the
+     *         specified key, if the implementation supports <code>null</code> values.
+     * @throws UnsupportedOperationException if the <code>put</code> operation is not
      *                                       supported by this map.
      * @throws ClassCastException           if the class of the specified key or value
      *                                       prevents it from being stored in this map.
      * @throws IllegalArgumentException   if some aspect of this key or value
      *                                       prevents it from being stored in this map.
-     * @throws NullPointerException       if this map does not permit <tt>null</tt> keys
-     *                                       or values, and the specified key or value is <tt>null</tt>.
+     * @throws NullPointerException       if this map does not permit <code>null</code> keys
+     *                                       or values, and the specified key or value is <code>null</code>.
      */
     @Override
     public Object put(String key, Object value) {
@@ -152,15 +152,15 @@ public class ScriptContextEngineView implements Map<String, Object> {
      * Put the bindings into the ENGINE_SCOPE of the context.
      *
      * @param t Mappings to be stored in this map.
-     * @throws UnsupportedOperationException if the <tt>putAll</tt> method is not
+     * @throws UnsupportedOperationException if the <code>putAll</code> method is not
      *                                       supported by this map.
      * @throws ClassCastException           if the class of a key or value in the specified
      *                                       map prevents it from being stored in this map.
      * @throws IllegalArgumentException   some aspect of a key or value in the
      *                                       specified map prevents it from being stored in this map.
-     * @throws NullPointerException       if the specified map is <tt>null</tt>, or if
-     *                                       this map does not permit <tt>null</tt> keys or values, and the specified map
-     *                                       contains <tt>null</tt> keys or values.
+     * @throws NullPointerException       if the specified map is <code>null</code>, or if
+     *                                       this map does not permit <code>null</code> keys or values, and the specified map
+     *                                       contains <code>null</code> keys or values.
      */
     @Override
     public void putAll(Map<? extends String, ? extends Object> t) {
@@ -170,22 +170,22 @@ public class ScriptContextEngineView implements Map<String, Object> {
 
     /**
      * Removes the mapping from the engine scope.
-     * <p/>
+     *
      * <p>Returns the value to which the map previously associated the key, or
-     * <tt>null</tt> if the map contained no mapping for this key.  (A
-     * <tt>null</tt> return can also indicate that the map previously associated
-     * <tt>null</tt> with the specified key if the implementation supports
-     * <tt>null</tt> values.)  The map will not contain a mapping for the specified
+     * <code>null</code> if the map contained no mapping for this key.  (A
+     * <code>null</code> return can also indicate that the map previously associated
+     * <code>null</code> with the specified key if the implementation supports
+     * <code>null</code> values.)  The map will not contain a mapping for the specified
      * key once the call returns.
      *
-     * @param okey key whose mapping is to be removed from the map.
-     * @return previous value associated with specified key, or <tt>null</tt> if
+     * @param key key whose mapping is to be removed from the map.
+     * @return previous value associated with specified key, or <code>null</code> if
      *         there was no mapping for key.
      * @throws ClassCastException           if the key is of an inappropriate type for this
      *                                       map (optional).
-     * @throws NullPointerException       if the key is <tt>null</tt> and this map does
-     *                                       not permit <tt>null</tt> keys (optional).
-     * @throws UnsupportedOperationException if the <tt>remove</tt> method is not
+     * @throws NullPointerException       if the key is <code>null</code> and this map does
+     *                                       not permit <code>null</code> keys (optional).
+     * @throws UnsupportedOperationException if the <code>remove</code> method is not
      *                                       supported by this map.
      */
     // Why is the compiler complaining about this?
@@ -240,13 +240,13 @@ public class ScriptContextEngineView implements Map<String, Object> {
      * the returned set is a {@link java.util.Map.Entry}.  The set is backed by the
      * map, so changes to the map are reflected in the set, and vice-versa. If the
      * map is modified while an iteration over the set is in progress (except
-     * through the iterator's own <tt>remove</tt> operation, or through the
-     * <tt>setValue</tt> operation on a map entry returned by the iterator) the
+     * through the iterator's own <code>remove</code> operation, or through the
+     * <code>setValue</code> operation on a map entry returned by the iterator) the
      * results of the iteration are undefined.  The set supports element removal,
      * which removes the corresponding mapping from the map, via the
-     * <tt>Iterator.remove</tt>, <tt>Set.remove</tt>, <tt>removeAll</tt>,
-     * <tt>retainAll</tt> and <tt>clear</tt> operations.  It does not support the
-     * <tt>add</tt> or <tt>addAll</tt> operations.
+     * <code>Iterator.remove</code>, <code>Set.remove</code>, <code>removeAll</code>,
+     * <code>retainAll</code> and <code>clear</code> operations.  It does not support the
+     * <code>add</code> or <code>addAll</code> operations.
      *
      * @return a set view of the mappings contained in this map.
      */

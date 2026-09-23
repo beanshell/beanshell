@@ -184,14 +184,14 @@ public final class MainSecurityGuard {
                 throw SecurityError.cantGetStaticField(_class, fieldName);
     }
 
-    /** Validate if {@link _class} can extends {@link superClass} */
+    /** Validate if {@code _class} can extends {@code superClass} */
     public void canExtends(Class<?> superClass) throws SecurityError {
         for (SecurityGuard guard: this.securityGuards)
             if (!guard.canExtends(superClass))
                 throw SecurityError.cantExtends(superClass);
     }
 
-    /** Validate if {@link _class} can implements {@link _interface} */
+    /** Validate if {@code _class} can implements {@code _interface} */
     public void canImplements(Class<?> _interface) throws SecurityError {
         for (SecurityGuard guard: this.securityGuards)
             if (!guard.canImplements(_interface))

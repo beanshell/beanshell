@@ -44,7 +44,7 @@ import bsh.Types.MapEntry;
     invocation.  In this case it may only be resolved to a value and cannot be
     assigned.  (You can't assign a value to the result of a method call e.g.
     "foo() = 5;").
-    <p>
+
 */
 class LHS implements ParserConstants, Serializable {
     private static final long serialVersionUID = 1L;

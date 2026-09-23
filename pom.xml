@@ -401,8 +401,12 @@
             <artifactId>maven-javadoc-plugin</artifactId>
             <version>3.12.0</version>
             <configuration>
-              <!-- the comments predate HTML5 doclint and fail it with 100+ errors -->
-              <doclint>none</doclint>
+              <!-- most members lack javadoc, so skip the "missing" group's warnings -->
+              <doclint>all,-missing</doclint>
+              <!-- generated from JavaCC's own template, whose comments fail doclint -->
+              <sourceFileExcludes>
+                <sourceFileExclude>**/TokenMgrError.java</sourceFileExclude>
+              </sourceFileExcludes>
             </configuration>
             <executions>
               <execution>

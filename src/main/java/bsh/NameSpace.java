@@ -148,11 +148,11 @@ public class NameSpace
 
     // Begin constructors
     /** Instantiates a new name space.
-     * @param parent the parent
+     * @param parent the parent namespace of this namespace. Child namespaces inherit
+     *        all variables and methods of their parent and can (of course)
+     *        override / shadow them.
      * @param name the name
-     * @parent the parent namespace of this namespace. Child namespaces inherit
-     *         all variables and methods of their parent and can (of course)
-     *         override / shadow them. */
+     */
     public NameSpace(final NameSpace parent, final String name) {
         // Note: in this case parent must have a class manager.
         this(parent, null, name);
@@ -647,7 +647,7 @@ public class NameSpace
 
     /** Locate a variable and return the Variable object with optional recursion
      * through parent name spaces.
-     * <p/>
+     * <p>
      * If this namespace is static, return only static variables.
      * @param name the name
      * @param recurse the recurse
@@ -749,13 +749,13 @@ public class NameSpace
     }
 
     /** Dissallow static vars outside of a class.
-     * @param name is here just to allow the error message to use it protected
+     * name is here just to allow the error message to use it protected
      *        void checkVariableModifiers(String name, Modifiers modifiers)
-     *        throws UtilEvalError { if (modifiers!=null &&
+     *        throws UtilEvalError { if (modifiers!=null &amp;&amp;
      *        modifiers.hasModifier("static")) throw new UtilEvalError("Can't
      *        declare static variable outside of class: "+name); }
      * @param method the method
-     * @throws UtilEvalError the util eval error Note: this is primarily for
+     * Note: this is primarily for
      *         internal use.
      * @see Interpreter#source(String)
      * @see Interpreter#eval(String) */
@@ -849,19 +849,19 @@ public class NameSpace
     /** A command is a scripted method or compiled command class implementing a
      * specified method signature. Commands are loaded from the classpath and
      * may be imported using the importCommands() method.
-     * <p/>
+     * <p>
      * This method searches the imported commands packages for a script or
      * command object corresponding to the name of the method. If it is a script
      * the script is sourced into this namespace and the BshMethod for the
      * requested signature is returned. If it is a compiled class the class is
      * returned. (Compiled command classes implement static invoke() methods).
-     * <p/>
+     * <p>
      * The imported packages are searched in reverse order, so that later
      * imports take priority. Currently only the first object (script or class)
      * with the appropriate name is checked. If another, overloaded form, is
      * located in another package it will not currently be found. This could be
      * fixed.
-     * <p/>
+     *
      * @param name is the name of the desired command method
      * @param argTypes is the signature of the desired command method.
      * @param interpreter the interpreter
@@ -1216,14 +1216,14 @@ public class NameSpace
     /** Invoke a method in this namespace with the specified args and
      * interpreter reference. No caller information or call stack is required.
      * The method will appear as if called externally from Java.
-     * <p>
+     *
      * @param methodName the method name
      * @param args the args
      * @param interpreter the interpreter
      * @return the object
      * @throws EvalError the eval error
-     * @see bsh.This.invokeMethod(String methodName, Object [] args,
-     *      Interpreter interpreter, CallStack callstack, Node callerInfo,
+     * @see bsh.This#invokeMethod(String, Object[],
+     *      Interpreter, CallStack, Node,
      *      boolean) */
     public Object invokeMethod(final String methodName, final Object[] args,
             final Interpreter interpreter) throws EvalError {
@@ -1231,7 +1231,7 @@ public class NameSpace
     }
 
     /** This method simply delegates to This.invokeMethod();.
-     * <p>
+     *
      * @param methodName the method name
      * @param args the args
      * @param interpreter the interpreter
@@ -1239,9 +1239,9 @@ public class NameSpace
      * @param callerInfo the caller info
      * @return the object
      * @throws EvalError the eval error
-     * @see bsh.This.invokeMethod(String methodName, Object [] args,
-     *      Interpreter interpreter, CallStack callstack, Node
-     *      callerInfo) */
+     * @see bsh.This#invokeMethod(String, Object[],
+     *      Interpreter, CallStack, Node,
+     *      boolean) */
     public Object invokeMethod(final String methodName, final Object[] args,
             final Interpreter interpreter, final CallStack callstack,
             final Node callerInfo) throws EvalError {
@@ -1475,9 +1475,9 @@ public class NameSpace
      * namespace. When no scripted method / command or variable is found locally
      * in this namespace method / fields of the object will be checked. Objects
      * are checked in the order of import with later imports taking precedence.
-     * <p/>
+     *
      * @param obj the obj Note: this impor pattern is becoming common... could
-     *        factor it out into an importedObject List<String> class. */
+     *        factor it out into an importedObject List&lt;String&gt; class. */
     public void importObject(final Object obj) {
         this.importedObjects.remove(obj);
         this.importedObjects.add(0, obj);

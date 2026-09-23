@@ -53,15 +53,15 @@ import bsh.security.MainSecurityGuard;
     <p>
     Here are some examples:
 
-    <p><blockquote><pre>
+    <blockquote><pre>
         Interpeter bsh = new Interpreter();
 
         // Evaluate statements and expressions
         bsh.eval("foo=Math.sin(0.5)");
         bsh.eval("bar=foo*5; bar=Math.cos(bar);");
-        bsh.eval("for(i=0; i<10; i++) { print(\"hello\"); }");
+        bsh.eval("for(i=0; i&lt;10; i++) { print(\"hello\"); }");
         // same as above using java syntax and apis only
-        bsh.eval("for(int i=0; i<10; i++) { System.out.println(\"hello\"); }");
+        bsh.eval("for(int i=0; i&lt;10; i++) { System.out.println(\"hello\"); }");
 
         // Source from files or streams
         bsh.source("myscript.bsh");  // or bsh.eval("source(\"myscript.bsh\")");
@@ -293,7 +293,7 @@ public class Interpreter
 
     /** An interactive interpreter attached to a console with supplied namespace.
      * @param console read only collection of input output streams.
-     * @param namespace global name space or null. */
+     * @param globalNameSpace global name space or null. */
     public Interpreter(ConsoleInterface console, NameSpace globalNameSpace) {
         this(console, globalNameSpace, null);
     }
@@ -1058,7 +1058,7 @@ public class Interpreter
         <p>
 
         For example, the following is identical to the previous example:
-        <p>
+
 
         <pre>
             // Fetch a reference to the interpreter as a Runnable
@@ -1070,7 +1070,7 @@ public class Interpreter
         <em>Version requirement</em> Although standard Java interface types
         are always available, to be used with arbitrary interfaces this
         feature requires that you are using Java 1.3 or greater.
-        <p>
+
 
         @throws EvalError if the interface cannot be generated because the
         version of Java does not support the proxy mechanism.
@@ -1211,7 +1211,7 @@ public class Interpreter
         external classloader.
         However BeanShell is not currently able to reload
         classes supplied through the external classloader.
-        <p>
+
 
         @see BshClassManager#setClassLoader( ClassLoader )
     */
@@ -1338,7 +1338,7 @@ public class Interpreter
         end of input.  If true, when in interactive mode the interpreter will
         issue a System.exit(0) upon eof.  If false the interpreter no
         System.exit() will be done.
-        <p/>
+        <p>
         Note: if you wish to cause an EOF externally you can try closing the
         input stream.  This is not guaranteed to work in older versions of Java
         due to Java limitations, but should work in newer JDK/JREs.  (That was

@@ -67,7 +67,7 @@ import static bsh.Capabilities.haveAccessibility;
 
     Bsh has a multi-tiered class loading architecture.  No class loader is
     used unless/until the classpath is modified or a class is reloaded.
-    <p>
+
 */
 /*
     Implementation notes:
@@ -639,8 +639,8 @@ public class BshClassManager {
         Create a new instance of the class manager.
         Class manager instnaces are now associated with the interpreter.
 
-        @see bsh.Interpreter.getClassManager()
-        @see bsh.Interpreter.setClassLoader( ClassLoader )
+        @see bsh.Interpreter#getClassManager()
+        @see bsh.Interpreter#setClassLoader(ClassLoader)
     */
     public static BshClassManager createClassManager( Interpreter interpreter )
     {
@@ -715,7 +715,7 @@ public class BshClassManager {
         classloader.
         If a BshClassManager implementation is loaded the call will be
         delegated to it, to allow for additional hooks.
-        <p/>
+        <p>
 
         This simply wraps that bottom level class lookup call and provides a
         central point for monitoring and handling certain Java version
@@ -805,7 +805,7 @@ public class BshClassManager {
 
     /**
         Clear the caches in BshClassManager
-        @see public void #reset() for external usage
+        @see #reset() reset(), for external usage
     */
     protected void clearCaches() {
         absoluteNonClasses.clear();
@@ -896,7 +896,7 @@ public class BshClassManager {
     /**
         Reload all classes in the specified package: e.g. "com.sun.tools"
 
-        The special package name "<unpackaged>" can be used to refer
+        The special package name "&lt;unpackaged&gt;" can be used to refer
         to unpackaged classes.
     */
     public void reloadPackage( String pack ) throws UtilEvalError {
