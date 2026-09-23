@@ -314,7 +314,7 @@ public final class Primitive implements Serializable {
         Wrap primitive values (as indicated by type param) and nulls in the
         Primitive class.  Values not primitive or null are left unchanged.
         Primitive values are represented by their wrapped values in param value.
-        <p/>
+        <p>
         The value null is mapped to Primitive.NULL.
         Any value specified with type Void.TYPE is mapped to Primitive.VOID.
     */
@@ -417,7 +417,7 @@ public final class Primitive implements Serializable {
         Cast or check a cast of a primitive type to another type.
         Normally both types are primitive (e.g. numeric), but a null value
         (no type) may be cast to any type.
-        <p/>
+        <p>
 
         @param toType is the target type of the cast.  It is normally a
         java primitive TYPE, but in the case of a null cast can be any object

@@ -245,7 +245,7 @@ public class BshScriptEngine extends AbstractScriptEngine implements Compilable,
 
     /**
      * Calls a procedure compiled during a previous script execution, which is
-     * retained in the state of the {@code ScriptEngine{@code .
+     * retained in the state of the {@code ScriptEngine}.
      *
      * @param name The name of the procedure to be called.
      * @param thiz If the procedure is a member  of a class defined in the script

@@ -36,7 +36,7 @@ import java.awt.Color;
     used by a more sophisticated text-only command line.
     <p>
     Note: we may want to express the command line history, editing,
-    and cut & paste functionality here as well at some point.
+    and cut &amp; paste functionality here as well at some point.
 */
 public interface GUIConsoleInterface extends ConsoleInterface
 {

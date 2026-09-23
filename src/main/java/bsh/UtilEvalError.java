@@ -66,8 +66,8 @@ public class UtilEvalError extends Exception
     /**
         Re-throw as an eval error, prefixing msg to the message and specifying
         the node.  If a node already exists the addNode is ignored.
-        @see #setNode( bsh.Node )
-        <p>
+        @see EvalError#setNode(Node)
+
         @param msg may be null for no additional message.
     */
     public EvalError toEvalError(

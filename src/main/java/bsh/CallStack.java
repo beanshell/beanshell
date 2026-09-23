@@ -49,7 +49,7 @@ import java.util.EmptyStackException;
     implemented by This or an arbitrary interface implemented by XThis.
     In that case the This invokeMethod() method (called by any interface that
     it exposes) creates a new CallStack for each external call.
-    <p>
+
 */
 public final class CallStack implements Serializable {
     /** default serial version id */

@@ -54,8 +54,8 @@ import bsh.org.objectweb.asm.Type;
  * ClassGeneratorUtil utilizes the ASM (www.objectweb.org) bytecode generator
  * by Eric Bruneton in order to generate class "stubs" for BeanShell at
  * runtime.
- * <p/>
- * <p/>
+ *
+ * <p>
  * Stub classes contain all of the fields of a BeanShell scripted class
  * as well as two "callback" references to BeanShell namespaces: one for
  * static methods and one for instance methods. Methods of the class are
@@ -64,8 +64,8 @@ import bsh.org.objectweb.asm.Type;
  * namespace utilizes a static import to delegate variable access to the
  * class' static fields. The instance namespace utilizes a dynamic import
  * (i.e. mixin) to delegate variable access to the class' instance variables.
- * <p/>
- * <p/>
+ *
+ * <p>
  * Constructors for the class delegate to the static initInstance() method of
  * ClassGeneratorUtil to initialize new instances of the object. initInstance()
  * invokes the instance intializer code (init vars and instance blocks) and
@@ -73,12 +73,12 @@ import bsh.org.objectweb.asm.Type;
  * instance namespace. Constructors contain special switch logic which allows
  * the BeanShell to control the calling of alternate constructors (this() or
  * super() references) at runtime.
- * <p/>
- * <p/>
+ *
+ * <p>
  * Specially named superclass delegator methods are also generated in order to
  * allow BeanShell to access overridden methods of the superclass (which
  * reflection does not normally allow).
- * <p/>
+ *
  *
  * @author Pat Niemeyer
  */
@@ -603,7 +603,7 @@ public class ClassGeneratorUtil implements Opcodes {
      * constructor. This includes all superclass constructors and all
      * constructors of this class. The default branch of this switch is the
      * default superclass constructor.
-     * <p/>
+     * <p>
      * This method also generates the code to call the static
      * ClassGeneratorUtil
      * getConstructorArgs() method which inspects the scripted constructor to

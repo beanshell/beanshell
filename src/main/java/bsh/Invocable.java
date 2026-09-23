@@ -41,14 +41,14 @@ public abstract class Invocable implements Member {
     }
 
     /** Public invocable class method for making constructor invocables.
-     * @param m reflect constructor member
+     * @param c reflect constructor member
      * @return executing constructor invocable */
     public static Invocable get(Constructor<?> c) {
         return new ConstructorInvocable(c);
     }
 
     /** Public invocable class method for making field access invocables.
-     * @param m reflect field member
+     * @param f reflect field member
      * @return field access invocable */
     public static FieldAccess get(Field f) {
         return new FieldAccess(f);

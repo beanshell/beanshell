@@ -30,7 +30,7 @@ package bsh;
 
 /**
     Implement binary expressions...
-    @see Primitive.binaryOperation
+    @see Operators#binaryOperation(Object, Object, int)
 */
 class BSHBinaryExpression extends SimpleNode implements ParserConstants {
     public int kind;

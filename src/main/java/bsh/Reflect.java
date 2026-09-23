@@ -471,23 +471,23 @@ public final class Reflect {
         delegate to this.  The method may be static or dynamic unless
         staticOnly is set (in which case object may be null).
         If staticOnly is set then only static methods will be located.
-        <p/>
+        <p>
 
         This method performs caching (caches discovered methods through the
         class manager and utilizes cached methods.)
-        <p/>
+        <p>
 
         This method determines whether to attempt to use non-public methods
         based on Capabilities.haveAccessibility() and will set the accessibilty
         flag on the method as necessary.
-        <p/>
+        <p>
 
         If, when directed to find a static method, this method locates a more
         specific matching instance method it will throw a descriptive exception
         analogous to the error that the Java compiler would produce.
         Note: as of 2.0.x this is a problem because there is no way to work
         around this with a cast.
-        <p/>
+
 
         @param staticOnly
             The method located must be static, the object param may be null.
@@ -522,11 +522,11 @@ public final class Reflect {
         Primary object constructor
         This method is simpler than those that must resolve general method
         invocation because constructors are not inherited.
-     <p/>
+     <p>
      This method determines whether to attempt to use non-public constructors
      based on Capabilities.haveAccessibility() and will set the accessibilty
      flag on the method as necessary.
-     <p/>
+     <p>
     */
     static Object constructObject( Class<?> clas, Object[] args )
             throws ReflectError, InvocationTargetException {

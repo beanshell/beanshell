@@ -471,7 +471,7 @@ public class ClassManagerImpl extends BshClassManager
     /**
         Reload all classes in the specified package: e.g. "com.sun.tools"
 
-        The special package name "<unpackaged>" can be used to refer
+        The special package name "&lt;unpackaged&gt;" can be used to refer
         to unpackaged classes.
     */
     @Override
