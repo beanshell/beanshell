@@ -3,6 +3,8 @@
 
 ## 3.0.0 beta 2 (in progress)
 
+The Maven groupId is now `io.github.beanshell` (was `org.beanshell`), so update your dependency to `io.github.beanshell:bsh`. The OSGi bundle symbolic name stays `org.beanshell.bsh` (#769).
+
 
 ## 3.0.0 beta 1
 
