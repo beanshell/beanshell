@@ -6,8 +6,8 @@
 
 The **official** and **active** project home for BeanShell.
 
-## NOTICE: Pending new release
-The only recommended version is a manual build of the main branch. Support for legacy releases reached end-of-life; only issues and pull requests against main will be accepted.
+## NOTICE: 3.0 beta available
+[BeanShell 3.0.0b1](https://github.com/beanshell/beanshell/releases/tag/3.0.0b1), the first beta of 3.0, is available from GitHub releases. Support for legacy releases reached end-of-life; only issues and pull requests against main will be accepted.
 
 The next release will be BeanShell 3.0, as the [development roadmap](https://github.com/beanshell/beanshell#development-road-map) outlines. It [was decided](https://github.com/beanshell/beanshell/issues/81) that the next release would be a production-ready major version with all outstanding issues resolved to encourage community involvement and testing.
 
@@ -44,21 +44,22 @@ Building BeanShell requires JDK 8 or newer. The resulting JAR targets Java 8 and
 
 The source code releases can be downloaded from [GitHub releases](https://github.com/beanshell/beanshell/releases)
 
-Latest release:
+Latest releases:
 
- - [BeanShell 2.1.1](https://github.com/beanshell/beanshell/releases/tag/2.1.1) - [bsh-2.1.1-src.zip](https://github.com/beanshell/beanshell/releases/download/2.1.1/bsh-2.1.1-src.zip)
+ - [BeanShell 3.0.0b1](https://github.com/beanshell/beanshell/releases/tag/3.0.0b1) (beta) - [source zip](https://github.com/beanshell/beanshell/archive/refs/tags/3.0.0b1.zip)
+ - [BeanShell 2.1.1](https://github.com/beanshell/beanshell/releases/tag/2.1.1) (legacy) - [bsh-2.1.1-src.zip](https://github.com/beanshell/beanshell/releases/download/2.1.1/bsh-2.1.1-src.zip)
 
 
 ### Maven
 
-Beanshell 3.0.0 currently only has a SNAPSHOT release published to [Sonatype](https://oss.sonatype.org/content/repositories/snapshots/org/beanshell/bsh/). To use Beanshell with Maven, add this to your `pom.xml`:
+BeanShell 3.0 is not on Maven Central yet ([#769](https://github.com/beanshell/beanshell/issues/769)). Until it is, check out the `3.0.0b1` tag and run `mvn install` to put it in your local repository, then add this to your `pom.xml`:
 
 ```xml
     <dependencies>
        <dependency>
          <groupId>org.beanshell</groupId>
          <artifactId>bsh</artifactId>
-         <version>3.0.0-SNAPSHOT</version>
+         <version>3.0.0b1</version>
        </dependency>
     </dependencies>
 ```
@@ -67,24 +68,25 @@ Beanshell 3.0.0 currently only has a SNAPSHOT release published to [Sonatype](ht
 
 You can also download the `bsh.jar` binary from the releases page or the link below:
 
-- [bsh-2.1.1.jar](https://github.com/beanshell/beanshell/releases/download/2.1.1/bsh-2.1.1.jar)
+- [bsh-3.0.0b1.jar](https://github.com/beanshell/beanshell/releases/download/3.0.0b1/bsh-3.0.0b1.jar) (beta)
+- [bsh-2.1.1.jar](https://github.com/beanshell/beanshell/releases/download/2.1.1/bsh-2.1.1.jar) (legacy)
 
 If you want to execute the Beanshell [User Interface](https://github.com/beanshell/beanshell/wiki/Desktop), either double-click the JAR file, or run it with:
 
 ```shell
-$ java -jar bsh-2.1.1.jar
+$ java -jar bsh-3.0.0b1.jar
 ```
 
 For a BeanShell interactive shell, you can either use the `java` command:
 
 ```shell
-$ java -cp bsh-2.1.1.jar bsh.Interpreter
+$ java -cp bsh-3.0.0b1.jar bsh.Interpreter
 ```
 
 or the supplied helper scripts `bsh` or `bsh.bat`, available under the scripts folder.
 
 
-You will need [Java](http://java.com/) 5 or later installed.
+BeanShell 3.0 needs Java 8 or later.
 
 ## Build
 
