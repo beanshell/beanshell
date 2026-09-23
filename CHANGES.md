@@ -1,6 +1,9 @@
 # BeanShell changelog
 
 
+## 3.0.0 beta 2 (in progress)
+
+
 ## 3.0.0 beta 1
 
 Work has resumed on the long-dormant 3.0 development line (`main`; the JAR targets Java 8 and is tested on Java 8 through 25) after a multi-year gap. Changes in this first beta:
