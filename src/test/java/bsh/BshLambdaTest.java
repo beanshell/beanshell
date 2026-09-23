@@ -1209,6 +1209,56 @@ public class BshLambdaTest {
             + " t = new T(); t.run(); t.get();")));
     }
 
+    private static final String MAKE_CALLABLE =
+        "import java.util.concurrent.Callable; mk(v) { call() { return v; } return this; } ";
+
+    @Test
+    public void a_this_argument_to_this_in_a_scripted_constructor_is_converted_to_the_interface() throws Exception {
+        assertEquals(7, Primitive.unwrap(new Interpreter().eval(MAKE_CALLABLE
+            + "class C { Callable c; C(Callable c) { this.c = c; } C(x, int n) { this(x); } }"
+            + " new C(mk(7), 1).c.call();")));
+    }
+
+    @Test
+    public void a_this_argument_to_a_scripted_super_constructor_is_converted_to_the_interface() throws Exception {
+        assertEquals(7, Primitive.unwrap(new Interpreter().eval(MAKE_CALLABLE
+            + "class Base { Callable c; Base(Callable c) { this.c = c; } }"
+            + " class Sub extends Base { Sub(x) { super(x); } }"
+            + " new Sub(mk(7)).c.call();")));
+    }
+
+    @Test
+    public void a_this_argument_to_a_super_constructor_is_converted_to_a_scripted_interface() throws Exception {
+        assertEquals(7, Primitive.unwrap(new Interpreter().eval(
+            "interface Go { int go(); } mkGo() { int go() { return 7; } return this; }"
+            + " class Base { Go g; Base(Go g) { this.g = g; } }"
+            + " class Sub extends Base { Sub(x) { super(x); } }"
+            + " new Sub(mkGo()).g.go();")));
+    }
+
+    @Test
+    public void a_this_argument_to_an_anonymous_class_constructor_is_converted_to_the_interface() throws Exception {
+        assertEquals(7, Primitive.unwrap(new Interpreter().eval(MAKE_CALLABLE
+            + "t = new java.util.concurrent.FutureTask(mk(7)) { }; t.run(); t.get();")));
+    }
+
+    public static class CallableVarargs {
+        public final int sum;
+        public CallableVarargs(int n, Callable<?>... cs) throws Exception {
+            int s = n;
+            for (Callable<?> c : cs) s += (Integer) c.call();
+            sum = s;
+        }
+    }
+
+    @Test
+    public void this_arguments_to_a_varargs_java_super_constructor_are_converted_to_the_interface() throws Exception {
+        assertEquals(6, Primitive.unwrap(new Interpreter().eval(MAKE_CALLABLE
+            + "import bsh.BshLambdaTest.CallableVarargs;"
+            + " class V extends CallableVarargs { V(a, b) { super(1, a, b); } }"
+            + " new V(mk(2), mk(3)).sum;")));
+    }
+
     // A `This` argument to an untyped ("loose") constructor parameter must stay opaque --
     // the generated constructor holds it as an untyped local, exactly as before lambdas
     // existed. paramTypes[k] is null for such a parameter.
