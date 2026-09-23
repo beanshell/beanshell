@@ -1,9 +1,9 @@
 # BeanShell changelog
 
 
-## 3.0.0 (in progress)
+## 3.0.0 beta 1
 
-Work has resumed on the long-dormant 3.0 development line (`master`; the JAR targets Java 8 and is tested on Java 8 through 25) after a multi-year gap. This entry will grow as the release is prepared; changes so far:
+Work has resumed on the long-dormant 3.0 development line (`main`; the JAR targets Java 8 and is tested on Java 8 through 25) after a multi-year gap. Changes in this first beta:
 
 Fixed reading a constant or any other field through a scripted interface overflowing the stack when the object isn't a scripted class, such as a scripted object cast to the interface, an anonymous `new Foo() { ... }`, or a Java class implementing it. For a Java class even calling its methods overflowed (#830).
 
