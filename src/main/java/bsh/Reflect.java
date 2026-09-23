@@ -323,9 +323,9 @@ public final class Reflect {
     private static Object getFieldValue(
             Class<?> clas, Object object, String fieldName, boolean staticOnly)
             throws UtilEvalError, ReflectError {
+        Invocable f;
         try {
-            Invocable f = resolveExpectedJavaField(clas, fieldName, staticOnly);
-            return f.invoke(object);
+            f = resolveExpectedJavaField(clas, fieldName, staticOnly);
         } catch ( ReflectError e ) {
             NameSpace ns = getThisNS(clas);
             if (isGeneratedClass(clas) && null != ns && ns.isClass)
@@ -347,15 +347,22 @@ public final class Reflect {
                     if (Primitive.VOID != val)
                         return val;
                 }
-            // A lambda wrapper implements a scripted interface without being a
-            // generated class; the interface keeps its constants only in its
-            // static namespace (ClassGeneratorUtil keeps them virtual).
-            if (BshLambda.isWrapperClass(clas)) {
+            // Lambda wrappers, proxies and Java classes implement a scripted interface
+            // without a namespace; its constants live only in the interface's static namespace.
+            if (null == ns && GeneratedClass.class.isAssignableFrom(clas)) {
                 Object constant = scriptedInterfaceConstant(clas, fieldName);
                 if (constant != Primitive.VOID)
                     return constant;
             }
             throw e;
+        }
+        return invokeField(f, object, fieldName);
+    }
+
+    private static Object invokeField(Invocable f, Object object, String fieldName)
+            throws UtilEvalError, ReflectError {
+        try {
+            return f.invoke(object);
         } catch(InvocationTargetException e) {
             if (e.getCause() instanceof InterpreterError)
                 throw (InterpreterError)e.getCause();
@@ -1175,7 +1182,9 @@ public final class Reflect {
      */
     public static This getClassStaticThis(Class<?> clas, String className) {
         try {
-            return (This) getStaticFieldValue(clas, BSHSTATIC + className);
+            // Read the holder directly: getFieldValue's scripted fallback calls back into getThisNS.
+            String holder = BSHSTATIC + className;
+            return (This) invokeField(resolveExpectedJavaField(clas, holder, true), null, holder);
         } catch (Exception e) {
             throw new InterpreterError("Unable to get class static space: " + e, e);
         }
@@ -1189,8 +1198,8 @@ public final class Reflect {
     public static This getClassInstanceThis(Object instance, Class<?> genClass) {
         try {
             // Resolve on genClass itself: a subclass may declare a holder with the same simple name.
-            Object o = getFieldValue(genClass, instance,
-                BSHTHIS + genClass.getSimpleName(), false/*onlystatic*/);
+            String holder = BSHTHIS + genClass.getSimpleName();
+            Object o = invokeField(resolveExpectedJavaField(genClass, holder, false), instance, holder);
             return (This) Primitive.unwrap(o); // unwrap Primitive.Null to null
         } catch (Exception e) {
             throw new InterpreterError("Generated class: Error getting This " + e, e);

@@ -31,6 +31,10 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import bsh.org.objectweb.asm.ClassWriter;
+import bsh.org.objectweb.asm.MethodVisitor;
+import bsh.org.objectweb.asm.Opcodes;
+
 @RunWith(FilteredTestRunner.class)
 public class ReflectTest {
 
@@ -846,5 +850,51 @@ public class ReflectTest {
         //     {Double.TYPE}, {char[].class}, {Boolean.TYPE}
         // });
         // assertEquals("most specific char[] class", 1, value);
+    }
+
+    private static final class JImplLoader extends ClassLoader {
+        JImplLoader(ClassLoader parent) {
+            super(parent);
+        }
+
+        Class<?> define(byte[] bytes) {
+            return defineClass(null, bytes, 0, bytes.length);
+        }
+    }
+
+    private static byte[] javaImplBytes(String internalName, String iface) {
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, internalName, null, "java/lang/Object",
+            new String[] { iface });
+        MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+        mv.visitCode();
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+        mv.visitInsn(Opcodes.RETURN);
+        mv.visitMaxs(0, 0);
+        mv.visitEnd();
+        mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "run", "()V", null, null);
+        mv.visitCode();
+        mv.visitInsn(Opcodes.RETURN);
+        mv.visitMaxs(0, 0);
+        mv.visitEnd();
+        cw.visitEnd();
+        return cw.toByteArray();
+    }
+
+    // #830: a plain Java class implementing a scripted interface has no bsh holder fields.
+    @Test
+    public void java_class_implementing_scripted_interface_reads_its_constants() throws Exception {
+        Interpreter i = new Interpreter();
+        i.eval("interface Foo830j { int K = 7; void run(); }");
+        Class<?> foo = (Class<?>) i.eval("Foo830j.class");
+        Class<?> impl = new JImplLoader(foo.getClassLoader())
+            .define(javaImplBytes("JImpl830", foo.getName().replace('.', '/')));
+        i.set("j", impl.getConstructor().newInstance());
+
+        assertEquals(7, i.eval("j.K"));
+        assertEquals(1, i.eval("j.run(); 1"));
+        assertNull(i.eval("j.nope"));
+        assertEquals(Boolean.TRUE, i.eval("j.getClass().getInterfaces()[0] == Foo830j.class"));
     }
 }
