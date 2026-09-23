@@ -1,0 +1,32 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+interface Foo830 { int K = 7; void run(); }
+interface Bar830 extends Foo830 { }
+
+run() { }
+
+// A This cast to a scripted interface is a JDK proxy, not a generated class.
+f = (Foo830) this;
+assert(java.lang.reflect.Proxy.isProxyClass(f.getClass()));
+assertThat(f.K, equalTo(7));
+
+b = (Bar830) this;
+assertThat(b.K, equalTo(7));
+
+anon = new Foo830() { public void run() { } };
+assert(java.lang.reflect.Proxy.isProxyClass(anon.getClass()));
+assertThat(anon.K, equalTo(7));
+
+p = this.getInterface(Foo830.class);
+assertThat(p.K, equalTo(7));
+
+// A missing field resolves like it does on a scripted class implementing the interface.
+class Impl830 implements Foo830 { public void run() { } }
+assert(new Impl830().nope == void);
+assert(f.nope == void);
+assert(anon.nope == void);
+
+complete();

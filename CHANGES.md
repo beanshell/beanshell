@@ -5,6 +5,8 @@
 
 Work has resumed on the long-dormant 3.0 development line (`master`; the JAR targets Java 8 and is tested on Java 8 through 25) after a multi-year gap. This entry will grow as the release is prepared; changes so far:
 
+Fixed reading a constant or any other field through a scripted interface overflowing the stack when the object isn't a scripted class, such as a scripted object cast to the interface, an anonymous `new Foo() { ... }`, or a Java class implementing it. For a Java class even calling its methods overflowed (#830).
+
 Fixed a scripted interface's default method failing when it calls a method of the instance it runs on or uses `this`, and a scripted class instance failing to be assigned, cast or passed as a scripted interface it implements, as in `Foo f = new Impl();` (#832).
 
 Fixed a script being able to disguise its own class as BeanShell's internal lambda-wrapper machinery by implementing the public `bsh.BshLambda.Wrapper` marker interface directly, which let a `final` scripted class be subclassed anyway and let a scripted interface's default method dodge the check that rejects it as an unsafe lambda-conversion target. The check now looks at which class loader actually defined the class, which a script can't fake (#850).
