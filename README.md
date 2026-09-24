@@ -52,7 +52,19 @@ Latest releases:
 
 ### Maven
 
-BeanShell 3.0 is not on Maven Central yet ([#769](https://github.com/beanshell/beanshell/issues/769)). Until it is, check out the `3.0.0b1` tag and run `mvn install` to put it in your local repository, then add this to your `pom.xml`:
+BeanShell is published to Maven Central under the `io.github.beanshell` groupId. The legacy 2.1.1 release is available there now:
+
+```xml
+    <dependencies>
+       <dependency>
+         <groupId>io.github.beanshell</groupId>
+         <artifactId>bsh</artifactId>
+         <version>2.1.1</version>
+       </dependency>
+    </dependencies>
+```
+
+BeanShell 3.0 is not on Maven Central yet ([#769](https://github.com/beanshell/beanshell/issues/769)). Until it is, check out the `3.0.0b1` tag and run `mvn install` to put it in your local repository, then add this to your `pom.xml` (3.0.0b1 predates the groupId change):
 
 ```xml
     <dependencies>
