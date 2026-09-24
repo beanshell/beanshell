@@ -52,8 +52,8 @@ public class BeanShellBSFEngine extends BSFEngineImpl
         try {
             interpreter.set( "bsf", mgr );
         } catch ( EvalError e ) {
-        	BSFException bsf = new BSFException(BSFException.REASON_OTHER_ERROR, "bsh internal error: "+e, e);
-        	bsf.initCause(e);
+            BSFException bsf = new BSFException(BSFException.REASON_OTHER_ERROR, "bsh internal error: "+e, e);
+            bsf.initCause(e);
             throw bsf;
         }
 
@@ -101,7 +101,7 @@ public class BeanShellBSFEngine extends BSFEngineImpl
                     "BeanShell interpreter internal error: "+e, e);
                 bsf.initCause(e);
                 throw bsf;
-                
+
             } catch ( TargetError e2 )
             {
                 BSFException bsf = new BSFException(BSFException.REASON_EXECUTION_ERROR,
@@ -109,7 +109,7 @@ public class BeanShellBSFEngine extends BSFEngineImpl
                     + e2.getTarget(), e2 );
                 bsf.initCause(e2);
                 throw bsf;
-                
+
             } catch ( EvalError e3 )
             {
                 BSFException bsf = new BSFException(BSFException.REASON_OTHER_ERROR, "BeanShell script error: "+e3, e3);
@@ -175,13 +175,13 @@ public class BeanShellBSFEngine extends BSFEngineImpl
 
         } catch ( InterpreterError e )
         {
-        	BSFException bsf = new BSFException(BSFException.REASON_UNKNOWN_LANGUAGE,
+            BSFException bsf = new BSFException(BSFException.REASON_UNKNOWN_LANGUAGE,
                 "BeanShell interpreter internal error: "+e
                 + errorMessage(source,lineNo,columnNo, e), e);
-        	
-        	bsf.initCause(e);
+
+            bsf.initCause(e);
             throw bsf;
-            
+
         } catch ( TargetError e2 )
         {
             BSFException bsf =  new BSFException(BSFException.REASON_EXECUTION_ERROR,
@@ -190,7 +190,7 @@ public class BeanShellBSFEngine extends BSFEngineImpl
                 + errorMessage(source,lineNo,columnNo, e2), e2);
             bsf.initCause(e2);
             throw bsf;
-            
+
         } catch ( EvalError e3 )
         {
             BSFException bsf = new BSFException(BSFException.REASON_OTHER_ERROR,
@@ -218,7 +218,7 @@ public class BeanShellBSFEngine extends BSFEngineImpl
                 + errorMessage(source,lineNo,columnNo, e), e);
             bsf.initCause(e);
             throw bsf;
-            
+
         } catch ( TargetError e2 )
         {
             BSFException bsf = new BSFException(BSFException.REASON_EXECUTION_ERROR,
@@ -227,7 +227,7 @@ public class BeanShellBSFEngine extends BSFEngineImpl
                 + errorMessage(source,lineNo,columnNo, e2), e2);
             bsf.initCause(e2);
             throw bsf;
-            
+
         } catch ( EvalError e3 )
         {
             BSFException bsf = new BSFException(BSFException.REASON_OTHER_ERROR,
@@ -278,12 +278,12 @@ public class BeanShellBSFEngine extends BSFEngineImpl
         try {
             interpreter.set( bean.name, bean.bean);
         } catch ( EvalError e ) {
-        	
+
             BSFException bsf = new BSFException(BSFException.REASON_OTHER_ERROR, "error declaring bean: "+bean.name
-            		+" : "+e, e);
+                    +" : "+e, e);
             bsf.initCause(e);
             throw bsf;
-            
+
         }
     }
 
@@ -300,10 +300,10 @@ public class BeanShellBSFEngine extends BSFEngineImpl
     }
 
     public void terminate () { }
-    
+
     /**
-     * Build an error message 
-     * 
+     * Build an error message
+     *
      * @param source
      * @param lineNo
      * @param columnNo
@@ -312,27 +312,27 @@ public class BeanShellBSFEngine extends BSFEngineImpl
      */
     private String errorMessage(String source, int lineNo, int columnNo, EvalError error)
     {
-    	StringBuilder msg = new StringBuilder();
-    	msg.append(" BSF info: ");
-		msg.append(source);
-		msg.append(" at line: ");
-		
-    	if (lineNo > 0) {
-    		
-    		msg.append(lineNo);
-    		msg.append(" column: ");
-    		msg.append(columnNo);
-    		
-    	} else {  
-    		msg.append( error.getErrorLineNumber());
-    	}
-    	msg.append(" Error: ");
-    	msg.append(error.getErrorText());
-    	return msg.toString();
+        StringBuilder msg = new StringBuilder();
+        msg.append(" BSF info: ");
+        msg.append(source);
+        msg.append(" at line: ");
+
+        if (lineNo > 0) {
+
+            msg.append(lineNo);
+            msg.append(" column: ");
+            msg.append(columnNo);
+
+        } else {
+            msg.append( error.getErrorLineNumber());
+        }
+        msg.append(" Error: ");
+        msg.append(error.getErrorText());
+        return msg.toString();
     }
-    
+
     /**
-     * 
+     *
      * @param source
      * @param lineNo
      * @param columnNo
@@ -341,24 +341,24 @@ public class BeanShellBSFEngine extends BSFEngineImpl
      */
     private String errorMessage(String source, int lineNo, int columnNo, InterpreterError error)
     {
-    	StringBuilder msg = new StringBuilder();
-    	msg.append(" BSF info: ");
-		msg.append(source);
-		
-    	if (lineNo > 0) {
-    		
-    		msg.append(" at line: ");
-    		msg.append(lineNo);
-    		msg.append(" column: ");
-    		msg.append(columnNo);
-    	
-    	} 
-    	msg.append(" Error: ");
-    	if (error.getCause() != null)    		
-    		msg.append(error.getCause().getMessage());
-    	else
-    		msg.append(error.getMessage());
-    	
-    	return msg.toString();
+        StringBuilder msg = new StringBuilder();
+        msg.append(" BSF info: ");
+        msg.append(source);
+
+        if (lineNo > 0) {
+
+            msg.append(" at line: ");
+            msg.append(lineNo);
+            msg.append(" column: ");
+            msg.append(columnNo);
+
+        }
+        msg.append(" Error: ");
+        if (error.getCause() != null)
+            msg.append(error.getCause().getMessage());
+        else
+            msg.append(error.getMessage());
+
+        return msg.toString();
     }
 }
