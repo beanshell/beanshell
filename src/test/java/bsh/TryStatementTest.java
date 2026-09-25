@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 
 import static bsh.TestUtil.eval;
 import static bsh.TestUtil.toMap;
@@ -205,8 +206,12 @@ public class TryStatementTest {
             );
             fail("expected exception");
         } catch (final Throwable evalError) {
-            assertThat("suppressed exception's own real call site is shown",
-                evalError.getMessage(), containsString("at java.base/java.io.RandomAccessFile"));
+            // The module-name segment ("java.base/") in a stack frame's
+            // toString() only appears on JDK 9+ -- match it optionally so
+            // this holds across the project's supported JDK versions.
+            assertTrue("suppressed exception's own real call site is shown",
+                Pattern.compile("at (\\S+/)?java\\.io\\.RandomAccessFile")
+                    .matcher(evalError.getMessage()).find());
         }
     }
 
