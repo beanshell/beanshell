@@ -27,6 +27,9 @@
 
 package bsh;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
     EvalError indicates that we cannot continue evaluating the node
     and an unrecoverable internal error has corrupted the interpreter
@@ -64,19 +67,41 @@ public class EvalError extends Exception
     */
     public String getMessage()
     {
-        String trace;
+        return getRawMessage() + getLocationTrace();
+    }
+
+    /**
+        Render just this error's own source location and script call-stack
+        trace (no raw message, no cause chain). Package-private: reused by
+        TargetError to render a preserved original trace when a
+        catch/finally block throws a new exception wrapping this one.
+    */
+    String getLocationTrace()
+    {
+        String trace = getOwnLocation();
+
+        if ( callstack != null ) {
+            String stackTrace = getScriptStackTrace();
+            if ( !stackTrace.isEmpty() )
+                trace = trace +"\n" + stackTrace;
+        }
+
+        return trace;
+    }
+
+    /**
+        Just this error's own source location (no call-stack frames).
+        Package-private: used by TargetError to separate the "originally
+        thrown at" headline from its (separately elidable) call-chain
+        frames -- see TargetError.printTargetError.
+    */
+    String getOwnLocation()
+    {
         if ( node != null )
-            trace = " : at Line: "+ node.getLineNumber()
-                + " : in file: "+ node.getSourceFile()
-                + " : "+node.getText();
-        else
-            // Users should not normally see this.
-            trace = ": <at unknown location>";
-
-        if ( callstack != null )
-            trace = trace +"\n" + getScriptStackTrace();
-
-        return getRawMessage() + trace;
+            return " at line "+ node.getLineNumber()
+                + " in "+ node.getSourceFile() + ", near `"+node.getText()+"`";
+        // Users should not normally see this.
+        return " at an unknown location";
     }
 
     /**
@@ -98,6 +123,15 @@ public class EvalError extends Exception
 
     void setNode( Node node ) {
         this.node = node;
+    }
+
+    /** The frozen call stack captured when this error was constructed.
+     * Package-private: used by BSHTryStatement to build a cause-free
+     * location-only snapshot (see EvalError(String,Node,CallStack)) when
+     * preserving a caught exception's original trace.
+     * @return the frozen call stack, or null */
+    CallStack getCallStack() {
+        return callstack;
     }
 
     public String getErrorText() {
@@ -126,23 +160,61 @@ public class EvalError extends Exception
         if ( callstack == null )
             return "<Unknown>";
 
-        String trace = "";
+        return String.join( "\n", getScriptStackFrames() );
+    }
+
+    /**
+        The individual "Called from method ..." frame lines for this
+        error's frozen call stack, innermost first. Package-private: used
+        by TargetError to elide frames already shown by an enclosing
+        exception, mirroring java.lang.Throwable's own common-frame
+        elision for chained exceptions (see
+        TargetError.printTargetError). Empty if there is no callstack or
+        no method frames.
+
+        Note on attribution: each namespace's own node records where THAT
+        method was called FROM (the call-site, in the caller's body) --
+        not anything about its own body. So a frame's location always
+        belongs to the *next* (dynamically enclosing) frame, not to the
+        method the location's namespace is named after. We shift names by
+        one position accordingly; the outermost location (called from
+        plain script code, not from within another method) is labeled
+        "top level" instead of a method name.
+    */
+    List<String> getScriptStackFrames()
+    {
+        List<String> frames = new ArrayList<>();
+        if ( callstack == null )
+            return frames;
+
         CallStack stack = callstack.copy();
+        List<String> names = new ArrayList<>();
+        List<Node> locations = new ArrayList<>();
         while ( stack.depth() > 0 )
         {
             NameSpace ns = stack.pop();
-            Node node = ns.getNode();
             if ( ns.isMethod )
             {
-                trace = trace + "\nCalled from method: " + ns.getName();
-                if ( node != null )
-                    trace += " : at Line: "+ node.getLineNumber()
-                        + " : in file: "+ node.getSourceFile()
-                        + " : "+node.getText();
+                names.add( ns.getDisplayName() );
+                locations.add( ns.getNode() );
             }
         }
 
-        return trace;
+        for ( int i = 0; i < locations.size(); i++ )
+        {
+            Node node = locations.get(i);
+            String callerName = i + 1 < names.size() ? names.get(i+1) : null;
+            StringBuilder frame = new StringBuilder();
+            frame.append("  Called from ")
+                .append( callerName != null ? "method "+callerName : "top level" );
+            if ( node != null )
+                frame.append(" at line ").append(node.getLineNumber())
+                    .append(" in ").append(node.getSourceFile())
+                    .append(", near `").append(node.getText()).append("`");
+            frames.add( frame.toString() );
+        }
+
+        return frames;
     }
 
     public String getRawMessage() { return message; }
