@@ -174,8 +174,12 @@ public final class TargetError extends EvalError
         StringBuilder msgs = new StringBuilder();
         boolean first = true;
         for ( Throwable cur = t; cur != null; cur = cur.getCause() ) {
-            if ( !first )
-                msgs.append("\n");
+            // The first cause's "Caused by: " label is prepended once by
+            // getMessage() (it directly follows this exception's own
+            // location); every deeper cause needs its own label here,
+            // matching java.lang.Throwable's own convention of labeling
+            // each level of the chain, not just the first.
+            msgs.append( first ? "" : "\nCaused by: " );
             msgs.append(causeHeader(cur));
             first = false;
             String nativeFrames = nativeStackFrames(cur);
