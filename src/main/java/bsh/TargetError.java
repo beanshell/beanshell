@@ -29,6 +29,7 @@ package bsh;
 
 import java.lang.reflect.InvocationTargetException;
 import java.io.PrintStream;
+import java.util.List;
 
 /**
     TargetError is an EvalError that wraps an exception thrown by the script
@@ -55,7 +56,7 @@ public final class TargetError extends EvalError
 
     public TargetError( Throwable t, Node node, CallStack callstack )
     {
-        this("TargetError", t, node, callstack, false);
+        this("Uncaught Exception", t, node, callstack, false);
     }
 
     public synchronized Throwable getTarget()
@@ -71,7 +72,7 @@ public final class TargetError extends EvalError
     public synchronized String getMessage()
     {
         return super.getMessage()
-            + "Caused by: " +
+            + "\nCaused by: " +
             printTargetError( getCause() );
     }
 
@@ -80,22 +81,143 @@ public final class TargetError extends EvalError
             super.printStackTrace( out );
             out.println("--- Target Stack Trace ---");
         }
-        StackTraceElement[] st = getCause().getStackTrace();
-        for ( StackTraceElement ste : st )
-            if ( !ste.getClassName().contains("reflect") )
+        for ( StackTraceElement ste : getCause().getStackTrace() )
+            if ( !isInternalFrame(ste) )
                 out.println("        at "+ste);
             else break;
     }
 
+    /** Class/package prefixes marking the point in a wrapped exception's own
+     * stack trace where real (script-called) code ends and bsh's reflective
+     * invocation machinery begins. Frames from that point on add nothing a
+     * reader doesn't already have from the script call-chain frames. */
+    private static final String[] INTERNAL_FRAME_PREFIXES = {
+        "bsh.", "java.lang.reflect.", "java.lang.invoke.", "jdk.internal.reflect."
+    };
+
+    private static boolean isInternalFrame( StackTraceElement ste ) {
+        String cls = ste.getClassName();
+        for ( String prefix : INTERNAL_FRAME_PREFIXES )
+            if ( cls.startsWith(prefix) )
+                return true;
+        return false;
+    }
+
+    /** Render the leading run of `t`'s own Java stack trace -- the frames of
+     * real (non-bsh) code that were on the stack when it was thrown -- up to
+     * (not including) the point where it re-enters bsh's reflective
+     * invocation machinery. Empty when `t` was thrown directly by script
+     * code (e.g. `throw new Exception(...)`), since in that case the
+     * leading frames are already bsh/reflection internals and carry no
+     * information beyond what the script call-chain frames already show
+     * (see #inNativeCode).
+     * @param t the throwable whose native frames to render
+     * @return the frame lines, each already prefixed with "at ", joined by
+     *      newlines; empty if there are none */
+    private static String nativeStackFrames( Throwable t ) {
+        StringBuilder sb = new StringBuilder();
+        for ( StackTraceElement ste : t.getStackTrace() ) {
+            if ( isInternalFrame(ste) )
+                break;
+            if ( sb.length() > 0 )
+                sb.append("\n");
+            sb.append("        at ").append(ste);
+        }
+        return sb.toString();
+    }
+
     /** Generate a printable string showing the wrapped target exceptions.
+     * Also surfaces, for any throwable in the cause chain:
+     * - the leading run of that throwable's own Java stack trace that is
+     *   real (non-bsh) code, i.e. what was on the stack when it was
+     *   thrown, before unwinding back into bsh's own reflective
+     *   invocation machinery (see #nativeStackFrames) -- since that part
+     *   of the trace is information the script call-chain frames can't
+     *   provide.
+     * - the original bsh script trace of an exception that was caught
+     *   and discarded at that point (preserved as a suppressed
+     *   exception, see BSHTryStatement) -- so information about where an
+     *   exception was originally thrown is not lost when a catch/finally
+     *   block throws a new exception wrapping it. Call-chain frames
+     *   already shown by this (enclosing) exception's own trace are
+     *   elided from the "Originally thrown" frames, mirroring
+     *   java.lang.Throwable's own common-frame elision for chained
+     *   exceptions.
+     * - any genuine suppressed exception (e.g. a real failure from a
+     *   try-with-resources close()) under a plain "Suppressed:" label,
+     *   mirroring java.lang.Throwable's own convention -- without this,
+     *   such exceptions are silently invisible to getMessage() (only
+     *   printStackTrace() shows suppressed exceptions by default).
      * @param t wrapped target exception
      * @return messages unwrapped */
     private synchronized String printTargetError( Throwable t ) {
         if (null == t) return "Cause is null";
-        StringBuilder msgs = new StringBuilder(t.toString());
-        while ( null != (t = t.getCause()) )
-            msgs.append("\n").append(t.toString());
+        StringBuilder msgs = new StringBuilder();
+        boolean first = true;
+        for ( Throwable cur = t; cur != null; cur = cur.getCause() ) {
+            if ( !first )
+                msgs.append("\n");
+            msgs.append(cur.toString());
+            first = false;
+            String nativeFrames = nativeStackFrames(cur);
+            if ( !nativeFrames.isEmpty() )
+                msgs.append("\n").append(nativeFrames);
+            for ( Throwable sup : cur.getSuppressed() ) {
+                if ( sup instanceof EvalError ) {
+                    EvalError original = (EvalError) sup;
+                    // Skip when the marker's location is identical to this
+                    // exception's own -- e.g. when the exception simply
+                    // escaped the try block untouched (rethrown as the
+                    // original error, see BSHTryStatement), the marker adds
+                    // nothing beyond what the top-level location already
+                    // shows. It's only informative when a catch/finally
+                    // block wrapped the original in a genuinely new,
+                    // differently-located exception.
+                    if ( !original.getOwnLocation().equals( this.getOwnLocation() ) ) {
+                        msgs.append("\n  Originally thrown").append(original.getOwnLocation());
+                        String frames = elideCommonFrames(
+                            original.getScriptStackFrames(), this.getScriptStackFrames() );
+                        if ( !frames.isEmpty() )
+                            msgs.append("\n").append(frames);
+                    }
+                } else {
+                    msgs.append("\n  Suppressed: ").append(sup);
+                    String supFrames = nativeStackFrames(sup);
+                    if ( !supFrames.isEmpty() )
+                        msgs.append("\n").append(supFrames);
+                }
+            }
+        }
         return msgs.toString();
+    }
+
+    /** Render `frames` (innermost first) eliding a trailing run that
+     * exactly matches the trailing run of `enclosingFrames`, replacing
+     * the elided lines with a single "... N more" line -- mirrors
+     * java.lang.Throwable's own stack trace elision for chained
+     * exceptions, applied to bsh's script call-stack frames.
+     * @param frames the (possibly elidable) frame lines, innermost first
+     * @param enclosingFrames the already-shown enclosing frame lines
+     * @return the frame lines to print, joined by newlines */
+    private static String elideCommonFrames( List<String> frames, List<String> enclosingFrames ) {
+        int m = frames.size(), n = enclosingFrames.size();
+        int common = 0;
+        while ( common < m && common < n
+                && frames.get(m-1-common).equals(enclosingFrames.get(n-1-common)) )
+            common++;
+
+        StringBuilder sb = new StringBuilder();
+        for ( int i = 0; i < m - common; i++ ) {
+            if ( sb.length() > 0 )
+                sb.append("\n");
+            sb.append(frames.get(i));
+        }
+        if ( common > 0 ) {
+            if ( sb.length() > 0 )
+                sb.append("\n");
+            sb.append("  ... ").append(common).append(" more");
+        }
+        return sb.toString();
     }
 
     /**

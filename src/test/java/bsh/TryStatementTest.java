@@ -155,8 +155,13 @@ public class TryStatementTest {
                 throw evalError;
             final Throwable e = evalError.getCause();
             assertSame("same fromWrite exception thrown", fromWrite, e);
-            assertThat("1 suppressed exception collected", e.getSuppressed(), arrayWithSize(1));
-            assertSame("same fromClose exception thrown", fromClose, e.getSuppressed()[0]);
+            // 2 suppressed exceptions: the bsh-internal TargetError preserving
+            // the original script trace (see BSHTryStatement), plus the real
+            // exception from close() collected by try-with-resources
+            assertThat("2 suppressed exceptions collected", e.getSuppressed(), arrayWithSize(2));
+            assertThat("first suppressed is the preserved original bsh trace",
+                e.getSuppressed()[0], instanceOf(EvalError.class));
+            assertSame("same fromClose exception thrown", fromClose, e.getSuppressed()[1]);
         }
         assertTrue("stream should be closed", closed.get());
     }
@@ -334,6 +339,62 @@ public class TryStatementTest {
             fail("Expected TargetError");
         } catch (TargetError e) {
             assertEquals(3, e.getErrorLineNumber());
+        }
+    }
+
+    @Test
+    public void uncaught_exception_message_has_no_duplicate_location() throws Exception {
+        // The exception escapes untouched (no catch/finally wrapping), so
+        // its own top-level location already is the failing line -- the
+        // suppressed original-trace marker BSHTryStatement attaches while
+        // unwinding would be entirely redundant here, and must be elided
+        // (see TargetError.printTargetError).
+        try {
+            eval(
+                "try {",
+                "   Integer.parseInt(\"abc\");",
+                "} finally {",
+                "}"
+            );
+            fail("Expected TargetError");
+        } catch (TargetError e) {
+            assertThat("no redundant duplicate of the already-correct top-level location",
+                e.getMessage(), not(containsString("Originally thrown")));
+        }
+    }
+
+    @Test
+    public void nested_target_error_in_try_finally_preserves_original_throw_site() throws Exception {
+        // A call crossing into a scripted class's method (dispatched via
+        // reflection, see This.invokeMethod) wraps the exception again at
+        // the call site, so the top-level location (line 3, the ".fail()"
+        // call) is shallower than where it actually originated (line 1,
+        // inside fail()'s body). The deeper original location must still
+        // be recoverable from the message, and -- since the escaping
+        // exception's own un-flattened cause chain runs through more than
+        // one nested TargetError/EvalException layer here -- the message
+        // must not embed each intermediate layer's own already-formatted
+        // getMessage() recursively (that duplication is what this guards
+        // against; see BSHTryStatement's rebuild-on-flatten logic).
+        try {
+            eval(
+                "class TryNestedThrower2 { void fail() { Integer.parseInt(\"abc\"); } }",
+                "try {",
+                "   new TryNestedThrower2().fail();",
+                "} finally {",
+                "}"
+            );
+            fail("Expected TargetError");
+        } catch (TargetError e) {
+            String msg = e.getMessage();
+            assertThat("deepest original throw site is recoverable",
+                msg, containsString("Originally thrown at line 1"));
+            assertThat("intermediate call-chain frame is recoverable",
+                msg, containsString("Called from top level at line 3"));
+            int first = msg.indexOf("Caused by:");
+            assertThat("has a Caused by section", first, not(-1));
+            assertEquals("Caused by section is not duplicated",
+                -1, msg.indexOf("Caused by:", first + 1));
         }
     }
 

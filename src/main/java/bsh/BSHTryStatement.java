@@ -97,6 +97,23 @@ class BSHTryStatement extends SimpleNode
             Interpreter.debug("TargetError from try block: ", e);
             thrown = e.getTarget();
             uncaught = e;
+            // Preserve the call chain captured at the original throw site
+            // (deeper frames are already popped off the live callstack by
+            // the time we get here) so that if the catch/finally block
+            // below throws a new exception wrapping this one as its
+            // cause, the original trace can still be rendered (see
+            // TargetError.printTargetError). We suppress a cause-free
+            // EvalError snapshot rather than the caught TargetError `e`
+            // itself: `e`'s own cause is `thrown`, so suppressing `e`
+            // directly would make `thrown`'s suppressed list contain an
+            // entry whose own "Caused by" walk leads right back to
+            // `thrown` -- harmless via getLocationTrace() (which never
+            // touches getCause()), but a landmine for any generic code
+            // that calls getMessage()/printStackTrace() on suppressed
+            // exceptions directly.
+            if ( null != thrown && thrown != e )
+                thrown.addSuppressed(
+                    new EvalError( e.getRawMessage(), e.getNode(), e.getCallStack() ) );
             // clean up call stack grown due to exception interruption
             while ( callstack.depth() > callstackDepth )
                 callstack.pop();
@@ -109,9 +126,16 @@ class BSHTryStatement extends SimpleNode
             while ( callstack.depth() > callstackDepth )
                 callstack.pop();
         } finally {
-            // unwrap the target error
-            while ( null != thrown && thrown.getCause() instanceof TargetError )
-                thrown = ((TargetError) thrown.getCause()).getTarget();
+            // unwrap the target error, preserving each layer's original
+            // trace as a suppressed exception on the newly unwrapped target
+            while ( null != thrown && thrown.getCause() instanceof TargetError ) {
+                TargetError nested = (TargetError) thrown.getCause();
+                Throwable next = nested.getTarget();
+                if ( null != next && next != nested )
+                    next.addSuppressed( new EvalError(
+                        nested.getRawMessage(), nested.getNode(), nested.getCallStack() ) );
+                thrown = next;
+            }
 
             // try block finished auto close try-with-resources
             if (null != this.tryWithResources) {
@@ -201,9 +225,26 @@ class BSHTryStatement extends SimpleNode
                     return result;
             }
         }
-        // Uncaught: rethrow the original error so it keeps the failing statement's location.
-        if( null != thrown )
+        // Uncaught: rethrow the original error so it keeps the failing
+        // statement's location. If the finally block above flattened
+        // `thrown` through one or more nested TargetError layers to
+        // preserve their original traces as suppressed markers (see
+        // above), `uncaught`'s own getCause() still points at the
+        // original, un-flattened chain -- rebuild the outer exception
+        // around the flattened target instead, otherwise printing
+        // `uncaught` as-is would walk that un-flattened chain and embed
+        // each intermediate wrapper's own already-formatted getMessage()
+        // recursively (see TargetError.printTargetError, which calls
+        // toString()/getMessage() on each cause in turn).
+        if( null != thrown ) {
+            if ( uncaught instanceof TargetError
+                    && thrown != ((TargetError) uncaught).getCause() ) {
+                TargetError ut = (TargetError) uncaught;
+                throw new TargetError( ut.getRawMessage(), thrown,
+                    ut.getNode(), ut.getCallStack(), ut.inNativeCode() );
+            }
             throw uncaught;
+        }
 
         // no exception return
         return ret instanceof ReturnControl ? ret : Primitive.VOID;

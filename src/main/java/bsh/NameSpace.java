@@ -203,6 +203,17 @@ public class NameSpace
         return this.nsName;
     }
 
+    /** The namespace's own name, stripped of any synthetic
+     * "/BlockNameSpaceN" suffix BlockNameSpace appends to its parent's name
+     * (see BlockNameSpace's constructor) -- so script stack traces show the
+     * enclosing method/class name a reader recognizes, not an internal
+     * block-namespace implementation detail.
+     * @return the display name */
+    String getDisplayName() {
+        int idx = this.nsName == null ? -1 : this.nsName.indexOf('/');
+        return idx < 0 ? this.nsName : this.nsName.substring(0, idx);
+    }
+
     /** Set the node associated with the creation of this namespace. This is
      * used in debugging and to support the getInvocationLine() and
      * getInvocationText() methods.

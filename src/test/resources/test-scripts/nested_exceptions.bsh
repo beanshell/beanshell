@@ -1,0 +1,118 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+import bsh.EvalError;
+
+// Exercises exception behavior across various combinations of nested
+// function calls, in particular the case of an exception being thrown
+// inside a try block that is itself several calls deep, and a catch block
+// throwing a *new* exception that wraps the one it caught. This latter
+// case previously lost the original call chain/trace when the wrapping
+// exception was formatted -- see BSHTryStatement, EvalError, TargetError.
+
+// --- (a) plain nested calls, exception propagates uncaught through
+//         several levels before being caught at the top ---
+void leafA() { throw new RuntimeException("leafA-boom"); }
+void midA()  { leafA(); }
+void topA()  { midA(); }
+
+try { topA(); }
+catch (RuntimeException e) {
+    assertEquals("leafA-boom", e.getMessage());
+    assertNotNull(e.getMessage()); // formatted message must not throw/crash
+    flag();
+}
+catch (e) { fail(); }
+
+assertEquals(1, flag());
+
+// --- (b) exception thrown inside a try block that is itself several
+//         calls deep, caught at varying nesting depths ---
+void leafB1() { throw new IllegalStateException("b1"); }
+void leafB2() { leafB1(); }
+void midB2()  { leafB2(); }
+
+try { leafB1(); } catch (IllegalStateException e) { flag(); } catch (e) { fail(); }
+try { leafB2(); } catch (IllegalStateException e) { flag(); } catch (e) { fail(); }
+try { midB2();  } catch (IllegalStateException e) { flag(); } catch (e) { fail(); }
+
+assertEquals(5, flag());
+
+// --- (c) catch block throws a NEW exception wrapping the caught one as
+//         cause: the original call chain must be preserved, not lost ---
+void inner() { throw new RuntimeException("boom-inner"); }
+void middleRethrow() {
+    try { inner(); }
+    catch (RuntimeException e) {
+        throw new RuntimeException("wrapped: " + e.getMessage(), e);
+    }
+}
+void outerRethrow() { middleRethrow(); }
+
+try { outerRethrow(); }
+catch (RuntimeException e) {
+    assertEquals("wrapped: boom-inner", e.getMessage());
+    cause = e.getCause();
+    assertNotNull(cause);
+    assertEquals("boom-inner", cause.getMessage());
+    // the original exception must have been preserved as a suppressed
+    // exception on the cause rather than silently discarded on catch
+    assertTrue(cause.getSuppressed().length > 0);
+    foundOriginal = false;
+    for (t : cause.getSuppressed())
+        if (t instanceof EvalError) foundOriginal = true;
+    assertTrue(foundOriginal);
+    assertNotNull(e.getMessage()); // formatted message must not crash
+    flag();
+}
+catch (e) { fail(); }
+
+assertEquals(7, flag());
+
+// --- (d) multi-catch (A | B) combined with nested try/catch and a
+//         rethrow from the inner catch block ---
+void throwsIAE() { throw new IllegalArgumentException("iae"); }
+class WrapD { void go() { throwsIAE(); } }
+
+try {
+    try { new WrapD().go(); }
+    catch (ClassCastException | IllegalArgumentException ex) {
+        flag();
+        throw new UnsupportedOperationException("rewrapped", ex);
+    }
+} catch (UnsupportedOperationException e) {
+    assertEquals("iae", e.getCause().getMessage());
+    flag();
+} catch (e) { fail(); }
+
+assertEquals(10, flag());
+
+// --- (e) finally still runs, at both the throwing level and an outer
+//         level, when the catch block itself throws a new exception ---
+finallyInner = false;
+finallyOuter = false;
+void innerFinally() {
+    try {
+        throw new RuntimeException("e-boom");
+    } catch (RuntimeException e) {
+        throw new RuntimeException("e-wrapped", e);
+    } finally {
+        finallyInner = true;
+    }
+}
+
+try {
+    try { innerFinally(); }
+    finally { finallyOuter = true; }
+} catch (RuntimeException e) {
+    assertEquals("e-wrapped", e.getMessage());
+    flag();
+}
+catch (e) { fail(); }
+
+assert(finallyInner);
+assert(finallyOuter);
+assertEquals(12, flag());
+
+complete();
