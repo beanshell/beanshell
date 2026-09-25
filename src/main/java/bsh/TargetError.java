@@ -126,6 +126,25 @@ public final class TargetError extends EvalError
         return sb.toString();
     }
 
+    /** A one-line header for a cause in the chain, analogous to
+     * Throwable.toString() -- but for an EvalError-typed cause, built from
+     * its raw message rather than its own (multi-line, self-composing)
+     * getMessage(). Nothing in this class should ever hand an EvalError to
+     * printTargetError as a `cause` in the first place (see
+     * BSHTryStatement, which rebuilds the outer exception around a
+     * flattened target specifically to avoid it) -- this is a defense in
+     * depth guard, not the primary mechanism: without it, an EvalError
+     * appearing here would have its own getMessage() (which can itself
+     * recurse into a "Caused by:" section) embedded inline, silently
+     * duplicating information the outer walk is already printing.
+     * @param cur the cause to render a header for
+     * @return a single-line description of `cur` */
+    private static String causeHeader( Throwable cur ) {
+        if ( cur instanceof EvalError )
+            return cur.getClass().getName() + ": " + ((EvalError) cur).getRawMessage();
+        return cur.toString();
+    }
+
     /** Generate a printable string showing the wrapped target exceptions.
      * Also surfaces, for any throwable in the cause chain:
      * - the leading run of that throwable's own Java stack trace that is
@@ -157,7 +176,7 @@ public final class TargetError extends EvalError
         for ( Throwable cur = t; cur != null; cur = cur.getCause() ) {
             if ( !first )
                 msgs.append("\n");
-            msgs.append(cur.toString());
+            msgs.append(causeHeader(cur));
             first = false;
             String nativeFrames = nativeStackFrames(cur);
             if ( !nativeFrames.isEmpty() )

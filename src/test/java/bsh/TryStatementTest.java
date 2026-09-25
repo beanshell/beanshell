@@ -8,6 +8,7 @@ import org.junit.runner.RunWith;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -162,10 +163,52 @@ public class TryStatementTest {
             assertThat("first suppressed is the preserved original bsh trace",
                 e.getSuppressed()[0], instanceOf(EvalError.class));
             assertSame("same fromClose exception thrown", fromClose, e.getSuppressed()[1]);
+            // the genuine (non-EvalError) suppressed exception must be
+            // rendered plainly in the formatted message too -- otherwise
+            // it stays invisible outside printStackTrace() (see
+            // TargetError.printTargetError)
+            assertThat("formatted message shows the genuine suppressed exception",
+                evalError.getMessage(), containsString("Suppressed: "));
+            assertThat("formatted message includes its own detail message",
+                evalError.getMessage(), containsString("exception from close"));
         }
         assertTrue("stream should be closed", closed.get());
     }
 
+    @Test
+    public void suppressed_exception_native_stack_frames_are_rendered() throws Exception {
+        // Unlike try_with_resource above, the suppressed exception here is
+        // thrown by real JDK code (not constructed inline in this
+        // bsh-package test class) so its own stack trace has a genuine
+        // leading frame outside "bsh." for TargetError.nativeStackFrames
+        // to render.
+        final IOException fromWrite = new IOException("exception from write");
+        final OutputStream autoclosable = new OutputStream() {
+            @Override
+            public void write(final int b) throws IOException {
+                throw fromWrite;
+            }
+
+            @Override
+            public void close() throws IOException {
+                new RandomAccessFile("/definitely/does/not/exist/" + System.nanoTime(), "r").close();
+            }
+        };
+        try {
+            eval(toMap("autoclosable", autoclosable),
+                "try (x = new BufferedOutputStream(autoclosable)) {",
+                    "x.write(42);",
+                    "x.flush();",
+                "} catch (e) {",
+                    "throw e;",
+                "}"
+            );
+            fail("expected exception");
+        } catch (final Throwable evalError) {
+            assertThat("suppressed exception's own real call site is shown",
+                evalError.getMessage(), containsString("at java.base/java.io.RandomAccessFile"));
+        }
+    }
 
     @Test
     public void try_catch_finally() throws Exception {
@@ -395,6 +438,69 @@ public class TryStatementTest {
             assertThat("has a Caused by section", first, not(-1));
             assertEquals("Caused by section is not duplicated",
                 -1, msg.indexOf("Caused by:", first + 1));
+        }
+    }
+
+    @Test
+    public void call_chain_frame_from_within_catch_block_has_no_block_namespace_leak() throws Exception {
+        // A call made from *within* a catch block runs with the catch
+        // block's own BlockNameSpace on top of the callstack (it holds the
+        // caught variable). That namespace's raw name carries a synthetic
+        // "/BlockNameSpaceN" suffix (see BlockNameSpace's constructor) --
+        // NameSpace.getDisplayName() must strip it before it reaches a
+        // "Called from" frame.
+        try {
+            eval(
+                "void innerCatchCall() { throw new RuntimeException(\"from-catch-call\"); }",
+                "void catchCaller() {",
+                "    try { throw new RuntimeException(\"first\"); }",
+                "    catch (RuntimeException e) { innerCatchCall(); }",
+                "}",
+                "catchCaller();"
+            );
+            fail("Expected TargetError");
+        } catch (TargetError e) {
+            assertThat("no BlockNameSpace implementation detail leaks into the trace",
+                e.getMessage(), not(containsString("BlockNameSpace")));
+            assertThat("the enclosing method's plain name is still shown",
+                e.getMessage(), containsString("Called from method catchCaller"));
+        }
+    }
+
+    @Test
+    public void deeply_nested_rethrow_elides_shared_call_chain_frames() throws Exception {
+        // Mirrors java.lang.Throwable's own common-frame elision for
+        // chained exceptions (see TargetError.elideCommonFrames): the
+        // "Originally thrown" trace and the enclosing exception's own
+        // trace share their outermost frames here (both ultimately trace
+        // back through the same deepOuter()/top-level call), so the
+        // shared trailing run should collapse to a single "... N more"
+        // line instead of repeating it -- while the two frames that
+        // *aren't* shared (deepInnerWrap and deepMiddle, only present in
+        // the deeper original trace) must still both be printed, joined
+        // by a newline.
+        try {
+            eval(
+                "void veryDeepInner() { throw new RuntimeException(\"very-deep-boom\"); }",
+                "void deepInnerWrap() { veryDeepInner(); }",
+                "void deepMiddle() {",
+                "    try { deepInnerWrap(); }",
+                "    catch (RuntimeException e) {",
+                "        throw new RuntimeException(\"deep-wrapped\", e);",
+                "    }",
+                "}",
+                "void deepOuter() { deepMiddle(); }",
+                "deepOuter();"
+            );
+            fail("Expected TargetError");
+        } catch (TargetError e) {
+            String msg = e.getMessage();
+            assertThat("shared trailing frames are elided",
+                msg, containsString("... 2 more"));
+            assertThat("first non-elided frame is present",
+                msg, containsString("Called from method deepInnerWrap"));
+            assertThat("second non-elided frame is present",
+                msg, containsString("Called from method deepMiddle"));
         }
     }
 
