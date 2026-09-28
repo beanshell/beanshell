@@ -341,28 +341,22 @@ public final class Primitive implements Serializable {
     */
     public static Primitive getDefaultValue( Class<?> type )
     {
-        if ( type == null )
-            return Primitive.NULL;
-        if ( Boolean.TYPE == type || Boolean.class == type )
+        if ( Boolean.TYPE == type )
             return Primitive.FALSE;
-        if ( Character.TYPE == type || Character.class == type )
+        if ( Character.TYPE == type )
             return Primitive.ZERO_CHAR;
-        if ( Byte.TYPE == type || Byte.class == type )
+        if ( Byte.TYPE == type )
             return Primitive.ZERO_BYTE;
-        if ( Short.TYPE == type || Short.class == type )
+        if ( Short.TYPE == type )
             return Primitive.ZERO_SHORT;
-        if ( Integer.TYPE == type || Integer.class == type )
+        if ( Integer.TYPE == type )
             return Primitive.ZERO_INT;
-        if ( Long.TYPE == type || Long.class == type )
+        if ( Long.TYPE == type )
             return Primitive.ZERO_LONG;
-        if ( Float.TYPE == type || Float.class == type )
+        if ( Float.TYPE == type )
             return Primitive.ZERO_FLOAT;
-        if ( Double.TYPE == type || Double.class == type )
+        if ( Double.TYPE == type )
             return Primitive.ZERO_DOUBLE;
-        if ( BigInteger.class == type )
-            return Primitive.ZERO_BIG_INTEGER;
-        if ( BigDecimal.class == type )
-            return Primitive.ZERO_BIG_DECIMAL;
         return Primitive.NULL;
     }
 
@@ -443,10 +437,8 @@ public final class Primitive implements Serializable {
             return new Primitive( castNumber(toType, fromValue.numberValue()) );
 
         if ( toType.isPrimitive() ) {
-            // Cast null value to primitive default value
+            // null never becomes a primitive default value
             if ( fromType == null && !Primitive.VOID.equals(fromValue) ) {
-                if ( operation == Types.CAST )
-                    return checkOnly ? Types.VALID_CAST : getDefaultValue(toType);
                 if ( checkOnly )
                     return Types.INVALID_CAST;
                 throw Types.castError( "primitive type " + toType.getSimpleName(),

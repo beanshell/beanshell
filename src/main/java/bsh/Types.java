@@ -530,10 +530,11 @@ class Types {
     {
         if ( fromValue == null ) {
             if ( operation == Types.CAST )
-                if ( !isPrimitive(toType) && !Primitive.isWrapperType(toType) )
+                if ( !toType.isPrimitive() )
                     return Primitive.NULL;
                 else
-                    return Primitive.getDefaultValue(toType);
+                    throw castError( "primitive type " + toType.getSimpleName(),
+                        "null value", operation );
 
             throw new InterpreterError(
                     "Cast error: null fromValue for toType: "

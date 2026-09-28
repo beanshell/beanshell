@@ -96,9 +96,6 @@ class BSHTypedVariableDeclaration extends SimpleNode {
                     if ( null != lhs && null != lhs.field ) {
                         Variable var = new Variable(dec.name, type, lhs);
                         var.modifiers = modifiers;
-                        // a null initializer defaults a primitive field, as it does a local
-                        if ( value == Primitive.NULL && type != null && type.isPrimitive() )
-                            value = Primitive.getDefaultValue(type);
                         var.setValue(value, Variable.ASSIGNMENT);
                         namespace.setVariableImpl(var);
                     } else {

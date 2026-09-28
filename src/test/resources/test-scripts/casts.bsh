@@ -20,17 +20,16 @@ assertNull(s);
 String s2 = (String) null;
 assertNull(s2);
 assertNull((Object) null);
-assertNotNull((int) null);
 
-// cast null to primitive default value
-assertEquals(0o, (byte) null);
-assertEquals(0s, (short) null);
-assertEquals(0i, (int) null);
-assertEquals(0l, (long) null);
-assertEquals(0.0f, (float) null, 1);
-assertEquals(0.0d, (double) null, 1);
-assertEquals(false, (boolean) null);
-assertEquals('\000', (char) null);
+// null cannot be cast to a primitive type
+assert(isEvalError("Cannot cast null value to primitive type byte", "(byte) null;"));
+assert(isEvalError("Cannot cast null value to primitive type short", "(short) null;"));
+assert(isEvalError("Cannot cast null value to primitive type int", "(int) null;"));
+assert(isEvalError("Cannot cast null value to primitive type long", "(long) null;"));
+assert(isEvalError("Cannot cast null value to primitive type float", "(float) null;"));
+assert(isEvalError("Cannot cast null value to primitive type double", "(double) null;"));
+assert(isEvalError("Cannot cast null value to primitive type boolean", "(boolean) null;"));
+assert(isEvalError("Cannot cast null value to primitive type char", "(char) null;"));
 
 int x = (int) 'a';
 assertEquals(97i, x);
@@ -94,7 +93,6 @@ assert(isEvalError("Cannot cast", "(boolean) 0l;"));
 assert(isEvalError("Cannot cast", "(boolean) 0.0f;"));
 assert(isEvalError("Cannot cast", "(boolean) 0.0d;"));
 assert(isEvalError("Cannot cast", "(boolean) \"\";"));
-assertEquals(false, (boolean) null);
 assertEquals(true, (boolean) true);
 assert(isEvalError("Cannot cast", "(boolean) ' ';"));
 assert(isEvalError("Cannot cast", "(boolean) 3o;"));
