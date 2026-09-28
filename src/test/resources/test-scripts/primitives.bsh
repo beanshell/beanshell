@@ -738,10 +738,8 @@ f123=d123;
 assert( d123.getType() == Double.TYPE );
 assert( f123.getType() == Float.TYPE );
 
-d123=true;
-assert(d123 == 1.0d);
-d123=null;
-assert(d123 == 0.0d);
+assert(isEvalError("Cannot assign", "d123=true"));
+assert(isEvalError("Cannot assign", "d123=null"));
 Integer nullInt = Integer.valueOf(123);
 assertEquals(123, nullInt);
 nullInt = (int)null;

@@ -1,0 +1,220 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// Conversions across type families that Java rejects stay rejected (#759).
+
+// conditions must be boolean
+assert(isEvalError("Condition must evaluate", "if (\"false\") {}"));
+assert(isEvalError("Condition must evaluate", "if (\"\") {}"));
+assert(isEvalError("Condition must evaluate", "if (1) {}"));
+assert(isEvalError("Condition must evaluate", "if (0.5) {}"));
+assert(isEvalError("Condition must evaluate", "if (null) {}"));
+assert(isEvalError("Condition must evaluate", "if (new Object()) {}"));
+assert(isEvalError("Condition must evaluate", "Boolean cB = null; if (cB) {}"));
+assert(isEvalError("Condition must evaluate", "while (1) { break; }"));
+assert(isEvalError("Condition must evaluate", "for (;\"x\";) { break; }"));
+assert(isEvalError("Condition must evaluate", "1 ? \"a\" : \"b\";"));
+
+// casts across families
+assert(isEvalError("Cannot cast", "(Boolean) \"s\";"));
+assert(isEvalError("Cannot cast", "(boolean) \"false\";"));
+assert(isEvalError("Cannot cast", "(Boolean) 5;"));
+assert(isEvalError("Cannot cast", "(boolean) 0;"));
+assert(isEvalError("Cannot cast", "(boolean) 1L;"));
+assert(isEvalError("Cannot cast", "(Boolean) new Object();"));
+assert(isEvalError("Cannot cast", "(Boolean) new Integer(1);"));
+assert(isEvalError("Cannot cast", "(Integer) Boolean.TRUE;"));
+assert(isEvalError("Cannot cast", "(int) \"5\";"));
+assert(isEvalError("Cannot cast", "(double) \"1.5\";"));
+assert(isEvalError("Cannot cast", "(Integer) \"5\";"));
+assert(isEvalError("Cannot cast", "(int) true;"));
+assert(isEvalError("Cannot cast", "(Integer) true;"));
+assert(isEvalError("Cannot cast", "(boolean[]) new int[] {1, 0};"));
+assert(isEvalError("Cannot cast", "(int[]) new String[] {\"7\"};"));
+
+// declarations
+assert(isEvalError("Cannot cast", "boolean dB1 = 1;"));
+assert(isEvalError("Cannot cast", "boolean dB2 = \"false\";"));
+assert(isEvalError("Cannot cast", "Boolean dB3 = 0;"));
+assert(isEvalError("Cannot cast", "Boolean dB4 = \"x\";"));
+assert(isEvalError("Cannot cast", "int dI1 = \"5\";"));
+assert(isEvalError("Cannot cast", "Integer dI2 = \"5\";"));
+assert(isEvalError("Cannot cast", "double dD1 = \"1.5\";"));
+assert(isEvalError("Cannot cast", "int dI3 = true;"));
+
+// reassignment
+int ri = 1;
+boolean rb = true;
+assert(isEvalError("Cannot assign", "ri = \"5\";"));
+assert(isEvalError("Cannot assign", "ri = true;"));
+assert(isEvalError("Cannot assign", "ri = null;"));
+assert(isEvalError("Cannot assign", "rb = 1;"));
+assert(isEvalError("Cannot assign", "rb = \"false\";"));
+assert(isEvalError("Cannot assign", "rb = null;"));
+assertEquals(1, ri);
+assertTrue(rb);
+
+// fields
+class ConvInt { int x = 1; }
+class ConvBool { boolean x; }
+ci = new ConvInt();
+cb = new ConvBool();
+assert(isEvalError("can't access field", "ci.x = \"5\";"));
+assert(isEvalError("can't access field", "ci.x = null;"));
+assert(isEvalError("can't access field", "cb.x = 1;"));
+assertEquals(1, ci.x);
+
+// returns
+assert(isEvalError("Cannot assign", "int retS() { return \"5\"; } retS();"));
+assert(isEvalError("Cannot assign", "int retN() { return null; } retN();"));
+assert(isEvalError("Cannot assign", "boolean retI() { return 1; } retI();"));
+assert(isEvalError("Cannot assign", "Boolean retX() { return \"x\"; } retX();"));
+
+// array elements
+int[] ai = new int[1];
+boolean[] ab = new boolean[1];
+assert(isEvalError("argument type mismatch", "ai[0] = \"5\";"));
+assert(isEvalError("argument type mismatch", "ab[0] = 1;"));
+assert(isEvalError("Cannot cast", "int[] ai2 = {\"1\", 2};"));
+assert(isEvalError("Cannot cast", "boolean[] ab2 = {1, 0};"));
+storeFailed = false;
+try { ai[0] = null; } catch (ArrayStoreException e) { storeFailed = true; }
+assertTrue(storeFailed);
+assertEquals(0, ai[0]);
+
+// scripted method arguments
+bArg(boolean b) { return b; }
+BArg(Boolean b) { return b; }
+iArg(int x) { return x; }
+assert(isEvalError("Command not found", "bArg(1);"));
+assert(isEvalError("Command not found", "bArg(\"false\");"));
+assert(isEvalError("Command not found", "BArg(0);"));
+assert(isEvalError("Command not found", "iArg(null);"));
+
+// Java method arguments
+assert(isEvalError("not found", "Boolean.toString(1);"));
+assert(isEvalError("not found", "Boolean.toString(\"false\");"));
+assert(isEvalError("Cannot cast", "Math.sqrt(\"4\");"));
+assert(isEvalError("Cannot cast", "Integer.toHexString(\"255\");"));
+assert(isEvalError("Cannot cast", "Math.sqrt(null);"));
+
+// array index and dimension
+int[] ax = {1, 2, 3};
+assert(isEvalError("Array index does not evaluate to an integer", "ax[\"1\"];"));
+assert(isEvalError("Array index does not evaluate to an integer", "ax[true];"));
+assert(isEvalError("Array index does not evaluate to an integer", "ax[null];"));
+assert(isEvalError("length does not evaluate to an integer", "new int[\"3\"];"));
+assert(isEvalError("length does not evaluate to an integer", "new int[true];"));
+assert(isEvalError("length does not evaluate to an integer", "new int[null];"));
+
+// && and || need boolean operands
+assert(isEvalError("Use of non + operator with String", "true && \"x\";"));
+assert(isEvalError("Use of non + operator with String", "\"x\" && true;"));
+assert(isEvalError("Use of non + operator with String", "false || \"b\";"));
+assert(isEvalError("Type mismatch in operator", "0 || false;"));
+assert(isEvalError("Type mismatch in operator", "true && 1;"));
+assert(isEvalError("illegal use of null value", "null && true;"));
+
+// repeat needs an integral count
+assert(isEvalError("Repeat", "\"ab\" * \"3\";"));
+assert(isEvalError("Repeat", "\"ab\" * true;"));
+assert(isEvalError("Repeat", "\"ab\" * 2.5;"));
+assert(isEvalError("Repeat", "new int[] {1} * true;"));
+assert(isEvalError("Repeat", "new int[] {1} * \"2\";"));
+assert(isEvalError("Repeat", "((List) {1}) * \"2\";"));
+
+// kept: widening, including to BigInteger/BigDecimal
+long kl = 5;
+assertEquals(5L, kl);
+double kd = 5;
+assertEquals(5.0d, kd, 0);
+java.math.BigInteger kbi = 5;
+assertEquals(java.math.BigInteger.valueOf(5), kbi);
+java.math.BigDecimal kbd = 5;
+assertEquals(0, java.math.BigDecimal.valueOf(5).compareTo(kbd));
+lArg(long x) { return x; }
+assertEquals(5L, lArg(5));
+
+// kept: numeric narrowing
+int kn1 = 5L;
+assertEquals(5, kn1);
+assertEquals((byte) 44, (byte) 300);
+int kn2 = 1;
+kn2 = 5L;
+assertEquals(5, kn2);
+int retL() { return 5L; }
+assertEquals(5, retL());
+class ConvByte { byte x; }
+cy = new ConvByte();
+cy.x = 5;
+assertEquals((byte) 5, cy.x);
+int[] kai = new int[1];
+kai[0] = 5L;
+assertEquals(5, kai[0]);
+
+// kept: char and int, numeric wrappers
+assertEquals(65, (int) 'A');
+assertEquals('A', (char) 65);
+char kc = 65;
+assertEquals('A', kc);
+assertEquals(Integer.valueOf(7), (Integer) new Long(7));
+assertEquals(Long.valueOf(7), (Long) new Integer(7));
+
+// kept: null to primitive in declarations and casts
+int kz = null;
+assertEquals(0, kz);
+assertEquals(0, (int) null);
+class KeptNullFields { int x = null; boolean b = null; static long s = null; }
+assertEquals(0, new KeptNullFields().x);
+assertEquals(false, new KeptNullFields().b);
+assertEquals(0L, KeptNullFields.s);
+class KeptNullVarField { var x = null, y = 1; }
+assertNull(new KeptNullVarField().x);
+assertEquals(1, new KeptNullVarField().y);
+
+// kept: boolean unboxing and boxing
+Boolean kB = true;
+kr = "F";
+if (kB) kr = "T";
+assertEquals("T", kr);
+assertEquals("true", Boolean.toString(Boolean.TRUE));
+assertTrue(new java.util.concurrent.atomic.AtomicBoolean(Boolean.TRUE).get());
+java.util.function.Predicate kp = x -> x > 1;
+assertTrue(kp.test(2));
+assertFalse(kp.test(1));
+
+// kept: same-family array cast
+long[] kla = (long[]) new int[] {1};
+assertEquals(1L, kla[0]);
+
+// kept: a Boolean key on a Map.Entry array is a key, not an index
+entries = new Entry {Boolean.TRUE=1, Boolean.FALSE=3};
+assertEquals(3, entries[Boolean.FALSE]);
+assertEquals(1, entries[Boolean.TRUE]);
+
+// kept: elvis truthiness
+assertEquals("x", "x" ?: "y");
+assertEquals("y", "" ?: "y");
+assertEquals("y", 0 ?: "y");
+assertEquals("y", null ?: "y");
+assertEquals("y", 0.5 ?: "y");
+assertEquals('a', 'a' ?: "y");
+assertEquals("y", '\0' ?: "y");
+assertEquals("y", undefinedElvis ?: "y");
+assertEquals("y", false ?: "y");
+assertEquals(Boolean.TRUE, Boolean.TRUE ?: "y");
+
+// kept: string repeat with an integral count
+assertEquals("ababab", "ab" * 3);
+assertEquals("ababab", 3 * "ab");
+assertEquals("55", "5" * 2);
+assertEquals("abab", "ab" * 2L);
+assertEquals("abab", "ab" * (short) 2);
+assertEquals("abab", "ab" * (byte) 2);
+assertEquals("abab", "ab" * (char) 2);
+assertEquals("abab", "ab" * new Integer(2));
+assertEquals("abab", "ab" * new java.math.BigInteger("2"));
+
+complete();

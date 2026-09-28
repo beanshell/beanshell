@@ -154,19 +154,19 @@ assert(b.equals('foobar5'));
 
 // String repeat
 assertEquals("", "aaa" * 0);
-assertEquals("", "aaa" * !true);
-assertEquals("", "aaa" * false);
-assertEquals("", "aaa" * null);
+assert(isEvalError("Repeat", "\"aaa\" * !true;"));
+assert(isEvalError("Repeat", "\"aaa\" * false;"));
+assert(isEvalError("Repeat", "\"aaa\" * null;"));
 assertEquals("", 0 * "aaa");
-assertEquals("", !true * "aaa");
-assertEquals("", false * "aaa");
-assertEquals("", null * "aaa");
+assert(isEvalError("Repeat", "!true * \"aaa\";"));
+assert(isEvalError("Repeat", "false * \"aaa\";"));
+assert(isEvalError("Repeat", "null * \"aaa\";"));
 assertEquals("aaa", "aaa" * 1);
-assertEquals("aaa", "aaa" * true);
-assertEquals("aaa", "aaa" * !false);
+assert(isEvalError("Repeat", "\"aaa\" * true;"));
+assert(isEvalError("Repeat", "\"aaa\" * !false;"));
 assertEquals("aaa", 1 * "aaa");
-assertEquals("aaa", true * "aaa");
-assertEquals("aaa", !false * "aaa");
+assert(isEvalError("Repeat", "true * \"aaa\";"));
+assert(isEvalError("Repeat", "!false * \"aaa\";"));
 
 // String constants comparison (intern strings on) see #343
 BSHLiteral.internStrings = true;

@@ -448,7 +448,7 @@ public class BshLambdaResolutionTest {
                 { "h(a, b) { return \"untyped\"; }", "h(Runnable r, b) { return \"runnable\"; }" },
                 { "h(int i, a) { return \"untyped\"; }", "h(int i, Runnable r) { return \"runnable\"; }" } }) {
             for (String lambda : new String[] { "() -> {}", "() -> foo()", "() -> 1" }) {
-                String call = declarations[0].startsWith("h(int") ? "h(null, " + lambda + ");" : "h(" + lambda + ", 1);";
+                String call = declarations[0].startsWith("h(int") ? "h(Long.valueOf(5L), " + lambda + ");" : "h(" + lambda + ", 1);";
                 for (List<String> order : permutations(Arrays.asList(declarations)))
                     assertTrue(order + " " + call, Arrays.asList("untyped", "runnable").contains(
                         eval(String.join("\n", order) + "\nfoo() { return 1; }\n" + call)));
@@ -483,9 +483,9 @@ public class BshLambdaResolutionTest {
     // Object only matches a lambda in the loose round, where it must still rank below the interface.
     @Test
     public void functional_interface_beats_object_in_the_loose_round() throws Exception {
-        assertEveryOrderPicks("runnable", "u(null, () -> {});",
+        assertEveryOrderPicks("runnable", "u(Long.valueOf(5L), () -> {});",
             "u(int i, Object o) { return \"object\"; }", "u(int i, Runnable r) { return \"runnable\"; }");
-        assertEveryOrderPicks("callable", "u(null, () -> 1);",
+        assertEveryOrderPicks("callable", "u(Long.valueOf(5L), () -> 1);",
             "u(int i, Object o) { return \"object\"; }", "u(int i, java.util.concurrent.Callable c) { return \"callable\"; }");
     }
 

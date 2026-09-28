@@ -325,12 +325,14 @@ for ( a:alist ) {
 assertThat(list, valueString('[{"a0"}, {"a1"}, {"a2"}, {"a3"}]'));
 
 // cast to int
-ar = new int {true, false, '11', '22', null};
+assert(isEvalError('Error in array initializer: Cannot cast boolean with value "true" to int', "new int {true};"));
+assert(isEvalError('Error in array initializer: Cannot cast String with value "11" to int', "new int {'11'};"));
+ar = new int {1, 0, 11, 22, null};
 assertThat(ar, valueString('{1I, 0I, 11I, 22I, 0I}'));
-assertEquals(1i, ar[false]);
-assertEquals(1i, ar[null]);
-assertEquals(0i, ar[true]);
-assertEquals(11i, ar["2"]);
+assert(isEvalError("Array index does not evaluate to an integer", "ar[false];"));
+assert(isEvalError("Array index does not evaluate to an integer", "ar[null];"));
+assert(isEvalError("Array index does not evaluate to an integer", "ar[true];"));
+assert(isEvalError("Array index does not evaluate to an integer", 'ar["2"];'));
 assertEquals(22i, ar['\003']);
 
 assert(isEvalError("Error array set index: Index 3 out-of-bounds for length 2", "{1,2}[3]=5;"));

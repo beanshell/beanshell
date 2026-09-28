@@ -521,7 +521,7 @@ public class InterpreterTest {
 
     @Test
     public void interpreter_run_interpreter_error() throws Exception {
-        final StringReader in = new StringReader("\n(int)'';\n");
+        final StringReader in = new StringReader("\nint i = new java.util.concurrent.atomic.AtomicInteger(5);\n");
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
             CommandLineReader repl = new CommandLineReader(in) ) {
             Interpreter bsh = new Interpreter(repl, new PrintStream(baos),
@@ -529,7 +529,7 @@ public class InterpreterTest {
 
             bsh.setExitOnEOF(false);
             bsh.run();
-            assertThat(baos.toString(), containsString("Internal Error: cannot cast string \"\" to number"));
+            assertThat(baos.toString(), containsString("Internal Error: Not a primitive wrapper type"));
         }
     }
 
