@@ -3,6 +3,8 @@
 
 ## 3.0.0 beta 2 (in progress)
 
+Fixed calling an interface default method the script doesn't define, such as `Comparator.reversed()` or `Function.andThen()`, on a scripted object cast to the interface or an anonymous `new Comparator() { ... }`. It failed with a "Method ... not found" error instead of running the default; default methods of scripted interfaces called this way failed the same way.
+
 The Maven groupId is now `io.github.beanshell` (was `org.beanshell`), so update your dependency to `io.github.beanshell:bsh`. The OSGi bundle symbolic name stays `org.beanshell.bsh` (#769).
 
 
