@@ -1,0 +1,93 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+import java.util.function.*;
+
+newList() { return new ArrayList(Arrays.asList(new Object[] { "b", "a", "c" })); }
+
+// JDK default through a This cast to the interface.
+compare(a, b) { return a.compareTo(b); }
+c = (Comparator) this;
+l = newList();
+l.sort(c.reversed());
+assertEquals("[c, b, a]", l.toString());
+
+// JDK default through an anonymous interface body.
+l = newList();
+l.sort(new Comparator() { compare(a, b) { return a.compareTo(b); } }.reversed());
+assertEquals("[c, b, a]", l.toString());
+
+f = new Function() { apply(x) { return x + 1; } };
+g = new Function() { apply(x) { return x * 2; } };
+assertEquals(8, f.andThen(g).apply(3));
+assertEquals(7, f.compose(g).apply(3));
+
+out = new ArrayList();
+new Iterator() {
+    i = 0;
+    hasNext() { return i < 3; }
+    next() { return i++; }
+}.forEachRemaining(new Consumer() { accept(x) { out.add(x); } });
+assertEquals("[0, 1, 2]", out.toString());
+
+byLen = new Comparator() { compare(a, b) { return a.length() - b.length(); } };
+alpha = new Comparator() { compare(a, b) { return a.compareTo(b); } };
+l = new ArrayList(Arrays.asList(new Object[] { "bb", "a", "ab", "c" }));
+l.sort(byLen.thenComparing(alpha));
+assertEquals("[a, c, ab, bb]", l.toString());
+
+// Scripted interface default through a proxy.
+interface Foo901 { int v(); default int d() { return v() + 1; } }
+v() { return 41; }
+assertEquals(42, ((Foo901) this).d());
+assertEquals(42, new Foo901() { int v() { return 41; } }.d());
+
+// Exceptions from a scripted default arrive as their own type. Generated
+// interface methods declare no throws clause, so a checked one is wrapped.
+interface Thrower901 {
+    default void chk() throws java.io.IOException { throw new java.io.IOException("io"); }
+    default void bad() { throw new IllegalStateException("ise"); }
+}
+t = new Thrower901() { };
+caught = null;
+try {
+    t.chk();
+} catch (java.lang.reflect.UndeclaredThrowableException e) {
+    caught = e.getCause();
+}
+assertThat(caught, instanceOf(java.io.IOException.class));
+assertEquals("io", caught.getMessage());
+caught = null;
+try {
+    t.bad();
+} catch (IllegalStateException e) {
+    caught = e.getMessage();
+}
+assertEquals("ise", caught);
+
+// A scripted interface inheriting a JDK default.
+interface MyCmp901 extends Comparator { }
+l = newList();
+l.sort(((MyCmp901) this).reversed());
+assertEquals("[c, b, a]", l.toString());
+
+// A scripted interface redeclaring a JDK default with its own body.
+interface Rev901 extends Comparator {
+    default Comparator reversed() { return Collections.reverseOrder(); }
+}
+l = new ArrayList(Arrays.asList(new Object[] { "b", "a", "c" }));
+r = new Rev901() { compare(a, b) { return 0; } };
+l.sort(r.reversed());
+assertEquals("[c, b, a]", l.toString());
+assertSame(Collections.reverseOrder(), r.reversed());
+
+// A default named like a bsh command runs until the command is first used,
+// after which the loaded command is a script method and wins.
+interface P901 { default String print(Object o) { return "default"; } }
+assertEquals("default", ((P901) this).print("x"));
+print("load the command");
+assertNull(((P901) this).print("x"));
+
+complete();

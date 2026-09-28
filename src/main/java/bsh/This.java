@@ -37,10 +37,14 @@ import static bsh.This.Keys.BSHCONSTRUCTORS;
 import static bsh.This.Keys.BSHINIT;
 import static bsh.This.Keys.BSHTHIS;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -184,6 +188,18 @@ public final class This implements java.io.Serializable, Runnable
             throws Throwable
         {
             try {
+                if ( method.isDefault() && !scriptHandles( method, args ) ) {
+                    Object ret;
+                    try {
+                        ret = DefaultMethods.invoke( proxy, method, args );
+                    } catch ( EvalError ee ) {
+                        // a scripted interface's default stub buries the TargetError in an EvalException
+                        TargetError te = targetErrorIn( ee );
+                        throw te != null ? te : ee;
+                    }
+                    if ( ret != DefaultMethods.UNAVAILABLE )
+                        return ret;
+                }
                 return invokeImpl( proxy, method, args );
             } catch ( TargetError te ) {
                 // Unwrap target exception.  If the interface declares that
@@ -212,6 +228,27 @@ public final class This implements java.io.Serializable, Runnable
                     This.this.toString(), ": ", ee );
                 throw ee;
             }
+        }
+
+        /** Whether the script supplies this method, as invokeMethod would find it. */
+        private boolean scriptHandles( Method method, Object[] args ) {
+            Class<?>[] types = new CallArguments(
+                Primitive.wrap( args, method.getParameterTypes() ) ).types;
+            if ( Reflect.getMethod( namespace, method.getName(), types, false ) != null )
+                return true;
+            try {
+                return namespace.getMethod( "invoke", new Class<?>[] { null, null } ) != null;
+            } catch ( UtilEvalError e ) {
+                // leave it to invokeMethod to report as before
+                return true;
+            }
+        }
+
+        private TargetError targetErrorIn( Throwable t ) {
+            for ( ; t != null; t = t.getCause() )
+                if ( t instanceof TargetError )
+                    return (TargetError) t;
+            return null;
         }
 
         public Object invokeImpl( Object proxy, Method method, Object[] args )
@@ -255,6 +292,77 @@ public final class This implements java.io.Serializable, Runnable
             Class<?>[] paramTypes = method.getParameterTypes();
             return Primitive.unwrap(
                 invokeMethod( methodName, Primitive.wrap(args, paramTypes) ) );
+        }
+    }
+
+    /** Runs an interface's default method body on a proxy instance. */
+    static final class DefaultMethods {
+        static final Object UNAVAILABLE = new Object();
+
+        private static final int ALL_MODES = MethodHandles.Lookup.PUBLIC
+            | MethodHandles.Lookup.PRIVATE | MethodHandles.Lookup.PROTECTED
+            | MethodHandles.Lookup.PACKAGE;
+        private static final Method INVOKE_DEFAULT = method(
+            InvocationHandler.class, "invokeDefault",
+            Object.class, Method.class, Object[].class );
+        private static final Method PRIVATE_LOOKUP_IN = method(
+            MethodHandles.class, "privateLookupIn",
+            Class.class, MethodHandles.Lookup.class );
+        private static final Constructor<MethodHandles.Lookup> LOOKUP =
+            PRIVATE_LOOKUP_IN == null ? lookupConstructor() : null;
+
+        private DefaultMethods() { }
+
+        /** Returns UNAVAILABLE when no handle can be had on this JVM. */
+        static Object invoke( Object proxy, Method method, Object[] args )
+                throws Throwable {
+            Class<?> decl = method.getDeclaringClass();
+            if ( INVOKE_DEFAULT != null && Modifier.isPublic( decl.getModifiers() ) ) {
+                try {
+                    return INVOKE_DEFAULT.invoke( null, proxy, method, args );
+                } catch ( InvocationTargetException e ) {
+                    throw e.getCause();
+                }
+            }
+            MethodHandle handle;
+            try {
+                handle = lookup( decl ).unreflectSpecial( method, decl );
+            } catch ( ReflectiveOperationException | RuntimeException e ) {
+                Interpreter.debug( "No default method handle for ", method, ": ", e );
+                return UNAVAILABLE;
+            }
+            return handle.asFixedArity().bindTo( proxy ).invokeWithArguments(
+                args == null ? Reflect.ZERO_ARGS : args );
+        }
+
+        private static MethodHandles.Lookup lookup( Class<?> decl )
+                throws ReflectiveOperationException {
+            if ( PRIVATE_LOOKUP_IN != null ) {
+                return (MethodHandles.Lookup) PRIVATE_LOOKUP_IN.invoke(
+                    null, decl, MethodHandles.lookup() );
+            }
+            if ( LOOKUP == null )
+                throw new NoSuchMethodException( "MethodHandles.Lookup(Class, int)" );
+            return LOOKUP.newInstance( decl, ALL_MODES );
+        }
+
+        private static Method method( Class<?> type, String name, Class<?>... params ) {
+            try {
+                return type.getMethod( name, params );
+            } catch ( NoSuchMethodException | RuntimeException e ) {
+                return null;
+            }
+        }
+
+        private static Constructor<MethodHandles.Lookup> lookupConstructor() {
+            try {
+                Constructor<MethodHandles.Lookup> c = MethodHandles.Lookup.class
+                    .getDeclaredConstructor( Class.class, int.class );
+                c.setAccessible( true );
+                return c;
+            } catch ( NoSuchMethodException | RuntimeException e ) {
+                return null;
+            }
         }
     }
 
