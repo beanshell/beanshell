@@ -157,17 +157,16 @@ public class TryStatementTest {
                 throw evalError;
             final Throwable e = evalError.getCause();
             assertSame("same fromWrite exception thrown", fromWrite, e);
-            // 2 suppressed exceptions: the bsh-internal TargetError preserving
-            // the original script trace (see BSHTryStatement), plus the real
-            // exception from close() collected by try-with-resources
-            assertThat("2 suppressed exceptions collected", e.getSuppressed(), arrayWithSize(2));
-            assertThat("first suppressed is the preserved original bsh trace",
-                e.getSuppressed()[0], instanceOf(EvalError.class));
-            assertSame("same fromClose exception thrown", fromClose, e.getSuppressed()[1]);
-            // the genuine (non-EvalError) suppressed exception must be
-            // rendered plainly in the formatted message too -- otherwise
-            // it stays invisible outside printStackTrace() (see
-            // TargetError.printTargetError)
+            // Exactly the real exception from close() collected by
+            // try-with-resources -- the original bsh throw location is
+            // tracked internally (see TargetError.recordOriginalLocation),
+            // not attached to the user's exception via addSuppressed(),
+            // so this array is untouched by it.
+            assertThat("1 suppressed exception collected", e.getSuppressed(), arrayWithSize(1));
+            assertSame("same fromClose exception thrown", fromClose, e.getSuppressed()[0]);
+            // the genuine suppressed exception must be rendered plainly in
+            // the formatted message too -- otherwise it stays invisible
+            // outside printStackTrace() (see TargetError.printTargetError)
             assertThat("formatted message shows the genuine suppressed exception",
                 evalError.getMessage(), containsString("Suppressed: "));
             assertThat("formatted message includes its own detail message",
@@ -418,12 +417,15 @@ public class TryStatementTest {
         // the call site, so the top-level location (line 3, the ".fail()"
         // call) is shallower than where it actually originated (line 1,
         // inside fail()'s body). The deeper original location must still
-        // be recoverable from the message, and -- since the escaping
-        // exception's own un-flattened cause chain runs through more than
-        // one nested TargetError/EvalException layer here -- the message
-        // must not embed each intermediate layer's own already-formatted
-        // getMessage() recursively (that duplication is what this guards
-        // against; see BSHTryStatement's rebuild-on-flatten logic).
+        // be recoverable from the message. The escaping exception's real
+        // (un-flattened) getCause() chain runs through more than one
+        // nested TargetError/EvalException layer here, one of which has
+        // been observed to carry an already-fully-rendered (multi-line)
+        // message baked into its own raw message by bsh's internal
+        // reflective-invocation wrapping -- causeHeader() must reduce
+        // that to a single line rather than embedding it wholesale,
+        // otherwise the real cause's own native stack frames would be
+        // printed twice (once for real, once inside the embedded text).
         try {
             eval(
                 "class TryNestedThrower2 { void fail() { Integer.parseInt(\"abc\"); } }",
@@ -439,10 +441,10 @@ public class TryStatementTest {
                 msg, containsString("Originally thrown at line 1"));
             assertThat("intermediate call-chain frame is recoverable",
                 msg, containsString("Called from top level at line 3"));
-            int first = msg.indexOf("Caused by:");
-            assertThat("has a Caused by section", first, not(-1));
-            assertEquals("Caused by section is not duplicated",
-                -1, msg.indexOf("Caused by:", first + 1));
+            int first = msg.indexOf("NumberFormatException.forInputString");
+            assertThat("the real cause's native frame is shown", first, not(-1));
+            assertEquals("the real cause's native frame is not duplicated",
+                -1, msg.indexOf("NumberFormatException.forInputString", first + 1));
         }
     }
 

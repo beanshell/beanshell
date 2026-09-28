@@ -2,7 +2,6 @@
 
 source("TestHarness.bsh");
 source("Assert.bsh");
-import bsh.EvalError;
 
 // Exercises exception behavior across various combinations of nested
 // function calls, in particular the case of an exception being thrown
@@ -56,13 +55,14 @@ catch (RuntimeException e) {
     cause = e.getCause();
     assertNotNull(cause);
     assertEquals("boom-inner", cause.getMessage());
-    // the original exception must have been preserved as a suppressed
-    // exception on the cause rather than silently discarded on catch
-    assertTrue(cause.getSuppressed().length > 0);
-    foundOriginal = false;
-    for (t : cause.getSuppressed())
-        if (t instanceof EvalError) foundOriginal = true;
-    assertTrue(foundOriginal);
+    // The original throw location is tracked internally by bsh (see
+    // TargetError.recordOriginalLocation) so it can still be rendered if
+    // this exception later escapes to Java uncaught -- but it must NOT be
+    // observable here as a side effect on the exception itself. Catching
+    // this exception must leave getSuppressed() exactly as plain Java
+    // would: empty, since nothing genuinely suppressed anything.
+    assertEquals(0, cause.getSuppressed().length);
+    assertEquals(0, e.getSuppressed().length);
     assertNotNull(e.getMessage()); // formatted message must not crash
     flag();
 }

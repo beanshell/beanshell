@@ -29,7 +29,10 @@ package bsh;
 
 import java.lang.reflect.InvocationTargetException;
 import java.io.PrintStream;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
     TargetError is an EvalError that wraps an exception thrown by the script
@@ -57,6 +60,38 @@ public final class TargetError extends EvalError
     public TargetError( Throwable t, Node node, CallStack callstack )
     {
         this("Uncaught Exception", t, node, callstack, false);
+    }
+
+    /** Records, per exception instance, the script location where it was
+     * originally thrown -- populated by BSHTryStatement when it unwraps a
+     * caught TargetError, consulted by printTargetError when rendering a
+     * message. Deliberately NOT attached to the exception itself (e.g. via
+     * addSuppressed()): that would change what script and Java code can
+     * observe on an exception they didn't create the wrapping for --
+     * polluting getSuppressed() on every catch (not just a catch-and-rewrap),
+     * growing without bound on a reused exception instance, and pulling the
+     * frozen CallStack (and anything reachable through it) into the
+     * exception's serialized form. Keying by identity in a WeakHashMap ties
+     * a marker's lifetime to the exception's own reachability -- reusing one
+     * instance just overwrites its single entry rather than accumulating,
+     * and once the exception itself is unreachable the entry becomes
+     * collectible too (swept lazily, on a subsequent map access, like any
+     * WeakHashMap). Wrapped in synchronizedMap since interpreters/exceptions
+     * can cross threads and only get/put are used here (no iteration). */
+    private static final Map<Throwable, EvalError> ORIGINAL_LOCATIONS =
+        Collections.synchronizedMap( new WeakHashMap<>() );
+
+    /** Record where `thrown` was originally thrown in the script. Safe to
+     * call repeatedly for the same (possibly reused) exception instance --
+     * each call simply replaces its single recorded location.
+     * @param thrown the exception now visible to script/Java code
+     * @param rawMessage the original throw site's raw message
+     * @param node the original throw site's node
+     * @param callstack the original throw site's call stack */
+    static void recordOriginalLocation(
+            Throwable thrown, String rawMessage, Node node, CallStack callstack ) {
+        if ( null != thrown )
+            ORIGINAL_LOCATIONS.put( thrown, new EvalError( rawMessage, node, callstack ) );
     }
 
     public synchronized Throwable getTarget()
@@ -126,23 +161,28 @@ public final class TargetError extends EvalError
         return sb.toString();
     }
 
-    /** A one-line header for a cause in the chain, analogous to
-     * Throwable.toString() -- but for an EvalError-typed cause, built from
-     * its raw message rather than its own (multi-line, self-composing)
-     * getMessage(). Nothing in this class should ever hand an EvalError to
-     * printTargetError as a `cause` in the first place (see
-     * BSHTryStatement, which rebuilds the outer exception around a
-     * flattened target specifically to avoid it) -- this is a defense in
-     * depth guard, not the primary mechanism: without it, an EvalError
-     * appearing here would have its own getMessage() (which can itself
-     * recurse into a "Caused by:" section) embedded inline, silently
-     * duplicating information the outer walk is already printing.
-     * @param cur the cause to render a header for
+    /** A one-line header for a cause (or suppressed exception) in the
+     * chain, analogous to Throwable.toString() -- but for an EvalError-typed
+     * one, built from its raw message rather than its own (multi-line,
+     * self-composing) getMessage(). bsh's own internal wrapping can still
+     * put an EvalError-typed object in a real getCause()/getSuppressed()
+     * chain (e.g. crossing a reflective invocation boundary) -- without
+     * this guard, such an object's own getMessage() (which can itself
+     * recurse into a "Caused by:" section) would get embedded inline,
+     * silently duplicating information this walk is already printing.
+     * Truncated to its first line unconditionally, as a second guard:
+     * bsh's own internal wrapping has been observed to bake an
+     * already-fully-rendered (multi-line) message into a raw message
+     * string at construction time, upstream of anything this class
+     * controls -- so even the raw message alone isn't guaranteed short.
+     * @param cur the throwable to render a header for
      * @return a single-line description of `cur` */
     private static String causeHeader( Throwable cur ) {
-        if ( cur instanceof EvalError )
-            return cur.getClass().getName() + ": " + ((EvalError) cur).getRawMessage();
-        return cur.toString();
+        String header = cur instanceof EvalError
+            ? cur.getClass().getName() + ": " + ((EvalError) cur).getRawMessage()
+            : cur.toString();
+        int newline = header.indexOf('\n');
+        return newline < 0 ? header : header.substring(0, newline);
     }
 
     /** Generate a printable string showing the wrapped target exceptions.
@@ -154,14 +194,13 @@ public final class TargetError extends EvalError
      *   of the trace is information the script call-chain frames can't
      *   provide.
      * - the original bsh script trace of an exception that was caught
-     *   and discarded at that point (preserved as a suppressed
-     *   exception, see BSHTryStatement) -- so information about where an
-     *   exception was originally thrown is not lost when a catch/finally
-     *   block throws a new exception wrapping it. Call-chain frames
-     *   already shown by this (enclosing) exception's own trace are
-     *   elided from the "Originally thrown" frames, mirroring
-     *   java.lang.Throwable's own common-frame elision for chained
-     *   exceptions.
+     *   and discarded at that point (recorded in #ORIGINAL_LOCATIONS by
+     *   BSHTryStatement) -- so information about where an exception was
+     *   originally thrown is not lost when a catch/finally block throws a
+     *   new exception wrapping it. Call-chain frames already shown by
+     *   this (enclosing) exception's own trace are elided from the
+     *   "Originally thrown" frames, mirroring java.lang.Throwable's own
+     *   common-frame elision for chained exceptions.
      * - any genuine suppressed exception (e.g. a real failure from a
      *   try-with-resources close()) under a plain "Suppressed:" label,
      *   mirroring java.lang.Throwable's own convention -- without this,
@@ -185,30 +224,29 @@ public final class TargetError extends EvalError
             String nativeFrames = nativeStackFrames(cur);
             if ( !nativeFrames.isEmpty() )
                 msgs.append("\n").append(nativeFrames);
+
+            EvalError original = ORIGINAL_LOCATIONS.get(cur);
+            // Skip when the recorded location is identical to this
+            // exception's own -- e.g. when the exception simply escaped
+            // the try block untouched (rethrown as the original error,
+            // see BSHTryStatement), the marker adds nothing beyond what
+            // the top-level location already shows. It's only
+            // informative when a catch/finally block wrapped the
+            // original in a genuinely new, differently-located exception.
+            if ( null != original
+                    && !original.getOwnLocation().equals( this.getOwnLocation() ) ) {
+                msgs.append("\n  Originally thrown").append(original.getOwnLocation());
+                String frames = elideCommonFrames(
+                    original.getScriptStackFrames(), this.getScriptStackFrames() );
+                if ( !frames.isEmpty() )
+                    msgs.append("\n").append(frames);
+            }
+
             for ( Throwable sup : cur.getSuppressed() ) {
-                if ( sup instanceof EvalError ) {
-                    EvalError original = (EvalError) sup;
-                    // Skip when the marker's location is identical to this
-                    // exception's own -- e.g. when the exception simply
-                    // escaped the try block untouched (rethrown as the
-                    // original error, see BSHTryStatement), the marker adds
-                    // nothing beyond what the top-level location already
-                    // shows. It's only informative when a catch/finally
-                    // block wrapped the original in a genuinely new,
-                    // differently-located exception.
-                    if ( !original.getOwnLocation().equals( this.getOwnLocation() ) ) {
-                        msgs.append("\n  Originally thrown").append(original.getOwnLocation());
-                        String frames = elideCommonFrames(
-                            original.getScriptStackFrames(), this.getScriptStackFrames() );
-                        if ( !frames.isEmpty() )
-                            msgs.append("\n").append(frames);
-                    }
-                } else {
-                    msgs.append("\n  Suppressed: ").append(sup);
-                    String supFrames = nativeStackFrames(sup);
-                    if ( !supFrames.isEmpty() )
-                        msgs.append("\n").append(supFrames);
-                }
+                msgs.append("\n  Suppressed: ").append(causeHeader(sup));
+                String supFrames = nativeStackFrames(sup);
+                if ( !supFrames.isEmpty() )
+                    msgs.append("\n").append(supFrames);
             }
         }
         return msgs.toString();
