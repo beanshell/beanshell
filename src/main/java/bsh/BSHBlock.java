@@ -163,7 +163,13 @@ class BSHBlock extends SimpleNode {
                     continue;
                 }
 
-                ret = node.eval( callstack, interpreter );
+                // a bare nested {} statement uses the cached block-namespace
+                // path too, same as BSHForStatement/BSHEnhancedForStatement/
+                // BSHWhileStatement/BSHIfStatement -- it may be reached
+                // repeatedly if this block itself sits inside a loop
+                ret = node instanceof BSHBlock
+                    ? ((BSHBlock) node).eval( callstack, interpreter, null )
+                    : node.eval( callstack, interpreter );
 
                 // statement or embedded block evaluated a return statement
                 if ( ret instanceof ReturnControl )
