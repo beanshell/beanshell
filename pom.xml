@@ -245,6 +245,11 @@
               <sourceDirectories>
                 <sourceDirectory>src/main/java</sourceDirectory>
               </sourceDirectories>
+              <!-- JMH's annotation processor writes generated benchmark
+                   scaffolding under target/generated-test-sources; it's
+                   boilerplate we don't author and can't style, and
+                   includeTestSourceDirectory pulls it into the scan -->
+              <excludes>**/jmh_generated/**</excludes>
             </configuration>
             <goals>
               <goal>check</goal>
@@ -346,6 +351,19 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <!-- not bound to any phase: `mvn test` is unaffected. Run benchmarks
+             explicitly with:
+             mvn test-compile exec:java -Dexec.mainClass=bsh.BenchmarkRunner
+             (optionally -Dexec.args=<jmh include regex, default .*Benchmark) -->
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.2.0</version>
+        <configuration>
+          <mainClass>bsh.BenchmarkRunner</mainClass>
+          <classpathScope>test</classpathScope>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.jacoco</groupId>
@@ -462,6 +480,20 @@
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-all</artifactId>
       <version>1.3</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- JMH benchmark harness: test-scope only, so it never affects the
+         shipped artifact. See BenchmarkRunner for how to run it. -->
+    <dependency>
+      <groupId>org.openjdk.jmh</groupId>
+      <artifactId>jmh-core</artifactId>
+      <version>1.37</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.openjdk.jmh</groupId>
+      <artifactId>jmh-generator-annprocess</artifactId>
+      <version>1.37</version>
       <scope>test</scope>
     </dependency>
 
