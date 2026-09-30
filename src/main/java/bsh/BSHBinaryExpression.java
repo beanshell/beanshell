@@ -77,20 +77,15 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
             we're a boolean AND and the lhs is false.
             or we're a boolean OR and the lhs is true.
         */
-        if ( (kind == BOOL_AND || kind == BOOL_ANDX) )
-            if ( interpreter.getStrictJava() ) {
-                if (Primitive.FALSE.equals(lhs)) return Primitive.FALSE;
-            } else {
-                if (Primitive.FALSE.equals(Primitive.castWrapper(Boolean.TYPE, lhs)))
-                    return lhs;
-            }
-        if ( (kind == BOOL_OR || kind == BOOL_ORX || kind == ELVIS) )
+        if ( Primitive.FALSE.equals(lhs) && (kind == BOOL_AND || kind == BOOL_ANDX) )
+            return Primitive.FALSE;
+        if ( Primitive.TRUE.equals(lhs) && (kind == BOOL_OR || kind == BOOL_ORX) )
+            return Primitive.TRUE;
+        if ( kind == ELVIS )
             if ( interpreter.getStrictJava() ) {
                 if (Primitive.TRUE.equals(lhs)) return Primitive.TRUE;
-            } else {
-                if (Primitive.TRUE.equals(Primitive.castWrapper(Boolean.TYPE, lhs)))
-                    return lhs;
-            }
+            } else if ( isTruthy(lhs) )
+                return lhs;
         if ( kind == NULLCOALESCE && Primitive.NULL != lhs)
             return lhs;
 
@@ -98,13 +93,6 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
 
         if ( kind == NULLCOALESCE || kind == ELVIS )
             return rhs;
-
-        if ( !interpreter.getStrictJava() ) switch(kind) {
-            case BOOL_OR: case BOOL_ORX: case BOOL_AND: case BOOL_ANDX:
-                // needs to validate to a boolean is all we return rhs
-                if (Primitive.castWrapper(Boolean.TYPE, rhs) instanceof Boolean)
-                    return rhs;
-        }
 
         // Handle null values and apply null rules.
         lhs = checkNullValues(lhs, rhs, 0, callstack);
@@ -267,6 +255,24 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
                 return true;
         }
         return false;
+    }
+
+    /** Elvis operator truthiness: false, zero, empty string, null and void are false.
+     * @param obj the value to inspect
+     * @return whether the elvis operator keeps the value */
+    private static boolean isTruthy( Object obj ) {
+        if ( Primitive.VOID.equals(obj) )
+            return false;
+        Object value = Primitive.unwrap(obj);
+        if ( value instanceof Character )
+            value = Integer.valueOf(((Character) value).charValue());
+        if ( value instanceof Boolean )
+            return (Boolean) value;
+        if ( value instanceof String )
+            return !"".equals(value);
+        if ( value instanceof Number )
+            return ((Number) value).intValue() != 0;
+        return value != null;
     }
 
     @Override

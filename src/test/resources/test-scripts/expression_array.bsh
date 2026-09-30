@@ -325,12 +325,15 @@ for ( a:alist ) {
 assertThat(list, valueString('[{"a0"}, {"a1"}, {"a2"}, {"a3"}]'));
 
 // cast to int
-ar = new int {true, false, '11', '22', null};
+assert(isEvalError('Error in array initializer: Cannot cast boolean with value "true" to int', "new int {true};"));
+assert(isEvalError('Error in array initializer: Cannot cast String with value "11" to int', "new int {'11'};"));
+assert(isEvalError("Error in array initializer: Cannot cast null value to primitive type int", "new int {1, 0, 11, 22, null};"));
+ar = new int {1, 0, 11, 22, 0};
 assertThat(ar, valueString('{1I, 0I, 11I, 22I, 0I}'));
-assertEquals(1i, ar[false]);
-assertEquals(1i, ar[null]);
-assertEquals(0i, ar[true]);
-assertEquals(11i, ar["2"]);
+assert(isEvalError("Array index does not evaluate to an integer", "ar[false];"));
+assert(isEvalError("Array index does not evaluate to an integer", "ar[null];"));
+assert(isEvalError("Array index does not evaluate to an integer", "ar[true];"));
+assert(isEvalError("Array index does not evaluate to an integer", 'ar["2"];'));
 assertEquals(22i, ar['\003']);
 
 assert(isEvalError("Error array set index: Index 3 out-of-bounds for length 2", "{1,2}[3]=5;"));
@@ -347,6 +350,116 @@ assert(isEvalError('Error in array initializer: Cannot cast String with value "a
 assert(isEvalError("Void in array initializer, position 0", "new Object {void};"));
 assert(isEvalError("Invalid Intializer for int, at position: 0", "new int[] {{1}};"));
 assert(isEvalError("ArrayStoreException", 'store={"foo"}; store[0]=1;'));
+
+// a null value element makes a loose typed literal use the wrapper type
+nl = {1, 2, null};
+assertEquals(Integer[].class, nl.getClass());
+assertArrayEquals(new Integer[] {1, 2, null}, nl);
+nl = {null, 1};
+assertEquals(Integer[].class, nl.getClass());
+assertArrayEquals(new Integer[] {null, 1}, nl);
+nl = {1, null, 2};
+assertEquals(Integer[].class, nl.getClass());
+assertArrayEquals(new Integer[] {1, null, 2}, nl);
+nl = {1o, null};
+assertEquals(Byte[].class, nl.getClass());
+assertArrayEquals(new Byte[] {1o, null}, nl);
+nl = {1s, null};
+assertEquals(Short[].class, nl.getClass());
+assertArrayEquals(new Short[] {1s, null}, nl);
+nl = {'a', null};
+assertEquals(Character[].class, nl.getClass());
+assertArrayEquals(new Character[] {'a', null}, nl);
+nl = {1L, null};
+assertEquals(Long[].class, nl.getClass());
+assertArrayEquals(new Long[] {1L, null}, nl);
+nl = {1f, null};
+assertEquals(Float[].class, nl.getClass());
+assertArrayEquals(new Float[] {1f, null}, nl);
+nl = {1.5, null};
+assertEquals(Double[].class, nl.getClass());
+assertArrayEquals(new Double[] {1.5, null}, nl);
+nl = {true, null};
+assertEquals(Boolean[].class, nl.getClass());
+assertArrayEquals(new Boolean[] {true, null}, nl);
+nl = {1, null, 2L};
+assertEquals(Long[].class, nl.getClass());
+assertArrayEquals(new Long[] {1L, null, 2L}, nl);
+nl = {null, 1o, 2.5};
+assertEquals(Double[].class, nl.getClass());
+assertArrayEquals(new Double[] {null, 1.0, 2.5}, nl);
+nx = null;
+nl = {1, nx};
+assertEquals(Integer[].class, nl.getClass());
+assertArrayEquals(new Integer[] {1, null}, nl);
+nl = new {1, null};
+assertEquals(Integer[].class, nl.getClass());
+assertArrayEquals(new Integer[] {1, null}, nl);
+nlf(o) { return o; }
+assertEquals(Integer[].class, nlf({1, null}).getClass());
+
+// nested: a null value in any row makes every row the wrapper type
+nl = {{1, 2}, {3, null}};
+assertEquals(Integer[][].class, nl.getClass());
+assertThat(nl, valueString('{{1I, 2I}, {3I, null}}'));
+nl = {{null}, {1}};
+assertEquals(Integer[][].class, nl.getClass());
+assertThat(nl, valueString('{{null}, {1I}}'));
+nl = {{1}, {null}};
+assertEquals(Integer[][].class, nl.getClass());
+assertThat(nl, valueString('{{1I}, {null}}'));
+nl = {{{1}}, {{null}}};
+assertEquals(Integer[][][].class, nl.getClass());
+nl = {{}, {1, null}};
+assertEquals(Integer[][].class, nl.getClass());
+assertThat(nl, valueString('{{}, {1I, null}}'));
+
+// a null row is not a null value, the primitive type stays
+nl = {{1, 2}, null};
+assertEquals(int[][].class, nl.getClass());
+nl = {null, {1, 2}};
+assertEquals(int[][].class, nl.getClass());
+nl = {new int[] {1}, null};
+assertEquals(int[][].class, nl.getClass());
+nl = {{{1}}, {null}};
+assertEquals(int[][][].class, nl.getClass());
+
+// collections keep the null
+assertEquals(Arrays.asList(new Object[] {2, null}), new List {2, null});
+assertEquals(new LinkedHashSet(Arrays.asList(new Object[] {1, null})), new Set {1, null});
+assertEquals(Arrays.asList(new Object[] {1, null}), new ArrayList(new Queue {1, null}));
+assertEquals(Arrays.asList(new Object[] {1, null}), (List) {1, null});
+List nll = {1, null};
+assertEquals(Arrays.asList(new Object[] {1, null}), nll);
+
+// concatenation keeps the null
+nl = {1, 2, null} + {4, null, 6};
+assertEquals(Integer[].class, nl.getClass());
+assertArrayEquals(new Integer[] {1, 2, null, 4, null, 6}, nl);
+nl = {1, 2} + {null, 3};
+assertEquals(Integer[].class, nl.getClass());
+assertArrayEquals(new Integer[] {1, 2, null, 3}, nl);
+assert(isEvalError("Cannot cast null value to primitive type long", "{1, null} + {2L};"));
+nl = {1, 2} + {3, null};
+assertEquals(Integer[].class, nl.getClass());
+assertArrayEquals(new Integer[] {1, 2, 3, null}, nl);
+assertEquals(long[].class, (new Integer[] {1} + new long[] {2}).getClass());
+assertEquals(long[].class, (new long[] {2} + new Integer[] {1}).getClass());
+nl = {1w, null, null} + {null, null, 6l};
+assertEquals(BigInteger[].class, nl.getClass());
+assertThat(nl, valueString('{1W, null, null, null, null, 6W}'));
+
+// unchanged without a null value, or with a declared type
+assertEquals(int[].class, {1, 2}.getClass());
+assertEquals(double[].class, {1, 2.5}.getClass());
+assertEquals(String[].class, {"a", null}.getClass());
+assertEquals(BigInteger[].class, {1w, null}.getClass());
+assertEquals(Object[][].class, {null, null}.getClass());
+assertEquals(Object[].class, new Object[] {1, null}.getClass());
+Long[] nlw = {1, null};
+assertArrayEquals(new Long[] {1L, null}, nlw);
+assert(isEvalError("Cannot cast null value to primitive type long", "long[] nlp = {1, null};"));
+assert(isEvalError("Cannot cast null value to primitive type int", "int[][] nlp = {{1, null}};"));
 
 complete();
 return;

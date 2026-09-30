@@ -106,8 +106,14 @@ class BSHArrayInitializer extends SimpleNode {
         }
 
         // infer the element type
-        if ( inferType == Void.TYPE )
-            inferType = inferCommonType(null, this, callstack, interpreter);
+        if ( inferType == Void.TYPE ) {
+            boolean[] nullValue = {false};
+            inferType = inferCommonType(null, this, 0, dimensions, nullValue,
+                    callstack, interpreter);
+            // a null value keeps the wrapper type, e.g. {1, null} makes Integer[]
+            if ( nullValue[0] && null != inferType && inferType.isPrimitive() )
+                inferType = Primitive.boxType(inferType);
+        }
 
         // force MapEntry to Map output
         if (dimensions < 2)
@@ -348,18 +354,24 @@ class BSHArrayInitializer extends SimpleNode {
      * Abort if we already inferred Object type or found a MapEntry.
      * @param common the current common type
      * @param node the node to query
+     * @param depth the dimension depth of node
+     * @param dimensions the array dimensions
+     * @param nullValue set when a null value element, not a null row, is found
      * @param callstack the evaluation call stack
      * @param interpreter the evaluation interpreter
      * @return the common type for all cells
      * @throws EvalError thrown at node evaluation  */
-    private Class<?> inferCommonType(Class<?> common, Node node,
-            CallStack callstack, Interpreter interpreter ) throws EvalError {
+    private Class<?> inferCommonType(Class<?> common, Node node, int depth,
+            int dimensions, boolean[] nullValue, CallStack callstack,
+            Interpreter interpreter ) throws EvalError {
         // Object is already the most common type and maps are typed MapEntry
         if ( Object.class == common || MapEntry.class == common )
             return common;
         // inspect value elements for common type
         if ( node instanceof BSHAssignment ) {
             Object value = node.eval(callstack, interpreter);
+            if ( value == Primitive.NULL && depth == dimensions )
+                nullValue[0] = true;
             Class<?> type = Types.getType(value, Primitive.isWrapperType(common));
             return Types.getCommonType(common, Types.arrayElementType(type));
         }
@@ -369,7 +381,8 @@ class BSHArrayInitializer extends SimpleNode {
             return Types.getCommonType(common, Map.class);
         // recurse through nested array initializer nodes
         for ( Node child : node.jjtGetChildren() )
-            common = this.inferCommonType(common, child, callstack, interpreter);
+            common = this.inferCommonType(common, child, depth + 1,
+                    dimensions, nullValue, callstack, interpreter);
         return common;
     }
 

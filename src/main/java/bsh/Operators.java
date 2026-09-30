@@ -85,30 +85,30 @@ class Operators implements ParserConstants {
             // array repeat operation
             if ( lhs.getClass().isArray() )
                 return BshArray.repeat(lhs,
-                    (int) Primitive.castWrapper(Integer.TYPE, rhs));
+                    repeatCount(rhs));
             if ( rhs.getClass().isArray() )
                 return BshArray.repeat(rhs,
-                    (int) Primitive.castWrapper(Integer.TYPE, lhs));
+                    repeatCount(lhs));
             // List repeat operation
             if ( lhs instanceof List )
                 return BshArray.repeat((List<Object>) lhs,
-                    (int) Primitive.castWrapper(Integer.TYPE, rhs));
+                    repeatCount(rhs));
             if ( rhs instanceof List )
                 return BshArray.repeat((List<Object>) rhs,
-                    (int) Primitive.castWrapper(Integer.TYPE, lhs));
+                    repeatCount(lhs));
             try {
                 // String repeat operation
                 if ( lhs instanceof String )
                     return BSHLiteral.internStrings
-                        ? new String(new char[(int) Primitive.castWrapper(Integer.TYPE, rhs)])
+                        ? new String(new char[repeatCount(rhs)])
                             .replace("\0", String.valueOf(lhs)).intern()
-                        : new String(new char[(int) Primitive.castWrapper(Integer.TYPE, rhs)])
+                        : new String(new char[repeatCount(rhs)])
                             .replace("\0", String.valueOf(lhs));
                 if ( rhs instanceof String )
                     return BSHLiteral.internStrings
-                        ? new String(new char[(int) Primitive.castWrapper(Integer.TYPE, lhs)])
+                        ? new String(new char[repeatCount(lhs)])
                             .replace("\0", String.valueOf(rhs)).intern()
-                        : new String(new char[(int) Primitive.castWrapper(Integer.TYPE, lhs)])
+                        : new String(new char[repeatCount(lhs)])
                             .replace("\0", String.valueOf(rhs));
             } catch (NegativeArraySizeException e) {
                 throw new UtilEvalError("Negative repeat operand: "+e.getMessage(), e);
@@ -130,6 +130,21 @@ class Operators implements ParserConstants {
         throw new UtilEvalError("Operator: " + SimpleNode.tokenImage(kind)
                     + " inappropriate for objects");
     }
+
+    /** Validate the count operand of a repeat operation.
+     * @param count the count operand
+     * @return the count as an int
+     * @throws UtilEvalError if count is not an integral number */
+    private static int repeatCount(Object count) throws UtilEvalError {
+        Object value = Primitive.unwrap(count);
+        if ( value instanceof Integer || value instanceof Long || value instanceof Short
+                || value instanceof Byte || value instanceof Character
+                || value instanceof BigInteger )
+            return (int) Primitive.castWrapper(Integer.TYPE, value);
+        throw new UtilEvalError("Repeat count must be an integral number, found: "
+            + StringUtil.typeValueString(count));
+    }
+
     /**
     Perform a binary operation on two Primitives or wrapper types.
     If both original args were Primitives return a Primitive result

@@ -650,6 +650,18 @@ assertEquals(0, Primitive.getDefaultValue(Byte.TYPE));
 assertEquals(0, Primitive.getDefaultValue(Long.TYPE));
 assertEquals(0, Primitive.getDefaultValue(Double.TYPE), ddelta);
 assertEquals(0, Primitive.getDefaultValue(Float.TYPE), fdelta);
+assertEquals('\000', Primitive.getDefaultValue(Character.TYPE));
+// reference types, wrappers included, default to null
+assertNull(Primitive.getDefaultValue(Integer.class));
+assertNull(Primitive.getDefaultValue(Boolean.class));
+assertNull(Primitive.getDefaultValue(Character.class));
+assertNull(Primitive.getDefaultValue(Byte.class));
+assertNull(Primitive.getDefaultValue(Short.class));
+assertNull(Primitive.getDefaultValue(Long.class));
+assertNull(Primitive.getDefaultValue(Float.class));
+assertNull(Primitive.getDefaultValue(Double.class));
+assertNull(Primitive.getDefaultValue(BigInteger.class));
+assertNull(Primitive.getDefaultValue(BigDecimal.class));
 
 assertTrue(Primitive.isWrapperType(Integer.class));
 assertFalse(Primitive.isWrapperType(Void.TYPE));

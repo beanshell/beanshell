@@ -199,6 +199,9 @@ public abstract class Invocable implements Member {
     protected Object coerceToType(Object param, Class<?> type)
             throws Throwable {
         Class<?> pClass = Types.getType(param);
+        // a CAST would default null to zero, which Java never does for an argument
+        if (null == pClass && type.isPrimitive())
+            throw Types.castError(StringUtil.typeString(type), "null value", Types.CAST);
         if (null == pClass || !type.isAssignableFrom(pClass))
             param = Types.castObject(param, type, Types.CAST);
         return Primitive.unwrap(param);
