@@ -353,10 +353,9 @@
         </executions>
       </plugin>
       <plugin>
-        <!-- not bound to any phase: `mvn test` is unaffected. Run benchmarks
-             explicitly with:
-             mvn test-compile exec:java -Dexec.mainClass=bsh.BenchmarkRunner
-             (optionally -Dexec.args=<jmh include regex, default .*Benchmark) -->
+        <!-- not bound to any phase: `mvn test` is unaffected. JMH's forked
+             VMs can't see exec:java's classpath, so this only works with
+             -Djmh.forks=0; see BenchmarkRunner for the forked command line -->
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <version>3.2.0</version>
@@ -364,6 +363,27 @@
           <mainClass>bsh.BenchmarkRunner</mainClass>
           <classpathScope>test</classpathScope>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.16.0</version>
+        <executions>
+          <execution>
+            <id>default-testCompile</id>
+            <configuration>
+              <!-- JDK 23+ skips classpath-discovered annotation processors,
+                   which leaves JMH with no benchmark list -->
+              <annotationProcessorPaths>
+                <path>
+                  <groupId>org.openjdk.jmh</groupId>
+                  <artifactId>jmh-generator-annprocess</artifactId>
+                  <version>1.37</version>
+                </path>
+              </annotationProcessorPaths>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.jacoco</groupId>
