@@ -9,6 +9,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -508,6 +509,26 @@ public class TryStatementTest {
                 msg, containsString("Called from method deepInnerWrap"));
             assertThat("second non-elided frame is present",
                 msg, containsString("Called from method deepMiddle"));
+        }
+    }
+
+    @Test(timeout = 10000)
+    public void catching_an_exception_does_not_leak_the_interpreter() throws Exception {
+        // Regression test for a leak found in review: recording where an
+        // exception was originally thrown (TargetError.recordOriginalLocation)
+        // must never retain anything that can reach back to the exception
+        // itself -- otherwise the map value keeps its own key alive forever,
+        // defeating the WeakHashMap and pinning the whole Interpreter (see
+        // TargetError.OriginalLocation, which stores plain Strings rather
+        // than a live EvalError/CallStack for exactly this reason). Mirrors
+        // the InterpreterTest.check_for_memory_leak() idiom.
+        Interpreter interpreter = new Interpreter();
+        interpreter.eval("try { throw new RuntimeException(\"y\"); } catch (Exception e) { saved = e; }");
+        final WeakReference<Interpreter> reference = new WeakReference<>(interpreter);
+        interpreter = null;
+        while (reference.get() != null) {
+            System.gc();
+            Thread.sleep(1);
         }
     }
 

@@ -62,6 +62,26 @@ public final class TargetError extends EvalError
         this("Uncaught Exception", t, node, callstack, false);
     }
 
+    /** The rendered (not live) form of where an exception was originally
+     * thrown: plain strings only, derived once at record time from a
+     * transient EvalError that is never itself stored. Deliberately NOT a
+     * CallStack/EvalError, and deliberately not attached to the exception
+     * itself (see #ORIGINAL_LOCATIONS) -- a map value that held the live
+     * CallStack would retain whatever NameSpace graph it points to, and if
+     * the exception itself was reachable from that graph (e.g. a script
+     * does `saved = e;`, or just `catch (e) {}` with `e` visible in the
+     * enclosing scope), the value would hold a path straight back to its
+     * own key, defeating the WeakHashMap entirely and pinning the
+     * Interpreter forever. Plain strings can't reach back to anything. */
+    private static final class OriginalLocation {
+        final String ownLocation;
+        final List<String> scriptStackFrames;
+        OriginalLocation( String ownLocation, List<String> scriptStackFrames ) {
+            this.ownLocation = ownLocation;
+            this.scriptStackFrames = scriptStackFrames;
+        }
+    }
+
     /** Records, per exception instance, the script location where it was
      * originally thrown -- populated by BSHTryStatement when it unwraps a
      * caught TargetError, consulted by printTargetError when rendering a
@@ -76,22 +96,29 @@ public final class TargetError extends EvalError
      * instance just overwrites its single entry rather than accumulating,
      * and once the exception itself is unreachable the entry becomes
      * collectible too (swept lazily, on a subsequent map access, like any
-     * WeakHashMap). Wrapped in synchronizedMap since interpreters/exceptions
-     * can cross threads and only get/put are used here (no iteration). */
-    private static final Map<Throwable, EvalError> ORIGINAL_LOCATIONS =
+     * WeakHashMap) -- provided the value itself holds nothing that can reach
+     * back to the key (see OriginalLocation). Wrapped in synchronizedMap
+     * since interpreters/exceptions can cross threads and only get/put are
+     * used here (no iteration). */
+    private static final Map<Throwable, OriginalLocation> ORIGINAL_LOCATIONS =
         Collections.synchronizedMap( new WeakHashMap<>() );
 
     /** Record where `thrown` was originally thrown in the script. Safe to
      * call repeatedly for the same (possibly reused) exception instance --
-     * each call simply replaces its single recorded location.
+     * each call simply replaces its single recorded location. The node/
+     * callstack are only used here, transiently, to derive plain strings
+     * (see OriginalLocation) -- neither is retained.
      * @param thrown the exception now visible to script/Java code
      * @param rawMessage the original throw site's raw message
      * @param node the original throw site's node
      * @param callstack the original throw site's call stack */
     static void recordOriginalLocation(
             Throwable thrown, String rawMessage, Node node, CallStack callstack ) {
-        if ( null != thrown )
-            ORIGINAL_LOCATIONS.put( thrown, new EvalError( rawMessage, node, callstack ) );
+        if ( null != thrown ) {
+            EvalError marker = new EvalError( rawMessage, node, callstack );
+            ORIGINAL_LOCATIONS.put( thrown,
+                new OriginalLocation( marker.getOwnLocation(), marker.getScriptStackFrames() ) );
+        }
     }
 
     public synchronized Throwable getTarget()
@@ -225,7 +252,7 @@ public final class TargetError extends EvalError
             if ( !nativeFrames.isEmpty() )
                 msgs.append("\n").append(nativeFrames);
 
-            EvalError original = ORIGINAL_LOCATIONS.get(cur);
+            OriginalLocation original = ORIGINAL_LOCATIONS.get(cur);
             // Skip when the recorded location is identical to this
             // exception's own -- e.g. when the exception simply escaped
             // the try block untouched (rethrown as the original error,
@@ -234,10 +261,10 @@ public final class TargetError extends EvalError
             // informative when a catch/finally block wrapped the
             // original in a genuinely new, differently-located exception.
             if ( null != original
-                    && !original.getOwnLocation().equals( this.getOwnLocation() ) ) {
-                msgs.append("\n  Originally thrown").append(original.getOwnLocation());
+                    && !original.ownLocation.equals( this.getOwnLocation() ) ) {
+                msgs.append("\n  Originally thrown").append(original.ownLocation);
                 String frames = elideCommonFrames(
-                    original.getScriptStackFrames(), this.getScriptStackFrames() );
+                    original.scriptStackFrames, this.getScriptStackFrames() );
                 if ( !frames.isEmpty() )
                     msgs.append("\n").append(frames);
             }
