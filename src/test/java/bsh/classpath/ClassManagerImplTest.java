@@ -72,5 +72,27 @@ public class ClassManagerImplTest {
         assertThat(cm.classForName("java.lang.String"), equalTo(String.class));
         bsh.getNameSpace().clear();
     }
+
+    /**
+        On a case-insensitive file system (e.g. Windows) a request to load a
+        class named "foo" can resolve to a resource "Foo.class", causing the
+        JVM to throw NoClassDefFoundError: foo (wrong name: Foo) instead of
+        simply reporting the class as not found. wrongcase.jar reproduces the
+        same "wrong name" mismatch (independent of the host OS) by storing a
+        class file under an entry name that differs from its real internal
+        name. classForName() should treat this as "not found" rather than
+        letting the error propagate.
+    */
+    @Test
+    public void cm_class_for_name_falls_through_on_wrong_name_mismatch() throws Exception {
+        final Interpreter bsh = new Interpreter();
+        ClassManagerImpl cm = (ClassManagerImpl) bsh.getNameSpace().getClassManager();
+
+        File jar = bsh.pathToFile("src/test/resources/test-scripts/Data/wrongcase.jar");
+        cm.addClassPath(jar.toURI().toURL());
+
+        assertThat(cm.classForName("wrongcase"), nullValue());
+        bsh.getNameSpace().clear();
+    }
 }
 
