@@ -61,7 +61,7 @@ class BSHWhileStatement extends SimpleNode implements ParserConstants {
             doOnceFlag = false;
             if (body == null) continue; // no body
             Object ret = body instanceof BSHBlock
-                ? ((BSHBlock)body).eval(callstack, interpreter, null)
+                ? ((BSHBlock)body).eval(callstack, interpreter, false)
                 : body.eval(callstack, interpreter);
             if (ret instanceof ReturnControl) {
                 ReturnControl control = (ReturnControl)ret;

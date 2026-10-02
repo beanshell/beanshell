@@ -1,0 +1,126 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+
+import java.util.ArrayList;
+import java.util.function.Supplier;
+
+/*
+    Regression coverage for a block-namespace pooling bug: a closure
+    (lambda or anonymous class) created inside a block that is re-evaluated
+    across loop iterations must not retroactively see later iterations'
+    values just because the block's namespace object was reused. Each case
+    below loops i from 0 to 2, captures a block-local variable into a
+    closure, and expects [0, 1, 2] -- not [2, 2, 2], which is what a
+    pooled/reused block namespace produces, since the closure holds that
+    namespace instance by reference, not a snapshot of its contents.
+*/
+
+// -- bare loop body --
+results = new ArrayList();
+for (int i = 0; i < 3; i++) {
+    int j = i;
+    results.add((Supplier)() -> j);
+}
+assert( results.get(0).get().equals(0) );
+assert( results.get(1).get().equals(1) );
+assert( results.get(2).get().equals(2) );
+
+// -- if branch --
+results = new ArrayList();
+for (int i = 0; i < 3; i++) {
+    if (true) {
+        int j = i;
+        results.add((Supplier)() -> j);
+    }
+}
+assert( results.get(0).get().equals(0) );
+assert( results.get(1).get().equals(1) );
+assert( results.get(2).get().equals(2) );
+
+// -- bare nested {} --
+results = new ArrayList();
+for (int i = 0; i < 3; i++) {
+    {
+        int j = i;
+        results.add((Supplier)() -> j);
+    }
+}
+assert( results.get(0).get().equals(0) );
+assert( results.get(1).get().equals(1) );
+assert( results.get(2).get().equals(2) );
+
+// -- switch case body written as {} --
+results = new ArrayList();
+for (int i = 0; i < 3; i++) {
+    switch (0) {
+        case 0: {
+            int j = i;
+            results.add((Supplier)() -> j);
+        }
+        break;
+    }
+}
+assert( results.get(0).get().equals(0) );
+assert( results.get(1).get().equals(1) );
+assert( results.get(2).get().equals(2) );
+
+// -- try body --
+results = new ArrayList();
+for (int i = 0; i < 3; i++) {
+    try {
+        int j = i;
+        results.add((Supplier)() -> j);
+    } catch (Exception e) {
+        fail();
+    }
+}
+assert( results.get(0).get().equals(0) );
+assert( results.get(1).get().equals(1) );
+assert( results.get(2).get().equals(2) );
+
+// -- catch's block-local --
+results = new ArrayList();
+for (int i = 0; i < 3; i++) {
+    try {
+        throw new RuntimeException("x");
+    } catch (RuntimeException e) {
+        int j = i;
+        results.add((Supplier)() -> j);
+    }
+}
+assert( results.get(0).get().equals(0) );
+assert( results.get(1).get().equals(1) );
+assert( results.get(2).get().equals(2) );
+
+// -- enhanced-for's own loop variable, where the enhanced-for is the
+// unbraced body of an outer loop -- isolates whether eachNameSpace
+// (BSHEnhancedForStatement's own BlockNameSpace.getInstance() call) is
+// being reused/retroactively mutated across re-entries of the enhanced-for
+// itself, not just across its own inner iterations (which is a separate,
+// intentionally-unchanged divergence from Java semantics). One element per
+// outer iteration so "last value of this run" and "last value overall"
+// give different, distinguishable answers.
+results = new ArrayList();
+for (int i = 0; i < 3; i++)
+    for (String s : new String[]{ "v" + i })
+        results.add((Supplier)() -> s);
+assert( results.get(0).get().equals("v0") );
+assert( results.get(1).get().equals("v1") );
+assert( results.get(2).get().equals("v2") );
+
+// -- anonymous class, captured inside an if block --
+results = new ArrayList();
+for (int i = 0; i < 3; i++) {
+    if (true) {
+        int j = i;
+        results.add(new Supplier() {
+            public Object get() { return j; }
+        });
+    }
+}
+assert( results.get(0).get().equals(0) );
+assert( results.get(1).get().equals(1) );
+assert( results.get(2).get().equals(2) );
+
+complete();
