@@ -468,9 +468,11 @@ public class BshLambdaTest {
             assertEquals("c", s.get());
     }
 
-    // Same divergence, a C-style loop's block-local instead of a for-each variable.
+    // Unlike the loop variable itself (previous test), a block-local declared fresh
+    // inside the loop body's own {} gets its own variable slot each iteration, so a
+    // lambda capturing it sees the value at its own iteration, matching Java.
     @Test
-    public void a_c_style_loops_block_local_is_shared_by_every_lambda_that_captures_it() throws Exception {
+    public void a_c_style_loops_block_local_is_distinct_per_iteration() throws Exception {
         Interpreter interpreter = new Interpreter();
         interpreter.eval("l2 = new java.util.ArrayList();"
             + " for (i = 0; i < 3; i++) { String t = \"x\" + i;"
@@ -479,8 +481,8 @@ public class BshLambdaTest {
         java.util.List<java.util.function.Supplier<String>> l2 =
             (java.util.List<java.util.function.Supplier<String>>) interpreter.get("l2");
         assertEquals(3, l2.size());
-        for (java.util.function.Supplier<String> s : l2)
-            assertEquals("x2", s.get());
+        for (int i = 0; i < l2.size(); i++)
+            assertEquals("x" + i, l2.get(i).get());
     }
 
     @Test

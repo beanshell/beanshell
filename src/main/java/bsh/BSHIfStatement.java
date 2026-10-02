@@ -38,33 +38,17 @@ class BSHIfStatement extends SimpleNode {
         Object ret = null;
         if (evaluateCondition(jjtGetChild(0), callstack, interpreter)) {
             if (!isClosed)
-                ret = evalBranch(jjtGetChild(1), callstack, interpreter);
+                ret = jjtGetChild(1).eval(callstack, interpreter);
         } else {
             if (jjtGetNumChildren() > 2)
-                ret = evalBranch(jjtGetChild(2), callstack, interpreter);
+                ret = jjtGetChild(2).eval(callstack, interpreter);
             else if (isClosed)
-                ret = evalBranch(jjtGetChild(1), callstack, interpreter);
+                ret = jjtGetChild(1).eval(callstack, interpreter);
         }
         if (ret instanceof ReturnControl)
             return ret;
         else
             return Primitive.VOID;
-    }
-
-    /** Evaluate an if/else branch. A {} branch uses the same cached
-     * block-namespace path (BlockNameSpace.getInstance()) that
-     * BSHForStatement/BSHEnhancedForStatement/BSHWhileStatement already
-     * use for loop bodies, instead of BSHBlock's own default of always
-     * allocating a fresh BlockNameSpace. An if nested in a loop is
-     * reached once per matching iteration, so it benefits from cache
-     * reuse the same way the loop body itself does; an if reached only
-     * once pays no more than the cache's first (always-a-miss) lookup
-     * would anyway. */
-    private static Object evalBranch(Node branch, CallStack callstack,
-            Interpreter interpreter) throws EvalError {
-        return branch instanceof BSHBlock
-            ? ((BSHBlock) branch).eval(callstack, interpreter, null)
-            : branch.eval(callstack, interpreter);
     }
 
     public static boolean evaluateCondition( Node condExp, CallStack callstack,

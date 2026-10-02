@@ -70,7 +70,7 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
         final CollectionManager cm = CollectionManager.getCollectionManager();
         final Iterator<?> iterator = cm.getBshIterator(iteratee);
         try {
-            NameSpace eachNameSpace = BlockNameSpace.getInstance(enclosingNameSpace, blockId);
+            NameSpace eachNameSpace = new BlockNameSpace(enclosingNameSpace, blockId);
             callstack.swap(eachNameSpace);
             while ( !Thread.interrupted() && iterator.hasNext() ) {
                 try {
@@ -85,7 +85,7 @@ class BSHEnhancedForStatement extends SimpleNode implements ParserConstants {
                 }
                 if (statement == null) continue; // not empty statement
                 Object ret = statement instanceof BSHBlock
-                    ? ((BSHBlock)statement).eval(callstack, interpreter, null)
+                    ? ((BSHBlock)statement).eval(callstack, interpreter, false)
                     : statement.eval(callstack, interpreter);
                 if (ret instanceof ReturnControl) {
                     ReturnControl control = (ReturnControl)ret;

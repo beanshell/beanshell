@@ -77,13 +77,9 @@ class BSHSwitchStatement
                     node = jjtGetChild(child++);
                     if ( node instanceof BSHSwitchLabel )
                         continue;
-                    // eval it -- a case body written as {} uses the cached
-                    // block-namespace path too, same as
-                    // BSHForStatement/BSHIfStatement/etc: this switch may
-                    // itself sit inside a loop and be reached repeatedly
-                    Object value = node instanceof BSHBlock
-                        ? ((BSHBlock) node).eval( callstack, interpreter, null )
-                        : node.eval( callstack, interpreter );
+                    // eval it
+                    Object value =
+                        node.eval( callstack, interpreter );
 
                     // should check to disallow continue here?
                     if ( value instanceof ReturnControl ) {

@@ -88,10 +88,7 @@ class BSHTryStatement extends SimpleNode
         try {
             Interpreter.debug("Evaluate try block");
             try {
-                // cached block-namespace path (BlockNameSpace.getInstance()),
-                // same as BSHForStatement/BSHIfStatement/etc -- a try inside
-                // a loop is reached once per iteration
-                ret = tryBlock.eval(callstack, interpreter, null);
+                ret = tryBlock.eval(callstack, interpreter);
             } catch ( OutOfMemoryError ome ) {
                 throw new TargetError(ome.toString(), ome, tryBlock, callstack, false);
             }
@@ -164,18 +161,11 @@ class BSHTryStatement extends SimpleNode
                     BSHBlock cb = catchBlocks.get(i);
 
                     // Prepare to execute the block.
-                    // We must obtain a BlockNameSpace to hold the catch
-                    // parameter and swap it on the stack after initializing
-                    // it. Cached path: a catch inside a loop is reached once
-                    // per iteration that throws, same reasoning as the try
-                    // and finally blocks above. getInstance() always
-                    // returns an actual BlockNameSpace (its creator function
-                    // constructs one); it's declared to return the NameSpace
-                    // supertype for API generality.
+                    // We must create a new BlockNameSpace to hold the catch
+                    // parameter and swap it on the stack after initializing it.
 
                     NameSpace enclosingNameSpace = callstack.top();
-                    BlockNameSpace cbNameSpace = (BlockNameSpace)
-                        BlockNameSpace.getInstance(callstack.top(), blockId);
+                    BlockNameSpace cbNameSpace = new BlockNameSpace(callstack.top(), blockId);
 
                     try {
                         if ( mcType == BSHMultiCatch.UNTYPED )
@@ -204,10 +194,9 @@ class BSHTryStatement extends SimpleNode
                 }
             }
         } finally {
-            // evaluate finally block -- cached block-namespace path, same
-            // reasoning as the try block above
+            // evaluate finally block
             if( finallyBlock != null ) {
-                Object result = finallyBlock.eval(callstack, interpreter, null);
+                Object result = finallyBlock.eval(callstack, interpreter);
                 if( result instanceof ReturnControl )
                     return result;
             }

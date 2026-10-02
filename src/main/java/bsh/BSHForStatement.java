@@ -80,7 +80,7 @@ class BSHForStatement extends SimpleNode implements ParserConstants
 
                 if ( statement != null ) { // not empty statement
                     Object ret = statement instanceof BSHBlock
-                        ? ((BSHBlock)statement).eval( callstack, interpreter, null)
+                        ? ((BSHBlock)statement).eval( callstack, interpreter, false)
                         : statement.eval( callstack, interpreter );
 
                     if (ret instanceof ReturnControl) {
