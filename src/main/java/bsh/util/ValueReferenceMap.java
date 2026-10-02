@@ -73,9 +73,6 @@ public class ValueReferenceMap<K,V> {
     private final Map<Reference<?>,Entry> byReference = new HashMap<>();
     private final ReferenceQueue<K> keyQueue = new ReferenceQueue<>();
     private final ReferenceQueue<V> valueQueue = new ReferenceQueue<>();
-    private int counter;
-    private int found;
-    private int missed;
 
     /**
      * @param creator a function that creates the value object for
@@ -103,16 +100,7 @@ public class ValueReferenceMap<K,V> {
      */
     public synchronized V get(K key) {
         requireNonNull(key, "key must not be null");
-
-        /*
-         * Could probably just unconditionally call clean() without a
-         * noticable performance penalty, but only pay for the full
-         * counter/found/missed bookkeeping periodically.
-         */
         clean();
-        if (++counter == 1000) {
-            counter = found = missed = 0;
-        }
 
         int hash = key.hashCode();
         List<Entry> bucket = buckets.get(hash);
@@ -121,15 +109,12 @@ public class ValueReferenceMap<K,V> {
                 K candidate = entry.key();
                 if (key.equals(candidate)) {
                     V value = entry.value();
-                    if (value != null) {
-                        found++;
+                    if (value != null)
                         return value;
-                    }
                     break;
                 }
             }
 
-        missed++;
         V value = requireNonNull(creator.apply(key),
                                "ValueReference cache create value may not return null.");
         Entry entry = new Entry(key, value);
@@ -167,7 +152,6 @@ public class ValueReferenceMap<K,V> {
         byReference.clear();
         drain(keyQueue);
         drain(valueQueue);
-        counter = found = missed = 0;
     }
 
     /**
