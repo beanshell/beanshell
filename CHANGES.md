@@ -7,6 +7,8 @@ Values no longer convert silently between unrelated types, which restores the be
 
 Fixed calling an interface default method the script doesn't define, such as `Comparator.reversed()` or `Function.andThen()`, on a scripted object cast to the interface or an anonymous `new Comparator() { ... }`. It failed with a "Method ... not found" error instead of running the default; default methods of scripted interfaces called this way failed the same way.
 
+`EvalError`/`TargetError`'s `getMessage()` text has changed: the old colon-delimited format (`Sourced file: X : TargetError : at Line: N : in file: X : ...`) is gone, and a `TargetError`'s default message is now `Uncaught Exception` instead of `TargetError`. The new format shows the failing statement's own location, the full script call chain ("Called from method/top level..."), a `Caused by:` line for every level of the cause chain (not just the first), the real cause's own Java stack trace where it's native code, and, when a catch/finally block throws a new exception wrapping one it caught, where that original exception was actually thrown ("Originally thrown..."). None of this changes the structured accessors (`getErrorLineNumber()`, `getErrorSourceFile()`, `getErrorText()`, `getCause()`, etc.) -- only code that parses `getMessage()`'s text directly needs updating.
+
 The Maven groupId is now `io.github.beanshell` (was `org.beanshell`), so update your dependency to `io.github.beanshell:bsh`. The OSGi bundle symbolic name stays `org.beanshell.bsh` (#769).
 
 

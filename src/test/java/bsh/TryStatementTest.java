@@ -8,11 +8,14 @@ import org.junit.runner.RunWith;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 
 import static bsh.TestUtil.eval;
 import static bsh.TestUtil.toMap;
@@ -155,12 +158,62 @@ public class TryStatementTest {
                 throw evalError;
             final Throwable e = evalError.getCause();
             assertSame("same fromWrite exception thrown", fromWrite, e);
+            // Exactly the real exception from close() collected by
+            // try-with-resources -- the original bsh throw location is
+            // tracked internally (see TargetError.recordOriginalLocation),
+            // not attached to the user's exception via addSuppressed(),
+            // so this array is untouched by it.
             assertThat("1 suppressed exception collected", e.getSuppressed(), arrayWithSize(1));
             assertSame("same fromClose exception thrown", fromClose, e.getSuppressed()[0]);
+            // the genuine suppressed exception must be rendered plainly in
+            // the formatted message too -- otherwise it stays invisible
+            // outside printStackTrace() (see TargetError.printTargetError)
+            assertThat("formatted message shows the genuine suppressed exception",
+                evalError.getMessage(), containsString("Suppressed: "));
+            assertThat("formatted message includes its own detail message",
+                evalError.getMessage(), containsString("exception from close"));
         }
         assertTrue("stream should be closed", closed.get());
     }
 
+    @Test
+    public void suppressed_exception_native_stack_frames_are_rendered() throws Exception {
+        // Unlike try_with_resource above, the suppressed exception here is
+        // thrown by real JDK code (not constructed inline in this
+        // bsh-package test class) so its own stack trace has a genuine
+        // leading frame outside "bsh." for TargetError.nativeStackFrames
+        // to render.
+        final IOException fromWrite = new IOException("exception from write");
+        final OutputStream autoclosable = new OutputStream() {
+            @Override
+            public void write(final int b) throws IOException {
+                throw fromWrite;
+            }
+
+            @Override
+            public void close() throws IOException {
+                new RandomAccessFile("/definitely/does/not/exist/" + System.nanoTime(), "r").close();
+            }
+        };
+        try {
+            eval(toMap("autoclosable", autoclosable),
+                "try (x = new BufferedOutputStream(autoclosable)) {",
+                    "x.write(42);",
+                    "x.flush();",
+                "} catch (e) {",
+                    "throw e;",
+                "}"
+            );
+            fail("expected exception");
+        } catch (final Throwable evalError) {
+            // The module-name segment ("java.base/") in a stack frame's
+            // toString() only appears on JDK 9+ -- match it optionally so
+            // this holds across the project's supported JDK versions.
+            assertTrue("suppressed exception's own real call site is shown",
+                Pattern.compile("at (\\S+/)?java\\.io\\.RandomAccessFile")
+                    .matcher(evalError.getMessage()).find());
+        }
+    }
 
     @Test
     public void try_catch_finally() throws Exception {
@@ -334,6 +387,148 @@ public class TryStatementTest {
             fail("Expected TargetError");
         } catch (TargetError e) {
             assertEquals(3, e.getErrorLineNumber());
+        }
+    }
+
+    @Test
+    public void uncaught_exception_message_has_no_duplicate_location() throws Exception {
+        // The exception escapes untouched (no catch/finally wrapping), so
+        // its own top-level location already is the failing line -- the
+        // suppressed original-trace marker BSHTryStatement attaches while
+        // unwinding would be entirely redundant here, and must be elided
+        // (see TargetError.printTargetError).
+        try {
+            eval(
+                "try {",
+                "   Integer.parseInt(\"abc\");",
+                "} finally {",
+                "}"
+            );
+            fail("Expected TargetError");
+        } catch (TargetError e) {
+            assertThat("no redundant duplicate of the already-correct top-level location",
+                e.getMessage(), not(containsString("Originally thrown")));
+        }
+    }
+
+    @Test
+    public void nested_target_error_in_try_finally_preserves_original_throw_site() throws Exception {
+        // A call crossing into a scripted class's method (dispatched via
+        // reflection, see This.invokeMethod) wraps the exception again at
+        // the call site, so the top-level location (line 3, the ".fail()"
+        // call) is shallower than where it actually originated (line 1,
+        // inside fail()'s body). The deeper original location must still
+        // be recoverable from the message. The escaping exception's real
+        // (un-flattened) getCause() chain runs through more than one
+        // nested TargetError/EvalException layer here, one of which has
+        // been observed to carry an already-fully-rendered (multi-line)
+        // message baked into its own raw message by bsh's internal
+        // reflective-invocation wrapping -- causeHeader() must reduce
+        // that to a single line rather than embedding it wholesale,
+        // otherwise the real cause's own native stack frames would be
+        // printed twice (once for real, once inside the embedded text).
+        try {
+            eval(
+                "class TryNestedThrower2 { void fail() { Integer.parseInt(\"abc\"); } }",
+                "try {",
+                "   new TryNestedThrower2().fail();",
+                "} finally {",
+                "}"
+            );
+            fail("Expected TargetError");
+        } catch (TargetError e) {
+            String msg = e.getMessage();
+            assertThat("deepest original throw site is recoverable",
+                msg, containsString("Originally thrown at line 1"));
+            assertThat("intermediate call-chain frame is recoverable",
+                msg, containsString("Called from top level at line 3"));
+            int first = msg.indexOf("NumberFormatException.forInputString");
+            assertThat("the real cause's native frame is shown", first, not(-1));
+            assertEquals("the real cause's native frame is not duplicated",
+                -1, msg.indexOf("NumberFormatException.forInputString", first + 1));
+        }
+    }
+
+    @Test
+    public void call_chain_frame_from_within_catch_block_has_no_block_namespace_leak() throws Exception {
+        // A call made from *within* a catch block runs with the catch
+        // block's own BlockNameSpace on top of the callstack (it holds the
+        // caught variable). That namespace's raw name carries a synthetic
+        // "/BlockNameSpaceN" suffix (see BlockNameSpace's constructor) --
+        // NameSpace.getDisplayName() must strip it before it reaches a
+        // "Called from" frame.
+        try {
+            eval(
+                "void innerCatchCall() { throw new RuntimeException(\"from-catch-call\"); }",
+                "void catchCaller() {",
+                "    try { throw new RuntimeException(\"first\"); }",
+                "    catch (RuntimeException e) { innerCatchCall(); }",
+                "}",
+                "catchCaller();"
+            );
+            fail("Expected TargetError");
+        } catch (TargetError e) {
+            assertThat("no BlockNameSpace implementation detail leaks into the trace",
+                e.getMessage(), not(containsString("BlockNameSpace")));
+            assertThat("the enclosing method's plain name is still shown",
+                e.getMessage(), containsString("Called from method catchCaller"));
+        }
+    }
+
+    @Test
+    public void deeply_nested_rethrow_elides_shared_call_chain_frames() throws Exception {
+        // Mirrors java.lang.Throwable's own common-frame elision for
+        // chained exceptions (see TargetError.elideCommonFrames): the
+        // "Originally thrown" trace and the enclosing exception's own
+        // trace share their outermost frames here (both ultimately trace
+        // back through the same deepOuter()/top-level call), so the
+        // shared trailing run should collapse to a single "... N more"
+        // line instead of repeating it -- while the two frames that
+        // *aren't* shared (deepInnerWrap and deepMiddle, only present in
+        // the deeper original trace) must still both be printed, joined
+        // by a newline.
+        try {
+            eval(
+                "void veryDeepInner() { throw new RuntimeException(\"very-deep-boom\"); }",
+                "void deepInnerWrap() { veryDeepInner(); }",
+                "void deepMiddle() {",
+                "    try { deepInnerWrap(); }",
+                "    catch (RuntimeException e) {",
+                "        throw new RuntimeException(\"deep-wrapped\", e);",
+                "    }",
+                "}",
+                "void deepOuter() { deepMiddle(); }",
+                "deepOuter();"
+            );
+            fail("Expected TargetError");
+        } catch (TargetError e) {
+            String msg = e.getMessage();
+            assertThat("shared trailing frames are elided",
+                msg, containsString("... 2 more"));
+            assertThat("first non-elided frame is present",
+                msg, containsString("Called from method deepInnerWrap"));
+            assertThat("second non-elided frame is present",
+                msg, containsString("Called from method deepMiddle"));
+        }
+    }
+
+    @Test(timeout = 10000)
+    public void catching_an_exception_does_not_leak_the_interpreter() throws Exception {
+        // Regression test for a leak found in review: recording where an
+        // exception was originally thrown (TargetError.recordOriginalLocation)
+        // must never retain anything that can reach back to the exception
+        // itself -- otherwise the map value keeps its own key alive forever,
+        // defeating the WeakHashMap and pinning the whole Interpreter (see
+        // TargetError.OriginalLocation, which stores plain Strings rather
+        // than a live EvalError/CallStack for exactly this reason). Mirrors
+        // the InterpreterTest.check_for_memory_leak() idiom.
+        Interpreter interpreter = new Interpreter();
+        interpreter.eval("try { throw new RuntimeException(\"y\"); } catch (Exception e) { saved = e; }");
+        final WeakReference<Interpreter> reference = new WeakReference<>(interpreter);
+        interpreter = null;
+        while (reference.get() != null) {
+            System.gc();
+            Thread.sleep(1);
         }
     }
 
