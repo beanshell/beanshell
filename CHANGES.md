@@ -3,6 +3,8 @@
 
 ## 3.0.0 (in progress)
 
+Added support for showing, editing and re-creating scripted objects, meaning a method that returns `this` and an anonymous class (`new Runnable() { ... }` or `new SomeClass(args) { ... }`). A host application can now get the source of such an object, let a user edit it, and get a new object built from the edit with the original method arguments or constructor arguments, which the object didn't expose before. The new package `bsh.scripteditor` has `ScriptedObjectEditor` with `sourceText`, `checkEdit`, `reinstantiate`, `reinstantiateEdited`, `patchInPlace` and `commit`. It rests on a small core API: `This.of(Object)`, `NameSpace.getDeclaringMethod()` and `getAllocation()` (with setters), `AllocationInfo`, `SimpleNode.getSourceText()` and `ScriptedSource`. Existing scripts behave as before. Each `NameSpace` carries two more references, and an anonymous class instance keeps its evaluated constructor arguments for as long as it lives (#944).
+
 ## 3.0.0 RC3
 
 Fixed reading a `null` list element, map value or `Map.Entry` value with the list and map syntax (`l[0]`, `m["a"]`, `m.a`, `e.value`) giving a broken value. Comparing it with `null` or assigning it to an untyped variable ended the script with `unknown error` or `internal Error`, and passing it to a scripted method stopped the interpreter with `java.lang.Error: HERE!`. It reads as `null` now. In BeanShell 2.x `e.value == null` was `true`. Assigning to an entry's value, `e.value = 5`, also left a `bsh.Primitive` in the entry for Java code to find; it now stores the plain value. Java code that calls `Reflect.getObjectProperty` or `BshArray.getIndex` directly gets `Primitive.NULL` for such a value, not a Java `null` (#930).
