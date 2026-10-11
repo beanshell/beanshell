@@ -97,6 +97,20 @@ class BSHTryStatement extends SimpleNode
             Interpreter.debug("TargetError from try block: ", e);
             thrown = e.getTarget();
             uncaught = e;
+            // Record the call chain captured at the original throw site
+            // (deeper frames are already popped off the live callstack by
+            // the time we get here) so that if the catch/finally block
+            // below throws a new exception wrapping this one as its
+            // cause, the original trace can still be rendered (see
+            // TargetError.printTargetError/recordOriginalLocation). This
+            // is recorded in an internal, identity-keyed association --
+            // not attached to `thrown` itself via addSuppressed() -- so it
+            // never changes what script or Java code can observe on the
+            // exception, never accumulates if the same exception instance
+            // is thrown/caught repeatedly, and never affects serialization.
+            if ( null != thrown && thrown != e )
+                TargetError.recordOriginalLocation(
+                    thrown, e.getRawMessage(), e.getNode(), e.getCallStack() );
             // clean up call stack grown due to exception interruption
             while ( callstack.depth() > callstackDepth )
                 callstack.pop();
@@ -109,9 +123,16 @@ class BSHTryStatement extends SimpleNode
             while ( callstack.depth() > callstackDepth )
                 callstack.pop();
         } finally {
-            // unwrap the target error
-            while ( null != thrown && thrown.getCause() instanceof TargetError )
-                thrown = ((TargetError) thrown.getCause()).getTarget();
+            // unwrap the target error, recording each layer's original
+            // trace against the newly unwrapped target
+            while ( null != thrown && thrown.getCause() instanceof TargetError ) {
+                TargetError nested = (TargetError) thrown.getCause();
+                Throwable next = nested.getTarget();
+                if ( null != next && next != nested )
+                    TargetError.recordOriginalLocation(
+                        next, nested.getRawMessage(), nested.getNode(), nested.getCallStack() );
+                thrown = next;
+            }
 
             // try block finished auto close try-with-resources
             if (null != this.tryWithResources) {
@@ -201,7 +222,8 @@ class BSHTryStatement extends SimpleNode
                     return result;
             }
         }
-        // Uncaught: rethrow the original error so it keeps the failing statement's location.
+        // Uncaught: rethrow the original error so it keeps the failing
+        // statement's location.
         if( null != thrown )
             throw uncaught;
 

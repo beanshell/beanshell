@@ -413,7 +413,7 @@ public class InterpreterTest {
     public void interpreter_eval_token_mgr_exception() throws Exception {
         final Interpreter bsh = new Interpreter();
         Exception e = assertThrows(EvalError.class, () -> bsh.eval("\\"));
-        assertThat(e.getMessage(), containsString("inline evaluation of: ``\\'' Token Parsing Error:"));
+        assertThat(e.getMessage(), containsString("inline evaluation of: `\\` Token Parsing Error:"));
         assertThat(e.getCause().getMessage(), containsString("Lexical error at line 1, column 1."));
     }
 
@@ -494,7 +494,7 @@ public class InterpreterTest {
 
             bsh.setExitOnEOF(false);
             bsh.run();
-            assertThat(baos.toString(), containsString("Target Exception: TargetError : at Line: 2"));
+            assertThat(baos.toString(), containsString("Target Exception: Uncaught Exception at line 2 in"));
             assertThat(baos.toString(), containsString("Caused by: java.lang.RuntimeException: make target error"));
         }
     }

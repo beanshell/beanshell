@@ -796,14 +796,14 @@ public class Interpreter
                 // failsafe, set the Line as the origin of the error.
                 if ( e.getNode()==null )
                     e.setNode( node );
-                throw e.reThrow("Sourced file: "+sourceFileInfo);
+                throw e;
             } catch ( EvalError e) {
                 if ( DEBUG.get())
                     e.printStackTrace();
                 // failsafe, set the Line as the origin of the error.
                 if ( e.getNode()==null )
                     e.setNode( node );
-                throw e.reThrow( "Sourced file: "+sourceFileInfo );
+                throw e;
             } catch ( TokenMgrError e ) {
                 throw new EvalError(
                     "Sourced file: "+sourceFileInfo+" Token Parsing Error: "
@@ -880,9 +880,9 @@ public class Interpreter
     String showEvalString( String type, String statement ) {
         if ( statement.length() > 80 )
             statement = statement.substring( 0, 80 ) + " . . . ";
-        return type.concat(" of: ``")
+        return type.concat(" of: `")
                 .concat(statement.replace('\n', ' ').replace('\r', ' '))
-                .concat("''");
+                .concat("`");
     }
 
     /** Convenience termination of unterminated script statements.
