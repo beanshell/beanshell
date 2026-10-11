@@ -3,7 +3,7 @@
 source("TestHarness.bsh");
 source("Assert.bsh");
 
-/** Late binding or namespace chaining support as per #676  */
+/** Methods resolve free variables where they were declared, not in the caller's scope (#906) */
 int bar = 42;
 int getBar() { return bar; }
 {
@@ -11,12 +11,12 @@ int getBar() { return bar; }
       int bar = 4711;
       {
          int bar = 5;
-         assertEquals("Bind method to new declaration value", 5, getBar());
+         assertEquals("Method sees its declared value from a nested block", 42, getBar());
       }
-      assertEquals("Bind method to previous declared value", 4711, getBar());
+      assertEquals("Method sees its declared value from an outer block", 42, getBar());
    }
-   assertEquals("Bind method to original declared value from parent scope", 42, getBar());
+   assertEquals("Method sees its declared value from the outermost block", 42, getBar());
 }
-assertEquals("Bind method to declared variable from mehod declared scope", 42, getBar());
+assertEquals("Method sees its declared value at its declaring scope", 42, getBar());
 
 complete();
