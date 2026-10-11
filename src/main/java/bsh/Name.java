@@ -29,7 +29,6 @@ import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import bsh.util.ValueReferenceMap;
 
@@ -906,7 +905,6 @@ class Name implements java.io.Serializable
         to load it as a resource from the imported command path (e.g.
         /bsh/commands)
     */
-    private static final Pattern noOverride = Pattern.compile("eval|assert");
     private Object invokeLocalMethod(
         Interpreter interpreter, CallArguments arguments, CallStack callstack,
             Node callerInfo, CallArguments.Result result) throws EvalError {
@@ -936,17 +934,9 @@ class Name implements java.io.Serializable
 
         // If defined, invoke it
         if ( meth != null ) {
-            // whether to parent the method's namespace on the caller's chained scope
-            // enables late binding for closures and namespace chaining #676
-            boolean chainToCaller = !namespace.isMethod
-                    && !meth.isScriptedObject
-                    && namespace.isChildOf(meth.declaringNameSpace)
-                    && !namespace.getParent().isClass
-                    && !noOverride.matcher(meth.getName()).matches();
-
             if (result != null) result.type = meth.getReturnType();
             return meth.invoke(arguments, interpreter, callstack, callerInfo,
-                    false/*overrideNameSpace*/, chainToCaller ? namespace : null);
+                    false/*overrideNameSpace*/);
         }
 
         // Look for a BeanShell command
