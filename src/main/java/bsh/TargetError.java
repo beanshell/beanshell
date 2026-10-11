@@ -31,7 +31,10 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.io.PrintStream;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -267,7 +270,13 @@ public final class TargetError extends EvalError
         if (null == t) return "Cause is null";
         StringBuilder msgs = new StringBuilder();
         boolean first = true;
+        Set<Throwable> seen = Collections.newSetFromMap( new IdentityHashMap<>() );
         for ( Throwable cur = t; cur != null; cur = cur.getCause() ) {
+            if ( !seen.add( cur ) ) {
+                msgs.append("\nCaused by: [CIRCULAR REFERENCE: ")
+                    .append(causeHeader(cur)).append("]");
+                break;
+            }
             // The first cause's "Caused by: " label is prepended once by
             // getMessage() (it directly follows this exception's own
             // location); every deeper cause needs its own label here,

@@ -649,4 +649,39 @@ public class TryStatementTest {
         );
     }
 
+    @Test(timeout = 10000)
+    public void cyclic_cause_chain_message_terminates() throws Exception {
+        Interpreter bsh = new Interpreter();
+        bsh.eval("a = new RuntimeException(\"a\"); b = new RuntimeException(\"b\");"
+            + " a.initCause(b); b.initCause(a);");
+        try {
+            bsh.eval("throw a;");
+            fail("expected TargetError");
+        } catch (TargetError e) {
+            String msg = e.getMessage();
+            assertThat(msg, containsString("CIRCULAR REFERENCE"));
+            assertTrue(msg, msg.endsWith(
+                "\nCaused by: java.lang.RuntimeException: a"
+                + "\nCaused by: java.lang.RuntimeException: b"
+                + "\nCaused by: [CIRCULAR REFERENCE: java.lang.RuntimeException: a]"));
+        }
+    }
+
+    @Test(timeout = 10000)
+    public void acyclic_cause_chain_message_unchanged() throws Exception {
+        Interpreter bsh = new Interpreter();
+        bsh.eval("a = new RuntimeException(\"a\"); b = new IllegalStateException(\"b\", a);"
+            + " c = new Exception(\"c\", b);");
+        try {
+            bsh.eval("throw c;");
+            fail("expected TargetError");
+        } catch (TargetError e) {
+            String msg = e.getMessage();
+            assertThat(msg, not(containsString("CIRCULAR REFERENCE")));
+            assertTrue(msg, msg.endsWith(
+                "\nCaused by: java.lang.Exception: c"
+                + "\nCaused by: java.lang.IllegalStateException: b"
+                + "\nCaused by: java.lang.RuntimeException: a"));
+        }
+    }
 }
