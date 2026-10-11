@@ -51,15 +51,17 @@ q() { qlocal = 7; int qtyped = 8; }
 clobber(int c) { c = 999; }
 { int c = 7; clobber(1); assertEquals("caller local must be untouched", 7, c); }
 
-// 5. late binding must still work (#676 regression guard)
+// 5. a method does not see a same-named caller variable (#906)
 int lb = 42;
 int getLb() { return lb; }
-{ int lb = 5; assertEquals("late bound to block declaration", 5, getLb()); }
-assertEquals("late bound to declaring scope", 42, getLb());
+{ int lb = 5; assertEquals("method sees its declared variable", 42, getLb()); }
+assertEquals("method sees its declared variable at top level", 42, getLb());
 
-// 6. write-through to an existing caller variable is intentionally preserved
+// 6. writes land in the declared variable, not a same-named caller local (#906)
+int total = 0;
 bump() { total = total + 1; }
-{ int total = 10; bump(); assertEquals("write-through to existing var preserved", 11, total); }
+{ int total = 10; bump(); assertEquals("caller local untouched", 10, total); }
+assertEquals("write went to the declared variable", 1, total);
 
 // 7. recursion from a block still works
 int fact(int f) { if (f <= 1) return 1; int r = fact(f-1); return f * r; }

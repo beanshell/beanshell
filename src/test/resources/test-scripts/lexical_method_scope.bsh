@@ -1,0 +1,67 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+/* #906 - a scripted method resolves free variables where it was declared, whoever calls it */
+
+// 1. same answer however the method is reached
+int limit = 10;
+int getLimit() { return limit; }
+int viaWrapper() { return getLimit(); }
+int inMethodResult;
+void inMethod() {
+    int limit = 99;
+    inMethodResult = getLimit();
+}
+{
+    int limit = 99;
+    assertEquals("block, direct call", 10, getLimit());
+    assertEquals("block, this.getLimit", 10, this.getLimit());
+    assertEquals("block, via wrapper", 10, viaWrapper());
+}
+inMethod();
+assertEquals("method body", 10, inMethodResult);
+
+// 2. a caller's loop variable does not shadow the helper's global
+int count = 3;
+String describe() { return "count is " + count; }
+for (int count = 0; count < 2; count++)
+    assertEquals("count is 3", describe());
+
+// 3. writes go to the declared variable
+int total = 0;
+void addOne() { total = total + 1; }
+{
+    int total = 100;
+    addOne();
+    assertEquals("block total", 100, total);
+}
+assertEquals("global total", 1, total);
+
+// guards: lexical behaviour that must keep working
+
+// method declared in a block sees that block's variables, from nested blocks
+{
+    int inner = 7;
+    int getInner() { return inner; }
+    { int inner = 8; assertEquals("block-declared method from nested block", 7, getInner()); }
+    assertEquals("block-declared method in its block", 7, getInner());
+}
+
+// recursion and mutual recursion from a block
+int fact(int f) { if (f <= 1) return 1; int r = fact(f-1); return f * r; }
+boolean isEven(int n) { return n == 0 ? true : isOdd(n - 1); }
+boolean isOdd(int n) { return n == 0 ? false : isEven(n - 1); }
+{
+    int f = 1; int n = 1;
+    assertEquals("recursion from block", 120, fact(5));
+    assert(isEven(10));
+    assert(isOdd(7));
+}
+
+// varargs
+int sum(int... xs) { int s = 0; for (int x : xs) s += x; return s; }
+{ int s = 1000; assertEquals("varargs from block", 6, sum(1, 2, 3)); }
+
+complete();

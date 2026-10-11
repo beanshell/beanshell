@@ -28,6 +28,7 @@ import java.io.StringReader;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * <a href="http://code.google.com/p/beanshell2/issues/detail?id=74">Namespace chaining issue</a>
@@ -50,7 +51,7 @@ public class Namespace_Chaining_Test {
 
 
     @Test
-    public void override_child_namespace() throws Exception {
+    public void child_namespace_call_binds_lexically() throws Exception {
         Interpreter root = new Interpreter();
         Interpreter child = new Interpreter(new StringReader(""), System.out, System.err, false, new NameSpace(root.getNameSpace(), "child"));
 
@@ -64,11 +65,11 @@ public class Namespace_Chaining_Test {
         root.eval("int foo() { return bar; }");
 
         assertEquals(42, root.eval("foo();"));
-        assertEquals(4711, child.eval("foo();"));
+        assertEquals(42, child.eval("foo();"));
     }
 
     @Test
-    public void override_child_child_namespace() throws Exception {
+    public void grandchild_namespace_call_binds_lexically() throws Exception {
         Interpreter root = new Interpreter();
         Interpreter child = new Interpreter(new StringReader(""), System.out, System.err, false, new NameSpace(root.getNameSpace(), "child"));
         Interpreter child2 = new Interpreter(new StringReader(""), System.out, System.err, false, new NameSpace(child.getNameSpace(), "child2"));
@@ -85,22 +86,22 @@ public class Namespace_Chaining_Test {
         root.eval("int foo() { return bar; }");
 
         assertEquals(42, root.eval("foo();"));
-        assertEquals(4711, child.eval("foo();"));
-        assertEquals(5, child2.eval("foo();"));
+        assertEquals(42, child.eval("foo();"));
+        assertEquals(42, child2.eval("foo();"));
     }
 
     @Test
-    public void chained_call_does_not_leak_params_or_locals() throws Exception {
+    public void chained_call_binds_lexically_without_leaking() throws Exception {
         Interpreter root = new Interpreter();
         Interpreter child = new Interpreter(new StringReader(""), System.out, System.err, false, new NameSpace(root.getNameSpace(), "child"));
 
         root.eval("int bar=42;");
         child.eval("int bar=4711;");
 
-        // Method foo declared in parent namespace, late binds to child's bar
+        // Method foo declared in parent namespace sees the parent's bar
         root.eval("int foo(int p) { int local = p; return bar; }");
 
-        assertEquals(4711, child.eval("foo(99);"));
+        assertEquals(42, child.eval("foo(99);"));
 
         // the call's own parameter and locals must not have leaked into
         // the child namespace that invoked it
@@ -108,6 +109,29 @@ public class Namespace_Chaining_Test {
         assertNull(child.eval("local;"));
         // and bar in the child namespace must be untouched
         assertEquals(4711, child.eval("bar;"));
+    }
+
+    @Test
+    public void child_namespace_cannot_shadow_final_seen_by_host_method() throws Exception {
+        Interpreter host = new Interpreter();
+        host.eval("final boolean isAdmin = false;\n"
+                + "String deleteAllRecords() {\n"
+                + "    if (isAdmin) return \"all records deleted\";\n"
+                + "    return \"permission denied\";\n"
+                + "}");
+        Interpreter user = new Interpreter(new StringReader(""), System.out, System.err,
+                false, new NameSpace(host.getNameSpace(), "user"));
+
+        assertEquals("permission denied", user.eval("deleteAllRecords();"));
+        try {
+            user.eval("isAdmin = true; deleteAllRecords();");
+            fail("assigning the host's final variable must be rejected");
+        } catch (EvalError e) {
+            assertTrue(e.getMessage(), e.getMessage().contains("final"));
+        }
+        assertEquals("permission denied",
+                user.eval("boolean isAdmin = true; deleteAllRecords();"));
+        assertEquals(false, host.eval("isAdmin;"));
     }
 
     @Test
