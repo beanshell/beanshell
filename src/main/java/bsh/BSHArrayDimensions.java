@@ -117,6 +117,8 @@ class BSHArrayDimensions extends SimpleNode
             {
                 try {
                     Object length = jjtGetChild(i).eval(callstack, interpreter);
+                    if ( !Types.isNumeric(Primitive.unwrap(length)) )
+                        throw Types.castError("int", StringUtil.typeString(length), Types.ASSIGNMENT);
                     definedDimensions[i] = (int) Primitive.castWrapper(Integer.TYPE, length);
                 }
                 catch(Exception e)

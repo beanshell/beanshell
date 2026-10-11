@@ -226,8 +226,8 @@ assertThat({{1o}} + {{2o}}, valueString('{{1o}, {2o}}'));
 assertThat({{1o}} + {{2o, 3o}}, valueString('{{1o}, {2o, 3o}}'));
 assertThat({{0o, 1o}} + {{2o}}, valueString('{{0o, 1o}, {2o}}'));
 assertThat({{0o, 1o}} + {{2o, 3o}}, valueString('{{0o, 1o}, {2o, 3o}}'));
-assertThat({1,2,null} + {4,null,6}, valueString('{1I, 2I, 0I, 4I, 0I, 6I}'));
-assertThat({1w,null,null} + {null,null,6l}, valueString('{1W, 0W, 0W, 0W, 0W, 6W}'));
+assertThat({1,2,null} + {4,null,6}, valueString('{1I, 2I, null, 4I, null, 6I}'));
+assertThat({1w,null,null} + {null,null,6l}, valueString('{1W, null, null, null, null, 6W}'));
 assertThat({1w,null,null} + {null,null,"FOO"}, valueString('{1W, null, null, null, null, "FOO"}'));
 assertThat({true} + {false}, valueString('{true, false}'));
 assertThat({{true}} + {{false}}, valueString('{{true}, {false}}'));
@@ -477,8 +477,8 @@ swap = list + new List {{4I, 5L}};;
 assertThat(list, valueString('[{1I, 2I, 3I}]'));
 assertThat(swap, valueString('[{1I, 2I, 3I}, {4L, 5L}]'));
 assertThat(swap, instanceOf(List.class));
-assertThat(new List {1} + new List{2, null}, valueString('[1I, 2I, 0I]'));
-assertThat(new List {null, 1} + new List{2}, valueString('[0I, 1I, 2I]'));
+assertThat(new List {1} + new List{2, null}, valueString('[1I, 2I, null]'));
+assertThat(new List {null, 1} + new List{2}, valueString('[null, 1I, 2I]'));
 
 // queue access expressions
 queue = new Queue {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -767,8 +767,8 @@ assertThat(swap, valueString('"123123123"'));
 swap = 1 * strstr;
 
 assertEquals(2, {1,2}[1]);
-assertEquals(2, {1,2}["1"]);
-assertEquals(2, {1,2}[true]);
+assert(isEvalError("Array index does not evaluate to an integer.", '{1,2}["1"];'));
+assert(isEvalError("Array index does not evaluate to an integer.", "{1,2}[true];"));
 
 // slice exceptions
 assert(isEvalError("cannot assign number 2147483648 to type int", '{1,2}[2147483648];'));

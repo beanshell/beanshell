@@ -219,9 +219,6 @@ public final class Primitive implements Serializable {
         if (value instanceof Number)
             return (Number) value;
 
-        if (value instanceof Boolean)
-            return (Boolean) value ? 1 : 0;
-
         throw new InterpreterError("Primitive not a number");
     }
 
@@ -344,28 +341,22 @@ public final class Primitive implements Serializable {
     */
     public static Primitive getDefaultValue( Class<?> type )
     {
-        if ( type == null )
-            return Primitive.NULL;
-        if ( Boolean.TYPE == type || Boolean.class == type )
+        if ( Boolean.TYPE == type )
             return Primitive.FALSE;
-        if ( Character.TYPE == type || Character.class == type )
+        if ( Character.TYPE == type )
             return Primitive.ZERO_CHAR;
-        if ( Byte.TYPE == type || Byte.class == type )
+        if ( Byte.TYPE == type )
             return Primitive.ZERO_BYTE;
-        if ( Short.TYPE == type || Short.class == type )
+        if ( Short.TYPE == type )
             return Primitive.ZERO_SHORT;
-        if ( Integer.TYPE == type || Integer.class == type )
+        if ( Integer.TYPE == type )
             return Primitive.ZERO_INT;
-        if ( Long.TYPE == type || Long.class == type )
+        if ( Long.TYPE == type )
             return Primitive.ZERO_LONG;
-        if ( Float.TYPE == type || Float.class == type )
+        if ( Float.TYPE == type )
             return Primitive.ZERO_FLOAT;
-        if ( Double.TYPE == type || Double.class == type )
+        if ( Double.TYPE == type )
             return Primitive.ZERO_DOUBLE;
-        if ( BigInteger.class == type )
-            return Primitive.ZERO_BIG_INTEGER;
-        if ( BigDecimal.class == type )
-            return Primitive.ZERO_BIG_DECIMAL;
         return Primitive.NULL;
     }
 
@@ -446,11 +437,19 @@ public final class Primitive implements Serializable {
             return new Primitive( castNumber(toType, fromValue.numberValue()) );
 
         if ( toType.isPrimitive() ) {
-            // Cast null value to primitive default value
-            if ( fromType == null && !Primitive.VOID.equals(fromValue) )
-                return checkOnly ? Types.VALID_CAST : getDefaultValue(toType);
-            if (toType == Boolean.TYPE)
-                return checkOnly ? Types.VALID_CAST : new Primitive( castWrapper(toType, fromValue) );
+            // null never becomes a primitive default value
+            if ( fromType == null && !Primitive.VOID.equals(fromValue) ) {
+                if ( checkOnly )
+                    return Types.INVALID_CAST;
+                throw Types.castError( "primitive type " + toType.getSimpleName(),
+                    "null value", operation );
+            }
+            // can only cast boolean to boolean
+            if ( (toType == Boolean.TYPE) != (fromType == Boolean.TYPE) ) {
+                if ( checkOnly )
+                    return Types.INVALID_CAST;
+                throw Types.castError( toType, fromType, fromValue, operation );
+            }
         } else {
             // Trying to cast primitive to an object type
             // Primitive.NULL can be cast to any object type
@@ -465,19 +464,12 @@ public final class Primitive implements Serializable {
                     "object type " + toType.getName(), "primitive value", operation);
         }
 
-        // can only cast boolean to boolean
-        if ( checkOnly && fromType == Boolean.TYPE ) {
-            if ( toType != Boolean.TYPE )
-                return Types.INVALID_CAST;
-
-            return Types.VALID_CAST;
-        }
-
         // Only allow legal Java assignment unless we're a CAST operation
         if ( operation == Types.ASSIGNMENT
             && !Types.isJavaAssignable( toType, fromType ) ) {
             if ( checkOnly )
                 return Types.INVALID_CAST;
+            throw Types.castError( toType, fromType, fromValue, operation );
         }
 
         return checkOnly ? Types.VALID_CAST :
@@ -510,28 +502,15 @@ public final class Primitive implements Serializable {
         if ( value instanceof Character )
             value = Integer.valueOf(((Character)value).charValue());
 
-        if ( toType == Boolean.TYPE ) {
-            if ( value instanceof Boolean )
-                return value;
-            else if ( value instanceof String )
-                return !"".equals(String.valueOf(value));
-            else if ( value instanceof Number )
-                return ((Number) value).intValue() != 0;
-            else
-                return value != null;
+        if ( value == null )
+            throw new InterpreterError("null value in castWrapper, guard");
+        if ( value instanceof Boolean ) {
+            if ( toType != Boolean.TYPE )
+                throw new InterpreterError("bad wrapper cast of boolean");
+            return value;
         }
-
-        if ( value == null && toType.isPrimitive() )
-            value = Primitive.unwrap(getDefaultValue(toType));
-
-        if ( value instanceof String ) try {
-            value = Double.parseDouble(String.valueOf(value));
-        } catch (NumberFormatException nfe) {
-            throw new InterpreterError("cannot cast string \""+value+"\" to number", nfe);
-        }
-
-        if ( value instanceof Boolean )
-            value = (Boolean) value ? 1 : 0;
+        if ( toType == Boolean.TYPE )
+            throw new InterpreterError("bad wrapper cast to boolean");
 
         if ( !(value instanceof Number) )
             throw new InterpreterError("bad type in cast "+StringUtil.typeValueString(value));

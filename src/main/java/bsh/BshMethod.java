@@ -405,9 +405,8 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
         if ( overrideNameSpace )
             localNameSpace = callstack.top();
         else {
-            // A method called unqualified from a chained scope (block, lambda, child
-            // namespace) is parented by that scope so it still binds late, but its
-            // parameters and locals stay its own. #676, #841
+            // parentNameSpace is only set for interface default methods (#832);
+            // every other call is parented on the declaring namespace.
             localNameSpace = new NameSpace( null != parentNameSpace
                     ? parentNameSpace : declaringNameSpace, name );
             localNameSpace.isMethod = true;

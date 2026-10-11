@@ -138,7 +138,11 @@ public class BshArray {
             if ( i % step == 0 )
                 tmp[j++] = Array.get(arr, step < 0 ? length-1-i : i+from);
         Object toArray = Array.newInstance(toType, tmp.length);
-        copy(toType, toArray, (Object)tmp);
+        try {
+            copy(toType, toArray, (Object)tmp);
+        } catch (UtilEvalError e) {
+            throw new InterpreterError("slice elements share the array type", e);
+        }
         return toArray;
     }
 
@@ -236,17 +240,15 @@ public class BshArray {
      * @param toType the element type to cast to
      * @param to the destination array
      * @param from the list of origin arrays */
-    private static void copy(Class<?> toType, Object to, Object... from) {
+    private static void copy(Class<?> toType, Object to, Object... from)
+            throws UtilEvalError {
         int f = 0, fi = 0,
             length = Array.getLength(from[0]),
             total = from.length > 1 ? Array.getLength(to) : length;
         if ( Types.arrayDimensions(to.getClass()) == 1 ) {
             for ( int i = 0; i < total; i++ ) {
-                Object value = Array.get(from[f], fi++);
-                try {
-                    value = Primitive.unwrap(
-                            Types.castObject(value, toType, Types.CAST));
-                } catch (UtilEvalError e) { /* ignore cast errors */ }
+                Object value = Primitive.unwrap(
+                        Types.castObject(Array.get(from[f], fi++), toType, Types.CAST));
                 if ( Byte.TYPE == toType )
                     Array.setByte(to, i, (byte) value);
                 else if ( Short.TYPE == toType )

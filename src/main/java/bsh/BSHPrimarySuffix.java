@@ -231,6 +231,8 @@ class BSHPrimarySuffix extends SimpleNode
             if ( !(indexVal instanceof Primitive) )
                 indexVal = Types.castObject(
                     indexVal, Integer.TYPE, Types.ASSIGNMENT );
+            if ( !((Primitive) indexVal).isNumber() )
+                throw Types.castError("int", StringUtil.typeString(indexVal), Types.ASSIGNMENT);
             index = (int) Primitive.castWrapper(Integer.TYPE, indexVal);
         } catch( Exception e ) {
             Interpreter.debug("doIndex: "+e);
@@ -288,7 +290,7 @@ class BSHPrimarySuffix extends SimpleNode
             Object key = jjtGetChild(0).eval(callstack, interpreter);
             int idx = 0;
             if ( ((key instanceof Primitive && ((Primitive) key).isNumber())
-                        || Primitive.isWrapperType(key.getClass()))
+                        || (Primitive.isWrapperType(key.getClass()) && Types.isNumeric(key)))
                     && length > (idx = (int) Primitive.castWrapper(Integer.TYPE, key))
                     && -length < idx)
                 index = idx;

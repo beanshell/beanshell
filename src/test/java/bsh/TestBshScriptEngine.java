@@ -238,9 +238,8 @@ public class TestBshScriptEngine {
         e = assertThrows(EvalError.class, () -> bshThis.invokeMethod("cd", new Object[] {2}));
         assertThat(e.getMessage(), containsString("Method cd(Integer) not found in bsh scripted object"));
         assertThat(e.getCause().getMessage(), containsString("Command not found: cd(Integer)"));
-        e = assertThrows(InterpreterError.class, () -> bshThis.invokeMethod("square", new Object[] {""}));
-        assertThat(e.getMessage(), containsString("cannot cast string \"\" to number"));
-        assertThat(e.getCause().getMessage(), containsString("empty String"));
+        e = assertThrows(EvalError.class, () -> bshThis.invokeMethod("square", new Object[] {""}));
+        assertThat(e.getMessage(), containsString("Repeat count must be an integral number"));
     }
 
     @Test

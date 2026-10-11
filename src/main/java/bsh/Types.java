@@ -530,10 +530,11 @@ class Types {
     {
         if ( fromValue == null ) {
             if ( operation == Types.CAST )
-                if ( !isPrimitive(toType) && !Primitive.isWrapperType(toType) )
+                if ( !toType.isPrimitive() )
                     return Primitive.NULL;
                 else
-                    return Primitive.getDefaultValue(toType);
+                    throw castError( "primitive type " + toType.getSimpleName(),
+                        "null value", operation );
 
             throw new InterpreterError(
                     "Cast error: null fromValue for toType: "
@@ -633,8 +634,8 @@ class Types {
                 return Primitive.castPrimitive( toType, fromType, (Primitive) fromValue,
                     checkOnly, operation );
             } else {
-                if (((Types.isNumeric(fromType) || String.valueOf(fromValue).matches("[-+0-9.]*"))
-                        && Types.isNumeric(toType)) || toType == Boolean.TYPE) {
+                if ((Types.isNumeric(fromType) && Types.isNumeric(toType))
+                        || (fromType == Boolean.class && toType == Boolean.TYPE)) {
                     // Auto widening and narrowing of primitive numeric types
                     if (checkOnly)
                         return VALID_CAST;
@@ -654,10 +655,14 @@ class Types {
         // Else, casting to reference type
 
         // Casting from primitive or void (to reference type)
-        if ( fromType == Void.TYPE || fromType == null || fromType.isPrimitive() || toType == Boolean.class
-                || (String.valueOf(fromValue).matches("[-+0-9.]*") && Types.isNumeric(toType))) {
+        if ( fromType == Void.TYPE || fromType == null || fromType.isPrimitive() ) {
             // cast from primitive to wrapper type
             if ( Primitive.isWrapperType( toType ) && fromType != Void.TYPE && fromType != null ) {
+                if ( (toType == Boolean.class) != (fromType == Boolean.TYPE) ) {
+                    if ( checkOnly )
+                        return INVALID_CAST;
+                    throw castError(toType, fromType, fromValue, operation);
+                }
                 // primitive to wrapper type
                 return checkOnly ? VALID_CAST :
                     Primitive.castWrapper(Primitive.unboxType(toType), fromValue);
@@ -708,8 +713,8 @@ class Types {
 
         // Both numeric wrapper types?
         // Try numeric style promotion wrapper cast
-        if ( Primitive.isWrapperType( toType )
-            && Primitive.isWrapperType( fromType ) )
+        if ( Primitive.isWrapperType( toType ) && Types.isNumeric( toType )
+            && Primitive.isWrapperType( fromType ) && Types.isNumeric( fromType ) )
             return checkOnly ? VALID_CAST :
                 Primitive.castWrapper( toType, fromValue );
 
