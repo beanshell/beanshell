@@ -532,6 +532,64 @@ public class TryStatementTest {
         }
     }
 
+    @Test(timeout = 10000)
+    public void catching_an_exception_whose_hashcode_throws() throws Exception {
+        // The original-location map must key by identity, never call the
+        // caught exception's own hashCode()/equals().
+        Object result = eval(
+            "class H extends RuntimeException {",
+            "    H() { super(\"h\"); }",
+            "    int hashCode() { throw new IllegalStateException(\"nohash\"); }",
+            "}",
+            "try { throw new H(); } catch (Exception e) { return e.getMessage(); }"
+        );
+        assertEquals("h", result);
+    }
+
+    @Test(timeout = 10000)
+    public void equal_exceptions_keep_their_own_original_location() throws Exception {
+        try {
+            eval(
+                "class E extends RuntimeException {",
+                "    E() { super(\"e\"); }",
+                "    boolean equals(Object o) { return o instanceof E; }",
+                "    int hashCode() { return 1; }",
+                "}",
+                "e1 = null; e2 = null;",
+                "try { throw new E(); } catch (Exception x) { e1 = x; }",
+                "try { throw new E(); } catch (Exception x) { e2 = x; }",
+                "try { throw new RuntimeException(\"y\"); }",
+                "catch (Exception y) { throw new RuntimeException(\"w\", e1); }"
+            );
+            fail("Expected TargetError");
+        } catch (TargetError e) {
+            assertThat("e1's own throw site, not e2's",
+                e.getMessage(), containsString("Originally thrown at line 7"));
+        }
+    }
+
+    @Test(timeout = 20000)
+    public void recorded_location_is_dropped_once_the_exception_is_unreachable() throws Exception {
+        // Other tests' exceptions may still be reachable, so compare against
+        // a baseline taken once earlier garbage has been swept.
+        for (int i = 0; i < 20; i++) {
+            System.gc();
+            Thread.sleep(5);
+        }
+        final int baseline = TargetError.originalLocationCount();
+        Object held = throwAndCatch();
+        assertTrue("location was recorded", TargetError.originalLocationCount() > baseline);
+        held = null;
+        while (TargetError.originalLocationCount() > baseline) {
+            System.gc();
+            Thread.sleep(1);
+        }
+    }
+
+    private static Object throwAndCatch() throws Exception {
+        return new Interpreter().eval("try { throw new RuntimeException(\"z\"); } catch (Exception e) { return e; }");
+    }
+
     @Test
     public void try_with_resource_no_catch_no_finally() throws Exception {
         Object result = eval(

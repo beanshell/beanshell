@@ -27,12 +27,13 @@
 
 package bsh;
 
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.io.PrintStream;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
     TargetError is an EvalError that wraps an exception thrown by the script
@@ -71,7 +72,7 @@ public final class TargetError extends EvalError
      * the exception itself was reachable from that graph (e.g. a script
      * does `saved = e;`, or just `catch (e) {}` with `e` visible in the
      * enclosing scope), the value would hold a path straight back to its
-     * own key, defeating the WeakHashMap entirely and pinning the
+     * own key, defeating the weak key entirely and pinning the
      * Interpreter forever. Plain strings can't reach back to anything. */
     private static final class OriginalLocation {
         final String ownLocation;
@@ -91,17 +92,38 @@ public final class TargetError extends EvalError
      * polluting getSuppressed() on every catch (not just a catch-and-rewrap),
      * growing without bound on a reused exception instance, and pulling the
      * frozen CallStack (and anything reachable through it) into the
-     * exception's serialized form. Keying by identity in a WeakHashMap ties
-     * a marker's lifetime to the exception's own reachability -- reusing one
-     * instance just overwrites its single entry rather than accumulating,
-     * and once the exception itself is unreachable the entry becomes
-     * collectible too (swept lazily, on a subsequent map access, like any
-     * WeakHashMap) -- provided the value itself holds nothing that can reach
-     * back to the key (see OriginalLocation). Wrapped in synchronizedMap
-     * since interpreters/exceptions can cross threads and only get/put are
-     * used here (no iteration). */
-    private static final Map<Throwable, OriginalLocation> ORIGINAL_LOCATIONS =
-        Collections.synchronizedMap( new WeakHashMap<>() );
+     * exception's serialized form. Keying by identity, weakly (see
+     * IdentityKey), ties a marker's lifetime to the exception's own
+     * reachability -- reusing one instance just overwrites its single entry
+     * rather than accumulating, and once the exception itself is
+     * unreachable its entry is removed on a subsequent map access --
+     * provided the value itself holds nothing that can reach back to the
+     * key (see OriginalLocation). Identity rather than equals()/hashCode():
+     * the caught exception's class may override either. */
+    private static final ConcurrentMap<IdentityKey, OriginalLocation> ORIGINAL_LOCATIONS =
+        new ConcurrentHashMap<>();
+    private static final ReferenceQueue<Throwable> COLLECTED = new ReferenceQueue<>();
+
+    /** Weak, identity-compared map key. */
+    private static final class IdentityKey extends WeakReference<Throwable> {
+        private final int hash;
+        IdentityKey( Throwable t, ReferenceQueue<Throwable> queue ) {
+            super( t, queue );
+            hash = System.identityHashCode( t );
+        }
+        @Override public int hashCode() { return hash; }
+        @Override public boolean equals( Object o ) {
+            if ( this == o ) return true;
+            if ( !( o instanceof IdentityKey ) ) return false;
+            Throwable t = get();
+            return null != t && t == ((IdentityKey) o).get();
+        }
+    }
+
+    private static void expungeCollected() {
+        for ( Object k; null != ( k = COLLECTED.poll() ); )
+            ORIGINAL_LOCATIONS.remove( k );
+    }
 
     /** Record where `thrown` was originally thrown in the script. Safe to
      * call repeatedly for the same (possibly reused) exception instance --
@@ -116,9 +138,15 @@ public final class TargetError extends EvalError
             Throwable thrown, String rawMessage, Node node, CallStack callstack ) {
         if ( null != thrown ) {
             EvalError marker = new EvalError( rawMessage, node, callstack );
-            ORIGINAL_LOCATIONS.put( thrown,
+            expungeCollected();
+            ORIGINAL_LOCATIONS.put( new IdentityKey( thrown, COLLECTED ),
                 new OriginalLocation( marker.getOwnLocation(), marker.getScriptStackFrames() ) );
         }
+    }
+
+    static int originalLocationCount() {
+        expungeCollected();
+        return ORIGINAL_LOCATIONS.size();
     }
 
     public synchronized Throwable getTarget()
@@ -252,7 +280,7 @@ public final class TargetError extends EvalError
             if ( !nativeFrames.isEmpty() )
                 msgs.append("\n").append(nativeFrames);
 
-            OriginalLocation original = ORIGINAL_LOCATIONS.get(cur);
+            OriginalLocation original = ORIGINAL_LOCATIONS.get( new IdentityKey( cur, null ) );
             // Skip when the recorded location is identical to this
             // exception's own -- e.g. when the exception simply escaped
             // the try block untouched (rethrown as the original error,
