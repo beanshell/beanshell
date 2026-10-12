@@ -1,7 +1,7 @@
 # BeanShell changelog
 
 
-## 3.0.0 beta 2 (in progress)
+## 3.0.0 RC1
 
 Fixed a lambda, anonymous class or scripted object (a method that returns `this`) created inside a loop seeing the last iteration's value instead of its own, for the for-each variable and for variables declared in the loop body. For example, `for (String s : new String[]{"a", "b", "c"}) list.add(new Callable() { public Object call() { return s; } });` gave objects that all returned `"c"`. Each iteration now gets its own scope, as in Java (#848).
 

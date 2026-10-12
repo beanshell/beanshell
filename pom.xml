@@ -29,7 +29,7 @@
 
   <groupId>io.github.beanshell</groupId>
   <artifactId>bsh</artifactId>
-  <version>3.0.0b2-SNAPSHOT</version>
+  <version>3.0.0RC1</version>
   <packaging>bundle</packaging>
 
   <name>BeanShell</name>
