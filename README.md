@@ -6,8 +6,8 @@
 
 The **official** and **active** project home for BeanShell.
 
-## NOTICE: 3.0 beta available
-[BeanShell 3.0.0b1](https://github.com/beanshell/beanshell/releases/tag/3.0.0b1), the first beta of 3.0, is available from GitHub releases. Support for legacy releases reached end-of-life; only issues and pull requests against main will be accepted.
+## NOTICE: 3.0 release candidate available
+[BeanShell 3.0.0RC1](https://github.com/beanshell/beanshell/releases/tag/3.0.0RC1), the first release candidate of 3.0, is available from GitHub releases. Support for legacy releases reached end-of-life; only issues and pull requests against main will be accepted.
 
 The next release will be BeanShell 3.0, as the [development roadmap](https://github.com/beanshell/beanshell#development-road-map) outlines. It [was decided](https://github.com/beanshell/beanshell/issues/81) that the next release would be a production-ready major version with all outstanding issues resolved to encourage community involvement and testing.
 
@@ -46,7 +46,7 @@ The source code releases can be downloaded from [GitHub releases](https://github
 
 Latest releases:
 
- - [BeanShell 3.0.0b1](https://github.com/beanshell/beanshell/releases/tag/3.0.0b1) (beta) - [source zip](https://github.com/beanshell/beanshell/archive/refs/tags/3.0.0b1.zip)
+ - [BeanShell 3.0.0RC1](https://github.com/beanshell/beanshell/releases/tag/3.0.0RC1) (release candidate) - [source zip](https://github.com/beanshell/beanshell/archive/refs/tags/3.0.0RC1.zip)
  - [BeanShell 2.1.1](https://github.com/beanshell/beanshell/releases/tag/2.1.1) (legacy) - [bsh-2.1.1-src.zip](https://github.com/beanshell/beanshell/releases/download/2.1.1/bsh-2.1.1-src.zip)
 
 
@@ -80,19 +80,19 @@ as is BeanShell 3.0.0b1:
 
 You can also download the `bsh.jar` binary from the releases page or the link below:
 
-- [bsh-3.0.0b1.jar](https://github.com/beanshell/beanshell/releases/download/3.0.0b1/bsh-3.0.0b1.jar) (beta)
+- [bsh-3.0.0RC1.jar](https://github.com/beanshell/beanshell/releases/download/3.0.0RC1/bsh-3.0.0RC1.jar) (release candidate)
 - [bsh-2.1.1.jar](https://github.com/beanshell/beanshell/releases/download/2.1.1/bsh-2.1.1.jar) (legacy)
 
 If you want to execute the Beanshell [User Interface](https://github.com/beanshell/beanshell/wiki/Desktop), either double-click the JAR file, or run it with:
 
 ```shell
-$ java -jar bsh-3.0.0b1.jar
+$ java -jar bsh-3.0.0RC1.jar
 ```
 
 For a BeanShell interactive shell, you can either use the `java` command:
 
 ```shell
-$ java -cp bsh-3.0.0b1.jar bsh.Interpreter
+$ java -cp bsh-3.0.0RC1.jar bsh.Interpreter
 ```
 
 or the supplied helper scripts `bsh` or `bsh.bat`, available under the scripts folder.
