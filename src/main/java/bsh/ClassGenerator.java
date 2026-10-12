@@ -36,7 +36,8 @@ import java.util.List;
 
 public final class ClassGenerator {
 
-    enum Type { CLASS, INTERFACE, ENUM }
+    /** ANONYMOUS is a CLASS that script code cannot name, so it is not imported. */
+    enum Type { CLASS, INTERFACE, ENUM, ANONYMOUS }
 
     private static ClassGenerator cg;
 
@@ -159,7 +160,8 @@ public final class ClassGenerator {
                 Interpreter.debug("Define ", fqClassName, " as ", genClass);
             }
             // import the unqualified class name into parent namespace
-            enclosingNameSpace.importClass(fqClassName.replace('$', '.'));
+            if (type != Type.ANONYMOUS)
+                enclosingNameSpace.importClass(fqClassName.replace('$', '.'));
 
             // Give the static space its class static import
             // important to do this after all classes are defined
