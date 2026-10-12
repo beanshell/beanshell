@@ -213,7 +213,7 @@ class BSHAllocationExpression extends SimpleNode
         Modifiers modifiers = new Modifiers(Modifiers.CLASS);
         Class<?> clas = ClassGenerator.getClassGenerator().generateClass(
                 name, modifiers, null/*interfaces*/, type/*superClass*/,
-                block, ClassGenerator.Type.CLASS, callstack, interpreter );
+                block, ClassGenerator.Type.ANONYMOUS, callstack, interpreter );
         try {
             return Reflect.constructWithArguments( clas, null, arguments );
         } catch ( Exception e ) {
@@ -222,6 +222,10 @@ class BSHAllocationExpression extends SimpleNode
                 cause = e.getCause();
             throw new EvalException("Error constructing inner class instance: "
                 + e, this, callstack, cause);
+        } finally {
+            // this is the only instance and nothing can name the class, so let
+            // it unload once the instance is gone
+            interpreter.getClassManager().forgetAnonymousClass(clas.getName());
         }
     }
 

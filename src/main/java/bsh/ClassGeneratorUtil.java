@@ -26,6 +26,7 @@
 
 package bsh;
 
+import static bsh.ClassGenerator.Type.ANONYMOUS;
 import static bsh.ClassGenerator.Type.CLASS;
 import static bsh.ClassGenerator.Type.ENUM;
 import static bsh.ClassGenerator.Type.INTERFACE;
@@ -273,7 +274,7 @@ public class ClassGeneratorUtil implements Opcodes {
         }
 
         // If no other constructors, generate a default constructor
-        if ( type == CLASS && !hasConstructor )
+        if ( (type == CLASS || type == ANONYMOUS) && !hasConstructor )
             generateConstructor(DEFAULTCONSTRUCTOR/*index*/, new String[0], ACC_PUBLIC, cw);
 
         // Generate methods

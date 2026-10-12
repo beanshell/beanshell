@@ -820,6 +820,15 @@ public class BshClassManager {
             This.contextStore.remove(previous);
     }
 
+    /** Release what is held by name for a generated anonymous class.
+     * It can no longer be resolved by name afterwards. */
+    public void forgetAnonymousClass(String name) {
+        absoluteClassCache.remove(name);
+        String uuid = contexts.remove(name);
+        if (uuid != null)
+            This.contextStore.remove(uuid);
+    }
+
     /** Release every context still held for a class this manager generated. */
     protected void clearContexts() {
         for (String name : new ArrayList<>(contexts.keySet())) {

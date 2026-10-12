@@ -253,6 +253,12 @@ public class BshClassPath
         classSource.put( className, cs );
     }
 
+    /** Remove a class source set with setClassSource(). */
+    public void removeClassSource( String className )
+    {
+        classSource.remove( className );
+    }
+
     /**
         If the claspath map is not initialized, do it now.
         If component maps are not do them as well...

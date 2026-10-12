@@ -311,6 +311,17 @@ public class ClassGeneratorTest {
     }
 
     @Test
+    public void anonymous_subclass_is_not_retained_by_name() throws Exception {
+        final Interpreter interpreter = new Interpreter();
+        final Object anon = interpreter.eval(
+            "return new java.util.ArrayList() { public String toString() { return \"anon\"; } };");
+        final String name = anon.getClass().getName();
+        assertEquals("anon", anon.toString());
+        assertEquals(null, interpreter.getClassManager().classForName(name));
+        assertEquals(null, interpreter.getNameSpace().getClass(Types.getBaseName(name)));
+    }
+
+    @Test
     public void anonymous_subclass_super_args_of_one_type() throws Exception {
         assertEquals("int:1", eval(
             "import bsh.ClassGeneratorTest.SuperArgs;",
