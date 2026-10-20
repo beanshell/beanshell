@@ -633,14 +633,15 @@ public final class Primitive implements Serializable {
         return new BigDecimal(number.longValue()).setScale(1);
     }
 
-    /** Narrow the numeric result of a compound assignment or an increment
-        to the assignee's declared numeric type, as Java's implicit cast does
-        (JLS 15.26.2, 15.14.2): x += y is x = (T)(x + y).
-        @param result the operation result
-        @param type the assignee's declared type, may be null
-        @return the narrowed result, or result when there is nothing to narrow
+    /** Narrow a numeric value to a numeric type as an explicit cast does,
+        truncating and wrapping. Used for the implicit cast of a compound
+        assignment or an increment (JLS 15.26.2, 15.14.2): x += y is
+        x = (T)(x + y), and for the elements of an explicit array cast.
+        @param result the value to narrow
+        @param type the target type, may be null
+        @return the narrowed value, or result when there is nothing to narrow
         @throws UtilTargetError see castNumberStrictJava */
-    static Object narrowForCompoundAssignment(Object result, Class<?> type)
+    static Object narrowLikeCast(Object result, Class<?> type)
             throws UtilTargetError {
         // wrapper types include BigInteger and BigDecimal
         if ( null == type || !Types.isNumeric(type)

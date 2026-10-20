@@ -110,6 +110,18 @@ assertEquals(7L, (long) BigInteger.ONE.shiftLeft(64).add(BigInteger.valueOf(7)))
 assertEquals(BigInteger.valueOf(3), (BigInteger) 3.7);
 Long L = 3000000000L;
 assertEquals(-1294967296, (int) L);
+double[] doubles = {1.5, 2.5};
+int[] truncated = (int[]) doubles;
+assertEquals(1, truncated[0]);
+assertEquals(2, truncated[1]);
+double[][] nested = {{1.5}};
+assertEquals(1, ((int[][]) nested)[0][0]);
+int[] wide = {300};
+assertEquals(44, ((byte[]) wide)[0]);
+assert(isEvalError("cannot assign number 1.5 to type int", "int[] fromDoubles = doubles;"));
+assert(isEvalError("Cannot cast", "(String) new int[] {1};"));
+assert(isEvalError("Cannot cast", "(int[]) \"x\";"));
+assert(isEvalError("can't access field", "Integer.MAX_VALUE = 5;"));
 Character C = '\uffff';
 assertEquals(-1, (byte) C);
 assert(isEvalError("cannot assign number NaN to type BigInteger", "(BigInteger) Double.NaN;"));
@@ -170,6 +182,28 @@ double dd = 1.5;
 dd += 1;
 assertEquals(2.5, dd, 0.0);
 
+// including a variable from an enclosing block, loop, method or class
+int outer = 5;
+{ outer += 1.9; }
+assertEquals(6, outer);
+int sum = 0;
+for (double part : new double[] {1.5, 2.5})
+    sum += part;
+assertEquals(3, sum);
+int counter = 5;
+void bump() { counter += 1.9; }
+bump();
+assertEquals(6, counter);
+class Accumulator {
+    int total = 5;
+    byte small = 127;
+    int add() { total += 1.9; return total; }
+    byte inc() { small++; return small; }
+}
+acc = new Accumulator();
+assertEquals(6, acc.add());
+assertEquals(-128, acc.inc());
+
 // as do increment and decrement
 byte b = 127;
 b++;
@@ -196,7 +230,25 @@ class Holder { byte b; static short s; }
 holder = new Holder();
 try { holder.b = 300; } catch (ClassCastException e) { caught++; }
 try { Holder.s = 70000; } catch (ClassCastException e) { caught++; }
-assertEquals(12, caught);
+class Sized {
+    int v;
+    Sized(int v) { this.v = v; }
+}
+assertEquals(2, new Sized(2.0).v);
+class Args {
+    int one(int x) { return x; }
+    int first(int... xs) { return xs[0]; }
+}
+args = new Args();
+assertEquals(2, args.one(2.0));
+try { args.one(1.5); } catch (ClassCastException e) { caught++; }
+try { args.first(1.5, 2); } catch (ClassCastException e) { caught++; }
+try { new Sized(1.5); } catch (ClassCastException e) { caught++; }
+try { Integer.toHexString(1.5); } catch (ClassCastException e) { caught++; }
+five = 5;
+try { five.add(1.5); } catch (ClassCastException e) { caught++; }
+try { args.one(null); } catch (ClassCastException e) { caught++; }
+assertEquals(18, caught);
 caught = 0;
 try { int[] a = {1}; a[1.5]; } catch (Exception e) { caught++; }
 try { new int[2.5]; } catch (Exception e) { caught++; }

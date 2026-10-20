@@ -69,6 +69,13 @@ class BSHCastExpression extends SimpleNode {
             } catch ( UtilEvalError e2 ) {
                 throw e2.toEvalError( this, callstack );
             }
+            // and so does each element of an array cast, e.g. (int[]) doubles
+            if ( toType.isArray() && fromValue.getClass().isArray() ) try {
+                return BshArray.castArray(
+                    toType, fromValue.getClass(), fromValue, true );
+            } catch ( UtilEvalError e2 ) {
+                throw e2.toEvalError( this, callstack );
+            }
             throw e.toEvalError( this, callstack );
         }
     }

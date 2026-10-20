@@ -242,13 +242,27 @@ public class BshArray {
      * @param from the list of origin arrays */
     private static void copy(Class<?> toType, Object to, Object... from)
             throws UtilEvalError {
+        copyElements(toType, false, to, from);
+    }
+
+    /** Copy and cast the elements of from arrays to type in to array.
+     * @param toType the element type to cast to
+     * @param narrowing whether numbers narrow as an explicit cast does,
+     *        truncating and wrapping, rather than having to fit
+     * @param to the destination array
+     * @param from the list of origin arrays */
+    private static void copyElements(Class<?> toType, boolean narrowing,
+            Object to, Object... from) throws UtilEvalError {
         int f = 0, fi = 0,
             length = Array.getLength(from[0]),
             total = from.length > 1 ? Array.getLength(to) : length;
         if ( Types.arrayDimensions(to.getClass()) == 1 ) {
             for ( int i = 0; i < total; i++ ) {
+                Object element = Array.get(from[f], fi++);
+                if ( narrowing )
+                    element = Primitive.narrowLikeCast(element, toType);
                 Object value = Primitive.unwrap(
-                        Types.castObject(Array.get(from[f], fi++), toType, Types.CAST));
+                        Types.castObject(element, toType, Types.CAST));
                 if ( Byte.TYPE == toType )
                     Array.setByte(to, i, (byte) value);
                 else if ( Short.TYPE == toType )
@@ -297,7 +311,7 @@ public class BshArray {
                     tto = Array.newInstance(toType, dimensions(frm)));
 
             // recurse copy for next array dimension
-            copy(toType, tto, frm);
+            copyElements(toType, narrowing, tto, frm);
         }
     }
 
@@ -320,6 +334,19 @@ public class BshArray {
      * @throws UtilEvalError cast error */
     static Object castArray( Class<?> toType, Class<?> fromType, Object fromValue
             ) throws UtilEvalError {
+        return castArray(toType, fromType, fromValue, false);
+    }
+
+    /** Cast an array to the specified element type.
+     * @param toType element type of cast array
+     * @param fromType type of from value
+     * @param fromValue the array value to cast
+     * @param narrowing whether numeric elements narrow as an explicit cast
+     *        does, truncating and wrapping, rather than having to fit
+     * @return a new instance of to type
+     * @throws UtilEvalError cast error */
+    static Object castArray( Class<?> toType, Class<?> fromType, Object fromValue,
+            boolean narrowing ) throws UtilEvalError {
         // Collection type cast from array
         if ( Collection.class.isAssignableFrom(toType) )
             if ( List.class.isAssignableFrom(toType) || Queue.class == toType ) {
@@ -390,7 +417,7 @@ public class BshArray {
         // cast array to element type of toType
         toType = Types.arrayElementType(toType);
         Object toArray = Array.newInstance(toType, dims);
-        BshArray.copy(toType, toArray, fromValue);
+        copyElements(toType, narrowing, toArray, fromValue);
         return toArray;
     }
 

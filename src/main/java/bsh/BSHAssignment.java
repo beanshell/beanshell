@@ -175,7 +175,7 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
      * @throws UtilEvalError of invalidation */
     private Object compound( LHS lhs, Object lhsValue, Object rhs, int kind )
             throws UtilEvalError {
-        return Primitive.narrowForCompoundAssignment(
+        return Primitive.narrowLikeCast(
             operation(lhsValue, rhs, kind), lhs.getDeclaredType());
     }
 

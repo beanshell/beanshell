@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map.Entry;
 import java.util.Objects;
 
@@ -228,15 +227,20 @@ class LHS implements ParserConstants, Serializable {
     /** The declared type of the assignee, used by compound assignment to
         narrow its result. Null when there is none: a loosely typed variable,
         a property, a map entry or a List element.
-        @return the declared type or null */
-    Class<?> getDeclaredType() {
+        @return the declared type or null
+        @throws UtilEvalError looking up the variable */
+    Class<?> getDeclaredType() throws UtilEvalError {
         if ( type == INDEX )
             return object.getClass().isArray()
                 ? object.getClass().getComponentType() : null;
         if ( null != field )
             return field.getReturnType();
-        if ( type == VARIABLE && null != getVariable() )
-            return var.getType();
+        if ( type == VARIABLE ) {
+            // look the variable up as assign() does, including enclosing
+            // blocks, methods and classes
+            Variable variable = nameSpace.getVariableImpl(varName, !localVar);
+            return null == variable ? null : variable.getType();
+        }
         return null;
     }
 
@@ -300,13 +304,10 @@ class LHS implements ParserConstants, Serializable {
             Objects.requireNonNull(field,
                 "assign value, field cannot be null").invoke( object, val);
             return getValueImpl();
-        } catch (InvocationTargetException e) {
+        } catch (ReflectiveOperationException e) {
             // the value can't convert to the field's type
             if ( e.getCause() instanceof ClassCastException )
                 throw new UtilTargetError(e.getCause());
-            throw new UtilEvalError(
-                "LHS ("+field.getName()+") can't access field: "+e, e);
-        } catch (ReflectiveOperationException e) {
             throw new UtilEvalError(
                 "LHS ("+field.getName()+") can't access field: "+e, e);
         } else if ( type == PROPERTY ) try {
