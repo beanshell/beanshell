@@ -1,0 +1,65 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// Compound shifts on an int or narrower variable shift at int width, as in
+// Java (JLS 15.26.2, 15.19): the count keeps its low five bits.
+
+int i = -7; i >>>= 1;
+assertEquals(2147483644, i);
+i = -7; i >>>= 33;
+assertEquals(2147483644, i);
+i = -7; i >>>= 33L;
+assertEquals(2147483644, i);
+i = 1; i <<= 33;
+assertEquals(2, i);
+i = 1; i <<= 31;
+assertEquals(Integer.MIN_VALUE, i);
+i = -8; i >>= 33;
+assertEquals(-4, i);
+
+Integer boxed = -7; boxed >>>= 1;
+assertEquals(2147483644, (int) boxed);
+
+// byte, short and char are promoted to int, shifted, then narrowed back
+byte b = -1; b >>>= 1;
+assertEquals((byte) -1, b);
+b = -16; b >>>= 2;
+assertEquals((byte) -4, b);
+b = 1; b <<= 9;
+assertEquals((byte) 0, b);
+short s = -16; s >>>= 2;
+assertEquals((short) -4, s);
+char c = 0xFFFF; c >>>= 1;
+assertEquals((char) 0x7FFF, c);
+
+// counts past the narrow type's own width are where int and long shifts differ
+short ws = -1; ws >>>= 17;
+assertEquals((short) 32767, ws);
+byte wb = -1; wb >>>= 25;
+assertEquals((byte) 127, wb);
+
+int[] a = { -7 };
+a[0] >>>= 1;
+assertEquals(2147483644, a[0]);
+
+class Holder {
+    int f = -7;
+    static int sf = 1;
+    void run() { f >>>= 1; sf <<= 33; }
+}
+h = new Holder(); h.run();
+assertEquals(2147483644, h.f);
+assertEquals(2, Holder.sf);
+
+// a long variable keeps 64-bit shifts
+long l = -7; l >>>= 1;
+assertEquals(9223372036854775804L, l);
+l = 1; l <<= 65;
+assertEquals(2L, l);
+
+// plain shift expressions are unchanged
+assertEquals(9223372036854775804L, -7 >>> 1);
+
+complete();

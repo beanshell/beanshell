@@ -175,8 +175,46 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
      * @throws UtilEvalError of invalidation */
     private Object compound( LHS lhs, Object lhsValue, Object rhs, int kind )
             throws UtilEvalError {
-        return Primitive.narrowLikeCast(
-            operation(lhsValue, rhs, kind), lhs.getDeclaredType());
+        Class<?> type = lhs.getDeclaredType();
+        Object result = intWidthShift(lhsValue, rhs, kind, type);
+        if ( null == result )
+            result = operation(lhsValue, rhs, kind);
+        return Primitive.narrowLikeCast(result, type);
+    }
+
+    /** Shift at int width for an int or narrower assignee, as Java does:
+     * bsh's own shift operators work on long, which would give a different
+     * value once the result is narrowed.
+     * @return the shifted value, or null when this doesn't apply */
+    private static Object intWidthShift( Object lhsValue, Object rhs, int kind,
+            Class<?> type ) {
+        if ( kind != LSHIFT && kind != RSIGNEDSHIFT && kind != RUNSIGNEDSHIFT )
+            return null;
+        if ( null == type )
+            return null;
+        if ( type != Integer.TYPE && type != Integer.class
+                && type != Short.TYPE && type != Short.class
+                && type != Byte.TYPE && type != Byte.class
+                && type != Character.TYPE && type != Character.class )
+            return null;
+        Object l = Primitive.unwrap(lhsValue), r = Primitive.unwrap(rhs);
+        if ( l instanceof Character )
+            l = Integer.valueOf((Character) l);
+        if ( r instanceof Character )
+            r = Integer.valueOf((Character) r);
+        if ( !isIntegral(l) || !isIntegral(r) )
+            return null;
+        int value = ((Number) l).intValue();
+        int count = (int) (((Number) r).longValue() & 31);
+        int shifted = kind == LSHIFT ? value << count
+            : kind == RSIGNEDSHIFT ? value >> count : value >>> count;
+        return lhsValue instanceof Primitive
+            ? new Primitive(shifted) : (Object) Integer.valueOf(shifted);
+    }
+
+    private static boolean isIntegral( Object value ) {
+        return value instanceof Byte || value instanceof Short
+            || value instanceof Integer || value instanceof Long;
     }
 
     /** Convenience method to shuffle the different types off to
