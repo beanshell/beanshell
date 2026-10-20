@@ -1,6 +1,8 @@
 # BeanShell changelog
 
 
+## 3.0.0 (in progress)
+
 ## 3.0.0 RC2
 
 A lambda whose interface method returns an `int` now fails when its body produces a fractional number, so a `Comparator` written as `(a, b) -> a - b` throws when it compares doubles like 3.5 and 1.0; a whole value such as 2.0 is still accepted. Cast the result where a script relied on it being cut down: `(a, b) -> (int) (a - b)` (#911).
