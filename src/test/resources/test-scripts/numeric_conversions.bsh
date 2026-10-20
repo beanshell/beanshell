@@ -71,6 +71,11 @@ BigInteger bi = new BigDecimal("65.000");
 assertEquals(BigInteger.valueOf(65), bi);
 int[] a = {1, 2, 3};
 assertEquals(2, a[1.0]);
+BigInteger bi = new BigDecimal("0.00");
+assertEquals(BigInteger.ZERO, bi);
+BigInteger bi = new BigDecimal("1E+3");
+assertEquals(BigInteger.valueOf(1000), bi);
+assert(isEvalError("cannot assign number 1E+20 to type int", "int x = new BigDecimal(\"1e20\");"));
 double d = 65.5;
 BigDecimal bd = d;
 assertEquals(new BigDecimal("65.5"), bd);
@@ -88,6 +93,9 @@ assertTrue(f == Float.POSITIVE_INFINITY);
 double d = Double.NaN;
 float f = d;
 assertTrue(Float.isNaN(f));
+float f = Float.POSITIVE_INFINITY;
+double d = f;
+assertTrue(d == Double.POSITIVE_INFINITY);
 
 // float and double may round, as Java's widening does
 double d = 16777217;
@@ -102,6 +110,10 @@ assertEquals(7L, (long) BigInteger.ONE.shiftLeft(64).add(BigInteger.valueOf(7)))
 assertEquals(BigInteger.valueOf(3), (BigInteger) 3.7);
 Long L = 3000000000L;
 assertEquals(-1294967296, (int) L);
+Character C = '\uffff';
+assertEquals(-1, (byte) C);
+assert(isEvalError("cannot assign number NaN to type BigInteger", "(BigInteger) Double.NaN;"));
+assert(isEvalError("cannot assign number Infinity to type BigDecimal", "(BigDecimal) Double.POSITIVE_INFINITY;"));
 
 // compound assignment narrows to the declared type, as Java's implicit cast does
 int i = 5;
@@ -137,6 +149,23 @@ assertEquals(BigInteger.valueOf(3), bi);
 loose = 5;
 loose += 2.5;
 assertEquals(7.5, loose, 0.0);
+Number n = 5;
+n += 2.5;
+assertEquals(7.5, n, 0.0);
+Object o = 5;
+o += 2.5;
+assertEquals(7.5, o, 0.0);
+BigDecimal bd = new BigDecimal("1.5");
+bd += 1;
+assertEquals(new BigDecimal("2.5"), bd);
+List list = new ArrayList();
+list.add(5);
+list[0] += 2.5;
+assertEquals(7.5, list[0], 0.0);
+Map map = new HashMap();
+map.put("a", 5);
+map["a"] += 2.5;
+assertEquals(7.5, map["a"], 0.0);
 double dd = 1.5;
 dd += 1;
 assertEquals(2.5, dd, 0.0);
@@ -171,6 +200,14 @@ assertEquals(12, caught);
 caught = 0;
 try { int[] a = {1}; a[1.5]; } catch (Exception e) { caught++; }
 try { new int[2.5]; } catch (Exception e) { caught++; }
+assertEquals(2, caught);
+
+// a math method's result that doesn't fit back into the receiver's type
+caught = 0;
+int base = 100000;
+try { base.pow(5); } catch (ClassCastException e) { caught++; }
+double nan = Double.NaN;
+try { nan.setScale(1); } catch (ClassCastException e) { caught++; }
 assertEquals(2, caught);
 
 complete();

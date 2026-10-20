@@ -601,12 +601,10 @@ public final class Primitive implements Serializable {
         return number.longValue();
     }
 
-    /** The value of a finite number as a BigInteger, or null when it has a
-        fraction. A double converts through its decimal string, as for
-        BigDecimal. */
+    /** The value of a finite number that isn't already a BigInteger as a
+        BigInteger, or null when it has a fraction. A double converts through
+        its decimal string, as for BigDecimal. */
     private static BigInteger toBigInteger(Number number) {
-        if (number instanceof BigInteger)
-            return (BigInteger) number;
         if (number instanceof BigDecimal) {
             BigDecimal value = (BigDecimal) number;
             return value.signum() == 0 || value.scale() <= 0
@@ -644,9 +642,9 @@ public final class Primitive implements Serializable {
         @throws UtilTargetError see castNumberStrictJava */
     static Object narrowForCompoundAssignment(Object result, Class<?> type)
             throws UtilTargetError {
+        // wrapper types include BigInteger and BigDecimal
         if ( null == type || !Types.isNumeric(type)
-                || !(type.isPrimitive() || isWrapperType(type)
-                    || type == BigInteger.class || type == BigDecimal.class) )
+                || !(type.isPrimitive() || isWrapperType(type)) )
             return result;
         Object value = unwrap(result);
         if ( value instanceof Character )
