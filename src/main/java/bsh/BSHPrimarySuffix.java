@@ -236,7 +236,7 @@ class BSHPrimarySuffix extends SimpleNode
             index = (int) Primitive.castWrapper(Integer.TYPE, indexVal);
         } catch( Exception e ) {
             Interpreter.debug("doIndex: "+e);
-            throw new EvalError(
+            throw new EvalException(
                 "Array index does not evaluate to an integer.",
                 callerInfo, callstack, e);
         }
@@ -289,10 +289,14 @@ class BSHPrimarySuffix extends SimpleNode
                 && Types.isPropertyTypeEntryList(cls) ) {
             Object key = jjtGetChild(0).eval(callstack, interpreter);
             int idx = 0;
-            if ( ((key instanceof Primitive && ((Primitive) key).isNumber())
-                        || (Primitive.isWrapperType(key.getClass()) && Types.isNumeric(key)))
-                    && length > (idx = (int) Primitive.castWrapper(Integer.TYPE, key))
-                    && -length < idx)
+            boolean numeric = (key instanceof Primitive && ((Primitive) key).isNumber())
+                || (Primitive.isWrapperType(key.getClass()) && Types.isNumeric(key));
+            if ( numeric ) try {
+                idx = (int) Primitive.castWrapper(Integer.TYPE, key);
+            } catch ( UtilTargetError e ) {
+                throw e.toEvalError( this, callstack );
+            }
+            if ( numeric && length > idx && -length < idx )
                 index = idx;
             else if (toLHS)
                 return new LHS(Reflect.getEntryForKey(key, (Entry[]) obj));

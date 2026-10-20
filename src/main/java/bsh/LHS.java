@@ -224,6 +224,26 @@ class LHS implements ParserConstants, Serializable {
         }
     }
 
+    /** The declared type of the assignee, used by compound assignment to
+        narrow its result. Null when there is none: a loosely typed variable,
+        a property, a map entry or a List element.
+        @return the declared type or null
+        @throws UtilEvalError looking up the variable */
+    Class<?> getDeclaredType() throws UtilEvalError {
+        if ( type == INDEX )
+            return object.getClass().isArray()
+                ? object.getClass().getComponentType() : null;
+        if ( null != field )
+            return field.getReturnType();
+        if ( type == VARIABLE ) {
+            // look the variable up as assign() does, including enclosing
+            // blocks, methods and classes
+            Variable variable = nameSpace.getVariableImpl(varName, !localVar);
+            return null == variable ? null : variable.getType();
+        }
+        return null;
+    }
+
     public boolean isStatic() {
         if ( null != field )
             return field.isStatic();
@@ -285,6 +305,9 @@ class LHS implements ParserConstants, Serializable {
                 "assign value, field cannot be null").invoke( object, val);
             return getValueImpl();
         } catch (ReflectiveOperationException e) {
+            // the value can't convert to the field's type
+            if ( e.getCause() instanceof ClassCastException )
+                throw new UtilTargetError(e.getCause());
             throw new UtilEvalError(
                 "LHS ("+field.getName()+") can't access field: "+e, e);
         } else if ( type == PROPERTY ) try {
@@ -300,6 +323,13 @@ class LHS implements ParserConstants, Serializable {
                 val = Types.castObject( val,
                       Types.arrayElementType(object.getClass()),
                       Types.ASSIGNMENT);
+            } catch (UtilTargetError e) {
+                // a number that doesn't fit a numeric array, e.g. 300 in a
+                // byte[]; other mismatches fail as an ArrayStoreException
+                Class<?> elementType = object.getClass().getComponentType();
+                if ( elementType.isPrimitive() && Types.isNumeric(elementType)
+                        && Types.isNumeric(Primitive.unwrap(val)) )
+                    throw e;
             } catch (Exception e) { /* ignore cast exceptions */ }
 
             BshArray.setIndex(object, index, val);

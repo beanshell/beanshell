@@ -567,9 +567,10 @@ class Operators implements ParserConstants {
     /**
         Promote the pair of primitives to the maximum type of the two.
         e.g. [int,long]->[long,long]
+        @throws UtilTargetError when a NaN or infinity meets a BigDecimal
     */
     static Object[] promotePrimitives(Object lhs, Object rhs)
-    {
+            throws UtilTargetError {
         Number lnum = promoteToInteger(lhs);
         Number rnum = promoteToInteger(rhs);
 

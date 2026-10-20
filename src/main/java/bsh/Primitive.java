@@ -234,7 +234,7 @@ public final class Primitive implements Serializable {
             else
                 return false;
         Primitive pobj = (Primitive) obj;
-        if ( pobj.isNumber() && this.isNumber() ) {
+        if ( pobj.isNumber() && this.isNumber() ) try {
             if ( this.getType() == BigDecimal.class )
                 return this.value.equals(castNumber(BigDecimal.class, pobj.numberValue()));
             if ( pobj.getType() == BigDecimal.class )
@@ -246,6 +246,8 @@ public final class Primitive implements Serializable {
             if ( pobj.getType() == BigInteger.class )
                 return pobj.value.equals(castNumber(BigInteger.class, this.numberValue()));
             return this.numberValue().longValue() == pobj.numberValue().longValue();
+        } catch ( UtilTargetError e ) { // NaN or infinity compared with a BigDecimal
+            return false;
         }
         return this.value.equals( pobj.value );
     }
@@ -488,8 +490,9 @@ public final class Primitive implements Serializable {
         @param toType is the java TYPE type
         @param value is the value in java.lang wrapper.
         value may not be null.
+        @throws UtilTargetError when the value does not fit, see castNumber
     */
-    static Object castWrapper( Class<?> toType, Object value ) {
+    static Object castWrapper( Class<?> toType, Object value ) throws UtilTargetError {
         if ( Primitive.VOID.equals(value) )
             return value;
 
@@ -518,71 +521,148 @@ public final class Primitive implements Serializable {
         return castNumber(toType, (Number) value);
     }
 
-    static Object castNumber(Class<?> toType, Number number) {
+    /**
+        Convert a number to another numeric type for an assignment. The value
+        must fit the target type: an out of range, fractional, NaN or infinite
+        value is rejected. Float and double targets are the exception, they
+        keep NaN and infinity and may round, as Java's widening does. A byte
+        also accepts 128..255, stored as the byte with the same bits.
+        @param toType the numeric target type
+        @param number the value to convert
+        @return the converted value
+        @throws UtilTargetError wrapping ClassCastException when the value does
+        not fit the target type
+    */
+    static Object castNumber(Class<?> toType, Number number) throws UtilTargetError {
         if (toType.isInstance(number) || toType == unboxType(number.getClass()))
             return number;
-        if ((toType == Byte.class || toType == Byte.TYPE)
-                && number.shortValue() <= 0xff && number.shortValue() >= Byte.MIN_VALUE)
-            return number.byteValue();
-        if ((toType == Short.class || toType == Short.TYPE)
-                && number.intValue() <= Short.MAX_VALUE && number.intValue() >= Short.MIN_VALUE)
-            return number.shortValue();
-        if ((toType == Character.class || toType == Character.TYPE)
-                && number.intValue() <= (int) Character.MAX_VALUE && number.intValue() >= (int) Character.MIN_VALUE)
-            return (char) number.intValue();
-        if ((toType == Integer.class || toType == Integer.TYPE)
-                && number.longValue() <= Integer.MAX_VALUE && number.longValue() >= Integer.MIN_VALUE)
-            if (number instanceof Byte)
-                return Byte.toUnsignedInt(number.byteValue());
-            else
-                return number.intValue();
-        if ((toType == Float.class || toType == Float.TYPE)
-                && !Float.isInfinite(number.floatValue()))
-            return number.floatValue();
-        if ((toType == Double.class || toType == Double.TYPE)
-                && !Double.isInfinite(number.doubleValue()))
-            return number.doubleValue();
-
-        if ( number.doubleValue() == 0 ) {
-            if (toType == Long.class || toType == Long.TYPE)
-                return 0L;
-            if (toType == BigInteger.class)
-                return BigInteger.ZERO;
+        if (toType == Float.class || toType == Float.TYPE) {
+            float value = number.floatValue();
+            if (!Float.isInfinite(value) || isNaNOrInfinite(number))
+                return value;
+        } else if (toType == Double.class || toType == Double.TYPE) {
+            double value = number.doubleValue();
+            if (!Double.isInfinite(value) || isNaNOrInfinite(number))
+                return value;
+        } else if (!isNaNOrInfinite(number)) {
             if (toType == BigDecimal.class)
-                return BigDecimal.ZERO.setScale(1);
-        } else if ( number.doubleValue() == 1 ) {
-            if (toType == Long.class || toType == Long.TYPE)
-                return 1L;
-            if (toType == BigInteger.class)
-                return BigInteger.ONE;
-            if (toType == BigDecimal.class)
-                return BigDecimal.ONE.setScale(1);
-        } else if (toType == BigDecimal.class) {
-            if ( number instanceof BigInteger )
-                return new BigDecimal((BigInteger) number).setScale(1);
-            if ( Types.isFloatingpoint(number) )
-                return BigDecimal.valueOf(number.doubleValue());
-            return new BigDecimal(number.longValue()).setScale(1);
-        } else {
-            BigInteger bi = null;
-            if ( number instanceof BigInteger )
-                bi = (BigInteger) number;
-            else if (number instanceof BigDecimal)
-                bi = ((BigDecimal) number).toBigInteger();
-            else if (Types.isFloatingpoint(number))
-                bi = BigDecimal.valueOf(number.doubleValue()).toBigInteger();
-            else
-                bi = BigInteger.valueOf(number.longValue());
-            if ((toType == Long.class || toType == Long.TYPE)
-                    && bi.compareTo(LONG_MIN) >= 0 && bi.compareTo(LONG_MAX) <= 0)
-                return number.longValue();
-            if ( toType == BigInteger.class )
-                return bi;
+                return toBigDecimal(number);
+            if (toType == BigInteger.class) {
+                BigInteger value = toBigInteger(number);
+                if (null != value)
+                    return value;
+            } else {
+                Long whole = toLong(number);
+                if (null != whole) {
+                    long value = whole;
+                    if (toType == Long.class || toType == Long.TYPE)
+                        return value;
+                    if ((toType == Integer.class || toType == Integer.TYPE)
+                            && value >= Integer.MIN_VALUE && value <= Integer.MAX_VALUE)
+                        return (int) value;
+                    if ((toType == Short.class || toType == Short.TYPE)
+                            && value >= Short.MIN_VALUE && value <= Short.MAX_VALUE)
+                        return (short) value;
+                    if ((toType == Character.class || toType == Character.TYPE)
+                            && value >= Character.MIN_VALUE && value <= Character.MAX_VALUE)
+                        return (char) value;
+                    if ((toType == Byte.class || toType == Byte.TYPE)
+                            && value >= Byte.MIN_VALUE && value <= 0xff)
+                        return (byte) value;
+                }
+            }
         }
-        throw new InterpreterError("cannot assign number "+number+" to type "+toType.getSimpleName());
+        throw new UtilTargetError(new ClassCastException(
+            "cannot assign number "+number+" to type "+toType.getSimpleName()));
     }
 
-    static Object castNumberStrictJava(Class<?> toType, Number number) {
+    /** Whether the number is a floating point NaN or infinity. */
+    private static boolean isNaNOrInfinite(Number number) {
+        return (number instanceof Double || number instanceof Float)
+            && (Double.isNaN(number.doubleValue()) || Double.isInfinite(number.doubleValue()));
+    }
+
+    /** The value of a finite number as a long, or null when it has a
+        fraction or is outside the long range. */
+    private static Long toLong(Number number) {
+        if (number instanceof BigInteger)
+            return ((BigInteger) number).bitLength() < 64 ? number.longValue() : null;
+        if (number instanceof BigDecimal) try {
+            return ((BigDecimal) number).longValueExact();
+        } catch (ArithmeticException e) {
+            return null;
+        }
+        if (number instanceof Double || number instanceof Float) {
+            double value = number.doubleValue();
+            // -2^63 and 2^63 are exact doubles
+            return value == Math.rint(value)
+                    && value >= -0x1p63 && value < 0x1p63 ? (long) value : null;
+        }
+        return number.longValue();
+    }
+
+    /** The value of a finite number that isn't already a BigInteger as a
+        BigInteger, or null when it has a fraction. A double converts through
+        its decimal string, as for BigDecimal. */
+    private static BigInteger toBigInteger(Number number) {
+        if (number instanceof BigDecimal) {
+            BigDecimal value = (BigDecimal) number;
+            return value.signum() == 0 || value.scale() <= 0
+                    || value.stripTrailingZeros().scale() <= 0
+                ? value.toBigInteger() : null;
+        }
+        if (number instanceof Double || number instanceof Float) {
+            double value = number.doubleValue();
+            return value == Math.rint(value)
+                ? BigDecimal.valueOf(value).toBigInteger() : null;
+        }
+        return BigInteger.valueOf(number.longValue());
+    }
+
+    /** Convert a finite number to BigDecimal. Whole numbers get a scale of one
+        and a double converts through its decimal string. */
+    private static BigDecimal toBigDecimal(Number number) {
+        if ( number.doubleValue() == 0 )
+            return BigDecimal.ZERO.setScale(1);
+        if ( number.doubleValue() == 1 )
+            return BigDecimal.ONE.setScale(1);
+        if ( number instanceof BigInteger )
+            return new BigDecimal((BigInteger) number).setScale(1);
+        if ( Types.isFloatingpoint(number) )
+            return BigDecimal.valueOf(number.doubleValue());
+        return new BigDecimal(number.longValue()).setScale(1);
+    }
+
+    /** Narrow a numeric value to a numeric type as an explicit cast does,
+        truncating and wrapping. Used for the implicit cast of a compound
+        assignment or an increment (JLS 15.26.2, 15.14.2): x += y is
+        x = (T)(x + y), and for the elements of an explicit array cast.
+        @param result the value to narrow
+        @param type the target type, may be null
+        @return the narrowed value, or result when there is nothing to narrow
+        @throws UtilTargetError see castNumberStrictJava */
+    static Object narrowLikeCast(Object result, Class<?> type)
+            throws UtilTargetError {
+        // wrapper types include BigInteger and BigDecimal
+        if ( null == type || !Types.isNumeric(type)
+                || !(type.isPrimitive() || isWrapperType(type)) )
+            return result;
+        Object value = unwrap(result);
+        if ( value instanceof Character )
+            value = Integer.valueOf((Character) value);
+        if ( !(value instanceof Number) )
+            return result;
+        Object narrowed = castNumberStrictJava(type, (Number) value);
+        return result instanceof Primitive
+            ? new Primitive(narrowed) : narrowed;
+    }
+
+    /** Convert a number with an explicit cast's narrowing, which truncates
+        and wraps as Java does. A BigInteger target drops the fraction.
+        @throws UtilTargetError when a BigInteger or BigDecimal target can't
+        hold the value, see castNumber */
+    static Object castNumberStrictJava(Class<?> toType, Number number)
+            throws UtilTargetError {
         if (toType == Byte.class || toType == Byte.TYPE)
             return number.byteValue();
         if (toType == Short.class || toType == Short.TYPE)
@@ -597,6 +677,12 @@ public final class Primitive implements Serializable {
             return number.floatValue();
         if (toType == Double.class || toType == Double.TYPE)
             return number.doubleValue();
+        if (toType == BigInteger.class && !isNaNOrInfinite(number)) {
+            if (number instanceof BigDecimal)
+                return ((BigDecimal) number).toBigInteger();
+            if (number instanceof Double || number instanceof Float)
+                return BigDecimal.valueOf(number.doubleValue()).toBigInteger();
+        }
         return castNumber(toType, number);
     }
 

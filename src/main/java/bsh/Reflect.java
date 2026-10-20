@@ -193,11 +193,20 @@ public final class Reflect {
     private static Object invokeMathMethod(Class<?> mathType, Object object, Class<?> returnType,
         String methodName, Object[] args, Interpreter interpreter, CallStack callstack,
             Node callerInfo) throws EvalError {
-        Object retrn = invokeObjectMethod(Primitive.castWrapper(mathType, object),
-            methodName, args, interpreter, callstack, callerInfo);
-        if (retrn instanceof Primitive && ((Primitive)retrn).getType() == mathType)
-            return Primitive.wrap(Primitive.castWrapper(returnType, retrn), returnType);
-        return retrn;
+        try {
+            // the receiver converts like an explicit cast, 1.5f.bitLength() uses 1
+            Object value = Primitive.unwrap(object);
+            Object receiver = value instanceof Number
+                ? Primitive.castNumberStrictJava(mathType, (Number) value)
+                : Primitive.castWrapper(mathType, object);
+            Object retrn = invokeObjectMethod(receiver,
+                methodName, args, interpreter, callstack, callerInfo);
+            if (retrn instanceof Primitive && ((Primitive)retrn).getType() == mathType)
+                return Primitive.wrap(Primitive.castWrapper(returnType, retrn), returnType);
+            return retrn;
+        } catch (UtilTargetError e) {
+            throw e.toEvalError(callerInfo, callstack);
+        }
     }
 
     /**

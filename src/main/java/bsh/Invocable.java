@@ -199,11 +199,16 @@ public abstract class Invocable implements Member {
     protected Object coerceToType(Object param, Class<?> type)
             throws Throwable {
         Class<?> pClass = Types.getType(param);
-        // a CAST would default null to zero, which Java never does for an argument
-        if (null == pClass && type.isPrimitive())
-            throw Types.castError(StringUtil.typeString(type), "null value", Types.CAST);
-        if (null == pClass || !type.isAssignableFrom(pClass))
-            param = Types.castObject(param, type, Types.CAST);
+        try {
+            // a CAST would default null to zero, which Java never does for an argument
+            if (null == pClass && type.isPrimitive())
+                throw Types.castError(StringUtil.typeString(type), "null value", Types.CAST);
+            if (null == pClass || !type.isAssignableFrom(pClass))
+                param = Types.castObject(param, type, Types.CAST);
+        } catch (UtilTargetError e) {
+            // the ClassCastException, so a script can catch it
+            throw e.getCause();
+        }
         return Primitive.unwrap(param);
     }
 
@@ -665,6 +670,9 @@ class FieldAccess extends Invocable {
                 return handle.invoke(base, super.coerceToType(
                             pars[0], getParameterTypes()[0]));
             }
+        }
+        catch (ClassCastException e) { // the value can't convert to the field's type
+            throw new InvocationTargetException(e);
         }
         catch (Throwable ite) {
             throw new InvocationTargetException(ite.getCause());

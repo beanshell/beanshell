@@ -61,9 +61,9 @@ class ConvInt { int x = 1; }
 class ConvBool { boolean x; }
 ci = new ConvInt();
 cb = new ConvBool();
-assert(isEvalError("can't access field", "ci.x = \"5\";"));
-assert(isEvalError("can't access field", "ci.x = null;"));
-assert(isEvalError("can't access field", "cb.x = 1;"));
+assert(isEvalError("Cannot cast String with value \"5\" to int", "ci.x = \"5\";"));
+assert(isEvalError("Cannot cast null value to int", "ci.x = null;"));
+assert(isEvalError("Cannot cast int with value \"1\" to boolean", "cb.x = 1;"));
 assertEquals(1, ci.x);
 
 // returns

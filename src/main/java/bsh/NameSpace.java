@@ -394,6 +394,9 @@ public class NameSpace
         if (existing != null)
             try {
                 existing.setValue(value, Variable.ASSIGNMENT);
+            } catch (final UtilTargetError e) {
+                throw new UtilTargetError(
+                        "Variable assignment: " + name + ": " + e.getMessage(), e.getCause());
             } catch (final UtilEvalError e) {
                 throw new UtilEvalError(
                         "Variable assignment: " + name + ": " + e.getMessage(), e);

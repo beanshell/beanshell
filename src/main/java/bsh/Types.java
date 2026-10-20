@@ -594,11 +594,8 @@ class Types {
             If checkOnly is false then fromValue must be non-null
             (Primitive.NULL is ok) and the actual cast is performed.
 
-        @throws UtilEvalError on invalid assignment (when operation is
-            assignment ).
-
-        @throws UtilTargetError wrapping ClassCastException on cast error
-            (when operation is cast)
+        @throws UtilTargetError wrapping ClassCastException on an invalid
+            assignment or cast
 
         @param operation is Types.CAST or Types.ASSIGNMENT
 
@@ -725,8 +722,8 @@ class Types {
     }
 
     /**
-        Return a UtilEvalError or UtilTargetError wrapping a ClassCastException
-        describing an illegal assignment or illegal cast, respectively.
+        Return a UtilTargetError wrapping a ClassCastException describing an
+        illegal assignment or illegal cast, which a script can catch.
     */
     static UtilEvalError castError(Class<?> lhsType, Class<?> rhsType, Object value, int operation) {
         return castError(
@@ -739,12 +736,9 @@ class Types {
     }
 
     static UtilEvalError castError(String lhs, String rhs, Object value, int operation) {
-        if ( operation == ASSIGNMENT )
-            return new UtilEvalError (
-                "Cannot assign " + rhs + (null == value ? "" : " with value \""+value+"\"") + " to "+ lhs );
-
         Exception cce = new ClassCastException(
-            "Cannot cast " + rhs + (null == value ? "" : " with value \""+value+"\"") + " to " + lhs );
+            (operation == ASSIGNMENT ? "Cannot assign " : "Cannot cast ")
+            + rhs + (null == value ? "" : " with value \""+value+"\"") + " to " + lhs );
         return new UtilTargetError( cce );
     }
 

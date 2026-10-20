@@ -26,17 +26,20 @@ assertTrue(true instanceof Boolean);
 byte b = (byte)2;
 assert( isEvalError("cannot assign number 256 to type byte", "byte b = 256") );
 assert( isEvalError("cannot assign number -129 to type byte", "byte b = -129") );
+// a byte accepts 128..255, stored as the byte with the same bits
 byte b = 0xff;
 assertEquals(-1, b);
-int unsignedByte = b;
-assertEquals(255, unsignedByte);
-assertEquals(255, (int) b);
+// widening keeps the sign, as in Java
+int signedByte = b;
+assertEquals(-1, signedByte);
+assertEquals(-1, (int) b);
+assertEquals(255, b & 0xff);
 byte b = -128;
 assertEquals(-128, b);
-assertEquals(128, (int) b);
+assertEquals(-128, (int) b);
 byte b = -127;
 assertEquals(-127, b);
-assertEquals(129, (int) b);
+assertEquals(-127, (int) b);
 int signedInt = -1;
 assertEquals(-1, signedInt);
 
