@@ -57,20 +57,29 @@ class BSHCastExpression extends SimpleNode {
         try {
             return Types.castObject( fromValue, toType, Types.CAST );
         } catch ( UtilEvalError e ) {
-            throw e.toEvalError( this, callstack  );
-        } catch ( InterpreterError e ) {
-            // An explicit narrowing cast truncates an out-of-range numeric
-            // value per JLS 5.1.3, unlike an implicit typed declaration
-            // (which is only forgiven in strict-Java mode). Only reached
-            // when the normal cast path above already rejected the value;
-            // in-range casts (including bsh's unsigned-byte-widening cast
-            // to int) never reach here.
-            if ( fromValue instanceof Primitive && ((Primitive) fromValue).isNumber()
-                    && Types.isNumeric(toType) )
-                return Primitive.wrap( Primitive.castNumberStrictJava(
-                    toType, ((Primitive) fromValue).numberValue() ), toType );
-            throw e;
+            // An explicit narrowing cast truncates an out-of-range or
+            // fractional numeric value per JLS 5.1.3, unlike an implicit
+            // typed declaration or assignment (which is only forgiven in
+            // strict-Java mode). Only reached when the normal cast path
+            // above already rejected the value.
+            Number number = numberValue(fromValue);
+            if ( null != number && Types.isNumeric(toType) ) try {
+                return Primitive.wrap(
+                    Primitive.castNumberStrictJava(toType, number), toType );
+            } catch ( UtilEvalError e2 ) {
+                throw e2.toEvalError( this, callstack );
+            }
+            throw e.toEvalError( this, callstack );
         }
     }
 
+    /** The numeric value of a primitive or a boxed number, or null. */
+    private static Number numberValue(Object value) {
+        if ( value instanceof Primitive )
+            return ((Primitive) value).isNumber()
+                ? ((Primitive) value).numberValue() : null;
+        if ( value instanceof Character )
+            return Integer.valueOf((Character) value);
+        return value instanceof Number ? (Number) value : null;
+    }
 }

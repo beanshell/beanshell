@@ -3,6 +3,15 @@
 
 ## 3.0.0 RC2 (in progress)
 
+Assigning a number that doesn't fit its target type is now an error. Any numeric type, including `BigInteger` and `BigDecimal`, can still be assigned to any other when the value fits, but an out-of-range value no longer wraps around (`int i = 65601; byte b = i;` gave 65), a fraction is no longer dropped (`int x = 3.7;` gave 3), and NaN or infinity is rejected for every type except `float` and `double` (`int i = Double.NaN;` gave 0). A whole value such as `int x = 3.0;` is still accepted. Array indexes and sizes follow the same rule, so `a[1.7]` and `new int[2.5]` are errors where they used to mean 1 and 2. An explicit cast still truncates and wraps as Java does: `(int) 3.7` is 3 and `(byte) 300` is 44. BeanShell 2.x also truncated and wrapped all of these in a declaration, so `byte b = 300;` gave 44 and `int x = 3.7;` gave 3; add an explicit cast where a script relies on that (#911).
+
+A `byte` widened to `int` keeps its sign again, as in Java and BeanShell 2.x: `byte b = -1; int i = b;` gives -1, and `Math.abs((byte) -1)` is 1. Earlier 3.0 releases read it as unsigned (255), but only when the target was `int` or `Integer`; use `b & 0xff` for the unsigned value. A `byte` still accepts 128 to 255, stored as the byte with the same bits, so `byte b = 0xff;` is -1 and `byte[] magic = {0xCA, 0xFE};` needs no casts (#911).
+
+Compound assignment operators such as `+=` and `<<=` now narrow their result to the variable's type, as Java's implicit cast does: `byte c = 100; c += 200;` gives 44 and `int i = 2000000000; i += 2000000000;` gives -294967296, where both failed with an error no `catch` could see. `int i = 5; i += 2.5;` still gives 7. `++` and `--` follow the same rule. BeanShell 2.x rejected every compound assignment that needed narrowing, such as `i += 2.5` and `c += 1` (#911).
+
+A failed assignment conversion now throws a `ClassCastException` that a script can catch, whether it is a declaration, a reassignment, an array element, a field or a method's return value. Before, only a declaration of the wrong type, such as `int i = "x";`, could be caught: a number that didn't fit, such as `byte b = 300;`, a failed reassignment, such as `i = "x";`, and a failed field store ended the script. Storing a number that doesn't fit into a numeric array, such as `bytes[0] = 300`, also throws `ClassCastException` now, instead of `ArrayStoreException`. In BeanShell 2.x a failed reassignment or return value couldn't be caught either (#911).
+
+
 ## 3.0.0 RC1
 
 Fixed a lambda, anonymous class or scripted object (a method that returns `this`) created inside a loop seeing the last iteration's value instead of its own, for the for-each variable and for variables declared in the loop body. For example, `for (String s : new String[]{"a", "b", "c"}) list.add(new Callable() { public Object call() { return s; } });` gave objects that all returned `"c"`. Each iteration now gets its own scope, as in Java (#848).

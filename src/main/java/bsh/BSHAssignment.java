@@ -101,59 +101,59 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
                     if ( Primitive.NULL == lhsValue && lhs.getType() == String.class )
                         lhsValue = "null";
                     return lhs.assign(
-                        operation(lhsValue, rhs, PLUS), strictJava);
+                        compound(lhs, lhsValue, rhs, PLUS), strictJava);
 
                 case MINUSASSIGN:
                     return lhs.assign(
-                        operation(lhsValue, rhs, MINUS), strictJava);
+                        compound(lhs, lhsValue, rhs, MINUS), strictJava);
 
                 case STARASSIGN:
                     return lhs.assign(
-                        operation(lhsValue, rhs, STAR), strictJava);
+                        compound(lhs, lhsValue, rhs, STAR), strictJava);
 
                 case SLASHASSIGN:
                     return lhs.assign(
-                        operation(lhsValue, rhs, SLASH), strictJava);
+                        compound(lhs, lhsValue, rhs, SLASH), strictJava);
 
                 case ANDASSIGN:
                 case ANDASSIGNX:
                     return lhs.assign(
-                        operation(lhsValue, rhs, BIT_AND), strictJava);
+                        compound(lhs, lhsValue, rhs, BIT_AND), strictJava);
 
                 case ORASSIGN:
                 case ORASSIGNX:
                     return lhs.assign(
-                        operation(lhsValue, rhs, BIT_OR), strictJava);
+                        compound(lhs, lhsValue, rhs, BIT_OR), strictJava);
 
                 case XORASSIGN:
                 case XORASSIGNX:
                     return lhs.assign(
-                        operation(lhsValue, rhs, XOR), strictJava);
+                        compound(lhs, lhsValue, rhs, XOR), strictJava);
 
                 case MODASSIGN:
                 case MODASSIGNX:
                     return lhs.assign(
-                        operation(lhsValue, rhs, MOD), strictJava );
+                        compound(lhs, lhsValue, rhs, MOD), strictJava );
 
                 case POWERASSIGN:
                 case POWERASSIGNX:
                     return lhs.assign(
-                            operation(lhsValue, rhs, POWER), strictJava);
+                            compound(lhs, lhsValue, rhs, POWER), strictJava);
 
                 case LSHIFTASSIGN:
                 case LSHIFTASSIGNX:
                     return lhs.assign(
-                        operation(lhsValue, rhs, LSHIFT), strictJava);
+                        compound(lhs, lhsValue, rhs, LSHIFT), strictJava);
 
                 case RSIGNEDSHIFTASSIGN:
                 case RSIGNEDSHIFTASSIGNX:
                     return lhs.assign(
-                    operation(lhsValue, rhs, RSIGNEDSHIFT ), strictJava);
+                    compound(lhs, lhsValue, rhs, RSIGNEDSHIFT), strictJava);
 
                 case RUNSIGNEDSHIFTASSIGN:
                 case RUNSIGNEDSHIFTASSIGNX:
                     return lhs.assign(
-                        operation(lhsValue, rhs, RUNSIGNEDSHIFT),
+                        compound(lhs, lhsValue, rhs, RUNSIGNEDSHIFT),
                         strictJava);
 
                 default:
@@ -163,6 +163,20 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
         } catch ( UtilEvalError e ) {
             throw e.toEvalError( this, callstack );
         }
+    }
+
+    /** Apply a compound assignment's operation and narrow the result to the
+     * assignee's declared type, as Java's implicit cast does (JLS 15.26.2).
+     * @param lhs the assignee
+     * @param lhsValue the assignee's value
+     * @param rhs the assigner
+     * @param kind the operation kind
+     * @return the operated result
+     * @throws UtilEvalError of invalidation */
+    private Object compound( LHS lhs, Object lhsValue, Object rhs, int kind )
+            throws UtilEvalError {
+        return Primitive.narrowForCompoundAssignment(
+            operation(lhsValue, rhs, kind), lhs.getDeclaredType());
     }
 
     /** Convenience method to shuffle the different types off to

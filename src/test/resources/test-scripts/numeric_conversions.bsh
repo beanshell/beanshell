@@ -1,0 +1,176 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// Numeric assignment conversions: any numeric type converts to any other,
+// but the value must fit the target type.
+
+// the whole value is range checked, not a truncated one
+assert(isEvalError("cannot assign number 65601 to type byte", "int i = 65601; byte b = i;"));
+assert(isEvalError("cannot assign number 70000 to type short", "int i = 70000; short s = i;"));
+assert(isEvalError("cannot assign number 70000 to type char", "int i = 70000; char c = i;"));
+assert(isEvalError("cannot assign number 4294967301 to type short", "long l = 4294967301L; short s = l;"));
+assert(isEvalError("cannot assign number 4294967301 to type int", "long l = 4294967301L; int i = l;"));
+assert(isEvalError("cannot assign number 18446744073709551623 to type int",
+    "BigInteger big = BigInteger.ONE.shiftLeft(64).add(BigInteger.valueOf(7)); int i = big;"));
+assert(isEvalError("cannot assign number 18446744073709551623 to type long",
+    "BigInteger big = BigInteger.ONE.shiftLeft(64).add(BigInteger.valueOf(7)); long l = big;"));
+assert(isEvalError("cannot assign number -1 to type char", "char c = -1;"));
+assert(isEvalError("cannot assign number 1.0E40 to type float", "double d = 1e40; float f = d;"));
+assert(isEvalError("cannot assign number 1E+400 to type double", "double d = new BigDecimal(\"1e400\");"));
+int i = 2147483647;
+assertEquals(Integer.MAX_VALUE, i);
+long l = Long.MIN_VALUE;
+assertEquals(Long.MIN_VALUE, l);
+short s = -32768;
+assertEquals(Short.MIN_VALUE, s);
+char cmax = 65535;
+assertEquals(Character.MAX_VALUE, cmax);
+double d = Math.pow(2, 62);
+long l = d;
+assertEquals(4611686018427387904L, l);
+double d = -Math.pow(2, 63);
+long l = d;
+assertEquals(Long.MIN_VALUE, l);
+assert(isEvalError("cannot assign number 9.223372036854776E18 to type long",
+    "double d = Math.pow(2, 63); long l = d;"));
+long l = new BigDecimal("9223372036854775807.000");
+assertEquals(Long.MAX_VALUE, l);
+
+// a byte accepts 128..255, stored as the byte with the same bits,
+// and widens with its sign as in Java
+byte b = 255;
+assertEquals(-1, b);
+int i = b;
+assertEquals(-1, i);
+Integer I = b;
+assertEquals(-1, I.intValue());
+assertEquals(-1, (int) b);
+assertEquals(1, Math.abs(b));
+assertEquals("ffffffff", Integer.toHexString(b));
+assertEquals(255, b & 0xff);
+byte[] magic = {0xCA, 0xFE};
+assertEquals(-54, magic[0]);
+assertEquals(-2, magic[1]);
+assert(isEvalError("cannot assign number 256 to type byte", "byte b = 256;"));
+assert(isEvalError("cannot assign number -129 to type byte", "byte b = -129;"));
+
+// fractions are rejected, a whole value is accepted
+assert(isEvalError("cannot assign number 3.7 to type int", "int x = 3.7;"));
+assert(isEvalError("cannot assign number 3.7 to type int", "int x; x = 3.7;"));
+assert(isEvalError("cannot assign number 65.5 to type long", "double d = 65.5; long l = d;"));
+assert(isEvalError("cannot assign number 65.5 to type BigInteger",
+    "BigInteger bi = new BigDecimal(\"65.5\");"));
+assert(isEvalError("cannot assign number 0.5 to type byte", "float f = 0.5f; byte b = f;"));
+assert(isEvalError("Array index does not evaluate to an integer", "int[] a = {1, 2, 3}; a[1.7];"));
+assert(isEvalError("length does not evaluate to an integer", "new int[2.5];"));
+int x = 3.0;
+assertEquals(3, x);
+BigInteger bi = new BigDecimal("65.000");
+assertEquals(BigInteger.valueOf(65), bi);
+int[] a = {1, 2, 3};
+assertEquals(2, a[1.0]);
+double d = 65.5;
+BigDecimal bd = d;
+assertEquals(new BigDecimal("65.5"), bd);
+
+// NaN and infinity only convert to float and double
+assert(isEvalError("cannot assign number NaN to type int", "double d = Double.NaN; int i = d;"));
+assert(isEvalError("cannot assign number NaN to type long", "double d = Double.NaN; long l = d;"));
+assert(isEvalError("cannot assign number Infinity to type BigInteger",
+    "BigInteger bi = Double.POSITIVE_INFINITY;"));
+assert(isEvalError("cannot assign number -Infinity to type BigDecimal",
+    "BigDecimal bd = Double.NEGATIVE_INFINITY;"));
+double d = Double.POSITIVE_INFINITY;
+float f = d;
+assertTrue(f == Float.POSITIVE_INFINITY);
+double d = Double.NaN;
+float f = d;
+assertTrue(Float.isNaN(f));
+
+// float and double may round, as Java's widening does
+double d = 16777217;
+float f = d;
+assertTrue(f == 16777216f);
+
+// an explicit cast truncates and wraps as Java does
+assertEquals(44, (byte) 300);
+assertEquals(3, (int) 3.7);
+assertEquals(0, (int) Double.NaN);
+assertEquals(7L, (long) BigInteger.ONE.shiftLeft(64).add(BigInteger.valueOf(7)));
+assertEquals(BigInteger.valueOf(3), (BigInteger) 3.7);
+Long L = 3000000000L;
+assertEquals(-1294967296, (int) L);
+
+// compound assignment narrows to the declared type, as Java's implicit cast does
+int i = 5;
+i += 2.5;
+assertEquals(7, i);
+byte c = 100;
+c += 100;
+assertEquals(-56, c);
+byte c = 100;
+c += 200;
+assertEquals(44, c);
+int i = 2000000000;
+i += 2000000000;
+assertEquals(-294967296, i);
+char ch = 'a';
+ch += 1;
+assertEquals('b', ch);
+short s = 1;
+s <<= 16;
+assertEquals(0, s);
+long l = 1;
+l *= 1.5;
+assertEquals(1L, l);
+Integer I = 5;
+I += 2.5;
+assertEquals(7, I.intValue());
+int[] ia = {5};
+ia[0] += 2.5;
+assertEquals(7, ia[0]);
+BigInteger bi = BigInteger.ONE;
+bi += 2.5;
+assertEquals(BigInteger.valueOf(3), bi);
+loose = 5;
+loose += 2.5;
+assertEquals(7.5, loose, 0.0);
+double dd = 1.5;
+dd += 1;
+assertEquals(2.5, dd, 0.0);
+
+// as do increment and decrement
+byte b = 127;
+b++;
+assertEquals(-128, b);
+short s = -32768;
+s--;
+assertEquals(32767, s);
+int i = Integer.MAX_VALUE;
+assertEquals(Integer.MIN_VALUE, ++i);
+
+// a failed assignment conversion can be caught by the script
+caught = 0;
+try { byte b = 300; } catch (ClassCastException e) { caught++; }
+try { byte b; b = 300; } catch (ClassCastException e) { caught++; }
+try { int x = 3.7; } catch (ClassCastException e) { caught++; }
+try { int x = "x"; } catch (ClassCastException e) { caught++; }
+try { int x; x = "x"; } catch (ClassCastException e) { caught++; }
+try { boolean z = 5; } catch (ClassCastException e) { caught++; }
+try { boolean z; z = 5; } catch (ClassCastException e) { caught++; }
+try { Integer I = 3000000000L; } catch (ClassCastException e) { caught++; }
+try { byte[] ba = new byte[1]; ba[0] = 300; } catch (ClassCastException e) { caught++; }
+try { byte f() { return 300; } f(); } catch (ClassCastException e) { caught++; }
+class Holder { byte b; static short s; }
+holder = new Holder();
+try { holder.b = 300; } catch (ClassCastException e) { caught++; }
+try { Holder.s = 70000; } catch (ClassCastException e) { caught++; }
+assertEquals(12, caught);
+caught = 0;
+try { int[] a = {1}; a[1.5]; } catch (Exception e) { caught++; }
+try { new int[2.5]; } catch (Exception e) { caught++; }
+assertEquals(2, caught);
+
+complete();

@@ -1241,12 +1241,9 @@ void UnaryExpression() :
           jjtThis.value = new Primitive(magnitude.negate())
                 .castToType(Types.Suffix.getIntegralType(ch), 0);
       } catch ( Exception e ) {
-          // castToType() is declared to throw the checked UtilEvalError, but
-          // the overflow case (the negated value still doesn't fit, e.g.
-          // -99999999999999999999L) actually throws the unchecked
-          // InterpreterError -- catch both so overflow here is reported as a
-          // located ParseException like every other malformed literal, not
-          // an uncaught internal error.
+          // castToType() throws UtilEvalError when the negated value still
+          // doesn't fit (e.g. -99999999999999999999L) -- report it as a
+          // located ParseException like every other malformed literal.
           throw createParseException( e.getMessage(), e );
       }
     } #Literal(0)
@@ -1384,6 +1381,8 @@ void Literal() #Literal :
             jjtThis.value = Primitive.shrinkWrap(parseIntegral(literal).getValue());
     } catch ( NumberFormatException e ) {
         throw createParseException( e.getMessage(), e );
+    } catch ( UtilEvalError e ) { // the value doesn't fit the suffix type
+        throw createParseException( e.getMessage(), e );
     }
   }
 |
@@ -1399,6 +1398,8 @@ void Literal() #Literal :
         else
             jjtThis.value = Primitive.shrinkWrap( new java.math.BigDecimal( literal ) );
     } catch ( NumberFormatException e ) {
+        throw createParseException( e.getMessage(), e );
+    } catch ( UtilEvalError e ) { // the value doesn't fit the suffix type
         throw createParseException( e.getMessage(), e );
     }
   }

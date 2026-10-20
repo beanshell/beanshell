@@ -439,12 +439,9 @@ t = -9223372036854775807L;
 assertThat(t, instanceOf(Long.class));
 assertEquals(-9223372036854775807L, t);
 
-// NOTE: byte does not generalize the same way. Primitive.castNumber() has a
-// separate, pre-existing permissive range check for byte (accepts up to 255
-// and silently wraps via byteValue() truncation instead of throwing), so a
-// bare "128o" already silently becomes -128 without ever throwing -- meaning
-// the overflow this fix detects never fires for byte. This is an unrelated,
-// existing quirk that this fix does not touch or attempt to correct.
+// NOTE: byte does not generalize the same way. A byte accepts 128..255,
+// stored as the byte with the same bits, so a bare "128o" becomes -128
+// without ever throwing -- the overflow this fix detects never fires for byte.
 assertEquals(-128, 128o);
 assertEquals(128, -128o);
 

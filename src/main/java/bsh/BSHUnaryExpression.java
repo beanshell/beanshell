@@ -73,7 +73,9 @@ class BSHUnaryExpression extends SimpleNode implements ParserConstants
         else
             retVal = postvalue;
 
-        lhs.assign( postvalue, strictJava );
+        // narrow to the declared type, as Java's implicit cast does (JLS 15.14.2)
+        lhs.assign( Primitive.narrowForCompoundAssignment(
+            postvalue, lhs.getDeclaredType() ), strictJava );
         return retVal;
     }
 

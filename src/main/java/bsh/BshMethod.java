@@ -559,7 +559,7 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
                     node = retControl.returnPoint;
                 throw e.toEvalError(
                     "Incorrect type returned from method: "
-                    + name + e.getMessage(), node, callstack );
+                    + name, node, callstack );
             }
         }
 
