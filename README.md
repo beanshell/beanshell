@@ -64,14 +64,14 @@ BeanShell is published to Maven Central under the `io.github.beanshell` groupId.
     </dependencies>
 ```
 
-as is BeanShell 3.0.0RC1:
+as is BeanShell 3.0.0RC2:
 
 ```xml
     <dependencies>
        <dependency>
          <groupId>io.github.beanshell</groupId>
          <artifactId>bsh</artifactId>
-         <version>3.0.0RC1</version>
+         <version>3.0.0RC2</version>
        </dependency>
     </dependencies>
 ```
