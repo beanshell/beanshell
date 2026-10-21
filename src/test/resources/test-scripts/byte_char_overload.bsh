@@ -1,0 +1,43 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// byte and short widen to int, not char, when picking an overload (#916)
+
+byte b = 65;
+short s = 66;
+byte n = -1;
+
+assertEquals("65", String.valueOf(b));
+assertEquals("66", String.valueOf(s));
+assertEquals("-1", String.valueOf(n));
+assertEquals("65", new StringBuilder().append(b).toString());
+
+out = new java.io.ByteArrayOutputStream();
+ps = new java.io.PrintStream(out, true);
+ps.print(b); ps.print(' '); ps.print(n);
+assertEquals("65 -1", out.toString());
+
+f(char c) { return "char"; }
+f(int i) { return "int"; }
+assertEquals("int", f(b));
+assertEquals("int", f(s));
+assertEquals("char", f('x'));
+
+// a char argument still selects char, and widens to int where char is absent
+assertEquals("A", String.valueOf((char) 65));
+assertEquals(97, Math.max(b, 'a'));
+
+// methods with only a char parameter still convert a value that fits
+assertEquals('A', Character.valueOf(b));
+assertTrue(isEvalError("Command not found", "g(char c) { return c; } byte b = 65; g(b);"));
+
+// assignments are unchanged
+char c = b;
+assertEquals('A', c);
+char[] cs = new char[1];
+cs[0] = s;
+assertEquals('B', cs[0]);
+
+complete();

@@ -490,4 +490,21 @@ public class TypesTest {
         Assert.assertTrue(Types.isBshAssignable(Object.class, Integer.TYPE));
     }
 
+    /** JLS 5.1.2: byte and short don't widen to char (#916). */
+    @Test
+    public void primitive_widening_follows_jls() {
+        Class<?>[] types = {Byte.TYPE, Short.TYPE, Character.TYPE, Integer.TYPE,
+            Long.TYPE, Float.TYPE, Double.TYPE, Boolean.TYPE, Void.TYPE};
+        String[] widensTo = {"short int long float double", "int long float double",
+            "int long float double", "long float double", "float double", "double",
+            "", "", ""};
+        for (int from = 0; from < types.length; from++)
+            for (Class<?> to : types) {
+                boolean expected = to == types[from]
+                    || (" " + widensTo[from] + " ").contains(" " + to.getName() + " ");
+                Assert.assertEquals(types[from] + " -> " + to, expected,
+                    Types.isJavaBaseAssignable(to, types[from]));
+            }
+    }
+
 }

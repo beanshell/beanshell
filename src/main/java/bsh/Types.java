@@ -347,9 +347,7 @@ class Types {
                 return true;
 
             // handle primitive widening conversions - JLS 5.1.2
-            if ( NUMBER_ORDER.containsKey(rhsType)
-                    && NUMBER_ORDER.containsKey(lhsType) )
-                return (NUMBER_ORDER.get(rhsType) < NUMBER_ORDER.get(lhsType));
+            return isWideningPrimitiveConversion( rhsType, lhsType );
         }
         // need to properly incorporate auto narrowing and widening this is just
         // a quick fix to auto wide for magic math methods
@@ -408,10 +406,7 @@ class Types {
     }
 
     /** Whether rhsType is a numeric wrapper (or Character) whose unboxed
-        primitive value widens (JLS 5.1.2) to primitive lhsType. Deliberately
-        independent of the NUMBER_ORDER table used elsewhere in this file,
-        which misplaces Character.TYPE and would otherwise also accept the
-        illegal byte/short -> char "widening". */
+        primitive value widens (JLS 5.1.2) to primitive lhsType. */
     private static boolean isUnboxThenWidenAssignable( Class<?> lhsType, Class<?> rhsType ) {
         if ( !lhsType.isPrimitive() )
             return false;
