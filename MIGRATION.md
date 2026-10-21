@@ -1,44 +1,103 @@
-# Migrating scripts toward BeanShell 3.x
+# Migrating scripts to BeanShell 3.x
 
 This guide describes changes that can affect existing scripts and ways to make
 their intent explicit. It compares behavior on the current development branch
 against the historical 2.x releases below. Build and Java integration notices
-are in the [changelog](CHANGES.md).
+are summarized under [Embedding applications](#embedding-applications); the
+[changelog](CHANGES.md) has the rest.
 
 ## Versions and changes covered here
 
-We checked the examples on 17 September 2026. Historical comparisons use the
+We checked the examples on 21 October 2026. Historical comparisons use the
 published artifacts **`org.beanshell:bsh:2.0b4`** and
-**`org.apache-extras.beanshell:bsh:2.0b6`**. The development baseline is
-upstream main [**`bb153e0b`**](https://github.com/beanshell/beanshell/tree/bb153e0be0f30a245f2a03e152a7a36077628476).
-These are specific versions, not a claim that every 2.x release behaves alike.
+**`org.apache-extras.beanshell:bsh:2.0b6`**.
 
-The changes below were open pull requests the last time we checked this guide.
-All of them have since merged, so the examples describe main's actual
-behavior, not a proposal. We re-ran every example against the current head to
-confirm it.
+Some fixes on 3.0 corrected behavior that only earlier 3.0 snapshots and
+3.0.0 beta 1 had; 2.x already behaved correctly. They are listed under
+[Changes since earlier 3.0 builds](#changes-since-earlier-30-builds) instead of
+in the 3.0 sections.
 
-| Change | PR | Merged |
+## Numeric values that don't fit their type
+
+In 2.x, a typed declaration silently truncated a fraction and wrapped an
+out-of-range number. 3.0 follows Java's assignment rules instead: the value
+must fit the declared type, or the declaration fails
+([#911](https://github.com/beanshell/beanshell/issues/911)).
+
+| Script | 2.0b4 and 2.0b6 | 3.0 |
 | --- | --- | --- |
-| Numeric reference casts | [#792](https://github.com/beanshell/beanshell/pull/792) | 2026-09-11 |
-| Scalar/array overloads and parameter dimensions | [#793](https://github.com/beanshell/beanshell/pull/793) | 2026-09-11 |
-| Boxed unary operators | [#795](https://github.com/beanshell/beanshell/pull/795) | 2026-09-11 |
-| Float arithmetic | [#796](https://github.com/beanshell/beanshell/pull/796) | 2026-09-11 |
-| Java null arguments and varargs | [#797](https://github.com/beanshell/beanshell/pull/797) | 2026-09-11 |
-| Methods and property aliases | [#798](https://github.com/beanshell/beanshell/pull/798) | 2026-09-11 |
-| Object arrays passed to typed Java varargs | [#822](https://github.com/beanshell/beanshell/pull/822) | 2026-09-17 |
-| Catchable out-of-bounds array/List store errors | [#824](https://github.com/beanshell/beanshell/pull/824) | 2026-09-15 |
-| Lambda expressions | [#826](https://github.com/beanshell/beanshell/pull/826) | 2026-09-17 |
+| `byte b = 300;` | `44` | Error |
+| `int x = 3.7;` | `3` | Error |
+| `long l = 2.5;` | `2` | Error |
+| `int i = 3000000000L;` | `-1294967296` | Error |
+| `char c = 70000;` | `4464` | Error |
+| `int i = 65601; byte b = i;` | `65` | Error |
+| `float f = 1e300;` | `Infinity` | Error |
+| `a[1.7]` | `a[1]` | Error |
+| `new int[2.5]` | Length 2 | Error |
+
+A whole value that fits is still accepted, whatever its numeric type:
+`int x = 3.0;`, `Integer x = 3.0;` and `long l = 5L; int i = l;` all work. If a
+script relies on the old truncation or wrapping, add the explicit cast. Casts
+behave as in Java and 2.x:
+
+```java
+int x = (int) 3.7;      // 3
+byte b = (byte) 300;    // 44
+a[(int) 1.7];           // a[1]
+float f = (float) 1e300; // Infinity
+```
+
+A fractional argument to a Java method that takes an `int`, such as
+`Integer.toHexString(1.5)`, failed in 2.x with "method not found". 3.0 finds
+the method and then fails with a `ClassCastException` when it converts the
+argument. Cast the argument in both cases.
+
+A plain reassignment such as `i = i / 2.0` already failed in 2.x when `i` is an
+`int`, and still fails on 3.0.
+
+### Compound assignments narrow as in Java
+
+The other direction is more permissive. 2.x rejected every compound assignment
+whose result needed narrowing. 3.0 applies Java's implicit cast:
+
+| Script | 2.0b4 and 2.0b6 | 3.0 |
+| --- | --- | --- |
+| `int i = 5; i += 2.5;` | Error | `7` |
+| `byte c = 100; c += 200;` | Error | `44` |
+| `byte b = 1; b <<= 9;` | Error | `0` |
+
+`++` and `--` also narrow, as they already did in 2.x: `byte b = 127; b++;`
+gives `-128`.
+
+### Conversion errors can be caught
+
+In 2.x a failed reassignment, such as `int i = 1; i = "x";`, ended the script;
+no `catch` could see it. On 3.0, any failed assignment conversion throws a
+`ClassCastException` that a script can catch. That includes declarations,
+reassignments, array elements, fields, method arguments and return values:
+
+```java
+try {
+    int x = 3.7;
+} catch (ClassCastException e) {
+    print(e.getMessage()); // cannot assign number 3.7 to type int
+}
+```
+
+Storing a number that doesn't fit into a numeric array, such as
+`bytes[0] = 300`, now throws `ClassCastException`. 2.x threw
+`ArrayStoreException`.
 
 ## Variables created inside blocks
 
 In 2.0b4, a new untyped variable assigned inside an ordinary block is visible in
-the enclosing scope. In 2.0b6, the new variable belongs to the block. Main uses
+the enclosing scope. In 2.0b6, the new variable belongs to the block. 3.0 uses
 this behavior.
 
 ```java
 { x = 5; }
-x == void; // false in 2.0b4; true in 2.0b6 and main
+x == void; // false in 2.0b4; true in 2.0b6 and 3.0
 ```
 
 Initialize the variable in the scope where you need to use it. Assignment in a
@@ -66,14 +125,14 @@ in scope.
 and workarounds. [#727](https://github.com/beanshell/beanshell/issues/727) asks for
 an optional mode that restores the earlier behavior. Its implementation in
 [#728](https://github.com/beanshell/beanshell/pull/728) is closed and unmerged.
-The checked main has no `setBsh2ScopingCompatibility` API. The existing
+The checked 3.0 has no `setBsh2ScopingCompatibility` API. The existing
 `setCompatibility()` / `bsh.compatibility` setting controls Java source loading.
 It does not restore the block scope from 2.0b4.
 
 ## Undefined values in expressions
 
 Both 2.0b4 and 2.0b6 turn an undefined value into the text `void` in this string
-expression. Main reports an evaluation error:
+expression. 3.0 reports an evaluation error:
 
 ```java
 "hello " + missing;
@@ -92,7 +151,7 @@ if (missing == void) {
 message; // "hello guest" when missing is undefined
 ```
 
-`missing == void` remains a supported existence check on main. A variable with
+`missing == void` remains a supported existence check on 3.0. A variable with
 an assigned `null` value is different from an undefined variable. If you
 initialize a variable to `null`, it is still defined. Do not replace every
 `void` check with a null check.
@@ -101,13 +160,49 @@ initialize a variable to `null`, it is still defined. Do not replace every
 these differences. It does not ask for a change to string concatenation with an
 undefined value.
 
+## Objects created inside loops
+
+On 3.0, each loop iteration has its own scope, as in Java. An anonymous class,
+a scripted object (a method that returns `this`) or a lambda created in the loop
+sees the variables of its own iteration. In 2.x, every such object saw the
+values from the last iteration
+([#848](https://github.com/beanshell/beanshell/issues/848)):
+
+```java
+l = new java.util.ArrayList();
+for (String s : new String[] {"a", "b", "c"}) {
+    l.add(new Runnable() { public void run() { print(s); } });
+}
+for (r : l) r.run(); // "c", "c", "c" in 2.x; "a", "b", "c" on 3.0
+```
+
+A script that relied on the old behavior to read a loop's final value through
+such an object should store that value in a variable declared outside the loop
+instead.
+
+## Output of the print() command
+
+`print()` adds the value's type to anything that isn't a string or character.
+2.x printed only the value:
+
+| Script | 2.0b4 and 2.0b6 | 3.0 |
+| --- | --- | --- |
+| `print(5);` | `5` | `5I :int` |
+| `print(true);` | `true` | `true :boolean` |
+| `print(new java.util.ArrayList());` | `[]` | `[] :List` |
+| `print("abc");` | `abc` | `abc` |
+
+If another program reads or compares a script's output, convert the value to a
+string first with `print("" + x)`, or use `System.out.println(x)`, which
+prints only the value. `System.out.println` bypasses an output stream set with
+`Interpreter.setOut()` or `setOutputFile()`; `print()` doesn't.
+
 ## Catching out-of-bounds array and List store errors
 
-Before #824 (merged 2026-09-15), an out-of-bounds array or `List` store threw a
-plain `bsh.EvalError` that no script `catch` block could see, not even
-`catch (Throwable)`. Reads (`x = arr[3]`) already surfaced correctly; only
-stores, and the read-before-write step in `arr[i] += x`, `arr[i]++`, and
-`++arr[i]`, were affected.
+In 2.x, an out-of-bounds array or `List` store threw a plain `bsh.EvalError`
+that no script `catch` block could see, not even `catch (Throwable)`. Reads
+(`x = arr[3]`) already surfaced correctly; only stores, and the read-before-write
+step in `arr[i] += x`, `arr[i]++`, and `++arr[i]`, were affected.
 
 ```java
 arr = new int[3];
@@ -125,11 +220,11 @@ now also catch the exception directly where that's more convenient.
 
 ## Primitive values and wrapper utility methods
 
-Older scripts could observe the internal `bsh.Primitive` wrapper. On main,
+Older scripts could observe the internal `bsh.Primitive` wrapper. On 3.0,
 script-visible primitive operations expose the value and its primitive type.
 For a fresh `int i = 1`, the checked versions behave as follows:
 
-| Expression | 2.0b4 and 2.0b6 | Main |
+| Expression | 2.0b4 and 2.0b6 | 3.0 |
 | --- | --- | --- |
 | `i.getClass()` | `bsh.Primitive.class` | `int.class` |
 | `i.getType()` | `int.class` | `int.class` |
@@ -139,7 +234,7 @@ Use `i` directly instead of `i.getValue()`. To ask whether its exposed type is
 primitive, use `i.getClass().isPrimitive()`. `getType()` remains available on
 primitive values. Java objects do not all have a `getType()` method.
 
-On main, `i instanceof Number` can replace `isNumber()` for numeric values.
+On 3.0, `i instanceof Number` can replace `isNumber()` for numeric values.
 Characters are not instances of `Number`. To get a `Number`, assign or cast the
 value to that type instead of the `numberValue()` call:
 
@@ -149,7 +244,7 @@ Number value = i;
 value.intValue(); // 1
 ```
 
-These replacements apply to main. The checked 2.0b4 and 2.0b6 releases return
+These replacements apply to 3.0. The checked 2.0b4 and 2.0b6 releases return
 false for `int i = 1; i instanceof Number`. Both releases reject the assignment
 above.
 
@@ -160,8 +255,8 @@ methods. The Java implementation still uses `bsh.Primitive` internally.
 ## Java helpers used below
 
 The varargs changes apply to calls to **compiled Java methods and constructors**.
-With this helper, you can check overload selection, reference identity, and
-property access. Save the following code in `MigrationExamples.java`:
+With this helper, you can check overload selection and property access. Save
+the following code in `MigrationExamples.java`:
 
 ```java
 package examples;
@@ -211,52 +306,52 @@ import examples.MigrationExamples;
 ## Null arguments and Java varargs
 
 A Java `Object...` parameter is an `Object[]`. A null array, an array with one
-null element, and an empty array are different values. Before #797, main
-packed a single null argument into a one-element array regardless of its
-declared type. The fix (merged 2026-09-11) uses the declared argument type, if
-available, to select the correct form.
+null element, and an empty array are different values. 3.0 uses the declared
+type of a null argument, if one is available, to choose between them
+([#797](https://github.com/beanshell/beanshell/pull/797)). 2.x passed a null
+array whenever the argument was null.
 
 For the Java helpers above:
 
-| Call | Before #797 | Main |
+| Call | 2.0b4 and 2.0b6 | 3.0 |
 | --- | --- | --- |
-| `MigrationExamples.arguments(null)` | `[null]` | `null array` |
-| `MigrationExamples.arguments((Object[]) null)` | `[null]` | `null array` |
-| `MigrationExamples.arguments((Object) null)` | `[null]` | `[null]` |
-| `MigrationExamples.arguments()` | `[]` | `[]` |
+| `MigrationExamples.arguments(null)` | `null array` | `null array` |
+| `MigrationExamples.arguments((Object[]) null)` | `null array` | `null array` |
+| `MigrationExamples.arguments((Object) null)` | `null array` | `[null]` |
+| `MigrationExamples.arguments()` | Method-not-found error | `[]` |
 | `MigrationExamples.arguments(new Object[] {null})` | `[null]` | `[null]` |
-| `MigrationExamples.integers(null)` | `[0]` | `null array` |
+| `MigrationExamples.integers(null)` | `null array` | `null array` |
 
-To pass one null element for `Object...`, use `(Object) null` or an explicit
-`new Object[] {null}`. To pass an empty array, call the method with no varargs
-arguments or use an empty array. If you need one zero element for `int...`, use
-`new int[] {0}`. A null array is not a zero element.
+To pass a null array, use bare `null` or `(Object[]) null`. To pass one null
+element for `Object...`, use `(Object) null` or an explicit
+`new Object[] {null}`.
 
-These rules also apply to null values from typed variables:
+These rules also apply to null values from typed variables. In 2.x both calls
+below passed a null array:
 
 ```java
 Object[] array = null;
 Object element = null;
 MigrationExamples.arguments(array);   // "null array"
-MigrationExamples.arguments(element); // "[null]"
+MigrationExamples.arguments(element); // "[null]" on 3.0
 ```
 
 BeanShell also keeps the declared type of null arguments from casts, fields,
 array elements, and method results. This affects overload selection. Bare null
 selects `pick(Object...)` instead of `pick(Object)` because the array
-parameter is more specific. Use `(Object) null` to select the scalar overload.
+parameter is more specific.
 
-| Call | Before #797 | Main |
+| Call | 2.0b4 and 2.0b6 | 3.0 |
 | --- | --- | --- |
-| `MigrationExamples.pick(null)` | `Object` | `Object[]` |
-| `MigrationExamples.pick((Object[]) null)` | `Object` | `Object[]` |
-| `MigrationExamples.pick((Object) null)` | `Object` | `Object` |
+| `MigrationExamples.pick(null)` | `Object[]` | `Object[]` |
+| `MigrationExamples.pick((Object[]) null)` | `Object[]` | `Object[]` |
+| `MigrationExamples.pick((Object) null)` | `Object[]` | `Object` |
 
 Constructor calls follow the same rule. `new MigrationExamples(null).values`
-is a null array, but `new MigrationExamples((Object) null).values` contains
-one null element.
+is a null array, but on 3.0 `new MigrationExamples((Object) null).values`
+contains one null element. In 2.x it was a null array.
 
-This fix does not switch all dispatch to Java's declared-type rules. BeanShell
+This does not switch all dispatch to Java's declared-type rules. BeanShell
 still uses runtime types for non-null arguments. This also applies to non-null
 arrays in `Object` variables. BeanShell still prefers String for ambiguous
 bare-null calls. If an expression gives no declared type for null, BeanShell
@@ -265,11 +360,11 @@ varargs packing or generated constructor delegation.
 
 ## Object arrays passed to typed Java varargs
 
-Before #822 (merged 2026-09-17), passing an `Object[]` for a Java method's
-typed varargs parameter tried to cast the whole array to the declared
-component type, rather than converting each element. An `Object[]` is not a
-`Class[]`, even when every element is a `Class`, so the call below used to
-throw a `ClassCastException`:
+In 2.x, passing an `Object[]` for a Java method's typed varargs parameter
+failed with "method not found". 3.0 converts each element with BeanShell's
+usual coercion rules and builds the declared array type, so the call below
+works even though an `Object[]` is not a `Class[]`
+([#822](https://github.com/beanshell/beanshell/pull/822)):
 
 ```java
 class Sample { void run(String s, int i) {} }
@@ -278,137 +373,37 @@ m = Sample.class.getDeclaredMethod("run", types);
 print(m); // public void Sample.run(java.lang.String,int) :Method
 ```
 
-The fix converts each element with BeanShell's usual coercion rules and builds
-the declared array type, so you no longer need to build a correctly typed
-array yourself before making a call like this. Already typed arrays, null
-arrays, and expanded varargs (`f(a, b, c)`) keep their existing behavior, and
-method overload selection is unchanged.
-[#822](https://github.com/beanshell/beanshell/pull/822)
-
-## Float arithmetic and numeric overloads
-
-Float arithmetic follows Java promotion and rounding rules. For Java numeric
-primitives, these rules apply to `+`, `-`, `*`, `/`, and `%`. With a `float`
-operand, BeanShell uses `float` arithmetic for byte, short, char, int, long,
-and float operands. With a `double` operand, BeanShell uses `double`
-arithmetic. #796 (merged 2026-09-11) changed these rules from the earlier
-double-first calculation and float-overflow widening described in
-[#71](https://github.com/beanshell/beanshell/issues/71):
-
-| Expression | Before #796 | Main |
-| --- | --- | --- |
-| `(1f * 2f).getClass()` | `double.class` | `float.class` |
-| `16777216f + 1` | `16777217.0` | `16777216.0` |
-| `Float.MAX_VALUE * 2f` | Finite double | Float positive infinity |
-| `1f + 2d` | Double `3.0` | Double `3.0` |
-
-Promotion happens **before** the calculation. If you assign the result to a
-double afterward, you cannot recover precision lost during the float operation.
-If you need a double calculation, widen an operand before the calculation:
-
-```java
-float value = 16777216f;
-double rounded = value + 1;        // 16777216.0
-double widened = (double)value + 1; // 16777217.0
-```
-
-Result types can select a different overload:
-
-```java
-choose(float value) { return "float"; }
-choose(double value) { return "double"; }
-choose(1f * 2f); // "float"
-```
-
-Compound assignments first calculate with the promoted operand types. They then
-convert the result back to the variable's type. For example,
-`floatValue /= integerValue` rounds as a float operation.
-
-With `longValue += floatValue`, BeanShell converts the long to float before the
-addition. It then converts the result back to long. That can lose integer
-precision. If you need more precision or range than float gives, use double
-operands or explicit big-number arithmetic.
-
-Float results keep Java's signed zero, NaN, infinity, and gradual-underflow
-behavior. A float overflow no longer triggers a wider finite result. The fix
-does not change double arithmetic, explicit `BigInteger`/`BigDecimal` promotion,
-or the `**` power extension. The float table does not specify their rules.
-See [#796](https://github.com/beanshell/beanshell/pull/796) for the
-Java comparisons and the relationship to #767/#768.
-
-## Scalar and array overloads
-
-Method applicability distinguishes complete types. The complete type includes
-array rank. A scalar string is not a `String[]`. BeanShell uses the complete
-types to select an overload, so overload declaration order doesn't push the
-scalar call below into the array method:
-
-```java
-pick(value) { return value; }
-pick(String[] values) { return pick(values[1]); }
-pick("a"); // "a"
-```
-
-If you need the array overload, pass `new String[] {"a", "b"}`. An overload with a
-`String[]` parameter receives a one-dimensional array. An overload with a
-`String[][]` parameter receives a two-dimensional array. If your code relied on
-accidental scalar-to-array selection, fixed by #793 (merged 2026-09-11),
-construct the intended array explicitly instead.
-
-Parameter brackets after the name count too. `String values[]` means `String[]`,
-and `String[] values[]` means `String[][]`:
-
-```java
-first(String[] values[]) { return values[0][0]; }
-first(new String[][] {{"a"}}); // "a"
-```
-
-Main already parsed these forms before #793; the fix applies the combined
-dimensions consistently to overload selection and generated Java signatures.
-You can write the parameters as `String[] values` or `String[][] values` to
-make the dimensions clearer. The changelog explains the effect on Java
-reflection.
+You no longer need to build a correctly typed array yourself before making a
+call like this. Already typed arrays, null arrays, and expanded varargs
+(`f(a, b, c)`) keep their existing behavior, and method overload selection is
+unchanged.
 
 ## Method calls and property aliases
 
-BeanShell selects an applicable real method before a JavaBean property alias
-of the same name. Before #798 (merged 2026-09-11), the two shared one overload
-list, so reflection order could make a call such as `up()` invoke `isUp()`
-instead, and an inherited cache could keep the accessor in place of the real
-method.
+A call such as `device.up()` invokes the real `up()` method in both 2.x and
+3.0. 3.0 adds a fallback: if no real method with that name is applicable,
+the call uses a JavaBean property accessor of the same name. 2.x reported a
+method-not-found error instead.
 
-With the Java `Switch` helper above:
+With the Java helpers above:
 
 ```java
 device = new MigrationExamples.Switch();
 device.up();
 device.isUp(); // true: the real up() changed the state
-```
 
-To call the getter, use `device.isUp()`. Property reads and writes keep their
-existing accessors and field precedence. `device.up` can still read the property.
-`device.up()` makes a method call.
-
-Real-method precedence applies even if the alias has a more-specific parameter:
-
-```java
 label = new MigrationExamples.Label();
 label.title("x"); // "method": selects title(Object), not setTitle(String)
-```
 
-To invoke the setter explicitly, call `label.setTitle("x")`. If no real method
-with that name is applicable, the property alias remains available:
-
-```java
 getter = new MigrationExamples.GetterOnly();
-getter.up(); // true; falls back to isUp()
+getter.up(); // true on 3.0 through isUp(); method-not-found error in 2.x
 ```
 
-An exception from a selected real method does not trigger alias fallback. Static
-imports also give priority to static methods with the requested name. They use a
-property alias only if no applicable real method exists.
-[#798](https://github.com/beanshell/beanshell/pull/798) keeps property naming rules.
-It does not introduce a general redesign of JavaBean setter selection.
+A real method takes precedence even if the alias has a more-specific
+parameter. To invoke the setter explicitly, call `label.setTitle("x")`. An
+exception from a selected real method does not trigger alias fallback.
+Property reads and writes keep their existing accessors and field precedence.
+[#798](https://github.com/beanshell/beanshell/pull/798)
 
 ## Lambda expressions
 
@@ -437,58 +432,98 @@ call(x -> ({1,2,3})); // int[] {1, 2, 3}
 ```
 
 A lambda captures its declaring scope by reference, not by value, so a later
-change to a captured variable is visible to the lambda. That includes a loop
-variable: BeanShell doesn't give each iteration its own copy.
+change to a captured variable is visible to the lambda, and the lambda can
+change it:
 
 ```java
-l = new java.util.ArrayList();
-for (String s : new String[] {"a", "b", "c"})
-    l.add((java.util.function.Supplier) () -> s);
-// every element of l returns "c", not "a", "b", "c"
+int n = 0;
+java.util.function.IntSupplier next = () -> ++n;
+next.getAsInt();
+next.getAsInt();
+n; // 2
 ```
 
-A `bsh.This` proxy and an anonymous inner class capturing the same loop
-variable behave the same way. This isn't new to lambdas; it's just newly
-visible through them.
+A lambda created in a loop sees its own iteration's variables, as described
+in [Objects created inside loops](#objects-created-inside-loops).
 
-Where several overloads accept a lambda argument, BeanShell picks by the
-body's statically known result and shape, using the same declaration-order
-tie-break it already uses everywhere else, rather than reporting the call
-ambiguous the way javac sometimes would. See the lambda entry in
-[CHANGES.md](CHANGES.md) for the complete list of resolution rules and
-rejected interface shapes.
+A lambda's result must fit the interface method's return type, under the same
+rules as [numeric assignments](#numeric-values-that-dont-fit-their-type). A
+`Comparator` written as `(a, b) -> a - b` fails when it compares `3.5` and
+`1.0`, because `2.5` doesn't fit the `int` that `compare` returns. Use
+`Double.compare(a, b)`, or cast the result: `(a, b) -> (int) (a - b)`.
 
-## Workarounds you can remove
+Where several overloads accept a lambda argument, BeanShell picks one by the
+body's statically known result and shape. A body with a result selects
+`Supplier` over `Runnable`, and a block body with no result selects
+`Runnable`. BeanShell also picks an overload where javac would report the call
+ambiguous: with `m(Callable)` and `m(Supplier)`, `m(() -> 1)` calls
+`m(Callable)` whichever is declared first. Cast the lambda to choose an
+overload explicitly: `m((java.util.function.Supplier) () -> 1)`. The lambda
+entry in [CHANGES.md](CHANGES.md) lists the interfaces that can't be lambda
+targets.
 
-These fixes correct operations that used to fail. If you added a workaround
-for either, you can remove it now.
+## Removed features
 
-- **Numeric reference casts (#792):** `(Number) Double.valueOf(1)` used to
-  throw a `ClassCastException`. Now an assignable reference cast or assignment
-  keeps the original numeric object. You no longer need to rebox or convert
-  through another number type only to prevent that failure. This fix applies
-  to reference casts. It does not change narrowing primitive conversions.
-  [#792](https://github.com/beanshell/beanshell/pull/792)
-- **Boxed unary operators (#795):** numeric and character wrappers support the
-  applicable unary operators without manual unboxing. Increment and decrement
-  keep stored values and prefix results boxed. Postfix returns the original
-  boxed value. Other unary results follow primitive promotion. BeanShell also
-  applies its existing arithmetic support to raw `BigInteger` and `BigDecimal`
-  values.
-  Unsupported operator/type combinations still fail.
-  [#795](https://github.com/beanshell/beanshell/pull/795)
+The built-in HTTP server and remote console are gone: the `server()` command,
+`bsh.util.Httpd`, `bsh.util.Sessiond`, the `bsh.servlet` package, and the
+remote console applets. None of them were authenticated. On 3.0, `server(1234)`
+fails with `Command not found: server(int)`
+([#496](https://github.com/beanshell/beanshell/issues/496)).
 
-```java
-Double original = Double.valueOf(1);
-Number reference = (Number) original;
-MigrationExamples.same(original, reference); // true
-```
+## Embedding applications
 
-```java
-Integer boxed = Integer.valueOf(5);
-Integer before = boxed++;
-before; // 5; boxed now holds Integer 6
-```
+- **Maven coordinates:** the artifact is `io.github.beanshell:bsh`. 2.x was
+  published as `org.beanshell:bsh` and `org.apache-extras.beanshell:bsh`. The
+  OSGi bundle symbolic name is `org.beanshell.bsh`.
+- **Java version:** the JAR targets Java 8 and needs Java 8 or newer to run.
+- **Error messages:** the text of `EvalError.getMessage()` and
+  `TargetError.getMessage()` has a new format
+  ([#895](https://github.com/beanshell/beanshell/pull/895)). For a script that
+  throws `new RuntimeException("boom")` through `eval()`, the message starts
+  with `Sourced file: inline evaluation of:` and ends with `: TargetError` in
+  2.x. On 3.0 it starts with `Uncaught Exception` and ends with
+  `Caused by: java.lang.RuntimeException: boom`. If your code parses the
+  message, use the structured accessors instead: `getErrorLineNumber()`,
+  `getErrorSourceFile()`, `getErrorText()` and `getCause()`.
+
+## Changes since earlier 3.0 builds
+
+These fixes matter only if you used a 3.0 snapshot or 3.0.0 beta 1. In each
+case 2.0b4 and 2.0b6 already gave the result 3.0 gives now, so a script
+coming straight from 2.x needs no change.
+
+- **Numeric reference casts
+  ([#792](https://github.com/beanshell/beanshell/pull/792)):**
+  `(Number) Double.valueOf(1)` keeps the original numeric object, so
+  `MigrationExamples.same(original, (Number) original)` is true.
+- **Scalar and array overloads
+  ([#793](https://github.com/beanshell/beanshell/pull/793)):** overload
+  selection uses array rank, so `pick("a")` with overloads `pick(value)` and
+  `pick(String[] values)` selects the scalar one. Parameter brackets after the
+  name count as array dimensions: `first(String[] values[])` takes a
+  `String[][]`. 2.x could not parse that form.
+- **Boxed unary operators
+  ([#795](https://github.com/beanshell/beanshell/pull/795)):** `boxed++` on an
+  `Integer` returns the original boxed value and stores an `Integer`.
+- **Float arithmetic
+  ([#796](https://github.com/beanshell/beanshell/pull/796)):** float operands
+  use float arithmetic, as in Java. `16777216f + 1` is `16777216.0`,
+  `Float.MAX_VALUE * 2f` is infinity and `(1f * 2f).getClass()` is
+  `float.class`. Widen an operand first if you need a double calculation:
+  `(double) value + 1`.
+- **Values no longer convert between unrelated types
+  ([#759](https://github.com/beanshell/beanshell/issues/759)):** beta 1 treated
+  any value as a boolean and converted strings, booleans and null to numbers.
+  `if (0.5)`, `(Boolean) "false"`, `Math.sqrt("4")`, `1 && true`,
+  `int i = null;` and `f(null)` for `f(int)` are errors again. `{1, 2, null}`
+  is an `Integer[]` that keeps the null, and a scripted class's `Integer` field
+  starts out null.
+- **Method variable lookup
+  ([#906](https://github.com/beanshell/beanshell/issues/906)):** a scripted
+  method looks up variables it doesn't declare where the method was declared,
+  not in its caller's block.
+- **Byte widening ([#911](https://github.com/beanshell/beanshell/issues/911)):**
+  `byte b = -1; int i = b;` gives `-1` again; beta 1 gave `255`.
 
 This guide covers the linked changes, not every difference between historical
 BeanShell releases. Test representative application scripts against the exact
