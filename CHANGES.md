@@ -3,6 +3,8 @@
 
 ## 3.0.0 (in progress)
 
+Fixed a `byte` or `short` argument picking a Java method's `char` overload, so `byte b = 65; System.out.println(b);` printed `A` instead of 65, and a negative `byte` threw. It now picks the `int` overload, as Java and BeanShell 2.x do, so `Character.toUpperCase(b)` returns an `int`. A `byte` or `short` value is now passed to a `char` parameter only where an `int` value would be, so calls such as `"aaa".replace(b, c)` or a scripted method `g(char c)` called as `g(b)` no longer find the method; cast with `(char) b` (#916).
+
 ## 3.0.0 RC2
 
 A lambda whose interface method returns an `int` now fails when its body produces a fractional number, so a `Comparator` written as `(a, b) -> a - b` throws when it compares doubles like 3.5 and 1.0; a whole value such as 2.0 is still accepted. Cast the result where a script relied on it being cut down: `(a, b) -> (int) (a - b)` (#911).
