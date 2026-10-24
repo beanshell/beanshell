@@ -204,6 +204,30 @@ public class InterpreterTest {
     }
 
     @Test
+    public void print_command_output() throws Exception {
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        Interpreter bsh = new Interpreter();
+        bsh.setOut(new PrintStream(bout));
+        bsh.eval("print(5);");
+        bsh.eval("print(\"abc\");");
+        bsh.eval("print(new ArrayList());");
+        bsh.eval("Integer boxed = 7; print(boxed);");
+        bsh.eval("print(Integer.class);");
+        bsh.eval("print(Integer);");
+        bsh.eval("t = java.util.Map.Entry; print(t);");
+        bsh.eval("print(null);");
+        String[] lines = bout.toString().split("\\R");
+        assertEquals("5I :int", lines[0]);
+        assertEquals("abc", lines[1]);
+        assertEquals("[] :List", lines[2]);
+        assertEquals("7I :Integer", lines[3]);
+        assertEquals("class java.lang.Integer :Class", lines[4]);
+        assertEquals("Class Identifier: java.lang.Integer :bsh.ClassIdentifier", lines[5]);
+        assertEquals("Class Identifier: java.util.Map$Entry :bsh.ClassIdentifier", lines[6]);
+        assertEquals("null :null", lines[7]);
+    }
+
+    @Test
     public void get_println_output() throws Exception {
         ByteArrayOutputStream berr = new ByteArrayOutputStream();
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
