@@ -23,10 +23,10 @@ assertThat(anon.K, equalTo(7));
 p = this.getInterface(Foo830.class);
 assertThat(p.K, equalTo(7));
 
-// A missing field resolves like it does on a scripted class implementing the interface.
+// A missing field fails like it does on a scripted class implementing the interface.
 class Impl830 implements Foo830 { public void run() { } }
-assert(new Impl830().nope == void);
-assert(f.nope == void);
-assert(anon.nope == void);
+assert(isEvalError("No such field: nope", "new Impl830().nope;"));
+assert(isEvalError("No such field: nope", "f.nope;"));
+assert(isEvalError("No such field: nope", "anon.nope;"));
 
 complete();

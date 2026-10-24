@@ -894,7 +894,9 @@ public class ReflectTest {
 
         assertEquals(7, i.eval("j.K"));
         assertEquals(1, i.eval("j.run(); 1"));
-        assertNull(i.eval("j.nope"));
+        Exception e = assertThrows(EvalError.class, () -> i.eval("j.nope"));
+        assertThat("exception message contains", e.getMessage(),
+            containsString("No such field: nope"));
         assertEquals(Boolean.TRUE, i.eval("j.getClass().getInterfaces()[0] == Foo830j.class"));
     }
 }
