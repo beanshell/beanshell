@@ -194,12 +194,8 @@ class BSHPrimarySuffix extends SimpleNode
                 }
                 else try {
                     return Reflect.getObjectFieldValue(obj, field, result);
-                } catch (Throwable t) {
-                    try {
-                        return Reflect.getObjectProperty( obj, field, result );
-                    } catch (Throwable tt) {
-                        return Primitive.VOID;
-                    }
+                } catch (ReflectError e) {
+                    throw new UtilEvalError( e.getMessage(), e );
                 }
             }
 

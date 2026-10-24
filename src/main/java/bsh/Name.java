@@ -428,6 +428,12 @@ class Name implements java.io.Serializable
             if ( obj == null )
                 obj = Reflect.getObjectProperty(clas, field, result);
 
+            // nothing by that name, likely a typo
+            if ( obj == Primitive.VOID )
+                throw new UtilEvalError(
+                    "No static field or inner class: "
+                    + field + " of " + clas );
+
             return completeRound( field, suffix(evalName), obj );
         }
 
@@ -455,15 +461,14 @@ class Name implements java.io.Serializable
             return completeRound( field, suffix(evalName), obj );
         }
 
-        // Check for field on object
-        // Note: could eliminate throwing the exception somehow
+        // Check for field or property on object, scripted objects and
+        // maps resolve an undefined name to void
         try {
             Object obj = Reflect.getObjectFieldValue(evalBaseObject, field, result);
             return completeRound( field, suffix(evalName), obj );
-        } catch(ReflectError e) { /* not a field */ }
-
-        Object obj = Reflect.getObjectProperty(evalBaseObject, field, result);
-        return completeRound( field, suffix(evalName), obj );
+        } catch(ReflectError e) {
+            throw new UtilEvalError( e.getMessage(), e );
+        }
 
     }
 

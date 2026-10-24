@@ -1,0 +1,87 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+import java.util.concurrent.TimeUnit;
+
+enum Color { RED, GREEN }
+class K { int x = 1; static int S = 2; }
+getNull() { return null; }
+
+Color c = Color.RED;
+int[] arr = {1, 2, 3};
+list = new ArrayList();
+sb = new StringBuilder("ab");
+k = new K();
+
+// Unknown enum constants and static fields are errors, not void
+assert(isEvalError("No static field or inner class: BLUE of class Color", "c == Color.BLUE;"));
+assert(isEvalError("No static field or inner class: BLUE of class Color", "c != Color.BLUE;"));
+assert(isEvalError("No static field or inner class: BLUE of class Color", "x = Color.BLUE;"));
+assert(isEvalError("No static field or inner class: FOO of class java.util.concurrent.TimeUnit", "TimeUnit.SECONDS == TimeUnit.FOO;"));
+assert(isEvalError("No static field or inner class: FOO of class java.lang.Integer", "Integer.FOO == 1;"));
+assert(isEvalError("No static field or inner class: NOPE of class K", "K.NOPE == 1;"));
+
+// Unknown instance fields and properties are errors, not void
+assert(isEvalError("No such field: lenght", "arr.lenght == 3;"));
+assert(isEvalError("No such field: emtpy", "list.emtpy == true;"));
+assert(isEvalError("No such field: emtpy", "list.emtpy != true;"));
+assert(isEvalError("No such field: lenght", "\"ab\".lenght == 2;"));
+assert(isEvalError("No such field: nope", "sb.reverse().nope == 1;"));
+assert(isEvalError("No such field: nope", "k.nope == 1;"));
+
+// A field on a null method result is a null pointer, as on a null variable
+try {
+    getNull().nope;
+    assert(false);
+} catch (NullPointerException e) {
+    assertThat(e.getMessage(), containsString("'nope' on null value"));
+}
+
+// Defined members still resolve
+assertThat(Color.RED, equalTo(c));
+assertThat(Color.values().length, equalTo(2));
+assertThat(TimeUnit.SECONDS, equalTo(TimeUnit.valueOf("SECONDS")));
+assertThat(Integer.MAX_VALUE, equalTo(2147483647));
+assertThat(arr.length, equalTo(3));
+assertThat(list.empty, equalTo(true));
+assertThat(sb.reverse().length(), equalTo(2));
+assertThat(k.x, equalTo(1));
+assertThat(K.S, equalTo(2));
+assertNotNull(Map.Entry.class);
+
+// Map keys, scripted objects and loose variables keep the void idiom
+m = new HashMap();
+m.put("a", 1);
+e = m.entrySet().iterator().next();
+o = object();
+o.c = 3;
+assertThat(m.a, equalTo(1));
+assert(m.nope == void);
+assertThat(e.key, equalTo("a"));
+assert(e.nope == void);
+assertThat(o.c, equalTo(3));
+assert(o.nope == void);
+assert(this.nope == void);
+assert(undefinedVar == void);
+
+// Field access on a method result follows the same rules
+getMap() { return m; }
+getEntry() { return e; }
+getObj() { return o; }
+assertThat(new K().x, equalTo(1));
+assertThat(new ArrayList().empty, equalTo(true));
+assertThat(getMap().a, equalTo(1));
+assert(getMap().nope == void);
+assertThat(getEntry().key, equalTo("a"));
+assert(getEntry().nope == void);
+assertThat(getObj().c, equalTo(3));
+assert(getObj().nope == void);
+assertNull(getNull()?.nope);
+
+// A static getter that throws gives void, which is no longer silent
+class Boom { static int getBoom() { throw new RuntimeException("boom"); } }
+assert(isEvalError("Boom.boom == 1;"));
+
+complete();
