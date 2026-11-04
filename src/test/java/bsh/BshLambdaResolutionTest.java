@@ -380,19 +380,26 @@ public class BshLambdaResolutionTest {
         }
         // Expression bodies with statement expressions (EITHER shape) have unknown result types
         // and are allowed at conversion time, failing only at invoke time if the result is incompatible
-        for (String conversion : new String[] {
-                "java.util.function.IntSupplier f = () -> sb.setLength(0); f.getAsInt();",
-                "java.util.function.Supplier f = () -> undefinedNameQ; f.get();",
-                "java.util.function.Supplier f = () -> sb.undefinedFieldQ; f.get();",
-                "java.util.function.Supplier f = () -> sb.reverse().undefinedFieldQ; f.get();",
-                "java.util.function.Function f = s -> s.lenght; f.apply(\"ab\");" }) {
+        // A void result fails with "Cannot return void"; a missing field fails on the lookup
+        String[][] cases = {
+            { "java.util.function.IntSupplier f = () -> sb.setLength(0); f.getAsInt();",
+                "Cannot return void" },
+            { "java.util.function.Supplier f = () -> undefinedNameQ; f.get();",
+                "Cannot return void" },
+            { "java.util.function.Supplier f = () -> sb.undefinedFieldQ; f.get();",
+                "No such field: undefinedFieldQ" },
+            { "java.util.function.Supplier f = () -> sb.reverse().undefinedFieldQ; f.get();",
+                "No such field: undefinedFieldQ" },
+            { "java.util.function.Function f = s -> s.lenght; f.apply(\"ab\");",
+                "No such field: lenght" } };
+        for (String[] test : cases) {
+            String conversion = test[0];
             try {
                 eval("sb = new StringBuilder(); " + conversion);
                 fail("expected a TargetError for unknown-result body: " + conversion);
             } catch (TargetError expected) {
                 String message = expected.getTarget().getMessage();
-                assertTrue(conversion + ": " + message, message.contains("Cannot return void") || message.contains("undefined")
-                    || message.contains("No such field"));
+                assertTrue(conversion + ": " + message, message.contains(test[1]));
             }
         }
     }
