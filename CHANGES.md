@@ -3,6 +3,8 @@
 
 ## 3.0.0 (in progress)
 
+Fixed reading a `null` list element, map value or `Map.Entry` value with the list and map syntax (`l[0]`, `m["a"]`, `m.a`, `e.value`) giving a broken value. Comparing it with `null` ended the script with `unknown error`, assigning it to an untyped variable failed with `internal Error`, and passing it to a method stopped with an internal error. It reads as `null` now. In BeanShell 2.x `e.value == null` was `true`. Assigning to an entry's value, `e.value = 5`, also left a `bsh.Primitive` in the entry for Java code to find; it now stores the plain value (#930).
+
 Fixed calling a scripted method from Java with a `null` argument, through `This.invokeMethod(name, args)`, `NameSpace.invokeMethod` or the JSR-223 `invokeFunction` and `invokeMethod`, throwing `java.lang.Error: HERE!`. The method receives the `null` again, as in BeanShell 2.x (#925).
 
 Fixed `instanceof` on an undefined value, such as `undefinedVar instanceof Object`, a missing variable of a scripted object or a method that returns nothing, ending the script with `unknown error` and a Java `NullPointerException` that no `catch` could see. It gives `false` again, as in BeanShell 2.x. `void instanceof bsh.Primitive` is still `true` (#920).

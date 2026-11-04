@@ -50,8 +50,10 @@ public class BshArray {
             throws UtilTargetError {
         Interpreter.debug("getIndex: ", array, ", index=", index);
         try {
-            if ( array instanceof List )
-                return ((List<?>) array).get(index);
+            if ( array instanceof List ) {
+                Object val = ((List<?>) array).get(index);
+                return val == null ? Primitive.NULL : val;
+            }
             Object val = Array.get(array, index);
             return Primitive.wrap( val, Types.arrayElementType(array.getClass()) );
         } catch( IndexOutOfBoundsException e1 ) {

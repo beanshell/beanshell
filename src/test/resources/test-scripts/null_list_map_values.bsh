@@ -1,0 +1,103 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// A null list element, map value or entry value reads as null, not as a
+// broken value (#930)
+
+isNull(x) { return x == null; }
+
+l = new ArrayList();
+l.add(null);
+l.add("b");
+m = new HashMap();
+m.put("a", null);
+m.put("b", 2);
+e = new java.util.AbstractMap.SimpleEntry("k", null);
+nk = new java.util.AbstractMap.SimpleEntry(null, 1);
+
+// list
+assert(l[0] == null);
+assert(null == l[0]);
+assert(isNull(l[0]));
+x = l[0];
+assert(x == null);
+Object o = l[0];
+assert(o == null);
+assert(!(l[0] instanceof String));
+assertEquals("nulls", l[0] + "s");
+assert(l[1] != null);
+assertEquals("b", l[1]);
+assert(l[0:2][0] == null);
+assertEquals("b", l[0:2][1]);
+assert(isNull(l.get(0)));
+ll = new LinkedList();
+ll.add(null);
+assert(ll[0] == null);
+
+// map
+assert(m["a"] == null);
+assert(m.a == null);
+assert((m).a == null);
+assert(isNull(m["a"]));
+assert(isNull(m.a));
+assert(isNull((m).a));
+assert(isNull(m?.a));
+y = m.a;
+assert(y == null);
+y = m["a"];
+assert(y == null);
+assertEquals(2, m["b"]);
+assertEquals(2, m.b);
+assert(m["missing"] == void);
+assert(m.missing == void);
+
+// entry
+assert(e.value == null);
+assert(e.val == null);
+assert((e).value == null);
+assert(isNull(e.value));
+assert(isNull((e).value));
+assert(isNull(e["k"]));
+assertEquals("k", e.key);
+assert(nk.key == null);
+assert(isNull(nk.key));
+assertEquals(1, nk.value);
+
+// entry array
+ea = new Map.Entry[] { new java.util.AbstractMap.SimpleEntry("k", null),
+        new java.util.AbstractMap.SimpleEntry("j", 5) };
+assert(ea.k == null);
+assert(isNull(ea.k));
+assert(ea["k"] == null);
+assertEquals(5, ea.j);
+assert(ea.nope == void);
+
+// the brace property syntax
+assert(m{"a"} == null);
+y = m{"a"};
+assert(y == null);
+assert(isNull(m{"a"}));
+assert(e{"value"} == null);
+assert(isNull(e{"value"}));
+assert(nk{"key"} == null);
+assert(isNull(nk{"key"}));
+assertEquals(2, m{"b"});
+
+// storing a null or a number in an entry puts a Java value in it
+e2 = new java.util.AbstractMap.SimpleEntry("k", 1);
+e2.value = l[0];
+assert(e2.getValue() == null);
+e2.value = 5;
+assert(e2.getValue() instanceof Integer);
+assertEquals(5, e2.getValue());
+
+// the script can catch what it passes on
+try {
+    assert(isNull(l[0]));
+} catch (Throwable t) {
+    fail("null list element was not usable: " + t);
+}
+
+complete();
