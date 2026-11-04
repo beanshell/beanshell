@@ -53,8 +53,9 @@ A fractional argument to a Java method that takes an `int`, such as
 the method and then fails with a `ClassCastException` when it converts the
 argument. Cast the argument in both cases.
 
-A plain reassignment such as `i = i / 2.0` already failed in 2.x when `i` is an
-`int`, and still fails on 3.0.
+A plain reassignment such as `i = i / 2.0` failed in 2.x when `i` is an `int`.
+On 3.0 it fails only when the result is not a whole number: with `i = 5` it is
+an error, with `i = 4` it gives `2`.
 
 ### Compound assignments narrow as in Java
 
@@ -488,9 +489,9 @@ fails with `Command not found: server(int)`
 
 ## Changes since earlier 3.0 builds
 
-These fixes matter only if you used a 3.0 snapshot or 3.0.0 beta 1. In each
-case 2.0b4 and 2.0b6 already gave the result 3.0 gives now, so a script
-coming straight from 2.x needs no change.
+These fixes matter only if you used a 3.0 snapshot, 3.0.0 beta 1 or one of the
+release candidates. In each case 2.0b4 and 2.0b6 already gave the result 3.0
+gives now, so a script coming straight from 2.x needs no change.
 
 - **Numeric reference casts
   ([#792](https://github.com/beanshell/beanshell/pull/792)):**
@@ -523,13 +524,19 @@ coming straight from 2.x needs no change.
   method looks up variables it doesn't declare where the method was declared,
   not in its caller's block.
 - **Byte widening ([#911](https://github.com/beanshell/beanshell/issues/911)):**
-  `byte b = -1; int i = b;` gives `-1` again; beta 1 gave `255`.
+  `byte b = -1; int i = b;` gives `-1` again; earlier 3.0 releases gave `255`.
 - **Missing fields and enum constants
   ([#918](https://github.com/beanshell/beanshell/issues/918)):** a field,
   property or enum constant that doesn't exist on a Java class, Java object or
-  scripted class is an error again. Beta 1 gave `void`, so
+  scripted class is an error again. Earlier 3.0 releases gave `void`, so
   `TimeUnit.SECONDS == TimeUnit.FOO` was `false`. A missing map key, a missing
   variable of a scripted object and an undefined variable still give `void`.
+- **Byte and short arguments
+  ([#916](https://github.com/beanshell/beanshell/issues/916)):** a `byte` or
+  `short` argument no longer selects a Java method's `char` overload, so
+  `byte b = 65; System.out.println(b);` prints `65`, not `A`. For the same
+  reason `"aaa".replace(b, c)` and a scripted `g(char c)` called as `g(b)` find
+  no method; cast with `(char) b`. 2.0b4 behaves the same.
 
 This guide covers the linked changes, not every difference between historical
 BeanShell releases. Test representative application scripts against the exact

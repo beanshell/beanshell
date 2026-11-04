@@ -85,13 +85,10 @@ assert(nk{"key"} == null);
 assert(isNull(nk{"key"}));
 assertEquals(2, m{"b"});
 
-// storing a null or a number in an entry puts a Java value in it
+// storing a null in an entry; ReflectTest checks what Java code finds in it
 e2 = new java.util.AbstractMap.SimpleEntry("k", 1);
 e2.value = l[0];
 assert(e2.getValue() == null);
-e2.value = 5;
-assert(e2.getValue() instanceof Integer);
-assertEquals(5, e2.getValue());
 
 // the script can catch what it passes on
 try {
