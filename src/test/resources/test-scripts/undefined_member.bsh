@@ -80,6 +80,17 @@ assertThat(getObj().c, equalTo(3));
 assert(getObj().nope == void);
 assertNull(getNull()?.nope);
 
+// ?. on an undefined value keeps the void idiom, only null aborts the chain
+assert(m.nope?.x == void);
+assert(undefinedVar?.nope == void);
+assert(m.nope?.x.y == void);
+assert(isEvalError("on undefined", "m.nope?.size();"));
+
+// A static property is still read through a Class value
+assertThat(Runtime.class.runtime, equalTo(Runtime.getRuntime()));
+rc = Runtime.class;
+assertThat(rc.runtime, equalTo(Runtime.getRuntime()));
+
 // A static getter that throws gives void, which is no longer silent
 class Boom { static int getBoom() { throw new RuntimeException("boom"); } }
 assert(isEvalError("Boom.boom == 1;"));

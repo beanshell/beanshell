@@ -764,6 +764,29 @@ public class SecurityGuardTest {
     }
 
     @Test
+    public void cant_get_field_of_undefined_value() {
+        final SecurityGuard fieldXSecurityGuard = new SecurityGuard() {
+            public boolean canGetField(Object thisArg, String fieldName) {
+                return !fieldName.equals("x");
+            }
+        };
+        Interpreter.mainSecurityGuard.add(fieldXSecurityGuard);
+
+        try {
+            TestUtil.eval(
+                "var m = new java.util.HashMap();",
+                "m.nope?.x;"
+            );
+            Assert.fail("The code must throw an Exception!");
+        } catch (Exception ex) {
+            final String expectedMsg = "SecurityError: Can't get this field: bsh.Primitive.x";
+            Assert.assertTrue("Unexpected Exception Message: " + ex, ex.toString().contains(expectedMsg));
+        } finally {
+            Interpreter.mainSecurityGuard.remove(fieldXSecurityGuard);
+        }
+    }
+
+    @Test
     public void can_get_field_using_reflection() {
         try {
             TestUtil.eval(

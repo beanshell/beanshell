@@ -187,6 +187,10 @@ class BSHPrimarySuffix extends SimpleNode
                 // Validate if can get this field
                 Interpreter.mainSecurityGuard.canGetField(obj, field);
 
+                // reading a field of an undefined value gives void, also after ?.
+                if ( !toLHS && Primitive.VOID == obj )
+                    return Primitive.VOID;
+
                 if ( toLHS ) try {
                     return Reflect.getLHSObjectField(obj, field);
                 } catch (Throwable t) {

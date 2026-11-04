@@ -267,8 +267,11 @@ public final class Reflect {
                 if (result != null) result.field(object, fieldName);
                 return value;
             } catch ( ReflectError e ) {
-                // no field, try property access
-                if ( hasObjectPropertyGetter( object.getClass(), fieldName ) )
+                // no field, try property access, a Class value also reaches
+                // the static getters of the class it stands for
+                if ( hasObjectPropertyGetter( object.getClass(), fieldName )
+                        || object instanceof Class && hasObjectPropertyGetter(
+                            (Class<?>) object, fieldName) )
                     return getObjectProperty( object, fieldName, result );
                 else
                     throw e;
