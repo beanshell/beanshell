@@ -596,28 +596,33 @@ class FieldAccess extends Invocable {
     * {@inheritDoc} */
     @Override
     protected MethodHandle lookup(MethodHandle m) {
+        MethodHandle handle;
         try {
-            return MethodHandles.lookup().unreflectGetter(field);
+            handle = MethodHandles.lookup().unreflectGetter(field);
         } catch (Exception e) {
             throw new RuntimeException(e);
-        } finally {
-            getter = true;
-            if (null != setter)
-                field = null;
         }
+        // only let go of the field once both handles exist, so a failed
+        // lookup can be repeated
+        getter = true;
+        if (null != setter)
+            field = null;
+        return handle;
     }
 
     /** Lazy initialize MethodHandle lookup which is persisted for reuse.
      * Lookup for field setter */
     protected MethodHandle lookup() {
+        MethodHandle handle;
         try {
-            return MethodHandles.lookup().unreflectSetter(field);
+            handle = MethodHandles.lookup().unreflectSetter(field);
         } catch (Exception e) {
+            // a final field has no setter
             throw new RuntimeException(e);
-        } finally {
-            if (getter)
-                field = null;
         }
+        if (getter)
+            field = null;
+        return handle;
     }
 
     /** Enables lazy initialize of MethodHandle lookup only once with reuse. */

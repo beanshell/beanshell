@@ -188,9 +188,8 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
         } catch (NullPointerException e) {
             throw new TargetError(e, this, callstack);
         } catch (UtilEvalError e) {
-            e.toEvalError(this, callstack);
+            throw e.toEvalError(this, callstack);
         }
-        return val1;
     }
 
     /** Whether two types are comparable.

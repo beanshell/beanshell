@@ -969,9 +969,11 @@ public class NameSpace
         }
         // Try static imports
         for (final Class<?> stat : this.importedStatic) {
+            // a class's own instance fields can't be reached from its
+            // static context, but an import static just skips them
             final Invocable field = Reflect.resolveJavaField(stat,
-                    name, true/* onlyStatic */);
-            if (field != null) {
+                    name, stat == this.classStatic/* onlyStatic */);
+            if (field != null && field.isStatic()) {
                 var = this.createVariable(name, field.getReturnType(),
                         new LHS(field));
                 this.variables.put(name, var);

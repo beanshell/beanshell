@@ -27,5 +27,42 @@ assertSame("foo", FOO);
 assertEquals(2, get());
 assertArrayEquals(new Object[] { "bar", 1, "baz", 3 }, arr);
 
+// a static import brings in only static fields, so a variable can have the
+// same name as an instance field of the imported class
+class Counter {
+    static int START = 1;
+    int count = 7;
+}
+
+import static Counter.*;
+
+assertEquals(1, START);
+assertTrue(isEvalError("print(count);"));
+int count = 2;
+assertEquals(2, count);
+count = 3;
+assertEquals(3, count);
+assertEquals(7, new Counter().count);
+
+import static Fields.*;
+
+assertTrue(isEvalError("print(x);"));
+x = 4;
+assertEquals(4, x);
+assertEquals(5, new Fields().x);
+
+// an error from looking up an operand's variable is reported, not dropped:
+// after the unset, a resolves to the instance field, which a static method
+// can't reach
+class Holder {
+    int a;
+    static Object compare() {
+        Object a = null;
+        return a == eval("unset(\"a\"); 1");
+    }
+}
+
+assertTrue(isEvalError("Can't reach instance field: a", "Holder.compare();"));
+
 complete();
 
