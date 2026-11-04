@@ -3,6 +3,8 @@
 
 ## 3.0.0 (in progress)
 
+Fixed `instanceof` on an undefined value, such as `undefinedVar instanceof Object`, a missing variable of a scripted object or a method that returns nothing, ending the script with `unknown error` and a Java `NullPointerException` that no `catch` could see. It gives `false` again, as in BeanShell 2.x. `void instanceof bsh.Primitive` is still `true` (#920).
+
 A field, property or enum constant that doesn't exist on a Java class, Java object or scripted class is an error again, as in Java and BeanShell 2.x. Earlier 3.0 releases gave `void`, so a misspelled name in a comparison went unnoticed: `TimeUnit.SECONDS == TimeUnit.FOO` and `arr.lenght == 3` were `false`, and `list.emtpy != true` was `true`. A missing map key, a missing variable of a scripted object such as `object()` or `this`, and an undefined variable still give `void`, so `m.key == void` and `x == void` work as before. Reading a field of a method's null result, such as `getNull().x`, now throws a `NullPointerException`, as reading it from a null variable does, where it gave `void` (#918).
 
 After `import static C.*;`, a variable can have the same name as one of `C`'s instance fields, as in Java, where a static import brings in only static members. Before, `import static java.awt.GridBagConstraints.*; int anchor = NORTH;` failed with "Can't reach instance field: anchor from static context", an error no `catch` could see, and such a variable couldn't be declared, assigned or read.
