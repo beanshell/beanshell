@@ -306,7 +306,11 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
         if ( argValues != null )
             for (int i=0; i<argValues.length; i++)
                 if ( argValues[i] == null )
-                    throw new Error("HERE!");
+                    throw new InterpreterError("Null argument "
+                        + (i+1) + " to " + StringUtil.methodString(getName(),
+                            getParameterTypes(), getParameterNames())
+                        + ", expected Primitive.NULL. Please report this at"
+                        + " https://github.com/beanshell/beanshell/issues");
 
         if ( javaMethod != null )
         {
