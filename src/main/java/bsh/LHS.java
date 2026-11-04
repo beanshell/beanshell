@@ -308,8 +308,10 @@ class LHS implements ParserConstants, Serializable {
             // the value can't convert to the field's type
             if ( e.getCause() instanceof ClassCastException )
                 throw new UtilTargetError(e.getCause());
+            // name the reason, such as a final field, not its wrapper
+            Throwable reason = null == e.getCause() ? e : e.getCause();
             throw new UtilEvalError(
-                "LHS ("+field.getName()+") can't access field: "+e, e);
+                "LHS ("+field.getName()+") can't access field: "+reason, e);
         } else if ( type == PROPERTY ) try {
             if (propName instanceof String)
                 return  Reflect.setObjectProperty(object, (String) propName, val);

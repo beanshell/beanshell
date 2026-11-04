@@ -47,5 +47,12 @@ assert( Fields.staticField == true );
 Fields.staticField = false;
 assert( Fields.staticField == false);
 
+// assigning to a final field names the reason, also on a later attempt
+// after the field has been read
+assert( Integer.MAX_VALUE == 2147483647 );
+assert(isEvalError("IllegalAccessException", "Integer.MAX_VALUE = 5;"));
+assert(isEvalError("IllegalAccessException", "Integer.MAX_VALUE = 5;"));
+assert( Integer.MAX_VALUE == 2147483647 );
+
 complete();
 

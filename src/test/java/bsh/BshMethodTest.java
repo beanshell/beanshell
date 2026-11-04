@@ -79,6 +79,24 @@ public class BshMethodTest {
             supInst.equals(subInst));
     }
 
+    /** A script's null is passed as Primitive.NULL, so a raw null argument
+     * is an interpreter bug. It is reported as an InterpreterError naming
+     * the method and the argument. */
+    @Test
+    public void invoke_with_raw_null_argument_is_interpreter_error() throws Exception {
+       final Interpreter interpreter = new Interpreter();
+       interpreter.eval("f(x) { return x; }");
+       final BshMethod method = interpreter.getNameSpace()
+             .getMethod("f", new Class<?>[] { Object.class });
+       final CallArguments arguments =
+             new CallArguments(new Object[] { null }, new Class<?>[] { null });
+
+       final InterpreterError error = Assert.assertThrows(InterpreterError.class,
+             () -> method.invoke(arguments, interpreter, new CallStack(), null, false));
+       Assert.assertTrue(error.getMessage(),
+             error.getMessage().startsWith("Null argument 1 to f(Object x)"));
+    }
+
     /**
      * Very simple test to verify hashcode contract.
      */
