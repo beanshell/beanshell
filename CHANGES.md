@@ -3,6 +3,8 @@
 
 ## 3.0.0 (in progress)
 
+Fixed assigning to a final Java field, such as `Integer.MAX_VALUE = 1;`, reporting only `can't access field: java.lang.reflect.InvocationTargetException`. The error now names the reason, `IllegalAccessException: static final field has no write access`, as BeanShell 2.x did. Trying again after the field had been read gave a `NullPointerException` as the reason; it now gives the same error each time.
+
 An internal error that a `null` argument reaches a scripted method now ends the script with an evaluation error that names the method and the argument and asks for a bug report. Before, it was a bare `java.lang.Error: HERE!` that stopped the interpreter with a stack trace. The paths that reach it are bugs to be fixed on their own (#922, #925, #930).
 
 Fixed `print()` failing when its argument is a class name used as a value, such as `print(Integer)` or `t = Map.Entry; print(t)`, with `Cannot reach instance method: getClass() from static context`. It now prints `Class Identifier: java.lang.Integer :bsh.ClassIdentifier`, the same as the interactive `show()` output. BeanShell 2.x printed `Class Identifier: java.lang.Integer`, without the type that 3.0 adds.
