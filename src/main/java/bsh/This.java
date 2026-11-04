@@ -563,8 +563,22 @@ public final class This implements java.io.Serializable, Runnable
         boolean declaredOnly  )
         throws EvalError
     {
-        return invokeMethod(methodName, new CallArguments(args), interpreter,
-                callstack, callerInfo, declaredOnly, null);
+        return invokeMethod(methodName, new CallArguments(wrapNulls(args)),
+                interpreter, callstack, callerInfo, declaredOnly, null);
+    }
+
+    /** Java callers pass a plain null, scripted methods expect Primitive.NULL.
+     * Leaves the caller's array alone. */
+    private static Object[] wrapNulls(Object[] args) {
+        Object[] wrapped = null;
+        if (args != null)
+            for (int i = 0; i < args.length; i++)
+                if (args[i] == null) {
+                    if (wrapped == null)
+                        wrapped = Arrays.copyOf(args, args.length, Object[].class);
+                    wrapped[i] = Primitive.NULL;
+                }
+        return wrapped == null ? args : wrapped;
     }
 
     Object invokeMethod(String methodName, CallArguments arguments, Interpreter interpreter,
