@@ -3,6 +3,8 @@
 
 ## 3.0.0 (in progress)
 
+Fixed `print()` failing when its argument is a class name used as a value, such as `print(Integer)` or `t = Map.Entry; print(t)`, with `Cannot reach instance method: getClass() from static context`. It now prints `Class Identifier: java.lang.Integer :bsh.ClassIdentifier`, the same as the interactive `show()` output. BeanShell 2.x printed `Class Identifier: java.lang.Integer`, without the type that 3.0 adds.
+
 Fixed a `byte` or `short` argument picking a Java method's `char` overload, so `byte b = 65; System.out.println(b);` printed `A` instead of 65, and a negative `byte` threw. It now picks the `int` overload, as Java and BeanShell 2.x do, so `Character.toUpperCase(b)` returns an `int`. A `byte` or `short` value is now passed to a `char` parameter only where an `int` value would be, so calls such as `"aaa".replace(b, c)` or a scripted method `g(char c)` called as `g(b)` no longer find the method; cast with `(char) b` (#916).
 
 ## 3.0.0 RC2
