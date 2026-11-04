@@ -899,4 +899,17 @@ public class ReflectTest {
             containsString("No such field: nope"));
         assertEquals(Boolean.TRUE, i.eval("j.getClass().getInterfaces()[0] == Foo830j.class"));
     }
+
+    @Test
+    public void entry_value_assignment_stores_a_java_value() throws Exception {
+        Interpreter i = new Interpreter();
+        Entry<String, Object> entry = new java.util.AbstractMap.SimpleEntry<>("k", 1);
+        i.set("e", entry);
+        i.eval("l = new ArrayList(); l.add(null);");
+
+        i.eval("e.value = 5;");
+        assertEquals(Integer.valueOf(5), entry.getValue());
+        i.eval("e.value = l[0];");
+        assertNull(entry.getValue());
+    }
 }

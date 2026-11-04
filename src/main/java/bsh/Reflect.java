@@ -1004,9 +1004,9 @@ public final class Reflect {
     static Object getObjectProperty(Object obj, String propName, CallArguments.Result result) {
         if (Types.isPropertyTypeEntry(obj)) switch (propName) {
             case "key":
-                return ((Entry) obj).getKey();
+                return nullToPrimitive(((Entry) obj).getKey());
             case "val": case "value":
-                return ((Entry) obj).getValue();
+                return nullToPrimitive(((Entry) obj).getValue());
         }
         return getObjectProperty(obj, (Object) propName, result);
     }
@@ -1019,14 +1019,14 @@ public final class Reflect {
         if ( Types.isPropertyTypeMap(obj) ) {
             Map map = (Map) obj;
             if (map.containsKey(propName))
-                return map.get(propName);
+                return nullToPrimitive(map.get(propName));
             return Primitive.VOID;
         }
 
         if ( Types.isPropertyTypeEntry(obj) ) {
             Entry entre = (Entry) obj;
             if (propName.equals(entre.getKey()))
-                return entre.getValue();
+                return nullToPrimitive(entre.getValue());
             return Primitive.VOID;
         }
 
@@ -1034,7 +1034,7 @@ public final class Reflect {
         if ( Types.isPropertyTypeEntryList(cls) ) {
             Entry entre = getEntryForKey(propName, (Entry[]) obj);
             if ( null != entre )
-                return entre.getValue();
+                return nullToPrimitive(entre.getValue());
             return Primitive.VOID;
         }
 
@@ -1055,6 +1055,11 @@ public final class Reflect {
         }
     }
 
+    /** A null from a map, entry or list is the script's null. */
+    private static Object nullToPrimitive(Object value) {
+        return value == null ? Primitive.NULL : value;
+    }
+
     @SuppressWarnings("rawtypes")
     public static Entry getEntryForKey(Object key, Entry[] entries) {
         for ( Entry ntre : entries )
@@ -1068,7 +1073,7 @@ public final class Reflect {
         Object obj, String propName, Object value) {
         if (Types.isPropertyTypeEntry(obj)) switch(propName) {
             case "val": case "value":
-                return ((Entry) obj).setValue(value);
+                return ((Entry) obj).setValue(Primitive.unwrap(value));
         }
         return setObjectProperty(obj, (Object) propName, value);
     }

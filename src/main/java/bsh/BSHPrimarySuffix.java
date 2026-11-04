@@ -389,7 +389,8 @@ class BSHPrimarySuffix extends SimpleNode
 
         try {
             Object val = Reflect.getObjectProperty( obj, (String)value, result );
-            return null == val ?  Primitive.NULL : Primitive.unwrap(val);
+            return null == val || Primitive.NULL == val
+                    ? Primitive.NULL : Primitive.unwrap(val);
         }
         catch (ReflectError e)
         {
