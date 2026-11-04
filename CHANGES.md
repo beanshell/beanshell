@@ -3,6 +3,8 @@
 
 ## 3.0.0 (in progress)
 
+After `import static C.*;`, a variable can have the same name as one of `C`'s instance fields, as in Java, where a static import brings in only static members. Before, `import static java.awt.GridBagConstraints.*; int anchor = NORTH;` failed with "Can't reach instance field: anchor from static context", an error no `catch` could see, and such a variable couldn't be declared, assigned or read.
+
 Fixed assigning to a final Java field, such as `Integer.MAX_VALUE = 1;`, reporting only `can't access field: java.lang.reflect.InvocationTargetException`. The error now names the reason, `IllegalAccessException: static final field has no write access`, as BeanShell 2.x did. Trying again after the field had been read gave a `NullPointerException` as the reason; it now gives the same error each time.
 
 An internal error that a `null` argument reaches a scripted method now ends the script with an evaluation error that names the method and the argument and asks for a bug report. Before, it was a bare `java.lang.Error: HERE!` that stopped the interpreter with a stack trace. The paths that reach it are bugs to be fixed on their own (#922, #925, #930).
