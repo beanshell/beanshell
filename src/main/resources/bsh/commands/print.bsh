@@ -39,5 +39,6 @@ String typeString(value) {
         return "null";
     if ( Types.getType(value).isPrimitive() )
         return Types.getType(value).getSimpleName();
-    return StringUtil.typeString(value.getClass());
+    // not value.getClass(), a class name value would dispatch it statically
+    return StringUtil.typeString(Types.getType(value));
 }
