@@ -524,6 +524,12 @@ coming straight from 2.x needs no change.
   not in its caller's block.
 - **Byte widening ([#911](https://github.com/beanshell/beanshell/issues/911)):**
   `byte b = -1; int i = b;` gives `-1` again; beta 1 gave `255`.
+- **Missing fields and enum constants
+  ([#918](https://github.com/beanshell/beanshell/issues/918)):** a field,
+  property or enum constant that doesn't exist on a Java class, Java object or
+  scripted class is an error again. Beta 1 gave `void`, so
+  `TimeUnit.SECONDS == TimeUnit.FOO` was `false`. A missing map key, a missing
+  variable of a scripted object and an undefined variable still give `void`.
 
 This guide covers the linked changes, not every difference between historical
 BeanShell releases. Test representative application scripts against the exact

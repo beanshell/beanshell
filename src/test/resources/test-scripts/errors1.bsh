@@ -5,7 +5,8 @@ source("TestHarness.bsh");
 assert(isEvalError("illegal void assignment", "a = booga;"));
 assert(isEvalError("Static method booga() not found in class'java.lang.System'", "java.lang.System.booga();"));
 assert(isEvalError("Static method booga() not found in class'java.lang.System'", "System.booga();"));
-assert(isEvalError("illegal void assignment", "b = java.lang.System.booga;"));
+assert(isEvalError("No static field or inner class: booga of class java.lang.System", "b = java.lang.System.booga;"));
+assert(isEvalError("No static field or inner class: booga of class java.lang.System", "System.booga;"));
 assert(isEvalError("Encountered: static import", "static import Foo.*;" ));
 
 complete();

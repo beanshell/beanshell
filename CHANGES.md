@@ -3,6 +3,8 @@
 
 ## 3.0.0 (in progress)
 
+A field, property or enum constant that doesn't exist on a Java class, Java object or scripted class is an error again, as in Java and BeanShell 2.x. Earlier 3.0 releases gave `void`, so a misspelled name in a comparison went unnoticed: `TimeUnit.SECONDS == TimeUnit.FOO` and `arr.lenght == 3` were `false`, and `list.emtpy != true` was `true`. A missing map key, a missing variable of a scripted object such as `object()` or `this`, and an undefined variable still give `void`, so `m.key == void` and `x == void` work as before. Reading a field of a method's null result, such as `getNull().x`, now throws a `NullPointerException`, as reading it from a null variable does, where it gave `void` (#918).
+
 After `import static C.*;`, a variable can have the same name as one of `C`'s instance fields, as in Java, where a static import brings in only static members. Before, `import static java.awt.GridBagConstraints.*; int anchor = NORTH;` failed with "Can't reach instance field: anchor from static context", an error no `catch` could see, and such a variable couldn't be declared, assigned or read.
 
 Fixed assigning to a final Java field, such as `Integer.MAX_VALUE = 1;`, reporting only `can't access field: java.lang.reflect.InvocationTargetException`. The error now names the reason, `IllegalAccessException: static final field has no write access`, as BeanShell 2.x did. Trying again after the field had been read gave a `NullPointerException` as the reason; it now gives the same error each time.

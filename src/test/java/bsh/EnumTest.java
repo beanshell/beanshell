@@ -270,6 +270,32 @@ public class EnumTest {
     }
 
     @Test
+    public void enum_undefined_constant_comparison_fails() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString("No static field or inner class: VAL3 of class Name"));
+
+        eval(
+            "enum Name { VAL1, VAL2 }",
+            "Name.VAL1 == Name.VAL3;"
+        );
+    }
+
+    @Test
+    public void enum_undefined_constant_comparison_fails_strict_java() throws Exception {
+        thrown.expect(EvalError.class);
+        thrown.expectMessage(containsString(
+            "No static field or inner class: FOO of class java.util.concurrent.TimeUnit"));
+
+        Interpreter interpreter = new Interpreter();
+        interpreter.setStrictJava(true);
+        interpreter.eval(script(
+            "import java.util.concurrent.TimeUnit;",
+            "TimeUnit u = TimeUnit.SECONDS;",
+            "boolean b = u == TimeUnit.FOO;"
+        ));
+    }
+
+    @Test
     public void enum_args_constructor_required() throws Exception {
         thrown.expect(EvalError.class);
         thrown.expectMessage(containsString("Can't find constructor: Name(int)"));

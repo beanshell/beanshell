@@ -391,7 +391,8 @@ public class BshLambdaResolutionTest {
                 fail("expected a TargetError for unknown-result body: " + conversion);
             } catch (TargetError expected) {
                 String message = expected.getTarget().getMessage();
-                assertTrue(conversion + ": " + message, message.contains("Cannot return void") || message.contains("undefined"));
+                assertTrue(conversion + ": " + message, message.contains("Cannot return void") || message.contains("undefined")
+                    || message.contains("No such field"));
             }
         }
     }

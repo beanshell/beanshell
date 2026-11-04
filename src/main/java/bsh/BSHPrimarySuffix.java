@@ -187,6 +187,10 @@ class BSHPrimarySuffix extends SimpleNode
                 // Validate if can get this field
                 Interpreter.mainSecurityGuard.canGetField(obj, field);
 
+                // reading a field of an undefined value gives void, also after ?.
+                if ( !toLHS && Primitive.VOID == obj )
+                    return Primitive.VOID;
+
                 if ( toLHS ) try {
                     return Reflect.getLHSObjectField(obj, field);
                 } catch (Throwable t) {
@@ -194,12 +198,8 @@ class BSHPrimarySuffix extends SimpleNode
                 }
                 else try {
                     return Reflect.getObjectFieldValue(obj, field, result);
-                } catch (Throwable t) {
-                    try {
-                        return Reflect.getObjectProperty( obj, field, result );
-                    } catch (Throwable tt) {
-                        return Primitive.VOID;
-                    }
+                } catch (ReflectError e) {
+                    throw new UtilEvalError( e.getMessage(), e );
                 }
             }
 
