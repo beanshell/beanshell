@@ -22,6 +22,20 @@ assertTrue(5.0w instanceof BigDecimal);
 assertTrue('a' instanceof Character);
 assertTrue(true instanceof Boolean);
 
+// void is not an instance of anything but bsh.Primitive
+m = new HashMap();
+o = object();
+noReturn() { }
+assertFalse(undefinedVar instanceof Object);
+assertFalse(undefinedVar instanceof String);
+assertFalse(void instanceof Object);
+assertFalse(o.nope instanceof Object);
+assertFalse(this.nope instanceof Object);
+assertFalse(m.nope instanceof Object);
+assertFalse(noReturn() instanceof Object);
+assertTrue(undefinedVar instanceof bsh.Primitive);
+assertTrue(noReturn() instanceof bsh.Primitive);
+
 // basic
 byte b = (byte)2;
 assert( isEvalError("cannot assign number 256 to type byte", "byte b = 256") );

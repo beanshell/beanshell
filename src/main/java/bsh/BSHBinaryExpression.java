@@ -64,6 +64,8 @@ class BSHBinaryExpression extends SimpleNode implements ParserConstants {
             if ( lhs instanceof Primitive )
                 if ( rhs == bsh.Primitive.class )
                     return Primitive.TRUE;
+                else if ( lhs == Primitive.VOID )
+                    return Primitive.FALSE;
                 else
                     lhs = Primitive.unwrap(lhs);
 
