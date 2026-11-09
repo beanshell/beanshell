@@ -85,6 +85,9 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
         }
 
         try {
+            if ( operator != ASSIGN && operator != NULLCOALESCEASSIGN )
+                checkNullAssignee(lhs, lhsValue, rhs, callstack);
+
             switch( operator ) {
                 case ASSIGN:
                     if (lhs.isFinal()) {
@@ -162,6 +165,48 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
             }
         } catch ( UtilEvalError e ) {
             throw e.toEvalError( this, callstack );
+        }
+    }
+
+    /** Reject a null or void assignee of a compound assignment as the binary
+     * operator does: Java defines x op= y as x = (T)(x op y) (JLS 15.26.2).
+     * A null wrapper throws a NullPointerException, any other null or a void
+     * value an EvalException. String concatenation is left to the operation.
+     * @param lhs the assignee
+     * @param lhsValue the assignee's value
+     * @param rhs the assigner
+     * @param callstack the evaluation call stack
+     * @throws EvalError a TargetError or an EvalException
+     * @throws UtilEvalError looking up the assignee's type */
+    private void checkNullAssignee( LHS lhs, Object lhsValue, Object rhs,
+            CallStack callstack ) throws EvalError, UtilEvalError {
+        if ( Primitive.VOID == lhsValue )
+            throw new EvalException( "illegal use of undefined variable, "
+                + "class, or 'void' literal", this, callstack );
+        if ( null != Primitive.unwrap(lhsValue) )
+            return;
+        Class<?> type = lhs.getDeclaredType();
+        if ( operator == PLUSASSIGN
+                && (type == String.class || rhs instanceof String) )
+            return;
+        if ( null != type && (Number.class.isAssignableFrom(type)
+                || Character.class.isAssignableFrom(type)
+                || Boolean.class.isAssignableFrom(type) && isBitwise()) )
+            throw new TargetError( new NullPointerException(
+                "null value with operator " + tokenImage(operator) ),
+                this, callstack );
+        throw new EvalException( "bad operand types for operator "
+            + tokenImage(operator), this, callstack );
+    }
+
+    /** Whether the operator is &=, |= or ^=, which also apply to booleans. */
+    private boolean isBitwise() {
+        switch ( operator ) {
+            case ANDASSIGN: case ANDASSIGNX: case ORASSIGN: case ORASSIGNX:
+            case XORASSIGN: case XORASSIGNX:
+                return true;
+            default:
+                return false;
         }
     }
 

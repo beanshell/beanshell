@@ -1,0 +1,179 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// A null or void switch value, and a compound assignment to a null or void
+// variable, give an error that a script can catch (#924).
+
+enum E { A, B }
+noReturn() { }
+
+// switch: a null value throws a NullPointerException, as in Java, whatever
+// its declared type and wherever default is
+Integer ix = null;
+try { switch (ix) { case 1: fail(); } fail(); }
+catch (NullPointerException e) { assertEquals("null value in switch", e.getMessage()); }
+
+ux = null;
+try { switch (ux) { case 1: fail(); } fail(); }
+catch (NullPointerException e) { assertEquals("null value in switch", e.getMessage()); }
+
+String sx = null;
+try { switch (sx) { case "a": fail(); } fail(); }
+catch (NullPointerException e) { assertEquals("null value in switch", e.getMessage()); }
+
+Character cx = null;
+try { switch (cx) { case 'a': fail(); } fail(); }
+catch (NullPointerException e) { assertEquals("null value in switch", e.getMessage()); }
+
+E ex = null;
+try { switch (ex) { case A: fail(); break; default: fail(); } fail(); }
+catch (NullPointerException e) { assertEquals("null value in switch", e.getMessage()); }
+
+try { switch (ix) { default: fail(); } fail(); }
+catch (NullPointerException e) { assertEquals("null value in switch", e.getMessage()); }
+
+try { switch (ix) { default: fail(); break; case 1: fail(); } fail(); }
+catch (NullPointerException e) { assertEquals("null value in switch", e.getMessage()); }
+
+// switch: a void value throws an EvalException
+try { switch (undefinedVar) { case 1: fail(); } fail(); }
+catch (bsh.EvalException e) {
+    assertThat(e.getMessage(), containsString("illegal use of undefined variable"));
+}
+
+try { switch (noReturn()) { case 1: fail(); } fail(); }
+catch (bsh.EvalException e) {
+    assertThat(e.getMessage(), containsString("illegal use of undefined variable"));
+}
+
+// switch: a null value runs case null, wherever it is, as in Java 21
+nullLabel(x) {
+    switch (x) {
+        case 1: return "one";
+        default: return "default";
+        case null: return "null";
+    }
+}
+assertEquals("null", nullLabel(null));
+assertEquals("one", nullLabel(1));
+assertEquals("default", nullLabel(2));
+
+fallThrough(x) {
+    s = "";
+    switch (x) {
+        case null: s += "null ";
+        case "a": s += "a";
+    }
+    return s;
+}
+assertEquals("null a", fallThrough(null));
+assertEquals("a", fallThrough("a"));
+
+// switch: other labels are skipped, not evaluated, for a null value
+otherLabels(x) {
+    y = 0;
+    switch (x) {
+        case "ab".length(): return "two";
+        case y = 3: return "three";
+        case null: return "null";
+    }
+    return "none";
+}
+assertEquals("null", otherLabels(null));
+assertEquals("two", otherLabels(2));
+assertEquals("three", otherLabels(3));
+
+// switch: case null never matches a value that isn't null
+enumLabel(e) {
+    switch (e) {
+        case null: return "null";
+        case B: return "B";
+    }
+    return "none";
+}
+assertEquals("B", enumLabel(E.B));
+assertEquals("null", enumLabel(null));
+assertEquals("none", enumLabel(E.A));
+
+// switch: values that aren't null work as before
+int i = 2;
+matched = "";
+switch (i) {
+    case 1: matched += "one";
+    case 2: matched += "two"; break;
+    default: matched += "default";
+}
+assertEquals("two", matched);
+
+// compound assignment: a null wrapper throws a NullPointerException, as
+// x = x op y does
+Integer nx = null;
+try { nx += 1; fail(); }
+catch (NullPointerException e) { assertEquals("null value with operator \"+=\"", e.getMessage()); }
+
+Long lx = null;
+try { lx -= 1; fail(); }
+catch (NullPointerException e) { assertEquals("null value with operator \"-=\"", e.getMessage()); }
+
+try { nx <<= 1; fail(); }
+catch (NullPointerException e) { assertEquals("null value with operator \"<<=\"", e.getMessage()); }
+
+Boolean bx = null;
+try { bx &= true; fail(); }
+catch (NullPointerException e) { assertEquals("null value with operator \"&=\"", e.getMessage()); }
+
+Character chx = null;
+try { chx += 1; fail(); }
+catch (NullPointerException e) { assertEquals("null value with operator \"+=\"", e.getMessage()); }
+
+Integer[] ax = { null };
+try { ax[0] += 1; fail(); }
+catch (NullPointerException e) { assertEquals("null value with operator \"+=\"", e.getMessage()); }
+
+// compound assignment: an untyped or Object null, or a void value, throws an
+// EvalException
+vx = null;
+try { vx += 1; fail(); }
+catch (bsh.EvalException e) {
+    assertThat(e.getMessage(), containsString("bad operand types for operator \"+=\""));
+}
+
+Object ox = null;
+try { ox *= 2; fail(); }
+catch (bsh.EvalException e) {
+    assertThat(e.getMessage(), containsString("bad operand types for operator \"*=\""));
+}
+
+try { bx += 1; fail(); }
+catch (bsh.EvalException e) {
+    assertThat(e.getMessage(), containsString("bad operand types for operator \"+=\""));
+}
+
+try { undefinedVar += 1; fail(); }
+catch (bsh.EvalException e) {
+    assertThat(e.getMessage(), containsString("illegal use of undefined variable"));
+}
+
+// compound assignment: the right-hand side is still evaluated first, as in Java
+count = 0;
+inc() { count++; return 1; }
+try { nx += inc(); fail(); } catch (NullPointerException e) { }
+assertEquals(1, count);
+
+// compound assignment: string concatenation and values that aren't null work
+// as before
+String s = null;
+s += "a";
+assertEquals("nulla", s);
+// a null that isn't a String, with a String, is left to the operation (#932)
+assert(isEvalError("vx = null; vx += \"a\";"));
+Integer x = 1;
+x += 2;
+assertEquals(3, x);
+x = null;
+x ??= 4;
+assertEquals(4, x);
+
+complete();

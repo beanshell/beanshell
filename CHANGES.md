@@ -3,6 +3,8 @@
 
 ## 3.0.0 (in progress)
 
+A `switch` on `null` now follows Java 21: it runs the `case null` label if there is one, and otherwise throws a `NullPointerException` that a script can catch. Before, it ended the script with `unknown error`, or, for an enum or when `default` came first, silently ran `default`; a script that relied on `default` catching `null` needs a `case null` label. `case null` also no longer crashes a `switch` on a value that isn't `null`. A compound assignment such as `x += 1` to a `null` variable now gives the error that `x + 1` gives, a `NullPointerException` for a number or `Character` wrapper type, or a `Boolean` with `&=`, `|=` or `^=`, and an `EvalException` otherwise, where it also ended the script with `unknown error`. A `switch` on an undefined value or a compound assignment to one throws an `EvalException` (#924).
+
 ## 3.0.0 RC3
 
 Fixed reading a `null` list element, map value or `Map.Entry` value with the list and map syntax (`l[0]`, `m["a"]`, `m.a`, `e.value`) giving a broken value. Comparing it with `null` or assigning it to an untyped variable ended the script with `unknown error` or `internal Error`, and passing it to a scripted method stopped the interpreter with `java.lang.Error: HERE!`. It reads as `null` now. In BeanShell 2.x `e.value == null` was `true`. Assigning to an entry's value, `e.value = 5`, also left a `bsh.Primitive` in the entry for Java code to find; it now stores the plain value. Java code that calls `Reflect.getObjectProperty` or `BshArray.getIndex` directly gets `Primitive.NULL` for such a value, not a Java `null` (#930).
