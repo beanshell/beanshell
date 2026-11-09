@@ -99,4 +99,28 @@ assertEquals(2, ia[li]);
 assertEquals(2, ia[-1]);
 assertEquals(3, new int[3].length);
 
+// a compiled command that throws: the call throws the command's exception
+importCommands("/mypackage");
+fin = false;
+try { try { failingCommand("compiled"); fail(); } finally { fin = true; } }
+catch (IllegalStateException e) { assertEquals("compiled", e.getMessage()); }
+assertTrue(fin);
+try {
+    this.interpreter.eval("failingCommand(\"again\");", this.namespace);
+    fail();
+} catch (bsh.TargetError e) {
+    assertTrue(e.getTarget() instanceof IllegalStateException);
+    assertTrue(e.getMessage().contains("Error in compiled command"));
+}
+
+// a compiled command called with the wrong arguments names the command
+// without a doubled separator
+try {
+    this.interpreter.eval("dir(1, 2, 3);", this.namespace);
+    fail();
+} catch (bsh.EvalError e) {
+    assertTrue(e.getMessage().contains("Error invoking compiled command"));
+    assertFalse(e.getMessage().contains(": :"));
+}
+
 complete();

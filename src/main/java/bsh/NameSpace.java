@@ -1330,7 +1330,7 @@ public class NameSpace
             return Reflect.invokeCompiledCommand(
                 ((Class<?>)commandObject), args, interpreter, callstack, callerInfo );
         } catch ( UtilEvalError e ) {
-            throw e.toEvalError("Error invoking compiled command: ",
+            throw e.toEvalError("Error invoking compiled command",
                     callerInfo, callstack );
         }
     }
