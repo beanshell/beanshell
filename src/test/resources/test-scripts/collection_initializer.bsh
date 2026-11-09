@@ -1,0 +1,62 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// Maps and entries hold plain Java keys and values, so a script reads them
+// the same whether the script or Java code built them.
+
+// a map that Java code built, read by index
+HashMap h = new HashMap();
+h.put(5, "five");
+h.put(null, "nul");
+assertEquals("five", h[5]);
+assertEquals("nul", h[null]);
+a = 5;
+assertEquals("five", h[a]);
+
+// a map built from pairs, read by index
+Map pm = {1, "x", null, "n"};
+assertEquals("x", pm[1]);
+assertEquals("n", pm[null]);
+
+// a map built from key=value entries, read by index
+b = 123;
+Map km = {b=5, null=6, "c"=null};
+assertEquals(5, km[b]);
+assertEquals(5, km[123]);
+assertEquals(6, km[null]);
+assertNull(km["c"]);
+assertTrue(km.containsKey(123));
+assertTrue(km.containsKey(null));
+
+// an index assignment stores plain keys, so Java lookups find them
+km[7] = "seven";
+assertTrue(km.containsKey(7));
+assertEquals("seven", km.get(7));
+assertEquals("seven", km[7]);
+
+// an entry array and a single entry, by key (a number inside the array's
+// length is an index)
+Map.Entry[] es = {7=2, null=3};
+assertEquals(2, es[7]);
+assertEquals(3, es[null]);
+e = new Entry {"k", 1};
+e["k"] = 2;
+assertEquals(2, e.getValue());
+assert(isEvalError("No such property: zz", "e[\"zz\"] = 1;"));
+Map.Entry ne = new Entry {null, 1};
+ne[null] = 2;
+assertEquals(2, ne.getValue());
+
+// an assignment's value is the previous value, the script's null when there
+// was none, also as a method argument
+f(v) { return v; }
+Map am = new HashMap();
+assertNull(f(am["x"] = 1));
+assertEquals(1, f(am["x"] = 2));
+Map.Entry[] ae = {"m"=null};
+assertNull(f(ae["m"] = 4));
+assertEquals(4, ae["m"]);
+
+complete();

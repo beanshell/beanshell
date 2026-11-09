@@ -314,8 +314,10 @@ class LHS implements ParserConstants, Serializable {
                 "LHS ("+field.getName()+") can't access field: "+reason, e);
         } else if ( type == PROPERTY ) try {
             if (propName instanceof String)
-                return  Reflect.setObjectProperty(object, (String) propName, val);
-            return  Reflect.setObjectProperty(object, propName, val);
+                return nullToPrimitive(
+                    Reflect.setObjectProperty(object, (String) propName, val));
+            return nullToPrimitive(
+                Reflect.setObjectProperty(object, propName, val));
         } catch(ReflectError e) {
             Interpreter.debug("Assignment: " + e.getMessage());
             throw new UtilEvalError("No such property: " + propName, e);
@@ -349,10 +351,12 @@ class LHS implements ParserConstants, Serializable {
             nameSpace.setTypedVariable(varName, Types.getType(val), val, mods);
             return val;
         } else if ( type == MAP_ENTRY ) {
+            // a map or entry holds the plain values, as Java code expects
             if ( object instanceof Entry )
-                return ((Entry) object).setValue(val);
+                return nullToPrimitive(
+                    ((Entry) object).setValue(Primitive.unwrap(val)));
             // returns a Map.Entry of key and value pair
-            return new MapEntry(object, val);
+            return new MapEntry(Primitive.unwrap(object), Primitive.unwrap(val));
         } else
             throw new InterpreterError("unknown lhs type");
         return val;
@@ -390,5 +394,10 @@ class LHS implements ParserConstants, Serializable {
             cls = (Class<?>) this.object;
         this.field = BshClassManager.memberCache.get(cls).findField(varName);
     }
-}
 
+    /** The previous value a map or entry returns is the script's null when
+     * there was none, as for a read. */
+    private static Object nullToPrimitive(Object value) {
+        return null == value ? Primitive.NULL : value;
+    }
+}

@@ -28,6 +28,7 @@ package bsh;
 import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 class BSHPrimarySuffix extends SimpleNode
 {
@@ -267,7 +268,7 @@ class BSHPrimarySuffix extends SimpleNode
             if ( Types.isPropertyTypeEntry(obj) ) {
                 Object key = jjtGetChild(0).eval(callstack, interpreter);
                 if ( toLHS ) {
-                    if ( key.equals(((Entry) obj).getKey()) )
+                    if ( Objects.equals(Primitive.unwrap(key), ((Entry) obj).getKey()) )
                         return new LHS(obj);
                     throw new EvalError("No such property: " + key, this, callstack);
                 }
