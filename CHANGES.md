@@ -3,6 +3,8 @@
 
 ## 3.0.0 (in progress)
 
+A variable declared `Map.Entry`, and a cast to `Map.Entry`, now hold a single entry. `Map.Entry e = {"k"=1}` gave an `Entry[]`, so `e.getKey()` failed with "method not found"; it now gives that entry. Several entries, three or more keys and values, or an empty initializer, such as `Map.Entry e = {"a"=1, "b"=2}`, `(Entry) {"k", 1, "l", 2}` or `Entry e = {}`, now throw a `ClassCastException` where they silently gave an `Entry[]`. An untyped `new Entry {...}` and an `Entry[]` declaration still give an array.
+
 ## 3.0.0 RC3
 
 Fixed reading a `null` list element, map value or `Map.Entry` value with the list and map syntax (`l[0]`, `m["a"]`, `m.a`, `e.value`) giving a broken value. Comparing it with `null` or assigning it to an untyped variable ended the script with `unknown error` or `internal Error`, and passing it to a scripted method stopped the interpreter with `java.lang.Error: HERE!`. It reads as `null` now. In BeanShell 2.x `e.value == null` was `true`. Assigning to an entry's value, `e.value = 5`, also left a `bsh.Primitive` in the entry for Java code to find; it now stores the plain value. Java code that calls `Reflect.getObjectProperty` or `BshArray.getIndex` directly gets `Primitive.NULL` for such a value, not a Java `null` (#930).
