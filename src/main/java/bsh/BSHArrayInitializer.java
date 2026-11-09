@@ -219,6 +219,9 @@ class BSHArrayInitializer extends SimpleNode {
                 asNode.eval(callstack, interpreter);
             }
             return bean;
+        } catch (EvalError e) {
+            // a property that failed already names its cause and location
+            throw e;
         } catch (Throwable t) {
             throw new EvalException(t.getMessage(), this, callstack, t);
         } finally {

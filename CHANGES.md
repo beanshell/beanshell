@@ -3,6 +3,12 @@
 
 ## 3.0.0 (in progress)
 
+A property getter or setter that throws now hands the script its own exception, as calling it as a method does, so `try { b.name; } catch (IllegalStateException e)` catches it. This covers Java getters and setters (`b.name`, `b{"name"}`, `Boom.name`, `b.name = 1`), scripted getters and setters (`getName()` then `name`), and a bean initializer such as `Thread t = {priority=100}`. Before, a getter that threw gave `void`, so a comparison was silently `false`; a setter that threw was reported as `No such property`; and a scripted accessor's error couldn't be caught. Java code that calls `Reflect.getObjectProperty` or `Reflect.setObjectProperty` must now handle a `UtilEvalError` (#921).
+
+Fixed assigning a name that a scripted setter in scope matches, such as `foo = 5` after `setFoo(v) { ... }`, ending the script with `unknown error`. The setter runs now, as reading `foo` already calls `getFoo()`.
+
+`obj{"name"}` when nothing has that name is an error that a script can catch, `No such property: name`, for a Java object, a class or a scripted object, as `obj.name` is. Before, it gave `null`, and in earlier 3.0 releases it ended the script with `java.lang.Error: HERE!`, `unknown error` or `internal Error`. A missing map key gives `void`, the same as `m.name`; a key whose value is `null` gives `null` (#922).
+
 ## 3.0.0 RC3
 
 Fixed reading a `null` list element, map value or `Map.Entry` value with the list and map syntax (`l[0]`, `m["a"]`, `m.a`, `e.value`) giving a broken value. Comparing it with `null` or assigning it to an untyped variable ended the script with `unknown error` or `internal Error`, and passing it to a scripted method stopped the interpreter with `java.lang.Error: HERE!`. It reads as `null` now. In BeanShell 2.x `e.value == null` was `true`. Assigning to an entry's value, `e.value = 5`, also left a `bsh.Primitive` in the entry for Java code to find; it now stores the plain value. Java code that calls `Reflect.getObjectProperty` or `BshArray.getIndex` directly gets `Primitive.NULL` for such a value, not a Java `null` (#930).

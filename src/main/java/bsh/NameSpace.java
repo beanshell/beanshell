@@ -1533,7 +1533,13 @@ public class NameSpace
      * @return true, if successful
      * @throws UtilEvalError the util eval error */
     boolean attemptSetPropertyValue(final String propName, final Object value,
-            final Interpreter interp) throws UtilEvalError {
+            Interpreter interp) throws UtilEvalError {
+        // an assignment has no interpreter at hand, use the one that made
+        // this namespace's class manager
+        if (interp == null)
+            interp = this.getClassManager().getDeclaringInterpreter();
+        if (interp == null)
+            return false;
         final String accessorName = Reflect.accessorName(Reflect.SET_PREFIX, propName);
         Object val = Primitive.unwrap(value);
         final Class<?>[] classArray = new Class<?>[] {
@@ -1544,6 +1550,10 @@ public class NameSpace
                 this.invokeMethod(accessorName, new Object[] {value}, interp);
                 // m.invoke(new Object[] {value}, interp);
                 return true;
+            } catch (final TargetError te) {
+                // the setter threw, as a call to it would
+                throw new UtilTargetError(
+                        "Property accessor threw exception", te.getTarget());
             } catch (final EvalError ee) {
                 throw new UtilEvalError(
                         "'This' property accessor threw exception: "
@@ -1571,6 +1581,10 @@ public class NameSpace
             if (m != null && m.getReturnType() == Boolean.TYPE)
                 return m.invoke((Object[]) null, interp);
             return Primitive.VOID;
+        } catch (final TargetError te) {
+            // the getter threw, as a call to it would
+            throw new UtilTargetError(
+                    "Property accessor threw exception", te.getTarget());
         } catch (final EvalError ee) {
             throw new UtilEvalError("'This' property accessor threw exception: "
                     + ee.getMessage(), ee);

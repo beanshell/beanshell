@@ -261,7 +261,7 @@ class BSHPrimarySuffix extends SimpleNode
             if ( Types.isPropertyTypeMap(obj) ) {
                 Object key = jjtGetChild(0).eval(callstack, interpreter);
                 return toLHS ? new LHS(obj, key)
-                      : Reflect.getObjectProperty(obj, key);
+                      : getProperty(obj, key, callstack);
             }
             // allow index access for map entries
             if ( Types.isPropertyTypeEntry(obj) ) {
@@ -271,7 +271,7 @@ class BSHPrimarySuffix extends SimpleNode
                         return new LHS(obj);
                     throw new EvalError("No such property: " + key, this, callstack);
                 }
-                return Reflect.getObjectProperty(obj, key);
+                return getProperty(obj, key, callstack);
             }
         }
 
@@ -301,7 +301,7 @@ class BSHPrimarySuffix extends SimpleNode
             else if (toLHS)
                 return new LHS(Reflect.getEntryForKey(key, (Entry[]) obj));
             else
-                return Reflect.getObjectProperty(obj, key);
+                return getProperty(obj, key, callstack);
         } else if ( index > length )
             index = getIndexAux( obj, 0, callstack, interpreter, this );
 
@@ -360,6 +360,21 @@ class BSHPrimarySuffix extends SimpleNode
         }
     }
 
+    /** Read a map, entry or entry array element by key.
+     * @param obj the map, entry or entry array
+     * @param key the key
+     * @param callstack default eval call stack
+     * @return the element, or void if there is none
+     * @throws EvalError if reading it fails */
+    private Object getProperty(Object obj, Object key, CallStack callstack)
+            throws EvalError {
+        try {
+            return Reflect.getObjectProperty(obj, key);
+        } catch ( UtilEvalError e ) {
+            throw e.toEvalError(this, callstack);
+        }
+    }
+
     /**
         Property access.
         Must handle toLHS case.
@@ -387,15 +402,24 @@ class BSHPrimarySuffix extends SimpleNode
         if ( toLHS )
             return new LHS(obj, (String)value);
 
+        Object val;
         try {
-            Object val = Reflect.getObjectProperty( obj, (String)value, result );
-            return null == val || Primitive.NULL == val
-                    ? Primitive.NULL : Primitive.unwrap(val);
+            val = Reflect.getObjectProperty( obj, (String)value, result );
+        } catch (UtilEvalError e) {
+            throw e.toEvalError(this, callstack);
         }
-        catch (ReflectError e)
-        {
-            throw new EvalError("No such property: " + value, this, callstack, e);
+
+        if ( Primitive.VOID == val ) {
+            // a missing map key or entry is void, as with m.key
+            if ( Types.isPropertyTypeMap(obj) || Types.isPropertyTypeEntry(obj)
+                    || Types.isPropertyTypeEntryList(obj.getClass()) )
+                return Primitive.VOID;
+            throw new EvalException("No such property: " + value,
+                this, callstack );
         }
+
+        return null == val || Primitive.NULL == val
+                ? Primitive.NULL : Primitive.unwrap(val);
     }
 
     @Override

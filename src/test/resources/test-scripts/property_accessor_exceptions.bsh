@@ -1,0 +1,189 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// A property getter or setter that throws hands the script its own
+// exception, as calling the getter or setter as a method does (#921).
+
+// a scripted class gives real Java getters and setters
+class G {
+    public int getFoo() { throw new IllegalStateException("get foo"); }
+    public void setFoo(int v) { throw new IllegalArgumentException("set foo"); }
+    public static int getS() { throw new IllegalStateException("get s"); }
+    public static void setS(int v) { throw new IllegalArgumentException("set s"); }
+    public int getC() throws Exception { throw new java.io.IOException("get c"); }
+    public boolean isB() { throw new IllegalStateException("is b"); }
+}
+G g = new G();
+
+// a Java getter that throws: the read throws the getter's exception, and
+// finally runs
+boolean fin = false;
+try { try { Object v = g.foo; fail(); } finally { fin = true; } }
+catch (IllegalStateException e) { assertEquals("get foo", e.getMessage()); }
+assertTrue(fin);
+
+try { Object v = g{"foo"}; fail(); }
+catch (IllegalStateException e) { assertEquals("get foo", e.getMessage()); }
+
+try { Object v = G.s; fail(); }
+catch (IllegalStateException e) { assertEquals("get s", e.getMessage()); }
+
+try { boolean v = g.b; fail(); }
+catch (IllegalStateException e) { assertEquals("is b", e.getMessage()); }
+
+// a checked exception is caught by its own type
+try { Object v = g.c; fail(); }
+catch (java.io.IOException e) { assertEquals("get c", e.getMessage()); }
+
+// a compound assignment reads the property first
+try { g.foo += 1; fail(); }
+catch (IllegalStateException e) { assertEquals("get foo", e.getMessage()); }
+
+// the same exception as calling the getter
+try { g.getFoo(); fail(); }
+catch (IllegalStateException e) { assertEquals("get foo", e.getMessage()); }
+
+// a Java setter that throws: the assignment throws the setter's exception
+fin = false;
+try { try { g.foo = 1; fail(); } finally { fin = true; } }
+catch (IllegalArgumentException e) { assertEquals("set foo", e.getMessage()); }
+assertTrue(fin);
+
+try { g{"foo"} = 1; fail(); }
+catch (IllegalArgumentException e) { assertEquals("set foo", e.getMessage()); }
+
+try { G.s = 1; fail(); }
+catch (IllegalArgumentException e) { assertEquals("set s", e.getMessage()); }
+
+// a JDK setter
+Thread t = new Thread();
+try { t.priority = 100; fail(); }
+catch (IllegalArgumentException e) { }
+try { t{"priority"} = 100; fail(); }
+catch (IllegalArgumentException e) { }
+
+// uncaught, the error names the property accessor
+assert(isEvalError("Property accessor threw exception", "Object v = g.foo;"));
+
+// a scripted getter that throws: reading the name throws its exception
+getBar() { throw new IllegalStateException("get bar"); }
+fin = false;
+try { try { Object v = bar; fail(); } finally { fin = true; } }
+catch (IllegalStateException e) { assertEquals("get bar", e.getMessage()); }
+assertTrue(fin);
+
+// a scripted setter that throws, on a scripted object
+mkObj() {
+    setBaz(v) { throw new IllegalArgumentException("set baz"); }
+    return this;
+}
+o = mkObj();
+try { o.baz = 1; fail(); }
+catch (IllegalArgumentException e) { assertEquals("set baz", e.getMessage()); }
+
+// a scripted setter in scope runs when its name is assigned, as reading the
+// name calls the getter
+waldoSeen = null;
+setWaldo(v) { waldoSeen = v; }
+waldo = 5;
+assertEquals(5, waldoSeen);
+assertTrue(this.namespace.getVariable("waldo") == void);
+assignWaldo() { waldo = 6; }
+assignWaldo();
+assertEquals(6, waldoSeen);
+
+// a setter in scope that throws: the assignment throws its exception
+setCorge(v) { throw new IllegalArgumentException("set corge"); }
+fin = false;
+try { try { corge = 1; fail(); } finally { fin = true; } }
+catch (IllegalArgumentException e) { assertEquals("set corge", e.getMessage()); }
+assertTrue(fin);
+
+// a setter whose parameter type doesn't match leaves a plain variable
+setGrault(int v) { fail(); }
+grault = "s";
+assertEquals("s", grault);
+
+// a scripted getter that fails with a script error is reported as before
+getQux() { return true + 1; }
+assert(isEvalError("'This' property accessor threw exception", "Object v = qux;"));
+mkObj2() {
+    setQux(v) { int x = true + 1; }
+    return this;
+}
+o2 = mkObj2();
+assert(isEvalError("'This' property accessor threw exception", "o2.qux = 1;"));
+
+// a bean initializer whose setter throws: the setter's exception, located
+// at the initializer
+try { Thread t2 = {priority=100}; fail(); }
+catch (IllegalArgumentException e) { }
+try {
+    this.interpreter.eval("Thread t3 = {priority=100};", this.namespace);
+    fail();
+} catch (bsh.TargetError e) {
+    assertTrue(e.getTarget() instanceof IllegalArgumentException);
+    assertEquals(1, e.getErrorLineNumber());
+}
+
+// accessors that don't throw work as before
+class H {
+    int bar = 1;
+    public int getBar() { return bar; }
+    public void setBar(int v) { bar = v; }
+}
+H h = new H();
+h.bar = 3;
+assertEquals(3, h.bar);
+h{"bar"} = 4;
+assertEquals(4, h{"bar"});
+t.priority = 3;
+assertEquals(3, t.priority);
+getQuux() { return 7; }
+assertEquals(7, quux);
+Thread t4 = {priority=4};
+assertEquals(4, t4.priority);
+
+// map and entry reads are unchanged
+m = new HashMap();
+m.put("a", 1);
+assertEquals(1, m["a"]);
+assertEquals(1, m.a);
+assertEquals(1, m{"a"});
+Map.Entry[] es = {new AbstractMap.SimpleEntry("k", 2)};
+assertEquals(2, es["k"]);
+assertEquals(2, es[0]["k"]);
+
+// obj{"name"} when nothing has that name (#922): an error for an object or
+// class, void for a map, entry or entry array, as with m.name
+java.awt.Point p = new java.awt.Point();
+fin = false;
+try { try { Object v = p{"nope"}; fail(); } finally { fin = true; } }
+catch (bsh.EvalException e) { assertTrue(e.getMessage().contains("No such property: nope")); }
+assertTrue(fin);
+try { boolean v = p{"nope"} == null; fail(); }
+catch (bsh.EvalException e) { assertTrue(e.getMessage().contains("No such property: nope")); }
+try { Object v = Integer{"nope"}; fail(); }
+catch (bsh.EvalException e) { assertTrue(e.getMessage().contains("No such property: nope")); }
+// a scripted object has no properties
+o3 = object();
+o3.c = 3;
+try { Object v = o3{"c"}; fail(); }
+catch (bsh.EvalException e) { assertTrue(e.getMessage().contains("No such property: c")); }
+
+assertTrue(m{"nope"} == void);
+m.put("n", null);
+assertNull(m{"n"});
+e1 = new AbstractMap.SimpleEntry("k", 1);
+assertTrue(e1{"zz"} == void);
+assertTrue(es{"zz"} == void);
+
+// a getter that returns null gives null
+class N { public Object getN() { return null; } }
+N n = new N();
+assertNull(n{"n"});
+assertEquals(0, p{"x"}, 0);
+
+complete();

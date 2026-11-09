@@ -997,11 +997,13 @@ public final class Reflect {
     }
 
     @SuppressWarnings("rawtypes")
-    public static Object getObjectProperty(Object obj, String propName) {
+    public static Object getObjectProperty(Object obj, String propName)
+            throws UtilEvalError {
         return getObjectProperty(obj, propName, null);
     }
     @SuppressWarnings("rawtypes")
-    static Object getObjectProperty(Object obj, String propName, CallArguments.Result result) {
+    static Object getObjectProperty(Object obj, String propName,
+            CallArguments.Result result) throws UtilEvalError {
         if (Types.isPropertyTypeEntry(obj)) switch (propName) {
             case "key":
                 return nullToPrimitive(((Entry) obj).getKey());
@@ -1011,11 +1013,13 @@ public final class Reflect {
         return getObjectProperty(obj, (Object) propName, result);
     }
     @SuppressWarnings("rawtypes")
-    public static Object getObjectProperty(Object obj, Object propName) {
+    public static Object getObjectProperty(Object obj, Object propName)
+            throws UtilEvalError {
         return getObjectProperty(obj, propName, null);
     }
     @SuppressWarnings("rawtypes")
-    static Object getObjectProperty(Object obj, Object propName, CallArguments.Result result) {
+    static Object getObjectProperty(Object obj, Object propName,
+            CallArguments.Result result) throws UtilEvalError {
         if ( Types.isPropertyTypeMap(obj) ) {
             Map map = (Map) obj;
             if (map.containsKey(propName))
@@ -1050,8 +1054,9 @@ public final class Reflect {
         try {
             return getter.invoke(obj);
         } catch(InvocationTargetException e) {
-            Interpreter.debug("Property accessor threw exception");
-            return Primitive.VOID;
+            // the getter ran and failed, as a call to it would
+            throw new UtilTargetError(
+                "Property accessor threw exception", e.getCause());
         }
     }
 
@@ -1070,7 +1075,7 @@ public final class Reflect {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static Object setObjectProperty(
-        Object obj, String propName, Object value) {
+        Object obj, String propName, Object value) throws UtilEvalError {
         if (Types.isPropertyTypeEntry(obj)) switch(propName) {
             case "val": case "value":
                 return ((Entry) obj).setValue(Primitive.unwrap(value));
@@ -1080,7 +1085,7 @@ public final class Reflect {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static Object setObjectProperty(
-        Object obj, Object propName, Object value) {
+        Object obj, Object propName, Object value) throws UtilEvalError {
         if ( Types.isPropertyTypeMap(obj) )
             return ((Map) obj).put(propName, Primitive.unwrap(value));
 
@@ -1108,8 +1113,9 @@ public final class Reflect {
         try {
             return setter.invoke(obj, new Object[] { Primitive.unwrap(value) });
         } catch(InvocationTargetException e) {
-            throw new ReflectError("Property accessor threw exception: "
-                + e.getCause(),  e.getCause());
+            // the setter ran and failed, as a call to it would
+            throw new UtilTargetError(
+                "Property accessor threw exception", e.getCause());
         }
     }
 
