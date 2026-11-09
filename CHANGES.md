@@ -3,6 +3,12 @@
 
 ## 3.0.0 (in progress)
 
+An array initializer element that can't be cast, such as `int[] a = {"x"}`, throws a `ClassCastException` again, as in BeanShell 2.x, so `catch (ClassCastException e)` catches it. Earlier 3.0 releases gave an `EvalException` with the message `Error in array initializer: ...`; a script that matched that message now gets the cast message itself, such as `Cannot cast String with value "x" to int`. A number that doesn't fit, such as `byte[] a = {300}`, gives the same `ClassCastException` as `byte b = 300`.
+
+An exception or error inside an array index or array length expression, such as `a[boom()]`, `new int[boom()]` or `a[nosuch()]`, is now reported as itself. Before, it was reported as `Array index does not evaluate to an integer.`, which hid the real error. A value that isn't a number, such as `a["x"]`, still gives that message.
+
+A compiled command (a Java class with a static `invoke(Interpreter, CallStack, ...)` method) that throws now hands the script its own exception, as a method call does. Before, it was reported as `Error in compiled command`, an error that a script couldn't catch. Messages for a compiled command called with the wrong arguments no longer contain a doubled `: :`.
+
 ## 3.0.0 RC3
 
 Fixed reading a `null` list element, map value or `Map.Entry` value with the list and map syntax (`l[0]`, `m["a"]`, `m.a`, `e.value`) giving a broken value. Comparing it with `null` or assigning it to an untyped variable ended the script with `unknown error` or `internal Error`, and passing it to a scripted method stopped the interpreter with `java.lang.Error: HERE!`. It reads as `null` now. In BeanShell 2.x `e.value == null` was `true`. Assigning to an entry's value, `e.value = 5`, also left a `bsh.Primitive` in the entry for Java code to find; it now stores the plain value. Java code that calls `Reflect.getObjectProperty` or `BshArray.getIndex` directly gets `Primitive.NULL` for such a value, not a Java `null` (#930).
