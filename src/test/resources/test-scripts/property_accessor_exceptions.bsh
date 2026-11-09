@@ -1,0 +1,94 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// A property getter or setter that throws hands the script its own
+// exception, as calling the getter or setter as a method does (#921).
+
+// a scripted class gives real Java getters and setters
+class G {
+    public int getFoo() { throw new IllegalStateException("get foo"); }
+    public void setFoo(int v) { throw new IllegalArgumentException("set foo"); }
+    public static int getS() { throw new IllegalStateException("get s"); }
+    public static void setS(int v) { throw new IllegalArgumentException("set s"); }
+    public int getC() throws Exception { throw new java.io.IOException("get c"); }
+    public boolean isB() { throw new IllegalStateException("is b"); }
+}
+G g = new G();
+
+// a Java getter that throws: the read throws the getter's exception, and
+// finally runs
+boolean fin = false;
+try { try { Object v = g.foo; fail(); } finally { fin = true; } }
+catch (IllegalStateException e) { assertEquals("get foo", e.getMessage()); }
+assertTrue(fin);
+
+try { Object v = g{"foo"}; fail(); }
+catch (IllegalStateException e) { assertEquals("get foo", e.getMessage()); }
+
+try { Object v = G.s; fail(); }
+catch (IllegalStateException e) { assertEquals("get s", e.getMessage()); }
+
+try { boolean v = g.b; fail(); }
+catch (IllegalStateException e) { assertEquals("is b", e.getMessage()); }
+
+// a checked exception is caught by its own type
+try { Object v = g.c; fail(); }
+catch (java.io.IOException e) { assertEquals("get c", e.getMessage()); }
+
+// a compound assignment reads the property first
+try { g.foo += 1; fail(); }
+catch (IllegalStateException e) { assertEquals("get foo", e.getMessage()); }
+
+// the same exception as calling the getter
+try { g.getFoo(); fail(); }
+catch (IllegalStateException e) { assertEquals("get foo", e.getMessage()); }
+
+// a Java setter that throws: the assignment throws the setter's exception
+fin = false;
+try { try { g.foo = 1; fail(); } finally { fin = true; } }
+catch (IllegalArgumentException e) { assertEquals("set foo", e.getMessage()); }
+assertTrue(fin);
+
+try { g{"foo"} = 1; fail(); }
+catch (IllegalArgumentException e) { assertEquals("set foo", e.getMessage()); }
+
+try { G.s = 1; fail(); }
+catch (IllegalArgumentException e) { assertEquals("set s", e.getMessage()); }
+
+// a JDK setter
+Thread t = new Thread();
+try { t.priority = 100; fail(); }
+catch (IllegalArgumentException e) { }
+try { t{"priority"} = 100; fail(); }
+catch (IllegalArgumentException e) { }
+
+// uncaught, the error names the property accessor
+assert(isEvalError("Property accessor threw exception", "Object v = g.foo;"));
+
+// accessors that don't throw work as before
+class H {
+    int bar = 1;
+    public int getBar() { return bar; }
+    public void setBar(int v) { bar = v; }
+}
+H h = new H();
+h.bar = 3;
+assertEquals(3, h.bar);
+h{"bar"} = 4;
+assertEquals(4, h{"bar"});
+t.priority = 3;
+assertEquals(3, t.priority);
+
+// map and entry reads are unchanged
+m = new HashMap();
+m.put("a", 1);
+assertEquals(1, m["a"]);
+assertEquals(1, m.a);
+assertEquals(1, m{"a"});
+Map.Entry[] es = {new AbstractMap.SimpleEntry("k", 2)};
+assertEquals(2, es["k"]);
+assertEquals(2, es[0]["k"]);
+
+complete();
