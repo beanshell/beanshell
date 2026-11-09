@@ -67,6 +67,44 @@ catch (IllegalArgumentException e) { }
 // uncaught, the error names the property accessor
 assert(isEvalError("Property accessor threw exception", "Object v = g.foo;"));
 
+// a scripted getter that throws: reading the name throws its exception
+getBar() { throw new IllegalStateException("get bar"); }
+fin = false;
+try { try { Object v = bar; fail(); } finally { fin = true; } }
+catch (IllegalStateException e) { assertEquals("get bar", e.getMessage()); }
+assertTrue(fin);
+
+// a scripted setter that throws, on a scripted object
+mkObj() {
+    setBaz(v) { throw new IllegalArgumentException("set baz"); }
+    return this;
+}
+o = mkObj();
+try { o.baz = 1; fail(); }
+catch (IllegalArgumentException e) { assertEquals("set baz", e.getMessage()); }
+
+// a scripted getter that fails with a script error is reported as before
+getQux() { return true + 1; }
+assert(isEvalError("'This' property accessor threw exception", "Object v = qux;"));
+mkObj2() {
+    setQux(v) { int x = true + 1; }
+    return this;
+}
+o2 = mkObj2();
+assert(isEvalError("'This' property accessor threw exception", "o2.qux = 1;"));
+
+// a bean initializer whose setter throws: the setter's exception, located
+// at the initializer
+try { Thread t2 = {priority=100}; fail(); }
+catch (IllegalArgumentException e) { }
+try {
+    this.interpreter.eval("Thread t3 = {priority=100};", this.namespace);
+    fail();
+} catch (bsh.TargetError e) {
+    assertTrue(e.getTarget() instanceof IllegalArgumentException);
+    assertEquals(1, e.getErrorLineNumber());
+}
+
 // accessors that don't throw work as before
 class H {
     int bar = 1;
@@ -80,6 +118,10 @@ h{"bar"} = 4;
 assertEquals(4, h{"bar"});
 t.priority = 3;
 assertEquals(3, t.priority);
+getQuux() { return 7; }
+assertEquals(7, quux);
+Thread t4 = {priority=4};
+assertEquals(4, t4.priority);
 
 // map and entry reads are unchanged
 m = new HashMap();

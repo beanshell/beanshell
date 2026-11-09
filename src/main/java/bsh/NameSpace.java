@@ -1544,6 +1544,10 @@ public class NameSpace
                 this.invokeMethod(accessorName, new Object[] {value}, interp);
                 // m.invoke(new Object[] {value}, interp);
                 return true;
+            } catch (final TargetError te) {
+                // the setter threw, as a call to it would
+                throw new UtilTargetError(
+                        "Property accessor threw exception", te.getTarget());
             } catch (final EvalError ee) {
                 throw new UtilEvalError(
                         "'This' property accessor threw exception: "
@@ -1571,6 +1575,10 @@ public class NameSpace
             if (m != null && m.getReturnType() == Boolean.TYPE)
                 return m.invoke((Object[]) null, interp);
             return Primitive.VOID;
+        } catch (final TargetError te) {
+            // the getter threw, as a call to it would
+            throw new UtilTargetError(
+                    "Property accessor threw exception", te.getTarget());
         } catch (final EvalError ee) {
             throw new UtilEvalError("'This' property accessor threw exception: "
                     + ee.getMessage(), ee);
