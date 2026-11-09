@@ -402,19 +402,24 @@ class BSHPrimarySuffix extends SimpleNode
         if ( toLHS )
             return new LHS(obj, (String)value);
 
+        Object val;
         try {
-            Object val = Reflect.getObjectProperty( obj, (String)value, result );
-            return null == val || Primitive.NULL == val
-                    ? Primitive.NULL : Primitive.unwrap(val);
-        }
-        catch (ReflectError e)
-        {
-            throw new EvalError("No such property: " + value, this, callstack, e);
-        }
-        catch (UtilEvalError e)
-        {
+            val = Reflect.getObjectProperty( obj, (String)value, result );
+        } catch (UtilEvalError e) {
             throw e.toEvalError(this, callstack);
         }
+
+        if ( Primitive.VOID == val ) {
+            // a missing map key or entry is void, as with m.key
+            if ( Types.isPropertyTypeMap(obj) || Types.isPropertyTypeEntry(obj)
+                    || Types.isPropertyTypeEntryList(obj.getClass()) )
+                return Primitive.VOID;
+            throw new EvalException("No such property: " + value,
+                this, callstack );
+        }
+
+        return null == val || Primitive.NULL == val
+                ? Primitive.NULL : Primitive.unwrap(val);
     }
 
     @Override

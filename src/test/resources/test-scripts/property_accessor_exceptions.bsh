@@ -156,4 +156,34 @@ Map.Entry[] es = {new AbstractMap.SimpleEntry("k", 2)};
 assertEquals(2, es["k"]);
 assertEquals(2, es[0]["k"]);
 
+// obj{"name"} when nothing has that name (#922): an error for an object or
+// class, void for a map, entry or entry array, as with m.name
+java.awt.Point p = new java.awt.Point();
+fin = false;
+try { try { Object v = p{"nope"}; fail(); } finally { fin = true; } }
+catch (bsh.EvalException e) { assertTrue(e.getMessage().contains("No such property: nope")); }
+assertTrue(fin);
+try { boolean v = p{"nope"} == null; fail(); }
+catch (bsh.EvalException e) { assertTrue(e.getMessage().contains("No such property: nope")); }
+try { Object v = Integer{"nope"}; fail(); }
+catch (bsh.EvalException e) { assertTrue(e.getMessage().contains("No such property: nope")); }
+// a scripted object has no properties
+o3 = object();
+o3.c = 3;
+try { Object v = o3{"c"}; fail(); }
+catch (bsh.EvalException e) { assertTrue(e.getMessage().contains("No such property: c")); }
+
+assertTrue(m{"nope"} == void);
+m.put("n", null);
+assertNull(m{"n"});
+e1 = new AbstractMap.SimpleEntry("k", 1);
+assertTrue(e1{"zz"} == void);
+assertTrue(es{"zz"} == void);
+
+// a getter that returns null gives null
+class N { public Object getN() { return null; } }
+N n = new N();
+assertNull(n{"n"});
+assertEquals(0, p{"x"}, 0);
+
 complete();
