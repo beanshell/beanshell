@@ -270,7 +270,7 @@ class BSHArrayInitializer extends SimpleNode {
             try {
             return Types.castObject(value, type, Types.CAST);
         } catch ( UtilEvalError e ) {
-            e.toEvalError(this, callstack);
+            throw e.toEvalError("Error in array initializer", this, callstack);
         }
         return value;
     }

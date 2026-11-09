@@ -59,4 +59,90 @@ Map.Entry[] ae = {"m"=null};
 assertNull(f(ae["m"] = 4));
 assertEquals(4, ae["m"]);
 
+// an initializer, cast or assignment to another collection or map type
+// builds it through its public no-argument constructor
+TreeSet ts = {3, 1, 2};
+assertEquals(TreeSet.class, ts.getClass());
+assertEquals("[1, 2, 3]", ts.toString());
+TreeSet ets = {};
+ets.add(5);
+assertEquals(1, ets.size());
+TreeMap tm = {"b"=2, "a"=1};
+assertEquals(TreeMap.class, tm.getClass());
+assertEquals("{a=1, b=2}", tm.toString());
+TreeMap ptm = {"b", 2, "a", 1};
+assertEquals("{a=1, b=2}", ptm.toString());
+TreeMap etm = {};
+assertEquals(0, etm.size());
+PriorityQueue pq = {3, 1};
+assertEquals(1, pq.peek());
+Vector vec = {1, null};
+assertEquals(Vector.class, vec.getClass());
+assertNull(vec.get(1));
+Stack st = {1, 2};
+assertEquals(2, st.peek());
+java.util.concurrent.ConcurrentHashMap chm = {"a"=1};
+assertEquals(1, chm.get("a"));
+java.util.concurrent.CopyOnWriteArrayList cow = {1};
+assertEquals(1, cow.get(0));
+Object[] arr = {2, 1};
+TreeSet cts = (TreeSet) arr;
+assertEquals("[1, 2]", cts.toString());
+Integer[] iarr = {2, 1};
+TreeSet ats = iarr;
+assertEquals("[1, 2]", ats.toString());
+
+// a type it can't create is a ClassCastException naming the type, not an
+// array of that type, and finally runs
+import java.util.concurrent.ArrayBlockingQueue;
+fin = false;
+try { try { ArrayBlockingQueue q = {}; fail(); } finally { fin = true; } }
+catch (ClassCastException e) {
+    assertEquals("Cannot cast Object[] to ArrayBlockingQueue", e.getMessage());
+}
+assertTrue(fin);
+try { SortedSet ss = {1}; fail(); }
+catch (ClassCastException e) {
+    assertEquals("Cannot cast int[] to SortedSet", e.getMessage());
+}
+try { SortedMap sm = {"a"=1}; fail(); }
+catch (ClassCastException e) {
+    assertEquals("Cannot cast Entry[] to SortedMap", e.getMessage());
+}
+try { EnumSet es2 = {}; fail(); }
+catch (ClassCastException e) { }
+
+// the collection's own exception when it rejects an element
+try { TreeSet bad = {1, "a"}; fail(); }
+catch (ClassCastException e) { }
+try { TreeSet bad = {1, null}; fail(); }
+catch (NullPointerException e) { }
+try { TreeMap bad = {null=1}; fail(); }
+catch (NullPointerException e) { }
+try { java.util.concurrent.ConcurrentHashMap bad = {"a"=null}; fail(); }
+catch (NullPointerException e) { }
+
+// a constructor that throws reaches the script with its message
+class Refuses extends ArrayList {
+    public Refuses() { throw new IllegalStateException("refused"); }
+}
+try { Refuses r = {1}; fail(); }
+catch (Throwable t) { assertTrue(t.getMessage().contains("refused")); }
+
+// the types built before are unchanged
+List l = {1};
+assertEquals(ArrayList.class, l.getClass());
+Set s = {1};
+assertEquals(LinkedHashSet.class, s.getClass());
+Map m = {"a"=1};
+assertEquals(LinkedHashMap.class, m.getClass());
+HashMap hm = {"b", 2};
+assertEquals(LinkedHashMap.class, hm.getClass());
+Deque d = {1};
+assertEquals(ArrayDeque.class, d.getClass());
+Queue q = {1};
+assertEquals(LinkedList.class, q.getClass());
+Map.Entry me = {"k", 1};
+assertEquals(1, me.getValue());
+
 complete();
