@@ -83,6 +83,29 @@ o = mkObj();
 try { o.baz = 1; fail(); }
 catch (IllegalArgumentException e) { assertEquals("set baz", e.getMessage()); }
 
+// a scripted setter in scope runs when its name is assigned, as reading the
+// name calls the getter
+waldoSeen = null;
+setWaldo(v) { waldoSeen = v; }
+waldo = 5;
+assertEquals(5, waldoSeen);
+assertTrue(this.namespace.getVariable("waldo") == void);
+assignWaldo() { waldo = 6; }
+assignWaldo();
+assertEquals(6, waldoSeen);
+
+// a setter in scope that throws: the assignment throws its exception
+setCorge(v) { throw new IllegalArgumentException("set corge"); }
+fin = false;
+try { try { corge = 1; fail(); } finally { fin = true; } }
+catch (IllegalArgumentException e) { assertEquals("set corge", e.getMessage()); }
+assertTrue(fin);
+
+// a setter whose parameter type doesn't match leaves a plain variable
+setGrault(int v) { fail(); }
+grault = "s";
+assertEquals("s", grault);
+
 // a scripted getter that fails with a script error is reported as before
 getQux() { return true + 1; }
 assert(isEvalError("'This' property accessor threw exception", "Object v = qux;"));

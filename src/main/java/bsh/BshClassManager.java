@@ -353,6 +353,11 @@ public class BshClassManager {
         return null != declaringInterpreter && declaringInterpreter.getStrictJava();
     }
 
+    /** The interpreter which created the class manager, or null. */
+    Interpreter getDeclaringInterpreter() {
+        return declaringInterpreter;
+    }
+
     /**
         An external classloader supplied by the setClassLoader() command.
     */

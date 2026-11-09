@@ -1533,7 +1533,13 @@ public class NameSpace
      * @return true, if successful
      * @throws UtilEvalError the util eval error */
     boolean attemptSetPropertyValue(final String propName, final Object value,
-            final Interpreter interp) throws UtilEvalError {
+            Interpreter interp) throws UtilEvalError {
+        // an assignment has no interpreter at hand, use the one that made
+        // this namespace's class manager
+        if (interp == null)
+            interp = this.getClassManager().getDeclaringInterpreter();
+        if (interp == null)
+            return false;
         final String accessorName = Reflect.accessorName(Reflect.SET_PREFIX, propName);
         Object val = Primitive.unwrap(value);
         final Class<?>[] classArray = new Class<?>[] {
