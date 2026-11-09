@@ -305,8 +305,10 @@ class LHS implements ParserConstants, Serializable {
                 "assign value, field cannot be null").invoke( object, val);
             return getValueImpl();
         } catch (ReflectiveOperationException e) {
-            // the value can't convert to the field's type
-            if ( e.getCause() instanceof ClassCastException )
+            // the value can't convert to the field's type, or the class
+            // failed to initialize
+            if ( e.getCause() instanceof ClassCastException
+                    || e.getCause() instanceof LinkageError )
                 throw new UtilTargetError(e.getCause());
             // name the reason, such as a final field, not its wrapper
             Throwable reason = null == e.getCause() ? e : e.getCause();
