@@ -1,0 +1,44 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// An error that names a Java exception reaches the script as that exception,
+// so a script can catch it by type.
+
+// an array initializer element that can't be cast is a ClassCastException,
+// as in a cast, and finally runs
+boolean fin = false;
+try { try { int[] a = {"x"}; fail(); } finally { fin = true; } }
+catch (ClassCastException e) {
+    assertEquals("Cannot cast String with value \"x\" to int", e.getMessage());
+}
+assertTrue(fin);
+
+try { Integer[] a = {new Object()}; fail(); }
+catch (ClassCastException e) { }
+try { int[][] a = {{1}, {"x"}}; fail(); }
+catch (ClassCastException e) { }
+
+// a number that doesn't fit, as in a declaration
+try { byte[] a = {300}; fail(); }
+catch (ClassCastException e) {
+    assertEquals("cannot assign number 300 to type byte", e.getMessage());
+}
+
+// an element that fails for another reason is still an EvalException
+import java.util.function.*;
+try { Runnable[] r = {x -> x}; fail(); }
+catch (bsh.EvalException e) {
+    assertTrue(e.getMessage().contains("Cannot convert a 1-parameter lambda"));
+}
+
+// initializers that cast work as before
+int[] ia = {1, 2};
+assertEquals(2, ia.length);
+Object[] oa = {1, "a"};
+assertEquals("a", oa[1]);
+byte[] ba = {1, 127};
+assertEquals(127, ba[1]);
+
+complete();
