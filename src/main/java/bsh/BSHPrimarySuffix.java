@@ -225,9 +225,10 @@ class BSHPrimarySuffix extends SimpleNode
         Interpreter interpreter, Node callerInfo )
                 throws EvalError {
         int index;
+        // an error in the index expression itself passes through as it is
+        Object indexVal = callerInfo.jjtGetChild(idx).eval(
+                callstack, interpreter );
         try {
-            Object indexVal = callerInfo.jjtGetChild(idx).eval(
-                    callstack, interpreter );
             if ( !(indexVal instanceof Primitive) )
                 indexVal = Types.castObject(
                     indexVal, Integer.TYPE, Types.ASSIGNMENT );

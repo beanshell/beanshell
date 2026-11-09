@@ -41,4 +41,62 @@ assertEquals("a", oa[1]);
 byte[] ba = {1, 127};
 assertEquals(127, ba[1]);
 
+// an error in an index or array length expression is that error, not
+// "does not evaluate to an integer"
+int boom() { throw new IllegalStateException("boom"); }
+fin = false;
+try { try { int v = ia[boom()]; fail(); } finally { fin = true; } }
+catch (IllegalStateException e) { assertEquals("boom", e.getMessage()); }
+assertTrue(fin);
+try { int v = ia[1/0]; fail(); }
+catch (ArithmeticException e) { }
+List il = {1, 2};
+try { Object v = il[boom()]; fail(); }
+catch (IllegalStateException e) { assertEquals("boom", e.getMessage()); }
+try { int[] v = ia[0:boom()]; fail(); }
+catch (IllegalStateException e) { assertEquals("boom", e.getMessage()); }
+try { int[] v = new int[boom()]; fail(); }
+catch (IllegalStateException e) { assertEquals("boom", e.getMessage()); }
+// the error itself is the expression's, not a wrapper that names the index
+try {
+    this.interpreter.eval("int v = ia[boom()];", this.namespace);
+    fail();
+} catch (bsh.TargetError e) {
+    assertTrue(e.getTarget() instanceof IllegalStateException);
+}
+try {
+    this.interpreter.eval("int[] v = new int[boom()];", this.namespace);
+    fail();
+} catch (bsh.TargetError e) {
+    assertTrue(e.getTarget() instanceof IllegalStateException);
+}
+try {
+    this.interpreter.eval("int v = ia[nosuch()];", this.namespace);
+    fail();
+} catch (bsh.EvalException e) {
+    assertTrue(e.getMessage().contains("Command not found: nosuch()"));
+}
+try {
+    this.interpreter.eval("int[] v = new int[nosuch()];", this.namespace);
+    fail();
+} catch (bsh.EvalException e) {
+    assertTrue(e.getMessage().contains("Command not found: nosuch()"));
+}
+
+// a value that isn't a number is reported as before
+try { int v = ia["x"]; fail(); }
+catch (bsh.EvalException e) {
+    assertTrue(e.getMessage().contains("Array index does not evaluate to an integer."));
+}
+try { int[] v = new int["x"]; fail(); }
+catch (bsh.EvalException e) {
+    assertTrue(e.getMessage().contains("Array index: 0 length does not evaluate to an integer"));
+}
+
+// indexes and lengths that are numbers work as before
+long li = 1;
+assertEquals(2, ia[li]);
+assertEquals(2, ia[-1]);
+assertEquals(3, new int[3].length);
+
 complete();
