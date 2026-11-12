@@ -134,6 +134,31 @@ public final class This implements java.io.Serializable, Runnable
         interface.
     */
     /**
+        The This behind a scripted object: a This itself, an interface proxy
+        created by getInterface(), or an instance of a generated class.
+        @return the This, or null if the object is not a scripted object.
+    */
+    public static This of( Object object )
+    {
+        if ( object == null )
+            return null;
+        if ( object instanceof This )
+            return (This) object;
+        Class<?> type = object.getClass();
+        if ( Proxy.isProxyClass(type) ) {
+            InvocationHandler handler = Proxy.getInvocationHandler(object);
+            return handler instanceof Handler ? ((Handler) handler).getThis() : null;
+        }
+        if ( !Reflect.isGeneratedClass(type) )
+            return null;
+        try {
+            return Reflect.getClassInstanceThis(object, type);
+        } catch ( InterpreterError e ) {
+            return null;
+        }
+    }
+
+    /**
         Get dynamic proxy for interface, caching those it creates.
     */
     public Object getInterface( Class<?> clas ) throws SecurityError
@@ -184,6 +209,9 @@ public final class This implements java.io.Serializable, Runnable
     */
     class Handler implements InvocationHandler, java.io.Serializable
     {
+        /** The This this handler dispatches to. */
+        This getThis() { return This.this; }
+
         public Object invoke( Object proxy, Method method, Object[] args )
             throws Throwable
         {

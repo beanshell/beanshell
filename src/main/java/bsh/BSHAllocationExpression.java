@@ -109,15 +109,35 @@ class BSHAllocationExpression extends SimpleNode
 
         if ( hasBody )
         {
-            BSHBlock body = (BSHBlock)jjtGetChild(2);
-            if ( type.isInterface() )
-                return constructWithInterfaceBody(
-                    type, args, body, callstack, interpreter );
-            else
-                return constructWithClassBody(
-                    type, arguments, body, callstack, interpreter );
+            return constructAnonymous( type, arguments,
+                (BSHBlock)jjtGetChild(2), callstack, interpreter );
         } else
             return constructObject(type, arguments, callstack, interpreter);
+    }
+
+    /**
+     * Construct an instance of an anonymous class from already evaluated
+     * constructor arguments, and record the allocation on the instance's
+     * namespace. The arguments are not evaluated again.
+     * @param type the interface or superclass
+     * @param body the class body; may belong to an edited copy of this node
+     * @param callstack top is the scope the anonymous class is defined in
+     */
+    Object constructAnonymous( Class<?> type, CallArguments arguments,
+            BSHBlock body, CallStack callstack, Interpreter interpreter )
+        throws EvalError
+    {
+        NameSpace scope = callstack.top();
+        Object obj = type.isInterface()
+            ? constructWithInterfaceBody(
+                type, arguments.values, body, callstack, interpreter )
+            : constructWithClassBody(
+                type, arguments, body, callstack, interpreter );
+        This self = This.of(obj);
+        if ( self != null )
+            self.getNameSpace().setAllocation(
+                new AllocationInfo(this, scope, type, arguments));
+        return obj;
     }
 
     Object constructFromEnclosingInstance(Object obj, CallStack callstack,

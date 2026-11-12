@@ -97,6 +97,10 @@ public class NameSpace
     /** Note that the namespace is a method body namespace. This is used for
      * printing stack traces in exceptions. */
     boolean isMethod;
+    /** The method whose invocation created this namespace, if any. */
+    private transient BshMethod declaringMethod;
+    /** How an anonymous class instance with this namespace was allocated, if it was. */
+    private transient AllocationInfo allocation;
     /** Note that the namespace is a class body or class instance namespace.
      * This is used for controlling static/object import precedence, etc. Note:
      * We can move this class related behavior out to a subclass of NameSpace,
@@ -496,6 +500,45 @@ public class NameSpace
         return this.methods.values().stream()
                 .flatMap(v -> v.stream()).toArray(BshMethod[]::new);
     }
+
+    /**
+     * The scripted method whose invocation created this namespace. This is what
+     * tells a scripted object created by a method that returns <code>this</code>
+     * how it was made. The interpreter sets it when it invokes a scripted method.
+     * @return the method, or null if this namespace was not created by a method
+     *   invocation (for example the global namespace or a block)
+     * @see ScriptedSource#of(BshMethod)
+     */
+    public BshMethod getDeclaringMethod() { return declaringMethod; }
+
+    /**
+     * Record the method whose invocation created this namespace. The interpreter
+     * calls this itself; it is public so that tools which re-define a scripted
+     * object, such as the <code>bsh.scripteditor</code> package, can keep the record current.
+     * Not part of the serialized state of the namespace.
+     * @param method the method, or null to clear the record
+     */
+    public void setDeclaringMethod(BshMethod method) { declaringMethod = method; }
+
+    /**
+     * How the anonymous class instance that owns this namespace was allocated:
+     * its type, the scope it was defined in and its evaluated constructor
+     * arguments. The interpreter sets it when it evaluates
+     * <code>new Type(args) { ... }</code>.
+     * @return the allocation, or null if this namespace does not belong to an
+     *   anonymous class instance
+     * @see ScriptedSource#of(AllocationInfo)
+     */
+    public AllocationInfo getAllocation() { return allocation; }
+
+    /**
+     * Record how the anonymous class instance that owns this namespace was
+     * allocated. The interpreter calls this itself; it is public so that tools
+     * which re-define a scripted object can keep the record current.
+     * Not part of the serialized state of the namespace.
+     * @param info the allocation, or null to clear the record
+     */
+    public void setAllocation(AllocationInfo info) { allocation = info; }
 
     /** Get the parent namespace. Note: this isn't quite the same as getSuper().
      * getSuper() returns 'this' if we are at the root namespace.

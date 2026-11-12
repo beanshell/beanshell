@@ -80,6 +80,8 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
     private Object javaObject;
     protected boolean isVarArgs;
     boolean isScriptedObject = false;
+    /** The declaration this method was created from, or null (e.g. imported Java methods). */
+    private BSHMethodDeclaration declaration;
 
     // End method components
 
@@ -91,7 +93,11 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
             method.paramsNode.paramTypes, method.paramsNode.getParamModifiers(),
             method.blockNode, declaringNameSpace, modifiers, method.isVarArgs );
         this.isScriptedObject = isScriptedObject;
+        this.declaration = method;
     }
+
+    /** The parsed declaration, or null if this method was not created from one. */
+    BSHMethodDeclaration getDeclaration() { return declaration; }
 
     BshMethod(
         String name, Class<?> returnType, String [] paramNames,
@@ -414,6 +420,7 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
             localNameSpace = new NameSpace( null != parentNameSpace
                     ? parentNameSpace : declaringNameSpace, name );
             localNameSpace.isMethod = true;
+            localNameSpace.setDeclaringMethod(this);
         }
         localNameSpace.setNode( callerInfo );
 

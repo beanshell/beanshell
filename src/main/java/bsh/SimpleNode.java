@@ -26,6 +26,8 @@
 package bsh;
 
 import java.io.Serializable;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.NoSuchElementException;
 
 /*
@@ -238,6 +240,106 @@ public class SimpleNode implements Node, Serializable {
         }
 
         return text.toString();
+    }
+
+    /**
+     * Reconstruct this node's source from its token chain. Comments (special
+     * tokens) are included, and whitespace is rebuilt from token positions
+     * relative to the column of the first token. Tabs come back as spaces,
+     * because the parser counts expanded columns.
+     * <p>
+     * The comments in front of the first token belong to it, as the parser
+     * attaches a comment to the token that follows it. That is what a comment
+     * on the lines above a declaration should be. The parser cannot tell it from
+     * a trailing comment on the line of the <em>previous</em> statement, so such a
+     * comment, for example <code>x = 1; // note</code> above a method, is also
+     * part of the next node's source text.
+     * @return the source text, or {@link #getText()} if the node has no tokens
+     */
+    public String getSourceText()
+    {
+        if ( firstToken == null || lastToken == null )
+            return getText();
+        SourceWriter writer = new SourceWriter();
+        for ( Token t = firstToken; t != null; t = t.next ) {
+            writer.specials(t);
+            writer.token(t);
+            if ( t == lastToken )
+                break;
+        }
+        return writer.toString();
+    }
+
+    /** Rebuilds source text from token positions. */
+    private static final class SourceWriter
+    {
+        private final StringBuilder sb = new StringBuilder();
+        /** Source line of the output position. */
+        private int line = -1;
+        /** Source column of the output position. */
+        private int col;
+        /** Column that maps to output column 0. */
+        private int base;
+
+        void specials(Token t)
+        {
+            Deque<Token> stack = new ArrayDeque<>();
+            // the chain runs backwards; reverse it
+            for ( Token s = t.specialToken; s != null; s = s.specialToken )
+                stack.push(s);
+            while ( !stack.isEmpty() )
+                token(stack.pop());
+        }
+
+        void token(Token t)
+        {
+            moveTo(t.beginLine, t.beginColumn, t.image);
+            sb.append(t.image);
+            // e.g. // comments carry their line break
+            if ( t.image.endsWith("\n") || t.image.endsWith("\r") ) {
+                line = t.endLine + 1;
+                col = base;
+            } else {
+                line = t.endLine;
+                col = t.endColumn + 1;
+            }
+        }
+
+        private void moveTo(int beginLine, int beginColumn, String image)
+        {
+            // first token: no leading indentation
+            if ( line < 0 ) {
+                line = beginLine;
+                col = base = beginColumn;
+                return;
+            }
+            if ( beginLine > line ) {
+                for ( int i = line; i < beginLine; i++ )
+                    sb.append('\n');
+                line = beginLine;
+                col = base;
+            }
+            if ( beginColumn > col )
+                pad(beginColumn - col);
+            else if ( beginColumn < col && needsSpace(image) )
+                sb.append(' ');
+        }
+
+        private boolean needsSpace(String next)
+        {
+            return sb.length() > 0 && !next.isEmpty()
+                && Character.isJavaIdentifierPart(sb.charAt(sb.length() - 1))
+                && Character.isJavaIdentifierPart(next.charAt(0));
+        }
+
+        private void pad(int n)
+        {
+            for ( int i = 0; i < n; i++ )
+                sb.append(' ');
+        }
+
+        @Override
+        public String toString() { return sb.toString(); }
     }
 
     /** {@inheritDoc} */
