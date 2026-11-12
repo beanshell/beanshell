@@ -381,7 +381,7 @@ public final class Reflect {
             if (e.getCause() instanceof UtilEvalError)
                 throw new UtilTargetError(e.getCause());
             // the class failed to initialize
-            if (e.getCause() instanceof LinkageError)
+            if (e.getCause() instanceof Error)
                 throw new UtilTargetError(e.getCause());
             throw new ReflectError("Can't access field: "
                 + fieldName, e.getCause());
@@ -1238,7 +1238,8 @@ public final class Reflect {
             if (e.getCause() instanceof UtilTargetError) {
                 Throwable reason = e.getCause().getCause();
                 // report what the class's static initializer threw
-                if (reason instanceof ExceptionInInitializerError)
+                if (reason instanceof ExceptionInInitializerError
+                        && null != reason.getCause())
                     reason = reason.getCause();
                 throw new InterpreterError(reason.getMessage(), reason);
             }

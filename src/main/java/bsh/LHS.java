@@ -176,6 +176,9 @@ class LHS implements ParserConstants, Serializable {
             return Objects.requireNonNull(field,
                 "get value, field cannot be null").invoke(object);
         } catch( ReflectiveOperationException e2 ) {
+            // the class failed to initialize
+            if ( e2.getCause() instanceof Error )
+                throw new UtilTargetError(e2.getCause());
             throw new UtilEvalError("Can't read field: " + field, e2);
         }
 
@@ -308,7 +311,7 @@ class LHS implements ParserConstants, Serializable {
             // the value can't convert to the field's type, or the class
             // failed to initialize
             if ( e.getCause() instanceof ClassCastException
-                    || e.getCause() instanceof LinkageError )
+                    || e.getCause() instanceof Error )
                 throw new UtilTargetError(e.getCause());
             // name the reason, such as a final field, not its wrapper
             Throwable reason = null == e.getCause() ? e : e.getCause();

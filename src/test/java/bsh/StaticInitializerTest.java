@@ -7,6 +7,8 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
 import bsh.engine.BshScriptEngine;
+import fixture.CauselessStaticInit;
+import fixture.ErrorStaticInit;
 import fixture.FailingStaticInit;
 import fixture.RecordingStaticInit;
 
@@ -18,8 +20,10 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
@@ -32,6 +36,8 @@ import static org.junit.Assert.assertThrows;
 public class StaticInitializerTest {
     private static final String FAILING = FailingStaticInit.class.getName();
     private static final String RECORDING = RecordingStaticInit.class.getName();
+    private static final String ERROR = ErrorStaticInit.class.getName();
+    private static final String CAUSELESS = CauselessStaticInit.class.getName();
     private static final URL FIXTURES = FailingStaticInit.class
             .getProtectionDomain().getCodeSource().getLocation();
 
@@ -85,6 +91,8 @@ public class StaticInitializerTest {
         String[] uses = {
             FAILING + ".x;",
             FAILING + ".x = 1;",
+            FAILING + ".x++;",
+            FAILING + ".x += 1;",
             "new " + FAILING + "();",
             FAILING + ".m();",
             FAILING + ".K;",
@@ -149,6 +157,47 @@ public class StaticInitializerTest {
         Interpreter plain = new Interpreter();
         plain.eval(FAILING + " f = null;");
         assertSame(FailingStaticInit.class, plain.eval("return " + FAILING + ".class;"));
+    }
+
+    @Test
+    public void initializer_error_is_thrown_unwrapped() throws Exception {
+        String[] uses = {
+            ERROR + ".x;",
+            ERROR + ".x = 1;",
+            ERROR + ".x++;",
+            ERROR + ".x += 1;",
+            "new " + ERROR + "();",
+            ERROR + ".m();",
+        };
+        for (Path path : Path.values()) for (String use : uses) {
+            Interpreter bsh = interpreter(path);
+            bsh.eval("first = null; second = null;"
+                + " try { " + use + " }"
+                + " catch (AssertionError e) { first = e; }"
+                + " try { " + use + " }"
+                + " catch (NoClassDefFoundError e) { second = e; }");
+            String row = path + ": " + use;
+            Throwable first = (Throwable) bsh.get("first");
+            assertThat(row, first, instanceOf(AssertionError.class));
+            assertThat(row, first.getMessage(), equalTo("init error"));
+            assertThat(row, bsh.get("second"), instanceOf(NoClassDefFoundError.class));
+        }
+    }
+
+    /** Only through addClassPath: with a context class loader, a scripted
+     * subclass finds the application class loader's copy of its superclass,
+     * which every row would share. */
+    @Test
+    public void scripted_subclass_of_causeless_initializer_error() throws Exception {
+        String[] uses = { "X.m();", "X.v = 2;" };
+        for (String use : uses) {
+            Interpreter bsh = interpreter(Path.ADDED);
+            bsh.eval("class X extends " + CAUSELESS + " {"
+                + " static int v = 1; static int m() { return 2; } }");
+            EvalError e = assertThrows(EvalError.class, () -> bsh.eval(use));
+            assertThat(use, e.getMessage(), containsString("internal Error: no cause"));
+            assertThat(use, e.getMessage(), not(containsString("is null")));
+        }
     }
 
     @Test
