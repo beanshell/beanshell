@@ -167,6 +167,34 @@ assertEquals(1, count);
 String s = null;
 s += "a";
 assertEquals("nulla", s);
+// a null String concatenates outside local scope too: an array element, a
+// variable from an enclosing scope, a field used in a method
+String[] sa = {null, null};
+sa[0] += 1;
+sa[1] += "x";
+assertEquals("null1", sa[0]);
+assertEquals("nullx", sa[1]);
+String outer = null;
+appendOuter() { outer += 1; }
+appendOuter();
+assertEquals("null1", outer);
+class NullStringField {
+    String f;
+    String append() { f += "x"; return f; }
+}
+assertEquals("nullx", new NullStringField().append());
+// and in a field initializer
+class NullStringInit {
+    String f;
+    String g = f += "x";
+    String h;
+    String i = h += 1;
+    static String sf;
+    static String sg = sf += "x";
+}
+assertEquals("nullx", new NullStringInit().g);
+assertEquals("null1", new NullStringInit().i);
+assertEquals("nullx", NullStringInit.sg);
 // a null that isn't a String, with a String, is left to the operation (#932)
 assert(isEvalError("vx = null; vx += \"a\";"));
 Integer x = 1;

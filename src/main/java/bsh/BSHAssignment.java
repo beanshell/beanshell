@@ -101,7 +101,7 @@ class BSHAssignment extends SimpleNode implements ParserConstants {
                     return lhs.assign(rhs, strictJava);
 
                 case PLUSASSIGN:
-                    if ( Primitive.NULL == lhsValue && lhs.getType() == String.class )
+                    if ( Primitive.NULL == lhsValue && lhs.getDeclaredType() == String.class )
                         lhsValue = "null";
                     return lhs.assign(
                         compound(lhs, lhsValue, rhs, PLUS), strictJava);
