@@ -252,7 +252,9 @@ public class ClassManagerImpl extends BshClassManager
             try {
                 final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
                 if ( contextClassLoader != null ) {
-                    c = Class.forName( name, true, contextClassLoader );
+                    // don't initialize: Java runs a class's static
+                    // initializer at its first use, not when it's named
+                    c = Class.forName( name, false, contextClassLoader );
                 }
             } catch ( ClassNotFoundException e ) {
                 // fall through
@@ -263,10 +265,11 @@ public class ClassManagerImpl extends BshClassManager
             }
         }
 
-        // try plain class forName()
+        // try plain class forName(), without initializing the class
         if ( c == null )
             try {
-                c = Class.forName( name );
+                c = Class.forName( name, false,
+                    ClassManagerImpl.class.getClassLoader() );
             } catch ( ClassNotFoundException e ) {
                 // fall through
 /* I disagree with letting this fall through  -fschmidt
