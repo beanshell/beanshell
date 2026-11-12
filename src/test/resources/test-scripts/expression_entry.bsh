@@ -93,6 +93,23 @@ try {
 Entry[] tentries = {"k"=1};
 assertThat(tentries, instanceOf(Entry[].class));
 assertThat(new Entry {}, instanceOf(Entry[].class));
+// a one-entry array passed where an entry is expected gives that entry
+one = new Entry {"k"=1};
+two = new Entry {"l"=2};
+m = Map.ofEntries(one, two);
+assertThat(m["k"], equalTo(1));
+assertThat(m["l"], equalTo(2));
+class EntryHolder { Object got; EntryHolder(Map.Entry e) { got = e; } }
+assertThat(new EntryHolder(one).got, valueString('"k"=1I'));
+class EntriesHolder { Object got; EntriesHolder(Map.Entry... es) { got = es; } }
+got = new EntriesHolder(one, two).got;
+assertThat(got, instanceOf(Entry[].class));
+assertThat(got[1].getKey(), equalTo("l"));
+Entry[] ones = {one, two};
+assertThat(ones[0], valueString('"k"=1I'));
+assertThat(ones[1].getKey(), equalTo("l"));
+assert(isEvalError("Cannot cast Entry[] to Entry",
+    'Map.ofEntries(new Entry {"a"=1, "b"=2}, one);'));
 
 
 // variable as key

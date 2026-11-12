@@ -3,7 +3,7 @@
 
 ## 3.0.0 (in progress)
 
-A variable declared `Map.Entry`, and a cast to `Map.Entry`, now hold a single entry. `Map.Entry e = {"k"=1}` gave an `Entry[]`, so `e.getKey()` failed with "method not found"; it now gives that entry. Several entries, three or more keys and values, or an empty initializer, such as `Map.Entry e = {"a"=1, "b"=2}`, `(Entry) {"k", 1, "l", 2}` or `Entry e = {}`, now throw a `ClassCastException` where they silently gave an `Entry[]`. An untyped `new Entry {...}` and an `Entry[]` declaration still give an array.
+A variable declared `Map.Entry`, and a cast to `Map.Entry`, now hold a single entry. `Map.Entry e = {"k"=1}` gave an `Entry[]`, so `e.getKey()` failed with "method not found"; it now gives that entry. Several entries, three or more keys and values, or an empty initializer, such as `Map.Entry e = {"a"=1, "b"=2}`, `(Entry) {"k", 1, "l", 2}` or `Entry e = {}`, now throw a `ClassCastException` where they silently gave an `Entry[]`. An untyped `new Entry {...}` and an `Entry[]` declaration still give an array. Where an argument is converted with the same rules, a one-entry array now gives its entry instead of a `ClassCastException`, as in `Map.ofEntries(new Entry {"a"=1}, new Entry {"b"=2})`, a scripted constructor taking a `Map.Entry`, or an element of an `Entry[]` initializer.
 
 ## 3.0.0 RC3
 
