@@ -49,15 +49,28 @@ Map.Entry ne = new Entry {null, 1};
 ne[null] = 2;
 assertEquals(2, ne.getValue());
 
-// an assignment's value is the previous value, the script's null when there
-// was none, also as a method argument
+// an assignment's value is the value assigned, as in Java, also as a
+// method argument
 f(v) { return v; }
 Map am = new HashMap();
-assertNull(f(am["x"] = 1));
-assertEquals(1, f(am["x"] = 2));
+am.put("x", 0);
+assertEquals(1, f(am["x"] = 1));
+assertEquals(2, f(am["y"] = 2));
+assertNull(f(am["z"] = null));
+assertEquals(5, (am["x"] += 4));
+assertEquals(7, am.x = 7);
 Map.Entry[] ae = {"m"=null};
-assertNull(f(ae["m"] = 4));
+assertEquals(4, f(ae["m"] = 4));
 assertEquals(4, ae["m"]);
+Map.Entry se = new Entry {"k", 1};
+assertEquals(9, se["k"] = 9);
+x1 = x2 = am["x"] = 3;
+assertEquals(3, x1);
+// a setter's assignment is the value assigned, not the setter's void
+Thread th = new Thread();
+int pri = (th.priority = 3);
+assertEquals(3, pri);
+assertEquals(3, th.getPriority());
 
 // an initializer, cast or assignment to another collection or map type
 // builds it through its public no-argument constructor

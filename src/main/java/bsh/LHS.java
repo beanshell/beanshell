@@ -313,11 +313,13 @@ class LHS implements ParserConstants, Serializable {
             throw new UtilEvalError(
                 "LHS ("+field.getName()+") can't access field: "+reason, e);
         } else if ( type == PROPERTY ) try {
+            // as in Java, the assignment's value is the value assigned,
+            // not what a map, entry or setter returns
             if (propName instanceof String)
-                return nullToPrimitive(
-                    Reflect.setObjectProperty(object, (String) propName, val));
-            return nullToPrimitive(
-                Reflect.setObjectProperty(object, propName, val));
+                Reflect.setObjectProperty(object, (String) propName, val);
+            else
+                Reflect.setObjectProperty(object, propName, val);
+            return val;
         } catch(ReflectError e) {
             Interpreter.debug("Assignment: " + e.getMessage());
             throw new UtilEvalError("No such property: " + propName, e);
@@ -352,9 +354,10 @@ class LHS implements ParserConstants, Serializable {
             return val;
         } else if ( type == MAP_ENTRY ) {
             // a map or entry holds the plain values, as Java code expects
-            if ( object instanceof Entry )
-                return nullToPrimitive(
-                    ((Entry) object).setValue(Primitive.unwrap(val)));
+            if ( object instanceof Entry ) {
+                ((Entry) object).setValue(Primitive.unwrap(val));
+                return val;
+            }
             // returns a Map.Entry of key and value pair
             return new MapEntry(Primitive.unwrap(object), Primitive.unwrap(val));
         } else
@@ -393,11 +396,5 @@ class LHS implements ParserConstants, Serializable {
         if ( this.object instanceof Class )
             cls = (Class<?>) this.object;
         this.field = BshClassManager.memberCache.get(cls).findField(varName);
-    }
-
-    /** The previous value a map or entry returns is the script's null when
-     * there was none, as for a read. */
-    private static Object nullToPrimitive(Object value) {
-        return null == value ? Primitive.NULL : value;
     }
 }
