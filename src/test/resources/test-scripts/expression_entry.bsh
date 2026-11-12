@@ -89,6 +89,15 @@ try {
 } catch ( ClassCastException e ) {
     assertThat(e.getMessage(), equalTo("Cannot cast Entry[] to Entry"));
 }
+// a one-element array whose element is null holds no entry
+assert(isEvalError("Cannot cast Entry[] to Entry",
+    'Map.Entry tentry = new Map.Entry[1];'));
+try {
+    entry = (Entry) new Entry[] { null };
+    assert(false);
+} catch ( ClassCastException e ) {
+    assertThat(e.getMessage(), equalTo("Cannot cast Entry[] to Entry"));
+}
 // an untyped or Entry[] typed initializer stays an array
 Entry[] tentries = {"k"=1};
 assertThat(tentries, instanceOf(Entry[].class));

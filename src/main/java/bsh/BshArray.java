@@ -391,7 +391,7 @@ public class BshArray {
             Object entry = toEntries(toType, fromValue);
             if ( entry.getClass().isArray() && 1 == Array.getLength(entry) )
                 entry = Array.get(entry, 0);
-            if ( entry.getClass().isArray() )
+            if ( null == entry || entry.getClass().isArray() )
                 throw Types.castError(toType, fromType, null, Types.CAST);
             return entry;
         }
