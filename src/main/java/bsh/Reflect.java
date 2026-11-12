@@ -1138,9 +1138,11 @@ public final class Reflect {
         } catch ( InvocationTargetException e ) {
             // the command threw, as a method call would
             throw new UtilTargetError(
-                "Error in compiled command", e.getCause() );
+                "Error in compiled command " + commandClass.getName(),
+                e.getCause() );
         } catch ( ReflectError e ) {
-            throw new UtilEvalError("Error invoking compiled command: " + e, e );
+            // the caller names the command, give only the reason
+            throw new UtilEvalError( e.getMessage(), e );
         }
     }
 

@@ -110,7 +110,10 @@ try {
     fail();
 } catch (bsh.TargetError e) {
     assertTrue(e.getTarget() instanceof IllegalStateException);
-    assertTrue(e.getMessage().contains("Error in compiled command"));
+    // the message names the command once, and the cause gives the reason
+    assertTrue(e.getMessage().startsWith(
+        "Error in compiled command mypackage.failingCommand at line"));
+    assertFalse(e.getMessage().contains("Error invoking compiled command"));
 }
 
 // a compiled command called with the wrong arguments names the command
@@ -119,8 +122,10 @@ try {
     this.interpreter.eval("dir(1, 2, 3);", this.namespace);
     fail();
 } catch (bsh.EvalError e) {
-    assertTrue(e.getMessage().contains("Error invoking compiled command"));
+    assertTrue(e.getMessage().startsWith(
+        "Error invoking compiled command: Static method invoke("));
     assertFalse(e.getMessage().contains(": :"));
+    assertFalse(e.getMessage().contains("ReflectError"));
 }
 
 complete();

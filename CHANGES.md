@@ -7,7 +7,7 @@ An array initializer element that can't be cast, such as `int[] a = {"x"}`, thro
 
 An exception or error inside an array index or array length expression, such as `a[boom()]`, `new int[boom()]` or `a[nosuch()]`, is now reported as itself. Before, it was reported as `Array index does not evaluate to an integer.`, which hid the real error. A value that isn't a number, such as `a["x"]`, still gives that message.
 
-A compiled command (a Java class with a static `invoke(Interpreter, CallStack, ...)` method) that throws now hands the script its own exception, as a method call does. Before, it was reported as `Error in compiled command`, an error that a script couldn't catch. Messages for a compiled command called with the wrong arguments no longer contain a doubled `: :`.
+A compiled command (a Java class with a static `invoke(Interpreter, CallStack, ...)` method) that throws now hands the script its own exception, as a method call does. Before, it was reported as `Error in compiled command`, an error that a script couldn't catch. Uncaught, it's reported as `Error in compiled command <class name>` with the command's exception as the cause. Messages for a compiled command called with the wrong arguments no longer repeat `Error invoking compiled command` or contain a doubled `: :`.
 
 ## 3.0.0 RC3
 

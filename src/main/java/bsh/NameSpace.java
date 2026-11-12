@@ -1329,6 +1329,9 @@ public class NameSpace
         try {
             return Reflect.invokeCompiledCommand(
                 ((Class<?>)commandObject), args, interpreter, callstack, callerInfo );
+        } catch ( UtilTargetError e ) {
+            // the command threw, its message already names the command
+            throw e.toEvalError( callerInfo, callstack );
         } catch ( UtilEvalError e ) {
             throw e.toEvalError("Error invoking compiled command",
                     callerInfo, callstack );
