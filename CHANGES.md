@@ -3,6 +3,8 @@
 
 ## 3.0.0 (in progress)
 
+A Java class's static initializer now runs when the class is first used, as in Java: when an instance is created, a static method is called, or a static field is read or written. It used to run as soon as a script named the class, even in a declaration such as `Boom b = null;`, `x instanceof Boom` or `Boom.class`. An initializer that throws now gives an `ExceptionInInitializerError` a script can catch, and later uses give a `NoClassDefFoundError`, as in Java. Before, the error escaped every `catch`, ended the script, and reached Java callers of `eval` as a raw `java.lang.Error` rather than an `EvalError`, or a `ScriptException` through JSR-223. A script that named a class only to run its initializer, for example to register something, must now use the class, or call `Class.forName("…")`. Unlike Java, which copies a constant such as `Boom.K` into the code that uses it, reading a constant still initializes the class (#928).
+
 ## 3.0.0 RC3
 
 Fixed reading a `null` list element, map value or `Map.Entry` value with the list and map syntax (`l[0]`, `m["a"]`, `m.a`, `e.value`) giving a broken value. Comparing it with `null` or assigning it to an untyped variable ended the script with `unknown error` or `internal Error`, and passing it to a scripted method stopped the interpreter with `java.lang.Error: HERE!`. It reads as `null` now. In BeanShell 2.x `e.value == null` was `true`. Assigning to an entry's value, `e.value = 5`, also left a `bsh.Primitive` in the entry for Java code to find; it now stores the plain value. Java code that calls `Reflect.getObjectProperty` or `BshArray.getIndex` directly gets `Primitive.NULL` for such a value, not a Java `null` (#930).
