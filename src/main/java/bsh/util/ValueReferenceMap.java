@@ -111,6 +111,9 @@ public class ValueReferenceMap<K,V> {
                     V value = entry.value();
                     if (value != null)
                         return value;
+                    // collected but not yet enqueued; left in place it would
+                    // shadow the replacement and make every later get() miss
+                    removeEntry(entry);
                     break;
                 }
             }
