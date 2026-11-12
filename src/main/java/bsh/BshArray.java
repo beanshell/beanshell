@@ -386,40 +386,60 @@ public class BshArray {
             }
         }
 
-        int[] dims = dimensions(fromValue);
-        int length = dims[0];
-        if (length == 0)
-            return Array.newInstance(toType, dims);
-        // if we have an Object[] try and find a more specific type
-        baseType = commonType(baseType, fromValue, () -> length);
-
-        // Entry type gets converted to LHS.MapEntry
+        // Entry type takes a single entry, or a key and value
         if ( Entry.class.isAssignableFrom(toType) ) {
-            if ( Entry.class.isAssignableFrom(baseType) ) {
-                if ( MapEntry.class != baseType )
-                    return fromValue;
-                // Cast to Map.Entry so as not to confuse it with maps
-                Entry<?, ?>[] toArray = new Entry[Array.getLength(fromValue)];
-                copy(Entry.class, (Object) toArray, fromValue);
-                return toArray;
-            }
-            if ( length == 1 )
-                return new MapEntry(Array.get(fromValue, 0), null);
-            if ( length == 2 )
-                return new MapEntry(Array.get(fromValue, 0), Array.get(fromValue, 1));
-            int size = (int) Math.ceil((0.0 + length) / 2);
-            // Using Map.Entry array so as not to confuse it with maps
-            Entry<?, ?>[] toArray = new Entry[size];
-            for ( int i = 0, j = 0; i < length; i++ )
-                toArray[j++] = new MapEntry(Array.get(fromValue, i),
-                    ++i < length ? Array.get(fromValue, i) : null);
-            return toArray;
+            Object entry = toEntries(toType, fromValue);
+            if ( entry.getClass().isArray() && 1 == Array.getLength(entry) )
+                entry = Array.get(entry, 0);
+            if ( null == entry || entry.getClass().isArray() )
+                throw Types.castError(toType, fromType, null, Types.CAST);
+            return entry;
         }
+
+        int[] dims = dimensions(fromValue);
+        if (dims[0] == 0)
+            return Array.newInstance(toType, dims);
 
         // cast array to element type of toType
         toType = Types.arrayElementType(toType);
         Object toArray = Array.newInstance(toType, dims);
         copyElements(toType, narrowing, toArray, fromValue);
+        return toArray;
+    }
+
+    /** Build entries from an array, as new Entry {...} does: a key and an
+     * optional value give one entry, entries or more values an array.
+     * @param toType the entry type
+     * @param fromValue the array of entries, or keys and values
+     * @return a Map.Entry or an array of Map.Entry
+     * @throws UtilEvalError cast error */
+    static Object toEntries( Class<?> toType, Object fromValue )
+            throws UtilEvalError {
+        int[] dims = dimensions(fromValue);
+        int length = dims[0];
+        if (length == 0)
+            return Array.newInstance(toType, dims);
+        // if we have an Object[] try and find a more specific type
+        Class<?> baseType = commonType(Types.arrayElementType(
+            fromValue.getClass()), fromValue, () -> length);
+        if ( Entry.class.isAssignableFrom(baseType) ) {
+            if ( MapEntry.class != baseType )
+                return fromValue;
+            // Cast to Map.Entry so as not to confuse it with maps
+            Entry<?, ?>[] toArray = new Entry[Array.getLength(fromValue)];
+            copy(Entry.class, (Object) toArray, fromValue);
+            return toArray;
+        }
+        if ( length == 1 )
+            return new MapEntry(Array.get(fromValue, 0), null);
+        if ( length == 2 )
+            return new MapEntry(Array.get(fromValue, 0), Array.get(fromValue, 1));
+        int size = (int) Math.ceil((0.0 + length) / 2);
+        // Using Map.Entry array so as not to confuse it with maps
+        Entry<?, ?>[] toArray = new Entry[size];
+        for ( int i = 0, j = 0; i < length; i++ )
+            toArray[j++] = new MapEntry(Array.get(fromValue, i),
+                ++i < length ? Array.get(fromValue, i) : null);
         return toArray;
     }
 

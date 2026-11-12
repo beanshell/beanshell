@@ -29,6 +29,7 @@ import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.lang.reflect.Array;
 
 import bsh.Types.MapEntry;
@@ -281,6 +282,9 @@ class BSHArrayInitializer extends SimpleNode {
                (Map.class.isAssignableFrom(valBase) ||
                 Collection.class.isAssignableFrom(valBase))))
             try {
+            // new Entry {...} gives an entry, or an array of entries
+            if ( Entry.class.isAssignableFrom(type) )
+                return BshArray.toEntries(type, value);
             return Types.castObject(value, type, Types.CAST);
         } catch ( UtilEvalError e ) {
             e.toEvalError(this, callstack);

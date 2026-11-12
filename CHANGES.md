@@ -3,6 +3,8 @@
 
 ## 3.0.0 (in progress)
 
+A variable declared `Map.Entry`, and a cast to `Map.Entry`, now hold a single entry. `Map.Entry e = {"k"=1}` gave an `Entry[]`, so `e.getKey()` failed with "method not found"; it now gives that entry. Several entries, three or more keys and values, or an empty initializer, such as `Map.Entry e = {"a"=1, "b"=2}`, `(Entry) {"k", 1, "l", 2}` or `Entry e = {}`, now throw a `ClassCastException` where they silently gave an `Entry[]`. An untyped `new Entry {...}` and an `Entry[]` declaration still give an array. Where an argument is converted with the same rules, a one-entry array now gives its entry instead of a `ClassCastException`, as in a scripted constructor taking a `Map.Entry`, an element of an `Entry[]` initializer, or, on Java 9 or later, `Map.ofEntries(new Entry {"a"=1}, new Entry {"b"=2})`.
+
 An array initializer element that can't be cast, such as `int[] a = {"x"}`, throws a `ClassCastException` again, as in BeanShell 2.x, so `catch (ClassCastException e)` catches it. Earlier 3.0 releases gave an `EvalException` with the message `Error in array initializer: ...`; a script that matched that message now gets the cast message itself, such as `Cannot cast String with value "x" to int`. A number that doesn't fit, such as `byte[] a = {300}`, gives the same `ClassCastException` as `byte b = 300`.
 
 An exception or error inside an array index or array length expression, such as `a[boom()]`, `new int[boom()]` or `a[nosuch()]`, is now reported as itself. Before, it was reported as `Array index does not evaluate to an integer.`, which hid the real error. A value that isn't a number, such as `a["x"]`, still gives that message.
