@@ -244,6 +244,22 @@ class BSHPrimarySuffix extends SimpleNode
         return index;
     }
 
+    /** Evaluate the key of a map, entry or entry array index.
+     * @param callstack the evaluation call stack
+     * @param interpreter the evaluation interpreter
+     * @return the key, which may be null
+     * @throws EvalError if the key is undefined, which would otherwise
+     *         read or write the null key */
+    private Object evalKey(CallStack callstack, Interpreter interpreter)
+            throws EvalError {
+        Object key = jjtGetChild(0).eval(callstack, interpreter);
+        if ( Primitive.VOID == key )
+            throw new EvalException(
+                "illegal use of undefined variable, class, or 'void' literal"
+                + " as a key", this, callstack );
+        return key;
+    }
+
     /** Array index or bracket expression implementation.
      * @param obj array or list instance
      * @param toLHS whether to return an LHS instance
@@ -260,13 +276,13 @@ class BSHPrimarySuffix extends SimpleNode
         if ( !interpreter.getStrictJava() ) {
             // allow index access for maps
             if ( Types.isPropertyTypeMap(obj) ) {
-                Object key = jjtGetChild(0).eval(callstack, interpreter);
+                Object key = evalKey(callstack, interpreter);
                 return toLHS ? new LHS(obj, key)
                       : Reflect.getObjectProperty(obj, key);
             }
             // allow index access for map entries
             if ( Types.isPropertyTypeEntry(obj) ) {
-                Object key = jjtGetChild(0).eval(callstack, interpreter);
+                Object key = evalKey(callstack, interpreter);
                 if ( toLHS ) {
                     if ( Objects.equals(Primitive.unwrap(key), ((Entry) obj).getKey()) )
                         return new LHS(obj);
@@ -288,7 +304,7 @@ class BSHPrimarySuffix extends SimpleNode
         // allow index access for a Map.Entry array.
         if ( !interpreter.getStrictJava()
                 && Types.isPropertyTypeEntryList(cls) ) {
-            Object key = jjtGetChild(0).eval(callstack, interpreter);
+            Object key = evalKey(callstack, interpreter);
             int idx = 0;
             boolean numeric = (key instanceof Primitive && ((Primitive) key).isNumber())
                 || (Primitive.isWrapperType(key.getClass()) && Types.isNumeric(key));

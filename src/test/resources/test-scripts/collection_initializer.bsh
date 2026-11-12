@@ -30,6 +30,31 @@ assertNull(km["c"]);
 assertTrue(km.containsKey(123));
 assertTrue(km.containsKey(null));
 
+// an undefined key is an error, not the null key
+Map nk = new HashMap();
+nk.put(null, "null key");
+fin = false;
+try { try { Object v = nk[undefinedKey]; fail(); } finally { fin = true; } }
+catch (bsh.EvalException e) {
+    assertTrue(e.getMessage().contains("undefined variable, class, or 'void' literal as a key"));
+}
+assertTrue(fin);
+try { nk[undefinedKey] = 1; fail(); }
+catch (bsh.EvalException e) { }
+assertEquals(1, nk.size());
+noValue() { }
+try { Object v = nk[noValue()]; fail(); }
+catch (bsh.EvalException e) { }
+Map.Entry ue = new Entry {null, 1};
+try { Object v = ue[undefinedKey]; fail(); }
+catch (bsh.EvalException e) { }
+Map.Entry[] ues = {null=1};
+try { Object v = ues[undefinedKey]; fail(); }
+catch (bsh.EvalException e) { }
+try { ues[undefinedKey] = 2; fail(); }
+catch (bsh.EvalException e) { }
+assertEquals("null key", nk[null]);
+
 // an index assignment stores plain keys, so Java lookups find them
 km[7] = "seven";
 assertTrue(km.containsKey(7));
