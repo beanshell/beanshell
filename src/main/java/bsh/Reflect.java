@@ -1016,16 +1016,18 @@ public final class Reflect {
     }
     @SuppressWarnings("rawtypes")
     static Object getObjectProperty(Object obj, Object propName, CallArguments.Result result) {
+        // a map or entry holds plain Java keys, as Java code puts them
+        Object key = Primitive.unwrap(propName);
         if ( Types.isPropertyTypeMap(obj) ) {
             Map map = (Map) obj;
-            if (map.containsKey(propName))
-                return nullToPrimitive(map.get(propName));
+            if (map.containsKey(key))
+                return nullToPrimitive(map.get(key));
             return Primitive.VOID;
         }
 
         if ( Types.isPropertyTypeEntry(obj) ) {
             Entry entre = (Entry) obj;
-            if (propName.equals(entre.getKey()))
+            if (Objects.equals(key, entre.getKey()))
                 return nullToPrimitive(entre.getValue());
             return Primitive.VOID;
         }
@@ -1062,8 +1064,9 @@ public final class Reflect {
 
     @SuppressWarnings("rawtypes")
     public static Entry getEntryForKey(Object key, Entry[] entries) {
+        Object plainKey = Primitive.unwrap(key);
         for ( Entry ntre : entries )
-            if ( key.equals(ntre.getKey()) )
+            if ( Objects.equals(plainKey, ntre.getKey()) )
                 return ntre;
         return null;
     }
@@ -1082,11 +1085,12 @@ public final class Reflect {
     public static Object setObjectProperty(
         Object obj, Object propName, Object value) {
         if ( Types.isPropertyTypeMap(obj) )
-            return ((Map) obj).put(propName, Primitive.unwrap(value));
+            return ((Map) obj).put(Primitive.unwrap(propName),
+                Primitive.unwrap(value));
 
         if ( Types.isPropertyTypeEntry(obj) ) {
             Entry entre = (Entry) obj;
-            if ( propName.equals(entre.getKey()) )
+            if ( Objects.equals(Primitive.unwrap(propName), entre.getKey()) )
                 return entre.setValue(Primitive.unwrap(value));
             throw new ReflectError("No such property setter: " + propName
                     + " for type: " + StringUtil.typeString(obj));

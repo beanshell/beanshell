@@ -15,6 +15,8 @@
 package bsh;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 import java.util.AbstractList;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -328,6 +330,32 @@ public class BshArray {
         return looseTypedMap;
     }
 
+    /** Create an empty collection or map of a type that has a public
+     * no-argument constructor, as new would.
+     * @param type the collection or map type
+     * @param fromType type of the array being cast
+     * @return the new, empty collection or map
+     * @throws UtilEvalError a ClassCastException if the type can't be
+     *         created, such as an interface or a class without that
+     *         constructor */
+    @SuppressWarnings("unchecked")
+    private static <T> T newInstance(Class<?> type, Class<?> fromType)
+            throws UtilEvalError {
+        if ( !type.isInterface()
+                && !Modifier.isAbstract(type.getModifiers()) )
+            try {
+                Constructor<?> constructor = type.getConstructor();
+                Interpreter.mainSecurityGuard.canConstruct(type, new Object[0]);
+                return (T) constructor.newInstance();
+            } catch ( NoSuchMethodException | IllegalAccessException e ) {
+                // no public no-argument constructor
+            } catch ( ReflectiveOperationException e ) {
+                throw new UtilTargetError(e.getCause());
+            }
+        throw Types.castError(type.getSimpleName(),
+            StringUtil.typeString(fromType), Types.CAST);
+    }
+
     /** Cast an array to the specified element type.
      * @param toType element type of cast array
      * @param fromType type of from value
@@ -369,21 +397,45 @@ public class BshArray {
                 return new LinkedHashSet<>(Arrays.asList((Object[])
                     Types.castObject(fromValue, Object.class, Types.CAST)));
 
+        // other collection types are built through their constructor
+        if ( Collection.class.isAssignableFrom(toType) ) {
+            Collection<Object> collection = newInstance(toType, fromType);
+            try {
+                collection.addAll(Arrays.asList((Object[])
+                    Types.castObject(fromValue, Object.class, Types.CAST)));
+            } catch ( RuntimeException e ) {
+                // the collection rejected an element, e.g. a TreeSet of
+                // elements that can't be compared
+                throw new UtilTargetError(e);
+            }
+            return collection;
+        }
+
         Class<?> baseType = Types.arrayElementType(fromType);
 
-        // Map type gets converted to a mutable LinkedHashMap
+        // Map type gets converted to a mutable LinkedHashMap, other map
+        // types are built through their constructor
         if ( Map.class.isAssignableFrom(toType) ) {
-            if ( Entry.class.isAssignableFrom(baseType) )
+            if ( Entry.class.isAssignableFrom(baseType)
+                    && toType.isAssignableFrom(LinkedHashMap.class) )
                 return mapOfEntries((Entry[]) fromValue);
-            if ( toType.isAssignableFrom(LinkedHashMap.class) ) {
-                int length = Array.getLength(fromValue);
-                Map<Object, Object> map = new LinkedHashMap<>(
-                        (int) Math.ceil((0.0 + length) / 2));
-                for ( int i = 0; i < length; i++ )
-                    map.put(Array.get(fromValue, i),
-                        ++i < length ? Array.get(fromValue, i) : null);
-                return map;
+            int length = Array.getLength(fromValue);
+            Map<Object, Object> map = toType.isAssignableFrom(LinkedHashMap.class)
+                ? new LinkedHashMap<>((int) Math.ceil((0.0 + length) / 2))
+                : newInstance(toType, fromType);
+            try {
+                if ( Entry.class.isAssignableFrom(baseType) )
+                    for ( Entry<?, ?> entry : (Entry[]) fromValue )
+                        map.put(entry.getKey(), entry.getValue());
+                else
+                    for ( int i = 0; i < length; i++ )
+                        map.put(Array.get(fromValue, i),
+                            ++i < length ? Array.get(fromValue, i) : null);
+            } catch ( RuntimeException e ) {
+                // the map rejected an entry, e.g. a null key in a TreeMap
+                throw new UtilTargetError(e);
             }
+            return map;
         }
 
         int[] dims = dimensions(fromValue);

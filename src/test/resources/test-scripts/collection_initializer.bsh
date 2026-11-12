@@ -1,0 +1,186 @@
+#!/bin/java bsh.Interpreter
+
+source("TestHarness.bsh");
+source("Assert.bsh");
+
+// Maps and entries hold plain Java keys and values, so a script reads them
+// the same whether the script or Java code built them.
+
+// a map that Java code built, read by index
+HashMap h = new HashMap();
+h.put(5, "five");
+h.put(null, "nul");
+assertEquals("five", h[5]);
+assertEquals("nul", h[null]);
+a = 5;
+assertEquals("five", h[a]);
+
+// a map built from pairs, read by index
+Map pm = {1, "x", null, "n"};
+assertEquals("x", pm[1]);
+assertEquals("n", pm[null]);
+
+// a map built from key=value entries, read by index
+b = 123;
+Map km = {b=5, null=6, "c"=null};
+assertEquals(5, km[b]);
+assertEquals(5, km[123]);
+assertEquals(6, km[null]);
+assertNull(km["c"]);
+assertTrue(km.containsKey(123));
+assertTrue(km.containsKey(null));
+
+// an undefined key is an error, not the null key
+Map nk = new HashMap();
+nk.put(null, "null key");
+fin = false;
+try { try { Object v = nk[undefinedKey]; fail(); } finally { fin = true; } }
+catch (bsh.EvalException e) {
+    assertTrue(e.getMessage().contains("undefined variable, class, or 'void' literal as a key"));
+}
+assertTrue(fin);
+try { nk[undefinedKey] = 1; fail(); }
+catch (bsh.EvalException e) { }
+assertEquals(1, nk.size());
+noValue() { }
+try { Object v = nk[noValue()]; fail(); }
+catch (bsh.EvalException e) { }
+Map.Entry ue = new Entry {null, 1};
+try { Object v = ue[undefinedKey]; fail(); }
+catch (bsh.EvalException e) { }
+Map.Entry[] ues = {null=1};
+try { Object v = ues[undefinedKey]; fail(); }
+catch (bsh.EvalException e) { }
+try { ues[undefinedKey] = 2; fail(); }
+catch (bsh.EvalException e) { }
+assertEquals("null key", nk[null]);
+
+// an index assignment stores plain keys, so Java lookups find them
+km[7] = "seven";
+assertTrue(km.containsKey(7));
+assertEquals("seven", km.get(7));
+assertEquals("seven", km[7]);
+
+// an entry array and a single entry, by key (a number inside the array's
+// length is an index)
+Map.Entry[] es = {7=2, null=3};
+assertEquals(2, es[7]);
+assertEquals(3, es[null]);
+e = new Entry {"k", 1};
+e["k"] = 2;
+assertEquals(2, e.getValue());
+assert(isEvalError("No such property: zz", "e[\"zz\"] = 1;"));
+Map.Entry ne = new Entry {null, 1};
+ne[null] = 2;
+assertEquals(2, ne.getValue());
+
+// an assignment's value is the value assigned, as in Java, also as a
+// method argument
+f(v) { return v; }
+Map am = new HashMap();
+am.put("x", 0);
+assertEquals(1, f(am["x"] = 1));
+assertEquals(2, f(am["y"] = 2));
+assertNull(f(am["z"] = null));
+assertEquals(5, (am["x"] += 4));
+assertEquals(7, am.x = 7);
+Map.Entry[] ae = {"m"=null};
+assertEquals(4, f(ae["m"] = 4));
+assertEquals(4, ae["m"]);
+Map.Entry se = new Entry {"k", 1};
+assertEquals(9, se["k"] = 9);
+x1 = x2 = am["x"] = 3;
+assertEquals(3, x1);
+// a setter's assignment is the value assigned, not the setter's void
+Thread th = new Thread();
+int pri = (th.priority = 3);
+assertEquals(3, pri);
+assertEquals(3, th.getPriority());
+
+// an initializer, cast or assignment to another collection or map type
+// builds it through its public no-argument constructor
+TreeSet ts = {3, 1, 2};
+assertEquals(TreeSet.class, ts.getClass());
+assertEquals("[1, 2, 3]", ts.toString());
+TreeSet ets = {};
+ets.add(5);
+assertEquals(1, ets.size());
+TreeMap tm = {"b"=2, "a"=1};
+assertEquals(TreeMap.class, tm.getClass());
+assertEquals("{a=1, b=2}", tm.toString());
+TreeMap ptm = {"b", 2, "a", 1};
+assertEquals("{a=1, b=2}", ptm.toString());
+TreeMap etm = {};
+assertEquals(0, etm.size());
+PriorityQueue pq = {3, 1};
+assertEquals(1, pq.peek());
+Vector vec = {1, null};
+assertEquals(Vector.class, vec.getClass());
+assertNull(vec.get(1));
+Stack st = {1, 2};
+assertEquals(2, st.peek());
+java.util.concurrent.ConcurrentHashMap chm = {"a"=1};
+assertEquals(1, chm.get("a"));
+java.util.concurrent.CopyOnWriteArrayList cow = {1};
+assertEquals(1, cow.get(0));
+Object[] arr = {2, 1};
+TreeSet cts = (TreeSet) arr;
+assertEquals("[1, 2]", cts.toString());
+Integer[] iarr = {2, 1};
+TreeSet ats = iarr;
+assertEquals("[1, 2]", ats.toString());
+
+// a type it can't create is a ClassCastException naming the type, not an
+// array of that type, and finally runs
+import java.util.concurrent.ArrayBlockingQueue;
+fin = false;
+try { try { ArrayBlockingQueue q = {}; fail(); } finally { fin = true; } }
+catch (ClassCastException e) {
+    assertEquals("Cannot cast Object[] to ArrayBlockingQueue", e.getMessage());
+}
+assertTrue(fin);
+try { SortedSet ss = {1}; fail(); }
+catch (ClassCastException e) {
+    assertEquals("Cannot cast int[] to SortedSet", e.getMessage());
+}
+try { SortedMap sm = {"a"=1}; fail(); }
+catch (ClassCastException e) {
+    assertEquals("Cannot cast Entry[] to SortedMap", e.getMessage());
+}
+try { EnumSet es2 = {}; fail(); }
+catch (ClassCastException e) { }
+
+// the collection's own exception when it rejects an element
+try { TreeSet bad = {1, "a"}; fail(); }
+catch (ClassCastException e) { }
+try { TreeSet bad = {1, null}; fail(); }
+catch (NullPointerException e) { }
+try { TreeMap bad = {null=1}; fail(); }
+catch (NullPointerException e) { }
+try { java.util.concurrent.ConcurrentHashMap bad = {"a"=null}; fail(); }
+catch (NullPointerException e) { }
+
+// a constructor that throws reaches the script with its message
+class Refuses extends ArrayList {
+    public Refuses() { throw new IllegalStateException("refused"); }
+}
+try { Refuses r = {1}; fail(); }
+catch (Throwable t) { assertTrue(t.getMessage().contains("refused")); }
+
+// the types built before are unchanged
+List l = {1};
+assertEquals(ArrayList.class, l.getClass());
+Set s = {1};
+assertEquals(LinkedHashSet.class, s.getClass());
+Map m = {"a"=1};
+assertEquals(LinkedHashMap.class, m.getClass());
+HashMap hm = {"b", 2};
+assertEquals(LinkedHashMap.class, hm.getClass());
+Deque d = {1};
+assertEquals(ArrayDeque.class, d.getClass());
+Queue q = {1};
+assertEquals(LinkedList.class, q.getClass());
+Map.Entry me = {"k", 1};
+assertEquals(1, me.getValue());
+
+complete();

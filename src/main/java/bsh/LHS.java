@@ -313,9 +313,13 @@ class LHS implements ParserConstants, Serializable {
             throw new UtilEvalError(
                 "LHS ("+field.getName()+") can't access field: "+reason, e);
         } else if ( type == PROPERTY ) try {
+            // as in Java, the assignment's value is the value assigned,
+            // not what a map, entry or setter returns
             if (propName instanceof String)
-                return  Reflect.setObjectProperty(object, (String) propName, val);
-            return  Reflect.setObjectProperty(object, propName, val);
+                Reflect.setObjectProperty(object, (String) propName, val);
+            else
+                Reflect.setObjectProperty(object, propName, val);
+            return val;
         } catch(ReflectError e) {
             Interpreter.debug("Assignment: " + e.getMessage());
             throw new UtilEvalError("No such property: " + propName, e);
@@ -349,10 +353,13 @@ class LHS implements ParserConstants, Serializable {
             nameSpace.setTypedVariable(varName, Types.getType(val), val, mods);
             return val;
         } else if ( type == MAP_ENTRY ) {
-            if ( object instanceof Entry )
-                return ((Entry) object).setValue(val);
+            // a map or entry holds the plain values, as Java code expects
+            if ( object instanceof Entry ) {
+                ((Entry) object).setValue(Primitive.unwrap(val));
+                return val;
+            }
             // returns a Map.Entry of key and value pair
-            return new MapEntry(object, val);
+            return new MapEntry(Primitive.unwrap(object), Primitive.unwrap(val));
         } else
             throw new InterpreterError("unknown lhs type");
         return val;
@@ -391,4 +398,3 @@ class LHS implements ParserConstants, Serializable {
         this.field = BshClassManager.memberCache.get(cls).findField(varName);
     }
 }
-
