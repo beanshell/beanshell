@@ -244,11 +244,24 @@ class BSHArrayInitializer extends SimpleNode {
             return Primitive.unwrap(
                     Types.castObject(value, baseType, Types.CAST));
         } catch ( UtilEvalError e ) {
-            throw e.toEvalException(
-                "Error in array initializer", this, callstack );
+            throw castFailed(e, "Error in array initializer", callstack);
         }
         // unwrap any primitive, map voids to null, etc.
         return Primitive.unwrap(value);
+    }
+
+    /** A failed cast is the Java exception it names, such as a
+     * ClassCastException; any other error can be caught as an
+     * EvalException.
+     * @param e the cast error
+     * @param msg the message prefix
+     * @param callstack the evaluation call stack
+     * @return the error to throw */
+    private EvalError castFailed(UtilEvalError e, String msg,
+            CallStack callstack) {
+        if ( e instanceof UtilTargetError )
+            return e.toEvalError(msg, this, callstack);
+        return e.toEvalException(msg, this, callstack);
     }
 
     /** Cast the produced array if collection type or return array.

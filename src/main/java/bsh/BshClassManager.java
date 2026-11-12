@@ -730,8 +730,9 @@ public class BshClassManager {
 
         if ( externalClassLoader != null )
             c = externalClassLoader.loadClass( name );
-        else
-            c = Class.forName( name );
+        else // without initializing the class, which happens at first use
+            c = Class.forName( name, false,
+                BshClassManager.class.getClassLoader() );
 
         cacheClassInfo( name, c );
 

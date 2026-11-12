@@ -380,6 +380,9 @@ public final class Reflect {
                 throw (InterpreterError)e.getCause();
             if (e.getCause() instanceof UtilEvalError)
                 throw new UtilTargetError(e.getCause());
+            // the class failed to initialize
+            if (e.getCause() instanceof Error)
+                throw new UtilTargetError(e.getCause());
             throw new ReflectError("Can't access field: "
                 + fieldName, e.getCause());
         }
@@ -1136,10 +1139,18 @@ public final class Reflect {
             return invokeStaticMethod(
                 bcm, commandClass, "invoke", invokeArgs, callerInfo );
         } catch ( InvocationTargetException e ) {
-            throw new UtilEvalError(
-                "Error in compiled command: " + e.getCause(), e );
+            // nothing to pass on, as with too few arguments: a TargetError
+            // would unwrap this to a null target, which a try swallows
+            if ( e.getCause() instanceof InvocationTargetException
+                    && null == e.getCause().getCause() )
+                throw new UtilEvalError( e.getCause().getMessage(), e );
+            // the command threw, as a method call would
+            throw new UtilTargetError(
+                "Error in compiled command " + commandClass.getName(),
+                e.getCause() );
         } catch ( ReflectError e ) {
-            throw new UtilEvalError("Error invoking compiled command: " + e, e );
+            // the caller names the command, give only the reason
+            throw new UtilEvalError( e.getMessage(), e );
         }
     }
 
@@ -1232,9 +1243,14 @@ public final class Reflect {
         try {
             return getClassStaticThis(type, type.getSimpleName()).namespace;
         } catch (Exception e) {
-            if (e.getCause() instanceof UtilTargetError)
-                throw new InterpreterError(e.getCause().getCause().getMessage(),
-                        e.getCause().getCause());
+            if (e.getCause() instanceof UtilTargetError) {
+                Throwable reason = e.getCause().getCause();
+                // report what the class's static initializer threw
+                if (reason instanceof ExceptionInInitializerError
+                        && null != reason.getCause())
+                    reason = reason.getCause();
+                throw new InterpreterError(reason.getMessage(), reason);
+            }
             return null;
         }
     }
