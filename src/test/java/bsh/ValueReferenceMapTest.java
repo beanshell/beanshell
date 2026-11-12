@@ -15,11 +15,11 @@ import static bsh.util.ValueReferenceMap.Type.Soft;
 import static bsh.util.ValueReferenceMap.Type.Weak;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
@@ -125,8 +125,25 @@ public class ValueReferenceMapTest {
         assertCleanupPreservesReplacement(Soft);
     }
 
+    @Test
+    public void weak_reference_replaces_collected_value_before_enqueue() throws Exception {
+        assertCollectedValueReplaced(Weak, false);
+    }
+
+    @Test
+    public void soft_reference_replaces_collected_value_before_enqueue() throws Exception {
+        assertCollectedValueReplaced(Soft, false);
+    }
+
     private void assertCleanupPreservesReplacement(ValueReferenceMap.Type type)
             throws Exception {
+        assertCollectedValueReplaced(type, true);
+    }
+
+    /** The JVM clears a reference at GC and enqueues it later, on another
+     * thread; a lookup can come in between. */
+    private void assertCollectedValueReplaced(ValueReferenceMap.Type type,
+            boolean enqueued) throws Exception {
         AtomicInteger creations = new AtomicInteger();
         ValueReferenceMap<String,Object> cache = new ValueReferenceMap<>(key -> {
             creations.incrementAndGet();
@@ -135,9 +152,10 @@ public class ValueReferenceMapTest {
         Object original = cache.get("key");
         Reference<?> oldReference = cachedReference(cache, "key");
 
-        // Recreate a collected value before its queued reference is processed.
+        // Recreate a collected value before its reference is processed.
         oldReference.clear();
-        assertTrue(oldReference.enqueue());
+        if (enqueued)
+            assertTrue(oldReference.enqueue());
         Object replacement = cache.get("key");
         assertNotSame(original, replacement);
 
@@ -178,7 +196,8 @@ public class ValueReferenceMapTest {
             assertArrayEquals(new byte[1024*100], cache.get(cnt[0]));
         }
         System.gc();
-        assertNotEquals(cache.size(), cnt[0]);
+        // at most one entry for each of the 10 keys
+        assertThat(cache.size(), lessThanOrEqualTo(10));
         assertArrayEquals(new byte[1024*100], cache.get(cnt[0]));
     }
 
@@ -244,7 +263,8 @@ public class ValueReferenceMapTest {
             assertArrayEquals(new byte[1024*100], cache.get(cnt[0]));
         }
         System.gc();
-        assertNotEquals(cache.size(), cnt[0]);
+        // at most one entry for each of the 10 keys
+        assertThat(cache.size(), lessThanOrEqualTo(10));
         assertArrayEquals(new byte[1024*100], cache.get(cnt[0]));
     }
 }
