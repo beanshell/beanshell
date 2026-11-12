@@ -355,4 +355,51 @@ public class ScriptedSourceTest {
         assertEquals(0, defined.getParameterNames().length);
         assertEquals(3, target.getMethods().length);
     }
+
+    // ---- text that ends in a comment -----------------------------------------
+
+    @Test
+    public void parseAllocation_acceptsTextThatEndsInAComment() throws Exception {
+        String body = "new Runnable() { run() { } }";
+        for (String ending : new String[] {
+                " // note", " // note;", " /* note */", " // note\n", "; // note", ";\n// note",
+                " /* a */ // b" }) {
+            ScriptedSource source = ScriptedSource.parseAllocation(body + ending);
+            assertEquals("text: " + ending, "Runnable", source.name());
+            assertEquals("text: " + ending, 1, source.methods().size());
+        }
+    }
+
+    @Test
+    public void parseAllocation_stillRejectsMoreThanOneStatement() {
+        assertRejectsAllocation("new Runnable() { } // note\nnew Runnable() { }");
+        assertRejectsAllocation("new Runnable() { }; new Runnable() { } // note");
+        assertRejectsAllocation("a() { } // note");
+    }
+
+    @Test
+    public void parseAllocation_reportsTheRealProblemInTheText() {
+        try {
+            ScriptedSource.parseAllocation("new Runnable() { run( }; // note");
+            fail();
+        } catch (ParseException expected) {
+            assertTrue(expected.getMessage(), !expected.getMessage().isEmpty());
+        }
+    }
+
+    @Test
+    public void parseMethod_acceptsTextThatEndsInAComment() throws Exception {
+        assertEquals("a", ScriptedSource.parseMethod("a() { } // note").name());
+        assertEquals("a", ScriptedSource.parseMethod("a() { } /* note */").name());
+    }
+
+    @Test
+    public void sourceText_includesTheCommentAboveTheDeclaration_evenATrailingOneFromThePreviousLine() throws Exception {
+        // documented: the parser attaches a comment to the token after it, so it cannot
+        // tell a trailing comment of the previous statement from a comment above the declaration
+        eval("x = 1; // trailing note", "Object mk(Object p) { return this; }");
+        BshMethod method = ((This) eval("mk(1);")).getNameSpace().getDeclaringMethod();
+        assertEquals("// trailing note\nObject mk(Object p) { return this; }",
+            ScriptedSource.of(method).sourceText());
+    }
 }

@@ -247,6 +247,13 @@ public class SimpleNode implements Node, Serializable {
      * tokens) are included, and whitespace is rebuilt from token positions
      * relative to the column of the first token. Tabs come back as spaces,
      * because the parser counts expanded columns.
+     * <p>
+     * The comments in front of the first token belong to it, as the parser
+     * attaches a comment to the token that follows it. That is what a comment
+     * on the lines above a declaration should be. The parser cannot tell it from
+     * a trailing comment on the line of the <em>previous</em> statement, so such a
+     * comment, for example <code>x = 1; // note</code> above a method, is also
+     * part of the next node's source text.
      * @return the source text, or {@link #getText()} if the node has no tokens
      */
     public String getSourceText()

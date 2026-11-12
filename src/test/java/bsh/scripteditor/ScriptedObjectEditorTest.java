@@ -473,6 +473,18 @@ public class ScriptedObjectEditorTest {
     }
 
     @Test
+    public void anonymous_editMayEndWithAComment() throws Exception {
+        Object r = runnable();
+        String edited = RUNNABLE_AFTER + " // changed by the user";
+        editor.checkEdit(r, edited);
+        editor.reinstantiateEdited(r, edited).as(Runnable.class).run();
+        assertEquals(Arrays.asList("after"), log);
+        editor.patchInPlace(r, edited);
+        ((Runnable) r).run();
+        assertEquals(Arrays.asList("after", "after"), log);
+    }
+
+    @Test
     public void anonymous_validCheckEditPasses() throws Exception {
         editor.checkEdit(runnable(), RUNNABLE_AFTER);
         editor.checkEdit(timerTask(), TASK_AFTER);

@@ -24,6 +24,11 @@ public interface ScriptedDefinition {
      * included and tabs come back as spaces. For a method-created object this is the
      * method declaration; for an anonymous class it is the <code>new Type(args) { ... }</code>
      * expression. It reflects any earlier {@link #patchInPlace(String)}.
+     * <p>
+     * Comments directly above the declaration are part of its text. That includes a
+     * trailing comment from the line of the statement before it (<code>x = 1; // note</code>),
+     * because the parser cannot tell it from a comment on its own line. An edit may keep
+     * or drop such a comment.
      */
     String sourceText();
 

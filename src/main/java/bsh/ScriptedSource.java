@@ -133,15 +133,32 @@ public final class ScriptedSource {
 
     /**
      * Parse text that must contain exactly one "new Type(...) { ... }" expression.
-     * A trailing ';' is optional.
+     * A trailing ';' is optional, and the text may end with a comment.
      * @throws ParseException if the text is empty, has more than one statement, or
      *   is not an allocation with a class body
      */
     public static ScriptedSource parseAllocation(String text) throws ParseException {
-        String terminated = text.trim();
-        if ( !terminated.endsWith(";") )
-            terminated += ";";
-        BSHAllocationExpression allocation = allocationIn(parseSingle(terminated));
+        String trimmed = text.trim();
+        // The terminator goes on a line of its own, so that a trailing // comment
+        // cannot swallow it. If the text already ends in a ';' the extra one is a
+        // second statement, so the text is parsed as it stands.
+        ParseException failure;
+        try {
+            return allocationSource(trimmed + "\n;");
+        } catch ( ParseException e ) {
+            failure = e;
+        }
+        try {
+            return allocationSource(trimmed);
+        } catch ( ParseException e ) {
+            if ( trimmed.endsWith(";") )
+                failure = e;
+        }
+        throw failure;
+    }
+
+    private static ScriptedSource allocationSource(String text) throws ParseException {
+        BSHAllocationExpression allocation = allocationIn(parseSingle(text));
         if ( allocation == null || bodyOf(allocation) == null )
             throw new ParseException(
                 "Text must be a single 'new Type(...) { ... }' expression");
@@ -153,7 +170,12 @@ public final class ScriptedSource {
     /** Whether this is a method declaration or an anonymous class allocation. */
     public Kind kind() { return kind; }
 
-    /** The source as written, including comments; see {@link SimpleNode#getSourceText()}. */
+    /**
+     * The source as written, including comments. Comments directly above the
+     * declaration are included, and so is a trailing comment from the line of the
+     * statement before it, as the parser cannot tell the two apart; see
+     * {@link SimpleNode#getSourceText()}.
+     */
     public String sourceText() { return node.getSourceText(); }
 
     /**
