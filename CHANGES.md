@@ -3,6 +3,12 @@
 
 ## 3.0.0 (in progress)
 
+An array initializer element that can't be cast, such as `int[] a = {"x"}`, throws a `ClassCastException` again, as in BeanShell 2.x, so `catch (ClassCastException e)` catches it. Earlier 3.0 releases gave an `EvalException` with the message `Error in array initializer: ...`; a script that matched that message now gets the cast message itself, such as `Cannot cast String with value "x" to int`. A number that doesn't fit, such as `byte[] a = {300}`, gives the same `ClassCastException` as `byte b = 300`.
+
+An exception or error inside an array index or array length expression, such as `a[boom()]`, `new int[boom()]` or `a[nosuch()]`, is now reported as itself. Before, it was reported as `Array index does not evaluate to an integer.`, which hid the real error. A value that isn't a number, such as `a["x"]`, still gives that message.
+
+A compiled command (a Java class with a static `invoke(Interpreter, CallStack, ...)` method) that throws now hands the script its own exception, as a method call does. Before, it was reported as `Error in compiled command`, an error that a script couldn't catch. Uncaught, it's reported as `Error in compiled command <class name>` with the command's exception as the cause. Messages for a compiled command called with the wrong arguments no longer repeat `Error invoking compiled command` or contain a doubled `: :`.
+
 A Java class's static initializer now runs when the class is first used, as in Java: when an instance is created, a static method is called, or a static field is read or written. It used to run as soon as a script named the class, even in a declaration such as `Boom b = null;`, `x instanceof Boom` or `Boom.class`. An initializer that throws now gives an `ExceptionInInitializerError` a script can catch, and later uses give a `NoClassDefFoundError`, as in Java. Before, the error escaped every `catch`, ended the script, and reached Java callers of `eval` as a raw `java.lang.Error` rather than an `EvalError`, or a `ScriptException` through JSR-223. A script that named a class only to run its initializer, for example to register something, must now use the class, or call `Class.forName("…")`. Unlike Java, which copies a constant such as `Boom.K` into the code that uses it, reading a constant still initializes the class (#928).
 
 ## 3.0.0 RC3

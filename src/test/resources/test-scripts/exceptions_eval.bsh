@@ -67,9 +67,11 @@ try {
 
 try {
     a = new int[]{1,2,3,"a"};
-} catch (Exception ex) {
-    Matcher m = Pattern.compile("Error in array initializer").matcher(ex.getMessage());
-    String err = "Expected [Error in array initializer] got ["+ex.getMessage()+"]";
+    fail("Expected invalid array initializer to fail");
+} catch (ClassCastException ex) {
+    String expected = "Cannot cast String with value \"a\" to int";
+    Matcher m = Pattern.compile(Pattern.quote(expected)).matcher(ex.getMessage());
+    String err = "Expected ["+expected+"] got ["+ex.getMessage()+"]";
     assertTrue(err,m.find());
 } finally {
     flag();
@@ -78,8 +80,8 @@ try {
 try {
     new {{false}, true};
     fail("Expected invalid array initializer to fail");
-} catch (Exception ex) {
-    String expected = "Error in array initializer: Cannot cast primitive value to object type [Z";
+} catch (ClassCastException ex) {
+    String expected = "Cannot cast primitive value to object type [Z";
     Matcher m = Pattern.compile(Pattern.quote(expected)).matcher(ex.getMessage());
     String err = "Expected ["+expected+"] got ["+ex.getMessage()+"]";
     assertTrue(err,m.find());

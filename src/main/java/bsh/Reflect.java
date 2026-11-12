@@ -1139,10 +1139,18 @@ public final class Reflect {
             return invokeStaticMethod(
                 bcm, commandClass, "invoke", invokeArgs, callerInfo );
         } catch ( InvocationTargetException e ) {
-            throw new UtilEvalError(
-                "Error in compiled command: " + e.getCause(), e );
+            // nothing to pass on, as with too few arguments: a TargetError
+            // would unwrap this to a null target, which a try swallows
+            if ( e.getCause() instanceof InvocationTargetException
+                    && null == e.getCause().getCause() )
+                throw new UtilEvalError( e.getCause().getMessage(), e );
+            // the command threw, as a method call would
+            throw new UtilTargetError(
+                "Error in compiled command " + commandClass.getName(),
+                e.getCause() );
         } catch ( ReflectError e ) {
-            throw new UtilEvalError("Error invoking compiled command: " + e, e );
+            // the caller names the command, give only the reason
+            throw new UtilEvalError( e.getMessage(), e );
         }
     }
 
