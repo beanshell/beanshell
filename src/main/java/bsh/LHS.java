@@ -244,6 +244,11 @@ class LHS implements ParserConstants, Serializable {
             Variable variable = nameSpace.getVariableImpl(varName, !localVar);
             return null == variable ? null : variable.getType();
         }
+        if ( type == LOOSETYPE_FIELD ) {
+            // a scripted class's field, looked up as getVariable() does
+            Variable variable = nameSpace.getVariableImpl(varName, true);
+            return null == variable ? null : variable.getType();
+        }
         return null;
     }
 

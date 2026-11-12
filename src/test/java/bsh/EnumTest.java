@@ -14,6 +14,7 @@ import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Rule;
 
@@ -264,8 +265,14 @@ public class EnumTest {
         ));
         assertThat("val2 switched", bsh.eval("switchit(Name.VAL2);"), equalTo("val2"));
         assertThat("val1 switched", bsh.eval("switchit(Name.VAL1);"), equalTo("val1"));
-        assertThat("default switched null", bsh.eval("switchit(null);"), equalTo("default"));
         assertThat("default switched string", bsh.eval("switchit('VAL1');"), equalTo("default"));
+        // a null value doesn't run default, as in Java (#924)
+        try {
+            bsh.eval("switchit(null);");
+            fail("null switched");
+        } catch (TargetError e) {
+            assertThat(e.getTarget(), instanceOf(NullPointerException.class));
+        }
         bsh.getNameSpace().clear();
     }
 

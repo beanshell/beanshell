@@ -42,8 +42,19 @@ class BSHSwitchStatement
         Node switchExp = jjtGetChild(child++);
         Object switchVal = switchExp.eval( callstack, interpreter );
 
+        if ( switchVal == Primitive.VOID )
+            throw new EvalException( "illegal use of undefined variable, "
+                + "class, or 'void' literal", this, callstack );
+
+        // as in Java 21, a null value only matches a case null label and
+        // throws a NullPointerException when there is none
+        boolean isNull = Primitive.unwrap(switchVal) == null;
+        if ( isNull && !hasNullLabel() )
+            throw new TargetError( new NullPointerException(
+                "null value in switch" ), this, callstack );
+
         // import enum constants
-        if ( Primitive.unwrap(switchVal) != null && switchVal.getClass().isEnum() )
+        if ( !isNull && switchVal.getClass().isEnum() )
             callstack.top().importStatic( switchVal.getClass() );
 
 
@@ -65,8 +76,8 @@ class BSHSwitchStatement
         while ( child < numchild && returnControl == null )
         {
             // if label is default or equals switchVal
-            if ( label.isDefault
-                || primitiveEquals(
+            if ( isNull ? isNullLabel(label)
+                : label.isDefault || primitiveEquals(
                     switchVal, label.eval( callstack, interpreter ),
                     callstack, switchExp )
                 )
@@ -107,6 +118,30 @@ class BSHSwitchStatement
             return Primitive.VOID;
     }
 
+    /** Whether any label of this switch is case null. */
+    private boolean hasNullLabel() {
+        for ( int i = 1; i < jjtGetNumChildren(); i++ )
+            if ( jjtGetChild(i) instanceof BSHSwitchLabel
+                    && isNullLabel((BSHSwitchLabel) jjtGetChild(i)) )
+                return true;
+        return false;
+    }
+
+    /** Whether the label is case null, which is checked without evaluating
+     * any label, as Java checks a null value before matching. */
+    private static boolean isNullLabel( BSHSwitchLabel label ) {
+        if ( label.isDefault )
+            return false;
+        Node node = label.jjtGetChild(0);
+        while ( node instanceof BSHAssignment
+                && ((BSHAssignment) node).operator == null
+                || node instanceof BSHPrimaryExpression
+                && node.jjtGetNumChildren() == 1 )
+            node = node.jjtGetChild(0);
+        return node instanceof BSHLiteral
+            && ((BSHLiteral) node).value == Primitive.NULL;
+    }
+
     /**
         Helper method for testing equals on two primitive or boxable objects.
         yuck: factor this out into Primitive.java
@@ -116,7 +151,8 @@ class BSHSwitchStatement
         CallStack callstack, Node switchExp  )
         throws EvalError
     {
-        if (targetVal == Primitive.VOID)
+        // a value that isn't null never matches case null
+        if (targetVal == Primitive.VOID || targetVal == Primitive.NULL)
             return false;
         if ( switchVal instanceof Primitive || targetVal instanceof Primitive )
             try {
