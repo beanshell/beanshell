@@ -116,6 +116,19 @@ try {
     assertFalse(e.getMessage().contains("Error invoking compiled command"));
 }
 
+// a compiled command called with too few arguments is an error that a
+// try in the script doesn't swallow
+reached = false;
+try {
+    this.interpreter.eval(
+        "try { failingCommand(); } catch (Throwable t) {} reached = true;",
+        this.namespace);
+    fail();
+} catch (bsh.EvalError e) {
+    assertTrue(e.getMessage().contains("Insufficient parameters"));
+}
+assertFalse(reached);
+
 // a compiled command called with the wrong arguments names the command
 // without a doubled separator
 try {
