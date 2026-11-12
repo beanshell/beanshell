@@ -22,12 +22,10 @@ assertThat(entries, instanceOf(Entry[].class));
 entries = new Entry {"k", 3, "l", 5, "m"};
 assertThat(entries, valueString('{"k"=3I, "l"=5I, "m"=null}'));
 assertThat(entries, instanceOf(Entry[].class));
-Entry tentries = new Entry {"k", 3, "l", 5, "m"};
-assertThat(tentries, valueString('{"k"=3I, "l"=5I, "m"=null}'));
-assertThat(tentries, instanceOf(Entry[].class));
-entries = (Entry) {"k", 3, "l", 5};
-assertThat(entries, valueString('{"k"=3I, "l"=5I}'));
-assertThat(entries, instanceOf(Entry[].class));
+assert(isEvalError("Cannot cast Entry[] to Entry",
+    'Entry tentries = new Entry {"k", 3, "l", 5, "m"};'));
+assert(isEvalError("Cannot cast Object[] to Entry",
+    '(Entry) {"k", 3, "l", 5};'));
 entries = new Entry {"entries"=new Entry {"key"=2}};
 assertThat(entries, valueString('{"entries"={"key"=2I}}'));
 assertThat(entries, instanceOf(Entry[].class));
@@ -69,6 +67,57 @@ assertThat(tentry, instanceOf(Entry.class));
 entry = new Entry {"k1", 1, "k2"};
 assertThat(entry, valueString('{"k1"=1I, "k2"=null}'));
 assertThat(entry, instanceOf(Entry[].class));
+
+// a Map.Entry variable or cast holds one entry, not an array
+Map.Entry tentry = {"k"=1};
+assertThat(tentry, instanceOf(Entry.class));
+assertThat(tentry.getKey(), equalTo("k"));
+assertThat(tentry.getValue(), equalTo(1));
+Entry tentry = new Entry {"k"=1};
+assertThat(tentry, valueString('"k"=1I'));
+assertThat(tentry, instanceOf(Entry.class));
+entries = new Entry {"k"=1};
+assertThat((Entry) entries, instanceOf(Entry.class));
+assert(isEvalError("Cannot cast Entry[] to Entry",
+    'Map.Entry tentry = {"k"=1, "l"=2};'));
+assert(isEvalError("Cannot cast Entry[] to Entry", 'Entry tentry = {};'));
+assert(isEvalError("Cannot cast Object[] to Entry", '(Entry) {};'));
+entries = new Entry {"k"=1, "l"=2};
+try {
+    entry = (Entry) entries;
+    assert(false);
+} catch ( ClassCastException e ) {
+    assertThat(e.getMessage(), equalTo("Cannot cast Entry[] to Entry"));
+}
+// a one-element array whose element is null holds no entry
+assert(isEvalError("Cannot cast Entry[] to Entry",
+    'Map.Entry tentry = new Map.Entry[1];'));
+try {
+    entry = (Entry) new Entry[] { null };
+    assert(false);
+} catch ( ClassCastException e ) {
+    assertThat(e.getMessage(), equalTo("Cannot cast Entry[] to Entry"));
+}
+// an untyped or Entry[] typed initializer stays an array
+Entry[] tentries = {"k"=1};
+assertThat(tentries, instanceOf(Entry[].class));
+assertThat(new Entry {}, instanceOf(Entry[].class));
+// a one-entry array passed where an entry is expected gives that entry
+one = new Entry {"k"=1};
+two = new Entry {"l"=2};
+class EntryHolder { Object got; EntryHolder(Map.Entry e) { got = e; } }
+assertThat(new EntryHolder(one).got, valueString('"k"=1I'));
+class EntriesHolder { Object got; EntriesHolder(Map.Entry... es) { got = es; } }
+got = new EntriesHolder(one, two).got;
+assertThat(got, instanceOf(Entry[].class));
+assertThat(got[1].getKey(), equalTo("l"));
+Entry[] ones = {one, two};
+assertThat(ones[0], valueString('"k"=1I'));
+assertThat(ones[1].getKey(), equalTo("l"));
+assert(isEvalError("Cannot cast Entry[] to Entry",
+    'new EntryHolder(new Entry {"a"=1, "b"=2});'));
+assert(isEvalError("Cannot cast Entry[] to Entry",
+    'new EntriesHolder(new Entry {"a"=1, "b"=2}, one);'));
 
 
 // variable as key
@@ -218,7 +267,7 @@ assertThat(entries["k"][1], instanceOf(Object[].class));
 assertThat(entries["k"][1][0], instanceOf(Entry.class));
 assertThat(entries["k"][1][0]["k"], equalTo(3));
 entries = (Entry) entries["k"][1];
-assertThat(entries, instanceOf(Entry[].class));
+assertThat(entries, instanceOf(Entry.class));
 assertThat(entries["k"], equalTo(3));
 
 

@@ -29,6 +29,7 @@ import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.lang.reflect.Array;
 
 import bsh.Types.MapEntry;
@@ -243,11 +244,24 @@ class BSHArrayInitializer extends SimpleNode {
             return Primitive.unwrap(
                     Types.castObject(value, baseType, Types.CAST));
         } catch ( UtilEvalError e ) {
-            throw e.toEvalException(
-                "Error in array initializer", this, callstack );
+            throw castFailed(e, "Error in array initializer", callstack);
         }
         // unwrap any primitive, map voids to null, etc.
         return Primitive.unwrap(value);
+    }
+
+    /** A failed cast is the Java exception it names, such as a
+     * ClassCastException; any other error can be caught as an
+     * EvalException.
+     * @param e the cast error
+     * @param msg the message prefix
+     * @param callstack the evaluation call stack
+     * @return the error to throw */
+    private EvalError castFailed(UtilEvalError e, String msg,
+            CallStack callstack) {
+        if ( e instanceof UtilTargetError )
+            return e.toEvalError(msg, this, callstack);
+        return e.toEvalException(msg, this, callstack);
     }
 
     /** Cast the produced array if collection type or return array.
@@ -268,6 +282,9 @@ class BSHArrayInitializer extends SimpleNode {
                (Map.class.isAssignableFrom(valBase) ||
                 Collection.class.isAssignableFrom(valBase))))
             try {
+            // new Entry {...} gives an entry, or an array of entries
+            if ( Entry.class.isAssignableFrom(type) )
+                return BshArray.toEntries(type, value);
             return Types.castObject(value, type, Types.CAST);
         } catch ( UtilEvalError e ) {
             e.toEvalError(this, callstack);

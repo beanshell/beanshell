@@ -679,6 +679,9 @@ class FieldAccess extends Invocable {
         catch (ClassCastException e) { // the value can't convert to the field's type
             throw new InvocationTargetException(e);
         }
+        catch (Error e) { // the class failed to initialize; the JVM wraps only exceptions
+            throw new InvocationTargetException(e);
+        }
         catch (Throwable ite) {
             throw new InvocationTargetException(ite.getCause());
         }
